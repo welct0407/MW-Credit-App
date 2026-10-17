@@ -1,342 +1,172 @@
 # Resource monitoring dashboard — visual guide
 
-Current guide, consolidated **14 October 2026**. Covers deployed Performance, Cost and PWA Platform definitions. [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration; the [alert troubleshooting runbook](Rules/Grafana_Alert_Troubleshooting_Runbook.md) owns incident response. Recorded versions are Performance 41, Cost 15 and PWA Platform 2; see [deployment evidence](../outputs/r055-grafana/continuation.md).
+Covers the deployed Performance, Cost and PWA Platform dashboards. [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, alert rules and recovery; the [alert troubleshooting runbook](Rules/Grafana_Alert_Troubleshooting_Runbook.md) owns incident response. Definitions live in [`infrastructure/grafana/dashboards/`](../../infrastructure/grafana/dashboards/) and are built by [`project/scripts/monitoring/`](../scripts/monitoring/README.md) (deploy and rebuild steps: see the operating reference). Panel IDs are unique within each dashboard; use dashboard, group and ID together.
 
-- [Open Performance](https://monitor.mw-credit.com/d/mw-resource-performance)
-- [Open Cost](https://monitor.mw-credit.com/d/mw-resource-cost)
-- [Open PWA Platform](https://monitor.mw-credit.com/d/mw-pwa-platform)
+- [Performance](https://monitor.mw-credit.com/d/mw-resource-performance) · [Cost](https://monitor.mw-credit.com/d/mw-resource-cost) · [PWA Platform](https://monitor.mw-credit.com/d/mw-pwa-platform)
 
 ## Reading the dashboards
 
-The dashboards display **Singapore time (UTC+8)**. The Performance/Cost links switch pages. The time picker chooses the displayed period; refresh requests new data. The saved Performance page currently uses the last three hours and one-minute refresh; its builder baseline and context-strip caption retain the original six-hour/two-minute defaults. Use the time picker and refresh selector as the active settings. Cost defaults to the current month and refreshes hourly. A refresh does not make provider data arrive sooner.
+- Times are Singapore (UTC+8). Refresh requests new data; it does not make provider data arrive sooner. Defaults are in the operating reference.
+- Large CPU/RAM numbers show the last available sample in the selected range, not an average. VM-01 is not 24x7, so a stale last number does not prove it is online. Charts show gaps, never invented zeroes.
+- Availability lights show health at refresh time, not uptime percentages or history. Most use Debian telemetry (reports older than six minutes are Unknown); the webhook and OpenAI lights do not. Use a range ending now; a historical range can turn a light Unknown. OpenAI always reads current status.
+- Percent, count and throughput labels use whole numbers; cores, GB and money keep precision. A red reference line marks a documented capacity or configuration limit, not a warning threshold. Alerts add no chart lines.
+- Cost data is delayed and provisional; **no data is not zero spending**.
 
-Performance's large CPU/RAM numbers show the **last available sample in the selected range**, not a period average or a guaranteed instantaneous reading. The small line behind each number is its history. Old samples can remain visible when a machine stops: VM-01 is not running 24x7, so its last number alone is not proof that it is currently online. Detailed charts show gaps rather than inventing zeroes. Hover over a chart for sample timestamps and series values; its legend may show the last non-null value and maximum over the selected period.
+| Light | State | Meaning |
+| --- | --- | --- |
+| Green | Healthy | The specific checks pass, limited to what each check tests |
+| Orange | Degraded | Partial failure, provider impairment, overdue completion or excessive runtime |
+| Red | Down | A checked path failed or a required timer stopped |
+| Blue | Paused | The component's activation flag is disabled (intentional) |
+| White | Unknown | Missing or stale telemetry, unavailable check or query error |
 
-Availability lights describe current health at refresh time. They are not uptime percentages or incident history. Most depend on Debian telemetry; the external webhook and OpenAI provider checks do not. Historical date ranges can exclude recent Debian samples and produce Unknown; use a range ending at now for operational checks. OpenAI always retrieves the current published status, regardless of the selected historical range.
-
-Percent/count/throughput labels generally use whole numbers. Fractional CPU cores, GB and money retain useful precision. A red reference line marks a documented capacity/configuration limit, not a universal warning threshold. Green CPU/RAM chart styling does not by itself certify healthy operation. Ten Performance alert rules are documented with mobile push through IRM, including the 26 September backup addition; four evaluate multiple separately labeled tile conditions. Alerts do not alter chart values or add threshold lines.
+If many Debian-backed lights go Unknown together, investigate Debian and its monitoring timer before assuming each service failed.
 
 ## Performance — alerts linked to visuals
 
-The following rules evaluate every two minutes with a rolling ten-minute query window ending at now. They are independent of the dashboard time picker and refresh. **Pending** means the condition must persist before a phone notification. The phone route was tested on 23 September 2026. [Operating alert reference](Resource_Monitoring.md#performance-alerts-and-phone-delivery-23-september-2026) covers ownership, no-data behavior and rollback.
+Ten rules evaluate every two minutes over a rolling ten-minute window ending now, independent of the time picker. Thresholds, labels and no-data policy are in the [operating alert reference](Resource_Monitoring.md#performance-alerts-and-phone-delivery-23-september-2026).
 
-| Visual IDs | Mobile alert condition | Pending | Interpretation |
-|---|---|---|---|
-| 51 | External webhook DEGRADED or DOWN (at least one fresh region failed) | 10 min | Requires all three regional reports within 12 minutes; stale or missing checks stay Unknown and do not page. |
-| 52, 53, 56, 57, 60–67 | See the Debian component mapping below | 4 min | Each component has its own alert instance; fresh Down/Degraded pages. Receipts and polling also page for missing, stale or invalid/Unknown telemetry. Fresh intentional Paused does not. |
-| 80–83, 86 | Metabase platform, application DB, reporting DB, Charts and PITR | 4 min | Five separate instances in one rule; fresh Down or Degraded pages. Unknown, missing and stale telemetry do not trigger a new page. |
-| 84, 85 | Metabase scheduled Daily/Weekly backups | 4 min | Separate instances; missing schedule or overdue scheduled snapshot pages, with first-run grace. See the Metabase traffic-light thresholds below. |
-| 54, 55 | Published ChatGPT or Codex status DEGRADED or DOWN | 10 min | Separate alert instance per product; a non-operational component or active incident in its current product group pages. Unrecognized/missing source data stays Unknown. |
-| 50, 34 | Cloud SQL backend count above **160** | 10 min | Early warning at 80% of configured 200. The red chart line still marks 200; reserved PostgreSQL slots lower ordinary-client capacity. |
-| 4, 31 | Cloud SQL CPU above **85%** | 10 min | Five-minute mean; 85% is an operational warning, while the chart's 100% line is capacity. |
-| 8, 32 | Cloud SQL `database/memory/components` **Usage** above **85%** | 10 min | Uses the Used component, not `database/memory/utilization` or Cache. |
-| 7, 22 | Debian VM Ops Agent `memory/percent_used`, state `used`, above **85%** | 10 min | Used RAM only; other memory states are excluded. |
-| 9, 42 | Railway Metabase used memory above **90% of its corresponding live limit** | 10 min | Uses `100 × MEMORY_USAGE_GB / MEMORY_LIMIT_GB`; allocation changes are reflected in the limit metric. |
-
-The Debian-backed tile-to-component mapping is: 52 Tunnel → `tunnel`; 53 Tailscale → `tailscale_node`; 60 Ingress → `webhook_local`; 56 Native operational API → `oltp`; 57 Native analytical API → `olap`; 61 Converse → `conversations`; 62 Receipts → `receipts`; 63 IG polling → `polling`; 64 Daily jobs → `daily_jobs`; 65 Database → `database`; 66 Audit relay → `audit_relay`; 67 Codex ready → `codex_ready`. R055 retains the `oltp`/`olap` metric labels for existing alert compatibility; the replacement probes concern native logical scopes, not AppSheet. Each is evaluated separately, even though one Grafana rule hosts all 12 instances. SQL connections (50) and OpenAI (54–55) and the external webhook (51) complete the 16 tile conditions.
-
-These values are alert thresholds, not newly configured subscription/resource limits. Azure VM-01 has no uptime push rule because it is intentionally not 24x7. Receipts/polling Unknown or stale telemetry pages; the Debian rule also alerts on no-data/query errors. Other rules retain their previous missing-data policy. The external webhook, local ingress and other Debian components may all alert during one incident; their separate labels show which checks failed.
-
-Panel IDs below are maintenance references, unique **within each page**. Names repeat in some detailed sections, so use the page, section and ID together.
-
-## Performance — context and grouping
-
-| ID | Visual | Meaning |
+| Visual IDs | Alert condition | Pending |
 |---|---|---|
-| 1 | Azure · GCP · Railway · SGT · 2m and status legend | Static context and light-color key. The text itself is not a monitoring signal. |
-| 70 | CONNECTIVITY | Groups the public entry point and Debian network/receiver checks. |
-| 71 | APPS & OPENAI | Groups native operational/analytical API probes and two published OpenAI service checks. |
-| 72 | AGENT WORKFLOWS | Groups scheduled business-worker health on Debian. |
-| 73 | DATA & RUNTIME | Groups SQL connections, database access, audit relay and local Codex readiness. |
-| 74 | METABASE · LIVE | Platform, application database, reporting connection and Charts, right side of row 3. |
-| 75 | METABASE · RECOVERY | Scheduled Daily/Weekly backups and PITR archive, right side of row 4. |
-
-These seven labels are vertically centered in slim strips. The values in the 23 small status/data tiles are horizontally centered beneath their labels, including the later Metabase Recovery additions. Component icons are Unicode pictograms, not official vendor logos. The four expandable detail headers identify Azure VM-01 (ID 10), the GCP Debian VM (20), shared Cloud SQL (30), and Railway production (40); they organize charts and do not report health themselves.
-
-## Performance — CPU and RAM overview
-
-The same four resources appear in matching columns, CPU first and RAM directly below.
-
-| ID | Visual | What the number means | How to interpret it |
-|---|---|---|---|
-| 2 | Azure VM · CPU | Azure VM-01 Percentage CPU, averaged over each provider interval. | Percentage of VM CPU capacity; 100% is capacity. Inspect sustained load in the Azure detail chart. |
-| 3 | GCP VM · CPU | CPU utilization of `vm-mw-credit-agent`, displayed as a percentage. | Debian VM compute load; 100% is the utilization reference. |
-| 4 | Cloud SQL · CPU | CPU utilization of `mw-credit-pg-20261017`. | Instance-wide load shared by its databases, including DEV/PROD workloads; not one app's CPU. |
-| 5 | Metabase · CPU cores | Railway Metabase CPU usage in cores. | **1.00 means one core**, not 1%. Compare with Metabase's live limit in the Railway CPU chart. |
-| 6 | Azure VM · RAM used | `100 − Available Memory Percentage`. | Used percentage is derived from Azure's available-memory metric. The detailed Azure memory chart shows the opposite quantity: available memory. |
-| 7 | GCP VM · RAM used | Ops Agent memory `percent_used`, filtered to the `used` state. | OS-reported used memory; inspect the detailed VM chart for trend. |
-| 8 | Cloud SQL · RAM used | `database/memory/components`, component **Usage**, labeled Used. | Excludes the separately reported Cache and Free components. It does **not** use `database/memory/utilization`; that metric's former 100% reading was not proof of memory pressure. |
-| 9 | Metabase · RAM used | `100 × MEMORY_USAGE_GB / MEMORY_LIMIT_GB`, using the corresponding latest limit at each usage sample. | Percentage of the service's Railway memory allocation. The detailed chart shows the GB quantities and changing limits. |
-
-## Performance — status-light rules
-
-| Light | State | Meaning |
-|---|---|---|
-| 🟢 | Healthy | The specific checks described below pass. This is limited to what each check tests. |
-| 🟠 | Degraded | Partial failure, provider impairment, overdue worker completion or excessive runtime, depending on the component. |
-| 🔴 | Down | A checked service/path failed or a required timer stopped. |
-| 🔵 | Paused | A supported component's existing activation flag is disabled. It is intentionally inactive. |
-| ⚪ | Unknown | Missing/stale telemetry, an unavailable check or query error. It is neither healthy nor necessarily down. |
-
-Debian collects every two minutes. Reports older than **six minutes** become Unknown. A failed or stale query may also show Grafana's panel error indicator. If many Debian-backed lights become Unknown together, investigate Debian and its monitoring timer/export before assuming every business service failed independently. Monitoring does not depend on the intermittently running Azure VM.
-
-### Connectivity
-
-| ID | Tile | Check and interpretation |
-|---|---|---|
-| 51 | 🔗 Webhook | GCP checks `https://hooks.mw-credit.com/instagram` every five minutes from Singapore, Belgium and Oregon. Valid HTTPS, HTTP 403 and the receiver's `Forbidden` answer to an unsigned GET are required. All three fresh results pass → Healthy; mixed pass/fail → Degraded; all fail → Down. Fewer than three recent results → Unknown, with a 12-minute freshness allowance. This tests public reachability without submitting a business webhook. |
-| 52 | ☁ Tunnel | Debian's Cloudflare tunnel process and HA connection count. Active process with at least four connections → Healthy; one to three → Degraded; zero or inactive process → Down. Missing connection metrics → Unknown. This complements the external Webhook check. |
-| 53 | 🛡 Tailscale | Debian reports Tailscale Running and its own node Online, with no health warnings. Warnings → Degraded; not Running/Online → Down. This is **node health**, not a connection test from another Tailscale device. |
-| 60 | 📥 Ingress | Local receiver `/health` returns the expected response on Debian. Disabled receiver flag → Paused. It checks the local HTTP receiver, not public routing or successful processing of a real message. |
-
-### Apps & OpenAI
-
-| ID | Tile | Check and interpretation |
-|---|---|---|
-| 56 | 📱 Native operational API | Debian invokes `native-api-probe --scope oltp`: exact native machine policy/catalogue and a key-only Partners read limited to one row. Success must match the pinned manifest, scope and authenticated result; no AppSheet fallback or business write. Native API explicitly disabled → Paused; missing activation configuration or missing/stale report → Unknown; malformed configuration, wrong PROD environment/origin/audience, authentication failure or malformed proof → Down. This does not prove browser history/clicks or every workflow. |
-| 57 | 📊 Native analytical API | The equivalent separate native `olap` logical-scope probe. Passing one scope does not substitute for the other or prove all report calculations. Existing independent SQL health still checks database connectivity. |
-| 54 | 💬 ChatGPT | Reads the current ChatGPT product group and matching active incidents from OpenAI's status website. Hover the centered light for the incident explanation; click/tap it to open the official incident or status page. It does not test this user's login, subscription or an actual conversation. |
-| 55 | ⌘ Codex | Reads the current Codex product group and matching active incidents, with the same hover/click behavior. Independent of Debian; does not test this user's quota or model execution. Compare with **Codex ready**, which checks the local runtime instead. |
-
-For both OpenAI tiles, no affected component or active incident → Healthy; a full/major outage → Down; another non-operational component or active incident → Degraded. Resolved/closed incidents are excluded. Missing groups, unrecognized component states, wrong website identity or an incomplete response → Unknown. Request errors show the error indicator; inspect it rather than assuming a provider outage.
-
-Hover directly over the light to see a native browser tooltip: product/state, each active incident's title and stage, latest published explanation, update time in **SGT**, incident URL, and the last successful query's **Checked** time. Multiple incidents are separated by blank lines. Healthy reads **No active incident reported**; an affected component without a published incident says no explanation is available yet. Checked time is retrieval time, not the incident's update time. Refresh updates the content. This is current status, not the historical daily hover shown on OpenAI's website. Native tooltip styling/size depends on the browser; touch devices can tap the light for the official detail page instead of relying on hover. When several incidents exist, the click opens the newest incident and the hover lists them all.
-
-### Agent workflows
-
-These checks inspect timers, last process result and runtime. **An idle one-shot service is normal between scheduled runs.** Healthy does not mean it is continuously executing, that the business backlog is empty, or that every business output has been independently reconciled. Monitoring does not start the workers.
-
-| ID | Tile | What is checked | Current overdue/runtime bounds |
-|---|---|---|---|
-| 61 | 🗨 Converse | Partner conversation worker timer and completion/result; disabled conversation flag → Paused. | Last completion within 3 minutes when idle; active run within 21 minutes. |
-| 62 | 🧾 Receipts | Receipt timer/result plus read-only queues, reviews, posting and delivery checks; disabled receipt flag → Paused. | Idle completion within 3 minutes; active run within 10 minutes. Queue thresholds below also affect health. |
-| 63 | 📷 IG polling | Instagram group-chat scanner timer/result; hover shows last scan completion, observed Running/Idle and observation time in SGT. Disabled polling flag → Paused. | Runs five minutes after completion plus timer delay. Last completion within 10 minutes when idle; active run within 10 minutes. Timing updates about every two minutes and becomes Unknown after six minutes. |
-| 64 | 📅 Daily jobs | Combined cash-statement and email-retry timers/results; disabled schedule flag → Paused. A failing member cannot be hidden by a healthy member. | Cash statement: 25 hours idle / 1 hour running. Email retry: 10 minutes idle / 10 minutes running. |
-
-An inactive required timer or failed process result is Down. Exceeding these timing bounds is Degraded; unavailable unit state is Unknown. These are monitor tolerances, not a description of the actual job schedules. The daily first-run exception uses the existing collector's Bangkok clock; Singapore dashboard display does not reschedule jobs.
-
-### Data & runtime
-
-| ID | Tile | What it means |
-|---|---|---|
-| 50 | 🛢 SQL / 200 | Numeric connection count, not a light. Last interval-average backend count summed across the shared Cloud SQL instance. **200** is the configured `max_connections` limit verified on 22 September 2026; the number turns red at that limit. Reserved PostgreSQL slots reduce ordinary-client capacity, and averaged samples may hide brief peaks. The sparkline shows the selected-period trend. |
-| 65 | 🗄 Database | Debian's Cloud SQL auth proxy is active and read-only `SELECT 1` succeeds against both agent-state and business-reporting database connections. This checks access, not query performance, data correctness or every database/table. |
-| 66 | 📋 Audit relay | Required timer plus latest completed job and bounded backlog/central-intent inspection. RUNNING cannot clear a completed failure; missing completion/inspection failure or missing intent >30 sec is Down. Successful completion, running duration or backlog age >180 sec is Degraded. Numeric evidence reports backlog/oldest age/missing intents; no borrower/payment labels. |
-| 67 | ⚙ Codex ready | Local Codex executable responds and login-status succeeds using the configured runtime home. It sends no model prompt and proves neither inference success nor available quota. The disabled browser worker remains disabled. |
-
-## Performance — detailed charts
-
-### Azure · VM-01 · Southeast Asia
-
-| ID | Visual | Interpretation and references |
-|---|---|---|
-| 11 | CPU utilization | CPU percentage history; 100% capacity reference. Same source as overview 2. |
-| 12 | Available memory | Remaining available RAM as a percentage, unlike the Used overview. Lower means less available; exhaustion reference is **0%**. |
-| 13 | Network transfer per interval | Received and sent **bytes per aggregation interval**, not bytes/second. Intervals: 5 minutes for ranges up to 2 days, 1 hour up to 14 days, 1 day beyond that. Changing range changes bucket size, so compare like-for-like intervals. No arbitrary network cap is drawn. |
-| 14 | OS disk throughput | Read/write bytes per second. The 100 MB/s reference is the configured disk baseline, shared across reads and writes, not a separate allowance for each line. Burst/cache/VM behavior can affect effective throughput. |
-
-### GCP · vm-mw-credit-agent · Singapore
-
-| ID | Visual | Interpretation and references |
-|---|---|---|
-| 21 | CPU utilization | VM CPU percentage history and 100% capacity reference; same source as overview 3. |
-| 22 | Used memory | Ops Agent used-memory percentage and 100% reference; same source as overview 7. |
-| 23 | Network throughput | Received/sent byte counters converted to rates in bytes/second and summed across returned series. No directly comparable configured hard ceiling is shown. |
-| 24 | Disk throughput | Read/write byte counters converted to bytes/second and summed across returned series. This is throughput, not disk fullness or latency; no arbitrary cap is shown. |
-
-### GCP · Cloud SQL · mw-credit-pg-20261017
-
-All four charts concern the **shared instance**, not an isolated DEV or PROD database.
-
-| ID | Visual | Interpretation and references |
-|---|---|---|
-| 31 | CPU utilization | Instance CPU percentage history and 100% capacity reference. |
-| 32 | Memory components | **Used, Cache and Free** percentages from `database/memory/components`. Used maps to the provider's case-sensitive Usage label. Cache is separate from Used; the components together describe memory allocation. The 100% line denotes total capacity, not an alarm that cache is harmful. |
-| 33 | Storage utilization | Used storage as a percentage of current allocated disk. Allocation was 10 GB at inspection, with auto-resize enabled. The 100% reference is relative to current allocation, not a fixed lifetime storage budget. |
-| 34 | Database connections · limit 200 | Interval-average backend count, summed across databases, with the configured instance-wide 200 reference. Reserved slots and short peaks matter; see overview 50. |
-
-### Railway · MW Credit Metabase · production
-
-| ID | Visual | Interpretation and references |
-|---|---|---|
-| 41 | CPU usage · cores | Metabase and Postgres CPU usage, plus each service's live `CPU_LIMIT` dashed series. Units are cores. Limits follow actual changes over time rather than a fixed shared assumption. |
-| 42 | Memory usage · GB | Metabase and Postgres used memory plus their separate live `MEMORY_LIMIT_GB` dashed series. Compare each usage line with its matching service limit. |
-| 43 | Persistent volume usage · GB | Railway Postgres volume usage and the verified 5 GB allocation reference. Metabase has no attached persistent volume and is omitted. This is persistent disk, not RAM and not GCP Cloud SQL storage. |
-
-Fixed limits must be rechecked after configuration changes. Live Railway CPU/memory limit series update with provider telemetry. These charts do not imply that every resource has an enforced limit or that a subscription fee is a spending cap.
-
-## Cost — scope and reading rules
-
-Cost is delayed, provisional provider data. **No data is not zero spending.** The top overview converts all available costs to SGD; the detailed sections retain Azure/Railway USD and GCP SGD. There is no forecast. Azure/GCP follow the selected range; Railway always uses its current billing cycle. VM shutdown does not imply all associated storage/backup costs stop.
-
-### SGD total, platform cards and stacked breakdown
-
-The larger yellow total card sits on the left. Its three contributing platform cards sit across the right, above a shorter stacked bar. Matching blue/orange/purple colors connect each platform card to its bar segment. The overview retains its previous overall height; the bar is reduced from seven to three grid units to make room. Cards reuse the bar's converted results rather than issuing extra provider queries.
-
-| ID | Visual | Meaning and use |
-|---|---|---|
-| 4 | TOTAL · SGD | Large yellow SGD number: sum of the three available platform amounts. Its subtitle says Available costs only; the coverage warning below explains that missing platform data makes the total incomplete. It is complete only when all platforms report; no common-period invoice reconciliation is implied. |
-| 5 | Azure · SGD | Large blue SGD number for the two monitored Azure resource groups, converted from USD. Follows the selected date range. |
-| 6 | GCP · SGD | Large orange net SGD amount after credits. No data stays unavailable, never a fabricated zero. Follows the selected date range. |
-| 7 | Railway · SGD | Large purple SGD amount converted from workspace accrued USD usage. Follows Railway's billing cycle, not the date picker. |
-| 2 | Platform breakdown · SGD | Compact horizontal stacked bar: **Azure** (blue), **GCP** (orange), **Railway** (purple). Azure's two monitored resource groups are added in USD then converted; GCP uses net SGD after credits; Railway's accrued workspace USD is converted. Numbers and matching platform colors appear in the cards above and hover values. Axes and the repeated legend are hidden to keep the short bar readable. Missing GCP contributes no visible segment and is not claimed to be zero. Negative net costs remain negative. |
-| 3 | Conversion and coverage · missing platform means incomplete total | Shows **Subtotal (SGD)**, **SGD per USD**, the **FX reference date**, live GCP cost-row availability and the **Railway cycle in Singapore dates**. Check this before treating the bar/subtotal as complete. GCP Unavailable can mean first export is pending or no cost rows exist in the selected range. A query failure is shown by Grafana's error indicator; incomplete data must not be treated as a fully reconciled total. |
-
-Conversion uses the latest daily **ECB USD/SGD reference rate via [Frankfurter](https://frankfurter.dev/)**, fetched on dashboard refresh. The table reports the rate/date actually used. USD amounts are multiplied by the rate at full precision and displayed to two decimals. It is an indicative current-reference conversion, not transaction-date FX, card fees or the final invoice settlement amount. Historical date-picker ranges still use the latest reference rate. Invalid rates, unexpected source currencies and FX older than seven days are rejected rather than silently converted.
-
-**Period caveat:** the bar combines Azure/GCP selected-range costs with Railway's independently dated billing cycle. It is a consolidated view of reported amounts, not a reconciled common-calendar-period invoice. Changing the date picker changes Azure/GCP but not Railway; the coverage table keeps the Railway dates visible. The three original detail sections remain available for native-currency reconciliation.
-
-| ID | Visual | Meaning |
-|---|---|---|
-| 1 | Cloud spending | Static guide to currencies, selected-date versus current-cycle behavior, provider delay and hourly refresh. |
-| 10 | Azure section header | Groups costs for VM-related resources and backup. |
-| 20 | GCP section header | Groups detailed billing export with credits shown separately. |
-| 30 | Railway section header | Groups workspace usage for the current billing cycle. |
-
-### Azure
-
-Scope is provider ActualCost for **rg-mwcredit and rg-backup** in the configured subscription, not all subscription spending. Daily buckets retain Azure's UTC date and appear at 08:00 Singapore.
-
-| ID | Visual | Meaning and use |
-|---|---|---|
-| 102 | Azure · selected-range cost | Sum of returned resource costs over the selected period, in USD. Includes eligible disks/network/monitoring/backup records, not only VM compute. |
-| 103 | Azure · daily cost | Total by provider date. Use it to locate changes in daily spending; labels use whole dollars, while monetary summaries retain cents. |
-| 104 | Azure · cost by resource (USD) | Selected-period totals grouped by returned resource name, sorted highest first. Identifies cost contributors. The query extracts the last segment of the resource ID; identically named resources can combine. |
-| 101 | Azure · daily resource detail (USD) | Source table: Date, Resource, Cost and Currency, **newest date first**. Supplies the other Azure cost visuals and lets you trace their totals to daily rows. It is not a final invoice. |
-
-### GCP
-
-The query reads the dedicated detailed billing export, restricted to project `clever-oasis-508610-n7`, and groups usage by Singapore date. **Net = Gross + Credits**, with credits normally negative.
-
-The three GCP totals and detail-table monetary values display **S$** with two decimal places, matching the top SGD summary cards. Negative credits retain their minus sign (for example, `S$-6.61`). The display format does not change the exported amounts or convert GCP's already-SGD values again.
-
-| ID | Visual | Meaning and use |
-|---|---|---|
-| 202 | GCP · before credits (SGD) | Gross usage cost before the credits included in the export. |
-| 203 | GCP · credits (SGD) | Sum of exported credits, normally negative. This is not a remaining free-credit balance or available budget. |
-| 204 | GCP · net cost (SGD) | Gross plus credits. Example: SGD 20 gross and SGD −5 credits gives SGD 15 net. |
-| 205 | GCP export status | **Static explanatory text**, not a live exporter-health probe. Records the 22 September enablement date and explains that charges may be fully offset by credits and recent days may arrive late. It is not proof of a fresh delivery. |
-| 207 | GCP · by resource (SGD) | Selected-range **net cost** grouped by service and exported resource, largest first. Resource names can be Unallocated / service-level when the export has no resource attribution. Fully credited rows can show S$0.00 despite positive gross usage. |
-| 206 | GCP · daily cost and credits (SGD) | Three S$ series by Singapore usage date: gross charges, normally negative credits, and net = gross + credits. Showing all three makes credited usage visible even when net is zero; monetary axis/hover retain cents. Recent export data can lag. |
-| 201 | GCP · daily resource detail | Service, date, gross, credits, net, currency and resource detail, **newest date first**. Missing resource attribution appears as Unallocated / service-level. Supplies the other GCP visuals. |
-
-The dashboard discovers the billing export table automatically. Missing delivery shows Awaiting first billing export / No data rather than zero. If records exist but data fails, inspect the panel error. The query rejects incomplete/truncated results and has a 100 MB billed-query cap; a shorter range may be necessary. Exported costs are not a final reconciled invoice.
-
-### Railway
-
-Cost scope is **the workspace**, potentially broader than the Metabase/Postgres services shown on Performance. Changing the date picker does not turn these into historical-period totals.
-
-| ID | Visual | Meaning and use |
-|---|---|---|
-| 302 | Railway · accrued resource usage | Workspace `customer.currentUsage` in USD for the current billing cycle. It is not the final payable bill. |
-| 301 | Railway · billing period and accrued usage | Workspace, plan, usage USD, billing start/end and currency. Use the period dates to understand what the number covers. |
-| 303 | How to read Railway cost | Explains cycle-based usage versus invoice treatment of plan fees, included usage, credits and adjustments; links to Railway usage. |
-| 304 | Railway · by resource (USD est.) | Current-cycle **estimate** grouped by service, highest first, from Railway usage units. CPU vCPU-minutes × $0.0004632, RAM GB-minutes × $0.0002316, volume GB-minutes × $0.0000036 and egress GB × $0.05. Removed/unknown services remain visible; unassigned volumes are separate. This may differ from the accrued usage card and the final invoice. |
-| 305 | Railway · estimated daily compute + volume (USD) | Selected dates within the **current billing cycle**, grouped by Singapore date. Each hourly CPU/RAM/volume sample is multiplied by its published per-second rate and 3,600 seconds, then summed for that day. Shows cents. It omits egress, plan fees, included usage, credits and unsampled intervals, so it is an estimate rather than a billing ledger. |
-
-Railway's API supplies a current-cycle usage breakdown by service, but no daily cost ledger for this workspace. The daily chart is calculated from hourly metrics and does **not** reconcile to `customer.currentUsage`; retain the official accrued total above it for reference. Railway rates were checked against [published pricing](https://docs.railway.com/pricing/plans) on 25 September 2026 and must be revisited if Railway changes pricing. Azure and GCP retain their provider-native daily costs; the three sections therefore have similar resource/daily visuals but different accounting precision.
-
-## Maintaining this guide
-
-**Standing owner instruction:** update this guide in the same change batch whenever either resource dashboard changes. It is part of dashboard completion, not an optional follow-up.
-
-For each added, removed, renamed, regrouped or materially reformatted visual, update its entry and panel ID. For metric/probe changes, update scope, formula, units, freshness, state mapping and limitations. Update verified fixed limits and their verification dates after relevant resource changes. Keep live-limit behavior distinct from fixed snapshots, static instructions distinct from live status, and dated observations distinct from current verification.
-
-Compare panel coverage against current adopted definitions, including row 5 and PWA Platform additions; do not use an earlier builder baseline as the live panel count. Keep deployment/recovery in the operating reference and record changes in the owning change log.
-
-Sources for this guide: [dashboard builder](../scripts/monitoring/Build-Dashboards.ps1), [query helpers](../scripts/monitoring/Query.Helpers.ps1), [Debian health checks](../scripts/monitoring/debian-health.py), [saved dashboard definitions](../outputs/resource-monitoring-20260922/) and the [operating reference](Resource_Monitoring.md). This documentation update did not change or re-audit live services.
-
-### IG polling completion hover (24 September 2026)
-
-Panel 63 uses the numeric worker timing metric for its native mouse hover while retaining the centered label and traffic light. Last scan completion is the process exit time (including scans with no new images or failed runs); check the light for health. It is not the downstream Receipts worker completion or proof that a payment was posted. The separate Receipts worker keeps its existing 20-second interval. The scanner uses five minutes after completion, not fixed wall-clock five-minute slots. No next-run time is promised while a scan is running. Times are SGT; observation and normal dashboard refresh can lag the worker. Missing, mismatched or stale timing fields show Unavailable rather than an invented timestamp. Clicking the light opens Performance.
-
-## Metabase traffic lights — panels 80–86
-
-Twenty-three tiles fit into the existing two availability rows: the original four groups retain their 16 tiles, and Metabase has four equally sized **Live** tiles in the upper row and three equally sized **Recovery** tiles in the lower row. Metabase uses the rightmost eight grid columns in each row. Heights, centered traffic lights and CPU/RAM/detail sections stay unchanged.
-
-| ID | Tile | Exact check | Limits and caveats |
-|---|---|---|---|
-| 80 | Platform | HTTPS `reports.mw-credit.com/livez`, HTTP 200 and JSON status ok. | Metabase liveness and public route. Does not check browser rendering or a user's session. |
-| 81 | App DB | HTTPS `/readyz`, HTTP 200 and JSON status ok. | Metabase readiness includes the Railway application database connection. Also depends on platform/route availability; not an isolated PostgreSQL host probe. |
-| 82 | Reporting DB | Uncached saved question 276 runs `SELECT 1 AS healthy` through Metabase source 2. | Confirms the configured Metabase → proxy → reporting database connection. Accepts HTTP 200/202 only with completed status and exactly `[[1]]`; does not certify every report's grants or business calculations. |
-| 83 | Charts | HTTPS `charts.mw-credit.com` returns the expected chart shell; unauthenticated `/api/matrix` returns 401. | Confirms route/service and authentication guard. Does not retrieve borrower data, check the authenticated chart query, or certify browser rendering. Actual hostname is plural `charts`. |
-| 84 | Daily backup | Railway Daily schedule and its latest **scheduled** completed volume snapshot. | Green through 30 hours after the snapshot, amber through 36 hours, then red. Missing schedule is red. Before the first scheduled run, Unknown lasts up to 30 hours from schedule creation; after that it is red. Manual snapshots do not count. Hover shows cron in UTC, latest snapshot in SGT and retention. |
-| 85 | Weekly backup | Railway Weekly schedule and its latest **scheduled** completed volume snapshot. | Green through 8 days after the snapshot, amber through 9 days, then red. Missing schedule is red. Before the first scheduled run, Unknown lasts up to 8 days from schedule creation; after that it is red. Manual snapshots do not count. Hover shows cron in UTC, latest snapshot in SGT and retention. |
-| 86 | PITR archive | Debian runs Railway's official Postgres PITR status probe over SSH and exports numeric pgBackRest/WAL-archiver telemetry. | Green requires PITR enabled, bucket wired, at least one backup set, WAL coverage, healthy archiver and latest archive within 30 minutes. Amber means 30–60 minutes; older archive or failed prerequisites is red. Missing access/probe/coverage or telemetry older than six minutes is Unknown. Hover shows the latest archive time and lag. |
-
-The four **Live** checks run concurrently from Debian about every two minutes. Green means the expected result within five seconds; amber means a passing probe took longer than five seconds; red means a failed/unexpected response or network timeout. Five seconds is an operational warning, not a provider limit. Probe credentials/rate failures (401/403/429) and unexpected probe errors are Unknown. Missing telemetry or telemetry older than six minutes is also Unknown. HTTP 202 for a completed Metabase query is normal. Live hover shows the check, result category, HTTP code, duration and observed time in Singapore. The two backup lights query Railway directly; the PITR light uses Debian telemetry. Clicking opens the respective service. A listed snapshot and a healthy PITR archive do **not** verify that a restore succeeds.
-
-The four Live tiles and PITR tile share `MW | Metabase component unhealthy`; Daily and Weekly share `MW | Metabase scheduled backup unhealthy`. Each rule evaluates its components separately every two minutes and sends firing/resolved notifications through the existing IRM phone route after a four-minute pending period. Fresh Down/Degraded starts an alert; a backup schedule missing/overdue starts an alert after the first-run grace. Missing/stale PITR telemetry or Unknown does not start a new alert; query errors keep the previous rule state, so inspect rule health if collection stops. A Debian outage makes Live and PITR Unknown even if Metabase remains available. The Metabase Live rule preserved the established rules; the documented total is ten. Receipt monitoring uses the existing Debian rule.
-
-
-## Payment processing — Instagram to recorded payment
-
-This second group follows the overview and precedes infrastructure charts. Eight panels (101–108; classic row 100) show the separate processing stages. Data comes from the existing Debian collector every two minutes. The API scan and receipt workflow have separate health indicators; no healthy average hides a failed stage.
-
-| ID | Visual | Measures and interpretation |
-| --- | --- | --- |
-| 101 | 1 · Group scanning | API polling status light and **Last scan · SGT** completion time in the same tile (day, month and 24-hour time). Hover the status for running/idle, schedule and observation details. The time uses the matching fresh worker-timing sample; missing, invalid or older-than-six-minute timing shows **Unavailable**, never an old completion as if current. Completion includes empty scans and does not prove a payment was posted or that Meta exposed every group message. |
-| 102 | Pipeline health | Receipt workflow: Down/red, Healthy/green, Degraded/orange, Paused/blue, Unknown/gray. Degraded can mean an overdue review while the worker is running normally. |
-| 103 | 2 · Receipt extraction | Images waiting (count), oldest wait (seconds, humanized), stalled work (count). Ordinary queues are blue; stalled work above zero is red. |
-| 104 | 3 · Validation | Ready to route, manual holds, unnotified holds (counts). Notified holds remain visible in blue; unnotified holds above zero are red. Holds require investigation and are not executable approval requests. |
-| 105 | 4 · Reviewer decisions | Awaiting reply and overdue >2h (counts). Normal waiting is blue; overdue above zero is red. Approval must directly reply to the correlated IG request; email cannot approve. |
-| 106 | 5 · Payment posting | Awaiting posting, unconfirmed outcomes, retained POSTED total. Unconfirmed above zero is red: reconcile; do not retry Add. The retained total is neither today's count nor a selected-period sum. |
-| 107 | 6 · Notification failures | Partner results, hold alerts, review requests undelivered over five minutes (counts); zero green, positive red. IG first/email backup. Acceptance does not prove reading; one recipient's success does not mask another's failed result. Counts may overlap other cards. |
-| 108 | Queue length over time | Pending images, manual holds, awaiting review and unconfirmed posting over the selected range. Snapshot gauges, not additive throughput. Gaps exceeding six minutes break lines; no interpolation or zero-fill. History begins at activation on 25 September. |
-
-Queue values must share the newest status sample timestamp. Missing, invalid, mismatched, paused, older-than-six-minute or more-than-two-minute-future samples show **Unavailable**, never a healthy zero. Invalid health shows Unknown. Current cards follow the selected range; a historical range excluding fresh samples is unavailable, as each description explains. Use a range ending now. Provider/query failures display an error rather than fabricated counts.
-
-Stalled work: PENDING/VALIDATED older than ten minutes, REVIEW_REQUESTED without a proposal older than five minutes, or APPROVED older than ten minutes. Missing required hold/review delivery becomes unhealthy after five minutes. Since worker revision 25 (2 October), optional Partner-result delivery failures remain visible in panel 107 but do not degrade receipt processing; green Receipts does not prove all confirmations were delivered. The [operating correction](Resource_Monitoring.md#receipt-processing-versus-optional-notification-health--2-october-2026) records pending live text alignment. PENDING review older than two hours is overdue. POSTING/UNKNOWN is unhealthy immediately, subject to collection and the alert's four-minute pending period. Ages use existing creation timestamps, not exact time in each sub-stage. Already notified manual holds alone do not degrade health.
-
-The existing Debian rule, evaluated every two minutes with four-minute pending, carries these findings to **MW Performance IRM**. Missing/stale/Unknown receipt or polling telemetry also alerts; no-data and execution errors enter Alerting. Other Debian components retain fresh Down/Degraded checks. Intentional fresh Paused does not page. Monitoring only observes: it never posts, approves, replays or clears business work.
-
-
-A current AI Reviewer can directly reply **Reject** or **No** (case insensitive) to a held-receipt notification. The dismissed receipt leaves Manual holds after the next sample; history is retained. Existing `failed_notifications`/Partner results also counts missing or undelivered hold-reply acknowledgements to the deciding reviewer. This uses the original receipt age threshold, so an old hold's acknowledgement can briefly be pending until dispatch completes.
-
-
-### Operator and relay state
-
-V58 operator/relay hardening and the canonical executor/relay modules are applied in both DEV and PROD; legacy operator SQL dispatch is denied. Audit relay semantics are in the tile definition above and the [verified deployment/rollback record](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Uncertain outcomes remain reconciliation-only.
+| 51 | External webhook DEGRADED or DOWN (needs all three regional reports within 12 minutes; otherwise Unknown, no page) | 10 min |
+| 52, 53, 56, 57, 60–67 | Debian component fresh Down or Degraded; receipts and polling also page on missing, stale or Unknown; Paused does not | 4 min |
+| 80–83, 86 | Metabase Platform, App DB, Reporting DB, Charts, PITR fresh Down or Degraded | 4 min |
+| 84, 85 | Metabase Daily or Weekly scheduled backup missing or overdue (first-run grace) | 4 min |
+| 54, 55 | ChatGPT or Codex status DEGRADED or DOWN | 10 min |
+| 50, 34 | Cloud SQL backend count above 160 (of 200) | 10 min |
+| 4, 31 | Cloud SQL CPU above 85% (five-minute mean) | 10 min |
+| 8, 32 | Cloud SQL memory components Usage above 85% | 10 min |
+| 7, 22 | Debian VM `memory/percent_used` (state `used`) above 85% | 10 min |
+| 9, 42 | Metabase memory above 90% of its live limit | 10 min |
+
+Tile to Debian component: 52 `tunnel`; 53 `tailscale_node`; 60 `webhook_local`; 56 `oltp`; 57 `olap`; 61 `conversations`; 62 `receipts`; 63 `polling`; 64 `daily_jobs`; 65 `database`; 66 `audit_relay`; 67 `codex_ready`. Each is its own alert instance.
+
+## Performance panel inventory
+
+Layout: row 1 CPU cards, row 2 RAM cards, rows 3–4 the 23 availability and data tiles (groups Connectivity, Apps & OpenAI, Agent workflows, Data & runtime on the left; Metabase Live and Recovery on the right), then Payment processing, row 5 bridge/uptime, and four collapsible detail sections. Group headers (IDs 70–75, 1) and section headers (10, 20, 30, 40) carry labels only. Tile icons are Unicode pictograms.
+
+| Group | ID | Panel | What it shows | Source / query family | Limit / threshold |
+| --- | --- | --- | --- | --- | --- |
+| Overview | 2 | Azure VM CPU | Percentage CPU of VM-01 | Azure Monitor | 100% capacity |
+| Overview | 3 | GCP VM CPU | CPU utilization of `vm-mw-credit-agent` | Cloud Monitoring | 100% |
+| Overview | 4 | Cloud SQL CPU | Instance-wide CPU, shared by DEV and PROD | Cloud Monitoring | 100%; alert 85% |
+| Overview | 5 | Metabase CPU cores | Railway CPU in cores (1.00 is one core) | Railway GraphQL | Live `CPU_LIMIT` |
+| Overview | 6 | Azure VM RAM used | `100 − Available Memory Percentage` | Azure Monitor | Detail chart 12 shows the opposite quantity |
+| Overview | 7 | GCP VM RAM used | Ops Agent `percent_used`, state `used` | Cloud Monitoring | Alert 85% |
+| Overview | 8 | Cloud SQL RAM used | `database/memory/components` Usage (not `memory/utilization`) | Cloud Monitoring | Alert 85% |
+| Overview | 9 | Metabase RAM used | `100 × MEMORY_USAGE_GB / MEMORY_LIMIT_GB` at each sample | Railway GraphQL | Alert 90% |
+| Connectivity | 51 | Webhook | Public `https://hooks.mw-credit.com/instagram` from Singapore, Belgium, Oregon: HTTPS, 403, body `Forbidden` | GCP uptime check | All 3 pass Healthy; mixed Degraded; all fail Down; fewer than 3 in 12 min Unknown |
+| Connectivity | 52 | Tunnel | Debian Cloudflare tunnel process and HA connections | Debian collector | 4 connections Healthy; 1–3 Degraded; 0 or inactive Down |
+| Connectivity | 53 | Tailscale | Debian node Running/Online, no health warnings | Debian collector | Warnings Degraded; not Running/Online Down; not a peer test |
+| Connectivity | 60 | Ingress | Local receiver `/ready` 200 with `ready: true` and a `code_version` | Debian collector | Disabled flag Paused; not public routing |
+| Apps & OpenAI | 56 | Native operational API | `native-api-probe --scope oltp`: catalogue plus one-row key-only Partners read | Debian collector | Disabled Paused; missing or stale Unknown; auth, environment or origin failure Down; no write |
+| Apps & OpenAI | 57 | Native analytical API | Same probe for `olap`; one scope does not stand for the other | Debian collector | As 56 |
+| Apps & OpenAI | 54 | ChatGPT | Product group and active incidents from OpenAI's status website; hover gives incident, SGT update and Checked time; click opens the incident | `mw-public-status` + `openai-status.jq` | No impact Healthy; major outage Down; other impact Degraded; bad data Unknown |
+| Apps & OpenAI | 55 | Codex | Same for Codex; unrelated to **Codex ready** (67) | As 54 | As 54 |
+| Agent workflows | 61 | Converse | Partner conversation worker timer and result | Debian collector | Idle completion within 3 min; running within 21 min |
+| Agent workflows | 62 | Receipts | Receipt timer, result and read-only queue checks | Debian collector | Idle within 3 min; running within 10 min; queue rules below |
+| Agent workflows | 63 | IG polling | Instagram scanner timer and result; hover shows last completion in SGT | Debian collector (`worker_timing`) | Idle within 10 min; running within 10 min; timing Unknown after 6 min |
+| Agent workflows | 64 | Daily jobs | Cash-statement and email-retry timers combined | Debian collector | Cash statement 25 h idle / 1 h running; email retry 10 min / 10 min |
+| Data & runtime | 50 | SQL / 200 | Interval-average backend count summed across the shared instance (number, not a light) | Cloud Monitoring | Red at 200; alert 160 |
+| Data & runtime | 65 | Database | Debian proxy active and read-only `SELECT 1` on agent-state and reporting databases | Debian collector | Access only, not performance |
+| Data & runtime | 66 | Audit relay | Required timer, latest outcome, bounded backlog and central-intent inspection | Debian collector | Down: no completion, inspection failure or intent over 30 s; Degraded: over 180 s |
+| Data & runtime | 67 | Codex ready | Local Codex executable and login status | Debian collector | No inference or quota proof |
+| Metabase Live | 80 | Platform | `reports.mw-credit.com/livez` 200 and status ok | Debian collector (`metabase_probe`) | Green within 5 s; amber slower; red failed; 401/403/429 Unknown |
+| Metabase Live | 81 | App DB | `/readyz` 200 and status ok (includes Metabase application DB) | As 80 | As 80 |
+| Metabase Live | 82 | Reporting DB | Uncached saved question 276 `SELECT 1` through source 2; 200/202 and exactly `[[1]]` | As 80 | As 80 |
+| Metabase Live | 83 | Charts | `charts.mw-credit.com` shell returned; unauthenticated `/api/matrix` returns 401 | As 80 | As 80; no authenticated query |
+| Metabase Recovery | 84 | Daily backup | Latest scheduled Railway volume snapshot; manual snapshots do not count; hover shows cron (UTC), snapshot (SGT), retention | Railway GraphQL | Green to 30 h, amber to 36 h, then red; no schedule red; pre-first-run Unknown up to 30 h |
+| Metabase Recovery | 85 | Weekly backup | As 84 for the Weekly schedule | Railway GraphQL | Green to 8 d, amber to 9 d, then red; pre-first-run Unknown up to 8 d |
+| Metabase Recovery | 86 | PITR archive | Railway Postgres PITR status over SSH (enabled, bucket, backup set, WAL coverage, archiver) | Debian collector (`metabase_pitr.py`) | Green archive within 30 min; amber 30–60 min; older or failed red; telemetry over 6 min Unknown |
+| Azure VM-01 | 11 | CPU utilization | CPU history | Azure Monitor | 100% |
+| Azure VM-01 | 12 | Available memory | Available RAM percentage | Azure Monitor | Exhaustion at 0% |
+| Azure VM-01 | 13 | Network per interval | Bytes received and sent per aggregation interval, not per second (5 min up to 2 days, 1 h up to 14 days, then 1 day) | Azure Monitor | No cap drawn |
+| Azure VM-01 | 14 | OS disk throughput | Read and write bytes per second | Azure Monitor | 100 MB/s shared baseline |
+| GCP Debian VM | 21 | CPU utilization | VM CPU history | Cloud Monitoring | 100% |
+| GCP Debian VM | 22 | Used memory | Ops Agent used percentage | Cloud Monitoring | 100%; alert 85% |
+| GCP Debian VM | 23 | Network throughput | Received and sent bytes per second, summed | Cloud Monitoring | No cap drawn |
+| GCP Debian VM | 24 | Disk throughput | Read and write bytes per second (not fullness or latency) | Cloud Monitoring | No cap drawn |
+| Cloud SQL (shared) | 31 | CPU utilization | Instance CPU history | Cloud Monitoring | 100%; alert 85% |
+| Cloud SQL (shared) | 32 | Memory components | Used, Cache and Free percentages (Used = provider label Usage) | Cloud Monitoring | 100% total; alert 85% on Used |
+| Cloud SQL (shared) | 33 | Storage utilization | Used storage as a percentage of current allocation | Cloud Monitoring | 100% of allocation |
+| Cloud SQL (shared) | 34 | Connections · limit 200 | Interval-average backend count across databases | Cloud Monitoring | 200 line; alert 160 |
+| Railway (Metabase) | 41 | CPU usage · cores | Metabase and Postgres CPU with live `CPU_LIMIT` dashed series | Railway GraphQL | Live limits |
+| Railway (Metabase) | 42 | Memory usage · GB | Used memory with live `MEMORY_LIMIT_GB` series | Railway GraphQL | Live limits; alert 90% |
+| Railway (Metabase) | 43 | Persistent volume · GB | Postgres volume usage (Metabase has none) | Railway GraphQL | 5 GB allocation |
+| Payment processing | 101 | 1 · Group scanning | Polling light plus last scan completion in SGT; empty scans count; not proof a payment posted | Debian collector (`worker_timing`) | Unavailable when timing is missing or older than 6 min |
+| Payment processing | 102 | Pipeline health | Receipt workflow state; Degraded can mean an overdue review | Debian collector (`receipt_pipeline`) | Intentional Paused does not page |
+| Payment processing | 103 | 2 · Receipt extraction | Images waiting, oldest wait, stalled work | As 102 | Stalled above 0 red |
+| Payment processing | 104 | 3 · Validation | Ready to route, manual holds, unnotified holds | As 102 | Unnotified holds above 0 red |
+| Payment processing | 105 | 4 · Reviewer decisions | Awaiting reply, overdue over 2 h; approval only by direct reply to the correlated IG request | As 102 | Overdue above 0 red |
+| Payment processing | 106 | 5 · Payment posting | Awaiting posting, unconfirmed outcomes, retained POSTED total | As 102 | Unconfirmed above 0 red: reconcile, do not retry Add |
+| Payment processing | 107 | 6 · Notification failures | Partner results, hold alerts and review requests undelivered over 5 min (counts may overlap) | As 102 | Above 0 red; optional result failures do not degrade Receipts |
+| Payment processing | 108 | Queue length over time | Pending images, manual holds, awaiting review, unconfirmed posting | As 102 | Lines break at gaps over 6 min; history from 25 September |
+| Bridge | 121 | Bridge availability | App and owner accessibility on a natural minute drain | Debian collector (bridge metrics) | Missing or stale Unknown |
+| Bridge | 122 | Dispatch completion | Fresh natural dispatch completion; no events is not failure | As 121 | Stale Unknown |
+| Bridge | 123 | Outbox age | Uncapped Firestore counts and oldest pending age | As 121 | Not the capped tool counts |
+| Subscription · Auth · Delivery | 125 | Expected subscriptions | Exact monitored registration membership | As 121 | Unverified Unknown |
+| Subscription · Auth · Delivery | 126 | Renewal / grant authority | Subscription and grant deadlines (not five-minute access tokens) | As 121 | Missing metadata Unknown |
+| Subscription · Auth · Delivery | 127 | Delivery continuity | Retained failures and backlog | As 121 | Host acceptance is not owner-visible receipt |
+| Infrastructure Uptime | 128 | Debian VM uptime | Latest Compute Engine start-uptime gauge | Cloud Monitoring via `worker_timing` | Not service availability |
+| Infrastructure Uptime | 129 | Cloud SQL uptime | Time since PostgreSQL start on the shared instance; needs matching status and uptime samples | `worker_timing` (`cloud_sql_prod`) | Resets on restart or failover; over 6 min Unknown |
+
+Receipt queue rules: stalled work is PENDING or VALIDATED over 10 minutes, REVIEW_REQUESTED without a proposal over 5 minutes, or APPROVED over 10 minutes; required hold or review delivery missing after 5 minutes is unhealthy; PENDING review over 2 hours is overdue; POSTING or UNKNOWN is unhealthy at once. Already-notified manual holds do not degrade health. Queue values must share the newest status sample; missing, invalid, paused, stale (over 6 min) or future (over 2 min) samples show Unavailable, never a healthy zero. Monitoring only observes; it never posts, approves, replays or clears work. A reviewer can reply **Reject** or **No** to a held-receipt notification to dismiss it.
 
 ## R051 row 5 and Azure daily availability chart — live verified
 
-Row 5 has three groups: **Grafana → Dots · Bridge** (header 120, tiles 121–123), **Subscription · Auth · Delivery** (header 124, tiles 125–127), and **Infrastructure Uptime** (header 130, tiles 128–129). The bridge/dispatch cards are 2×4; outbox/subscription/renewal/continuity cards are 4×4; uptime cards are 2×4 in the rightmost four columns. Rows 3/4 lights remain 2×3. Renewal/grant labels were still very small at the recorded 1180px viewport; readability refinement awaits the owner's decision. [Saved layout evidence](../outputs/grafana-row5-vm01-20261004/row5-entire-height-followup.json), [uptime acceptance](../outputs/grafana-infrastructure-uptime-20261005/README.md).
+Row 5 holds three groups: **Grafana → Dots · Bridge** (header 120, tiles 121–123), **Subscription · Auth · Delivery** (header 124, tiles 125–127) and **Infrastructure Uptime** (header 130, tiles 128–129); their meaning is in the Performance inventory above. Uptime floors to whole minutes; missing, invalid or stale samples are Unknown.
 
-| ID | Visual | Meaning and limits |
-| --- | --- | --- |
-| 121 | Bridge availability | App/owner accessibility during a natural successful minute drain. Missing/stale observations are Unknown; query errors remain visible. |
-| 122 | Dispatch completion | Fresh natural dispatch completion; no-event periods alone are not a failure. |
-| 123 | Outbox age | Uncapped Firestore aggregate counts and oldest pending age; not the capped read-tool counts. |
-| 125 | Expected subscriptions | Exact monitored registration membership; unverified membership remains Unknown. |
-| 126 | Renewal / grant authority | Subscription and grant deadlines, independently from normal five-minute access tokens. Missing/unverified metadata remains Unknown. |
-| 127 | Delivery continuity | Retained failures/backlog; host acceptance is not proof of owner-visible receipt. |
-| 128 | Debian VM uptime | Latest raw Compute Engine start-uptime GAUGE, displayed as days/hours/minutes; not service availability or billable allocation. |
-| 129 | Cloud SQL uptime | Time since PostgreSQL server start on the shared DEV/PROD instance, resetting on restart/failover. Requires fresh successful status and uptime with identical sample timestamps. |
+Known gaps: renewal and grant labels are very small at about 1180 px; the 5 October registration recovery showed Healthy in the UI, but later automatic renewal is not proven. Cost panel 110 is described in the Cost inventory.
 
-Uptime floors to whole minutes with seconds retained internally; no extrapolation. Missing, invalid or older-than-six-minute samples are Unknown, including historical ranges excluding current data. Singapore remains the display timezone. Eight additional bridge IRM alerts remain uncreated.
+## Cost panel inventory
 
-Cost/Azure panel 110 shows daily **observed running & available hours**, gray **unknown hours**, and hover coverage. It uses passive Azure VmAvailabilityMetric minute averages, Singapore day boundaries and partial-day clipping; ranges above 31 days are rejected. Azure retains this metric for 93 days. One means running/available, zero unavailable, null unknown; stops may cease emission. Available hours are a lower bound across gaps, not exact power runtime or billable allocation, and minute buckets limit transition precision. Saved chart/backend query were verified, while final full Cost code-export equality was unavailable. [Acceptance and limitations](../outputs/grafana-row5-vm01-20261004/live-acceptance.json), [metric reference](https://learn.microsoft.com/en-us/azure/virtual-machines/monitor-vm-reference).
+Scope: the top overview converts available costs to SGD (ECB USD/SGD via Frankfurter, latest reference, rejected if older than seven days); detail sections keep Azure and Railway USD and GCP SGD. Azure and GCP follow the date picker; Railway always uses its current billing cycle. Dashboard time is not a common invoice period. Totals are incomplete until all platforms report.
 
-### Subscription renewal limitation
+| Group | ID | Panel | What it shows | Source / query family | Limit / threshold |
+| --- | --- | --- | --- | --- | --- |
+| Overview | 4 | TOTAL · SGD | Sum of available platform amounts, subtitle "Available costs only" | Reuses panel 2 results | Incomplete when a platform is missing |
+| Overview | 5 | Azure · SGD | Two monitored resource groups, converted | Azure Cost Management + FX | Follows date picker |
+| Overview | 6 | GCP · SGD | Net SGD after credits; no data stays unavailable | BigQuery billing export | Follows date picker |
+| Overview | 7 | Railway · SGD | Accrued workspace USD converted | Railway `customer.currentUsage` + FX | Billing cycle, not picker |
+| Overview | 2 | Platform breakdown · SGD | Stacked bar: Azure blue, GCP orange, Railway purple | Azure, BigQuery, Railway, Frankfurter | Missing GCP shows no segment; negatives stay negative |
+| Overview | 3 | Conversion and coverage | Subtotal, SGD per USD, FX date, GCP row availability, Railway cycle dates | As 2 | Check before trusting the total |
+| Overview | 1, 10, 20, 30 | Cloud spending, section headers | Static guidance and grouping | None | None |
+| Azure | 102 | Selected-range cost | USD sum of returned resource costs, not only VM compute | Cost Management ActualCost, `rg-mwcredit` and `rg-backup` | Not an invoice |
+| Azure | 103 | Daily cost | Total by provider (UTC) date, whole-dollar labels | As 102 | None |
+| Azure | 104 | Cost by resource (USD) | Totals by last segment of resource ID, highest first | As 102 | Identically named resources combine |
+| Azure | 101 | Daily resource detail (USD) | Date, resource, cost, currency, newest first | As 102 | Source table for the others |
+| Azure | 110 | Observed running and available hours | Daily hours from `VmAvailabilityMetric` minute averages, gray unknown hours, hover coverage; Singapore day boundaries | Azure Monitor | Lower bound, not billable runtime; ranges over 31 days rejected; Azure keeps 93 days |
+| GCP | 202 | Before credits (SGD) | Gross usage | BigQuery billing export (`mw_cloud_billing`) | Net = gross + credits |
+| GCP | 203 | Credits (SGD) | Sum of exported credits, normally negative; not a remaining balance | As 202 | None |
+| GCP | 204 | Net cost (SGD) | Gross plus credits | As 202 | None |
+| GCP | 205 | Export status | Static text, not a live exporter probe | None | Data can lag |
+| GCP | 207 | By resource (SGD) | Net by service and resource, largest first; Unallocated when unattributed | As 202 | Fully credited rows show S$0.00 |
+| GCP | 206 | Daily cost and credits (SGD) | Gross, credits and net by Singapore date | As 202 | Recent days can lag |
+| GCP | 201 | Daily resource detail | Service, date, gross, credits, net, resource, newest first | As 202 | Source table; 100 MB billed-query cap |
+| Railway | 302 | Accrued resource usage | Workspace `customer.currentUsage` in USD | Railway GraphQL | Not the payable bill |
+| Railway | 301 | Billing period and accrued usage | Workspace, plan, usage, cycle dates | As 302 | None |
+| Railway | 303 | How to read Railway cost | Static explanation | None | None |
+| Railway | 304 | By resource (USD est.) | Current-cycle estimate per service from usage units at published rates (CPU $0.0004632 per vCPU-minute, RAM $0.0002316 per GB-minute, volume $0.0000036 per GB-minute, egress $0.05 per GB) | `railway-resource-cost.jq` | Rates checked 25 September 2026; differs from 302 |
+| Railway | 305 | Estimated daily compute + volume (USD) | Hourly CPU, RAM and volume samples times rates, by Singapore date, current cycle only | `railway-daily-estimate.jq` | Excludes egress, plan fees, credits and unsampled intervals; does not reconcile to 302 |
 
-The 5 October owner-authorized replacement preserved the ten alerts/destination and updated verified monitored membership without creating a duplicate automation. Recorded UI showed Expected subscriptions Healthy 1/1 and Renewal Healthy with approximately 24 hours of subscription and two years of grant authority. These are dated observations, not current health. Subsequent automatic renewal was **not proven**; logs before the original expiry contained successful tool calls but no subscribe, while private OAuth logs were excluded. Exact registration IDs/callbacks/backups stay private. [Recovery evidence](../outputs/grafana-row5-vm01-20261004/subscription-recovery-20261005.json).
+Azure daily buckets show at 08:00 Singapore. A query failure shows Grafana's error indicator; never treat incomplete data as reconciled.
 
 ## R055 PWA Platform — deployed 13 October 2026
 
-Dedicated dashboard UID `mw-pwa-platform`, existing folder `mw-resource-monitoring`, existing Infinity datasource `mw-gcp-monitoring`. Recorded Cloud Run metric descriptors and aggregate queries were verified on 13 October. Published through Terraform after no-change adoption; the legacy publisher is no longer the management path. Final saved-definition and collector evidence is linked from the R055 continuation.
+UID `mw-pwa-platform`, datasource `mw-gcp-monitoring`. DEV and PROD are separate rows with no cross-environment aggregation. Ranges default to the last 24 hours ending 2 minutes ago (60 s sampling, 120 s ingestion lag). No alert exists for this dashboard.
 
-| Panel IDs | Group / visual | Definition and limits |
-| --- | --- | --- |
-| 1 | Scope and interpretation | Explicit data lag, idle/no-data and business-coverage limitations; static text, not a health signal. |
-| 2,16 | PROD / DEV | Environment rows; no cross-environment aggregation. |
-| 3,17 | Canonical Hosting, Debian vantage | Existing health metric components `pwa_hosting_prod` / `pwa_hosting_dev`. GET fixed HTTPS origin shell and build-version.json with no redirects or authentication headers; exact environment title, root mount, entry reference and version marker. 10s total per environment, bounded response sizes. Reachable1, failed/malformed0; missing or older than6min Unknown4. This is one Debian vantage, not browser login, asset execution or multi-region availability. |
-| 4–6 /18–20 | PROD / DEV reader | Requests per5min, request p95 milliseconds, instance peak envelope. |
-| 7–9 /21–23 | PROD / DEV command | Same platform metrics; includes browser and machine route traffic, not individual business outcomes. |
-| 10–12 /24–26 | PROD / DEV jobs | Same platform metrics; does not measure last successful intended business boundary or financial result. |
-| 13–15 /27–29 | PROD / DEV notify | Same platform metrics; HTTP completion does not imply provider acceptance/device delivery or absence of queued/uncertain deliveries. |
+| Panel IDs | Group / panel | What it shows | Source / query family | Limit / threshold |
+| --- | --- | --- | --- | --- |
+| 1 | Scope and interpretation | Static text on lag, idle and coverage limits | None | Not a health signal |
+| 2, 16 | PROD / DEV rows | Environment headers | None | None |
+| 3, 17 | Canonical Hosting (Debian vantage) | `pwa_hosting_prod` / `pwa_hosting_dev`: environment title, root mount, entry reference, version marker; reachable 1, failed 0, missing or over 6 min 4 | Debian collector health metric | 10 s per environment; one vantage, not login or multi-region |
+| 4–6, 18–20 | Reader | Requests per 5 min (all, 4xx, 5xx), request p95 (ms), instance peak | `run.googleapis.com/request_count`, `request_latencies`, `container/instance_count` | No invented thresholds; idle is neither Down nor Healthy |
+| 7–9, 21–23 | Command | Same metrics; browser and machine traffic, not business outcomes | As above | As above |
+| 10–12, 24–26 | Jobs | Same metrics; no last-successful-boundary freshness | As above | Job completion freshness unimplemented |
+| 13–15, 27–29 | Notify | Same metrics; HTTP completion is not provider acceptance or device delivery | As above | Queue aggregates unimplemented |
 
-Request panels use `run.googleapis.com/request_count`, exact service filter, DELTA counts aligned SUM over300s and reduced SUM across revisions. All requests plus4xx and5xx subset lines are shown; 4xx can reflect intentional access rejection. Missing subset series stay missing, not invented zero. Latency uses `run.googleapis.com/request_latencies` distributions: ALIGN_SUM then REDUCE_PERCENTILE_95; it does not average percentiles. Instance `container/instance_count` uses ALIGN_MAX then REDUCE_SUM: sum of per-series peaks is an upper envelope, not simultaneous exact count. All ranges default to last24h ending2min ago for observed60s sampling/120s ingestion lag; refresh2min. No new alert threshold or minimum sample count is invented. No-data/min-zero idle service is not marked Down or Healthy. Queries fail visibly on permission errors or truncation.
+Request counts are DELTA, aligned SUM over 300 s, reduced SUM across revisions (All blue solid, 4xx orange dashed, 5xx red dotted; 4xx can be intentional rejection). Latency uses ALIGN_SUM then REDUCE_PERCENTILE_95 (percentiles are not averaged). Instance count uses ALIGN_MAX then REDUCE_SUM, an upper envelope. Missing subset series stay missing. Queries fail visibly on permission errors or truncation. Native probes 56 and 57 stay on Performance.
 
-Hosting is collected by the existing timer; no new scheduler or business invocation. Native operational/analytical panels56/57 remain in Performance. Missing job completion freshness and protected notification queue aggregates are explicitly unimplemented until a narrowly reviewed telemetry source exists. Official aggregation references: [Cloud Monitoring aggregation](https://docs.cloud.google.com/monitoring/api/ref_v3/rpc/google.monitoring.v3), [distribution percentiles](https://docs.cloud.google.com/monitoring/api/v3/distribution-metrics).
+## Maintaining this guide
 
-Presentation: scope panel uses four visible bullets at height8; all later panels move down4 with IDs and queries unchanged. Request series use All blue/solid, 4xx orange/dashed and 5xx red/dotted with visible legends. Titles retain environment/service and show p95 in ms. These are presentation distinctions, not alert severity thresholds. Desktop/iPhone Pro Max/iPad review was configuration-based, not device visual validation.
+Update this guide in the same batch as any dashboard change: add, remove or rename the row and ID in the matching table, and update source, units, freshness, state mapping and limits. Compare against the current saved definitions in `infrastructure/grafana/dashboards/`, not an earlier builder baseline. Keep fixed limits (dated) separate from live-limit series, and static text separate from live status.
