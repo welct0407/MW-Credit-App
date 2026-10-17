@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -311,4 +311,68 @@ test('R066 Hosting-only package descends from R065 and keeps the R064 runtime',a
  const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
  await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub,git});
  await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('command'),readGithub,git}),/R066 live runtime differs/);
+});
+
+// R068: one image on all four services after the separately applied V94 and V95 (PROD 93 to 95).
+const r067Release='7f8ef5332be6b50988abca8efcf74a8657cd35a0',sqlRelease='6'.repeat(40);
+const r068Files={'V93__review_wave4_hygiene.sql':'-- v93','V94__job_run_contract_and_shared_lock_key.sql':'-- v94','V95__agent_role_session_pair.sql':'-- v95'};
+function r068Git({source,tool=source,changed={},delivery='',dirty='',untracked='',migration='database/migrations/V94__job_run_contract_and_shared_lock_key.sql\ndatabase/migrations/V95__agent_role_session_pair.sql',releaseDatabase=''}={}){
+ return (_root,args)=>{
+  if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
+  if(args[0]==='merge-base')return args[1];
+  if(args[0]==='ls-files')return untracked;
+  if(args[0]==='ls-tree')return Object.keys(r068Files).map(name=>'database/migrations/'+name).join('\n');
+  if(args[0]==='show')return r068Files[path.posix.basename(args[1].split(':')[1])];
+  if(args[0]==='diff'){
+   if(args[2]===r067Release&&args[3]===source)return migration;
+   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return delivery;
+   if(args[2]===source&&args[3]===sqlRelease)return releaseDatabase;
+   if(args[3]===source)return changed[args[2]]??'';
+   return dirty;
+  }
+  throw Error('Unexpected synthetic Git command '+args);
+ };
+}
+async function r068Package(t){
+ const p=await wavePackage(t),m=p.m,hash=value=>createHash('sha256').update(value).digest('hex');
+ const manifest={environment:'development',commit:sqlRelease,validationReference:'synthetic',productionTransaction:{baselineVersion:93,targetVersion:95,group:true,mixed:false,executeInTransaction:true,callbacks:[]},migrations:Object.entries(r068Files).map(([name,value])=>({name,sha256:hash(value)}))};
+ const releasePath=path.join(p.root,'release.json'),bytes=JSON.stringify(manifest);await writeFile(releasePath,bytes);
+ Object.assign(m,{schemaVersion:9,release:'R068',sourceBaseline:r067Release,sql:{baselineVersion:93,targetVersion:95,migrations:manifest.migrations.slice(1),release:{path:releasePath,sha256:hash(bytes),commit:sqlRelease},
+  applied:{environment:'production',database:'loan_manager_prod',instance:'mw-credit-pg-20261017',releaseCommit:sqlRelease,baselineVersion:93,targetVersion:95,migrationsExecuted:2,startedAt:'2026-10-17T04:08:33Z',finishedAt:'2026-10-17T04:09:10Z',backup:{dumpSha256:'a'.repeat(64),restorePassed:true,reference:'prod-promotion-'+'b'.repeat(32)}},
+  verified:{database:'loan_manager_prod',latestVersion:'95',historyRows:95,allSuccessful:true,verifiedAt:'2026-10-17T04:14:12Z'}}});
+ m.applied.sqlVersion=95;m.applied.appliedAt='2026-10-17T04:10:52Z';
+ return p;
+}
+test('R068 package validates and rejects SQL, plan, CI, readback and artifact tampering',async t=>{
+ const {m,source,tool,root}=await r068Package(t),git=r068Git({source,tool});
+ const plan=await r068HostingPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingVersion,m.rollback.hostingVersion);
+ for(const [mutate,pattern] of [[x=>x.sql.targetVersion=94,/R068 exact V93 to V95/],[x=>x.sql.migrations.reverse(),/R068 exact V93 to V95/],[x=>x.sql.migrations.pop(),/R068 exact V93 to V95/],[x=>x.sql.migrations[0].sha256='0'.repeat(64),/migration source hash/],[x=>x.sql.release.sha256='0'.repeat(64),/SQL release changed/],[x=>x.sql.release.commit='7'.repeat(40),/tested SQL release/],[x=>x.sql.applied.migrationsExecuted=1,/actual SQL apply/],[x=>x.sql.applied.backup.restorePassed=false,/actual SQL apply/],[x=>x.sql.applied.instance='appsheet-pg-prod-20260914',/actual SQL apply/],[x=>x.sql.applied.finishedAt='2026-10-17T04:08:00Z',/actual SQL apply/],[x=>x.sql.verified.latestVersion='94',/V95 readback/],[x=>x.sql.verified.verifiedAt='2026-10-17T04:09:00Z',/V95 readback/],[x=>x.applied.sqlVersion=93,/R068 applied source/],[x=>x.applied.appliedAt='2026-10-17T04:00:00Z',/R068 applied source/],[x=>x.plan.actions.push('command.maxInstances'),/R068 reviewed four-image plan/],[x=>x.plan.counts.change=5,/four-image plan/],[x=>x.rollback.services.read.image=x.build.image,/recovery pin/],[x=>x.applied.services.notify.revision=x.rollback.services.notify.revision,/R068 ready service/],[x=>x.applicationCi.full.jobs.splice(1,1),/R068 full CI missing executed e2e/],[x=>x.build.sourceCommit='4'.repeat(40),/provenance/],[x=>x.target.connectionName='clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914',/target/],[x=>x.frontend.files[0].sha256='d'.repeat(64),/artifact/],[x=>x.release='R064',/package kind/],[x=>x.schemaVersion=8,/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(r068HostingPlan(candidate,{git}),pattern);}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(r068HostingPlan(prepared,{git}),/apply\/readback/);assert.equal((await r068HostingPlan(prepared,{git,requireApplied:false})).site,site);
+ await assert.rejects(waveHostingPlan(m,{git}),/package kind/);
+ const incomplete=JSON.parse(await readFile(m.sql.release.path,'utf8'));incomplete.migrations.shift();const shortPath=path.join(root,'short.json'),shortBytes=JSON.stringify(incomplete);await writeFile(shortPath,shortBytes);
+ await assert.rejects(r068HostingPlan({...structuredClone(m),sql:{...structuredClone(m.sql),release:{path:shortPath,sha256:createHash('sha256').update(shortBytes).digest('hex'),commit:sqlRelease}}},{git}),/complete migration manifest/);
+ await assert.rejects(r068HostingPlan(m,{git:r068Git({source,tool,releaseDatabase:'database/migrations/V95__agent_role_session_pair.sql'})}),/pinned source migrations/);
+});
+test('R068 source carries only V94 and V95 from R067; the delivery commit may add the backup tool',async t=>{
+ const {m,source,tool}=await r068Package(t);
+ const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nproject/Documents/Release_Tracker.md';
+ assert.doesNotThrow(()=>validateR068Source(m,r068Git({source,tool,delivery:toolFiles})));
+ assert.throws(()=>validateR068Source(m,r068Git({source,tool,delivery:'services/business/borrowers.mjs'})),/R068 unverified delivery/);
+ for(const migration of ['','database/migrations/V94__job_run_contract_and_shared_lock_key.sql','database/migrations/V94__job_run_contract_and_shared_lock_key.sql\ndatabase/migrations/V95__agent_role_session_pair.sql\ndatabase/migrations/V96__x.sql'])assert.throws(()=>validateR068Source(m,r068Git({source,tool,migration})),/V94 and V95/);
+ assert.throws(()=>validateR068Source({...m,sourceBaseline:r064Release},r068Git({source,tool})),/R068 source\/baseline/);
+ assert.throws(()=>validateR068Source(m,r068Git({source,tool,dirty:'apps/pwa/src/live-main.tsx'})),/R068 working input/);
+ assert.throws(()=>validateR068Source(m,r068Git({source,tool,untracked:'services/new.mjs'})),/R068 untracked/);
+ const atTool=structuredClone(m.applicationCi);for(const kind of ['full','check'])atTool[kind].run.head_sha=tool;m.applicationCi=atTool;
+ assert.equal((await r068HostingPlan(m,{git:r068Git({source,tool,delivery:toolFiles})})).site,site);
+ await assert.rejects(r068HostingPlan(m,{git:r068Git({source,tool,delivery:toolFiles+'\napps/pwa/src/live-main.tsx',changed:{[tool]:'apps/pwa/src/live-main.tsx'}})}),/R068 unverified delivery/);
+});
+test('R068 live verification re-reads CI, Cloud Build and the four services',async t=>{
+ const {m,source,tool,image}=await r068Package(t),git=r068Git({source,tool});
+ const project='clever-oasis-508610-n7';
+ const service=role=>({name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+m.applied.services[role].revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision:m.applied.services[role].revision}],template:{serviceAccount:`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,containers:[{image,env:[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`},...(role==='command'?[{name:'PWA_NOTIFICATIONS',value:'enabled'}]:[]),...(['notify','jobs'].includes(role)?[{name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})}]:[])]}]}});
+ const make=(digest='e')=>async url=>({ok:true,json:async()=>url.includes('cloudbuild')?{status:'SUCCESS',results:{images:[{name:`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:build-1`,digest:'sha256:'+digest.repeat(64)}]},source:{storageSource:m.build.storageSource}}:service(url.split('/services/mw-credit-app-')[1].replace('-prod',''))});
+ const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
+ await verifyR068LivePackage(m,{token:'t',request:make(),readGithub,git});
+ await assert.rejects(verifyR068LivePackage(m,{token:'t',request:make('f'),readGithub,git}),/build digest/);
+ await assert.rejects(verifyR068LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/R068 full CI missing executed terraform/);
 });
