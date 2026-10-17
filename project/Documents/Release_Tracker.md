@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R070 — Open** |
-| Next unused number | **R071**, only opened when authorized R070 promotion starts |
+| New product work | **R071 — Open** |
+| Next unused number | **R072**, only opened when authorized R071 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,8 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R070 | Open | No work yet. |
+| R071 | Open | No work yet. |
+| R070 | Frozen 17 October 2026 11:46Z (18:46 Bangkok) | IndexedDB reconnect hotfix, Hosting-only on the R069 runtime and V95. Owner instruction 17 October 2026 (Bangkok) "The prod app is not able to sync the changes. Check urgently and push a hot fix if possible". Package `main` `047ec6b` (source), delivery tool `d7959ae` (runner schema 11); full CI 39029839622; DEV then PROD Hosting; [record](Development_Changes.md#r070-indexeddb-reconnect-hotfix). |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
