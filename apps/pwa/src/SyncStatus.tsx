@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import type {OfflinePreparation} from './offline-dataset';
 import {pausedSections,shortSectionName} from './paused-sections';
 
-const STALE_MS=10*60*1000,NOT_STARTED_MS=2000;
+const STALE_MS=10*60*1000,NOT_STARTED_MS=2000,ANNOUNCE_MS=5000;
 const clock=(thai:boolean,at:number)=>new Intl.DateTimeFormat(thai?'th-TH':'en-GB',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(at));
 /** The status left of the header refresh icon (owner, 17 October 2026: one refresh icon does everything).
  * While the first download runs, or a sync started with the refresh icon (mw-offline-prepare with
@@ -12,7 +12,7 @@ const clock=(thai:boolean,at:number)=>new Intl.DateTimeFormat(thai?'th-TH':'en-G
  * focus) stay quiet and only move the time. It is text, not a control. */
 export function SyncStatus({preparation,thai,visible}:{preparation:OfflinePreparation;thai:boolean;visible:boolean}){
  const [,tick]=useState(0),[requestedAt,setRequestedAt]=useState<number|null>(null),seenPending=useRef(false);
- const [announcement,setAnnouncement]=useState(''),wasSyncing=useRef(false),texts=useRef({start:'',outcome:''});
+ const [announcement,setAnnouncement]=useState(''),wasSyncing=useRef(false),texts=useRef({start:'',outcome:''}),clearTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  useEffect(()=>{const timer=setInterval(()=>tick(value=>value+1),30000);return()=>clearInterval(timer)},[]);
  useEffect(()=>{const manual=(event:Event)=>{if((event as CustomEvent).detail?.all&&navigator.onLine)setRequestedAt(current=>{if(current===null)seenPending.current=false;return current??Date.now()})};window.addEventListener('mw-offline-prepare',manual);return()=>window.removeEventListener('mw-offline-prepare',manual)},[]);
  useEffect(()=>{
@@ -35,7 +35,9 @@ export function SyncStatus({preparation,thai,visible}:{preparation:OfflinePrepar
  // or the first download begins, then its outcome (the time, or the failure sentence). Minute ticks and quiet automatic checks
  // never write to it, and the visible variants carry no role.
  texts.current={start:t('Syncing…','กำลังซิงค์…'),outcome:failed.length?failedText+'. '+failedDetail:incomplete?t('Download incomplete','ดาวน์โหลดไม่ครบ')+'. '+incompleteDetail:at===null?'':timeText};
- useEffect(()=>{if(syncing&&!wasSyncing.current)setAnnouncement(texts.current.start);else if(!syncing&&wasSyncing.current)setAnnouncement(texts.current.outcome);wasSyncing.current=syncing},[syncing]);
+ // Each announcement is cleared after ~5 s (like the synced toast), so it is not read twice and a stale time is never re-read.
+ useEffect(()=>{const text=syncing&&!wasSyncing.current?texts.current.start:!syncing&&wasSyncing.current?texts.current.outcome:null;wasSyncing.current=syncing;if(text===null)return;setAnnouncement(text);clearTimeout(clearTimer.current);clearTimer.current=setTimeout(()=>setAnnouncement(''),ANNOUNCE_MS)},[syncing]);
+ useEffect(()=>()=>clearTimeout(clearTimer.current),[]);
  const region=<span className="visually-hidden sync-announcement" role="status" aria-live="polite">{announcement}</span>;
  if(!visible)return region;
  // HDR-SYNC-PCT-01: the percentage sits above the bar (owner, 17 October 2026), so it comes first in the DOM.
