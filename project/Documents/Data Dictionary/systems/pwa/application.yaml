@@ -214,9 +214,11 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817/apps/pwa/src/OperationConfirm.tsx"
   "hybrid_read_cache":
     "behavior": "Used read views render cached/prepared data and receipt images first; authorized network refresh updates\
-      \ the same view. Header spinner and left progress bar show request/preparation activity. Distinct ! badge/tooltip/live\
-      \ status indicates current-page refresh failure even without cache; scope epoch blocks late prior-page failures. Successful\
-      \ retry clears failure; cached fallback indication is separate."
+      \ the same view. The refresh icon spins for request activity. The status text left of it (not a control) shows a progress\
+      \ bar and percentage during the first download or a refresh-started dataset check, then Updated HH:MM (Saved data from\
+      \ HH:MM after 10 minutes); failed domains read '<section> not updated' or 'Update failed' there, with no separate paused\
+      \ banner or Retry. Distinct ! badge/tooltip/live status indicates current-page refresh failure even without cache; scope\
+      \ epoch blocks late prior-page failures. Successful retry clears failure; cached fallback indication is separate."
     "isolation": "Owner issuer/uid and environment namespace; full URL/query and relevant Asia/Bangkok business date keys;\
       \ account/session authorization lease and read-revision guards; no cross-owner/environment/search/date leakage."
     "bounds":
@@ -287,10 +289,10 @@
       \ through final asOf is an interval of authoritative per-request reads, not a global MVCC snapshot. Old complete bundle\
       \ stays available across pause/failure/reconnect."
     "incremental": "Initial full protocol2 then content-only protocol3; canonical hashes ignore asOf and reuse existing content.\
-      \ Visible 30s poll, reconnect/focus, the header refresh and Sync now detect other-user changes; the header refresh and\
-      \ Sync now check every domain, including domains that did not fail, and read Syncing… until the cycle completes, while\
-      \ the banner Retry retries only failed domains. Signals coalesce while an existing cycle remains active, including cycles\
-      \ longer than the poll, preserving queues/cursors rather than adding endless work."
+      \ Visible 30s poll and reconnect/focus detect other-user changes quietly. The one header refresh icon also wakes the\
+      \ saved-change sync and checks every domain, including domains that did not fail, joining a check already in flight.\
+      \ Signals coalesce while an existing cycle remains active, including cycles longer than the poll, preserving queues/cursors\
+      \ rather than adding endless work."
     "source_gate": "Main domains hash raw source-table content/xmin with actor/day scope, testing sourceVersion at traversal\
       \ start/end; unchanged sources bypass DTO providers. Recipient notifications always scan protected manifests with sourceVersion=null,\
       \ no cheap source gate. No CDC/schema or universal snapshot claim."
@@ -499,9 +501,11 @@
       \ pending edits and actor/recipient boundaries"
     "state": "value"
   "/content/hybrid_read_cache/behavior":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/f261edcd51995795f250699f1ee91fb0d0c95a54/apps/pwa/src/offline-dataset.ts"
-    "reason": "Full-app DEV offline preparation via existing bulk read DTOs/recipient contracts, persistent bundles and current-page\
-      \ refresh state; note autosave unchanged"
+    "reference": "apps/pwa/src/SyncStatus.tsx, live-main.tsx, offline-dataset.ts on branch claude/r071-style-decisions (R071);\
+      \ e2e payment-command 'One refresh icon' and 'Full app preparation', live-signout-blocked 'header refresh also wakes\
+      \ the saved-change sync'"
+    "reason": "R071 owner direction 17 October 2026: one refresh icon does everything; status text with progress bar and percentage,\
+      \ then updated time; failures in the status text instead of the paused banner"
     "state": "value"
   "/content/offline_datasets/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817/apps/pwa/src/LoanRecord.tsx"
@@ -533,10 +537,11 @@
       \ poll coalescing; API unchanged"
     "state": "value"
   "/content/offline_datasets/incremental":
-    "reference": "apps/pwa/src/offline-dataset.ts, live-main.tsx and SyncStatus.tsx on branch claude/r071-style-decisions\
-      \ (R071); e2e payment-command 'Header refresh also delta-syncs every local dataset domain'"
-    "reason": "R071 owner request 17 October 2026: the header refresh also delta-syncs the local dataset; poll interval corrected\
-      \ to the current 30 s"
+    "reference": "apps/pwa/src/SyncStatus.tsx, live-main.tsx, offline-dataset.ts on branch claude/r071-style-decisions (R071);\
+      \ e2e payment-command 'One refresh icon' and 'Full app preparation', live-signout-blocked 'header refresh also wakes\
+      \ the saved-change sync'"
+    "reason": "R071 owner direction 17 October 2026: one refresh icon does everything; status text with progress bar and percentage,\
+      \ then updated time; failures in the status text instead of the paused banner"
     "state": "value"
   "/content/offline_datasets/source_gate":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/offline-dataset.ts"
