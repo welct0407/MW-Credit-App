@@ -8,7 +8,7 @@ Every development batch must keep the entire evolving-document set current throu
 | --- | --- |
 | Automatic six-agent development, checks and evidence reuse | [PWA orchestration](PWA_Orchestration.md) |
 | Agent roles, models and reasoning settings | [Model mapping](Model_Work_Mapping.md) |
-| Directory ownership, execution routes and data boundaries | [Development workflow](Development_Workflow.md) |
+| Working method, directory ownership, execution routes, records and change notes, data boundaries | [Development workflow](Development_Workflow.md) |
 | Release freeze, promotion and publication | [Release workflow](Release_Workflow.md) |
 | Failed deployment, rollback and hotfix | [Release recovery](Release_Recovery_Runbook.md) |
 | DEV setup and recipient isolation | [Development preparation](Development_Environment_Preparation.md) |

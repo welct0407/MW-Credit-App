@@ -36,7 +36,7 @@ Naming legacy: Row ID, quoted table names, `appsheet_ref_*` constraint names and
 ## Naming and identifiers
 
 - Legacy names stay as they are: quoted tables and columns such as `"Payments"` and `"Row ID"`, `appsheet_ref_*` constraints and the V89/V90 IAM identities are never renamed.
-- New objects use `pwa_*` snake_case names. RPCs end in `_vN`; bump `N` only when the signature changes.
+- New objects use snake_case; PWA tables and RPCs in `public` carry the `pwa_` prefix, while audit and monitoring objects live in the `agent_audit` and `monitoring` schemas. RPCs end in `_vN`; bump `N` only when the signature changes.
 - Request ids are client-generated UUIDs; the database never invents one for a client command.
 - Derived ids use one documented derivation each. Agent receipt request id: `receiptRequestId` in `services/agent-receipts/contract.mjs` (SHA-256 of `['mw-credit-agent-receipt-v1', environment, reviewId]`, first 16 bytes, UUID v4 bits). Receipt link id: `uuid5(NAMESPACE_URL, 'mw-receipt:' + receipt_id + ':' + payment_id)` in `integration-agent/src/mw_integration_agent/receipt_projection.py`. Advisory-lock key: `pwa_lock_key_v1` (below).
 - Triggers on `"Payments"`, `"Loans"`, `"Charges"` and `"Repayments"` fire in name order; see `scripts/database/Test-TriggerOrder.sql` before adding or renaming one.

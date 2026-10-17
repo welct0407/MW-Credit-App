@@ -1,6 +1,6 @@
 # Model work mapping
 
-Owner preferences, updated **15 October 2026**. Read when assigning the automatic PWA team or selecting a model. A task-specific owner choice overrides these defaults; apply settings only through supported controls and disclose unavailable combinations.
+Owner preferences, updated **17 October 2026**. Read when assigning the automatic PWA team or selecting a model; do not reload it for routine solo execution. A task-specific owner choice overrides these defaults; apply settings only through supported controls and disclose unavailable combinations.
 
 ## Select the model set for the active coding tool
 

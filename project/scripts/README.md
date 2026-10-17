@@ -26,4 +26,4 @@ Temporary project exports belong in the current user's established private direc
 
 ## Recovery
 
-Git restores published source and documentation. It does not restore private credentials, business databases or uncommitted files. Reuse the owning runtime setup, verify the affected read-only operation, then resume work. C:/GitHub is excluded from Drive sync.
+Git restores published source and documentation. It does not restore private credentials, business databases or uncommitted files. Reuse the owning runtime setup, verify the affected read-only operation, then resume work. Keep the local checkout out of Drive sync.
