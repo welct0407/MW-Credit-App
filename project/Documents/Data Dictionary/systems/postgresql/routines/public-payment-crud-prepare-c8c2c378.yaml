@@ -47,5 +47,5 @@
     "reason": "R067 owner decision (V94): a payment-input correction by a role that cannot execute the correction core (reviewer\
       \ DML roles) fails closed with SQLSTATE 42501 and the named reason 'Payment input corrections require the native payment\
       \ command'; nothing is written, no grant changes, metadata-only updates still pass. Applied in DEV on 17 October 2026\
-      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ (loan_manager_dev, V94); applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "value"

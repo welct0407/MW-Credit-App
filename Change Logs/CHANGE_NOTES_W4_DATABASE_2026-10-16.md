@@ -164,17 +164,17 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 ## Remaining work
 
 - `scripts/backup-agent-database.py` hard-codes Windows binaries and a fixed dump name; add platform binaries and `--dump-name` before it is reused on Linux.
-- DB-LOCK-02 (lease columns of `pwa_job_runs`): done in V94 (DEV), PROD pending owner instruction.
-- Move the SQL bodies to `pwa_lock_key_v1`: done in V94 (DEV), PROD pending owner instruction.
+- DB-LOCK-02 (lease columns of `pwa_job_runs`): done in V94 (DEV 17 October, PROD 17 October 2026 04:09Z).
+- Move the SQL bodies to `pwa_lock_key_v1`: done in V94 (DEV and PROD).
 - DB-ACCESS-07: done 17 October 2026 (owner decision: retire VM-01's direct TLS route). VM-01 tooling now starts a pinned local Cloud SQL Auth Proxy (`1e064da`). Live on `mw-credit-pg-20261017`: `gcloud sql instances patch --clear-authorized-networks` (02:34:50–02:35:53Z) and `--connector-enforcement=REQUIRED` (02:36:10–02:36:11Z). No restart (`pg_postmaster_start_time` unchanged). Afterwards the Debian agent `/ready` was true; agent, Metabase and PROD command/notify sessions were connected; no Cloud Run errors. `owned.tf` matches the live state (`terraform plan`: No changes). Rollback: `gcloud sql instances patch … --connector-enforcement=NOT_REQUIRED --authorized-networks=20.198.200.25/32`, then revert `owned.tf`. VM-01's proxy start is untested until its next use.
-- Migration V94 (clearer reviewer payment-input error, with the two items above): done in DEV, PROD pending owner instruction.
+- Migration V94 (clearer reviewer payment-input error, with the two items above): done in DEV and PROD.
 - `scripts/backup-agent-database.py` Linux support: done (`4ed32a2`); the first item above is superseded.
-- Borrower-name lock key normalisation (Node versus SQL, pre-existing since V93): fixed in `e56069f` (runtime only; reaches PROD with the R068 runtime image).
-- Migration V95 (reviewer and projector identity pair, ALL-ARCH-03 part 2b): done in DEV (17 October 2026), PROD pending the R068 promotion.
+- Borrower-name lock key normalisation (Node versus SQL, pre-existing since V93): fixed in `e56069f` (runtime only; reached PROD with the R068 runtime image on 17 October 2026).
+- Migration V95 (reviewer and projector identity pair, ALL-ARCH-03 part 2b): done in DEV and PROD (17 October 2026).
 - A failed dataset domain in the PWA is retried every 30 s indefinitely (no back-off).
 - UX-REFRESH-06, 07 and 09 are deferred.
 - Lesson for readbacks on the shared instance: use cheap single-scan counts. Two whole-tree queries hit their time limits and wrote about 2.7 GB of temporary files before they were cancelled; disk stayed at 10 GB and the instance stayed RUNNABLE.
-- ALL-ARCH-03 cleanup part 2a is done (17 October 2026, see the W3 notes); part 2b (reviewer DML and receipt projector password files) is prepared: V95 is in DEV, the cutover waits for the R068 promotion (see Second round).
+- ALL-ARCH-03 cleanup part 2a is done (17 October 2026, see the W3 notes); part 2b is switched to IAM (17 October 2026, R068 promotion); only the 24 October steps remain: set `mw_reviewer_dml` and `mw_receipt_projector` `NOLOGIN` and shred the two password files and the 2a offline copy (reminder 24 October 10:05 Bangkok).
 
 ## W4 follow-ups (17 October 2026)
 
@@ -197,15 +197,25 @@ DEV run, 17 October 2026 05:11 to 05:18 Bangkok (22:11 to 22:18 UTC, 16 October)
 - `Invoke-Flyway` migrate 93 to 94: success, execution 3.3 s; post-migrate reconciliation applied (re-plan 0 violations).
 - Restore at 22:18:05Z: `authority-restored`; a repeat returned `authority-already-restored`. `validate` successful, 95 migrations.
 - Readback: the four owners inherit, set and admin false; `public` CREATE only `pg_database_owner` and `cloudsqlsuperuser`; `pwa_job_runs` columns `run_id, job_name, business_date, scope_key, state, checkpoint, started_at, completed_at, result_count`; no public function other than `pwa_lock_key_v1` contains `hashtextextended(`; owners and definer flags unchanged (`pwa_job_run_v1` `mw_jobs_owner_dev`, both submits `mw_app_dev_journal_owner`, `sync_cash_ledger` `mw_ledger_owner_dev`); no DEV Cloud Run errors after 22:11Z (DEV schedulers stay paused by design).
-- PROD is still V93. PROD V94 needs the owner's production instruction; the dictionary entries are recorded at PROD scope from the migration source and say so.
+- PROD was V93 at this point; V94 and V95 reached PROD in the R068 promotion (see the PROD record below).
 - Recovery: V94 is forward-only; DEV rollback is a restore from the DEV backup or a corrective migration. PROD needs the usual verified backup first.
 
 ### Second round
 
-- Name-key fix `e56069f` (`services/business/borrowers.mjs`): the SQL now computes `nullif`/`btrim`/`lower` like `pwa_submit_operation_v2`, so both paths produce the same lock key. Runtime only; it reaches PROD with the R068 runtime image.
+- Name-key fix `e56069f` (`services/business/borrowers.mjs`): the SQL now computes `nullif`/`btrim`/`lower` like `pwa_submit_operation_v2`, so both paths produce the same lock key. Runtime only; it reached PROD with the R068 runtime image (17 October 2026).
 - Agent 2b support `d011e91`: keys `database_dml_auth` and `receipt_projector_auth` (default `password`; `iam` signs in as the agent IAM user and issues `SET ROLE` first).
 - V95 `a63f8b4` plus fix `790de3a` (`database/migrations/V95__agent_role_session_pair.sql`): `agent_audit.begin_operation`, `agent_audit.capture_change` and `public.attach_payment_receipt_evidence` accept the pair (effective role = `current_setting('role')` or `session_user`; `session_user` must be that role or `mw-integration-agent@clever-oasis-508610-n7.iam`; `mw_reviewer_dml_dev` is accepted outside `loan_manager_prod`); the `agent_audit.commits.database_session_role` default records the effective role. The CI lab failed first because `mw_reviewer_dml` did not exist when Flyway ran; the assertion is now guarded on the role, and a SET-only runner gets a named preflight problem.
 - Checks: `Test-CI` migrations and phase5 exit 0; R053 operator LedgerOwner and AgentReceipts pass; `npm test` 534 of 534; agent lab 86 OK. Independent tester: the identity pair resisted every bypass tried (non-member `SET ROLE`/`set_config`/`PGOPTIONS`/`ALTER ROLE SET`, other agent roles, a stranger with `SET` membership, the dev role in `loan_manager_prod`, `RESET ROLE` inside the function); attribution correct; operator V57 path unchanged; re-run idempotent; drift refused; agent IAM paths send `SET ROLE` first; the name key is equal for padded and non-ASCII names and takes no lock for blank names. Pre-existing note: a stranger's write under `SET ROLE mw_reviewer_dml` is still not audited (unchanged since V94).
-- DEV run, 17 October 2026: owner-authority prepare at 02:52:34Z (ledger, notify, jobs, journal; record `owner-authority-dev-prepare-6ad611be….json`, private, outside Git); migrate 94 to 95 success in 3.4 s with post-migrate reconciliation; restore at 02:59:03Z `authority-restored`; `validate` 96 successful. PROD is still V93 (V94 and V95 pending).
-- Remaining for 2b at the R068 promotion: V95 in PROD; then as `postgres` `GRANT mw_reviewer_dml, mw_receipt_projector TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE` (reviewer through `configure-reviewer-dml.py --iam-member`, projector by statement); agent deploy; switch both keys to `iam` with a config backup and a check; observe; after a quiet week `NOLOGIN` both roles and shred the two password files.
+- DEV run, 17 October 2026: owner-authority prepare at 02:52:34Z (ledger, notify, jobs, journal; record `owner-authority-dev-prepare-6ad611be….json`, private, outside Git); migrate 94 to 95 success in 3.4 s with post-migrate reconciliation; restore at 02:59:03Z `authority-restored`; `validate` 96 successful. PROD was still V93 at that time.
+- Done at the R068 promotion (17 October 2026, see the PROD record below): V95 in PROD; then as `postgres` `GRANT mw_reviewer_dml, mw_receipt_projector TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE` (reviewer through `configure-reviewer-dml.py --iam-member`, projector by statement); agent deploy; switch both keys to `iam` with a config backup and a check; observe; after a quiet week `NOLOGIN` both roles and shred the two password files.
 - Owner decision: R068 is promoted once, together with Wave 5, after the owner answers Wave 5's questions. The PWA startup refresh flake (`startup-generations-independent.spec.ts`, from `905eb82`) is being fixed.
+
+## PROD V94 and V95 record (17 October 2026, R068 promotion)
+
+PROD `loan_manager_prod` on `mw-credit-pg-20261017`, 04:02 to 04:13Z (11:02 to 11:13 Bangkok), owner instruction "proceed with the remaining tasks". Full evidence: [R068 production promotion](../project/Documents/Development_Changes.md#r068-production-promotion).
+
+- Backup `Backup-ProductionPromotion.py --expected-version 93` (32 tables, isolated restore passed, dump SHA256 `a3de30cd…f0af7ab`) plus an on-demand Cloud SQL backup; drift check showed only the known capture-switch line; CONNECT preflight 04:07:40Z.
+- Authority prepare 04:08:26Z (`mw_jobs_owner_prod`, `mw_app_prod_journal_owner`); `Invoke-Flyway production migrate -GroupedProduction` 04:08:33 to 04:09:10Z, 93 to 95 in one transaction (V94 3.24 s, V95 3.22 s); restore 04:09:42Z `authority-restored`; `validate` 96 successful; readback matched the DEV readback.
+- ALL-ARCH-03 2b at 04:13Z: `GRANT mw_reviewer_dml, mw_receipt_projector TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE`; host keys `database_dml_auth` and `receipt_projector_auth` = `iam`; connection-only probes passed (reviewer `current_user` `mw_reviewer_dml`, read-only; projector `current_user` `mw_receipt_projector`).
+- Rollback: restore from the verified dump or on-demand backup, or a corrective migration (V94 and V95 are forward-only); agent keys back to `password` while the password logins remain.
+- Remaining: 24 October 2026 (reminder 10:05 Bangkok), after a quiet week, `NOLOGIN` for both roles and shred the two password files and the 2a offline copy.

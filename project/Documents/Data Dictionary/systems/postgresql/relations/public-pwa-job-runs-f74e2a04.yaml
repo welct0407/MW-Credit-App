@@ -460,54 +460,54 @@
     "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
       \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
       \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
-      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "absent"
   "/content/columns/lease_expires_at":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
       \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
       \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
-      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "absent"
   "/content/columns/error_code":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
       \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
       \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
-      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "absent"
   "/content/constraints/pwa_job_runs_check":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
       \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
       \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
-      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "absent"
   "/content/constraints/pwa_job_runs_error_code_check":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
       \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
       \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
-      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "absent"
   "/content/constraints/pwa_job_runs_lease_generation_check":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
       \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
       \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
-      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "absent"
   "/content/constraints/pwa_job_runs_lease_generation_not_null":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
       \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
       \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
-      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "absent"
   "/content/constraints/pwa_job_runs_state_check":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-02: V94 drops the lease state from pwa_job_runs (columns lease_expires_at, lease_generation, error_code,\
       \ their checks, and the lease/state consistency check); the state check allows only pending and completed. Remaining\
       \ attribute numbers are unchanged (dropped attnums stay). Applied in DEV on 17 October 2026 (loan_manager_dev, V94);\
-      \ PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "value"

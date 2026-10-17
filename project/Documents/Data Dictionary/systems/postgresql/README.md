@@ -1,6 +1,6 @@
 # Shared PostgreSQL model
 
-MW-Credit-App owns immutable migrations, guarded runners and database CI. DEV `loan_manager_dev` and PROD `loan_manager_prod` share one Cloud SQL instance; latest verified migration is V95 in DEV and V93 in PROD; V94 and V95 definitions carry evidence saying they are migration-source values confirmed in DEV. V93 definitions carry evidence saying what the PROD readback confirmed and what is still the migration value. Use the complete target tuple in [environment inventory](../../../Environment_Inventory.md).
+MW-Credit-App owns immutable migrations, guarded runners and database CI. DEV `loan_manager_dev` and PROD `loan_manager_prod` share one Cloud SQL instance; latest verified migration is V95 in DEV and in PROD (PROD applied 17 October 2026, 04:09Z); V94 and V95 definitions carry evidence saying they were applied in DEV and PROD. V93 definitions carry evidence saying what the PROD readback confirmed and what is still the migration value. Use the complete target tuple in [environment inventory](../../../Environment_Inventory.md).
 
 - `relations/`: columns, constraints, indexes, triggers, policies and dependencies.
 - `routines/`: exact signatures/bodies and captured ownership/access metadata.

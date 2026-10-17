@@ -60,6 +60,5 @@
     "reason": "ALL-ARCH-03 part 2b (V95, commits a63f8b4 and 790de3a): begin_operation accepts the pair (effective role, session\
       \ login): effective role mw_reviewer_dml, or mw_reviewer_dml_dev outside loan_manager_prod, and session_user equal to\
       \ that role or the agent IAM login mw-integration-agent@clever-oasis-508610-n7.iam; effective role = current_setting('role')\
-      \ or session_user. Applied in DEV on 17 October 2026 (loan_manager_dev, V95); PROD is still V93 (V94 and V95 pending\
-      \ the R068 promotion), so this PROD-scope value is source-derived until the PROD migration."
+      \ or session_user. Applied in DEV on 17 October 2026 (loan_manager_dev, V95); applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "value"

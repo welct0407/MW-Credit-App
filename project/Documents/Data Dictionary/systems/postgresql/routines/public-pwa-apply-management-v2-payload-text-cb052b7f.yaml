@@ -63,5 +63,5 @@
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
       \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
-      \ (loan_manager_dev, V94); PROD is still V93, so this PROD-scope value is source-derived until the PROD migration."
+      \ (loan_manager_dev, V94); applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
     "state": "value"
