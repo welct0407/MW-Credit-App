@@ -62,7 +62,7 @@ DEV applied about 09:43Z, PROD 10:17:44 to 10:18:21Z, both 17 October 2026 (plan
 | Deployed monorepo commit | `5b4e50dfa9be919321ac30160a4e0c1bfef548a8` (R071 agent component: catalogue validator accepts `audit_relay`) |
 | Virtual environment | `/opt/mw-integration-agent/.venv`, installed from `<checkout>/integration-agent` at that commit with `pip install --no-deps`; dependencies equal `integration-agent/requirements.lock` (verified 16 October at the earlier deploy; not re-recorded for R069) |
 | Installed package version | `0.1.0` (the package version is not bumped; `/ready` `code_version` is the identity) |
-| Service catalogue revision | 27 (unchanged since R063; the deploy refuses a mismatch) |
+| Service catalogue revision | 28 live and in the repository since 17:39:54Z, 17 October 2026 (adds `audit_relay`; backup `/root/service-catalogue.json.pre-rev28` holds 27); the deploy refuses a mismatch |
 | Verified | Activated 17:27:06Z, 17 October 2026: `/ready` 200, six timers resumed, no `mw-*` journal errors and all worker runs exit 0 in the first six minutes |
 | Host monitor | `/opt/mw-resource-monitoring/debian-health.py` equals the repository copy as of the R063 Wave 3 deploy (`300aeb5`); later monitor updates: not recorded |
 | Rollback | `deploy-runtime.py rollback --commit 5b4e50dfa9be919321ac30160a4e0c1bfef548a8` from `runtime-20261017T172649242280Z` (restores R069 `1feb6cd`). Earlier backups: `runtime-20261017T102501647216Z` (R069 deploy, holds R068 `679a76c`), `runtime-20261017T041230734761Z` (R068 deploy) |
