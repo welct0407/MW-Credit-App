@@ -137,7 +137,7 @@ Agent C review found no defects.
 ## Remaining work
 
 - Notifications worker (APP-NOTIFY-02) ships with the next all-services DEV roll and with R068 promotion.
-- `preference-save.ts:27` builds its pending-sync message in the previous language, so the Thai menu can show the English "Saved on this device. Waiting to sync." (pre-existing).
+- Done for R071 (17 October 2026, branch `claude/r071-preference-thai`): `preference-save.ts` built its messages in the language active when they were set, so a switch to Thai left "Saved on this device. Waiting to sync." in English. It now keeps both languages and chooses at render time (display only). `phase5-final-ui-independent.spec.ts` asserts the Thai note after an offline switch to Thai; it failed on both projects before the fix and passes after (76 passed with `cash-two-workspaces`); typecheck, lint 0 errors, unit 576 of 576.
 - At 1280x800 with saved changes pending the sidebar scrolls (939 vs 740), so "Sync now" and "Sign out" are below the fold; "Waiting to sync" stays at the top.
 - PERF-01 is partly done (icons 192/512/apple unchanged; maskable icon per PERF-03 not done).
 - A missing `/assets/*` file falls through the SPA rewrite and is served as `index.html` with the immutable header (low risk, measured); a narrower rewrite would change both Hosting runners' frozen contracts: a separate item.
