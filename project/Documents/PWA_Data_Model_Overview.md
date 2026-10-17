@@ -15,7 +15,7 @@ Current native ownership, 14 October 2026. Exact definitions belong in the [dict
 
 Authorized source CRUD is supported where SQL reconciles allocations, repayments, cash and ownership. Preserve later unrelated transactions/journals. Do not impose a new reversal framework or regenerate separately recorded historical charges.
 
-Ordinary CRUD remains the accepted correction path (V59/V60 removed the older posted-amount guard). The command request-id journal and payload hash are enforced only on the Node command path, not on direct SQL writes. Since V93 (R064, DEV pending) the system cash-ledger rows are written only by the source triggers through the definer function `sync_cash_ledger`; the application and reviewer roles hold no direct write on "Cash Ledger", and manual cash movements change only through the governed command path. Direct source deletes by the application role are not a supported correction path. `Test-AccessMatrix.sql` asserts the migration-owned grants, so grant drift fails database CI.
+Ordinary CRUD remains the accepted correction path (V59/V60 removed the older posted-amount guard). The command request-id journal and payload hash are enforced only on the Node command path, not on direct SQL writes. Since V93 (R064) the system cash-ledger rows are written only by the source triggers through the definer function `sync_cash_ledger`; the application and reviewer roles hold no direct write on "Cash Ledger", and manual cash movements change only through the governed command path. Direct source deletes by the application role are not a supported correction path. `Test-AccessMatrix.sql` asserts the migration-owned grants, so grant drift fails database CI.
 
 Original daily interest uses frozen integer percentage points. Daily-interest principal changes use the governed original rate; fixed/installment schedules retain their rules. Unknown original terms/opening balances remain unknown.
 
@@ -26,6 +26,8 @@ The command journal stores idempotent request identity/outcome. PWA and machine 
 Notification events, deliveries, subscriptions and preferences separate committed events from transport retries. Job runs record duplicate-safe scheduled work. These records are not additional financial receipts.
 
 ## Receipts
+
+"Payments" carries 25 triggers of its own (besides foreign-key constraint triggers). They fire in trigger-name order, so the names (`a000_` first through `zzzzzz_` last) are the execution order: do not rename or add one without updating the firing-order test. The list is in [payments.yaml](Data%20Dictionary/systems/postgresql/relations/payments.yaml) and the snapshot in `scripts/database/Test-TriggerOrder.sql`.
 
 Payments retain manual-upload and agent evidence fields. Both use the private GCS bucket with their own validated object conventions. Manual replacement does not enqueue agent processing. Existing native references are resolved from verified mappings, never guessed filenames.
 
