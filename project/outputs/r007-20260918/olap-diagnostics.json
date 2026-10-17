@@ -1,8 +1,0 @@
-{
-  "appId": "494cd013-0d9b-482f-9559-c9d83059de91",
-  "version": "1.000142",
-  "capturedUtc": "2026-09-18T11:05:18.516Z",
-  "source": "Current saved editor Errors & Warnings dialog",
-  "issues": "Errors & Warnings\n\nResolve the following issues with your app. Save your app to see the updates.\n\nScheduled event 'Every Hour' is only triggered when app is in deployed state\nGo to problem",
-  "exclusionStatus": "Owner explicitly excluded both Prototype scheduling warnings; Every Hour in OLAP and Daily 00:05 in OLTP. No other issue."
-}

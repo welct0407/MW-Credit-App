@@ -1,5 +1,0 @@
-# Native PWA documentation — 14 October 2026
-
-Owner requested root-authored cleanup after AppSheet retirement. Updated AGENTS, repository/development/read-service/branding/database references to the deployed PWA and proportional checks. Removed completed-release narratives and AppSheet coexistence/editor/RC procedures. Preserved scoped production/schema authority, restricted roles, immutable SQL, exact package guards, recovery and excluded Azure controller ownership.
-
-Baseline 808cdf53225ce627ea41ef4d3666bf97a3c9cbfe. Documentation only; no runtime, SQL, infrastructure or workflow edits. Checked intended diff, local links and whitespace; no manual product/database CI. Existing automatic workflow paths may still run on these docs. Recover through Git. Project record: AppSheet-Loan-Project Change Logs/CHANGE_NOTES_PWA_WORKFLOW_CLEANUP_2026-10-14.md.

@@ -1,8 +1,0 @@
-{
-  "database": "loan_manager_dev",
-  "reviewerCount": 1,
-  "initialReviewer": "Tommy",
-  "partnerCountUnchanged": 2,
-  "realMasterQueryPassed": true,
-  "deploymentPrerequisiteQueryPassed": true
-}

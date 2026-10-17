@@ -1,8 +1,0 @@
-{
-  "restorePassed": true,
-  "excludedOnlyCloudSqlPgCronMetadata": true,
-  "businessTableCount": 14,
-  "businessTableCounts": "Borrowers=30,Calendar=0,Cash Pool Contributions=7,Charges=848,Daily Analytics=43,Loan Assessment=1,Loan Assessment SQL Lab=1,Loans=67,Partners=2,Payment Allocations=316,Payments=164,Repayments=695,Settlements=2,Statistics=1",
-  "restoredSchemaSha256": "242404152af2760a046b1e628e7a4df1e56a1a7230e90839f8192d8e05217bba",
-  "schemaMatchesPreBackup": true
-}

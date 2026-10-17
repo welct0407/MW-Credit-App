@@ -68,4 +68,4 @@ Raw captures and the original guarded plan remain under `C:/Users/MWCredit/Docum
 
 Starting commit: `dffa437c29a762f5b87a10b14a32063da8df07aa`, initially clean `master`. Another task advanced HEAD to `9a623878d11a06b119e867e291340e60066bc894`; its work is preserved. Recover by reverting this task's commit or restoring selected paths, never resetting shared history to the starting commit. No live changes need rollback.
 
-See [change log](../../Change%20Logs/CHANGE_NOTES_DATA_DICTIONARY_RECONCILIATION_2026-09-24.md) and [continuation](continuation.md). The final task response records the resulting commit and verified upstream publication.
+See [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_DATA_DICTIONARY_RECONCILIATION_2026-09-24.md) and [continuation](continuation.md). The final task response records the resulting commit and verified upstream publication.

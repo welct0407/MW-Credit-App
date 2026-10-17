@@ -1,8 +1,0 @@
-{
-  "allSheetsRoundtrip": true,
-  "versions": {
-    "OLTP": "1.000088",
-    "OLAP": "1.000090"
-  },
-  "changed": []
-}

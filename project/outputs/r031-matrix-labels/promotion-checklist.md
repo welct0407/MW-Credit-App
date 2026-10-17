@@ -6,7 +6,7 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 - Scope: three static chart assets only. Apps, SQL, API, authentication and Metabase configuration Unchanged.
 - Frozen 2026-09-25T05:34:02.780910+00:00, pin adba25c306a7bbf2a26d1aa7c7af00b195e5e727; R032 Open, next R033.
-- [Manifest](release-manifest.json); [change log](../../Change%20Logs/CHANGE_NOTES_R031_2026-09-25.md); [evidence](README.md).
+- [Manifest](release-manifest.json); [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R031_2026-09-25.md); [evidence](README.md).
 - DEV readiness / owner acceptance: Completed for static chart scope; manifest/verification and tag R031 identify evidence; no RC/AppSheet readiness claim.
 - Production authorization: owner requested this refinement to the deployed comparison chart; no RC.
 - DEV / RC / PROD-before / PROD-after / rollback / SQL versions: Completed for static chart scope; manifest/verification and tag R031 identify evidence; no RC/AppSheet readiness claim.

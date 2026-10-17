@@ -1,8 +1,0 @@
-{
-  "applied": [
-    "V4__receipt_evidence.sql"
-  ],
-  "versions": 4,
-  "schema": "mw_agent",
-  "secondRun": "no-op"
-}

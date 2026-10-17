@@ -1,8 +1,0 @@
-{
-  "database": "loan_manager_dev",
-  "instance": "appsheet-pg-prod-20260914",
-  "host": "34.21.174.215",
-  "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r014-20260921/reviewer-before.dump",
-  "sha256": "446BB019368C05ECADA5FE879A47FB764D09E81FA688337FEA2091D2C3911D64",
-  "archiveValidated": true
-}

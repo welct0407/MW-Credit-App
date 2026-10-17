@@ -1,8 +1,0 @@
-{
-  "environment": "development",
-  "liveSchema": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\flyway\\development-schema-20260915-144556.sql",
-  "rebuiltSchema": "C:\\Users\\MWCredit\\AppData\\Local\\AppSheetLoanTools\\migration-test-8a1cc021d1cd4657b0ded38e62c46c65\\rebuilt.sql.normalized",
-  "liveSha256": "C506666C8A6638CB50CCD55F39A933D683241359C3163471CF5F557920CB592F",
-  "rebuiltSha256": "C506666C8A6638CB50CCD55F39A933D683241359C3163471CF5F557920CB592F",
-  "match": true
-}

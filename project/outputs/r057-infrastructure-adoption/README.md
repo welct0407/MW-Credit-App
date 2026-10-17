@@ -82,4 +82,4 @@ Historical access-blocker evidence is pinned at [b0a3c5c](https://github.com/wel
 
 Extension rollback/publication baseline: PM `211852c16d0bf7e9f7fea3442cc70e3ec32f5005`; application published baseline `48603b7051a4b222f57d4e1bb544c739f510a6ff` / PR #5. Existing paused Phase 2 dirty files remain preserved and unpublished; root controls partial staging.
 
-Batch log: [R057 change notes](../../Change%20Logs/CHANGE_NOTES_R057_INFRASTRUCTURE_ADOPTION_2026-10-13.md). Initial inventory/proposal remains dated evidence: [Phase 1](../infrastructure-cleanup-phase1/README.md).
+Batch log: [R057 change notes](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R057_INFRASTRUCTURE_ADOPTION_2026-10-13.md). Initial inventory/proposal remains dated evidence: [Phase 1](../infrastructure-cleanup-phase1/README.md).

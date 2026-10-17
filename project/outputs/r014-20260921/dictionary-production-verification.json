@@ -1,8 +1,0 @@
-{
-  "range": "A2880:E2915",
-  "promotedRows": 36,
-  "priorValuesOutsideRangePreserved": true,
-  "allFormulasPreserved": true,
-  "formatting": "Values-only changes; existing layout retained",
-  "formulaErrorScan": "{\"kind\":\"notice\",\"message\":\"Cell search matched 0 entries.\"}"
-}

@@ -6,7 +6,7 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 - Scope: dedicated VM chart service, narrow PROD reader and comparison iframe; both Apps Unchanged and explicitly excluded.
 - Frozen 2026-09-25T04:50:43.236549+00:00; pinned package07efaac; successorR031 is Open, nextR032. Handoff published in dfc6bfe/4495d5c before production writes.
-- [Manifest](release-manifest.json), [change log](../../Change%20Logs/CHANGE_NOTES_R030_2026-09-25.md), [verification](final-verification.json).
+- [Manifest](release-manifest.json), [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R030_2026-09-25.md), [verification](final-verification.json).
 - Owner authorized VM/DB/Metabase deployment, shared-secret fallback and existing-tab comparison. No AppSheet readiness or R026 closure is claimed.
 - SQL V43 before/after; no migrations. Recovery dashboard7; verified restore of26 table fingerprints. Original chart274 retained.
 - Deployed and verified; final evidence commit is identified by annotated tagR030. No RC exists.

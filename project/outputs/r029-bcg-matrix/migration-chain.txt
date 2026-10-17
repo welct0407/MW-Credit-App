@@ -1,7 +1,0 @@
-
-firstMigrations           : 43
-secondMigrations          : 0
-baselineRebuildMatch      : False
-checksumTamperingRejected : True
-localPostgres             : 18.6
-flyway                    : 13.6.0

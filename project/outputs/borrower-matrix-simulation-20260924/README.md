@@ -36,7 +36,7 @@ Only sanitized aggregate evidence is published here: [final simulation summary](
 
 ## 1. Why the original matrix failed
 
-Live V39 PostgreSQL definitions were read and captured, not inferred solely from old documents. The retained original [2 September design/change record](../../Change%20Logs/CHANGE_NOTES_BORROWER_VALUE_STABILITY_MATRIX_2026-09-02.md) and [V22 SQL](../../database/migrations/V22__olap_analytics_views.sql) supply the intended versus recorded comparison.
+Live V39 PostgreSQL definitions were read and captured, not inferred solely from old documents. The retained original [2 September design/change record](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_BORROWER_VALUE_STABILITY_MATRIX_2026-09-02.md) and [V22 SQL](../../database/migrations/V22__olap_analytics_views.sql) supply the intended versus recorded comparison.
 
 | Finding in the live calculation | Consequence | Proposed correction |
 | --- | --- | --- |

@@ -6,7 +6,7 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 - Scope: source CRUD, historical opening consistency, both-app access, retained V73/V74 and posted-payment computation refinements; both apps Upgrade. Completed monitoring work remains delivered; no new dashboard/runtime changes in this promotion.
 - Release scope Frozen at 2026-10-06T19:01:37.427547+00:00; R052 opened in coordinated tracker handoff. Independent RC capture and SQL pin complete; shared DEV may resume.
-- Manifest: [release-manifest.json](release-manifest.json); log: [R051 promotion](../../Change%20Logs/CHANGE_NOTES_R051_PRODUCTION_2026-10-07.md); reused tests: [GUI](../r051-receipt-corrections/vm01-gui-tests-20261006.md).
+- Manifest: [release-manifest.json](release-manifest.json); log: [R051 promotion](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R051_PRODUCTION_2026-10-07.md); reused tests: [GUI](../r051-receipt-corrections/vm01-gui-tests-20261006.md).
 - DEV readiness / owner acceptance: accepted; retained GUI and local CI passed.
 - Production authorization: owner instruction 7 October 2026, “go ahead with the steps you proposed, and promote the changes to production”; covers consolidation, experimental cleanup, both-app promotion and release closure. Final RC2 pins1.000005 accepted within the authorized unchanged scope.
 - DEV / RC / PROD-before / PROD-after / rollback / SQL versions: in linked manifest; complete

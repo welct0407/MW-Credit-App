@@ -1,7 +1,0 @@
-# RC definition-only copy — 21 September 2026
-
-- **Purpose / authority:** owner requested an explicit no-data-copy instruction after two RC creation mistakes. Governance-only clarification; no release number or live operation.
-- **Starting point / rollback:** clean tree at `fd4b17d574afd6b5eece988d0f35cc7a12f1181f`. Revert this documentation commit selectively, preserving later work; no app/DB rollback needed.
-- **Changes:** Release Workflow Gate B explicitly states that the copy-data checkbox is checked by default and must be actively unchecked on every RC copy/retry. File-data-copy options must also be unchecked; verify these states before clicking Copy. Copy definitions only, retain existing source references and rebind through the existing mapping step. Accidental data copies are rejected, contained and replaced; cleanup must not delete shared sources. AGENTS capture instructions, master checklist P14 and the pending R011 P14 carry the same rule. Existing release statuses/evidence are preserved; future R012 checklist creation inherits the master.
-- **Verification:** reviewed the five-file diff; checked runbook/AGENTS/master/R011 consistency, unchanged activity count and existing P14 Pending status. No extra checklist, export, live audit or routine test gate introduced. Git whitespace check passed.
-- **Result:** documentation complete; no live copy, data movement, deletion or production operation performed. No manual app testing is required for this instruction change. Normal repository commit/push follows standing authorization.

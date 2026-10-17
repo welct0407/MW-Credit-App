@@ -1,5 +1,0 @@
-{"partnerCount" : 2, "uniqueLoginCount" : 2, "ownerOnlyDelivery" : true}
-{"actorRole" : "A", "eligiblePartners" : 1, "uniqueDeliveryAddresses" : 1, "ownerOnly" : true}
-{"actorRole" : "B", "eligiblePartners" : 1, "uniqueDeliveryAddresses" : 1, "ownerOnly" : true}
-{"receipt" : "r008:Borrowers|11:R009IDENT-F|2026-09-19|21e01c35|welct0407@mw-credit.com", "status" : "Posted", "ownerActor" : true, "mappedActor" : true, "closureCount" : 1}
-{"receipt" : "r008:Borrowers|11:R009IDENT-G|2026-09-19|0673f371|welct0407@mw-credit.com", "status" : "Posted", "ownerActor" : true, "mappedActor" : true, "closureCount" : 0}

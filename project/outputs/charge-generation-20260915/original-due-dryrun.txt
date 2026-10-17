@@ -1,7 +1,0 @@
-BEGIN
- would_generate
-----------------
-              0
-(1 row)
-
-ROLLBACK

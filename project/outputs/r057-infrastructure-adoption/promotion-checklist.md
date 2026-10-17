@@ -6,7 +6,7 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 - Scope: existing ecosystem adoption, unattended administration and owner-authorized four-app retirement/integration removal. No App Upgrade/RC, SQL migration, app deletion or license action.
 - Retirement started 2026-10-13T16:37:00Z. Freeze/handoff authorized by root; B/F pins independently captured. R057 Frozen, R058 Open, R059 next unused; handoff published at955b6509; remote master verified.
-- Manifest / evidence: [adoption record](README.md), [retirement record](../r057-appsheet-retirement/README.md), [retirement log](../../Change%20Logs/CHANGE_NOTES_R057_APPSHEET_RETIREMENT_2026-10-13.md). Exact retirement pins pending.
+- Manifest / evidence: [adoption record](README.md), [retirement record](../r057-appsheet-retirement/README.md), [retirement log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R057_APPSHEET_RETIREMENT_2026-10-13.md). Exact retirement pins pending.
 - Owner authorized retirement; active-AppSheet DEV readiness/RC acceptance does not apply. Scoped saved retirement and native continuity checks passed.
 - Production authorization: owner authorized retirement of all four apps and active integration dependencies; owner will revoke license afterward. No RC.
 - DEV / RC / PROD-before / PROD-after / rollback / SQL versions: in linked manifest; Pending

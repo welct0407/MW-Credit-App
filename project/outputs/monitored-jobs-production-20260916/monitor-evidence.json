@@ -1,7 +1,0 @@
-{
-  "environment": "production",
-  "manualRecent": "Complete",
-  "manualFull": {"status": "Complete", "completedBangkok": "2026-09-16T00:59:36+07:00"},
-  "naturalHourly": {"status": "Complete", "completedBangkok": "2026-09-16T01:00:04+07:00", "runId": "7fc34a7c-f9e4-4e31-8623-5de15315ff99"},
-  "naturalDailyCharge": "pending first 00:05 run after cutover"
-}
