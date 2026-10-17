@@ -171,8 +171,9 @@ Patch 15:42:54 to 15:49:21Z: tier `db-g1-small`, IAM flag, `max_connections` 50,
 - `scripts/backup-agent-database.py` Linux support: done (`4ed32a2`); the first item above is superseded.
 - Borrower-name lock key normalisation (Node versus SQL, pre-existing since V93): fixed in `e56069f` (runtime only; reached PROD with the R068 runtime image on 17 October 2026).
 - Migration V95 (reviewer and projector identity pair, ALL-ARCH-03 part 2b): done in DEV and PROD (17 October 2026).
-- A failed dataset domain in the PWA is retried every 30 s indefinitely (no back-off).
-- UX-REFRESH-06, 07 and 09 are deferred.
+- A failed dataset domain in the PWA is retried every 30 s indefinitely (no back-off): done in code (R069, `2cf8dfd`; back-off 30 s to 5 min), not deployed.
+- UX-REFRESH-06 and 07 are deferred; UX-REFRESH-09 closed by the owner (30-second poll stays).
+- Agent optional follow-ups: done in code (R069, `a2dd49c`, `a2ef374`), not deployed. Agent V6 `runtime.service_heartbeats`; idle cycles write only a heartbeat; routine reference reads are summarised; per-service fencing. Heartbeat design measurement (PROD, 24 h): 25,001 operations, 8,431 pure no-op JOB trees (69%), receipt-cycle `masters()` reads about 28,000 rows per day; expected reduction about 70,000 rows per day. Tester re-test: 640 randomised stress iterations with 0 violations, maximum advisory wait 273 ms, unit 523 OK, lab 99 OK. V6 must be applied before the package is activated (R069 promotion); stop the timers before manual runs or rollback (D3).
 - Lesson for readbacks on the shared instance: use cheap single-scan counts. Two whole-tree queries hit their time limits and wrote about 2.7 GB of temporary files before they were cancelled; disk stayed at 10 GB and the instance stayed RUNNABLE.
 - ALL-ARCH-03 cleanup part 2a is done (17 October 2026, see the W3 notes); part 2b is switched to IAM (17 October 2026, R068 promotion); only the 24 October steps remain: set `mw_reviewer_dml` and `mw_receipt_projector` `NOLOGIN` and shred the two password files and the 2a offline copy (reminder 24 October 10:05 Bangkok).
 

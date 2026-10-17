@@ -74,3 +74,13 @@ Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps
 - One authenticated check by the owner on the next normal sign-in is the only proof of the busy-retry path in PROD; no PROD test identity.
 - SQL bodies still use the inline lock expression; adopting `pwa_lock_key_v1` there is a later migration.
 - SQL `lower()` and JavaScript `toLowerCase()` can differ for non-ASCII case mappings in the borrower-name key (pre-existing, unchanged).
+
+## Optional follow-ups (R069)
+
+Commits `2cf8dfd` and `c9cb4b0` on `claude/w4-optional`; code only, not deployed (R069 is Open).
+
+- Lists hold swaps during touch/scroll and about 1 s after (10 s cap); the Cash workspace guard has a 10 s cap and clears on change, record open and unmount.
+- A failed dataset domain backs off 30 s, 60 s, 2 min, 5 min, and resets on success, online or focus. The banner and "Updated" time use data domains only; receipts retry quietly. Read-cache held paths are bounded.
+- UX-REFRESH-09 closed by the owner (17 October): the 30-second poll stays always, with no mobile-data back-off (iOS cannot detect cellular).
+- UX-HOLD-01 to 08 reviewed: 04, 05, 06, 01 and 07 fixed in `c9cb4b0`; 02, 03 and 08 deferred.
+- Checks: tester on `2cf8dfd` `npm test` 559 of 559, refresh-hold and startup-generations x5 40 of 40, 173 other e2e passed; after `c9cb4b0` `npm test` 563 of 563, e2e 220 runs passed.

@@ -23,6 +23,18 @@
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
+## R069 W4 optional follow-ups
+
+Branch `claude/w4-optional` (from `main` `158c241`), for the Open R069; code only, not deployed. Notes: [app](../../Change%20Logs/CHANGE_NOTES_W4_APP_2026-10-16.md#optional-follow-ups-r069), [database](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#remaining-work).
+
+- **Owner decisions (17 October 2026).** Keep the 30-second poll always (no mobile-data back-off; iOS cannot detect cellular, UX-REFRESH-09 closed); idle agent cycles write only a heartbeat; summarise routine reference reads.
+- **Scripts (`3e039e3`).** 138 retired direct-route scripts removed.
+- **PWA (`2cf8dfd`, `c9cb4b0`).** Lists hold swaps during touch/scroll and about 1 s after (10 s cap); Cash workspace guard (10 s cap, cleared on change, record open and unmount); failed dataset domains back off 30 s, 60 s, 2 min, 5 min and reset on success, online or focus; banner and "Updated" time use data domains only, receipts retry quietly; read-cache held paths bounded.
+- **Agent (`a2dd49c`, `a2ef374`).** Agent V6 adds `runtime.service_heartbeats`; idle cycles write only a heartbeat, materialised runs are unchanged, monitoring probes are unwrapped, receipt-cycle reference reads are summarised (sha256 and counts) in the JOB record. Fencing: a per-service lock serialises start, child materialisation and exit; retired runs are fenced. D3: stop the timers before manual runs or rollback.
+- **Measurement (PROD, last 24 h).** 25,001 operations, 8,431 pure no-op JOB trees per day (69%), receipt-cycle `masters()` reads about 28,000 rows per day; expected reduction about 70,000 rows per day.
+- **Checks.** PWA tester on `2cf8dfd`: typecheck ok, lint 0 errors, `npm test` 559 of 559, refresh-hold and startup-generations x5 40 of 40, 173 other e2e passed; UX review UX-HOLD-01 to 08 (04, 05, 06, 01, 07 fixed in `c9cb4b0`; 02, 03, 08 deferred); after `c9cb4b0` `npm test` 563 of 563, e2e 220 runs passed. Agent tester found fencing defects D1 and D2 in `a2dd49c`, fixed in `a2ef374`; re-test: all repros pass, 640 randomised stress iterations with 0 violations, maximum advisory wait 273 ms, no deadlocks; unit 523 OK, lab 99 OK, ruff clean.
+- **Recovery and deploy.** `git revert` the branch commits. V6 only adds `runtime.service_heartbeats`, which an older agent package ignores, so a package rollback keeps V6 in place; stop the agent timers and wait for workers before a rollback or manual run, because an older package cannot see a lazy V6 run. Agent V6 must be applied before the package is activated, as part of the R069 promotion.
+
 ## R068 Wave 5 UX
 
 [Change note](../../Change%20Logs/CHANGE_NOTES_W5_UX_2026-10-17.md). Branch `claude/review-w5-ux`, UI-only, for the Open R068 (the owner brief named R067, which another session had already frozen and Released). 39 review codes: 29 reproduced and fixed or mitigated, 7 partly, PERF-02 already met since R063, 2 no action. Highlights: labelled Review/Clear draft and offline wording before confirming a payment, no nested scroll on phones, 14 px minimum text, 44 px targets, one money format `-฿1,200`, Cash date `08-Oct-2026`, partner labels from the Partners records, a divided Sign out with a reason, sign-in failure and notification status messages, app updates applied on request (automatic runtime update removed), notification tap no longer reloads a tab with an open form, Windows push hosts accepted. No schema change, no new dependency.
