@@ -42,6 +42,14 @@ class ConfigurationTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             validate_catalogue(catalogue)
 
+    def test_audit_relay_entry_is_accepted_and_still_fails_closed(self):
+        catalogue = load_json(ROOT / "service-catalogue.json")
+        catalogue["services"]["audit_relay"] = {"enabled": True, "implemented": True}
+        validate_catalogue(catalogue)
+        catalogue["services"]["audit_relay"]["implemented"] = False
+        with self.assertRaises(ConfigurationError):
+            validate_catalogue(catalogue)
+
     def test_non_loopback_listener_is_rejected(self):
         config = load_json(ROOT / "config.example.json")
         config["listen_host"] = "0.0.0.0"

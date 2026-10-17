@@ -303,7 +303,7 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
         if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
                         "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
                         "operational_data_api", "reviewer_database_dml", "instagram_delivery", "email_fallback", "daily_briefing",
-                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence", "shared_receipt_payment_api"}:
+                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence", "shared_receipt_payment_api", "audit_relay"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

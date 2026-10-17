@@ -21,10 +21,10 @@ The active branch `claude/r071-style-decisions` was editing `Development_Changes
 - **AGT-DOC-04** done: `POSTGRESQL_OPERATIONS.md` governance describes the native API with SQL fallback; V33 reference is `database/migrations/V33__agent_transaction_audit.sql`.
 - **AGT-DOC-05** done: `integration-agent/docs/MIGRATION_PLAN.md` deleted with its README link and diagram label (`BUSINESS_PROCESS.drawio`, `generate-business-process.py` label text).
 - **AGT-DOC-06** done: `config.example.json` has `state_backend` (`sqlite`, the inert default), `state_generation`, `state_cutover_at` and the `agent_database_*` keys; it still passes `validate_config`.
-- **AGT-DOC-07** partly done: the audit relay is documented in `SERVICE_CATALOGUE.md`. The owner approved the validator change (17 October). Step 1, `validate_catalogue` accepts `audit_relay`, is on branch `claude/w6-audit-relay-validator` with its own agent change note. Step 2 adds the key to the live and repository catalogues together (revision 28) after step 1 is deployed; adding it first would make the running code reject the catalogue and the deploy helper refuse the drift.
+- **AGT-DOC-07** partly done: the audit relay is documented in `SERVICE_CATALOGUE.md`. The owner approved the validator change (17 October). Step 1, `validate_catalogue` accepts `audit_relay`, is on `main` (`5b4e50d`) and deployed on Debian at 17:27:06Z, 17 October 2026 (owner go; see its agent change note). Step 2 adds the key to the live and repository catalogues together (revision 28) after step 1 is deployed; adding it first would make the running code reject the catalogue and the deploy helper refuse the drift.
 - **AGT-DOC-08** done: README points at `POSTGRESQL_OPERATIONS.md`; the design `HANDOVER.md` is marked implemented 22 September 2026, historical.
 - **AGT-DOC-09** done: Windows paths and old repository names removed from agent docs; `project/SERVICE_CATALOGUE.md` (sibling-repository pointer) deleted.
-- **AGT-DOC-10** done: the inventory Debian entry records checkout `/opt/mw-integration-agent-src`, deployed monorepo commit `1feb6cd` (R069; `integration-agent/` identical to `9c4a4cb`), venv, package `0.1.0`, catalogue 27; the archived-repository SHA is labelled. The host HEAD is inferred from the deploy helper, not read.
+- **AGT-DOC-10** done: the inventory Debian entry records checkout `/opt/mw-integration-agent-src`, deployed monorepo commit `1feb6cd` (R069; `integration-agent/` identical to `9c4a4cb`), venv, package `0.1.0`, catalogue 27; the archived-repository SHA is labelled. The host HEAD was read on the host at the 17 October deploy; the inventory now records `5b4e50d`.
 - **AGT-TEST-04** done: `OPERATIONS.md` "Test lab prerequisites" summarises the lab needs and links the W3 `tests/lab/README.md` and `setup.sh`.
 - **ALL-DOC-01** done: dead `Data_Dictionary_ChatGPT.md` link removed; the snapshot row is conditional on a local snapshot.
 - **ALL-DOC-02** (1) and (2) not reproduced, fixed on main before this wave. (3) held: `Release_Tracker.md` links a heading that does not exist in the receipt-isolation note; drop the anchor after R071 merges.
@@ -2612,7 +2612,6 @@ Run once on the completed batch (Agent C at `d31a86f`; link check rerun at `cf0a
 | `node --test` | No test reads a documentation file this wave changed or deleted |
 | `tests.test_config` | Not a requested check; it errors identically at `cbc8843` (missing `psycopg` in the sandbox) |
 | `release dictionary.test.mjs` | Needs `@oai/artifact-tool`, not installed here (pre-existing) |
-| Read of the Debian host checkout HEAD | Read-only host access not used; the inventory infers it from the deploy helper |
 
 ## Recovery
 Revert the Wave 6 commits on `claude/review-w6-docs` (or on main after merge). Every deleted file is recoverable from Git at `cbc8843` (`git checkout cbc8843 -- <path>`); permalinks in the documents point there.
@@ -2631,7 +2630,7 @@ No open questions remain.
 ## Remaining work
 - Merge order: this branch merges only after the held items below are done, because `check:docs` fails the CI `changes` job until the tracker, `Development_Changes.md` and `application.yaml` carry no pins and the tracker anchor is fixed.
 - The 8 evidence warnings are cleared at the next release closure.
-- Audit relay step 2 after the step 1 code is deployed on Debian (needs an owner go for that deploy): catalogue revision 28 with `audit_relay`, live and repository together, plus the Markdown table row.
+- Audit relay step 2 (needs an owner go, it changes the live catalogue): catalogue revision 28 with `audit_relay`, live and repository together, plus the Markdown table row.
 - After `claude/r071-style-decisions` merges: trim `Development_Changes.md` (ALL-DOC-06), remove pins from the tracker, `Development_Changes.md` and `application.yaml` (ALL-DOC-05), drop the tracker R058 anchor (ALL-DOC-02), add DB-DOC-04, add the Wave 6 line under the open release and close the review documentation rows, then delete the notes linked only from those files (`REPOSITORY_MERGE`, `W1_APP`, `W1_OPS`, `W3_APP`, `W3_OPS`, `W1_AGENT`, `W2_AGENT_DEPLOYMENT`, `W3_AGENT`, `RECEIPT_NOTIFICATION_ISOLATION`, `R064_SYNC` if released) after repointing.
 - `integration-agent/docs/BUSINESS_PROCESS.png` still shows the old label; re-export needs draw.io.
 - Dated pins remain in historical records outside this wave's list: `infrastructure/production/READINESS_INVENTORY.md`, `scripts/promotion/README.md` (R063 narrative), earlier dated paragraphs of `docs/Development_PWA_Delivery.md`.
