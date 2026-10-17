@@ -21,6 +21,17 @@
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
+## R071 style decisions
+
+Owner decisions 17 October 2026 on the R070 cascade audit ("Prepare these in R071"). Branch `claude/r071-style-decisions` from `main` `038b5c9`; UI-only, no API or SQL change, not deployed.
+
+- **Upcoming heading: keep 20 px.** `.upcoming-directory h2,.upcoming-event h2` lost its never-applied `font-size:18px`; both headings stay 20 px.
+- **Collection group headings: status colour.** The status label is red (not paid), purple (overdue), amber `#a05000` (partially paid; the tile amber `#b85c00` is 4.0:1 on the heading fill) or green (fully paid); the amount chip stays neutral. Contrast on the heading fill `#eef0f2`: 4.92, 7.18, 5.05 and 4.64 to 1.
+- **Dashboard secondary heading (owner left to Claude).** Keeps its 1.5rem top margin on tablets (768 to 1199 px) as at other widths, instead of the general 18 px.
+- **Unused CSS deleted.** 28 classes with no markup (20 in `live-style.css`, 8 in `style.css`; the R070 note's 28 plus 8 counted the dynamic `collection-status-*` and `payment-status-*` classes, which stay): 58 selectors and one emptied media query removed; shared rules keep their other selectors.
+- **Checks.** `npm run check` 576 of 576. Full Playwright with the contrast and cascade auditors: 521 passed, 12 skipped, 3 failed (the U10 1440 px sticky-summary flake twice and one native-transition animation test that passes 3 of 3 without the auditors); no low-contrast control; the Upcoming and dashboard overrides are gone; heading label colours read back in the browser.
+- **Recovery.** `git revert` the commit; Hosting rollback to the prior version once deployed.
+
 ## R070 review payment button
 
 Part of R070 by owner instruction 17 October 2026 ("Let's merge all three sessions' change into R070"). Owner report 17 October 2026: the Review payment button text looked too light; it should match Confirm payment. Cause: `.selected-payment .payment-selection-header button` in `style.css` (transparent background, no border) outranked the shared `.payment-review-button` rule in `live-style.css`, so Review showed white text on the grey allocation bar. The Review selectors now include `.payment-selection-header`, giving it the Confirm payment look (#713c00 fill and border, white text, weight 600; disabled grey unchanged). UI-only, no API or SQL change.
