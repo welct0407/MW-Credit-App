@@ -114,7 +114,7 @@ Forecast tables sort borrower/loan or loan ascending within date groups and have
 
 ## Native presentation decisions and limits
 
-The original [design handover](../oltp-upcoming-charges-design-20260929/HANDOVER.md) remains the rationale; this record supersedes proposed names and implementation details. Native date groups display positive-event dates, without padded zero-date groups. Baht displays retain two decimals instead of discarding sub-baht residuals. Existing Loan Ref navigation provides access to actual charges; a projected event is not a Charge Ref. Native empty tables are supplemented by borrower/context coverage notes. Menu and borrower section labels are bilingual; technical column/coverage text remains English.
+The original [design handover](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/oltp-upcoming-charges-design-20260929/HANDOVER.md) remains the rationale; this record supersedes proposed names and implementation details. Native date groups display positive-event dates, without padded zero-date groups. Baht displays retain two decimals instead of discarding sub-baht residuals. Existing Loan Ref navigation provides access to actual charges; a projected event is not a Charge Ref. Native empty tables are supplemented by borrower/context coverage notes. Menu and borrower section labels are bilingual; technical column/coverage text remains English.
 
 No forced offline or midnight-transition GUI test was performed, and no comparative sync-latency benchmark is claimed. Mixed-business-date guards were verified in saved configuration; normal sync was exercised. A fully stale offline snapshot still needs sync, as stated on screen. Production readiness/owner acceptance is not implied by DEV completion.
 

@@ -1,6 +1,6 @@
 # R044 — Partners tab
 
-Owner-approved implementation of the [Partners design](../partners-tab-design-20260926/HANDOVER.md). New additive actual-only tab; AppSheet changes require owner review and none are necessary. No source financial records, operational tables/columns, allocation rules or existing dashboard pages change.
+Owner-approved implementation of the [Partners design](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/partners-tab-design-20260926/HANDOVER.md). New additive actual-only tab; AppSheet changes require owner review and none are necessary. No source financial records, operational tables/columns, allocation rules or existing dashboard pages change.
 
 ## Delivered
 

@@ -4,7 +4,7 @@
 
 Wave 5 of the independent review: 39 UX finding codes (29 reproduced, 7 partly, 1 already fixed, 2 no action) on branch `claude/review-w5-ux`, started from `main` 8063f89 and merged with `origin/main` (c3684d8). UI-only: no schema change, no new dependency, no change to what is posted, queued or synced. Every new string has English and Thai through the existing `t(en, th)`. The hand-written `sw.js` is kept.
 
-**Release.** The owner brief named R067, but another session froze and Released R067 (tidy-ups) while this wave was in progress. R068 is now the sole Open release, so W5 is new product work for **R068** (see the [Development Changes](../project/Documents/Development_Changes.md#r068-wave-5-ux) section). The release tracker is unchanged.
+**Release.** The owner brief named R067, but another session froze and Released R067 (tidy-ups) while this wave was in progress. R068 is now the sole Open release, so W5 is new product work for **R068** (see the [Development Changes](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r068-wave-5-ux) section). The release tracker is unchanged.
 
 Owner decisions applied: keep the zoom lock (APP-UX-A11Y-01, APP-SEC-02); APP-UX-PERF-02 is already met.
 

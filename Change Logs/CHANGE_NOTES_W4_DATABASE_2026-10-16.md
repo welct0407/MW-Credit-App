@@ -101,7 +101,7 @@ The dictionary keeps PROD-scope values; their evidence now says the DEV readback
 
 ## PROD execution record (16 October 2026)
 
-Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps until wave 4 is fully done." Owner decisions in the same session: `mw_agent` audit retention 7 days; purge now and `VACUUM FULL` postponed to the SSD move; agent migration V5 for the retention role and purge function; archive prefix `agent-audit-archive/` accepted. Decisions applied by the sync-fix session: tier `db-g1-small`, Query Insights, `max_connections` back to 200 (this supersedes the 50 planned under DB-PERF-03); an SSD needs a new instance (separate later decision). Full detail, with the runtime and Hosting steps, is in [Development Changes, R064 production promotion](../project/Documents/Development_Changes.md#r064-production-promotion).
+Owner instruction, 16 October 2026 (Bangkok): "Go ahead to execute all the steps until wave 4 is fully done." Owner decisions in the same session: `mw_agent` audit retention 7 days; purge now and `VACUUM FULL` postponed to the SSD move; agent migration V5 for the retention role and purge function; archive prefix `agent-audit-archive/` accepted. Decisions applied by the sync-fix session: tier `db-g1-small`, Query Insights, `max_connections` back to 200 (this supersedes the 50 planned under DB-PERF-03); an SSD needs a new instance (separate later decision). Full detail, with the runtime and Hosting steps, is in [Development Changes, R064 production promotion](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r064-production-promotion).
 
 ### (a) PROD V93: done
 
@@ -213,7 +213,7 @@ DEV run, 17 October 2026 05:11 to 05:18 Bangkok (22:11 to 22:18 UTC, 16 October)
 
 ## PROD V94 and V95 record (17 October 2026, R068 promotion)
 
-PROD `loan_manager_prod` on `mw-credit-pg-20261017`, 04:02 to 04:13Z (11:02 to 11:13 Bangkok), owner instruction "proceed with the remaining tasks". Full evidence: [R068 production promotion](../project/Documents/Development_Changes.md#r068-production-promotion).
+PROD `loan_manager_prod` on `mw-credit-pg-20261017`, 04:02 to 04:13Z (11:02 to 11:13 Bangkok), owner instruction "proceed with the remaining tasks". Full evidence: [R068 production promotion](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r068-production-promotion).
 
 - Backup `Backup-ProductionPromotion.py --expected-version 93` (32 tables, isolated restore passed, dump SHA256 `a3de30cd…f0af7ab`) plus an on-demand Cloud SQL backup; drift check showed only the known capture-switch line; CONNECT preflight 04:07:40Z.
 - Authority prepare 04:08:26Z (`mw_jobs_owner_prod`, `mw_app_prod_journal_owner`); `Invoke-Flyway production migrate -GroupedProduction` 04:08:33 to 04:09:10Z, 93 to 95 in one transaction (V94 3.24 s, V95 3.22 s); restore 04:09:42Z `authority-restored`; `validate` 96 successful; readback matched the DEV readback.

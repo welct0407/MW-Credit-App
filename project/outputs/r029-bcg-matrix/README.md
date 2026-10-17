@@ -4,7 +4,7 @@
 
 SQL/report-only implementation authorized by the owner on 25 September. **DEV and PROD V43 applied and validated; the matrix is live on dashboard 3/tab 31.** Both AppSheet apps, all source bindings, workflows, existing ratings and categories remain unchanged. No operational table/column or financial write. R029 captured SQL pin `de0a72a45e64051b5c816c5bce66522c4a33e4ea`; R030 is now the sole Open development release.
 
-[Accepted design](../bcg-matrix-chart-design-20260925/HANDOVER.md). Additive `reporting_borrower_matrix_plot_v1` projects the existing V3 source into display coordinates: stronger health left, higher contribution above; boundaries at50 in a fixed0–100 frame. Modified schedules use x75 as categorical placement, preserving measured score. Invalid/unclassified rows are explicit, never forced into Dog.
+[Accepted design](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/bcg-matrix-chart-design-20260925/HANDOVER.md). Additive `reporting_borrower_matrix_plot_v1` projects the existing V3 source into display coordinates: stronger health left, higher contribution above; boundaries at50 in a fixed0–100 frame. Modified schedules use x75 as categorical placement, preserving measured score. Invalid/unclassified rows are explicit, never forced into Dog.
 
 ## Native rendering refinement
 

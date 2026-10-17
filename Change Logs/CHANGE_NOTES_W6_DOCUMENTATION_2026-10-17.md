@@ -6,12 +6,12 @@ Wave 6 of the 15 October 2026 review: documentation and process cleanup (30 back
 ## Changes
 Branch `claude/review-w6-docs` from main `cbc8843`. Six-agent process for a documentation-only wave: Agent D (Sonnet 5.5 medium) owned the edits, one writer per file. Rules were authored and reviewed by Fable 5.1 high (session owner instruction; a first Sonnet draft and a Fable medium start were stopped and superseded). Agent A — Architect (Fable 5.1 high) reviewed the structure; Agent C — Testing (Sonnet 5.5 medium) ran the checks. Agents E and F: not applicable (no UX or infrastructure fact needed correcting).
 
-The active branch `claude/r071-style-decisions` was editing `Development_Changes.md`, `Release_Tracker.md`, `Data Dictionary/systems/pwa/application.yaml`, `PWA_Data_Model_Overview.md` and two change notes. By agreement with that session, Wave 6 did not touch them; the items marked "held" wait for that merge.
+The R071 branch `claude/r071-style-decisions` and a Thai preference fix (PR #55) were editing `Development_Changes.md`, `Release_Tracker.md`, `application.yaml`, `PWA_Data_Model_Overview.md` and two change notes. By agreement with both sessions, Wave 6 edited those files only after R071 (`222efc8`), its DEV receipts and the Thai line were on `main` (`4a14d07`).
 
 - **DB-DOC-01** done: the dictionary `README.md` and `systems/postgresql/README.md` link the `database/README.md` current state instead of stating a version.
 - **DB-DOC-02** done: `systems/postgresql/settingss/` merged into `settings/` (two files moved); `index.json` and the README updated; dictionary validation clean.
 - **DB-DOC-03** done: `pwa_submit_operation_v2` entry drops the dead `candidate_v92` block; source is the W4 database note (V94 patched it after R062); one line lists V83 create and V84 (2), V85 (17), V92 (3), V94 in-place patches.
-- **DB-DOC-04** held: text for `PWA_Data_Model_Overview.md` is ready (25 own triggers on "Payments", name-ordered firing, `payments.yaml` and `Test-TriggerOrder.sql`, do not rename).
+- **DB-DOC-04** done: `PWA_Data_Model_Overview.md` states that "Payments" has 25 own triggers fired in name order, points at `payments.yaml` and `Test-TriggerOrder.sql`, and says do not rename; a stale "V93 DEV pending" is fixed.
 - **DB-DOC-05** done: `database/OWNERSHIP.md` folded into `database/README.md` (`MW_CREDIT_APP_ROOT`, `MW_DB_TOOL_ROOT`, directory ownership) and deleted.
 - **DB-DOC-06** done: directory wording in `Solution_Design.md`, `systems/postgresql/README.md`, `Rules/VM01_Local_Storage.md`.
 - **ALL-STD-05** done: "Naming and identifiers" in `database/README.md` (quoted legacy names kept, snake_case and `pwa_` prefix for PWA objects in `public`, `_vN` bumped on signature change, client UUID request ids, derived-id sources cited, lock-key and trigger-order facts).
@@ -21,19 +21,19 @@ The active branch `claude/r071-style-decisions` was editing `Development_Changes
 - **AGT-DOC-04** done: `POSTGRESQL_OPERATIONS.md` governance describes the native API with SQL fallback; V33 reference is `database/migrations/V33__agent_transaction_audit.sql`.
 - **AGT-DOC-05** done: `integration-agent/docs/MIGRATION_PLAN.md` deleted with its README link and diagram label (`BUSINESS_PROCESS.drawio`, `generate-business-process.py` label text).
 - **AGT-DOC-06** done: `config.example.json` has `state_backend` (`sqlite`, the inert default), `state_generation`, `state_cutover_at` and the `agent_database_*` keys; it still passes `validate_config`.
-- **AGT-DOC-07** partly done: the audit relay is documented in `SERVICE_CATALOGUE.md`. The owner approved the validator change (17 October). Step 1, `validate_catalogue` accepts `audit_relay`, is on `main` (`5b4e50d`) and deployed on Debian at 17:27:06Z, 17 October 2026 (owner go; see its agent change note). Step 2 adds the key to the live and repository catalogues together (revision 28) after step 1 is deployed; adding it first would make the running code reject the catalogue and the deploy helper refuse the drift.
+- **AGT-DOC-07** done in two steps (owner go 18 October 2026, Bangkok): `validate_catalogue` accepts `audit_relay` (`5b4e50d`, deployed on Debian 17:27:06Z, 17 October 2026), then catalogue revision 28 with the `audit_relay` key, live and repository together (`8706789`, live 17:39:54Z). Both are verified and recorded in the agent change note and the inventory. Roll back step 2 before step 1.
 - **AGT-DOC-08** done: README points at `POSTGRESQL_OPERATIONS.md`; the design `HANDOVER.md` is marked implemented 22 September 2026, historical.
 - **AGT-DOC-09** done: Windows paths and old repository names removed from agent docs; `project/SERVICE_CATALOGUE.md` (sibling-repository pointer) deleted.
 - **AGT-DOC-10** done: the inventory Debian entry records checkout `/opt/mw-integration-agent-src`, deployed monorepo commit `1feb6cd` (R069; `integration-agent/` identical to `9c4a4cb`), venv, package `0.1.0`, catalogue 27; the archived-repository SHA is labelled. The host HEAD was read on the host at the 17 October deploy; the inventory now records `5b4e50d`.
 - **AGT-TEST-04** done: `OPERATIONS.md` "Test lab prerequisites" summarises the lab needs and links the W3 `tests/lab/README.md` and `setup.sh`.
 - **ALL-DOC-01** done: dead `Data_Dictionary_ChatGPT.md` link removed; the snapshot row is conditional on a local snapshot.
-- **ALL-DOC-02** (1) and (2) not reproduced, fixed on main before this wave. (3) held: `Release_Tracker.md` links a heading that does not exist in the receipt-isolation note; drop the anchor after R071 merges.
+- **ALL-DOC-02** (1) and (2) not reproduced, fixed on main before this wave. (3) done: the tracker's R058 row links the receipt-isolation note at a permalink, without the missing anchor.
 - **ALL-DOC-03** done: see AGT-DOC-09.
 - **ALL-DOC-04/12** done: "Current state" sections (at most 15 lines; inventory link; read-next page) in `Solution_Design.md`, `database/README.md`, `integration-agent/README.md`.
-- **ALL-DOC-05** partly done: `Environment_Inventory.md` "Latest verified deployments" holds per-target tables (Hosting, Cloud Run revisions and digests, Flyway, Debian). Copies removed from the dictionary (`human-api.yaml`, `systems/pwa/README.md`), the agent catalogue and docs, the bridge README and `docs/Development_PWA_Delivery.md`. `Release_Workflow.md` says pins live only in the inventory. Held: tracker, `Development_Changes.md`, `application.yaml`.
-- **ALL-DOC-06** held: `Development_Changes.md` trim waits for R071. Released-section links elsewhere already use permalinks at `cbc8843` (release tags point at package commits that predate their promotion records).
+- **ALL-DOC-05** done: `Environment_Inventory.md` "Latest verified deployments" holds per-target tables (Hosting, Cloud Run revisions and digests, Flyway, Debian). Copies removed from the dictionary (`human-api.yaml`, `systems/pwa/README.md`), the agent catalogue and docs, the bridge README and `docs/Development_PWA_Delivery.md`. `Release_Workflow.md` says pins live only in the inventory. The tracker's released rows became one status table (release, scope, date, record permalink, tag; 1,530 to 573 words); `application.yaml` points at the inventory; the R071 DEV Hosting values are in the inventory table.
+- **ALL-DOC-06** done: `Development_Changes.md` keeps the open R071 sections, a Wave 6 line, "Current operation", "Delivery tooling status" and the outstanding-work table (finished rows removed). Released sections R058 to R070 are deleted; every inbound link points at the permalink at `4a14d07`, the last `main` commit holding them (release tags predate their promotion records). The review's documentation rows are closed there.
 - **ALL-DOC-07** done: change-note template in `Rules/Development_Workflow.md` "Records, change notes and retention"; this note uses it.
-- **ALL-DOC-08** done: change notes older than R068 deleted unless a current document needs them (434 notes; list below). Links from current documents were repointed to permalinks at `cbc8843` first. Kept: the four review notes, R068+ notes, notes linked from the held files, and three live records (Railway backups, VM-01 cleanup exceptions, receipt backfill recovery).
+- **ALL-DOC-08** done: change notes older than R068 deleted unless a current document needs them (443 notes; list below). Links from current documents were repointed to permalinks at `cbc8843` first. Kept: the four review notes, R068+ notes, and three live records (Railway backups, VM-01 cleanup exceptions, receipt backfill recovery).
 - **ALL-DOC-09** done: the retention rule in `Development_Workflow.md` and `project/README.md` lets only a current document, README or maintained runtime script keep evidence. 1,541 uncited evidence files under `project/outputs` deleted (list below). Root `outputs/` did not exist (not reproduced). `integration-agent/outputs` kept (a maintained generator writes it). `scripts/binary-evidence-allowlist.txt` lost 329 entries for deleted files. With owner approval (17 October), 165 one-off scripts that only served deleted evidence were deleted too: dated or release-named scripts in `project/scripts/`, `project/scripts/dictionary/` and `project/scripts/releases/`, and `project/scripts/reference/` with its manifest (list below). `build-loan-ecosystem-visual.cjs` is kept because `build-loan-ecosystem.cjs` uses it.
 - **ALL-DOC-10** done: `Resource_Monitoring.md`, `Resource_Monitoring_Dashboard_Guide.md`, `Grafana_MCP_Events_Bridge.md` trimmed to current operation and limits; one panel table per dashboard; inbound anchors kept. Grafana revamp stays pending.
 - **ALL-DOC-11** done: `AGENTS.md` is a front page: hard rules first (authority, credentials, data, PROD, migrations, publication, records), layout table, trigger-to-page table. Detail moved into `Development_Workflow.md`, `Release_Workflow.md`, `PWA_Orchestration.md`, `Model_Work_Mapping.md`. `CLAUDE.md` unchanged.
@@ -42,7 +42,7 @@ The active branch `claude/r071-style-decisions` was editing `Development_Changes
 - Sustainability (owner approval 17 October 2026): `Release_Workflow.md` adds a prune step to release closure (record the deletion list, commit, repoint links, then delete the release's Development Changes sections, notes outside the window and uncited evidence); `Development_Workflow.md` points to it. New `scripts/check-docs.mjs` (`npm run check:docs`, with `tests/unit/check-docs.test.mjs`) runs in the CI `changes` job on every event: it fails on broken relative links or anchors, deployment pins in current documents outside the inventory, and notes dated from 18 October 2026 that miss the template headings; it warns on unlinked notes older than 14 days, uncited evidence and `AGENTS.md` over 800 words. `docs/Development.md` and `package.json` name it.
 
 <details>
-<summary>Deleted files (2,143)</summary>
+<summary>Deleted files (2,176)</summary>
 
 **other** (3)
 
@@ -2577,6 +2577,45 @@ The active branch `claude/r071-style-decisions` was editing `Development_Changes
 - `project/scripts/verify-monitored-jobs-dictionary.py`
 - `project/scripts/verify-postgresql-sync-settings.mjs`
 
+**After the R071 merge: change notes** (9; links repointed to permalinks at `4a14d07` first; `W3_AGENT` kept because `OPERATIONS.md` sends readers there for the manual unit-install commands)
+
+- `Change Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md`
+- `Change Logs/CHANGE_NOTES_W1_APP_2026-10-15.md`
+- `Change Logs/CHANGE_NOTES_W1_OPS_2026-10-15.md`
+- `Change Logs/CHANGE_NOTES_W3_APP_2026-10-16.md`
+- `Change Logs/CHANGE_NOTES_W3_OPS_2026-10-16.md`
+- `Change Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md`
+- `integration-agent/Change Logs/CHANGE_NOTES_W1_AGENT_2026-10-15.md`
+- `integration-agent/Change Logs/CHANGE_NOTES_W2_AGENT_DEPLOYMENT_2026-10-16.md`
+- `integration-agent/Change Logs/CHANGE_NOTES_RECEIPT_NOTIFICATION_ISOLATION_2026-10-02.md`
+
+**After the R071 merge: evidence nothing current cites** (24; kept evidence links repointed)
+
+- `project/outputs/bcg-matrix-chart-design-20260925/HANDOVER.md`
+- `project/outputs/borrower-pages-design-20260925/HANDOVER.md`
+- `project/outputs/dev-app-refresh-20260919/verification.json`
+- `project/outputs/forecast-planning-design-20260927/HANDOVER.md`
+- `project/outputs/grafana-callback-approval-20261003/README.md`
+- `project/outputs/grafana-callback-approval-20261003/hostname-observation.json`
+- `project/outputs/grafana-callback-approval-20261003/validation-scope.json`
+- `project/outputs/infrastructure-adoption-r057/README.md`
+- `project/outputs/infrastructure-adoption-r057/network-extension-access.md`
+- `project/outputs/infrastructure-adoption-r057/unattended-admin-results.json`
+- `project/outputs/infrastructure-cleanup-phase1/README.md`
+- `project/outputs/infrastructure-cleanup-phase1/credential-inventory.md`
+- `project/outputs/infrastructure-cleanup-phase1/infrastructure-inventory.md`
+- `project/outputs/infrastructure-cleanup-phase1/proposal.md`
+- `project/outputs/oltp-upcoming-charges-design-20260929/HANDOVER.md`
+- `project/outputs/partners-tab-design-20260926/HANDOVER.md`
+- `project/outputs/r031-matrix-labels/README.md`
+- `project/outputs/r031-matrix-labels/promotion-checklist.md`
+- `project/outputs/r031-matrix-labels/release-manifest.json`
+- `project/outputs/r031-matrix-labels/verification.json`
+- `project/outputs/r048-collection-receipts/HANDOVER.md`
+- `project/outputs/r050-vm01-controller/validation.json`
+- `project/outputs/r052/dictionary-production-closure.json`
+- `project/outputs/r052/promotion-checklist.md`
+
 </details>
 
 ## Checks
@@ -2584,7 +2623,7 @@ Run once on the completed batch (Agent C at `d31a86f`; link check rerun at `cf0a
 
 | Command | Result |
 | --- | --- |
-| Link and anchor check over all tracked `*.md` (scratch script `w6linkcheck.py`) | Before (`cbc8843`): 838 files, 2,519 relative links, 339 broken. After: 253 files, 1,392 links, 1 broken (held `Release_Tracker.md:46` anchor) |
+| Link and anchor check over all tracked `*.md` (scratch script `w6linkcheck.py`) | Before (`cbc8843`): 838 files, 2,519 relative links, 339 broken. After: 230 files, 1,237 links, 0 broken |
 | Rule inventory: every imperative rule in the old `AGENTS.md`, checked against its new home | 148 rules: 144 same, 2 stronger, 2 reworded per owner decision (see Open questions), 0 lost |
 | `python3 project/scripts/dictionary/dictionary.py validate` | 416 documents, 0 errors |
 | `cd integration-agent && PYTHONPATH=src python -m unittest tests.test_service_catalogue -v` | 1 test, OK |
@@ -2592,7 +2631,7 @@ Run once on the completed batch (Agent C at `d31a86f`; link check rerun at `cf0a
 | `node --test tests/unit/check-docs.test.mjs` | 5 tests, OK |
 | `npm test` | 581 tests, 0 failures |
 | `npx biome lint scripts/check-docs.mjs tests/unit/check-docs.test.mjs` | Clean |
-| `node scripts/check-docs.mjs` | 253 failures, all in the three held files (tracker: 1 anchor and pins; `Development_Changes.md` and `application.yaml`: pins); 8 warnings (evidence cited only from other evidence) |
+| `node scripts/check-docs.mjs` | 0 failures; 1 warning (`cash-statement-sample/README.md`, a folder a maintained generator writes) |
 | Script deletions: references by file name and module stem from every tracked file outside the candidates, change notes and evidence | 1 reference found (kept that script); 165 deleted |
 | `python3 -m unittest` in `project/scripts/dictionary/` | 36 tests, OK |
 | `node --test project/scripts/releases/*.test.mjs` | `dictionary.test.mjs` fails: missing package `@oai/artifact-tool`; identical before the deletions; the other release tests pass |
@@ -2600,7 +2639,8 @@ Run once on the completed batch (Agent C at `d31a86f`; link check rerun at `cf0a
 | `git diff --name-only cbc8843..HEAD` scope review | Documentation, dictionary, example config, evidence, allowlist data and one diagram label only; no source, SQL, Terraform or CI logic |
 | `wc -w AGENTS.md` | 1,993 to 749 |
 | `wc -w` monitoring documents | `Resource_Monitoring.md` 5,242 to 2,410; dashboard guide 7,462 to 3,872; events bridge 3,113 to 1,549 |
-| `wc -w project/Documents/Development_Changes.md` | 17,996, unchanged (held) |
+| `wc -w project/Documents/Development_Changes.md` | 17,996 to 1,823 (includes the R071 sections added meanwhile) |
+| `wc -w project/Documents/Release_Tracker.md` | 1,530 to 573 |
 | `wc -w` Rules pages that received moved text | `Development_Workflow.md` 1,691 to 2,879; `Release_Workflow.md` 914 to 1,134; `PWA_Orchestration.md` 1,401 to 1,462 |
 | `du -sh project/outputs integration-agent/outputs` | 66M to 21M; 284K unchanged |
 | Change notes per folder (files, words) | `Change Logs` 61 / 95,407 to 13 / 54,789; `project/Change Logs` 337 / 276,589 to 2 / 1,741; `integration-agent/Change Logs` 57 / 41,269 to 6 / 16,748 |
@@ -2628,10 +2668,6 @@ Owner answers, 17 October 2026 (Bangkok):
 No open questions remain.
 
 ## Remaining work
-- Merge order: this branch merges only after the held items below are done, because `check:docs` fails the CI `changes` job until the tracker, `Development_Changes.md` and `application.yaml` carry no pins and the tracker anchor is fixed.
-- The 8 evidence warnings are cleared at the next release closure.
-- Audit relay step 2 (needs an owner go, it changes the live catalogue): catalogue revision 28 with `audit_relay`, live and repository together, plus the Markdown table row.
-- After `claude/r071-style-decisions` merges: trim `Development_Changes.md` (ALL-DOC-06), remove pins from the tracker, `Development_Changes.md` and `application.yaml` (ALL-DOC-05), drop the tracker R058 anchor (ALL-DOC-02), add DB-DOC-04, add the Wave 6 line under the open release and close the review documentation rows, then delete the notes linked only from those files (`REPOSITORY_MERGE`, `W1_APP`, `W1_OPS`, `W3_APP`, `W3_OPS`, `W1_AGENT`, `W2_AGENT_DEPLOYMENT`, `W3_AGENT`, `RECEIPT_NOTIFICATION_ISOLATION`, `R064_SYNC` if released) after repointing.
 - `integration-agent/docs/BUSINESS_PROCESS.png` still shows the old label; re-export needs draw.io.
 - Dated pins remain in historical records outside this wave's list: `infrastructure/production/READINESS_INVENTORY.md`, `scripts/promotion/README.md` (R063 narrative), earlier dated paragraphs of `docs/Development_PWA_Delivery.md`.
 - `CHANGE_NOTES_VM01_TOOL_VALIDATION_2026-10-11.md` records two cleanup exceptions due for review on 18 October 2026.

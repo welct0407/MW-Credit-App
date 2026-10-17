@@ -2,7 +2,7 @@
 
 27 September 2026 · R045 · [Open tab](https://reports.mw-credit.com/dashboard/3?tab=262).
 
-The approved [detailed design](../forecast-planning-design-20260927/HANDOVER.md) is implemented as **13 · Forecast & Planning**, tab262 in dashboard3. Its 21 questions cover actual interest, remaining interest, month-end outlook, target gap, principal receipts, assumptions, cumulative actual/forecast lines, interest bridge, three scenarios, weekly dues, borrower contributions, loan types, watchlist, loan/event detail, coverage and conditional cash planning. Four models344–347 and questions348–368 are recorded in [state.json](state.json); exact queries, filters and layout are in [saved.json](saved.json).
+The approved [detailed design](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/forecast-planning-design-20260927/HANDOVER.md) is implemented as **13 · Forecast & Planning**, tab262 in dashboard3. Its 21 questions cover actual interest, remaining interest, month-end outlook, target gap, principal receipts, assumptions, cumulative actual/forecast lines, interest bridge, three scenarios, weekly dues, borrower contributions, loan types, watchlist, loan/event detail, coverage and conditional cash planning. Four models344–347 and questions348–368 are recorded in [state.json](state.json); exact queries, filters and layout are in [saved.json](saved.json).
 
 ## Calculation contract
 
