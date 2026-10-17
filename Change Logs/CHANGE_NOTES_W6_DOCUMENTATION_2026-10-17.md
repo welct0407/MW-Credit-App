@@ -39,6 +39,7 @@ The active branch `claude/r071-style-decisions` was editing `Development_Changes
 - **ALL-DOC-11** done: `AGENTS.md` is a front page: hard rules first (authority, credentials, data, PROD, migrations, publication, records), layout table, trigger-to-page table. Detail moved into `Development_Workflow.md`, `Release_Workflow.md`, `PWA_Orchestration.md`, `Model_Work_Mapping.md`. `CLAUDE.md` unchanged.
 - Links: 106 links in kept evidence that used the pre-merge layout now point at the current path; 24 links to files that are gone are plain text.
 - Indexes: `project/Documents/README.md`, `Rules/README.md`, `project/README.md` link every current document once.
+- Sustainability (owner approval 17 October 2026): `Release_Workflow.md` adds a prune step to release closure (record the deletion list, commit, repoint links, then delete the release's Development Changes sections, notes outside the window and uncited evidence); `Development_Workflow.md` points to it. New `scripts/check-docs.mjs` (`npm run check:docs`, with `tests/unit/check-docs.test.mjs`) runs in the CI `changes` job on every event: it fails on broken relative links or anchors, deployment pins in current documents outside the inventory, and notes dated from 18 October 2026 that miss the template headings; it warns on unlinked notes older than 14 days, uncited evidence and `AGENTS.md` over 800 words. `docs/Development.md` and `package.json` name it.
 
 <details>
 <summary>Deleted files (2,143)</summary>
@@ -2588,6 +2589,10 @@ Run once on the completed batch (Agent C at `d31a86f`; link check rerun at `cf0a
 | `python3 project/scripts/dictionary/dictionary.py validate` | 416 documents, 0 errors |
 | `cd integration-agent && PYTHONPATH=src python -m unittest tests.test_service_catalogue -v` | 1 test, OK |
 | `node scripts/check-binary-evidence.mjs` | Passed, 41 tracked PNG/XLSX files, all allowed |
+| `node --test tests/unit/check-docs.test.mjs` | 5 tests, OK |
+| `npm test` | 581 tests, 0 failures |
+| `npx biome lint scripts/check-docs.mjs tests/unit/check-docs.test.mjs` | Clean |
+| `node scripts/check-docs.mjs` | 253 failures, all in the three held files (tracker: 1 anchor and pins; `Development_Changes.md` and `application.yaml`: pins); 8 warnings (evidence cited only from other evidence) |
 | Script deletions: references by file name and module stem from every tracked file outside the candidates, change notes and evidence | 1 reference found (kept that script); 165 deleted |
 | `python3 -m unittest` in `project/scripts/dictionary/` | 36 tests, OK |
 | `node --test project/scripts/releases/*.test.mjs` | `dictionary.test.mjs` fails: missing package `@oai/artifact-tool`; identical before the deletions; the other release tests pass |
@@ -2624,6 +2629,8 @@ Owner answers, 17 October 2026 (Bangkok):
 No open questions remain.
 
 ## Remaining work
+- Merge order: this branch merges only after the held items below are done, because `check:docs` fails the CI `changes` job until the tracker, `Development_Changes.md` and `application.yaml` carry no pins and the tracker anchor is fixed.
+- The 8 evidence warnings are cleared at the next release closure.
 - Audit relay step 2 after the step 1 code is deployed on Debian (needs an owner go for that deploy): catalogue revision 28 with `audit_relay`, live and repository together, plus the Markdown table row.
 - After `claude/r071-style-decisions` merges: trim `Development_Changes.md` (ALL-DOC-06), remove pins from the tracker, `Development_Changes.md` and `application.yaml` (ALL-DOC-05), drop the tracker R058 anchor (ALL-DOC-02), add DB-DOC-04, add the Wave 6 line under the open release and close the review documentation rows, then delete the notes linked only from those files (`REPOSITORY_MERGE`, `W1_APP`, `W1_OPS`, `W3_APP`, `W3_OPS`, `W1_AGENT`, `W2_AGENT_DEPLOYMENT`, `W3_AGENT`, `RECEIPT_NOTIFICATION_ISOLATION`, `R064_SYNC` if released) after repointing.
 - `integration-agent/docs/BUSINESS_PROCESS.png` still shows the old label; re-export needs draw.io.

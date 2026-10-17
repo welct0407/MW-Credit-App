@@ -27,9 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
-      # Runs on every event, including documentation-only PRs, because the
-      # evidence folders it guards are exactly the ones the stages below skip.
+      # Both run on every event, including documentation-only PRs, because the
+      # evidence folders and documents they guard are exactly what the stages
+      # below skip: binary evidence placement, then documentation links, pins
+      # and change-note headings (warnings are printed but never fail).
       - run: node scripts/check-binary-evidence.mjs
+      - run: node scripts/check-docs.mjs
       - name: Classify changed files
         id: classify
         env:
