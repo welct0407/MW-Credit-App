@@ -33,20 +33,19 @@ Use the approved Secret Manager/unattended identity route before requesting huma
 
 ## Working method and task routing
 
-- Start with [AGENTS](../../../AGENTS.md), the relevant continuation note, affected files and Git status/starting commit. Read the current [release row](../Release_Tracker.md#current-development-release) before product development; read other documents only when the AGENTS table triggers. Do not read every historical output. Reuse context within a task. Answer a status or explanation question from the current continuation note or evidence; no live audit unless needed.
+- Follow the [AGENTS](../../../AGENTS.md) reading order. Do not read every historical output. Reuse context within a task. Answer a status or explanation question from the current continuation note or evidence; no live audit unless needed.
 - Outside PWA product development, work directly by default; the owner can request particular agents or personal execution.
 - The [project overview](../../README.md) introduces the project. Detailed documentation is rooted at three entry points: [standing rules](README.md), [living documents](../README.md) and the [Data Dictionary](../Data%20Dictionary/README.md), whose [object index](../Data%20Dictionary/index.json) locates every current definition. Follow standing rules until deliberately revised under owner direction; keep routine development updates in the living references. Do not append progress reports to rule documents. Keep these indexes linked to every current document and definition when an approved file is added, moved or removed.
 - Use bounded searches and reads, batch independent operations and use maintained CLI/API tools. Prefer Terraform for infrastructure; use a documented API exception only when the provider cannot perform the reviewed change, then reconcile state. Do not use a GUI where a suitable supported tool exists.
 - Make routine reversible decisions and finish authorized implementation, relevant verification, records and publication. Reuse scoped approvals; ask only for a missing decision or authority that materially changes the work. An approval should concern a concrete prepared result.
 - Investigate a failure before changing limits or retrying. Once the affected checks pass, finish. Do no repeated audits, unchanged polling, ceremonial handoffs or full-suite runs merely for task closure.
 - Give brief progress updates during longer work and state real blockers. Stop the task and its workers when asked.
-- Use the [model mapping](Model_Work_Mapping.md) only for delegation or model selection, not for routine solo execution.
 
 ## Development, review, promotion and rollback
 
 - Implement in the owning directory against the affected DEV or disposable path. No new live environment or copy for every change.
 - Automatically use the [six-agent PWA process](PWA_Orchestration.md#six-agent-development-process) and [model mapping](Model_Work_Mapping.md) for product development, without another delegation request. Assign bounded work in waves, preserve one writer per surface, and use proportional checks with reusable results. Documentation-only/read-only tasks may use fewer roles; honor explicit personal-execution requests.
-- Treat the owner's instruction to move/deploy/promote the scoped work to production as its approval, including required tested SQL migrations and technical delivery records. Do not ask again per phase, migration or record. Promote only the tested source/artifact/configuration; Hosting, Cloud Run, worker package and SQL are separate components, so change only those required.
+- Promotion authority is in the [Release workflow](Release_Workflow.md#promotion). Promote only the tested source/artifact/configuration; Hosting, Cloud Run, worker package and SQL are separate components, so change only those required.
 - Preserve current native scheduler ownership and environment isolation. Do not disable existing business operation merely for a source/doc edit.
 - Recover with pinned native artifacts and the [recovery runbook](Release_Recovery_Runbook.md). A rollback does not reverse accepted payments or messages. Establish rollback once for the affected change batch: the Git baseline for files, the prior artifact/configuration for deployment, and a verified restorable backup for production database changes. A UI-only release needs no database dump or restore rehearsal.
 - Complete the required documentation maintenance step below before closing the batch. Reuse existing records; optional new documents require approval, while required deployment/migration records are covered by the authorized task.
@@ -79,13 +78,13 @@ Agent D owns this maintenance step for the six-agent process, obtaining facts fr
 
 Keep records proportional:
 
-- Record each coherent task or batch once, in one existing change log or development record: one concise change note under `Change Logs/` (root app) or the owning directory's change log, plus only the affected owning references and dictionary records. One promotion record plus the required machine manifest suffices. Read-only answers need no record.
+- Record each coherent task or batch once: one change note under `Change Logs/` (root app) or `integration-agent/Change Logs/`, using the template below (a new note file needs no approval), or an entry in the existing development record; plus only the affected owning references and dictionary records. One promotion record plus the required machine manifest suffices. Read-only answers need no record.
 - Optional new logs, plans, reports or handoffs need explicit owner approval (below). Do not add duplicate documents merely because technical deployment records are authorized.
 - Update exact current model definitions for schema, behavior or access changes through the [dictionary helper](../../scripts/dictionary/README.md) and validate the affected batch. UI-only or policy edits need no dictionary rebuild. Retired AppSheet objects are not mirrored for new PWA changes.
 - Update the [monitoring visual guide](../Resource_Monitoring_Dashboard_Guide.md) when its dashboards change. Change architecture prose only when architecture or business meaning changes.
 - Keep current references concise and current. Delete unused or superseded documentation instead of keeping history copies; Git retains prior versions.
 - Maintained project tools belong in `project/scripts/`; sanitized evidence in `project/outputs/`. An evidence file stays only while a current document, README or maintained runtime script cites it. One-off release scripts and archived scripts do not keep evidence alive. Delete the rest; Git keeps history.
-- Keep change notes for the three most recently released releases and the Open release, plus any note a current document links to. Delete older notes; Git keeps them. Before deleting a note, repoint links to it to a commit permalink.
+- Keep a change note while its release is Open or one of the three most recently Released releases, or while a current document links to it. Delete older notes; Git keeps them. Before deleting a note, repoint links to it to a commit permalink.
 
 Change-note template. Use these headings, in this order, with plain short sentences:
 
@@ -147,10 +146,9 @@ Use native API/SQL routes. AppSheet APIs, API-key retrieval, app IDs and app edi
 - Verify project/instance/database, service and storage prefix for the affected action; the host alone is insufficient. Shared-instance changes can affect both environments. Verify the intended role; distinguish DEV, PROD restricted reader, administrator and mw_agent. Use bounded reads and avoid returning personal/financial data.
 - Preserve authorization checks, immutable keys, relationships, retry/idempotency behavior, audit and financial reconciliation. Supported ordinary source CRUD stays the prototype correction interface where implemented dependencies stay consistent; add no new reversal framework and do not silently regenerate historical charges. Preserve later user writes, journals and other tasks' work.
 - Before authorized PROD writes, establish the applicable verified restorable backup, intended records/affected counts and recovery. Use tested transaction/concurrency/idempotency safeguards.
-- Reconcile unknown outcomes before retries. Never replay uncertain payments or sends. Preserve financial/integrity triggers and later transactions. Supported ordinary source CRUD remains valid under its implemented semantics.
-- Use Secret Manager references and workload identities; never expose secret payloads. Private plans/state/backups/exports stay outside the repository. Preserve existing app-managed sign-in stores.
+- Reconcile unknown outcomes before retries. Never replay uncertain payments or sends. Preserve financial/integrity triggers and later transactions.
 - Migrations are immutable and increasing. Use the canonical guarded runner with the exact tested migration commit/manifest; never use `clean`, `repair`, checksum edits or automatic baselining to hide drift. Test the actual restricted roles for changed access behavior. Include only affected current consumers and the relevant previous PWA/API versions, not retired AppSheet parity.
-- Run `scripts/database/Test-CI.ps1` for changed SQL migrations, database runners or tests, using disposable local databases. Reuse the result at promotion while its inputs remain valid.
+- For changed migrations, runners or tests follow [Each change](../../../database/README.md#each-change); reuse its `Test-CI.ps1` result at promotion while the inputs remain valid.
 - Scoped data corrections do not require a PWA deployment ceremony. Schema/functions still use immutable migrations in the root `database/`.
 
 ## Environments and infrastructure ownership

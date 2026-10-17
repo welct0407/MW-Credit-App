@@ -1,6 +1,6 @@
 # PWA release workflow
 
-Owner revision: **17 October 2026**. A release is a tested code/configuration package, not a copied app. This short procedure replaces active AppSheet promotion steps. Current deployment pins live only in the [Environment Inventory](../Environment_Inventory.md#latest-verified-deployments); Git retains superseded instructions.
+Owner revision: **17 October 2026**. A release is a tested code/configuration package, not a copied app. This short procedure replaces active AppSheet promotion steps. Git retains superseded instructions.
 
 ## Development
 
@@ -43,7 +43,7 @@ Relevant unresolved failures prevent “Released”; distinguish applied, verifi
 
 ## Publication
 
-After coherent completion, review the intended diff, run the relevant checks and commit and push only the task's changes to the configured branch; this is standing publication authority. Preserve unrelated dirty work and exclude secrets, backups and dependencies. Use normal pushes, verify the remote result and report publication failures honestly. Documentation alone needs no product CI or deployment. Never force-push or rewrite history.
+After coherent completion, review the intended diff, run the relevant checks and commit and push only the task's changes to the configured branch; this is standing publication authority. Preserve unrelated dirty work and exclude secrets, backups and dependencies. Use normal pushes, verify the remote result and report publication failures honestly. Never force-push or rewrite history.
 
 Publication does not authorize production effects or merging. Respect scoped merge and branch-cleanup authority, stacked PRs and active work, and preserve unique history before deleting any branch.
 

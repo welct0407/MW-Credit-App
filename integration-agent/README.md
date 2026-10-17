@@ -11,7 +11,7 @@
 
 Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM. This directory was an earlier standalone repository (archived) and is now part of MW-Credit-App; project-wide rules are in the root [AGENTS.md](../AGENTS.md).
 
-Status: **daily cash statements, receipt review and Partner conversations active on Debian; conversations resumed by the owner on 22 September 2026 at 02:17 Bangkok**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. Receipt review/payment processing and persistent Partner conversations have separate activation switches; see their operating guides and deployment logs. Codex selects native semantic API calls from the authenticated capability catalogue; receipt payments use the shared receipt command API. New ordinary receipts can post automatically under the owner-authorized policy; other actions retain reviewer/manual handling. Lisa-forwarded receipts use verified three-member group identity. See [receipt policy](docs/PARTNER_REVIEW.md). Reviewer-only structured database DML is active from 22 September 2026 at 11:48 Bangkok under its own switch; see [Reviewer DML](docs/REVIEWER_DML.md) for activation evidence and boundaries. The existing Windows Partner Operations worker and webhooks remain stopped.
+Status: **daily cash statements, receipt review and Partner conversations active on Debian; conversations resumed by the owner on 22 September 2026 at 02:17 Bangkok**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. Database roles and sign-in: [PostgreSQL operations](docs/POSTGRESQL_OPERATIONS.md). The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. Receipt review/payment processing and persistent Partner conversations have separate activation switches; see their operating guides and deployment logs. Codex selects native semantic API calls from the authenticated capability catalogue; receipt payments use the shared receipt command API. New ordinary receipts can post automatically under the owner-authorized policy; other actions retain reviewer/manual handling. Lisa-forwarded receipts use verified three-member group identity. See [receipt policy](docs/PARTNER_REVIEW.md). Reviewer-only structured database DML is active from 22 September 2026 at 11:48 Bangkok under its own switch; see [Reviewer DML](docs/REVIEWER_DML.md) for activation evidence and boundaries. The existing Windows Partner Operations worker and webhooks remain stopped.
 
 ## Initial target
 
@@ -21,22 +21,17 @@ PostgreSQL state, generic audit and the reviewer/native DELETE route are impleme
 
 [Daily cash statements](docs/CASH_STATEMENT.md) cover 00:00–00:00 Bangkok posting activity, per-account English/Thai PNGs and the current Partner opt-in. The [maintained business process](docs/BUSINESS_PROCESS.md) documents the Instagram-first and email-fallback flow.
 
-- GCP project: `clever-oasis-508610-n7`
-- Region: `asia-southeast1`
-- VM/hostname: `vm-mw-credit-agent`
 - Machine profile: E2 shared-core, 2 GB memory (`e2-small`; 0.5 fractional vCPU across 2 exposed vCPUs)
-- OS: Debian 13
 - System timezone: `Asia/Bangkok` (`UTC+07:00`), synchronized by NTP
 - Backups: regional Compute Engine snapshot policy `default-schedule-1`, attached and verified after VM creation
 - Network: static regional external IPv4 `136.85.96.197` (`vm-mw-credit-agent-ip`) retained without public SSH/RDP; normal administration uses Tailscale `100.71.171.91`, with targeted IAP SSH as recovery
-- Installed source: `/opt/mw-integration-agent-src` (clone of `welct0407/MW-Credit-App` `main`; this code is under `integration-agent/`)
 - Installed application: `/opt/mw-integration-agent`
 - Service account: `mwagent` with a non-login shell
 - GCP identity: `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com`; Cloud SQL Client is conditionally limited to the production instance, with project-level Monitoring Metric Writer and Logs Writer for Ops Agent telemetry
 - Telemetry: Google Cloud Ops Agent 2.71.0 managed by the existing VM policy, collecting guest memory, process, filesystem and system metrics every 60 seconds
 - VM Manager inventory: Google OS Config agent enabled with guest attributes publishing Debian OS details on the default inventory cadence
 - Administrative overlay: Tailscale 1.102.4 with ordinary public-key OpenSSH; the VM is not an exit node or subnet router
-- Cloud SQL transport: Auth Proxy 2.25.4 on `127.0.0.1:5432`; dedicated read-only PostgreSQL credentials are installed
+- Cloud SQL transport: Auth Proxy on loopback; role and listener details in [PostgreSQL operations](docs/POSTGRESQL_OPERATIONS.md)
 - GitHub transport: repository-scoped read-only deploy key for `MW-Credit-App`; updates are manual, clean-checkout, and fast-forward-only. The Debian source checkout was cut over to this repository on 15 October 2026
 
 ## Local verification
@@ -72,5 +67,3 @@ The Instagram receiver binds only to `127.0.0.1:8000` and is intended to sit beh
 See [operations](docs/OPERATIONS.md) and the [service catalogue](SERVICE_CATALOGUE.md).
 
 The editable [Debian VM connectivity architecture](docs/VM_CONNECTIVITY_ARCHITECTURE.drawio) shows the current network and service boundaries; see its [maintainer notes and preview](docs/VM_CONNECTIVITY_ARCHITECTURE.md).
-
-R015 PostgreSQL state, audit governance, role boundaries, cutover and recovery are maintained in [PostgreSQL operations](docs/POSTGRESQL_OPERATIONS.md).

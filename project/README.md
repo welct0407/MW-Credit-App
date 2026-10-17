@@ -85,6 +85,6 @@ Documentation has two sets:
 - **[Standing rules and procedures](Documents/Rules/README.md):** development, release/recovery, environment preparation and other rules followed until deliberately revised.
 - **[Living project references](Documents/README.md):** current design, work, releases, environments, monitoring and the structured Data Dictionary. This root README is the living entry-point overview.
 
-Maintained project tools belong in `scripts/`; sanitized evidence in `outputs/`. An evidence file stays only while a current document, README or maintained runtime script cites it; one-off release scripts and archived scripts do not keep it alive. Delete the rest; Git keeps history.
+Maintained project tools belong in `scripts/`; sanitized evidence in `outputs/`, kept under the [retention rule](Documents/Rules/Development_Workflow.md#records-change-notes-and-retention).
 
 Every development batch reviews the complete living-document set and updates affected references before completion. Update this README when the project background, capability overview or roadmap materially changes; keep detailed deployment pins and execution evidence in their owning records. See the [documentation maintenance step](Documents/Rules/Development_Workflow.md#required-documentation-maintenance).

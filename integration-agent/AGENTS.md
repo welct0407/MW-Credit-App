@@ -23,7 +23,7 @@ AppSheet is retired. Use native MW Credit API capabilities; preserve existing pa
 - Keep the Markdown catalogue and JSON manifest aligned; validation must fail closed on unknown or enabled-but-unimplemented services.
 - Use Python 3.13 on Debian 13. Keep one root `.venv`; pin deployed dependencies.
 - Add automated tests for authorization, idempotency, unknown outcomes, restart recovery, and negative paths before enabling an integration.
-- Every coherent change requires `integration-agent/Change Logs/CHANGE_NOTES_<SUBJECT>_<YYYY-MM-DD>.md` with scope, rollback, checks, status, and remaining work.
+- Every coherent change requires `integration-agent/Change Logs/CHANGE_NOTES_<SUBJECT>_<YYYY-MM-DD>.md` using the [change-note template](../project/Documents/Rules/Development_Workflow.md#records-change-notes-and-retention).
 - Commit and push completed work to the configured upstream. Never commit secrets, private state, browser sessions, borrower data, or unrestricted production exports.
 
 ## Infrastructure boundaries

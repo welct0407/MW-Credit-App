@@ -5,7 +5,7 @@ A two-user financial operations PWA using the existing PostgreSQL financial engi
 ## Current state
 
 - Firebase Hosting serves the PWA from two sites (DEV `mw-credit-app-dev-737787224638`, PROD `mw-credit-prod-737787224638`) at `dev-lm.mw-credit.com` and `lm.mw-credit.com`.
-- Cloud Run runs the reader, command, notify and jobs services per environment in `asia-southeast1`; all use one image per environment and the same code (`services/production/business-server.mjs`).
+- Cloud Run runs the reader, command, notify and jobs services per environment in `asia-southeast1` from one image per environment; reader and command run `services/production/business-server.mjs`, notify and jobs run `services/workers/server.mjs`.
 - One shared Cloud SQL instance holds `loan_manager_dev` and `loan_manager_prod`. DEV schedulers stay paused; PROD has one scheduler owner per job.
 - Deployed versions (Hosting versions, Cloud Run revisions and image digests, Flyway, Debian commit) are stated only in the [Environment inventory](Environment_Inventory.md#latest-verified-deployments).
 - Read next for a PWA or API change: [PWA orchestration](Rules/PWA_Orchestration.md); for a promotion: [Release workflow](Rules/Release_Workflow.md).
