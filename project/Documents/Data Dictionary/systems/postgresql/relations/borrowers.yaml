@@ -74,6 +74,9 @@
       "collation": "\"default\""
       "acl": "{\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=r/postgres\"}"
       "comment": null
+      "business_rule": "Mandatory in the PWA/API since R068 W5 (owner, 17 October 2026): enforced in the Node command path\
+        \ (422 borrower_name_required), not by an SQL constraint; the column stays nullable and legacy nameless rows may exist.\
+        \ Detail: systems/pwa/application.yaml /content/editable_settings/borrower_name."
     "Description":
       "schema": "public"
       "relation": "Borrowers"
@@ -955,4 +958,9 @@
     "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
       \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
     "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
+    "state": "value"
+  "/content/columns/Borrower Name/business_rule":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/0fdf49a4458ee368adced58de3656e291df64192/services/business/borrowers.mjs"
+    "reason": "Owner decision 17 October 2026: borrower name mandatory (W5, source 0fdf49a); behaviour rule only, no schema\
+      \ change."
     "state": "value"

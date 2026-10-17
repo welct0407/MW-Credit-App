@@ -33,12 +33,12 @@ Owner decisions applied: keep the zoom lock (APP-UX-A11Y-01, APP-SEC-02); APP-UX
 - **APP-UX-BORROWER-02.** Checkbox 24 px inside a 44 px tappable row.
 - **APP-UX-BORROWER-03.** Referrer select named "Referrer" / "ผู้แนะนำ".
 - **APP-UX-BORROWER-04.** Delete (borrower and the other `RecordAction` deletes, 7 files) uses the destructive style `#b3261e` with a 12 px gap; the confirm dialog is unchanged.
-- **APP-UX-BORROWER-05 (partly).** Sticky Save/Cancel above the bottom navigation on phones (on phones `.borrower-record` and its panels are no longer scroll containers; `scroll-padding-bottom` 140 px so a focused field is not left under the bar). `autocomplete="off"` on person fields; Instagram field without auto-capitalise. "Name required" was **not reproduced** as a defect: the server accepts an empty name (`services/business/borrowers.mjs:42`), so `required` would change accepted data and was not added.
+- **APP-UX-BORROWER-05 (partly; name rule changed by owner decision, 17 October 2026).** Sticky Save/Cancel above the bottom navigation on phones (on phones `.borrower-record` and its panels are no longer scroll containers; `scroll-padding-bottom` 140 px so a focused field is not left under the bar). `autocomplete="off"` on person fields; Instagram field without auto-capitalise. **Borrower name is now mandatory (behaviour change).** The first re-check did not add `required` because the server accepted an empty name; the owner then decided the name is always required. Server: borrower create/update with a blank name returns 422 `borrower_name_required` before any write (`services/business/borrowers.mjs`, `services/payment-command/store.mjs`); a loan create for a borrower whose stored name is blank returns 422 `borrower_name_required`, checked after the governed operation applied while it holds the borrower lock, and the transaction is rolled back so nothing is recorded; recorded requests replay their stored outcome; the agent conversation API uses the same path. No SQL migration (the column stays nullable). PWA: name `required` with " *", Save blocked with "Enter the borrower name." / "กรุณากรอกชื่อผู้กู้"; New loan disabled on a nameless borrower with "Add the borrower name before creating a loan." / "กรุณาใส่ชื่อผู้กู้ก่อนสร้างสินเชื่อ". Not covered: the borrower-list "New loan for …" shortcut (the server refuses instead). The server part reaches DEV and PROD only with the next runtime image (the R068 package); until then only the PWA part is live. Existing nameless borrowers were **not checked** (database not reachable from this session): they must be named on their next edit and cannot get a loan until then.
 - **APP-UX-BORROWER-06.** One money format everywhere, `-฿1,200` (sign before the symbol, whole baht): new `display-money.ts` `wholeBaht` in 11 files, BigInt variant in `SelectedCharges.tsx`; the borrower summary now shows ฿. A tiny negative shows `฿0`.
 
 ### Cash
 
-- **APP-UX-CASH-01.** Statement Date shows `08-Oct-2026` / `08-ต.ค.-2026` over the native input (accessible name still "Statement Date", via `aria-label`).
+- **APP-UX-CASH-01.** Statement Date shows `17-Oct-2026` in English and, in Thai, the Buddhist year: `17-ต.ค.-2569` (owner decision; helper `displayDateWithYear` in `display-date.ts`), over the native input (accessible name still "Statement Date", via `aria-label`).
 - **APP-UX-CASH-02 (partly).** On phones the Cash Dashboard card is collapsed (statement top 638 → 208 px). The note shows only when account or date differs from the saved defaults: "This account and date are not your defaults." / "บัญชีและวันที่นี้ยังไม่ใช่ค่าเริ่มต้นของคุณ".
 - **APP-UX-CASH-03.** Partner withdrawal labels come from the Partners records (role A and B) via `partner-names.ts`: "{name} Withdrawn MTD" / "{name} ถอนเดือนนี้"; fallback "Partner A/B Withdrawn MTD". The SQL column names "Tommy/Lisa Withdrawn MTD" are preserved compatibility identifiers and are unchanged.
 
@@ -82,6 +82,11 @@ Owner decisions applied: keep the zoom lock (APP-UX-A11Y-01, APP-SEC-02); APP-UX
 | Consolidated checks on the merged tree (`npm run check`, lint, full Playwright) | `npm run check` exit 0 (unit 545 of 545); lint exit 0, 0 errors, 771 warnings; full Playwright both projects 503 passed, 12 skipped, 1 failed: `startup-generations-independent` (mobile; rerun: desktop failed, mobile passed). The same test fails 5 of 10 runs on `origin/main` c3684d8 without W5 (same assertion, one extra API read during reload): pre-existing, not W5 |
 | `deploy-hosting.mjs --live-dev --check`, DEV Hosting deploy | `--check` passed, 14 files, built from a clean worktree of c3329b1 (later commits are records only). Deployed 16 October 2026 22:54:41Z (17 October 05:54 Bangkok) as `codex-cloud`: version `b720883f73c50d6f`, release `1792191281291000`, marker `ef4bd63b6ac8ac551ff59ee7`, entry `/assets/index-DeTYCpPr.js`; entry, `sw.js` and `index.html` bytes equal the local build; Cloud Run unchanged (`6a3effe41842…` on all four DEV services) |
 | DEV header readback, service-worker update detection, smoke | `Cache-Control: no-store` on `/`, `/index.html`, `/sw.js`, `/manifest.webmanifest`, `/build-version.json`, `/offline.html`; `public,max-age=31536000,immutable` on the entry asset; `X-Frame-Options: DENY` everywhere. Unauthenticated smoke (headless Chromium, same profile before and after): the old worker (`e6c5cd88…`) detected the new `build-version.json`, activated the new worker (`ef4bd63b…`) and reloaded once; sign-in card rendered. No authenticated smoke (no DEV test identity) |
+| Borrower-name rule and Buddhist Cash date (0fdf49a), Agent B: typecheck 0; unit 546 of 546; lint 0 errors; live-dev build ok | pass |
+| DB CI `Test-CI.ps1 -Group phase5` (new mandatory-name integration case) | exit 0 |
+| Playwright both projects (phase5-borrower, cash-two-workspaces, phase5-final-ui, w5-ux and the specs that create borrowers) | 290 passed, 2 skipped |
+| Orchestrator review of the server diff | rollback on refusal confirmed; borrower update inputs carry the full field set, so an update never omits the name |
+| DEV Hosting redeploy of 0fdf49a (UI part of the name rule and the Buddhist date) | {{dev-hosting-0fdf49a}} |
 
 Agent C review found no defects.
 
@@ -102,7 +107,7 @@ Agent C review found no defects.
 | Desktop sidebar scrollHeight / clientHeight, 1280x800 | 881 / 740 | 740 / 740 (EN and TH) |
 | Negative money | `฿-120`, `฿-200`, `-200`, `-฿200` | `-฿120`, `-฿200`, `-฿200` everywhere |
 | Cash statement top (phone) | y 638 | y 208 |
-| Cash date text | `10/08/2026` beside "08-Oct" | `08-Oct-2026` |
+| Cash date text | `10/08/2026` beside "08-Oct" | `08-Oct-2026` (Thai: Buddhist year, e.g. `17-ต.ค.-2569`) |
 | Logo | 256x256, 76,605 B | 128x128, about 12 KB |
 | Zoom lock (meta, ctrl+wheel, gesturestart, two-finger touchmove) | present and prevented | unchanged |
 
@@ -122,14 +127,12 @@ Agent C review found no defects.
 
 `git revert` the W5 commits. DEV Hosting now `b720883f73c50d6f`; previous version `0f181d5d61573ebf` (R066, release `1792173681752000`) unless a later release exists; re-read the DEV release before any rollback because other sessions deploy DEV. UI-only: no database dump or restore rehearsal; no runtime or Terraform change.
 
-## Open questions
+## Owner decisions (17 October 2026)
 
-Defaults applied; the owner may change any of them.
-
-1. Thai product name "MW สินเชื่อ" for the logo alt and signed-out title (as on the logo artwork).
-2. The Cash date shows the Gregorian year ("08-ต.ค.-2026"), matching the app's CE dates.
-3. Borrower name stays optional (the server accepts it empty).
-4. DEV hides the Notifications view (`VITE_NOTIFICATIONS` unset in the DEV bundle). An owner push test on DEV needs it enabled in the DEV build: enable it?
+1. Thai product name "MW สินเชื่อ" for the logo alt and signed-out title: confirmed.
+2. Cash date: the Buddhist year in Thai (`17-ต.ค.-2569`), English unchanged (`17-Oct-2026`).
+3. Borrower name: mandatory, always (see APP-UX-BORROWER-05). The server part needs the R068 runtime image.
+4. Notifications view on DEV: stays hidden (`VITE_NOTIFICATIONS` unset in DEV builds).
 
 ## Remaining work
 
@@ -138,6 +141,8 @@ Defaults applied; the owner may change any of them.
 - At 1280x800 with saved changes pending the sidebar scrolls (939 vs 740), so "Sync now" and "Sign out" are below the fold; "Waiting to sync" stays at the top.
 - PERF-01 is partly done (icons 192/512/apple unchanged; maskable icon per PERF-03 not done).
 - A missing `/assets/*` file falls through the SPA rewrite and is served as `index.html` with the immutable header (low risk, measured); a narrower rewrite would change both Hosting runners' frozen contracts: a separate item.
+- Nameless borrowers: count them and name them (not checked); until the R068 runtime image is deployed the server does not yet refuse a blank name or a loan for a nameless borrower.
+- The borrower-list "New loan for …" shortcut does not check the name in the PWA (the server refuses once deployed).
 - DEV Hosting uses the "MW Credit Production" web app id; whether DEV should use the DEV app is a separate decision.
 - `tests/e2e/startup-generations-independent.spec.ts` is flaky on `main` since the W4 follow-ups merge (5 of 10 on c3684d8: one extra API read during the reload; likely the on-focus dataset refresh `905eb82`); owned by that change, not fixed here.
 - W5 UI reaches PROD with the R068 promotion (headers already in PROD since R063).
