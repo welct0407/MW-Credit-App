@@ -87,7 +87,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const failedDomains=()=>domains.filter(domain=>failed.has(domain));
  const domainRunning=()=>running&&!!activeTask&&!isMediaTask(activeTask);
  const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(running||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:domainRunning()||queue.some(task=>!isMediaTask(task)),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
@@ -241,9 +241,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   else{
    // A receipt still downloading or retrying does not block a sync of the data domains (pump takes them first).
    if(!domainRunning()&&!queue.some(task=>!isMediaTask(task))&&event?.type==='mw-offline-prepare'&&!failedDomains().length){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
-   // A manual sync of everything (header refresh, Sync now: detail.all) also checks the domains that did not fail;
-   // a domain already queued or in flight is joined rather than fetched twice. The banner Retry still retries only failed work.
-   else if(detail?.all&&!priority&&event?.type==='mw-offline-prepare'){const targets=domains.filter(domain=>domain!==activeTask&&!queue.includes(domain));if(targets.length){if(domainRunning()||queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}
+   // A manual sync of everything (header refresh: detail.all) also checks the domains that did not fail; a domain already
+   // queued or in flight is joined rather than fetched twice. A plain mw-offline-prepare (read-cache background prepare) still retries only failed work.
+   else if(detail?.all&&!priority&&event?.type==='mw-offline-prepare'){const targets=domains.filter(domain=>domain!==activeTask&&!queue.includes(domain));if(targets.length){if(domainRunning()||queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}
    for(const task of [...failed])if(!background||!waiting(task)){failed.delete(task);enqueue(task)}
   }
   if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
@@ -255,7 +255,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // A failed domain still in its back-off is left out of the cycle; the other domains refresh.
  // Work queued while hidden (a due retry) is joined by the rest rather than replacing the refresh;
  // a receipt downloading or queued never delays the data domains.
- const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!domainRunning()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}resume()};
+ const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!domainRunning()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}resume()};
  // A real return to the app (focus, visible again) or reconnecting resets every back-off.
  const focused=()=>{resetBackoff();check(true)},online=()=>{resetBackoff();check()};
  const visible=()=>{if(document.visibilityState!=='hidden'){resetBackoff();check(true)}status()};

@@ -128,7 +128,7 @@
   .live-shell .list-panel, .live-shell .detail-panel, .live-shell .related-loans, .live-shell .upcoming-charges { scroll-margin-top: calc(var(--live-header-height, 132px) + 8px); }
 }
 
-.live-status-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.live-status-text, .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .live-account-controls { display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 12px; margin-top: auto; border-top: 1px solid #999; }
 .live-account-controls .language { justify-content: center; }
 .live-account-signout, .live-account-icon { min-height: 44px; }
@@ -154,7 +154,7 @@
 .live-brand > div { min-width: 0; }
 .live-header-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .live-header-refresh { width: 44px; height: 44px; min-width: 44px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: inherit; font-size: 26px; }
-.live-header-refresh:hover { background: rgb(255 255 255 / 20%); }
+@media (hover: hover) { .live-header-refresh:hover { background: rgb(255 255 255 / 20%); } }
 @media (max-width: 1050px) { .live-brand .brand-logo { width: 32px; height: 32px; } }
 
 .live-pwa-controls { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
@@ -418,7 +418,9 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
  .live-shell .record-action,.live-shell .record-action.icon-action,.cash-accounts-layout .record-action.icon-action{width:auto;max-width:100%;flex:0 1 auto;min-height:44px;padding:7px 10px!important}
  .live-shell .borrower-direct-actions{gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}
  .live-shell .related-loans-heading,.live-shell .payment-context{flex-wrap:wrap}
- .live-shell .related-loans-heading>h2{font-size:19px!important;flex:1 1 220px}
+ /* UPC-HEAD-01: the Upcoming headings keep their 20px at every width; the other section headings take the tablet 19px. */
+ .live-shell .related-loans-heading>h2{flex:1 1 220px}
+ .live-shell :not(.upcoming-directory,.upcoming-event)>.related-loans-heading>h2{font-size:19px!important}
  .live-shell .borrower-record form{max-width:900px}
  .live-shell .management-reference{min-width:0;max-width:100%}
  .live-shell .management-reference-option{min-height:44px;white-space:normal;overflow-wrap:anywhere}
@@ -526,19 +528,26 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .live-header-refresh.refresh-failed { position: relative; }
 .refresh-failure-badge { position: absolute; top: 1px; right: 0; min-width: 17px; height: 17px; border-radius: 50%; background: #8b1a1a; color: white; border: 1px solid white; font: bold 13px/15px sans-serif; text-align: center; }
 
-.header-sync-cell { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; min-height: 44px; }
+/* HDR-SYNC-06: a fixed 88px cell, so the search icon never moves between the bar, the time and a failed section. */
+.header-sync-cell { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; width: 88px; flex: 0 0 88px; min-height: 44px; }
 .header-sync-cell:empty { display: none; }
-.live-sync-status { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 14px; line-height: 1.15; max-width: 96px; padding: 2px 4px; text-align: right; font-variant-numeric: tabular-nums; }
-.live-sync-status.failed { font-weight: 700; }
-.header-load-percent { min-width: 3.5ch; text-align: right; }
+/* HDR-SYNC-02: text never exceeds two lines; Thai keeps the section name whole (.sync-section). */
+.live-sync-status { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 88px; padding: 2px 4px; font-size: 13px; line-height: 1.15; text-align: right; font-variant-numeric: tabular-nums; }
+.live-sync-status.failed { font-weight: 700; padding: 2px 0; }
+.sync-section { display: inline-block; }
+/* HDR-SYNC-PCT-01: the percentage stacks above the bar, both right-aligned. */
+.live-sync-status.syncing { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 3px; padding: 0 4px; }
+.live-sync-status.syncing .header-load-percent { font-size: 12px; line-height: 14px; font-weight: 600; min-width: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.live-sync-status.syncing .header-load-progress { width: 60px; height: 6px; flex: 0 0 auto; border-radius: 3px; }
 .waiting-sync-button.all-synced { opacity: .8; }
 .sync-toast { position: fixed; z-index: 46; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); margin: 0; padding: 8px 12px; border-radius: 6px; background: #e6f4ea; color: #1e4620; font-size: 14px; box-shadow: 0 2px 8px rgb(0 0 0 / 25%); transition: opacity 150ms; }
 .sync-toast.idle { opacity: 0; pointer-events: none; }
 .live-shell:has(.live-bottom-nav) .sync-toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
-.header-load-progress { width: 52px; height: 6px; flex: 0 0 52px; align-self: center; accent-color: #252525; border: 0; border-radius: 4px; overflow: hidden; }
-.header-load-progress::-webkit-progress-bar { background: rgb(255 255 255 / 55%); border-radius: 4px; }
-.header-load-progress::-webkit-progress-value { background: #252525; border-radius: 4px; transition: width 180ms ease; }
-.header-load-progress::-moz-progress-bar { background: #252525; border-radius: 4px; }
+.header-load-progress { height: 6px; accent-color: #252525; border: 0; border-radius: 3px; overflow: hidden; }
+.header-load-progress::-webkit-progress-bar { background: rgb(255 255 255 / 75%); border-radius: 3px; }
+.header-load-progress::-webkit-progress-value { background: #252525; border-radius: 3px; }
+@media (prefers-reduced-motion: no-preference) { .header-load-progress::-webkit-progress-value { transition: width 180ms ease; } }
+.header-load-progress::-moz-progress-bar { background: #252525; border-radius: 3px; }
 .offline-mode-status,.offline-preparation-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 12px;padding:8px 12px;border-radius:6px;font-size:14px;line-height:1.4}
 .offline-mode-status{background:#fff3e0;color:#5c2e00;border:1px solid #b75b00}
 .offline-preparation-status{background:#f2f2f2;color:#303030}
@@ -580,8 +589,9 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 /* W5 receiving: labelled primary Review/Confirm, captioned Clear draft, no nested scroll on phones. */
 .payment-context .record-action-label{display:inline!important}
 .payment-context .record-action{width:auto;flex:0 0 auto;padding:7px 10px!important}
-.selected-payment .payment-selection-header .payment-review-button,.selected-payment .payment-confirm-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
-.selected-payment .payment-selection-header .payment-review-button:disabled,.selected-payment .payment-confirm-button:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
+/* FORM-SAVE-01: the primary action style is shared by Review, Confirm payment and the Save in a form's sticky actions bar. */
+.selected-payment .payment-selection-header .payment-review-button,.selected-payment .payment-confirm-button,.form-sticky-actions>button[type=submit]{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
+.selected-payment .payment-selection-header .payment-review-button:disabled,.selected-payment .payment-confirm-button:disabled,.form-sticky-actions>button[type=submit]:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .selected-payment .allocation-summary{grid-template-columns:auto 44px minmax(0,1fr) auto}
 @media(max-width:600px){.selected-payment .allocation-summary{grid-template-columns:minmax(0,1fr) 44px auto}}
 @media(max-width:1050px){.selected-payment .payment-charge-scroll{max-height:none;overflow:visible}}

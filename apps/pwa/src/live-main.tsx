@@ -365,8 +365,9 @@ function App() {
     pwa.checkUpdate();
     // One refresh icon does everything: it also wakes the saved-change coordinator (startSavedRequestSync) to send
     // saved changes, and syncs every local dataset domain; like the 30-second poll this runs beside an open edit.
-    if(pendingCount>0)window.dispatchEvent(new Event('mw-offline-queued'));
+    // The all-domain prepare goes first so the queued wake (resume) joins that cycle instead of starting a partial one.
     window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true}}));
+    if(pendingCount>0)window.dispatchEvent(new Event('mw-offline-queued'));
     const editing=!!workspace.current?.querySelector('form input:not([type="hidden"]):not(:disabled):not([readonly]),form textarea:not(:disabled):not([readonly]),form select:not(:disabled),.selected-payment');
     if(editing&&(!activeRefresh||activeRefresh.priority<10)){setRefreshFeedback(t('Your edits are kept. Finish this change before refreshing its source.','เก็บข้อมูลที่แก้ไขไว้แล้ว ทำรายการนี้ให้เสร็จก่อนรีเฟรชข้อมูลต้นทาง'));return;}
     setRefreshFeedback('');clearCachedReadFailures(offlineRepository?.scopeName);if(activeRefresh){activeRefresh.run();return;}
@@ -375,7 +376,8 @@ function App() {
   }
   // SETTINGS-02: once the signed-out card shows, it carries the language choice; the menu stays only where it holds more (installed app, Back).
   const signedOutCard=!user&&!['loading','initializing','signing_in','signing_out'].includes(status)&&!['checking','upgrading','error'].includes(pwa.startup);
-  const headerState = pendingActivity>0 ? 'loading' : readRefreshFailed ? 'error' : ['loading', 'initializing', 'signing_in', 'signing_out'].includes(status) ? 'loading' : status !== 'ready' ? ['error', 'denied', 'sign_out_error', 'auth_unavailable', 'unavailable'].includes(status) ? 'error' : 'idle' : view === 'collection' ? collectionStatus : busy ? 'loading' : 'success';
+  // HDR-SYNC-05: a read that fell back to saved data while offline is explained by the offline banner, not the failed icon.
+  const headerState = pendingActivity>0 ? 'loading' : readRefreshFailed&&online ? 'error' : ['loading', 'initializing', 'signing_in', 'signing_out'].includes(status) ? 'loading' : status !== 'ready' ? ['error', 'denied', 'sign_out_error', 'auth_unavailable', 'unavailable'].includes(status) ? 'error' : 'idle' : view === 'collection' ? collectionStatus : busy ? 'loading' : 'success';
   const refreshPull=useWorkspaceGestures(workspace,{refreshing:headerState==='loading',menuMotion:menuDrawer,scope:(user?.uid??'')+':'+view+':'+(activeBack?.navigationKey??'root')+':'+searchOpen+':'+status,canOpenMenu:status==='ready'&&!activeBack&&!searchOpen,onOpenMenu:()=>{if(matchMedia('(max-width:1050px)').matches){menuDrawer.open()}else setNavigationCollapsed(false)},refreshButtonRef:refreshButton,refreshIdentity:activeRefresh});
   const navigation = (location: 'desktop' | 'mobile-bottom' | 'drawer') => {
     if (status !== 'ready') return null;
