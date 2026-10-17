@@ -47,6 +47,26 @@ test('a Collection list does not reorder while it is touched or scrolled and app
  await applied(['Echo','Delta'],Date.now());
 });
 
+// UX-HOLD-03: on a computer, a mouse resting on a row or keyboard focus on one holds the swap (same cap); a mouse elsewhere does not.
+test('a Collection list holds while the mouse rests on a row or keyboard focus is on one',async({page})=>{
+ await fixture(page,'hold-hover',{collection:{items:[row('a','Alpha'),row('b','Bravo')],charges:[]}});
+ await page.evaluate(()=>(window as any).selectBackCase('prepared-collection'));
+ const names=()=>page.locator('.collection-tile-main strong').allTextContents();
+ await expect.poll(names).toEqual(['Alpha','Bravo']);
+ await page.locator('.collection-tile-main').first().hover();await publish(page,'collection',{items:[row('b','Bravo'),row('a','Alpha')],charges:[]});
+ await page.waitForTimeout(1500);expect(await names()).toEqual(['Alpha','Bravo']);
+ // Moving the mouse off the rows releases the held update.
+ await page.locator('.list-panel .section-heading').hover();await expect.poll(names,{timeout:2000}).toEqual(['Bravo','Alpha']);
+ await publish(page,'collection',{items:[row('a','Alpha'),row('b','Bravo')],charges:[]});await expect.poll(names,{timeout:2000}).toEqual(['Alpha','Bravo']);
+ // Keyboard focus on a row holds too; a mouse resting on a row is capped at about 10 s.
+ await page.locator('.collection-tile-main').first().focus();await page.keyboard.press('Shift+Tab');await page.keyboard.press('Tab');
+ const focused=await page.evaluate(()=>!!document.activeElement?.closest('.collection-tile-main')&&document.activeElement!.matches(':focus-visible'));
+ if(focused){await publish(page,'collection',{items:[row('c','Charlie'),row('a','Alpha')],charges:[]});await page.waitForTimeout(1500);expect(await names()).toEqual(['Alpha','Bravo']);
+  await page.evaluate(()=>(document.activeElement as HTMLElement|null)?.blur());await expect.poll(names,{timeout:2000}).toEqual(['Charlie','Alpha'])}
+ await page.locator('.collection-tile-main').first().hover();const rested=Date.now();await publish(page,'collection',{items:[row('d','Delta')],charges:[]});
+ await expect.poll(names,{timeout:15000}).toEqual(['Delta']);const elapsed=Date.now()-rested;expect(elapsed).toBeGreaterThanOrEqual(9000);expect(elapsed).toBeLessThan(12500);
+});
+
 test('Cash keeps the account list and overview while a statement filter is open and applies them when it closes',async({page})=>{
  const initial=cash('100',[account('acc-a','Account A')]);
  await fixture(page,'hold-cash',{cash:initial});

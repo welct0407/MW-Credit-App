@@ -2,7 +2,11 @@
  * touching or scrolling it (rows would move under a finger). The newest update is held and
  * applied about one second after the interaction ends, and never later than ten seconds after
  * it arrived. Nothing is dropped: only the latest value per subscription is kept, and a stopped
- * subscription discards its own held run (read-cache re-reads that path when it is subscribed again). */
+ * subscription discards its own held run (read-cache re-reads that path when it is subscribed again).
+ * UX-HOLD-03: on a computer the update also waits while the mouse rests on a list row, or keyboard
+ * focus is on one, inside the list (a swap could move the row under the click or drop the focus);
+ * the same ten-second cap applies. Only rows count: a mouse left on a toolbar or form button after a
+ * click does not hold the lists. */
 export const HOLD_SETTLE_MS=1000;
 export const HOLD_MAX_MS=10*1000;
 const POLL_MS=200;
@@ -12,6 +16,9 @@ export type HoldScope=true|(()=>Element|null|undefined);
 type Held={scope:HoldScope;since:number;run:()=>void};
 
 const active=new Map<string,{target:EventTarget|null;since:number}>(),recent=new Map<EventTarget|null,number>(),held=new Map<symbol,Held>();
+// UX-HOLD-03: list rows (row cards and tiles, list items, table rows).
+const ROW='li,tr,[role="row"],[role="option"],[role="listitem"],.borrower-card,[class*="-tile-"],[class*="-row"],[class*="-card"]';
+let pointerOver:Element|null=null,keyboardFocus:Element|null=null;
 let installed=false,timer:ReturnType<typeof setTimeout>|undefined;
 const now=()=>Date.now();
 const isDocument=(target:EventTarget|null)=>!target||target===globalThis.window||target===globalThis.document||target===globalThis.document?.documentElement||target===globalThis.document?.body;
@@ -22,6 +29,14 @@ function within(scope:HoldScope,target:EventTarget|null){
  if(isDocument(target))return true;
  try{return element===target||element.contains(target as Node)}catch{return false}
 }
+const listRow=(target:EventTarget|null)=>{try{const element=(target as Element|null)?.closest?.(ROW);return element&&!isDocument(element)?element:null}catch{return null}};
+const focusVisible=(target:EventTarget|null)=>{try{return (target as Element).matches(':focus-visible')}catch{return false}};
+/** Hover and focus count only on an element still in the page and inside the list (not the page fallback). */
+function inside(scope:HoldScope,element:Element|null){
+ if(!element||element.isConnected===false)return false;if(scope===true)return true;
+ const list=scope();if(!list?.isConnected)return false;
+ try{return list===element||list.contains(element)}catch{return false}
+}
 /** True while a pointer or touch that started in the scope is down, or the scope scrolled or was
  * released less than HOLD_SETTLE_MS ago. */
 export function interacting(scope:HoldScope,at=now()){
@@ -29,7 +44,7 @@ export function interacting(scope:HoldScope,at=now()){
  // touched row was removed mid-touch and touchend went to the detached node).
  for(const [key,{target,since}] of active){if(at-since>=HOLD_MAX_MS){active.delete(key);continue}if(within(scope,target))return true}
  for(const [target,time] of recent)if(at-time<HOLD_SETTLE_MS&&within(scope,target))return true;
- return false;
+ return inside(scope,pointerOver)||inside(scope,keyboardFocus);
 }
 function prune(at:number){for(const [target,time] of recent)if(at-time>=HOLD_SETTLE_MS)recent.delete(target)}
 function flush(){
@@ -57,8 +72,14 @@ function install(){
  const touchEnd=(event:TouchEvent)=>{for(const touch of Array.from(event.changedTouches))release('t'+touch.identifier);if(event.touches?.length===0)releaseAll()};
  window.addEventListener('touchend',touchEnd,options);window.addEventListener('touchcancel',touchEnd,options);
  window.addEventListener('scroll',event=>touched(event.target),options);
+ // UX-HOLD-03: a mouse resting on a list row (touch hover is ignored); leaving the window ends it.
+ window.addEventListener('pointerover',event=>{if(event.pointerType==='mouse')pointerOver=listRow(event.target)},options);
+ window.addEventListener('pointerout',event=>{if(event.pointerType==='mouse'&&!event.relatedTarget)pointerOver=null},options);
+ // Keyboard focus only: focus left on a clicked button would otherwise hold every update.
+ window.addEventListener('focusin',event=>{keyboardFocus=focusVisible(event.target)?listRow(event.target):null},options);
+ window.addEventListener('focusout',event=>{if(!event.relatedTarget)keyboardFocus=null},options);
  // Leaving the app ends every interaction (a release outside the window may never arrive).
- const reset=releaseAll;
+ const reset=()=>{releaseAll();pointerOver=null;keyboardFocus=null};
  window.addEventListener('blur',reset);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')reset()});
 }
 /** Runs `run` now, or holds it (replacing an earlier held run of the same token) until the scope is idle. */

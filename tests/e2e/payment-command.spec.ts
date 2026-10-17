@@ -248,7 +248,7 @@ test('Full app preparation keeps current page usable with header progress then o
  failOnly=['cash','records'];await reads(5,()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await expect(banner).toContainText('Updates paused');
  await reads(2,()=>banner.getByRole('button',{name:'Retry',exact:true}).click());await expect(banner).toHaveCount(0);
  failUpdate=false;await reads(2,()=>page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare'))));await expect(banner).toHaveCount(0);
- failUpdate=true;failOnly=['cash'];await reads(5,()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await expect(banner).toContainText('Updates paused');
+ failUpdate=true;failOnly=['cash'];await reads(5,()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await expect(banner).toContainText('Updates paused for Cash. Saved data remains available.');
 
  await context.setOffline(true);await page.getByRole('button',{name:'Collection',exact:true}).click();await expect(page.locator('.collection-tile-main')).toContainText('Prepared unvisited collection');await page.locator('.collection-tile-main').click();await expect(page.getByRole('region',{name:'Collection charge details'}).getByRole('button',{name:'Prepared unvisited collection',exact:true})).toBeVisible();
 });

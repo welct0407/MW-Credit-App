@@ -96,3 +96,38 @@ test('a pointer cancelled by a scroll ends only itself, not the finger still dow
  tick(3000);assert.deepEqual(seen,[]);
  fire('touchend',{changedTouches:[{identifier:26,target:null}],touches:[]});tick(HOLD_SETTLE_MS+300);assert.deepEqual(seen,['rows']);
 });
+
+// UX-HOLD-03: on a computer, a mouse resting on a clickable row or keyboard focus on one also holds, under the same cap.
+const fireAt=(type,target,fields={})=>{const event=Object.assign(new Event(type),fields);Object.defineProperty(event,'target',{value:target});window.dispatchEvent(event)};
+const element=(clickable,{focusVisible=false}={})=>{const node={isConnected:true,matches:selector=>selector===':focus-visible'&&focusVisible};node.closest=()=>clickable?node:null;return node};
+
+test('a mouse resting on a clickable row in the list holds, until it leaves or the cap',()=>{
+ idle();const {seen,run}=recorder(),row=element(true),list={isConnected:true,contains:target=>target===row};
+ fireAt('pointerover',row,{pointerType:'mouse'});
+ deferWhileInteracting(Symbol(),()=>list,run('hover'));tick(3000);assert.deepEqual(seen,[]);
+ fireAt('pointerout',row,{pointerType:'mouse',relatedTarget:null});tick(300);assert.deepEqual(seen,['hover']);
+ fireAt('pointerover',row,{pointerType:'mouse'});deferWhileInteracting(Symbol(),true,run('capped'));
+ tick(HOLD_MAX_MS+300);assert.deepEqual(seen,['hover','capped']);
+ fireAt('pointerout',row,{pointerType:'mouse',relatedTarget:null});
+});
+
+test('hover on a touch screen, on a non-clickable area or outside the list does not hold',()=>{
+ idle();const {seen,run}=recorder(),row=element(true),other=element(true),list={isConnected:true,contains:target=>target===row};
+ fireAt('pointerover',row,{pointerType:'touch'});deferWhileInteracting(Symbol(),true,run('touch'));
+ fireAt('pointerover',element(false),{pointerType:'mouse'});deferWhileInteracting(Symbol(),true,run('plain'));
+ fireAt('pointerover',other,{pointerType:'mouse'});deferWhileInteracting(Symbol(),()=>list,run('outside'));
+ assert.deepEqual(seen,['touch','plain','outside']);
+ // A hovered row removed from the page no longer holds.
+ other.isConnected=false;deferWhileInteracting(Symbol(),true,run('removed'));assert.deepEqual(seen,['touch','plain','outside','removed']);
+ fire('blur');
+});
+
+test('keyboard focus on a row holds; focus left by a mouse click does not',()=>{
+ idle();const {seen,run}=recorder(),keyboard=element(true,{focusVisible:true}),clicked=element(true);
+ fireAt('focusin',keyboard);deferWhileInteracting(Symbol(),true,run('keyboard'));tick(2000);assert.deepEqual(seen,[]);
+ fireAt('focusout',keyboard,{relatedTarget:null});tick(300);assert.deepEqual(seen,['keyboard']);
+ fireAt('focusin',clicked);deferWhileInteracting(Symbol(),true,run('clicked'));assert.deepEqual(seen,['keyboard','clicked']);
+ // Leaving the app ends hover and focus holds.
+ fireAt('focusin',keyboard);fireAt('pointerover',keyboard,{pointerType:'mouse'});fire('blur');
+ deferWhileInteracting(Symbol(),true,run('after-blur'));assert.deepEqual(seen,['keyboard','clicked','after-blur']);
+});
