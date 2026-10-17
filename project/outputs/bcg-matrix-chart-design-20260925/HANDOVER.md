@@ -17,7 +17,7 @@ The horizontal axis is **Payment health**, strongest on the left. The vertical a
 
 All quadrants have equal area regardless of how many borrowers they contain. Equal area must never mean forcing equal borrower counts. Keep the existing accepted category distribution.
 
-[Visual specification](matrix-preview.svg) shows the proposed arrangement with synthetic points; it is a design illustration, not a production screenshot.
+Visual specification shows the proposed arrangement with synthetic points; it is a design illustration, not a production screenshot.
 
 ## 2. Why a different scale alone is insufficient
 

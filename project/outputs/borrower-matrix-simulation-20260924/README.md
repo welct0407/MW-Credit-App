@@ -36,7 +36,7 @@ Only sanitized aggregate evidence is published here: [final simulation summary](
 
 ## 1. Why the original matrix failed
 
-Live V39 PostgreSQL definitions were read and captured, not inferred solely from old documents. The retained original [2 September design/change record](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_BORROWER_VALUE_STABILITY_MATRIX_2026-09-02.md) and [V22 SQL](../../database/migrations/V22__olap_analytics_views.sql) supply the intended versus recorded comparison.
+Live V39 PostgreSQL definitions were read and captured, not inferred solely from old documents. The retained original [2 September design/change record](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_BORROWER_VALUE_STABILITY_MATRIX_2026-09-02.md) and [V22 SQL](../../../database/migrations/V22__olap_analytics_views.sql) supply the intended versus recorded comparison.
 
 | Finding in the live calculation | Consequence | Proposed correction |
 | --- | --- | --- |
@@ -203,7 +203,7 @@ Do not move forward with the Risks redesign or new borrower visuals until the ow
 
 ## 7. Reproduction and recovery
 
-- [Read-only capture](../../scripts/analysis/borrower_matrix_capture.py) and [allowlisted fields](../../scripts/analysis/borrower_matrix_fields.json).
+- Read-only capture and [allowlisted fields](../../scripts/analysis/borrower_matrix_fields.json).
 - [Offline simulation](../../scripts/analysis/borrower_matrix_simulate.py), [reliability comparison](../../scripts/analysis/borrower_reliability_compare.py), [private owner-review renderer](../../scripts/analysis/borrower_matrix_review.py).
 - [Runner and privacy instructions](../../scripts/analysis/README.md).
 - Snapshot SHA-256: `c8aafd919184a19cf0205ac7e12cd468c07fd7f1e17699dd417334ab42ece74a`.

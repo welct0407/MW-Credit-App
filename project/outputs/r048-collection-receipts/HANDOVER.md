@@ -1,6 +1,6 @@
 # R048 — Collection receipts follow displayed charges
 
-27 September 2026. Implemented in DEV OLTP **1.000124**, then applied directly to **PROD OLTP3.000253** by explicit owner exception to the promotion process. [Production checks and rollback](PRODUCTION.md). R048 remains Open with this correction delivered; DEV OLAP1.000042 / PROD OLAP1.100205 / SQLV52 are unchanged.
+27 September 2026. Implemented in DEV OLTP **1.000124**, then applied directly to **PROD OLTP3.000253** by explicit owner exception to the promotion process. Production checks and rollback. R048 remains Open with this correction delivered; DEV OLAP1.000042 / PROD OLAP1.100205 / SQLV52 are unchanged.
 
 ## Behavior
 
@@ -46,12 +46,12 @@ The current gallery previously defaulted to Receipt Image, leaving manual-only c
 - Both DEV editors reported **No issues found**. Final OLTP saved version verified through Manage / Versions; no unsaved edits. No deployment-mode toggle or financial/notification test.
 - Existing DEV fixtures both have manual previews; agent-only fallback follows the unchanged preview formula and prior R047 verification. No new agent-only or multi-charge financial fixture was created.
 
-![Final DEV Collection using synthetic data](dev-collection.png)
+Final DEV Collection using synthetic data (not retained)
 
-![Controlled nonmatching-charge scope hides receipts](dev-exclusion.png)
+Controlled nonmatching-charge scope hides receipts (not retained)
 
 ## Recovery and next step
 
 Before the coherent change batch, restorable DEV OLTP **1.000118** was recorded; Git baseline `f505959e4e92ae482f8e951fce1c84d4c3bc80d4`. To reverse only this feature while preserving later work, restore the slice's former filter `AND([Status] = "Posted", OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])))` and set Receipt Preview Label back to No. Whole-app restore to1.000118 is available only after accounting for intervening changes. No database/file recovery is needed.
 
-The owner subsequently authorized direct PROD application without the promotion process. Completed at3.000253; see [PRODUCTION.md](PRODUCTION.md). DEV and PROD are reconciled for this feature; the DEV overlays are closed as dated evidence.
+The owner subsequently authorized direct PROD application without the promotion process. Completed at3.000253; see PRODUCTION.md. DEV and PROD are reconciled for this feature; the DEV overlays are closed as dated evidence.

@@ -2,7 +2,7 @@
 
 **Outcome: Complete for discovered saved metadata, with explicit privacy and scope exclusions.** All six targets were captured independently and reconciled into canonical PROD records plus exact DEV overlays. This is documentation completion, not approval of live settings or a runtime/financial test result. Interpretation findings remain labeled.
 
-Executed the [owner-invoked plan](../../Documents/Data_Dictionary_Reconciliation_Prompt.md) on 24 September 2026. AppDoc collection began at 10:45 UTC; final saved app checks ended at 12:56 UTC. PostgreSQL metadata was captured at 11:00 UTC and checked again through 12:35 UTC. Editor details were collected between 10:54 and 12:44 UTC. These are dated independent captures, not an atomic six-system snapshot.
+Executed the owner-invoked plan on 24 September 2026. AppDoc collection began at 10:45 UTC; final saved app checks ended at 12:56 UTC. PostgreSQL metadata was captured at 11:00 UTC and checked again through 12:35 UTC. Editor details were collected between 10:54 and 12:44 UTC. These are dated independent captures, not an atomic six-system snapshot.
 
 ## Target coverage
 
@@ -42,7 +42,7 @@ Updated canonical AppSheet tables/slices and added captured actions, views, form
 
 PROD values and DEV differences retain blank/absent distinctions, ordering, expression text and CR line endings. Historical R016 routine declarations and imported DEV aliases now point to current records without changing retained content. Frozen Excel, original migration evidence and historical supplements remain unchanged. Metabase/Grafana and the separate AI Collection runtime are outside scope.
 
-Updated navigation, system guides, environment/V39 notes and unresolved topics. Architecture/business ownership did not change; no artificial model-overview rewrite or release allocation was made. Start at [Data Dictionary](../../Documents/Data%20Dictionary/README.md), with [AppSheet](../../Documents/Data%20Dictionary/systems/appsheet/README.md) and [PostgreSQL](../../Documents/Data%20Dictionary/systems/postgresql/README.md) guides. Material differences and lineage are in [findings](findings.md).
+Updated navigation, system guides, environment/V39 notes and unresolved topics. Architecture/business ownership did not change; no artificial model-overview rewrite or release allocation was made. Start at [Data Dictionary](../../Documents/Data%20Dictionary/README.md), with AppSheet and [PostgreSQL](../../Documents/Data%20Dictionary/systems/postgresql/README.md) guides. Material differences and lineage are in [findings](findings.md).
 
 ## Verification
 

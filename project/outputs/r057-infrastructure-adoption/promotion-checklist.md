@@ -1,6 +1,6 @@
 # R057 promotion checklist
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 
@@ -55,9 +55,9 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R057 technical Released, R058 soleOpen, R059 nextunused; freeze handoff955b6509 retained. |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | Exact paused app versions and retired connection metadata, native/network continuity and limitations. |
-| [Development Changes](../../../Documents/Development_Changes.md) | Updated | Technical retirement closed; R058 development handoff and separate owner/cleanup obligations. |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R057 technical Released, R058 soleOpen, R059 nextunused; freeze handoff955b6509 retained. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | Exact paused app versions and retired connection metadata, native/network continuity and limitations. |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | Technical retirement closed; R058 development handoff and separate owner/cleanup obligations. |
 
 | AGENTS / model overview / Solution Design / PWA Progress | Updated | Current retired availability/native ownership; older AppSheet operating context retained for recovery. |
 | Data Dictionary / generated index | Updated | Two selected API controls, twelve bot definitions, four lifecycle objects;1645documents/zeroerrors. |

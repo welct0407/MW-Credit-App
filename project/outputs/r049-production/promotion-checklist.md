@@ -58,7 +58,7 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 | [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R049 Released/R050 Open and final versions |
 | [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | PROD/DEV versions, sources and V56 |
 | [Development Changes](../../Documents/Development_Changes.md) | Updated | Closed R049 feature difference |
-| [AppSheet_Data_Model_Overview.md](../../Documents/AppSheet_Data_Model_Overview.md) | Updated | R049 production behavior |
+| AppSheet_Data_Model_Overview.md | Updated | R049 production behavior |
 | [Data Dictionary](../../Documents/Data%20Dictionary/README.md) | Updated | 12 affected AppSheet objects, SQL V2 provider, DEV overlay closure/index |
 | [Database reference](../../database/README.md) | Updated | DEV and PROD V56 |
 

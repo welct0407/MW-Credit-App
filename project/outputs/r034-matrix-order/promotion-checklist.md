@@ -1,6 +1,6 @@
 # R034 promotion checklist
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 
@@ -55,9 +55,9 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R034 deployment and verification reference. |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | R034 deployment and verification reference. |
-| [Development Changes](../../../Documents/Development_Changes.md) | Updated | R034 deployment and verification reference. |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R034 deployment and verification reference. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | R034 deployment and verification reference. |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | R034 deployment and verification reference. |
 
 Other affected references: dashboard and ten question dictionary objects, Solution Design, scripts/metabase/README, change log and R034 README. No AppSheet model, SQL, diagram or monitoring record changed.
 

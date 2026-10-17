@@ -9,7 +9,7 @@ Owner authorized promotion on 11 October 2026: “Ok go ahead with promotion”.
 ## Continue here
 
 - Freeze: 2026-10-11T13:05:20.6607130+00:00 UTC; R052 Frozen / R053 Open / next R054 coordinated publication. Independent exact package/source/artifacts already captured.
-- Source/package: tested b40c69526bc40b2ef3f6ab6b631df8c51695c921; digest7f64e9a96dd2ec3416e4fb0a0ed81f33e598dc1364421b26fb995330b65b588d. [Frozen manifest](promotion-freeze.json).
+- Source/package: tested b40c69526bc40b2ef3f6ab6b631df8c51695c921; digest7f64e9a96dd2ec3416e4fb0a0ed81f33e598dc1364421b26fb995330b65b588d. Frozen manifest.
 - DEV: 87 validated, final API/frontend delivered, authenticated GUI passed; fullCI38139391405/DB38139390752 reused.
 - PROD before: SQL77, contained foundation; AppSheet3.000274/1.100214 unchanged. Exact runtime/Hosting rollback and migration hashes bound in private prepared package.
 - Recovery established: fresh PROD77 shared-snapshot backup and isolated restore passed; all 26 table/history fingerprints matched, archive catalogue passed, exact temporary cluster stopped and removed. Private original retained. Sanitized evidence: MW-Credit-App outputs/r052-promotion-readiness/production-backup-evidence.json.

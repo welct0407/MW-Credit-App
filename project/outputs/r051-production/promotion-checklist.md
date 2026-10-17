@@ -1,6 +1,6 @@
 # R051 promotion checklist
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 
@@ -55,9 +55,9 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R051 production closure; R052 Open |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | R051 production closure; R052 Open |
-| [Development Changes](../../../Documents/Development_Changes.md) | Updated | R051 production closure; R052 Open |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R051 production closure; R052 Open |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | R051 production closure; R052 Open |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | R051 production closure; R052 Open |
 
 | Data dictionary / DEV_R051_CRUD / index | Updated |107 canonical definitions;91 closed overlays; validation passed |
 | Model overview / Solution Design | Updated | Source correction and retained-history production behavior |

@@ -16,10 +16,10 @@ Cash planning uses current BusinessCashHeld and remaining scenario receipts, nev
 
 ## Implementation and maintenance
 
-- Immutable [V48](../../database/migrations/V48__forecast_planning.sql) adds five views and two pure invoker functions; no operational table/column or AppSheet change.
+- Immutable [V48](../../../database/migrations/V48__forecast_planning.sql) adds five views and two pure invoker functions; no operational table/column or AppSheet change.
 - [ForecastPlanning.mjs](../../scripts/metabase/ForecastPlanning.mjs) prepares, plans, publishes once, refines only state-owned questions and verifies 21 saved questions across three filter cases. Do not replay `--publish` on an existing state. `--refine --only=key,...` scopes a reviewed correction.
 - [VerifyForecastSaved.mjs](../../scripts/metabase/VerifyForecastSaved.mjs) checks 15 independent numerical/filter reconciliations without publishing source amounts.
-- [Document-Forecast.py](../../scripts/dictionary/Document-Forecast.py) captured affected live SQL metadata and saved Metabase definitions using guarded dictionary updates; its create-once behavior deliberately rejects existing object files.
+- Document-Forecast.py captured affected live SQL metadata and saved Metabase definitions using guarded dictionary updates; its create-once behavior deliberately rejects existing object files.
 - SQL recovery and testing tools, sanitized evidence and the single [promotion checklist](promotion-checklist.md) are adjacent. Private backups, credentials and financial screenshots remain outside Git.
 
 ## Validation and recovery

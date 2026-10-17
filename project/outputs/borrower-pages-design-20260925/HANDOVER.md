@@ -37,7 +37,7 @@ Relevant implementation references:
 
 - [Solution design](../../Documents/Solution_Design.md): reporting ownership and Health Review responsibilities.
 - [R027 payment-health contract](../r027-payment-health/README.md), [R028 schedule contract](../r028-schedule-health/README.md), [R034 accepted layout](../r034-matrix-order/README.md).
-- [V41 health providers](../../database/migrations/V41__borrower_payment_health.sql), [V42 schedule/category providers](../../database/migrations/V42__automatic_schedule_categories.sql). These immutable migrations are reference definitions, not files to edit.
+- [V41 health providers](../../../database/migrations/V41__borrower_payment_health.sql), [V42 schedule/category providers](../../../database/migrations/V42__automatic_schedule_categories.sql). These immutable migrations are reference definitions, not files to edit.
 - [Dashboard dictionary](../../Documents/Data%20Dictionary/systems/metabase/dashboards/loan-reports.yaml) and [Metabase tools](../../scripts/metabase/README.md).
 
 Findings that affect the design:

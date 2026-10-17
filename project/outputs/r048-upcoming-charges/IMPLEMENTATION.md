@@ -67,7 +67,7 @@ DEV tuple: instance `appsheet-pg-prod-20260914`, host `34.21.174.215`, database 
 
 ## SQL implementation
 
-[V54](../../database/migrations/V54__oltp_upcoming_charges.sql) adds three read-only views, without physical business tables/columns or changes to the V53 engine, jobs, notifications or payment routines:
+[V54](../../../database/migrations/V54__oltp_upcoming_charges.sql) adds three read-only views, without physical business tables/columns or changes to the V53 engine, jobs, notifications or payment routines:
 
 | Provider | Grain and purpose |
 | --- | --- |
