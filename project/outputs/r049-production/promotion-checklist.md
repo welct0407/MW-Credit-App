@@ -6,7 +6,7 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 - Scope: summary-first drilldowns in OLTP; OLTP Upgrade, OLAP Unchanged; additive V56. No external asset or routing change.
 - Freeze: 2026-09-29T11:17:41.705563+00:00 at tested 1991896 / OLTP1.000157 / OLAP1.000045 / V56; R050 opened in tracker. DEV edit hold until independent RC capture.
-- Records: [manifest](../r049-upcoming-summary/release-manifest.json), [log](../../Change%20Logs/CHANGE_NOTES_R049_2026-09-29.md), [DEV tests](../r049-upcoming-summary/HANDOVER.md), [freeze pin](freeze-pin.json).
+- Records: [manifest](../r049-upcoming-summary/release-manifest.json), [log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R049_2026-09-29.md), [DEV tests](../r049-upcoming-summary/HANDOVER.md), [freeze pin](freeze-pin.json).
 - DEV readiness/owner acceptance: completed DEV checks reused; owner authorized promotion on 29 September 2026.
 - Production authorization: owner “Promote to production”; frozen RC1 version1.000006 preserved accepted scope and required PROD substitutions.
 - DEV / RC / PROD-before / PROD-after / rollback / SQL versions: OLTP1.000157 / RC1 1.000006 / PROD3.000260 → 3.000263 / rollback3.000260; OLAP PROD1.100208 unchanged; SQL55 → 56. Details in linked manifest.
@@ -58,7 +58,7 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 | [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R049 Released/R050 Open and final versions |
 | [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | PROD/DEV versions, sources and V56 |
 | [Development Changes](../../Documents/Development_Changes.md) | Updated | Closed R049 feature difference |
-| [AppSheet_Data_Model_Overview.md](../../Documents/AppSheet_Data_Model_Overview.md) | Updated | R049 production behavior |
+| AppSheet_Data_Model_Overview.md | Updated | R049 production behavior |
 | [Data Dictionary](../../Documents/Data%20Dictionary/README.md) | Updated | 12 affected AppSheet objects, SQL V2 provider, DEV overlay closure/index |
 | [Database reference](../../database/README.md) | Updated | DEV and PROD V56 |
 

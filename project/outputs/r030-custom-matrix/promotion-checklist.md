@@ -1,12 +1,12 @@
 # R030 promotion checklist
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 
 - Scope: dedicated VM chart service, narrow PROD reader and comparison iframe; both Apps Unchanged and explicitly excluded.
 - Frozen 2026-09-25T04:50:43.236549+00:00; pinned package07efaac; successorR031 is Open, nextR032. Handoff published in dfc6bfe/4495d5c before production writes.
-- [Manifest](release-manifest.json), [change log](../../Change%20Logs/CHANGE_NOTES_R030_2026-09-25.md), [verification](final-verification.json).
+- [Manifest](release-manifest.json), [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R030_2026-09-25.md), [verification](final-verification.json).
 - Owner authorized VM/DB/Metabase deployment, shared-secret fallback and existing-tab comparison. No AppSheet readiness or R026 closure is claimed.
 - SQL V43 before/after; no migrations. Recovery dashboard7; verified restore of26 table fingerprints. Original chart274 retained.
 - Deployed and verified; final evidence commit is identified by annotated tagR030. No RC exists.
@@ -53,9 +53,9 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R030 deployed state and evidence reference. |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | R030 deployed state and evidence reference. |
-| [Development Changes](../../../Documents/Development_Changes.md) | Updated | R030 deployed state and evidence reference. |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R030 deployed state and evidence reference. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | R030 deployed state and evidence reference. |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | R030 deployed state and evidence reference. |
 
 Additional updated references: Solution_Design.md; Metabase README; dashboard and chart-reader dictionary objects; R030 operating README and change log.
 

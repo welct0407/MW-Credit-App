@@ -128,7 +128,7 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/payment-command/handler.mjs"
     "production_incident": "R060 Released15October2026 at00:19:59Bangkok verification checkpoint. Confirmed priorproduction-business403-before-SQL\
       \ denial corrected by only removing mode-specific veto; ownerTesting/principalAllowed/transactioncapability guards retained.\
-      \ Source a2f683eb74f3c3c5dc027520642a07a07f4c1558 deployed to DEVcommand00026-7lj and PRODcommand00008-qb7 Ready100%;\
+      \ Source a2f683eb74f3c3c5dc027520642a07a07f4c1558 deployed to DEV and PROD (revisions: see Environment_Inventory.md);\
       \ CI404units and3focused cases passed. Live exactenvironment/health/auth-gate verified, no authenticated PROD dataset\
       \ success/full-traversal claim (bounded natural logs had no events). R059 smoke had not tested signed-in dataset content;\
       \ dashboard/preferences200 did not imply broader dashboard failure."
@@ -148,9 +148,9 @@
       \ fallback. Invalid newly selected date/account defaults are rejected locally before queueing; unchanged existing aged/inactive\
       \ values remain preserved."
     "delivery": "R062 Released. Tested source327aa25 passed Settings4/4, 8 unique desktop/mobile cases (zero skips), app CI38646759254\
-      \ and DB CI38646752123/38646759300. DEV V92, command00027-8sb and Hosting8b12e5b06d79592a verified. PROD V92 applied\
+      \ and DB CI38646752123/38646759300. DEV V92 and its API/Hosting artifacts verified (pins: Environment_Inventory.md). PROD V92 applied\
       \ 15 October 2026 10:00:28 Bangkok from tooling successor6c3e4fab; validation93 and authority restoration passed. Existing\
-      \ Borrower/Partner contents match backup. PROD command00009-qf9 (Ready100%) and Hosting45b1899bbd18ba3e/release1792033365993000\
+      \ Borrower/Partner contents match backup. PROD API and Hosting artifacts (pins: Environment_Inventory.md)\
       \ verified15October2026 10:02:59Bangkok: exactbindings, artifactbytes/no-store, health200, unauthpreferences401; reader/notify/jobs\
       \ unchanged, no authenticated business-write claim; R063 Open, next R064."
     "sources":
@@ -261,7 +261,7 @@
       \ pending."
     "state": "value"
   "/content/settings_contract/delivery":
-    "reference": "Documents/Development_Changes.md#r062-production-promotion"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r062-production-promotion"
     "reason": "Record verified R062 production delivery."
     "state": "value"
   "/content/settings_contract/sources":

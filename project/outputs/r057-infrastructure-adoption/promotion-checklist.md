@@ -1,12 +1,12 @@
 # R057 promotion checklist
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 
 - Scope: existing ecosystem adoption, unattended administration and owner-authorized four-app retirement/integration removal. No App Upgrade/RC, SQL migration, app deletion or license action.
 - Retirement started 2026-10-13T16:37:00Z. Freeze/handoff authorized by root; B/F pins independently captured. R057 Frozen, R058 Open, R059 next unused; handoff published at955b6509; remote master verified.
-- Manifest / evidence: [adoption record](README.md), [retirement record](../r057-appsheet-retirement/README.md), [retirement log](../../Change%20Logs/CHANGE_NOTES_R057_APPSHEET_RETIREMENT_2026-10-13.md). Exact retirement pins pending.
+- Manifest / evidence: [adoption record](README.md), [retirement record](../r057-appsheet-retirement/README.md), [retirement log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R057_APPSHEET_RETIREMENT_2026-10-13.md). Exact retirement pins pending.
 - Owner authorized retirement; active-AppSheet DEV readiness/RC acceptance does not apply. Scoped saved retirement and native continuity checks passed.
 - Production authorization: owner authorized retirement of all four apps and active integration dependencies; owner will revoke license afterward. No RC.
 - DEV / RC / PROD-before / PROD-after / rollback / SQL versions: in linked manifest; Pending
@@ -55,9 +55,9 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R057 technical Released, R058 soleOpen, R059 nextunused; freeze handoff955b6509 retained. |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | Exact paused app versions and retired connection metadata, native/network continuity and limitations. |
-| [Development Changes](../../../Documents/Development_Changes.md) | Updated | Technical retirement closed; R058 development handoff and separate owner/cleanup obligations. |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R057 technical Released, R058 soleOpen, R059 nextunused; freeze handoff955b6509 retained. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | Exact paused app versions and retired connection metadata, native/network continuity and limitations. |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | Technical retirement closed; R058 development handoff and separate owner/cleanup obligations. |
 
 | AGENTS / model overview / Solution Design / PWA Progress | Updated | Current retired availability/native ownership; older AppSheet operating context retained for recovery. |
 | Data Dictionary / generated index | Updated | Two selected API controls, twelve bot definitions, four lifecycle objects;1645documents/zeroerrors. |

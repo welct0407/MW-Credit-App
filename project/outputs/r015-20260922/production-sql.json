@@ -1,8 +1,0 @@
-{
-  "database": "loan_manager_prod",
-  "flyway": "33",
-  "capture_triggers": 10,
-  "business_audit_rows": 0,
-  "tested_commit": "a3b19c839820d70da9ecfe7129468e32b46b8f30",
-  "validation_successful": true
-}

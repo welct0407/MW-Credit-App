@@ -19,7 +19,7 @@ The deployed source now distinguishes access-token acquisition, incomplete trans
 - [Precise approval manifest](docs/approval-manifest.json)
 - [Approval bundle explanation](docs/approval-bundle.md)
 - [Optional operation-read proposal](infra/operation-read-proposal.json)
-- [R050 change log](../../../Change%20Logs/CHANGE_NOTES_R050_VM01_CONTROLLER_2026-10-01.md)
+- [R050 change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R050_VM01_CONTROLLER_2026-10-01.md)
 
 ## Local development
 

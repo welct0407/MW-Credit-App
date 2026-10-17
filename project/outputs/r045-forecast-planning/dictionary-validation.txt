@@ -1,8 +1,0 @@
-{
-  "documents": 1287,
-  "errors": [],
-  "reconciliation": "See per-object verification and unresolved.yaml; structural validation does not establish live completeness",
-  "recorded_limitations": 3,
-  "resolved_items": 4,
-  "informational_items": 3
-}

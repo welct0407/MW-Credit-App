@@ -854,7 +854,7 @@
         <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Desktop inspection during development is not a deployed VM capability. The retired Windows worker stays stopped.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: partner_oltp_gui&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: partner_oltp_gui&#10;config.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
         </mxCell>
         <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
@@ -916,7 +916,7 @@
         <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;No briefing timer runs. Daily cash statements are a separate authorized service.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: daily_briefing&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: daily_briefing&#10;config.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
         </mxCell>
         <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
@@ -978,7 +978,7 @@
         <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;No weather provider is called and no borrower information is sent to one.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: pattaya_weather&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: pattaya_weather&#10;config.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
         </mxCell>
         <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">

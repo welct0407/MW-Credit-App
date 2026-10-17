@@ -1,6 +1,6 @@
 # Resource monitoring tools
 
-R050 development: [Grafana MCP Events bridge](grafana-mcp-bridge/README.md) adds source for owner-authenticated ChatGPT/Dots event subscriptions and durable callbacks. It is not deployed or connected; existing IRM/mobile routes are retained. See its [design and deployment prerequisites](../../Documents/Grafana_MCP_Events_Bridge.md).
+R050 development: [Grafana MCP Events bridge](grafana-mcp-bridge/README.md) adds source for owner-authenticated ChatGPT/Dots event subscriptions and durable callbacks. It is deployed as Cloud Run service `mw-grafana-events` (current revision in the [Environment Inventory](../../Documents/Environment_Inventory.md#latest-verified-deployments)); existing IRM/mobile routes are retained. See its [design and deployment prerequisites](../../Documents/Grafana_MCP_Events_Bridge.md).
 
 Live since 25 September: `debian-health.py` exports read-only receipt queue health for worker revision 21. Eight Payment processing panels and the existing Debian IRM alert implement the [receipt monitoring handover](../../../integration-agent/docs/MONITORING_IMPLEMENTATION_HANDOVER.md). See [verified deployment evidence](../../outputs/receipt-monitoring-20260925/README.md).
 
@@ -93,7 +93,7 @@ The description and panel text need a scoped update from a fresh live Grafana de
 
 ## Pending R050 audit relay health
 
-The candidate collector requires the matching MW `relay_health` module before deployment. It uses completed outcome/backlog evidence with the existing `audit_relay` component label and exports bounded numeric diagnostics through the existing worker metric. Missing inspection fails DOWN. Units, dashboards and alert selectors stay unchanged. See [R050 checks and rollout/rollback](../../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Current live timer/result behavior remains the baseline until a separately approved rollout.
+The candidate collector requires the matching MW `relay_health` module before deployment. It uses completed outcome/backlog evidence with the existing `audit_relay` component label and exports bounded numeric diagnostics through the existing worker metric. Missing inspection fails DOWN. Units, dashboards and alert selectors stay unchanged. See [R050 checks and rollout/rollback](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Current live timer/result behavior remains the baseline until a separately approved rollout.
 
 ### R051 bridge/subscription row 5 and daily VM-01 chart — dashboards and telemetry live
 

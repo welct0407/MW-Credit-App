@@ -9,7 +9,7 @@ The authoritative editable diagram is [BUSINESS_PROCESS.drawio](BUSINESS_PROCESS
 & 'C:\Program Files\draw.io\draw.io.exe' --export --format png --scale 1.2 --output docs\BUSINESS_PROCESS.png docs\BUSINESS_PROCESS.drawio
 ```
 
-The visual style follows MW-Partner-Operations: blue rounded process boxes, yellow decision diamonds, labeled orthogonal branches, red stop paths and grey side notes. Each page retains an explicit LIVE, PENDING or DISABLED status. The service index uses green for live services, amber for decisions and grey for disabled services. A diagram page does not activate a capability.
+The visual style follows the archived Windows Partner Operations agent: blue rounded process boxes, yellow decision diamonds, labeled orthogonal branches, red stop paths and grey side notes. Each page retains an explicit LIVE, PENDING or DISABLED status. The service index uses green for live services, amber for decisions and grey for disabled services. A diagram page does not activate a capability.
 
 22 September: the conversation detail page and overview/index include persistent signed Partner conversations, current business-data tools and Codex-selected general API operations. Receipt approval authority stays separate. GUI workflows remain unavailable; see [conversation operations](PARTNER_CONVERSATIONS.md).
 

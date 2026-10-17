@@ -9,7 +9,7 @@ The owner directly approved the prepared bootstrap and US$2/month planning budge
 - [Disabled ledger readback](ledger-readback.json)
 - [Original deployed parameters](deployed-parameters.json), [original deployed ARM](deployed-main.arm.json), [deployed source checks](deployed-source-checks.json)
 - [Provisioning write journal](write-journal.jsonl)
-- [Current source validation](../validation.json)
+- [Current source validation](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/r050-vm01-controller/validation.json)
 
 Deployed source: `e02501786af5f8a9ca7073c08244eb6afc4e08af`. Original ARM SHA256: `346fc8989173b96bb8e3bcf225d9adc90bd4ef18679d362b152e207bd5f7527b`. Final locked production ZIP SHA256: `aaedfe3d24e2dedfac5338b7ab03b4e9c7a6961267d068e0b7a51c43f22b180f` (15874625 bytes). The ZIP and dependencies remain outside Git; no credentials or private state are included in this evidence.
 

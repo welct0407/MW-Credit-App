@@ -2,7 +2,7 @@
 
 Historical V69 proof: [V70 is now applied/validated in DEV](default-repayment-v70-actual-summary.json), closing the independent repayment UPDATE/DELETE gap described below. Rollback acceptance and independent readback preserved all26 tables and existing fixtures. The UI predicate remains a separate proposed/GUI-unverified guard. The local runner defaults to V70; use `--expected-version 69` explicitly to reproduce the historical behavior below.
 
-The saved OLTP177 predicate, reported by the parent and matching the recorded [Loan Delete action](../../Documents/Data%20Dictionary/systems/appsheet/oltp/actions/loans-delete-e039a9a5.yaml), only checks that the loan has no payment allocations. That is insufficient for a defaulted loan with an independent legacy repayment. This task made no live database or app changes.
+The saved OLTP177 predicate, reported by the parent and matching the recorded Loan Delete action, only checks that the loan has no payment allocations. That is insufficient for a defaulted loan with an independent legacy repayment. This task made no live database or app changes.
 
 Proposed minimal replacement, retaining any separate existing authorization condition and confirmation:
 
@@ -30,7 +30,7 @@ These are simulated independently committed SQL requests, not observed AppSheet 
 
 ## Correct Default setup validation
 
-The canonical maintained assertion is `validate_defaulted` in [Test-DefaultInspectionLocal.py](../../scripts/database/Test-DefaultInspectionLocal.py). It verifies the actor in `Loans.Closed By`, the original charge restoration JSON and `Repayments.Created By`. The generated loss charge note is a generic zero-cash description, not an actor field. The failed private commit runner is retained only as historical evidence and is not a supported execution path; it was not retried or reauthorized here.
+The canonical maintained assertion is `validate_defaulted` in [Test-DefaultInspectionLocal.py](../../../scripts/database/Test-DefaultInspectionLocal.py). It verifies the actor in `Loans.Closed By`, the original charge restoration JSON and `Repayments.Created By`. The generated loss charge note is a generic zero-cash description, not an actor field. The failed private commit runner is retained only as historical evidence and is not a supported execution path; it was not retried or reauthorized here.
 
 The local runner proves normal enable → Default → disable in one transaction, with an independent observer seeing auto=false before and after commit. It verifies source/cash restoration after Undo and a complete setup/Undo transaction rollback with all26 fingerprints identical. Separate committed Undo preserves all nonanalytics tables and all financial snapshot values; only `Generated At` changes in two daily and54 account snapshot rows. The temporary database is dropped and the original local database's26 fingerprints remain unchanged.
 

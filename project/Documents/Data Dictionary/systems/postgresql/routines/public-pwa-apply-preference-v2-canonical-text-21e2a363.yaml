@@ -31,12 +31,12 @@
     \nEND $function$\n"
 "evidence":
   "/content/candidate_v92":
-    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
       \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
     "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
     "state": "absent"
   "/content/definition":
-    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
       \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
     "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
     "state": "value"

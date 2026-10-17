@@ -6,7 +6,7 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 - Scope: accepted upcoming charges and Collection summary/detail, preserving integrated prior R048 PROD fixes. OLTP Upgrade; OLAP Unchanged1.100208. Unrelated local report work excluded and preserved. SQL V54/V55 additive views only.
 - Release frozen at 2026-09-29T06:08:53.532412+00:00; SQL pin47efcbf0fe59c30a152a585b94b9cfc24be3be68 and DEV OLTP1.000151. R049 opened for later work; independent RC/SQL capture complete and shared DEV hold released.
-- Manifest / change log / test evidence: [manifest](manifest.json), [R048 log](../../Change%20Logs/CHANGE_NOTES_R048_2026-09-27.md), [production verification](production-verification.json).
+- Manifest / change log / test evidence: [manifest](manifest.json), [R048 log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R048_2026-09-27.md), [production verification](production-verification.json).
 - DEV readiness / owner acceptance: accepted DEV1.000151; both DEV editors clear, SQL CI55 migrations/18 assertions and affected GUI checks reused.
 - Production authorization: owner “good. now promote it to prod.”, 29 September2026; applies to tested upcoming-charge scope. Final RC1 1.000009 passed and was promoted.
 - Versions: DEV1.000151 /1.000045; RC1 1.000009; PROD OLTP3.000257→3.000260, OLAP1.100208 unchanged; SQL53→55. OLTP rollback3.000257.

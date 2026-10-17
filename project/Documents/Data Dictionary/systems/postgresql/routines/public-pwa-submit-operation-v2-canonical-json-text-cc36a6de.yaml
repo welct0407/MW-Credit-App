@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
+  "source": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
 "content":
   "definition": "CREATE OR REPLACE FUNCTION public.pwa_submit_operation_v2(canonical_json text)\n RETURNS jsonb\n LANGUAGE\
     \ plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE e jsonb;a jsonb;c jsonb;i\
@@ -187,14 +187,9 @@
     \ jsonb_build_object('kind','recorded','originalOutcome',jsonb_build_object('status',old.outcome,'code',old.rejection_code,'result',old.result_json,'recordedAt',to_char(old.recorded_at\
     \ AT TIME ZONE 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')));\r\nEND $function$\n"
 "evidence":
-  "/content/candidate_v92":
-    "reference": "Documents/Development_Changes.md#r062-production-promotion; PROD V92 applied 2026-10-15 10:00:28 Bangkok\
-      \ from 6c3e4fab6025d29d3fbbe4dc6106896a8dc47270; validation93 and authority restoration passed."
-    "reason": "Promote exact V92 definitions after verified PROD migration; existing Borrower/Partner fingerprints unchanged."
-    "state": "absent"
   "/content/definition":
     "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
     "reason": "DB-LOCK-03: V94 replaces the inline advisory key hashtextextended(kind||':'||target,0) with public.pwa_lock_key_v1(kind,target)\
       \ (bit-identical key; owner, security mode, search_path, ACL and comment unchanged). Applied in DEV on 17 October 2026\
-      \ (loan_manager_dev, V94); applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed)."
+      \ (loan_manager_dev, V94); applied in PROD on 17 October 2026 04:09Z (loan_manager_prod, migrate 93 to 95; post-migration readback confirmed). Created by V83; patched in place by V84 (2 replacements), V85 (17), V92 (3) and V94 (lock-key replacement)."
     "state": "value"

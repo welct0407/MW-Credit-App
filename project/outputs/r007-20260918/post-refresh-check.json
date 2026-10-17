@@ -1,8 +1,0 @@
-{
-  "release": "R007",
-  "snapshotExpenseAndNetChecks": 135,
-  "mismatches": 0,
-  "postRefreshStatisticsFieldsMatched": 40,
-  "peakMatchesRefreshedSnapshots": true,
-  "source": "Current AppSheet Find after GUI Full refresh versus independently captured SQL Portfolio Summary; 45 historical snapshots versus captured base expenses"
-}

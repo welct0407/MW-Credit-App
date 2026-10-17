@@ -1,1 +1,0 @@
-{"retry": {"applied": 0, "pending": 0, "conflict": 0}, "cutoff_preserved": true, "verification": {"recovery": {"no_image": 42, "ready": 38, "unavailable": 1}, "exact_generation_downloads_verified": 38, "applied_links_verified": 27, "financial_payment_and_repayment_fingerprints_unchanged": true, "financial_posting_invoked": false, "notifications_invoked": false}}

@@ -15,9 +15,8 @@ Keeping this entire set current is a required part of each development batch und
 | Project background, overview and roadmap | [Project README](../README.md) — living entry point of `project/`; the [repository README](../../README.md) covers the app |
 | Current operation and outstanding work | [Development changes](Development_Changes.md) |
 | Open release and release transitions | [Release tracker](Release_Tracker.md) |
-| Architecture and business behavior | [Solution design](Solution_Design.md), [PWA data model](PWA_Data_Model_Overview.md) |
-| Exact data/API definitions | [Data Dictionary](Data%20Dictionary/README.md), [complete object index](Data%20Dictionary/index.json) — its existing structured subfolder remains here |
-| Generated upload snapshot | [Data_Dictionary_ChatGPT.md](Data_Dictionary_ChatGPT.md) — local-only link, ignored by Git; regenerate using the [export procedure](Rules/Data_Dictionary_Export.md) |
+| Architecture and business behavior | [Solution design](Solution_Design.md), [PWA data model](PWA_Data_Model_Overview.md). Runtime facts start in the **Current state** sections of Solution design (PWA/API), [database/README.md](../../database/README.md) and [integration-agent/README.md](../../integration-agent/README.md) |
+| Exact data/API definitions | [Data Dictionary](Data%20Dictionary/README.md), [complete object index](Data%20Dictionary/index.json) — its existing structured subfolder remains here. An optional local upload snapshot is ignored by Git; see the [export procedure](Rules/Data_Dictionary_Export.md) |
 | Environments, service bindings and verified deployments | [Environment inventory](Environment_Inventory.md) |
 | Current human accounts and browser assignments | [Service/account mapping](Service_Account_Browser_Mapping.md) |
 | Monitoring operation, dashboards and bridge configuration | [Monitoring](Resource_Monitoring.md), [visual guide](Resource_Monitoring_Dashboard_Guide.md), [event bridge](Grafana_MCP_Events_Bridge.md) |

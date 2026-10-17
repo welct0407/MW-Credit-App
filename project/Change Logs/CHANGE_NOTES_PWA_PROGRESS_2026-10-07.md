@@ -1,7 +1,0 @@
-# Owner-facing implementation progress — 7 October 2026
-
-The owner requested an accessible overall view of completed work and next steps, updated after every development session. Starting PM commit afb2d120d1a21e0b6d6c01dbb9a41d4ad657df62 was clean.
-
-Added Documents/PWA_Progress.md as the single current overview, linked near the top of the roadmap, orchestration reference and PWA evidence README. The overview follows the existing phase table: Phase0 complete for its scope, Phase1/2 in progress, Phase7 deferred post-go-live and remaining phases not started. It distinguishes deployed/tested related-loan UI from pending neutral visual acceptance, and owner-confirmed refresh persistence from synthetic browser-restart evidence. The next checkpoint is recommended and awaits owner go-ahead; no Collection work or phase completion is authorized.
-
-Persisted the owner rule in the existing orchestration delivery loop: every session closeout updates progress, evidence, review, next steps and blockers with a Bangkok date. No application, cloud, database or service changes. Rollback is the starting Git commit for these documentation files. Validation: phase/status reconciliation with the roadmap, relative-link target checks and git diff --check. Commit/push to the current upstream establishes publication.

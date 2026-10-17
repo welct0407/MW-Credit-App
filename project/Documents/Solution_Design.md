@@ -2,6 +2,14 @@
 
 A two-user financial operations PWA using the existing PostgreSQL financial engine. AppSheet is not a runtime, scheduler or API dependency.
 
+## Current state
+
+- Firebase Hosting serves the PWA from two sites (DEV `mw-credit-app-dev-737787224638`, PROD `mw-credit-prod-737787224638`) at `dev-lm.mw-credit.com` and `lm.mw-credit.com`.
+- Cloud Run runs the reader, command, notify and jobs services per environment in `asia-southeast1` from one image per environment; reader and command run `services/production/business-server.mjs`, notify and jobs run `services/workers/server.mjs`.
+- One shared Cloud SQL instance holds `loan_manager_dev` and `loan_manager_prod`. DEV schedulers stay paused; PROD has one scheduler owner per job.
+- Deployed versions (Hosting versions, Cloud Run revisions and image digests, Flyway, Debian commit) are stated only in the [Environment inventory](Environment_Inventory.md#latest-verified-deployments).
+- Read next for a PWA or API change: [PWA orchestration](Rules/PWA_Orchestration.md); for a promotion: [Release workflow](Rules/Release_Workflow.md).
+
 | Component | Responsibility |
 | --- | --- |
 | PWA | Mobile/desktop operations, management, analytics, online posting, contextual drafts and durable saved-change synchronization |
@@ -35,7 +43,7 @@ One native scheduler owns each job/environment. Daily charges run at 00:05 and r
 
 ## Operations
 
-This repository owns coordination/business references; MW-Credit-App owns PWA/API/SQL/infrastructure; MW-Integration-Agent owns Debian. DEV/PROD share Cloud SQL but use separate business databases, API identities and routes.
+By directory: `project/` owns coordination and business references; the repository root (`apps/`, `services/`, `database/`, `infrastructure/`) owns PWA/API/SQL/infrastructure; `integration-agent/` owns the Debian runtime. DEV/PROD share Cloud SQL but use separate business databases, API identities and routes.
 
 DEV and PROD run the same code. The DEV reader and command services run `services/production/business-server.mjs` with `APP_ENV=dev`, the DEV capability policy (owner only) and DEV origins. `dev-server.mjs`, `dev-read-server.mjs` and the foundation DEV API are retired. DEV schedulers stay paused.
 

@@ -8,7 +8,7 @@ Current cash pages: [canonical statement contract](statement-cleanup/README.md).
 
 ## Earlier additive cash-reporting checkpoint — 23 September 2026
 
-2R now reuses utilization gauge question **68** instead of scalar **54**, with the two capital figures stacked beside it. Shared gauge settings and all other tabs remain unchanged. [Scoped verification](cash-review-gauge-verification.json). At that earlier checkpoint, the label “Partner advances” represented negative account balances, not an independently recorded partner liability; see the [metric clarification](../../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md#2r-utilization-gauge-and-metric-explanation--23-september-2026).
+2R now reuses utilization gauge question **68** instead of scalar **54**, with the two capital figures stacked beside it. Shared gauge settings and all other tabs remain unchanged. [Scoped verification](cash-review-gauge-verification.json). At that earlier checkpoint, the label “Partner advances” represented negative account balances, not an independently recorded partner liability; see the [metric clarification](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md#2r-utilization-gauge-and-metric-explanation--23-september-2026).
 
 The ten original pages remain unchanged. Three appended tabs offer an alternative design for owner review:
 

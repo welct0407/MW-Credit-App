@@ -1,6 +1,6 @@
 # PostgreSQL agent state and audit — execution handover
 
-**Design v1, 22 September 2026. Not implemented or deployed.** Prepared at the owner's request for a different model to execute later. The present task changes repository documentation and proposed SQL only. It does not authorize this author to create databases, change grants, migrate data, restart services or enable DELETE. No existing runtime authority has been changed.
+**Implemented 22 September 2026; historical design.** Current operation is in [PostgreSQL operations](../../POSTGRESQL_OPERATIONS.md). The text below is the original design v1 and is kept as dated evidence. Prepared at the owner's request for a different model to execute later. The present task changes repository documentation and proposed SQL only. It does not authorize this author to create databases, change grants, migrate data, restart services or enable DELETE. No existing runtime authority has been changed.
 
 ## Start here
 
@@ -12,7 +12,7 @@ The owner has chosen that direction. The next execution instruction should autho
 
 Suggested message for the executing model:
 
-> Implement the design in `C:\GitHub\MW-Integration-Agent\docs\design\agent-postgresql-20260922\HANDOVER.md`, following its governance and acceptance criteria. Read the current repository instructions and catalogue first. Preserve current data, conversation sessions, approvals, cutoffs and unknown-outcome protection. Complete laboratory/DEV validation and required recovery preparation before the scoped production rollout. Do not replay historical requests or perform unrelated production financial tests. Report deployment and verification separately, update the governing documents, and publish the checked implementation and evidence.
+> Implement the design in `integration-agent/docs/design/agent-postgresql-20260922/HANDOVER.md`, following its governance and acceptance criteria. Read the current repository instructions and catalogue first. Preserve current data, conversation sessions, approvals, cutoffs and unknown-outcome protection. Complete laboratory/DEV validation and required recovery preparation before the scoped production rollout. Do not replay historical requests or perform unrelated production financial tests. Report deployment and verification separately, update the governing documents, and publish the checked implementation and evidence.
 
 This suggested message is a handover aid, not an instruction issued by this document to execute itself.
 
@@ -20,9 +20,9 @@ This suggested message is a handover aid, not an instruction issued by this docu
 
 | Item | Observation / execution implication |
 |---|---|
-| Canonical repository | `C:\GitHub\MW-Integration-Agent`, branch `main`, upstream `origin/main`; design starting commit `acbc0eb1c3544ec14ddf597ab59b614de8c3814d` |
+| Canonical repository | repository `welct0407/MW-Credit-App` (then the archived MW-Integration-Agent repository), branch `main`; design starting commit `acbc0eb1c3544ec14ddf597ab59b614de8c3814d` |
 | Governing instructions | Repository `AGENTS.md`, `SERVICE_CATALOGUE.md` and matching JSON; existing revision 14 describes the current runtime, not this proposal |
-| Business repository | `C:\GitHub\AppSheet-Loan-Project`; its instructions and `database/README.md` govern business schema migrations |
+| Business repository | root `AGENTS.md` and `project/` (then the archived AppSheet-Loan-Project repository); its instructions and `database/README.md` govern business schema migrations |
 | VM | Debian 13, `vm-mw-credit-agent`; installed source `/opt/mw-integration-agent-src`, Python environment `/opt/mw-integration-agent/.venv` |
 | Protected configuration/state | `/etc/mw-integration-agent/`; `/var/lib/mw-integration-agent/`, including `state/` and conversation/session directories |
 | Business target | GCP project `clever-oasis-508610-n7`, Cloud SQL instance `appsheet-pg-prod-20260914`, databases `loan_manager_prod` and `loan_manager_dev`; PostgreSQL 18.6 observed |
@@ -138,4 +138,4 @@ The execution deliverable must update the current service catalogue JSON/Markdow
 
 Publish checked source and sanitized evidence to each affected repository's current upstream under its instructions. Record exact commits/migration hashes, verified backup references, source/target reconciliation, final backend/generation/flags/cutoffs and unresolved held work. Distinguish implementation complete, DEV verified, production applied and production verified. Missing required checks remain unfinished; no automatic replay is a substitute for closure.
 
-For this design task only, see [design validation](design-validation.json) and [change log](../../../Change%20Logs/CHANGE_NOTES_AGENT_POSTGRESQL_DESIGN_2026-09-22.md). SQL execution, runtime implementation, migration rehearsals and all T01–T16 execution evidence remain pending.
+For this design task only, see [design validation](design-validation.json) and [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/integration-agent/Change%20Logs/CHANGE_NOTES_AGENT_POSTGRESQL_DESIGN_2026-09-22.md). SQL execution, runtime implementation, migration rehearsals and all T01–T16 execution evidence remain pending.

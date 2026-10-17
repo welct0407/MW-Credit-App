@@ -1,6 +1,6 @@
 # R035 promotion checklist
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 
@@ -55,9 +55,9 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R035 scope/freeze and R036 sole Open; delivery closure row. |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | R035 providers, source/target identities, tabs and unchanged apps. |
-| [Development Changes](../../../Documents/Development_Changes.md) | Updated | DEV/PROD44, no R035 app difference; R026 retained. |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R035 scope/freeze and R036 sole Open; delivery closure row. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | R035 providers, source/target identities, tabs and unchanged apps. |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | DEV/PROD44, no R035 app difference; R026 retained. |
 | Data Dictionary | Updated | New SQL providers in both environments, saved questions/model, dashboard and Flyway metadata; zero structural errors. |
 | Solution Design and original handover | Updated | Additive tab decision and filter/identity/health contract. |
 | database/README and scripts/metabase/README | Updated | Maintained entry points and immutable V44. |

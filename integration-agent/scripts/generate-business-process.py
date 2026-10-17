@@ -137,7 +137,7 @@ for key,title,service,detail in [
         'Future work needs shared scripts, tests and owner scope',
         'Activation would be a separate explicit step'],
         detail+'\n\nThis page records the current disabled state; it does not enable or promise the feature.',
-        'service-catalogue.json: '+service+'\nconfig.py · docs/MIGRATION_PLAN.md'))
+        'service-catalogue.json: '+service+'\nconfig.py'))
 
 pages.append(('poll','Conversation API polling','LIVE',[
  'Five-minute timer → single polling worker',

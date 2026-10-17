@@ -6,7 +6,7 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 - Scope: additive read-only Forecast & Planning, five SQL views/two functions, four models/21 questions. Both apps Unchanged.
 - Freeze: 2026-09-26T18:13:04.5419789Z; [pinned package](frozen-package.json); published handoff702ba8b opens R046.
-- Manifest: [release-manifest.json](release-manifest.json); [change log](../../Change%20Logs/CHANGE_NOTES_R045_2026-09-27.md).
+- Manifest: [release-manifest.json](release-manifest.json); [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R045_2026-09-27.md).
 - DEV readiness and authorization: owner approved creation from the accepted design, holding AppSheet changes for review; none needed. DEV tests passed before promotion.
 - DEV/PROD SQL47→48; SQL commit7837c23e3577c9cbf8ed3d61b18d32934c4a05fd. No RCs/App Upgrade.
 - Complete: SQL/report verification, dictionary and docs. Final evidence tag R045; publish and verify after evidence commit.

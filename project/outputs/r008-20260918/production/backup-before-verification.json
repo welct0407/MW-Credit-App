@@ -1,8 +1,0 @@
-{
-  "restoreSucceeded": true,
-  "normalizedSchemaMatches": true,
-  "backupSha256": "B4E9C5091B70B443456F8B198932FF25E04DF3D53F4771EC3FADF69AEC737F3D",
-  "candidateRehearsed": false,
-  "existingDataAndR007MetricsPreserved": false,
-  "scope": "public and assessment_lab including Flyway history; Cloud SQL cron extension/settings excluded"
-}

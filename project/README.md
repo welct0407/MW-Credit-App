@@ -4,7 +4,7 @@ MW Credit is a small loan-management and financial-operations system used by two
 
 This directory, `project/`, is the former **AppSheet-Loan-Project** repository, now part of the single [MW-Credit-App](../README.md) repository (full history kept). It is the project's coordination and documentation home; application code, shared database migrations and integration services live in the root and in `integration-agent/`.
 
-**Status as of 15 October 2026:** the native PWA is operating in production; **R062 is Released** and **R063 is Open**. This overview summarizes published delivery records, rather than a new live verification. The [release tracker](Documents/Release_Tracker.md) owns current release status, and the [environment inventory](Documents/Environment_Inventory.md) owns verified deployed versions.
+**Status:** the native PWA is operating in production. This overview summarizes published delivery records, rather than a new live verification. The [release tracker](Documents/Release_Tracker.md) owns current release status, and the [environment inventory](Documents/Environment_Inventory.md) owns verified deployed versions.
 
 - [Production application](https://lm.mw-credit.com)
 - [Development application](https://dev-lm.mw-credit.com)
@@ -66,7 +66,7 @@ The roadmap is driven by owner priorities. The following items are recorded as o
 
 | Work | Current position |
 | --- | --- |
-| Integration deployment reliability | **Open R063:** reload the active webhook receiver and verify readiness before workers resume; excluded from the R062 release |
+| Integration deployment reliability | Webhook receiver reload and readiness before workers resume; current status is in the [release tracker](Documents/Release_Tracker.md) |
 | Collection Note concern | Deferred; a separate owner-directed correction remains pending |
 | Operational credential migration | Carried R055 work is paused and unfinished |
 | Apple push enrollment | R056 V91 is deployed; the remaining enrollment retry and closure are pending |
@@ -78,11 +78,13 @@ New scope and changing priorities belong in [Development Changes](Documents/Deve
 
 ## Working on the project
 
-Start with [AGENTS.md](../AGENTS.md), then the affected component and current release record. PWA development automatically follows the [six-agent process](Documents/Rules/PWA_Orchestration.md#six-agent-development-process), covering architecture, implementation, testing, documentation/delivery, UX and infrastructure. Documentation-only tasks use the roles that help.
+Start with [AGENTS.md](../AGENTS.md) (hard rules and a table of the page to read for each task), then the affected component and current release record. PWA development automatically follows the [six-agent process](Documents/Rules/PWA_Orchestration.md#six-agent-development-process), covering architecture, implementation, testing, documentation/delivery, UX and infrastructure. Documentation-only tasks use the roles that help.
 
 Documentation has two sets:
 
 - **[Standing rules and procedures](Documents/Rules/README.md):** development, release/recovery, environment preparation and other rules followed until deliberately revised.
 - **[Living project references](Documents/README.md):** current design, work, releases, environments, monitoring and the structured Data Dictionary. This root README is the living entry-point overview.
+
+Maintained project tools belong in `scripts/`; sanitized evidence in `outputs/`, kept under the [retention rule](Documents/Rules/Development_Workflow.md#records-change-notes-and-retention).
 
 Every development batch reviews the complete living-document set and updates affected references before completion. Update this README when the project background, capability overview or roadmap materially changes; keep detailed deployment pins and execution evidence in their owning records. See the [documentation maintenance step](Documents/Rules/Development_Workflow.md#required-documentation-maintenance).

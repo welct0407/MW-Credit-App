@@ -4,7 +4,7 @@ Checkpoint: named resources verified; inert Cloud Run revision deployed and Read
 
 ## Source and authority
 
-Isolated checkout `AppSheet-Loan-Project-grafana-deploy`, task branch `feat/grafana-mcp-events`, draft [PR 3](https://github.com/welct0407/AppSheet-Loan-Project/pull/3). Initial fetched pin `c4fd3f041235790703f732386b1e93b83f269e23`; original checkout preserved. The owner-approved bootstrap bundle and fixed service-account Owner grant are recorded in [the owning change log](../../Change%20Logs/CHANGE_NOTES_GRAFANA_MCP_BRIDGE_2026-10-02.md) and [bootstrap runbook](../../scripts/monitoring/grafana-mcp-bridge/deploy/OWNER_BOOTSTRAP.md). All live GCP and registry commands used `/workspace/.setup/cloud-gcloud` and its guarded Python/gcloud/Docker shims. No key creation, human login, impersonation or network-policy changes.
+Isolated checkout `AppSheet-Loan-Project-grafana-deploy`, task branch `feat/grafana-mcp-events`, draft [PR 3](https://github.com/welct0407/AppSheet-Loan-Project/pull/3). Initial fetched pin `c4fd3f041235790703f732386b1e93b83f269e23`; original checkout preserved. The owner-approved bootstrap bundle and fixed service-account Owner grant are recorded in [the owning change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_GRAFANA_MCP_BRIDGE_2026-10-02.md) and [bootstrap runbook](../../scripts/monitoring/grafana-mcp-bridge/deploy/OWNER_BOOTSTRAP.md). All live GCP and registry commands used `/workspace/.setup/cloud-gcloud` and its guarded Python/gcloud/Docker shims. No key creation, human login, impersonation or network-policy changes.
 
 ## Verified state
 

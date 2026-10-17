@@ -1,1 +1,0 @@
-=IF([Source Type] = "Referral Rebate", LIST("Referral Rebate / เงินคืนค่าแนะนำลูกค้า", "Referral Rebate"), LIST("Collection Cost / ค่าใช้จ่ายติดตามหนี้", "Transportation / ค่าเดินทาง", "Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน", "Software / Subscription / ค่าซอฟต์แวร์และสมาชิก", "Other / อื่น ๆ", "Referral Rebate / เงินคืนค่าแนะนำลูกค้า"))

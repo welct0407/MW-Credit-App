@@ -2,7 +2,7 @@
 
 Owner instruction: implement the approved Portfolio and Detail design as two **new** Metabase tabs. Existing tabs/cards, AppSheet definitions and financial records remain unchanged.
 
-Implemented in dashboard 3 as [Borrower Portfolio · New](https://reports.mw-credit.com/dashboard/3?tab=104) and [Borrower Detail · New](https://reports.mw-credit.com/dashboard/3?tab=105). DEV and PROD are V44. The maintained implementation is `scripts/metabase/BorrowerPages.mjs`; design contract is [handover](../borrower-pages-design-20260925/HANDOVER.md).
+Implemented in dashboard 3 as [Borrower Portfolio · New](https://reports.mw-credit.com/dashboard/3?tab=104) and [Borrower Detail · New](https://reports.mw-credit.com/dashboard/3?tab=105). DEV and PROD are V44. The maintained implementation is `scripts/metabase/BorrowerPages.mjs`; design contract is [handover](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/borrower-pages-design-20260925/HANDOVER.md).
 
 V44 adds three reporting views and one read-only period function, separating loan and receipt grains before aggregation. Borrower ID controls identity; duplicate labels remain distinguishable. Current positions and governed health ignore the activity period. Period amounts retain signed corrections and default to the previous 30 completed Bangkok days. Detail fails empty without one borrower. The additional-principal scenario is hypothetical.
 

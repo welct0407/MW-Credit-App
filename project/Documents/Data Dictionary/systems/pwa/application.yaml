@@ -58,8 +58,8 @@
       \ date paging uses fresh API reads"
     "request_safety": "Abort and generation guards reject stale borrower results; controls do not submit borrower changes"
     "financial_effect": "Read-only forecast; no charge or financial write"
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -77,8 +77,8 @@
       \ Back action or disabled control cancel the gesture."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/swipe-back.ts"
     "shell_source": "https://github.com/welct0407/MW-Credit-App/blob/5d046627481ff151f299bad30b784ca418f4b58c/apps/pwa/src/live-main.tsx"
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -135,8 +135,8 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/PaymentCorrectionForm.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/PaymentResult.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/9b0224032acb841c4d8ff42210d7a285881bdc89/apps/pwa/src/live-style.css"
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -153,8 +153,8 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/LoanRelated.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/8ba8e6320f44fb147c54474302adb0076c2e4bd2/apps/pwa/src/OfflinePayments.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/2ef73db0f91769f1566cd83d91467390080c36ab/apps/pwa/src/display-money.ts"
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -189,8 +189,8 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/CollectionNote.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/domain-draft.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/dfaa46d280e99e9f3694d735d75e615074249a97/apps/pwa/src/live-main.tsx"
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -246,8 +246,8 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/2963e0ec6d04fb020a51cf1e23a8711c03587093/apps/pwa/src/live-main.tsx"
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -284,8 +284,8 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/owner-offline.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/read-cache.ts"
     - "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/live-main.tsx"
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -310,7 +310,7 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/b77a1ef3d58c488a2113b97948aefe83945e84ec/services/production/business-runtime.mjs"
     "production_incident": "R060 Released15October2026 at00:19:59Bangkok verification checkpoint. Confirmed priorproduction-business403-before-SQL\
       \ denial corrected by only removing mode-specific veto; ownerTesting/principalAllowed/transactioncapability guards retained.\
-      \ Source a2f683eb74f3c3c5dc027520642a07a07f4c1558 deployed to DEVcommand00026-7lj and PRODcommand00008-qb7 Ready100%;\
+      \ Source a2f683eb74f3c3c5dc027520642a07a07f4c1558 deployed to DEV and PROD command (revisions in Environment_Inventory.md) Ready100%;\
       \ CI404units and3focused cases passed. Live exactenvironment/health/auth-gate verified, no authenticated PROD dataset\
       \ success/full-traversal claim (bounded natural logs had no events). R059 smoke had not tested signed-in dataset content;\
       \ dashboard/preferences200 did not imply broader dashboard failure."
@@ -323,8 +323,8 @@
     "retry": "One automatic attempt per worker; manual retry remains available."
     "restore": "After safe reload restore only top-level menu and management section from session state, never record IDs\
       \ or editor contents."
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -342,8 +342,8 @@
     "safety": "Existing server authorization, version, dependency and reconciliation constraints remain unchanged; no backend/SQL\
       \ deletion rule change. Unknown outcome keeps request identity, no fresh retry UUID."
     "source": "https://github.com/welct0407/MW-Credit-App/blob/1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817/apps/pwa/src/LoanRecord.tsx"
-    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting248bea737cd1b078\
-      \ and PRODHostingadaa39161d4af455. AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
+    "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
+      \ and PRODHosting (versions in Environment_Inventory.md). AppCI411units and12localdesktop/mobile cases passed; runnerCI415units passed, browserworkflow\
       \ steps skipped. Canonical mode/marker/JS/CSS/sw exactbytes200/no-store verified; no signed-in live deletion or physicaldevice\
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
@@ -362,9 +362,9 @@
       \ fallback. Invalid newly selected date/account defaults are rejected locally before queueing; unchanged existing aged/inactive\
       \ values remain preserved."
     "delivery": "R062 Released. Tested source327aa25 passed Settings4/4, 8 unique desktop/mobile cases (zero skips), app CI38646759254\
-      \ and DB CI38646752123/38646759300. DEV V92, command00027-8sb and Hosting8b12e5b06d79592a verified. PROD V92 applied\
+      \ and DB CI38646752123/38646759300. DEV V92, command and Hosting verified (pins in Environment_Inventory.md). PROD V92 applied\
       \ 15 October 2026 10:00:28 Bangkok from tooling successor6c3e4fab; validation93 and authority restoration passed. Existing\
-      \ Borrower/Partner contents match backup. PROD command00009-qf9 (Ready100%) and Hosting45b1899bbd18ba3e/release1792033365993000\
+      \ Borrower/Partner contents match backup. PROD command (Ready100%) and Hosting (pins in Environment_Inventory.md)\
       \ verified15October2026 10:02:59Bangkok: exactbindings, artifactbytes/no-store, health200, unauthpreferences401; reader/notify/jobs\
       \ unchanged, no authenticated business-write claim; R063 Open, next R064."
     "sources":
@@ -686,7 +686,7 @@
       \ pending."
     "state": "value"
   "/content/editable_settings/delivery":
-    "reference": "Documents/Development_Changes.md#r062-production-promotion"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r062-production-promotion"
     "reason": "Record verified R062 production delivery."
     "state": "value"
   "/content/editable_settings/sources":

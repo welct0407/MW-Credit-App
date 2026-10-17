@@ -1,6 +1,0 @@
-{
-  "matched": true,
-  "sha256": "888C78EC92780065A545BAD8947E9874718CA3BB1DA7D7DB839EFA60FEEBE194",
-  "production": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\flyway\\production-schema-20260915-171727.sql",
-  "development": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\flyway\\development-schema-20260915-171726.sql"
-}

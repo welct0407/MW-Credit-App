@@ -1,6 +1,6 @@
 # R043 promotion checklist
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Rules/Release_Workflow.md); exceptions: [Recovery](../../Documents/Rules/Release_Recovery_Runbook.md).
 
 ## Continue here
 
@@ -55,9 +55,9 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R043 current report/navigation checkpoint and evidence. |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | R043 current report/navigation checkpoint and evidence. |
-| [Development Changes](../../../Documents/Development_Changes.md) | Updated | R043 current report/navigation checkpoint and evidence. |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R043 current report/navigation checkpoint and evidence. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | R043 current report/navigation checkpoint and evidence. |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | R043 current report/navigation checkpoint and evidence. |
 | Metabase dictionary | Updated | Eleven questions; current tabs/filters and exact click settings. |
 | Solution Design and borrower handover | Updated | Canonical navigation and matrix new-tab behavior. |
 

@@ -1,3 +1,0 @@
-
-{"jobid":1,"jobname":"loan-daily-charges","schedule":"5 0 * * *","command":"SELECT public.generate_due_charges((statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date);","database":"loan_manager_prod","active":false}
-{"jobid":2,"runid":1,"status":"succeeded","return_message":"SELECT 1","start_time":"2026-09-15T13:52:00.063287+00:00","end_time":"2026-09-15T13:52:00.101915+00:00"}
