@@ -25,15 +25,18 @@
        SET search_path TO 'pg_catalog'
       AS $function$
       DECLARE operation uuid; old_value jsonb; new_value jsonb; key_value jsonb;
+       effective_role text:=CASE WHEN current_setting('role',true) IN ('none','') THEN session_user::text ELSE current_setting('role',true) END;
       BEGIN
        -- AppSheet/shared database identities are not relabelled as agent DML.
        -- API calls have central host audits, with the attribution limits in SCHEMA.md.
-       IF session_user<>'mw_reviewer_dml' THEN RETURN NULL; END IF;
+       -- ALL-ARCH-03 (V95): the same pair as begin_operation; the marker row must carry this effective role.
+       IF NOT ((effective_role='mw_reviewer_dml' OR (effective_role='mw_reviewer_dml_dev' AND current_database()<>'loan_manager_prod'))
+        AND session_user::text IN (effective_role,'mw-integration-agent@clever-oasis-508610-n7.iam')) THEN RETURN NULL; END IF;
        operation:=nullif(current_setting('mw_agent.operation_id',true),'')::uuid;
        IF operation IS NULL OR NOT EXISTS (
           SELECT 1 FROM agent_audit.commits c
           WHERE c.operation_id=operation AND c.database_txid=pg_current_xact_id()
-            AND c.database_session_role=session_user) THEN
+            AND c.database_session_role=effective_role) THEN
         RAISE EXCEPTION 'Reviewer DML requires its transaction audit marker';
        END IF;
        IF TG_OP<>'INSERT' THEN old_value:=to_jsonb(OLD); END IF;
@@ -58,3 +61,10 @@
     "acl": "{mw_business_audit_owner=X/mw_business_audit_owner}"
     "comment": null
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "ALL-ARCH-03 part 2b (V95, commits a63f8b4 and 790de3a): capture_change uses the same pair and requires the\
+      \ transaction marker row to carry the effective role. Applied in DEV on 17 October 2026 (loan_manager_dev, V95); PROD\
+      \ is still V93 (V94 and V95 pending the R068 promotion), so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"

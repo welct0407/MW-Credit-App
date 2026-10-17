@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R068 | Open | New product work. Carries V94 (DB-LOCK-02 lease columns retired, DB-LOCK-03 shared lock key in SQL, reviewer 42501 reason; applied in DEV 17 October 2026, PROD still V93), the 30 s and on-focus dataset refresh, and the Linux agent backup script tooling. Nothing frozen; [record](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#w4-follow-ups-17-october-2026). |
+| R068 | Open | New product work. Carries V94 (DB-LOCK-02 lease columns retired, DB-LOCK-03 shared lock key in SQL, reviewer 42501 reason) and V95 (reviewer/projector identity pair), both applied in DEV 17 October 2026 and PROD still V93; the borrower name-key fix (runtime image); agent 2b support (agent deploy); the 30 s and on-focus dataset refresh; and the Linux agent backup script tooling. DB-ACCESS-07 is done live (instance setting, not part of the package). R068 promotes once, together with Wave 5. Nothing frozen; [record](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#w4-follow-ups-17-october-2026). |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

@@ -232,7 +232,8 @@
       "dimensions": 0
       "storage": "p"
       "compression": ""
-      "default_expression": "SESSION_USER"
+      "default_expression": "( CASE WHEN (current_setting('role'::text, true) = ANY (ARRAY['none'::text, ''::text])) THEN\
+        \ (SESSION_USER)::text ELSE current_setting('role'::text, true) END)::name"
       "collation": "\"C\""
       "acl": null
       "comment": null
@@ -677,3 +678,11 @@
       "comment": null
   "policies": {}
   "dependencies": []
+"evidence":
+  "/content/columns/database_session_role/default_expression":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "ALL-ARCH-03 part 2b (V95, commits a63f8b4 and 790de3a): commits.database_session_role default now records the\
+      \ effective role (SET ROLE target, else session_user) instead of SESSION_USER. Applied in DEV on 17 October 2026 (loan_manager_dev,\
+      \ V95); PROD is still V93 (V94 and V95 pending the R068 promotion), so this PROD-scope value is source-derived until\
+      \ the PROD migration."
+    "state": "value"

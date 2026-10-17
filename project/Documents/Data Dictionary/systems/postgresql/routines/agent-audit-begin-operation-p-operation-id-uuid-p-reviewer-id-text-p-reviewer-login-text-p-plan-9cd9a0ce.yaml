@@ -27,8 +27,12 @@
        SECURITY DEFINER
        SET search_path TO 'pg_catalog'
       AS $function$
+      DECLARE effective_role text:=CASE WHEN current_setting('role',true) IN ('none','') THEN session_user::text ELSE current_setting('role',true) END;
       BEGIN
-       IF session_user<>'mw_reviewer_dml' THEN RAISE EXCEPTION 'Dedicated reviewer connection required'; END IF;
+       -- ALL-ARCH-03 (V95): reviewer identity is the pair (effective role, session login); inside this definer
+       -- current_user is the owner, so the SET ROLE target comes from the role setting.
+       IF NOT ((effective_role='mw_reviewer_dml' OR (effective_role='mw_reviewer_dml_dev' AND current_database()<>'loan_manager_prod'))
+        AND session_user::text IN (effective_role,'mw-integration-agent@clever-oasis-508610-n7.iam')) THEN RAISE EXCEPTION 'Dedicated reviewer connection required'; END IF;
        IF nullif(current_setting('mw_agent.operation_id',true),'') IS NOT NULL THEN
         RAISE EXCEPTION 'Only one operation per transaction';
        END IF;
@@ -50,3 +54,12 @@
     "acl": "{mw_business_audit_owner=X/mw_business_audit_owner,mw_reviewer_dml=X/mw_business_audit_owner}"
     "comment": null
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "ALL-ARCH-03 part 2b (V95, commits a63f8b4 and 790de3a): begin_operation accepts the pair (effective role, session\
+      \ login): effective role mw_reviewer_dml, or mw_reviewer_dml_dev outside loan_manager_prod, and session_user equal to\
+      \ that role or the agent IAM login mw-integration-agent@clever-oasis-508610-n7.iam; effective role = current_setting('role')\
+      \ or session_user. Applied in DEV on 17 October 2026 (loan_manager_dev, V95); PROD is still V93 (V94 and V95 pending\
+      \ the R068 promotion), so this PROD-scope value is source-derived until the PROD migration."
+    "state": "value"
