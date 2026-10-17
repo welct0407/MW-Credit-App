@@ -85,3 +85,13 @@ test('sign-out fails closed when the pending list cannot be read',async({page})=
  await expect(page.getByRole('heading',{name:'Sign-out could not be completed',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>(window as any).signouts??0)).toBe(0);
 });
+
+test('the header refresh also wakes the saved-change sync while changes are saved on this device',async({page})=>{
+ await setup(page);await seedPending(page);
+ // Counted only while the tap is being handled, so a lease renewal after a later screen read does not satisfy it.
+ // The all-domain prepare is dispatched before the wake, so the wake joins that cycle rather than starting a partial one.
+ await page.evaluate(()=>{const w=window as any;w.__inTap=[];window.addEventListener('click',()=>{w.__tap=true;setTimeout(()=>{w.__tap=false})},true);window.addEventListener('mw-offline-queued',()=>{if(w.__tap)w.__inTap.push('queued')});window.addEventListener('mw-offline-prepare',e=>{if(w.__tap&&(e as CustomEvent).detail?.all)w.__inTap.push('prepare-all')})});
+ await page.evaluate(()=>(window as any).emitUser());
+ const refresh=page.locator('button.collection-update');await expect(refresh).toBeEnabled();
+ await refresh.click();expect(await page.evaluate(()=>(window as any).__inTap)).toEqual(['prepare-all','queued']);
+});

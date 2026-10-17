@@ -61,7 +61,9 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
  const key=format+':'+url.href+(day?'|day='+day:''),scopeKey=(repository?.scopeName??'uncached')+'|'+key;
  const failureScope=repository?.scopeName??'uncached',failureEpoch=failureEpochs.get(failureScope)??0;
  failureEpochs.set(failureScope,failureEpoch);
- const reportFailure=(failed:boolean,cachedFailure=false)=>{if(failureEpoch!==(failureEpochs.get(failureScope)??0))return;refreshFailure(scopeKey,failed);failure(scopeKey,failed&&cachedFailure)};
+ // HDR-SYNC-05: a read that could not run because the device is offline (or offline-only) is not a refresh failure
+ // (no failed icon: the offline banner explains); the saved-data notice still follows the served fallback.
+ const reportFailure=(failed:boolean,cachedFailure=false)=>{if(failureEpoch!==(failureEpochs.get(failureScope)??0))return;refreshFailure(scopeKey,failed&&navigator.onLine&&!access.offlineOnly);failure(scopeKey,failed&&cachedFailure)};
  const controller=new AbortController(),abort=()=>controller.abort();options.signal?.addEventListener('abort',abort,{once:true});if(options.signal?.aborted)controller.abort();
  let settled=false,denied=false,cached:CachedResponse|null=null;
  let httpFailure:{response:Response;data:T;revision:number|null|undefined;cacheRevision:number|null|undefined;scoped:boolean}|null=null;

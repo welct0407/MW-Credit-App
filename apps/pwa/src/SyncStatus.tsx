@@ -1,28 +1,53 @@
 import React,{useEffect,useRef,useState} from 'react';
 import type {OfflinePreparation} from './offline-dataset';
+import {pausedSections,shortSectionName} from './paused-sections';
 
-const STALE_MS=10*60*1000,SYNCING_FALLBACK_MS=30000;
+const STALE_MS=10*60*1000,NOT_STARTED_MS=2000,ANNOUNCE_MS=5000;
 const clock=(thai:boolean,at:number)=>new Intl.DateTimeFormat(thai?'th-TH':'en-GB',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(at));
-/** SYNC-UX-03: "Updated HH:MM" from the last completed check; after ~10 minutes it
- * reads "Saved data from HH:MM". Tapping it starts a manual sync of every domain
- * (mw-offline-prepare without a domain bypasses the recheck throttle) and reads
- * "Syncing…" until that cycle completes (SYNC-UX-R03). */
-export function SyncStatus({preparation,thai}:{preparation:OfflinePreparation;thai:boolean}){
- const [,tick]=useState(0),[requestedAt,setRequestedAt]=useState<number|null>(null),seenActive=useRef(false);
+/** The status left of the header refresh icon (owner, 17 October 2026: one refresh icon does everything).
+ * While the first download runs, or a sync started with the refresh icon (mw-offline-prepare with
+ * detail.all) is checking its domains, it shows a progress bar and percentage; then the time of the
+ * last completed check, "Updated HH:MM", or "Saved data from HH:MM" after ~10 minutes. Failed domains
+ * read "Cash not updated" (several: "Update failed") until a check succeeds. Automatic checks (poll,
+ * focus) stay quiet and only move the time. It is text, not a control. */
+export function SyncStatus({preparation,thai,visible}:{preparation:OfflinePreparation;thai:boolean;visible:boolean}){
+ const [,tick]=useState(0),[requestedAt,setRequestedAt]=useState<number|null>(null),seenPending=useRef(false);
+ const [announcement,setAnnouncement]=useState(''),wasSyncing=useRef(false),texts=useRef({start:'',outcome:''}),clearTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  useEffect(()=>{const timer=setInterval(()=>tick(value=>value+1),30000);return()=>clearInterval(timer)},[]);
+ useEffect(()=>{const manual=(event:Event)=>{if((event as CustomEvent).detail?.all&&navigator.onLine)setRequestedAt(current=>{if(current===null)seenPending.current=false;return current??Date.now()})};window.addEventListener('mw-offline-prepare',manual);return()=>window.removeEventListener('mw-offline-prepare',manual)},[]);
  useEffect(()=>{
   if(requestedAt===null)return;
-  if(preparation.syncActive)seenActive.current=true;
-  const finished=(preparation.lastChecked??0)>=requestedAt||seenActive.current&&!preparation.syncActive;
-  if(finished){setRequestedAt(null);return}
-  const timer=setTimeout(()=>setRequestedAt(null),SYNCING_FALLBACK_MS-(Date.now()-requestedAt));return()=>clearTimeout(timer);
- },[requestedAt,preparation.syncActive,preparation.lastChecked]);
- const at=preparation.lastChecked;if(at===null)return null;
- const syncing=requestedAt!==null,stale=!syncing&&Date.now()-at>=STALE_MS,time=clock(thai,at);
- const text=syncing?(thai?'กำลังซิงค์…':'Syncing…'):stale?(thai?'ข้อมูล ณ '+time:'Saved data from '+time):(thai?'อัปเดต '+time:'Updated '+time);
- const action=thai?'ซิงค์ตอนนี้':'Sync now';
- const start=()=>{if(syncing)return;seenActive.current=false;setRequestedAt(Date.now());window.dispatchEvent(new Event('mw-offline-prepare'))};
- return <button type="button" className={'live-sync-status'+(stale?' stale':'')+(syncing?' syncing':'')} aria-label={syncing?text:text+' — '+action} aria-busy={syncing} title={action} onClick={start}>{text}</button>;
+  // Finished once the data domains it queued are checked: a check that was already in flight
+  // and completes first does not end it, and a queued domain waiting for a screen read still counts.
+  if(preparation.domainsPending)seenPending.current=true;
+  if(seenPending.current?!preparation.domainsPending:Date.now()-requestedAt>=NOT_STARTED_MS){setRequestedAt(null);return}
+  if(seenPending.current)return;
+  const timer=setTimeout(()=>setRequestedAt(null),NOT_STARTED_MS-(Date.now()-requestedAt));return()=>clearTimeout(timer);
+ },[requestedAt,preparation.domainsPending]);
+ const t=(en:string,th:string)=>thai?th:en,at=preparation.lastChecked;
+ const firstDownload=preparation.syncActive&&(preparation.state!=='ready'||preparation.foreground),syncing=firstDownload||requestedAt!==null&&navigator.onLine;
+ const failed=preparation.updateFailed?preparation.failedDomains.split(',').filter(Boolean):[],names=pausedSections(preparation.failedDomains,thai),short=failed.length?shortSectionName(failed[0],thai):'';
+ // HDR-SYNC-04: one failed section shows its short name; the hidden detail then carries only the advice, several sections list the full names.
+ const failedText=failed.length>1?t('Update failed','อัปเดตไม่สำเร็จ'):t(short+' not updated','ยังไม่อัปเดต '+short),failedDetail=failed.length>1?t('Not updated: '+names+'. Saved data is still available; refresh to try again.','ยังไม่อัปเดต: '+names+' ข้อมูลที่บันทึกยังใช้ได้ รีเฟรชเพื่อลองอีกครั้ง'):t('Saved data is still available; refresh to try again.','ข้อมูลที่บันทึกยังใช้ได้ รีเฟรชเพื่อลองอีกครั้ง');
+ const incomplete=at===null&&preparation.state==='incomplete',incompleteDetail=t('Saved data is not complete yet; refresh to continue.','ข้อมูลที่บันทึกยังไม่ครบ รีเฟรชเพื่อทำต่อ');
+ const stale=at!==null&&Date.now()-at>=STALE_MS,time=at===null?'':clock(thai,at),timeText=stale?t('Saved data from '+time,'ข้อมูล ณ '+time):t('Updated '+time,'อัปเดต '+time);
+ // HDR-SYNC-03: one hidden live region that is never re-mounted receives only transitions: "Syncing…" when a tap-started sync
+ // or the first download begins, then its outcome (the time, or the failure sentence). Minute ticks and quiet automatic checks
+ // never write to it, and the visible variants carry no role.
+ texts.current={start:t('Syncing…','กำลังซิงค์…'),outcome:failed.length?failedText+'. '+failedDetail:incomplete?t('Download incomplete','ดาวน์โหลดไม่ครบ')+'. '+incompleteDetail:at===null?'':timeText};
+ // Each announcement is cleared after ~5 s (like the synced toast), so it is not read twice and a stale time is never re-read.
+ useEffect(()=>{const text=syncing&&!wasSyncing.current?texts.current.start:!syncing&&wasSyncing.current?texts.current.outcome:null;wasSyncing.current=syncing;if(text===null)return;setAnnouncement(text);clearTimeout(clearTimer.current);clearTimer.current=setTimeout(()=>setAnnouncement(''),ANNOUNCE_MS)},[syncing]);
+ useEffect(()=>()=>clearTimeout(clearTimer.current),[]);
+ const region=<span className="visually-hidden sync-announcement" role="status" aria-live="polite">{announcement}</span>;
+ if(!visible)return region;
+ // HDR-SYNC-PCT-01: the percentage sits above the bar (owner, 17 October 2026), so it comes first in the DOM.
+ if(syncing){const percent=Math.floor(preparation.progress);
+  return <>{region}<span className="live-sync-status syncing"><span className="header-load-percent" aria-hidden="true">{percent}%</span><progress className="header-load-progress" max={100} value={percent} aria-label={t('Sync progress','ความคืบหน้าการซิงค์')}/></span></>}
+ // HDR-SYNC-01/02/09: Thai keeps the section name, and "ไม่ครบ", on one line (.sync-section); the advice is visually hidden detail, not a title.
+ if(failed.length)return <>{region}<span className="live-sync-status failed">{failed.length>1||!thai?failedText:<>ยังไม่อัปเดต <span className="sync-section">{short}</span></>}<span className="visually-hidden">{' '+failedDetail}</span></span></>;
+ if(incomplete)return <>{region}<span className="live-sync-status failed">{thai?<>ดาวน์โหลด<span className="sync-section">ไม่ครบ</span></>:'Download incomplete'}<span className="visually-hidden">{' '+incompleteDetail}</span></span></>;
+ if(at===null)return region;
+ return <>{region}<span className={'live-sync-status'+(stale?' stale':'')}>{timeText}</span></>;
 }
 /** SYNC-UX-07/R01/R06: a brief notice when changes that waited in the queue reach
  * the server. The live region stays mounted (empty when idle) so it is announced. */
