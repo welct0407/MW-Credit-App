@@ -11133,7 +11133,7 @@
       "lookup": []
     },
     {
-      "file": "systems/postgresql/settingss/r052-production-application-capability-f1b06e1f.yaml",
+      "file": "systems/postgresql/settings/r052-production-application-capability-f1b06e1f.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
       "kind": "settings",
@@ -11143,7 +11143,7 @@
       "lookup": []
     },
     {
-      "file": "systems/postgresql/settingss/r053-production-notification-jobs-and-machine-capability-876a9716.yaml",
+      "file": "systems/postgresql/settings/r053-production-notification-jobs-and-machine-capability-876a9716.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
       "kind": "settings",

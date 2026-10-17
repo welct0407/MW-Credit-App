@@ -2,7 +2,16 @@
 
 The repository root owns migrations, database runners/tests and CI; `project/` owns release coordination. Current consumers are native PWA/API/workers, Debian integration and governed reporting. AppSheet editor, RC and parity steps are retired.
 
-DEV and PROD use separate business databases on one shared instance. Verify the full target tuple and affected consumers. Latest verified deployed version is V95 in both DEV (17 October 2026 09:59 Bangkok, `validate` successful, 96 migrations) and PROD (R068 promotion, 17 October 2026 04:09Z, 93 to 95, `validate` 96 successful). Choose new versions from the actual migration directory and pending work, never from a stale document.
+## Current state
+
+- One Cloud SQL instance (`mw-credit-pg-20261017`, PostgreSQL 18) holds the business databases `loan_manager_dev` and `loan_manager_prod`; the integration agent keeps its journals in the separate `mw_agent` database on the same instance. Project, instance and credentials: [Environment inventory](../project/Documents/Environment_Inventory.md).
+- Deployed Flyway version, per environment, with the verification date: the Flyway row of the [Environment inventory](../project/Documents/Environment_Inventory.md). That row is the only place that states it; the newest file in `database/migrations/` is the candidate, not the deployed state.
+- Shared-instance changes can affect both environments. Production changes need a verified restorable backup and the guarded runner (see [Each change](#each-change)).
+- Next page to read for a SQL change: [Each change](#each-change) below; run `pwsh -NoProfile -File scripts/database/Test-CI.ps1` before publication.
+- Tool locations: project tooling finds this checkout through `MW_CREDIT_APP_ROOT` when it is not adjacent (`project/scripts/database_location.py`, `project/scripts/database-location.mjs`). `MW_DB_TOOL_ROOT` selects an existing supported tool installation (`scripts/database/Common.ps1`). Private paths and resource names that contain "AppSheet" remain compatibility identifiers; they do not change ownership or authorize moving credentials.
+- Ownership by directory: the repository root owns migrations, runners, tests and CI; `project/` owns coordination and business references; `integration-agent/` owns the agent runtime. A code move does not authorize a database change, service activation or financial write.
+
+DEV and PROD use separate business databases on one shared instance. Verify the full target tuple and affected consumers. Choose new versions from the actual migration directory and pending work, never from a stale document.
 
 Use existing Secret Manager/unattended access procedures. Keep credentials/backups outside Git. New tables/columns and production changes require scoped owner authorization; reuse existing explicit approval. Never clean/repair, alter applied checksums or create competing history.
 
@@ -24,6 +33,14 @@ VM-01 route (DB-ACCESS-07, owner decision 17 October 2026): VM-01 no longer conn
 
 Naming legacy: Row ID, quoted table names, `appsheet_ref_*` constraint names and the hard-coded IAM identities in V89/V90 stay; GUC guards remain depth- and owner-checked. New objects use snake_case and bump `_vN` when a signature changes. `pwa_lock_key_v1(kind, target)` is the one derivation of a per-database advisory-lock key (`hashtextextended(kind || ':' || target, 0)`); `services/business/borrowers.mjs` calls it, and `Test-StatementBatch.sql` asserts it equals the inline form. V94 (DB-LOCK-03) moved every SQL body to the function (ten routines; the two-integer request-id locks stay), retired the `pwa_job_runs` lease state (DB-LOCK-02; `pwa_job_run_v1` is pending to completed in one UPDATE) and made a reviewer payment-input edit fail with SQLSTATE 42501 and a named reason. The blank-reference normalizer trigger is named `a000_blank_refs` so it fires first; `Test-TriggerOrder.sql` holds the firing-order snapshot for Payments, Loans, Charges and Repayments, so a new trigger must be added there on purpose. `pg_stat_statements` is created by V93 in schema `monitoring` (Cloud SQL preloads the library; no flag is needed).
 
+## Naming and identifiers
+
+- Legacy names stay as they are: quoted tables and columns such as `"Payments"` and `"Row ID"`, `appsheet_ref_*` constraints and the V89/V90 IAM identities are never renamed.
+- New objects use `pwa_*` snake_case names. RPCs end in `_vN`; bump `N` only when the signature changes.
+- Request ids are client-generated UUIDs; the database never invents one for a client command.
+- Derived ids use one documented derivation each. Agent receipt request id: `receiptRequestId` in `services/agent-receipts/contract.mjs` (SHA-256 of `['mw-credit-agent-receipt-v1', environment, reviewId]`, first 16 bytes, UUID v4 bits). Receipt link id: `uuid5(NAMESPACE_URL, 'mw-receipt:' + receipt_id + ':' + payment_id)` in `integration-agent/src/mw_integration_agent/receipt_projection.py`. Advisory-lock key: `pwa_lock_key_v1` (below).
+- Triggers on `"Payments"`, `"Loans"`, `"Charges"` and `"Repayments"` fire in name order; see `scripts/database/Test-TriggerOrder.sql` before adding or renaming one.
+
 ## Each change
 
 For changes to migrations or database tests/runners, run `pwsh -NoProfile -File scripts/database/Test-CI.ps1` before publication, in addition to affected feature tests. This is the same entry point used by GitHub Actions and rebuilds an empty disposable database through the latest migration. Keep older fixtures compatible with new required fields: `Test-CashAccountFixtures.sql` supplies synthetic accounts, and each source insert explicitly selects its account. Do not weaken production guards or top up a live balance to repair CI. Branch/PR builds remain enabled; release tags reuse the tested commit without a duplicate workflow run.
@@ -42,7 +59,7 @@ Generated reference: `database/current/public-functions.sql` holds the current b
 
 ```powershell
 ./scripts/database/Invoke-Flyway.ps1 -Environment production -Command migrate `
-  -ReleaseFile 'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/flyway/release-COMMIT.json' `
+  -ReleaseFile '<private-root>/flyway/release-COMMIT.json' `
   -ApprovalReference 'actual owner approval for this release' `
   -BackupReference 'verified Cloud SQL backup or restore point'
 ./scripts/database/Invoke-Flyway.ps1 -Environment production -Command validate

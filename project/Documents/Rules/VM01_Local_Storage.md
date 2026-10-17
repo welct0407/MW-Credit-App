@@ -6,11 +6,11 @@ Owner rule, 11 October 2026. Applies to Windows development work under ideaadmin
 
 | Material | Location and lifecycle |
 | --- | --- |
-| Useful scripts, source, manifests and instructions | Owning repository under `C:\GitHub`; commit/push intended changes and verify the upstream commit. Do not leave a second working collection in Documents or Downloads. |
-| Concise sanitized evidence and final deliverables | Owning repository `outputs/<task>/` and its change log. Keep representative final evidence and meaningful failure findings; remove task-owned intermediate renders, duplicate exports and verbose raw logs after extracting the findings. Preserve referenced published evidence. |
+| Useful scripts, source, manifests and instructions | The repository checkout (`project/`, root or `integration-agent/`, by ownership); commit/push intended changes and verify the upstream commit. Do not leave a second working collection in Documents or Downloads. |
+| Concise sanitized evidence and final deliverables | `project/outputs/<task>/` (or the owning directory's equivalent) and its change log. Keep representative final evidence and meaningful failure findings; remove task-owned intermediate renders, duplicate exports and verbose raw logs after extracting the findings. Preserve referenced published evidence. |
 | Disposable task scratch | Prefer one uniquely named `outputs/.tmp/<task>/` directory for nonsecret scratch. Existing test runners may use their established Temp/tool-root directories; record their exact paths for closeout. Never mix temporary synthetic databases with private restores. |
-| Installed dependencies and browsers | Reuse the documented tool installation, lockfile and shared bundle. The project-management repository uses its one root dependency junction; PWA uses its own lockfile installation. No output-local installs, repeated full runtime copies or unbounded per-task environments. Keep the active version; retire an old version only after consumers are updated and replacement validation succeeds. |
-| Private credentials, activation configuration and recovery material | Outside Git in `C:\Users\ideaadmin\Documents\ChatGPT/<project>/` or the owning runbook's established location. These are not disposable because scripts are on GitHub. Recovery/production retention rules take precedence. Never upload secrets as evidence. |
+| Installed dependencies and browsers | Reuse the documented tool installation, lockfile and shared bundle. The repository root `node_modules` is the one shared dependency installation; `project/` and the PWA reuse it. No output-local installs, repeated full runtime copies or unbounded per-task environments. Keep the active version; retire an old version only after consumers are updated and replacement validation succeeds. |
+| Private credentials, activation configuration and recovery material | Outside Git in the current user's established private location (see [AGENTS.md](../../../AGENTS.md#credentials-and-local-work)) or the owning runbook's established location. These are not disposable because scripts are on GitHub. Recovery/production retention rules take precedence. Never upload secrets as evidence. |
 | Application-managed sign-ins, browser profiles, Codex chats/plugins/runtime | Leave in the application's managed location. Do not recursively wipe `.codex`, `.cache`, AppData or browser data. Use supported maintenance only after identifying a concrete growth source; no automatic deletion of chat history/worktrees. |
 
 ## Required completion steps
@@ -24,13 +24,13 @@ Owner rule, 11 October 2026. Applies to Windows development work under ideaadmin
 
 ## Existing test cleanup helper
 
-From AppSheet-Loan-Project:
+From the repository root:
 
 ```powershell
 # Read-only inventory; reports exact eligible paths.
-./scripts/maintenance/Clear-IdeaadminTestArtifacts.ps1
+./project/scripts/maintenance/Clear-IdeaadminTestArtifacts.ps1
 # After this task's tests and owned processes finish, use exact paths from its run.
-./scripts/maintenance/Clear-IdeaadminTestArtifacts.ps1 -TargetPaths @('<absolute-task-directory>') -Apply
+./project/scripts/maintenance/Clear-IdeaadminTestArtifacts.ps1 -TargetPaths @('<absolute-task-directory>') -Apply
 ```
 
 Only documented synthetic-test name patterns directly inside ideaadmin Temp, AppSheetLoanTools or MWCredit/database-tools are eligible. The latter is a tool folder under ideaadmin, not the deleted user profile. The helper refuses any running PostgreSQL and skips process-referenced or linked trees. A broad `-AllCompletedTests -Apply` requires explicit confirmation that all eligible test jobs are complete; ordinary closeout always selects exact task paths. Files outside the allowlist need separately reviewed task-scoped cleanup.
