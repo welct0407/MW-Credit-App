@@ -127,6 +127,38 @@ END $$;
 RESET SESSION AUTHORIZATION;
 DO $$ BEGIN IF EXISTS(SELECT 1 FROM public.pwa_job_runs WHERE job_name='recent-analytics') THEN RAISE EXCEPTION 'failed run left a journal row'; END IF; END $$;
 ROLLBACK;
+-- R068 (V95) ALL-ARCH-03 and the DB-LOCK-03 Node follow-up.
+DO $$ DECLARE raw text:=E'\tÉmile '; key_service bigint; key_submit bigint; submit_src text; sig text; src text; default_expr text;
+ pair text:=$e$CASE WHEN current_setting('role',true) IN ('none','') THEN session_user::text ELSE current_setting('role',true) END$e$;
+ -- The statement services/business/borrowers.mjs sends (tests/unit/borrower-lock-key.test.mjs pins the same text).
+ node_sql text:=$n$SELECT pg_advisory_xact_lock(public.pwa_lock_key_v1($1,lower(btrim($2)))) WHERE nullif(btrim($2),'') IS NOT NULL$n$;
+BEGIN
+ -- Node computes the borrower-name key with the SQL text pwa_submit_operation_v2 uses, on the raw input: padded
+ -- and non-ASCII names give the same key, and a blank name takes no lock on either side.
+ EXECUTE $q$SELECT public.pwa_lock_key_v1($1,lower(btrim($2)))$q$ INTO key_service USING 'borrower-name',raw;
+ EXECUTE $q$SELECT public.pwa_lock_key_v1('borrower-name',lower(btrim($1->>'name')))$q$ INTO key_submit USING jsonb_build_object('name',raw);
+ IF key_service IS DISTINCT FROM key_submit OR key_service IS NULL THEN RAISE EXCEPTION 'Node and SQL borrower-name keys differ for %: % vs %',raw,key_service,key_submit; END IF;
+ SELECT prosrc INTO submit_src FROM pg_proc WHERE oid='public.pwa_submit_operation_v2(text)'::regprocedure;
+ IF position(replace(replace(node_sql,'$1',$l$'borrower-name'$l$),'$2',$l$i->>'name'$l$) in
+   $s$SELECT pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower-name',lower(btrim(i->>'name')))) WHERE nullif(btrim(i->>'name'),'') IS NOT NULL$s$)<>1
+  OR position($s$IF nullif(btrim(i->>'name'),'') IS NOT NULL THEN$s$ in submit_src)=0
+  OR position($s$PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower-name',lower(btrim(i->>'name'))));$s$ in submit_src)=0 THEN
+  RAISE EXCEPTION 'pwa_submit_operation_v2 borrower-name guard/key text differs from the Node statement'; END IF;
+ IF (SELECT count(*) FROM (SELECT 1 WHERE nullif(btrim('   '),'') IS NOT NULL) x)<>0 THEN RAISE EXCEPTION 'blank-name guard must skip the lock'; END IF;
+ -- ALL-ARCH-03: the three definers carry the role/session pair and no bare session_user check; the marker default is the effective role.
+ FOREACH sig IN ARRAY ARRAY['agent_audit.begin_operation(uuid,text,text,text,text,jsonb,text)','agent_audit.capture_change()','public.attach_payment_receipt_evidence(text,text,text,timestamptz,jsonb,uuid,text)'] LOOP
+  SELECT prosrc INTO src FROM pg_proc WHERE oid=sig::regprocedure;
+  IF src LIKE '%session_user<>%' OR position(pair in src)=0 OR position('mw-integration-agent@clever-oasis-508610-n7.iam' in src)=0 THEN RAISE EXCEPTION '% lacks the V95 role/session pair',sig; END IF;
+  IF NOT (SELECT prosecdef AND 'search_path=pg_catalog'=ANY(proconfig) FROM pg_proc WHERE oid=sig::regprocedure) THEN RAISE EXCEPTION '% lost its definer header',sig; END IF;
+ END LOOP;
+ IF position($s$effective_role='mw_reviewer_dml_dev' AND current_database()<>'loan_manager_prod'$s$ in (SELECT prosrc FROM pg_proc WHERE oid='agent_audit.begin_operation(uuid,text,text,text,text,jsonb,text)'::regprocedure))=0 THEN
+  RAISE EXCEPTION 'begin_operation must accept mw_reviewer_dml_dev outside PROD only'; END IF;
+ SELECT regexp_replace(pg_get_expr(d.adbin,d.adrelid),'\s+',' ','g') INTO default_expr FROM pg_attrdef d JOIN pg_attribute a ON a.attrelid=d.adrelid AND a.attnum=d.adnum WHERE d.adrelid='agent_audit.commits'::regclass AND a.attname='database_session_role';
+ IF default_expr IS DISTINCT FROM $d$( CASE WHEN (current_setting('role'::text, true) = ANY (ARRAY['none'::text, ''::text])) THEN (SESSION_USER)::text ELSE current_setting('role'::text, true) END)::name$d$ THEN
+  RAISE EXCEPTION 'commits.database_session_role default is %',default_expr; END IF;
+ -- No grant or membership came with V95 (operator steps): the IAM user holds nothing in the chain.
+ IF EXISTS(SELECT 1 FROM pg_auth_members m JOIN pg_roles r ON r.oid=m.member WHERE r.rolname='mw-integration-agent@clever-oasis-508610-n7.iam') THEN RAISE EXCEPTION 'V95 must not grant memberships'; END IF;
+END $$;
 -- DB-SCHEMA-02: firing-order snapshot; DB-ACCESS-08: the ledger definer under the real roles.
 \ir Test-TriggerOrder.sql
 \ir Test-LedgerAccess.sql

@@ -3,7 +3,7 @@
 CREATE DATABASE loan_manager_dev TEMPLATE postgres;
 \connect loan_manager_dev
 BEGIN;
-CREATE ROLE mw_receipt_projector LOGIN;
+DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_receipt_projector') THEN CREATE ROLE mw_receipt_projector LOGIN; END IF; END $$; -- Test-AgentAuditPrerequisites.sql may hold it (V95)
 CREATE ROLE receipt_test_client LOGIN;
 GRANT USAGE ON SCHEMA public TO mw_receipt_projector,receipt_test_client;
 GRANT EXECUTE ON FUNCTION public.attach_payment_receipt_evidence(text,text,text,timestamptz,jsonb,uuid,text) TO mw_receipt_projector;

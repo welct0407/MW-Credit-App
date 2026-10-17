@@ -7,3 +7,11 @@ GRANT mw_business_audit_owner TO CURRENT_USER WITH INHERIT TRUE;
 CREATE ROLE mw_reviewer_dml NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
 CREATE ROLE mw_agent_relay NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
 CREATE ROLE mw_agent_auditor NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+-- ALL-ARCH-03 (V95): the receipt projector task role (live: Prepare-ReceiptProjector.py, a password login
+-- until the agent moves to SET ROLE from its IAM user). No credential here; a fixture that needs to sign in
+-- as it (r053-agent-receipt-independent) adds LOGIN itself. Conditional: receipt fixtures may create it first.
+DO $$ BEGIN
+ IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_receipt_projector') THEN
+  CREATE ROLE mw_receipt_projector NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+ END IF;
+END $$;
