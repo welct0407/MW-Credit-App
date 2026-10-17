@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R071 — Open** |
-| Next unused number | **R072**, only opened when authorized R071 promotion starts |
+| New product work | **R072 — Open** |
+| Next unused number | **R073**, only opened when authorized R072 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R071 | Open; on DEV | One refresh icon: syncs saved changes and every local dataset domain, with progress then the updated time or failed sections beside it, no offline red flash ([record](Development_Changes.md#r071-one-refresh-icon)); owner style decisions: Upcoming headings 20 px, coloured Collection group status labels, tablet dashboard heading spacing, brown Save and white Cancel on the borrower edit bar, check icon on Confirm payment, unused CSS removed, Thai pending-sync note (PR #55) (UI-only, branch `claude/r071-style-decisions`, on DEV; [record](Development_Changes.md#r071-style-decisions)); DEV web builds switch to the MW Credit DEV web app `appId` from `mw-credit-app-dev-firebase-web` (owner decision 17 October 2026; in effect on DEV; PROD unchanged); [rule](../../docs/Development.md#credentials-and-terraform); Debian agent 5b4e50d (audit_relay validator, 17:27:06Z) and live catalogue revision 28 (17:39:54Z), owner go 18 October 2026 |
+| R071 | Frozen 18 October 2026 (Bangkok); PROD Hosting promotion in progress ([record](Development_Changes.md#r071-production-promotion)); on DEV | One refresh icon: syncs saved changes and every local dataset domain, with progress then the updated time or failed sections beside it, no offline red flash ([record](Development_Changes.md#r071-one-refresh-icon)); owner style decisions: Upcoming headings 20 px, coloured Collection group status labels, tablet dashboard heading spacing, brown Save and white Cancel on the borrower edit bar, check icon on Confirm payment, unused CSS removed, Thai pending-sync note (PR #55) (UI-only, branch `claude/r071-style-decisions`, on DEV; [record](Development_Changes.md#r071-style-decisions)); DEV web builds switch to the MW Credit DEV web app `appId` from `mw-credit-app-dev-firebase-web` (owner decision 17 October 2026; in effect on DEV; PROD unchanged); [rule](../../docs/Development.md#credentials-and-terraform); Debian agent 5b4e50d (audit_relay validator, 17:27:06Z) and live catalogue revision 28 (17:39:54Z), owner go 18 October 2026 |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

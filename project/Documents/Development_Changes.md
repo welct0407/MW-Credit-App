@@ -1,6 +1,6 @@
 # Open development changes
 
-**R071 is Open** (on DEV since 17 October 2026; see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
+**R072 is Open**; R071 is Frozen and in PROD Hosting promotion (on DEV since 17 October 2026; see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
 
 | Outstanding work | Owning reference |
 | --- | --- |
@@ -45,6 +45,13 @@ Owner decisions 17 October 2026 on the R070 cascade audit ("Prepare these in R07
 ## R071 Wave 6 documentation cleanup
 
 Wave 6 of the 15 October 2026 review (documentation and process, 30 backlog rows) on branch `claude/review-w6-docs`. `AGENTS.md` is a front page, deployment pins live only in the environment inventory, released sections left this page, and old change notes, uncited evidence and one-off scripts were deleted (Git keeps them). Release closure now prunes in the same session, and `npm run check:docs` runs in CI. The review's documentation rows (ALL-DOC-01 to 12, DB-DOC-01 to 06, AGT-DOC-01 to 10, AGT-TEST-04, ALL-STD-05) are closed: done, or not reproduced where already fixed. AGT-DOC-07 needed a validator change and catalogue revision 28, both deployed on Debian on 17 October 2026. Record: [Wave 6 change note](../../Change%20Logs/CHANGE_NOTES_W6_DOCUMENTATION_2026-10-17.md).
+
+## R071 production promotion
+
+- **Authority and scope.** Owner instruction, 17/18 October 2026 (Bangkok): "move R071 to production after Wave 6 merges"; Wave 6 is merged. Scope: PROD Hosting only. The PROD runtime stays R069 (four Cloud Run services unchanged), SQL stays V95 with no migration, and the agent part is already live on Debian.
+- **Owner check on DEV.** The owner checked R071 on DEV (built from `94cbfa5`; the DEV Hosting version is in the inventory) before this instruction.
+- **Pinned commits.** Source and artifact source `cb333f5c0024f51c197a2b5527d833605ba5fb03` (`main` after the Wave 6 merge; its frontend inputs equal the DEV-tested `94cbfa5`); delivery tool `c724199ebc62e62dc92c99da50e1a2fa1da9bd76` (runner R071 contract, schema 12); source baseline R070 `038b5c9f9f7d1ed368f8197973a523bb0cf5eab2`. Deployment pins (Hosting version, rollback) are recorded only in the [environment inventory](Environment_Inventory.md) once applied.
+- **Checks reused.** Development checks 39058021076 on the source (check, lint, three e2e shards, Terraform) and Database migrations 39058021080 on the source, both success.
 
 ## Current operation
 
