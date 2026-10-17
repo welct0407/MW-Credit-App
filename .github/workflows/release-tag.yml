@@ -1,9 +1,15 @@
 name: Release tag
 # Creates the final annotated Rnnn evidence tag for a verified release
-# (Release_Workflow.md "Close once"). Cloud sessions cannot push tags, so they
-# start this workflow instead. Manual only. It never moves or deletes a
-# release tag: an existing tag name is refused, and the target must be a
-# commit on main.
+# (Release_Workflow.md "Close once") and publishes the matching GitHub
+# Release. Cloud sessions cannot push tags, so they start this workflow
+# instead. Manual only. It never moves or deletes a release tag: an existing
+# tag name is refused, and the target must be a commit on main.
+#
+# publish_only=true publishes the GitHub Release for a tag that already
+# exists (backfill of earlier releases); the tag is not touched and an
+# existing GitHub Release for it is refused. The release body is `notes`
+# when given, else the tag message. The release is marked latest only when
+# the tag is the highest Rnnn tag in the repository.
 #
 # Needs the repository secret RELEASE_TAG_TOKEN: a fine-grained token for this
 # repository only, with Contents and Workflows read/write. The built-in
@@ -28,6 +34,15 @@ on:
         description: Tag message (release pins and verification time; ignored when check_only is true)
         required: false
         type: string
+      notes:
+        description: GitHub Release body (Markdown); defaults to the tag message
+        required: false
+        type: string
+      publish_only:
+        description: Publish the GitHub Release for an existing tag without creating a tag
+        required: false
+        type: boolean
+        default: false
       check_only:
         description: Only prove the token can create and delete a tag
         required: false
@@ -61,6 +76,7 @@ jobs:
           COMMIT: ${{ inputs.commit }}
           MESSAGE: ${{ inputs.message }}
           CHECK_ONLY: ${{ inputs.check_only }}
+          PUBLISH_ONLY: ${{ inputs.publish_only }}
           RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -78,10 +94,35 @@ jobs:
             exit 0
           fi
           [[ "$TAG" =~ ^R[0-9]{3}$ ]] || { echo "::error::Tag must look like R064"; exit 1; }
-          [[ -n "${MESSAGE//[[:space:]]/}" ]] || { echo "::error::Tag message is empty"; exit 1; }
-          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
-            echo "::error::Tag $TAG already exists; release tags are never moved"; exit 1
+          [ "$PUBLISH_ONLY" = "true" ] || [[ -n "${MESSAGE//[[:space:]]/}" ]] || { echo "::error::Tag message is empty"; exit 1; }
+          if [ "$PUBLISH_ONLY" = "true" ]; then
+            git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null || { echo "::error::Tag $TAG does not exist; publish_only needs an existing tag"; exit 1; }
+            [ "$(git rev-list -n1 "$TAG")" = "$COMMIT" ] || { echo "::error::Tag $TAG is not on commit $COMMIT"; exit 1; }
+            echo "Tag $TAG exists at $COMMIT; publishing the GitHub Release only"
+          else
+            if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+              echo "::error::Tag $TAG already exists; release tags are never moved"; exit 1
+            fi
+            git tag -a "$TAG" "$COMMIT" -m "$MESSAGE"
+            git push origin "refs/tags/$TAG"
+            echo "Created $TAG at $COMMIT"
           fi
-          git tag -a "$TAG" "$COMMIT" -m "$MESSAGE"
-          git push origin "refs/tags/$TAG"
-          echo "Created $TAG at $COMMIT"
+      - name: Publish the GitHub Release
+        if: ${{ inputs.check_only != true }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TAG_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::GitHub Release $TAG already exists; releases are never rewritten by this workflow"; exit 1
+          fi
+          git fetch --tags --quiet origin
+          body="${NOTES:-$(git tag -l --format='%(contents)' "$TAG")}"
+          [[ -n "${body//[[:space:]]/}" ]] || { echo "::error::Release body is empty"; exit 1; }
+          highest=$(git tag -l 'R[0-9][0-9][0-9]' --sort=-v:refname | head -1)
+          latest=false; [ "$TAG" = "$highest" ] && latest=true
+          printf '%s\n' "$body" > "$RUNNER_TEMP/notes.md"
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --latest="$latest"
+          echo "Published GitHub Release $TAG (latest=$latest)"
