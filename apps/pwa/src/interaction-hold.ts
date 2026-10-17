@@ -11,7 +11,7 @@ const POLL_MS=200;
 export type HoldScope=true|(()=>Element|null|undefined);
 type Held={scope:HoldScope;since:number;run:()=>void};
 
-const active=new Map<string,EventTarget|null>(),recent=new Map<EventTarget|null,number>(),held=new Map<symbol,Held>();
+const active=new Map<string,{target:EventTarget|null;since:number}>(),recent=new Map<EventTarget|null,number>(),held=new Map<symbol,Held>();
 let installed=false,timer:ReturnType<typeof setTimeout>|undefined;
 const now=()=>Date.now();
 const isDocument=(target:EventTarget|null)=>!target||target===globalThis.window||target===globalThis.document||target===globalThis.document?.documentElement||target===globalThis.document?.body;
@@ -25,7 +25,9 @@ function within(scope:HoldScope,target:EventTarget|null){
 /** True while a pointer or touch that started in the scope is down, or the scope scrolled or was
  * released less than HOLD_SETTLE_MS ago. */
 export function interacting(scope:HoldScope,at=now()){
- for(const target of active.values())if(within(scope,target))return true;
+ // UX-HOLD-01: a press older than the cap is treated as ended (its release was lost, e.g. the
+ // touched row was removed mid-touch and touchend went to the detached node).
+ for(const [key,{target,since}] of active){if(at-since>=HOLD_MAX_MS){active.delete(key);continue}if(within(scope,target))return true}
  for(const [target,time] of recent)if(at-time<HOLD_SETTLE_MS&&within(scope,target))return true;
  return false;
 }
@@ -35,20 +37,28 @@ function flush(){
  for(const [token,entry] of [...held])if(at-entry.since>=HOLD_MAX_MS||!interacting(entry.scope,at)){held.delete(token);entry.run()}
  if(held.size)timer=setTimeout(flush,POLL_MS);
 }
-const touched=(target:EventTarget|null)=>{recent.set(target,now())};
+// Pruned on every event so a removed element is not kept alive by `recent` until the next update.
+const touched=(target:EventTarget|null)=>{const at=now();prune(at);recent.set(target,at)};
+const press=(key:string,target:EventTarget|null)=>{active.set(key,{target,since:now()})};
+const release=(key:string)=>{const entry=active.get(key);if(active.delete(key))touched(entry?.target??null)};
+/** Ends every press: the last finger or pointer is up, so anything still listed lost its release. */
+const releaseAll=()=>{for(const key of [...active.keys()])release(key)};
 function install(){
  if(installed||typeof window==='undefined'||typeof document==='undefined')return;installed=true;
  const options={capture:true,passive:true};
- window.addEventListener('pointerdown',event=>{active.set('p'+event.pointerId,event.target)},options);
- const pointerEnd=(event:PointerEvent)=>{const target=active.get('p'+event.pointerId);if(active.delete('p'+event.pointerId))touched(target??null)};
- window.addEventListener('pointerup',pointerEnd,options);window.addEventListener('pointercancel',pointerEnd,options);
+ window.addEventListener('pointerdown',event=>press('p'+event.pointerId,event.target),options);
+ // pointercancel (a touch turned into a scroll) ends only that pointer; a pointerup with no other
+ // pointer down ends every press, including a touch whose touchend was lost.
+ window.addEventListener('pointerup',event=>{release('p'+event.pointerId);if(![...active.keys()].some(key=>key.startsWith('p')))releaseAll()},options);
+ window.addEventListener('pointercancel',event=>release('p'+event.pointerId),options);
  // Touch is tracked apart from pointers: a touch that starts a scroll cancels its pointer while the finger stays down.
- window.addEventListener('touchstart',event=>{for(const touch of Array.from(event.changedTouches))active.set('t'+touch.identifier,touch.target)},options);
- const touchEnd=(event:TouchEvent)=>{for(const touch of Array.from(event.changedTouches)){const target=active.get('t'+touch.identifier);if(active.delete('t'+touch.identifier))touched(target??null)}};
+ // A touch listed as down but absent from event.touches lost its touchend (UX-HOLD-01).
+ window.addEventListener('touchstart',event=>{if(event.touches){const down=new Set(Array.from(event.touches,touch=>'t'+touch.identifier));for(const key of [...active.keys()])if(key.startsWith('t')&&!down.has(key))release(key)}for(const touch of Array.from(event.changedTouches))press('t'+touch.identifier,touch.target)},options);
+ const touchEnd=(event:TouchEvent)=>{for(const touch of Array.from(event.changedTouches))release('t'+touch.identifier);if(event.touches?.length===0)releaseAll()};
  window.addEventListener('touchend',touchEnd,options);window.addEventListener('touchcancel',touchEnd,options);
  window.addEventListener('scroll',event=>touched(event.target),options);
  // Leaving the app ends every interaction (a release outside the window may never arrive).
- const reset=()=>{for(const target of active.values())touched(target);active.clear()};
+ const reset=releaseAll;
  window.addEventListener('blur',reset);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')reset()});
 }
 /** Runs `run` now, or holds it (replacing an earlier held run of the same token) until the scope is idle. */

@@ -55,3 +55,44 @@ test('a scoped hold waits only for interaction inside its list or on the page it
  deferWhileInteracting(Symbol(),()=>({isConnected:false,contains:()=>true}),run('detached'));assert.deepEqual(seen,['outside','inside','detached']);
  tick(HOLD_SETTLE_MS+300);assert.deepEqual(seen,['outside','inside','detached','page']);
 });
+
+// UX-HOLD-01: a touch whose touchend is lost (the touched row was removed mid-touch, so the event
+// went to a detached node) must not hold every page-wide list for good.
+test('the last pointer up ends a touch whose touchend was lost',()=>{
+ idle();const {seen,run}=recorder();
+ fire('touchstart',{changedTouches:[{identifier:20,target:'removed-row'}]});fire('pointerdown',{pointerId:20});
+ deferWhileInteracting(Symbol(),true,run('rows'));fire('pointerup',{pointerId:20});
+ tick(HOLD_SETTLE_MS+300);assert.deepEqual(seen,['rows']);
+});
+
+test('a touchend with no fingers left, or a new touch that does not list it, ends a lost touch',()=>{
+ idle();const {seen,run}=recorder();
+ fire('touchstart',{changedTouches:[{identifier:21,target:'removed-row'}]});
+ fire('touchstart',{changedTouches:[{identifier:22,target:'other'}],touches:[{identifier:21},{identifier:22}]});
+ deferWhileInteracting(Symbol(),true,run('both-up'));
+ fire('touchend',{changedTouches:[{identifier:22,target:'other'}],touches:[]});
+ tick(HOLD_SETTLE_MS+300);assert.deepEqual(seen,['both-up']);
+ fire('touchstart',{changedTouches:[{identifier:23,target:'removed-row'}]});
+ // The next touch lists only itself: touch 23 is no longer down, so a list holding on 23's row does not wait.
+ fire('touchstart',{changedTouches:[{identifier:24,target:'elsewhere'}],touches:[{identifier:24}]});
+ tick(HOLD_SETTLE_MS+300);
+ const list={isConnected:true,contains:target=>target==='removed-row'};
+ deferWhileInteracting(Symbol(),()=>list,run('scoped'));assert.deepEqual(seen,['both-up','scoped']);
+ fire('touchend',{changedTouches:[{identifier:24,target:'elsewhere'}],touches:[]});
+});
+
+test('a press older than the cap no longer holds a new update',()=>{
+ idle();const {seen,run}=recorder();
+ fire('touchstart',{changedTouches:[{identifier:25,target:'removed-row'}]});
+ deferWhileInteracting(Symbol(),true,run('held'));tick(HOLD_MAX_MS+300);assert.deepEqual(seen,['held']);
+ // The stuck touch has expired: a later update applies at once instead of lagging another 10 s.
+ deferWhileInteracting(Symbol(),true,run('later'));assert.deepEqual(seen,['held','later']);
+});
+
+test('a pointer cancelled by a scroll ends only itself, not the finger still down',()=>{
+ idle();const {seen,run}=recorder();
+ fire('pointerdown',{pointerId:26});fire('touchstart',{changedTouches:[{identifier:26,target:null}]});
+ fire('pointercancel',{pointerId:26});deferWhileInteracting(Symbol(),true,run('rows'));
+ tick(3000);assert.deepEqual(seen,[]);
+ fire('touchend',{changedTouches:[{identifier:26,target:null}],touches:[]});tick(HOLD_SETTLE_MS+300);assert.deepEqual(seen,['rows']);
+});

@@ -4,8 +4,9 @@ import type {OwnerOfflineRepository} from './owner-offline';
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
 const domains=['records','collection','cash','management','notifications'] as const;
 /** foreground: a screen is waiting on this sync (SYNC-UX-02 shows progress only then or before the first complete download). */
-export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;updating:boolean;updateFailed:boolean;lastChecked:number|null;foreground:boolean};
-const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,updating:false,updateFailed:false,lastChecked:null,foreground:false};
+/** failedDomains: the data domains whose last check failed, sorted and comma-joined (receipts are never listed). */
+export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;updating:boolean;updateFailed:boolean;failedDomains:string;lastChecked:number|null;foreground:boolean};
+const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false};
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
@@ -79,15 +80,21 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   const complete=[...cycleDomains].every(domain=>cycleDone.has(domain))&&discovered&&media.every(path=>completed.has(path));
   return Math.max(0,Math.min(complete?100:99,value));
  };
+ // UX-HOLD-07: the banner, "Updated HH:MM" and readiness follow the data domains only. A receipt that
+ // failed retries quietly in the background on the same back-off; it does not reopen preparation.
+ const isMediaTask=(task:string)=>task.startsWith('/api/');
+ const quietMedia=new Set<string>();
+ const failedDomains=()=>domains.filter(domain=>failed.has(domain));
+ const domainRunning=()=>running&&!!activeTask&&!isMediaTask(activeTask);
  const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(running||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failed.size>0,lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
  // Back-off bookkeeping: a failed task is waiting until its next retry time.
  const waiting=(task:string)=>failed.has(task)&&(backoff.get(task)?.next??0)>Date.now();
- const succeeded=(task:string)=>{failed.delete(task);backoff.delete(task)};
- const fail=(task:string)=>{failed.add(task);const attempts=(backoff.get(task)?.attempts??0)+1;backoff.set(task,{attempts,next:Date.now()+DATASET_RETRY_BACKOFF_MS[Math.min(attempts,DATASET_RETRY_BACKOFF_MS.length)-1]})};
+ const succeeded=(task:string)=>{failed.delete(task);backoff.delete(task);quietMedia.delete(task)};
+ const fail=(task:string)=>{failed.add(task);if(isMediaTask(task))quietMedia.add(task);const attempts=(backoff.get(task)?.attempts??0)+1;backoff.set(task,{attempts,next:Date.now()+DATASET_RETRY_BACKOFF_MS[Math.min(attempts,DATASET_RETRY_BACKOFF_MS.length)-1]})};
  const resetBackoff=()=>{backoff.clear();if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined}};
  // One timer for the earliest due failed task; resume() then re-queues only the due ones.
  const retryLater=()=>{if(stopped||!navigator.onLine||paused||!failed.size)return;const due=Math.min(...[...failed].map(task=>backoff.get(task)?.next??0));if(retryTimer)clearTimeout(retryTimer);retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},Math.max(0,due-Date.now()))};
@@ -118,7 +125,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if((activitySnapshot()>0||document.visibilityState==='hidden')&&!requestedDomain){status();return;}
   if(!await repo.syncAuthorized()){paused=true;if(requestedDomain)failedEvent(requestedDomain);status();return}if(stopped||running)return;paused=false;
   addMedia();if(!queue.length){status();return}
-  const task=queue.shift()!,isMedia=task.startsWith('/api/');running=true;activeTask=task;controller=new AbortController();const flight=controller;status();
+  const next=queue.findIndex(queued=>!isMediaTask(queued)),task=queue.splice(Math.max(0,next),1)[0],isMedia=isMediaTask(task);running=true;activeTask=task;controller=new AbortController();const flight=controller;status();
   let timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
   let softGiveUp=false;
   try{
@@ -220,7 +227,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     ready(task,dataChanged);
    }
   }catch{if(!stopped){partials.delete(task);if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task);if(!isMedia)giveUp(task)}}}finally{
-   clearTimeout(timeout);running=false;activeTask=null;controller=null;if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}if(!stopped){addMedia();if(!queue.length&&(recheck||recheckDomains.size)){const targets=recheck?domains:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}if(!queue.length&&!failed.size&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();status();if(queue.length&&!paused)schedule();else if(failed.size)retryLater()}
+   clearTimeout(timeout);running=false;activeTask=null;controller=null;if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}if(!stopped){addMedia();if(!queue.length&&(recheck||recheckDomains.size)){const targets=recheck?domains:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}if(!isMedia&&!queue.some(queued=>!isMediaTask(queued))&&!failedDomains().length&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();status();if(queue.length&&!paused)schedule();else if(failed.size)retryLater()}
   }
  }
  const request=(event?:Event)=>{if(stopped)return;const detail=(event as CustomEvent|undefined)?.detail;const priority=domains.includes(detail?.domain)?detail.domain:undefined;
@@ -231,8 +238,11 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(!background&&retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
   if(detail?.foreground)requestedDomain=priority;
   if(event?.type==='mw-read-invalidated'){if(running||queue.length)recheck=true;else{beginCycle();for(const domain of domains)enqueue(domain)}failed.clear()}
-  else if(!running&&!queue.length&&event?.type==='mw-offline-prepare'&&!failed.size){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
-  else for(const task of [...failed])if(!background||!waiting(task)){failed.delete(task);enqueue(task)}
+  else{
+   // A receipt still downloading or retrying does not block a sync of the data domains (pump takes them first).
+   if(!domainRunning()&&!queue.some(task=>!isMediaTask(task))&&event?.type==='mw-offline-prepare'&&!failedDomains().length){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
+   for(const task of [...failed])if(!background||!waiting(task)){failed.delete(task);enqueue(task)}
+  }
   if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
   changedRetries.clear();paused=false;status();schedule();
  };
@@ -240,8 +250,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // queued or in flight absorbs the trigger, so focus+visibilitychange (+online) in one burst
  // start one cycle and never a second concurrent fetch. Hidden, offline or offline-only: no-op.
  // A failed domain still in its back-off is left out of the cycle; the other domains refresh.
- // Work queued while hidden (a due retry) is joined by the rest rather than replacing the refresh.
- const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.length)for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}resume()};
+ // Work queued while hidden (a due retry) is joined by the rest rather than replacing the refresh;
+ // a receipt downloading or queued never delays the data domains.
+ const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!domainRunning()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}resume()};
  // A real return to the app (focus, visible again) or reconnecting resets every back-off.
  const focused=()=>{resetBackoff();check(true)},online=()=>{resetBackoff();check()};
  const visible=()=>{if(document.visibilityState!=='hidden'){resetBackoff();check(true)}status()};

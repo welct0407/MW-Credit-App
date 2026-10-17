@@ -64,6 +64,56 @@ test('Cash keeps the account list and overview while a statement filter is open 
  await publish(page,'cash',cash('375',[account('acc-a','Account A')]));await expect(card).toContainText('375',{timeout:1500});await expect(select.locator('option')).toHaveCount(2);
 });
 
+test('Cash ends a filter hold once a pick has loaded, caps a hold at 10 s and clears it when a record opens',async({page})=>{
+ // UX-HOLD-04/05: iOS keeps a select focused after a pick, and opening a record removes the filters without a blur.
+ const summary=(closingBalance:string)=>({openingBalance:'0',moneyIn:'0',moneyOut:'0',netMovement:'0',closingBalance,transactionCount:1});
+ const statement=(accountId:string,closingBalance:string)=>({ok:true,source:'synthetic',accountId,date:businessDate,asOf,summary:summary(closingBalance),items:[{id:'line-'+accountId,ledgerId:'ledger-'+accountId,direction:'in',date:businessDate,timestamp:businessDate+'T09:00:00+07:00',transactionType:'Payment '+accountId,paymentId:'pay-'+accountId,amount:'10',balanceAfter:closingBalance}],nextCursor:null});
+ const accounts=[account('acc-a','Account A'),account('acc-b','Account B')];
+ const data=(netProfit:string)=>{const value=cash(netProfit,accounts);value.preferences.item.statementAccountId='acc-a' as any;value.preferences.item.statementDate=businessDate as any;value.statements=[statement('acc-a','111'),statement('acc-b','222')] as any;return value};
+ const initial=data('100');
+ await fixture(page,'hold-cash-pick',{cash:initial});
+ await page.route('**/api/**',route=>{const url=new URL(route.request().url()),path=url.pathname;return path==='/api/cash-overview'?route.fulfill({json:initial.overview}):path==='/api/preferences'?route.fulfill({json:initial.preferences}):path==='/api/cash-statements'?route.fulfill({json:statement(url.searchParams.get('accountId')!,url.searchParams.get('accountId')==='acc-b'?'222':'111')}):route.fulfill({json:{ok:true,source:'synthetic',items:[],nextCursor:null}})});
+ await page.evaluate(()=>(window as any).selectBackCase('prepared-cash'));
+ const select=page.getByRole('combobox',{name:'Account'}),card=page.locator('.cash-dashboard-card'),daily=page.locator('.cash-statement-paper').filter({hasText:'Daily Summary'});
+ await expect(daily).toContainText('111');await expect(card).toContainText('100');
+ // A pick with the picker still focused (as iOS leaves it): once the new statement shows, updates apply again.
+ await select.focus();await select.selectOption('acc-b');await expect(daily).toContainText('222');
+ expect(await page.evaluate(()=>document.activeElement?.tagName)).toBe('SELECT');
+ await publish(page,'cash',data('250'));await expect(card).toContainText('250',{timeout:1500});
+ // A focused filter with no pick holds the overview, but never longer than about 10 s.
+ await page.getByRole('button',{name:'Parent rerender'}).focus();await page.waitForTimeout(300);
+ await select.focus();const focused=Date.now();await publish(page,'cash',data('375'));
+ await page.waitForTimeout(1500);await expect(card).not.toContainText('375');
+ await expect(card).toContainText('375',{timeout:12500});const elapsed=Date.now()-focused;expect(elapsed).toBeGreaterThanOrEqual(9000);expect(elapsed).toBeLessThan(12500);
+ // Opening a record while a filter is focused (a tap that does not move focus) and returning leaves no hold behind.
+ await page.getByRole('button',{name:'Parent rerender'}).focus();await page.waitForTimeout(300);
+ await select.focus();await page.getByRole('button',{name:'Payment acc-b'}).dispatchEvent('click');
+ const back=page.getByRole('button',{name:'Back to payment history'});await expect(back).toBeVisible();await back.dispatchEvent('click');
+ await expect(select).toBeVisible();await publish(page,'cash',data('500'));await expect(card).toContainText('500',{timeout:1500});
+});
+
+test('a failing receipt retries quietly on the back-off while the banner and updated time follow the data domains',async({page})=>{
+ // UX-HOLD-07: receipts never raise "Updates paused" or freeze "Updated HH:MM".
+ await fixture(page,'receipt-backoff',{records:{payments:[{id:'pay-1',receiptReference:'attached',receiptAt:new Date().toISOString()}]}});
+ await page.clock.install();let receiptCalls=0,domainCalls=0;
+ await page.route('**/api/**',route=>{const url=new URL(route.request().url());if(url.pathname.includes('/receipt')){receiptCalls++;return route.fulfill({status:503,json:{code:'unavailable'}})}
+  domainCalls++;const domain=url.searchParams.get('domain')??'notifications';
+  return route.fulfill({json:{schemaVersion:3,domain,generation:'same',startedAt:asOf,asOf,businessDate,sourceVersion:version,patches:[],values:{},nextCursor:null,complete:true,unchanged:true}});
+ });
+ const state=()=>page.evaluate(()=>{const w=window as any;return w.__datasetTest.getOfflinePreparation(w.__syncRepo.scopeName)});
+ await page.evaluate(()=>{const w=window as any;w.__stopPreparation=w.__datasetTest.startOfflinePreparation(w.__syncAccess)});
+ await page.clock.runFor(3000);await expect.poll(()=>receiptCalls).toBe(1);await expect.poll(()=>domainCalls).toBe(5);
+ await expect.poll(async()=>{const {state:value,updateFailed,failedDomains,lastChecked}=await state();return {value,updateFailed,failedDomains,checked:lastChecked!==null}}).toEqual({value:'ready',updateFailed:false,failedDomains:'',checked:true});
+ const first=(await state()).lastChecked;
+ // The 30-second poll refreshes the domains and moves the updated time; the receipt retries 30 s after it failed, then 60 s.
+ await page.clock.runFor(31000);await expect.poll(()=>receiptCalls).toBe(2);await expect.poll(()=>domainCalls).toBe(10);
+ await expect.poll(async()=>(await state()).lastChecked).toBeGreaterThan(first);
+ expect(await state()).toMatchObject({state:'ready',updateFailed:false,failedDomains:'',syncActive:false});
+ await page.clock.runFor(55000);expect(receiptCalls).toBe(2);await page.clock.runFor(8000);await expect.poll(()=>receiptCalls).toBe(3);
+ expect(await state()).toMatchObject({state:'ready',updateFailed:false});
+ await page.evaluate(()=>(window as any).__stopPreparation());
+});
+
 test('a failing domain backs off 30 s, 60 s, 2 min, then every 5 min; success, online and focus reset it',async({page})=>{
  await fixture(page,'backoff');await page.clock.install();let cashOk=false,cashCalls=0;const calls:string[]=[];
  await page.route('**/api/**',route=>{const domain=new URL(route.request().url()).searchParams.get('domain')??'notifications';calls.push(domain);

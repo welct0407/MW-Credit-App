@@ -10,16 +10,24 @@ type Options<T>={origin?:string;signal?:AbortSignal;onCached?:(data:T)=>void;pol
  * this reads the committed bundle without a network request or loading state. */
 /** hold (UX-REFRESH-06): a list's update waits while that list is touched or scrolled (interaction-hold.ts).
  * An update still held when the subscription stops (the screen went busy) is re-read when the same path is
- * subscribed again, so it is not lost. */
-const heldWhenStopped=new Set<string>();
+ * subscribed again, so it is not lost. A path that is never subscribed again (an old cursor page) is
+ * forgotten after HELD_STOPPED_MS, and at most HELD_STOPPED_MAX paths are remembered. */
+const HELD_STOPPED_MS=5*60*1000,HELD_STOPPED_MAX=64;
+const heldWhenStopped=new Map<string,number>();
+function rememberHeld(key:string,at=Date.now()){
+ for(const [held,since] of heldWhenStopped)if(at-since>=HELD_STOPPED_MS)heldWhenStopped.delete(held);
+ heldWhenStopped.delete(key);heldWhenStopped.set(key,at);
+ while(heldWhenStopped.size>HELD_STOPPED_MAX)heldWhenStopped.delete(heldWhenStopped.keys().next().value!);
+}
+const takeHeld=(key:string)=>{const since=heldWhenStopped.get(key);heldWhenStopped.delete(key);return since!==undefined&&Date.now()-since<HELD_STOPPED_MS};
 export function subscribeOfflineDataset<T=any>(access:Access,path:string,apply:(data:T)=>void,onMissing?:()=>void,options:{hold?:HoldScope}={}){
  const repository=access.offline,scope=repository?.scopeName,domain=routeDomain(new URL(path,access.origin).pathname),token=Symbol(path),key=scope+'|'+path;let active=true,generation=0;
  const update=(event:Event)=>{const detail=(event as CustomEvent).detail;if(!active||!scope||detail?.scopeName!==scope||detail.domain!==domain||detail.changed===false)return;const current=++generation;
   void readOfflineDataset(access,path).then(async data=>{if(!active||current!==generation)return;if(data!==null){const run=()=>{if(active&&current===generation)apply(data as T)};if(options.hold)deferWhileInteracting(token,options.hold,run);else run();return;}if(onMissing&&repository&&await repository.syncAuthorized()&&(await repository.readDataset(domain))?.complete&&active&&current===generation)onMissing()}).catch(()=>{});
  };
  window.addEventListener('mw-offline-dataset-ready',update);
- if(scope&&heldWhenStopped.delete(key))update(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:scope,domain,changed:true}}));
- return()=>{active=false;generation++;if(cancelDeferred(token)&&scope)heldWhenStopped.add(key);window.removeEventListener('mw-offline-dataset-ready',update)};
+ if(scope&&takeHeld(key))update(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:scope,domain,changed:true}}));
+ return()=>{active=false;generation++;if(cancelDeferred(token)&&scope)rememberHeld(key);window.removeEventListener('mw-offline-dataset-ready',update)};
 }
 export type CachedReadResult<T>={response:Response;data:T;fromCache:boolean};
 const failures=new Set<string>(),refreshFailures=new Set<string>(),listeners=new Set<()=>void>();
