@@ -1,9 +1,18 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+// About shows the source commit; a build outside a Git checkout says 'unknown'.
+function sourceCommit() {
+  try { return execFileSync('git', ['rev-parse', '--short=7', 'HEAD'], { cwd: fileURLToPath(new URL('.', import.meta.url)), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() || 'unknown'; }
+  catch { return 'unknown'; }
+}
 export default defineConfig(({ mode }) => {
   if (!['synthetic', 'live-dev', 'live-prod'].includes(mode)) throw new Error('Choose an explicit synthetic, live-dev or live-prod build mode');
   return {
+    // Merged with a caller's own define (scripts/production/build-business-candidate.mjs).
+    define: { __SOURCE_COMMIT__: JSON.stringify(sourceCommit()) },
     // The dependency scanner reads raw HTML, before our mode-specific HTML transform.
     // Scan the actual entry so a cold live server discovers Firebase before browser loads.
     optimizeDeps: {

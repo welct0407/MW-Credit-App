@@ -25,6 +25,7 @@ const paths = {
  review:'M8 4H5v17h14V4h-3M8 2h8v5H8zM8 14l3 3 5-6',
  'move-interest':'M11 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M7 5v4M13 5h8m-3-3 3 3-3 3M3 17h18m-4-4 4 4-4 4',
  details:'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M12 11v6m0-10v1',
+ about:'M6 3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zM12 10v7M12 6.5v.5',
  open:'M14 3h7v7M21 3 10 14M10 5H3v16h16v-7',
  dashboard:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
  collection:'M8 4H4v17h8M8 2h8v5H8zM16 4h4v6M8 10h4M22 16a6 6 0 1 1-12 0 6 6 0 0 1 12 0M16 12v4l2 1',
