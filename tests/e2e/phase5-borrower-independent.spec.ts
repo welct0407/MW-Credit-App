@@ -151,3 +151,16 @@ test('W5 borrower record: distinct Delete, named referrer, 44px checkbox rows an
  for(const name of ['Communication Name','Instagram Username'])await expect(page.getByRole('textbox',{name,exact:true})).toHaveAttribute('autocomplete','off');
  if(mobile){await page.evaluate(()=>window.scrollTo(0,0));const save=await page.getByRole('button',{name:'Save borrower',exact:true}).boundingBox(),viewport=page.viewportSize()!;expect(save!.y).toBeGreaterThanOrEqual(0);expect(save!.y+save!.height).toBeLessThanOrEqual(viewport.height-64);await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeInViewport()}
 });
+test('W5 the borrower name is mandatory: a blank Save is blocked locally with a message and nothing is sent',async({page})=>{
+ const s=await setup(page);await full(page);await page.getByRole('button',{name:'Edit borrower',exact:true}).click();
+ const name=page.getByRole('textbox',{name:/^Borrower name \(Thai\)(?: \*)?$/});await expect(name).toHaveJSProperty('required',true);
+ expect(await page.locator('.borrower-record form>label:has(input[required])>.field-title').evaluate(e=>getComputedStyle(e,'::after').content)).toBe('" *"');
+ await name.fill('   ');await page.getByRole('button',{name:'Save borrower',exact:true}).click();
+ await expect(page.getByText('Enter the borrower name.',{exact:true})).toBeVisible();await expect(name).toBeVisible();expect(s.writes).toEqual([]);
+ expect(await page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return (await ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'phase5-independent-owner'}).list('pending')).length})).toBe(0);
+});
+test('W5 a borrower stored without a name cannot start a loan until it is named',async({page})=>{
+ const original=record.name;(record as {name:string|null}).name=null;
+ try{await setup(page);await full(page);const action=page.getByRole('button',{name:'New loan',exact:true});await expect(action).toBeDisabled();await expect(action).toHaveAccessibleDescription('Add the borrower name before creating a loan.');await expect(page.getByText('Add the borrower name before creating a loan.',{exact:true})).toBeVisible()}
+ finally{(record as {name:string|null}).name=original}
+});

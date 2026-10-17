@@ -24,7 +24,7 @@ import {readPaymentRecord,readPaymentCorrectionPreview} from '../business/paymen
 import {readChargeRecord} from '../business/charges.mjs';
 import {canonicalOperation,operationIdentity} from '../contracts/operation-command.mjs';
 import {readLoanRecord} from '../business/loans.mjs';
-import {readBorrowerRecord,mutateBorrowerRecord,validBorrowerId} from '../business/borrowers.mjs';
+import {readBorrowerRecord,mutateBorrowerRecord,validBorrowerId,borrowerNameMissing,loanBorrowerNameMissing} from '../business/borrowers.mjs';
 import {readCommandResult,readBorrowerPaymentHistory} from './result.mjs';
 import { readPaymentDraft, readOwnerPaymentDraft } from './draft.mjs';
 import { applicationConnectionGuard } from './application-target.mjs';
@@ -130,7 +130,11 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         if(existing){const stored=JSON.parse(existing.canonical_json);if(stored.contractVersion!==2||(stored.receipt?.receiptId??null)!==command.receiptId)return failure(409,'command_conflict');receipt=stored.receipt;}
         else if(command.receiptId){if(typeof resolveReceipt!=='function')return failure(422,'receipt_unsupported');let bound;try{bound=await resolveReceipt({receiptId:command.receiptId,requestId:command.requestId,actor})}catch{return failure(503,'receipt_unavailable')}try{if(!bound||Object.keys(bound).sort().join(',')!=='actor,descriptor,requestId'||bound.requestId!==command.requestId||JSON.stringify(canonicalActor(bound.actor))!==JSON.stringify(actor))return failure(422,'receipt_unavailable');receipt=canonicalReceipt(bound.descriptor);if(receipt?.receiptId!==command.receiptId)return failure(422,'receipt_unavailable')}catch{return failure(422,'receipt_unavailable')}}
         let identity;try{identity=operationIdentity(command,actor,receipt)}catch{return failure(400,'invalid_request')}
-        markAttempted();const value=(await client.query('SELECT public.pwa_submit_operation_v2($1) AS result',[identity.canonicalJson])).rows[0].result;return {ok:true,value}}).then(result=>result.code==='command_outcome_unknown'?{...result,code:'operation_outcome_unknown'}:result);
+        // Mandatory borrower name (W5 owner rule); a recorded request still replays its stored outcome.
+        if(!existing&&borrowerNameMissing(command))return failure(422,'borrower_name_required');
+        markAttempted();const value=(await client.query('SELECT public.pwa_submit_operation_v2($1) AS result',[identity.canonicalJson])).rows[0].result;
+        if(!existing&&value?.originalOutcome?.status==='applied'&&await loanBorrowerNameMissing(client,command))return failure(422,'borrower_name_required');
+        return {ok:true,value}}).then(result=>result.code==='command_outcome_unknown'?{...result,code:'operation_outcome_unknown'}:result);
     },
     async operationStatus(principal,id){
       if(!ownerTesting)return failure(403,'access_denied');

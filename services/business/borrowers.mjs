@@ -25,6 +25,13 @@ export async function readBorrowerRecord(client,id,lock=false){
  FROM public."Borrowers" b LEFT JOIN public."Borrowers" r ON r."Row ID"=b."Ref Referrer" LEFT JOIN public."Cash Accounts" a ON a."Row ID"=b."Ref Preferred Receiving Cash Account" WHERE b."Row ID"=$1`,[id])).rows[0];
  return {...row,details};
 }
+/** Owner rule (W5): every borrower has a name (create/update input, checked before any write) and a loan is created
+ * only for a borrower whose stored name is not blank (checked after the governed operation applied, while it still holds
+ * the Borrowers row lock; the caller then rolls the whole transaction back, so nothing is recorded). */
+export const borrowerNameMissing=command=>['borrower.create','borrower.update'].includes(command.operation)&&!String(command.inputs?.name??'').trim();
+export async function loanBorrowerNameMissing(client,command){
+ return command.operation==='loan.create'&&!String((await client.query('SELECT "Borrower Name" AS name FROM public."Borrowers" WHERE "Row ID"=$1',[command.inputs?.borrowerId])).rows[0]?.name??'').trim();
+}
 export async function mutateBorrowerRecord(client,operation,id,input,markAttempted){
  if(!validBorrowerId(id)||!input||Array.isArray(input))return failure(400,'invalid_request');
  const expected=operation==='create'?'fields':operation==='edit'?'expectedVersion,fields':'expectedVersion';
@@ -41,6 +48,7 @@ export async function mutateBorrowerRecord(client,operation,id,input,markAttempt
  if(operation!=='delete'){
   if(fields.name?.trim())await client.query('SELECT pg_advisory_xact_lock(public.pwa_lock_key_v1($1,$2))',['borrower-name',(fields.name??'').trim().toLowerCase()]);
   if(fields.name?.trim()&&(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"<>$1 AND lower(btrim(coalesce("Borrower Name",$3)))=lower(btrim($2)) LIMIT 1',[id,fields.name??'',''])).rowCount)return failure(409,'borrower_name_exists');
+  if(!fields.name?.trim())return failure(422,'borrower_name_required');
   if(fields.referrerId===id)return failure(422,'invalid_reference');
   if(fields.referrerId&&!(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=$1',[fields.referrerId])).rowCount)return failure(422,'invalid_reference');
   if(fields.preferredReceivingAccountId&&!(await client.query('SELECT 1 FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Row ID"=$1 AND a."Active" IS TRUE AND h."Active" IS TRUE',[fields.preferredReceivingAccountId])).rowCount)return failure(422,'invalid_reference');
