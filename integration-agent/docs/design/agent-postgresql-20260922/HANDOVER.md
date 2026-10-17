@@ -138,4 +138,4 @@ The execution deliverable must update the current service catalogue JSON/Markdow
 
 Publish checked source and sanitized evidence to each affected repository's current upstream under its instructions. Record exact commits/migration hashes, verified backup references, source/target reconciliation, final backend/generation/flags/cutoffs and unresolved held work. Distinguish implementation complete, DEV verified, production applied and production verified. Missing required checks remain unfinished; no automatic replay is a substitute for closure.
 
-For this design task only, see [design validation](design-validation.json) and [change log](../../../Change%20Logs/CHANGE_NOTES_AGENT_POSTGRESQL_DESIGN_2026-09-22.md). SQL execution, runtime implementation, migration rehearsals and all T01–T16 execution evidence remain pending.
+For this design task only, see [design validation](design-validation.json) and [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/integration-agent/Change%20Logs/CHANGE_NOTES_AGENT_POSTGRESQL_DESIGN_2026-09-22.md). SQL execution, runtime implementation, migration rehearsals and all T01–T16 execution evidence remain pending.

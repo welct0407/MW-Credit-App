@@ -2,7 +2,7 @@
 
 Active on Debian from **22 September 2026, 11:48:59 Bangkok**. Signed event and capture times must both follow `2026-09-22T04:48:59.453352+00:00`. Existing conversation/receipt cutoffs and full conversation history are retained.
 
-Owner scope, 22 September 2026: allow operational corrections and DML, only for current AI Reviewers, with a database connection. Codex chooses the operations; there are no scripts per business operation. Deployment evidence is in [the change log](../Change%20Logs/CHANGE_NOTES_REVIEWER_DML_2026-09-22.md).
+Owner scope, 22 September 2026: allow operational corrections and DML, only for current AI Reviewers, with a database connection. Codex chooses the operations; there are no scripts per business operation. Deployment evidence is in [the change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/integration-agent/Change%20Logs/CHANGE_NOTES_REVIEWER_DML_2026-09-22.md).
 
 ## Authority and tools
 

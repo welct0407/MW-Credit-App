@@ -29,7 +29,7 @@ Accounts and authentication notes were supplied by the owner in the completed re
 | Railway | Metabase hosting and billing | welct0407@gmail.com | Chrome Gmail | Using Github authentication |
 | Cloudflare | DNS, domains and tunnels | zhcyidea@gmail.com | Edge | |
 | Grafana Cloud | Resource dashboards / monitor.mw-credit.com | welct0407@mw-credit.com | Chrome work | |
-| GitHub | AppSheet-Loan-Project repository | welct0407@gmail.com | Chrome Gmail | |
+| GitHub | `welct0407/MW-Credit-App` repository | welct0407@gmail.com | Chrome Gmail | |
 | Microsoft Azure | VM administration and billing | zhcyidea@gmail.com | Edge | |
 | Tailscale | Private network administration | zhcyidea@gmail.com | Edge | Gmail authentication |
 | Outlook | Existing fallback email service | welctcodex@outlook.com | Edge | |

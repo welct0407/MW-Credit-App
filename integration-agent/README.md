@@ -17,7 +17,7 @@ Status: **daily cash statements, receipt review and Partner conversations active
 
 PostgreSQL state, generic audit and the reviewer/native DELETE route are implemented: see [PostgreSQL operations](docs/POSTGRESQL_OPERATIONS.md).
 
-[Persistent Partner conversations](docs/PARTNER_CONVERSATIONS.md) add isolated follow-up memory, fresh business-data tools and Codex-selected operational API calls. This capability has separate processing/write switches and a signed-message activation cutoff. Codex chooses the API payloads; no fixed business-operation list or per-operation scripts are required. AppSheet GUI automation is not enabled. Deployment status is in the [change log](Change%20Logs/CHANGE_NOTES_PARTNER_CONVERSATIONS_2026-09-22.md).
+[Persistent Partner conversations](docs/PARTNER_CONVERSATIONS.md) add isolated follow-up memory, fresh business-data tools and Codex-selected operational API calls. This capability has separate processing/write switches and a signed-message activation cutoff. Codex chooses the API payloads; no fixed business-operation list or per-operation scripts are required. AppSheet GUI automation is not enabled. Deployment status is in the [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/integration-agent/Change%20Logs/CHANGE_NOTES_PARTNER_CONVERSATIONS_2026-09-22.md).
 
 [Daily cash statements](docs/CASH_STATEMENT.md) cover 00:00–00:00 Bangkok posting activity, per-account English/Thai PNGs and the current Partner opt-in. The [maintained business process](docs/BUSINESS_PROCESS.md) documents the Instagram-first and email-fallback flow.
 

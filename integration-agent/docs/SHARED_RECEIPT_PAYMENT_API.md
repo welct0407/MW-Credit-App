@@ -16,7 +16,7 @@ Existing POSTING/UNKNOWN with an `igr:` or missing legacy payment ID always use 
 
 The existing projector reads the saved payment_id and repeats exact financial readback before attaching the native IG Receipt ID/Receipt Image/Receipt Received At triplet. Original object path, generation, SHA256 and capture timestamp remain unchanged. No new SQL/GCS permission or agent-to-notify grant is required. The native conversation candidate centralizes its API commands and postcommit push separately; explicitly selected reviewer SQL retains minute notification recovery.
 
-Verification and publication are recorded in the [change log](../Change%20Logs/CHANGE_NOTES_SHARED_RECEIPT_PAYMENT_API_2026-10-12.md) and [sanitized deployment receipt](../outputs/r053-shared-receipt-api/production-activation.json). The actual command API, workload identity policy and SQL grants were deployed before agent activation. Original package/configuration recovery is retained privately under `/var/lib/mw-integration-agent/rollback/r053-20261011T200135181472Z`, together with the separately verified full `mw_agent` database backup.
+Verification and publication are recorded in the [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/integration-agent/Change%20Logs/CHANGE_NOTES_SHARED_RECEIPT_PAYMENT_API_2026-10-12.md) and [sanitized deployment receipt](../outputs/r053-shared-receipt-api/production-activation.json). The actual command API, workload identity policy and SQL grants were deployed before agent activation. Original package/configuration recovery is retained privately under `/var/lib/mw-integration-agent/rollback/r053-20261011T200135181472Z`, together with the separately verified full `mw_agent` database backup.
 
 ## R053 maintained cutover helper
 
