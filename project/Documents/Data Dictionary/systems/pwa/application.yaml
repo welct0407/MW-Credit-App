@@ -214,11 +214,14 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817/apps/pwa/src/OperationConfirm.tsx"
   "hybrid_read_cache":
     "behavior": "Used read views render cached/prepared data and receipt images first; authorized network refresh updates\
-      \ the same view. The refresh icon spins for request activity. The status text left of it (not a control) shows a progress\
-      \ bar and percentage during the first download or a refresh-started dataset check, then Updated HH:MM (Saved data from\
-      \ HH:MM after 10 minutes); failed domains read '<section> not updated' or 'Update failed' there, with no separate paused\
-      \ banner or Retry. Distinct ! badge/tooltip/live status indicates current-page refresh failure even without cache; scope\
-      \ epoch blocks late prior-page failures. Successful retry clears failure; cached fallback indication is separate."
+      \ the same view. The refresh icon spins for request activity. The status text left of it (not a control, fixed cell)\
+      \ shows the percentage above a bar during the first download or a refresh-started dataset check, then Updated HH:MM\
+      \ (Saved data from HH:MM after 10 minutes); failed domains read '<Borrowers|Collection|Cash|Management|Notifications>\
+      \ not updated', several 'Update failed', and 'Download incomplete' appears before the first full download. There is\
+      \ no separate paused banner, Retry, incomplete strip or Preparing notice, and a hidden polite live region announces\
+      \ only transitions. Offline reads do not record a refresh failure. Distinct ! badge/tooltip/live status indicates current-page\
+      \ refresh failure even without cache; scope epoch blocks late prior-page failures. Successful retry clears failure;\
+      \ cached fallback indication is separate."
     "isolation": "Owner issuer/uid and environment namespace; full URL/query and relevant Asia/Bangkok business date keys;\
       \ account/session authorization lease and read-revision guards; no cross-owner/environment/search/date leakage."
     "bounds":
@@ -268,9 +271,10 @@
       \ never rewrite pending requests/drafts; retained complete data remains visible on update/failure."
     "coverage": "Used server read DTOs, existing membership/financial calculations, eligible records and recent cash-statement\
       \ dates. Receipt media uses authenticated native reads, not raw storage access or signed URLs."
-    "progress": "Header bar is determinate with numeric percentage only during an active online preparation cycle, using cycle-completed\
-      \ work separate from retained cached completeness. Hides immediately offline or when the current cycle is idle/finished,\
-      \ independent of retained cached readiness. No indeterminate dataset bar; current GET activity remains refresh-icon\
+    "progress": "Status text left of the refresh icon shows the percentage (12px) above a 60x6 bar only during the first download\
+      \ or a refresh-icon-started dataset check, until its queued domains are checked, using cycle-completed work separate\
+      \ from retained cached completeness (domainsPending). The bar ends when sync is paused (offline, unauthorized, 401/403);\
+      \ automatic polls and focus checks stay quiet. No indeterminate dataset bar; current GET activity remains refresh-icon\
       \ feedback."
     "network_only": "Fresh financial close/correction/auto-assignment/review and command status stay online. Guarded read-only\
       \ Collection Note baseline may use prepared data only when not editing, busy, blocked or pending; dirty text is not\
@@ -289,10 +293,10 @@
       \ through final asOf is an interval of authoritative per-request reads, not a global MVCC snapshot. Old complete bundle\
       \ stays available across pause/failure/reconnect."
     "incremental": "Initial full protocol2 then content-only protocol3; canonical hashes ignore asOf and reuse existing content.\
-      \ Visible 30s poll and reconnect/focus detect other-user changes quietly. The one header refresh icon also wakes the\
-      \ saved-change sync and checks every domain, including domains that did not fail, joining a check already in flight.\
-      \ Signals coalesce while an existing cycle remains active, including cycles longer than the poll, preserving queues/cursors\
-      \ rather than adding endless work."
+      \ Visible 30s poll and reconnect/focus detect other-user changes quietly. The one header refresh icon refreshes the\
+      \ screen, delta-checks every domain (detail.all), including domains that did not fail and joining a check already in\
+      \ flight, then wakes the saved-change sync; it also runs beside an open edit. Signals coalesce while an existing cycle\
+      \ remains active, including cycles longer than the poll, preserving queues/cursors rather than adding endless work."
     "source_gate": "Main domains hash raw source-table content/xmin with actor/day scope, testing sourceVersion at traversal\
       \ start/end; unchanged sources bypass DTO providers. Recipient notifications always scan protected manifests with sourceVersion=null,\
       \ no cheap source gate. No CDC/schema or universal snapshot claim."
@@ -501,11 +505,9 @@
       \ pending edits and actor/recipient boundaries"
     "state": "value"
   "/content/hybrid_read_cache/behavior":
-    "reference": "apps/pwa/src/SyncStatus.tsx, live-main.tsx, offline-dataset.ts on branch claude/r071-style-decisions (R071);\
-      \ e2e payment-command 'One refresh icon' and 'Full app preparation', live-signout-blocked 'header refresh also wakes\
-      \ the saved-change sync'"
-    "reason": "R071 owner direction 17 October 2026: one refresh icon does everything; status text with progress bar and percentage,\
-      \ then updated time; failures in the status text instead of the paused banner"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/32faf1bc0f49343f46e560d345634489e00db732/apps/pwa/src/SyncStatus.tsx"
+    "reason": "R071 final header behaviour (owner direction 17 October 2026): one refresh icon syncs everything; status text\
+      \ with percentage and bar, then updated time; failures in the status text; offline reads do not mark the refresh failed"
     "state": "value"
   "/content/offline_datasets/delivery":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/1e0dd73ae856ef55fdcdd6fc1e8097d5d9335817/apps/pwa/src/LoanRecord.tsx"
@@ -522,9 +524,9 @@
       \ pending edits and actor/recipient boundaries"
     "state": "value"
   "/content/offline_datasets/progress":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/283ac3c50ec4a1a98fca2af9c06b51693aa2e992/apps/pwa/src/live-main.tsx"
-    "reason": "Distinguish current active sync cycle from retained cache-ready state and current UI tests from prior API baseline\
-      \ evidence"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/32faf1bc0f49343f46e560d345634489e00db732/apps/pwa/src/SyncStatus.tsx"
+    "reason": "R071 final header behaviour (owner direction 17 October 2026): one refresh icon syncs everything; status text\
+      \ with percentage and bar, then updated time; failures in the status text; offline reads do not mark the refresh failed"
     "state": "value"
   "/content/offline_datasets/traversal":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/374fe98ed21ab233f068dd337d7cbaef0eb24788/apps/pwa/src/offline-dataset.ts"
@@ -537,11 +539,9 @@
       \ poll coalescing; API unchanged"
     "state": "value"
   "/content/offline_datasets/incremental":
-    "reference": "apps/pwa/src/SyncStatus.tsx, live-main.tsx, offline-dataset.ts on branch claude/r071-style-decisions (R071);\
-      \ e2e payment-command 'One refresh icon' and 'Full app preparation', live-signout-blocked 'header refresh also wakes\
-      \ the saved-change sync'"
-    "reason": "R071 owner direction 17 October 2026: one refresh icon does everything; status text with progress bar and percentage,\
-      \ then updated time; failures in the status text instead of the paused banner"
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/32faf1bc0f49343f46e560d345634489e00db732/apps/pwa/src/SyncStatus.tsx"
+    "reason": "R071 final header behaviour (owner direction 17 October 2026): one refresh icon syncs everything; status text\
+      \ with percentage and bar, then updated time; failures in the status text; offline reads do not mark the refresh failed"
     "state": "value"
   "/content/offline_datasets/source_gate":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/6a3cf8cde2710a45b0368bc7f177f21bdab2693c/apps/pwa/src/offline-dataset.ts"
