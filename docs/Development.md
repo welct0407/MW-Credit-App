@@ -12,6 +12,8 @@ Google project `clever-oasis-508610-n7`, region `asia-southeast1`; shared SQL `m
 
 Cloud Run uses workload identities and IAM database authentication. Delivery uses established federation; operator tooling uses the maintained unattended route. Prefer Secret Manager references over manual password-file requests. Never print values or commit secrets, plans/state, auth exports or private data.
 
+DEV web builds (`build:live-dev`) take their Firebase client config from Secret Manager `mw-credit-app-dev-firebase-web` into the gitignored `.env.live-dev`, which is deleted after the build. From R071 (owner decision 17 October 2026) DEV uses that secret's `appId` as is, the MW Credit DEV web app `1:737787224638:web:b98872168121353cfbe76f`. DEV builds up to R070 used the MW Credit Production web app ID instead. PROD builds keep the Production web app from the pinned public config. Only Firebase sign-in reads the app ID, and the project and API key are shared, so switching changes neither sign-in nor cost.
+
 Use the owning infrastructure root's README/wrapper. Remote state already exists: do not bootstrap competing state. Review an exact plan before authorized apply. Terraform owns service settings; artifact delivery owns application image versions where configured. Shared SQL/bucket metadata is adopted; contents and the Azure VM controller are excluded.
 
 ## Delivery process and validation
