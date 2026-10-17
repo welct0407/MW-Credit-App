@@ -24,7 +24,7 @@ export function Notifications({access,thai,onTarget,visible=true,openRequest=nul
  useEffect(()=>{if(visible)void loadHistory();return()=>{historyGeneration.current++;historyFlight.current?.abort()}},[visible]);
  useEffect(()=>{
   if(!visible||busy)return;let active=true;const count=Math.max(25,items.length);
-  const history=subscribeOfflineDataset<any>(access,'/api/notifications',async first=>{const rows=[...first.items];let next=first.nextCursor;while(active&&next&&rows.length<count){const page=await readOfflineDataset(access,'/api/notifications?before='+encodeURIComponent(next)).catch(()=>null);if(!page||page.nextCursor===next)return;rows.push(...page.items);next=page.nextCursor}if(active){setItems(rows);setCursor(next)}});
+  const history=subscribeOfflineDataset<any>(access,'/api/notifications',async first=>{const rows=[...first.items];let next=first.nextCursor;while(active&&next&&rows.length<count){const page=await readOfflineDataset(access,'/api/notifications?before='+encodeURIComponent(next)).catch(()=>null);if(!page||page.nextCursor===next)return;rows.push(...page.items);next=page.nextCursor}if(active){setItems(rows);setCursor(next)}},undefined,{hold:true});
   // The dataset carries account preference; device registration remains the last verified device result.
   const preference=subscribeOfflineDataset<any>(access,'/api/notifications/status',value=>setStatus(previous=>previous?{...previous,enabled:value.enabled}:previous));
   return()=>{active=false;history();preference()};

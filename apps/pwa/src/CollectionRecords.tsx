@@ -68,6 +68,8 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const revision = useRef(0);
   const listPanel = useRef<HTMLElement | null>(null);
   const detailPanel = useRef<HTMLElement | null>(null);
+  // UX-REFRESH-06: background updates wait while the list or the detail rows are touched or scrolled.
+  const listHold = { hold: () => listPanel.current }, detailHold = { hold: () => detailPanel.current };
   const [scrollTarget, setScrollTarget] = useState<{ kind: 'list' | 'detail'; sequence: number }>({ kind: 'list', sequence: 0 });
   useLayoutEffect(() => {
     if (!scrollTarget.sequence) return;
@@ -97,12 +99,12 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   }
   useEffect(()=>{
     if(!commandAccess||busy)return;
-    const boardCursor=boardCursors.current[page-1],stops=[subscribeOfflineDataset<BoardResult>(commandAccess,'/api/collection?limit=25'+(query?'&q='+encodeURIComponent(query):'')+(boardCursor?'&cursor='+encodeURIComponent(boardCursor):''),value=>{setItems(value.items);setCursor(value.nextCursor);setBusinessDate(value.businessDate);setAsOf(value.asOf)})];
+    const boardCursor=boardCursors.current[page-1],stops=[subscribeOfflineDataset<BoardResult>(commandAccess,'/api/collection?limit=25'+(query?'&q='+encodeURIComponent(query):'')+(boardCursor?'&cursor='+encodeURIComponent(boardCursor):''),value=>{setItems(value.items);setCursor(value.nextCursor);setBusinessDate(value.businessDate);setAsOf(value.asOf)},undefined,listHold)];
     if(selected&&!paymentOpen&&!pendingPayment){
       const base='/api/collection/'+encodeURIComponent(selected.id),cursor=chargeCursors.current[chargePage-1];
-      stops.push(subscribeOfflineDataset<DetailResult>(commandAccess,base+'/charges?limit=10'+(cursor?'&cursor='+encodeURIComponent(cursor):''),value=>{setSelected(value.borrower);setCharges(value.items);setChargeCursor(value.nextCursor);setChargeAsOf(value.asOf)}));
-      stops.push(subscribeOfflineDataset<UpcomingSummary>(commandAccess,base+'/upcoming',value=>{setUpcoming(value);previews.current={borrowerId:selected.id,businessDate:value.businessDate,asOf:value.asOf,receivedAt:performance.now(),items:value.previews??[]}}));
-      if(upcomingDetail){const next=upcomingCursors.current[upcomingPage-1];stops.push(subscribeOfflineDataset<UpcomingDetail>(commandAccess,base+'/upcoming/'+encodeURIComponent(upcomingDetail.dueDate)+'?limit=25'+(next?'&cursor='+encodeURIComponent(next):''),setUpcomingDetail))}
+      stops.push(subscribeOfflineDataset<DetailResult>(commandAccess,base+'/charges?limit=10'+(cursor?'&cursor='+encodeURIComponent(cursor):''),value=>{setSelected(value.borrower);setCharges(value.items);setChargeCursor(value.nextCursor);setChargeAsOf(value.asOf)},undefined,detailHold));
+      stops.push(subscribeOfflineDataset<UpcomingSummary>(commandAccess,base+'/upcoming',value=>{setUpcoming(value);previews.current={borrowerId:selected.id,businessDate:value.businessDate,asOf:value.asOf,receivedAt:performance.now(),items:value.previews??[]}},undefined,detailHold));
+      if(upcomingDetail){const next=upcomingCursors.current[upcomingPage-1];stops.push(subscribeOfflineDataset<UpcomingDetail>(commandAccess,base+'/upcoming/'+encodeURIComponent(upcomingDetail.dueDate)+'?limit=25'+(next?'&cursor='+encodeURIComponent(next):''),setUpcomingDetail,undefined,detailHold))}
     }
     return()=>stops.forEach(stop=>{stop()});
   },[commandAccess?.offline,query,page,chargePage,selected?.id,busy,paymentOpen,pendingPayment,upcomingDetail?.dueDate,upcomingPage]);

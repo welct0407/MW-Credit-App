@@ -1,19 +1,25 @@
 import {beginRequest} from './request-activity';
 import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset,routeDomain,receiptMediaCandidates} from './offline-dataset';
 import {commandOriginAllowed} from './environment';
+import {deferWhileInteracting,cancelDeferred,type HoldScope} from './interaction-hold';
 import type {OwnerOfflineRepository,CachedResponse} from './owner-offline';
 
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
 type Options<T>={origin?:string;signal?:AbortSignal;onCached?:(data:T)=>void;policy?:'cache-first'|'network-only'};
 /** Subscribe only mounted read-only views. The caller owns edit/generation guards;
  * this reads the committed bundle without a network request or loading state. */
-export function subscribeOfflineDataset<T=any>(access:Access,path:string,apply:(data:T)=>void,onMissing?:()=>void){
- const repository=access.offline,scope=repository?.scopeName,domain=routeDomain(new URL(path,access.origin).pathname);let active=true,generation=0;
+/** hold (UX-REFRESH-06): a list's update waits while that list is touched or scrolled (interaction-hold.ts).
+ * An update still held when the subscription stops (the screen went busy) is re-read when the same path is
+ * subscribed again, so it is not lost. */
+const heldWhenStopped=new Set<string>();
+export function subscribeOfflineDataset<T=any>(access:Access,path:string,apply:(data:T)=>void,onMissing?:()=>void,options:{hold?:HoldScope}={}){
+ const repository=access.offline,scope=repository?.scopeName,domain=routeDomain(new URL(path,access.origin).pathname),token=Symbol(path),key=scope+'|'+path;let active=true,generation=0;
  const update=(event:Event)=>{const detail=(event as CustomEvent).detail;if(!active||!scope||detail?.scopeName!==scope||detail.domain!==domain||detail.changed===false)return;const current=++generation;
-  void readOfflineDataset(access,path).then(async data=>{if(!active||current!==generation)return;if(data!==null){apply(data as T);return;}if(onMissing&&repository&&await repository.syncAuthorized()&&(await repository.readDataset(domain))?.complete&&active&&current===generation)onMissing()}).catch(()=>{});
+  void readOfflineDataset(access,path).then(async data=>{if(!active||current!==generation)return;if(data!==null){const run=()=>{if(active&&current===generation)apply(data as T)};if(options.hold)deferWhileInteracting(token,options.hold,run);else run();return;}if(onMissing&&repository&&await repository.syncAuthorized()&&(await repository.readDataset(domain))?.complete&&active&&current===generation)onMissing()}).catch(()=>{});
  };
  window.addEventListener('mw-offline-dataset-ready',update);
- return()=>{active=false;generation++;window.removeEventListener('mw-offline-dataset-ready',update)};
+ if(scope&&heldWhenStopped.delete(key))update(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:scope,domain,changed:true}}));
+ return()=>{active=false;generation++;if(cancelDeferred(token)&&scope)heldWhenStopped.add(key);window.removeEventListener('mw-offline-dataset-ready',update)};
 }
 export type CachedReadResult<T>={response:Response;data:T;fromCache:boolean};
 const failures=new Set<string>(),refreshFailures=new Set<string>(),listeners=new Set<()=>void>();

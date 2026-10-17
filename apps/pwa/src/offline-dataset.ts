@@ -32,6 +32,11 @@ export const DATASET_POLL_MS=30*1000;
 /** R064: online and background-prepare triggers recheck a domain only after this age; focus, visible-again,
  * the poll and manual sync bypass it (owner decision 17 October 2026). */
 export const DATASET_RECHECK_MIN_MS=10*1000;
+/** A failed domain (or receipt) is retried after a bounded exponential back-off: 30 s, 60 s, 2 min,
+ * then every 5 min. Success resets it for that task; online, focus and visible-again reset every task.
+ * Background triggers (the poll, a successful live read, a page served from the local bundle) wait
+ * for the back-off; an explicit sync, an own write and a waiting screen retry at once. */
+export const DATASET_RETRY_BACKOFF_MS=[30*1000,60*1000,2*60*1000,5*60*1000] as const;
 const REQUEST_TIMEOUT_MS=25000;
 /** services/api/offline-dataset-delta.mjs rejects a need list longer than this. */
 const NEED_BATCH=2048;
@@ -49,7 +54,7 @@ export function receiptRetainedOffline(row:any,now=Date.now()){
 export const receiptMediaCandidates=(url:URL)=>url.searchParams.get('source')!=='preferred'?['blob:'+url.href]:['manual','agent'].map(source=>{const alias=new URL(url);alias.searchParams.set('source',source);return 'blob:'+alias.href});
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
  const repository=access.offline;if(!repository)return()=>{};const repo=repository;
- let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,retryAttempts=0,controller:AbortController|null=null,activeTask:string|null=null;
+ let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,controller:AbortController|null=null,activeTask:string|null=null;
  let lastChecked:number|null=null,recheck=false,pollTimer:ReturnType<typeof setTimeout>|undefined;
  const recheckDomains=new Set<string>(),domainChecked=new Map<string,number>();
  // Servers before R064 reject the acceptChanged request field; remember per path.
@@ -60,7 +65,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const cycleDomains=new Set<string>(),cycleDone=new Set<string>();
  const beginCycle=(targets:readonly string[]=domains)=>{if(targets.length===domains.length)armPoll();cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
  const valueIndexes=new Map<string,{base:string|null,values:Record<string,any>}>();
- const completed=new Set<string>(),failed=new Set<string>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>();
+ const completed=new Set<string>(),failed=new Set<string>(),backoff=new Map<string,{attempts:number;next:number}>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>();
  const mediaKeys=(records:any)=>(records?.data?.payments??[]).filter((row:any)=>receiptRetainedOffline(row)).flatMap((row:any)=>[...(row.receiptReference?['manual']:[]),...(row.agentReceiptPresent?['agent']:[])].map(source=>{const path='/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source;mediaVersion.set(path,Date.parse(source==='manual'?row.receiptAt:row.agentReceiptAt));return path}));
  // Stored receipts outside the current window (aged out, deleted payments, legacy
  // `preferred` alias copies) are removed; only one blob per receipt is kept.
@@ -79,13 +84,19 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
- const retryLater=()=>{if(stopped||retryTimer||retryAttempts>=3||!navigator.onLine||paused)return;const delay=[5000,15000,30000][retryAttempts++];retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},delay)};
+ // Back-off bookkeeping: a failed task is waiting until its next retry time.
+ const waiting=(task:string)=>failed.has(task)&&(backoff.get(task)?.next??0)>Date.now();
+ const succeeded=(task:string)=>{failed.delete(task);backoff.delete(task)};
+ const fail=(task:string)=>{failed.add(task);const attempts=(backoff.get(task)?.attempts??0)+1;backoff.set(task,{attempts,next:Date.now()+DATASET_RETRY_BACKOFF_MS[Math.min(attempts,DATASET_RETRY_BACKOFF_MS.length)-1]})};
+ const resetBackoff=()=>{backoff.clear();if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined}};
+ // One timer for the earliest due failed task; resume() then re-queues only the due ones.
+ const retryLater=()=>{if(stopped||!navigator.onLine||paused||!failed.size)return;const due=Math.min(...[...failed].map(task=>backoff.get(task)?.next??0));if(retryTimer)clearTimeout(retryTimer);retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},Math.max(0,due-Date.now()))};
  const enqueue=(task:string,first=false)=>{if(queue.includes(task))return;first?queue.unshift(task):queue.push(task)};
  const schedule=()=>{if(stopped||timer)return;timer=setTimeout(()=>{timer=undefined;void pump()},200)};
  const addMedia=()=>{if(domains.every(domain=>completed.has(domain)))for(const path of media)if(!completed.has(path)&&!failed.has(path))enqueue(path)};
  const forget=async(task:string)=>{partials.delete(task);await repo.discardDatasetProgress(task)};
  // The receipt window moves with time: recompute it whenever the records check completes.
- const refreshMedia=async(records:any)=>{const oldVersions=new Map(mediaVersion);mediaVersion.clear();media=mediaKeys(records);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);failed.delete(path)}await pruneMedia()};
+ const refreshMedia=async(records:any)=>{const oldVersions=new Map(mediaVersion);mediaVersion.clear();media=mediaKeys(records);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);succeeded(path)}await pruneMedia()};
  const giveUp=(task:string)=>{if(task===requestedDomain)failedEvent(task)};
  async function initialize(){if(initializing)return;initializing=true;try{
   if(!await repo.syncAuthorized()){paused=true;status();return}
@@ -122,7 +133,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const base=partial?.base??datasetBase(bundle),delta=!!bundle?.complete;
    if(partial&&(partial.base??null)!==datasetBase(bundle)){await forget(task);enqueue(task);return}
    const path=isMedia?task:task==='notifications'?'/api/notifications/offline-dataset':'/api/offline-dataset?domain='+task,url=new URL(path,access.origin);if(!isMedia){url.searchParams.set('protocol',delta?'3':'2');if(!delta&&partial?.nextCursor)url.searchParams.set('cursor',partial.nextCursor);}
-   if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);return}}
+   if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);succeeded(task);return}}
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
    const legacy=legacyPaths.has(url.pathname);
    const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:bundle?.sourceVersion??null,...(legacy?{}:{acceptChanged:true})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
@@ -142,7 +153,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
      if(value.domain!==task||!value.complete||value.nextCursor!==null||!bundle?.complete||partial||value.sourceVersion!==bundle.sourceVersion)throw Error('Invalid unchanged checkpoint');
      // UX-REFRESH-02: a current bundle is not rewritten; only the check time is recorded.
      if(bundle.cacheStale&&!await repo.saveDataset(task,{...bundle,cacheStale:false},revision,null,base,true))throw Error('Dataset changed during check');
-     completed.add(task);cycleDone.add(task);failed.delete(task);changedRetries.delete(task);domainChecked.set(task,Date.now());
+     completed.add(task);cycleDone.add(task);succeeded(task);changedRetries.delete(task);domainChecked.set(task,Date.now());
      if(task==='records')await refreshMedia(bundle);
      ready(task,false);return;
     }
@@ -202,39 +213,46 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    // watermark and re-sends its content each time) keeps the stored bundle as it is.
    const keep=!isMedia&&!dataChanged&&!torn&&!partial&&!!bundle?.complete&&!bundle.cacheStale&&full.sourceVersion===bundle.sourceVersion&&full.businessDate===bundle.businessDate;
    const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):keep||await repo.saveDataset(task,full,revision,partial?.nextCursor??null,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
-   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);failed.delete(task);if(task==='records')await refreshMedia(full);
+   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);succeeded(task);if(task==='records')await refreshMedia(full);
    if(!isMedia){
     domainChecked.set(task,Date.now());
     if(torn){const retries=changedRetries.get(task)??0;if(retries<2){changedRetries.set(task,retries+1);recheckDomains.add(task)}}else changedRetries.delete(task);
     ready(task,dataChanged);
    }
-  }catch{if(!stopped){partials.delete(task);if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{failed.add(task);if(!isMedia)giveUp(task)}}}finally{
+  }catch{if(!stopped){partials.delete(task);if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task);if(!isMedia)giveUp(task)}}}finally{
    clearTimeout(timeout);running=false;activeTask=null;controller=null;if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}if(!stopped){addMedia();if(!queue.length&&(recheck||recheckDomains.size)){const targets=recheck?domains:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}if(!queue.length&&!failed.size&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();status();if(queue.length&&!paused)schedule();else if(failed.size)retryLater()}
   }
  }
  const request=(event?:Event)=>{if(stopped)return;const detail=(event as CustomEvent|undefined)?.detail;const priority=domains.includes(detail?.domain)?detail.domain:undefined;
-  // A background prepare (a page served from the local bundle) is throttled like focus.
-  if(detail?.background&&priority&&completed.has(priority)&&!failed.has(priority)&&!stale(priority))return;
-  retryAttempts=0;if(retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
+  // A background prepare (a page served from the local bundle) is throttled like focus and
+  // waits for a failed domain's back-off; an explicit request retries failed work at once.
+  const background=!!detail?.background;
+  if(background&&priority&&(waiting(priority)||completed.has(priority)&&!failed.has(priority)&&!stale(priority)))return;
+  if(!background&&retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
   if(detail?.foreground)requestedDomain=priority;
   if(event?.type==='mw-read-invalidated'){if(running||queue.length)recheck=true;else{beginCycle();for(const domain of domains)enqueue(domain)}failed.clear()}
   else if(!running&&!queue.length&&event?.type==='mw-offline-prepare'&&!failed.size){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
-  else{for(const task of failed)enqueue(task);failed.clear()}
+  else for(const task of [...failed])if(!background||!waiting(task)){failed.delete(task);enqueue(task)}
   if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
   changedRetries.clear();paused=false;status();schedule();
  };
  // force: refresh every domain regardless of age (focus, visible-again, poll). A cycle already
  // queued or in flight absorbs the trigger, so focus+visibilitychange (+online) in one burst
  // start one cycle and never a second concurrent fetch. Hidden, offline or offline-only: no-op.
- const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running&&!queue.length&&!failed.size){const targets=force?[...domains]:domains.filter(stale);if(targets.length){beginCycle(targets);for(const domain of targets)enqueue(domain)}}resume()};
- const focused=()=>check(true),online=()=>check();
- const visible=()=>{if(document.visibilityState!=='hidden')check(true);status()};
+ // A failed domain still in its back-off is left out of the cycle; the other domains refresh.
+ // Work queued while hidden (a due retry) is joined by the rest rather than replacing the refresh.
+ const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!running){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.length)for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}resume()};
+ // A real return to the app (focus, visible again) or reconnecting resets every back-off.
+ const focused=()=>{resetBackoff();check(true)},online=()=>{resetBackoff();check()};
+ const visible=()=>{if(document.visibilityState!=='hidden'){resetBackoff();check(true)}status()};
  // APP-OFFLINE-03: background poll every 30 seconds while visible and online; every focus,
  // visible-again and own-write invalidation (mw-read-invalidated) also refresh. Any full cycle
  // re-arms the poll, so a focus refresh is not followed by a redundant poll moments later.
  function armPoll(){if(pollTimer)clearTimeout(pollTimer);if(!stopped)pollTimer=setTimeout(()=>{pollTimer=undefined;check(true);if(!pollTimer)armPoll()},DATASET_POLL_MS)}
  armPoll();
- const resume=()=>{if(stopped)return;for(const task of failed)enqueue(task);failed.clear();for(const domain of domains)if(!completed.has(domain)&&domain!==activeTask)enqueue(domain);paused=false;status();schedule()};
+ // Re-queues failed work whose back-off has passed (a successful live read, own queued
+ // command and the poll land here) and arms the timer for the rest.
+ const resume=()=>{if(stopped)return;for(const task of [...failed])if(!waiting(task)){failed.delete(task);enqueue(task)}for(const domain of domains)if(!completed.has(domain)&&domain!==activeTask&&!waiting(domain))enqueue(domain);paused=false;status();schedule();retryLater()};
  const offline=()=>{paused=true;controller?.abort('offline');status()};
  const unsubscribe=subscribeActivity(()=>{status();if(activitySnapshot()===0)schedule()});
  window.addEventListener('mw-offline-queued',resume);window.addEventListener('online',online);window.addEventListener('offline',offline);window.addEventListener('focus',focused);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-read-invalidated',request);window.addEventListener('mw-offline-prepare',request);
