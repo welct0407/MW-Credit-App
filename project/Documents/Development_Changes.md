@@ -27,7 +27,7 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 
 Owner report 17 October 2026: the Review payment button text looked too light; it should match Confirm payment. Cause: `.selected-payment .payment-selection-header button` in `style.css` (transparent background, no border) outranked the shared `.payment-review-button` rule in `live-style.css`, so Review showed white text on the grey allocation bar. The Review selectors now include `.payment-selection-header`, giving it the Confirm payment look (#713c00 fill and border, white text, weight 600; disabled grey unchanged). UI-only, no API or SQL change.
 
-- **Checks.** Chromium computed style before: transparent background, 0 px border; after: identical to Confirm payment. `npm run check` 566 of 566.
+- **Checks.** Chromium computed style before: transparent background, 0 px border; after: identical to Confirm payment. `npm run check` 566 of 566. Contrast audit of every enabled button, link and select across the full Playwright suite (desktop and mobile, 565 browser contexts, 4.5:1 text and 3:1 icon minimum): Review was the only failure (1.25:1 before), none after. The same run had 520 passed and 2 failures from the known U10 1440 px sticky-summary flake, which also fails 2 of 3 on the parent commit.
 - **Recovery.** `git revert` the commit; Hosting rollback to the prior version once deployed.
 
 ## R069 W4 optional follow-ups
