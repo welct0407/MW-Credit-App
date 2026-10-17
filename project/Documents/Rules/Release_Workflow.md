@@ -16,7 +16,7 @@ Use the single Open release for product work. Freeze it only when authorized pro
 
 At authorized promotion start:
 1. Re-read the current tracker; pin included source/artifacts, configuration and required SQL manifest/hashes. Resolve unfinished scope explicitly.
-2. In one published tracker update mark the release Frozen with timestamp/package evidence, open the next unused number and advance the counter. Never reserve a successor before this point or create two Open releases.
+2. In one published tracker update mark the release Frozen with timestamp/package evidence, open the next unused number and advance the counter. Never reserve a successor before this point or create two Open releases. The same update bumps `releaseNumber` in `apps/pwa/src/release.ts` (the About screen shows it); a unit test enforces that it matches the tracker's Open row.
 3. Capture the candidate independently before shared DEV advances. This normally means immutable images/Hosting assets and source/configuration pins; no AppSheet copies or third database environment.
 4. Corrections to frozen scope create a new candidate revision within that release, rerunning only invalidated checks. New features go to the Open successor. Never promote unrelated later DEV changes.
 
