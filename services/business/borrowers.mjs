@@ -39,7 +39,9 @@ export async function mutateBorrowerRecord(client,operation,id,input,markAttempt
  if(operation!=='create'&&!current)return failure(404,'not_found');
  if(current&&current.version!==input.expectedVersion)return failure(409,'record_conflict',current);
  if(operation!=='delete'){
-  if(fields.name?.trim())await client.query('SELECT pg_advisory_xact_lock(public.pwa_lock_key_v1($1,$2))',['borrower-name',(fields.name??'').trim().toLowerCase()]);
+  // The guard and key text are SQL (nullif/btrim/lower), character-for-character as in
+  // pwa_submit_operation_v2, so JS trim()/toLowerCase() can never select a different key.
+  await client.query("SELECT pg_advisory_xact_lock(public.pwa_lock_key_v1($1,lower(btrim($2)))) WHERE nullif(btrim($2),'') IS NOT NULL",['borrower-name',fields.name??'']);
   if(fields.name?.trim()&&(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"<>$1 AND lower(btrim(coalesce("Borrower Name",$3)))=lower(btrim($2)) LIMIT 1',[id,fields.name??'',''])).rowCount)return failure(409,'borrower_name_exists');
   if(fields.referrerId===id)return failure(422,'invalid_reference');
   if(fields.referrerId&&!(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=$1',[fields.referrerId])).rowCount)return failure(422,'invalid_reference');
