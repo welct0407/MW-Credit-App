@@ -165,11 +165,21 @@ test('W5 a borrower stored without a name cannot start a loan until it is named'
  finally{(record as {name:string|null}).name=original}
 });
 
-// R069: the Referrer select lists every borrower the API returns (the former server cap showed only 25), asks for a narrower search only when the API flags truncation, and a search never hides the chosen referrer.
-test('R069 referrer select lists every returned borrower and keeps the chosen one through searches',async({page})=>{const s=await setup(page);s.referrers=Array.from({length:32},(_,i)=>({id:'C-ref-'+String(i).padStart(2,'0'),label:i===31?null:'Synthetic referrer '+String(i).padStart(2,'0'),description:'English '+i}));
- await page.getByRole('button',{name:'Add borrower',exact:true}).click();const region=page.getByRole('region',{name:'Borrower record',exact:true}),select=region.getByRole('combobox',{name:'Referrer',exact:true});
+// R069: the Referrer select lists every borrower the API returns (the former server cap showed only 25) and never narrows; the search box lists matches anywhere in the name or description below it, and a tap or Enter chooses one. Only a list past the server's safety cap searches the server.
+test('R069 referrer select lists every returned borrower and the search box lists mid-word matches to choose from',async({page})=>{const s=await setup(page);s.referrers=Array.from({length:32},(_,i)=>({id:'C-ref-'+String(i).padStart(2,'0'),label:i===31?null:'Synthetic referrer '+String(i).padStart(2,'0'),description:'English '+i+(i===7?' Wattana Somchai':'')}));
+ await page.getByRole('button',{name:'Add borrower',exact:true}).click();const region=page.getByRole('region',{name:'Borrower record',exact:true}),select=region.getByRole('combobox',{name:'Referrer',exact:true}),search=region.getByRole('searchbox',{name:'Search referrer',exact:true}),matches=region.getByRole('group',{name:'Matching referrers',exact:true});
  await expect(select.locator('option')).toHaveCount(33);await expect(select.locator('option').last()).toHaveText('English 31');await expect(region).not.toContainText('Type to narrow the list');
- await select.selectOption('C-ref-30');await region.getByRole('textbox',{name:'Search referrer',exact:true}).fill('referrer 05');await expect(select.locator('option')).toHaveCount(3);await expect(select).toHaveValue('C-ref-30');await expect(select.locator('option:checked')).toHaveText('Synthetic referrer 30 — English 30');
- s.referrersTruncated=true;await region.getByRole('textbox',{name:'Search referrer',exact:true}).fill('synthetic');await expect(region).toContainText('Type to narrow the list');await expect(select.locator('option')).toHaveCount(32);await expect(select).toHaveValue('C-ref-30');
- expect(s.optionQueries).toContain('synthetic');expect(s.writes).toHaveLength(0);
+ await select.selectOption('C-ref-30');const queries=s.optionQueries.length;
+ await search.fill('tana');await expect(matches.getByRole('button')).toHaveCount(1);await expect(select.locator('option')).toHaveCount(33);await expect(select).toHaveValue('C-ref-30');
+ await search.fill('somchai  WATT');await expect(matches.getByRole('button')).toHaveCount(1);await matches.getByRole('button',{name:'Synthetic referrer 07 — English 7 Wattana Somchai',exact:true}).click();
+ await expect(select).toHaveValue('C-ref-07');await expect(search).toHaveValue('');await expect(matches).toHaveCount(0);
+ await search.fill('ferrer 0');await expect(matches.getByRole('button')).toHaveCount(13);await search.fill('ferrer 05');await search.press('Enter');await expect(select).toHaveValue('C-ref-05');
+ await search.fill('nobody here');await expect(matches).toContainText('No matching borrower');expect(s.optionQueries.length).toBe(queries);
+ expect(s.writes).toHaveLength(0);
+});
+test('R069 a referrer list past the safety cap searches the server and keeps the chosen one',async({page})=>{const s=await setup(page);s.referrersTruncated=true;s.referrers=Array.from({length:3},(_,i)=>({id:'C-ref-'+i,label:'Synthetic referrer '+i,description:'English '+i}));
+ await page.getByRole('button',{name:'Add borrower',exact:true}).click();const region=page.getByRole('region',{name:'Borrower record',exact:true}),select=region.getByRole('combobox',{name:'Referrer',exact:true}),search=region.getByRole('searchbox',{name:'Search referrer',exact:true}),matches=region.getByRole('group',{name:'Matching referrers',exact:true});
+ await expect(region).toContainText('Type to narrow the list');await select.selectOption('C-ref-2');
+ await search.fill('glish 1');await expect(matches.getByRole('button')).toHaveCount(1);expect(s.optionQueries).toContain('glish 1');await expect(select).toHaveValue('C-ref-2');await expect(select.locator('option')).toHaveCount(4);
+ expect(s.writes).toHaveLength(0);
 });

@@ -513,6 +513,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 
 .field-help{font-size:14px;line-height:1.5;margin:4px 0 12px;color:#444}.field-help output{font-weight:600}
 .referrer-truncated{display:block}
+.referrer-results{display:flex;flex-direction:column;gap:4px;max-height:264px;overflow-y:auto;margin:4px 0 12px;border:1px solid #ccc;border-radius:4px;padding:4px}.referrer-result{min-height:44px;text-align:left;background:#fff;border:0;border-radius:4px;padding:8px;font:inherit;color:inherit;overflow-wrap:anywhere}.referrer-result:hover,.referrer-result:focus-visible{background:#eef3fb}.referrer-result[aria-pressed=true]{font-weight:600;background:#e6efe6}
 .settlement-status{display:inline-block!important;width:fit-content;border:1px solid #ccc;border-radius:4px;padding:1px 6px;color:#444;background:#f2f2f2;font-size:14px}
 .chart-tick{font-size:16px;fill:#444;font-variant-numeric:tabular-nums}.analytics-pie-legend{list-style:none;padding:0;margin:12px 0;font-size:14px}.analytics-pie-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;align-items:baseline;margin:6px 0}.analytics-pie-legend li>span:nth-child(2){overflow-wrap:anywhere}.pie-swatch{width:12px;height:12px;display:inline-block;border:1px solid #777}.analytics-pie-legend strong{white-space:nowrap;font-variant-numeric:tabular-nums}
 
