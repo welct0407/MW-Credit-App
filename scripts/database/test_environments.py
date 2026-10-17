@@ -1,37 +1,41 @@
-"""DB-ACCESS-07 / DB-ACCESS-03 guards for database/environments.json and Common.ps1."""
+"""DB-ACCESS-07 / DB-ACCESS-03 guards for database/environments.json, toolchain.json and Common.ps1."""
 import importlib.util
 import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
+import types
 import unittest
 
 REPO = Path(__file__).resolve().parents[2]
 COMMON = REPO / 'scripts/database/Common.ps1'
-_spec = importlib.util.spec_from_file_location('server_ca', Path(__file__).with_name('server_ca.py'))
-server_ca = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(server_ca)
 
 
-def synthetic_ca(directory):
-    pem = Path(directory) / 'synthetic.pem'
-    subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1', '-subj', '/CN=synthetic-ca',
-                    '-keyout', str(Path(directory) / 'key.pem'), '-out', str(pem)], check=True, capture_output=True)
-    sha = subprocess.run(['openssl', 'x509', '-in', str(pem), '-noout', '-fingerprint', '-sha256'], check=True,
-                         capture_output=True, text=True).stdout.split('=', 1)[1].strip().replace(':', '').lower()
-    return pem, sha
+def pwsh(script, env=None):
+    return subprocess.run(['pwsh', '-NoProfile', '-Command', script], capture_output=True, text=True, env=env)
 
 
 class EnvironmentTests(unittest.TestCase):
-    def test_both_targets_verify_the_pinned_server_ca(self):
+    def test_both_targets_use_the_local_proxy_route_with_the_identity_pin(self):
         targets = json.loads((REPO / 'database/environments.json').read_text())
-        pins = set()
-        for name in ('development', 'production'):
+        for name, database in (('development', 'loan_manager_dev'), ('production', 'loan_manager_prod')):
             target = targets[name]
-            self.assertEqual(target['sslmode'], 'verify-ca', name)
-            self.assertRegex(target['serverCaSha256'], r'^[0-9a-f]{64}$', name)
-            pins.add(target['serverCaSha256'])
-        self.assertEqual(len(pins), 1, 'one instance, one server CA')
+            self.assertEqual((target['instance'], target['host'], target['port'], target['database']),
+                             ('mw-credit-pg-20261017', '136.85.127.134', 5432, database), name)
+            self.assertEqual(target['sslmode'], 'disable', name)
+            self.assertIsInstance(target['proxyPort'], int, name)
+            self.assertTrue(1024 <= target['proxyPort'] <= 65535, name)
+            self.assertNotIn('serverCaSha256', target, name)
+
+    def test_proxy_binary_is_pinned(self):
+        toolchain = json.loads((REPO / 'database/toolchain.json').read_text())
+        version = toolchain['cloudSqlProxyVersion']
+        self.assertRegex(version, r'^\d+\.\d+\.\d+$')
+        pin = toolchain['cloudSqlProxyWindows']
+        self.assertEqual(pin['url'], f'https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v{version}/cloud-sql-proxy.x64.exe')
+        self.assertRegex(pin['sha256'], r'^[0-9a-f]{64}$')
 
     def test_routine_linux_reads_default_to_the_read_identity(self):
         common = COMMON.read_text()
@@ -39,38 +43,58 @@ class EnvironmentTests(unittest.TestCase):
         self.assertIn('function Get-DbEnvironment([string]$Name, [switch]$Admin)', common)
         self.assertIn('Get-DbEnvironment $Environment -Admin', (REPO / 'scripts/database/Invoke-Flyway.ps1').read_text())
 
-    @unittest.skipUnless(shutil.which('pwsh') and shutil.which('openssl'), 'pwsh and openssl required')
-    def test_pem_fingerprint_matches_openssl_and_rejects_non_certificates(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            pem = Path(tmp) / 'synthetic.pem'
-            subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1', '-subj', '/CN=synthetic-ca',
-                            '-keyout', str(Path(tmp) / 'key.pem'), '-out', str(pem)], check=True, capture_output=True)
-            expected = subprocess.run(['openssl', 'x509', '-in', str(pem), '-noout', '-fingerprint', '-sha256'], check=True,
-                                      capture_output=True, text=True).stdout.split('=', 1)[1].strip().replace(':', '').lower()
-            script = f". '{COMMON}'; Get-PemSha256 '{pem}'"
-            actual = subprocess.run(['pwsh', '-NoProfile', '-Command', script], check=True, capture_output=True, text=True).stdout.strip()
-            self.assertEqual(actual, expected)
-            (Path(tmp) / 'not.pem').write_text('not a certificate')
-            refused = subprocess.run(['pwsh', '-NoProfile', '-Command', f". '{COMMON}'; Get-PemSha256 '{Path(tmp) / 'not.pem'}'"],
-                                     capture_output=True, text=True)
-            self.assertNotEqual(refused.returncode, 0)
-
-    @unittest.skipUnless(shutil.which('openssl'), 'openssl required')
-    def test_python_clients_accept_only_the_pinned_ca(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            pem, sha = synthetic_ca(tmp)
-            target = {'instance': 'mw-credit-pg-20261017', 'serverCaSha256': sha}
-            dest = Path(tmp) / 'private' / 'cloudsql-server-ca.pem'
-            self.assertEqual(server_ca.pinned_server_ca(target, dest, fetch=lambda i: pem.read_text()), dest)
-            self.assertEqual(server_ca.pem_sha256(dest), sha)
-            self.assertEqual(server_ca.pinned_server_ca(target, dest, fetch=lambda i: self.fail('cached CA refetched')), dest)
-            dest.unlink()
-            with self.assertRaisesRegex(ValueError, 'pinned fingerprint'):
-                server_ca.pinned_server_ca({**target, 'serverCaSha256': '0' * 64}, dest, fetch=lambda i: pem.read_text())
-            self.assertFalse(dest.exists())
+    def test_direct_tls_route_is_retired(self):
+        common = COMMON.read_text()
+        self.assertIn("'--gcloud-auth','--address','127.0.0.1'", common)
+        self.assertNotIn('Get-DbServerCa', common)
+        self.assertNotIn('PGSSLROOTCERT', common)
+        self.assertFalse((REPO / 'scripts/database/server_ca.py').exists())
+        self.assertNotIn("'require'", (REPO / 'scripts/database/Export-Schema.ps1').read_text())
+        self.assertNotIn('sslrootcert', (REPO / 'scripts/database/Invoke-Flyway.ps1').read_text())
         backup = (REPO / 'scripts/database/Backup-ProductionPromotion.py').read_text()
-        self.assertIn("'sslmode': 'verify-ca'", backup)
-        self.assertNotIn("'sslmode': 'require'", backup)
+        self.assertIn("if os.name == 'nt': raise SystemExit", backup)
+        self.assertNotIn('verify-ca', backup)
+        self.assertNotIn("'136.85.127.134',5432)", backup)
+
+    @unittest.skipUnless(shutil.which('pwsh'), 'pwsh required')
+    def test_proxy_helpers_fail_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {**__import__('os').environ, 'MW_DB_TOOL_ROOT': tmp}
+            refused = pwsh(f". '{COMMON}'; Start-DbProxy ([pscustomobject]@{{instance='mw-credit-pg-20261017'; proxyPort=80}})", env)
+            self.assertNotEqual(refused.returncode, 0)
+            self.assertIn('Invalid proxyPort', refused.stderr + refused.stdout)
+            missing = pwsh(f". '{COMMON}'; Get-CloudSqlProxyPath", env)
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertIn('Install-Tools.ps1', missing.stderr + missing.stdout)
+            version = json.loads((REPO / 'database/toolchain.json').read_text())['cloudSqlProxyVersion']
+            binary = Path(tmp) / f'cloud-sql-proxy-{version}' / 'cloud-sql-proxy.exe'
+            binary.parent.mkdir()
+            binary.write_bytes(b'not the pinned proxy')
+            tampered = pwsh(f". '{COMMON}'; Get-CloudSqlProxyPath", env)
+            self.assertNotEqual(tampered.returncode, 0)
+            self.assertIn('pinned checksum', tampered.stderr + tampered.stdout)
+
+    def test_read_role_tool_accepts_only_the_proxy_identity(self):
+        fake = types.ModuleType('psycopg'); fake.sql = types.ModuleType('psycopg.sql')
+        saved = {k: sys.modules.get(k) for k in ('psycopg', 'psycopg.sql')}
+        sys.modules.update({'psycopg': fake, 'psycopg.sql': fake.sql})
+        try:
+            spec = importlib.util.spec_from_file_location('configure_dev_read_role', REPO / 'scripts/configure-dev-read-role.py')
+            module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        finally:
+            for k, v in saved.items():
+                if v is None: sys.modules.pop(k, None)
+                else: sys.modules[k] = v
+
+        class Conn:
+            def __init__(self, row): self.row = row
+            def execute(self, _sql): return types.SimpleNamespace(fetchone=lambda: self.row)
+
+        module.assert_dev_identity(Conn(('loan_manager_dev', None, 'postgres', True)))
+        for row in [('loan_manager_prod', None, 'postgres', True), ('loan_manager_dev', '10.0.0.5', 'postgres', True),
+                    ('loan_manager_dev', None, 'mw_app_dev', True), ('loan_manager_dev', None, 'postgres', False)]:
+            with self.assertRaisesRegex(RuntimeError, 'Unexpected actual DEV database'):
+                module.assert_dev_identity(Conn(row))
 
 
 if __name__ == '__main__':

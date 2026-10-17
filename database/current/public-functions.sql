@@ -144,7 +144,7 @@ CREATE FUNCTION public.attach_payment_receipt_evidence(p_payment text, p_receipt
 DECLARE before_value public."Payments"%ROWTYPE; after_value public."Payments"%ROWTYPE;
  local_capture timestamp; environment text; fields text[]:=ARRAY['IG Receipt ID','Receipt Image','Receipt Received At'];
 BEGIN
- IF session_user<>'mw_receipt_projector' THEN RAISE EXCEPTION 'Dedicated receipt projector required'; END IF;
+ IF NOT (CASE WHEN current_setting('role',true) IN ('none','') THEN session_user::text ELSE current_setting('role',true) END='mw_receipt_projector' AND session_user IN ('mw_receipt_projector','mw-integration-agent@clever-oasis-508610-n7.iam')) THEN RAISE EXCEPTION 'Dedicated receipt projector required'; END IF;
  environment:=CASE current_database() WHEN 'loan_manager_dev' THEN 'dev' WHEN 'loan_manager_prod' THEN 'prod' END;
  IF environment IS NULL OR p_receipt IS NULL OR p_receipt !~ '^[0-9a-f]{64}$'
   OR p_captured IS NULL OR NOT isfinite(p_captured) OR p_expected IS NULL

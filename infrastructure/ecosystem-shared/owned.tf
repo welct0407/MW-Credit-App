@@ -35,7 +35,7 @@ resource "google_sql_database_instance" "shared_ssd" {
     activation_policy           = "ALWAYS"
     auto_upgrade_enabled        = false
     availability_type           = "ZONAL"
-    connector_enforcement       = "NOT_REQUIRED"
+    connector_enforcement       = "REQUIRED"
     deletion_protection_enabled = true
     disk_autoresize             = true
     disk_autoresize_limit       = 0
@@ -86,10 +86,6 @@ resource "google_sql_database_instance" "shared_ssd" {
       ipv4_enabled                                  = true
       server_ca_mode                                = "GOOGLE_MANAGED_INTERNAL_CA"
       ssl_mode                                      = "ENCRYPTED_ONLY"
-      authorized_networks {
-        name  = "Flyway-owner-workstation-20260915"
-        value = "20.198.200.25/32"
-      }
     }
     location_preference {
       zone = "asia-southeast1-c"

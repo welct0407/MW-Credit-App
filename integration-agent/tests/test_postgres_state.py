@@ -129,7 +129,11 @@ class AdapterUnitTests(unittest.TestCase):
         self.assertIs(state.assume_role(conn, None), conn)
         state.assume_role(conn, 'mw_integration_agent')
         self.assertEqual(conn.statements, ['SET ROLE mw_integration_agent'])
-        for role in ('postgres', 'mw_agent_owner', 'mw_agent_worker; RESET ROLE'):
+        # ALL-ARCH-03 part 2b: the business write roles reached from the IAM login.
+        for role in ('mw_reviewer_dml', 'mw_reviewer_dml_dev', 'mw_receipt_projector'):
+            state.assume_role(conn, role)
+        self.assertEqual(conn.statements[1:], ['SET ROLE mw_reviewer_dml', 'SET ROLE mw_reviewer_dml_dev', 'SET ROLE mw_receipt_projector'])
+        for role in ('postgres', 'mw_agent_owner', 'mw_agent_worker; RESET ROLE', 'mw_ledger_owner_prod', 'mw_app_prod'):
             with self.subTest(role=role), self.assertRaisesRegex(ConfigurationError, 'UNAPPROVED_SESSION_ROLE'):
                 state.assume_role(conn, role)
         refused = Conn()

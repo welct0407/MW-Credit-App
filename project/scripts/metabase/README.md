@@ -1,3 +1,5 @@
+Retired for direct access (DB-ACCESS-07, 17 October 2026): the six `Grant-*.ps1` runners and `chart_service/provision_role.py` assume VM-01's direct route to 136.85.127.134 and are not replayed.
+
 # R040 borrower lifetime display
 
 R050 legacy tab retirement: `RemoveLegacyForecastPartnersTab.mjs --prepare`, `--apply`, `--verify` removes only tab11/15 placements, renumbers Partners249/Forecast & Planning262 to11/12, and guards all other placements and filters. Recovery dashboard26 and the private full baseline precede mutation. [Evidence and recovery](../../outputs/r050-remove-forecast-partners/README.md).

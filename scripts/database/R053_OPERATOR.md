@@ -1,5 +1,7 @@
 # R053 operator and delivery procedure
 
+Retired for direct access (DB-ACCESS-07, 17 October 2026): `r053-operator-cli.mjs` and `r053-production-operator-cli.mjs` dial VM-01's direct route and are not replayed; `owner-authority-cli.mjs` (below) uses the proxy route.
+
 ## Current native retirement delivery — V89 to V90
 
 DEV and PROD now validate at V90. The reviewed fixed PROD operation is `prepare-conversation --baseline-version 89`, with explicit owner approval, tested source and the fresh verified PROD89 backup. It grants temporary authority only for the existing journal owner, persists the version3 recovery snapshot, executes the exact grouped V90 package through the maintained runner, and restores the exact prior membership/CREATE state in `finally`. V90 itself transfers the single native-operation function and grants EXECUTE only to the exact command login. It does not provision roles, alter notify/jobs capabilities or enable capture. The backup-only `Backup-R053Protected.mjs` procedure is separately documented in [the native operator note](../../project/outputs/r053-appsheet-retirement/production-v90-operator-procedure.md).

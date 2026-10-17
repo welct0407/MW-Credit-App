@@ -3,13 +3,12 @@ import argparse, hashlib, json, os, socket, subprocess, sys, uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-# Windows VM-01 uses its established private paths and direct TLS connection.
-# Linux cloud sessions reach the same instance through the IAP tunnel
-# (scripts/database/cloud-db-tunnel.sh), read the postgres credential from
-# Secret Manager, and copy the private recovery folder to the operator bucket.
-windows = os.name == 'nt'
-local_appdata = Path('C:/Users/ideaadmin/AppData/Local')
-sys.path.insert(0, str(local_appdata / 'AppSheetLoanTools/python-deps') if windows else '/workspace/.setup/python-deps')
+# Linux cloud sessions reach the instance through the IAP tunnel
+# (scripts/database/cloud-db-tunnel.sh) with the read identity and copy the private
+# recovery folder to the operator bucket. VM-01's direct TLS route was retired
+# (DB-ACCESS-07, 17 October 2026); run this from a Linux cloud session.
+if os.name == 'nt': raise SystemExit('Run the production backup from a Linux cloud session (VM-01 direct route retired, DB-ACCESS-07)')
+sys.path.insert(0, '/workspace/.setup/python-deps')
 import psycopg
 from psycopg import sql
 
@@ -29,47 +28,32 @@ if (target['instance'], target['host'], target['port'], target['database'], targ
 target={**target,'database':args.database}
 if any(os.environ.get(k) for k in ('PGHOST','PGHOSTADDR','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','PGOPTIONS','DATABASE_URL')):
     raise ValueError('Remove ambient database routing overrides')
-# Linux: system identifier of mw-credit-pg-20261017 (the proxy hides the server address).
+# System identifier of mw-credit-pg-20261017 (the proxy hides the server address).
 CLUSTER_SYSTEM_IDENTIFIER = 7685391508477894672
 BACKUP_BUCKET = 'gs://mw-credit-operator-private-737787224638/prod-backups/'
-if windows:
-    private_root = Path('C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/flyway')
-    credential = Path(target['passwordFile']).resolve()
-    if not credential.is_relative_to(Path('C:/Users/ideaadmin/Documents/ChatGPT').resolve()): raise ValueError('Private credential required')
-    # DB-ACCESS-07: direct TLS verifies the server certificate against the pinned instance CA.
-    from server_ca import pinned_server_ca
-    server_ca = pinned_server_ca(target, private_root.parent / 'cloudsql-server-ca.pem')
-    connection = {'host': target['host'], 'port': target['port'], 'sslmode': 'verify-ca', 'sslrootcert': str(server_ca), 'user': target['user']}
-    tools = local_appdata / 'MWCredit/database-tools/postgresql-18.6-3/pgsql/bin'
-    exe = '.exe'
-    restore_base = local_appdata
-    restore_parent = local_appdata / 'MWCredit/production-promotion-restores'
-    as_server = []
-else:
-    private_root = Path(os.environ.get('MW_PRIVATE_ROOT') or Path.home() / '.mw-private') / 'AppSheet-Loan-Project/flyway'
-    subprocess.run(['bash', str(repo / 'scripts/database/cloud-db-tunnel.sh')], check=True, stdout=subprocess.DEVNULL)
-    # Read-only backup identity (DB-ACCESS-03): IAM database user codex-cloud-read
-    # holds only pg_read_all_data, so it reads the worker-owned notification/job
-    # tables that postgres deliberately cannot (R053 closed owner baseline),
-    # without any maintenance grant or admin membership.
-    read_service_account = 'codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com'
-    connection = {'host': '127.0.0.1', 'port': int(os.environ.get('MW_DB_TUNNEL_PORT', '15432')), 'sslmode': 'disable', 'user': 'codex-cloud-read@clever-oasis-508610-n7.iam'}
-    tools = Path('/workspace/.setup/postgresql-18.6/bin')
-    exe = ''
-    restore_base = Path('/var/tmp/mw-credit')
-    restore_parent = restore_base / 'production-promotion-restores'
-    # PostgreSQL refuses to run as root; the isolated restore server runs as postgres.
-    as_server = ['runuser', '-u', 'postgres', '--'] if os.geteuid() == 0 else []
+private_root = Path(os.environ.get('MW_PRIVATE_ROOT') or Path.home() / '.mw-private') / 'AppSheet-Loan-Project/flyway'
+subprocess.run(['bash', str(repo / 'scripts/database/cloud-db-tunnel.sh')], check=True, stdout=subprocess.DEVNULL)
+# Read-only backup identity (DB-ACCESS-03): IAM database user codex-cloud-read
+# holds only pg_read_all_data, so it reads the worker-owned notification/job
+# tables that postgres deliberately cannot (R053 closed owner baseline),
+# without any maintenance grant or admin membership.
+read_service_account = 'codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com'
+connection = {'host': '127.0.0.1', 'port': int(os.environ.get('MW_DB_TUNNEL_PORT', '15432')), 'sslmode': 'disable', 'user': 'codex-cloud-read@clever-oasis-508610-n7.iam'}
+tools = Path('/workspace/.setup/postgresql-18.6/bin')
+exe = ''
+restore_base = Path('/var/tmp/mw-credit')
+restore_parent = restore_base / 'production-promotion-restores'
+# PostgreSQL refuses to run as root; the isolated restore server runs as postgres.
+as_server = ['runuser', '-u', 'postgres', '--'] if os.geteuid() == 0 else []
 folder = private_root / ('prod-promotion-' + uuid.uuid4().hex)
 folder.mkdir(parents=True, exist_ok=False)
 dump = folder / (target['database']+'.dump')
 data = restore_parent / uuid.uuid4().hex
-startup = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
 local_env={k:v for k,v in os.environ.items() if not k.startswith('PG')}
 local_env['PGSSLMODE']='disable'
 def run(argv, name, env=None):
     with (folder/name).open('wb') as output:
-        subprocess.run(argv, stdout=output, stderr=subprocess.STDOUT, env=local_env if env is None else env, check=True, **startup)
+        subprocess.run(argv, stdout=output, stderr=subprocess.STDOUT, env=local_env if env is None else env, check=True)
 def fingerprint(c):
     result = {}
     for schema, table in c.execute("SELECT schemaname,tablename FROM pg_tables WHERE schemaname NOT LIKE 'pg_%' AND schemaname<>'information_schema' ORDER BY 1,2"):
@@ -100,27 +84,23 @@ def safe_owned_path():
 safe_owned_path()
 restore_parent.mkdir(parents=True, exist_ok=True)
 if as_server: subprocess.run(['chown', 'postgres:postgres', str(restore_parent)], check=True)
-if windows:
-    password = credential.read_text().strip()
-else:
-    password = subprocess.check_output(['gcloud', 'sql', 'generate-login-token', '--impersonate-service-account=' + read_service_account], text=True).strip()
+password = subprocess.check_output(['gcloud', 'sql', 'generate-login-token', '--impersonate-service-account=' + read_service_account], text=True).strip()
 passed = False
 try:
-    with psycopg.connect(host=connection['host'],port=connection['port'],dbname=target['database'],user=connection['user'],password=password,sslmode=connection['sslmode'],sslrootcert=connection.get('sslrootcert'),connect_timeout=10,autocommit=True) as c:
+    with psycopg.connect(host=connection['host'],port=connection['port'],dbname=target['database'],user=connection['user'],password=password,sslmode=connection['sslmode'],connect_timeout=10,autocommit=True) as c:
         c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
         # Journal audit history is ~752MB/1.54M rows; this bounded timeout affects only the private read-only snapshot session.
         c.execute("SET LOCAL statement_timeout='%ss'; SET LOCAL lock_timeout='5s'; SET LOCAL timezone='UTC'; SET LOCAL datestyle='ISO,YMD'" % (180 if args.database=='mw_agent' else 60))
         if c.execute("SELECT current_setting('transaction_isolation'),current_setting('transaction_read_only')").fetchone()!=('repeatable read','on'): raise ValueError('Snapshot isolation/read-only not established')
         actual=c.execute('SELECT current_database(),session_user,host(inet_server_addr()),inet_server_port(),(SELECT system_identifier FROM pg_control_system()),clock_timestamp()').fetchone()
-        if windows and actual[:4] != (target['database'],'postgres','136.85.127.134',5432): raise ValueError('Live production identity mismatch')
-        if not windows and (actual[:2] != (target['database'],connection['user']) or actual[4] != CLUSTER_SYSTEM_IDENTIFIER): raise ValueError('Live production identity mismatch')
+        if (actual[:2] != (target['database'],connection['user']) or actual[4] != CLUSTER_SYSTEM_IDENTIFIER): raise ValueError('Live production identity mismatch')
         if expected_version is not None and c.execute('SELECT max(version::int) FROM public.flyway_schema_history WHERE success').fetchone()[0] != expected_version: raise ValueError('Production history drift')
         before=fingerprint(c)
         roles=[r[0] for r in c.execute("SELECT rolname FROM pg_roles WHERE rolname<>'postgres' AND rolname NOT LIKE 'pg_%' ORDER BY rolname")]
         memberships=[list(r) for r in c.execute('SELECT roleid,member,grantor,admin_option,inherit_option,set_option FROM pg_auth_members ORDER BY roleid,member,grantor')]
         acls=[list(r) for r in c.execute("SELECT 'database',datname,datdba,datacl::text FROM pg_database WHERE datname=current_database() UNION ALL SELECT 'schema',nspname,nspowner,nspacl::text FROM pg_namespace WHERE nspname NOT LIKE 'pg_%' AND nspname<>'information_schema'")]
         snapshot=c.execute('SELECT pg_export_snapshot()').fetchone()[0]
-        env=dict(local_env,PGPASSWORD=password,PGSSLMODE=connection['sslmode'],**({'PGSSLROOTCERT':connection['sslrootcert']} if 'sslrootcert' in connection else {}))
+        env=dict(local_env,PGPASSWORD=password,PGSSLMODE=connection['sslmode'])
         run([str(tools/('pg_dump'+exe)),'-h',connection['host'],'-p',str(connection['port']),'-U',connection['user'],'-d',target['database'],'-Fc','--snapshot='+snapshot,'--file='+str(dump)],'dump.log',env)
         del env['PGPASSWORD']; del password
         (folder/'baseline-private.json').write_text(json.dumps({'identity':[str(v) for v in actual],'fingerprints':before,'roleNames':roles,'memberships':memberships,'databaseSchemaAcls':acls},indent=2))
@@ -142,7 +122,7 @@ try:
         if restored!=before or version!=expected_version: raise ValueError('Restored source/history fingerprint mismatch')
     passed=True
     result={'schemaVersion':1,'database':target['database'],'baselineVersion':expected_version,'host':target['host'],'instance':target['instance'],'approvalReference':args.approval_reference,'observedAt':str(actual[-1]),'dumpSha256':hashlib.file_digest(dump.open('rb'),'sha256').hexdigest(),'archiveListing':'passed','restore':'passed','restoredFingerprintsMatch':True,'integrityScope':'all tables full-content fingerprint' if args.database!='mw_agent' else 'full-content fingerprints for all small/authoritative receipt, ingress, control and partner_notices tables; exact audit.events/audit.operations/runtime.operation_state counts only; complete raw dump and full isolated restore','tableCount':len(before),'restoreSemantics':'Complete schema/data restored; no owner/ACL replay, referenced role names local NOLOGIN only; no live/global-role restore','privateRecoveryDirectory':str(folder)}
-    if not windows: result['privateRecoveryObject']=BACKUP_BUCKET+folder.name+'/'
+    result['privateRecoveryObject']=BACKUP_BUCKET+folder.name+'/'
     (folder/'recovery.json').write_text(json.dumps(result,indent=2))
     print(json.dumps(result))
 finally:
@@ -157,6 +137,6 @@ finally:
         shutil.rmtree(data)
     (folder/'cleanup.json').write_text(json.dumps({'stopped':stopped,'ownedRestoreRemoved':not data.exists(),'backupRetained':True,'restorePassed':passed,'ownedRestorePath':str(data)},indent=2))
     (folder/'retention.txt').write_text('Protected '+target['database']+' rollback backup/private restore proof. Keep recovery; diagnostics review '+(datetime.now(timezone.utc)+timedelta(days=7)).date().isoformat())
-    if not windows and passed:
+    if passed:
         # The cloud session is ephemeral: keep the complete private folder durably.
         subprocess.run(['gcloud','storage','cp','--recursive',str(folder),BACKUP_BUCKET,'--quiet'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)

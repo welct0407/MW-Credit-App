@@ -36,7 +36,7 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 
 ## R064 local dataset sync fix and shared Cloud SQL
 
-R068 W4 follow-ups (open; V94 applied in DEV on 17 October 2026, PROD still V93; 30 s and on-focus dataset refresh `905eb82`; agent backup script on Linux `4ed32a2`; nothing frozen or deployed to PROD): see the [W4 follow-ups section](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#w4-follow-ups-17-october-2026) of the database note.
+R068 W4 follow-ups (open; V94 and V95 applied in DEV on 17 October 2026, PROD still V93; V95 reviewer/projector identity pair `a63f8b4`/`790de3a`; borrower name-key fix `e56069f` (runtime image); agent 2b support `d011e91` (agent deploy); DB-ACCESS-07 done live as an instance setting, not part of the package; 30 s and on-focus dataset refresh `905eb82`; agent backup script on Linux `4ed32a2`; R068 promotes once together with Wave 5; nothing frozen or deployed to PROD): see the [W4 follow-ups section](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#w4-follow-ups-17-october-2026) of the database note.
 
 R067 tidy-ups after the old instance deletion (runtime accepts only the new instance name, IAM conditions narrowed; Released 17 October 2026, R068 Open, PROD verified): see the [R067 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r067-tidy-ups-after-the-old-instance-deletion) of the same note.
 

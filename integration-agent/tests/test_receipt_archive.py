@@ -116,3 +116,90 @@ class ReceiptArchiveTests(unittest.TestCase):
             definition={'key':'Row ID','columns':{field:{'Virtual?':'No','Read-Only':'No','Editable Initial Value?':'Yes'}}}
             self.assertFalse(writable('Payments',definition,field,'Add'))
             self.assertFalse(writable('Payments',definition,field,'Edit'))
+
+
+class ProjectorSignInTests(unittest.TestCase):
+    """ALL-ARCH-03 part 2b: receipt_projector_auth picks the projector's sign-in; no live database."""
+    IAM_USER = 'mw-integration-agent@clever-oasis-508610-n7.iam'
+
+    class Conn:
+        def __init__(self):
+            self.statements, self.autocommit, self.closed = [], None, False
+        def __enter__(self): return self
+        def __exit__(self, *_): return False
+        def execute(self, statement, *_):
+            self.statements.append((statement, self.autocommit))
+            return self
+        def fetchone(self): return ['applied']
+        def close(self): self.closed = True
+
+    def config(self, secrets, **changes):
+        return dict(dict(database_host='127.0.0.1', database_port=5432, database_name='loan_manager_prod',
+                         receipt_environment='prod', secrets_directory=secrets,
+                         receipt_projector_password_file=str(Path(secrets) / 'projector.txt')), **changes)
+
+    def project(self, config, conn):
+        from contextlib import contextmanager
+        from mw_integration_agent import receipt_projection
+        @contextmanager
+        def central(_):
+            yield None
+        link = {'payment_id': 'p1', 'verification': '{}', 'link_id': '11111111-1111-4111-8111-111111111111'}
+        asset = {'receipt_id': 'r1', 'object_key': 'k', 'source': json.dumps({'captured_at': 1760000000})}
+        def connected(**kwargs):
+            conn.autocommit = kwargs.get('autocommit', False)
+            return conn
+        with patch('psycopg.connect', side_effect=connected) as connect, \
+             patch.object(receipt_projection, 'transaction', central), \
+             patch.object(receipt_projection.receipt_audit, 'plan', return_value={}), \
+             patch.object(receipt_projection.receipt_audit, 'begin', return_value='op'), \
+             patch.object(receipt_projection.audit, 'event'):
+            self.assertEqual(receipt_projection.project(config, link, asset), 'applied')
+        return connect.call_args.kwargs
+
+    def test_password_default_reads_the_projector_credential_on_5432(self):
+        with tempfile.TemporaryDirectory() as secrets:
+            Path(secrets, 'projector.txt').write_text('synthetic')
+            conn = self.Conn()
+            kwargs = self.project(self.config(secrets, database_auth='iam'), conn)
+        self.assertEqual((kwargs['port'], kwargs['user'], kwargs['password']), (5432, 'mw_receipt_projector', 'synthetic'))
+        self.assertTrue(conn.statements[0][0].startswith('SELECT public.attach_payment_receipt_evidence'))
+
+    def test_iam_sets_role_first_outside_a_transaction_and_reads_no_password(self):
+        from mw_integration_agent import receipt_projection
+        conn = self.Conn()
+        with patch.object(receipt_projection, 'load_secret', side_effect=AssertionError('no password under iam')):
+            kwargs = self.project(self.config('/nonexistent', receipt_projector_auth='iam', database_iam_user=self.IAM_USER), conn)
+        self.assertNotIn('password', kwargs)
+        self.assertEqual((kwargs['port'], kwargs['user'], kwargs['dbname'], kwargs['autocommit']),
+                         (5433, self.IAM_USER, 'loan_manager_prod', True))
+        self.assertEqual(conn.statements[0], ('SET ROLE mw_receipt_projector', True))
+        self.assertTrue(conn.statements[1][0].startswith('SELECT public.attach_payment_receipt_evidence'))
+        self.assertIs(conn.statements[1][1], False)  # the attachment runs in its own transaction
+
+    def test_iam_guards_refuse_before_any_audit_intent(self):
+        from mw_integration_agent import receipt_projection
+        base = self.config('/nonexistent', receipt_projector_auth='iam', database_iam_user=self.IAM_USER)
+        for change in ({'iam_database_port': 5432}, {'database_iam_user': 'someone@example.com'}, {'receipt_projector_auth': 'token'},
+                       {'database_name': 'loan_manager_dev'}, {'database_host': '10.0.0.5'}):
+            with self.subTest(change=change), \
+                 patch.object(receipt_projection.receipt_audit, 'plan', side_effect=AssertionError('no intent')), \
+                 self.assertRaisesRegex(ConfigurationError, 'UNAPPROVED_RECEIPT_DATABASE|database_iam_user|iam_database_port'):
+                receipt_projection.project(dict(base, **change), {}, {})
+        # The 5432 guard belongs to the password branch only.
+        with patch.object(receipt_projection.receipt_audit, 'plan', side_effect=RuntimeError('guard passed')), \
+             self.assertRaisesRegex(RuntimeError, 'guard passed'):
+            receipt_projection.project(dict(base, database_port=5433), {}, {})
+        with patch.object(receipt_projection.receipt_audit, 'plan', side_effect=AssertionError('no intent')), \
+             self.assertRaisesRegex(ConfigurationError, 'UNAPPROVED_RECEIPT_DATABASE'):
+            receipt_projection.project(dict(base, receipt_projector_auth='password', database_port=5433), {}, {})
+
+    def test_failed_set_role_closes_the_connection(self):
+        import psycopg
+        from mw_integration_agent import receipt_projection
+        conn = self.Conn()
+        conn.execute = lambda *_: (_ for _ in ()).throw(psycopg.errors.InsufficientPrivilege('no membership'))
+        config = self.config('/nonexistent', receipt_projector_auth='iam', database_iam_user=self.IAM_USER)
+        with patch('psycopg.connect', return_value=conn), self.assertRaises(psycopg.errors.InsufficientPrivilege):
+            receipt_projection.open_projector(config, *receipt_projection.login(config))
+        self.assertTrue(conn.closed)

@@ -1,4 +1,6 @@
 """One-time R030 role prerequisite. No schema or financial writes; credentials private."""
+# Retired with VM-01's direct route (DB-ACCESS-07, 17 October 2026): it connects to the public address with
+# sslmode=require and asserts inet_server_addr(), so it cannot run through an Auth Proxy. Do not replay it.
 from pathlib import Path as _DatabasePath
 import sys as _database_sys
 _database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[2]))

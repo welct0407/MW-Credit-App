@@ -13,10 +13,10 @@ let admin,app,store,proof,fixture;const user='mw_app_dev_c_borrower_fixture';
 const principal={ok:true,email:OWNER_EMAIL,subject:'independent-phase5-owner'};
 const fields=(name='C borrower '+randomUUID())=>({name,description:'English synthetic',communicationName:'ช่องทางจำลอง',instagramUsername:'synthetic_test',city:'Bangkok',workingLocation:'Synthetic office',address:' line one\nบรรทัดสอง ',hidden:false,referrerId:null,preferredReceivingAccountId:fixture.receivingAccountId,note:' exact ไทย\n '});
 before(async()=>{
- admin=await disposablePool(94);await admin.query(`CREATE ROLE ${user} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);await admin.query(`GRANT mw_app_dev TO ${user}`);
+ admin=await disposablePool(95);await admin.query(`CREATE ROLE ${user} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);await admin.query(`GRANT mw_app_dev TO ${user}`);
  const c=await admin.connect();try{const plan=await planApplicationRole(c,{database:'payment_rehearsal',creators:['postgres']});assert.deepEqual(plan.violations,[]);await reconcileApplicationRole(c,{database:'payment_rehearsal',creators:['postgres']},{apply:true})}finally{c.release()}
  app=new pg.Pool({host:'127.0.0.1',port:Number(process.env.PAYMENT_REHEARSAL_PORT),database:'payment_rehearsal',user,password:'',max:3});
- proof=await attestDisposableApplicationTarget({adminPool:admin,expectedDirectory:process.env.PAYMENT_REHEARSAL_DIRECTORY,runtimeUser:user,expectedVersion:94});
+ proof=await attestDisposableApplicationTarget({adminPool:admin,expectedDirectory:process.env.PAYMENT_REHEARSAL_DIRECTORY,runtimeUser:user,expectedVersion:95});
  fixture=await seedPaymentFixture(admin,'C-P5-B');await admin.query('UPDATE "Partners" SET "Login Email"=$1 WHERE "Row ID"=$2',[OWNER_EMAIL,fixture.actorId]);
  const prerequisite=(await admin.query('SELECT a."Active" AS account_active,h."Active" AS holder_active FROM "Cash Accounts" a JOIN "Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Row ID"=$1',[fixture.receivingAccountId])).rows[0];assert.equal(prerequisite.account_active,true);assert.equal(prerequisite.holder_active,true);
  store=createApplicationRoleCommandStore({pool:app,targetAttestation:proof,ownerTesting:true});

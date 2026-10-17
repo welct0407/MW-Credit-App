@@ -2,7 +2,8 @@
 -- no DML role writes "Cash Ledger" directly. Runs at the migration head as the superuser in a
 -- disposable cluster, inside one rolled-back transaction: the DEV capability grants that the
 -- operator policy provides live are emulated here, the PROD reviewer's pre-V93 grants are restored
--- and V93 is applied a second time (idempotent re-run proof), then each role is exercised.
+-- and V93 is applied a second time (idempotent re-run proof), then each role is exercised. Sections D and E
+-- (V95, ALL-ARCH-03) exercise the agent role/session pair in their own rolled-back transactions.
 \set ON_ERROR_STOP on
 BEGIN;
 \ir Test-CashAccountFixtures.sql
@@ -84,4 +85,108 @@ DELETE FROM "Cash Ledger" WHERE "Row ID"='W4-none';
 UPDATE "Cash Ledger" SET "Notes"='x' WHERE "Row ID"='W4-none';
 RESET SESSION AUTHORIZATION;
 SELECT 'Ledger access regression passed' AS result;
+ROLLBACK;
+
+-- D. ALL-ARCH-03 (V95): the reviewer identity is the pair (effective role, session login). The agent's IAM
+-- user (Test-IamRolePrerequisites.sql) holds SET-only memberships as the operator grants them live; the
+-- stranger login, mw_integration_agent and the direct EXECUTE grants to the negatives exist only here so
+-- that every refusal below is the identity check, not an ACL error. One transaction per marker
+-- (agent_audit.commits allows one operation per transaction), rolled back.
+BEGIN;
+INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('V95-B','Synthetic V95');
+CREATE ROLE v95_stranger LOGIN NOINHERIT; CREATE ROLE mw_integration_agent NOLOGIN NOINHERIT;
+GRANT mw_reviewer_dml TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE;
+GRANT mw_integration_agent TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE;
+GRANT mw_reviewer_dml TO v95_stranger WITH INHERIT FALSE, SET TRUE;
+GRANT USAGE ON SCHEMA public TO mw_reviewer_dml; GRANT SELECT ON ALL TABLES IN SCHEMA public TO mw_reviewer_dml; GRANT UPDATE ON "Borrowers" TO mw_reviewer_dml; -- live reviewer shape (configure-reviewer-dml.py)
+GRANT USAGE ON SCHEMA agent_audit TO "mw-integration-agent@clever-oasis-508610-n7.iam",v95_stranger,mw_integration_agent;
+GRANT EXECUTE ON FUNCTION agent_audit.begin_operation(uuid,text,text,text,text,jsonb,text) TO "mw-integration-agent@clever-oasis-508610-n7.iam",v95_stranger,mw_integration_agent;
+CREATE FUNCTION pg_temp.v95_expect_reviewer_refusal(label text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+ PERFORM agent_audit.begin_operation(gen_random_uuid(),'synthetic-reviewer','synthetic@example.invalid',repeat('1',64),'V95 pair negative','[]'::jsonb,'v95');
+ RAISE EXCEPTION 'begin_operation accepted %',label;
+EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'Dedicated reviewer connection required' THEN RAISE; END IF;
+END $$;
+GRANT EXECUTE ON FUNCTION pg_temp.v95_expect_reviewer_refusal(text) TO PUBLIC;
+-- Negative 1: the bare IAM login, no SET ROLE (effective role = the login itself).
+SET SESSION AUTHORIZATION "mw-integration-agent@clever-oasis-508610-n7.iam";
+SELECT pg_temp.v95_expect_reviewer_refusal('the bare IAM login');
+-- Negative 2: the IAM login under the read-only agent role.
+SET ROLE mw_integration_agent;
+SELECT pg_temp.v95_expect_reviewer_refusal('SET ROLE mw_integration_agent');
+RESET ROLE; RESET SESSION AUTHORIZATION;
+-- Negative 3: a stranger login that holds SET membership of the reviewer role.
+SET SESSION AUTHORIZATION v95_stranger; SET ROLE mw_reviewer_dml;
+SELECT pg_temp.v95_expect_reviewer_refusal('a stranger login under SET ROLE mw_reviewer_dml');
+RESET ROLE; RESET SESSION AUTHORIZATION;
+-- Positive: IAM login + SET ROLE mw_reviewer_dml; the marker records the effective role and DML is captured.
+SET SESSION AUTHORIZATION "mw-integration-agent@clever-oasis-508610-n7.iam"; SET ROLE mw_reviewer_dml;
+SELECT agent_audit.begin_operation('0950b950-0950-4950-8950-0950b9500950','synthetic-reviewer','synthetic@example.invalid',repeat('2',64),'V95 pair positive','[]'::jsonb,'v95');
+UPDATE "Borrowers" SET "Description"='reviewer edit through the IAM session' WHERE "Row ID"='V95-B';
+RESET ROLE; RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT database_session_role FROM agent_audit.commits WHERE operation_id='0950b950-0950-4950-8950-0950b9500950') IS DISTINCT FROM 'mw_reviewer_dml' THEN RAISE EXCEPTION 'Marker must record the effective role'; END IF;
+ IF (SELECT count(*) FROM agent_audit.row_changes WHERE operation_id='0950b950-0950-4950-8950-0950b9500950' AND table_name='Borrowers' AND action='UPDATE')<>1 THEN RAISE EXCEPTION 'Agent audit missed the IAM-session reviewer DML'; END IF;
+ IF (SELECT "Description" FROM "Borrowers" WHERE "Row ID"='V95-B') IS DISTINCT FROM 'reviewer edit through the IAM session' THEN RAISE EXCEPTION 'Reviewer DML did not apply'; END IF;
+END $$;
+SELECT 'V95 reviewer pair regression passed' AS result;
+ROLLBACK;
+
+-- E. ALL-ARCH-03 (V95): the receipt projector pair on attach_payment_receipt_evidence. Fixture shape from
+-- Test-ReceiptEvidence.sql (a posted single-partial payment whose facts verify). Negatives first (they
+-- raise before the audit insert), then the positive through the IAM session under SET ROLE.
+BEGIN;
+INSERT INTO "Partners"("Row ID","Partner Name","Partner Role","Login Email") VALUES('V95-partner','Synthetic V95','A','v95@example.invalid');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('V95-capital','V95-partner',current_date,'Contribution',10000::money);
+INSERT INTO "Cash Accounts"("Row ID","Ref Cash Holder","Account Label","Bank Name") VALUES('V95-dad','ch:dad','Synthetic V95 Dad','Synthetic'),('V95-lisa','ch:lisa','Synthetic V95 Lisa','Synthetic');
+INSERT INTO "Borrowers"("Row ID","Borrower Name","Description") VALUES('V95-borrower','Synthetic V95','Synthetic V95');
+INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Ref Disbursed From Cash Account")
+ VALUES('V95-loan','V95-borrower',current_date-1,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money,'V95-lisa');
+INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('V95-charge','V95-loan',current_date,0::money,100::money);
+INSERT INTO "Payments"("Row ID","Status","Ref Borrower","Amount Received","Payment Date","Created At","Allocation Method","Ref Target Charge","Ref Received By Cash Account","Bank Reference","Uploaded Receipt")
+ VALUES('V95-payment','Processing','V95-borrower',25::money,current_date,current_date+time '18:23:12','Single Partial','V95-charge','V95-dad','SYNTHETIC-095','manual/dev/synthetic.png');
+SET CONSTRAINTS ALL IMMEDIATE;
+CREATE ROLE v95_stranger LOGIN NOINHERIT;
+GRANT mw_receipt_projector TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE;
+GRANT mw_reviewer_dml TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE;
+GRANT mw_receipt_projector TO v95_stranger WITH INHERIT FALSE, SET TRUE;
+GRANT USAGE ON SCHEMA public TO mw_receipt_projector,mw_reviewer_dml,"mw-integration-agent@clever-oasis-508610-n7.iam",v95_stranger;
+GRANT EXECUTE ON FUNCTION public.attach_payment_receipt_evidence(text,text,text,timestamptz,jsonb,uuid,text) TO mw_receipt_projector,mw_reviewer_dml,"mw-integration-agent@clever-oasis-508610-n7.iam",v95_stranger;
+CREATE FUNCTION pg_temp.v95_attach(p_key text) RETURNS text LANGUAGE sql AS $$
+ SELECT public.attach_payment_receipt_evidence('V95-payment',repeat('a',64),p_key,'2026-09-26 18:00Z',
+  jsonb_build_object('borrower','V95-borrower','amount','25','date',current_date,'clock',current_date||' 18:23','reference','SYNTHETIC-095','account','V95-dad'),
+  '09500000-0000-0000-0000-000000000095','v95-synthetic') $$;
+CREATE FUNCTION pg_temp.v95_expect_projector_refusal(label text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+ PERFORM pg_temp.v95_attach('receipts/dev/2026/09/27/'||repeat('a',64)||'/'||repeat('b',64)||'.png');
+ RAISE EXCEPTION 'attach_payment_receipt_evidence accepted %',label;
+EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'Dedicated receipt projector required' THEN RAISE; END IF;
+END $$;
+GRANT EXECUTE ON FUNCTION pg_temp.v95_attach(text),pg_temp.v95_expect_projector_refusal(text) TO PUBLIC;
+SET SESSION AUTHORIZATION "mw-integration-agent@clever-oasis-508610-n7.iam";
+SELECT pg_temp.v95_expect_projector_refusal('the bare IAM login');
+SET ROLE mw_reviewer_dml;
+SELECT pg_temp.v95_expect_projector_refusal('the IAM login under SET ROLE mw_reviewer_dml');
+RESET ROLE; RESET SESSION AUTHORIZATION;
+SET SESSION AUTHORIZATION v95_stranger; SET ROLE mw_receipt_projector;
+SELECT pg_temp.v95_expect_projector_refusal('a stranger login under SET ROLE mw_receipt_projector');
+RESET ROLE; RESET SESSION AUTHORIZATION;
+DO $$ BEGIN IF EXISTS(SELECT 1 FROM agent_audit.commits WHERE operation_id='09500000-0000-0000-0000-000000000095') OR (SELECT "IG Receipt ID" FROM "Payments" WHERE "Row ID"='V95-payment') IS NOT NULL THEN RAISE EXCEPTION 'A refused projection left evidence'; END IF; END $$;
+-- Positive: IAM login + SET ROLE mw_receipt_projector applies once; the password login (session = role) sees already_applied; no direct DML either way.
+SET SESSION AUTHORIZATION "mw-integration-agent@clever-oasis-508610-n7.iam"; SET ROLE mw_receipt_projector;
+DO $$ DECLARE key text:='receipts/dev/2026/09/27/'||repeat('a',64)||'/'||repeat('b',64)||'.png'; BEGIN
+ IF pg_temp.v95_attach(key)<>'applied' THEN RAISE EXCEPTION 'IAM session under SET ROLE mw_receipt_projector must apply'; END IF;
+ IF pg_temp.v95_attach(key)<>'already_applied' THEN RAISE EXCEPTION 'Repeat must be already_applied'; END IF;
+ BEGIN UPDATE public."Payments" SET "Notes"='forbidden' WHERE "Row ID"='V95-payment'; RAISE EXCEPTION 'projector direct DML allowed'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+END $$;
+RESET ROLE; RESET SESSION AUTHORIZATION;
+SET SESSION AUTHORIZATION mw_receipt_projector;
+DO $$ BEGIN IF pg_temp.v95_attach('receipts/dev/2026/09/27/'||repeat('a',64)||'/'||repeat('b',64)||'.png')<>'already_applied' THEN RAISE EXCEPTION 'Projector password session must still be accepted'; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT database_session_role FROM agent_audit.commits WHERE operation_id='09500000-0000-0000-0000-000000000095') IS DISTINCT FROM 'mw_receipt_projector' THEN RAISE EXCEPTION 'Projector marker must record the effective role'; END IF;
+ IF (SELECT "IG Receipt ID"=repeat('a',64) AND "Receipt Image" LIKE '//receipts/dev/%' FROM "Payments" WHERE "Row ID"='V95-payment') IS NOT TRUE THEN RAISE EXCEPTION 'Receipt evidence not attached'; END IF;
+ IF (SELECT count(*) FROM agent_audit.row_changes WHERE operation_id='09500000-0000-0000-0000-000000000095')<>1 THEN RAISE EXCEPTION 'Projector audit row count differs'; END IF;
+END $$;
+SELECT 'V95 projector pair regression passed' AS result;
 ROLLBACK;

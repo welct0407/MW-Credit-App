@@ -44,7 +44,8 @@ test('V89 restricted receipt RPC matches independent Processing Lump Sum fixture
    const journal=(await admin.query('SELECT to_jsonb(p) value FROM public.pwa_payment_commands p WHERE request_id=$1',[requestId])).rows;
    assert.deepEqual((await caller.query('SELECT public.pwa_submit_agent_receipt_v1($1) result',[identity.canonicalJson])).rows[0].result,result);assert.deepEqual((await admin.query('SELECT to_jsonb(p) value FROM public.pwa_payment_commands p WHERE request_id=$1',[requestId])).rows,journal);
    if(index===0){
-    if(!(await admin.query("SELECT 1 FROM pg_roles WHERE rolname='mw_receipt_projector'")).rowCount)await admin.query('CREATE ROLE mw_receipt_projector LOGIN NOSUPERUSER NOBYPASSRLS');
+    // Test-AgentAuditPrerequisites.sql holds the role NOLOGIN since V95; this fixture signs in as it (trust auth).
+    if(!(await admin.query("SELECT 1 FROM pg_roles WHERE rolname='mw_receipt_projector'")).rowCount)await admin.query('CREATE ROLE mw_receipt_projector LOGIN NOSUPERUSER NOBYPASSRLS');else await admin.query('ALTER ROLE mw_receipt_projector LOGIN');
     await admin.query('GRANT USAGE ON SCHEMA public TO mw_receipt_projector;GRANT EXECUTE ON FUNCTION public.attach_payment_receipt_evidence(text,text,text,timestamptz,jsonb,uuid,text) TO mw_receipt_projector');
     const projector=new pg.Client({...base,database:'loan_manager_dev',user:'mw_receipt_projector'});await projector.connect();
     const business=async()=>(await admin.query(`SELECT to_jsonb(p)-ARRAY['IG Receipt ID','Receipt Image','Receipt Received At'] value FROM public."Payments" p WHERE "Row ID"=$1`,[paymentId])).rows;

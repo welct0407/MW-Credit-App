@@ -29,7 +29,7 @@
       DECLARE before_value public."Payments"%ROWTYPE; after_value public."Payments"%ROWTYPE;
        local_capture timestamp; environment text; fields text[]:=ARRAY['IG Receipt ID','Receipt Image','Receipt Received At'];
       BEGIN
-       IF session_user<>'mw_receipt_projector' THEN RAISE EXCEPTION 'Dedicated receipt projector required'; END IF;
+       IF NOT (CASE WHEN current_setting('role',true) IN ('none','') THEN session_user::text ELSE current_setting('role',true) END='mw_receipt_projector' AND session_user IN ('mw_receipt_projector','mw-integration-agent@clever-oasis-508610-n7.iam')) THEN RAISE EXCEPTION 'Dedicated receipt projector required'; END IF;
        environment:=CASE current_database() WHEN 'loan_manager_dev' THEN 'dev' WHEN 'loan_manager_prod' THEN 'prod' END;
        IF environment IS NULL OR p_receipt IS NULL OR p_receipt !~ '^[0-9a-f]{64}$'
         OR p_captured IS NULL OR NOT isfinite(p_captured) OR p_expected IS NULL
@@ -86,3 +86,11 @@
     "extension": null
   "release": "R046"
   "dev_prod_equal": true
+"evidence":
+  "/content/definition/definition":
+    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
+    "reason": "ALL-ARCH-03 part 2b (V95, commits a63f8b4 and 790de3a): the projector check accepts effective role mw_receipt_projector\
+      \ with session_user the role itself or the agent IAM login. Applied in DEV on 17 October 2026 (loan_manager_dev, V95);\
+      \ PROD is still V93 (V94 and V95 pending the R068 promotion), so this PROD-scope value is source-derived until the PROD\
+      \ migration."
+    "state": "value"

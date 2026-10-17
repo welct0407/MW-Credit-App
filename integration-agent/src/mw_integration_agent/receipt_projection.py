@@ -7,28 +7,59 @@ from datetime import datetime, UTC
 
 from . import audit
 from . import receipt_audit
-from .state import transaction
-from .config import ConfigurationError, load_secret
+from .state import assume_role, transaction
+from .config import ConfigurationError, auth_mode, iam_port, iam_user, load_secret
 from .receipt_archive import Archive, encoded
 from .review_execution import readback
 
 
-def project(config, link, asset):
-    import psycopg
-    from psycopg.types.json import Jsonb
+ROLE = 'mw_receipt_projector'
+
+
+def login(config):
+    """Fixed sign-in for the projector: its own password on 5432, or (receipt_projector_auth='iam',
+    ALL-ARCH-03 part 2b, needs business V95) the VM's IAM user on the auto-iam-authn listener."""
     environment = config['receipt_environment']
     database = {'dev':'loan_manager_dev','prod':'loan_manager_prod'}[environment]
-    if config.get('database_host') not in ('127.0.0.1','::1') or config.get('database_port') != 5432 or config.get('database_name') != database:
+    try:
+        mode = auth_mode(config, 'receipt_projector_')
+    except ConfigurationError:
+        raise ConfigurationError('UNAPPROVED_RECEIPT_DATABASE') from None
+    if config.get('database_host') not in ('127.0.0.1','::1') or config.get('database_name') != database:
         raise ConfigurationError('UNAPPROVED_RECEIPT_DATABASE')
+    if mode == 'iam':
+        return mode, dict(host=config['database_host'], port=iam_port(config), dbname=database, user=iam_user(config))
+    if config.get('database_port') != 5432:
+        raise ConfigurationError('UNAPPROVED_RECEIPT_DATABASE')
+    return mode, dict(host=config['database_host'], port=5432, dbname=database, user=ROLE)
+
+
+def open_projector(config, mode, target):
+    import psycopg
+    options = dict(connect_timeout=10, options='-c statement_timeout=15000 -c lock_timeout=3000',
+                   application_name='mw-receipt-projector')
+    if mode != 'iam':
+        return psycopg.connect(**target, password=load_secret(config, 'receipt_projector_password_file'), **options)
+    # SET ROLE runs first, outside any transaction; the attachment call then runs in its own transaction.
+    connection = psycopg.connect(**target, autocommit=True, **options)
+    try:
+        assume_role(connection, ROLE)
+        connection.autocommit = False
+    except BaseException:
+        connection.close()
+        raise
+    return connection
+
+
+def project(config, link, asset):
+    from psycopg.types.json import Jsonb
+    mode, target = login(config)
     intent = receipt_audit.plan(config, link, asset)
     with transaction(config) as central:
         operation = receipt_audit.begin(central, config, intent)
         audit.event(central, operation, 'dispatch_started', route='postgres', state='DISPATCHING')
     try:
-        with psycopg.connect(host=config['database_host'],port=5432,dbname=database,
-             user='mw_receipt_projector',password=load_secret(config,'receipt_projector_password_file'),
-             connect_timeout=10,options='-c statement_timeout=15000 -c lock_timeout=3000',
-             application_name='mw-receipt-projector') as connection:
+        with open_projector(config, mode, target) as connection:
             result=connection.execute('SELECT public.attach_payment_receipt_evidence(%s,%s,%s,%s,%s,%s,%s)',
                 (link['payment_id'],asset['receipt_id'],asset['object_key'],
                  datetime.fromtimestamp(json.loads(asset['source'])['captured_at'],UTC),

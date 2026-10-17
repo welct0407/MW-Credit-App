@@ -46,6 +46,67 @@ class ReviewerDmlScriptTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'Unknown reviewer DML role'):
             configure_dml.configure(FakeConnection(), 'x', 'postgres')
 
+    def test_iam_member_is_idempotent_and_creates_only_a_missing_role(self):
+        # ALL-ARCH-03 part 2b: IAM user holds the role INHERIT FALSE, SET TRUE plus CONNECT; no credential.
+        member = 'mw-integration-agent@clever-oasis-508610-n7.iam'
+
+        class Catalogue(FakeConnection):
+            def __init__(self, roles, memberships):
+                super().__init__()
+                self.roles, self.rows = set(roles), list(memberships)
+
+            def execute(self, statement, params=None):
+                text = statement if isinstance(statement, str) else statement.as_string(None)
+                self.statements.append((text, params))
+                if 'pg_auth_members' in text:
+                    rows = list(self.rows)
+                    return SimpleNamespace(fetchall=lambda: rows)
+                if 'FROM pg_roles' in text:
+                    found = params[0] in self.roles
+                    return SimpleNamespace(fetchone=lambda: (1,) if found else None)
+                if text.startswith('CREATE ROLE'):
+                    self.roles.add(params[0] if params else text.split('"')[1])
+                if text.startswith('GRANT "mw_reviewer') and 'WITH INHERIT FALSE, SET TRUE' in text:
+                    self.rows = [(False, True)]
+                if 'has_schema_privilege' in text:
+                    return SimpleNamespace(fetchone=lambda: (False, False))
+                return SimpleNamespace(fetchone=lambda: None)
+
+        # DEV: the role is missing, so it is created NOLOGIN without a credential, with the standard grants.
+        conn = Catalogue({member}, [])
+        self.assertEqual(configure_dml.iam_member(conn, 'mw_reviewer_dml_dev', member),
+                         {'role_created': True, 'membership_granted': True})
+        texts = [t for t, _ in conn.statements]
+        create = [t for t in texts if t.startswith('CREATE ROLE')]
+        self.assertEqual(create, ['CREATE ROLE "mw_reviewer_dml_dev" NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS'])
+        self.assertFalse(any('PASSWORD' in t for t in texts))
+        self.assertIn(f'GRANT "mw_reviewer_dml_dev" TO "{member}" WITH INHERIT FALSE, SET TRUE', texts)
+        self.assertEqual(texts[-1], f'GRANT CONNECT ON DATABASE "loan_manager_dev" TO "{member}"')
+        # PROD: the existing password role and its grants are left alone; a second run changes nothing but CONNECT.
+        conn = Catalogue({member, 'mw_reviewer_dml'}, [])
+        self.assertEqual(configure_dml.iam_member(conn, 'mw_reviewer_dml', member), {'role_created': False, 'membership_granted': True})
+        self.assertFalse(any(t.startswith(('CREATE', 'ALTER')) for t, _ in conn.statements))
+        conn.statements.clear()
+        self.assertEqual(configure_dml.iam_member(conn, 'mw_reviewer_dml', member), {'role_created': False, 'membership_granted': False})
+        self.assertEqual([t for t, _ in conn.statements if t.startswith('GRANT')],
+                         [f'GRANT CONNECT ON DATABASE "loan_manager_dev" TO "{member}"'])
+        # A membership that inherits is re-granted; one that still inherits afterwards (another grantor) fails closed.
+        conn = Catalogue({member, 'mw_reviewer_dml'}, [(True, True)])
+        self.assertTrue(configure_dml.iam_member(conn, 'mw_reviewer_dml', member)['membership_granted'])
+        class OtherGrantor(Catalogue):
+            def execute(self, statement, params=None):
+                result = super().execute(statement, params)
+                if 'WITH INHERIT FALSE' in self.statements[-1][0]:
+                    self.rows.append((True, True))  # a second grantor's inheriting membership survives
+                return result
+        with self.assertRaisesRegex(RuntimeError, 'Unexpected membership options'):
+            configure_dml.iam_member(OtherGrantor({member, 'mw_reviewer_dml'}, [(True, True)]), 'mw_reviewer_dml', member)
+        for role, user, message in (('postgres', member, 'Unknown reviewer DML role'),
+                                    ('mw_reviewer_dml', 'someone@example.com', 'Unexpected IAM database user'),
+                                    ('mw_reviewer_dml', 'other@clever-oasis-508610-n7.iam', 'IAM database user missing')):
+            with self.subTest(role=role, user=user), self.assertRaisesRegex(RuntimeError, message):
+                configure_dml.iam_member(Catalogue({member, 'mw_reviewer_dml'}, []), role, user)
+
     def test_target_is_identified_by_instance_name_only(self):
         environments = {'production': {'instance': 'mw-credit-pg-20261017', 'host': '10.0.0.5', 'database': 'loan_manager_prod', 'user': 'postgres'},
                         'development': {'instance': 'mw-credit-pg-20261017', 'host': '10.0.0.5', 'database': 'loan_manager_dev', 'user': 'postgres'}}

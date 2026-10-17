@@ -88,6 +88,40 @@ class Boundaries(unittest.TestCase):
                         with dml.connect(dict(base, **change)):
                             pass
 
+    def test_iam_sign_in_sets_role_first_and_reads_no_password(self):
+        # ALL-ARCH-03 part 2b: database_dml_auth='iam' logs in as the IAM user on 5433 and SET ROLE before BEGIN.
+        class Conn:
+            def __init__(self): self.statements = []
+            def __enter__(self): return self
+            def __exit__(self, *_): return False
+            def execute(self, statement, *_): self.statements.append(statement); return self
+            def rollback(self): return None
+        iam_user = 'mw-integration-agent@clever-oasis-508610-n7.iam'
+        base = dict(database_host='127.0.0.1', database_port=5432, database_dml_auth='iam', database_iam_user=iam_user,
+                    iam_database_port=5433, secrets_directory='/nonexistent')
+        for database, role in (('loan_manager_prod', 'mw_reviewer_dml'), ('loan_manager_dev', 'mw_reviewer_dml_dev')):
+            conn = Conn()
+            with self.subTest(database=database), patch('psycopg.connect', return_value=conn) as connect, \
+                    patch.object(dml, 'load_secret', side_effect=AssertionError('no password under iam')):
+                with dml.connect(dict(base, database_name=database, database_dml_user=role), write=True):
+                    pass
+                kwargs = connect.call_args.kwargs
+                self.assertNotIn('password', kwargs)
+                self.assertEqual((kwargs['port'], kwargs['user'], kwargs['dbname'], kwargs['autocommit']), (5433, iam_user, database, True))
+                self.assertEqual(kwargs['options'], '-c default_transaction_read_only=on')
+                self.assertEqual(conn.statements[:2], ['SET ROLE ' + role, 'BEGIN ISOLATION LEVEL SERIALIZABLE READ WRITE'])
+                self.assertIn("SET LOCAL statement_timeout = '15s'", conn.statements)
+        # The 5432 guard belongs to the password branch; the IAM branch needs the IAM user and fixed listener.
+        with patch('psycopg.connect', return_value=Conn()):
+            with dml.connect(dict(base, database_name='loan_manager_prod', database_dml_user='mw_reviewer_dml', database_port=5433)):
+                pass
+        for change in ({'iam_database_port': 5432}, {'database_iam_user': 'someone@example.com'}, {'database_dml_auth': 'token'},
+                       {'database_dml_user': 'mw_reviewer_dml_dev'}, {'database_host': '10.0.0.5'}):
+            with self.subTest(change=change), patch('psycopg.connect', side_effect=AssertionError('refused before connecting')), \
+                    self.assertRaises(ConfigurationError):
+                with dml.connect(dict(dict(base, database_name='loan_manager_prod', database_dml_user='mw_reviewer_dml'), **change)):
+                    pass
+
     def test_dml_disabled_old_message_and_revoked_reviewer(self):
         config={'reviewer_dml_enabled':False}
         bridge=type('Bridge',(),{'authorize':lambda s:config,'partner_id':'p1'})()

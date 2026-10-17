@@ -3,7 +3,7 @@ if($SettingsOnly){$ManagementOnly=$true}
 if($AnchorOnly -and $ManagementOnly){throw "Choose one explicit upgrade family"}
 if($ManagementOnly){$JournalOnly=$true}
 if($AnchorOnly){$JournalOnly=$true}
-# Fresh loopback-only database: borrower family at V94; populated V82 seed with V83 upgrade proof, then V94 for the journal family (anchor/management/settings keep their own upgrade heads). Never reads live credentials or accepts a DSN.
+# Fresh loopback-only database: borrower family at V95; populated V82 seed with V83 upgrade proof, then V95 for the journal family (anchor/management/settings keep their own upgrade heads). Never reads live credentials or accepts a DSN.
 $ErrorActionPreference='Stop'
 if($env:CI -ne 'true'){. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"}
 . "$PSScriptRoot/../../scripts/database/Common.ps1"
@@ -41,10 +41,10 @@ try {
    if($LASTEXITCODE){throw 'V82 migration failed'}
    $env:PAYMENT_REHEARSAL_DISPOSABLE='1';$env:PAYMENT_REHEARSAL_PORT=[string]$fixturePort;$env:PAYMENT_REHEARSAL_DIRECTORY=$data
    # DB-LOCK-03: borrowers.mjs takes its advisory-lock keys from pwa_lock_key_v1 (V93) and V94 moves the SQL
-   # bodies to it, so every family that drives the borrower record path runs its tests at V94 after its populated upgrade proof.
+   # bodies to it (V95 adds the agent role/session pair), so every family that drives the borrower record path runs its tests at the V95 head after its populated upgrade proof.
    if(-not $JournalOnly){
-    & (Get-FlywayPath) '-outputType=json' '-target=94' migrate | Out-File (Join-Path $fixtureRoot 'migration94.json')
-    if($LASTEXITCODE){throw 'V94 migration failed'}
+    & (Get-FlywayPath) '-outputType=json' '-target=95' migrate | Out-File (Join-Path $fixtureRoot 'migration95.json')
+    if($LASTEXITCODE){throw 'V95 migration failed'}
    }
    if($JournalOnly){
     $env:PHASE5_POPULATED_JOURNAL_SNAPSHOT=Join-Path $fixtureRoot 'populated-journal.json'
@@ -55,8 +55,8 @@ try {
     & node "$PSScriptRoot/phase5-populated-journal-fixture.mjs" verify
     if($LASTEXITCODE){throw 'Populated V83 compatibility failed'}
     if(-not ($AnchorOnly -or $ManagementOnly)){
-     & (Get-FlywayPath) '-outputType=json' '-target=94' migrate | Out-File (Join-Path $fixtureRoot 'migration94.json')
-     if($LASTEXITCODE){throw 'V94 journal-family upgrade failed'}
+     & (Get-FlywayPath) '-outputType=json' '-target=95' migrate | Out-File (Join-Path $fixtureRoot 'migration95.json')
+     if($LASTEXITCODE){throw 'V95 journal-family upgrade failed'}
     }
     if($AnchorOnly -or $ManagementOnly){
      $env:LOAN_ANCHOR_SNAPSHOT=Join-Path $fixtureRoot 'populated-anchor83.json'
