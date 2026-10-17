@@ -58,6 +58,50 @@ class CompletedRelayHealthTests(unittest.TestCase):
                 self.assertEqual(self.check(**changes)['status'],0)
 
 
+class ScriptedConnection:
+    """Answers each query with the next scripted row (fetchone) in order: heartbeat, latest run, running runs."""
+    def __init__(self,*rows):
+        self.rows=list(rows);self.statements=[]
+    def execute(self,sql,params=None):
+        self.statements.append((sql,params));self.current=self.rows.pop(0);return self
+    def fetchone(self):
+        return self.current
+
+
+class HeartbeatFreshnessTests(unittest.TestCase):
+    """V6: audit-relay freshness comes from runtime.service_heartbeats, job_runs stays the fallback (mixed versions)."""
+    def freshness(self,beat,latest,running):
+        conn=ScriptedConnection(beat,latest,(running,))
+        result=rh.freshness(conn)
+        self.assertTrue(all(p==('audit-relay',) for _,p in conn.statements))
+        return result
+
+    def test_heartbeat_completion_wins_when_newer(self):
+        self.assertEqual(self.freshness((990.0,'COMPLETED',0,None),(900.0,'COMPLETED',0),None),((990.0,'COMPLETED',0),None))
+        self.assertEqual(self.freshness((990.0,'FAILED',2,None),None,None),((990.0,'FAILED',2),None))
+
+    def test_newer_job_run_wins_over_an_older_heartbeat(self):
+        # An older binary finishing after the heartbeat's last run (deploy window) is the fresher evidence.
+        self.assertEqual(self.freshness((900.0,'COMPLETED',0,None),(950.0,'FAILED',2),None),((950.0,'FAILED',2),None))
+
+    def test_no_heartbeat_row_falls_back_to_job_runs(self):
+        self.assertEqual(self.freshness(None,(900.0,'COMPLETED',0),880.0),((900.0,'COMPLETED',0),880.0))
+        self.assertEqual(self.freshness(None,None,None),(None,None))
+        self.assertEqual(self.freshness((None,None,None,None),(900.0,'COMPLETED',0),None),((900.0,'COMPLETED',0),None))
+
+    def test_running_is_the_oldest_of_heartbeat_and_job_runs(self):
+        self.assertEqual(self.freshness((990.0,'COMPLETED',0,995.0),None,None)[1],995.0)
+        self.assertEqual(self.freshness((990.0,'COMPLETED',0,995.0),None,970.0)[1],970.0)
+        self.assertEqual(self.freshness((990.0,'COMPLETED',0,960.0),None,970.0)[1],960.0)
+
+    def test_assessment_of_heartbeat_evidence(self):
+        complete,running=self.freshness((990.0,'COMPLETED',0,None),None,None)
+        snapshot={'completed':complete,'running':running,'backlog':0,'oldest':None,'missing_intents':0}
+        self.assertEqual(rh.assess(snapshot,1000)['status'],1)
+        complete,running=self.freshness((990.0,'INTERRUPTED',None,None),None,None)
+        self.assertEqual(rh.assess(dict(snapshot,completed=complete),1000)['status'],0)
+
+
 class InspectConnectionTests(unittest.TestCase):
     """ALL-ARCH-03: the central read runs as mw_agent_worker, never as the bare NOINHERIT IAM login."""
     CONFIG={'state_backend':'postgres','agent_database_host':'127.0.0.1','agent_database_port':5432,

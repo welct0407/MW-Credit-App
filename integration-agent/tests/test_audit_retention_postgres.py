@@ -2,7 +2,7 @@
 
 Gated like FreshCentralMigrationTests: MW_AGENT_FRESH_PG_DSN names a loopback server on a non-default
 port with no agent roles or database, e.g. "host=127.0.0.1 port=15651 user=postgres dbname=postgres".
-The class bootstraps, applies V1..V5, seeds synthetic operation trees and proves that
+The class bootstraps, applies V1..Vn (V6 adds the heartbeat table, which retention never touches), seeds synthetic operation trees and proves that
 audit.purge_routine_trees() deletes only eligible whole trees, refuses a cutoff younger than 7 days,
 keeps every protected tree, is denied to a caller without mw_agent_retention, and that the append-only
 triggers still block direct deletes by other roles. The last test runs agent-db-maintenance.py
@@ -75,7 +75,7 @@ class RetentionPurgeTests(unittest.TestCase):
                 conn.execute(statement)
         cls.admin = {**server, 'dbname': 'mw_agent', 'autocommit': True}
         with psycopg.connect(**cls.admin) as conn:
-            assert state_migration.migrate(conn, MIGRATIONS)['applied'][-1] == 'V5__audit_retention_identity.sql'
+            assert state_migration.migrate(conn, MIGRATIONS)['applied'][-1] == 'V6__service_heartbeats.sql'
             conn.execute('ALTER ROLE mw_agent_worker LOGIN')
             conn.execute('ALTER ROLE mw_agent_retention LOGIN')
             conn.execute('CREATE ROLE ' + LOGIN + ' LOGIN NOINHERIT')
@@ -468,7 +468,7 @@ class MaintIndexAdoptionTests(unittest.TestCase):
             # Mark one as an interrupted CONCURRENTLY build would leave it.
             conn.execute("UPDATE pg_index SET indisvalid=false WHERE indexrelid='runtime.maint_job_runs_operation_idx'::regclass")
             adopted = conn.execute("SELECT 'runtime.maint_operation_state_last_event_idx'::regclass::oid").fetchone()[0]
-            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V5__audit_retention_identity.sql'])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql'])
             rows = conn.execute('''SELECT c.relname,i.indisvalid,c.oid FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
                 JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='runtime'
                 AND c.relname IN ('operation_state_last_event_idx','job_runs_operation_idx','maint_operation_state_last_event_idx',

@@ -163,11 +163,26 @@ Host commands run on the VM through `mw-debian-ssh '<command>'`. Never print sec
 
 None.
 
+## W4 optional follow-ups: heartbeat-only idle cycles and summarised reference reads (17 October 2026)
+
+Owner decisions of 17 October 2026 (R069 Open; branch `claude/w4-optional`), after a PROD readback of 8,431 no-op JOB trees a day and about 28,000 rows a day from the receipt cycle's routine `masters()` reads.
+
+- **Agent migration V6** (`database/migrations/V6__service_heartbeats.sql`): `runtime.service_heartbeats`, one mutable row per service (worker SELECT/INSERT/UPDATE; retention and auditor SELECT). Not exported or purged by retention.
+- **Lazy JOB records** (`audit.py`: `job`, `materialise`, `materialise_parent`, `reference`, `reads_reference`; `begin` writes `request_reference`): the owner fence moves to the heartbeat row under the same per-service advisory lock (live or remote owner refused with `JOB_OWNER_ACTIVE_OR_UNRESOLVED`; a dead local owner retired, a dead lazy one on the record it never wrote). The JOB operation, `requested` event and `RUNNING` job run are written in the first child's transaction, or at exit on failure/interruption/`outcome['effect']`; an idle run updates the heartbeat only. Materialisation re-checks ownership (`JOB_OWNERSHIP_LOST`), and reads the job run row, not a process flag, so a rolled-back child leaves the run lazy.
+- **Summarised reference reads** (`receipt_master.py`): `masters()` inside a job records digest and row counts on the run; the JOB's `completed`/`failed` payload and `job_runs.summary` carry `reference_reads`; children carry `request_reference` with the count and prefix hash. Other `read_query` callers and reads outside a job keep the `@audited` READ tree.
+- **CLI** (`cli.py`): `native-api-probe`, `instagram-probe` and `messages` run unwrapped (`UNWRAPPED_COMMANDS`); `audit-relay` sets `outcome['effect']` when it exported or verified something.
+- **Freshness** (`relay_health.freshness`): heartbeat first, `runtime.job_runs` fallback; the newer completion and the oldest running start win (mixed versions). `debian-health.py` unchanged.
+- **Docs**: `docs/POSTGRESQL_OPERATIONS.md` (new section, growth and retention notes), `docs/OPERATIONS.md` (write-freeze list, what an idle cycle leaves, deploy order).
+- **Tests**: `tests/test_postgres_state.py` (idle run leaves zero audit rows and a heartbeat; child materialises the parent with `requested` before the child and the reference-read prefix; failure and crash materialise; `effect` outcome; live-owner and remote-owner fence; dead lazy and dead materialised owner retirement; `JOB_OWNERSHIP_LOST`; rolled-back child), `tests/test_relay_health.py` (`HeartbeatFreshnessTests`), `tests/test_receipt_master.py` (summarised inside a job, audited outside), new `tests/test_cli.py` (unwrapped probes, job exit codes, relay effect), `tests/test_state_migration_postgres.py` (V6 pinned, grants, V6 on top of V5), `tests/test_audit_retention_postgres.py` (V6 last).
+- **Checks**: unit suite 521 OK (80 skipped without a lab); lab suites (all ten modules of `agent-tests.yml`) 97 OK on disposable PostgreSQL 18 clusters; `ruff check integration-agent` clean.
+- **Deploy order**: apply V6 with `state_migration.migrate` on `mw_agent`, then deploy the package (`deploy-runtime.py`). Rollback: the previous package ignores the table (its job runs keep fencing through `runtime.job_runs`, which V6 binaries also honour); the table can stay.
+- **Expected effect**: about 42,000 rows a day from no-op JOB trees and about 28,000 from masters reads no longer written (roughly 70,000 rows, most of the 88 MB a day), before the 7-day retention.
+
 ## Remaining work
 
 - Delete `/root/arch03-offline-20261017` from 24 October 2026 (one week).
 - Confirm the next genuine inbound Instagram message is captured after the restarts.
 - Part 2b go-live: done 17 October 2026 (R068 promotion): business V95 in PROD (04:09Z), then as `postgres` `GRANT mw_reviewer_dml, mw_receipt_projector TO "mw-integration-agent@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE`, Debian deploy of `679a76c` (activated 04:12:39Z), and `database_dml_auth`/`receipt_projector_auth` set to `iam` at 04:13Z (config backup `/root/config.json.pre-arch03-2b`, check ok, receiver restart ready, 8 timers). Connection-only probes: reviewer `session_user` IAM, `current_user` `mw_reviewer_dml`, read-only; projector `current_user` `mw_receipt_projector` with EXECUTE on `attach_payment_receipt_evidence`. Password logins stay until a quiet week; remaining: `NOLOGIN` both roles and shred the two password files and the 2a offline copy (reminder 24 October 2026, 10:05 Bangkok).
 - W4 state adapter change for AGT-STATE-03 (processed high-water mark over `partner_review_replies`/`partner_notices`).
-- Write and install the audit retention job against `gs://mw-credit-operator-private-737787224638/agent-audit-archive/`.
+- Write and install the audit retention job against `gs://mw-credit-operator-private-737787224638/agent-audit-archive/` (done, R064 W4; the heartbeat-only follow-up above is not yet deployed: V6 and the package await the R069 agent deploy).
 - Narrow the Graph refresh-token write path when `graph_email.py` is next touched (AGT-HOST-02).

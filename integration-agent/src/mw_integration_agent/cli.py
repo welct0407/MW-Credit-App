@@ -79,29 +79,40 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+# Long-running services, local checks and the monitoring/read probes run outside audit.job(): no
+# service owner to fence and nothing to record (the probes touch no journal and leave no audit tree).
+UNWRAPPED_COMMANDS = ('serve-webhook','receiver-ready','status','check','native-api-probe','instagram-probe','messages')
+
+
 def main() -> int:
     args = build_parser().parse_args()
-    if args.command in ('serve-webhook','receiver-ready','status','check'):
+    if args.command in UNWRAPPED_COMMANDS:
         return execute(args)
     from .audit import job
     try:
         config=load_json(args.config)
         with job(config,args.command) as outcome:
-            outcome['exit_code']=execute(args)
+            outcome['exit_code']=execute(args,outcome)
             return outcome['exit_code']
     except ConfigurationError as exc:
         print(json.dumps({'status':'error','error':str(exc)}))
         return 2
 
 
-def execute(args) -> int:
+def execute(args, outcome=None) -> int:
     try:
         if args.command == 'audit-relay':
             from .outbox import relay,reconcile
             config=load_json(args.config)
             validate_config(config)
             validate_catalogue(load_json(args.catalogue))
-            print(json.dumps({'relay':relay(config),'reconciliation':reconcile(config)}))
+            result={'relay':relay(config),'reconciliation':reconcile(config)}
+            # The relay writes under other services' operations, never a child of its own JOB:
+            # a cycle that moved something materialises its JOB record through the outcome.
+            effect={k:v for k,v in (('exported',result['relay']['exported']),('verified',result['reconciliation']['verified'])) if v}
+            if effect and outcome is not None:
+                outcome['effect']=effect
+            print(json.dumps(result))
             return 0
         if args.command == 'partner-conversation-cycle':
             from .partner_conversation import run

@@ -45,6 +45,27 @@ def assess(snapshot, now):
     return fields
 
 
+def freshness(central, service='audit-relay'):
+    """Latest completion (epoch, state, exit code) and the oldest RUNNING start of a service.
+
+    Since agent V6 an idle cycle leaves only its runtime.service_heartbeats row; runtime.job_runs
+    still records materialised runs and the runs of an older binary, so both are read and the
+    newer completion wins (mixed versions during a deploy)."""
+    beat=central.execute('''SELECT extract(epoch FROM last_finished_at)::double precision,last_outcome,exit_code,
+        CASE WHEN state='RUNNING' THEN extract(epoch FROM last_started_at)::double precision END
+        FROM runtime.service_heartbeats WHERE service_name=%s''',(service,)).fetchone()
+    complete=central.execute('''SELECT extract(epoch FROM finished_at)::double precision,state,
+        summary->'exit_code' FROM runtime.job_runs WHERE service_name=%s AND finished_at IS NOT NULL
+        ORDER BY finished_at DESC,started_at DESC,run_id DESC LIMIT 1''',(service,)).fetchone()
+    running=central.execute("SELECT extract(epoch FROM min(started_at))::double precision FROM runtime.job_runs WHERE service_name=%s AND state='RUNNING'",(service,)).fetchone()[0]
+    if beat:
+        if beat[0] is not None and (complete is None or beat[0]>=complete[0]):
+            complete=(beat[0],beat[1],beat[2])
+        if beat[3] is not None and (running is None or beat[3]<running):
+            running=beat[3]
+    return complete,running
+
+
 def inspect(config, now=None):
     now=time.time() if now is None else now
     if config.get('state_backend')!='postgres':
@@ -57,10 +78,7 @@ def inspect(config, now=None):
         with central.transaction():
             central.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
             fence(central,config)
-            complete=central.execute('''SELECT extract(epoch FROM finished_at)::double precision,state,
-                summary->'exit_code' FROM runtime.job_runs WHERE service_name='audit-relay' AND finished_at IS NOT NULL
-                ORDER BY finished_at DESC,started_at DESC,run_id DESC LIMIT 1''').fetchone()
-            running=central.execute("SELECT extract(epoch FROM min(started_at))::double precision FROM runtime.job_runs WHERE service_name='audit-relay' AND state='RUNNING'").fetchone()[0]
+            complete,running=freshness(central)
             # Source snapshot is read AFTER the central snapshot. A newly committed
             # receipt may not be visible centrally yet; missing-intent diagnosis
             # therefore applies only beyond a normal relay cycle (30 seconds).

@@ -362,6 +362,203 @@ class PostgreSQLStateTests(unittest.TestCase):
                 with audit.activity(self.config,'synthetic-provider',effect=True):called=True
         self.assertFalse(called)
 
+    # ------------------------------------------------------------------ V6: heartbeat-only idle jobs
+
+    def audit_counts(self):
+        with psycopg.connect(**self.admin) as c:
+            return c.execute('SELECT (SELECT count(*) FROM audit.operations),(SELECT count(*) FROM audit.events),'
+                             '(SELECT count(*) FROM runtime.operation_state),(SELECT count(*) FROM runtime.job_runs)').fetchone()
+
+    def heartbeat(self,service):
+        with psycopg.connect(**self.admin) as c:
+            row=c.execute('SELECT * FROM runtime.service_heartbeats WHERE service_name=%s',(service,)).fetchone()
+            return dict(zip([d.name for d in c.execute('SELECT * FROM runtime.service_heartbeats LIMIT 0').description],row)) if row else None
+
+    def job_tree(self,op):
+        with psycopg.connect(**self.admin) as c:
+            events=c.execute('SELECT operation_seq,event_kind,payload FROM audit.events WHERE operation_id=%s ORDER BY operation_seq',(op,)).fetchall()
+            run=c.execute('SELECT state,finished_at IS NOT NULL,summary FROM runtime.job_runs WHERE run_id=%s',(op,)).fetchone()
+            op_row=c.execute('SELECT action,parent_operation_id,plan,created_at FROM audit.operations WHERE operation_id=%s',(op,)).fetchone()
+            st=c.execute('SELECT state FROM runtime.operation_state WHERE operation_id=%s',(op,)).fetchone()
+            return {'events':events,'run':run,'operation':op_row,'state':st and st[0]}
+
+    def test_idle_job_writes_only_a_heartbeat(self):
+        service='lab-idle-'+uuid.uuid4().hex[:8]
+        before=self.audit_counts()
+        for _cycle in range(2):
+            with audit.job(self.config,service) as outcome:
+                outcome['exit_code']=0
+        self.assertEqual(self.audit_counts(),before)
+        beat=self.heartbeat(service)
+        self.assertEqual((beat['state'],beat['last_outcome'],beat['exit_code'],beat['consecutive_noop'],beat['materialised'],beat['last_effect_at']),
+                         ('COMPLETED','COMPLETED',0,2,False,None))
+        self.assertEqual((beat['owner']['pid'],str(beat['process_generation'])),(os.getpid(),self.generation))
+        self.assertGreater(beat['last_finished_at'],beat['last_started_at'])
+
+    def test_child_operation_materialises_the_job_first_with_reference_reads(self):
+        service='lab-child-'+uuid.uuid4().hex[:8]
+        before=self.audit_counts()
+        @audit.audited('business_read',route='postgres',action='READ')
+        def read(config):
+            return {'partners':[{'id':'p'}],'accounts':[]}
+        with audit.job(self.config,service) as outcome:
+            job_op=audit.PARENT.get()
+            self.assertEqual(audit.reference('receipt_masters',read,self.config),{'partners':[{'id':'p'}],'accounts':[]})
+            self.assertEqual(self.audit_counts(),before)  # the reference read wrote nothing of its own
+            with audit.activity(self.config,'synthetic-child') as child:
+                pass
+            audit.reference('receipt_masters',read,self.config)
+            outcome['exit_code']=0
+        # Exactly the eager rows: JOB operation + requested/completed, its state, its run; the child tree.
+        self.assertEqual(tuple(a-b for a,b in zip(self.audit_counts(),before)),(2,4,2,1))
+        tree=self.job_tree(job_op)
+        self.assertEqual([e[1] for e in tree['events']],['requested','completed'])
+        self.assertEqual((tree['operation'][0],tree['operation'][1],tree['operation'][2]['owner']['pid']),('JOB',None,os.getpid()))
+        self.assertEqual((tree['run'][0],tree['run'][1],tree['state']),('COMPLETED',True,'COMPLETED'))
+        reads=tree['events'][1][2]['reference_reads']
+        self.assertEqual([r['name'] for r in reads],['receipt_masters']*2)
+        self.assertEqual((reads[0]['rows'],reads[0]['result_count'],reads[0]['result_sha256']),({'partners':1,'accounts':0},2,audit.digest({'partners':[{'id':'p'}],'accounts':[]})))
+        self.assertEqual(tree['run'][2]['reference_reads'],reads)
+        with psycopg.connect(**self.admin) as c:
+            child_row=c.execute('SELECT parent_operation_id,request_reference,created_at FROM audit.operations WHERE operation_id=%s',(child,)).fetchone()
+            seqs=c.execute("SELECT min(operation_seq) FROM audit.events WHERE operation_id=%s AND event_kind='requested'",(job_op,)).fetchone()[0]
+        self.assertEqual(child_row[0],job_op)
+        self.assertGreater(child_row[2],tree['operation'][3])  # parent operation before the child
+        self.assertEqual(seqs,1)
+        # The child references the one read that preceded it; the prefix of the JOB summary verifies it.
+        self.assertEqual(child_row[1],{'reference_reads':1,'reference_reads_sha256':audit.digest(reads[:1])})
+        beat=self.heartbeat(service)
+        self.assertEqual((beat['state'],beat['consecutive_noop'],beat['materialised']),('COMPLETED',0,True))
+        self.assertIsNotNone(beat['last_effect_at'])
+
+    def test_failed_and_crashed_jobs_are_materialised(self):
+        for exit_code,crash in ((2,False),(None,True)):
+            with self.subTest(exit_code=exit_code,crash=crash):
+                service='lab-fail-'+uuid.uuid4().hex[:8]
+                before=self.audit_counts()
+                try:
+                    with audit.job(self.config,service) as outcome:
+                        job_op=audit.PARENT.get()
+                        if crash:raise RuntimeError('synthetic crash')
+                        outcome['exit_code']=exit_code
+                except RuntimeError:
+                    self.assertTrue(crash)
+                self.assertEqual(tuple(a-b for a,b in zip(self.audit_counts(),before)),(1,2,1,1))
+                tree=self.job_tree(job_op)
+                self.assertEqual([e[1] for e in tree['events']],['requested','failed'])
+                self.assertEqual(tree['events'][1][2]['exit_code'],exit_code)
+                self.assertEqual((tree['run'][0],tree['state']),('FAILED','FAILED'))
+                beat=self.heartbeat(service)
+                self.assertEqual((beat['state'],beat['exit_code'],beat['consecutive_noop']),('FAILED',exit_code,0))
+
+    def test_effect_outcome_materialises_a_childless_job(self):
+        service='lab-effect-'+uuid.uuid4().hex[:8]
+        before=self.audit_counts()
+        with audit.job(self.config,service) as outcome:
+            job_op=audit.PARENT.get()
+            outcome.update(exit_code=0,effect={'exported':3})
+        self.assertEqual(tuple(a-b for a,b in zip(self.audit_counts(),before)),(1,2,1,1))
+        tree=self.job_tree(job_op)
+        self.assertEqual(([e[1] for e in tree['events']],tree['events'][1][2]['effect'],tree['run'][0]),(['requested','completed'],{'exported':3},'COMPLETED'))
+
+    def test_live_owner_fences_a_second_run_of_the_same_service(self):
+        service='lab-fence-'+uuid.uuid4().hex[:8]
+        with audit.job(self.config,service) as outer:
+            with self.assertRaisesRegex(ConfigurationError,'JOB_OWNER_ACTIVE_OR_UNRESOLVED'):
+                with audit.job(self.config,service):
+                    pass
+            # The refused start changed nothing: the heartbeat still names the live owner's run.
+            beat=self.heartbeat(service)
+            self.assertEqual((beat['state'],beat['operation_id']),('RUNNING',audit.PARENT.get()))
+            with audit.activity(self.config,'synthetic-child'):
+                pass
+            with self.assertRaisesRegex(ConfigurationError,'JOB_OWNER_ACTIVE_OR_UNRESOLVED'):
+                with audit.job(self.config,service):
+                    pass
+            outer['exit_code']=0
+        # Another host's run is never retired, even with the same pid.
+        with psycopg.connect(**self.admin) as c:
+            c.execute('''UPDATE runtime.service_heartbeats SET state='RUNNING',owner=owner || '{"host":"other-host"}'::jsonb,operation_id=%s
+                WHERE service_name=%s''',(uuid.uuid4(),service))
+        with self.assertRaisesRegex(ConfigurationError,'JOB_OWNER_ACTIVE_OR_UNRESOLVED'):
+            with audit.job(self.config,service):
+                pass
+        self.assertEqual(self.audit_counts()[3],self.audit_counts()[3])
+
+    def test_dead_lazy_owner_is_retired_on_the_record_it_never_wrote(self):
+        service='lab-retire-'+uuid.uuid4().hex[:8]
+        with audit.job(self.config,service) as outcome:
+            dead_op=audit.PARENT.get()
+            outcome['exit_code']=0
+        # Simulate the process dying mid-cycle before any effect: RUNNING heartbeat, no job run, pid gone.
+        dead_owner={'host':__import__('socket').gethostname(),'pid':2**22-7,'start_token':'synthetic-dead'}
+        with psycopg.connect(**self.admin) as c:
+            c.execute("UPDATE runtime.service_heartbeats SET state='RUNNING',owner=%s::jsonb,last_outcome=NULL WHERE service_name=%s",(audit.canonical(dead_owner),service))
+        before=self.audit_counts()
+        with audit.job(self.config,service) as outcome:
+            new_op=audit.PARENT.get()
+            outcome['exit_code']=0
+        self.assertNotEqual(new_op,dead_op)
+        self.assertEqual(tuple(a-b for a,b in zip(self.audit_counts(),before)),(1,2,1,1))  # the dead run only
+        tree=self.job_tree(dead_op)
+        self.assertEqual(([e[1] for e in tree['events']],tree['events'][1][2],tree['run'][0],tree['state'],tree['operation'][2]['owner']),
+                         (['requested','interrupted'],{'reason':'previous_local_process_terminated'},'INTERRUPTED','FAILED',dead_owner))
+        beat=self.heartbeat(service)
+        self.assertEqual((beat['state'],beat['operation_id'],beat['consecutive_noop']),('COMPLETED',new_op,2))  # idle, dead (not counted), idle
+
+    def test_dead_materialised_owner_is_retired_as_before(self):
+        service='lab-retire-m-'+uuid.uuid4().hex[:8]
+        dead_owner={'host':__import__('socket').gethostname(),'pid':2**22-7,'start_token':'synthetic-dead'}
+        key=str(uuid.uuid4());dead_op=audit.stable(service+':'+key)
+        # A run that materialised (it had a child) and then died: RUNNING heartbeat and RUNNING job run.
+        with psycopg.connect(**self.admin) as c:
+            c.execute('''INSERT INTO runtime.service_heartbeats(service_name,operation_id,run_key,owner,process_generation,code_version,state,last_started_at)
+                VALUES (%s,%s,%s,%s::jsonb,%s,'synthetic','RUNNING',clock_timestamp())''',(service,dead_op,key,audit.canonical(dead_owner),self.generation))
+        with state.transaction(self.config) as c:
+            from datetime import UTC,datetime
+            audit.materialise(c,{'service':service,'config':self.config,'key':key,'op':dead_op,'owner':dead_owner,'started_at':datetime.now(UTC)})
+        before=self.audit_counts()
+        with audit.job(self.config,service) as outcome:
+            outcome['exit_code']=0
+        self.assertEqual(tuple(a-b for a,b in zip(self.audit_counts(),before)),(0,1,0,0))  # one interrupted event
+        tree=self.job_tree(dead_op)
+        self.assertEqual(([e[1] for e in tree['events']][-1],tree['run'][0]),('interrupted','INTERRUPTED'))
+        self.assertEqual(self.heartbeat(service)['state'],'COMPLETED')
+
+    def test_retired_process_cannot_materialise_a_second_running_run(self):
+        service='lab-zombie-'+uuid.uuid4().hex[:8]
+        with audit.job(self.config,service) as outcome:
+            with psycopg.connect(**self.admin) as c:  # another process took the service over
+                c.execute('UPDATE runtime.service_heartbeats SET operation_id=%s WHERE service_name=%s',(uuid.uuid4(),service))
+            before=self.audit_counts()
+            with self.assertRaisesRegex(ConfigurationError,'JOB_OWNERSHIP_LOST'):
+                with audit.activity(self.config,'synthetic-child'):
+                    pass
+            self.assertEqual(self.audit_counts(),before)
+            outcome['exit_code']=0
+        self.assertEqual(self.audit_counts(),before)
+
+    def test_rolled_back_child_leaves_the_job_lazy(self):
+        service='lab-rollback-'+uuid.uuid4().hex[:8]
+        before=self.audit_counts()
+        store=ConversationStore('partner-conversations.db',self.config)
+        with audit.job(self.config,service) as outcome:
+            job_op=audit.PARENT.get()
+            with self.assertRaises(RuntimeError):
+                with store.db:
+                    store.db.execute('INSERT INTO conversations VALUES (?,?)',(self.key,self.key))
+                    store.db.execute('INSERT INTO conversations VALUES (?,?)',(self.key+'-2',self.key+'-2'))
+                    raise RuntimeError('simulated crash before commit')
+            self.assertEqual(self.audit_counts(),before)
+            outcome['exit_code']=0
+        self.assertEqual(self.audit_counts(),before)
+        self.assertIsNone(self.job_tree(job_op)['run'])
+        with audit.job(self.config,service) as outcome:
+            job_op=audit.PARENT.get()
+            store.bind(self.key,'thread-'+self.key)
+            outcome['exit_code']=0
+        self.assertEqual(self.job_tree(job_op)['run'][0],'COMPLETED')
+
 
 @unittest.skipUnless(os.environ.get('MW_AGENT_LAB_MANIFEST'),'isolated PostgreSQL 18 lab required')
 class IamLoginLabTests(unittest.TestCase):

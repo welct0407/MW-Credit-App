@@ -122,8 +122,9 @@ class FreshCentralMigrationTests(unittest.TestCase):
 
     def test_first_run_applies_every_version_in_order_with_pinned_hashes(self):
         names = [p.name for p in self.files]
-        self.assertEqual(names[:5], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
-                                     'V3__job_ownership.sql', 'V4__receipt_evidence.sql', 'V5__audit_retention_identity.sql'])
+        self.assertEqual(names[:6], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
+                                     'V3__job_ownership.sql', 'V4__receipt_evidence.sql', 'V5__audit_retention_identity.sql',
+                                     'V6__service_heartbeats.sql'])
         self.assertEqual(self.first, {'applied': names, 'versions': len(names)})
         expected = [(version(p), p.name, hashlib.sha256(p.read_text(encoding='utf-8').encode()).hexdigest()) for p in self.files]
         self.assertEqual([tuple(row) for row in self.after_first], expected)
@@ -159,6 +160,47 @@ class FreshCentralMigrationTests(unittest.TestCase):
         with psycopg.connect(**self.server, autocommit=True) as conn:
             with self.assertRaisesRegex(ConfigurationError, 'WRONG_CENTRAL_MIGRATION_TARGET'):
                 state_migration.migrate(conn, MIGRATIONS)
+
+    def test_v6_heartbeat_table_and_grants(self):
+        with psycopg.connect(**self.agent) as conn:
+            grants = conn.execute('''SELECT grantee,string_agg(privilege_type,',' ORDER BY privilege_type) FROM information_schema.role_table_grants
+                WHERE table_schema='runtime' AND table_name='service_heartbeats' AND grantee<>'mw_agent_owner' GROUP BY grantee ORDER BY grantee''').fetchall()
+            self.assertEqual(grants, [('mw_agent_auditor', 'SELECT'), ('mw_agent_retention', 'SELECT'), ('mw_agent_worker', 'INSERT,SELECT,UPDATE')])
+            self.assertEqual(conn.execute("SELECT count(*) FROM pg_trigger WHERE tgrelid='runtime.service_heartbeats'::regclass AND NOT tgisinternal").fetchone()[0], 0)
+
+
+@unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')
+class IncrementalV6Tests(unittest.TestCase):
+    """V6 on a server already at V5 (the production path): only V6 applies and the heartbeat table appears."""
+
+    def test_v6_applies_on_top_of_v5(self):
+        server = {**conninfo_to_dict(os.environ['MW_AGENT_FRESH_PG_DSN']), 'dbname': 'postgres'}
+        if server.get('host') not in ('127.0.0.1', 'localhost') or int(server.get('port') or 5432) == 5432:
+            raise RuntimeError('Refusing a non-disposable target: loopback host and non-default port required')
+        with psycopg.connect(**server, autocommit=True) as conn:
+            if conn.execute("SELECT 1 FROM pg_database WHERE datname='mw_agent'").fetchone() or \
+                    conn.execute('SELECT 1 FROM pg_roles WHERE rolname=ANY(%s)', (list(ROLES),)).fetchone():
+                raise RuntimeError('Refusing a server that already has the agent database or roles')
+
+        def drop_created():
+            with psycopg.connect(**server, autocommit=True) as conn:
+                conn.execute('DROP DATABASE IF EXISTS mw_agent WITH (FORCE)')
+                for role in ROLES:
+                    conn.execute(sql.SQL('DROP ROLE IF EXISTS {}').format(sql.Identifier(role)))
+        self.addCleanup(drop_created)
+        with psycopg.connect(**server, autocommit=True, options=APPROVAL) as conn:
+            for statement in statements(BOOTSTRAP.read_text(encoding='utf-8')):
+                conn.execute(statement)
+        with tempfile.TemporaryDirectory(prefix='mw-agent-v5-') as directory, \
+                psycopg.connect(**{**server, 'dbname': 'mw_agent'}, autocommit=True) as conn:
+            for path in sorted(MIGRATIONS.glob('V[1-5]__*.sql')):
+                (Path(directory) / path.name).write_bytes(path.read_bytes())
+            self.assertEqual(state_migration.migrate(conn, directory)['applied'][-1], 'V5__audit_retention_identity.sql')
+            self.assertIsNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V6__service_heartbeats.sql'])
+            self.assertIsNotNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
+            self.assertEqual([row[1] for row in history(conn)][-2:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql'])
 
 
 if __name__ == '__main__':
