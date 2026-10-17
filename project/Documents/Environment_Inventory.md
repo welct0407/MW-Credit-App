@@ -24,7 +24,7 @@ One pin per cell, one row per target. Rollback entries are the previous verified
 
 | Target | Hosting version | Release / public version | Verified | Rollback version | Record |
 | --- | --- | --- | --- | --- | --- |
-| DEV | `aa23ab4c4aa95b11` | release `1792238892243000`; public `3907c551b9e7d6df9c11426e` | R070, source `038b5c9`, 17 October 2026 about 12:08Z | `a68f3ad97d0a956e` (R070 hotfix-only candidate); earlier `a9fae1d24659dfe0` (R069) | [R070 promotion](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r070-production-promotion) |
+| DEV | `fe7eaaa40b48ebff` | release `1792260584884000`; public `51398c05d5d6a7eb6fb15a30`; entry `/assets/index-rbPg9ZW0.js` | R071 with the Thai preference fix, source `94cbfa5`, 17 October 2026 18:09:44Z, 14 files byte-identical; built with the DEV web app `appId` | `b3fd8a00553ddb7e` (R071 first DEV build, release `1792259378089000`); earlier `aa23ab4c4aa95b11` (R070) | [R071 record](Development_Changes.md#r071-one-refresh-icon) |
 | PROD | `56d9669311d9de8f` | release `1792239767179000`; public `c374a73e7789b9425aad3337`; entry `/assets/index-CrpZKSD6.js` | R070, 12:22:47Z, 15 of 15 files byte-identical, package `93be515c...` | `45b116152dc0e997` (R069); earlier `708a6c496a812a3b` (R068), `bc7b87e2ff693780` (R066) | [R070 promotion](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r070-production-promotion) |
 
 Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, immutable `/assets/**`, `no-store` for `/`, `sw.js`, `build-version.json`, manifest and `offline.html`; viewport zoom lock kept (accepted design, W5 R068).
