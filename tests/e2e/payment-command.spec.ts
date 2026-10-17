@@ -279,28 +279,36 @@ test('One refresh icon: it delta-syncs every local dataset domain with a progres
  await page.goto(base);await page.getByRole('button',{name:/Google/}).click();await chooseLanguage(page,'EN');
  await page.evaluate(async()=>{const m=await import('/apps/pwa/src/owner-offline.ts');await m.ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'},'dev').authorize();window.dispatchEvent(new Event('mw-offline-prepare'))});
  const refresh=page.locator('button.collection-update'),status=page.locator('.live-sync-status'),progress=page.locator('.header-load-progress'),all=['records','collection','cash','management','notifications'];
+ // HDR-SYNC-03: one hidden live region in the cell, never re-mounted, receives only transitions (the first download announced "Syncing…", then its time).
+ const region=page.locator('.header-sync-cell .sync-announcement');await expect(region).toHaveCount(1);await expect(region).toHaveAttribute('aria-live','polite');await expect(region).toHaveText(/^Updated \d\d:\d\d$/);await expect(page.locator('.header-sync-cell [role=status]')).toHaveCount(1);
  await expect(progress).toHaveCount(0);await expect(status).toContainText('Updated');await expect(refresh).toBeEnabled();
  // The status is text, not a second sync control.
  await expect(page.locator('.header-sync-cell button')).toHaveCount(0);await expect(page.getByRole('button',{name:/Sync now/})).toHaveCount(0);
  const after=async(action:()=>Promise<unknown>)=>{posts.length=0;await action();await expect.poll(()=>[...posts].sort()).toEqual([...all].sort());await page.waitForTimeout(600);expect(posts).toHaveLength(all.length)};
  // A tap delta-checks every domain (POST with the stored cursor); left of the icon a bar and percentage replace the time until the check completes.
  let release!:()=>void;hold=new Promise<void>(resolve=>release=resolve);posts.length=0;await refresh.click();await expect(progress).toBeVisible();await expect(status.locator('.header-load-percent')).toHaveText(/^\d+%$/);await expect(status).not.toContainText('Updated');
- // HDR-SYNC-PCT-01/03/06: the percentage sits above the bar, right-aligned with it, inside the 88px cell and 44px header row; screen readers get "Syncing…".
- await expect(status).toHaveAttribute('role','status');await expect(status.locator('.visually-hidden')).toHaveText('Syncing…');await expect(progress).toHaveAttribute('aria-label','Sync progress');
+ // HDR-SYNC-PCT-01/03/06: the percentage sits above the bar, right-aligned with it, inside the 88px cell and 44px header row; screen readers get "Syncing…" from the region, and the visible variant carries no role.
+ await expect(region).toHaveText('Syncing…');expect(await status.getAttribute('role')).toBeNull();await expect(progress).toHaveAttribute('aria-label','Sync progress');
  const geometry=await page.evaluate(()=>{const s=document.querySelector('.live-sync-status')!.getBoundingClientRect(),p=document.querySelector('.header-load-progress')!.getBoundingClientRect(),c=document.querySelector('.header-load-percent')!.getBoundingClientRect(),r=document.querySelector('.collection-update')!.getBoundingClientRect();return {above:c.bottom<=p.top,aligned:Math.abs(c.right-p.right)<=1,height:s.height,width:s.width,left:s.right<=r.left,overflow:document.documentElement.scrollWidth>innerWidth}});
  expect(geometry).toMatchObject({above:true,aligned:true,left:true,overflow:false});expect(geometry.height).toBeLessThanOrEqual(44);expect(geometry.width).toBeLessThanOrEqual(88);
  release();hold=null;await expect.poll(()=>[...posts].sort()).toEqual([...all].sort());await expect(status).toContainText('Updated');await expect(progress).toHaveCount(0);
- // The time is plain text: no live region, so the minute ticks are never announced.
- expect(await status.getAttribute('role')).toBeNull();
- // Automatic checks stay quiet: the time moves, no bar.
- await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await expect(progress).toHaveCount(0);
+ // The time is plain text: no role, so the minute ticks are never announced; the region announces the completed sync's time once.
+ expect(await status.getAttribute('role')).toBeNull();await expect(region).toHaveText(/^Updated \d\d:\d\d$/);const announcedAt=await region.textContent();
+ // Automatic checks stay quiet: the time moves, no bar, nothing announced.
+ await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await expect(progress).toHaveCount(0);expect(await region.textContent()).toBe(announcedAt);
  // A failed domain shows beside the icon (no banner, no title: the detail is hidden text); the refresh checks every domain, not only the failed one, and the time returns.
  const fits=async(text:RegExp)=>{await expect(status).toHaveText(text);const box=await page.evaluate(()=>{const e=document.querySelector('.live-sync-status')!,s=e.getBoundingClientRect(),r=document.querySelector('.collection-update')!.getBoundingClientRect();return {height:s.height,left:s.right<=r.left,clipped:e.scrollWidth>e.clientWidth+1||e.scrollHeight>e.clientHeight+1}});expect(box.height).toBeLessThanOrEqual(44);expect(box).toMatchObject({left:true,clipped:false})};
- failOnly=['cash'];await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await fits(/^Cash not updated/);await expect(status).toHaveAttribute('role','status');expect(await status.getAttribute('title')).toBeNull();await expect(status.locator('.visually-hidden')).toHaveText('Not updated: Cash. Saved data is still available; refresh to try again.');await expect(page.locator('.offline-preparation-status')).toHaveCount(0);
+ failOnly=['cash'];await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await fits(/^Cash not updated/);expect(await status.getAttribute('role')).toBeNull();expect(await status.getAttribute('title')).toBeNull();await expect(status.locator('.visually-hidden')).toHaveText('Saved data is still available; refresh to try again.');await expect(page.locator('.offline-preparation-status')).toHaveCount(0);expect(await region.textContent()).toBe(announcedAt);
  // HDR-SYNC-01: short section names keep the longest ones within two lines of the 88px cell.
  failOnly=['notifications'];await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await fits(/^Notifications not updated/);
- failOnly=['records'];await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await fits(/^Borrowers not updated/);await expect(status.locator('.visually-hidden')).toHaveText(/^\s*Not updated: Borrowers and loans\./);
- failOnly=[];await after(()=>refresh.click());await expect(status).toContainText('Updated');
+ failOnly=['records'];await after(()=>page.evaluate(()=>window.dispatchEvent(new Event('focus'))));await fits(/^Borrowers not updated/);await expect(status.locator('.visually-hidden')).toHaveText('Saved data is still available; refresh to try again.');
+ // A tap-started sync that ends in a failure announces the failure sentence; the next successful tap announces the time.
+ failOnly=['cash'];await after(()=>refresh.click());await fits(/^Cash not updated/);await expect(region).toHaveText('Cash not updated. Saved data is still available; refresh to try again.');
+ failOnly=[];await after(()=>refresh.click());await expect(status).toContainText('Updated');await expect(region).toHaveText(/^Updated \d\d:\d\d$/);
  // HDR-SYNC-05: a tap while offline shows neither the bar nor the failed icon; the offline banner explains.
- await context.setOffline(true);await expect(page.locator('.offline-mode-status')).toBeVisible();await refresh.click();await page.waitForTimeout(2000);await expect(progress).toHaveCount(0);await expect(status.locator('.header-load-percent')).toHaveCount(0);await expect(refresh).not.toHaveClass(/refresh-failed/);await expect(page.locator('.refresh-failure-badge')).toHaveCount(0);await context.setOffline(false);
+ await context.setOffline(true);await expect(page.locator('.offline-mode-status')).toBeVisible();await refresh.click();await page.waitForTimeout(2000);await expect(progress).toHaveCount(0);await expect(status.locator('.header-load-percent')).toHaveCount(0);await expect(refresh).not.toHaveClass(/refresh-failed/);await expect(page.locator('.refresh-failure-badge')).toHaveCount(0);
+ // Reconnecting without a tap leaves no stale failure to flash (read-cache records none for an offline read); a real online 5xx still shows the badge until a refresh succeeds.
+ await context.setOffline(false);await page.waitForTimeout(2000);await expect(page.locator('.refresh-failure-badge')).toHaveCount(0);await expect(refresh).not.toHaveClass(/refresh-failed/);
+ await page.route('https://mw-credit-app-read-dev-test.run.app/api/borrowers**',r=>r.fulfill({status:503,json:{ok:false,code:'unavailable'}}));await refresh.click();await expect(page.locator('.refresh-failure-badge')).toBeVisible();await expect(refresh).toHaveAttribute('data-refresh-state','error');
+ await page.unroute('https://mw-credit-app-read-dev-test.run.app/api/borrowers**');await refresh.click();await expect(page.locator('.refresh-failure-badge')).toHaveCount(0);await expect(refresh).toHaveAttribute('data-refresh-state','success');
 });

@@ -476,6 +476,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .cash-date-picker:focus-within{outline:2px solid #bf6900;outline-offset:2px}
 .cash-dashboard-card>summary{display:flex;align-items:center;min-height:44px;cursor:pointer}.cash-dashboard-card>summary>h2{margin:0}
 /* The page is the scroller on phones: containers around a sticky form bar must not become scroll containers. */
+/* FORM-SAVE-02: Save and Cancel sit in one row with an 8px gap at every width; Cancel keeps the white secondary look at 44px. */
+.form-sticky-actions{display:flex;gap:8px}.form-sticky-actions>button{min-height:44px}
 @media(max-width:1050px){.borrower-record:has(>form>.form-sticky-actions){overflow:visible}.live-shell :is(.list-panel,.detail-panel,.standalone-records):has(.form-sticky-actions){overflow:clip}.form-sticky-actions{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom));z-index:3;display:flex;gap:8px;margin:12px -8px 0;padding:8px;background:#fff;border-top:1px solid #ccc}.form-sticky-actions>button{flex:1;min-height:44px}}
 .close-summary{padding:12px;border:1px solid #ccc;border-radius:8px;background:#f7f8f9}
 .close-summary dl{display:flex;flex-wrap:wrap;gap:16px 32px;margin:0}.close-summary dd{margin:4px 0;font-weight:600}.close-summary dl>div:last-child dd{font-size:1.3em}
@@ -530,7 +532,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 
 /* HDR-SYNC-06: a fixed 88px cell, so the search icon never moves between the bar, the time and a failed section. */
 .header-sync-cell { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; width: 88px; flex: 0 0 88px; min-height: 44px; }
-.header-sync-cell:empty { display: none; }
+/* HDR-SYNC-03: the cell always holds the hidden sync live region; without a visible status it takes no space. */
+.header-sync-cell:not(:has(.live-sync-status)) { display: contents; }
 /* HDR-SYNC-02: text never exceeds two lines; Thai keeps the section name whole (.sync-section). */
 .live-sync-status { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 88px; padding: 2px 4px; font-size: 13px; line-height: 1.15; text-align: right; font-variant-numeric: tabular-nums; }
 .live-sync-status.failed { font-weight: 700; padding: 2px 0; }
