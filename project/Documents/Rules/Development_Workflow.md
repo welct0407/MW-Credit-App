@@ -57,7 +57,7 @@ Documentation is part of development completion, not an optional later task. At 
 | Evolving reference | Keep current as development progresses |
 | --- | --- |
 | [Project README](../../README.md) | Project background, capability overview and roadmap milestones; update material changes without duplicating detailed release/runtime records |
-| [Development Changes](../Development_Changes.md) | Current operation, active scope, remaining work, limitations and delivery-tooling status |
+| [Development Changes](../Development_Changes.md) | Current operation, active scope, remaining work, limitations and delivery-tooling status; a release's sections are pruned at its closure |
 | [Release Tracker](../Release_Tracker.md) | Open/Frozen/Released state, numbering and pending release actions, without deployment pins; change state only at the authorized transition |
 | [Solution Design](../Solution_Design.md) | Implemented architecture, component ownership and business meaning. Its **Current state** section is the first place to update runtime facts for the PWA and API |
 | [PWA Data Model](../PWA_Data_Model_Overview.md) | Relationships, command/user-flow semantics and source-correction behavior |
@@ -72,7 +72,7 @@ Documentation is part of development completion, not an optional later task. At 
 | [Events Bridge](../Grafana_MCP_Events_Bridge.md) | Current bridge contracts, configuration, recovery and unresolved limitations |
 | [Documents index](../README.md) and its linked current work/evidence records | Accurate navigation, ownership and outstanding work; update existing infrastructure/credential/release records when affected |
 
-Agent D owns this maintenance step for the six-agent process, obtaining facts from A/B/E/F. Agent C checks changed documentation against the implemented behavior and test evidence; the orchestrator confirms coverage and completion before publication. For smaller documentation tasks or explicit personal execution, the executor performs these responsibilities directly. Summarize updated references and genuine gaps once in the existing task/development record. Do not declare the batch complete while affected documentation remains stale.
+Agent D owns this maintenance step for the six-agent process, obtaining facts from A/B/E/F. Agent C checks changed documentation against the implemented behavior and test evidence; the orchestrator confirms coverage and completion before publication. For smaller documentation tasks or explicit personal execution, the executor performs these responsibilities directly. Summarize updated references and genuine gaps once in the existing task/development record. `npm run check:docs` ([below](#records-change-notes-and-retention)) must pass before publication. Do not declare the batch complete while affected documentation remains stale.
 
 ### Records, change notes and retention
 
@@ -85,6 +85,8 @@ Keep records proportional:
 - Keep current references concise and current. Delete unused or superseded documentation instead of keeping history copies; Git retains prior versions.
 - Maintained project tools belong in `project/scripts/`; sanitized evidence in `project/outputs/`. An evidence file stays only while a current document, README or maintained runtime script cites it. One-off release scripts and archived scripts do not keep evidence alive. Delete the rest; Git keeps history.
 - Keep a change note while its release is Open or one of the three most recently Released releases, or while a current document links to it. Delete older notes; Git keeps them. Before deleting a note, repoint links to it to a commit permalink.
+- Pruning happens at [release closure](Release_Workflow.md#promotion): the session that marks a release Released deletes its Development Changes sections, out-of-window notes and uncited evidence, and lists the deletions in that release's record.
+- Run `npm run check:docs` (`node scripts/check-docs.mjs`; CI runs it on every event) before pushing documentation changes. It fails on broken relative links or anchors in Markdown, on deployment pins (Cloud Run revisions, image digests, Hosting version ids) in current documents outside the Environment Inventory, and on change notes dated from 18 October 2026 that miss the template headings. It warns on change notes older than 14 days that no current document links to, on evidence nothing current cites and on `AGENTS.md` over 800 words; release closure clears the warnings. Fix a failure; never bypass it or narrow the check's scope to hide a real pin or link.
 
 Change-note template. Use these headings, in this order, with plain short sentences:
 
