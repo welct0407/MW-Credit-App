@@ -598,8 +598,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 /* W5 receiving: labelled primary Review/Confirm, captioned Clear draft, no nested scroll on phones. */
 .payment-context .record-action-label{display:inline!important}
 .payment-context .record-action{width:auto;flex:0 0 auto;padding:7px 10px!important}
-.selected-payment .payment-review-button,.selected-payment .payment-confirm-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
-.selected-payment .payment-review-button:disabled,.selected-payment .payment-confirm-button:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
+.selected-payment .payment-selection-header .payment-review-button,.selected-payment .payment-confirm-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
+.selected-payment .payment-selection-header .payment-review-button:disabled,.selected-payment .payment-confirm-button:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .selected-payment .allocation-summary{grid-template-columns:auto 44px minmax(0,1fr) auto}
 @media(max-width:600px){.selected-payment .allocation-summary{grid-template-columns:minmax(0,1fr) 44px auto}}
 @media(max-width:1050px){.selected-payment .payment-charge-scroll{max-height:none;overflow:visible}}

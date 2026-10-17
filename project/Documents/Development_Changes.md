@@ -23,6 +23,13 @@
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
+## R070 review payment button
+
+Owner report 17 October 2026: the Review payment button text looked too light; it should match Confirm payment. Cause: `.selected-payment .payment-selection-header button` in `style.css` (transparent background, no border) outranked the shared `.payment-review-button` rule in `live-style.css`, so Review showed white text on the grey allocation bar. The Review selectors now include `.payment-selection-header`, giving it the Confirm payment look (#713c00 fill and border, white text, weight 600; disabled grey unchanged). UI-only, no API or SQL change.
+
+- **Checks.** Chromium computed style before: transparent background, 0 px border; after: identical to Confirm payment. `npm run check` 566 of 566.
+- **Recovery.** `git revert` the commit; Hosting rollback to the prior version once deployed.
+
 ## R069 W4 optional follow-ups
 
 Branch `claude/w4-optional` (from `main` `158c241`), for the Open R069; code only, not deployed. Notes: [app](../../Change%20Logs/CHANGE_NOTES_W4_APP_2026-10-16.md#optional-follow-ups-r069), [database](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#remaining-work).
