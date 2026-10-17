@@ -6,7 +6,7 @@ name: Database migrations
 on:
   push:
     branches: ['**']
-    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'services/**', 'scripts/rehearsal/**', 'package-lock.json', '.github/workflows/database.yml', 'scripts/analysis/**', 'scripts/dictionary/capture_postgresql.py', 'project/outputs/database-transfer-20261007/source-manifest.json']
+    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'services/**', 'scripts/rehearsal/**', 'package-lock.json', '.github/workflows/database.yml', 'scripts/dictionary/capture_postgresql.py', 'project/outputs/database-transfer-20261007/source-manifest.json']
   workflow_dispatch:
     inputs:
       runner:

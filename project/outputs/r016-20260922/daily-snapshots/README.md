@@ -35,6 +35,8 @@ Its existing SQL request trigger calls `refresh_daily_analytics(today-1,today)`.
 
 The engine acquires the existing nonblocking advisory transaction lock, then updates portfolio and account snapshots in one SQL statement and transaction. Upserts preserve row keys. Account opening seeds come from immutable opening-minus-baseline offsets plus all dated source effects before the requested start; correctness does not depend on an older cached snapshot being fresh. Full and bounded rebuilds use exactly the same formulas.
 
+`Invoke-AnalyticsRebuild.ps1` was retired on 17 October 2026 (DB-ACCESS-07, direct route) and lives in Git history; the commands below no longer run.
+
 ```powershell
 ./scripts/database/Invoke-AnalyticsRebuild.ps1 -Environment development -From 2026-09-01
 ./scripts/database/Invoke-AnalyticsRebuild.ps1 -Environment development -Full
