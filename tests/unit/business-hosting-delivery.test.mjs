@@ -313,6 +313,25 @@ test('R066 Hosting-only package descends from R065 and keeps the R064 runtime',a
  await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('command'),readGithub,git}),/R066 live runtime differs/);
 });
 
+// R070: the same Hosting-only shape on the unchanged R069 runtime and V95; source descends from R069.
+const r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c';
+test('R070 Hosting-only package descends from R069 and keeps the R069 runtime and V95',async t=>{
+ const {m,source,tool}=await r065Package(t),git=waveGit({source,tool});
+ Object.assign(m,{schemaVersion:11,release:'R070',sourceBaseline:r069Release,sql:{baselineVersion:95,targetVersion:95,migrations:[],verified:{database:'loan_manager_prod',latestVersion:'95',allSuccessful:true,verifiedAt:'2026-10-17T12:00:00Z'}}});
+ assert.equal((await hostingOnlyPlan(m,{git})).site,site);
+ for(const [mutate,pattern] of [[x=>{x.sourceBaseline=r065Release},/exact R070 source\/baseline/],[x=>{x.schemaVersion=10},/wrong R070 package kind/],[x=>{x.sql.targetVersion=96},/R070 requires verified V95/],[x=>{x.sql.verified.latestVersion='93'},/V95/],[x=>{x.build={id:'b'}},/R070 package must not apply/],[x=>{x.runtime.services.jobs.revision='bad'},/R070 unchanged runtime pins/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(hostingOnlyPlan(candidate,{git}),pattern);}
+ for(const file of ['services/business/borrowers.mjs','database/migrations/V96__x.sql','package.json'])await assert.rejects(hostingOnlyPlan(m,{git:waveGit({source,tool,changed:{[r069Release]:file}})}),/R070 must not change the R069 runtime/);
+ // The R064 comparison no longer applies: R069 runtime changes since R064 are allowed.
+ assert.equal((await hostingOnlyPlan(m,{git:waveGit({source,tool,changed:{[r064Release]:'services/business/borrowers.mjs'}})})).site,site);
+ assert.throws(()=>validateHostingOnlySource(m,waveGit({source,tool,delivery:'apps/pwa/src/live-main.tsx'})),/R070 unverified delivery/);
+ assert.doesNotThrow(()=>validateHostingOnlySource(m,waveGit({source,tool,delivery:'scripts/promotion/deploy-business-hosting.mjs\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md'})));
+ assert.throws(()=>validateHostingOnlySource({...m,schemaVersion:8,release:'R066',sourceBaseline:r065Release,sql:{...m.sql,baselineVersion:93,targetVersion:93}},waveGit({source,tool,delivery:'scripts/promotion/README.md'})),/R066 unverified delivery/);
+ const make=drift=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=m.runtime.services[role];return {ok:true,json:async()=>({latestReadyRevision:'x/'+pin.revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},template:{containers:[{image:drift===role?pin.image.replace(/.$/,'0'):pin.image}]}})};};
+ const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
+ await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub,git});
+ await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('read'),readGithub,git}),/R070 live runtime differs/);
+});
+
 // R068: one image on all four services after the separately applied V94 and V95 (PROD 93 to 95).
 const r067Release='7f8ef5332be6b50988abca8efcf74a8657cd35a0',sqlRelease='6'.repeat(40);
 const r068Files={'V93__review_wave4_hygiene.sql':'-- v93','V94__job_run_contract_and_shared_lock_key.sql':'-- v94','V95__agent_role_session_pair.sql':'-- v95'};
