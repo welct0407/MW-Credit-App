@@ -618,7 +618,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .sign-in-failure{margin:12px 0 0;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
 
 /* W5 E re-check corrections. */
-@media(max-width:1050px){html:has(.form-sticky-actions){scroll-padding-bottom:calc(140px + env(safe-area-inset-bottom))}}
+@media(max-width:1050px){html:has(.form-sticky-actions),html:has(.live-shell .live-bottom-nav):has(.form-sticky-actions){scroll-padding-bottom:calc(140px + env(safe-area-inset-bottom))}}
 .live-account-signout:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .request-reference>summary::before,.cash-dashboard-card>summary::before{content:'▸';margin-inline-end:8px}
 .request-reference[open]>summary::before,.cash-dashboard-card[open]>summary::before{content:'▾'}
