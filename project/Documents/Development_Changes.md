@@ -48,7 +48,7 @@ R065 pending-flash fix (UI-only, Released 17 October 2026, DEV and PROD Hosting 
 
 ## R068 production promotion
 
-Owner instruction, 17 October 2026 (Bangkok): "proceed with the remaining tasks", with the earlier decision to promote R068 once together with Wave 5 after PR #51 merged. That is the production approval for this scope. R068 is **Released** except the authenticated PROD path and a physical device (owner's next sign-in); annotated tag `R068` is pending (Release tag workflow).
+Owner instruction, 17 October 2026 (Bangkok): "proceed with the remaining tasks", with the earlier decision to promote R068 once together with Wave 5 after PR #51 merged. That is the production approval for this scope. R068 is **Released** except the authenticated PROD path and a physical device (owner's next sign-in); annotated tag `R068` on `73a4420` (Release tag workflow run 39003359029).
 
 - **Scope.** PROD V94 and V95, one runtime image (borrower name-key fix, mandatory borrower name, WNS allowlist, notifications worker), Hosting (Wave 5 UX, 30 s and on-focus refresh), Debian agent deploy and the ALL-ARCH-03 2b switch. Not in scope: any authenticated PROD write or notification.
 - **Freeze.** Tracker commit `679a76c` (R068 Frozen, R069 Open); package `main` `73a4420`; backup tool accepts V93 from `dfde6b8`; Hosting runner R068 contract (schema 9) `e5c263a`, `main` `3d8c5fb`.
