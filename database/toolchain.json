@@ -9,5 +9,10 @@
     "sha256": "7c94a0d27025b9d18d414c90efeb0ac6c3d3cdade82ab41471b3c1c31781331e"
   },
   "postgresqlVersion": "18.6",
-  "postgresqlWindowsUrl": "https://get.enterprisedb.com/postgresql/postgresql-18.6-3-windows-x64-binaries.zip"
+  "postgresqlWindowsUrl": "https://get.enterprisedb.com/postgresql/postgresql-18.6-3-windows-x64-binaries.zip",
+  "cloudSqlProxyVersion": "2.25.4",
+  "cloudSqlProxyWindows": {
+    "url": "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.25.4/cloud-sql-proxy.x64.exe",
+    "sha256": "b21dd82708248976e2048d06f77e18bce70d329e7278b853abcc13f1ef30036a"
+  }
 }

@@ -1,10 +1,13 @@
 """Plan/apply bounded DEV read-role column grants; never changes source rows or migrations."""
 import argparse
 import json
+import os
+import shutil
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-sys.path.insert(0, r'C:/Users/ideaadmin/AppData/Local/AppSheetLoanTools/python-deps')
+sys.path.insert(0, r'C:/Users/ideaadmin/AppData/Local/AppSheetLoanTools/python-deps' if os.name == 'nt' else '/workspace/.setup/python-deps')
 import psycopg
 from psycopg import sql
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,7 +26,23 @@ VIEW_COLUMNS = {
 }
 COLUMNS.update(VIEW_COLUMNS)
 FUNCTION = 'public.forecast_schedule_v1(jsonb,jsonb,date,date)'
-PRIVATE = Path(r'C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App')
+PRIVATE = Path(r'C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App') if os.name == 'nt' else Path(os.environ.get('MW_PRIVATE_ROOT') or Path.home() / '.mw-private') / 'MW-Credit-App'
+
+
+def route():
+    """DB-ACCESS-07: Common.ps1 opens the route (VM-01's local Cloud SQL Auth Proxy or the Linux IAP
+    tunnel) and returns the loopback host/port and the private postgres credential file."""
+    shell = shutil.which('pwsh') or shutil.which('powershell') or 'pwsh'
+    script = ". '" + str(ROOT / 'scripts/database/Common.ps1') + "'; Get-DbEnvironment development -Admin | ConvertTo-Json -Compress"
+    return json.loads(subprocess.check_output([shell, '-NoProfile', '-Command', script], text=True))
+
+
+def assert_dev_identity(conn):
+    # Through an Auth Proxy the server address reads NULL. Same rule as r053-operator-tooling.mjs: accept that
+    # only with the exact database, session_user postgres and the Cloud SQL service role present.
+    actual = conn.execute("SELECT current_database(),host(inet_server_addr()),session_user,EXISTS(SELECT 1 FROM pg_roles WHERE rolname='cloudsqladmin')").fetchone()
+    if actual != ('loan_manager_dev', None, 'postgres', True):
+        raise RuntimeError('Unexpected actual DEV database')
 
 def inspect(conn):
     flags = conn.execute('SELECT rolsuper,rolcreaterole,rolcreatedb,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=%s', (ROLE,)).fetchone()
@@ -75,7 +94,7 @@ def recovery_guide(recovery):
         'automaticRollback': False,
         'steps': [
             'Use a separately authorized recovery window. Stop or contain the dedicated DEV read service first; keep the existing AppSheet apps and IAM readiness service unchanged.',
-            'Open a transaction against the recorded DEV host/database and verify current_database(), inet_server_addr() and the exact existing IAM role. Never replay this snapshot against PROD.',
+            'Open a transaction against the recorded DEV database through the Auth Proxy route and verify current_database(), session_user postgres with cloudsqladmin present (assert_dev_identity) and the exact existing IAM role. Never replay this snapshot against PROD.',
             'Take a fresh private ACL/settings snapshot and compare it with this pre-change snapshot and the recorded planned statements (the snapshot itself does not establish that apply committed). If unrelated grants, grantors, role membership or settings changed, reconcile them before proceeding; do not overwrite them.',
             'For this role only, undo the added CONNECT on loan_manager_dev, USAGE on public, and SELECT on the listed approved columns only where the corresponding direct privilege did not already exist in this snapshot. Use REVOKE with RESTRICT (never CASCADE). Preserve existing privileges, grant options, grantor provenance, table-level grants and PUBLIC/inherited privileges. Do not restore entire raw ACL arrays or revoke from other roles.',
             'Undo only function EXECUTE introduced by this batch where prior effective access was false. Revoke only from this reader with RESTRICT; preserve PUBLIC/inherited access and other grantors. Use captured functionAcl/functionEffectiveAcl as evidence, never replay entire ACL arrays.',
@@ -94,10 +113,12 @@ def run(apply):
     if (target['instance'],target['host'],target['database']) != ('mw-credit-pg-20261017','136.85.127.134','loan_manager_dev'):
         raise RuntimeError('Unexpected DEV configuration')
     result = None
-    with psycopg.connect(host=target['host'], port=target['port'], dbname=target['database'], user=target['user'], password=Path(target['passwordFile']).read_text().strip(), sslmode='require', connect_timeout=10) as conn:
+    local = route()
+    if (local['host'], local['database'], local['user'], local['sslmode']) != ('127.0.0.1', 'loan_manager_dev', 'postgres', 'disable'):
+        raise RuntimeError('Unexpected DEV proxy route')
+    with psycopg.connect(host=local['host'], port=local['port'], dbname=local['database'], user=local['user'], password=Path(local['passwordFile']).read_text().strip(), sslmode='disable', connect_timeout=10) as conn:
         conn.execute('BEGIN' if apply else 'BEGIN READ ONLY')
-        if conn.execute('SELECT current_database(),host(inet_server_addr())').fetchone() != ('loan_manager_dev','136.85.127.134'):
-            raise RuntimeError('Unexpected actual DEV database')
+        assert_dev_identity(conn)
         before = inspect(conn)
         statements = []
         if not conn.execute("SELECT has_database_privilege(%s,current_database(),'CONNECT')", (ROLE,)).fetchone()[0]:

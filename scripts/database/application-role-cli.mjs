@@ -2,10 +2,10 @@
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import { randomUUID } from 'node:crypto';import pg from 'pg';
 import { captureApplicationRoleSnapshot, recoverApplicationRole, provisionApplicationRuntimeMembership, runDevelopmentPostMigrationHook } from './application-role-tooling.mjs';
 import { reconcileApplicationRole } from './app-role-policy.mjs';
-// Windows VM-01: direct TLS to the instance with the Documents/ChatGPT credential. Linux cloud session: the
-// IAP tunnel (scripts/database/cloud-db-tunnel.sh) to the Debian host's Auth Proxy and the 0600 admin
-// credential written by `Get-DbEnvironment development -Admin` (Common.ps1); the server-side identity
-// check below (inet_server_addr) stays the same on both routes.
+// Windows VM-01: its local Cloud SQL Auth Proxy (DB-ACCESS-07; started by `Get-DbEnvironment development
+// -Admin`, e.g. Invoke-Flyway.ps1) with the Documents/ChatGPT credential. Linux cloud session: the IAP tunnel
+// (scripts/database/cloud-db-tunnel.sh) to the Debian host's Auth Proxy and the 0600 admin credential written
+// by `Get-DbEnvironment development -Admin` (Common.ps1). Both routes use the proxy identity rule below.
 const windows=process.platform==='win32',repo=path.resolve(import.meta.dirname,'../..');
 const privateBase=windows?path.resolve('C:/Users/ideaadmin/Documents/ChatGPT'):path.resolve(process.env.MW_PRIVATE_ROOT||path.join(os.homedir(),'.mw-private'));
 const privateRoot=path.join(privateBase,'AppSheet-Loan-Project/flyway');
@@ -14,7 +14,7 @@ const action=options['--action']??'plan';if(!['plan','reconcile','membership','r
 const external=p=>{const result=path.resolve(p);if(!result.startsWith(privateRoot+path.sep))throw Error('Recovery evidence must remain in maintained private root');return result;};
 const cfg=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8').replace(/^\uFEFF/,''));const x=cfg.development;if(x?.instance!=='mw-credit-pg-20261017'||x.host!=='136.85.127.134'||x.database!=='loan_manager_dev'||cfg.production?.database===x.database)throw Error('Wrong DEV environment tuple');
 let credential,route;
-if(windows){credential=path.resolve(x.passwordFile);if(!credential.startsWith(privateBase+path.sep))throw Error('Credentials must remain outside Git');route={host:x.host,port:x.port,ssl:{rejectUnauthorized:false}};}
+if(windows){credential=path.resolve(x.passwordFile);if(!credential.startsWith(privateBase+path.sep))throw Error('Credentials must remain outside Git');if(!Number.isInteger(x.proxyPort)||x.proxyPort<1024||x.proxyPort>65535)throw Error('Invalid proxyPort');route={host:'127.0.0.1',port:x.proxyPort,ssl:false};}
 else{credential=path.join(privateBase,'AppSheet-Loan-Project/credentials/postgres-password.txt');if(!fs.existsSync(credential)||fs.lstatSync(credential).isSymbolicLink()||(fs.statSync(credential).mode&0o077))throw Error('Admin credential file missing or not private: run Get-DbEnvironment development -Admin first');
  const port=Number(process.env.MW_DB_TUNNEL_PORT||15432);if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid MW_DB_TUNNEL_PORT');route={host:'127.0.0.1',port,ssl:false};}
 if(['DATABASE_URL','PGHOST','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE'].some(k=>process.env[k]))throw Error('Remove ambient PostgreSQL routing overrides');
@@ -22,10 +22,10 @@ const config=JSON.parse(fs.readFileSync(path.join(repo,'database/application-rol
 const client=new pg.Client({...route,database:x.database,user:x.user,password:fs.readFileSync(credential,'utf8').trim(),connectionTimeoutMillis:10000,application_name:'mw-dev-application-role-admin'});
 await client.connect();let evidencePath;
 try{
- // Owner-approved 17 October 2026: through the Debian host's Auth Proxy (Linux tunnel route) the server
- // address reads NULL; that route instead requires session_user postgres and the Cloud SQL service role.
+ // Owner-approved 17 October 2026: through a Cloud SQL Auth Proxy (VM-01 local proxy or the Linux tunnel)
+ // the server address reads NULL; that route instead requires session_user postgres and the Cloud SQL service role.
  const actual=(await client.query("SELECT current_database() db,host(inet_server_addr()) host,session_user operator,EXISTS(SELECT 1 FROM pg_roles WHERE rolname='cloudsqladmin') cloudsql")).rows[0];
- const tunnel=!windows&&actual.host===null&&actual.operator==='postgres'&&actual.cloudsql===true;
+ const tunnel=actual.host===null&&actual.operator==='postgres'&&actual.cloudsql===true;
  if(actual.db!==x.database||(actual.host!==x.host&&!tunnel))throw Error('Live DEV target mismatch');
  if(options['--if-present']&&!(await client.query("SELECT 1 FROM pg_roles WHERE rolname='mw_app_dev'")).rowCount){console.log(JSON.stringify({mode:'skipped',reason:'Capability package absent'}));}
  else{

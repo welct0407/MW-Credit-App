@@ -1,7 +1,8 @@
 // Closed-owner provisioning and temporary owner authority around a migration (A-design §9.3).
 // DEV by default; PROD only with explicit approval, source pin and verified private backup proof.
 // Linux sessions reach Cloud SQL through scripts/database/cloud-db-tunnel.sh and the admin credential
-// file written by `Get-DbEnvironment <env> -Admin` (Common.ps1); Windows VM-01 uses the direct TLS route.
+// file written by `Get-DbEnvironment <env> -Admin` (Common.ps1); Windows VM-01 uses its local Cloud SQL Auth
+// Proxy (DB-ACCESS-07), which the same `Get-DbEnvironment <env> -Admin` call starts.
 // No ambient credentials, no DSN, no secret value in output or records.
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {randomUUID,createHash} from 'node:crypto';import pg from 'pg';
 import {provisionClosedOwnerRole,prepareOwnerAuthority,restoreOwnerAuthority} from './r053-operator-tooling.mjs';
@@ -36,10 +37,10 @@ if(environment==='production'){
 }else if(opts['--approval-reference']||opts['--source-commit']||opts['--backup-proof']||opts['--baseline-version'])throw Error('Production arguments require --environment production');
 const t=JSON.parse(fs.readFileSync(path.join(repo,'database/environments.json'),'utf8').replace(/^\uFEFF/,''))[environment];
 if(t?.instance!=='mw-credit-pg-20261017'||t.host!=='136.85.127.134'||t.port!==5432||t.database!==database||t.user!=='postgres')throw Error(environment+' configuration mismatch');
-// Client tuple: direct TLS on VM-01; the IAP tunnel to the Debian host's Auth Proxy on Linux. The tooling
-// still requires the server-side identity (instance address/port, database, session_user postgres).
+// Client tuple: VM-01's local Auth Proxy, or the IAP tunnel to the Debian host's Auth Proxy on Linux. Both use
+// the tooling's tunnel identity rule (NULL server address, exact database, session_user postgres, cloudsqladmin).
 let client,credentials,executionMode;
-if(windows){credentials=path.resolve(t.passwordFile);if(!credentials.startsWith(privateBase+path.sep))throw Error('Private credential required');executionMode='cloudsql-'+suffix;client={host:t.host,port:t.port,ssl:{rejectUnauthorized:false}};}
+if(windows){credentials=path.resolve(t.passwordFile);if(!credentials.startsWith(privateBase+path.sep))throw Error('Private credential required');if(!Number.isInteger(t.proxyPort)||t.proxyPort<1024||t.proxyPort>65535)throw Error('Invalid proxyPort');executionMode='cloudsql-'+suffix+'-tunnel';client={host:'127.0.0.1',port:t.proxyPort,ssl:false};}
 else{
  credentials=path.join(privateBase,'AppSheet-Loan-Project/credentials/postgres-password.txt');
  if(!fs.existsSync(credentials)||fs.lstatSync(credentials).isSymbolicLink()||(fs.statSync(credentials).mode&0o077))throw Error('Admin credential file missing or not private: run `pwsh -c ". scripts/database/Common.ps1; Get-DbEnvironment '+environment+' -Admin"` first (opens the tunnel, writes the 0600 file)');

@@ -21,28 +21,52 @@ function Assert-DbEnvironmentIdentity([string]$Name, $Target) {
 # guarded migration runner and authorized maintenance).
 $DbReadServiceAccount = 'codex-cloud-read@clever-oasis-508610-n7.iam.gserviceaccount.com'
 $DbReadUser = 'codex-cloud-read@clever-oasis-508610-n7.iam'
-function Get-PemSha256([string]$Path) {
-    $pem = Get-Content -LiteralPath $Path -Raw
-    if ($pem -notmatch '-----BEGIN CERTIFICATE-----\s*([A-Za-z0-9+/=\s]+?)\s*-----END CERTIFICATE-----') { throw 'Not a PEM certificate' }
-    $der = [Convert]::FromBase64String(($Matches[1] -replace '\s',''))
-    return (([Security.Cryptography.SHA256]::Create().ComputeHash($der) | ForEach-Object { $_.ToString('x2') }) -join '')
-}
-# DB-ACCESS-07: the instance's public server CA, fetched at runtime into the
-# private root and accepted only when it matches the pinned SHA-256 in
-# database/environments.json (serverCaSha256). verify-full is not possible while
-# the instance uses GOOGLE_MANAGED_INTERNAL_CA (no host name in the server certificate).
-function Get-DbServerCa($Target) {
-    if ($Target.serverCaSha256 -notmatch '^[0-9a-f]{64}$') { throw 'Pinned server CA fingerprint missing' }
-    $path = Join-Path (Split-Path $DbPrivateRoot) 'cloudsql-server-ca.pem'
-    if ((Test-Path -LiteralPath $path) -and (Get-PemSha256 $path) -eq $Target.serverCaSha256) { return $path }
-    New-Item -ItemType Directory -Force -Path (Split-Path $path) | Out-Null
-    $pem = (& gcloud sql instances describe $Target.instance --project=clever-oasis-508610-n7 --format='value(serverCaCert.cert)') -join "`n"
-    if ($LASTEXITCODE -ne 0 -or -not $pem) { throw 'Cloud SQL server CA unavailable' }
-    $candidate = "$path.new"
-    [IO.File]::WriteAllText($candidate, $pem + "`n")
-    if ((Get-PemSha256 $candidate) -ne $Target.serverCaSha256) { Remove-Item -LiteralPath $candidate; throw 'Cloud SQL server CA differs from the pinned fingerprint; review a CA rotation before updating database/environments.json' }
-    Move-Item -LiteralPath $candidate -Destination $path -Force
+# DB-ACCESS-07 (owner decision 17 October 2026): VM-01 no longer connects to the
+# instance's public address. Its tools start the pinned Cloud SQL Auth Proxy
+# (database/toolchain.json, installed by Install-Tools.ps1) on demand at
+# 127.0.0.1:<proxyPort>, authenticated with the ambient gcloud login
+# (--gcloud-auth): no Windows service, no new credential. The proxy encrypts to
+# the instance, so the local hop uses sslmode=disable. The process stays up for
+# later commands until it is stopped or VM-01 is deallocated.
+function Get-CloudSqlProxyPath {
+    $path = Join-Path $DbToolRoot "cloud-sql-proxy-$($DbToolchain.cloudSqlProxyVersion)/cloud-sql-proxy.exe"
+    if (-not (Test-Path -LiteralPath $path)) { throw 'Run scripts/database/Install-Tools.ps1 first' }
+    if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $DbToolchain.cloudSqlProxyWindows.sha256) {
+        throw 'Cloud SQL Auth Proxy binary differs from the pinned checksum; reinstall with Install-Tools.ps1'
+    }
     return $path
+}
+# Path of the program listening on 127.0.0.1:<port>, or $null when nothing listens.
+function Get-DbProxyListener([int]$Port) {
+    $listener = @(Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
+    if (-not $listener.Count) { return $null }
+    $process = Get-Process -Id $listener[0].OwningProcess -ErrorAction SilentlyContinue
+    if ($process -and $process.Path) { return $process.Path }
+    return '(unknown)'
+}
+function Start-DbProxy($Target) {
+    $port = [int]$Target.proxyPort
+    if ($port -lt 1024 -or $port -gt 65535) { throw 'Invalid proxyPort in database/environments.json' }
+    $proxy = Get-CloudSqlProxyPath
+    $owner = Get-DbProxyListener $port
+    if ($owner) {
+        # Reuse an earlier on-demand proxy; never send credentials to another program.
+        if ([IO.Path]::GetFullPath($owner) -ne [IO.Path]::GetFullPath($proxy)) { throw "127.0.0.1:$port is held by another program ($owner)" }
+        return $port
+    }
+    $logRoot = Split-Path $DbPrivateRoot
+    New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
+    $connectionName = "clever-oasis-508610-n7:asia-southeast1:$($Target.instance)"
+    $process = Start-Process -FilePath $proxy -ArgumentList @('--gcloud-auth','--address','127.0.0.1','--port',"$port",$connectionName) -WindowStyle Hidden -PassThru `
+        -RedirectStandardOutput (Join-Path $logRoot 'cloud-sql-proxy.out.log') -RedirectStandardError (Join-Path $logRoot 'cloud-sql-proxy.err.log')
+    $deadline = [DateTime]::UtcNow.AddSeconds(30)
+    while ([DateTime]::UtcNow -lt $deadline) {
+        if (Get-DbProxyListener $port) { return $port }
+        if ($process.HasExited) { break }
+        Start-Sleep -Milliseconds 250
+    }
+    if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue }
+    throw "Cloud SQL Auth Proxy did not start; check 'gcloud auth list' and $(Join-Path $logRoot 'cloud-sql-proxy.err.log')"
 }
 function Get-DbEnvironment([string]$Name, [switch]$Admin) {
     if ($Name -notin @('development','production')) { throw 'Unknown database environment' }
@@ -87,13 +111,9 @@ function Get-DbEnvironment([string]$Name, [switch]$Admin) {
     if (-not $passwordPath.StartsWith('C:\Users\ideaadmin\Documents\ChatGPT\',[StringComparison]::OrdinalIgnoreCase)) {
         throw 'Credential path must remain outside Git in Documents/ChatGPT'
     }
-    # Direct TLS from VM-01: verify the server certificate against the pinned CA.
-    # PGSSLROOTCERT also upgrades libpq callers that still say sslmode=require to
-    # CA verification (libpq verifies whenever a root certificate file is given).
-    $ca = Get-DbServerCa $target
-    $env:PGSSLROOTCERT = $ca
-    $target | Add-Member -NotePropertyName sslrootcert -NotePropertyValue $ca -Force
-    return $target
+    # VM-01: the local Cloud SQL Auth Proxy (DB-ACCESS-07); the postgres password file stays as before.
+    $port = Start-DbProxy $target
+    return [pscustomobject]@{ instance=$target.instance; host='127.0.0.1'; port=$port; database=$target.database; user=$target.user; passwordFile=$passwordPath; sslmode='disable' }
 }
 function Get-MigrationManifest {
     $files = @(Get-ChildItem (Join-Path $DbRepoRoot 'database/migrations') -File -Filter '*.sql' | Sort-Object Name)

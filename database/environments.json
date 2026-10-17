@@ -6,8 +6,8 @@
     "database": "loan_manager_dev",
     "user": "postgres",
     "passwordFile": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt",
-    "sslmode": "verify-ca",
-    "serverCaSha256": "f6308811c804a8e9f25a97e3e15f6832eeef404def9dbb24d3f9aa4fd4ce2bf0"
+    "sslmode": "disable",
+    "proxyPort": 15432
   },
   "production": {
     "instance": "mw-credit-pg-20261017",
@@ -16,7 +16,7 @@
     "database": "loan_manager_prod",
     "user": "postgres",
     "passwordFile": "C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt",
-    "sslmode": "verify-ca",
-    "serverCaSha256": "f6308811c804a8e9f25a97e3e15f6832eeef404def9dbb24d3f9aa4fd4ce2bf0"
+    "sslmode": "disable",
+    "proxyPort": 15432
   }
 }

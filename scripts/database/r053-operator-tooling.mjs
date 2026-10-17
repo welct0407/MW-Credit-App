@@ -13,8 +13,8 @@ export function r053Environment(database){
  const roles=['notify_owner','notify_api','notify_dispatch','jobs_owner','jobs'].map(x=>'mw_'+x+'_'+environment);
  return {environment,roles,owners:[roles[0],roles[3]],journalOwner:'mw_app_'+environment+'_journal_owner',commandUser:'mw-credit-app-command-'+environment+'@clever-oasis-508610-n7.iam',appRole:'mw_app_'+environment,manifestDatabase:'loan_manager_'+environment};
 }
-// Cloud SQL is reached either directly from VM-01 (`cloudsql-<env>`) or, from a Linux session, through
-// the IAP tunnel to the Debian host's Auth Proxy (`cloudsql-<env>-tunnel`). The client-side tuple differs;
+// Cloud SQL was reached directly from VM-01 (`cloudsql-<env>`, retired by DB-ACCESS-07 on 17 October 2026);
+// VM-01's local Auth Proxy and the Linux IAP tunnel to the Debian host's Auth Proxy use `cloudsql-<env>-tunnel`. The client-side tuple differs;
 // the server-side identity (instance address/port, database, session_user) is required in both cases.
 const cloudsqlModes=environment=>['cloudsql-'+environment,'cloudsql-'+environment+'-tunnel'];
 async function context(c,config,{backupPreparation=false,ownerAuthority=false}={}){
