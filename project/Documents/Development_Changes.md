@@ -16,14 +16,14 @@
 | Lease columns of `pwa_job_runs` (DB-LOCK-02) | Done in V94 (DEV, 17 October 2026); PROD pending owner instruction |
 | SQL adoption of `pwa_lock_key_v1` (DB-LOCK-03) | Done in V94 (DEV, 17 October 2026); PROD pending owner instruction |
 | Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`) | Recommended, not written |
-| `backup-agent-database.py` on Linux | Done (`4ed32a2`) |
+| `backup-agent-database.py` on Linux | Done (`4ed32a2`); needs a source `sslmode` option, because since DB-ACCESS-07 it reaches `mw_agent` only through the tunnel to the host's Auth Proxy, which rejects `sslmode=require` (R069 used a local wrapper for 127.0.0.1:15432) |
 | Repository merge follow-ups (15 October 2026) | [Change note](../../Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
 
 ## R069 W4 optional follow-ups
 
-Branch `claude/w4-optional` (from `main` `158c241`), for the Open R069; code only, not deployed. Notes: [app](../../Change%20Logs/CHANGE_NOTES_W4_APP_2026-10-16.md#optional-follow-ups-r069), [database](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#remaining-work).
+Branch `claude/w4-optional` (from `main` `158c241`); Released with R069 on 17 October 2026, see [R069 production promotion](#r069-production-promotion). Notes: [app](../../Change%20Logs/CHANGE_NOTES_W4_APP_2026-10-16.md#optional-follow-ups-r069), [database](../../Change%20Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md#remaining-work).
 
 - **Owner decisions (17 October 2026).** Keep the 30-second poll always (no mobile-data back-off; iOS cannot detect cellular, UX-REFRESH-09 closed); idle agent cycles write only a heartbeat; summarise routine reference reads.
 - **Scripts (`3e039e3`).** 138 retired direct-route scripts removed.
@@ -56,6 +56,16 @@ R066 offline receipts, 30-day window (UI-only, Released 17 October 2026; R067 is
 R065 pending-flash fix (UI-only, Released 17 October 2026, DEV and PROD Hosting verified): see the [R065 section](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md#r065-pending-flash-fix) of the same note.
 
 [Change note](../../Change%20Logs/CHANGE_NOTES_R064_SYNC_2026-10-16.md). App-only correction on `claude/sync-phase1` (81541c7, 1f63b9d), stacked on Wave 4; one R064 promotion, no migration. The offline dataset walk keeps progress across the user's own writes, commits a torn walk (`acceptChanged`) instead of restarting, packs more records per response, throttles focus checks to 60 s per domain and serves `offline:` cursors locally; header shows "Updated HH:MM" and "All synced". Command pool 4 connections, PROD command max instances 2 (on deploy). Agent C verified; DEV and PROD deployed from 9420c85 (smoke passed).
+
+## R069 production promotion
+
+- **Authority and freeze.** Owner instruction 17 October 2026 (Bangkok) "move R069 to production". Tracker commit `d078c7a` (R069 Frozen, R070 Open); package `main` `9c4a4cb`; Hosting runner R069 contract (schema 10, `1feb6cd`): source after R068 `73a4420`, no migration, read-only V95 readback.
+- **Database.** No app SQL migration; PROD `loan_manager_prod` at V95 (95 successful history rows, read-only 10:16:33Z). Rollback needs no dump.
+- **Runtime.** Cloud Build `21496c9d…` (`cloudbuild-business.yaml`, `9c4a4cb`), image `api@sha256:3d152a44c6111b4ef0d7a5670790b967c3031749e78c7211f8ecd9e940bd1294` (`keep-r069-runtime`); production plan `5e77718e…` 0/4/0 image only, applied 10:17:44 to 10:18:21Z, re-plan No changes, activation published 10:19:08Z; revisions read-00012-2lv, command-00016-9nn, notify-00010-xrd, jobs-00010-d5d. Smoke 10:19:22Z: health 200, `/api/session` 401, CORS PROD 204, foreign and DEV 403, command `POST /health` 405, notify 200 each minute, 0 errors 10:17 to 10:31Z. Rollback: `production.activation.before.tfvars` (image `808cc077…`, `keep-r068-runtime`), plan, apply, publish.
+- **Hosting.** Package SHA256 `efcce1a6c3cc7c12f5245b63a332131a8bf4fdacf2337e4f6bd46e3570bed25c`, applied 10:29:47 to 10:30:21Z as `mw-credit-unattended-admin`: version `45b116152dc0e997`, release `1792233014298000`, public version `24c8f42ae18f57071002d2fa`, entry `/assets/index-Dw-jQdMd.js`, 15 of 15 files byte-identical on `lm.mw-credit.com` and the `web.app` host; rollback version `708a6c496a812a3b`.
+- **Agent.** `mw_agent` dump 75,766,762 bytes, SHA256 `a895222d…`, restore check 32 tables and 1,052,570 rows; D3 freeze 10:25:01 to 10:25:06Z; agent V6 (`runtime.service_heartbeats`, checksum `2253bbfd…`) at 10:25:46Z, grants as designed; install 10:26:04Z, activation 10:26:29Z, `code_version` `1feb6cd` (`integration-agent/` tree identical to `9c4a4cb`), `/ready` 200, six timers resumed after about 88 s. First 10 minutes against the 10 before: no-op JOB trees 63 to 0, receipt-cycle trees 25 to 0, separate reference reads 54 to 2, audit events 386 to 64; heartbeats for five services; materialised runs normal with summarised reference reads; 0 journal errors. Rollback: `deploy-runtime.py rollback --commit 1feb6cd…` (restores `679a76c` from `runtime-20261017T102501647216Z`; V6 stays).
+- **Checks.** CI Development checks 39023581108 (`b2b9eca`) and full manual run 39024618441 (`1feb6cd`, all e2e shards and Terraform); Database 39021808733 (`ba52508`, unchanged since); `npm test` 563 of 563, borrower e2e 70 of 70, runner tests 33 of 33; agent unit 523, lab 89, empty-server 19 passed.
+- **Records.** Private package, pins, activations, plans, receipts and agent backup under `~/.mw-private/MW-Credit-App/promotion/r069/`, copies in `gs://mw-credit-operator-private-737787224638/promotion-packages/r069/`. Not verified: authenticated PROD path and a physical device. Follow-up: `backup-agent-database.py` source `sslmode` option.
 
 ## R068 production promotion
 
