@@ -34,6 +34,7 @@ import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
 import { statementTimeoutSql, lockTimeoutSql } from '../lib/budget.mjs';
 const issuer = `https://securetoken.google.com/${PROJECT_ID}`;
 const failure = (status, code) => ({ ok: false, status, code });
+const borrowerOptionLimit = 1000;
 /** Retryable busy failures: lock codes, or the SQL try-lock RAISE texts (every current form grepped from database/migrations). */
 export const commandBusy = error => ['55P03','40P01','57014'].includes(error?.code) || (error?.code === 'P0001' && /\b(?:is|are) busy; (?:sync and )?(?:retry|request)\b/.test(error?.message ?? ''));
 
@@ -217,7 +218,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     async borrowerOptions(principal,query=""){
       if(!ownerTesting)return failure(403,'access_denied');
       if(typeof query!=='string'||query.length>100)return failure(400,'invalid_request');
-      return run(principal,async client=>({ok:true,value:{referrers:(await client.query('SELECT "Row ID" AS id,"Borrower Name" AS label,"Description" AS description FROM public."Borrowers" WHERE strpos(lower(coalesce("Borrower Name",$2)),lower($1))>0 OR strpos(lower(coalesce("Description",$2)),lower($1))>0 ORDER BY "Borrower Name","Row ID" COLLATE "C" LIMIT 25',[query,''])).rows,accounts:(await client.query('SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"')).rows}}),true);
+      // Every matching borrower is returned; the safety cap only marks an over-large result so the picker can ask for a narrower search.
+      return run(principal,async client=>{const rows=(await client.query('SELECT "Row ID" AS id,"Borrower Name" AS label,"Description" AS description FROM public."Borrowers" WHERE strpos(lower(coalesce("Borrower Name",$2)),lower($1))>0 OR strpos(lower(coalesce("Description",$2)),lower($1))>0 ORDER BY "Borrower Name" NULLS LAST,"Row ID" COLLATE "C" LIMIT $3',[query,'',borrowerOptionLimit+1])).rows;return {ok:true,value:{referrers:rows.slice(0,borrowerOptionLimit),...(rows.length>borrowerOptionLimit?{truncated:true}:{}),accounts:(await client.query('SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"')).rows}}},true);
     },
     async submit(principal, input) {
       let command;

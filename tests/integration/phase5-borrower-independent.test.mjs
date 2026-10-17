@@ -91,3 +91,23 @@ test('B-C08 first-screen derived metrics and reference labels agree with actual 
  // W5 owner rule: the borrower name is mandatory; a null or blank name is refused before any write.
  for(const name of [null,'','   ']){const id=randomUUID(),refused=await store.borrowerRecord(principal,id,'create',{fields:{...fields(),name}});assert.equal(refused.status,422,JSON.stringify(refused));assert.equal(refused.code,'borrower_name_required');assert.equal(await fingerprint(id),undefined)}
 });
+
+// R069: the Referrer picker lists every borrower (the former 25-row cap hid the rest); the safety cap only flags an over-large result.
+test('B-C09 referrer options return every matching borrower in name order with nameless rows last and flag truncation only past the safety cap',async()=>{
+ const tag='C-ref-'+randomUUID().slice(0,8),ids=[];
+ for(let i=0;i<30;i++)ids.push((await create({...fields(`${tag} ${String(29-i).padStart(2,'0')}`),description:`${tag} english ${i}`})).id);
+ const nameless='C-P5-NAMELESS-'+randomUUID();await admin.query('INSERT INTO "Borrowers"("Row ID","Borrower Name","Description","Creation Date") VALUES($1,NULL,$2,CURRENT_DATE)',[nameless,`${tag} nameless English`]);
+ // The disposable cluster is initialised with --locale=C, so code-point order is the database order.
+ const cmp=(x,y)=>x<y?-1:x>y?1:0,ordered=rows=>[...rows].sort((a,b)=>(a.label===null)-(b.label===null)||cmp(a.label??'',b.label??'')||cmp(a.id,b.id));
+ const all=await store.borrowerOptions(principal,'');assert.equal(all.status,200,JSON.stringify(all));assert.equal(all.truncated,undefined);
+ const total=Number((await admin.query('SELECT count(*) AS n FROM "Borrowers"')).rows[0].n);assert.ok(total>25);assert.equal(all.referrers.length,total);
+ for(const id of [...ids,nameless])assert.ok(all.referrers.some(row=>row.id===id),id);
+ assert.deepEqual(all.referrers,ordered(all.referrers));assert.equal(all.referrers.at(-1).label,null);
+ const found=await store.borrowerOptions(principal,tag.toUpperCase());assert.equal(found.status,200);assert.equal(found.truncated,undefined);
+ assert.deepEqual(found.referrers.map(row=>row.id),[...ids].reverse().concat(nameless));assert.equal(found.referrers.at(-1).description,`${tag} nameless English`);
+ assert.deepEqual((await store.borrowerOptions(principal,`${tag} English 7`)).referrers.map(row=>row.id),[ids[7]]);
+ const bulk='C-bulk-'+randomUUID().slice(0,8);
+ await admin.query(`INSERT INTO "Borrowers"("Row ID","Borrower Name","Creation Date") SELECT $1||lpad(g::text,4,'0'),$1||' name '||lpad(g::text,4,'0'),CURRENT_DATE FROM generate_series(1,1001) g`,[bulk]);
+ try{const capped=await store.borrowerOptions(principal,bulk);assert.equal(capped.status,200);assert.equal(capped.truncated,true);assert.equal(capped.referrers.length,1000);assert.equal(capped.referrers[0].id,bulk+'0001');assert.equal(capped.referrers.at(-1).id,bulk+'1000')}
+ finally{await admin.query('DELETE FROM "Borrowers" WHERE "Row ID" LIKE $1',[bulk+'%'])}
+});
