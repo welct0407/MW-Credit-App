@@ -18,6 +18,11 @@ DECLARE problems text[]:='{}'; signature text; src text; owner_role text; found 
 BEGIN
  IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') THEN RAISE EXCEPTION 'Unsupported application database'; END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_business_audit_owner') THEN problems:=problems||'role mw_business_audit_owner is missing'; END IF;
+ -- Every qualified agent_audit lookup below needs USAGE on the schema; a runner that only holds SET on the
+ -- owner (no inheritance) would otherwise stop at a raw "permission denied for schema agent_audit".
+ IF EXISTS(SELECT 1 FROM pg_namespace WHERE nspname='agent_audit') AND NOT has_schema_privilege(current_user,'agent_audit','USAGE') THEN
+  problems:=problems||format('%s lacks USAGE on schema agent_audit (inheriting membership of mw_business_audit_owner, the live runner shape, is required)',current_user); END IF;
+ IF cardinality(problems)>0 THEN RAISE EXCEPTION 'V95 preflight: %', array_to_string(problems,'; '); END IF;
  FOREACH signature IN ARRAY ARRAY[begin_sig,capture_sig,attach_sig] LOOP
   IF to_regprocedure(signature) IS NULL THEN problems:=problems||format('%s is missing',signature); END IF;
  END LOOP;
@@ -138,7 +143,8 @@ BEGIN
    OR r.prosrc NOT LIKE '%mw-integration-agent@clever-oasis-508610-n7.iam%' THEN RAISE EXCEPTION 'V95: % does not carry the role/session pair',sig; END IF;
   IF NOT r.prosecdef OR NOT ('search_path=pg_catalog'=ANY(r.proconfig)) OR (sig LIKE 'agent_audit.%' AND r.owner<>'mw_business_audit_owner') THEN RAISE EXCEPTION 'V95: % lost its definer header',sig; END IF;
  END LOOP;
- IF NOT has_function_privilege('mw_reviewer_dml','agent_audit.begin_operation(uuid,text,text,text,text,jsonb,text)','EXECUTE') THEN RAISE EXCEPTION 'V95: reviewer EXECUTE on begin_operation lost'; END IF;
+ -- Role-guarded like V93: the agent lab migrates before configure-reviewer-dml.py creates the reviewer role.
+ IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_reviewer_dml') AND NOT has_function_privilege('mw_reviewer_dml','agent_audit.begin_operation(uuid,text,text,text,text,jsonb,text)','EXECUTE') THEN RAISE EXCEPTION 'V95: reviewer EXECUTE on begin_operation lost'; END IF;
  SELECT regexp_replace(pg_get_expr(d.adbin,d.adrelid),'\s+',' ','g') INTO default_expr FROM pg_attrdef d JOIN pg_attribute a ON a.attrelid=d.adrelid AND a.attnum=d.adnum
   WHERE d.adrelid='agent_audit.commits'::regclass AND a.attname='database_session_role';
  IF default_expr IS DISTINCT FROM $d$( CASE WHEN (current_setting('role'::text, true) = ANY (ARRAY['none'::text, ''::text])) THEN (SESSION_USER)::text ELSE current_setting('role'::text, true) END)::name$d$ THEN
