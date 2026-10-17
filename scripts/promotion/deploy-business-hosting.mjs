@@ -320,8 +320,9 @@ export async function verifyWaveLivePackage(m,{token,request=fetch,readGithub,gi
 // R070, R071: the same on the unchanged R069 runtime and V95. Each source descends from the previous
 // release; runtime inputs are compared with the release whose runtime stays (runtime).
 const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c',r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c',r070Release='038b5c9f9f7d1ed368f8197973a523bb0cf5eab2';
-// R071 only: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script).
-const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true}};
+// R071 only: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script),
+// and database/ may change only in Markdown outside database/migrations.
+const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true}};
 // From R070 the delivery-tool commit may also carry this runner's README (as for R069).
 const hostingOnlyDeliveryAllowed=L=>['R070','R071'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
 const r065RuntimeInputs=['services','database','Dockerfile','.dockerignore','.gcloudignore','cloudbuild-command.yaml','cloudbuild-business.yaml','package.json','package-lock.json','infrastructure/production','infrastructure/modules'];
@@ -332,8 +333,10 @@ export function validateHostingOnlySource(m,git=sourceGit,release=m?.release){
  requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&m.sourceBaseline===base,'exact '+L+' source/baseline required');
  requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
  requireValue(git(m.repoRoot,['rev-parse',m.sourceCommit])===m.sourceCommit&&git(m.repoRoot,['merge-base',base,m.sourceCommit])===base,L+' source must descend from the previous release');
- const {runtime,runtimeLabel,scriptsOnlyPackageJson}=hostingOnlyReleases[L],unchanged=L+' must not change the '+runtimeLabel+' runtime, SQL or infrastructure';
- requireValue(git(m.repoRoot,['diff','--name-only',runtime,m.sourceCommit,'--',...r065RuntimeInputs.filter(p=>!scriptsOnlyPackageJson||p!=='package.json')])==='',unchanged);
+ const {runtime,runtimeLabel,scriptsOnlyPackageJson,docsOnlyDatabaseMarkdown}=hostingOnlyReleases[L],unchanged=L+' must not change the '+runtimeLabel+' runtime, SQL or infrastructure';
+ // R071: package.json is compared below; Markdown outside database/migrations is not a runtime input.
+ const exempt=file=>(scriptsOnlyPackageJson&&file==='package.json')||(docsOnlyDatabaseMarkdown&&/^database\/(?!migrations\/).+\.md$/.test(file));
+ requireValue(git(m.repoRoot,['diff','--name-only',runtime,m.sourceCommit,'--',...r065RuntimeInputs]).split('\n').filter(Boolean).every(exempt),unchanged);
  if(scriptsOnlyPackageJson){const before=withoutScripts(git,m.repoRoot,runtime),after=withoutScripts(git,m.repoRoot,m.sourceCommit);requireValue(before&&after&&isDeepStrictEqual(before,after),unchanged+' (package.json outside scripts)');}
  const tool=m.deliveryToolSource??m.sourceCommit;
  requireValue(/^[a-f0-9]{40}$/.test(tool)&&git(m.repoRoot,['rev-parse','HEAD'])===tool,L+' delivery source mismatch');

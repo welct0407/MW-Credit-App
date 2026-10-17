@@ -352,11 +352,29 @@ test('R071 accepts a package.json scripts-only change; dependencies and R070 sta
  const {m,source,tool}=await r071Package(t),scriptsOnly={...structuredClone(runtimePackageJson),scripts:{...runtimePackageJson.scripts,'check:docs':'node scripts/check-docs.mjs'}};
  // The name-only diff omits package.json for R071; both manifests are then compared without `scripts`.
  assert.equal((await hostingOnlyPlan(m,{git:r071Git({source,tool,packageJson:{[source]:scriptsOnly}})})).site,site);
+ // A name-only diff that does report package.json is exempt for R071 when only `scripts` differs.
+ assert.equal((await hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:'package.json'},packageJson:{[source]:scriptsOnly}})})).site,site);
+ await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:'package.json'},packageJson:{[source]:{...scriptsOnly,dependencies:{pg:'8.13.1'}}}})}),/\(package\.json outside scripts\)/);
  const reordered=Object.fromEntries(Object.entries(scriptsOnly).reverse());assert.doesNotThrow(()=>validateHostingOnlySource(m,r071Git({source,tool,packageJson:{[source]:reordered}})));
  for(const changed of [{...scriptsOnly,dependencies:{pg:'8.13.1'}},{...scriptsOnly,devDependencies:{}},{...scriptsOnly,overrides:{pg:'8.13.1'}},{...scriptsOnly,type:'commonjs'},'not json',[]])await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,packageJson:{[source]:changed}})}),/R071 must not change the R069 runtime, SQL or infrastructure \(package\.json outside scripts\)/);
  // Regression: R070 keeps the strict rule, so even a scripts-only package.json change is rejected.
  const r070={...structuredClone(m),schemaVersion:11,release:'R070',sourceBaseline:r069Release};
  await assert.rejects(hostingOnlyPlan(r070,{git:r071Git({source,tool,changed:{[r069Release]:'package.json'},packageJson:{[source]:scriptsOnly}})}),/R070 must not change the R069 runtime, SQL or infrastructure$/);
+});
+test('R071 accepts Markdown-only database documentation changes; SQL, runners and R070 stay strict',async t=>{
+ const {m,source,tool}=await r071Package(t);
+ // Wave 6 edits database/README.md and deletes database/OWNERSHIP.md (a deletion is listed by name too).
+ for(const changed of ['database/README.md','database/OWNERSHIP.md','database/README.md\ndatabase/OWNERSHIP.md\npackage.json'])assert.equal((await hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:changed}})})).site,site);
+ for(const changed of ['database/migrations/V96__x.sql','database/migrations/notes.md','database/runner.mjs','database/tests/check.sql','database/Invoke.ps1','database/build.py','database/manifest.json','database/README.md\ndatabase/runner.mjs','database/README.md.bak'])await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:changed}})}),/R071 must not change the R069 runtime, SQL or infrastructure$/);
+ const r070={...structuredClone(m),schemaVersion:11,release:'R070',sourceBaseline:r069Release};
+ await assert.rejects(hostingOnlyPlan(r070,{git:r071Git({source,tool,changed:{[r069Release]:'database/README.md'}})}),/R070 must not change the R069 runtime/);
+});
+test('R071 operator proof uses its own release audience; unknown releases are refused',async()=>{
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com',project='clever-oasis-508610-n7';
+ const run=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
+ assert.equal((await run('R071')).operator,email);
+ await assert.rejects(run('R071','https://lm.mw-credit.com/promotion/r070'),/impersonation proof/);
+ for(const release of ['R067','R072'])await assert.rejects(run(release),/unsupported operator release/);
 });
 test('R071 delivery commit may carry the runner, README and documents; live verification needs the pinned R069 services',async t=>{
  const {m,source,tool}=await r071Package(t),git=r071Git({source,tool});
