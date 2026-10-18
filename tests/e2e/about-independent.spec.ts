@@ -6,7 +6,8 @@ import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {decryptTroubleshooting,parseTroubleshootingFile} from '../../scripts/troubleshooting/envelope.mjs';
-import {releaseNumber} from '../../apps/pwa/src/release';
+// R075: the dev server injects MW_RELEASE_NUMBER at build time (vite.config.ts), or 'dev' when it is unset.
+const releaseNumber=process.env.MW_RELEASE_NUMBER??'dev';
 // R072 About (independent): release, environment and commit signed in, and reachable signed out; the troubleshooting file is encrypted
 // with a per-run test key (MW_TROUBLESHOOTING_PUBLIC_KEY_FILE) and decrypted here in memory only.
 let server:ChildProcess;let base:string;let serverLog="";let keyDirectory:string;
@@ -74,7 +75,7 @@ test('About is a signed-in view with release, environment and commit in English 
  await expect(about.locator('img')).toHaveAttribute('alt','');await expect(about.getByText('DEV',{exact:true})).toBeVisible();
  await about.getByRole('button',{name:'Copy details'}).click();await expect(about.getByRole('status')).toHaveText('Copied');
  const copied=await page.evaluate(()=>navigator.clipboard.readText());
- expect(copied).toContain('\nRelease: '+releaseNumber+' · in development\n');expect(copied).toMatch(/^MW Credit\nRelease: R\d{3} · in development\nBuild: ([0-9a-f]{24}|unavailable)\nCommit: ([0-9a-f]{7,}|unknown)\nEnvironment: Development \(https:\/\/dev-lm\.mw-credit\.com\)\nApp mode: Browser tab\nConnection: Online\nWaiting to sync: 0$/);
+ expect(copied).toContain('\nRelease: '+releaseNumber+' · in development\n');expect(copied).toMatch(/^MW Credit\nRelease: (R\d{3}|dev) · in development\nBuild: ([0-9a-f]{24}|unavailable)\nCommit: ([0-9a-f]{7,}|unknown)\nEnvironment: Development \(https:\/\/dev-lm\.mw-credit\.com\)\nApp mode: Browser tab\nConnection: Online\nWaiting to sync: 0$/);
  expect(copied).not.toContain('synthetic-owner');
  await page.screenshot({path:`test-results/r072-about/${info.project.name}-about-en.png`,fullPage:true});
  await chooseLanguage(page,'ไทย');

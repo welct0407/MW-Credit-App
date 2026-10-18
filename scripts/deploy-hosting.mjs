@@ -36,7 +36,7 @@ if(mode==='live-dev'){
 if(mode==='live-dev'&&!retire){
  const version=JSON.parse(await readFile(path.join(root,'build-version.json'),'utf8'));
  const html=await readFile(path.join(root,'index.html'),'utf8'),worker=await readFile(path.join(root,'sw.js'),'utf8');
- if(version.schemaVersion!==1||!/^[a-f0-9]{24}$/.test(version.version)||typeof version.entry!=='string'||!/^\/assets\/[^/]+\.js$/.test(version.entry)||!files[version.entry]||!html.includes(version.entry)||!worker.includes(version.version))throw new Error('Public version marker does not match compiled entry/worker');
+ if(version.schemaVersion!==1||typeof version.release!=='string'||!/^(R\d{3}|dev)$/.test(version.release)||!/^[a-f0-9]{24}$/.test(version.version)||typeof version.entry!=='string'||!/^\/assets\/[^/]+\.js$/.test(version.entry)||!files[version.entry]||!html.includes(version.entry)||!worker.includes(version.version))throw new Error('Public version marker does not match compiled entry/worker');
 }
 const headers=hostingHeaders(mode);
 if(mode==="live-dev"){

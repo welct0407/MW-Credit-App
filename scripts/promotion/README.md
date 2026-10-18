@@ -23,6 +23,10 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R075 contract
+
+`schemaVersion: 16`, `release: R075`, `scope: frontend-only`, `status: prepared`: the R074 contract with the source baseline moved to the R074 release `b88653d` (the source must descend from it). Runtime, SQL and infrastructure rules, the per-job and stage-hash CI gate and the delivery-tool allowance are R074's. The runner also proves that the artifact carries the promoted release: the `release` key of `build-version.json` (still `schemaVersion: 1`; the runner checks `exact({schemaVersion:1, version, entry, release})`) and the entry bundle must both name the package's `release`. The candidate build takes `releaseNumber` and passes it to the Vite build as `MW_RELEASE_NUMBER` (the `__RELEASE_NUMBER__` define; `live-prod` fails without it). The operator proof audience is `https://lm.mw-credit.com/promotion/r075`.
+
 ## R074 contract
 
 `schemaVersion: 15`, `release: R074`, `scope: frontend-only`, `status: prepared`: the R073 contract with the source baseline moved to the R073 release `042359b` (the source must descend from it) and CI gated per job instead of per kind. Runtime, SQL and infrastructure rules (R069 `9c4a4cb`, V95, scripts-only `package.json`, database Markdown) and the delivery-tool allowance are R073's; the operator proof audience is `https://lm.mw-credit.com/promotion/r074`. R065 to R073 keep their kind-level gate unchanged.

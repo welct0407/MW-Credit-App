@@ -1,6 +1,6 @@
 # DEV PWA Hosting delivery and recovery
 
-Canonical install origin is https://dev-lm.mw-credit.com; web.app remains online fallback. Use the managed-config live build, then `node scripts/deploy-hosting.mjs --live-dev --check` before delivery. The helper requires real worker/manifest/offline/icon files and supplies explicit MIME/no-store headers. Static files take precedence over the SPA rewrite. No secrets are loaded by --check.
+Canonical install origin is https://dev-lm.mw-credit.com; web.app remains online fallback. Use the managed-config live build, then `node scripts/deploy-hosting.mjs --live-dev --check` before delivery (`npm run build:live-dev` runs `scripts/build-live-dev.mjs`, which labels the DEV build with the tracker's Open release unless `MW_RELEASE_NUMBER` is set; CI's `npx vite build --mode live-dev` builds show `dev`; `buildProductionBusinessCandidate` needs `releaseNumber`; the helper requires `build-version.json` with `schemaVersion: 1` plus `release`). The helper requires real worker/manifest/offline/icon files and supplies explicit MIME/no-store headers. Static files take precedence over the SPA rewrite. No secrets are loaded by --check.
 
 Record the prior Hosting release and application/worker build before each delivery. The first, pre-worker PWA baseline was Hosting ccb0af261babf04b. Restoring that old Hosting version alone is not sufficient: /sw.js would rewrite to HTML and an installed worker could survive.
 
