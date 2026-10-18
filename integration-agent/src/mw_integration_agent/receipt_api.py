@@ -103,7 +103,9 @@ def call(config, method, request=None, body=None):
     return json.loads(raw)
 
 
-@audited('receipt_payment', route='shared-command-api', action='INSERT', effect=True)
+# Route `internal`: the V1 audit.events CHECK has no route for the shared command API; service_name
+# `receipt_payment` already names the effect. Any other route fails every terminal event (stuck DISPATCHING).
+@audited('receipt_payment', route='internal', action='INSERT', effect=True)
 def submit(config, body):
     result = call(config, 'POST', body=body)
     if result.get('kind') == 'recorded' and result.get('reviewId') != body['command']['reviewId']:

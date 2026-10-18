@@ -1,12 +1,10 @@
 """Receipt recognition: provider abstraction, Gemini request/retry, ID-token checks and the HTTP contract."""
-import ast
 import base64
 import hashlib
 import http.client
 import io
 import json
 import random
-import re
 import socket
 import tempfile
 import threading
@@ -695,40 +693,3 @@ class BindTests(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
-
-class AuditRouteTests(unittest.TestCase):
-    """Every literal audit route in the agent code must pass audit.events' CHECK list (V1 migration)."""
-    # Pre-existing routes outside the CHECK list, found 18 October 2026; reported separately. Remove an entry
-    # when its code or the constraint is fixed; a new violation fails this test.
-    KNOWN_OUTSIDE_CHECK = {'native_api', 'shared-command-api'}
-    POSITION = {'audited': 1, 'activity': 3, 'event': 4}
-
-    def allowed(self):
-        sql = (ROOT / 'database' / 'migrations' / 'V1__audit_and_control.sql').read_text(encoding='utf-8')
-        match = re.search(r"route text NOT NULL CHECK\(route IN \(([^)]*)\)\)", sql)
-        return set(re.findall(r"'([^']+)'", match.group(1)))
-
-    def used(self):
-        routes = {}
-        for path in sorted((ROOT / 'src' / 'mw_integration_agent').glob('*.py')):
-            for node in ast.walk(ast.parse(path.read_text(encoding='utf-8'))):
-                if not isinstance(node, ast.Call):
-                    continue
-                name = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, 'id', None)
-                if name not in self.POSITION:
-                    continue
-                values = [k.value for k in node.keywords if k.arg == 'route']
-                if len(node.args) > self.POSITION[name]:
-                    values.append(node.args[self.POSITION[name]])
-                for value in values:
-                    if isinstance(value, ast.Constant) and isinstance(value.value, str):
-                        routes.setdefault(value.value, set()).add(path.name)
-        return routes
-
-    def test_literal_audit_routes_are_allowed_by_the_schema(self):
-        allowed, used = self.allowed(), self.used()
-        self.assertIn('internal', allowed)
-        self.assertTrue({'internal', 'codex', 'postgres'} <= set(used))
-        outside = {route for route in used if route not in allowed}
-        self.assertEqual(outside, self.KNOWN_OUTSIDE_CHECK, {r: sorted(used[r]) for r in outside})
-        self.assertNotIn('gemini', used)

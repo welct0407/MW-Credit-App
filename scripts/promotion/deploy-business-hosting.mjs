@@ -327,15 +327,16 @@ export async function verifyWaveLivePackage(m,{token,request=fetch,readGithub,gi
 }
 
 // R065, R066: Hosting-only releases on the unchanged R064 runtime (image, Terraform and V93 stay).
-// R070 to R075: the same on the unchanged R069 runtime and V95. Each source descends from the previous
-// release; runtime inputs are compared with the release whose runtime stays (runtime). R074 and R075 gate CI per job (perJobCi);
-// R075 also requires the release number built into the artifact (releaseInArtifact).
+// R070 to R074: the same on the unchanged R069 runtime and V95. Each source descends from the previous
+// release; runtime inputs are compared with the release whose runtime stays (runtime). R074 gates CI per job (perJobCi).
+// R075 is a runtime + SQL release (below); it keeps R074's per-job CI gate and adds the release number built into the
+// artifact (releaseInArtifact).
 const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c',r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c',r070Release='038b5c9f9f7d1ed368f8197973a523bb0cf5eab2',r071Release='cb333f5c0024f51c197a2b5527d833605ba5fb03',r072Release='378c34825501534e9ada30a4b1e78dce0ed6c7a3',r073Release='042359b585e132cb20e3f0785320c285addc7a1e',r074Release='b88653d4b84860b7eab622d0edfb472d851c03ce';
-// R071 to R075: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script),
+// R071 to R074: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script),
 // and database/ may change only in Markdown outside database/migrations.
-const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R072:{schemaVersion:13,baseline:r071Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R073:{schemaVersion:14,baseline:r072Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R074:{schemaVersion:15,baseline:r073Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true},R075:{schemaVersion:16,baseline:r074Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true,releaseInArtifact:true}};
+const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R072:{schemaVersion:13,baseline:r071Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R073:{schemaVersion:14,baseline:r072Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R074:{schemaVersion:15,baseline:r073Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true}};
 // From R070 the delivery-tool commit may also carry this runner's README (as for R069).
-const hostingOnlyDeliveryAllowed=L=>['R070','R071','R072','R073','R074','R075'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
+const hostingOnlyDeliveryAllowed=L=>['R070','R071','R072','R073','R074'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
 const r065RuntimeInputs=['services','database','Dockerfile','.dockerignore','.gcloudignore','cloudbuild-command.yaml','cloudbuild-business.yaml','package.json','package-lock.json','infrastructure/production','infrastructure/modules'];
 const withoutScripts=(git,root,commit)=>{let p;try{p=JSON.parse(git(root,['show',commit+':package.json']));}catch{p=null;}if(!p||typeof p!=='object'||Array.isArray(p))return null;const {scripts:_scripts,...rest}=p;return rest;};
 // R074: per-job CI evidence. Each required job cites its own run; that run's head is the delivery-tool commit
@@ -393,7 +394,7 @@ export function validateHostingOnlySource(m,git=sourceGit,release=m?.release){
  // R074 lists names with strictNames; R065 to R073 keep their original name-only diffs.
  const names=(from,to,pathspec)=>perJobCi?strictNames(git,m.repoRoot,from,to,pathspec):git(m.repoRoot,['diff','--name-only',from,to,...(pathspec?['--',...pathspec]:[])]).split('\n').filter(Boolean);
  const drift=pathspec=>perJobCi?git(m.repoRoot,['diff','--name-only',tool,'--no-renames','-z','--',...pathspec]):git(m.repoRoot,['diff','--name-only',tool,'--',...pathspec]);
- // R071 to R075: package.json is compared below; Markdown outside database/migrations is not a runtime input.
+ // R071 to R074: package.json is compared below; Markdown outside database/migrations is not a runtime input.
  const exempt=file=>(scriptsOnlyPackageJson&&file==='package.json')||(docsOnlyDatabaseMarkdown&&/^database\/(?!migrations\/).+\.md$/.test(file));
  requireValue(names(runtime,m.sourceCommit,r065RuntimeInputs).every(exempt),unchanged);
  if(scriptsOnlyPackageJson){const before=withoutScripts(git,m.repoRoot,runtime),after=withoutScripts(git,m.repoRoot,m.sourceCommit);requireValue(before&&after&&isDeepStrictEqual(before,after),unchanged+' (package.json outside scripts)');}
@@ -419,24 +420,27 @@ export async function hostingOnlyPlan(m,{git=sourceGit,release=m?.release}={}){
  return validatedHostingArtifact(m,recovery,{release:hostingOnlyReleases[L].releaseInArtifact?L:undefined});
 }
 export async function verifyR065LivePackage(m,options={}){return verifyHostingOnlyLivePackage(m,{...options,release:'R065'});}
+// R074 per-job CI at apply: each distinct cited run is read once (run and jobs) and the package's job map is validated
+// against the live receipts. Evidence artifacts are read live too; the package's artifact lists are not used here.
+async function verifyPerJobCiLive(m,gh,git,label,allowed){
+ const a=m.applicationCi,ids=[...new Set(Object.keys(r074CiJobs).flatMap(kind=>Object.values(plainObject(a?.[kind]?.jobs)?a[kind].jobs:{}).map(job=>job?.runId)))],runs={};
+ requireValue(ids.length>0&&ids.every(id=>Number.isSafeInteger(id)&&id>0),'actual CI run ids required');
+ for(const id of ids)runs[String(id)]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};
+ const names=[...new Set(Object.keys(r074CiJobs).flatMap(kind=>Object.values(plainObject(a?.[kind]?.jobs)?a[kind].jobs:{}).map(job=>job?.evidence)).filter(x=>x!==undefined))],artifacts={};
+ requireValue(names.every(x=>typeof x==='string'&&evidencePattern.test(x)),'evidence artifact names required');
+ for(const x of names)artifacts[x]=(await gh(['api',`repos/welct0407/MW-Credit-App/actions/artifacts?name=${encodeURIComponent(x)}&per_page=20`])).artifacts;
+ return validateR074Ci({runs,artifacts,ci:a.ci,database:a.database},m,git,label,allowed);
+}
 export async function verifyHostingOnlyLivePackage(m,{token,request=fetch,readGithub,git=sourceGit,release=m?.release}={}){
  const L=release;requireValue(hostingOnlyReleases[L],'unsupported Hosting-only release');
  const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
  if(hostingOnlyReleases[L].perJobCi){
-  // Each distinct cited run is read once (run and jobs); the package's job map is validated against the live receipts.
-  const a=m.applicationCi,ids=[...new Set(Object.keys(r074CiJobs).flatMap(kind=>Object.values(plainObject(a?.[kind]?.jobs)?a[kind].jobs:{}).map(job=>job?.runId)))],runs={};
-  requireValue(ids.length>0&&ids.every(id=>Number.isSafeInteger(id)&&id>0),'actual CI run ids required');
-  for(const id of ids)runs[String(id)]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};
-  // Evidence artifacts are read live too; the package's artifact lists are not used here.
-  const names=[...new Set(Object.keys(r074CiJobs).flatMap(kind=>Object.values(plainObject(a?.[kind]?.jobs)?a[kind].jobs:{}).map(job=>job?.evidence)).filter(x=>x!==undefined))],artifacts={};
-  requireValue(names.every(x=>typeof x==='string'&&evidencePattern.test(x)),'evidence artifact names required');
-  for(const x of names)artifacts[x]=(await gh(['api',`repos/welct0407/MW-Credit-App/actions/artifacts?name=${encodeURIComponent(x)}&per_page=20`])).artifacts;
-  validateR074Ci({runs,artifacts,ci:a.ci,database:a.database},m,git,L,hostingOnlyDeliveryAllowed(L));
+  await verifyPerJobCiLive(m,gh,git,L,hostingOnlyDeliveryAllowed(L));
  }else{
   const live={};for(const kind of Object.keys(runtimeCiKinds)){const id=m.applicationCi?.[kind]?.run?.id;requireValue(Number.isSafeInteger(id)&&id>0,'actual CI run id required');live[kind]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};}
   validateWaveCi(live,m,git,L,hostingOnlyDeliveryAllowed(L));
  }
- // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070 to R075).
+ // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070 to R074).
  for(const role of runtimeRoles){
   const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
   const s=await r.json(),pin=m.runtime.services[role];
@@ -463,27 +467,29 @@ export function validateR068Source(m,git=sourceGit){
  requireValue(git(m.repoRoot,['diff','--name-only',tool,'--',...runtimeInputs,'scripts/promotion'])==='','R068 working input drift');
  requireValue(git(m.repoRoot,['ls-files','--others','--exclude-standard','--',...runtimeInputs,'scripts/promotion'])==='','R068 untracked input');
 }
-async function r068Evidence(ref){
- requireValue(path.isAbsolute(ref?.path??'')&&/^[a-f0-9]{64}$/.test(ref.sha256??''),'R068 absolute pinned SQL release required');
- const stat=await lstat(ref.path);requireValue(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=4*1024*1024,'R068 unsafe SQL release file');
- const bytes=await readFile(ref.path);requireValue(sha(bytes)===ref.sha256,'R068 SQL release changed');return JSON.parse(bytes.toString('utf8').replace(/^﻿/,''));
+async function sqlReleaseEvidence(ref,L){
+ requireValue(path.isAbsolute(ref?.path??'')&&/^[a-f0-9]{64}$/.test(ref.sha256??''),L+' absolute pinned SQL release required');
+ const stat=await lstat(ref.path);requireValue(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=4*1024*1024,L+' unsafe SQL release file');
+ const bytes=await readFile(ref.path);requireValue(sha(bytes)===ref.sha256,L+' SQL release changed');return JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));
+}
+/** Separately applied PROD SQL: exact source migration bytes, the tested grouped release and the applied readback. */
+async function validatePromotionSql(m,git,{label:L,baseline,target,migrations}){
+ const sql=m.sql,range='V'+baseline+' to V'+target;
+ requireValue(sql?.baselineVersion===baseline&&sql.targetVersion===target&&Array.isArray(sql.migrations)&&exact(sql.migrations.map(x=>x?.name),migrations),L+' exact '+range+' required');
+ for(const pin of sql.migrations)requireValue(/^[a-f0-9]{64}$/.test(pin.sha256??'')&&pin.sha256===sha(Buffer.from(git(m.repoRoot,['show',m.sourceCommit+':database/migrations/'+pin.name]))),L+' migration source hash mismatch');
+ const release=await sqlReleaseEvidence(sql.release,L),commit=sql.release.commit;
+ requireValue(release.environment==='development'&&release.commit===commit&&/^[a-f0-9]{40}$/.test(commit??'')&&typeof release.validationReference==='string'&&release.validationReference.trim(),L+' tested SQL release required');
+ requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,commit])===m.sourceCommit&&git(m.repoRoot,['diff','--name-only',m.sourceCommit,commit,'--','database'])==='',L+' SQL release must be the pinned source migrations');
+ const t=release.productionTransaction;requireValue(t?.baselineVersion===baseline&&t.targetVersion===target&&t.group===true&&t.mixed===false&&t.executeInTransaction===true&&exact(t.callbacks,[]),L+' grouped '+range+' transaction required');
+ const migrationFiles=git(m.repoRoot,['ls-tree','-r','--name-only',m.sourceCommit,'--','database/migrations']).split('\n').filter(p=>p.endsWith('.sql')).sort();
+ requireValue(Array.isArray(release.migrations)&&release.migrations.length===migrationFiles.length,L+' complete migration manifest required');
+ for(const file of migrationFiles){const pin=release.migrations.find(x=>x.name===path.posix.basename(file));requireValue(pin&&pin.sha256===sha(Buffer.from(git(m.repoRoot,['show',m.sourceCommit+':'+file]))),L+' migration manifest hash mismatch');}
+ const a=sql.applied,v=sql.verified;
+ requireValue(a?.environment==='production'&&a.database==='loan_manager_prod'&&m.target.connectionName.endsWith(':'+a.instance)&&a.releaseCommit===commit&&a.baselineVersion===baseline&&a.targetVersion===target&&a.migrationsExecuted===migrations.length&&zulu(a.startedAt)&&zulu(a.finishedAt)&&Date.parse(a.startedAt)<=Date.parse(a.finishedAt)&&/^[a-f0-9]{64}$/.test(a.backup?.dumpSha256??'')&&a.backup.restorePassed===true&&/^prod-promotion-[a-f0-9]{32}$/.test(a.backup.reference??''),L+' actual SQL apply and verified backup required');
+ requireValue(v?.database==='loan_manager_prod'&&v.latestVersion===String(target)&&v.historyRows===target&&v.allSuccessful===true&&zulu(v.verifiedAt)&&Date.parse(v.verifiedAt)>=Date.parse(a.finishedAt),L+' read-only V'+target+' readback after the apply required');
 }
 /** V93 to V95: exact source migration bytes, the tested grouped release and the applied readback. */
-export async function validateR068Sql(m,git=sourceGit){
- const sql=m.sql;
- requireValue(sql?.baselineVersion===93&&sql.targetVersion===95&&Array.isArray(sql.migrations)&&exact(sql.migrations.map(x=>x?.name),r068Migrations),'R068 exact V93 to V95 required');
- for(const pin of sql.migrations)requireValue(/^[a-f0-9]{64}$/.test(pin.sha256??'')&&pin.sha256===sha(Buffer.from(git(m.repoRoot,['show',m.sourceCommit+':database/migrations/'+pin.name]))),'R068 migration source hash mismatch');
- const release=await r068Evidence(sql.release),commit=sql.release.commit;
- requireValue(release.environment==='development'&&release.commit===commit&&/^[a-f0-9]{40}$/.test(commit??'')&&typeof release.validationReference==='string'&&release.validationReference.trim(),'R068 tested SQL release required');
- requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,commit])===m.sourceCommit&&git(m.repoRoot,['diff','--name-only',m.sourceCommit,commit,'--','database'])==='','R068 SQL release must be the pinned source migrations');
- const t=release.productionTransaction;requireValue(t?.baselineVersion===93&&t.targetVersion===95&&t.group===true&&t.mixed===false&&t.executeInTransaction===true&&exact(t.callbacks,[]),'R068 grouped V93 to V95 transaction required');
- const migrationFiles=git(m.repoRoot,['ls-tree','-r','--name-only',m.sourceCommit,'--','database/migrations']).split('\n').filter(p=>p.endsWith('.sql')).sort();
- requireValue(Array.isArray(release.migrations)&&release.migrations.length===migrationFiles.length,'R068 complete migration manifest required');
- for(const file of migrationFiles){const pin=release.migrations.find(x=>x.name===path.posix.basename(file));requireValue(pin&&pin.sha256===sha(Buffer.from(git(m.repoRoot,['show',m.sourceCommit+':'+file]))),'R068 migration manifest hash mismatch');}
- const a=sql.applied,v=sql.verified;
- requireValue(a?.environment==='production'&&a.database==='loan_manager_prod'&&m.target.connectionName.endsWith(':'+a.instance)&&a.releaseCommit===commit&&a.baselineVersion===93&&a.targetVersion===95&&a.migrationsExecuted===2&&zulu(a.startedAt)&&zulu(a.finishedAt)&&Date.parse(a.startedAt)<=Date.parse(a.finishedAt)&&/^[a-f0-9]{64}$/.test(a.backup?.dumpSha256??'')&&a.backup.restorePassed===true&&/^prod-promotion-[a-f0-9]{32}$/.test(a.backup.reference??''),'R068 actual SQL apply and verified backup required');
- requireValue(v?.database==='loan_manager_prod'&&v.latestVersion==='95'&&v.historyRows===95&&v.allSuccessful===true&&zulu(v.verifiedAt)&&Date.parse(v.verifiedAt)>=Date.parse(a.finishedAt),'R068 read-only V95 readback after the apply required');
-}
+export async function validateR068Sql(m,git=sourceGit){return validatePromotionSql(m,git,{label:'R068',baseline:93,target:95,migrations:r068Migrations});}
 export async function r068HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  requireValue(m?.schemaVersion===9&&m.release==='R068'&&m.environment==='prod'&&m.scope==='runtime-workers-frontend'&&['prepared','applied'].includes(m.status),'wrong R068 package kind');
  requireValue(!requireApplied||m.status==='applied','R068 runtime apply/readback required');
@@ -539,6 +545,64 @@ export async function r069HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  return validatedHostingArtifact(m,recovery);
 }
 export async function verifyR069LivePackage(m,options={}){return verifyWaveLivePackage(m,{...options,label:'R069',allowed:r069DeliveryAllowed});}
+
+// R075: one new image for reader/command/notify/jobs after the separately applied and verified V96 (PROD 95 to 96,
+// manual payment command v7). The PROD plan changes the four services in place: the four images, and on the command
+// service only, Direct VPC egress (private ranges, default network/subnet) plus PROD_RECEIPT_RECOGNITION and
+// PROD_RECEIPT_RECOGNITION_URL (infrastructure/production/receipt-recognizer.tf and runtime.tf). The activation value
+// is pinned by the package and read back live. Source descends from the R074 release; CI is R074's per-job gate; the
+// artifact carries the release number (R075 marker). The delivery-tool commit may also carry this README and the
+// reviewed PROD backup tool, as for R068.
+const r075Migrations=['V96__manual_payment_command_v7_bank_reference.sql'];
+const r075DeliveryAllowed=file=>runtimeDeliveryAllowed(file)||['scripts/database/Backup-ProductionPromotion.py','scripts/promotion/README.md'].includes(file);
+const r075PlanActions=[...waveImageActions,'command.vpcAccess','command.receiptRecognition','command.receiptRecognitionUrl'];
+export const R075_RECOGNIZER_URL='http://10.148.0.2:8790/v1/receipt-recognition';
+export function validateR075Source(m,git=sourceGit){
+ requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&m.sourceBaseline===r074Release,'exact R075 source/baseline required');
+ requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
+ requireValue(git(m.repoRoot,['rev-parse',m.sourceCommit])===m.sourceCommit&&git(m.repoRoot,['merge-base',r074Release,m.sourceCommit])===r074Release,'R075 source must descend from the R074 release');
+ requireValue(exact(strictNames(git,m.repoRoot,r074Release,m.sourceCommit,['database/migrations']),r075Migrations.map(name=>'database/migrations/'+name)),'R075 carries exactly the separately applied V96');
+ const tool=m.deliveryToolSource??m.sourceCommit;
+ requireValue(/^[a-f0-9]{40}$/.test(tool)&&git(m.repoRoot,['rev-parse','HEAD'])===tool,'R075 delivery source mismatch');
+ if(tool!==m.sourceCommit){requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,tool])===m.sourceCommit,'R075 delivery source must descend from the pinned source');requireValue(strictNames(git,m.repoRoot,m.sourceCommit,tool).every(r075DeliveryAllowed)&&m.deliveryToolChecks?.command==='node --test tests/unit/business-hosting-delivery.test.mjs'&&m.deliveryToolChecks.exitCode===0,'R075 unverified delivery correction');}
+ requireValue(git(m.repoRoot,['diff','--name-only',tool,'--no-renames','-z','--',...runtimeInputs,'scripts/promotion'])==='','R075 working input drift');
+ requireValue(git(m.repoRoot,['ls-files','--others','--exclude-standard','--',...runtimeInputs,'scripts/promotion'])==='','R075 untracked input');
+}
+export async function validateR075Sql(m,git=sourceGit){return validatePromotionSql(m,git,{label:'R075',baseline:95,target:96,migrations:r075Migrations});}
+export async function r075HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
+ requireValue(m?.schemaVersion===17&&m.release==='R075'&&m.environment==='prod'&&m.scope==='runtime-workers-frontend'&&['prepared','applied'].includes(m.status),'wrong R075 package kind');
+ requireValue(!requireApplied||m.status==='applied','R075 runtime apply/readback required');
+ validateR075Source(m,git);
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
+ await validateR075Sql(m,git);
+ validateR074Ci(m.applicationCi,m,git,'R075',r075DeliveryAllowed);
+ requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,'R075 PROD image provenance required');
+ requireValue(exact(m.recognition,{activation:m.recognition?.activation,url:R075_RECOGNIZER_URL})&&['disabled','enabled'].includes(m.recognition.activation),'R075 pinned receipt recognition wiring required');
+ requireValue(/^[a-f0-9]{64}$/.test(m.plan?.sha256??'')&&path.isAbsolute(m.plan.path??'')&&exact(m.plan.counts,{add:0,change:4,destroy:0})&&exact(m.plan.actions,r075PlanActions),'R075 reviewed four-service image and recognizer plan required');
+ const recovery=m.rollback;
+ requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
+ for(const role of runtimeRoles)requireValue(imagePattern.test(recovery?.services?.[role]?.image??'')&&recovery.services[role].image!==m.build.image&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(recovery.services[role].revision??''),'service recovery pin required');
+ if(m.status==='applied'){
+  requireValue(m.applied?.sourceCommit===m.sourceCommit&&m.applied.planSha256===m.plan.sha256&&m.applied.database==='loan_manager_prod'&&m.applied.sqlVersion===96&&zulu(m.applied.appliedAt)&&Date.parse(m.applied.appliedAt)>=Date.parse(m.sql.applied.finishedAt),'R075 applied source/plan/database mismatch');
+  for(const role of runtimeRoles){const s=m.applied.services?.[role];requireValue(s?.image===m.build.image&&s.ready===true&&s.trafficPercent===100&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(s.revision??'')&&s.revision!==recovery.services[role].revision,'R075 ready service readback required');}
+ }
+ return validatedHostingArtifact(m,recovery,{release:'R075'});
+}
+/** Live: per-job CI, Cloud Build, the four identities, worker subjects and the command-only recognizer wiring. */
+export async function verifyR075LivePackage(m,{token,request=fetch,readGithub,git=sourceGit}={}){
+ const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
+ await verifyAppOnlyLivePackage(m,{token,request,readGithub,verifyCi:()=>verifyPerJobCiLive(m,gh,git,'R075',r075DeliveryAllowed)});
+ const named=(value,kind)=>value==='default'||(typeof value==='string'&&value.endsWith('/'+kind+'/default'));
+ for(const role of runtimeRoles){
+  const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
+  const s=await r.json(),env=Object.fromEntries((s.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value])),vpc=s.template?.vpcAccess;
+  if(['notify','jobs'].includes(role)){let subjects;try{subjects=JSON.parse(env.WORKER_CALLER_SUBJECTS_JSON);}catch{subjects=null;}requireValue(subjects&&typeof subjects==='object'&&Object.keys(subjects).length>0&&Object.values(subjects).every(v=>/^[0-9]{10,30}$/.test(v)),'worker caller subjects required');}
+  if(role==='command'){
+   requireValue(env.PROD_RECEIPT_RECOGNITION===m.recognition.activation&&env.PROD_RECEIPT_RECOGNITION_URL===R075_RECOGNIZER_URL&&(m.recognition.activation==='disabled'||env.PROD_RECEIPTS==='enabled'),'R075 live command recognizer setting drift');
+   const nics=vpc?.networkInterfaces??[];requireValue(vpc?.egress==='PRIVATE_RANGES_ONLY'&&nics.length===1&&named(nics[0].network,'networks')&&named(nics[0].subnetwork,'subnetworks')&&!vpc.connector,'R075 live command VPC egress drift');
+  }else requireValue(!vpc&&!Object.keys(env).some(name=>name.startsWith('PROD_RECEIPT_RECOGNITION')),'R075 recognizer wiring outside the command service');
+ }
+}
 
 /** Verify the supplied token itself and a signed, audience-bound impersonation proof. */
 export async function verifyAppOnlyOperator({token,impersonationToken=token,release='R059',request=fetch,verifyIdToken=async(idToken,audience)=>(await new OAuth2Client().verifyIdToken({idToken,audience})).getPayload()}){
@@ -624,8 +688,9 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
  const hostingOnly=Object.hasOwn(hostingOnlyReleases,inputs.release??'')&&inputs.schemaVersion===hostingOnlyReleases[inputs.release].schemaVersion;
  const r068=inputs.schemaVersion===9&&inputs.release==='R068';
  const r069=inputs.schemaVersion===10&&inputs.release==='R069';
- const current=r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
- const plan=r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
+ const r075=inputs.schemaVersion===17&&inputs.release==='R075';
+ const current=r075||r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
+ const plan=r075?await r075HostingPlan(inputs,{requireApplied:!!options['--apply']}):r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
  if(options['--check'])console.log(JSON.stringify({dryRun:true,site:plan.site,fileCount:Object.keys(plan.files).length,sourceCommit:plan.sourceCommit,publicVersion:plan.publicVersion}));
  else{
   if(!options['--approval-reference']||!options['--output']||!path.isAbsolute(options['--output']))throw Error('Owner approval and absolute private output required');
@@ -641,7 +706,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
   try{await lstat(output);throw Error('Hosting receipt already exists');}catch(error){if(error.code!=='ENOENT')throw error;}
   const token=process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
   delete process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
-  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
+  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r075?{release:'R075'}:r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r075)await verifyR075LivePackage(inputs,{token});else if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
   const request=async(url,method,body,raw=false)=>{if(!['firebasehosting.googleapis.com','upload-firebasehosting.googleapis.com'].includes(new URL(url).hostname))throw Error('Unexpected Hosting API host');const response=await fetch(url,{method,redirect:'error',headers:{Authorization:'Bearer '+token,'x-goog-user-project':'clever-oasis-508610-n7','Content-Type':raw?'application/octet-stream':'application/json'},...(method==='GET'?{}:{body:raw?body:JSON.stringify(body)})});if(!response.ok)throw Error('Hosting API failed with status '+response.status);const text=await response.text();return text?JSON.parse(text):{};};
   const packageSha256=current?sha(await readFile(options['--inputs'])):undefined;
   if(current){await writeFile(output,JSON.stringify({schemaVersion:1,status:'pending-reconciliation',sourceCommit:plan.sourceCommit,packageSha256,site:plan.site,approvalReference:options['--approval-reference'],instruction:'Do not retry. Reconcile the live Hosting release before recovery.'},null,2),{flag:'wx'});persistReceipt();}
