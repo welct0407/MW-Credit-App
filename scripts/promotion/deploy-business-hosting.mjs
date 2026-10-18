@@ -317,14 +317,14 @@ export async function verifyWaveLivePackage(m,{token,request=fetch,readGithub,gi
 }
 
 // R065, R066: Hosting-only releases on the unchanged R064 runtime (image, Terraform and V93 stay).
-// R070, R071: the same on the unchanged R069 runtime and V95. Each source descends from the previous
+// R070, R071, R072: the same on the unchanged R069 runtime and V95. Each source descends from the previous
 // release; runtime inputs are compared with the release whose runtime stays (runtime).
-const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c',r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c',r070Release='038b5c9f9f7d1ed368f8197973a523bb0cf5eab2';
-// R071 only: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script),
+const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c',r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c',r070Release='038b5c9f9f7d1ed368f8197973a523bb0cf5eab2',r071Release='cb333f5c0024f51c197a2b5527d833605ba5fb03';
+// R071, R072: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script),
 // and database/ may change only in Markdown outside database/migrations.
-const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true}};
+const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R072:{schemaVersion:13,baseline:r071Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true}};
 // From R070 the delivery-tool commit may also carry this runner's README (as for R069).
-const hostingOnlyDeliveryAllowed=L=>['R070','R071'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
+const hostingOnlyDeliveryAllowed=L=>['R070','R071','R072'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
 const r065RuntimeInputs=['services','database','Dockerfile','.dockerignore','.gcloudignore','cloudbuild-command.yaml','cloudbuild-business.yaml','package.json','package-lock.json','infrastructure/production','infrastructure/modules'];
 const withoutScripts=(git,root,commit)=>{let p;try{p=JSON.parse(git(root,['show',commit+':package.json']));}catch{p=null;}if(!p||typeof p!=='object'||Array.isArray(p))return null;const {scripts:_scripts,...rest}=p;return rest;};
 export function validateR065Source(m,git=sourceGit){return validateHostingOnlySource(m,git,'R065');}
@@ -334,7 +334,7 @@ export function validateHostingOnlySource(m,git=sourceGit,release=m?.release){
  requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
  requireValue(git(m.repoRoot,['rev-parse',m.sourceCommit])===m.sourceCommit&&git(m.repoRoot,['merge-base',base,m.sourceCommit])===base,L+' source must descend from the previous release');
  const {runtime,runtimeLabel,scriptsOnlyPackageJson,docsOnlyDatabaseMarkdown}=hostingOnlyReleases[L],unchanged=L+' must not change the '+runtimeLabel+' runtime, SQL or infrastructure';
- // R071: package.json is compared below; Markdown outside database/migrations is not a runtime input.
+ // R071, R072: package.json is compared below; Markdown outside database/migrations is not a runtime input.
  const exempt=file=>(scriptsOnlyPackageJson&&file==='package.json')||(docsOnlyDatabaseMarkdown&&/^database\/(?!migrations\/).+\.md$/.test(file));
  requireValue(git(m.repoRoot,['diff','--name-only',runtime,m.sourceCommit,'--',...r065RuntimeInputs]).split('\n').filter(Boolean).every(exempt),unchanged);
  if(scriptsOnlyPackageJson){const before=withoutScripts(git,m.repoRoot,runtime),after=withoutScripts(git,m.repoRoot,m.sourceCommit);requireValue(before&&after&&isDeepStrictEqual(before,after),unchanged+' (package.json outside scripts)');}
@@ -365,7 +365,7 @@ export async function verifyHostingOnlyLivePackage(m,{token,request=fetch,readGi
  const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
  const live={};for(const kind of Object.keys(runtimeCiKinds)){const id=m.applicationCi?.[kind]?.run?.id;requireValue(Number.isSafeInteger(id)&&id>0,'actual CI run id required');live[kind]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};}
  validateWaveCi(live,m,git,L,hostingOnlyDeliveryAllowed(L));
- // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070/R071).
+ // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070/R071/R072).
  for(const role of runtimeRoles){
   const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
   const s=await r.json(),pin=m.runtime.services[role];
@@ -476,7 +476,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }
