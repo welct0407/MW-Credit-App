@@ -3,6 +3,7 @@ import {mkdtemp,readFile,readdir,lstat,realpath,rm} from 'node:fs/promises';impo
 import {environmentForMode,offlineNamespace,liveConfiguration} from '../../apps/pwa/src/environment.ts';
 import {productionBuildEnvironment,buildProductionBusinessCandidate} from '../../scripts/production/build-business-candidate.mjs';
 import ts from 'typescript';
+import {execFileSync} from 'node:child_process';
 import {runInNewContext} from 'node:vm';
 const config={schemaVersion:1,environment:'prod',canonicalOrigin:'https://lm.mw-credit.com',firebase:{projectId:'clever-oasis-508610-n7',authDomain:'clever-oasis-508610-n7.firebaseapp.com',apiKey:'AIza'+'a'.repeat(35),appId:'1:737787224638:web:abc123'},readerOrigin:'https://mw-credit-app-read-prod-737787224638.asia-southeast1.run.app',commandOrigin:'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'};
 test('same shared identity has three separate offline namespaces; wrong issuer/unknown mode reject',()=>{
@@ -24,11 +25,18 @@ test('production candidate uses separate marker, canonical worker and storage bi
   assert.deepEqual(productionBuildEnvironment(legacyConfig),productionBuildEnvironment(config));
   const marker=await buildProductionBusinessCandidate({publicConfig:legacyConfig,outDir:root});assert.equal(marker.mode,'live-prod');assert.equal(marker.offlineNamespace,'mw-credit-prod-owner');assert.equal(legacyConfig.reportingUrl,'https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb');
   assert.equal(JSON.parse(await readFile(join(root,'build-mode.json'),'utf8')).mode,'live-prod');assert.match(await readFile(join(root,'sw.js'),'utf8'),/const PREFIX = 'mw-credit-prod-public-'/);assert.equal(JSON.parse(await readFile(join(root,'manifest.webmanifest'),'utf8')).name,'MW Credit');assert.match(await readFile(join(root,'index.html'),'utf8'),/<title>MW Credit<\/title>/);
+  // PROD pink in the installed title bar, offline page and tab icon (owner request, R072).
+  assert.equal(JSON.parse(await readFile(join(root,'manifest.webmanifest'),'utf8')).theme_color,'#d81b60');const offline=await readFile(join(root,'offline.html'),'utf8');assert.match(offline,/<meta name="theme-color" content="#d81b60">/);assert.match(offline,/header\{background:#d81b60;color:#fff;/);assert.doesNotMatch(offline,/#e8710a/);assert.match(offline,/<title>MW Credit · Offline<\/title>/);assert.match(offline,/<header>MW Credit<\/header>/);assert.doesNotMatch(offline,/DEV/);
+  assert.match(await readFile(join(root,'index.html'),'utf8'),/<link rel="icon" type="image\/png" href="\/icons\/icon-192\.png">/);assert.deepEqual(await readFile(join(root,'icons/icon-192.png')),await readFile('apps/pwa/pwa/icons-prod/icon-192.png'));
   assert.deepEqual(JSON.parse(await readFile(join(root,'production-public-config.json'),'utf8')),config);
   // Inspect the actual emitted executable config, not its separate JSON sidecar.
   const entry=JSON.parse(await readFile(join(root,'build-version.json'),'utf8')).entry;
   const javascript=await readFile(join(root,entry.slice(1)),'utf8');
   for(const value of [config.readerOrigin,config.commandOrigin,config.firebase.apiKey,config.firebase.appId])assert.ok(javascript.includes(value),`emitted JS missing ${value}`);
+  // R072 About: the vite.config.ts commit define survives the candidate's own define (Vite merges both).
+  let commit='unknown';try{commit=execFileSync('git',['rev-parse','--short=7','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim()||'unknown'}catch{}
+  const release=(await readFile(new URL('../../apps/pwa/src/release.ts',import.meta.url),'utf8')).match(/releaseNumber='(R\d{3})'/)[1];
+  assert.ok(javascript.includes("'"+release+"'")||javascript.includes('"'+release+'"'),'emitted JS carries the release number');assert.ok(javascript.includes(JSON.stringify(commit))||javascript.includes("'"+commit+"'"),'emitted JS carries the source commit '+commit);
   assert.equal(javascript.includes('forbidden-ambient-dev-sentinel'),false);
   assert.equal(javascript.includes('www.appsheet.com'),false);
   assert.equal(javascript.includes('live-reporting-link'),false);

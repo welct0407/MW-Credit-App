@@ -594,6 +594,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .payment-context .record-action{width:auto;flex:0 0 auto;padding:7px 10px!important}
 /* FORM-SAVE-01: the primary action style is shared by Review, Confirm payment and the Save in a form's sticky actions bar. */
 .selected-payment .payment-selection-header .payment-review-button,.selected-payment .payment-confirm-button,.form-sticky-actions>button[type=submit]{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
+/* Review step: Edit and Confirm share one row box (same top, bottom and height) instead of baseline-aligning an inline-block beside an inline-flex. */
+.selected-payment .payment-review-actions{display:flex;flex-wrap:wrap;align-items:stretch}.selected-payment .payment-review-actions>button{display:inline-flex;align-items:center;justify-content:center}
 .selected-payment .payment-selection-header .payment-review-button:disabled,.selected-payment .payment-confirm-button:disabled,.form-sticky-actions>button[type=submit]:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .selected-payment .allocation-summary{grid-template-columns:auto 44px minmax(0,1fr) auto}
 @media(max-width:600px){.selected-payment .allocation-summary{grid-template-columns:minmax(0,1fr) 44px auto}}
@@ -620,3 +622,15 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 /* Decorative disclosure marker: empty alternative text where supported, so it is not read out. */
 @supports (content:'x'/''){.request-reference>summary::before,.cash-dashboard-card>summary::before{content:'▸'/''}.request-reference[open]>summary::before,.cash-dashboard-card[open]>summary::before{content:'▾'/''}}
 @media(max-width:600px){.app-update-banner>span{flex-basis:100%}}
+/* R072 About: the expanded sidebar shows About as an icon beside the language choice. */
+.live-account-row{display:flex;gap:8px;align-items:stretch}.live-account-row>.language{flex:1;min-width:0}.live-account-row>.live-account-icon{flex:0 0 44px;min-width:44px;padding:0;display:flex;align-items:center;justify-content:center}
+/* R072 About: card rows follow .loan-detail dl; at phone width the label sits above its left-aligned value. */
+.about-record{max-width:800px}.about-identity{display:flex;align-items:center;gap:10px;margin:8px 0 4px}.about-identity img{width:40px;height:40px;object-fit:contain}.about-identity strong{font-size:18px}.about-environment-tag{padding:2px 8px;border:1px solid currentColor;border-radius:4px;font-size:13px;font-weight:600}
+.about-record>section{margin-top:20px}.about-record h3{margin:0 0 4px;font-size:17px}.about-record dl{margin:0}
+.about-record dl>div{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center;border-top:1px solid var(--border-tint);padding:12px 0}
+.about-record dt{flex:1 1 160px;color:#565656;font-size:14px}.about-record dd{flex:3 1 110px;display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin:0;text-align:right;font-size:16px;overflow-wrap:anywhere}
+.about-record code{user-select:all;overflow-wrap:anywhere}.about-record .secondary-button{min-height:44px;text-decoration:none}
+.about-copy{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:20px}.about-copy textarea{flex:1 1 100%;min-width:0;font:inherit;font-family:monospace}
+.about-troubleshooting>h3{margin:0;padding-bottom:4px;border-bottom:1px solid var(--border-tint)}.about-troubleshooting>p{margin:12px 0 0;color:#565656;font-size:14px}.about-troubleshooting .about-copy{margin-top:12px}.about-troubleshooting .about-copy>button{min-height:44px}.about-troubleshooting .about-copy>button:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959;box-shadow:none;cursor:not-allowed}.about-unavailable{color:#565656;font-size:14px}
+.access-blocked .access-about{margin-top:8px}
+@media(max-width:650px){.about-record dl>div{flex-direction:column;align-items:stretch;gap:4px}.about-record dt,.about-record dd{flex:none}.about-record dd{justify-content:flex-start;text-align:left}.about-record .secondary-button,.about-troubleshooting .about-copy>button{width:100%}}

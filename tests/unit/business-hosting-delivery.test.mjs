@@ -374,7 +374,7 @@ test('R071 operator proof uses its own release audience; unknown releases are re
  const run=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
  assert.equal((await run('R071')).operator,email);
  await assert.rejects(run('R071','https://lm.mw-credit.com/promotion/r070'),/impersonation proof/);
- for(const release of ['R067','R072'])await assert.rejects(run(release),/unsupported operator release/);
+ for(const release of ['R067','R073'])await assert.rejects(run(release),/unsupported operator release/);
 });
 test('R071 delivery commit may carry the runner, README and documents; live verification needs the pinned R069 services',async t=>{
  const {m,source,tool}=await r071Package(t),git=r071Git({source,tool});
@@ -384,6 +384,35 @@ test('R071 delivery commit may carry the runner, README and documents; live veri
  const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
  await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub,git});
  await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('command'),readGithub,git}),/R071 live runtime differs/);
+});
+
+// R072: R071's Hosting-only contract (R069 runtime, V95, scripts-only package.json, database Markdown) with the source descending from R071.
+const r071Release='cb333f5c0024f51c197a2b5527d833605ba5fb03';
+async function r072Package(t){const p=await r071Package(t);Object.assign(p.m,{schemaVersion:13,release:'R072',sourceBaseline:r071Release});return p;}
+test('R072 Hosting-only package descends from R071 and keeps the R069 runtime and V95',async t=>{
+ const {m,source,tool,ci}=await r072Package(t),git=r071Git({source,tool});
+ assert.equal((await hostingOnlyPlan(m,{git})).site,site);
+ const scriptsOnly={...structuredClone(runtimePackageJson),scripts:{...runtimePackageJson.scripts,'check:docs':'node scripts/check-docs.mjs'}};
+ assert.equal((await hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:'database/README.md\ndatabase/OWNERSHIP.md\npackage.json'},packageJson:{[source]:scriptsOnly}})})).site,site);
+ for(const [mutate,pattern] of [[x=>{x.sourceBaseline=r070Release},/exact R072 source\/baseline/],[x=>{x.schemaVersion=12},/wrong R072 package kind/],[x=>{x.sql.targetVersion=96},/R072 requires verified V95/],[x=>{x.build={id:'b'}},/R072 package must not apply/],[x=>{x.runtime.services.jobs.revision='bad'},/R072 unchanged runtime pins/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(hostingOnlyPlan(candidate,{git}),pattern);}
+ // A source that does not descend from the R071 release is refused.
+ const detached=(root,args)=>args[0]==='merge-base'&&args[1]===r071Release?'0'.repeat(40):git(root,args);
+ await assert.rejects(hostingOnlyPlan(m,{git:detached}),/R072 source must descend from the previous release/);
+ for(const file of ['services/business/borrowers.mjs','database/migrations/V96__x.sql','database/runner.mjs','package-lock.json','infrastructure/production/runtime.tf'])await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:file}})}),/R072 must not change the R069 runtime, SQL or infrastructure$/);
+ await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:'package.json'},packageJson:{[source]:{...scriptsOnly,dependencies:{pg:'8.13.1'}}}})}),/R072 must not change the R069 runtime, SQL or infrastructure \(package\.json outside scripts\)/);
+ await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[ci]:'apps/pwa/src/live-main.tsx'}})}),/R072 full CI is not input-equivalent/);
+});
+test('R072 operator audience, delivery corrections and live runtime check',async t=>{
+ const {m,source,tool}=await r072Package(t),git=r071Git({source,tool});
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com',project='clever-oasis-508610-n7';
+ const run=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
+ assert.equal((await run('R072')).operator,email);await assert.rejects(run('R072','https://lm.mw-credit.com/promotion/r071'),/impersonation proof/);
+ assert.doesNotThrow(()=>validateHostingOnlySource(m,r071Git({source,tool,delivery:'scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md'})));
+ assert.throws(()=>validateHostingOnlySource(m,r071Git({source,tool,delivery:'scripts/promotion/README.md\napps/pwa/src/live-main.tsx'})),/R072 unverified delivery/);
+ const make=drift=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=m.runtime.services[role];return {ok:true,json:async()=>({latestReadyRevision:'x/'+pin.revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},template:{containers:[{image:drift===role?pin.image.replace(/.$/,'0'):pin.image}]}})};};
+ const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
+ await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub,git});
+ await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('read'),readGithub,git}),/R072 live runtime differs/);
 });
 
 // R068: one image on all four services after the separately applied V94 and V95 (PROD 93 to 95).

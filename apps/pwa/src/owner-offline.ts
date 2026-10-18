@@ -157,6 +157,12 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
    const rows=await transaction<Saved<any>[]>('readonly',(store,done)=>{const req=store.getAll(kindRange(kind));req.onsuccess=()=>done(req.result)});
    return rows.filter(row=>row.kind===kind&&(kind!=='snapshot'||Date.now()-row.savedAt<expiry));
   },
+  /** R072 troubleshooting: row counts per kind, the stored and partial dataset domains and the lease time, from keys only (no data loads). */
+  async diagnosticCounts(){
+   return transaction<{kinds:Record<string,number>;datasets:string[];progress:string[];leaseVerifiedAt:number|null}>('readonly',(store,done)=>{const keys=store.getAllKeys();keys.onsuccess=()=>{const kinds:Record<string,number>={},datasets:string[]=[],progress:string[]=[];
+    for(const key of keys.result as string[]){const kind=String(key).split(':')[0];kinds[kind]=(kinds[kind]??0)+1;if(kind==='dataset')datasets.push(String(key).slice(8));if(kind==='dataset-progress')progress.push(String(key).slice(17))}
+    const lease=store.get('lease:owner');lease.onsuccess=()=>{const verifiedAt=lease.result?.value?.verifiedAt;done({kinds,datasets:datasets.sort(),progress:progress.sort(),leaseVerifiedAt:typeof verifiedAt==='number'?verifiedAt:null})}}});
+  },
   async saveViewedSnapshot(value:ViewedSnapshot){validateViewedSnapshot(value);const lease=await read<{verifiedAt:number}>('lease','owner');if(!lease||Date.now()-lease.value.verifiedAt>=expiry)throw Error('Offline owner lease expired');await save('snapshot',value.domain+':'+value.recordId,value,Date.parse(value.asOf))},
   async saveSnapshot(id:string,value:{charges:unknown[];[key:string]:unknown}){if(value.charges.length>100)throw Error('Offline snapshot exceeds 100 charges');await save('snapshot',id,value)},
   snapshot:<T,>(id:string)=>read<T>('snapshot',id),

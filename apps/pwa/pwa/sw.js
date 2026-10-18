@@ -2,6 +2,7 @@
 const VERSION = '__BUILD_VERSION__';
 const PREFIX = 'mw-credit-dev-public-';
 const CACHE = PREFIX + VERSION;
+const ACTIVATED = '/__activated'; // Activation order marker inside each public cache; never served.
 const APP_ASSETS = /*APP_ASSETS*/[];
 const PUBLIC_ASSETS = [...APP_ASSETS, '/offline.html', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'];
 self.addEventListener('install', event => {
@@ -23,29 +24,56 @@ self.addEventListener('install', event => {
     await Promise.all(PUBLIC_ASSETS.map((path, index) => cache.put(path, responses[index])));
   })());
 });
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    const names = await caches.keys();
-    // Existing tabs may still use any retained public build. Unknown clients are
-    // treated conservatively; activation never deletes their assets or private drafts.
-    const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-    if(clients.length===0){const previous=names.filter(name=>name.startsWith(PREFIX)&&name!==CACHE).at(-1);await Promise.all(names.filter(name=>name.startsWith(PREFIX)&&name!==CACHE&&name!==previous).map(name=>caches.delete(name)))}
-    await self.clients.claim();
-  })());
-});
+// Retained public builds: this one, the newest previous one, and any older build an
+// open tab reported still running (matches). Caches outside PREFIX are never selected.
+function retainedCaches(names,current,previous,matches){return names.filter(name=>name.startsWith(PREFIX)&&(name===current||name===previous||matches.includes(name)))}
+// An open page reports its running entry; silence (older build, frozen, uncontrolled) within 1.5 s counts as none.
+function clientEntry(client){return new Promise(resolve=>{const channel=new MessageChannel();const timer=setTimeout(()=>{channel.port1.close();resolve(null)},1500);channel.port1.onmessage=message=>{clearTimeout(timer);channel.port1.close();const entry=message.data?.entry;resolve(typeof entry==='string'&&/^\/assets\/[^/]+\.js$/.test(entry)?entry:null)};try{client.postMessage({type:'GET_CLIENT_ENTRY',v:1},[channel.port2])}catch{clearTimeout(timer);channel.port1.close();resolve(null)}})}
+// Activation marks this build and claims open tabs first. A navigation waits until the worker has finished
+// activating and iOS deletes caches slowly, so pruning runs after activation, outside the activate waitUntil.
+// Startup version messages and fetches extend the worker's lifetime with the pending prune (never delaying their
+// responses); an interrupted prune finishes at the next activation. Installed apps update while open (ACTIVATE_UPDATE),
+// so pruning cannot wait for zero clients; it never deletes the build an open tab still runs, nor private drafts.
+let pruning=null;
+function activateBuild(){
+  const claimed=(async()=>{let names=[],previous;
+    try{
+      // Previous is the build that last activated (highest marker); a build superseded while waiting never carries one.
+      names=(await caches.keys()).filter(name=>name.startsWith(PREFIX));const activated=[];
+      for(const name of names)if(name!==CACHE){const order=Number(await(await caches.match(ACTIVATED,{cacheName:name}))?.text());if(order>0)activated.push([order,name])}
+      activated.sort((a,b)=>a[0]-b[0]);previous=activated.at(-1)?.[1];
+      await(await caches.open(CACHE)).put(ACTIVATED,new Response(String((activated.at(-1)?.[0]??0)+1)));
+    }catch{/* Unmarked, this build is not "previous" next time; open tabs still protect it. */}
+    await self.clients.claim();return {names,previous}})();
+  const pruned=claimed.then(({names,previous})=>prune(names,previous)).catch(()=>{/* Best effort; the next activation retries. */}).finally(()=>{if(pruning===pruned)pruning=null});
+  pruning=pruned;return {claimed,pruned};
+}
+async function prune(names,previous){
+  const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  // No marker yet (first activation of this rule): keep the former behaviour, pruning only with no open tab.
+  if(!previous&&clients.length)return;
+  const kept=previous??names.filter(name=>name!==CACHE).at(-1),entries=(await Promise.all(clients.map(clientEntry))).filter(Boolean),matches=[];
+  if(entries.length)for(const name of names)if(name!==CACHE&&name!==kept)for(const entry of entries)if(await caches.match(entry,{cacheName:name})){matches.push(name);break}
+  const keep=retainedCaches(names,CACHE,kept,matches);
+  // One at a time, so the reloaded page's cache reads are not queued behind a whole batch of deletes.
+  for(const name of names)if(!keep.includes(name))await caches.delete(name);
+}
+self.addEventListener('activate', event => {event.waitUntil(activateBuild().claimed)});
 self.addEventListener('message', event => {
+  if(pruning&&event.data?.type==='GET_BUILD_VERSION')event.waitUntil(pruning);
   if(event.data?.type==='GET_BUILD_VERSION')event.ports?.[0]?.postMessage({version:VERSION});
   if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil(self.skipWaiting());
 });
 self.addEventListener('fetch', event => {
+  if(pruning)event.waitUntil(pruning); // Lifetime only; responses below never wait for it.
   const request = event.request;
   const url = new URL(request.url);
   if(request.method!=='GET'||url.origin!==self.location.origin||url.search||request.headers.has('Authorization'))return;
-  if(APP_ASSETS.includes(url.pathname)&&url.pathname!=='/'){event.respondWith((async()=>{const cached=await(await caches.open(CACHE)).match(url.pathname);return cached||fetch(request)})());return;}
+  if(APP_ASSETS.includes(url.pathname)&&url.pathname!=='/'){event.respondWith((async()=>{const cached=await caches.match(url.pathname,{cacheName:CACHE});return cached||fetch(request)})());return;}
   // A still-open previous build may request an old hashed asset after activation.
   // Only exact keys already verified during a retained worker install are eligible.
   if(/^\/assets\/[^/]+\.(js|css|png)$/.test(url.pathname)){
-    event.respondWith((async()=>{for(const name of (await caches.keys()).filter(name=>name.startsWith(PREFIX))){const cached=await(await caches.open(name)).match(url.pathname);if(cached)return cached}return fetch(request)})());return;
+    event.respondWith((async()=>{for(const name of [CACHE,...(await caches.keys()).filter(name=>name.startsWith(PREFIX)&&name!==CACHE)]){const cached=await caches.match(url.pathname,{cacheName:name});if(cached)return cached}return fetch(request)})());return;
   }
   if(request.mode!=='navigate'||url.pathname!=='/')return;
   // The installed worker pins a complete public shell. Version checks run in

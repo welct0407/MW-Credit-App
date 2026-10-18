@@ -82,7 +82,7 @@ The change note's **Checks** table lists each check once with the commit or run 
 
 Record source/artifact/configuration pins once in the owning manifest or promotion record. A documentation or merge SHA may differ from the artifact source when relevant inputs remain identical. Verify that with a bounded diff/input manifest; do not compare entire repositories repeatedly.
 
-For build reuse compare component/shared code, dependencies, build tooling/assets and environment configuration. For test reuse also compare tests, fixtures, runner configuration and relevant identity/data assumptions. Build environment variants where necessary; never relabel a DEV artifact PROD.
+For build reuse compare component/shared code, dependencies, build tooling/assets and environment configuration. For test reuse also compare tests, fixtures, runner configuration and relevant identity/data assumptions. Build environment variants where necessary; never relabel a DEV artifact PROD. The frontend bundle also compiles in the 7-character source commit (`__SOURCE_COMMIT__`, shown on the About screen), so a different commit means a different build version: frontend build reuse across commits no longer applies, and a redeploy after a documentation-only commit also offers phones an update.
 
 A skipped test is not a pass. A green badge does not prove that required steps executed. Old evidence cannot clear a known relevant failure. Reuse unaffected results rather than repeatedly auditing access, receipts, jobs or every page.
 

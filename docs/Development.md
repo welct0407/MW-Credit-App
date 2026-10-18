@@ -16,6 +16,14 @@ DEV web builds (`build:live-dev`) take their Firebase client config from Secret 
 
 Use the owning infrastructure root's README/wrapper. Remote state already exists: do not bootstrap competing state. Review an exact plan before authorized apply. Terraform owns service settings; artifact delivery owns application image versions where configured. Shared SQL/bucket metadata is adopted; contents and the Azure VM controller are excluded.
 
+Troubleshooting files from the About screen are encrypted to a key whose private half is Secret Manager `mw-credit-app-troubleshooting-private-key` (shared by DEV and PROD; owners only). Decrypt with the operator CLI, which reads the key in memory through gcloud, checks the keyId, refuses output inside a git work tree and writes mode 0600:
+
+```
+node scripts/troubleshooting/decrypt.mjs <file> --out <path outside the repo> [--key-file <pem>] [--secret mw-credit-app-troubleshooting-private-key] [--project clever-oasis-508610-n7] [--force]
+```
+
+Decrypted output contains borrower data: never commit, share or paste it; delete it after use.
+
 ## Delivery process and validation
 
 Follow [PWA policy](../project/Documents/Rules/PWA_Orchestration.md) and its [lean check routine](../project/Documents/Rules/PWA_Orchestration.md#lean-check-routine): fast checks locally once per finished batch, the pull request's CI run as the one broad run, one push per verified batch, and reuse of that result for promotion. Required workflows remain in force.

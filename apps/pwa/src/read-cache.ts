@@ -1,4 +1,5 @@
 import {beginRequest} from './request-activity';
+import {recordClientEvent} from './client-events';
 import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset,routeDomain,receiptMediaCandidates} from './offline-dataset';
 import {commandOriginAllowed} from './environment';
 import {deferWhileInteracting,cancelDeferred,type HoldScope} from './interaction-hold';
@@ -36,7 +37,9 @@ export const subscribeCachedReadFailure=(listener:()=>void)=>{listeners.add(list
 export const hasCachedReadFailure=(scopeName?:string)=>scopeName?[...failures].some(key=>key.startsWith(scopeName+'|')):failures.size>0;
 export const hasReadRefreshFailure=(scopeName?:string)=>scopeName?[...refreshFailures].some(key=>key.startsWith(scopeName+'|')):refreshFailures.size>0;
 export function clearCachedReadFailures(scopeName?:string){if(scopeName)failureEpochs.set(scopeName,(failureEpochs.get(scopeName)??0)+1);else for(const [scope,epoch] of failureEpochs)failureEpochs.set(scope,epoch+1);let changed=false;for(const entries of [failures,refreshFailures])for(const key of entries)if(!scopeName||key.startsWith(scopeName+'|')){entries.delete(key);changed=true}if(changed)listeners.forEach(listener=>{listener()})}
-function refreshFailure(key:string,value:boolean){const before=refreshFailures.has(key);if(value)refreshFailures.add(key);else refreshFailures.delete(key);if(before!==value)listeners.forEach(listener=>{listener()})}
+/** R072 troubleshooting: a refresh failure's start is logged by data domain only (never the path, query or scope). */
+const failedDomain=(key:string)=>{try{return routeDomain(new URL(key.split('|')[1]?.replace(/^(?:json|blob):/,'')??'').pathname)}catch{return 'unknown'}};
+function refreshFailure(key:string,value:boolean){const before=refreshFailures.has(key);if(value&&!before)recordClientEvent({kind:'read-failure',code:failedDomain(key)});if(value)refreshFailures.add(key);else refreshFailures.delete(key);if(before!==value)listeners.forEach(listener=>{listener()})}
 function failure(key:string,value:boolean){const before=failures.has(key);if(value)failures.add(key);else failures.delete(key);if(before!==value)listeners.forEach(listener=>{listener()})}
 function allowed(access:Access,url:URL,format:'json'|'blob'){
  const repository=access.offline;if(!repository||url.username||url.password||url.hash)return false;
