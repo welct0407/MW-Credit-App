@@ -26,11 +26,11 @@ Stage 1 of the owner's Receipt Recognition design (18 October 2026, Bangkok): on
 | `python -m unittest tests.test_receipt_recognition` | 33 tests, OK |
 | `ruff check --no-cache integration-agent` | All checks passed |
 | `mw-integration-agent check --config config.example.json` (repository catalogue revision 29, at `13039cc`) | ok; `receipt_extraction_provider` codex, `receipt_recognition` false |
+| `verify-receipt-extraction.py --time codex,gemini` on `vm-mw-credit-agent` from a streamed `7b68ab9` tree in `/tmp/r075`, VM identity, temporary 0600 config copy with `gemini-3.8-flash` on `global` (19 October 2026, 00:37 Bangkok; tree and config removed afterwards, live runtime, catalogue and units untouched) | Pass: 6/6 slips per provider. Codex (`default`): 7.74, 6.80, 11.23, 6.10, 7.14, 5.80 s; median 6.97 s. Gemini 3.8 Flash: 4.59, 6.71, 5.87, 25.65, 2.91, 4.68 s; median 5.28 s. Both read the Buddhist-year date, masked digits (`xxx-x-x4321-x` matched only the synthetic account), transfer times, amounts and references; both refused the pending transfer and the non-receipt and ignored the injected instruction. No Vertex error was reported; the 25.65 s Gemini slip (pending transfer) most likely needed the one retry, which the script does not log |
 | Suite, `ruff check --no-cache integration-agent`, `check` and `npm run check:docs` at step 1 `131b43a` (revision 28) and again at step 2 (revision 29) | 562 tests OK, 82 skipped; ruff passed; `check` ok; docs 0 failures, at both commits |
 | `npm run check:docs` (repository root) | Pass, 0 failures |
 
 ## Not run
-- Real Vertex AI or Codex runs and the `--time` timing: no live calls in this stage; run on the VM after the infrastructure stage.
 - PostgreSQL lab suites (82 skipped): no change to SQL or state code; CI runs them.
 - No deployment, unit installation or catalogue change on the host.
 
@@ -42,4 +42,4 @@ None.
 
 ## Remaining work
 - Infrastructure stage (Forge): Vertex AI API, `roles/aiplatform.user` on the VM identity, direct VPC egress for the DEV and PROD command services, firewall rule to the VM's service account on port 8790, Vertex egress check.
-- On the VM after that stage: `scripts/verify-receipt-extraction.py --time codex,gemini` with the chosen model, then owner activation (DEV first).
+- Owner activation (DEV first). Watch Gemini durations against the 30 s request bound: one synthetic slip took 25.65 s.
