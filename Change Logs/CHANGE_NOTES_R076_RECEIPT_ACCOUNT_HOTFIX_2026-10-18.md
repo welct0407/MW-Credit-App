@@ -28,6 +28,9 @@ The owner's first PROD check after R075 found the receiving account not filled f
 ## Recovery
 Revert `62770c47`. The previous behaviour (fill an empty account only) returns; nothing in the database or infrastructure changes.
 
+## Promotion authority
+Owner instruction, 18 October 2026: "merge and push to production once checks pass." This is the scoped production approval for R076 under the release workflow: a new application image on the four Cloud Run services (the command service needs `services/receipts/recognizer-rules.mjs`, and all four share one image) and PROD Hosting, with the required promotion records and evidence. It covers no SQL, no infrastructure change (the recognition wiring is unchanged), no financial correction and no forced notification. R076 was frozen at source `fa67607e4571d1c01ed39f7919cc627fd5e27ee7` (PR #74) at about 20:16Z and R077 opened in the same tracker update.
+
 ## Open questions
 None.
 

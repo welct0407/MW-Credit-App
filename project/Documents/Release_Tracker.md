@@ -4,10 +4,9 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R076 — Open** |
-| Next unused number | **R077**, only opened when authorized R076 promotion starts |
+| New product work | **R077 — Open** |
+| Next unused number | **R078**, only opened when authorized R077 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
-| R076 scope (18 October 2026), not deployed | Receipt recognition account hotfix: the slip's matched receiving account overrides a default or preselected account, an unmatched or ambiguous slip gets a note, a slip with no recipient number gives no account warning, and recognition messages sit above the receipt preview. Record: [change note](../../Change%20Logs/CHANGE_NOTES_R076_RECEIPT_ACCOUNT_HOTFIX_2026-10-18.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
@@ -15,6 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
+| R076 | Frozen 18 October 2026, about 20:16Z; promotion in progress | Package: source `fa67607e4571d1c01ed39f7919cc627fd5e27ee7` (PR #74; contract commit `1404f42`): receipt recognition account hotfix (the slip's matched account overrides a preselected default, unmatched or ambiguous slip note, no warning without recipient numbers, messages above the preview). Runtime image on reader, command, notify and jobs plus PROD Hosting; no SQL, no infrastructure change. Owner instruction "merge and push to production once checks pass" (18 October 2026) is the scoped production approval, recorded in the [R076 change note](../../Change%20Logs/CHANGE_NOTES_R076_RECEIPT_ACCOUNT_HOTFIX_2026-10-18.md#promotion-authority). Closure: Released row, inventory pins, Release tag |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
