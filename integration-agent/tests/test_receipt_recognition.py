@@ -289,6 +289,17 @@ class GeminiTests(unittest.TestCase):
             receipt_image.checked({**RESULT, 'amount': 5})
         self.assertEqual(caught.exception.cause, 'shape_invalid')
 
+    def test_timeouts_end_before_the_pwa_client_gives_up(self):
+        self.assertEqual((api.REQUEST_BOUND, api.REQUEST_BOUND - api.PROVIDER_MARGIN, gemini.ATTEMPT_TIMEOUT), (18.0, 17.0, 12))
+        self.assertEqual(gemini.RETRY_MINIMUM + gemini.RETRY_PAUSE, 4)
+        self.assertLess(api.REQUEST_BOUND, 20)
+        # A retry starts only with at least 4 s of the deadline left, and never outlives it.
+        value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 5)
+        self.assertEqual((value, len(opener.requests)), (RESULT, 2))
+        self.assertLessEqual(opener.requests[1][1], 5)  # the pause is patched out here
+        value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 3.5)
+        self.assertEqual((value.reason, len(opener.requests)), ('provider_error', 1))
+
     def test_no_retry_when_the_deadline_leaves_no_room(self):
         value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 1)
         self.assertIsInstance(value, RecognitionUnavailable)
@@ -488,6 +499,7 @@ class ContractTests(unittest.TestCase):
                          ('recognized', 'gemini', 'gemini-2.0-flash-001', hashlib.sha256(body).hexdigest(), RESULT))
         self.assertIsInstance(reply['durationMs'], int)
         image = api.recognize.call_args.args[1]
+        self.assertLess(api.recognize.call_args.kwargs['deadline'] - time.monotonic(), 17.0)
         self.assertTrue(image.startswith(b'\x89PNG'))  # canonical PNG, not the caller's bytes object
         (config, caller, image_sha256, code, audited, _), = self.audits
         self.assertEqual((caller, image_sha256, code, audited['status']), (DEV, hashlib.sha256(body).hexdigest(), 200, 'recognized'))

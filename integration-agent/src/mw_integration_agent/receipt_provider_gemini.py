@@ -17,7 +17,7 @@ from . import http
 from .config import ConfigurationError
 from .receipt_image import PROMPT, SCHEMA, RecognitionUnavailable
 
-ATTEMPT_TIMEOUT = 20
+ATTEMPT_TIMEOUT = 12
 RETRY_MINIMUM = 3  # seconds a retry needs to be worth starting
 RETRY_PAUSE = 1
 RESPONSE_LIMIT = 1_048_576
