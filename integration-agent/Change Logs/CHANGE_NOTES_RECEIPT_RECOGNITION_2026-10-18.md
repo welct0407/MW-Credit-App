@@ -11,7 +11,9 @@ Stage 1 of the owner's Receipt Recognition design (18 October 2026, Bangkok): on
 - `src/mw_integration_agent/config.py`: calls the recognizer validation; the catalogue validator knows `receipt_recognition_api`.
 - `src/mw_integration_agent/cli.py`: `serve-receipt-recognition` (outside job audit, like `serve-webhook`); `check` reports the provider and recognizer switch.
 - `systemd/mw-receipt-recognition.service`: new unit, same hardening as the webhook receiver; install disabled.
-- `service-catalogue.json` revision 29: `receipt_recognition_api` implemented, disabled. `SERVICE_CATALOGUE.md` row and revision note.
+- Catalogue, in two commits after `13039cc` (revision 28 precedent; owner authorized merge and live restart, 18 October 2026):
+  - Step 1, deploy pin (this commit, "R075 agent step 1"): `service-catalogue.json` and the `SERVICE_CATALOGUE.md` table back at revision 28 without `receipt_recognition_api`; the code and its validator, which knows the name, stay. Deploy with `deploy-runtime.py`.
+  - Step 2, config-only (next commit, "R075 agent step 2"): revision 29 with `receipt_recognition_api` implemented, disabled, and its `SERVICE_CATALOGUE.md` row; applied to the live catalogue by the config-only route.
 - `config.example.json`: `receipt_extraction_provider`, `receipt_recognition_*` (bind `10.148.0.2:8790`, audience `http://10.148.0.2:8790/v1/receipt-recognition` as pinned in Terraform, DEV and PROD command-service callers with their numeric subjects), `gemini_*` with the owner's model `gemini-3.8-flash` on location `global` (not offered in `asia-southeast1`); the recognizer stays disabled.
 - `scripts/verify-receipt-extraction.py`: `--time codex,gemini` times a real run per provider on six synthetic slips (VM only, explicit). The default proof run is kept; its time assertion now expects `HH:MM`, which `validate_receipt` has returned since it began truncating seconds.
 - Tests: new `tests/test_receipt_recognition.py` (33 tests: provider default, shape check, Gemini request, parsing, retry, schema translation, model pinning, configuration, token claims and signature, every contract status, busy and timeout slots, audit content); `test_receipts.py` patch target, `test_cli.py` and `test_systemd_units.py` updated for the new module, command and unit.
@@ -23,7 +25,7 @@ Stage 1 of the owner's Receipt Recognition design (18 October 2026, Bangkok): on
 | `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements in a fresh venv) | 562 tests, OK, 82 skipped (lab suites); baseline before the batch 529 OK |
 | `python -m unittest tests.test_receipt_recognition` | 33 tests, OK |
 | `ruff check --no-cache integration-agent` | All checks passed |
-| `mw-integration-agent check --config config.example.json` (repository catalogue revision 29) | ok; `receipt_extraction_provider` codex, `receipt_recognition` false |
+| `mw-integration-agent check --config config.example.json` (repository catalogue revision 29, at `13039cc`) | ok; `receipt_extraction_provider` codex, `receipt_recognition` false |
 | `npm run check:docs` (repository root) | Pass, 0 failures |
 
 ## Not run
@@ -35,7 +37,7 @@ Stage 1 of the owner's Receipt Recognition design (18 October 2026, Bangkok): on
 Revert this batch's commit. Nothing is live. When deployed later, recovery is `receipt_recognition_enabled=false` (or the catalogue entry off) and `systemctl disable --now mw-receipt-recognition.service`; the Instagram cycle stays on Codex unless `receipt_extraction_provider` was changed.
 
 ## Open questions
-- Deployment route for revision 29 (two steps, as for revision 28): the owner chooses it at activation; see `docs/RECEIPTS.md`.
+None.
 
 ## Remaining work
 - Infrastructure stage (Forge): Vertex AI API, `roles/aiplatform.user` on the VM identity, direct VPC egress for the DEV and PROD command services, firewall rule to the VM's service account on port 8790, Vertex egress check.

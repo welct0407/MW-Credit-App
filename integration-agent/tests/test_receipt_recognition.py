@@ -319,8 +319,18 @@ class ConfigTests(unittest.TestCase):
                          'agent_database_relay_password_file': '/etc/mw-integration-agent/secrets/relay.txt'})
         catalogue = load_json(ROOT / 'service-catalogue.json')
         validate_catalogue(catalogue)
-        self.assertEqual(catalogue['revision'], 29)
-        self.assertEqual(catalogue['services']['receipt_recognition_api'], {'enabled': False, 'implemented': True})
+        # Step 1 (deploy pin): the validator knows the name; the key itself arrives with revision 29 (step 2).
+        self.assertEqual(catalogue['revision'], 28)
+        self.assertNotIn('receipt_recognition_api', catalogue['services'])
+        self.validator_knows_the_name(catalogue)
+
+    def validator_knows_the_name(self, catalogue):
+        services = dict(catalogue['services'])
+        services['receipt_recognition_api'] = {'enabled': False, 'implemented': True}
+        validate_catalogue({**catalogue, 'services': services})
+        services['receipt_recognition_api'] = {'enabled': True, 'implemented': False}
+        with self.assertRaises(ConfigurationError):
+            validate_catalogue({**catalogue, 'services': services})
 
     def test_enabled_recognizer_requires_complete_pinned_settings(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -413,7 +423,7 @@ class ContractTests(unittest.TestCase):
         root = Path(self.directory.name)
         self.config = recognizer_config(root)
         self.catalogue = load_json(ROOT / 'service-catalogue.json')
-        self.catalogue['services']['receipt_recognition_api']['enabled'] = True
+        self.catalogue['services']['receipt_recognition_api'] = {'enabled': True, 'implemented': True}
         self.config_path, self.catalogue_path = root / 'config.json', root / 'catalogue.json'
         self.write()
         self.audits, self.slots = [], threading.BoundedSemaphore(api.CONCURRENCY)
