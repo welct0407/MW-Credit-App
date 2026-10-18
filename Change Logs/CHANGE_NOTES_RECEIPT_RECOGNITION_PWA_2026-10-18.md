@@ -33,6 +33,9 @@ Reads a manual payment slip with the shared recognizer and pre-fills the payment
 | Echo phone-viewport check (Chromium iPhone emulation, mocked recognition) | No blockers; RR-UX-13 to 16 applied |
 | Adversarial review (Chase) | No blockers; Google key-fetch backoff added |
 | `npm run check:docs` | 0 failures, 0 warnings (Dewey) |
+| DEV owner upload, first try (18:17Z) | `Slip not read`: recognizer audit write rejected (route `gemini` not in the audit CHECK); fixed in PR #70, agent redeployed |
+| DEV owner upload, retry (18:35Z) | Form filled; recognizer journal `recognized` from the DEV caller in 11.7 s |
+| Owner DEV review fixes (Byte) | Transfer time removed from the form and review (slip time still posted as `transferTime` into Created At); sticky summary re-measures the full header height (gap under the header); receiving page clips horizontal overflow and overscroll; banner says when Auto-assign finds no charges due. Lint 0 errors, typecheck, `npm test` 655/655, affected e2e 130 passed on desktop and mobile Chromium |
 
 ## Not run
 - Real Vertex AI or Codex calls, the recognizer on the VM, and any live PWA recognition: nothing is deployed.
@@ -51,6 +54,6 @@ Owner-gated and not authorized by this batch (PROD only; DEV is done):
 4. A promotion contract for R075 with runtime, SQL (V96) and infrastructure inputs.
 
 ## Remaining work
-- Chase's DEV app smoke result, to be added by the orchestrator.
+- Watch Gemini latency on `global`: 3.6 to 26 s seen; the recognizer now gives up at 18 s, so slow slips fall back to manual entry.
 - Check the next agent receipt runs: an unrelated job created 16:57:47Z is in `RECEIPT_ARCHIVE_PENDING` (pre-existing).
 - The PROD steps above. Tooling gaps found during the DEV rollout are listed in [Development changes](../project/Documents/Development_Changes.md).
