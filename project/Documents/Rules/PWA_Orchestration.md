@@ -1,29 +1,42 @@
 # PWA delivery, validation and promotion
 
-**Owner revision: 17 October 2026 (Asia/Bangkok).** Use the six-agent development process below automatically in future PWA conversations. Keep batches short, tests useful and records concise for this two-user application. This document owns orchestration and test selection; [Release Workflow](Release_Workflow.md) owns promotion mechanics.
+**Owner revision: 18 October 2026 (Asia/Bangkok).** Use the six-agent development process below automatically in future PWA conversations. Keep batches short, tests useful and records concise for this two-user application. This document owns orchestration and test selection; [Release Workflow](Release_Workflow.md) owns promotion mechanics.
 
 ## Six-agent development process
 
 The owner has authorized Agents A–F as the default PWA development team in every conversation; this is standing authorization to delegate. The main conversation orchestrates and activates all six roles for a product change without waiting for another request. Start each affected role with a bounded task and the shared scope. When the scope plainly excludes a role's surface (for example, no infrastructure in a UI-only fix), the orchestrator records that role as not applicable without starting a worker; when applicability is uncertain, start the role and let it return a brief not-applicable finding. Do not invent UX, infrastructure or design work to keep a worker busy. Documentation-only tasks and read-only answers may use a smaller team. A task-specific request for personal execution overrides this default.
 
-| Role | Responsibility |
-| --- | --- |
-| Main conversation — Orchestrator | Own scope, authority, assignment, integration and completion; resolve shared dependencies |
-| Agent A — Architect | Resolve actual design ambiguity; supply a compact executable test plan for that design |
-| Agent B — Coding | Implement and fix the agreed behavior |
-| Agent C — Testing | Independently verify affected behavior using the selected checks; report reproduction and evidence |
-| Agent D — Miscellaneous / Delivery and Documentation | Own evolving-document maintenance across the full index; tooling, delivery coordination and existing records |
-| Agent E — User Experience Officer | Automatically review affected user flows and relevant viewports; recommendations grouped by page/category with unique human-readable codes |
-| Agent F — Infrastructure | Terraform, cloud resources, IAM, Secret Manager, networking and infrastructure configuration |
+| Name | Role | Responsibility |
+| --- | --- | --- |
+| — | Main conversation — Orchestrator | Own scope, authority, assignment, integration and completion; resolve shared dependencies |
+| **Archie** | Agent A — Architect | Resolve actual design ambiguity; supply a compact executable test plan for that design |
+| **Byte** | Agent B — Coding | Implement and fix the agreed behavior |
+| **Chase** | Agent C — Testing | Independently verify affected behavior using the selected checks; report reproduction and evidence |
+| **Dewey** | Agent D — Miscellaneous / Delivery and Documentation | Own evolving-document maintenance across the full index; tooling, delivery coordination and existing records |
+| **Echo** | Agent E — User Experience Officer | Automatically review affected user flows and relevant viewports; recommendations grouped by page/category with unique human-readable codes |
+| **Forge** | Agent F — Infrastructure | Terraform, cloud resources, IAM, Secret Manager, networking and infrastructure configuration |
 
-Exact models/efforts live only in [Model Work Mapping](Model_Work_Mapping.md). Names include roles. Role assignment grants no extra authority. One writer owns each mutable file/live object; worktrees do not isolate shared DEV services.
+Exact models/efforts live only in [Model Work Mapping](Model_Work_Mapping.md). Role assignment grants no extra authority. One writer owns each mutable file/live object; worktrees do not isolate shared DEV services.
+
+### Named workers, started once per session
+
+The six workers have fixed names so that every session, record and request refers to the same team. Each name starts with the role's letter and hints at the job: Archie draws the architecture, Byte writes the code, Chase chases defects, Dewey keeps the records and delivery in order, Echo reflects what the user experiences, Forge builds the infrastructure. Start a worker under the display name `<Name> (<letter> — <role>)`, for example `Archie (A — Architect)`, and use the name in chat, handoffs and change notes; the letter alone remains a valid shorthand. Rename only through this table.
+
+A worker is a standing team member for the whole session, not a per-task hire:
+
+- Start a role at most once per session, when its first task arrives. Give every later task in the same session, including corrections, follow-ups and the next batch, to the running worker through the tool's continuation control so it keeps its context. Never start a second worker for a role that is already running, and never start a role the scope does not need.
+- Open each later task to a running worker with the new scope, baseline and one-writer boundaries; it already holds the earlier context and needs no repeated rules.
+- Replace a worker only when the tool reports it gone (session restart, context reset or compaction, or an error naming it) or when a task needs a model/effort escalation from [Model Work Mapping](Model_Work_Mapping.md) that the running worker cannot adopt. Start the replacement under the same name with a short baseline and record the restart once; do not claim continuity it lacks.
+- Workers do not outlive the session. A new session starts the team again under the same names from the current records.
+
+Names grant no authority; the authority and one-writer rules above are unchanged.
 
 1. The orchestrator reads current scope, release and affected instructions, then assigns A the design/test approach, E the affected user flows and F the infrastructure impact. Keep established design decisions; each review can be short.
 2. B implements the agreed batch. D handles independent tooling/records/delivery preparation. F owns infrastructure changes when in scope; E supplies actionable UX findings. Give every mutable path/object one writer.
 3. C verifies the completed behavior and B/F fix relevant failures. E checks changed UX where applicable. Reuse valid test evidence; role participation does not require six duplicate test runs or six approval documents.
 4. D completes the [required documentation maintenance](Development_Workflow.md#required-documentation-maintenance), updating every affected evolving document; C checks consistency with implementation/evidence. The orchestrator confirms coverage and closes the existing record/publication. The owner's production instruction supplies scoped promotion approval, including required migrations and technical records. Optional new documents still need explicit approval.
 
-Use supported sub-agents in the current conversation, not new user-owned chats or messages to outside agents. Run roles in dependency order and in waves within the available worker limit; six roles need not run simultaneously. Reuse existing workers, including for corrections. If a required agent/model is unavailable, disclose the exact limitation once, use an available supported setting or cover that role directly, and record the fallback without claiming an agent ran. Do not stall authorized work or request the same standing delegation approval again.
+Use supported sub-agents in the current conversation, not new user-owned chats or messages to outside agents. Run roles in dependency order and in waves within the available worker limit; six roles need not run simultaneously. Reuse the running named workers for every later task and correction, as [above](#named-workers-started-once-per-session). If a required agent/model is unavailable, disclose the exact limitation once, use an available supported setting or cover that role directly, and record the fallback without claiming an agent ran. Do not stall authorized work or request the same standing delegation approval again.
 
 ## One coherent delivery batch
 

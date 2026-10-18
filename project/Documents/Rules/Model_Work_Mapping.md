@@ -1,6 +1,6 @@
 # Model work mapping
 
-Owner preferences, updated **17 October 2026**. Read when assigning the automatic PWA team or selecting a model; do not reload it for routine solo execution. A task-specific owner choice overrides these defaults; apply settings only through supported controls and disclose unavailable combinations.
+Owner preferences, updated **18 October 2026**. Read when assigning the automatic PWA team or selecting a model; do not reload it for routine solo execution. A task-specific owner choice overrides these defaults; apply settings only through supported controls and disclose unavailable combinations.
 
 ## Select the model set for the active coding tool
 
@@ -14,7 +14,7 @@ These are role-based alternatives, not measured one-to-one model or effort equiv
 
 ## PWA team
 
-Agents A–F are the standing PWA development team under the [six-agent process](PWA_Orchestration.md#six-agent-development-process). Activate them without another owner request, in waves when concurrency is limited. Keep assignments proportional and return not-applicable findings for unaffected surfaces; reuse workers and avoid duplicate roles. Agent names must include their role. Documentation-only/read-only tasks may use fewer roles; an explicit personal-execution request overrides the default.
+Agents A–F are the standing PWA development team under the [six-agent process](PWA_Orchestration.md#six-agent-development-process), named Archie, Byte, Chase, Dewey, Echo and Forge as that page's [roster](PWA_Orchestration.md#named-workers-started-once-per-session) defines. Activate them without another owner request, in waves when concurrency is limited. Keep assignments proportional and return not-applicable findings for unaffected surfaces. Start each worker once per session under its display name `<Name> (<letter> — <role>)` and continue the running worker for every later task; never duplicate a role. Documentation-only/read-only tasks may use fewer roles; an explicit personal-execution request overrides the default.
 
 ### OpenAI / Codex assignments
 
@@ -22,12 +22,12 @@ The main conversation remains the orchestrator using the owner's selected sessio
 
 | Name | Model ID | Effort | Scope |
 | --- | --- | --- | --- |
-| Agent A — Architect | `gpt-6-astra` | high | Design, technical direction and a compact executable test plan |
-| Agent B — Coding | `gpt-6-astra` | medium | Application implementation and fixes |
-| Agent C — Testing | `gpt-6.1-sol` | medium | Execute selected tests; report failures and retest corrections |
-| Agent D — Miscellaneous / Delivery and Documentation | `gpt-6.1-sol` | medium | Own required maintenance of the full evolving-document set; tooling, delivery coordination and existing records |
-| Agent E — User Experience Officer | `gpt-6-astra` | high | Automatically review affected UX; choose relevant desktop/iPhone Pro Max/iPad views; recommendations grouped by page/category with unique human-readable codes |
-| Agent F — Infrastructure | `gpt-6-astra` | low | Terraform, cloud resources, IAM, Secret Manager and networking |
+| Archie (A — Architect) | `gpt-6-astra` | high | Design, technical direction and a compact executable test plan |
+| Byte (B — Coding) | `gpt-6-astra` | medium | Application implementation and fixes |
+| Chase (C — Testing) | `gpt-6.1-sol` | medium | Execute selected tests; report failures and retest corrections |
+| Dewey (D — Miscellaneous / Delivery and Documentation) | `gpt-6.1-sol` | medium | Own required maintenance of the full evolving-document set; tooling, delivery coordination and existing records |
+| Echo (E — User Experience Officer) | `gpt-6-astra` | high | Automatically review affected UX; choose relevant desktop/iPhone Pro Max/iPad views; recommendations grouped by page/category with unique human-readable codes |
+| Forge (F — Infrastructure) | `gpt-6-astra` | low | Terraform, cloud resources, IAM, Secret Manager and networking |
 
 D does not replace F for infrastructure unless the owner requests it. E recommendations do not themselves authorize implementation.
 
@@ -38,14 +38,14 @@ Use the same A–F responsibilities above. The orchestrator is the main conversa
 | Name | Model ID | Effort |
 | --- | --- | --- |
 | Main conversation — Orchestrator | `claude-opus-5-5` | high |
-| Agent A — Architect | `claude-fable-5-1` | medium |
-| Agent B — Coding | `claude-opus-5-5` | high; medium for text/style/layout-only changes |
-| Agent C — Testing | `claude-sonnet-5-5` | medium |
-| Agent D — Miscellaneous / Delivery and Documentation | `claude-sonnet-5-5` | medium |
-| Agent E — User Experience Officer | `claude-opus-5-5` | medium |
-| Agent F — Infrastructure | `claude-opus-5-5` | medium |
+| Archie (A — Architect) | `claude-fable-5-1` | medium |
+| Byte (B — Coding) | `claude-opus-5-5` | high; medium for text/style/layout-only changes |
+| Chase (C — Testing) | `claude-sonnet-5-5` | medium |
+| Dewey (D — Miscellaneous / Delivery and Documentation) | `claude-sonnet-5-5` | medium |
+| Echo (E — User Experience Officer) | `claude-opus-5-5` | medium |
+| Forge (F — Infrastructure) | `claude-opus-5-5` | medium |
 
-Set effort explicitly through supported tool controls. Apply these task-specific escalations without a separate model-selection approval, unless the owner has explicitly fixed that task's setting:
+Set effort explicitly through supported tool controls. Apply these task-specific escalations without a separate model-selection approval, unless the owner has explicitly fixed that task's setting. A running worker keeps the setting it started with; when an escalation cannot be applied to it, replace it under the same name as the [roster](PWA_Orchestration.md#named-workers-started-once-per-session) allows and disclose the restart:
 
 - **A → Fable 5.1 / high** for financial or reconciliation design, migrations that rewrite existing data, access-model changes, or concurrency/retry semantics.
 - **B → Fable 5.1 / medium** for difficult financial logic, concurrency or migrations.
