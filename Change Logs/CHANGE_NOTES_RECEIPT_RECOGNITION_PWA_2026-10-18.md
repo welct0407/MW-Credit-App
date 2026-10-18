@@ -46,6 +46,9 @@ Reads a manual payment slip with the shared recognizer and pre-fills the payment
 ## Recovery
 Revert the commit. DEV is live: set `DEV_RECEIPT_RECOGNITION` back to `disabled` through the previous DEV activation tfvars generation (inventory) and re-apply, disable the recognizer in the live catalogue by editing the live file (never copy the repository template), and `systemctl disable --now mw-receipt-recognition.service`; the form continues manually. The previous command image and revision are in the inventory. V96 stays (v6 still works). After activation: set `receipt_recognizer.activation = "disabled"` (or `enabled = false`) and re-apply, and set `receipt_recognition_enabled=false` on the VM, then `systemctl disable --now mw-receipt-recognition.service`; the form continues manually. V96 follows the usual restorable-backup rule; v6 commands keep working, so the PWA can fall back to v6.
 
+## Promotion authority
+Owner instruction, 18 October 2026: "coordinate with session_01QcLEzV9QEhHt7HqJi8ngVa to include [the 23-receipt audit-route fix] in the current release. When all are incorporated, merge it and push to production." This is the scoped production approval for R075 under the release workflow: V96 on PROD with a verified backup, PROD command image and Hosting, PROD infrastructure (recognizer egress and `PROD_RECEIPT_RECOGNITION`), agent redeploy with the PROD caller and recognition enabled, and the append-only audit closure of the 23 stuck `receipt_payment` operations after a `mw_agent` backup. R075 was frozen at source `96b0a0b` (PRs #69 to #72) and R076 opened in the same tracker update. No unrelated financial correction or forced notification is implied.
+
 ## Open questions
 Owner-gated and not authorized by this batch (PROD only; DEV is done):
 1. V96 in PROD with the guarded runner, the exact tested commit and manifest, and a verified restorable PROD backup.

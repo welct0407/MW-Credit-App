@@ -4,10 +4,9 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R075 — Open** |
-| Next unused number | **R076**, only opened when authorized R075 promotion starts |
+| New product work | **R076 — Open** |
+| Next unused number | **R077**, only opened when authorized R076 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
-| R075 scope (18 October 2026), deployed to DEV only | Receipt recognition (owner design: [Claude Doc](https://claude.ai/artifact/KP7KKQnNy1QDnXqEiRsgRx)): Debian recognizer service, command-service route, manual payment command v7 with migration V96, Vertex and VPC infrastructure (all default off), and the payment-form fill-and-warn flow. Record: [change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md). DEV runs it (V96, command image, Hosting, recognizer enabled); PROD is untouched. Promotion needs a runtime-and-SQL contract, not the Hosting-only one ([Development changes](Development_Changes.md)) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
@@ -15,6 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
+| R075 | Frozen 18 October 2026, about 19:20Z (Bangkok 02:20, 19 October); promotion in progress | Package: source `96b0a0b` (main, includes PRs #69 to #72): receipt recognition, manual payment command v7 with V96, recognizer audit-route fix, runtime-and-SQL promotion contract. Owner instruction "merge it and push to production" (18 October 2026) is the scoped production approval, recorded in the [change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md#promotion-authority). Closure: Released row, inventory pins, Release tag |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
