@@ -24,7 +24,7 @@ One pin per cell, one row per target. Rollback entries are the previous verified
 
 | Target | Hosting version | Release / public version | Verified | Rollback version | Record |
 | --- | --- | --- | --- | --- | --- |
-| DEV | `8f60cf8c172d52b0` | `build-version.json` `{"version":"703259ffbe76f6b903c6c483","release":"R075"}` | R075 receipt recognition, source `85273a4`, 18 October 2026; built from Secret Manager `mw-credit-app-dev-firebase-web` | `5057ec71cae7079e` (R072 cache fix, release `1792307275218000`, public `edc25e55f69e35f929f04939`) | [R075 change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md) |
+| DEV | `1b74b8911b8bb098` | `build-version.json` `{"version":"8a200db2323f8e63823c1770","release":"R075"}` | R075 after PR #71 (owner DEV review fixes), 18 October 2026; owner checked it on iPhone (about 19:10Z); built from Secret Manager `mw-credit-app-dev-firebase-web` | `8f60cf8c172d52b0` (R075 at `85273a4`, version `703259ffbe76f6b903c6c483`); earlier `5057ec71cae7079e` (R072 cache fix) | [R075 change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md) |
 | PROD | `047af2dcdd4016e2` | release `1792332604127000`; public `48e174c49ec578d20ba7efab`; entry `/assets/index-J612-CT8.js` | R074, source `b88653d4b84860b7eab622d0edfb472d851c03ce`, about 14:09Z 18 October 2026 (21:09 Bangkok), 15 of 15 files byte-identical on both hosts, package `012d4c6b...` | `191483d8f3f5ef87` (R073, release `1792318600122000`, public `085badcaf50ff9c886227364`); earlier `6f0fd98b6c19c1f9` (R072), `8d479df729eb1a78` (R071) | [R074 production promotion](https://github.com/welct0407/MW-Credit-App/blob/2c28911c1cbd7dc292364fabf22bb6ceaec1b328/project/Documents/Development_Changes.md#r074-production-promotion) |
 
 Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, immutable `/assets/**`, `no-store` for `/`, `sw.js`, `build-version.json`, manifest and `offline.html`; viewport zoom lock kept (accepted design, W5 R068).
@@ -59,7 +59,7 @@ DEV applied about 09:43Z, PROD 10:17:44 to 10:18:21Z, both 17 October 2026 (plan
 | --- | --- |
 | Host | `vm-mw-credit-agent` |
 | Source checkout | `/opt/mw-integration-agent-src`, full clone of `welct0407/MW-Credit-App` `main`; HEAD read on the host at the 17 October 2026 deploy: equal to the deployed `code_version` |
-| Deployed monorepo commit | `131b43a4bde00300e21b2351c7b5df1875bfca96` (R075 agent component: recognizer), activated 18:02:35Z, 18 October 2026; freeze backup `runtime-20261018T180123769399Z`; checkout back on `main` `85273a4`. Previous: `5b4e50dfa9be919321ac30160a4e0c1bfef548a8` |
+| Deployed monorepo commit | `2c2175513ee0033825a63881d6bf033c687251b3` (R075 agent component: recognizer audit route fix and timeouts, PR #70), activated 18 October 2026; freeze backup `runtime-20261018T183337450852Z`; rollback pin `131b43a4bde00300e21b2351c7b5df1875bfca96` (first R075 deploy, 18:02:35Z). Before R075: `5b4e50dfa9be919321ac30160a4e0c1bfef548a8` |
 | Virtual environment | `/opt/mw-integration-agent/.venv`, installed from `<checkout>/integration-agent` at that commit with `pip install --no-deps`; dependencies equal `integration-agent/requirements.lock` (verified 16 October at the earlier deploy; not re-recorded for R069) |
 | Installed package version | `0.1.0` (the package version is not bumped; `/ready` `code_version` is the identity) |
 | Service catalogue revision | 29 live (adds `receipt_recognition_api`, enabled); backup `/root/service-catalogue.json.pre-rev29` holds 28; the deploy refuses a mismatch |
