@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -207,6 +207,8 @@ test('R063 live verification re-reads CI and requires caller subjects on both wo
 
 // R064: one image on all four services after the separately applied V93; image-only plan.
 const waveBaseline='37f62121e9b04a163ebfa014e3240841b46d9a96',waveMigration='database/migrations/V93__review_wave4_hygiene.sql';
+// Name lists are newline-separated; with -z (R074) the same names come back NUL-terminated, as git prints them.
+const nulNames=(args,out)=>args.includes('-z')?out.split('\n').filter(Boolean).map(name=>name+'\0').join(''):out;
 function waveGit({source,tool=source,changed={},delivery='',dirty='',untracked='',migration=waveMigration}={}){
  return (_root,args)=>{
   if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
@@ -214,9 +216,9 @@ function waveGit({source,tool=source,changed={},delivery='',dirty='',untracked='
   if(args[0]==='ls-files')return untracked;
   if(args[0]==='diff'){
    if(args[2]===waveBaseline&&args[3]===source)return migration;
-   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return delivery;
-   if(args[3]===source)return changed[args[2]]??'';
-   return dirty;
+   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return nulNames(args,delivery);
+   if(args[3]===source)return nulNames(args,changed[args[2]]??'');
+   return nulNames(args,dirty);
   }
   throw Error('Unexpected synthetic Git command '+args);
  };
@@ -374,7 +376,7 @@ test('R071 operator proof uses its own release audience; unknown releases are re
  const run=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
  assert.equal((await run('R071')).operator,email);
  await assert.rejects(run('R071','https://lm.mw-credit.com/promotion/r070'),/impersonation proof/);
- for(const release of ['R067','R074'])await assert.rejects(run(release),/unsupported operator release/);
+ for(const release of ['R067','R075'])await assert.rejects(run(release),/unsupported operator release/);
 });
 test('R071 delivery commit may carry the runner, README and documents; live verification needs the pinned R069 services',async t=>{
  const {m,source,tool}=await r071Package(t),git=r071Git({source,tool});
@@ -442,6 +444,132 @@ test('R073 operator audience, delivery corrections and live runtime check',async
  const readGithub=args=>{const id=Number(args[1].split('/runs/')[1].split('/')[0]),kind={11:'full',12:'check',13:'database'}[id],r=m.applicationCi[kind];return args[1].includes('/jobs')?{jobs:r.jobs}:r.run;};
  await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub,git});
  await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('read'),readGithub,git}),/R073 live runtime differs/);
+});
+
+// R074: R073's Hosting-only contract with the source descending from R073 and CI gated per job: every required job
+// cites its own run, whose head is the delivery-tool commit or an ancestor with no change relevant to that job's stage.
+const r073Release='042359b585e132cb20e3f0785320c285addc7a1e';
+const r074Groups={check:{id:21,kind:'ci',jobs:['check']},e2e:{id:22,kind:'ci',jobs:['e2e (shard 1 of 3)','e2e (shard 2 of 3)','e2e (shard 3 of 3)']},terraform:{id:24,kind:'ci',jobs:['terraform']},guards:{id:23,kind:'database',jobs:['guards']},rebuild:{id:25,kind:'database',jobs:['rebuild (migrations)','rebuild (receiving)','rebuild (phase5)','rebuild (phase8)']}};
+function r074Ci(head,heads={}){
+ const out={runs:{},ci:{jobs:{}},database:{jobs:{}}};
+ for(const [group,{id,kind,jobs}] of Object.entries(r074Groups)){const h=heads[group]??head;out.runs[id]={run:{id,repository:{full_name:'welct0407/MW-Credit-App'},path:kind==='ci'?'.github/workflows/ci.yml':'.github/workflows/database.yml',head_sha:h,event:'pull_request',status:'completed',conclusion:'success'},jobs:[{name:'changes',conclusion:'success'},...jobs.map(name=>({name,conclusion:'success'}))]};for(const name of jobs)out[kind].jobs[name]={runId:id,headSha:h};}
+ return out;
+}
+async function r074Package(t){const p=await r073Package(t);Object.assign(p.m,{schemaVersion:15,release:'R074',sourceBaseline:r073Release,applicationCi:r074Ci(p.ci)});return p;}
+const exact=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const r074Readback=m=>{const calls=[];return {calls,readGithub:args=>{calls.push(args[1]);const id=args[1].split('/runs/')[1].split('/')[0],r=m.applicationCi.runs[id];return args[1].includes('/jobs')?{jobs:structuredClone(r.jobs)}:structuredClone(r.run);}};};
+test('R074 Hosting-only package descends from R073, keeps the R069 runtime and V95 and gates CI per job',async t=>{
+ const {m,source,tool,ci}=await r074Package(t),git=r071Git({source,tool});
+ assert.equal((await hostingOnlyPlan(m,{git})).site,site);
+ assert.deepEqual(validateR074Ci(m.applicationCi,m,git).ci.terraform,{runId:24,headSha:ci});
+ const scriptsOnly={...structuredClone(runtimePackageJson),scripts:{...runtimePackageJson.scripts,'check:docs':'node scripts/check-docs.mjs'}};
+ assert.equal((await hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:'database/README.md\ndatabase/OWNERSHIP.md\npackage.json'},packageJson:{[source]:scriptsOnly}})})).site,site);
+ for(const [mutate,pattern] of [[x=>{x.sourceBaseline=r072Release},/exact R074 source\/baseline/],[x=>{x.schemaVersion=14},/wrong R074 package kind/],[x=>{x.sql.targetVersion=96},/R074 requires verified V95/],[x=>{x.sql.verified.latestVersion='94'},/R074 requires verified V95/],[x=>{x.build={id:'b'}},/R074 package must not apply/],[x=>{x.plan={}},/R074 package must not apply/],[x=>{x.applied={}},/R074 package must not apply/],[x=>{x.runtime.services.jobs.revision='bad'},/R074 unchanged runtime pins/],[x=>{delete x.runtime},/R074 unchanged runtime pins/],[x=>{x.applicationCi.ci.jobs.check.headSha='0'.repeat(40)},/R074 ci check: cited run receipt/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(hostingOnlyPlan(candidate,{git}),pattern);}
+ const detached=(root,args)=>args[0]==='merge-base'&&args[1]===r073Release?'0'.repeat(40):git(root,args);
+ await assert.rejects(hostingOnlyPlan(m,{git:detached}),/R074 source must descend from the previous release/);
+ for(const file of ['services/business/borrowers.mjs','database/migrations/V96__x.sql','database/runner.mjs','package-lock.json','infrastructure/production/runtime.tf'])await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:file}})}),/R074 must not change the R069 runtime, SQL or infrastructure$/);
+ await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:'package.json'},packageJson:{[source]:{...scriptsOnly,dependencies:{pg:'8.13.1'}}}})}),/R074 must not change the R069 runtime, SQL or infrastructure \(package\.json outside scripts\)/);
+ await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[ci]:'apps/pwa/src/live-main.tsx'}})}),/R074 ci check: run is not input-equivalent/);
+ // The kind-level receipts of R065 to R073 are not R074 evidence, and R073 keeps its kind-level gate.
+ const kindLevel={...structuredClone(m),applicationCi:(await r073Package(t)).m.applicationCi};
+ await assert.rejects(hostingOnlyPlan(kindLevel,{git}),/R074 ci CI jobs must be exactly/);
+ await assert.rejects(hostingOnlyPlan({...structuredClone(m),schemaVersion:14,release:'R073',sourceBaseline:r072Release},{git}),/R073 successful full CI required/);
+});
+test('R074 accepts the real R073 per-job evidence split and rejects the runs that are not input-equivalent for check',()=>{
+ // Actual GitHub receipts (job names and conclusions) of the R073 runs; database 39108361163 job receipts are synthetic.
+ const R={'01025a3e1fff40b2322eeaa31f2490f865c87315':['scripts/promotion/README.md','scripts/promotion/deploy-business-hosting.mjs','tests/unit/business-hosting-delivery.test.mjs','project/Documents/Development_Changes.md','project/Documents/Release_Tracker.md'],c21884ae457ba478f41a2de15419424101d02f69:['Change Logs/CHANGE_NOTES_OFFLINE_DELTA_GAP_2026-10-18.md','apps/pwa/src/offline-dataset.ts','apps/pwa/src/release.ts','project/Documents/Development_Changes.md','project/Documents/Environment_Inventory.md','project/Documents/Release_Tracker.md','project/Documents/Rules/Release_Workflow.md','scripts/promotion/README.md','scripts/promotion/deploy-business-hosting.mjs','tests/e2e/about-independent.spec.ts','tests/e2e/offline-delta-independent.spec.ts','tests/unit/business-hosting-delivery.test.mjs'],d57fb7d58dc22f64ad9ca28995e968a744309e76:[]};
+ const [e2eHead,terraformHead,checkHead]=Object.keys(R),repoRoot=path.resolve('synthetic-root');
+ const git=(root,args)=>{assert.equal(root,repoRoot);if(args[0]==='merge-base'&&args[2]===r073Release&&Object.hasOwn(R,args[1]))return args[1];if(args[0]==='diff'&&args[1]==='--name-only'&&args[3]===r073Release&&Object.hasOwn(R,args[2])&&exact(args.slice(4),['--no-renames','-z']))return R[args[2]].map(name=>name+'\0').join('');throw Error('Unexpected synthetic Git command '+args);};
+ const run=(id,head,file='ci',event='pull_request')=>({id,repository:{full_name:'welct0407/MW-Credit-App'},path:`.github/workflows/${file}.yml`,head_sha:head,event,status:'completed',conclusion:'success'});
+ const jobs=list=>list.map(([name,conclusion])=>({name,conclusion}));
+ const runs={39113397874:{run:run(39113397874,e2eHead),jobs:jobs([['changes','success'],['lint','success'],['check','success'],['e2e (shard 1 of 3)','success'],['e2e (shard 2 of 3)','success'],['e2e (shard 3 of 3)','success'],['terraform','skipped'],['Development checks result','success']])},
+  39108363565:{run:run(39108363565,terraformHead),jobs:jobs([['changes','success'],['terraform','success'],['check','success'],['e2e (shard 1 of 3)','success'],['lint','success'],['e2e (shard 3 of 3)','success'],['e2e (shard 2 of 3)','success'],['Development checks result','success']])},
+  39116268119:{run:run(39116268119,checkHead),jobs:jobs([['changes','success'],['check','success'],['lint','success'],['e2e (shard $'+'{{ matrix.shard }} of 3)','skipped'],['terraform','skipped'],['Development checks result','success']])},
+  39108361163:{run:run(39108361163,terraformHead,'database'),jobs:jobs([['changes','success'],['guards','success'],['rebuild (migrations)','success'],['rebuild (receiving)','success'],['rebuild (phase5)','success'],['rebuild (phase8)','success']])}};
+ const pin=(runId,headSha)=>({runId,headSha}),e2e=pin(39113397874,e2eHead);
+ const receipts={runs,ci:{jobs:{check:pin(39116268119,checkHead),'e2e (shard 1 of 3)':e2e,'e2e (shard 2 of 3)':e2e,'e2e (shard 3 of 3)':e2e,terraform:pin(39108363565,terraformHead)}},database:{jobs:Object.fromEntries(['guards','rebuild (migrations)','rebuild (receiving)','rebuild (phase5)','rebuild (phase8)'].map(name=>[name,pin(39108361163,terraformHead)]))}};
+ const m={sourceCommit:r073Release,deliveryToolSource:r073Release,repoRoot};
+ const result=validateR074Ci(receipts,m,git);
+ assert.deepEqual(result.ci.check,{runId:39116268119,headSha:checkHead});assert.equal(result.ci['e2e (shard 2 of 3)'].runId,39113397874);assert.equal(result.ci.terraform.runId,39108363565);assert.equal(result.database.guards.runId,39108361163);
+ // check from either full run: the runner and its unit test changed since, and both are check-relevant.
+ for(const [runId,headSha] of [[39113397874,e2eHead],[39108363565,terraformHead]]){const bad=structuredClone(receipts);bad.ci.jobs.check=pin(runId,headSha);assert.throws(()=>validateR074Ci(bad,m,git),/R074 ci check: run is not input-equivalent to the source/);}
+ // terraform was skipped in the e2e run (the job is present but did not execute).
+ const skipped=structuredClone(receipts);skipped.ci.jobs.terraform=e2e;assert.throws(()=>validateR074Ci(skipped,m,git),/R074 ci terraform: missing executed job/);
+ // e2e was skipped in the check run under its unexpanded matrix name, so the named shard is absent there.
+ const absent=structuredClone(receipts);absent.ci.jobs['e2e (shard 1 of 3)']=pin(39116268119,checkHead);assert.throws(()=>validateR074Ci(absent,m,git),/R074 ci e2e \(shard 1 of 3\): missing executed job/);
+});
+test('R074 per-job CI gate rejects each unproven job',async t=>{
+ const {m,source,tool,ci}=await r074Package(t),heads={check:'a1'.repeat(20),e2e:'b2'.repeat(20),terraform:'c3'.repeat(20),guards:'d4'.repeat(20),rebuild:'e5'.repeat(20)},receipts=r074Ci(ci,heads);
+ const gate=(mutate,git=waveGit({source,tool}))=>{const x=structuredClone(receipts);mutate?.(x);return validateR074Ci(x,m,git);};
+ assert.deepEqual(Object.keys(gate().ci),['check','e2e (shard 1 of 3)','e2e (shard 2 of 3)','e2e (shard 3 of 3)','terraform']);
+ const job=(x,id,name)=>x.runs[id].jobs.find(j=>j.name===name);
+ for(const [mutate,pattern] of [[x=>{job(x,21,'check').conclusion='failure'},/R074 ci check: missing executed job/],[x=>{job(x,24,'terraform').conclusion='skipped'},/R074 ci terraform: missing executed job/],[x=>{x.runs[24].jobs=x.runs[24].jobs.filter(j=>j.name!=='terraform')},/R074 ci terraform: missing executed job/],[x=>{x.runs[22].jobs.push({name:'e2e (shard 2 of 3)',conclusion:'success'})},/R074 ci e2e \(shard 2 of 3\): missing executed job/],
+  [x=>{x.runs[21].run.repository.full_name='other/MW-Credit-App'},/R074 ci check: successful \.github\/workflows\/ci\.yml run required/],[x=>{x.runs[23].run.path='.github/workflows/ci.yml'},/R074 database guards: successful \.github\/workflows\/database\.yml run required/],[x=>{x.runs[25].run.conclusion='failure'},/R074 database rebuild \(migrations\): successful/],[x=>{x.runs[22].run.status='in_progress'},/R074 ci e2e \(shard 1 of 3\): successful/],[x=>{x.runs[24].run.event='schedule'},/R074 ci terraform: successful/],
+  [x=>{delete x.runs[24]},/R074 ci terraform: cited run receipt missing/],[x=>{x.runs[21].run.head_sha=heads.e2e},/R074 ci check: cited run receipt/],[x=>{x.runs[21].run.id=22},/R074 ci check: cited run receipt/],[x=>{x.ci.jobs.check.runId='21'},/R074 ci check: run id and head required/],[x=>{x.database.jobs.guards.headSha='bad'},/R074 database guards: run id and head required/],
+  [x=>{x.ci.jobs.lint={runId:21,headSha:heads.check}},/R074 ci CI jobs must be exactly/],[x=>{delete x.database.jobs['rebuild (phase8)']},/R074 database CI jobs must be exactly/],[x=>{delete x.database},/R074 database CI jobs must be exactly/],[x=>{x.ci.jobs=[]},/R074 ci CI jobs must be exactly/]])assert.throws(()=>gate(mutate),pattern);
+ // A head that is not an ancestor of the source.
+ const base=waveGit({source,tool});assert.throws(()=>gate(null,(root,args)=>args[0]==='merge-base'&&args[1]===heads.check?'0'.repeat(40):base(root,args)),/R074 ci check: run is not input-equivalent/);
+ // A change relevant to one stage rejects only the jobs of that stage; irrelevant changes are accepted.
+ for(const [group,file,pattern] of [['e2e','apps/pwa/src/live-main.tsx',/R074 ci e2e \(shard 1 of 3\): run is not input-equivalent/],['terraform','infrastructure/production/runtime.tf',/R074 ci terraform: run is not input-equivalent/],['guards','scripts/database/r053-operator-tooling.mjs',/R074 database guards: run is not input-equivalent/],['rebuild','database/migrations/V96__x.sql',/R074 database rebuild \(migrations\): run is not input-equivalent/],['check','scripts/promotion/deploy-business-hosting.mjs',/R074 ci check: run is not input-equivalent/]])assert.throws(()=>gate(null,waveGit({source,tool,changed:{[heads[group]]:file}})),pattern);
+ for(const [group,file] of [['e2e','scripts/promotion/deploy-business-hosting.mjs'],['terraform','apps/pwa/src/live-main.tsx'],['guards','apps/pwa/src/live-main.tsx'],['rebuild','database/README.md'],['check','project/Documents/Release_Tracker.md\nscripts/promotion/README.md']])assert.doesNotThrow(()=>gate(null,waveGit({source,tool,changed:{[heads[group]]:file}})));
+ // Each head's ancestry and diff are read once, however many jobs cite it.
+ const seen=[];gate(null,(root,args)=>{seen.push(args.join(' '));return base(root,args);});assert.equal(seen.length,new Set(seen).size);assert.equal(seen.filter(c=>c.startsWith('diff')).length,5);
+});
+test('R074 accepts runs on the delivery-tool commit only when that commit adds no relevant input',async t=>{
+ const {m,source,tool}=await r074Package(t),atTool=r074Ci(tool),runner='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md';
+ // Without the delivery alternative the runner change would be check-relevant.
+ assert.equal(validateR074Ci(atTool,m,waveGit({source,tool,delivery:runner,changed:{[tool]:runner}})).ci.check.headSha,tool);
+ assert.equal((await hostingOnlyPlan({...structuredClone(m),applicationCi:atTool},{git:r071Git({source,tool,delivery:runner,changed:{[tool]:runner}})})).site,site);
+ assert.throws(()=>validateR074Ci(atTool,m,waveGit({source,tool,delivery:runner+'\napps/pwa/src/offline-sync.ts',changed:{[tool]:runner+'\napps/pwa/src/offline-sync.ts'}})),/R074 ci check: run is not input-equivalent/);
+ await assert.rejects(hostingOnlyPlan({...structuredClone(m),applicationCi:atTool},{git:r071Git({source,tool,delivery:'apps/pwa/src/offline-sync.ts',changed:{[tool]:'apps/pwa/src/offline-sync.ts'}})}),/R074 unverified delivery/);
+});
+test('R074 lists renamed and quoted paths in full: a move or a non-ASCII name cannot hide a relevant path',async t=>{
+ const {m,source,tool,ci}=await r074Package(t),heads={check:'a1'.repeat(20),e2e:'b2'.repeat(20)},receipts=r074Ci(ci,heads),calls=[];
+ // Real git behaviour without the flags: a rename lists only its new path, and a non-ASCII name is quoted.
+ const quote=name=>/[^\x20-\x7e]/.test(name)?'"'+[...Buffer.from(name)].map(b=>b>0x7e?'\\'+b.toString(8):String.fromCharCode(b)).join('')+'"':name;
+ const emulate=({renames={},names={}})=>(root,args)=>{calls.push(args.join(' '));const base=r071Git({source,tool,...names})(root,args);if(args[0]!=='diff')return base;
+  const key=args[2]+'..'+args[3],rename=renames[key],list=[...(args.includes('-z')?base.split('\0'):base.split('\n')).filter(Boolean),...(rename?(args.includes('--no-renames')?rename:rename.slice(1)):[])];
+  return args.includes('-z')?list.map(name=>name+'\0').join(''):list.map(quote).join('\n');};
+ // check: apps/pwa/src/a.ts moved to project/a.ts since the check head; only project/a.ts would be listed.
+ assert.throws(()=>validateR074Ci(receipts,m,emulate({renames:{[heads.check+'..'+source]:['apps/pwa/src/a.ts','project/a.ts']}})),/R074 ci check: run is not input-equivalent/);
+ assert.ok(calls.includes(`diff --name-only ${heads.check} ${source} --no-renames -z`));
+ // e2e: a non-ASCII PWA file would otherwise appear as "apps/pwa/src/caf\303\251.ts" and miss ^apps/pwa/.
+ assert.equal(quote('apps/pwa/src/café.ts'),'"apps/pwa/src/caf\\303\\251.ts"');
+ assert.throws(()=>validateR074Ci(receipts,m,emulate({names:{changed:{[heads.e2e]:'apps/pwa/src/café.ts'}}})),/R074 ci e2e \(shard 1 of 3\): run is not input-equivalent/);
+ // Delivery side: apps/pwa/src/a.ts moved to scripts/promotion/README.md in the delivery-tool commit.
+ const moved={renames:{[source+'..'+tool]:['apps/pwa/src/a.ts','scripts/promotion/README.md'],[tool+'..'+source]:['apps/pwa/src/a.ts','scripts/promotion/README.md']}};
+ assert.throws(()=>validateHostingOnlySource(m,emulate(moved)),/R074 unverified delivery/);
+ assert.throws(()=>validateR074Ci(r074Ci(tool),m,emulate(moved)),/R074 ci check: run is not input-equivalent/);
+ // Runtime side: a moved service file is listed at its old path.
+ assert.throws(()=>validateHostingOnlySource(m,emulate({renames:{[r069Release+'..'+source]:['services/business/borrowers.mjs','docs/borrowers.mjs']}})),/R074 must not change the R069 runtime/);
+ // Every R074 source diff uses the strict form; R073 keeps its original diff arguments byte for byte.
+ calls.length=0;validateHostingOnlySource(m,emulate({}));const diffs=calls.filter(c=>c.startsWith('diff'));assert.equal(diffs.length,3);assert.ok(diffs.every(c=>c.includes(' --no-renames -z')));
+ calls.length=0;validateHostingOnlySource({...structuredClone(m),schemaVersion:14,release:'R073',sourceBaseline:r072Release},emulate({}));assert.deepEqual(calls.filter(c=>c.startsWith('diff')).map(c=>c.split(' -- ')[0]+(c.includes(' -- ')?' -- …':'')),[`diff --name-only ${r069Release} ${source} -- …`,`diff --name-only ${source} ${tool}`,`diff --name-only ${tool} -- …`]);assert.ok(calls.every(c=>!c.includes('-z')&&!c.includes('--no-renames')));
+});
+test('R074 rejects a check run older than a rename into project/ with real git',async t=>{
+ const root=await mkdtemp(path.join(tmpdir(),'mw-r074-rename-'));t.after(()=>rm(root,{recursive:true,force:true}));
+ const g=args=>{const r=spawnSync('git',['-C',root,'-c','user.name=Test','-c','user.email=test@example.invalid',...args],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
+ g(['init','-q']);await mkdir(path.join(root,'apps/pwa/src'),{recursive:true});await writeFile(path.join(root,'apps/pwa/src/a.ts'),'export const a=1;\n');g(['add','.']);g(['commit','-qm','head']);const head=g(['rev-parse','HEAD']);
+ await mkdir(path.join(root,'project'));g(['mv','apps/pwa/src/a.ts','project/a.ts']);g(['commit','-qm','source']);const source=g(['rev-parse','HEAD']);
+ assert.equal(g(['diff','--name-only',head,source]),'project/a.ts');
+ assert.throws(()=>validateR074Ci(r074Ci(head),{sourceCommit:source,repoRoot:root}),/R074 ci check: run is not input-equivalent/);
+ // The same tree without the move is accepted, with the default real git reader.
+ assert.equal(validateR074Ci(r074Ci(source),{sourceCommit:source,repoRoot:root}).ci.check.headSha,source);
+});
+test('R074 operator audience and live verification re-read each cited run once and the pinned R069 services',async t=>{
+ const {m,source,tool,ci}=await r074Package(t),git=r071Git({source,tool});
+ m.applicationCi=r074Ci(ci,{e2e:'b2'.repeat(20)});
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com',project='clever-oasis-508610-n7';
+ const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
+ assert.equal((await operator('R074')).operator,email);await assert.rejects(operator('R074','https://lm.mw-credit.com/promotion/r073'),/impersonation proof/);
+ const make=drift=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=m.runtime.services[role];return {ok:true,json:async()=>({latestReadyRevision:'x/'+pin.revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},template:{containers:[{image:drift===role?pin.image.replace(/.$/,'0'):pin.image}]}})};};
+ const live=r074Readback(m);await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:live.readGithub,git});
+ assert.equal(live.calls.length,10);assert.equal(new Set(live.calls).size,10);for(const id of [21,22,23,24,25])assert.ok(live.calls.includes(`repos/welct0407/MW-Credit-App/actions/runs/${id}`)&&live.calls.includes(`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`));
+ // The package receipts are not trusted at apply: a live check job that was skipped rejects.
+ const tampered=r074Readback(m);await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=tampered.readGithub(args);if(args[1].endsWith('/runs/21/jobs?per_page=100'))r.jobs.find(j=>j.name==='check').conclusion='skipped';return r;},git}),/R074 ci check: missing executed job/);
+ const moved=r074Readback(m);await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=moved.readGithub(args);if(args[1].endsWith('/runs/24'))r.head_sha='0'.repeat(40);return r;},git}),/R074 ci terraform: cited run receipt/);
+ await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('notify'),readGithub:r074Readback(m).readGithub,git}),/R074 live runtime differs/);
+ const badId=structuredClone(m);badId.applicationCi.ci.jobs.check.runId=-1;const none=r074Readback(m);await assert.rejects(verifyHostingOnlyLivePackage(badId,{token:'t',request:make(),readGithub:none.readGithub,git}),/actual CI run ids required/);assert.equal(none.calls.length,0);
 });
 
 // R068: one image on all four services after the separately applied V94 and V95 (PROD 93 to 95).

@@ -62,6 +62,12 @@ export async function decide(stages, needed, candidates, getChecks, { force = fa
 }
 
 const git = (args, cwd) => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
+// Changed paths between two commits. --no-renames lists a moved file at its old path too (otherwise only the new
+// path appears and a move out of a relevant directory looks irrelevant); -z prints every path unquoted (otherwise
+// non-ASCII, tab, quote and backslash names are quoted and the anchored stages.json patterns miss them). The
+// output is split on NUL and not trimmed, so a path that begins or ends with whitespace survives.
+const changedPaths = (from, to, cwd) =>
+  execFileSync('git', ['diff', '--name-only', '--no-renames', '-z', from, to], { cwd, encoding: 'utf8' }).split('\0').filter(Boolean);
 
 // The tree under test is HEAD (for a pull_request event the synthetic merge commit). Candidates:
 // HEAD itself (same commit run elsewhere), the second parent and its first-parent chain (the
@@ -77,7 +83,7 @@ export function listCandidates(cwd, max = MAX_CANDIDATES) {
   const candidates = [];
   for (const sha of [...new Set(order)]) {
     let changed;
-    try { changed = git(['diff', '--name-only', sha, head], cwd).split('\n').filter(Boolean); } catch { continue; }
+    try { changed = changedPaths(sha, head, cwd); } catch { continue; }
     candidates.push({ sha, changed });
   }
   return candidates;
