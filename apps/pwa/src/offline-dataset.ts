@@ -86,6 +86,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const quietMedia=new Set<string>();
  const failedDomains=()=>domains.filter(domain=>failed.has(domain));
  const domainRunning=()=>running&&!!activeTask&&!isMediaTask(activeTask);
+ // A chunked walk between two segments (its next segment queued with a kept partial) is still in flight for
+ // refresh triggers: a poll or focus landing in that gap joins the cycle like one landing during a request.
+ const walking=()=>domainRunning()||queue.some(task=>!isMediaTask(task)&&partials.has(task));
  const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(running||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
  const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
@@ -255,7 +258,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // A failed domain still in its back-off is left out of the cycle; the other domains refresh.
  // Work queued while hidden (a due retry) is joined by the rest rather than replacing the refresh;
  // a receipt downloading or queued never delays the data domains.
- const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!domainRunning()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}resume()};
+ const check=(force=false)=>{if(stopped||document.visibilityState==='hidden'||!navigator.onLine||access.offlineOnly)return;if(!walking()){const targets=(force?[...domains]:domains.filter(stale)).filter(domain=>!waiting(domain)&&!queue.includes(domain));if(targets.length){if(queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}resume()};
  // A real return to the app (focus, visible again) or reconnecting resets every back-off.
  const focused=()=>{resetBackoff();check(true)},online=()=>{resetBackoff();check()};
  const visible=()=>{if(document.visibilityState!=='hidden'){resetBackoff();check(true)}status()};
