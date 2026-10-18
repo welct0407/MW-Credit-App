@@ -28,6 +28,7 @@ A worker is a standing team member for the whole session, not a per-task hire:
 - Open each later task to a running worker with the new scope, baseline and one-writer boundaries; it already holds the earlier context and needs no repeated rules.
 - Replace a worker only when the tool reports it gone (session restart, context reset or compaction, or an error naming it) or when a task needs a model/effort escalation from [Model Work Mapping](Model_Work_Mapping.md) that the running worker cannot adopt. Start the replacement under the same name with a short baseline and record the restart once; do not claim continuity it lacks.
 - Workers do not outlive the session. A new session starts the team again under the same names from the current records.
+- Start workers in the shared checkout, not in isolated worktrees: the worktree guard refuses ordinary `sed`, `npx`, `terraform`, `gcloud` and `pwsh` commands, and the one-writer rule already keeps their files apart. A worker waits for a long command with a background run or a Monitor until-loop, never a chained `sleep`.
 
 Names grant no authority; the authority and one-writer rules above are unchanged.
 

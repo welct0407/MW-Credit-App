@@ -28,3 +28,7 @@ These conventions apply the [lean check routine](../../../project/Documents/Rule
 
 - A review bot's optional or nit finding rides the next code push, if one comes; it never starts a push on its own.
 - A failing third-party scan on a historic commit (for example a secret scanner naming an earlier commit) cannot be cleared by a push: report it once on the PR and stop.
+
+## After the merge
+
+- Do not delete the head branch or any remote branch: the session proxy refuses it (HTTP 403), and GitHub deletes merged head branches itself. Repository settings and branch protection are the owner's; report a needed change once instead of retrying.

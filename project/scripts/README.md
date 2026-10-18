@@ -12,7 +12,7 @@ Use supported pinned tools from the owning project. A routine task needs no rein
 
 - [Dictionary helper](dictionary/README.md): find/read/guarded update/index/validate.
 - [Export Data Dictionary.cmd](Export%20Data%20Dictionary.cmd): local ignored Markdown export, no upload.
-- [cloud-session-setup.sh](cloud-session-setup.sh): Claude Code cloud environment setup script (pinned Node/PowerShell/Flyway/PostgreSQL/Terraform, the Chromium build for the root's pinned Playwright and the dictionary's PyYAML; per-shell `MW_CREDIT_APP_ROOT` and optional `GCP_SA_KEY_B64` sign-in). Paste into the environment's Setup script; `mw-db-ci` then runs the root database CI as the unprivileged `postgres` user.
+- [cloud-session-setup.sh](cloud-session-setup.sh): Claude Code cloud environment setup script (pinned Node/PowerShell/Flyway/PostgreSQL/Terraform, the Chromium build for the root's pinned Playwright and the dictionary's PyYAML; per-shell `MW_CREDIT_APP_ROOT` and optional `GCP_SA_KEY_B64` sign-in). Paste into the environment's Setup script; `mw-db-ci` then runs the root database CI as the unprivileged `postgres` user. Per-checkout preparation (`npm ci`, `PYTHONPATH`, `NO_PROXY`, `/tmp/mw-labs`, fetch refspec) is the repository's SessionStart hook, [.claude/hooks/session-start.sh](../../.claude/hooks/session-start.sh).
 - [Release helper](releases/README.md): one compact promotion record, with only affected document links.
 - Monitoring/Metabase tools follow their own runbooks. Prefer current Terraform/API routes; old one-off scripts are not operational instructions.
 

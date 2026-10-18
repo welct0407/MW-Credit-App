@@ -40,9 +40,11 @@ add_apt_repo() { # name key-url repo-line
 # PostgreSQL 18 server binaries (PGDG) and the OpenSSH client (database tunnel).
 add_apt_repo pgdg https://www.postgresql.org/media/keys/ACCC4CF8.asc \
   "https://apt.postgresql.org/pub/repos/apt noble-pgdg main"
-if [ "$apt_repos_changed" = 1 ] || [ ! -x /usr/lib/postgresql/$POSTGRES_MAJOR/bin/initdb ] || ! command -v ssh >/dev/null; then
+if [ "$apt_repos_changed" = 1 ] || [ ! -x /usr/lib/postgresql/$POSTGRES_MAJOR/bin/initdb ] || ! command -v ssh >/dev/null \
+   || ! command -v ss >/dev/null || ! command -v netstat >/dev/null || ! command -v xxd >/dev/null; then
   apt-get update -qq
-  apt-get install -y -qq "postgresql-$POSTGRES_MAJOR" unzip openssh-client >/dev/null
+  # iproute2 (ss), net-tools (netstat) and xxd: port and byte checks the sessions kept reaching for.
+  apt-get install -y -qq "postgresql-$POSTGRES_MAJOR" unzip openssh-client iproute2 net-tools xxd >/dev/null
 fi
 # Test-MigrationsCloud.py expects postgresql-18.6/bin under $SETUP.
 ln -sfn "/usr/lib/postgresql/$POSTGRES_MAJOR" "$SETUP/postgresql-18.6"
@@ -154,8 +156,10 @@ chmod 755 /usr/local/bin/mw-debian-ssh
 
 # The repository is not cloned here: this script's result is snapshotted and
 # reused for about a week, while the repository selected when a session starts
-# is cloned fresh (with push access) into /home/user/MW-Credit-App.
-# Run `npm ci` at the repository root when a session needs it.
+# is cloned fresh (with push access) into /home/user/MW-Credit-App. Per-checkout
+# preparation (npm ci, PYTHONPATH for python-deps, NO_PROXY for the app origins,
+# the /tmp/mw-labs PostgreSQL lab directory, the full fetch refspec) is the
+# repository's SessionStart hook, .claude/hooks/session-start.sh.
 #
 # Google Cloud sign-in from GCP_SA_KEY_B64 (the service-account key file,
 # base64-encoded on one line; GCP_SA_KEY_JSON with raw JSON is a fallback),
