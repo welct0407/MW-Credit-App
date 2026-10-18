@@ -1,7 +1,7 @@
 # Change notes — receipt recognition account hotfix (R076), 18 October 2026
 
 ## Purpose
-The owner's first PROD check after R075 found the receiving account not filled from the slip and the recognition messages out of view. Matching itself worked: the owner's slip recipient number (shown as `xxx-x-x0386-x`) matched exactly the SCB account. Source only; not deployed.
+The owner's first PROD check after R075 found the receiving account not filled from the slip and the recognition messages out of view. Matching itself worked: the owner's slip recipient number (shown as `xxx-x-x0386-x`) matched exactly the SCB account. Released to PROD on 18 October 2026 (source `fa67607`, PR #74).
 
 ## Changes
 - Cause: the form filled the account only when it was empty, and PROD preselects the preferred account. The mismatch note and banner sat below the receipt preview, and an unmatched or ambiguous slip had no note.
@@ -20,16 +20,21 @@ The owner's first PROD check after R075 found the receiving account not filled f
 | `vite build` (synthetic) | Pass (Byte) |
 | 7 affected e2e specs, desktop and mobile Chromium | 178 passed (Byte) |
 | `npm run check:docs` | Pass, 0 failures |
+| PROD promotion, 18 October 2026 | Image on the four services applied 20:18:26Z to 20:19:02Z (plan 0/4/0, images only); Hosting deployed with the runner `--check` then `--apply`, marker R076; no SQL (readback V96, 96 rows, 20:16:57Z). Smoke: `lm.mw-credit.com` serves release R076 and the bundle contains the new note; read and command `/health` 200; no payment writes. Pins are in the inventory |
+| CI evidence reused by stage hash, no run dispatched | check: PR #74 run 39162275025 (`1404f42`); e2e: run 39161708827 (`0c1dc8e`); terraform: run 39159316452 (`6b58f00`); database guards and rebuild: run 39161657190 (`62770c4`) |
 
 ## Not run
 - The full wide browser suite: the lean check routine runs it once on the pull request.
-- A PROD check with a real slip: not deployed.
+- A PROD check with a real slip by the owner: pending.
 
 ## Recovery
-Revert `62770c47`. The previous behaviour (fill an empty account only) returns; nothing in the database or infrastructure changes.
+Restore the R075 image and Hosting version recorded as rollback in the environment inventory, or revert `62770c47`. The previous behaviour (fill an empty account only) returns; nothing in the database or infrastructure changes.
+
+## Promotion authority
+Owner instruction, 18 October 2026: "merge and push to production once checks pass." This is the scoped production approval for R076 under the release workflow: a new application image on the four Cloud Run services (the command service needs `services/receipts/recognizer-rules.mjs`, and all four share one image) and PROD Hosting, with the required promotion records and evidence. It covers no SQL, no infrastructure change (the recognition wiring is unchanged), no financial correction and no forced notification. R076 was frozen at source `fa67607e4571d1c01ed39f7919cc627fd5e27ee7` (PR #74) at about 20:16Z and R077 opened in the same tracker update.
 
 ## Open questions
 None.
 
 ## Remaining work
-Pull request checks, owner-authorized R076 promotion (command service image for `services/receipts/recognizer-rules.mjs` plus Hosting; no SQL, no infrastructure or agent change), then the owner's real-slip check in PROD.
+The owner re-checks PROD recognition with a real slip (account filled from the slip, messages above the preview). Gemini latency watch and the pre-existing `RECEIPT_ARCHIVE_PENDING` job stay in [Development changes](../project/Documents/Development_Changes.md).
