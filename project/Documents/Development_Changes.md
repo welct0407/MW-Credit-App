@@ -1,6 +1,6 @@
 # Open development changes
 
-**R077 is Open**; R076 is Frozen and in promotion (source `fa67607`); R075 is Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
+**R077 is Open**; R076 is Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
 
 | Outstanding work | Owning reference |
 | --- | --- |
@@ -9,7 +9,7 @@
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
 | Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
-| R075 follow-ups | Owner check of PROD recognition with a real slip (first check done: account fill and message placement moved to R076); watch Gemini latency; an agent receipt job created 16:57Z on 18 October 2026 sits in `RECEIPT_ARCHIVE_PENDING` (pre-existing, check the next runs); the `receipt_recognition_api` authorized operation of 18:17:35Z is left as is |
+| R075 follow-ups | Owner check of PROD recognition with a real slip (the first check found the account fill and message placement problems, fixed in R076; the owner's re-check with a real slip is pending); watch Gemini latency; an agent receipt job created 16:57Z on 18 October 2026 sits in `RECEIPT_ARCHIVE_PENDING` (pre-existing, check the next runs); the `receipt_recognition_api` authorized operation of 18:17:35Z is left as is |
 | R075 DEV rollout tooling gaps | `Backup-DevActivation.ps1` is Windows-only (a Linux pg_dump plus full restore test was used); no script writes `.env.live-dev` for `build:live-dev` (built by hand from Secret Manager `mw-credit-app-dev-firebase-web`); `deploy-runtime` with the revision-28 route cannot deploy a step-1 pin once main has moved past it (a detached checkout was used); the config-only catalogue route must edit the live file, never copy the repository template (that disabled `shared_receipt_payment_api` for about 70 seconds on 18 October 2026, nothing lost; see the agent change note) |
 | Agent audit routes (18 October 2026) | Source fixed, not deployed: receipt payments, native conversation writes and the DEV recognizer used routes the V1 CHECK rejects. 23 receipt payments since 12 October are DISPATCHING in `mw_agent`; all 23 verified posted in PROD, nothing to retry. Owner-gated: agent deploy, then `reconcile-receipt-audit.py --dispatching` apply; [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_AUDIT_ROUTES_2026-10-18.md#open-questions) |
 | Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`) | Recommended, not written |

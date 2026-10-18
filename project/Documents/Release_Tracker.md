@@ -14,7 +14,6 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R076 | Frozen 18 October 2026, about 20:16Z; promotion in progress | Package: source `fa67607e4571d1c01ed39f7919cc627fd5e27ee7` (PR #74; contract commit `1404f42`): receipt recognition account hotfix (the slip's matched account overrides a preselected default, unmatched or ambiguous slip note, no warning without recipient numbers, messages above the preview). Runtime image on reader, command, notify and jobs plus PROD Hosting; no SQL, no infrastructure change. Owner instruction "merge and push to production once checks pass" (18 October 2026) is the scoped production approval, recorded in the [R076 change note](../../Change%20Logs/CHANGE_NOTES_R076_RECEIPT_ACCOUNT_HOTFIX_2026-10-18.md#promotion-authority). Closure: Released row, inventory pins, Release tag |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
@@ -25,6 +24,7 @@ Status and records only; deployment pins are in the [environment inventory](Envi
 
 | Release | Scope | Released | Record | Tag |
 | --- | --- | --- | --- | --- |
+| R076 | Receipt recognition account hotfix: the slip's matched account overrides a preselected default, unmatched or ambiguous slip note, no warning without recipient numbers, messages above the preview. New image on the four services plus PROD Hosting, no SQL. Applied and verified in PROD; owner acceptance is the owner's production instruction, and the owner's PROD slip re-check is pending | 18 October 2026 (Bangkok) | [record](../../Change%20Logs/CHANGE_NOTES_R076_RECEIPT_ACCOUNT_HOTFIX_2026-10-18.md) | `R076` |
 | R075 | Receipt recognition for manual payments (recognizer on the Debian agent, command route, manual payment command v7 with V96, Vertex and VPC infrastructure, fill-and-warn form) and the 23-operation agent audit closure. Applied and verified in PROD; owner acceptance is the owner's production instruction, and no PROD owner check with a real slip has happened yet | 18 October 2026 (Bangkok) | [record](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md) | `R075` |
 | R074 | Release number and delivery tooling: per-job/stage-hash promotion gate, stage-hash CI evidence (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/2c28911c1cbd7dc292364fabf22bb6ceaec1b328/project/Documents/Development_Changes.md#r074-production-promotion) | `R074` |
 | R073 | Offline refresh joins the running cycle between records segments (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/69c0a37dbdb4ed3ca759d477132291dd326d327e/project/Documents/Development_Changes.md#r073-production-promotion) | `R073` |
