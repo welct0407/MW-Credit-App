@@ -28,7 +28,7 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 - **Not verified.** The owner's device check on PROD, and reuse of stage-hash evidence on a push that touches stage files (the freeze PR skipped every stage).
 - **Release number.** `apps/pwa/src/release.ts` stays `R074` in the artifact; the closing change bumps it to `R075`.
 - **Documents updated.** Release tracker (R074 Released, tag `R074`), Environment inventory (PROD Hosting row and date line), this record.
-- **Deletions at closure (prune).** Development Changes section deleted: this R074 production promotion record (reachable by the permalink in the tracker and inventory). Change notes deleted: `CHANGE_NOTES_W6_DOCUMENTATION_2026-10-17.md` (out of the window and not linked); the window (R075 Open; R074, R073, R072 Released) keeps the 18 October notes, and the two Wave 4 notes stay because the data dictionary links them. Evidence deleted: none.
+- **Deletions at closure (prune).** Development Changes section deleted: this R074 production promotion record (reachable by the permalink in the tracker and inventory). Change notes: none deleted; the window (R075 Open; R074, R073, R072 Released) keeps the 18 October notes, the two Wave 4 notes stay because the data dictionary links them, and `CHANGE_NOTES_W6_DOCUMENTATION_2026-10-17.md` stays because it is the only citation of 238 evidence files under `project/outputs/` (deleting it would orphan them; that cleanup is a separate decision). Evidence deleted: none.
 
 ## Current operation
 
