@@ -163,7 +163,7 @@ def _extract_codex(config, image_data):
     return recognize(config, image_data, 'codex')['result']
 
 
-@audited('receipt_image_extraction',route='gemini',action='PROCESS')
+@audited('receipt_image_extraction',route='internal',action='PROCESS')  # no gemini route in the V1 CHECK
 def _extract_gemini(config, image_data):
     return recognize(config, image_data, 'gemini')['result']
 

@@ -601,10 +601,10 @@ class AuditTests(unittest.TestCase):
                 patch('mw_integration_agent.state.transaction', lambda config: Transaction()):
             api.audit_outcome(GEMINI, DEV, 'a' * 64, 200, {'status': 'recognized'}, time.monotonic())
             api.audit_outcome(GEMINI, DEV, None, 413, {'status': 'rejected', 'reason': 'too_large'}, time.monotonic())
-        self.assertEqual(plans[0], ('receipt_recognition_api', 'PROCESS', 'gemini',
+        self.assertEqual(plans[0], ('receipt_recognition_api', 'PROCESS', 'internal',
                                     {'caller': DEV['email'], 'image_sha256': 'a' * 64, 'provider': 'gemini', 'model': 'gemini-2.0-flash-001'}))
         kind, payload, route = events[0]
-        self.assertEqual((kind, payload['outcome'], payload['http_status'], route), ('result_observed', 'recognized', 200, 'gemini'))
+        self.assertEqual((kind, payload['outcome'], payload['http_status'], route), ('result_observed', 'recognized', 200, 'internal'))
         self.assertIsInstance(payload['duration_ms'], int)
         self.assertEqual(events[1], ('exit', None))
         self.assertEqual(events[2][1]['reason'], 'too_large')

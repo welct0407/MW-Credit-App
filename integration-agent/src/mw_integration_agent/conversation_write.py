@@ -176,7 +176,7 @@ def verify_operation(bridge, operation):
                    (result['state'],json.dumps(result,ensure_ascii=False),operation))
         if is_postgres(db):
             audit.event(db.conn,audit.stable('reviewer_api:'+operation),'verified' if verified else 'unknown',
-                result,'native_api' if native else 'legacy_native_readback','VERIFIED' if verified else 'UNKNOWN')
+                result,'internal','VERIFIED' if verified else 'UNKNOWN')
     bridge.write_verified = not db.execute("SELECT 1 FROM conversation_operations WHERE message_id=? AND state='UNKNOWN'",(bridge.message_id,)).fetchone()
     bridge.cache.clear()
     return result
@@ -297,8 +297,10 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
                 {'app':app,'table':table,'action':action,'row_id':ident,'values':row,'before':source['rows'],
                  'expected':expected,'instruction_quote':quote,'coverage':'observed_not_atomic'},
                 {'kind':'reviewer','id':bridge.partner_id,'login':actor,'authorization':{'current_ai_reviewer':True}},bridge.message_id)
-            audit.event(db.conn,op,'route_selected',{'capability':'reviewed_native_command','route':'native_api'},'native_api','AUTHORIZED')
-            audit.event(db.conn,op,'dispatch_started',route='native_api',state='DISPATCHING')
+            # The native API call is audited on route `internal` (the V1 CHECK has no native_api route); the
+            # payload keeps the capability name. A rejected route would roll back this intent transaction.
+            audit.event(db.conn,op,'route_selected',{'capability':'reviewed_native_command','route':'native_api'},'internal','AUTHORIZED')
+            audit.event(db.conn,op,'dispatch_started',route='internal',state='DISPATCHING')
     if not inserted:
         raise ConfigurationError('OPERATION_ALREADY_ATTEMPTED_NO_REPLAY')
     bridge.possible_write, bridge.write_verified = True,False

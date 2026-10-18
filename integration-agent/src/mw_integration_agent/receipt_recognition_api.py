@@ -251,10 +251,11 @@ def audit_outcome(config, caller, image_sha256, status, body, started):
     observed = {'outcome': body['status'], 'reason': body.get('reason'), 'http_status': status,
                 'duration_ms': int((time.monotonic() - started) * 1000)}
     try:
-        with activity(config, SERVICE, 'PROCESS', name, plan) as op:
+        # Route `internal` for either provider (the V1 audit.events CHECK has no gemini route); the plan names it.
+        with activity(config, SERVICE, 'PROCESS', 'internal', plan) as op:
             if op:
                 with transaction(config) as conn:
-                    event(conn, op, 'result_observed', observed, name)
+                    event(conn, op, 'result_observed', observed, 'internal')
                 if status != 200:
                     raise Rejected(status, body)
     except Rejected:

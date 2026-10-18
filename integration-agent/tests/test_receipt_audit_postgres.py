@@ -82,3 +82,91 @@ class ReceiptRelayPostgres(unittest.TestCase):
             self.assertEqual(c.execute("SELECT count(*) FROM audit.events WHERE operation_id=%s AND event_kind='business_committed'",(self.op,)).fetchone()[0],1)
         with self.business(self.config) as c:
             self.assertEqual(c.execute('SELECT count(*) FROM agent_audit.exports WHERE operation_id=%s',(self.op,)).fetchone()[0],1)
+
+
+@unittest.skipUnless(os.environ.get('MW_AGENT_LAB_MANIFEST'), 'isolated lab required')
+class DispatchingClosurePostgres(unittest.TestCase):
+    """receipt_payment operations left DISPATCHING by a rejected route are closed only when verified."""
+    @classmethod
+    def setUpClass(cls):
+        lab = json.loads(Path(os.environ['MW_AGENT_LAB_MANIFEST']).read_text(encoding='utf-8-sig'))
+        assert lab['host'] == '127.0.0.1' and lab['port'] != 5432 and 'agent-state-lab-' in lab['root']
+        cls.base = dict(host=lab['host'], port=lab['port'], user='postgres', dbname='mw_agent')
+        with psycopg.connect(**cls.base) as c:
+            assert Path(c.execute('SHOW data_directory').fetchone()[0]).resolve() == (Path(lab['root'])/'data').resolve()
+            cls.generation = str(c.execute("SELECT active_generation FROM runtime.service_control WHERE service_name='agent'").fetchone()[0])
+        spec = importlib.util.spec_from_file_location('receipt_recovery', Path(__file__).parents[1]/'scripts/reconcile-receipt-audit.py')
+        cls.recovery = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.recovery)
+
+    def setUp(self):
+        self.config = dict(state_backend='postgres', state_generation=self.generation, audit_environment='test',
+            code_version='synthetic-dispatch-closure', database_name='loan_manager_prod', receipt_environment='prod')
+        p = patch.object(state, 'parameters', side_effect=lambda config, role='worker': dict(self.base, user='mw_agent_'+role, autocommit=True))
+        p.start()
+        self.addCleanup(p.stop)
+        with psycopg.connect(**self.base) as c:
+            # Earlier cases leave verified closures behind; this case owns only its own fixture.
+            c.execute('''UPDATE runtime.operation_state s SET state='FAILED' FROM audit.operations o WHERE o.operation_id=s.operation_id
+                AND o.service_name='receipt_payment' AND s.state='DISPATCHING' ''')
+
+    def dispatch(self, review_state='POSTED'):
+        review, key = uuid.uuid4().hex, 'pwa:'+str(uuid.uuid4())
+        with psycopg.connect(**self.base) as c:
+            c.execute('''INSERT INTO runtime.partner_reviews(id,job_id,proposal,state,created_at,expires_at,payment_id)
+                VALUES (%s,%s,'{"receipt":{}}',%s,1,2,%s)''', (review, review, review_state, key))
+        with state.transaction(self.config) as conn:
+            job = audit.begin(conn, self.config, 'synthetic_review_cycle', str(uuid.uuid4()), 'JOB')
+            token = audit.PARENT.set(job)
+            try:
+                audit.state_change(conn, self.config, 'partner-review.db', self.recovery.CLAIM, (key, review), 1)
+                op = audit.begin(conn, self.config, 'receipt_payment', str(uuid.uuid4()), 'INSERT')
+                audit.event(conn, op, 'dispatch_started', state='DISPATCHING')
+            finally:
+                audit.PARENT.reset(token)
+        return op, review, key
+
+    def status(self, posted=True):
+        def read(config, key, review):
+            return {'kind': 'recorded', 'reviewId': review, 'financialMatch': posted,
+                    'originalOutcome': {'status': 'posted', 'paymentId': key, 'recordedAt': '2026-10-18T00:00:00.000Z'}}
+        return read
+
+    def close(self, *args, posted=True, verified=True):
+        return self.recovery.close_dispatching(self.config, *args, status=self.status(posted), verify=lambda *_: verified)
+
+    def state_of(self, op):
+        with psycopg.connect(**self.base) as c:
+            return c.execute('SELECT state FROM runtime.operation_state WHERE operation_id=%s', (op,)).fetchone()[0]
+
+    def test_plan_is_read_only_and_apply_needs_count_and_backup(self):
+        op, _, _ = self.dispatch()
+        self.assertEqual(self.close()['dispatching_verified'], 1)
+        self.assertEqual(self.state_of(op), 'DISPATCHING')
+        for args in ((True, None, 'backup'), (True, 1, None)):
+            with self.assertRaisesRegex(RuntimeError, 'expected count'):
+                self.close(*args)
+        with self.assertRaisesRegex(RuntimeError, 'count changed'):
+            self.close(True, 2, 'synthetic-restored-backup')
+        self.assertEqual(self.state_of(op), 'DISPATCHING')
+
+    def test_apply_closes_verified_dispatch_once(self):
+        op, review, key = self.dispatch()
+        result = self.close(True, 1, 'synthetic-restored-backup')
+        self.assertEqual((result['operations'], result['payment_submissions']), ([str(op)], 0))
+        self.assertEqual(self.state_of(op), 'COMMITTED')
+        with psycopg.connect(**self.base) as c:
+            kind, route, payload = c.execute('''SELECT event_kind,route,payload FROM audit.events WHERE operation_id=%s
+                ORDER BY operation_seq DESC LIMIT 1''', (op,)).fetchone()
+        self.assertEqual((kind, route, payload['review_id'], payload['payment_id']), ('dispatch_reconciled', 'migration', review, key))
+        self.assertEqual(self.close(True, 0, 'synthetic-restored-backup')['dispatching_verified'], 0)
+
+    def test_unverified_or_unmatched_dispatch_closes_nothing(self):
+        op, _, _ = self.dispatch()
+        for kwargs in ({'posted': False}, {'verified': False}):
+            with self.subTest(**kwargs), self.assertRaisesRegex(RuntimeError, 'not verified'):
+                self.close(True, 1, 'synthetic-restored-backup', **kwargs)
+        other, _, _ = self.dispatch(review_state='UNKNOWN')
+        with self.assertRaisesRegex(RuntimeError, 'exactly one POSTED review'):
+            self.close(True, 2, 'synthetic-restored-backup')
+        self.assertEqual((self.state_of(op), self.state_of(other)), ('DISPATCHING', 'DISPATCHING'))
