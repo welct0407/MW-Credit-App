@@ -6,6 +6,7 @@ import {createGcsReceiptTransport,createProductionGcsReceiptTransport} from '../
 import {createProductionSourceReceiptReader} from '../receipts/production-source-receipts.mjs';
 import {createSourceReceiptReader,createSourceGcsReadTransport} from '../receipts/source-receipts.mjs';
 import {decodeCommandReceipt,decodeSourceReceipt} from '../receipts/decode-image.mjs';
+import {createRecognizerClient} from '../receipts/recognizer-client.mjs';
 import {notificationHandler} from '../notifications/handler.mjs';
 import {createNotificationStore} from '../notifications/store.mjs';
 import {createConnectionGuard} from '../lib/connection-guard.mjs';
@@ -50,7 +51,8 @@ export async function createProductionBusinessRuntime(env,dependencies) {
       // Business commands without receipts use the existing canonical transaction/journal implementations.
       const {receiptAdapter,sourceReceiptReader}=await receiptAdapters(config,dependencies);
       const afterCommit=createPostCommitWake(loadDispatchConfig(env,config.environment),{log:completionLogger});
-      const store=createEnvironmentCommandStore({afterCommit,receiptAdapter,sourceReceiptReader,pool,guardConnection,principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
+      const recognizer=config.receiptRecognition&&receiptAdapter?createRecognizerClient({url:config.receiptRecognition.url,...(dependencies.fetch?{fetch:dependencies.fetch}:{})}):null;
+      const store=createEnvironmentCommandStore({afterCommit,receiptAdapter,sourceReceiptReader,recognizer,pool,guardConnection,principalAllowed:membership.principalAllowed,resolveActor:membership.resolveActor,actorIssuer:config.issuer});
       handler=createEnvironmentCommandHandler({config,verifyPrincipal,store,completionLogger});
       if(config.notificationsEnabled)handler=notificationHandler({next:handler,enabled:true,offlineDataset:true,verifyPrincipal,origins:config.origins,publicKey:config.pushPublicKey,completionLogger,store:createNotificationStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer})});
       handler=createAgentReceiptHandler({next:handler,policy:loadAgentReceiptPolicy(env,config.environment),pool,guardConnection,afterCommit,verifyOidc:dependencies.verifyOidc});

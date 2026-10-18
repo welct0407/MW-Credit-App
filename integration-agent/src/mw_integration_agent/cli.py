@@ -39,6 +39,9 @@ def build_parser() -> argparse.ArgumentParser:
     webhook = sub.add_parser("serve-webhook", help="run receipt-only signed Instagram ingress")
     webhook.add_argument("--config", required=True)
     webhook.add_argument("--catalogue", required=True)
+    recognition = sub.add_parser("serve-receipt-recognition", help="run the VPC-only receipt recognition API")
+    recognition.add_argument("--config", required=True)
+    recognition.add_argument("--catalogue", required=True)
     ready = sub.add_parser("receiver-ready", help="wait until the local receiver reports ready")
     ready.add_argument("--config", required=True)
     ready.add_argument("--wait", type=float, default=0, help="seconds to keep polling once per second")
@@ -81,7 +84,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 # Long-running services, local checks and the monitoring/read probes run outside audit.job(): no
 # service owner to fence and nothing to record (the probes touch no journal and leave no audit tree).
-UNWRAPPED_COMMANDS = ('serve-webhook','receiver-ready','status','check','native-api-probe','instagram-probe','messages')
+UNWRAPPED_COMMANDS = ('serve-webhook','serve-receipt-recognition','receiver-ready','status','check','native-api-probe','instagram-probe','messages')
 
 
 def main() -> int:
@@ -157,6 +160,8 @@ def execute(args, outcome=None) -> int:
                 "cash_statement_schedule": config["cash_statement_schedule_enabled"],
                 "email_fallback": config["email_fallback_enabled"],
                 "receipt_summary": config.get('receipt_summary_enabled',False),
+                "receipt_extraction_provider": config.get('receipt_extraction_provider','codex'),
+                "receipt_recognition": config.get('receipt_recognition_enabled',False),
                 "partner_conversations": config.get('partner_conversations_enabled',False),
                 "conversation_writes": config.get('conversation_writes_enabled',False),
                 "generic_sending": config["sending_enabled"],
@@ -173,6 +178,10 @@ def execute(args, outcome=None) -> int:
             if not catalogue["services"]["signed_webhook_ingress"]["enabled"]:
                 raise ConfigurationError("signed_webhook_ingress is disabled")
             serve(args.config, args.catalogue)
+            return 0
+        if args.command == "serve-receipt-recognition":
+            from .receipt_recognition_api import serve as serve_recognition
+            serve_recognition(args.config, args.catalogue)
             return 0
         if args.command == "receiver-ready":
             try:

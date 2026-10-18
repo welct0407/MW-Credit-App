@@ -14,7 +14,7 @@ class JobWrappingTests(unittest.TestCase):
               ['messages', '--config', 'c'])
 
     def test_probes_and_local_commands_run_without_a_job(self):
-        self.assertEqual(set(cli.UNWRAPPED_COMMANDS), {'serve-webhook', 'receiver-ready', 'status', 'check',
+        self.assertEqual(set(cli.UNWRAPPED_COMMANDS), {'serve-webhook', 'serve-receipt-recognition', 'receiver-ready', 'status', 'check',
                                                         'native-api-probe', 'instagram-probe', 'messages'})
         for argv in self.PROBES:
             with self.subTest(command=argv[0]), patch('sys.argv', ['mw-integration-agent', *argv]), \

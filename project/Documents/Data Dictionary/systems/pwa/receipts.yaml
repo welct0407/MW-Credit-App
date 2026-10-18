@@ -37,8 +37,12 @@
       "services/receipts/command-receipts.mjs",
       "services/receipts/production-native-catalog.mjs",
       "services/receipts/production-source-receipts.mjs",
-      "services/receipts/production-agent-receipts.mjs"
+      "services/receipts/production-agent-receipts.mjs",
+      "services/receipts/recognizer-client.mjs",
+      "services/receipts/recognizer-rules.mjs"
     ],
+    "manual_slip_recognition": "R075, in source and not deployed (default off; PWA route POST /api/payment-commands/{requestId}/receipts/{receiptId}/recognition). The command service reads the uploaded manual slip and calls the integration-agent recognizer (mw-receipt-recognition, catalogue receipt_recognition_api, implemented and disabled). Recognized fields only pre-fill the payment form with warnings; the person still saves the payment. Design: owner Claude Doc https://claude.ai/artifact/KP7KKQnNy1QDnXqEiRsgRx.",
+    "manual_command_contract_v7": "R075 manual payment command schemaVersion 7 (V96, pending migration; v6 still accepted): the v6 allocation plan plus bankReference (null or 6 to 100 upper-case letters/digits, bank transfers only) and transferTime (null or HH:MM, bank transfers only). Where applied, it writes the existing Payments column Bank Reference and, when slip date and transferTime are both present, Created At as that Bangkok wall-clock time (the agent receipt command does the same); no new column. v7 accepts a payment date of today or yesterday in Bangkok, while v3 to v6 stay today only. Payment provenance reads treat a v7 command as a plan command only when it carries an allocation plan.",
     "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
   }
 }

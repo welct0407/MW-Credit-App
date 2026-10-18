@@ -35,7 +35,7 @@ Invalid receipts and exhausted processing retries remain in private REVIEW state
 
 Use `scripts/deploy-runtime.py` on the verified VM as root ([Operations](OPERATIONS.md#deploying-a-reviewed-commit)). Its `freeze` step backs up the installed package, config/catalogue and units under `/var/lib/mw-integration-agent/rollback`; timers are paused only during package installation and resumed after the receiver is verified. The one-off receipt-summary deploy script (SQLite era) is retired.
 
-Sign in as mwagent with `CODEX_HOME=/var/lib/mw-integration-agent/codex-runtime` using `codex login --device-auth`; do not copy old Windows credentials. This private directory is mode 0700. Run `scripts/verify-receipt-extraction.py` as mwagent for an actual model extraction against a synthetic image and alias; it sends no mail and writes no payment. The receipt timer and cutoff are already active; the one-off activation script is retired. Never reset the cutoff or automatically replay older captures.
+Sign in as mwagent with `CODEX_HOME=/var/lib/mw-integration-agent/codex-runtime` using `codex login --device-auth`; do not copy old Windows credentials. This private directory is mode 0700. Run `scripts/verify-receipt-extraction.py` as mwagent for an actual model extraction against a synthetic image and alias through the cycle's configured provider; it sends no mail and writes no payment. `--time codex,gemini` instead times a real run per provider on six synthetic slips and prints per-slip results (see [Receipt recognition API](#receipt-recognition-api)). The receipt timer and cutoff are already active; the one-off activation script is retired. Never reset the cutoff or automatically replay older captures.
 
 Inspect `systemctl status mw-receipt-summary.timer mw-receipt-summary.service` and `journalctl -u mw-receipt-summary.service --since today`. The command reports status counts only. Private journals are `/var/lib/mw-integration-agent/state/instagram-ingress.db` and `receipt-processing.db`; summaries do not print message contents, account numbers or addresses. The existing daily statement and retry timers remain owned by their current service.
 
@@ -71,3 +71,37 @@ A master-read failure before processing one image now records a five-minute back
 `scripts/acknowledge-receipt-notices.py inspect --config <existing-service-config> --notice-id <exact-id>` emits a bounded, read-only plan containing row digests and status metadata. Run under the existing service identity only with explicit operational authorization. Store the plan privately; no payload or credential output. `acknowledge --config ... --plan-file ... --operator ... --reason ... --authorization ...` rechecks and locks the exact rows before atomically appending an operator RECONCILE operation and `optional_notification_acknowledged` event per notice.
 
 The command accepts only POSTED-result notices whose review still proves a payment ID, IG is UNAVAILABLE without an accepted message ID, and email is REJECTED after exactly three attempts. At most ten unique exact IDs; stale observations or changed state reject the whole transaction. Repeating the same reviewed acknowledgement is idempotent. Required review requests, UNKNOWN delivery/posting and successful notices are refused. Original notice fields, payment/review state and earlier failed audit operations remain unchanged. Acknowledgement is `ACKNOWLEDGED_UNDELIVERED`, never successful delivery, and does not reset `failed_notifications` or schedule a resend. If commit acknowledgement is lost, inspect the deterministic acknowledgement operation/event before doing anything further.
+
+## Receipt recognition API
+
+Source, 18 October 2026 (catalogue revision 29); implemented, not enabled. The command services' payment receiving page sends an uploaded slip here for a suggestion; the agent's Instagram receipt cycle uses the same extraction module.
+
+**Providers.** `receipt_image.py` keeps the shared prompt, JSON schema, image canonicalisation and host-side shape check (exactly the schema keys and types). `receipt_provider_codex.py` is the existing isolated `codex exec` call (model reported as `default`). `receipt_provider_gemini.py` makes one Vertex AI `generateContent` call: canonical PNG inline, the shared prompt, temperature 0, JSON response mode with the schema in Vertex's dialect, thinking disabled for Flash and Flash-Lite (no thinking setting for Pro, which cannot disable it), 20 s per attempt and one retry on 429, 5xx, timeout or connection error. It signs in with the VM service account's access token from the metadata server; there is no API key. `gemini_model` must be a fixed version: a stable GA id such as `gemini-2.5-flash` or a suffixed one such as `gemini-2.0-flash-001`; ids containing `latest`, `preview` or `exp` are rejected. `gemini_location` is a Vertex region or `global`.
+
+| Setting | Meaning |
+| --- | --- |
+| `receipt_extraction_provider` | Instagram receipt cycle provider, `codex` (default) or `gemini`. Changing it is its own owner authorization. |
+| `receipt_recognition_enabled` | Recognizer switch; the catalogue entry `receipt_recognition_api` must also be enabled. Both are read per request. |
+| `receipt_recognition_provider` | Recognizer provider, `gemini` (default) or `codex`. |
+| `receipt_recognition_listen_host`, `_listen_port` | The VM's private VPC IPv4 address (never loopback, wildcard or public) and port: `10.148.0.2`, `8790`. |
+| `receipt_recognition_audience` | The recognizer URL the callers use as ID-token audience, pinned in Terraform: `http://10.148.0.2:8790/v1/receipt-recognition`. |
+| `receipt_recognition_callers` | One to four `{email, subject}` service-account identities: `mw-credit-app-command-dev` and `mw-credit-app-command-prod`. The example's subjects are placeholders; use each account's numeric unique id. |
+| `gemini_project`, `gemini_location`, `gemini_model` | Vertex AI target and pinned model. |
+
+Enabling requires the PostgreSQL audit backend. The service needs Vertex AI enabled with `roles/aiplatform.user` on the VM identity, direct VPC egress from the command services and a firewall rule to the VM's service account on the port (infrastructure stage).
+
+**Contract.** `POST /v1/receipt-recognition` with `Authorization: Bearer <Google ID token>`, `Content-Type: image/png` or `image/jpeg`, `X-Content-SHA256: <64 lowercase hex of the body>` and the raw image (at most 5,242,880 bytes). The token must be RS256-signed by Google with issuer `https://accounts.google.com` (or `accounts.google.com`), the configured audience, verified email and the exact email and numeric subject of an allowed caller.
+
+| Status | Body |
+| --- | --- |
+| 200 | `{"status":"recognized","provider","model","durationMs","imageSha256","result":{...schema fields}}`; shape checked, not business validated |
+| 400 | `{"status":"rejected","reason":"invalid_image\|hash_mismatch\|unsupported_type"}` |
+| 401 / 403 | `{"status":"denied"}` (missing or invalid token / caller not allowed) |
+| 413 | `{"status":"rejected","reason":"too_large"}` (refused before the body is read) |
+| 503 | `{"status":"unavailable","reason":"disabled\|busy\|timeout\|provider_error"}` |
+
+`GET /healthz` returns `{"status":"ok","enabled":bool}` without a token and calls no provider. At most two extractions run at once; a third request gets `busy`, and a slot is freed only when its extraction really ends. Each request is bounded to 30 s. Recognition is stateless: the image is canonicalised in memory and never stored, no business database is read and account matching stays with the command API. Each authenticated request writes one audit operation `receipt_recognition_api` (caller email, image SHA-256, provider, model, duration, outcome); a result whose audit row cannot be written is withheld (503). The journal gets one line per request without image, token or result fields.
+
+**Rollout.** Catalogue revision 29 needs the same two-step route as revision 28: `deploy-runtime.py` refuses a live catalogue whose revision or service names differ from the repository, and the installed validator rejects the unknown name `receipt_recognition_api`. First install code that knows the name while the live catalogue stays at revision 28, then add the key (disabled) by the config-only route; the owner chooses the exact route at activation.
+
+**Recovery.** Set `receipt_recognition_enabled=false` or disable the catalogue entry (effective on the next request), then `systemctl disable --now mw-receipt-recognition.service`. Callers treat any failure as "recognition unavailable" and the form continues manually.

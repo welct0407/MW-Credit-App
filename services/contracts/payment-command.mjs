@@ -42,12 +42,34 @@ export function canonicalAllocationPlan(amountReceived, input) {
   allocations.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId,'utf8'),Buffer.from(b.chargeId,'utf8')));
   return freeze(allocations);
 }
+/** R075 v7 slip fields: printed bank reference (spaces/dashes removed, upper case) or null. */
+function bankReference(value) {
+  if (value === null) return null;
+  if (typeof value !== 'string' || value.length > 400) fail();
+  const normalized = value.replace(/[\s-]/g, '').toUpperCase();
+  if (!/^[A-Z0-9]{6,100}$/.test(normalized)) fail();
+  return normalized;
+}
+/** R075 v7 slip transfer time as HH:MM (seconds dropped, as the agent receipt command does) or null. */
+function transferTime(value) {
+  if (value === null) return null;
+  if (typeof value !== 'string' || !/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(value)) fail();
+  return value.slice(0, 5);
+}
 export function canonicalCommand(input) {
-  if(input?.schemaVersion===6){
-    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId']);
+  if(input?.schemaVersion===6||input?.schemaVersion===7){
+    const v7=input.schemaVersion===7;
+    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId',...(v7?['bankReference','transferTime']:[])]);
     const allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);
     if(!['Bank Transfer','Cash','Net-off at Disbursement'].includes(input.paymentMethod) || !(input.notes===null || (typeof input.notes==='string'&&input.notes.isWellFormed()&&!input.notes.includes('\0')&&Buffer.byteLength(input.notes,'utf8')<=65536)))fail();
-    return freeze({schemaVersion:6,requestId:requestId(input.requestId),borrowerId:id(input.borrowerId),allocations,cashAccountId:id(input.cashAccountId),paymentDate:date(input.paymentDate),amountReceived:input.amountReceived,paymentMethod:input.paymentMethod,notes:input.notes===''?null:input.notes,receiptId:input.receiptId===null?null:requestId(input.receiptId)});
+    const command={schemaVersion:input.schemaVersion,requestId:requestId(input.requestId),borrowerId:id(input.borrowerId),allocations,cashAccountId:id(input.cashAccountId),paymentDate:date(input.paymentDate),amountReceived:input.amountReceived,paymentMethod:input.paymentMethod,notes:input.notes===''?null:input.notes,receiptId:input.receiptId===null?null:requestId(input.receiptId)};
+    if(v7){
+      // Slip fields describe a bank transfer only; any other method carries neither.
+      const reference=bankReference(input.bankReference),time=transferTime(input.transferTime);
+      if(input.paymentMethod!=='Bank Transfer'&&(reference!==null||time!==null))fail();
+      Object.assign(command,{bankReference:reference,transferTime:time});
+    }
+    return freeze(command);
   }
 
   exact(input, ['schemaVersion', 'requestId', 'borrowerId', 'selectedChargeIds', 'cashAccountId', 'paymentDate', 'amountReceived', 'paymentMethod', 'allocationMethod', 'notes', 'receiptId']);

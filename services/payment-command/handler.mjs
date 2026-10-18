@@ -60,6 +60,8 @@ function route(raw) {
     if (url.pathname === '/health') return {operation:'health'};
     const draft=/^\/api\/payment-drafts\/([^/]+)$/.exec(url.pathname);
     if(draft){try{return {operation:'payment_draft',borrowerId:decodeURIComponent(draft[1]),options:pageOptions}}catch{return {invalid:true,operation:'unknown'}}}
+    const recognition=/^\/api\/payment-commands\/([^/]+)\/receipts\/([^/]+)\/recognition$/.exec(url.pathname);
+    if(recognition){if(url.search||!uuid.test(recognition[1])||!uuid.test(recognition[2]))return {invalid:true,operation:'unknown'};return {operation:'receipt_recognition',requestId:recognition[1].toLowerCase(),receiptId:recognition[2].toLowerCase()};}
     const receipt=/^\/api\/payment-commands\/([^/]+)\/receipts\/([^/]+)$/.exec(url.pathname);
     if(receipt){if(!uuid.test(receipt[1])||!uuid.test(receipt[2]))return {invalid:true,operation:'unknown'};return {operation:'receipt',requestId:receipt[1].toLowerCase(),receiptId:receipt[2].toLowerCase()};}
     if (url.pathname === '/api/payment-commands') return { operation: 'command_submit' };
@@ -111,7 +113,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (target.invalid) return reject(400, 'invalid_request');
     if (target.operation === 'unknown') return reject(404, 'not_found');
     if ((target.operation === 'command_submit' && req.method !== 'POST') || (['command_status','command_result','payment_draft','payment_history'].includes(target.operation) && req.method !== 'GET')) return reject(405, 'method_not_allowed');
-    if((['payment_review','payment_auto_assign','payment_select_all'].includes(target.operation)&&req.method!=='POST')||(target.operation==='command_metadata'&&req.method!=='PATCH')||(target.operation==='receipt'&&!['GET','POST'].includes(req.method)))return reject(405,'method_not_allowed');
+    if((['payment_review','payment_auto_assign','payment_select_all'].includes(target.operation)&&req.method!=='POST')||(target.operation==='command_metadata'&&req.method!=='PATCH')||(target.operation==='receipt'&&!['GET','POST'].includes(req.method))||(target.operation==='receipt_recognition'&&req.method!=='POST'))return reject(405,'method_not_allowed');
     if(['borrower_create','operation_submit'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','loan_close_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
     let result;
     try {
@@ -183,6 +185,12 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
         }
         result=await store.receipt(principal,{requestId:target.requestId,receiptId:target.receiptId,borrowerId:req.headers['x-borrower-id'],bytes,mimeType});
         if(result.ok && Buffer.isBuffer(result.bytes)){code='ok';res.statusCode=200;res.setHeader('Content-Type',result.mimeType);res.setHeader('Content-Disposition','inline');return res.end(result.bytes);}
+      } else if(target.operation==='receipt_recognition'){
+        // R075: no request body; the archived receipt is read server-side. Always 200 unless the ids are
+        // malformed or the receipt is unknown; recognition is optional and never writes.
+        if(req.headers['content-length']&&req.headers['content-length']!=='0'||req.headers['transfer-encoding'])return reject(400,'invalid_request');
+        result=await store.recognize(principal,{requestId:target.requestId,receiptId:target.receiptId});
+        if(result.ok&&result.recognition)return send(200,{ok:true,...result.recognition});
       } else if (target.operation === 'command_status') result = await store.status(principal, target.requestId);
       else return reject(404, 'not_found');
       const { status, ...value } = result;return send(status, value);

@@ -69,5 +69,18 @@
   "conversation_api_environment": null,
   "conversation_api_origin": null,
   "conversation_api_audience": null,
-  "conversation_api_manifest_sha256": null
+  "conversation_api_manifest_sha256": null,
+  "receipt_extraction_provider": "codex",
+  "receipt_recognition_enabled": false,
+  "receipt_recognition_provider": "gemini",
+  "receipt_recognition_listen_host": "10.148.0.2",
+  "receipt_recognition_listen_port": 8790,
+  "receipt_recognition_audience": "http://10.148.0.2:8790/v1/receipt-recognition",
+  "receipt_recognition_callers": [
+    {"email": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", "subject": "000000000000000000000"},
+    {"email": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com", "subject": "000000000000000000001"}
+  ],
+  "gemini_project": "clever-oasis-508610-n7",
+  "gemini_location": "asia-southeast1",
+  "gemini_model": null
 }

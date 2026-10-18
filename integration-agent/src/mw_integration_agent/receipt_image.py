@@ -1,17 +1,16 @@
-"""Bounded Meta image download and isolated structured visual extraction."""
+"""Bounded Meta image download and isolated structured visual extraction.
+
+The prompt, schema, canonicalisation and host-side shape validation are shared; each provider
+(receipt_provider_codex, receipt_provider_gemini) only turns a canonical PNG into a candidate dict.
+"""
 from __future__ import annotations
 
 import hashlib
 import io
-import json
-import os
-import subprocess
-import tempfile
 import urllib.parse
 import urllib.error
 import urllib.request
 import warnings
-from pathlib import Path
 
 from PIL import Image, ImageOps
 
@@ -101,36 +100,76 @@ def download(url):
     return canonical_image(download_original(url))
 
 
+class RecognitionUnavailable(ConfigurationError):
+    """The provider gave no usable result. The message stays RECEIPT_EXTRACTION_UNAVAILABLE for every caller."""
+    reason = 'provider_error'
+
+    def __init__(self, reason='provider_error'):
+        super().__init__('RECEIPT_EXTRACTION_UNAVAILABLE')
+        self.reason = reason
+
+
+PROVIDERS = ('codex', 'gemini')
+
+
+def provider_module(name):
+    if name == 'codex':
+        from . import receipt_provider_codex as module
+    elif name == 'gemini':
+        from . import receipt_provider_gemini as module
+    else:
+        raise ConfigurationError('UNKNOWN_RECEIPT_PROVIDER')
+    return module
+
+
+def extraction_provider(config):
+    """Provider of the Instagram receipt cycle; Codex unless the owner switched it."""
+    name = config.get('receipt_extraction_provider', 'codex')
+    if name not in PROVIDERS:
+        raise ConfigurationError('UNKNOWN_RECEIPT_PROVIDER')
+    return name
+
+
+def checked(value):
+    """Host-side shape validation shared by every provider: exactly the schema keys and their JSON types.
+
+    Business rules (amounts, references, account matching) stay with the caller (receipt_rules / PWA API).
+    """
+    if not isinstance(value, dict) or set(value) != set(SCHEMA['required']):
+        raise RecognitionUnavailable()
+    for key, rule in SCHEMA['properties'].items():
+        item = value[key]
+        if rule['type'] == 'boolean':
+            valid = type(item) is bool
+        elif rule['type'] == 'string':
+            valid = isinstance(item, str)
+        else:
+            valid = isinstance(item, list) and all(isinstance(n, str) for n in item)
+        if not valid:
+            raise RecognitionUnavailable()
+    return value
+
+
+def recognize(config, image_data, provider=None, deadline=None):
+    """Unaudited extraction for the recognizer: result with the provider name and its pinned model."""
+    name = provider or extraction_provider(config)
+    module = provider_module(name)
+    return {'provider': name, 'model': module.model(config),
+            'result': checked(module.extract(config, image_data, deadline=deadline))}
+
+
 @audited('receipt_image_extraction',route='codex',action='PROCESS')
+def _extract_codex(config, image_data):
+    return recognize(config, image_data, 'codex')['result']
+
+
+@audited('receipt_image_extraction',route='gemini',action='PROCESS')
+def _extract_gemini(config, image_data):
+    return recognize(config, image_data, 'gemini')['result']
+
+
 def extract(config, image_data):
-    root=Path(config['state_directory'])/'receipt-extraction'
-    root.mkdir(parents=True,exist_ok=True,mode=0o700)
-    with tempfile.TemporaryDirectory(dir=root) as directory:
-        work=Path(directory)
-        (work/'image.png').write_bytes(image_data)
-        (work/'schema.json').write_text(json.dumps(SCHEMA),encoding='utf-8')
-        command=[config['codex_executable'],'exec','--ignore-user-config','--ignore-rules',
-                 '--ephemeral','--skip-git-repo-check','--sandbox','read-only',
-                 '-C',str(work),'--image',str(work/'image.png'),
-                 '--output-schema',str(work/'schema.json'),'-o',str(work/'result.json'),'--json']
-        for setting in ('approval_policy="never"','features.shell_tool=false','features.unified_exec=false',
-                        'agents.enabled=false','tools.view_image=false','web_search="disabled"',
-                        'apps._default.enabled=false','history.persistence="none"'):
-            command.extend(['-c',setting])
-        # No model override: retain the service owner's/default CLI model choice.
-        env={k:v for k,v in os.environ.items() if k in ('PATH','HOME','LANG','LC_ALL','SSL_CERT_FILE')}
-        env['CODEX_HOME']=config['codex_home']
-        try:
-            run=subprocess.run(command+['-'],input=PROMPT,text=True,encoding='utf-8',
-                               capture_output=True,timeout=180,env=env,check=True)
-            for line in run.stdout.splitlines():
-                event=json.loads(line)
-                kind=event.get('item',{}).get('type','')
-                if kind in ('command_execution','mcp_tool_call','web_search','file_change','collab_tool_call'):
-                    raise ValueError('unexpected tool')
-            value=json.loads((work/'result.json').read_text(encoding='utf-8'))
-            if not isinstance(value,dict) or set(value)!=set(SCHEMA['required']):
-                raise ValueError()
-            return value
-        except (OSError,subprocess.SubprocessError,ValueError) as exc:
-            raise ConfigurationError('RECEIPT_EXTRACTION_UNAVAILABLE') from exc
+    """Receipt cycle entry point: the configured provider's validated result (Codex by default)."""
+    if extraction_provider(config) == 'gemini':
+        return _extract_gemini(config, image_data)
+    return _extract_codex(config, image_data)

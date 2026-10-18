@@ -84,6 +84,20 @@ The separate `mw_agent` database holds integration journals/audit state. Metabas
 
 R060 corrected the confirmed production-store mode veto for main offline-dataset reads. [Recovery and evidence](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r060-production-offline-dataset-recovery).
 
+## R075 receipt recognition (prepared, not applied)
+
+Source only on 18 October 2026: nothing below is applied, enabled or verified; no pin exists yet. Each line becomes a verified entry in the tables above only after the owner-gated apply.
+
+| Item | Planned state |
+| --- | --- |
+| Vertex AI API | `aiplatform.googleapis.com` enabled in project `clever-oasis-508610-n7` (`infrastructure/dev/main.tf`) |
+| VM identity | `roles/aiplatform.user` for `mw-integration-agent@` (`infrastructure/ecosystem-debian/receipt-recognizer.tf`) |
+| Firewall | `allow-receipt-recognizer-run-egress`: TCP 8790 from `10.148.0.0/20` to the VM identity only |
+| Recognizer address | Pinned ephemeral VM internal IP `10.148.0.2`, port 8790; one shared URL and token audience; DEV and PROD are told apart by caller identity (numeric subject allow-list) |
+| Command services | Direct VPC egress (`PRIVATE_RANGES_ONLY`) plus `DEV_`/`PROD_RECEIPT_RECOGNITION` and `_URL` variables on the command service only; all off by default (`receipt_recognizer` variable) |
+| Agent unit and catalogue | `mw-receipt-recognition.service` installed disabled; catalogue revision 29 `receipt_recognition_api` implemented and disabled |
+| Database | V96 pending in DEV and PROD (current Flyway rows above stay V95 until applied) |
+
 ## Infrastructure and credentials
 
 Terraform owns the adopted GCP/Grafana/Debian/DNS/Azure VM-01/network/backup, Cloudflare tunnel and Tailscale metadata within the completion matrix. Shared SQL contents, receipt objects and the Azure VM controller are outside that adoption. Preserve remote-state and resource deletion guards.

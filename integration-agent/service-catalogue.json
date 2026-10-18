@@ -1,5 +1,5 @@
 {
-  "revision": 28,
+  "revision": 29,
   "default_policy": "deny",
   "services": {
     "receipt_evidence": {
@@ -76,6 +76,10 @@
     },
     "audit_relay": {
       "enabled": true,
+      "implemented": true
+    },
+    "receipt_recognition_api": {
+      "enabled": false,
       "implemented": true
     }
   }

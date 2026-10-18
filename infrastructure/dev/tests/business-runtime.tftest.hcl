@@ -84,3 +84,30 @@ run "artifact_cleanup_keeps_recent_and_tagged" {
     error_message = "Cleanup keeps the 20 most recent and keep-tagged versions and deletes others after 30 days."
   }
 }
+run "receipt_recognizer_default_off" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.command_api] }
+  assert {
+    condition     = length(google_cloud_run_v2_service.command_api[0].template[0].vpc_access) == 0 && alltrue([for e in google_cloud_run_v2_service.command_api[0].template[0].containers[0].env : !startswith(e.name, "DEV_RECEIPT_RECOGNITION")])
+    error_message = "By default the DEV command service has no VPC egress and no recognizer settings."
+  }
+}
+run "receipt_recognizer_private_egress" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.command_api, google_cloud_run_v2_service.read_api] }
+  variables { receipt_recognizer = { enabled = true } }
+  assert {
+    condition = (one(google_cloud_run_v2_service.command_api[0].template[0].vpc_access).egress == "PRIVATE_RANGES_ONLY"
+      && one(one(google_cloud_run_v2_service.command_api[0].template[0].vpc_access).network_interfaces).subnetwork == "default"
+      && one([for e in google_cloud_run_v2_service.command_api[0].template[0].containers[0].env : e.value if e.name == "DEV_RECEIPT_RECOGNITION_URL"]) == "http://10.148.0.2:8790/v1/receipt-recognition"
+      && one([for e in google_cloud_run_v2_service.command_api[0].template[0].containers[0].env : e.value if e.name == "DEV_RECEIPT_RECOGNITION"]) == "disabled"
+    && length(google_cloud_run_v2_service.read_api[0].template[0].vpc_access) == 0)
+    error_message = "Only the DEV command service gets private-range egress and the recognizer URL with the flag left disabled."
+  }
+}
+run "receipt_recognizer_activation_needs_egress" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.command_api] }
+  variables { receipt_recognizer = { activation = "enabled" } }
+  expect_failures = [var.receipt_recognizer]
+}

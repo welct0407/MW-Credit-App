@@ -107,7 +107,7 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
  try{
   const value=row.value;let command=value?.command??value;
   if(!uuid.test(requestId)||command?.requestId!==requestId)return settle({kind:'blocked'},'unsupported_saved_request');
-  const payment=Number.isInteger(command.schemaVersion)&&[3,4,5,6].includes(command.schemaVersion)&&typeof command.borrowerId==='string';
+  const payment=Number.isInteger(command.schemaVersion)&&[3,4,5,6,7].includes(command.schemaVersion)&&typeof command.borrowerId==='string';
   const operation=typeof command.operation==='string'&&typeof command.targetId==='string'&&command.inputs&&typeof command.inputs==='object';
   if(!payment&&!operation)return settle({kind:'blocked'},'unsupported_saved_request');
   const path=payment?'/api/payment-commands':'/api/operations';
