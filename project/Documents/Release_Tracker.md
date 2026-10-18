@@ -14,7 +14,6 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R073 | Frozen 18 October 2026 (Bangkok); PROD Hosting promotion in progress ([record](Development_Changes.md#r073-production-promotion)); on DEV | Offline refresh joins the running cycle between records segments (PR #60); owner instruction "Move to prod", 18 October 2026 |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
@@ -25,6 +24,7 @@ Status and records only; deployment pins are in the [environment inventory](Envi
 
 | Release | Scope | Released | Record | Tag |
 | --- | --- | --- | --- | --- |
+| R073 | Offline refresh joins the running cycle between records segments (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](Development_Changes.md#r073-production-promotion) | `R073` |
 | R072 | About screen, encrypted troubleshooting file, service worker cache pruning, PROD theme colour, browser-tab icon and offline wording, payment review alignment (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/c8257ae68e082901fc28ab393be5c532b0526236/project/Documents/Development_Changes.md#r072-production-promotion) | `R072` |
 | R071 | One refresh icon, style decisions and Thai pending-sync note (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/c9247c590bcfddd3b6f018cecc6c51cbc22ee881/project/Documents/Development_Changes.md#r071-production-promotion) | `R071` |
 | R070 | IndexedDB reconnect hotfix, Review payment button, UX-HOLD-03/08 | 17 October 2026 | [record](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/Documents/Development_Changes.md#r070-production-promotion) | `R070` |
