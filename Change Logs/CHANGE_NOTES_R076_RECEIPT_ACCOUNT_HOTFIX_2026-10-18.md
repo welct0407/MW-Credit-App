@@ -32,4 +32,4 @@ Revert `62770c47`. The previous behaviour (fill an empty account only) returns; 
 None.
 
 ## Remaining work
-Pull request checks, owner-authorized R076 promotion (Hosting only, no SQL), then the owner's real-slip check in PROD.
+Pull request checks, owner-authorized R076 promotion (command service image for `services/receipts/recognizer-rules.mjs` plus Hosting; no SQL, no infrastructure or agent change), then the owner's real-slip check in PROD.
