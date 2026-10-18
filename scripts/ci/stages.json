@@ -1,0 +1,39 @@
+{
+  "ci": {
+    "check": {
+      "checks": ["check"],
+      "exclude": "^(project/|integration-agent/|Change Logs/)|\\.md$"
+    },
+    "lint": {
+      "checks": ["lint"],
+      "exclude": "^(project/|integration-agent/|Change Logs/)|\\.md$"
+    },
+    "terraform": {
+      "checks": ["terraform"],
+      "include": "^(infrastructure/|\\.github/workflows/ci\\.yml$|scripts/ci/)"
+    },
+    "e2e": {
+      "checks": ["e2e (shard 1 of 3)", "e2e (shard 2 of 3)", "e2e (shard 3 of 3)"],
+      "include": "^(apps/pwa/|tests/e2e/|playwright\\.config\\.ts$|package(-lock)?\\.json$|vite\\.config\\.ts$|tsconfig\\.json$|index\\.html$|\\.nvmrc$|\\.github/workflows/ci\\.yml$|scripts/ci/)"
+    }
+  },
+  "database": {
+    "rebuild": {
+      "checks": ["rebuild (migrations)", "rebuild (receiving)", "rebuild (phase5)", "rebuild (phase8)"],
+      "include": "^(database/|scripts/database/|tests/integration/|services/|scripts/rehearsal/|package-lock\\.json$|\\.github/workflows/database\\.yml$|scripts/dictionary/capture_postgresql\\.py$|project/outputs/database-transfer-20261007/source-manifest\\.json$|scripts/ci/)",
+      "exclude": "\\.md$"
+    }
+  },
+  "agent-tests": {
+    "test": {
+      "checks": ["test"],
+      "include": "^(integration-agent/|database/migrations/|scripts/database/Test-AppRolePrerequisites\\.sql$|\\.github/workflows/agent-tests\\.yml$|scripts/ci/)",
+      "exclude": "\\.md$"
+    },
+    "lab": {
+      "checks": ["lab"],
+      "include": "^(integration-agent/|database/migrations/|scripts/database/Test-AppRolePrerequisites\\.sql$|\\.github/workflows/agent-tests\\.yml$|scripts/ci/)",
+      "exclude": "\\.md$"
+    }
+  }
+}
