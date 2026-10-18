@@ -1,6 +1,6 @@
 # Open development changes
 
-**R073 is Frozen** (PROD Hosting promotion in progress) and **R074 is Open**; R072 is Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
+**R074 is Open**; R073 is Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
 
 | Outstanding work | Owning reference |
 | --- | --- |
@@ -10,23 +10,10 @@
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
 | Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
 | Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`) | Recommended, not written |
+| Promotion runner full-CI gate requires one run with executed terraform and e2e; the CI reuse step skips them, so R073 needed a forced dispatch (39118014759). Let the runner accept the reuse-evidence chain | Future release tooling |
 | Repository merge follow-ups (15 October 2026) | [Change note](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.
-
-## R073 production promotion
-
-- **Authority and scope.** Owner instruction, 18 October 2026 (Bangkok): "Move to prod" for R073. Scope: PROD Hosting only. The PROD runtime stays R069 (four Cloud Run services unchanged), SQL stays V95 with no migration, nothing changes on Debian, and no database backup is needed (UI only).
-- **Contents.** The offline refresh fix from [PR #60](https://github.com/welct0407/MW-Credit-App/pull/60): a focus or the 30 s poll landing between two records segments now joins the running cycle instead of re-queuing finished domains (`apps/pwa/src/offline-dataset.ts`, `tests/e2e/offline-delta-independent.spec.ts`; [change note](../../Change%20Logs/CHANGE_NOTES_OFFLINE_DELTA_GAP_2026-10-18.md)). The About e2e now reads `release.ts`. The R072 closure (records, prune, `release.ts` R073) is in the same source. No data impact: only duplicate read-only refreshes were removed.
-- **Owner DEV check.** Pending.
-- **Freeze and pins.** Tracker commit pending (R073 Frozen, R074 Open, R075 next unused). Source baseline R072 `378c348`; source and artifact source pending (`main` at `9db79d7` when frozen); delivery tool pending (runner R073 contract). Deployment pins are in the [environment inventory](Environment_Inventory.md).
-- **Checks.** Pending.
-- **Artifact and apply.** Pending.
-- **Smoke.** Pending.
-- **Tag.** Pending.
-- **Recovery.** Hosting only: publish a new release of the previous R072 PROD version listed as rollback in the [environment inventory](Environment_Inventory.md). No database, runtime or agent rollback is involved.
-- **Not verified.** Pending.
-- **Documents updated.** Release tracker, this record; promotion README and Environment inventory pending.
 
 ## Current operation
 
