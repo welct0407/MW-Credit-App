@@ -105,7 +105,9 @@ function App() {
     if (!header) return;
     const measure = () => { (header.closest('.live-shell') as HTMLElement | null)?.style.setProperty('--live-header-height', `${header.getBoundingClientRect().height}px`); };
     measure();
-    const observer = new ResizeObserver(measure); observer.observe(header);
+    // Border box: padding-only changes (e.g. the startup update status line) must re-measure, or sticky
+    // children under the header keep a stale offset and leave a gap below it.
+    const observer = new ResizeObserver(measure); observer.observe(header, { box: 'border-box' });
     return () => observer.disconnect();
   }, []);
   const [navigationCollapsed, setNavigationCollapsed] = useState(()=>matchMedia('(min-width:768px) and (max-width:1199px)').matches);

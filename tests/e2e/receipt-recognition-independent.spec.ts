@@ -62,13 +62,13 @@ test('R075 recognized slip fills empty fields, runs Auto-assign and posts schema
  const state=await mockApi(page,recognized());
  await openForm(page);await attach(page);
  await expect(amountBox(page)).toHaveValue('110');await expect(accountBox(page)).toHaveValue('synthetic-account');
- await expect(page.locator('input.slip-reference')).toHaveValue('SYNREF123456');await expect(page.locator('input[type=time]')).toHaveValue('14:35');
+ await expect(page.locator('input.slip-reference')).toHaveValue('SYNREF123456');await expect(page.locator('input[type=time]')).toHaveCount(0);await expect(page.getByText('Transfer time')).toHaveCount(0);
  const note=page.locator('.receipt-control ~ p.field-help[role=status], p.field-help[role=status]').filter({hasText:'From slip'});
- await expect(note.first()).toContainText('Gemini');await expect(note.first()).toContainText('amount, account, reference, date, time');
+ await expect(note.first()).toContainText('Gemini');await expect(note.first()).toContainText('amount, account, reference, date. Check before review.');
  await expect(page.getByText(/business date/).first()).toContainText('07-Oct (slip) · business date 08-Oct');
  expect(state.recognitionCalls).toBe(1);await expect.poll(()=>state.autoAssignBodies.length).toBe(1);expect(state.autoAssignBodies[0]).toEqual({amountReceived:'110'});
  await expect(page.locator('output')).toContainText('Allocated฿110');
- await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('SYNREF123456');await expect(page.locator('.selected-payment')).toContainText('14:35');
+ await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('SYNREF123456');await expect(page.locator('.selected-payment')).not.toContainText('14:35');await expect(page.locator('.selected-payment')).not.toContainText('Transfer time');
  await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
  expect(state.posted).toHaveLength(1);
  expect(state.posted[0]).toMatchObject({schemaVersion:7,paymentDate:'2026-10-07',bankReference:'SYNREF123456',transferTime:'14:35',amountReceived:'110',paymentMethod:'Bank Transfer',cashAccountId:'synthetic-account'});
@@ -102,7 +102,7 @@ test('R075 unavailable recognition leaves the form manual and a manual payment s
  const state=await mockApi(page,r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,status:'unavailable'})}));
  await openForm(page);await attach(page);
  await expect(page.getByText('Slip not read — enter details manually.')).toBeVisible();
- await expect(amountBox(page)).toHaveValue('');await expect(accountBox(page)).toHaveValue('');await expect(page.locator('input.slip-reference')).toHaveValue('');await expect(page.locator('input[type=time]')).toHaveValue('');
+ await expect(amountBox(page)).toHaveValue('');await expect(accountBox(page)).toHaveValue('');await expect(page.locator('input.slip-reference')).toHaveValue('');await expect(page.locator('input[type=time]')).toHaveCount(0);
  expect(state.autoAssignBodies).toHaveLength(0);
  await accountBox(page).selectOption('synthetic-account');await amountBox(page).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');

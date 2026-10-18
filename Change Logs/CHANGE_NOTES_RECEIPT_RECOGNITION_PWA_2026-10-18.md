@@ -35,6 +35,7 @@ Reads a manual payment slip with the shared recognizer and pre-fills the payment
 | `npm run check:docs` | 0 failures, 0 warnings (Dewey) |
 | DEV owner upload, first try (18:17Z) | `Slip not read`: recognizer audit write rejected (route `gemini` not in the audit CHECK); fixed in PR #70, agent redeployed |
 | DEV owner upload, retry (18:35Z) | Form filled; recognizer journal `recognized` from the DEV caller in 11.7 s |
+| Owner DEV review fixes (Byte) | Transfer time removed from the form and review (slip time still posted as `transferTime` into Created At); sticky summary re-measures the full header height (gap under the header); receiving page clips horizontal overflow and overscroll; banner says when Auto-assign finds no charges due. Lint 0 errors, typecheck, `npm test` 655/655, affected e2e 130 passed on desktop and mobile Chromium |
 
 ## Not run
 - Real Vertex AI or Codex calls, the recognizer on the VM, and any live PWA recognition: nothing is deployed.

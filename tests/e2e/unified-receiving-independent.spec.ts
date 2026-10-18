@@ -84,3 +84,38 @@ test('U10 old unsent v5 draft converts only with fresh components and visible re
 test('U10 submitted old v5 pending is never converted and automatically retries exact original UUID',async({page,context})=>{
  const s=await setup(page);await page.getByRole('button',{name:'Back to Collection',exact:true}).click();s.lost=true;const old={schemaVersion:5,requestId:'ca7762ab-4e22-4b46-b7fc-6fac1981c6a3',borrowerId:'uni-B',selectedChargeIds:['uni-new-z'],cashAccountId:'uni-A',paymentDate:draft.businessDate,amountReceived:'100',paymentMethod:'Net-off at Disbursement',allocationMethod:'Single Full',notes:'submitted old',receiptId:null};await page.evaluate(async command=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');await ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'unified-independent-owner'}).savePending(command.requestId,command);window.dispatchEvent(new Event('mw-offline-saved'))},old);await expect.poll(()=>s.posts.length).toBeGreaterThanOrEqual(2);await context.setOffline(true);expect(s.posts.every(command=>JSON.stringify(command)===JSON.stringify(old))).toBe(true);expect(s.dispatchOrder.slice(0,4)).toEqual(['status','post','status','post']);expect(s.reviews).toHaveLength(0);await expect(page.getByRole('button',{name:'Use current balances',exact:true})).toHaveCount(0);
 });
+// R075 follow-up (owner iPhone report): recognition-filled receiving page at 390px never overflows sideways, the
+// sticky summary sits flush under the header (also after a padding-only header change such as the startup update
+// status line), Auto-assign that finds no due charges says so, and the slip transfer time is carried without a field.
+async function recognizeSlip(page:Page,suggestion:Record<string,unknown>,{emptyAuto=false}={}){
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{const p=new URL(r.request().url()).pathname;
+  if(p.endsWith('/recognition'))return r.fulfill({json:{ok:true,status:'recognized',provider:'gemini',model:'synthetic-flash',suggestion:{paymentMethod:'Bank Transfer',...suggestion},warnings:[{code:'reference_exists'}]}});
+  if(p.includes('/receipts/')&&r.request().method()==='POST')return r.fulfill({json:{ok:true,receipt:{receiptId:p.split('/').at(-1)}}});
+  if(emptyAuto&&p.endsWith('/auto-assign'))return r.fulfill({json:{...draft,charges:[],allocations:[],amountReceived:'1600',allocated:'0',unallocated:'1600'}});
+  return r.fallback()});
+ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a7ZkAAAAASUVORK5CYII=','base64');
+ await page.locator('.receipt-control input[type=file]').setInputFiles({name:'slip.png',mimeType:'image/png',buffer:png});
+ await expect(page.locator('.recognition-note').filter({hasText:'From slip'})).toBeVisible({timeout:15000});
+}
+test('R075 iPhone width: recognized receiving page has no horizontal overflow and the summary sticks flush under the header',async({page})=>{
+ await page.setViewportSize({width:390,height:800});const s=await setup(page);
+ await recognizeSlip(page,{amountReceived:'160',cashAccountId:'uni-A2',bankReference:'AB12345678901234567890CDEFGHIJKLMNOPQRSTUVWXYZ0123456789',paymentDate:'2026-10-08',transferTime:'09:41'});
+ await expect(page.getByRole('button',{name:'Use slip account'})).toBeVisible();await expect(page.getByText('This reference is already on a recorded payment.')).toBeVisible();
+ await expect(page.locator('input[type=time]')).toHaveCount(0);await expect(page.locator('.recognition-note').filter({hasText:'From slip'})).not.toContainText('time');
+ await expect.poll(()=>s.autos.length).toBe(1);
+ const overflow=()=>page.evaluate(()=>({doc:document.documentElement.scrollWidth,body:document.body.scrollWidth,width:window.innerWidth,clip:getComputedStyle(document.documentElement).overflowX,overscroll:getComputedStyle(document.documentElement).overscrollBehaviorX}));
+ const o=await overflow();expect(o.doc).toBeLessThanOrEqual(o.width);expect(o.body).toBeLessThanOrEqual(o.width);expect(o.clip).toBe('clip');expect(o.overscroll).toBe('none');
+ const flush=async()=>{await page.evaluate(()=>window.scrollTo(0,600));await expect.poll(()=>page.evaluate(()=>Math.round(document.querySelector('.allocation-summary')!.getBoundingClientRect().top-document.querySelector('.topbar')!.getBoundingClientRect().bottom))).toBe(0)};
+ await flush();
+ // A padding-only header change (the startup "Checking app…" line) must re-measure both ways.
+ await page.evaluate(()=>{const status=document.createElement('span');status.className='app-update-status';status.id='synthetic-status';status.textContent='Checking app…';document.querySelector('.topbar .live-header-actions')!.prepend(status)});await flush();
+ await page.evaluate(()=>document.getElementById('synthetic-status')!.remove());await flush();
+ await expect.poll(async()=>(await drafts(page))[0]?.value.transferTime).toBe('09:41');
+ await page.getByRole('button',{name:'Remove receipt'}).click();await expect.poll(async()=>(await drafts(page))[0]?.value.transferTime).toBe('');
+});
+test('R075 slip Auto-assign that finds no due charges says so instead of leaving ฿0 allocated silently',async({page})=>{
+ await page.setViewportSize({width:390,height:800});await setup(page);
+ await recognizeSlip(page,{amountReceived:'1600',cashAccountId:null,bankReference:'SYN1234567',paymentDate:'2026-10-08',transferTime:'10:05'},{emptyAuto:true});
+ await expect(page.locator('.recognition-note').filter({hasText:'From slip'})).toContainText('Auto-assign found no charges due by today — allocate below.');
+ await expect(page.locator('.allocation-summary output')).toContainText('Allocated฿0');
+});
