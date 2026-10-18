@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R073 — Open** |
-| Next unused number | **R074**, only opened when authorized R073 promotion starts |
+| New product work | **R074 — Open** |
+| Next unused number | **R075**, only opened when authorized R074 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,6 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
+| R073 | Frozen 18 October 2026 (Bangkok); PROD Hosting promotion in progress ([record](Development_Changes.md#r073-production-promotion)); on DEV | Offline refresh joins the running cycle between records segments (PR #60); owner instruction "Move to prod", 18 October 2026 |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

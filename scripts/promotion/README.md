@@ -23,6 +23,10 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R073 Hosting-only promotion on the R069 runtime
+
+`schemaVersion: 14`, `release: R073`, `scope: frontend-only`, `status: prepared`: the R072 contract with the source baseline moved to the R072 release `378c348` (the source must descend from it). Runtime, SQL and infrastructure rules, the CI gate and the delivery-tool allowance are R072's; the operator proof audience is `https://lm.mw-credit.com/promotion/r073`.
+
 ## R072 Hosting-only promotion on the R069 runtime
 
 `schemaVersion: 13`, `release: R072`, `scope: frontend-only`, `status: prepared`: the R071 contract with the source baseline moved to the R071 release `cb333f5` (the source must descend from it). The runtime, SQL and infrastructure inputs are still compared with R069 `9c4a4cb`, except that `package.json` may change in `scripts` only (both manifests deeply equal once `scripts` is removed) and `database/` may change only in `.md` files outside `database/migrations/`; `package-lock.json` must stay unchanged, and R065, R066 and R070 keep the strict rules. `sql` pins verified V95 with no migration. The CI gate is R071's, and the delivery-tool commit may carry the runner, its unit test, documents and this README.
