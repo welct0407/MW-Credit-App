@@ -17,7 +17,7 @@ type Allocation={chargeId:string;principal:string;interest:string;expectedPrinci
 type Command={schemaVersion:3|4|5|6|7;requestId:string;borrowerId:string;selectedChargeIds?:string[];allocations?:Allocation[];cashAccountId:string;paymentDate:string;amountReceived:string;paymentMethod:'Bank Transfer'|'Cash'|'Net-off at Disbursement';allocationMethod?:'Selected Charges'|'Single Full'|'Receive All';notes:string|null;receiptId:string|null;bankReference?:string|null;transferTime?:string|null};
 /** R075 slip recognition for the uploaded receipt; cleared with the receipt. Nothing here writes. */
 type SlipField='amount'|'account'|'reference'|'date';
-type Recognition={receiptId:string;phase:'reading'|'failed'|'unconfirmed'|'done';provider?:string|null;filled?:SlipField[];autoSkipped?:boolean;slipAmount?:string|null;slipAccountId?:string|null;slipReference?:string|null;referenceExists?:boolean;dateNotUsed?:string|null;autoOutcome?:'empty'|'failed'};
+type Recognition={receiptId:string;phase:'reading'|'failed'|'unconfirmed'|'done';provider?:string|null;filled?:SlipField[];autoSkipped?:boolean;slipAmount?:string|null;slipAccountId?:string|null;slipReference?:string|null;referenceExists?:boolean;dateNotUsed?:string|null;autoOutcome?:'empty'|'failed';accountNote?:'unmatched'|'ambiguous'|null};
 const RECOGNITION_DEADLINE_MS=20000;
 const previousDay=(day:string)=>{const value=new Date(day+'T00:00:00Z');value.setUTCDate(value.getUTCDate()-1);return value.toISOString().slice(0,10)};
 const slipDays=(businessDate:string)=>[businessDate,previousDay(businessDate)];
@@ -47,6 +47,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const [paymentMethod,setPaymentMethod]=useState<Command['paymentMethod']>('Bank Transfer'),[reviewing,setReviewing]=useState(false);
  const [bankReference,setBankReference]=useState(''),[transferTime,setTransferTime]=useState(''),[slipDate,setSlipDate]=useState<string|null>(null);
  const [recognition,setRecognition]=useState<Recognition|null>(null),recognitionTouched=useRef(new Set<string>()),[autoEmpty,setAutoEmpty]=useState(false);
+ // R076: true once the receiving account is changed by hand in this form session; a preselected default or restored account is not a choice.
+ const accountChosen=useRef(false);
  const reviewOperation=useRef(0),autosaveChain=useRef(Promise.resolve()),autosaveTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
  const pageCursors=useRef<(string|undefined)[]>([undefined]);const [pageIndex,setPageIndex]=useState(0),[paging,setPaging]=useState(false);
  const [scope,setScope]=useState<'due'|'future'|'all'>('all');
@@ -79,7 +81,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  function retainPending(){try{sessionStorage.setItem(pendingKey,requestId.current)}catch{setStorageBlocked(true)}}
  function clearPending(){try{sessionStorage.removeItem(pendingKey)}catch{}void access.offline?.remove('pending',requestId.current).catch(()=>{})}
  useEffect(()=>{
-  const current=++generation.current;
+  const current=++generation.current;accountChosen.current=false;
   void(async()=>{
    try{
     const pending=(await access.offline?.list('pending'))?.filter(row=>(row.value.domain===undefined||row.value.domain==='payment')&&!!(row.value.command??row.value).schemaVersion&&row.value.recoveryKind!=='action');
@@ -135,7 +137,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  },[access.offline,borrowerId,state]);
  async function discardDraft(){
   if(command.current)return;autosaveSuspended.current=true;clearTimeout(autosaveTimer.current);uploadGeneration.current++;setState('loading');
-  try{await autosaveChain.current;await access.offline?.remove('draft',borrowerId);setReceived('');setAllocations([]);setUnavailableLines([]);setChangedBalances(null);setSelected([]);setSelectionRows([]);setNotes('');setReceipt(null);setLocalImage(null);setPreview(null);setAllMode(false);setUploading(false);setUploadFailed(false);setDraftSaveFailed(false);setError('');setBankReference('');setTransferTime('');setSlipDate(null);setRecognition(null);}catch{setError(t('The draft could not be cleared.','ล้างร่างไม่สำเร็จ'));}finally{setState('edit')}
+  try{await autosaveChain.current;await access.offline?.remove('draft',borrowerId);setReceived('');setAllocations([]);setUnavailableLines([]);setChangedBalances(null);setSelected([]);setSelectionRows([]);setNotes('');setReceipt(null);setLocalImage(null);setPreview(null);setAllMode(false);setUploading(false);setUploadFailed(false);setDraftSaveFailed(false);setError('');setBankReference('');setTransferTime('');setSlipDate(null);setRecognition(null);accountChosen.current=false;}catch{setError(t('The draft could not be cleared.','ล้างร่างไม่สำเร็จ'));}finally{setState('edit')}
  }
  async function refreshSelection(){
   const operation=++reviewOperation.current;
@@ -231,7 +233,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   // A field typed during recognition counts as not empty.
   const amountFilled=!!slipAmount&&latest.received===''&&!touched.has('amount');
   if(amountFilled){legacyDraft.current=false;reviewOperation.current++;setReceived(slipAmount!);filled.push('amount');}
-  if(slipAccountId&&latest.account===''&&!touched.has('account')){setAccount(slipAccountId);filled.push('account');}
+  // R076: the slip's matched account replaces an empty or preselected account; an account chosen by hand stays (mismatch note).
+  if(slipAccountId&&latest.account!==slipAccountId&&!accountChosen.current){setAccount(slipAccountId);filled.push('account');}
   if(!touched.has('method')&&latest.paymentMethod!=='Bank Transfer'){reviewOperation.current++;setPaymentMethod('Bank Transfer');}
   if(slipReference&&normalizedReference(latest.bankReference)===''&&!touched.has('reference')){setBankReference(slipReference);filled.push('reference');}
   if(slipDay){setSlipDate(slipDay);filled.push('date');}
@@ -243,7 +246,9 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   // A slip date outside {business date, day before} is never used; name it when it was readable.
   const outsideDate=text(outside?.date)??(day&&!slipDay?day:null);
   const dateNotUsed=outside||(day&&!slipDay)?(outsideDate&&/^\d{4}-\d{2}-\d{2}$/.test(outsideDate)?outsideDate:''):null;
-  setRecognition({receiptId:id,phase:'done',provider,filled,autoSkipped:amountFilled&&!autoRun,slipAmount,slipAccountId,slipReference,referenceExists:warnings.some(w=>w?.code==='reference_exists'),dateNotUsed});
+  // The slip printed a recipient number that matched no account, or more than one: say so under Receiving account.
+  const accountNote=slipAccountId?null:warnings.some(w=>w?.code==='account_ambiguous')?'ambiguous':warnings.some(w=>w?.code==='account_unmatched')||accountId?'unmatched':null;
+  setRecognition({receiptId:id,phase:'done',provider,filled,autoSkipped:amountFilled&&!autoRun,slipAmount,slipAccountId,slipReference,referenceExists:warnings.some(w=>w?.code==='reference_exists'),dateNotUsed,accountNote});
   if(autoRun)void autoAssign(slipAmount!).then(outcome=>{if(outcome==='empty'||outcome==='failed')setRecognition(old=>old?.receiptId===id&&old.phase==='done'?{...old,autoOutcome:outcome}:old)});
  }
  function result(data:any){
@@ -324,20 +329,22 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  <CompactPager busy={paging} previous={pageIndex>0?()=>void chargePage(pageIndex-1):undefined} next={draft.nextCursor?()=>void chargePage(pageIndex+1):undefined} previousLabel={t('Previous charge page','หน้ารายการก่อนหน้า')} nextLabel={t('Next charge page','หน้ารายการถัดไป')}/>
  <label><span className="field-title">{t('Payment method','วิธีชำระเงิน')}</span><select required value={paymentMethod==='Net-off at Disbursement'?'':paymentMethod} onChange={event=>{recognitionTouched.current.add('method');reviewOperation.current++;setPaymentMethod(event.target.value as Command['paymentMethod'])}}><option value="" disabled>{t('Choose payment method','เลือกวิธีชำระเงิน')}</option><option value="Bank Transfer">{t('Bank Transfer','โอนเงิน')}</option><option value="Cash">{t('Cash','เงินสด')}</option></select></label>
  {slipDate&&paymentDate===slipDate&&<p className="field-summary">{t('Payment date','วันที่รับชำระ')}: <strong className="field-summary-value">{displayValue(paymentDate)}</strong> ({t('slip','สลิป')}){paymentDate!==draft.businessDate&&<> · {t('business date','วันทำการ')} {displayValue(draft.businessDate)}</>}</p>}
- <label><span className="field-title">{t('Receiving account','บัญชีรับชำระ')}</span><select required value={account} onChange={event=>{recognitionTouched.current.add('account');setAccount(event.target.value)}}><option value="">{t('Select account','เลือกบัญชี')}</option>{draft.accounts.map(row=><option key={row.id} value={row.id}>{row.label}</option>)}</select></label>
- {accountMismatch&&<p className="field-help recognition-note" role="status">{t('Slip shows a different account: ','สลิปแสดงบัญชีที่ต่างกัน: ')}{draft.accounts.find(row=>row.id===recognized!.slipAccountId)?.label}. <button type="button" className="secondary-button" onClick={()=>setAccount(recognized!.slipAccountId!)}>{t('Use slip account','ใช้บัญชีตามสลิป')}</button></p>}
+ <label><span className="field-title">{t('Receiving account','บัญชีรับชำระ')}</span><select required value={account} onChange={event=>{recognitionTouched.current.add('account');accountChosen.current=true;setAccount(event.target.value)}}><option value="">{t('Select account','เลือกบัญชี')}</option>{draft.accounts.map(row=><option key={row.id} value={row.id}>{row.label}</option>)}</select></label>
+ {accountMismatch&&<p className="field-help recognition-note" role="status">{t('Slip shows a different account: ','สลิปแสดงบัญชีที่ต่างกัน: ')}{draft.accounts.find(row=>row.id===recognized!.slipAccountId)?.label}. <button type="button" className="secondary-button" onClick={()=>{accountChosen.current=true;setAccount(recognized!.slipAccountId!)}}>{t('Use slip account','ใช้บัญชีตามสลิป')}</button></p>}
+ {recognized?.accountNote&&<p className="field-help recognition-note" role="status">{recognized.accountNote==='ambiguous'?t('Slip account matches more than one account — check the receiving account.','บัญชีในสลิปตรงกับหลายบัญชี — กรุณาตรวจสอบบัญชีรับชำระ'):t('Slip account not matched — check the receiving account.','บัญชีในสลิปไม่ตรงกับบัญชีรับชำระ — กรุณาตรวจสอบบัญชีรับชำระ')}</p>}
  {bankTransfer&&<>
  <label><span className="field-title">{t('Bank reference','เลขอ้างอิงธนาคาร')}</span><input className="slip-reference" inputMode="text" autoCapitalize="characters" autoComplete="off" spellCheck={false} maxLength={120} value={bankReference} aria-invalid={referenceText!==''&&!/^[A-Z0-9]{6,100}$/.test(referenceText)} onChange={event=>{recognitionTouched.current.add('reference');setBankReference(event.target.value)}}/></label>
  {referenceText!==''&&!/^[A-Z0-9]{6,100}$/.test(referenceText)&&<p className="field-help">{t('Use 6–100 letters or digits, or leave it empty.','ใช้ตัวอักษรหรือตัวเลข 6–100 ตัว หรือเว้นว่าง')}</p>}
  {duplicateReference&&<p className="field-help" role="status">{t('This reference is already on a recorded payment.','เลขอ้างอิงนี้มีอยู่ในรายการรับชำระที่บันทึกแล้ว')}</p>}
  </>}
  <label><span className="field-title">{t('Notes','หมายเหตุ')}</span><textarea value={notes} onChange={event=>setNotes(event.target.value)}/></label>
- <ReceiptPicker thai={thai} attached={!!(receipt||localImage||uploadFailed||uploading)} preview={preview} busy={uploading} onPreparing={setPreparingReceipt} onPick={file=>void upload(file)} onRemove={()=>{uploadGeneration.current++;setReceipt(null);setLocalImage(null);setPreview(null);setUploadFailed(false);setUploading(false);setError('');setRecognition(null);setSlipDate(null);setTransferTime('')}}/>
+ {/* R076: recognition messages sit directly above the receipt preview so they are seen with the slip. */}
  {recognition?.phase==='reading'&&<p className="field-help" role="status">{t('Reading slip…','กำลังอ่านสลิป…')}</p>}
  {recognition?.phase==='failed'&&<p className="field-help" role="status">{t('Slip not read — enter details manually.','อ่านสลิปไม่ได้ — กรุณากรอกรายละเอียดเอง')}</p>}
  {recognition?.phase==='unconfirmed'&&<p className="field-help" role="status">{t('The slip does not show a completed transfer — enter details manually.','สลิปไม่แสดงการโอนที่สำเร็จ — กรุณากรอกรายละเอียดเอง')}</p>}
  {recognized&&<p className="field-help recognition-note" role="status">{recognized.filled?.length?<>{t('From slip','จากสลิป')}{recognized.provider?` (${recognized.provider})`:''}: {recognized.filled.map(field=>({amount:t('amount','ยอด'),account:t('account','บัญชี'),reference:t('reference','เลขอ้างอิง'),date:t('date','วันที่')})[field]).join(', ')}. {t('Check before review.','ตรวจสอบก่อนกดตรวจสอบรายการ')}</>:t('Slip read; no empty fields to fill. Check before review.','อ่านสลิปแล้ว ไม่มีช่องว่างให้กรอก ตรวจสอบก่อนกดตรวจสอบรายการ')}{recognized.autoSkipped?' '+t('Auto-assign skipped: allocations already entered.','ไม่ได้จัดสรรอัตโนมัติ เพราะมีการจัดสรรอยู่แล้ว'):''}{recognized.autoOutcome==='empty'?' '+t('Auto-assign found no charges due by today — allocate below.','ไม่มีรายการครบกำหนดภายในวันนี้ให้จัดสรรอัตโนมัติ — กรุณาจัดสรรด้านล่าง'):recognized.autoOutcome==='failed'?' '+t('Auto-assign did not run — use Auto-assign or allocate below.','จัดสรรอัตโนมัติไม่สำเร็จ — กด จัดสรรอัตโนมัติ หรือจัดสรรด้านล่าง'):''}</p>}
  {typeof recognized?.dateNotUsed==='string'&&<p className="field-help" role="status">{recognized.dateNotUsed?`${t('Slip date not used: ','ไม่ได้ใช้วันที่ตามสลิป: ')}${displayValue(recognized.dateNotUsed)}.`:t('Slip date not used.','ไม่ได้ใช้วันที่ตามสลิป')}</p>}
+ <ReceiptPicker thai={thai} attached={!!(receipt||localImage||uploadFailed||uploading)} preview={preview} busy={uploading} onPreparing={setPreparingReceipt} onPick={file=>void upload(file)} onRemove={()=>{uploadGeneration.current++;setReceipt(null);setLocalImage(null);setPreview(null);setUploadFailed(false);setUploading(false);setError('');setRecognition(null);setSlipDate(null);setTransferTime('')}}/>
  {localImage&&!receipt&&!access.offlineOnly&&<button className="secondary-button" disabled={uploading} onClick={()=>void upload(new File([localImage],'receipt',{type:localImage.type}))}>{t('Upload saved receipt','อัปโหลดหลักฐานที่บันทึกไว้')}</button>}
 
  </>}

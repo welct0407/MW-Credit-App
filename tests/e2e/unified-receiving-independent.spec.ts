@@ -14,7 +14,7 @@ const rows=[...primary,...fillers];
 const draft={ok:true,mode:'dev-owner-testing',scope:'all',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.displayName},accounts:[{id:'uni-A',label:'Synthetic receiving account'},{id:'uni-A2',label:'Second synthetic account'}]};
 const plan=(row:typeof primary[number],p:string,i:string)=>({chargeId:row.id,principal:p,interest:i,expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate});
 type State={dispatchOrder:string[],posts:any[],autos:any[],reviews:any[],holdAuto:boolean,holdReview:boolean,releaseAuto?:()=>void,releaseReview?:()=>void,reviewStatus:number,lost:boolean,reviewRows?:typeof rows};
-async function setup(page:Page){
+async function setup(page:Page,{preferred}:{preferred?:string}={}){
  const state:State={dispatchOrder:[],posts:[],autos:[],reviews:[],holdAuto:false,holdReview:false,reviewStatus:200,lost:false};
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
  await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>{const u=new URL(r.request().url()),charges=u.pathname.endsWith('/charges'),upcoming=u.pathname.endsWith('/upcoming');return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',businessDate:draft.businessDate,timezone:'Asia/Bangkok',asOf:draft.asOf,items:upcoming?[]:charges?primary.map(x=>({...x,loanId:'uni-L',paymentStatus:'ยังไม่ชำระ',paymentDate:null,totalPaid:'0',receivedToday:'0'})):[borrower],borrower,nextCursor:null,horizonEnd:'2027-01-08',reviewRequired:false})})});
@@ -23,7 +23,7 @@ async function setup(page:Page){
   if(path.includes('/payment-drafts/')){
    if(path.endsWith('/auto-assign')){const body=r.request().postDataJSON();state.autos.push(body);if(state.holdAuto)await new Promise<void>(resolve=>state.releaseAuto=resolve);let remain=BigInt(body.amountReceived);const allocations=[];for(const row of [primary[0],primary[1],primary[2]]){const interest=remain<BigInt(row.interestRemaining)?remain:BigInt(row.interestRemaining);remain-=interest;const principal=remain<BigInt(row.principalRemaining)?remain:BigInt(row.principalRemaining);remain-=principal;if(principal+interest>0n)allocations.push(plan(row,principal.toString(),interest.toString()))}return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges:rows,allocations,amountReceived:body.amountReceived,allocated:(BigInt(body.amountReceived)-remain).toString(),unallocated:remain.toString(),nextCursor:null})}).catch(()=>{})}
    if(path.endsWith('/review')){const body=r.request().postDataJSON();state.reviews.push(body);if(state.holdReview)await new Promise<void>(resolve=>state.releaseReview=resolve);return r.fulfill({status:state.reviewStatus,contentType:'application/json',body:JSON.stringify(state.reviewStatus===200?{...draft,charges:rows.filter(row=>(body.allocations?.map((line:any)=>line.chargeId)??body.selectedChargeIds).includes(row.id)),allocations:body.allocations,total:body.amountReceived,nextCursor:null}:{ok:false,code:'plan_changed',charges:state.reviewRows??rows,businessDate:draft.businessDate})}).catch(()=>{})}
-   const cursor=Number(u.searchParams.get('cursor')||0);return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges:rows.slice(cursor,cursor+25),nextCursor:cursor+25<rows.length?String(cursor+25):null})});
+   const cursor=Number(u.searchParams.get('cursor')||0);return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,...(preferred?{preferredReceivingAccountId:preferred}:{}),charges:rows.slice(cursor,cursor+25),nextCursor:cursor+25<rows.length?String(cursor+25):null})});
   }
   if(path.endsWith('/payments'))return r.fulfill({contentType:'application/json',body:'{"ok":true,"items":[],"nextCursor":null}'});
   if(/\/api\/payment-commands\/[^/]+$/.test(path)&&r.request().method()==='GET')state.dispatchOrder.push('status');
@@ -87,9 +87,9 @@ test('U10 submitted old v5 pending is never converted and automatically retries 
 // R075 follow-up (owner iPhone report): recognition-filled receiving page at 390px never overflows sideways, the
 // sticky summary sits flush under the header (also after a padding-only header change such as the startup update
 // status line), Auto-assign that finds no due charges says so, and the slip transfer time is carried without a field.
-async function recognizeSlip(page:Page,suggestion:Record<string,unknown>,{emptyAuto=false}={}){
+async function recognizeSlip(page:Page,suggestion:Record<string,unknown>,{emptyAuto=false,warnings=[{code:'reference_exists'}] as {code:string}[]}={}){
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{const p=new URL(r.request().url()).pathname;
-  if(p.endsWith('/recognition'))return r.fulfill({json:{ok:true,status:'recognized',provider:'gemini',model:'synthetic-flash',suggestion:{paymentMethod:'Bank Transfer',...suggestion},warnings:[{code:'reference_exists'}]}});
+  if(p.endsWith('/recognition'))return r.fulfill({json:{ok:true,status:'recognized',provider:'gemini',model:'synthetic-flash',suggestion:{paymentMethod:'Bank Transfer',...suggestion},warnings}});
   if(p.includes('/receipts/')&&r.request().method()==='POST')return r.fulfill({json:{ok:true,receipt:{receiptId:p.split('/').at(-1)}}});
   if(emptyAuto&&p.endsWith('/auto-assign'))return r.fulfill({json:{...draft,charges:[],allocations:[],amountReceived:'1600',allocated:'0',unallocated:'1600'}});
   return r.fallback()});
@@ -118,4 +118,37 @@ test('R075 slip Auto-assign that finds no due charges says so instead of leaving
  await recognizeSlip(page,{amountReceived:'1600',cashAccountId:null,bankReference:'SYN1234567',paymentDate:'2026-10-08',transferTime:'10:05'},{emptyAuto:true});
  await expect(page.locator('.recognition-note').filter({hasText:'From slip'})).toContainText('Auto-assign found no charges due by today — allocate below.');
  await expect(page.locator('.allocation-summary output')).toContainText('Allocated฿0');
+ // No recipient number on the slip (no account warning): no account note and the chosen account stays.
+ await expect(page.getByText('Slip account not matched — check the receiving account.')).toHaveCount(0);await expect(page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/})).toHaveValue('uni-A');
+});
+// R076 (owner PROD report): the slip's matched account replaces a preselected default, an account picked by hand
+// stays with a visible mismatch note, a printed but unmatched or ambiguous account is named under Receiving account,
+// and every recognition message sits directly above the receipt preview.
+const accountSelect=(page:Page)=>page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/});
+const slipBanner=(page:Page)=>page.locator('.recognition-note').filter({hasText:'From slip'});
+async function aboveReceipt(page:Page,message:ReturnType<Page['locator']>){
+ expect(await message.evaluate(node=>!!(node.compareDocumentPosition(document.querySelector('.receipt-control')!)&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+ const [note,image]=[await message.boundingBox(),await page.locator('.payment-receipt-preview').boundingBox()];expect(note!.y+note!.height).toBeLessThanOrEqual(image!.y);
+}
+test('R076 slip account overrides the preselected default account and the banner names it above the preview',async({page})=>{
+ await setup(page,{preferred:'uni-A'});await expect(accountSelect(page)).toHaveValue('uni-A');
+ await recognizeSlip(page,{amountReceived:'160',cashAccountId:'uni-A2',bankReference:'SYN1234567',paymentDate:'2026-10-08',transferTime:'09:41'});
+ await expect(accountSelect(page)).toHaveValue('uni-A2');await expect(slipBanner(page)).toContainText('amount, account, reference, date.');
+ await expect(page.getByRole('button',{name:'Use slip account'})).toHaveCount(0);await expect(page.getByText('Slip account not matched — check the receiving account.')).toHaveCount(0);
+ await aboveReceipt(page,slipBanner(page));
+});
+test('R076 an account chosen by hand stays, with the mismatch note and Use slip account',async({page})=>{
+ await setup(page,{preferred:'uni-A'});await accountSelect(page).selectOption('uni-A2');await accountSelect(page).selectOption('uni-A');
+ await recognizeSlip(page,{amountReceived:'160',cashAccountId:'uni-A2',bankReference:'SYN1234567',paymentDate:'2026-10-08',transferTime:'09:41'});
+ await expect(accountSelect(page)).toHaveValue('uni-A');await expect(slipBanner(page)).not.toContainText('account');
+ const mismatch=page.locator('.recognition-note').filter({hasText:'Slip shows a different account: Second synthetic account.'});await expect(mismatch).toBeVisible();
+ await mismatch.getByRole('button',{name:'Use slip account'}).click();await expect(accountSelect(page)).toHaveValue('uni-A2');await expect(mismatch).toHaveCount(0);
+});
+for(const [code,text] of [['account_unmatched','Slip account not matched — check the receiving account.'],['account_ambiguous','Slip account matches more than one account — check the receiving account.']])test('R076 '+code+' shows a note under Receiving account and keeps the account',async({page})=>{
+ await setup(page,{preferred:'uni-A'});
+ await recognizeSlip(page,{amountReceived:'160',cashAccountId:null,bankReference:'SYN1234567',paymentDate:'2026-10-08',transferTime:'09:41'},{warnings:[{code}]});
+ const note=page.locator('.recognition-note[role=status]').filter({hasText:text});await expect(note).toBeVisible();await expect(accountSelect(page)).toHaveValue('uni-A');
+ // The note follows the Receiving account field; the banner stays above the preview.
+ expect(await note.evaluate(node=>node.previousElementSibling?.querySelector('.field-title')?.textContent)).toBe('Receiving account');
+ await expect(slipBanner(page)).not.toContainText('account');await aboveReceipt(page,slipBanner(page));
 });

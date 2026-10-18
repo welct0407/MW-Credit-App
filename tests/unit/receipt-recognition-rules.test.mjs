@@ -44,7 +44,7 @@ test('a clean slip fills every field; reference, time and amount are normalized'
 test('each failing field is null with its own warning, in the fixed order',async()=>{
  const cases=[
   [{amount:'1,500.00'},'amount_unreadable','amountReceived'],[{amount:'0.00'},'amount_unreadable','amountReceived'],[{amount:'1500.50'},'amount_fractional','amountReceived'],
-  [{currency:'USD'},'non_thb','amountReceived'],[{recipient_numbers:['xxx-x-xxxxx-x']},'account_unmatched','cashAccountId'],[{recipient_numbers:[]},'account_unmatched','cashAccountId'],
+  [{currency:'USD'},'non_thb','amountReceived'],[{recipient_numbers:['xxx-x-xxxxx-x']},'account_unmatched','cashAccountId'],
   [{recipient_numbers:['xxx-x-x6789-x','081-xxx-5678']},'account_ambiguous','cashAccountId'],[{reference:'AB1'},'reference_unreadable','bankReference'],
   [{reference:'AB12/34CD'},'reference_unreadable','bankReference'],[{date:'2026-10-16'},'date_outside_window','paymentDate'],[{date:'2026-10-19'},'date_outside_window','paymentDate'],
   [{date:'18/10/2026'},'date_outside_window','paymentDate'],[{time:'9:41'},'time_unreadable','transferTime'],[{time:'24:00'},'time_unreadable','transferTime'],
@@ -54,6 +54,10 @@ test('each failing field is null with its own warning, in the fixed order',async
   const expected=code==='date_outside_window'&&/^\d{4}-\d{2}-\d{2}$/.test(override.date)?{code,date:override.date}:{code};
   assert.equal(out.status,'recognized');assert.deepEqual(out.warnings,[expected],JSON.stringify(override));assert.equal(out.suggestion[field],null,JSON.stringify(override));
  }
+ const none=await evaluateSlip(slip({recipient_numbers:[]}),context());
+ assert.deepEqual(none.warnings,[],'R076: no recipient number on the slip gives no account warning');assert.equal(none.suggestion.cashAccountId,null);
+ const tooMany=await evaluateSlip(slip({recipient_numbers:Array(6).fill('xxx-x-x6789-x')}),context());
+ assert.deepEqual(tooMany.warnings,[{code:'account_unmatched'}]);assert.equal(tooMany.suggestion.cashAccountId,null);
  const many=await evaluateSlip(slip({time:'x',amount:'1.5',reference:'x',recipient_numbers:['9']}),context());
  assert.deepEqual(many.warnings.map(w=>w.code),['amount_fractional','account_unmatched','reference_unreadable','time_unreadable']);
 });

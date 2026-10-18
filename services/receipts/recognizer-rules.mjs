@@ -84,8 +84,10 @@ export async function evaluateSlip(result, { businessDate, accounts, referenceEx
   const warnings = [...fields.warnings];
   let cashAccountId = null;
   const numbers = result.recipient_numbers;
-  if (!Array.isArray(numbers) || numbers.length < 1 || numbers.length > 5 || numbers.some(n => typeof n !== 'string')) warnings.push('account_unmatched');
-  else {
+  // R076: a slip that shows no recipient number gives no account signal (no warning, nothing filled); the form
+  // names an unmatched or ambiguous account only when the slip printed one.
+  if (!Array.isArray(numbers) || numbers.length > 5 || numbers.some(n => typeof n !== 'string')) warnings.push('account_unmatched');
+  else if (numbers.length) {
     const matched = matchAccounts(numbers, accounts);
     if (matched.length === 1) cashAccountId = matched[0];
     else warnings.push(matched.length ? 'account_ambiguous' : 'account_unmatched');
