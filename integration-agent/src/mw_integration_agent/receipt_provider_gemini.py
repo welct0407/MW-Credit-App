@@ -98,18 +98,35 @@ def parse(raw):
         text = ''.join(p['text'] for p in candidate['content']['parts'] if 'text' in p and not p.get('thought'))
         return json.loads(text)
     except (ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:
-        raise RecognitionUnavailable() from exc
+        raise RecognitionUnavailable(cause='vertex_response_invalid') from exc
 
 
 def attempt(url, data, timeout):
-    token = http.access_token(timeout=min(timeout, 10))
+    try:
+        token = http.access_token(timeout=min(timeout, 10))
+    except Exception as exc:
+        exc.mw_cause = 'vm_token_unavailable'
+        raise
     request = urllib.request.Request(url, data=data, method='POST',
                                      headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'})
     with http.opener().open(request, timeout=timeout) as response:
         raw = response.read(RESPONSE_LIMIT + 1)
     if len(raw) > RESPONSE_LIMIT:
-        raise RecognitionUnavailable()
+        raise RecognitionUnavailable(cause='vertex_response_too_large')
     return parse(raw)
+
+
+def cause(exc, timed_out):
+    """Internal failure class for the journal: status code or exception class, never a message."""
+    if getattr(exc, 'mw_cause', None):
+        return exc.mw_cause
+    if isinstance(exc, urllib.error.HTTPError):
+        return f'vertex_http_{exc.code}'
+    if timed_out:
+        return 'vertex_timeout'
+    if isinstance(exc, urllib.error.URLError):
+        return 'vertex_unreachable'
+    return 'vertex_' + type(exc).__name__
 
 
 def transient(exc):
@@ -133,6 +150,6 @@ def extract(config, image_data, deadline=None):
             timed_out = isinstance(exc, (TimeoutError, socket.timeout)) or isinstance(getattr(exc, 'reason', None), (TimeoutError, socket.timeout))
             retry = number == 1 and transient(exc) and deadline - time.monotonic() >= RETRY_MINIMUM + RETRY_PAUSE
             if not retry:
-                raise RecognitionUnavailable('timeout' if timed_out else 'provider_error') from exc
+                raise RecognitionUnavailable('timeout' if timed_out else 'provider_error', cause(exc, timed_out)) from exc
             time.sleep(RETRY_PAUSE)
     raise RecognitionUnavailable()

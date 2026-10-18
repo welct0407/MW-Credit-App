@@ -44,6 +44,6 @@ def extract(config, image_data, deadline=None):
                     raise ValueError('unexpected tool')
             return json.loads((work/'result.json').read_text(encoding='utf-8'))
         except subprocess.TimeoutExpired as exc:
-            raise RecognitionUnavailable('timeout') from exc
+            raise RecognitionUnavailable('timeout','codex_timeout') from exc
         except (OSError,subprocess.SubprocessError,ValueError) as exc:
-            raise RecognitionUnavailable() from exc
+            raise RecognitionUnavailable(cause='codex_'+type(exc).__name__) from exc

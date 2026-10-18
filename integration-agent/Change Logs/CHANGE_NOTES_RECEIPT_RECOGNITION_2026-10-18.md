@@ -19,11 +19,13 @@ Stage 1 of the owner's Receipt Recognition design (18 October 2026, Bangkok): on
 - Tests: new `tests/test_receipt_recognition.py` (33 tests: provider default, shape check, Gemini request, parsing, retry, schema translation, model pinning, configuration, token claims and signature, every contract status, busy and timeout slots, audit content); `test_receipts.py` patch target, `test_cli.py` and `test_systemd_units.py` updated for the new module, command and unit.
 - Docs: `docs/RECEIPTS.md` (new section "Receipt recognition API", including the revision 29 two-step rollout), `docs/OPERATIONS.md` (activation boundary).
 
+- Fix after the first DEV upload (18 October 2026, 18:17:31Z, 503 `provider_error`): the recognizer's audit events and the Gemini receipt-cycle audit used route `gemini`, which `audit.events`' CHECK list (V1) rejects, so the recognizer withheld the result. Both now use route `internal` (provider and model stay in the plan). The journal line gains `cause` (for example `vertex_http_403`, `vertex_timeout`, `shape_invalid`, `audit_failed:<class>`, `keys_unavailable:<class>`, `token_rejected`), never messages or data. New test: every literal audit route in the code is in the V1 CHECK list; `native_api` and `shared-command-api` are recorded as pre-existing exceptions for separate follow-up. The one recognizer operation from 18:17:35Z stays `AUTHORIZED` with only its `requested` event; no existing reconcile script covers it.
+
 ## Checks
 | Command | Result |
 | --- | --- |
 | `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements in a fresh venv) | 562 tests, OK, 82 skipped (lab suites); baseline before the batch 529 OK |
-| `python -m unittest tests.test_receipt_recognition` | 33 tests, OK |
+| `python -m unittest tests.test_receipt_recognition` | 33 tests, OK; 38 after the audit-route fix |
 | `ruff check --no-cache integration-agent` | All checks passed |
 | `mw-integration-agent check --config config.example.json` (repository catalogue revision 29, at `13039cc`) | ok; `receipt_extraction_provider` codex, `receipt_recognition` false |
 | `verify-receipt-extraction.py --time codex,gemini` on `vm-mw-credit-agent` from a streamed `7b68ab9` tree in `/tmp/r075`, VM identity, temporary 0600 config copy with `gemini-3.8-flash` on `global` (19 October 2026, 00:37 Bangkok; tree and config removed afterwards, live runtime, catalogue and units untouched) | Pass: 6/6 slips per provider. Codex (`default`): 7.74, 6.80, 11.23, 6.10, 7.14, 5.80 s; median 6.97 s. Gemini 3.8 Flash: 4.59, 6.71, 5.87, 25.65, 2.91, 4.68 s; median 5.28 s. Both read the Buddhist-year date, masked digits (`xxx-x-x4321-x` matched only the synthetic account), transfer times, amounts and references; both refused the pending transfer and the non-receipt and ignored the injected instruction. No Vertex error was reported; the 25.65 s Gemini slip (pending transfer) most likely needed the one retry, which the script does not log |

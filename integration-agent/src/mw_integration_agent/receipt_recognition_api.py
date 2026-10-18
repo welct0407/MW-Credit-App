@@ -185,13 +185,15 @@ def verify_token(token, audience, allowed, keys, now=None):
 # Request handling -------------------------------------------------------------------------------
 
 class Rejected(Exception):
-    def __init__(self, status, body):
+    """A contract response. `cause` is the internal failure class for the journal line only."""
+    def __init__(self, status, body, cause=None):
         super().__init__(body.get('reason') or body['status'])
         self.status, self.body = status, body
+        self.cause = cause or body.get('reason') or body['status']
 
 
-def unavailable(reason):
-    return Rejected(503, {'status': 'unavailable', 'reason': reason})
+def unavailable(reason, cause=None):
+    return Rejected(503, {'status': 'unavailable', 'reason': reason}, cause)
 
 
 def rejected(reason, status=400):
@@ -219,7 +221,7 @@ def run_bounded(slots, work, bound):
     thread.start()
     thread.join(bound)
     if thread.is_alive():
-        raise unavailable('timeout')
+        raise unavailable('timeout', 'request_timeout')
     if 'error' in outcome:
         raise outcome['error']
     return outcome['value']
@@ -233,9 +235,9 @@ def recognise_image(config, raw, deadline):
     try:
         return recognize(config, image, provider(config), deadline=deadline)
     except RecognitionUnavailable as exc:
-        raise unavailable('timeout' if exc.reason == 'timeout' else 'provider_error') from None
+        raise unavailable('timeout' if exc.reason == 'timeout' else 'provider_error', exc.cause) from None
     except ConfigurationError:
-        raise unavailable('provider_error') from None
+        raise unavailable('provider_error', 'provider_config') from None
 
 
 def audit_outcome(config, caller, image_sha256, status, body, started):
@@ -250,11 +252,12 @@ def audit_outcome(config, caller, image_sha256, status, body, started):
     plan = {'caller': caller['email'], 'image_sha256': image_sha256, 'provider': name, 'model': model}
     observed = {'outcome': body['status'], 'reason': body.get('reason'), 'http_status': status,
                 'duration_ms': int((time.monotonic() - started) * 1000)}
+    # Route 'internal': audit.events.route has a fixed CHECK list (V1) without provider names.
     try:
-        with activity(config, SERVICE, 'PROCESS', name, plan) as op:
+        with activity(config, SERVICE, 'PROCESS', 'internal', plan) as op:
             if op:
                 with transaction(config) as conn:
-                    event(conn, op, 'result_observed', observed, name)
+                    event(conn, op, 'result_observed', observed, 'internal')
                 if status != 200:
                     raise Rejected(status, body)
     except Rejected:
@@ -280,10 +283,10 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
             self.end_headers()
             self.wfile.write(data)
 
-        def report(self, status, body, started, caller=None):
-            # One line per request: never the image, token or result fields.
+        def report(self, status, body, started, caller=None, cause=None):
+            # One line per request: never the image, token, result fields or exception messages.
             print(json.dumps({'event': 'receipt_recognition', 'status': status, 'outcome': body['status'],
-                              'reason': body.get('reason'), 'caller': caller and caller['email'],
+                              'reason': body.get('reason'), 'cause': cause, 'caller': caller and caller['email'],
                               'duration_ms': int((time.monotonic() - started) * 1000)}, separators=(',', ':')),
                   file=sys.stderr, flush=True)
 
@@ -307,36 +310,41 @@ def handler(config_path, catalogue_path, keys=None, slots=None, bound=REQUEST_BO
             if urlsplit(self.path).path != PATH:
                 self.respond(404, {'status': 'not_found'})
                 return
-            caller, image_sha256, self.image_sha256 = None, None, None
+            caller, image_sha256, self.image_sha256, cause = None, None, None, None
             try:
                 try:
                     config, enabled = self.controls()
-                except Exception:
-                    enabled = False
+                except Exception as exc:
+                    enabled, cause = False, 'config_invalid:' + type(exc).__name__
                 if not enabled:
-                    raise unavailable('disabled')
+                    raise unavailable('disabled', cause)
                 authorization = self.headers.get('Authorization', '')
                 if not authorization.startswith('Bearer ') or len(authorization) > 8192:
-                    raise Rejected(401, {'status': 'denied'})
-                caller = verify_token(authorization[7:], config['receipt_recognition_audience'], callers(config), keys)
+                    raise Rejected(401, {'status': 'denied'}, 'token_missing')
+                try:
+                    caller = verify_token(authorization[7:], config['receipt_recognition_audience'], callers(config), keys)
+                except Exception as exc:
+                    raise unavailable('provider_error', 'keys_unavailable:' + type(exc).__name__) from None
                 if caller is None:
-                    raise Rejected(403, {'status': 'denied'})
+                    raise Rejected(403, {'status': 'denied'}, 'token_rejected')
                 try:
                     status, body = self.authorised(config, started)
-                    image_sha256 = body.get('imageSha256')
+                    image_sha256, cause = body.get('imageSha256'), 'recognized'
                 except Rejected as exc:
-                    status, body = exc.status, exc.body
+                    status, body, cause = exc.status, exc.body, exc.cause
                     image_sha256 = self.image_sha256
                 try:
                     audit(config, caller, image_sha256, status, body, started)
-                except Exception:
+                except Exception as exc:
                     # Fail closed: a result whose audit row could not be written is not returned.
                     status, body = 503, {'status': 'unavailable', 'reason': 'provider_error'}
+                    cause = 'audit_failed:' + type(exc).__name__
             except Rejected as exc:
-                status, body = exc.status, exc.body
-            except Exception:
+                status, body, cause = exc.status, exc.body, exc.cause
+            except Exception as exc:
                 status, body = 503, {'status': 'unavailable', 'reason': 'provider_error'}
-            self.report(status, body, started, caller)
+                cause = 'internal:' + type(exc).__name__
+            self.report(status, body, started, caller, cause)
             self.respond(status, body)
 
         def authorised(self, config, started):
