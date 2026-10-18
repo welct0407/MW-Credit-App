@@ -24,7 +24,7 @@ One pin per cell, one row per target. Rollback entries are the previous verified
 
 | Target | Hosting version | Release / public version | Verified | Rollback version | Record |
 | --- | --- | --- | --- | --- | --- |
-| DEV | `5057ec71cae7079e` | release `1792307275218000`; public `edc25e55f69e35f929f04939`; entry `/assets/index-DOu8wrP1.js` | R072 claim-before-prune cache fix, source `3cbe36a` (PR CI green), 18 October 2026; marker no-store on both hosts; same DEV build inputs as the R072 About build (DEV web app `appId`, `VITE_COMMAND_MODE=dev-owner-testing`, notifications unset) | `012ec4be805d719b` (R072 button alignment, source `53cf07d`, public `c6648d0b7316fa49456b575a`); earlier `3b9239bc2a6bc659` (R072 cache fix) and `fe7eaaa40b48ebff` (R071) | [R072 About screen](https://github.com/welct0407/MW-Credit-App/blob/c8257ae68e082901fc28ab393be5c532b0526236/project/Documents/Development_Changes.md#r072-about-screen) |
+| DEV | `8f60cf8c172d52b0` | `build-version.json` `{"version":"703259ffbe76f6b903c6c483","release":"R075"}` | R075 receipt recognition, source `85273a4`, 18 October 2026; built from Secret Manager `mw-credit-app-dev-firebase-web` | `5057ec71cae7079e` (R072 cache fix, release `1792307275218000`, public `edc25e55f69e35f929f04939`) | [R075 change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md) |
 | PROD | `047af2dcdd4016e2` | release `1792332604127000`; public `48e174c49ec578d20ba7efab`; entry `/assets/index-J612-CT8.js` | R074, source `b88653d4b84860b7eab622d0edfb472d851c03ce`, about 14:09Z 18 October 2026 (21:09 Bangkok), 15 of 15 files byte-identical on both hosts, package `012d4c6b...` | `191483d8f3f5ef87` (R073, release `1792318600122000`, public `085badcaf50ff9c886227364`); earlier `6f0fd98b6c19c1f9` (R072), `8d479df729eb1a78` (R071) | [R074 production promotion](https://github.com/welct0407/MW-Credit-App/blob/2c28911c1cbd7dc292364fabf22bb6ceaec1b328/project/Documents/Development_Changes.md#r074-production-promotion) |
 
 Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, immutable `/assets/**`, `no-store` for `/`, `sw.js`, `build-version.json`, manifest and `offline.html`; viewport zoom lock kept (accepted design, W5 R068).
@@ -34,7 +34,7 @@ Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, i
 | Target | Service | Revision (100%) | Image digest | Rollback revision and image |
 | --- | --- | --- | --- | --- |
 | DEV | reader | read-00031-wkl | `api@sha256:1fb9d763451c...` (R069, source `ba52508`) | read-00030-8sl on `2857d7ce...` (R068) |
-| DEV | command | command-00038-m6m | same | command-00037-tbn |
+| DEV | command | command-00041-528 | `api@sha256:e380ac61670a78b9d2a7b5c8704a3b1cb41bd2035e7bf4807b5db75461c006bd` (R075, source `85273a4`, Cloud Build `a96bf17d-bb82-475c-afce-1c16f4252057`) | command-00039-w8g (recognition disabled) on `1fb9d763451c...` (R069); 00040-bzj is the image-only step |
 | DEV | notify | notify-00011-lxg | same | notify-00010-8nq |
 | DEV | jobs | jobs-00011-7t7 | same | jobs-00010-rnl |
 | PROD | reader | read-00012-2lv | `api@sha256:3d152a44c6111b4ef0d7a5670790b967c3031749e78c7211f8ecd9e940bd1294` (R069, source `9c4a4cb`) | read-00011-2j9 on `808cc07761a3...` (R068) |
@@ -49,7 +49,7 @@ DEV applied about 09:43Z, PROD 10:17:44 to 10:18:21Z, both 17 October 2026 (plan
 
 | Target | Database | Flyway version | Verified |
 | --- | --- | --- | --- |
-| DEV | `loan_manager_dev` | V95 | R068 DEV first, 17 October 2026 |
+| DEV | `loan_manager_dev` | V96 (0 failed; `validate` 97, 0 invalid) | R075, 18 October 2026; backup and restore test before apply, dump sha256 `56d6297309f7d253c44e8e6e387e1b08038512ea100e9c30a504d3f43a03954c`, reference in the private recovery folder; temporary owner authority prepared and restored (ledger, notify, jobs and journal owners, V93 repeat runbook) |
 | PROD | `loan_manager_prod` | V95 (95 successful, 0 failed; `validate` 96 including baseline) | Migrated 93 to 95 at 04:09Z; read-only readback 12:03:26Z, 17 October 2026 ([R068](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r068-production-promotion), [R070](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r070-production-promotion)) |
 | PROD agent database `mw_agent` | `mw_agent` | Agent migration V6 (`runtime.service_heartbeats`) | Applied 10:25:46Z, 17 October 2026 (R069). DEV agent version: not recorded |
 
@@ -59,11 +59,11 @@ DEV applied about 09:43Z, PROD 10:17:44 to 10:18:21Z, both 17 October 2026 (plan
 | --- | --- |
 | Host | `vm-mw-credit-agent` |
 | Source checkout | `/opt/mw-integration-agent-src`, full clone of `welct0407/MW-Credit-App` `main`; HEAD read on the host at the 17 October 2026 deploy: equal to the deployed `code_version` |
-| Deployed monorepo commit | `5b4e50dfa9be919321ac30160a4e0c1bfef548a8` (R071 agent component: catalogue validator accepts `audit_relay`) |
+| Deployed monorepo commit | `131b43a4bde00300e21b2351c7b5df1875bfca96` (R075 agent component: recognizer), activated 18:02:35Z, 18 October 2026; freeze backup `runtime-20261018T180123769399Z`; checkout back on `main` `85273a4`. Previous: `5b4e50dfa9be919321ac30160a4e0c1bfef548a8` |
 | Virtual environment | `/opt/mw-integration-agent/.venv`, installed from `<checkout>/integration-agent` at that commit with `pip install --no-deps`; dependencies equal `integration-agent/requirements.lock` (verified 16 October at the earlier deploy; not re-recorded for R069) |
 | Installed package version | `0.1.0` (the package version is not bumped; `/ready` `code_version` is the identity) |
-| Service catalogue revision | 28 live and in the repository since 17:39:54Z, 17 October 2026 (adds `audit_relay`; backup `/root/service-catalogue.json.pre-rev28` holds 27); the deploy refuses a mismatch |
-| Verified | Activated 17:27:06Z, 17 October 2026: `/ready` 200, six timers resumed, no `mw-*` journal errors and all worker runs exit 0 in the first six minutes |
+| Service catalogue revision | 29 live (adds `receipt_recognition_api`, enabled); backup `/root/service-catalogue.json.pre-rev29` holds 28; the deploy refuses a mismatch |
+| Verified | 18 October 2026: `mw-receipt-recognition.service` enabled 18:03:39Z on `10.148.0.2:8790`, `healthz` `enabled: true`, no token 401, bad token 403; only caller `mw-credit-app-command-dev`; model `gemini-3.8-flash` on `global`; Instagram receipt cycle still on Codex. Earlier: activated 17:27:06Z, 17 October 2026 (rev 28), `/ready` 200 |
 | Host monitor | `/opt/mw-resource-monitoring/debian-health.py` equals the repository copy as of the R063 Wave 3 deploy (`300aeb5`); later monitor updates: not recorded |
 | Rollback | Catalogue first: restore `/root/service-catalogue.json.pre-rev28` by the config-only route (the `1feb6cd` validator rejects `audit_relay`). Then `deploy-runtime.py rollback --commit 5b4e50dfa9be919321ac30160a4e0c1bfef548a8` from `runtime-20261017T172649242280Z` (restores R069 `1feb6cd`). Earlier backups: `runtime-20261017T102501647216Z` (R069 deploy, holds R068 `679a76c`), `runtime-20261017T041230734761Z` (R068 deploy) |
 | Records | [Validator deploy](../../integration-agent/Change%20Logs/CHANGE_NOTES_AUDIT_RELAY_VALIDATOR_2026-10-17.md), [R069 promotion](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r069-production-promotion), [Wave 2 deployment](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/integration-agent/Change%20Logs/CHANGE_NOTES_W2_AGENT_DEPLOYMENT_2026-10-16.md#deployment-16-october-2026), [Wave 3 record](../../integration-agent/Change%20Logs/CHANGE_NOTES_W3_AGENT_2026-10-16.md) |
@@ -84,22 +84,21 @@ The separate `mw_agent` database holds integration journals/audit state. Metabas
 
 R060 corrected the confirmed production-store mode veto for main offline-dataset reads. [Recovery and evidence](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r060-production-offline-dataset-recovery).
 
-## R075 receipt recognition (DEV and VM side applied, 18 October 2026)
+## R075 receipt recognition (DEV applied and enabled, 18 October 2026)
 
-The owner authorized the DEV infrastructure apply and Forge applied it on 18 October 2026 (project `clever-oasis-508610-n7`). PROD is untouched: no PROD apply, no V96 in DEV or PROD (Flyway rows above stay V95). Recognition is still `disabled` on the DEV command service.
+Owner-authorized on 18 October 2026: merge (PR #69, `85273a4`), agent deploy with live restart, DEV enable. PROD is untouched: no PROD apply, no V96, no PROD caller on the recognizer. DEV pins are in the tables above (Hosting, Cloud Run, schema, Debian agent host); this table holds the rest.
 
 | Item | State |
 | --- | --- |
 | Vertex AI API | `aiplatform.googleapis.com` enabled, owned by `infrastructure/dev/main.tf` (`local.services`) |
-| VM identity | `roles/aiplatform.user` for `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com` (`infrastructure/ecosystem-debian/receipt-recognizer.tf`); plan 2 add, plan SHA256 `5417d34a05daaf957668ad34788a9d9e4d2cf5bc2b36e06f07564f2ec8f67c45`, re-plan No changes |
-| Firewall | `allow-receipt-recognizer-run-egress`, INGRESS priority 1000, source `10.148.0.0/20`, target the VM identity, TCP 8790 (same file) |
-| DEV command service | `mw-credit-app-command-dev` revision `mw-credit-app-command-dev-00039-w8g`, Ready, 100% traffic, `/health` 200; previous revision `mw-credit-app-command-dev-00038-m6m`. Direct VPC egress on network and subnet `default`, private ranges only. `DEV_RECEIPT_RECOGNITION=disabled`, `DEV_RECEIPT_RECOGNITION_URL=http://10.148.0.2:8790/v1/receipt-recognition` (also the ID-token audience). Plan 1 add and 1 in-place, plan SHA256 `c028ec5428091545fdf432b9f6640b1d0ca48b59ce07be2ef0d72971c80ab417`, re-plan No changes |
-| DEV activation tfvars | Private, `activation/dev.activation.tfvars` in the operator bucket: generation `1792344805662179` with `receipt_recognizer = { enabled = true, activation = "disabled" }`; previous generation `1792230219272578` |
-| Recognizer address | Pinned ephemeral VM internal IP `10.148.0.2`, port 8790; one shared URL and token audience; DEV and PROD are told apart by caller identity. VM Vertex egress uses its external IP `136.85.96.197`, unchanged |
-| Model | Owner choice: `gemini-3.8-flash` on location `global` (processing on Google's global endpoint accepted) |
-| Agent unit and catalogue | Authorized to roll out revision 29 (code pin, then config-only step) with the recognizer enabled for the DEV caller only; not yet recorded as done. Revision 29 `receipt_recognition_api` and the unit are not verified on the host |
-| PROD command service | Not applied: `PROD_RECEIPT_RECOGNITION` wiring and Direct VPC egress stay off |
-| Database | V96 pending in DEV and PROD |
+| VM identity | `roles/aiplatform.user` for `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com` (`infrastructure/ecosystem-debian/receipt-recognizer.tf`); plan SHA256 `5417d34a05daaf957668ad34788a9d9e4d2cf5bc2b36e06f07564f2ec8f67c45` |
+| Firewall | `allow-receipt-recognizer-run-egress`, INGRESS priority 1000, source `10.148.0.0/20`, target the VM identity, TCP 8790 |
+| DEV command service | `mw-credit-app-command-dev`: Direct VPC egress (network and subnet `default`, private ranges only); `DEV_RECEIPT_RECOGNITION=enabled`, `DEV_RECEIPT_RECOGNITION_URL=http://10.148.0.2:8790/v1/receipt-recognition` (also the ID-token audience); Ready, 100% traffic, `/health` 200. Plans: infrastructure first apply `c028ec5428091545fdf432b9f6640b1d0ca48b59ce07be2ef0d72971c80ab417`, image `08ce3fef0ac32023ee53cd97b5f31236f7bc9b757ba95e11647fa301a15471e2`, enable `4535dc6223838f8472dba255919e3aed758a67817fb63fdd234df823ac045853` |
+| DEV activation tfvars | Private `activation/dev.activation.tfvars`, generation `1792347299798067`; rollback generations `1792346627780271` and `1792344805662179` |
+| Previous DEV image | `sha256:1fb9d763451ca5c67b67d54bf8c93df8ece99e99928a32f6efcd207c8228dfcd` (R069) |
+| Recognizer address | Pinned ephemeral VM internal IP `10.148.0.2`, port 8790; one shared URL and token audience; DEV and PROD are told apart by caller identity. VM Vertex egress uses external IP `136.85.96.197`, unchanged |
+| PROD | Not applied: `PROD_RECEIPT_RECOGNITION` wiring, Direct VPC egress, V96 and the PROD caller stay off |
+
 
 ## Infrastructure and credentials
 
