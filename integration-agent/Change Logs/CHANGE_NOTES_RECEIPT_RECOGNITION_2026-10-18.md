@@ -12,8 +12,8 @@ Stage 1 of the owner's Receipt Recognition design (18 October 2026, Bangkok): on
 - `src/mw_integration_agent/cli.py`: `serve-receipt-recognition` (outside job audit, like `serve-webhook`); `check` reports the provider and recognizer switch.
 - `systemd/mw-receipt-recognition.service`: new unit, same hardening as the webhook receiver; install disabled.
 - Catalogue, in two commits after `13039cc` (revision 28 precedent; owner authorized merge and live restart, 18 October 2026):
-  - Step 1, deploy pin (this commit, "R075 agent step 1"): `service-catalogue.json` and the `SERVICE_CATALOGUE.md` table back at revision 28 without `receipt_recognition_api`; the code and its validator, which knows the name, stay. Deploy with `deploy-runtime.py`.
-  - Step 2, config-only (next commit, "R075 agent step 2"): revision 29 with `receipt_recognition_api` implemented, disabled, and its `SERVICE_CATALOGUE.md` row; applied to the live catalogue by the config-only route.
+  - Step 1, deploy pin `131b43a4bde00300e21b2351c7b5df1875bfca96` ("R075 agent step 1"): `service-catalogue.json` and the `SERVICE_CATALOGUE.md` table back at revision 28 without `receipt_recognition_api`; the code and its validator, which knows the name, stay. Deploy with `deploy-runtime.py`.
+  - Step 2, config-only revision 29 (the commit after step 1, "R075 agent step 2"): revision 29 with `receipt_recognition_api` implemented, disabled, and its `SERVICE_CATALOGUE.md` row; applied to the live catalogue by the config-only route.
 - `config.example.json`: `receipt_extraction_provider`, `receipt_recognition_*` (bind `10.148.0.2:8790`, audience `http://10.148.0.2:8790/v1/receipt-recognition` as pinned in Terraform, DEV and PROD command-service callers with their numeric subjects), `gemini_*` with the owner's model `gemini-3.8-flash` on location `global` (not offered in `asia-southeast1`); the recognizer stays disabled.
 - `scripts/verify-receipt-extraction.py`: `--time codex,gemini` times a real run per provider on six synthetic slips (VM only, explicit). The default proof run is kept; its time assertion now expects `HH:MM`, which `validate_receipt` has returned since it began truncating seconds.
 - Tests: new `tests/test_receipt_recognition.py` (33 tests: provider default, shape check, Gemini request, parsing, retry, schema translation, model pinning, configuration, token claims and signature, every contract status, busy and timeout slots, audit content); `test_receipts.py` patch target, `test_cli.py` and `test_systemd_units.py` updated for the new module, command and unit.
@@ -26,6 +26,7 @@ Stage 1 of the owner's Receipt Recognition design (18 October 2026, Bangkok): on
 | `python -m unittest tests.test_receipt_recognition` | 33 tests, OK |
 | `ruff check --no-cache integration-agent` | All checks passed |
 | `mw-integration-agent check --config config.example.json` (repository catalogue revision 29, at `13039cc`) | ok; `receipt_extraction_provider` codex, `receipt_recognition` false |
+| Suite, `ruff check --no-cache integration-agent`, `check` and `npm run check:docs` at step 1 `131b43a` (revision 28) and again at step 2 (revision 29) | 562 tests OK, 82 skipped; ruff passed; `check` ok; docs 0 failures, at both commits |
 | `npm run check:docs` (repository root) | Pass, 0 failures |
 
 ## Not run
