@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {hashEntries,evidenceName,variantOf,loadStages} from '../../scripts/ci/reuse-evidence.mjs';
 import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
@@ -570,6 +571,67 @@ test('R074 operator audience and live verification re-read each cited run once a
  const moved=r074Readback(m);await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=moved.readGithub(args);if(args[1].endsWith('/runs/24'))r.head_sha='0'.repeat(40);return r;},git}),/R074 ci terraform: cited run receipt/);
  await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('notify'),readGithub:r074Readback(m).readGithub,git}),/R074 live runtime differs/);
  const badId=structuredClone(m);badId.applicationCi.ci.jobs.check.runId=-1;const none=r074Readback(m);await assert.rejects(verifyHostingOnlyLivePackage(badId,{token:'t',request:make(),readGithub:none.readGithub,git}),/actual CI run ids required/);assert.equal(none.calls.length,0);
+});
+
+// R074 stage-hash evidence: a stage job may cite the evidence artifact its run uploaded for the source's own stage key.
+const r074Tree=(files={})=>Object.entries({'apps/pwa/src/App.tsx':'1','infrastructure/production/main.tf':'2','database/migrations/V95__x.sql':'3','services/business/borrowers.mjs':'4','project/Documents/Release_Tracker.md':'5','scripts/ci/stages.json':'6',...files}).map(([file,blob])=>`100644 blob ${blob.repeat(40).slice(0,40)}\t${file}\0`).join('');
+const r074Name=(tree,kind,job)=>{const stages=loadStages(kind),[stage,rule]=Object.entries(stages).find(([,x])=>x.checks.includes(job));return evidenceName(kind,stage,hashEntries(kind,stage,rule,tree),variantOf(job));};
+// Moves the given jobs' run to a head that is not an ancestor of the source and cites the matching evidence artifact.
+function r074Evidence(receipts,jobs,head,tree,artifact=x=>x){
+ const x=structuredClone(receipts);x.artifacts??={};
+ for(const [kind,job] of jobs){const entry=x[kind].jobs[job],name=r074Name(tree,kind,job);x.runs[entry.runId].run.head_sha=head;entry.headSha=head;entry.evidence=name;x.artifacts[name]=[artifact({id:entry.runId*100,name,expired:false,created_at:'2026-10-18T00:00:00Z',workflow_run:{id:entry.runId,head_sha:head,repository_id:1,head_repository_id:1}})];}
+ for(const [kind,job] of Object.entries({ci:Object.keys(x.ci.jobs),database:Object.keys(x.database.jobs)}).flatMap(([k,js])=>js.map(j=>[k,j])))if(x[kind].jobs[job].runId&&x.runs[x[kind].jobs[job].runId].run.head_sha===head)x[kind].jobs[job].headSha=head;
+ return x;
+}
+const r074EvidenceGit=({source,tool,tree,outside})=>{const base=r071Git({source,tool});return (root,args)=>{if(args[0]==='ls-tree'){assert.deepEqual(args,['ls-tree','-r','-z','--full-tree',source]);return tree;}if(args[0]==='merge-base'&&args[1]===outside)return '0'.repeat(40);return base(root,args);};};
+test('R074 accepts stage-hash evidence from a run whose head is not an ancestor of the source',async t=>{
+ const {m,source,tool,ci}=await r074Package(t),tree=r074Tree(),outside='f6'.repeat(20),git=r074EvidenceGit({source,tool,tree,outside});
+ const stageJobs=[['ci','check'],['ci','e2e (shard 1 of 3)'],['ci','e2e (shard 2 of 3)'],['ci','e2e (shard 3 of 3)'],['ci','terraform'],['database','rebuild (migrations)'],['database','rebuild (receiving)'],['database','rebuild (phase5)'],['database','rebuild (phase8)']];
+ // Every stage job from runs at a non-ancestor head; guards keeps the input-equivalent ancestor rule from its own run.
+ const receipts=r074Evidence(r074Ci(ci,{guards:ci}),stageJobs,outside,tree);
+ const result=validateR074Ci(receipts,m,git);
+ assert.equal(result.ci.check.evidence,r074Name(tree,'ci','check'));assert.match(result.ci['e2e (shard 2 of 3)'].evidence,/^evidence-ci-e2e-[a-f0-9]{64}-2$/);assert.match(result.database['rebuild (phase5)'].evidence,/^evidence-database-rebuild-[a-f0-9]{64}-phase5$/);assert.deepEqual(result.database.guards,{runId:23,headSha:ci});
+ assert.equal((await hostingOnlyPlan({...structuredClone(m),applicationCi:receipts},{git})).site,site);
+ // Without the evidence field the same run is an ordinary non-ancestor and rejects.
+ const plain=structuredClone(receipts);delete plain.ci.jobs.check.evidence;assert.throws(()=>validateR074Ci(plain,m,git),/R074 ci check: run is not input-equivalent/);
+ for(const [mutate,pattern,useGit=git] of [
+  [x=>{x.artifacts[x.ci.jobs.check.evidence][0].expired=true},/R074 ci check: no unexpired same-repository evidence artifact/],
+  [x=>{x.artifacts[x.ci.jobs.terraform.evidence][0].workflow_run.id=99},/R074 ci terraform: no unexpired/],
+  [x=>{x.artifacts[x.ci.jobs.check.evidence][0].workflow_run.head_sha='0'.repeat(40)},/R074 ci check: no unexpired/],
+  [x=>{x.artifacts[x.database.jobs['rebuild (phase8)'].evidence][0].workflow_run.head_repository_id=2},/R074 database rebuild \(phase8\): no unexpired/],
+  [x=>{x.artifacts[x.ci.jobs.check.evidence][0].name+='x'},/R074 ci check: no unexpired/],
+  [x=>{delete x.artifacts[x.ci.jobs.check.evidence]},/R074 ci check: no unexpired/],
+  [x=>{x.runs[22].jobs.find(j=>j.name==='e2e (shard 1 of 3)').conclusion='skipped'},/R074 ci e2e \(shard 1 of 3\): missing executed job/],
+  [x=>{x.runs[21].run.conclusion='failure'},/R074 ci check: successful/],
+  [x=>{x.ci.jobs.check.evidence=r074Name(tree,'ci','e2e (shard 1 of 3)')},/R074 ci check: evidence name does not match/],
+  [x=>{x.database.jobs.guards.evidence=x.database.jobs['rebuild (migrations)'].evidence},/R074 database guards: guards has no stage evidence/],
+ ]){const x=structuredClone(receipts);mutate(x);assert.throws(()=>validateR074Ci(x,m,useGit),pattern);}
+ // A relevant source change gives another key, so the cited artifact no longer names the source. Each case cites
+ // evidence for the jobs of one run only (the other runs stay input-equivalent ancestors, where the fake diff is empty).
+ const e2eJobs=[1,2,3].map(n=>['ci',`e2e (shard ${n} of 3)`]),rebuildJobs=['migrations','receiving','phase5','phase8'].map(g=>['database',`rebuild (${g})`]);
+ for(const [jobs,file,pattern] of [[[['ci','check']],'services/business/borrowers.mjs',/R074 ci check: evidence name does not match the source stage hash/],[e2eJobs,'apps/pwa/src/App.tsx',/R074 ci e2e \(shard 1 of 3\): evidence name does not match/],[[['ci','terraform']],'infrastructure/production/main.tf',/R074 ci terraform: evidence name does not match/],[rebuildJobs,'database/migrations/V95__x.sql',/R074 database rebuild \(migrations\): evidence name does not match/]]){
+  const one=r074Evidence(r074Ci(ci,{e2e:'b2'.repeat(20),rebuild:'e5'.repeat(20)}),jobs,outside,tree);
+  assert.doesNotThrow(()=>validateR074Ci(one,m,git));
+  assert.throws(()=>validateR074Ci(one,m,r074EvidenceGit({source,tool,outside,tree:r074Tree({[file]:'9'})})),pattern);
+ }
+ // An irrelevant source change keeps every key.
+ assert.doesNotThrow(()=>validateR074Ci(receipts,m,r074EvidenceGit({source,tool,outside,tree:r074Tree({'project/Documents/Release_Tracker.md':'9'})})));
+ // The key is the source commit's, not the delivery tool's or HEAD's (the fake asserts the ls-tree arguments).
+ const calls=[];validateR074Ci(receipts,m,(root,args)=>{calls.push(args.join(' '));return git(root,args);});assert.deepEqual(calls.filter(c=>c.startsWith('ls-tree')),[`ls-tree -r -z --full-tree ${source}`]);
+});
+test('R074 live verification reads the evidence artifacts live, not from the package',async t=>{
+ const {m,source,tool,ci}=await r074Package(t),tree=r074Tree(),outside='f6'.repeat(20),git=r074EvidenceGit({source,tool,tree,outside});
+ m.applicationCi=r074Evidence(r074Ci(ci),[['ci','check'],['ci','e2e (shard 1 of 3)'],['ci','e2e (shard 2 of 3)'],['ci','e2e (shard 3 of 3)']],outside,tree);
+ const live=structuredClone(m.applicationCi.artifacts);
+ // The package's own lists are poisoned; only the live lists may decide.
+ for(const list of Object.values(m.applicationCi.artifacts))list[0].expired=true;
+ const make=()=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=m.runtime.services[role];return {ok:true,json:async()=>({latestReadyRevision:'x/'+pin.revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},template:{containers:[{image:pin.image}]}})};};
+ const reader=(tamper=()=>{})=>{const calls=[],runs=r074Readback(m);return {calls,readGithub:args=>{calls.push(args[1]);if(args[1].includes('/actions/artifacts?')){const name=decodeURIComponent(args[1].split('name=')[1].split('&')[0]),list=structuredClone(live[name]??[]);tamper(name,list);return {artifacts:list};}return runs.readGithub(args);}};};
+ const ok=reader();await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:ok.readGithub,git});
+ const artifactCalls=ok.calls.filter(c=>c.includes('/actions/artifacts?'));assert.equal(artifactCalls.length,4);for(const name of Object.keys(live))assert.ok(artifactCalls.includes(`repos/welct0407/MW-Credit-App/actions/artifacts?name=${name}&per_page=20`));
+ await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:reader((name,list)=>{if(name===m.applicationCi.ci.jobs.check.evidence)list[0].expired=true;}).readGithub,git}),/R074 ci check: no unexpired same-repository evidence artifact/);
+ await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:reader((_name,list)=>{list.length=0;}).readGithub,git}),/R074 ci check: no unexpired/);
+ const bad=structuredClone(m);bad.applicationCi.ci.jobs.check.evidence='evidence-ci-check-../../x';const none=reader();await assert.rejects(verifyHostingOnlyLivePackage(bad,{token:'t',request:make(),readGithub:none.readGithub,git}),/evidence artifact names required/);assert.ok(!none.calls.some(c=>c.includes('/actions/artifacts?')));
 });
 
 // R068: one image on all four services after the separately applied V94 and V95 (PROD 93 to 95).

@@ -4,9 +4,11 @@ name: Database migrations
 # tested commit; avoid duplicate tag runs. Service changes run the integration
 # groups too (APP-TEST-02): they exercise services/** against real SQL.
 # Markdown never triggers a rebuild. The `changes` job skips the rebuild groups
-# when they already passed on this commit (pushed to another branch), a parent
-# or an earlier head whose database-relevant files are identical; `guards`
-# always runs. A Windows dispatch always rebuilds (different route).
+# when all four have trusted evidence for the same database stage hash
+# (scripts/ci/reuse-evidence.mjs: sha256 over the database-relevant tracked
+# files); each group uploads its `evidence-database-rebuild-<hash>-<group>`
+# artifact as its last step. `guards` always runs. A Windows dispatch always
+# rebuilds (different route) and records no evidence.
 on:
   push:
     branches: ['**']
@@ -20,7 +22,8 @@ on:
         default: ubuntu-latest
 permissions:
   contents: read
-  checks: read
+  # Evidence lookup: artifacts, runs and jobs of earlier runs.
+  actions: read
 concurrency:
   group: database-migrations-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -35,7 +38,6 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-          fetch-depth: 40
       - name: Reuse evidence from earlier runs
         id: reuse
         env:
@@ -92,6 +94,14 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      # Stage evidence key (scripts/ci/reuse-evidence.mjs), written outside the checkout before the
+      # tests; the runner image's node runs it.
+      # Linux only: the evidence name carries no OS, so a Windows pass must not count for Linux.
+      - name: Evidence key
+        if: runner.os == 'Linux'
+        id: evidence
+        shell: bash
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow database --stage rebuild --check "rebuild (${{ matrix.group }})" --out "$RUNNER_TEMP/evidence/{name}.json"
       - name: Keep the toolchain outside the checkout
         shell: pwsh
         run: '"MW_DB_TOOL_ROOT=$(Join-Path $env:RUNNER_TEMP db-tools)" >> $env:GITHUB_ENV'
@@ -133,3 +143,13 @@ jobs:
       - name: Tests leave tracked files unchanged
         shell: bash
         run: git diff --exit-code --stat && test -z "$(git status --porcelain)"
+      # Last step, so it runs only when every step above passed. Linux only, as the key above.
+      - name: Keep stage evidence
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.evidence.outputs.name }}
+          path: ${{ steps.evidence.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true

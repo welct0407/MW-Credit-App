@@ -4,11 +4,13 @@ name: Development checks
 # status (this is what branch protection can require) without running the
 # expensive stages. Main pushes are classified by the pushed commit range; a
 # first push and an unreadable range select everything. Then
-# scripts/ci/reuse-evidence.mjs drops every selected stage that already passed
-# on a nearby commit (this commit elsewhere, a parent, an earlier head of the
-# branch) whose stage-relevant files are identical: records-only follow-up
-# pushes, "merge main" commits and the merge of a tested pull request reuse the
-# earlier run, and the step summary links the run that holds the evidence.
+# scripts/ci/reuse-evidence.mjs drops every selected stage whose checks all
+# have trusted evidence for the same stage hash (sha256 over the tracked files
+# relevant to the stage in scripts/ci/stages.json): each stage job computes
+# that key right after checkout and uploads an `evidence-ci-<stage>-<hash>`
+# artifact as its last step, so it exists only when every step passed.
+# Records-only follow-up pushes, "merge main" commits and the merge of a tested
+# pull request then reuse the earlier run, and the step summary cites it.
 # Manual dispatch also reuses unless `force` is set.
 on:
   push:
@@ -24,7 +26,8 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  checks: read
+  # Evidence lookup: artifacts, runs and jobs of earlier runs.
+  actions: read
 concurrency:
   group: development-checks-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -42,8 +45,6 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-          # History for the evidence search: earlier heads of the branch and the parents of a merge.
-          fetch-depth: 40
       # Both run on every event, including documentation-only PRs, because the
       # evidence folders and documents they guard are exactly what the stages
       # below skip: binary evidence placement, then documentation links, pins
@@ -94,6 +95,11 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
+      # Stage evidence key (scripts/ci/reuse-evidence.mjs), written outside the checkout
+      # before the tests; the runner image's node runs it.
+      - name: Evidence key
+        id: evidence
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow ci --stage check --check "check" --out "$RUNNER_TEMP/evidence/{name}.json"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
@@ -104,6 +110,15 @@ jobs:
       - run: npm audit --omit=dev --audit-level=moderate
       - name: Checks leave tracked files unchanged
         run: git diff --exit-code --stat && test -z "$(git status --porcelain)"
+      # Last step, so it runs only when every step above passed.
+      - name: Keep stage evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.evidence.outputs.name }}
+          path: ${{ steps.evidence.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true
 
   lint:
     # ALL-CI-04: Biome lint (rules in biome.json). Blocking on errors;
@@ -115,12 +130,26 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
+      # Stage evidence key (scripts/ci/reuse-evidence.mjs), written outside the checkout
+      # before the tests; the runner image's node runs it.
+      - name: Evidence key
+        id: evidence
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow ci --stage lint --check "lint" --out "$RUNNER_TEMP/evidence/{name}.json"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run lint -- --reporter=github
+      # Last step, so it runs only when every step above passed.
+      - name: Keep stage evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.evidence.outputs.name }}
+          path: ${{ steps.evidence.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true
 
   terraform:
     needs: changes
@@ -130,6 +159,11 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
+      # Stage evidence key (scripts/ci/reuse-evidence.mjs), written outside the checkout
+      # before the tests; the runner image's node runs it.
+      - name: Evidence key
+        id: evidence
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow ci --stage terraform --check "terraform" --out "$RUNNER_TEMP/evidence/{name}.json"
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: 1.16.5
@@ -167,6 +201,15 @@ jobs:
           done
           echo "validated=$roots tested_directories=$tested"
           exit $failed
+      # Last step, so it runs only when every step above passed.
+      - name: Keep stage evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.evidence.outputs.name }}
+          path: ${{ steps.evidence.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true
 
   e2e:
     needs: changes
@@ -181,6 +224,11 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
+      # Stage evidence key (scripts/ci/reuse-evidence.mjs), written outside the checkout
+      # before the tests; the runner image's node runs it.
+      - name: Evidence key
+        id: evidence
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow ci --stage e2e --check "e2e (shard ${{ matrix.shard }} of 3)" --out "$RUNNER_TEMP/evidence/{name}.json"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
@@ -204,6 +252,15 @@ jobs:
             playwright-report/
           if-no-files-found: ignore
           retention-days: 7
+      # Last step, so it runs only when every step above passed.
+      - name: Keep stage evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.evidence.outputs.name }}
+          path: ${{ steps.evidence.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true
 
   result:
     # Single status for branch protection: fails when any selected stage failed

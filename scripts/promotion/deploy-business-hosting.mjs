@@ -12,7 +12,7 @@ import {validateR053Candidate} from './r053-candidate.mjs';
 import {validateBusinessApplyReceipts} from './business-candidate.mjs';
 import {verifyOperatorCredential} from '../production/deploy-foundation-hosting.mjs';
 import {INSTANCE_NAMES,isSharedInstanceConnection} from '../../services/lib/identity.mjs';
-import {loadStages,isRelevant} from '../ci/reuse-evidence.mjs';
+import {loadStages,isRelevant,hashEntries,evidenceName,variantOf} from '../ci/reuse-evidence.mjs';
 
 const project='clever-oasis-508610-n7',prodSite='mw-credit-prod-737787224638';
 const admin=`mw-credit-unattended-admin@${project}.iam.gserviceaccount.com`;
@@ -335,6 +335,11 @@ const withoutScripts=(git,root,commit)=>{let p;try{p=JSON.parse(git(root,['show'
 // R074: per-job CI evidence. Each required job cites its own run; that run's head is the delivery-tool commit
 // (as for validateWaveCi) or an ancestor of the source whose diff to the source touches no file relevant to the
 // job's stage in scripts/ci/stages.json, the rule CI itself uses to reuse a job. `guards` is gated as database rebuild.
+// Alternatively a stage job's entry names its stage-hash evidence artifact (scripts/ci/reuse-evidence.mjs): the name
+// must be the source commit's own stage key and an unexpired same-repository artifact of that run at that head must
+// carry it. Content equality is then the proof, so the head need not be an ancestor (a pull request run tested the
+// synthetic merge; a squash or cherry-pick has another head). `guards` is no stage and has no evidence artifact.
+const evidencePattern=/^evidence-[a-z0-9-]+-[a-f0-9]{64}(?:-[A-Za-z0-9]+)?$/;
 const r074CiJobs={ci:{path:'.github/workflows/ci.yml',jobs:['check','e2e (shard 1 of 3)','e2e (shard 2 of 3)','e2e (shard 3 of 3)','terraform']},database:{path:'.github/workflows/database.yml',jobs:['guards','rebuild (migrations)','rebuild (receiving)','rebuild (phase5)','rebuild (phase8)']}};
 const plainObject=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 export function validateR074Ci(receipts,m,git=sourceGit,label='R074',allowed=hostingOnlyDeliveryAllowed('R074')){
@@ -343,20 +348,31 @@ export function validateR074Ci(receipts,m,git=sourceGit,label='R074',allowed=hos
  const delivery=head=>head===tool&&once('tool',()=>tool===m.sourceCommit||git(m.repoRoot,['merge-base',m.sourceCommit,tool])===m.sourceCommit&&strictNames(git,m.repoRoot,m.sourceCommit,tool).every(allowed));
  // Files that differ from the source, or null when the head is not an ancestor of the source.
  const changed=head=>once('head:'+head,()=>git(m.repoRoot,['merge-base',head,m.sourceCommit])===head?strictNames(git,m.repoRoot,head,m.sourceCommit):null);
+ // The source commit's tree (not HEAD or the delivery tool), untrimmed NUL-separated output.
+ const tree=()=>once('tree',()=>git(m.repoRoot,['ls-tree','-r','-z','--full-tree',m.sourceCommit]));
+ const artifacts=plainObject(receipts?.artifacts)?receipts.artifacts:{};
  for(const [kind,rule] of Object.entries(r074CiJobs)){
   const stages=loadStages(kind),map=receipts?.[kind]?.jobs;result[kind]={};
   requireValue(plainObject(map)&&exact(Object.keys(map).sort(),[...rule.jobs].sort()),label+' '+kind+' CI jobs must be exactly '+rule.jobs.join(', '));
   for(const name of rule.jobs){
-   const at=label+' '+kind+' '+name+': ',{runId,headSha}=plainObject(map[name])?map[name]:{};
-   const stage=name==='guards'?stages.rebuild:Object.values(stages).find(s=>s.checks.includes(name));requireValue(stage,at+'no CI stage covers this job');
+   const at=label+' '+kind+' '+name+': ',{runId,headSha,evidence}=plainObject(map[name])?map[name]:{};
+   const [stageName,stage]=name==='guards'?['rebuild',stages.rebuild]:Object.entries(stages).find(([,s])=>s.checks.includes(name))??[];requireValue(stage,at+'no CI stage covers this job');
    requireValue(Number.isSafeInteger(runId)&&runId>0&&/^[a-f0-9]{40}$/.test(headSha??''),at+'run id and head required');
    const receipt=Object.hasOwn(runs,String(runId))?runs[String(runId)]:undefined,r=receipt?.run,jobs=Array.isArray(receipt?.jobs)?receipt.jobs:[];
    requireValue(r?.id===runId&&r.head_sha===headSha,at+'cited run receipt missing or for another run or head');
    requireValue(r.repository?.full_name==='welct0407/MW-Credit-App'&&r.path===rule.path&&['push','pull_request','workflow_dispatch'].includes(r.event)&&r.status==='completed'&&r.conclusion==='success',at+'successful '+rule.path+' run required');
-   const files=delivery(headSha)?[]:changed(headSha);
-   requireValue(files&&!files.some(file=>isRelevant(stage,file)),at+'run is not input-equivalent to the source');
+   if(evidence!==undefined){
+    requireValue(name!=='guards',at+'guards has no stage evidence; cite an input-equivalent run');
+    const expected=once(kind+'/'+name,()=>evidenceName(kind,stageName,hashEntries(kind,stageName,stage,tree()),variantOf(name)));
+    requireValue(evidence===expected,at+'evidence name does not match the source stage hash');
+    const list=Object.hasOwn(artifacts,expected)&&Array.isArray(artifacts[expected])?artifacts[expected]:[];
+    requireValue(list.some(a=>a?.name===expected&&a.expired===false&&a.workflow_run?.id===runId&&a.workflow_run.head_sha===headSha&&Number.isSafeInteger(a.workflow_run.repository_id)&&a.workflow_run.head_repository_id===a.workflow_run.repository_id),at+'no unexpired same-repository evidence artifact of that run and head');
+   }else{
+    const files=delivery(headSha)?[]:changed(headSha);
+    requireValue(files&&!files.some(file=>isRelevant(stage,file)),at+'run is not input-equivalent to the source');
+   }
    requireValue(jobs.filter(job=>job?.name===name).length===1&&jobs.find(job=>job?.name===name).conclusion==='success',at+'missing executed job');
-   result[kind][name]={runId,headSha};
+   result[kind][name]=evidence===undefined?{runId,headSha}:{runId,headSha,evidence};
   }
  }
  return result;
@@ -405,7 +421,11 @@ export async function verifyHostingOnlyLivePackage(m,{token,request=fetch,readGi
   const a=m.applicationCi,ids=[...new Set(Object.keys(r074CiJobs).flatMap(kind=>Object.values(plainObject(a?.[kind]?.jobs)?a[kind].jobs:{}).map(job=>job?.runId)))],runs={};
   requireValue(ids.length>0&&ids.every(id=>Number.isSafeInteger(id)&&id>0),'actual CI run ids required');
   for(const id of ids)runs[String(id)]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};
-  validateR074Ci({runs,ci:a.ci,database:a.database},m,git,L,hostingOnlyDeliveryAllowed(L));
+  // Evidence artifacts are read live too; the package's artifact lists are not used here.
+  const names=[...new Set(Object.keys(r074CiJobs).flatMap(kind=>Object.values(plainObject(a?.[kind]?.jobs)?a[kind].jobs:{}).map(job=>job?.evidence)).filter(x=>x!==undefined))],artifacts={};
+  requireValue(names.every(x=>typeof x==='string'&&evidencePattern.test(x)),'evidence artifact names required');
+  for(const x of names)artifacts[x]=(await gh(['api',`repos/welct0407/MW-Credit-App/actions/artifacts?name=${encodeURIComponent(x)}&per_page=20`])).artifacts;
+  validateR074Ci({runs,artifacts,ci:a.ci,database:a.database},m,git,L,hostingOnlyDeliveryAllowed(L));
  }else{
   const live={};for(const kind of Object.keys(runtimeCiKinds)){const id=m.applicationCi?.[kind]?.run?.id;requireValue(Number.isSafeInteger(id)&&id>0,'actual CI run id required');live[kind]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};}
   validateWaveCi(live,m,git,L,hostingOnlyDeliveryAllowed(L));
