@@ -1,2 +1,2 @@
-/** The sole Open release (project/Documents/Release_Tracker.md); a unit test keeps the two equal. */
-export const releaseNumber='R072';
+/** The Open release (project/Documents/Release_Tracker.md), or while it is promoted the Frozen release just before it; a unit test enforces this. */
+export const releaseNumber='R073';
