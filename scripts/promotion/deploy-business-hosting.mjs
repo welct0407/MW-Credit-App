@@ -551,10 +551,10 @@ export async function verifyR069LivePackage(m,options={}){return verifyWaveLiveP
 // service only, Direct VPC egress (private ranges, default network/subnet) plus PROD_RECEIPT_RECOGNITION and
 // PROD_RECEIPT_RECOGNITION_URL (infrastructure/production/receipt-recognizer.tf and runtime.tf). The activation value
 // is pinned by the package and read back live. Source descends from the R074 release; CI is R074's per-job gate; the
-// artifact carries the release number (R075 marker). The delivery-tool commit may also carry this README and the
-// reviewed PROD backup tool, as for R068.
+// artifact carries the release number (R075 marker). The delivery-tool commit may also carry this README, the
+// reviewed PROD backup tool (as for R068) and the read-only CONNECT preflight collector with its unit test.
 const r075Migrations=['V96__manual_payment_command_v7_bank_reference.sql'];
-const r075DeliveryAllowed=file=>runtimeDeliveryAllowed(file)||['scripts/database/Backup-ProductionPromotion.py','scripts/promotion/README.md'].includes(file);
+const r075DeliveryAllowed=file=>runtimeDeliveryAllowed(file)||['scripts/database/Backup-ProductionPromotion.py','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py','scripts/promotion/README.md'].includes(file);
 const r075PlanActions=[...waveImageActions,'command.vpcAccess','command.receiptRecognition','command.receiptRecognitionUrl'];
 export const R075_RECOGNIZER_URL='http://10.148.0.2:8790/v1/receipt-recognition';
 export function validateR075Source(m,git=sourceGit){
