@@ -2,17 +2,29 @@ name: Development checks
 # One workflow, five stages. A small `changes` job classifies the event so a
 # documentation-only pull request still posts the `Development checks result`
 # status (this is what branch protection can require) without running the
-# expensive stages. Main pushes are classified by the pushed commit range;
-# manual dispatch, a first push and an unreadable range run everything.
+# expensive stages. Main pushes are classified by the pushed commit range; a
+# first push and an unreadable range select everything. Then
+# scripts/ci/reuse-evidence.mjs drops every selected stage that already passed
+# on a nearby commit (this commit elsewhere, a parent, an earlier head of the
+# branch) whose stage-relevant files are identical: records-only follow-up
+# pushes, "merge main" commits and the merge of a tested pull request reuse the
+# earlier run, and the step summary links the run that holds the evidence.
+# Manual dispatch also reuses unless `force` is set.
 on:
   push:
     branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
+    inputs:
+      force:
+        description: Run every stage even when an earlier run already covers it
+        type: boolean
+        default: false
 permissions:
   contents: read
   pull-requests: read
+  checks: read
 concurrency:
   group: development-checks-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -21,12 +33,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      app: ${{ steps.classify.outputs.app }}
-      e2e: ${{ steps.classify.outputs.e2e }}
-      terraform: ${{ steps.classify.outputs.terraform }}
+      check: ${{ steps.reuse.outputs.run_check }}
+      lint: ${{ steps.reuse.outputs.run_lint }}
+      e2e: ${{ steps.reuse.outputs.run_e2e }}
+      terraform: ${{ steps.reuse.outputs.run_terraform }}
+      evidence: ${{ steps.reuse.outputs.evidence }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with: { persist-credentials: false }
+        with:
+          persist-credentials: false
+          # History for the evidence search: earlier heads of the branch and the parents of a merge.
+          fetch-depth: 40
       # Both run on every event, including documentation-only PRs, because the
       # evidence folders and documents they guard are exactly what the stages
       # below skip: binary evidence placement, then documentation links, pins
@@ -61,10 +78,17 @@ jobs:
           if grep -Eq '^(infrastructure/|\.github/workflows/ci\.yml$)' app.txt; then terraform=true; fi
           echo "app=$app" >> "$GITHUB_OUTPUT"; echo "e2e=$e2e" >> "$GITHUB_OUTPUT"; echo "terraform=$terraform" >> "$GITHUB_OUTPUT"
           printf 'changed=%s app=%s e2e=%s terraform=%s\n' "$(wc -l < changed.txt)" "$app" "$e2e" "$terraform"
+      - name: Reuse evidence from earlier runs
+        id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEEDED: check=${{ steps.classify.outputs.app }},lint=${{ steps.classify.outputs.app }},terraform=${{ steps.classify.outputs.terraform }},e2e=${{ steps.classify.outputs.e2e }}
+          FORCE: ${{ inputs.force == true && '--force' || '' }}
+        run: node scripts/ci/reuse-evidence.mjs --workflow ci --needed "$NEEDED" $FORCE
 
   check:
     needs: changes
-    if: needs.changes.outputs.app == 'true'
+    if: needs.changes.outputs.check == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -85,7 +109,7 @@ jobs:
     # ALL-CI-04: Biome lint (rules in biome.json). Blocking on errors;
     # warnings are reported as annotations and do not fail the job.
     needs: changes
-    if: needs.changes.outputs.app == 'true'
+    if: needs.changes.outputs.lint == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -183,15 +207,19 @@ jobs:
 
   result:
     # Single status for branch protection: fails when any selected stage failed
-    # or was cancelled, passes when stages were skipped as not applicable.
+    # or was cancelled, passes when stages were skipped as not applicable or as
+    # covered by an earlier run (named in `evidence`).
     name: Development checks result
     needs: [changes, check, lint, terraform, e2e]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: |
+      - env:
+          EVIDENCE: ${{ needs.changes.outputs.evidence }}
+        run: |
           echo "changes=${{ needs.changes.result }} check=${{ needs.check.result }} lint=${{ needs.lint.result }} terraform=${{ needs.terraform.result }} e2e=${{ needs.e2e.result }}"
+          [ -z "$EVIDENCE" ] || echo "reused: $EVIDENCE"
           case "${{ needs.changes.result }} ${{ needs.check.result }} ${{ needs.lint.result }} ${{ needs.terraform.result }} ${{ needs.e2e.result }}" in
             *failure*|*cancelled*) echo 'A selected stage failed'; exit 1 ;;
           esac

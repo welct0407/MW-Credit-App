@@ -1,6 +1,6 @@
 # AGENTS.md — MW Credit
 
-Owner revision: **17 October 2026, Asia/Bangkok**. MW Credit is a small PWA used by two people, including the owner. Prefer simple, reversible solutions and short delivery cycles; no enterprise process, extra services or speculative compliance requirements.
+Owner revision: **18 October 2026, Asia/Bangkok**. MW Credit is a small PWA used by two people, including the owner. Prefer simple, reversible solutions and short delivery cycles; no enterprise process, extra services or speculative compliance requirements.
 
 ## Hard rules
 
@@ -13,7 +13,7 @@ Owner revision: **17 October 2026, Asia/Bangkok**. MW Credit is a small PWA used
 - **Records.** Update every affected existing document in the same batch and record the batch once: a change note file (no approval needed) with the [template](project/Documents/Rules/Development_Workflow.md#records-change-notes-and-retention), or an entry in the existing development record; read-only answers need none. Optional new documents need explicit owner approval.
 - **AppSheet** is retired, not a dependency or delivery gate ([retirement evidence](project/outputs/r057-appsheet-retirement/README.md)); do not reactivate it without scoped owner authorization.
 - **AI Collection** is a separate scope with its own instructions and catalogue; compatibility junctions are not runtimes.
-- **PWA product development** uses the [six-agent process](project/Documents/Rules/PWA_Orchestration.md#six-agent-development-process) automatically; this is standing owner authorization to delegate to Agents A–F. Other work is done directly by default.
+- **PWA product development** uses the [six-agent process](project/Documents/Rules/PWA_Orchestration.md#six-agent-development-process) automatically; this is standing owner authorization to delegate to the named team Archie, Byte, Chase, Dewey, Echo and Forge (Agents A–F). Start each worker once per session and give it every later task in that session; do not create a new worker per task. Other work is done directly by default.
 - **`integration-agent/`** follows [its AGENTS](integration-agent/AGENTS.md) (default deny, no Instagram browser automation, own catalogue and change notes); its stricter runtime and safety rules win.
 
 ## Repository layout and ownership

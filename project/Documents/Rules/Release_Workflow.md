@@ -24,7 +24,7 @@ Readiness, task completion and documentation publication do not freeze or alloca
 
 ## Test selection and evidence reuse
 
-[PWA Orchestration](PWA_Orchestration.md#proportional-validation) is the single test-selection policy. Record actual results once and reference them. Use the same consolidated run for acceptance and promotion when the relevant inputs are unchanged. Do not rerun solely because Git has a new documentation/merge commit.
+[PWA Orchestration](PWA_Orchestration.md#proportional-validation) is the single test-selection policy and its [lean check routine](PWA_Orchestration.md#lean-check-routine) says who runs what once. Record actual results once and reference them. Use the same consolidated run for acceptance and promotion when the relevant inputs are unchanged. Do not rerun solely because Git has a new documentation/merge commit: the workflows skip a stage that already passed on identical stage-relevant inputs and link the run holding the evidence in the step summary; cite that run, not the skipping one.
 
 Pin runtime/build/dependency/configuration inputs and, for test reuse, tests/fixtures/runner assumptions. A relevant changed input or observed failure invalidates affected evidence. Skipped checks and HTTP reachability alone do not prove business correctness.
 

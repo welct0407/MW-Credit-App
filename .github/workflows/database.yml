@@ -3,10 +3,14 @@ name: Database migrations
 # so one run serves both (the check appears on the PR). Release tags reuse the
 # tested commit; avoid duplicate tag runs. Service changes run the integration
 # groups too (APP-TEST-02): they exercise services/** against real SQL.
+# Markdown never triggers a rebuild. The `changes` job skips the rebuild groups
+# when they already passed on this commit (pushed to another branch), a parent
+# or an earlier head whose database-relevant files are identical; `guards`
+# always runs. A Windows dispatch always rebuilds (different route).
 on:
   push:
     branches: ['**']
-    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'services/**', 'scripts/rehearsal/**', 'package-lock.json', '.github/workflows/database.yml', 'scripts/dictionary/capture_postgresql.py', 'project/outputs/database-transfer-20261007/source-manifest.json']
+    paths: ['database/**', 'scripts/database/**', 'tests/integration/**', 'services/**', 'scripts/rehearsal/**', 'package-lock.json', '.github/workflows/database.yml', 'scripts/dictionary/capture_postgresql.py', 'project/outputs/database-transfer-20261007/source-manifest.json', 'scripts/ci/**', '!**/*.md']
   workflow_dispatch:
     inputs:
       runner:
@@ -16,10 +20,28 @@ on:
         default: ubuntu-latest
 permissions:
   contents: read
+  checks: read
 concurrency:
   group: database-migrations-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      rebuild: ${{ steps.reuse.outputs.run_rebuild }}
+      evidence: ${{ steps.reuse.outputs.evidence }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 40
+      - name: Reuse evidence from earlier runs
+        id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE: ${{ inputs.runner == 'windows-latest' && '--force' || '' }}
+        run: node scripts/ci/reuse-evidence.mjs --workflow database --needed rebuild=true $FORCE
   guards:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -57,6 +79,8 @@ jobs:
     # The four groups of scripts/database/Test-CI.ps1 each own disposable
     # clusters, so they run as parallel jobs. Linux by default (DB-CI-01);
     # a manual dispatch can select windows-latest.
+    needs: changes
+    if: needs.changes.outputs.rebuild == 'true'
     runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     timeout-minutes: 20
     strategy:
