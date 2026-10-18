@@ -29,31 +29,43 @@ self.addEventListener('install', event => {
 function retainedCaches(names,current,previous,matches){return names.filter(name=>name.startsWith(PREFIX)&&(name===current||name===previous||matches.includes(name)))}
 // An open page reports its running entry; silence (older build, frozen, uncontrolled) within 1.5 s counts as none.
 function clientEntry(client){return new Promise(resolve=>{const channel=new MessageChannel();const timer=setTimeout(()=>{channel.port1.close();resolve(null)},1500);channel.port1.onmessage=message=>{clearTimeout(timer);channel.port1.close();const entry=message.data?.entry;resolve(typeof entry==='string'&&/^\/assets\/[^/]+\.js$/.test(entry)?entry:null)};try{client.postMessage({type:'GET_CLIENT_ENTRY',v:1},[channel.port2])}catch{clearTimeout(timer);channel.port1.close();resolve(null)}})}
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    // Installed apps update while open (ACTIVATE_UPDATE), so pruning cannot wait for zero clients.
-    // Activation never deletes the build an open tab still runs, nor private drafts.
+// Activation marks this build and claims open tabs first. A navigation waits until the worker has finished
+// activating and iOS deletes caches slowly, so pruning runs after activation, outside the activate waitUntil.
+// Startup version messages and fetches extend the worker's lifetime with the pending prune (never delaying their
+// responses); an interrupted prune finishes at the next activation. Installed apps update while open (ACTIVATE_UPDATE),
+// so pruning cannot wait for zero clients; it never deletes the build an open tab still runs, nor private drafts.
+let pruning=null;
+function activateBuild(){
+  const claimed=(async()=>{let names=[],previous;
     try{
       // Previous is the build that last activated (highest marker); a build superseded while waiting never carries one.
-      const names=(await caches.keys()).filter(name=>name.startsWith(PREFIX)),activated=[];
-      for(const name of names)if(name!==CACHE){const order=Number(await(await(await caches.open(name)).match(ACTIVATED))?.text());if(order>0)activated.push([order,name])}
-      activated.sort((a,b)=>a[0]-b[0]);const previous=activated.at(-1)?.[1];
-      try{await(await caches.open(CACHE)).put(ACTIVATED,new Response(String((activated.at(-1)?.[0]??0)+1)))}catch{/* Unmarked, this build is not "previous" next time; open tabs still protect it. */}
-      const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-      // No marker yet (first activation of this rule): keep the former behaviour, pruning only with no open tab.
-      if(!previous&&clients.length)return;
-      const kept=previous??names.filter(name=>name!==CACHE).at(-1),entries=(await Promise.all(clients.map(clientEntry))).filter(Boolean),matches=[];
-      if(entries.length)for(const name of names)if(name!==CACHE&&name!==kept){const cache=await caches.open(name);for(const entry of entries)if(await cache.match(entry)){matches.push(name);break}}
-      const keep=retainedCaches(names,CACHE,kept,matches);
-      await Promise.all(names.filter(name=>!keep.includes(name)).map(name=>caches.delete(name)));
-    }catch{/* Pruning is best effort; the next activation retries it. */}finally{await self.clients.claim()}
-  })());
-});
+      names=(await caches.keys()).filter(name=>name.startsWith(PREFIX));const activated=[];
+      for(const name of names)if(name!==CACHE){const order=Number(await(await caches.match(ACTIVATED,{cacheName:name}))?.text());if(order>0)activated.push([order,name])}
+      activated.sort((a,b)=>a[0]-b[0]);previous=activated.at(-1)?.[1];
+      await(await caches.open(CACHE)).put(ACTIVATED,new Response(String((activated.at(-1)?.[0]??0)+1)));
+    }catch{/* Unmarked, this build is not "previous" next time; open tabs still protect it. */}
+    await self.clients.claim();return {names,previous}})();
+  const pruned=claimed.then(({names,previous})=>prune(names,previous)).catch(()=>{/* Best effort; the next activation retries. */}).finally(()=>{if(pruning===pruned)pruning=null});
+  pruning=pruned;return {claimed,pruned};
+}
+async function prune(names,previous){
+  const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  // No marker yet (first activation of this rule): keep the former behaviour, pruning only with no open tab.
+  if(!previous&&clients.length)return;
+  const kept=previous??names.filter(name=>name!==CACHE).at(-1),entries=(await Promise.all(clients.map(clientEntry))).filter(Boolean),matches=[];
+  if(entries.length)for(const name of names)if(name!==CACHE&&name!==kept)for(const entry of entries)if(await caches.match(entry,{cacheName:name})){matches.push(name);break}
+  const keep=retainedCaches(names,CACHE,kept,matches);
+  // One at a time, so the reloaded page's cache reads are not queued behind a whole batch of deletes.
+  for(const name of names)if(!keep.includes(name))await caches.delete(name);
+}
+self.addEventListener('activate', event => {event.waitUntil(activateBuild().claimed)});
 self.addEventListener('message', event => {
+  if(pruning&&event.data?.type==='GET_BUILD_VERSION')event.waitUntil(pruning);
   if(event.data?.type==='GET_BUILD_VERSION')event.ports?.[0]?.postMessage({version:VERSION});
   if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil(self.skipWaiting());
 });
 self.addEventListener('fetch', event => {
+  if(pruning)event.waitUntil(pruning); // Lifetime only; responses below never wait for it.
   const request = event.request;
   const url = new URL(request.url);
   if(request.method!=='GET'||url.origin!==self.location.origin||url.search||request.headers.has('Authorization'))return;
