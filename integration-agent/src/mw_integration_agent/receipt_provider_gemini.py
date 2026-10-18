@@ -1,7 +1,7 @@
 """Gemini on Vertex AI receipt provider: one generateContent call per attempt, VM identity, no API key.
 
 The shared prompt and schema are sent unchanged (schema translated to Vertex's OpenAPI subset),
-temperature 0, JSON response mode and, for Flash models, thinking disabled. A transient failure (429, 5xx, timeout,
+temperature 0, JSON response mode and the least thinking the model allows (thinking_config). A transient failure (429, 5xx, timeout,
 connection error) is retried once while the caller's deadline allows it. Recognition has no side
 effect, so a retry after an uncertain attempt is safe.
 """
@@ -65,12 +65,23 @@ def vertex_schema(schema):
     return result
 
 
+def thinking_config(model_id):
+    """Gemini 3 and later: thinkingLevel LOW (MINIMAL is invalid; thinkingBudget is the 2.5 field).
+    Gemini 2.x Flash and Flash-Lite: thinkingBudget 0. Gemini 2.x Pro cannot disable thinking: none."""
+    major = int(re.match(r'gemini-(\d+)', model_id).group(1))
+    if major >= 3:
+        return {'thinkingLevel': 'LOW'}
+    if '-flash' in model_id:
+        return {'thinkingBudget': 0}
+    return None
+
+
 def body(image_data, model_id):
     generation = {'temperature': 0, 'candidateCount': 1, 'maxOutputTokens': 2048,
                   'responseMimeType': 'application/json', 'responseSchema': vertex_schema(SCHEMA)}
-    if '-flash' in model_id:
-        # Thinking off for Flash and Flash-Lite; Pro cannot disable thinking, so it gets no thinkingConfig.
-        generation['thinkingConfig'] = {'thinkingBudget': 0}
+    thinking = thinking_config(model_id)
+    if thinking:
+        generation['thinkingConfig'] = thinking
     return {'contents': [{'role': 'user', 'parts': [
                 {'inlineData': {'mimeType': 'image/png', 'data': base64.b64encode(image_data).decode('ascii')}},
                 {'text': PROMPT}]}],

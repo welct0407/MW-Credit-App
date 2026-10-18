@@ -77,10 +77,10 @@
   "receipt_recognition_listen_port": 8790,
   "receipt_recognition_audience": "http://10.148.0.2:8790/v1/receipt-recognition",
   "receipt_recognition_callers": [
-    {"email": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", "subject": "000000000000000000000"},
-    {"email": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com", "subject": "000000000000000000001"}
+    {"email": "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", "subject": "103101724082491419570"},
+    {"email": "mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com", "subject": "101534018806498664588"}
   ],
   "gemini_project": "clever-oasis-508610-n7",
-  "gemini_location": "asia-southeast1",
-  "gemini_model": null
+  "gemini_location": "global",
+  "gemini_model": "gemini-3.8-flash"
 }

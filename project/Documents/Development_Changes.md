@@ -9,7 +9,7 @@
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
 | Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
-| R075 receipt recognition activation | Owner-gated: Forge apply order, agent catalogue revision 29 two-step rollout, caller subjects, model choice; steps in the [change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md#open-questions) |
+| R075 receipt recognition activation | Owner-gated: Forge apply order, agent catalogue revision 29 two-step rollout, model `gemini-3.8-flash` on the global endpoint (owner, 18 October 2026); steps in the [change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md#open-questions) |
 | R075 promotion contract | `deploy-business-hosting.mjs` has only a frontend-only R075 contract (V95, R069 runtime). R075 now carries V96, runtime and infrastructure changes, so authorized promotion needs an R068-style runtime-workers-frontend contract with V96 pinned; not written, no promotion authorized |
 | Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`) | Recommended, not written |
 | Repository merge follow-ups (15 October 2026) | [Change note](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |

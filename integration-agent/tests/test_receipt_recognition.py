@@ -207,7 +207,7 @@ class GeminiTests(unittest.TestCase):
         self.assertEqual(prompt['text'], receipt_image.PROMPT)
         config = body['generationConfig']
         self.assertEqual((config['temperature'], config['responseMimeType'], config['thinkingConfig']),
-                         (0, 'application/json', {'thinkingBudget': 0}))
+                         (0, 'application/json', {'thinkingBudget': 0}))  # GEMINI pins a 2.0 Flash id here
         self.assertEqual(config['responseSchema'], gemini.vertex_schema(SCHEMA))
         self.assertNotIn('key=', request.full_url)
 
@@ -228,7 +228,12 @@ class GeminiTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             gemini.validate({**GEMINI, 'gemini_location': 'asia-southeast1/../x'})
 
-    def test_thinking_is_disabled_for_flash_and_omitted_for_pro(self):
+    def test_thinking_config_follows_the_model_generation(self):
+        for model in ('gemini-3.8-flash', 'gemini-3-flash', 'gemini-3.8-flash-lite', 'gemini-3.8-pro', 'gemini-4-flash-001'):
+            with self.subTest(model=model):
+                thinking = gemini.body(b'png', model)['generationConfig']['thinkingConfig']
+                self.assertEqual(thinking, {'thinkingLevel': 'LOW'})
+                self.assertNotIn('thinkingBudget', thinking)
         for model in ('gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-001'):
             with self.subTest(model=model):
                 self.assertEqual(gemini.body(b'png', model)['generationConfig']['thinkingConfig'], {'thinkingBudget': 0})
@@ -237,6 +242,17 @@ class GeminiTests(unittest.TestCase):
                 generation = gemini.body(b'png', model)['generationConfig']
                 self.assertNotIn('thinkingConfig', generation)
                 self.assertEqual((generation['temperature'], generation['responseMimeType']), (0, 'application/json'))
+
+    def test_owner_selected_model_on_the_global_endpoint(self):
+        config = {**GEMINI, 'gemini_location': 'global', 'gemini_model': 'gemini-3.8-flash'}
+        value, opener = None, FakeOpener(vertex_reply())
+        with patch.object(gemini.http, 'opener', return_value=opener), patch.object(gemini.http, 'access_token', return_value='t'):
+            value = gemini.extract(config, b'\x89PNGdata')
+        self.assertEqual(value, RESULT)
+        request = opener.requests[0][0]
+        self.assertEqual(request.full_url, 'https://aiplatform.googleapis.com/v1/projects/clever-oasis-508610-n7/locations/global'
+                                           '/publishers/google/models/gemini-3.8-flash:generateContent')
+        self.assertEqual(json.loads(request.data)['generationConfig']['thinkingConfig'], {'thinkingLevel': 'LOW'})
 
     def test_one_retry_on_transient_errors_only(self):
         for transient in (http_error(429), http_error(503), TimeoutError(), urllib.error.URLError('reset')):
@@ -291,11 +307,12 @@ class ConfigTests(unittest.TestCase):
                           config['receipt_recognition_listen_host'], config['receipt_recognition_listen_port'],
                           config['receipt_recognition_audience']),
                          ('codex', False, '10.148.0.2', 8790, 'http://10.148.0.2:8790/v1/receipt-recognition'))
-        self.assertEqual([c['email'] for c in config['receipt_recognition_callers']],
-                         ['mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com',
-                          'mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com'])
-        # Placeholders are shaped like real entries: enabling with real subjects and a model validates.
-        validate_config({**config, 'receipt_recognition_enabled': True, 'gemini_model': 'gemini-2.5-flash',
+        self.assertEqual(config['receipt_recognition_callers'],
+                         [{'email': 'mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '103101724082491419570'},
+                          {'email': 'mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '101534018806498664588'}])
+        self.assertEqual((config['gemini_model'], config['gemini_location']), ('gemini-3.8-flash', 'global'))
+        # Enabling only needs the switch and the PostgreSQL audit backend.
+        validate_config({**config, 'receipt_recognition_enabled': True,
                          'state_backend': 'postgres', 'state_generation': '11111111-1111-4111-8111-111111111111',
                          'state_cutover_at': '2026-10-01T00:00:00+07:00',
                          'agent_database_worker_password_file': '/etc/mw-integration-agent/secrets/worker.txt',
@@ -323,7 +340,7 @@ class ConfigTests(unittest.TestCase):
 
     def test_switching_the_cycle_to_gemini_needs_a_pinned_model(self):
         config = load_json(ROOT / 'config.example.json')
-        config['receipt_extraction_provider'] = 'gemini'
+        config.update(receipt_extraction_provider='gemini', gemini_model=None)
         with self.assertRaises(ConfigurationError):
             validate_config(config)
         config['gemini_model'] = 'gemini-2.0-flash-001'

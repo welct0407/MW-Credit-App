@@ -46,8 +46,8 @@ Owner-gated activation, in this order. None is authorized by this batch.
 1. Apply V96 to DEV, then PROD, with the guarded runner, the exact tested commit and manifest, and a verified restorable PROD backup.
 2. Forge apply order: DEV Vertex API and the `ecosystem-debian` role and firewall; then the DEV and PROD `receipt_recognizer` blocks with `enabled = true` and `activation = "disabled"`; enable recognition last.
 3. Agent catalogue revision 29, two steps as for revision 28 (see `integration-agent/docs/RECEIPTS.md`): install code that knows `receipt_recognition_api` while the live catalogue stays at revision 28, then add the disabled key through the config-only route; the service stays disabled until the owner switches it on.
-4. Replace the placeholder numeric subjects for the DEV and PROD command-service callers in the VM configuration with the real service-account subjects.
-5. Choose the model after the synthetic timing run (`--time codex,gemini`), for example `gemini-2.5-flash`; Pro by configuration.
+4. Caller subjects are set from the service accounts: DEV `103101724082491419570`, PROD `101534018806498664588` (in `integration-agent/config.example.json`; copy into the VM configuration at activation).
+5. Model: owner chose Gemini 3.x Flash on 18 October 2026, configured as `gemini-3.8-flash` (GA) on location `global`, the only Vertex location offering it besides `us` and `eu`; thinking level LOW. Run the synthetic timing (`--time codex,gemini`) before enabling.
 6. A promotion contract for R075 with runtime, SQL (V96) and infrastructure inputs.
 
 ## Remaining work
