@@ -23,7 +23,10 @@ test('active delta progress excludes retained bundles and long poll focus overla
   return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
  });
  await start(page);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(1);expect((await state(page)).state).toBe('ready');expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);
- for(let step=0;step<4;step++){await page.clock.runFor(18000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));expect(held).toBe(step+1);release();await page.clock.runFor(1000);if(step<3){await expect.poll(()=>held).toBe(step+2);expect((await state(page)).progress).toBeGreaterThan(0);expect((await state(page)).progress).toBeLessThan(100)}}
+ // A focus (or the 30 s poll) can also land between two segments of the walk: the segment is saved and the
+ // next one queued (progress rises) but usually not yet requested. That gap is part of the running cycle, so
+ // it joins it and refetches nothing, exactly like a focus during a request.
+ for(let step=0;step<4;step++){await page.clock.runFor(18000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));expect(held).toBe(step+1);const before=(await state(page)).progress;release();if(step<3){await expect.poll(async()=>(await state(page)).progress).toBeGreaterThan(before);await page.evaluate(()=>window.dispatchEvent(new Event('focus')))}await page.clock.runFor(1000);if(step<3){await expect.poll(()=>held).toBe(step+2);expect((await state(page)).progress).toBeGreaterThan(0);expect((await state(page)).progress).toBeLessThan(100)}}
  await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);expect(calls).toEqual(['records:start','collection:start','cash:start','management:start','notifications:start','records:1','records:2','records:3']);
  // Owner 17 Oct 2026: every focus refreshes, even seconds after a completed check. A
  // focus/visibility/online burst starts one cycle; repeated bursts while it runs join it.
