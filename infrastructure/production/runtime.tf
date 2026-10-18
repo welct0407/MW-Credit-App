@@ -79,6 +79,10 @@ resource "google_cloud_run_v2_service" "foundation" {
       error_message = "Machine conversation API requires business runtime and a reviewed numeric PROD policy version."
     }
     precondition {
+      condition     = !var.receipt_recognizer.enabled || var.business_runtime_authorized
+      error_message = "Receipt recognition requires the business runtime command service."
+    }
+    precondition {
       condition     = var.foundation_authorized && var.foundation_image != null && var.owner_secret_version != null
       error_message = "Runtime requires the reviewed foundation, tested immutable image and actual enrolled owner version."
     }
@@ -100,6 +104,17 @@ resource "google_cloud_run_v2_service" "foundation" {
       # R064: the command service also serves offline dataset walks; a second
       # instance keeps a long walk from blocking writes. The reader stays at one.
       max_instance_count = each.key == "command" ? 2 : 1
+    }
+    # R075: command only; private-range egress to the VM receipt recognizer.
+    dynamic "vpc_access" {
+      for_each = each.key == "command" && var.receipt_recognizer.enabled ? [local.receipt_recognizer_egress] : []
+      content {
+        egress = "PRIVATE_RANGES_ONLY"
+        network_interfaces {
+          network    = vpc_access.value.network
+          subnetwork = vpc_access.value.subnetwork
+        }
+      }
     }
     containers {
       image   = lookup(var.runtime_image_overrides, each.key, var.business_runtime_authorized ? var.business_image : var.foundation_image)
@@ -160,6 +175,9 @@ resource "google_cloud_run_v2_service" "foundation" {
           } : {}, each.key == "command" && var.agent_conversation_api.enabled ? {
           AGENT_CONVERSATION_API_ENABLED           = "true"
           AGENT_CONVERSATION_POLICY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-agent-conversation-policy/versions/${var.agent_conversation_api.policy_version == null ? "UNBOUND" : var.agent_conversation_api.policy_version}"
+          } : {}, each.key == "command" && var.receipt_recognizer.enabled ? {
+          PROD_RECEIPT_RECOGNITION     = var.receipt_recognizer.activation
+          PROD_RECEIPT_RECOGNITION_URL = local.receipt_recognizer_url
         } : {})
         content {
           name  = env.key

@@ -28,6 +28,7 @@ import {readBorrowerRecord,mutateBorrowerRecord,validBorrowerId,borrowerNameMiss
 import {readCommandResult,readBorrowerPaymentHistory} from './result.mjs';
 import { readPaymentDraft, readOwnerPaymentDraft } from './draft.mjs';
 import { applicationConnectionGuard } from './application-target.mjs';
+import { evaluateSlip } from '../receipts/recognizer-rules.mjs';
 import { canonicalCommand, canonicalAllocationPlan, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
 import { PROJECT_ID, OWNER_EMAIL } from '../lib/identity.mjs';
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
@@ -35,14 +36,18 @@ import { statementTimeoutSql, lockTimeoutSql } from '../lib/budget.mjs';
 const issuer = `https://securetoken.google.com/${PROJECT_ID}`;
 const failure = (status, code) => ({ ok: false, status, code });
 const borrowerOptionLimit = 1000;
+// R075: one recognizer call per uploaded slip for a form session; rules are never cached.
+const RECOGNITION_TTL_MS = 15 * 60 * 1000, RECOGNITION_CACHE_LIMIT = 64;
 /** Retryable busy failures: lock codes, or the SQL try-lock RAISE texts (every current form grepped from database/migrations). */
 export const commandBusy = error => ['55P03','40P01','57014'].includes(error?.code) || (error?.code === 'P0001' && /\b(?:is|are) busy; (?:sync and )?(?:retry|request)\b/.test(error?.message ?? ''));
 
 /** DISPOSABLE candidate only. No ambient connection/config, service launcher or live permission. */
 /**
- * @param {{pool:any,guardConnection:any,resolveReceipt?:any,fixture?:any,receiptAdapter?:any,sourceReceiptReader?:any,afterCommit?:any,ownerTesting?:boolean,draftMode?:string,principalAllowed?:(principal:any)=>boolean,resolveActor?:any,actorIssuer?:string}} options
+ * @param {{pool:any,guardConnection:any,resolveReceipt?:any,fixture?:any,receiptAdapter?:any,sourceReceiptReader?:any,afterCommit?:any,ownerTesting?:boolean,draftMode?:string,principalAllowed?:(principal:any)=>boolean,resolveActor?:any,actorIssuer?:string,recognizer?:any,now?:()=>number}} options
  */
-function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, afterCommit, ownerTesting=false, draftMode='dev-owner-testing', principalAllowed=principal=>principal?.ok&&principal.email===OWNER_EMAIL&&typeof principal.subject==='string'&&!!principal.subject, resolveActor, actorIssuer=issuer }) {
+function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAdapter, sourceReceiptReader, afterCommit, ownerTesting=false, draftMode='dev-owner-testing', principalAllowed=principal=>principal?.ok&&principal.email===OWNER_EMAIL&&typeof principal.subject==='string'&&!!principal.subject, resolveActor, actorIssuer=issuer, recognizer=null, now=Date.now }) {
+  /** @type {Map<string,{actorKey:string,expires:number,provider:string,model:string,result:any}>} */
+  const recognitionCache = new Map();
   async function run(principal, operation, readonly = false, capability) {
     if (!principalAllowed(principal)) return failure(403, 'access_denied');
     let client, committedResult, attempted = false, commitStarted = false, quarantine = false;
@@ -235,7 +240,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
           if (candidate.canonicalJson !== existing.canonical_json) return failure(409, 'command_conflict');
         } else {
           if (fixture && (command.borrowerId!==fixture.borrowerId || !fixture.cashAccountIds.includes(command.cashAccountId)
-            || (command.schemaVersion===6?command.allocations.map(row=>row.chargeId):command.selectedChargeIds).some(id=>!fixture.chargeIds.includes(id)))) return failure(403,'access_denied');
+            || (command.schemaVersion>=6?command.allocations.map(row=>row.chargeId):command.selectedChargeIds).some(id=>!fixture.chargeIds.includes(id)))) return failure(403,'access_denied');
         }
         if (!existing && command.receiptId !== null) {
           if (typeof resolveReceipt !== 'function') return failure(422, 'receipt_unsupported');
@@ -348,6 +353,40 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         return {ok:true,status:200,...value};
       } catch(error) { return failure(error?.message==='receipt_conflict'?409:error?.receiptInvalid||error?.message==='invalid_receipt'?422:503,error?.message==='receipt_conflict'?'receipt_conflict':'receipt_unavailable'); }
     },
+    // R075: slip recognition for an uploaded receipt. It never writes; the partner's confirm stays the
+    // only financial write. No pool client is held while the receipt is read or the recognizer runs.
+    async recognize(principal,{requestId,receiptId}) {
+      if (!uuid.test(requestId||'') || !uuid.test(receiptId||'')) return failure(400,'invalid_request');
+      requestId=requestId.toLowerCase();receiptId=receiptId.toLowerCase();
+      const authorized=await run(principal,async(_client,actor)=>({ok:true,value:{actor}}),true,'receipt.read');
+      if(!authorized.ok)return authorized;
+      const {actor}=authorized,answer=recognition=>({ok:true,status:200,recognition});
+      const unavailable=reason=>answer({status:'unavailable',reason,suggestion:null,warnings:[]});
+      if(!recognizer||!receiptAdapter)return unavailable('disabled');
+      const key=`${requestId}/${receiptId}`,actorKey=JSON.stringify(actor);
+      let recognized=recognitionCache.get(key);
+      if(recognized&&(recognized.expires<=now()||recognized.actorKey!==actorKey)){recognitionCache.delete(key);recognized=undefined;}
+      if(!recognized){
+        let image;
+        try{image=await receiptAdapter.retrieve({requestId,receiptId,actor})}
+        catch(error){if(error?.receiptInvalid||error?.message==='invalid_receipt')return failure(404,'not_found');return unavailable(error?.message==='receipt_unsupported'?'disabled':'receipt_unavailable');}
+        let outcome;try{outcome=await recognizer.recognize({bytes:image.bytes,mimeType:image.mimeType})}catch{outcome={status:'unavailable',reason:'recognizer_unreachable'}}
+        if(outcome?.status!=='recognized')return unavailable(typeof outcome?.reason==='string'?outcome.reason:'recognizer_unavailable');
+        recognized={actorKey,expires:now()+RECOGNITION_TTL_MS,provider:outcome.provider,model:outcome.model,result:outcome.result};
+        recognitionCache.delete(key);recognitionCache.set(key,recognized);
+        while(recognitionCache.size>RECOGNITION_CACHE_LIMIT)recognitionCache.delete(recognitionCache.keys().next().value);
+      }
+      const cached=recognized;
+      // Business rules re-run against this environment's database on every call, cached or not.
+      return run(principal,async(client,freshActor)=>{
+        if(JSON.stringify(freshActor)!==actorKey)return failure(403,'access_denied');
+        const businessDate=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;
+        const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Number" AS number,a."Alternative Account Number" AS alternative,(a."Active" IS TRUE AND h."Active" IS TRUE) AS active FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder"`)).rows;
+        const referenceExists=async reference=>(await client.query(`SELECT EXISTS(SELECT 1 FROM public."Payments" WHERE upper(regexp_replace(coalesce("Bank Reference",''),'[[:space:]-]','','g'))=$1) AS found`,[reference])).rows[0].found===true;
+        const value=await evaluateSlip(cached.result,{businessDate,accounts,referenceExists});
+        return {ok:true,value:{recognition:{...value,provider:cached.provider,model:cached.model}}};
+      },true,'receipt.read');
+    },
     async status(principal, requestId) {
       if (typeof requestId !== 'string' || !uuid.test(requestId)) return failure(400, 'invalid_request');
       return run(principal, async (client, actor) => ({ ok: true, value: (await client.query('SELECT public.pwa_command_status_v1($1,$2,$3) AS result', [requestId.toLowerCase(), actor.issuer, actor.subject])).rows[0].result }), true);
@@ -370,8 +409,9 @@ export function createApplicationRoleCommandStore({pool,targetAttestation,resolv
 }
 
 /** Internal composition seam: callers must supply verified identity and transaction membership policies. */
-/** @param {{pool:any,guardConnection:any,principalAllowed:(principal:any)=>boolean,resolveActor:any,actorIssuer:string,receiptAdapter?:any,sourceReceiptReader?:any,afterCommit?:any}} options */
-export function createEnvironmentCommandStore({pool,guardConnection,principalAllowed,resolveActor,actorIssuer,receiptAdapter,sourceReceiptReader,afterCommit}) {
+/** @param {{pool:any,guardConnection:any,principalAllowed:(principal:any)=>boolean,resolveActor:any,actorIssuer:string,receiptAdapter?:any,sourceReceiptReader?:any,afterCommit?:any,recognizer?:any,now?:()=>number}} options */
+export function createEnvironmentCommandStore({pool,guardConnection,principalAllowed,resolveActor,actorIssuer,receiptAdapter,sourceReceiptReader,afterCommit,recognizer=null,now}) {
  if(!pool||[guardConnection,principalAllowed,resolveActor].some(value=>typeof value!=='function')||typeof actorIssuer!=='string')throw Error('Explicit application policies required');
- return buildStore({pool,afterCommit,guardConnection,principalAllowed,resolveActor,actorIssuer,ownerTesting:true,draftMode:'production-business',receiptAdapter,sourceReceiptReader,resolveReceipt:receiptAdapter?input=>receiptAdapter.resolveReceipt(input):undefined});
+ if(recognizer!==null&&typeof recognizer?.recognize!=='function')throw Error('Receipt recognizer must expose recognize()');
+ return buildStore({pool,afterCommit,guardConnection,principalAllowed,resolveActor,actorIssuer,ownerTesting:true,draftMode:'production-business',receiptAdapter,sourceReceiptReader,recognizer,...(now?{now}:{}),resolveReceipt:receiptAdapter?input=>receiptAdapter.resolveReceipt(input):undefined});
 }

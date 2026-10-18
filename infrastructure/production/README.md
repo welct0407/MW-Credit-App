@@ -59,6 +59,10 @@ Before business promotion, capture a current verified private database backup, r
 
 The old Windows profile and its local private files are absent. Current nonsecret foundation variables were reconstructed from live resource metadata under `C:/Users/ideaadmin/Documents/ChatGPT/MW-Credit-App/terraform/production-recovered-20261011`; the existing remote application state is preserved. This recovers operational configuration, not deleted private backup files or the parked unbilled project's local state. Keep the recovered state/plan material private. The owner restored the established `C:/Users/ideaadmin/Documents/ChatGPT/AppSheet-Loan-Project/cloud-sql-poc-postgres-password.txt`. A guarded read-only identity query passed for postgres / loan_manager_dev / 34.21.174.215 with transaction_read_only=on. No password reset or alternative credential route was used.
 
+## R075 receipt recognizer wiring (prepared, default off)
+
+`receipt-recognizer.tf` adds `receipt_recognizer = { enabled, activation }`, both off by default. `enabled = true` (requires `business_runtime_authorized`) gives only the command service Direct VPC egress with `PRIVATE_RANGES_ONLY` on the default `asia-southeast1` network/subnet, plus `PROD_RECEIPT_RECOGNITION` (= `activation`, default `disabled`) and `PROD_RECEIPT_RECOGNITION_URL` = `http://10.148.0.2:8790/v1/receipt-recognition`, which is also the exact ID-token audience. The reader is unchanged; Google APIs, Cloud SQL and the internet keep the default Cloud Run path. `activation = "enabled"` is the owner's stage-4 activation and is rejected without the egress wiring. The VM firewall rule and Vertex AI role are in `../ecosystem-debian`; the Vertex AI API stays with its existing owner, the DEV state. Mocked tests: `tests/receipt-recognizer.tftest.hcl`.
+
 ## Current preparation evidence
 
 Affected format/validation and5 application mock tests passed; the independent state root passed2 mock tests. F1 without federation/runtime proposes18 additions; the complete mocked F3 plus federation proposes29 additions, all nochange/delete. These are not live deployment results.

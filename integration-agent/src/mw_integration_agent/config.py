@@ -115,6 +115,8 @@ def validate_config(config: dict[str, Any]) -> None:
     validate_conversation_api(config)
     from .receipt_api import validate as validate_receipt_api
     validate_receipt_api(config)
+    from .receipt_recognition_api import validate as validate_receipt_recognition
+    validate_receipt_recognition(config)
     if type(config.get('receipt_archive_enabled',False)) is not bool:
         raise ConfigurationError('receipt_archive_enabled must be boolean')
     if config.get('receipt_archive_enabled'):
@@ -303,7 +305,8 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
         if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
                         "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
                         "operational_data_api", "reviewer_database_dml", "instagram_delivery", "email_fallback", "daily_briefing",
-                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence", "shared_receipt_payment_api", "audit_relay"}:
+                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence", "shared_receipt_payment_api", "audit_relay",
+                        "receipt_recognition_api"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

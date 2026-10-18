@@ -159,6 +159,8 @@ Until it exists, a rotation still succeeds and the worker prints one `credential
 
 The owner authorized the receiver, two-way transport foundation, daily cash statement schedule and its email fallback on 20 September 2026. This does not authorize automated conversational replies: keep `sending_enabled=false` except for a deliberate operator action. The owner separately authorized receipt-only processing on 21 September 2026; its dedicated timer is active. Generic processing and all data writes remain disabled.
 
+The [receipt recognition API](RECEIPTS.md#receipt-recognition-api) (`mw-receipt-recognition.service`, catalogue revision 29) is implemented but not authorized: install the unit disabled and keep `receipt_recognition_enabled=false` and its catalogue entry off until the owner enables it, DEV first. Rolling out catalogue revision 29 needs the same two-step route as revision 28 ([details](RECEIPTS.md#receipt-recognition-api)). Switching the Instagram receipt cycle to Gemini (`receipt_extraction_provider`) is a separate owner authorization.
+
 ## Conversation polling
 
 The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs every five minutes for conversations containing AI-enabled borrowers. Browser automation is prohibited. History gaps fail without advancing the checkpoint; inspect mw-conversation-poll.service for errors. Financial writes remain disabled.

@@ -115,7 +115,7 @@ class ReceiptRuleTests(unittest.TestCase):
                 self.assertIn('--ignore-user-config',command)
                 self.assertNotIn('PGPASSWORD',kwargs['env'])
                 return type('Run',(),{'stdout':json.dumps({'item':{'type':'command_execution'}})})()
-            with patch('mw_integration_agent.receipt_image.subprocess.run',fake),self.assertRaises(ConfigurationError):
+            with patch('mw_integration_agent.receipt_provider_codex.subprocess.run',fake),self.assertRaises(ConfigurationError):
                 extract({'state_directory':d,'codex_executable':'codex','codex_home':d},b'image')
 
 

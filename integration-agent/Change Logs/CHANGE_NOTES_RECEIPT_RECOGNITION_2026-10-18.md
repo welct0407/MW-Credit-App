@@ -1,0 +1,45 @@
+# Change notes — receipt recognition API (agent stage 1), 18 October 2026
+
+## Purpose
+Stage 1 of the owner's Receipt Recognition design (18 October 2026, Bangkok): one recognizer in the Debian agent that the PWA command services and the Instagram receipt cycle share, with Gemini on Vertex AI as a swappable provider. Source only; nothing is deployed or enabled.
+
+## Changes
+- `src/mw_integration_agent/receipt_image.py`: keeps the shared prompt, schema, canonicalisation and a shared shape check (exact keys and JSON types). `extract(config, image_data)` keeps its signature and result; it dispatches on the new `receipt_extraction_provider` (default `codex`) and keeps the `receipt_image_extraction` audit with route `codex` or `gemini`. New `recognize()` returns the result with provider name and pinned model. `RecognitionUnavailable` keeps the message `RECEIPT_EXTRACTION_UNAVAILABLE`.
+- `src/mw_integration_agent/receipt_provider_codex.py`: the unchanged `codex exec` call moved out of `receipt_image.py`; model reported as `default`.
+- `src/mw_integration_agent/receipt_provider_gemini.py`: Vertex AI `generateContent` (regional or global host), inline PNG, temperature 0, JSON mode, schema translated to Vertex's dialect, thinking config by model generation (Gemini 3 and later `thinkingLevel` LOW; Gemini 2.x Flash and Flash-Lite `thinkingBudget` 0; Gemini 2.x Pro none), 20 s per attempt, one retry on 429/5xx/timeout/connection error within the caller's deadline. VM access token from the metadata server through `http.py`; no API key, no new dependency. Fixed model versions only (orchestrator decision, 18 October 2026): `gemini-<n>-flash|flash-lite|pro` with an optional `-NNN` suffix; ids containing `latest`, `preview` or `exp` are rejected.
+- `src/mw_integration_agent/receipt_recognition_api.py`: the recognizer: `POST /v1/receipt-recognition` and `GET /healthz` per the fixed contract; Google ID-token verification (RS256 against Google's keys, pinned issuer, audience, verified email, email and numeric subject per allowed caller); PNG/JPEG, 5 MB, SHA-256 header; two concurrent extractions; 30 s bound; switch and catalogue read per request; one audit operation per authenticated request; private VPC IPv4 bind only. Configuration validation for all new fields. Google key fetches back off for 60 s after any attempt (failed, or without the requested key id), so unknown key ids or a key outage cannot stall every request on the 5 s download (review finding, Chase).
+- `src/mw_integration_agent/config.py`: calls the recognizer validation; the catalogue validator knows `receipt_recognition_api`.
+- `src/mw_integration_agent/cli.py`: `serve-receipt-recognition` (outside job audit, like `serve-webhook`); `check` reports the provider and recognizer switch.
+- `systemd/mw-receipt-recognition.service`: new unit, same hardening as the webhook receiver; install disabled.
+- Catalogue, in two commits after `13039cc` (revision 28 precedent; owner authorized merge and live restart, 18 October 2026):
+  - Step 1, deploy pin `131b43a4bde00300e21b2351c7b5df1875bfca96` ("R075 agent step 1"): `service-catalogue.json` and the `SERVICE_CATALOGUE.md` table back at revision 28 without `receipt_recognition_api`; the code and its validator, which knows the name, stay. Deploy with `deploy-runtime.py`.
+  - Step 2, config-only revision 29 (the commit after step 1, "R075 agent step 2"): revision 29 with `receipt_recognition_api` implemented, disabled, and its `SERVICE_CATALOGUE.md` row; applied to the live catalogue by the config-only route.
+- `config.example.json`: `receipt_extraction_provider`, `receipt_recognition_*` (bind `10.148.0.2:8790`, audience `http://10.148.0.2:8790/v1/receipt-recognition` as pinned in Terraform, DEV and PROD command-service callers with their numeric subjects), `gemini_*` with the owner's model `gemini-3.8-flash` on location `global` (not offered in `asia-southeast1`); the recognizer stays disabled.
+- `scripts/verify-receipt-extraction.py`: `--time codex,gemini` times a real run per provider on six synthetic slips (VM only, explicit). The default proof run is kept; its time assertion now expects `HH:MM`, which `validate_receipt` has returned since it began truncating seconds.
+- Tests: new `tests/test_receipt_recognition.py` (33 tests: provider default, shape check, Gemini request, parsing, retry, schema translation, model pinning, configuration, token claims and signature, every contract status, busy and timeout slots, audit content); `test_receipts.py` patch target, `test_cli.py` and `test_systemd_units.py` updated for the new module, command and unit.
+- Docs: `docs/RECEIPTS.md` (new section "Receipt recognition API", including the revision 29 two-step rollout), `docs/OPERATIONS.md` (activation boundary).
+
+## Checks
+| Command | Result |
+| --- | --- |
+| `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements in a fresh venv) | 562 tests, OK, 82 skipped (lab suites); baseline before the batch 529 OK |
+| `python -m unittest tests.test_receipt_recognition` | 33 tests, OK |
+| `ruff check --no-cache integration-agent` | All checks passed |
+| `mw-integration-agent check --config config.example.json` (repository catalogue revision 29, at `13039cc`) | ok; `receipt_extraction_provider` codex, `receipt_recognition` false |
+| `verify-receipt-extraction.py --time codex,gemini` on `vm-mw-credit-agent` from a streamed `7b68ab9` tree in `/tmp/r075`, VM identity, temporary 0600 config copy with `gemini-3.8-flash` on `global` (19 October 2026, 00:37 Bangkok; tree and config removed afterwards, live runtime, catalogue and units untouched) | Pass: 6/6 slips per provider. Codex (`default`): 7.74, 6.80, 11.23, 6.10, 7.14, 5.80 s; median 6.97 s. Gemini 3.8 Flash: 4.59, 6.71, 5.87, 25.65, 2.91, 4.68 s; median 5.28 s. Both read the Buddhist-year date, masked digits (`xxx-x-x4321-x` matched only the synthetic account), transfer times, amounts and references; both refused the pending transfer and the non-receipt and ignored the injected instruction. No Vertex error was reported; the 25.65 s Gemini slip (pending transfer) most likely needed the one retry, which the script does not log |
+| Suite, `ruff check --no-cache integration-agent`, `check` and `npm run check:docs` at step 1 `131b43a` (revision 28) and again at step 2 (revision 29) | 562 tests OK, 82 skipped; ruff passed; `check` ok; docs 0 failures, at both commits |
+| `npm run check:docs` (repository root) | Pass, 0 failures |
+
+## Not run
+- PostgreSQL lab suites (82 skipped): no change to SQL or state code; CI runs them.
+- No deployment, unit installation or catalogue change on the host.
+
+## Recovery
+Revert this batch's commit. Nothing is live. When deployed later, recovery is `receipt_recognition_enabled=false` (or the catalogue entry off) and `systemctl disable --now mw-receipt-recognition.service`; the Instagram cycle stays on Codex unless `receipt_extraction_provider` was changed.
+
+## Open questions
+None.
+
+## Remaining work
+- Infrastructure stage (Forge): Vertex AI API, `roles/aiplatform.user` on the VM identity, direct VPC egress for the DEV and PROD command services, firewall rule to the VM's service account on port 8790, Vertex egress check.
+- Owner activation (DEV first). Watch Gemini durations against the 30 s request bound: one synthetic slip took 25.65 s.

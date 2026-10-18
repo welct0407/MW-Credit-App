@@ -1,6 +1,7 @@
 import {parseNativeProductionCatalog} from '../receipts/production-native-catalog.mjs';
 import {parseNativeDevCatalog} from '../receipts/native-catalog.mjs';
 import {DEV_RECEIPT_MAPPING,PROD_RECEIPT_MAPPING} from '../receipts/dev-receipt-adapter.mjs';
+import {recognizerUrl} from '../receipts/recognizer-client.mjs';
 import {PROJECT_ID,PROJECT_NUMBER,INSTANCE_CONNECTION_NAME,isSharedInstanceConnection} from '../lib/identity.mjs';
 import { parseBusinessPolicy } from './business-policy.mjs';
 export const BUSINESS_PROJECT=PROJECT_ID;
@@ -54,6 +55,16 @@ export function loadBusinessConfig(env) {
    nativeReceiptDescriptors=parseNativeDevCatalog(env.RECEIPT_NATIVE_CATALOG_JSON);
    receiptCompatibility=Object.freeze({...DEV_RECEIPT_MAPPING,status:'verified-appsheet-render',evidenceReference:env.RECEIPT_COMPATIBILITY_EVIDENCE});
   }else if(environment==='dev'&&DEV_RECEIPT_KEYS.some(k=>env[k]!==undefined))fail();
+  // R075 slip recognition: off unless enabled with receipts on the command service; the URL is the
+  // recognizer's full VPC endpoint and also the ID-token audience.
+  let receiptRecognition=null;
+  const recognition=prefixed('RECEIPT_RECOGNITION');
+  if(recognition!==undefined&&!['disabled','enabled'].includes(recognition))fail();
+  if(recognition==='enabled'){
+   const url=recognizerUrl(prefixed('RECEIPT_RECOGNITION_URL'));
+   if(receipts!=='enabled'||env.FOUNDATION_ROLE!=='command'||!url)fail();
+   receiptRecognition=Object.freeze({url,audience:url});
+  }
   const policy=parseBusinessPolicy(prefixed('CAPABILITY_POLICY_JSON'),environment);
   if(prefixed('CAPABILITY_POLICY_SHA256')!==policy.evidenceSha256||!new RegExp(`^projects/${PROJECT_ID}/secrets/mw-credit-app-${environment}-capability-policy/versions/[1-9][0-9]*$`).test(prefixed('CAPABILITY_POLICY_SECRET_VERSION')??''))fail();
   // Proposed counterpart names require inspected migration/ownership evidence before deployment.
@@ -61,7 +72,7 @@ export function loadBusinessConfig(env) {
   if(prefixed('SQL_APPLICATION_ROLE')!==applicationRole||prefixed('SQL_JOURNAL_OWNER_ROLE')!==journalOwnerRole)fail();
   let registeredCreators;try{registeredCreators=JSON.parse(prefixed('SQL_REGISTERED_CREATORS'));}catch{fail();}
   if(!Array.isArray(registeredCreators)||!registeredCreators.length||registeredCreators.length>50||new Set(registeredCreators).size!==registeredCreators.length||registeredCreators.some(v=>typeof v!=='string'||!v||v.length>63||/[\u0000-\u001f]/.test(v)))fail();
-  return Object.freeze({receiptCatalog,receiptCompatibility,nativeReceiptDescriptors,notificationsEnabled:env.PWA_NOTIFICATIONS==='enabled',pushPublicKey:env.WEB_PUSH_PUBLIC_KEY,environment,mode:'business-candidate',serviceRole,projectId:PROJECT_ID,issuer:`https://securetoken.google.com/${PROJECT_ID}`,database:env.DB_NAME,instance:env.INSTANCE_CONNECTION_NAME,dbUser,origins:Object.freeze(origins),canonicalOrigin:profile.canonicalOrigin,hostingSite:site,policy,registeredCreators:Object.freeze(registeredCreators),applicationRole,journalOwnerRole});
+  return Object.freeze({receiptCatalog,receiptCompatibility,nativeReceiptDescriptors,receiptRecognition,notificationsEnabled:env.PWA_NOTIFICATIONS==='enabled',pushPublicKey:env.WEB_PUSH_PUBLIC_KEY,environment,mode:'business-candidate',serviceRole,projectId:PROJECT_ID,issuer:`https://securetoken.google.com/${PROJECT_ID}`,database:env.DB_NAME,instance:env.INSTANCE_CONNECTION_NAME,dbUser,origins:Object.freeze(origins),canonicalOrigin:profile.canonicalOrigin,hostingSite:site,policy,registeredCreators:Object.freeze(registeredCreators),applicationRole,journalOwnerRole});
 }
 /** Retained name for existing build smoke checks and promotion tooling. */
 export const loadProductionBusinessConfig=loadBusinessConfig;

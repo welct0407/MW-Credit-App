@@ -45,6 +45,18 @@ resource "google_cloud_run_v2_service" "command_api" {
       min_instance_count = 0
       max_instance_count = 2
     }
+    # R075: private-range egress to the VM receipt recognizer only; Google APIs,
+    # Cloud SQL and the internet keep the default Cloud Run path.
+    dynamic "vpc_access" {
+      for_each = var.receipt_recognizer.enabled ? [local.receipt_recognizer_egress] : []
+      content {
+        egress = "PRIVATE_RANGES_ONLY"
+        network_interfaces {
+          network    = vpc_access.value.network
+          subnetwork = vpc_access.value.subnetwork
+        }
+      }
+    }
     containers {
       image   = var.command_image
       command = ["node"]
@@ -77,6 +89,9 @@ resource "google_cloud_run_v2_service" "command_api" {
           } : {}, var.agent_conversation_api.enabled ? {
           AGENT_CONVERSATION_API_ENABLED           = "true"
           AGENT_CONVERSATION_POLICY_SECRET_VERSION = "projects/${local.project}/secrets/mw-credit-app-dev-agent-conversation-policy/versions/${var.agent_conversation_api.policy_version == null ? "UNBOUND" : var.agent_conversation_api.policy_version}"
+          } : {}, var.receipt_recognizer.enabled ? {
+          DEV_RECEIPT_RECOGNITION     = var.receipt_recognizer.activation
+          DEV_RECEIPT_RECOGNITION_URL = local.receipt_recognizer_url
         } : {})
         content {
           name  = env.key

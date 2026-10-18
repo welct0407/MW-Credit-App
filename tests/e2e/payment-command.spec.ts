@@ -105,6 +105,8 @@ test('G07 removed delayed upload cannot revive receipt and Posted retains notes 
  const path=new URL(r.request().url()).pathname;
  if(path.includes('payment-drafts'))return replyDraft(r);
  if(path.endsWith('/result'))return r.fulfill({contentType:'application/json',body:JSON.stringify({originalCommand:postedBody,originalOutcome:{status:'posted'},currentSource:'present',payment:{status:'Posted',paymentDate:'2026-10-08',amountReceived:'110',postedAmount:'110',notes:'Posted synthetic notes',receiptReference:'manual-receipts/dev/pwa/'+postedBody.requestId.replaceAll('-','')+'/'+postedBody.receiptId.replaceAll('-','')+'.png',receiptAt:'now'},allocations:[],repayments:[],cashMovements:[],history:{recordedAt:'now'}})});
+ // R075: the body-less slip recognition POST is not an upload.
+ if(path.endsWith('/recognition'))return r.fulfill({json:{ok:true,status:'unavailable',reason:'disabled',suggestion:null,warnings:[]}});
  if(path.includes('/receipts/')){
   if(r.request().method()==='GET'){receiptGets++;return r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,code:'receipt_unavailable'})})}
   const held=!releaseUpload;if(held){oldReceiptId=path.split('/').at(-1);await new Promise<void>(resolve=>releaseUpload=resolve)}
@@ -136,6 +138,7 @@ for(const width of [320,390])test(`G07 receipt picker and large removable previe
  const receiptImage=await sharp(Buffer.from('<svg width="320" height="480" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="480" fill="#fffef0"/><text x="24" y="48" font-size="24">SYNTHETIC RECEIPT</text><path d="M24 70H296M24 150H296M24 220H296" stroke="#555"/><text x="24" y="120" font-size="20">UI test only</text><text x="24" y="190" font-size="20">Amount 110</text></svg>')).png().toBuffer();
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
   const path=new URL(r.request().url()).pathname;if(path.includes('payment-drafts'))return replyDraft(r);
+  if(path.endsWith('/recognition'))return r.fulfill({json:{ok:true,status:'unavailable',reason:'disabled',suggestion:null,warnings:[]}});
   if(path.includes('/receipts/')){uploadId=path.split('/').at(-1);return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,receipt:{receiptId:uploadId}})})}
   if(r.request().method()!=='POST')return r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
   if(path!=='/api/payment-commands')return r.fulfill({json:{ok:true}});
@@ -257,6 +260,7 @@ test('G07 receipt downscale shows a preparing state and keeps review disabled un
  await page.addInitScript(()=>{const original=window.createImageBitmap.bind(window);(window as any).createImageBitmap=async(...args:any[])=>{await new Promise<void>(resolve=>{(window as any).__releaseBitmap=resolve});return (original as any)(...args)}});
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
   const path=new URL(r.request().url()).pathname;if(path.includes('payment-drafts'))return replyDraft(r);
+  if(path.endsWith('/recognition'))return r.fulfill({json:{ok:true,status:'unavailable',reason:'disabled',suggestion:null,warnings:[]}});
   if(path.includes('/receipts/')&&r.request().method()==='POST'){const body=r.request().postDataBuffer()!;uploads.push({type:r.request().headers()['content-type'],width:(await sharp(body).metadata()).width});return r.fulfill({json:{ok:true,receipt:{receiptId:path.split('/').at(-1)}}})}
   await r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
  });
