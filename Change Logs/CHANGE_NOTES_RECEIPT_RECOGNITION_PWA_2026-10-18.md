@@ -1,7 +1,7 @@
 # Change notes — receipt recognition for manual payments (R075), 18 October 2026
 
 ## Purpose
-Reads a manual payment slip with the shared recognizer and pre-fills the payment form, so the person checks and saves instead of typing. Source only: nothing is deployed, applied or enabled. Owner design: [Claude Doc](https://claude.ai/artifact/KP7KKQnNy1QDnXqEiRsgRx). The agent stage has its own [change note](../integration-agent/Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_2026-10-18.md); it is not repeated here.
+Reads a manual payment slip with the shared recognizer and pre-fills the payment form, so the person checks and saves instead of typing. Source, plus the DEV and VM-side infrastructure apply of 18 October 2026 (recognition still disabled; PROD, V96 and the agent rollout are not done). Owner design: [Claude Doc](https://claude.ai/artifact/KP7KKQnNy1QDnXqEiRsgRx). The agent stage has its own [change note](../integration-agent/Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_2026-10-18.md); it is not repeated here.
 
 ## Changes
 - Agent (`integration-agent/`): provider abstraction (Codex default, Gemini on Vertex AI), recognizer service `mw-receipt-recognition` on `10.148.0.2:8790`, catalogue revision 29 `receipt_recognition_api` implemented and disabled.
@@ -27,6 +27,7 @@ Reads a manual payment slip with the shared recognizer and pre-fills the payment
 | `ruff check` | Pass (agent) |
 | `terraform fmt` and `terraform validate` | Pass (Forge) |
 | `terraform test` | DEV 20/20, PROD 17/17 (Forge) |
+| DEV and `ecosystem-debian` `terraform apply` | Applied; both re-plans No changes; DEV command service Ready and `/health` 200 (Forge, details in the inventory) |
 | `playwright test receipt-recognition-independent.spec.ts` (desktop-chromium) | 4/4 (Chase) |
 | `playwright test payment-command.spec.ts phase5-final-ui-independent.spec.ts` (desktop-chromium) | 48 passed after the receipt-mock fix for the recognition POST (Byte); Chase's earlier run found the G07 mock regression |
 | Echo phone-viewport check (Chromium iPhone emulation, mocked recognition) | No blockers; RR-UX-13 to 16 applied |
@@ -35,17 +36,17 @@ Reads a manual payment slip with the shared recognizer and pre-fills the payment
 
 ## Not run
 - Real Vertex AI or Codex calls, the recognizer on the VM, and any live PWA recognition: nothing is deployed.
-- `terraform plan` and `apply` in DEV and PROD, V96 in DEV or PROD, the PROD backup and guarded runner: owner-gated, below.
+- PROD `terraform apply`, V96 in DEV or PROD, the PROD backup and guarded runner: owner-gated, below. The DEV and VM apply is done; its plan hashes, revision and tfvars generations are in the [environment inventory](../project/Documents/Environment_Inventory.md).
 - Promotion tooling: `deploy-business-hosting.mjs` and its tests are unchanged; they cover only a frontend-only R075 on V95.
 
 ## Recovery
-Revert the commit. Nothing is live. After activation: set `receipt_recognizer.activation = "disabled"` (or `enabled = false`) and re-apply, and set `receipt_recognition_enabled=false` on the VM, then `systemctl disable --now mw-receipt-recognition.service`; the form continues manually. V96 follows the usual restorable-backup rule; v6 commands keep working, so the PWA can fall back to v6.
+Revert the commit. DEV infrastructure is applied: recognition is `disabled`, so nothing is in use; undo by re-applying the previous DEV activation tfvars generation recorded in the inventory. After activation: set `receipt_recognizer.activation = "disabled"` (or `enabled = false`) and re-apply, and set `receipt_recognition_enabled=false` on the VM, then `systemctl disable --now mw-receipt-recognition.service`; the form continues manually. V96 follows the usual restorable-backup rule; v6 commands keep working, so the PWA can fall back to v6.
 
 ## Open questions
 Owner-gated activation, in this order. None is authorized by this batch.
 1. Apply V96 to DEV, then PROD, with the guarded runner, the exact tested commit and manifest, and a verified restorable PROD backup.
-2. Forge apply order: DEV Vertex API and the `ecosystem-debian` role and firewall; then the DEV and PROD `receipt_recognizer` blocks with `enabled = true` and `activation = "disabled"`; enable recognition last.
-3. Agent catalogue revision 29, two steps as for revision 28 (see `integration-agent/docs/RECEIPTS.md`): install code that knows `receipt_recognition_api` while the live catalogue stays at revision 28, then add the disabled key through the config-only route; the service stays disabled until the owner switches it on.
+2. Forge apply order: DEV Vertex API, `ecosystem-debian` role and firewall and the DEV block with `activation = "disabled"` are done. Left: the PROD `receipt_recognizer` block, then switching `activation` on, last.
+3. Agent catalogue revision 29, two steps as for revision 28 (see `integration-agent/docs/RECEIPTS.md`): install code that knows `receipt_recognition_api` while the live catalogue stays at revision 28, then add the disabled key through the config-only route; the owner has authorized this rollout with the recognizer enabled for the DEV caller only.
 4. Caller subjects are set from the service accounts: DEV `103101724082491419570`, PROD `101534018806498664588` (in `integration-agent/config.example.json`; copy into the VM configuration at activation).
 5. Model: owner chose Gemini 3.x Flash on 18 October 2026, configured as `gemini-3.8-flash` (GA) on location `global`, the only Vertex location offering it besides `us` and `eu`; thinking level LOW. Run the synthetic timing (`--time codex,gemini`) before enabling.
 6. A promotion contract for R075 with runtime, SQL (V96) and infrastructure inputs.

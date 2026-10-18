@@ -84,19 +84,22 @@ The separate `mw_agent` database holds integration journals/audit state. Metabas
 
 R060 corrected the confirmed production-store mode veto for main offline-dataset reads. [Recovery and evidence](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r060-production-offline-dataset-recovery).
 
-## R075 receipt recognition (prepared, not applied)
+## R075 receipt recognition (DEV and VM side applied, 18 October 2026)
 
-Source only on 18 October 2026: nothing below is applied, enabled or verified; no pin exists yet. Each line becomes a verified entry in the tables above only after the owner-gated apply.
+The owner authorized the DEV infrastructure apply and Forge applied it on 18 October 2026 (project `clever-oasis-508610-n7`). PROD is untouched: no PROD apply, no V96 in DEV or PROD (Flyway rows above stay V95). Recognition is still `disabled` on the DEV command service.
 
-| Item | Planned state |
+| Item | State |
 | --- | --- |
-| Vertex AI API | `aiplatform.googleapis.com` enabled in project `clever-oasis-508610-n7` (`infrastructure/dev/main.tf`) |
-| VM identity | `roles/aiplatform.user` for `mw-integration-agent@` (`infrastructure/ecosystem-debian/receipt-recognizer.tf`) |
-| Firewall | `allow-receipt-recognizer-run-egress`: TCP 8790 from `10.148.0.0/20` to the VM identity only |
-| Recognizer address | Pinned ephemeral VM internal IP `10.148.0.2`, port 8790; one shared URL and token audience; DEV and PROD are told apart by caller identity (numeric subject allow-list) |
-| Command services | Direct VPC egress (`PRIVATE_RANGES_ONLY`) plus `DEV_`/`PROD_RECEIPT_RECOGNITION` and `_URL` variables on the command service only; all off by default (`receipt_recognizer` variable) |
-| Agent unit and catalogue | `mw-receipt-recognition.service` installed disabled; catalogue revision 29 `receipt_recognition_api` implemented and disabled |
-| Database | V96 pending in DEV and PROD (current Flyway rows above stay V95 until applied) |
+| Vertex AI API | `aiplatform.googleapis.com` enabled, owned by `infrastructure/dev/main.tf` (`local.services`) |
+| VM identity | `roles/aiplatform.user` for `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com` (`infrastructure/ecosystem-debian/receipt-recognizer.tf`); plan 2 add, plan SHA256 `5417d34a05daaf957668ad34788a9d9e4d2cf5bc2b36e06f07564f2ec8f67c45`, re-plan No changes |
+| Firewall | `allow-receipt-recognizer-run-egress`, INGRESS priority 1000, source `10.148.0.0/20`, target the VM identity, TCP 8790 (same file) |
+| DEV command service | `mw-credit-app-command-dev` revision `mw-credit-app-command-dev-00039-w8g`, Ready, 100% traffic, `/health` 200; previous revision `mw-credit-app-command-dev-00038-m6m`. Direct VPC egress on network and subnet `default`, private ranges only. `DEV_RECEIPT_RECOGNITION=disabled`, `DEV_RECEIPT_RECOGNITION_URL=http://10.148.0.2:8790/v1/receipt-recognition` (also the ID-token audience). Plan 1 add and 1 in-place, plan SHA256 `c028ec5428091545fdf432b9f6640b1d0ca48b59ce07be2ef0d72971c80ab417`, re-plan No changes |
+| DEV activation tfvars | Private, `activation/dev.activation.tfvars` in the operator bucket: generation `1792344805662179` with `receipt_recognizer = { enabled = true, activation = "disabled" }`; previous generation `1792230219272578` |
+| Recognizer address | Pinned ephemeral VM internal IP `10.148.0.2`, port 8790; one shared URL and token audience; DEV and PROD are told apart by caller identity. VM Vertex egress uses its external IP `136.85.96.197`, unchanged |
+| Model | Owner choice: `gemini-3.8-flash` on location `global` (processing on Google's global endpoint accepted) |
+| Agent unit and catalogue | Authorized to roll out revision 29 (code pin, then config-only step) with the recognizer enabled for the DEV caller only; not yet recorded as done. Revision 29 `receipt_recognition_api` and the unit are not verified on the host |
+| PROD command service | Not applied: `PROD_RECEIPT_RECOGNITION` wiring and Direct VPC egress stay off |
+| Database | V96 pending in DEV and PROD |
 
 ## Infrastructure and credentials
 
