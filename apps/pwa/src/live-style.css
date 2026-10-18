@@ -594,6 +594,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .payment-context .record-action{width:auto;flex:0 0 auto;padding:7px 10px!important}
 /* FORM-SAVE-01: the primary action style is shared by Review, Confirm payment and the Save in a form's sticky actions bar. */
 .selected-payment .payment-selection-header .payment-review-button,.selected-payment .payment-confirm-button,.form-sticky-actions>button[type=submit]{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
+/* Review step: Edit and Confirm share one row box (same top, bottom and height) instead of baseline-aligning an inline-block beside an inline-flex. */
+.selected-payment .payment-review-actions{display:flex;flex-wrap:wrap;align-items:stretch}.selected-payment .payment-review-actions>button{display:inline-flex;align-items:center;justify-content:center}
 .selected-payment .payment-selection-header .payment-review-button:disabled,.selected-payment .payment-confirm-button:disabled,.form-sticky-actions>button[type=submit]:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
 .selected-payment .allocation-summary{grid-template-columns:auto 44px minmax(0,1fr) auto}
 @media(max-width:600px){.selected-payment .allocation-summary{grid-template-columns:minmax(0,1fr) 44px auto}}
