@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [{
       name: 'isolated-app-entry',
-      transformIndexHtml: { order: 'pre', handler: html => mode !== 'synthetic' ? html.replace('/apps/pwa/src/main.tsx', '/apps/pwa/src/live-main.tsx').replace('MW Credit Development',mode==='live-prod'?'MW Credit':'MW Credit Development') : html },
+      transformIndexHtml: { order: 'pre', handler: html => mode !== 'synthetic' ? html.replace('/apps/pwa/src/main.tsx', '/apps/pwa/src/live-main.tsx').replace('</head>','<link rel="icon" type="image/png" href="/icons/icon-192.png"></head>').replace('MW Credit Development',mode==='live-prod'?'MW Credit':'MW Credit Development') : html },
       generateBundle(_options, bundle) {
         if (mode !== 'synthetic') {
           const paths = ['offline.html', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
@@ -42,7 +42,9 @@ export default defineConfig(({ mode }) => {
           }
           for (const fileName of paths) {
             const assetPath = mode==='live-prod' && fileName.startsWith('icons/') ? fileName.replace('icons/','icons-prod/') : fileName;
-            const source = readFileSync('apps/pwa/pwa/' + assetPath);
+            // PROD offline page takes the PROD name and header colour (pink, white text) like the live app.
+            const file = readFileSync('apps/pwa/pwa/' + assetPath);
+            const source = mode==='live-prod' && fileName==='offline.html' ? Buffer.from(file.toString().replace('content="#e8710a"','content="#d81b60"').replace('header{background:#e8710a;','header{background:#d81b60;color:#fff;').replace('<title>MW Credit DEV · Offline</title>','<title>MW Credit · Offline</title>').replace('<header>MW Credit DEV</header>','<header>MW Credit</header>')) : file;
             hash.update(source);
             this.emitFile({ type: 'asset', fileName, source });
           }
@@ -52,7 +54,7 @@ export default defineConfig(({ mode }) => {
           this.emitFile({ type: 'asset', fileName: 'sw.js', source: worker.replace('__BUILD_VERSION__', version).replace('/*APP_ASSETS*/[]', JSON.stringify(['/', ...Object.keys(bundle).filter(name => /^assets\//.test(name) && /\.(js|css|png)$/.test(name)).map(name => '/' + name)])) });
           this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: JSON.stringify({
             id: '/', start_url: '/', scope: '/', name: mode==='live-prod'?'MW Credit':'MW Credit DEV', short_name: mode==='live-prod'?'MW Credit':'MW Credit DEV', display: 'standalone',
-            theme_color: '#e8710a', background_color: '#ffffff',
+            theme_color: mode==='live-prod'?'#d81b60':'#e8710a', background_color: '#ffffff',
             icons: [192, 512].map(size => ({ src: `/icons/icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any' })),
           }) });
         }

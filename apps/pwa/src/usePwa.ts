@@ -42,7 +42,7 @@ export function usePwa() {
     setStartup('checking');startupReload.current=false;
     const manifest = document.createElement('link'); manifest.rel = 'manifest'; manifest.href = '/manifest.webmanifest';
     const touch = document.createElement('link'); touch.rel = 'apple-touch-icon'; touch.href = '/icons/apple-touch-icon.png';
-    const theme = document.createElement('meta'); theme.name = 'theme-color'; theme.content = '#e8710a';
+    const theme = document.createElement('meta'); theme.name = 'theme-color'; theme.content = applicationEnvironment === 'prod' ? '#d81b60' : '#e8710a';
     document.head.append(manifest, touch, theme);
     const display = matchMedia('(display-mode: standalone)');
     const checkDisplay = () => setStandalone(display.matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
