@@ -6,6 +6,7 @@ import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {decryptTroubleshooting,parseTroubleshootingFile} from '../../scripts/troubleshooting/envelope.mjs';
+import {releaseNumber} from '../../apps/pwa/src/release';
 // R072 About (independent): release, environment and commit signed in, and reachable signed out; the troubleshooting file is encrypted
 // with a per-run test key (MW_TROUBLESHOOTING_PUBLIC_KEY_FILE) and decrypted here in memory only.
 let server:ChildProcess;let base:string;let serverLog="";let keyDirectory:string;
@@ -65,7 +66,7 @@ test('About is a signed-in view with release, environment and commit in English 
  await expect(page.locator('button[aria-label="About"][aria-current="page"]')).not.toHaveCount(0);
  await expect(page.getByRole('button',{name:'Search borrowers'})).toHaveCount(0);
  const value=(label:string)=>about.locator('dt',{hasText:new RegExp('^'+label+'$')}).locator('xpath=following-sibling::dd[1]');
- await expect(value('Release')).toHaveText('R072 · in development');
+ await expect(value('Release')).toHaveText(releaseNumber+' · in development');
  await expect(value('Environment')).toHaveText('DEV · dev-lm.mw-credit.com');
  await expect(value('Source commit')).toHaveText(/^([0-9a-f]{7,}|unknown)$/);
  await expect(value('Build')).toHaveText(/^([0-9a-f]{24}|Unavailable)$/);
@@ -73,12 +74,12 @@ test('About is a signed-in view with release, environment and commit in English 
  await expect(about.locator('img')).toHaveAttribute('alt','');await expect(about.getByText('DEV',{exact:true})).toBeVisible();
  await about.getByRole('button',{name:'Copy details'}).click();await expect(about.getByRole('status')).toHaveText('Copied');
  const copied=await page.evaluate(()=>navigator.clipboard.readText());
- expect(copied).toMatch(/^MW Credit\nRelease: R072 · in development\nBuild: ([0-9a-f]{24}|unavailable)\nCommit: ([0-9a-f]{7,}|unknown)\nEnvironment: Development \(https:\/\/dev-lm\.mw-credit\.com\)\nApp mode: Browser tab\nConnection: Online\nWaiting to sync: 0$/);
+ expect(copied).toContain('\nRelease: '+releaseNumber+' · in development\n');expect(copied).toMatch(/^MW Credit\nRelease: R\d{3} · in development\nBuild: ([0-9a-f]{24}|unavailable)\nCommit: ([0-9a-f]{7,}|unknown)\nEnvironment: Development \(https:\/\/dev-lm\.mw-credit\.com\)\nApp mode: Browser tab\nConnection: Online\nWaiting to sync: 0$/);
  expect(copied).not.toContain('synthetic-owner');
  await page.screenshot({path:`test-results/r072-about/${info.project.name}-about-en.png`,fullPage:true});
  await chooseLanguage(page,'ไทย');
  const thai=page.getByRole('region',{name:'เกี่ยวกับ',exact:true});
- await expect(thai).toBeVisible();await expect(page.locator('h1')).toHaveText('เกี่ยวกับ');await expect(thai).toContainText('R072 · กำลังพัฒนา');await expect(thai).toContainText('ภาษา');
+ await expect(thai).toBeVisible();await expect(page.locator('h1')).toHaveText('เกี่ยวกับ');await expect(thai).toContainText(releaseNumber+' · กำลังพัฒนา');await expect(thai).toContainText('ภาษา');
  // Borrowers is a primary route: the desktop sidebar or the phone bottom bar, without the menu.
  await page.getByRole('button',{name:'ผู้กู้',exact:true}).filter({visible:true}).click();
  await expect(thai).toHaveCount(0);await expect(page.getByRole('button',{name:/SYNTHETIC ABOUT FIXTURE/})).toBeVisible();await expect(page.locator('h1')).toHaveText('ผู้กู้');
@@ -95,13 +96,13 @@ test('About is reachable signed out from the sign-in card; Back, Escape and brow
  await cardAbout.click();
  const about=page.getByRole('region',{name:'About',exact:true});await expect(about).toBeVisible();await expect(card).toHaveCount(0);await expect(page.locator('h1')).toHaveText('About');
  const value=(label:string)=>about.locator('dt',{hasText:new RegExp('^'+label+'$')}).locator('xpath=following-sibling::dd[1]');
- await expect(value('Account')).toHaveText('Not signed in');await expect(value('Release')).toHaveText('R072 · in development');
+ await expect(value('Account')).toHaveText('Not signed in');await expect(value('Release')).toHaveText(releaseNumber+' · in development');
  for(const hidden of ['Access','Waiting to sync','Signed in as'])await expect(about.locator('dt',{hasText:new RegExp('^'+hidden+'$')})).toHaveCount(0);
  await expect(about.getByRole('heading',{name:'Troubleshooting',exact:true})).toBeVisible();
  const {text,payload}=await downloadTroubleshooting(page,about);
  expect(text).not.toContain('SYNTHETIC');
  expect(Object.keys(payload).sort()).toEqual(['app','createdAt','device','events','schemaVersion','serviceWorker','session','signedOutStorage']);
- expect(payload.schemaVersion).toBe(1);expect(payload.app.release).toBe('R072');expect(payload.session).toEqual({status:'signed_out',rootError:null,signInError:null});
+ expect(payload.schemaVersion).toBe(1);expect(payload.app.release).toBe(releaseNumber);expect(payload.session).toEqual({status:'signed_out',rootError:null,signInError:null});
  expect(payload.signedOutStorage.supported).toBe(true);const owner=payload.signedOutStorage.owners.find((item:any)=>item.pending?.length);
  expect(owner.namespace).toMatch(/^[0-9a-f]{16}$/);expect(owner.pending[0]).toMatchObject({operation:'borrower.update',state:'blocked',code:'stale_version',attempted:true,deferred:true});
  const plain=JSON.stringify(payload);for(const sentinel of ['SYNTHETIC SIGNED-OUT NOTE','synthetic-earlier-owner','"value"','inputs'])expect(plain).not.toContain(sentinel);
