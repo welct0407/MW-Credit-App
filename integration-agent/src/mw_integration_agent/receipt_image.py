@@ -101,12 +101,16 @@ def download(url):
 
 
 class RecognitionUnavailable(ConfigurationError):
-    """The provider gave no usable result. The message stays RECEIPT_EXTRACTION_UNAVAILABLE for every caller."""
+    """The provider gave no usable result. The message stays RECEIPT_EXTRACTION_UNAVAILABLE for every caller.
+
+    `reason` is the contract value (provider_error or timeout); `cause` is a short internal class for the
+    journal (for example vertex_http_403 or shape_invalid) and never carries response or request data.
+    """
     reason = 'provider_error'
 
-    def __init__(self, reason='provider_error'):
+    def __init__(self, reason='provider_error', cause=None):
         super().__init__('RECEIPT_EXTRACTION_UNAVAILABLE')
-        self.reason = reason
+        self.reason, self.cause = reason, cause or reason
 
 
 PROVIDERS = ('codex', 'gemini')
@@ -136,7 +140,7 @@ def checked(value):
     Business rules (amounts, references, account matching) stay with the caller (receipt_rules / PWA API).
     """
     if not isinstance(value, dict) or set(value) != set(SCHEMA['required']):
-        raise RecognitionUnavailable()
+        raise RecognitionUnavailable(cause='shape_invalid')
     for key, rule in SCHEMA['properties'].items():
         item = value[key]
         if rule['type'] == 'boolean':
@@ -146,7 +150,7 @@ def checked(value):
         else:
             valid = isinstance(item, list) and all(isinstance(n, str) for n in item)
         if not valid:
-            raise RecognitionUnavailable()
+            raise RecognitionUnavailable(cause='shape_invalid')
     return value
 
 
@@ -163,7 +167,8 @@ def _extract_codex(config, image_data):
     return recognize(config, image_data, 'codex')['result']
 
 
-@audited('receipt_image_extraction',route='gemini',action='PROCESS')
+# audit.events.route has a fixed CHECK list without 'gemini'; the provider is the decorated function's own.
+@audited('receipt_image_extraction',route='internal',action='PROCESS')
 def _extract_gemini(config, image_data):
     return recognize(config, image_data, 'gemini')['result']
 

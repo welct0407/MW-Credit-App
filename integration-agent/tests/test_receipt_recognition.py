@@ -1,10 +1,12 @@
 """Receipt recognition: provider abstraction, Gemini request/retry, ID-token checks and the HTTP contract."""
+import ast
 import base64
 import hashlib
 import http.client
 import io
 import json
 import random
+import re
 import socket
 import tempfile
 import threading
@@ -270,6 +272,34 @@ class GeminiTests(unittest.TestCase):
         value, opener, _, _ = self.run_with(TimeoutError(), TimeoutError())
         self.assertEqual((len(opener.requests), value.reason), (2, 'timeout'))
 
+    def test_failures_carry_an_internal_cause(self):
+        for outcomes, expected in (((http_error(403),), 'vertex_http_403'), ((TimeoutError(), TimeoutError()), 'vertex_timeout'),
+                                   ((urllib.error.URLError('x'), urllib.error.URLError('x')), 'vertex_unreachable'),
+                                   ((vertex_reply(finish='SAFETY'),), 'vertex_response_invalid')):
+            with self.subTest(expected=expected):
+                value, _, _, _ = self.run_with(*outcomes)
+                self.assertEqual(value.cause, expected)
+        opener = FakeOpener(vertex_reply())
+        with patch.object(gemini.http, 'opener', return_value=opener), \
+                patch.object(gemini.http, 'access_token', side_effect=PermissionError('metadata')), patch.object(gemini.time, 'sleep'):
+            with self.assertRaises(RecognitionUnavailable) as caught:
+                gemini.extract(GEMINI, b'png')
+        self.assertEqual(caught.exception.cause, 'vm_token_unavailable')
+        with self.assertRaises(RecognitionUnavailable) as caught:
+            receipt_image.checked({**RESULT, 'amount': 5})
+        self.assertEqual(caught.exception.cause, 'shape_invalid')
+
+    def test_timeouts_end_before_the_pwa_client_gives_up(self):
+        self.assertEqual((api.REQUEST_BOUND, api.REQUEST_BOUND - api.PROVIDER_MARGIN, gemini.ATTEMPT_TIMEOUT), (18.0, 17.0, 12))
+        self.assertEqual(gemini.RETRY_MINIMUM + gemini.RETRY_PAUSE, 4)
+        self.assertLess(api.REQUEST_BOUND, 20)
+        # A retry starts only with at least 4 s of the deadline left, and never outlives it.
+        value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 5)
+        self.assertEqual((value, len(opener.requests)), (RESULT, 2))
+        self.assertLessEqual(opener.requests[1][1], 5)  # the pause is patched out here
+        value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 3.5)
+        self.assertEqual((value.reason, len(opener.requests)), ('provider_error', 1))
+
     def test_no_retry_when_the_deadline_leaves_no_room(self):
         value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 1)
         self.assertIsInstance(value, RecognitionUnavailable)
@@ -429,7 +459,8 @@ class ContractTests(unittest.TestCase):
         self.recognize = patch.object(api, 'recognize', side_effect=lambda config, image, provider, deadline:
                                       {'provider': provider, 'model': 'gemini-2.0-flash-001', 'result': dict(RESULT)})
         self.recognize.start(); self.addCleanup(self.recognize.stop)
-        quiet = patch.object(api.sys, 'stderr', io.StringIO())  # the one-line request reports
+        self.log = io.StringIO()
+        quiet = patch.object(api.sys, 'stderr', self.log)  # the one-line request reports
         quiet.start(); self.addCleanup(quiet.stop)
         self.start()
 
@@ -468,6 +499,7 @@ class ContractTests(unittest.TestCase):
                          ('recognized', 'gemini', 'gemini-2.0-flash-001', hashlib.sha256(body).hexdigest(), RESULT))
         self.assertIsInstance(reply['durationMs'], int)
         image = api.recognize.call_args.args[1]
+        self.assertLess(api.recognize.call_args.kwargs['deadline'] - time.monotonic(), 17.0)
         self.assertTrue(image.startswith(b'\x89PNG'))  # canonical PNG, not the caller's bytes object
         (config, caller, image_sha256, code, audited, _), = self.audits
         self.assertEqual((caller, image_sha256, code, audited['status']), (DEV, hashlib.sha256(body).hexdigest(), 200, 'recognized'))
@@ -567,6 +599,37 @@ class ContractTests(unittest.TestCase):
         self.start(audit=lambda *args: (_ for _ in ()).throw(RuntimeError('audit down')))
         self.assertEqual(self.post(), (503, {'status': 'unavailable', 'reason': 'provider_error'}))
 
+    def causes(self):
+        return [json.loads(line)['cause'] for line in self.log.getvalue().splitlines()]
+
+    def test_journal_line_names_the_internal_cause_without_data(self):
+        self.post(digest='0' * 64); self.post(token=False); self.post(token=sign(claims(), key=OTHER)); self.post()
+        api.recognize.side_effect = RecognitionUnavailable('provider_error', 'vertex_http_403')
+        self.post()
+        api.recognize.side_effect = RecognitionUnavailable(cause='shape_invalid')
+        self.post()
+        self.assertEqual(self.causes(), ['hash_mismatch', 'token_missing', 'token_rejected', 'recognized', 'vertex_http_403', 'shape_invalid'])
+        self.assertNotIn('xxx-x-x4321-x', self.log.getvalue())
+
+    def test_audit_failure_is_named_in_the_journal(self):
+        self.httpd.shutdown(); self.httpd.server_close()
+
+        class CheckViolation(Exception):
+            pass
+        self.start(audit=lambda *args: (_ for _ in ()).throw(CheckViolation('new row violates check constraint')))
+        self.assertEqual(self.post(), (503, {'status': 'unavailable', 'reason': 'provider_error'}))
+        self.assertEqual(self.causes(), ['audit_failed:CheckViolation'])
+        self.assertNotIn('violates', self.log.getvalue())
+
+    def test_key_outage_is_unavailable_with_its_cause(self):
+        self.httpd.shutdown(); self.httpd.server_close()
+        self.httpd = ThreadingHTTPServer(('127.0.0.1', 0), api.handler(
+            str(self.config_path), str(self.catalogue_path), keys=api.Keys(lambda: (_ for _ in ()).throw(OSError('down'))),
+            slots=self.slots, audit=lambda *args: self.audits.append(args)))
+        threading.Thread(target=self.httpd.serve_forever, daemon=True).start()
+        self.assertEqual(self.post(), (503, {'status': 'unavailable', 'reason': 'provider_error'}))
+        self.assertEqual(self.causes(), ['keys_unavailable:OSError'])
+
     def test_unknown_paths_are_not_found(self):
         conn = http.client.HTTPConnection('127.0.0.1', self.httpd.server_address[1], timeout=10)
         conn.request('POST', '/v1/other', body=b'x')
@@ -601,10 +664,10 @@ class AuditTests(unittest.TestCase):
                 patch('mw_integration_agent.state.transaction', lambda config: Transaction()):
             api.audit_outcome(GEMINI, DEV, 'a' * 64, 200, {'status': 'recognized'}, time.monotonic())
             api.audit_outcome(GEMINI, DEV, None, 413, {'status': 'rejected', 'reason': 'too_large'}, time.monotonic())
-        self.assertEqual(plans[0], ('receipt_recognition_api', 'PROCESS', 'gemini',
+        self.assertEqual(plans[0], ('receipt_recognition_api', 'PROCESS', 'internal',
                                     {'caller': DEV['email'], 'image_sha256': 'a' * 64, 'provider': 'gemini', 'model': 'gemini-2.0-flash-001'}))
         kind, payload, route = events[0]
-        self.assertEqual((kind, payload['outcome'], payload['http_status'], route), ('result_observed', 'recognized', 200, 'gemini'))
+        self.assertEqual((kind, payload['outcome'], payload['http_status'], route), ('result_observed', 'recognized', 200, 'internal'))
         self.assertIsInstance(payload['duration_ms'], int)
         self.assertEqual(events[1], ('exit', None))
         self.assertEqual(events[2][1]['reason'], 'too_large')
@@ -631,3 +694,41 @@ class BindTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class AuditRouteTests(unittest.TestCase):
+    """Every literal audit route in the agent code must pass audit.events' CHECK list (V1 migration)."""
+    # Pre-existing routes outside the CHECK list, found 18 October 2026; reported separately. Remove an entry
+    # when its code or the constraint is fixed; a new violation fails this test.
+    KNOWN_OUTSIDE_CHECK = {'native_api', 'shared-command-api'}
+    POSITION = {'audited': 1, 'activity': 3, 'event': 4}
+
+    def allowed(self):
+        sql = (ROOT / 'database' / 'migrations' / 'V1__audit_and_control.sql').read_text(encoding='utf-8')
+        match = re.search(r"route text NOT NULL CHECK\(route IN \(([^)]*)\)\)", sql)
+        return set(re.findall(r"'([^']+)'", match.group(1)))
+
+    def used(self):
+        routes = {}
+        for path in sorted((ROOT / 'src' / 'mw_integration_agent').glob('*.py')):
+            for node in ast.walk(ast.parse(path.read_text(encoding='utf-8'))):
+                if not isinstance(node, ast.Call):
+                    continue
+                name = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, 'id', None)
+                if name not in self.POSITION:
+                    continue
+                values = [k.value for k in node.keywords if k.arg == 'route']
+                if len(node.args) > self.POSITION[name]:
+                    values.append(node.args[self.POSITION[name]])
+                for value in values:
+                    if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                        routes.setdefault(value.value, set()).add(path.name)
+        return routes
+
+    def test_literal_audit_routes_are_allowed_by_the_schema(self):
+        allowed, used = self.allowed(), self.used()
+        self.assertIn('internal', allowed)
+        self.assertTrue({'internal', 'codex', 'postgres'} <= set(used))
+        outside = {route for route in used if route not in allowed}
+        self.assertEqual(outside, self.KNOWN_OUTSIDE_CHECK, {r: sorted(used[r]) for r in outside})
+        self.assertNotIn('gemini', used)

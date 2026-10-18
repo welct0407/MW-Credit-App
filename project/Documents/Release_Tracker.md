@@ -7,7 +7,7 @@
 | New product work | **R075 — Open** |
 | Next unused number | **R076**, only opened when authorized R075 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
-| R075 scope in source (18 October 2026), none deployed | Receipt recognition (owner design: [Claude Doc](https://claude.ai/artifact/KP7KKQnNy1QDnXqEiRsgRx)): Debian recognizer service, command-service route, manual payment command v7 with migration V96, Vertex and VPC infrastructure (all default off), and the payment-form fill-and-warn flow. Record: [change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md). Promotion needs a runtime-and-SQL contract, not the Hosting-only one ([Development changes](Development_Changes.md)) |
+| R075 scope (18 October 2026), deployed to DEV only | Receipt recognition (owner design: [Claude Doc](https://claude.ai/artifact/KP7KKQnNy1QDnXqEiRsgRx)): Debian recognizer service, command-service route, manual payment command v7 with migration V96, Vertex and VPC infrastructure (all default off), and the payment-form fill-and-warn flow. Record: [change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md). DEV runs it (V96, command image, Hosting, recognizer enabled); PROD is untouched. Promotion needs a runtime-and-SQL contract, not the Hosting-only one ([Development changes](Development_Changes.md)) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
