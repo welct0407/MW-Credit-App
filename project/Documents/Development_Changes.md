@@ -1,6 +1,6 @@
 # Open development changes
 
-**R074 is Frozen** (PROD Hosting promotion in progress) and **R075 is Open**; R073 is Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
+**R075 is Open**; R074 is Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
 
 | Outstanding work | Owning reference |
 | --- | --- |
@@ -19,14 +19,16 @@ Use the [release tracker](Release_Tracker.md), including the carried R016 admini
 - **Authority and scope.** Owner instruction, 18 October 2026 (Bangkok): "move R074 to production if it's not done so". Scope: PROD Hosting only. The PROD runtime stays R069 (four Cloud Run services unchanged), SQL stays V95 with no migration, nothing changes on Debian, and no database backup is needed (UI only).
 - **Contents.** The only deployable change since R073 is `apps/pwa/src/release.ts` (R073 to R074, shown on the About screen). Everything else in R074 is delivery tooling and CI: [PR #64](https://github.com/welct0407/MW-Credit-App/pull/64), the per-job promotion CI gate ([change note](../../Change%20Logs/CHANGE_NOTES_RUNNER_PER_JOB_CI_2026-10-18.md)), and [PR #65](https://github.com/welct0407/MW-Credit-App/pull/65), CI evidence reuse keyed on stage-hash artifacts ([change note](../../Change%20Logs/CHANGE_NOTES_CI_STAGE_HASH_EVIDENCE_2026-10-18.md)). No data impact.
 - **Owner DEV check.** Not applicable beyond the release number.
-- **Freeze and pins.** Tracker commit pending (R074 Frozen, R075 Open, R076 next unused). Source baseline R073 `042359b`; source pending (`main` after this freeze PR); delivery tool pending (runner R074 contract). Deployment pins are in the [environment inventory](Environment_Inventory.md).
-- **Checks.** Pending.
-- **Artifact and apply.** Pending.
-- **Smoke.** Pending.
-- **Tag.** Pending.
+- **Freeze and pins.** Tracker commit `f23adf7` (R074 Frozen, R075 Open, R076 next unused; merged as PR #66, merge `b88653d`). Source and artifact source `b88653d4b84860b7eab622d0edfb472d851c03ce` (`main` after PR #66); delivery tool the same commit (runner R074 contract); source baseline R073 `042359b`. Deployment pins are in the [environment inventory](Environment_Inventory.md).
+- **Checks.** First promotion with no forced dispatch. The runner cited stage-hash evidence artifacts computed from the source tree: check, e2e x3 and terraform from PR #65 run 39123022873 (head `d9f89de`); the four database rebuild groups from run 39123003860 (head `d9f89de`); `guards` from run 39123003860 under the ancestor rule. The freeze PR #66 run 39134449384 skipped every stage as "not needed" (Markdown only); it is not a reuse proof, which still waits for a later push that touches stage files. Delivery-tool unit test 52/52 in the tool clone; `--check` passed. Read-only PROD SQL verify as `codex-cloud-read` at 14:06:25Z: `loan_manager_prod`, 95 history rows, latest 95, all successful. No migration and no backup needed.
+- **Artifact and apply.** Package SHA256 `012d4c6b3f61af96cce607fb3f90b6efa5e0adc3e2afaa3aefe575f500ec32fc`; `--apply` as `mw-credit-unattended-admin` (signed impersonation proof) at about 14:09Z 18 October 2026 (21:09 Bangkok), 15 files. Package, tar and receipt are in `gs://mw-credit-operator-private-737787224638/promotion-packages/r074/`. Version, release, public version and entry are in the inventory.
+- **Smoke (read-only, 14:10Z).** 15 of 15 files byte-identical on `lm.mw-credit.com` and the `web.app` host; `/`, `sw.js`, `build-version.json` and the manifest `no-store`; CSP, nosniff and `X-Frame-Options: DENY` present. The bundle carries R074 and `b88653d`. The R069 runtime is unchanged (read, command, notify and jobs services each at 100%, revisions as in the inventory); no PROD Cloud Run errors since 14:09Z.
+- **Tag.** Release tag workflow run 39134834495 succeeded: annotated tag `R074` (object `9d96b6e`) on `b88653d` and the GitHub Release are published.
 - **Recovery.** Hosting only: publish a new release of the previous R073 PROD version listed as rollback in the [environment inventory](Environment_Inventory.md). No database, runtime or agent rollback is involved.
-- **Not verified.** Pending.
-- **Documents updated.** Release tracker, this record; promotion README and Environment inventory pending.
+- **Not verified.** The owner's device check on PROD, and reuse of stage-hash evidence on a push that touches stage files (the freeze PR skipped every stage).
+- **Release number.** `apps/pwa/src/release.ts` stays `R074` in the artifact; the closing change bumps it to `R075`.
+- **Documents updated.** Release tracker (R074 Released, tag `R074`), Environment inventory (PROD Hosting row and date line), this record.
+- **Deletions at closure (prune).** Development Changes section deleted: this R074 production promotion record (reachable by the permalink in the tracker and inventory). Change notes deleted: `CHANGE_NOTES_W6_DOCUMENTATION_2026-10-17.md` (out of the window and not linked); the window (R075 Open; R074, R073, R072 Released) keeps the 18 October notes, and the two Wave 4 notes stay because the data dictionary links them. Evidence deleted: none.
 
 ## Current operation
 
