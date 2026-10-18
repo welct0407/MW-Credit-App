@@ -23,9 +23,21 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
-## R075 contract
+## R075 runtime, SQL and frontend promotion after V96
 
-`schemaVersion: 16`, `release: R075`, `scope: frontend-only`, `status: prepared`: the R074 contract with the source baseline moved to the R074 release `b88653d` (the source must descend from it). Runtime, SQL and infrastructure rules, the per-job and stage-hash CI gate and the delivery-tool allowance are R074's. The runner also proves that the artifact carries the promoted release: the `release` key of `build-version.json` (still `schemaVersion: 1`; the runner checks `exact({schemaVersion:1, version, entry, release})`) and the entry bundle must both name the package's `release`. The candidate build takes `releaseNumber` and passes it to the Vite build as `MW_RELEASE_NUMBER` (the `__RELEASE_NUMBER__` define; `live-prod` fails without it). The operator proof audience is `https://lm.mw-credit.com/promotion/r075`.
+`deploy-business-hosting.mjs` accepts `schemaVersion: 17`, `release: R075`, `scope: runtime-workers-frontend`, `status: prepared|applied` (`--apply` needs `applied`), modelled on R068. The former R075 Hosting-only kind (`schemaVersion: 16`) is no longer accepted.
+
+- **Source.** The source must descend from the R074 release `b88653d` and add exactly `database/migrations/V96__manual_payment_command_v7_bank_reference.sql` (name lists use R074's strict form). The delivery-tool commit may also carry this README and `scripts/database/Backup-ProductionPromotion.py`, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** `sql` pins baseline 95 and target 96 and the V96 hash, checked against the source bytes. `sql.release` is the tested grouped manifest: absolute private path, SHA256 and commit. The commit descends from the source with no `database` change, its `productionTransaction` is 95 to 96 grouped in one transaction without callbacks, and it pins every source migration. `sql.applied` records the PROD apply: instance, start and finish, one migration executed, and the dump SHA256 with a passed restore and its `prod-promotion-…` reference. `sql.verified` is a read-only readback of 96 successful history rows taken after the apply.
+- **Runtime.** `build` is the PROD Cloud Build of the source, and the four applied revisions run that image and differ from the rollback revisions, whose image differs too. `applied.appliedAt` follows the SQL apply.
+- **Plan.** The saved plan is `{add:0, change:4, destroy:0}` with actions `read.image`, `command.image`, `notify.image`, `jobs.image`, `command.vpcAccess`, `command.receiptRecognition` and `command.receiptRecognitionUrl`. That is the four images plus, on the command service only, Direct VPC egress (`PRIVATE_RANGES_ONLY`, default network and subnet) and the env `PROD_RECEIPT_RECOGNITION` and `PROD_RECEIPT_RECOGNITION_URL` (`infrastructure/production/receipt-recognizer.tf` with `receipt_recognizer.enabled = true`).
+- **Recognition pin.** `recognition` is `{activation: "disabled"|"enabled", url: "http://10.148.0.2:8790/v1/receipt-recognition"}` and must match the planned `receipt_recognizer.activation`.
+- **CI.** The gate is R074's per-job CI with stage-hash evidence.
+- **Artifact.** The artifact must carry the release: `build-version.json` is `exact({schemaVersion:1, version, entry, release:"R075"})` and the entry bundle names `"R075"`.
+- **Apply.** Apply re-reads every cited run, the Cloud Build source and digest, all four live services and the worker caller subjects. It also checks the recognizer wiring live:
+  - The command service has the planned activation and URL, `PROD_RECEIPTS=enabled` when the activation is `enabled`, and private-range Direct VPC egress on the default network and subnet without a connector.
+  - The reader and the workers have no VPC access and no recognizer env.
+- **Operator proof.** The audience is `https://lm.mw-credit.com/promotion/r075`.
 
 ## R074 contract
 

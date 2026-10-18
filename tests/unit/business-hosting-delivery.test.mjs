@@ -6,7 +6,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {hashEntries,evidenceName,variantOf,loadStages} from '../../scripts/ci/reuse-evidence.mjs';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -634,51 +634,10 @@ test('R074 live verification reads the evidence artifacts live, not from the pac
  const bad=structuredClone(m);bad.applicationCi.ci.jobs.check.evidence='evidence-ci-check-../../x';const none=reader();await assert.rejects(verifyHostingOnlyLivePackage(bad,{token:'t',request:make(),readGithub:none.readGithub,git}),/evidence artifact names required/);assert.ok(!none.calls.some(c=>c.includes('/actions/artifacts?')));
 });
 
-// R075: R074's contract with the source descending from R074 and the release number built into the artifact.
+// R075 helpers (tests at the end): the R074 release and the artifact release marker.
 const r074Release='b88653d4b84860b7eab622d0edfb472d851c03ce';
 const setArtifact=async(m,name,text)=>{await writeFile(path.join(m.artifactRoot,name),text);m.frontend.files.find(f=>f.path===name).sha256=createHash('sha256').update(text).digest('hex');};
 const r075Marker=(m,extra={})=>JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release:'R075',...extra});
-async function r075Package(t){
- const p=await r074Package(t),m=p.m;Object.assign(m,{schemaVersion:16,release:'R075',sourceBaseline:r074Release});
- await setArtifact(m,'build-version.json',r075Marker(m));
- await setArtifact(m,'assets/test.js',(await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8'))+'\nconst release="R075";');
- return p;
-}
-test('R075 Hosting-only package descends from R074, gates CI per job and requires the release built into the artifact',async t=>{
- const {m,source,tool,ci}=await r075Package(t),git=r071Git({source,tool});
- assert.equal((await hostingOnlyPlan(m,{git})).site,site);
- const scriptsOnly={...structuredClone(runtimePackageJson),scripts:{...runtimePackageJson.scripts,'check:docs':'node scripts/check-docs.mjs'}};
- for(const [mutate,pattern] of [[x=>{x.sourceBaseline=r073Release},/exact R075 source\/baseline/],[x=>{x.schemaVersion=15},/wrong R075 package kind/],[x=>{x.sql.targetVersion=96},/R075 requires verified V95/],[x=>{x.build={id:'b'}},/R075 package must not apply/],[x=>{x.plan={}},/R075 package must not apply/],[x=>{x.runtime.services.jobs.revision='bad'},/R075 unchanged runtime pins/],[x=>{x.applicationCi.ci.jobs.check.headSha='0'.repeat(40)},/R075 ci check: cited run receipt/],[x=>{delete x.applicationCi.database.jobs.guards},/R075 database CI jobs must be exactly/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(hostingOnlyPlan(candidate,{git}),pattern);}
- const detached=(root,args)=>args[0]==='merge-base'&&args[1]===r074Release?'0'.repeat(40):git(root,args);
- await assert.rejects(hostingOnlyPlan(m,{git:detached}),/R075 source must descend from the previous release/);
- for(const file of ['services/business/borrowers.mjs','database/migrations/V96__x.sql','package-lock.json','infrastructure/production/runtime.tf'])await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:file}})}),/R075 must not change the R069 runtime, SQL or infrastructure$/);
- await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:'package.json'},packageJson:{[source]:{...scriptsOnly,dependencies:{pg:'8.13.1'}}}})}),/R075 must not change the R069 runtime, SQL or infrastructure \(package\.json outside scripts\)/);
- await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[ci]:'apps/pwa/src/live-main.tsx'}})}),/R075 ci check: run is not input-equivalent/);
- assert.throws(()=>validateHostingOnlySource(m,r071Git({source,tool,delivery:'scripts/promotion/README.md\napps/pwa/src/live-main.tsx'})),/R075 unverified delivery/);
- assert.doesNotThrow(()=>validateHostingOnlySource(m,r071Git({source,tool,delivery:'scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md'})));
-});
-test('R075 rejects an artifact whose marker or bundle does not carry the package release; R074 keeps the v1 marker',async t=>{
- const {m,source,tool}=await r075Package(t),git=r071Git({source,tool}),original=await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8');
- for(const marker of [r075Marker(m,{release:'R074'}),r075Marker(m,{release:'dev'}),JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry}),r075Marker(m,{schemaVersion:2}),r075Marker(m,{extra:true}),JSON.stringify({schemaVersion:1,release:'R075',version:m.frontend.publicVersion,entry:m.frontend.entry})]){
-  const x=structuredClone(m);await setArtifact(x,'build-version.json',marker);await assert.rejects(hostingOnlyPlan(x,{git}),/R075 artifact release mismatch/);
- }
- await setArtifact(m,'build-version.json',r075Marker(m));
- for(const bundle of [original.replace('"R075"','"R074"'),original.replace('"R075"','R075'),original.replace('"R075"','"R0750"')]){const x=structuredClone(m);await setArtifact(x,'assets/test.js',bundle);await assert.rejects(hostingOnlyPlan(x,{git}),/R075 artifact release mismatch/);}
- await setArtifact(m,'assets/test.js',original.replace('"R075"',"'R075'"));assert.equal((await hostingOnlyPlan(m,{git})).site,site);
- // Regression: R074 still requires exactly {schemaVersion:1,version,entry}, so the R075 marker (with release) does not pass as R074.
- const r074={...structuredClone(m),schemaVersion:15,release:'R074',sourceBaseline:r073Release};
- await assert.rejects(hostingOnlyPlan(r074,{git}),/marker\/mode mismatch/);
- await setArtifact(r074,'build-version.json',JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry}));assert.equal((await hostingOnlyPlan(r074,{git})).site,site);
-});
-test('R075 operator audience and live verification',async t=>{
- const {m,source,tool}=await r075Package(t),git=r071Git({source,tool});
- const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com',project='clever-oasis-508610-n7';
- const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
- assert.equal((await operator('R075')).operator,email);await assert.rejects(operator('R075','https://lm.mw-credit.com/promotion/r074'),/impersonation proof/);
- const make=drift=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=m.runtime.services[role];return {ok:true,json:async()=>({latestReadyRevision:'x/'+pin.revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},template:{containers:[{image:drift===role?pin.image.replace(/.$/,'0'):pin.image}]}})};};
- await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:r074Readback(m).readGithub,git});
- await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make('jobs'),readGithub:r074Readback(m).readGithub,git}),/R075 live runtime differs/);
-});
 
 // R068: one image on all four services after the separately applied V94 and V95 (PROD 93 to 95).
 const r067Release='7f8ef5332be6b50988abca8efcf74a8657cd35a0',sqlRelease='6'.repeat(40);
@@ -795,4 +754,114 @@ test('R069 live verification re-reads CI, Cloud Build and the four services',asy
  await verifyR069LivePackage(m,{token:'t',request:make(),readGithub,git});
  await assert.rejects(verifyR069LivePackage(m,{token:'t',request:make('f'),readGithub,git}),/build digest/);
  await assert.rejects(verifyR069LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=readGithub(args);return args[1].includes('/jobs')?{jobs:r.jobs.filter(j=>j.name!=='terraform')}:r;},git}),/R069 full CI missing executed terraform/);
+});
+
+// R075: one new image on all four services after the separately applied V96 (PROD 95 to 96); the PROD plan also gives
+// the command service Direct VPC egress and the receipt recognizer flag and URL. Source descends from R074, CI is gated
+// per job (R074) and the artifact carries the R075 release marker.
+const r075Migration='V96__manual_payment_command_v7_bank_reference.sql';
+const r075Files={'V94__job_run_contract_and_shared_lock_key.sql':'-- v94','V95__agent_role_session_pair.sql':'-- v95',[r075Migration]:'-- v96'};
+const r075Actions=['read.image','command.image','notify.image','jobs.image','command.vpcAccess','command.receiptRecognition','command.receiptRecognitionUrl'];
+function r075Git({source,tool=source,changed={},delivery='',dirty='',untracked='',migration='database/migrations/'+r075Migration,releaseDatabase=''}={}){
+ return (_root,args)=>{
+  if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
+  if(args[0]==='merge-base')return args[1];
+  if(args[0]==='ls-files')return untracked;
+  if(args[0]==='ls-tree')return Object.keys(r075Files).map(name=>'database/migrations/'+name).join('\n');
+  if(args[0]==='show')return r075Files[path.posix.basename(args[1].split(':')[1])];
+  if(args[0]==='diff'){
+   if(args[2]===r074Release&&args[3]===source)return nulNames(args,migration);
+   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return nulNames(args,delivery);
+   if(args[2]===source&&args[3]===sqlRelease)return releaseDatabase;
+   if(args[3]===source)return nulNames(args,changed[args[2]]??'');
+   return nulNames(args,dirty);
+  }
+  throw Error('Unexpected synthetic Git command '+args);
+ };
+}
+async function r075Package(t){
+ const p=await r068Package(t),m=p.m,hash=value=>createHash('sha256').update(value).digest('hex');
+ const manifest={environment:'development',commit:sqlRelease,validationReference:'synthetic',productionTransaction:{baselineVersion:95,targetVersion:96,group:true,mixed:false,executeInTransaction:true,callbacks:[]},migrations:Object.entries(r075Files).map(([name,value])=>({name,sha256:hash(value)}))};
+ const releasePath=path.join(p.root,'release-r075.json'),bytes=JSON.stringify(manifest);await writeFile(releasePath,bytes);
+ Object.assign(m,{schemaVersion:17,release:'R075',sourceBaseline:r074Release,applicationCi:r074Ci(p.ci),recognition:{activation:'disabled',url:R075_RECOGNIZER_URL},
+  sql:{baselineVersion:95,targetVersion:96,migrations:manifest.migrations.slice(-1),release:{path:releasePath,sha256:hash(bytes),commit:sqlRelease},
+   applied:{environment:'production',database:'loan_manager_prod',instance:'mw-credit-pg-20261017',releaseCommit:sqlRelease,baselineVersion:95,targetVersion:96,migrationsExecuted:1,startedAt:'2026-10-19T02:00:00Z',finishedAt:'2026-10-19T02:00:40Z',backup:{dumpSha256:'a'.repeat(64),restorePassed:true,reference:'prod-promotion-'+'c'.repeat(32)}},
+   verified:{database:'loan_manager_prod',latestVersion:'96',historyRows:96,allSuccessful:true,verifiedAt:'2026-10-19T02:05:00Z'}}});
+ m.plan.actions=[...r075Actions];m.applied.sqlVersion=96;m.applied.appliedAt='2026-10-19T02:10:00Z';
+ await setArtifact(m,'build-version.json',r075Marker(m));
+ await setArtifact(m,'assets/test.js',(await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8'))+'\nconst release="R075";');
+ return p;
+}
+test('R075 package validates and rejects SQL, plan, recognizer, CI, readback and artifact tampering',async t=>{
+ const {m,source,tool,root}=await r075Package(t),git=r075Git({source,tool});
+ const plan=await r075HostingPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingVersion,m.rollback.hostingVersion);
+ assert.equal((await r075HostingPlan({...structuredClone(m),recognition:{activation:'enabled',url:R075_RECOGNIZER_URL}},{git})).site,site);
+ for(const [mutate,pattern] of [
+  [x=>x.sql.targetVersion=97,/R075 exact V95 to V96/],[x=>x.sql.baselineVersion=94,/R075 exact V95 to V96/],[x=>x.sql.migrations.push({name:'V97__x.sql',sha256:'0'.repeat(64)}),/R075 exact V95 to V96/],[x=>x.sql.migrations=[],/R075 exact V95 to V96/],
+  [x=>x.sql.migrations[0].sha256='0'.repeat(64),/R075 migration source hash/],[x=>x.sql.release.sha256='0'.repeat(64),/R075 SQL release changed/],[x=>x.sql.release.commit='7'.repeat(40),/R075 tested SQL release/],
+  [x=>x.sql.applied.migrationsExecuted=2,/R075 actual SQL apply/],[x=>x.sql.applied.targetVersion=95,/R075 actual SQL apply/],[x=>x.sql.applied.backup.restorePassed=false,/R075 actual SQL apply/],[x=>delete x.sql.applied.backup.dumpSha256,/R075 actual SQL apply/],[x=>x.sql.applied.backup.reference='dev-activation-x',/R075 actual SQL apply/],[x=>x.sql.applied.database='loan_manager_dev',/R075 actual SQL apply/],[x=>x.sql.applied.finishedAt='2026-10-19T01:59:00Z',/R075 actual SQL apply/],
+  [x=>x.sql.verified.latestVersion='95',/R075 read-only V96 readback/],[x=>x.sql.verified.historyRows=95,/R075 read-only V96 readback/],[x=>x.sql.verified.allSuccessful=false,/R075 read-only V96 readback/],[x=>x.sql.verified.verifiedAt='2026-10-19T02:00:10Z',/R075 read-only V96 readback/],
+  [x=>x.applied.sqlVersion=95,/R075 applied source/],[x=>x.applied.appliedAt='2026-10-19T01:00:00Z',/R075 applied source/],[x=>x.applied.planSha256='0'.repeat(64),/R075 applied source/],
+  [x=>x.plan.actions=['read.image','command.image','notify.image','jobs.image'],/R075 reviewed four-service image and recognizer plan/],[x=>x.plan.actions.push('read.vpcAccess'),/R075 reviewed/],[x=>x.plan.actions.reverse(),/R075 reviewed/],[x=>x.plan.counts={add:1,change:4,destroy:0},/R075 reviewed/],[x=>x.plan.counts.change=5,/R075 reviewed/],
+  [x=>x.recognition.activation='on',/R075 pinned receipt recognition/],[x=>x.recognition.url='http://10.148.0.3:8790/v1/receipt-recognition',/R075 pinned receipt recognition/],[x=>delete x.recognition,/R075 pinned receipt recognition/],[x=>x.recognition.extra=true,/R075 pinned receipt recognition/],
+  [x=>x.rollback.services.read.image=x.build.image,/recovery pin/],[x=>x.applied.services.notify.revision=x.rollback.services.notify.revision,/R075 ready service/],[x=>x.applied.services.command.image=x.rollback.services.command.image,/R075 ready service/],
+  [x=>{x.applicationCi.ci.jobs.check.headSha='0'.repeat(40)},/R075 ci check: cited run receipt/],[x=>{delete x.applicationCi.database.jobs['rebuild (phase5)']},/R075 database CI jobs must be exactly/],
+  [x=>x.build.sourceCommit='4'.repeat(40),/R075 PROD image provenance/],[x=>x.target.database='loan_manager_dev',/target/],[x=>x.frontend.files[0].sha256='d'.repeat(64),/artifact/],
+  [x=>x.release='R074',/package kind/],[x=>x.schemaVersion=16,/package kind/],[x=>x.scope='frontend-only',/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(r075HostingPlan(candidate,{git}),pattern,String(mutate));}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(r075HostingPlan(prepared,{git}),/R075 runtime apply\/readback/);assert.equal((await r075HostingPlan(prepared,{git,requireApplied:false})).site,site);
+ // Other contracts refuse the R075 package, and the former R075 Hosting-only kind is gone.
+ await assert.rejects(r068HostingPlan(m,{git}),/package kind/);await assert.rejects(hostingOnlyPlan({...structuredClone(m),schemaVersion:16,scope:'frontend-only',status:'prepared'},{git}),/wrong R075 package kind/);
+ const incomplete=JSON.parse(await readFile(m.sql.release.path,'utf8'));incomplete.migrations.pop();const shortPath=path.join(root,'short-r075.json'),shortBytes=JSON.stringify(incomplete);await writeFile(shortPath,shortBytes);
+ await assert.rejects(r075HostingPlan({...structuredClone(m),sql:{...structuredClone(m.sql),release:{path:shortPath,sha256:createHash('sha256').update(shortBytes).digest('hex'),commit:sqlRelease}}},{git}),/R075 complete migration manifest/);
+ const grouped=JSON.parse(await readFile(m.sql.release.path,'utf8'));grouped.productionTransaction.callbacks=['afterMigrate'];const groupedPath=path.join(root,'callbacks-r075.json'),groupedBytes=JSON.stringify(grouped);await writeFile(groupedPath,groupedBytes);
+ await assert.rejects(r075HostingPlan({...structuredClone(m),sql:{...structuredClone(m.sql),release:{path:groupedPath,sha256:createHash('sha256').update(groupedBytes).digest('hex'),commit:sqlRelease}}},{git}),/R075 grouped V95 to V96 transaction/);
+ await assert.rejects(r075HostingPlan(m,{git:r075Git({source,tool,releaseDatabase:'database/migrations/'+r075Migration})}),/R075 SQL release must be the pinned source migrations/);
+ assert.equal((await validateR075Sql(m,git)),undefined);
+});
+test('R075 artifact must carry the R075 release in its marker and bundle',async t=>{
+ const {m,source,tool}=await r075Package(t),git=r075Git({source,tool}),original=await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8');
+ for(const marker of [r075Marker(m,{release:'R074'}),JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry}),r075Marker(m,{extra:true})]){const x=structuredClone(m);await setArtifact(x,'build-version.json',marker);await assert.rejects(r075HostingPlan(x,{git}),/R075 artifact release mismatch|marker\/mode mismatch/);}
+ await setArtifact(m,'build-version.json',r075Marker(m));
+ for(const bundle of [original.replace('"R075"','"R074"'),original.replace('"R075"','R075')]){const x=structuredClone(m);await setArtifact(x,'assets/test.js',bundle);await assert.rejects(r075HostingPlan(x,{git}),/R075 artifact release mismatch/);}
+});
+test('R075 source carries only V96 from R074; the delivery commit may add this README and the backup tool',async t=>{
+ const {m,source,tool,ci}=await r075Package(t);
+ const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md';
+ assert.doesNotThrow(()=>validateR075Source(m,r075Git({source,tool,delivery:toolFiles})));
+ for(const file of ['services/business/borrowers.mjs','infrastructure/production/runtime.tf','integration-agent/service-catalogue.json'])assert.throws(()=>validateR075Source(m,r075Git({source,tool,delivery:file})),/R075 unverified delivery/);
+ assert.throws(()=>validateR075Source({...m,deliveryToolChecks:{command:'npm test',exitCode:0}},r075Git({source,tool,delivery:toolFiles})),/R075 unverified delivery/);
+ for(const migration of ['','database/migrations/V95__agent_role_session_pair.sql','database/migrations/'+r075Migration+'\ndatabase/migrations/V97__x.sql','database/migrations/V96__other.sql'])assert.throws(()=>validateR075Source(m,r075Git({source,tool,migration})),/R075 carries exactly the separately applied V96/);
+ assert.throws(()=>validateR075Source({...m,sourceBaseline:r068Release},r075Git({source,tool})),/R075 source\/baseline/);
+ const detached=(root,args)=>args[0]==='merge-base'&&args[1]===r074Release?'0'.repeat(40):r075Git({source,tool})(root,args);
+ assert.throws(()=>validateR075Source(m,detached),/R075 source must descend from the R074 release/);
+ assert.throws(()=>validateR075Source(m,r075Git({source,tool,dirty:'apps/pwa/src/live-main.tsx'})),/R075 working input/);
+ assert.throws(()=>validateR075Source(m,r075Git({source,tool,untracked:'services/new.mjs'})),/R075 untracked/);
+ // Per-job CI: a check run older than a services change is not input-equivalent; a run at the delivery commit is,
+ // when that commit adds only allowed files.
+ await assert.rejects(r075HostingPlan(m,{git:r075Git({source,tool,changed:{[ci]:'services/payment-command/store.mjs'}})}),/R075 ci check: run is not input-equivalent/);
+ m.applicationCi=r074Ci(tool);assert.equal((await r075HostingPlan(m,{git:r075Git({source,tool,delivery:toolFiles})})).site,site);
+ await assert.rejects(r075HostingPlan(m,{git:r075Git({source,tool,delivery:toolFiles+'\napps/pwa/src/live-main.tsx'})}),/R075 unverified delivery/);
+});
+test('R075 operator audience and live verification re-read per-job CI, Cloud Build, the four services and the command-only recognizer wiring',async t=>{
+ const {m,source,tool,image}=await r075Package(t),git=r075Git({source,tool}),project='clever-oasis-508610-n7';
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
+ const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
+ assert.equal((await operator('R075')).operator,email);await assert.rejects(operator('R075','https://lm.mw-credit.com/promotion/r074'),/impersonation proof/);
+ const service=(role,edit={})=>{const env=[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`}];
+  if(role==='command')env.push({name:'PWA_NOTIFICATIONS',value:'enabled'},{name:'PROD_RECEIPTS',value:'enabled'},{name:'PROD_RECEIPT_RECOGNITION',value:edit.activation??m.recognition.activation},{name:'PROD_RECEIPT_RECOGNITION_URL',value:edit.url??R075_RECOGNIZER_URL});
+  if(['notify','jobs'].includes(role))env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})});
+  if(edit.strayEnv===role)env.push({name:'PROD_RECEIPT_RECOGNITION',value:'disabled'});
+  const vpc=role==='command'?(edit.vpc===undefined?{egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]}:edit.vpc):edit.strayVpc===role?{egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]}:undefined;
+  return {name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+m.applied.services[role].revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision:m.applied.services[role].revision}],template:{serviceAccount:`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,...(vpc?{vpcAccess:vpc}:{}),containers:[{image,env}]}};};
+ const make=(edit={},digest='e')=>async url=>({ok:true,json:async()=>url.includes('cloudbuild')?{status:'SUCCESS',results:{images:[{name:`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:build-1`,digest:'sha256:'+digest.repeat(64)}]},source:{storageSource:m.build.storageSource}}:service(url.split('/services/mw-credit-app-')[1].replace('-prod',''),edit)});
+ const live=r074Readback(m);await verifyR075LivePackage(m,{token:'t',request:make(),readGithub:live.readGithub,git});assert.equal(live.calls.length,10);
+ await verifyR075LivePackage(m,{token:'t',request:make({vpc:{egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:`projects/${project}/global/networks/default`,subnetwork:`projects/${project}/regions/asia-southeast1/subnetworks/default`}]}}),readGithub:r074Readback(m).readGithub,git});
+ for(const [edit,pattern,digest='e'] of [[{},/build digest/,'f'],[{activation:'enabled'},/recognizer setting drift/],[{url:'http://10.148.0.3:8790/v1/receipt-recognition'},/recognizer setting drift/],[{vpc:null},/VPC egress drift/],[{vpc:{egress:'ALL_TRAFFIC',networkInterfaces:[{network:'default',subnetwork:'default'}]}},/VPC egress drift/],[{vpc:{egress:'PRIVATE_RANGES_ONLY',connector:'c',networkInterfaces:[{network:'default',subnetwork:'default'}]}},/VPC egress drift/],[{strayVpc:'read'},/outside the command service/],[{strayEnv:'jobs'},/outside the command service/]])
+  await assert.rejects(verifyR075LivePackage(m,{token:'t',request:make(edit,digest),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
+ // Enabled recognition also requires receipts on the command service.
+ const enabled={...structuredClone(m),recognition:{activation:'enabled',url:R075_RECOGNIZER_URL}};
+ await verifyR075LivePackage(enabled,{token:'t',request:make({activation:'enabled'}),readGithub:r074Readback(enabled).readGithub,git});
+ const noReceipts=async url=>{const r=await make({activation:'enabled'})(url),body=await r.json();if(body.template?.containers)body.template.containers[0].env=body.template.containers[0].env.filter(x=>x.name!=='PROD_RECEIPTS');return {ok:true,json:async()=>body};};
+ await assert.rejects(verifyR075LivePackage(enabled,{token:'t',request:noReceipts,readGithub:r074Readback(enabled).readGithub,git}),/recognizer setting drift/);
+ const skipped=r074Readback(m);await assert.rejects(verifyR075LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=skipped.readGithub(args);if(args[1].endsWith('/runs/25/jobs?per_page=100'))r.jobs.find(j=>j.name==='rebuild (phase5)').conclusion='skipped';return r;},git}),/R075 database rebuild \(phase5\): missing executed job/);
 });
