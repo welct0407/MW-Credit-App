@@ -10,7 +10,6 @@
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
 | Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
 | Agent migration V5 (indexes on `runtime.operation_state(last_event_id)` and `runtime.job_runs(operation_id)`) | Recommended, not written |
-| `scripts/ci/reuse-evidence.mjs` `listCandidates` diffs with `git diff --name-only` without `--no-renames` or `-z`, so a file renamed out of a stage-relevant path or with a quoted name can be missed and evidence wrongly reused; the R074 promotion runner already uses `--no-renames -z` | [Change note](../../Change%20Logs/CHANGE_NOTES_RUNNER_PER_JOB_CI_2026-10-18.md); future CI tooling |
 | Repository merge follow-ups (15 October 2026) | [Change note](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/Change%20Logs/CHANGE_NOTES_REPOSITORY_MERGE_2026-10-15.md) |
 
 Use the [release tracker](Release_Tracker.md), including the carried R016 administrative follow-up. Current runtime versions belong in [environment inventory](Environment_Inventory.md). Update this page for actual outstanding work, not completed-release history.

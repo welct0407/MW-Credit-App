@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decide, isRelevant, loadStages, parseNeeded, summarize } from '../../scripts/ci/reuse-evidence.mjs';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { decide, isRelevant, listCandidates, loadStages, parseNeeded, summarize } from '../../scripts/ci/reuse-evidence.mjs';
 
 const stages = loadStages('ci');
 const success = (names) => names.map((name) => ({ name, conclusion: 'success', url: `https://example.invalid/${name}` }));
@@ -107,4 +111,52 @@ test('summarize renders one row per stage with the reused evidence', async () =>
   assert.match(table, /\| check \| skip \| reused \| abcdef0 \[run 1\]\(https:\/\/example\.invalid\/check\) \|/);
   assert.ok(table.includes('| e2e | run | no evidence |  |'));
   assert.ok(table.includes('| lint | skip | not needed |  |'));
+});
+
+// Real git in a temp repo: one base commit with a check- and e2e-relevant PWA file, then the change under test.
+async function tempRepo(t) {
+  const root = await mkdtemp(path.join(tmpdir(), 'mw-ci-reuse-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const g = (...args) => {
+    const r = spawnSync('git', ['-C', root, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', '-c', 'core.quotePath=true', ...args], { encoding: 'utf8' });
+    assert.equal(r.status, 0, r.stderr);
+    return r.stdout.trim();
+  };
+  const commit = (message) => { g('add', '-A'); g('commit', '-qm', message); return g('rev-parse', 'HEAD'); };
+  g('init', '-q');
+  await mkdir(path.join(root, 'apps/pwa/src'), { recursive: true });
+  await writeFile(path.join(root, 'apps/pwa/src/a.ts'), 'export const a = 1;\n');
+  const base = commit('base');
+  return { root, g, commit, base, changedSince: (sha) => listCandidates(root).find((c) => c.sha === sha)?.changed };
+}
+
+test('a file moved out of a relevant path is reported at its old path, so check is not reused', async (t) => {
+  const { root, g, commit, base, changedSince } = await tempRepo(t);
+  await mkdir(path.join(root, 'project'));
+  g('mv', 'apps/pwa/src/a.ts', 'project/a.ts');
+  commit('move');
+  assert.deepEqual(changedSince(base), ['apps/pwa/src/a.ts', 'project/a.ts']);
+  const result = await decide(stages, { check: true }, listCandidates(root), checksOf({ [base]: success(['check']) }));
+  assert.equal(result.check.reason, 'no evidence');
+});
+
+test('a non-ASCII path is reported unquoted and keeps e2e running', async (t) => {
+  const { root, commit, base, changedSince } = await tempRepo(t);
+  await writeFile(path.join(root, 'apps/pwa/src/café.ts'), 'export const c = 1;\n');
+  commit('accented');
+  assert.deepEqual(changedSince(base), ['apps/pwa/src/café.ts']);
+  assert.ok(isRelevant(stages.e2e, 'apps/pwa/src/café.ts'));
+  const result = await decide(stages, { e2e: true }, listCandidates(root), checksOf({ [base]: success(E2E) }));
+  assert.equal(result.e2e.reason, 'no evidence');
+});
+
+test('a path that begins with a space survives untrimmed', async (t) => {
+  // Trimmed, " project/x.ts" would read as excluded project/ documentation and let check be reused.
+  const { root, commit, base, changedSince } = await tempRepo(t);
+  await mkdir(path.join(root, ' project'));
+  await writeFile(path.join(root, ' project/x.ts'), 'export const x = 1;\n');
+  commit('leading space');
+  assert.deepEqual(changedSince(base), [' project/x.ts']);
+  const result = await decide(stages, { check: true }, listCandidates(root), checksOf({ [base]: success(['check']) }));
+  assert.equal(result.check.reason, 'no evidence');
 });
