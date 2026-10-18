@@ -24,7 +24,7 @@ Status and records only; deployment pins are in the [environment inventory](Envi
 
 | Release | Scope | Released | Record | Tag |
 | --- | --- | --- | --- | --- |
-| R074 | Release number and delivery tooling: per-job/stage-hash promotion gate, stage-hash CI evidence (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](Development_Changes.md#r074-production-promotion) | `R074` |
+| R074 | Release number and delivery tooling: per-job/stage-hash promotion gate, stage-hash CI evidence (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/2c28911c1cbd7dc292364fabf22bb6ceaec1b328/project/Documents/Development_Changes.md#r074-production-promotion) | `R074` |
 | R073 | Offline refresh joins the running cycle between records segments (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/69c0a37dbdb4ed3ca759d477132291dd326d327e/project/Documents/Development_Changes.md#r073-production-promotion) | `R073` |
 | R072 | About screen, encrypted troubleshooting file, service worker cache pruning, PROD theme colour, browser-tab icon and offline wording, payment review alignment (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/c8257ae68e082901fc28ab393be5c532b0526236/project/Documents/Development_Changes.md#r072-production-promotion) | `R072` |
 | R071 | One refresh icon, style decisions and Thai pending-sync note (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/c9247c590bcfddd3b6f018cecc6c51cbc22ee881/project/Documents/Development_Changes.md#r071-production-promotion) | `R071` |
