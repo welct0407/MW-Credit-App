@@ -37,7 +37,7 @@ Successful PWA/agent commits wake the notification worker centrally, after the r
 
 APIs return 401 `session_invalid` only for definite token errors; verifier outages return 503 `session_check_unavailable`, and a stalled request body returns 503 `body_timeout`. Both are retryable and never sign the owner out. Saved (pending) changes survive an involuntary sign-out; voluntary Sign out stays disabled until they sync.
 
-Offline datasets and media are deleted after 7 days without a successful online check; pending (unsynced) changes are never deleted.
+Offline datasets and media are deleted after 7 days without a successful online check; pending (unsynced) changes are never deleted. The About screen (available signed out) can produce an encrypted troubleshooting file (RSA-OAEP/AES-GCM, public key embedded in the build, private key in Secret Manager, owners only); saved-change content is included only when signed in, with no raw uid, email or tokens.
 
 One native scheduler owns each job/environment. Daily charges run at 00:05 and recent analytics hourly, Asia/Bangkok. SQL job keys/locking prevent duplicate work.
 

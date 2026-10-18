@@ -3,16 +3,25 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+import { troubleshootingKeyId } from './apps/pwa/src/troubleshooting-envelope';
 // About shows the source commit; a build outside a Git checkout says 'unknown'.
 function sourceCommit() {
   try { return execFileSync('git', ['rev-parse', '--short=7', 'HEAD'], { cwd: fileURLToPath(new URL('.', import.meta.url)), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() || 'unknown'; }
   catch { return 'unknown'; }
 }
+// R072 troubleshooting: one public key for DEV and PROD. A test key may replace it only outside live-prod, and live-prod must carry the committed key.
+function troubleshootingPublicKey(mode: string) {
+  const override = mode !== 'live-prod' ? process.env.MW_TROUBLESHOOTING_PUBLIC_KEY_FILE : undefined;
+  const pem = readFileSync(override || fileURLToPath(new URL('apps/pwa/troubleshooting-public-key.pem', import.meta.url)), 'utf8').trim();
+  const der = Buffer.from(pem.replace(/-----(BEGIN|END) PUBLIC KEY-----|\s+/g, ''), 'base64');
+  if (!override && createHash('sha256').update(der).digest('hex') !== troubleshootingKeyId) throw new Error('Troubleshooting public key does not match its committed key id');
+  return pem;
+}
 export default defineConfig(({ mode }) => {
   if (!['synthetic', 'live-dev', 'live-prod'].includes(mode)) throw new Error('Choose an explicit synthetic, live-dev or live-prod build mode');
   return {
     // Merged with a caller's own define (scripts/production/build-business-candidate.mjs).
-    define: { __SOURCE_COMMIT__: JSON.stringify(sourceCommit()) },
+    define: { __SOURCE_COMMIT__: JSON.stringify(sourceCommit()), __TROUBLESHOOTING_PUBLIC_KEY__: JSON.stringify(troubleshootingPublicKey(mode)) },
     // The dependency scanner reads raw HTML, before our mode-specific HTML transform.
     // Scan the actual entry so a cold live server discovers Firebase before browser loads.
     optimizeDeps: {
