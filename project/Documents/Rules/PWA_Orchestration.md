@@ -20,7 +20,7 @@ Exact models/efforts live only in [Model Work Mapping](Model_Work_Mapping.md). R
 
 ### Named workers, started once per session
 
-The six workers have fixed names so that every session, record and request refers to the same team. Each name starts with the role's letter and hints at the job: Archie draws the architecture, Byte writes the code, Chase chases defects, Dewey keeps the records and delivery in order, Echo reflects what the user experiences, Forge builds the infrastructure. Start a worker under the display name `<Name> (<letter> — <role>)`, for example `Archie (A — Architect)`, and use the name in chat, handoffs and change notes; the letter alone remains a valid shorthand. Rename only through this table.
+The six workers have fixed names so that every session, record and request refers to the same team. Each name starts with the role's letter and hints at the job: Archie draws the architecture, Byte writes the code, Chase chases defects, Dewey keeps the records and delivery in order, Echo reflects what the user experiences, Forge builds the infrastructure. Start a worker under the display name `<Name> (<letter> — <role>)`, for example `Archie (A — Architect)`, and use the name in chat, handoffs and change notes; the letter alone remains a valid shorthand. Rename only through this table and the matching Claude Code definitions in `.claude/agents/` (one file per worker, holding its role brief and default model/effort; see [CLAUDE.md](../../../CLAUDE.md)).
 
 A worker is a standing team member for the whole session, not a per-task hire:
 

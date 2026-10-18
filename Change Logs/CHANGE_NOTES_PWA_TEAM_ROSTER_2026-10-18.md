@@ -9,7 +9,8 @@ Owner instruction of 18 October 2026: the six PWA workers get fixed names used i
 - `AGENTS.md`: the PWA hard rule names the team and the once-per-session reuse. Revision date 18 October 2026.
 - `CLAUDE.md`: Claude Code mechanics: start a role with `Agent` under its display name, continue with `SendMessage` to that name, start again only for the replacement cases.
 - `project/Documents/Rules/Development_Workflow.md`: the delegation bullet and the documentation-maintenance paragraph use the names.
-- The names are the proposal put to the owner in the session; a different choice is one edit of the roster table and the three pages that repeat the names.
+- Names approved by the owner in the same session (18 October 2026).
+- New Claude Code agent definitions (owner approval in the same session): `.claude/agents/archie.md`, `byte.md`, `chase.md`, `dewey.md`, `echo.md`, `forge.md`. Each pins the worker's name, role brief, default model and effort from the Claude alternative table, and the hard rules it must keep; escalations stay per-call overrides. `CLAUDE.md`, the roster section and the Claude alternative table point at them.
 
 ## Checks
 | Command | Result |
@@ -23,7 +24,7 @@ Product CI, tests and live audits: documentation-only change with no executable 
 Revert the batch commit on `claude/quirky-gauss-rf24f1`; Git baseline `a3bffa3` on `main`.
 
 ## Open questions
-Owner confirmation of the six names (Archie, Byte, Chase, Dewey, Echo, Forge) or a replacement for any of them.
+None.
 
 ## Remaining work
-None beyond the name confirmation. Optional later: Claude Code agent definition files under `.claude/agents/` that pin each worker's name, model and effort, which would need owner approval as new files.
+None. The definitions take effect in the next Claude Code session that loads the repository.

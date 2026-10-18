@@ -33,7 +33,7 @@ D does not replace F for infrastructure unless the owner requests it. E recommen
 
 ### Claude alternative
 
-Use the same A–F responsibilities above. The orchestrator is the main conversation, additional to the six workers.
+Use the same A–F responsibilities above. The orchestrator is the main conversation, additional to the six workers. In Claude Code the worker defaults below are also pinned in `.claude/agents/<name>.md`; keep that file and this table identical, and apply escalations as per-call overrides.
 
 | Name | Model ID | Effort |
 | --- | --- | --- |
