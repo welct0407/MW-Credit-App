@@ -1,6 +1,6 @@
 # Current environment inventory
 
-Updated 18 October 2026 from existing deployment evidence (R074 Hosting-only promotion, R072 About screen on DEV Hosting, R069 runtime and agent, R068 schema V95). This is the only document that holds deployment pins (Hosting versions, Cloud Run revisions and image digests, Debian commit, Flyway version). Other documents link here. No unrelated live audit was performed; use [release tracker](Release_Tracker.md) for release status.
+Updated 18 October 2026 from existing deployment evidence (R075 promotion to PROD and DEV: runtime, V96, Hosting and agent). This is the only document that holds deployment pins (Hosting versions, Cloud Run revisions and image digests, Debian commit, Flyway version). Other documents link here. No unrelated live audit was performed; use [release tracker](Release_Tracker.md) for release status.
 
 | Component | DEV | PROD |
 | --- | --- | --- |
@@ -25,7 +25,7 @@ One pin per cell, one row per target. Rollback entries are the previous verified
 | Target | Hosting version | Release / public version | Verified | Rollback version | Record |
 | --- | --- | --- | --- | --- | --- |
 | DEV | `1b74b8911b8bb098` | `build-version.json` `{"version":"8a200db2323f8e63823c1770","release":"R075"}` | R075 after PR #71 (owner DEV review fixes), 18 October 2026; owner checked it on iPhone (about 19:10Z); built from Secret Manager `mw-credit-app-dev-firebase-web` | `8f60cf8c172d52b0` (R075 at `85273a4`, version `703259ffbe76f6b903c6c483`); earlier `5057ec71cae7079e` (R072 cache fix) | [R075 change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md) |
-| PROD | `047af2dcdd4016e2` | release `1792332604127000`; public `48e174c49ec578d20ba7efab`; entry `/assets/index-J612-CT8.js` | R074, source `b88653d4b84860b7eab622d0edfb472d851c03ce`, about 14:09Z 18 October 2026 (21:09 Bangkok), 15 of 15 files byte-identical on both hosts, package `012d4c6b...` | `191483d8f3f5ef87` (R073, release `1792318600122000`, public `085badcaf50ff9c886227364`); earlier `6f0fd98b6c19c1f9` (R072), `8d479df729eb1a78` (R071) | [R074 production promotion](https://github.com/welct0407/MW-Credit-App/blob/2c28911c1cbd7dc292364fabf22bb6ceaec1b328/project/Documents/Development_Changes.md#r074-production-promotion) |
+| PROD | `c0b7a7e28d82b325` | release `1792352538003000`; `build-version.json` version `d7a4f93a6d6108b5abbf355c`, release `R075` | R075, source `96b0a0b120be60fbe9a229d1004eabce35598a0d`, 18 October 2026 (after 19:31Z); `lm.mw-credit.com` serves release R075 | `047af2dcdd4016e2` (R074, release `1792332604127000`, public `48e174c49ec578d20ba7efab`, entry `/assets/index-J612-CT8.js`); earlier `191483d8f3f5ef87` (R073) | [R075 change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md) |
 
 Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, immutable `/assets/**`, `no-store` for `/`, `sw.js`, `build-version.json`, manifest and `offline.html`; viewport zoom lock kept (accepted design, W5 R068).
 
@@ -37,10 +37,10 @@ Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, i
 | DEV | command | command-00041-528 | `api@sha256:e380ac61670a78b9d2a7b5c8704a3b1cb41bd2035e7bf4807b5db75461c006bd` (R075, source `85273a4`, Cloud Build `a96bf17d-bb82-475c-afce-1c16f4252057`) | command-00039-w8g (recognition disabled) on `1fb9d763451c...` (R069); 00040-bzj is the image-only step |
 | DEV | notify | notify-00011-lxg | same | notify-00010-8nq |
 | DEV | jobs | jobs-00011-7t7 | same | jobs-00010-rnl |
-| PROD | reader | read-00012-2lv | `api@sha256:3d152a44c6111b4ef0d7a5670790b967c3031749e78c7211f8ecd9e940bd1294` (R069, source `9c4a4cb`) | read-00011-2j9 on `808cc07761a3...` (R068) |
-| PROD | command | command-00016-9nn | same | command-00015-2w9 |
-| PROD | notify | notify-00010-xrd | same | notify-00009-sxg |
-| PROD | jobs | jobs-00010-d5d | same | jobs-00009-kck |
+| PROD | reader | read-00013-kt2 | `api@sha256:1586970d19f292af91c425bf2e12f22c77d6b0421ca2f890f8bedbf5b1c1da18` (R075, source `96b0a0b`, Cloud Build `198469cc-7417-4ec4-8e90-100819e5d9a5`) | read-00012-2lv on `api@sha256:3d152a44c6111b4ef0d7a5670790b967c3031749e78c7211f8ecd9e940bd1294` (R069) |
+| PROD | command | command-00017-g45 | same | command-00016-9nn |
+| PROD | notify | notify-00011-4gw | same | notify-00010-xrd |
+| PROD | jobs | jobs-00011-hw2 | same | jobs-00010-d5d |
 | PROD | bridge `mw-grafana-events` | `00015-qcs` (recorded telemetry rollout; not re-read) | `keep-grafana-events-live` `9ba9b0f2...` | not recorded |
 
 DEV applied about 09:43Z, PROD 10:17:44 to 10:18:21Z, both 17 October 2026 (plans 0/4/0, re-plan No changes). Reader and command run `services/production/business-server.mjs`; DEV uses `APP_ENV=dev`, database user `mw-credit-app-read-dev` for the reader, Cloud Run timeout 15 s (as PROD), startup CPU boost on reader and command. PROD workers pin `WORKER_CALLER_SUBJECTS_JSON`. PROD health 200, unauthenticated 401 and CORS verified. Rollback route: `dev.activation.before.tfvars` (DEV) and `production.activation.before.tfvars` (PROD) in the private R069 promotion folder. Records: [R069 follow-ups](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r069-w4-optional-follow-ups) (DEV), [R069 promotion](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r069-production-promotion) (PROD).
@@ -50,8 +50,8 @@ DEV applied about 09:43Z, PROD 10:17:44 to 10:18:21Z, both 17 October 2026 (plan
 | Target | Database | Flyway version | Verified |
 | --- | --- | --- | --- |
 | DEV | `loan_manager_dev` | V96 (0 failed; `validate` 97, 0 invalid) | R075, 18 October 2026; backup and restore test before apply, dump sha256 `56d6297309f7d253c44e8e6e387e1b08038512ea100e9c30a504d3f43a03954c`, reference in the private recovery folder; temporary owner authority prepared and restored (ledger, notify, jobs and journal owners, V93 repeat runbook) |
-| PROD | `loan_manager_prod` | V95 (95 successful, 0 failed; `validate` 96 including baseline) | Migrated 93 to 95 at 04:09Z; read-only readback 12:03:26Z, 17 October 2026 ([R068](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r068-production-promotion), [R070](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r070-production-promotion)) |
-| PROD agent database `mw_agent` | `mw_agent` | Agent migration V6 (`runtime.service_heartbeats`) | Applied 10:25:46Z, 17 October 2026 (R069). DEV agent version: not recorded |
+| PROD | `loan_manager_prod` | V96 (96 successful history rows, 0 failed) | R075, V96 applied 19:28:52Z (2.1 s), 18 October 2026; read-only readback after the apply. Backup `prod-promotion-cee9d1d522e949ec9d067ef290cde642`, dump sha256 `1393fcbf4d82b1580d3ca677b59f8d5a9ce18d74e69decb0be7a9e2bdc02a58a`, isolated restore passed (32 tables, fingerprints match). Release manifest sha256 `5d5fd758e795f56ed456963494a01b22abca1ba04f33f1d5c51419d03ec5cbbc`. Earlier: V95 migrated 93 to 95 on 17 October 2026 ([R068](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r068-production-promotion)) |
+| PROD agent database `mw_agent` | `mw_agent` | Agent migration V6 (`runtime.service_heartbeats`) | Applied 10:25:46Z, 17 October 2026 (R069). DEV agent version: not recorded; 18 October 2026 (R075 closure): 23 stuck `receipt_payment` operations closed append-only 19:24:27Z to 19:24:34Z after backup `mw_agent-before-r075-closure-20261018.dump` (sha256 `0a4adc4f3a7cbd47123b227c2de52183356a643b367f60ee06abd71ca6263450`, restore verified 33 tables and 941,025 rows, kept in `/root/mw_agent-backups/` on the VM); plan 23, apply 23, re-plan 0, no business writes |
 
 ### Debian agent host
 
@@ -59,11 +59,11 @@ DEV applied about 09:43Z, PROD 10:17:44 to 10:18:21Z, both 17 October 2026 (plan
 | --- | --- |
 | Host | `vm-mw-credit-agent` |
 | Source checkout | `/opt/mw-integration-agent-src`, full clone of `welct0407/MW-Credit-App` `main`; HEAD read on the host at the 17 October 2026 deploy: equal to the deployed `code_version` |
-| Deployed monorepo commit | `2c2175513ee0033825a63881d6bf033c687251b3` (R075 agent component: recognizer audit route fix and timeouts, PR #70), activated 18 October 2026; freeze backup `runtime-20261018T183337450852Z`; rollback pin `131b43a4bde00300e21b2351c7b5df1875bfca96` (first R075 deploy, 18:02:35Z). Before R075: `5b4e50dfa9be919321ac30160a4e0c1bfef548a8` |
+| Deployed monorepo commit | `96b0a0b120be60fbe9a229d1004eabce35598a0d` (R075 agent component), activated 19:16:40Z, 18 October 2026; freeze backup `runtime-20261018T191633420849Z`; rollback restores `2c2175513ee0033825a63881d6bf033c687251b3` (PR #70). Earlier: `131b43a4` (first R075 deploy), `5b4e50dfa9be919321ac30160a4e0c1bfef548a8` (before R075) |
 | Virtual environment | `/opt/mw-integration-agent/.venv`, installed from `<checkout>/integration-agent` at that commit with `pip install --no-deps`; dependencies equal `integration-agent/requirements.lock` (verified 16 October at the earlier deploy; not re-recorded for R069) |
 | Installed package version | `0.1.0` (the package version is not bumped; `/ready` `code_version` is the identity) |
 | Service catalogue revision | 29 live (adds `receipt_recognition_api`, enabled); backup `/root/service-catalogue.json.pre-rev29` holds 28; the deploy refuses a mismatch |
-| Verified | 18 October 2026: `mw-receipt-recognition.service` enabled 18:03:39Z on `10.148.0.2:8790`, `healthz` `enabled: true`, no token 401, bad token 403; only caller `mw-credit-app-command-dev`; model `gemini-3.8-flash` on `global`; Instagram receipt cycle still on Codex. Earlier: activated 17:27:06Z, 17 October 2026 (rev 28), `/ready` 200 |
+| Verified | 18 October 2026: `mw-receipt-recognition.service` enabled 18:03:39Z on `10.148.0.2:8790`, `healthz` `enabled: true`, no token 401, bad token 403; only caller `mw-credit-app-command-dev`; model `gemini-3.8-flash` on `global`; Instagram receipt cycle still on Codex. Earlier: activated 17:27:06Z, 17 October 2026 (rev 28), `/ready` 200. PROD caller added after that (config backup `/root/config.json.pre-prod-caller`): callers `mw-credit-app-command-dev` and the PROD command service; the Instagram receipt cycle still uses Codex |
 | Host monitor | `/opt/mw-resource-monitoring/debian-health.py` equals the repository copy as of the R063 Wave 3 deploy (`300aeb5`); later monitor updates: not recorded |
 | Rollback | Catalogue first: restore `/root/service-catalogue.json.pre-rev28` by the config-only route (the `1feb6cd` validator rejects `audit_relay`). Then `deploy-runtime.py rollback --commit 5b4e50dfa9be919321ac30160a4e0c1bfef548a8` from `runtime-20261017T172649242280Z` (restores R069 `1feb6cd`). Earlier backups: `runtime-20261017T102501647216Z` (R069 deploy, holds R068 `679a76c`), `runtime-20261017T041230734761Z` (R068 deploy) |
 | Records | [Validator deploy](../../integration-agent/Change%20Logs/CHANGE_NOTES_AUDIT_RELAY_VALIDATOR_2026-10-17.md), [R069 promotion](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r069-production-promotion), [Wave 2 deployment](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/integration-agent/Change%20Logs/CHANGE_NOTES_W2_AGENT_DEPLOYMENT_2026-10-16.md#deployment-16-october-2026), [Wave 3 record](../../integration-agent/Change%20Logs/CHANGE_NOTES_W3_AGENT_2026-10-16.md) |
@@ -84,9 +84,9 @@ The separate `mw_agent` database holds integration journals/audit state. Metabas
 
 R060 corrected the confirmed production-store mode veto for main offline-dataset reads. [Recovery and evidence](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r060-production-offline-dataset-recovery).
 
-## R075 receipt recognition (DEV applied and enabled, 18 October 2026)
+## R075 receipt recognition (DEV and PROD, Released 18 October 2026)
 
-Owner-authorized on 18 October 2026: merge (PR #69, `85273a4`), agent deploy with live restart, DEV enable. PROD is untouched: no PROD apply, no V96, no PROD caller on the recognizer. DEV pins are in the tables above (Hosting, Cloud Run, schema, Debian agent host); this table holds the rest.
+Owner-authorized on 18 October 2026: DEV rollout, then the production instruction "merge it and push to production". PROD pins are in the tables above (Hosting, Cloud Run, schema, Debian agent host); this table holds the rest.
 
 | Item | State |
 | --- | --- |
@@ -97,7 +97,8 @@ Owner-authorized on 18 October 2026: merge (PR #69, `85273a4`), agent deploy wit
 | DEV activation tfvars | Private `activation/dev.activation.tfvars`, generation `1792347299798067`; rollback generations `1792346627780271` and `1792344805662179` |
 | Previous DEV image | `sha256:1fb9d763451ca5c67b67d54bf8c93df8ece99e99928a32f6efcd207c8228dfcd` (R069) |
 | Recognizer address | Pinned ephemeral VM internal IP `10.148.0.2`, port 8790; one shared URL and token audience; DEV and PROD are told apart by caller identity. VM Vertex egress uses external IP `136.85.96.197`, unchanged |
-| PROD | Not applied: `PROD_RECEIPT_RECOGNITION` wiring, Direct VPC egress, V96 and the PROD caller stay off |
+| PROD command service | Direct VPC egress `PRIVATE_RANGES_ONLY`, `PROD_RECEIPT_RECOGNITION=enabled` and `PROD_RECEIPT_RECOGNITION_URL` (the shared recognizer URL and audience). Plan sha256 `90807aced2ed91a2f69c6554173ab37e2d778189547d697ae5d4f426e03f7f58` (0 add, 4 change, 0 destroy) applied 19:31:02Z to 19:31:28Z. PROD activation tfvars generation `1792351902282633`; rollback generation `1792232347760054` |
+| PROD promotion package | Private `promotion-packages/r075/` in the operator bucket: package sha256 `0b3db664…`, receipt, plan, frontend tar, SQL release, CONNECT preflight (19:27:25Z) and authority record. Cloud Build source storage generation `1792351005968484` |
 
 
 ## Infrastructure and credentials

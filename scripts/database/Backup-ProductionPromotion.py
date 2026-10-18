@@ -15,7 +15,7 @@ from psycopg import sql
 parser = argparse.ArgumentParser()
 parser.add_argument('--approval-reference', required=True)
 parser.add_argument('--database', choices=('loan_manager_prod','mw_agent'), default='loan_manager_prod')
-parser.add_argument('--expected-version', type=int, choices=(77,87,89,90,91,92,93))
+parser.add_argument('--expected-version', type=int, choices=(77,87,89,90,91,92,93,95))
 args = parser.parse_args()
 if not args.approval_reference.strip(): raise ValueError('Actual owner approval reference required')
 if args.database=='mw_agent' and args.expected_version is not None: raise ValueError('Journal database has no Flyway history')

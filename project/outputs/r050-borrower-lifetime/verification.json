@@ -1,9 +1,0 @@
-{
-  "passed": true,
-  "newQuestions": 9,
-  "newPlacements": 13,
-  "twoBorrowersTwoPeriodsIdentical": true,
-  "emptyBorrowerReturnsNoRows": true,
-  "unaffectedPlacementsPreserved": true,
-  "backupDashboard": 27
-}

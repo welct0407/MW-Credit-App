@@ -4,10 +4,9 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R075 — Open** |
-| Next unused number | **R076**, only opened when authorized R075 promotion starts |
+| New product work | **R076 — Open** |
+| Next unused number | **R077**, only opened when authorized R076 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
-| R075 scope (18 October 2026), deployed to DEV only | Receipt recognition (owner design: [Claude Doc](https://claude.ai/artifact/KP7KKQnNy1QDnXqEiRsgRx)): Debian recognizer service, command-service route, manual payment command v7 with migration V96, Vertex and VPC infrastructure (all default off), and the payment-form fill-and-warn flow. Record: [change note](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md). DEV runs it (V96, command image, Hosting, recognizer enabled); PROD is untouched. Promotion needs a runtime-and-SQL contract, not the Hosting-only one ([Development changes](Development_Changes.md)) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
@@ -25,6 +24,7 @@ Status and records only; deployment pins are in the [environment inventory](Envi
 
 | Release | Scope | Released | Record | Tag |
 | --- | --- | --- | --- | --- |
+| R075 | Receipt recognition for manual payments (recognizer on the Debian agent, command route, manual payment command v7 with V96, Vertex and VPC infrastructure, fill-and-warn form) and the 23-operation agent audit closure. Applied and verified in PROD; owner acceptance is the owner's production instruction, and no PROD owner check with a real slip has happened yet | 18 October 2026 (Bangkok) | [record](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md) | `R075` |
 | R074 | Release number and delivery tooling: per-job/stage-hash promotion gate, stage-hash CI evidence (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/2c28911c1cbd7dc292364fabf22bb6ceaec1b328/project/Documents/Development_Changes.md#r074-production-promotion) | `R074` |
 | R073 | Offline refresh joins the running cycle between records segments (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/69c0a37dbdb4ed3ca759d477132291dd326d327e/project/Documents/Development_Changes.md#r073-production-promotion) | `R073` |
 | R072 | About screen, encrypted troubleshooting file, service worker cache pruning, PROD theme colour, browser-tab icon and offline wording, payment review alignment (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/c8257ae68e082901fc28ab393be5c532b0526236/project/Documents/Development_Changes.md#r072-production-promotion) | `R072` |

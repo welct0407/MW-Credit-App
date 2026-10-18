@@ -1,8 +1,0 @@
-{
-  "passed": true,
-  "scope": "Private localhost V67 copy only; separate committed requests are a risk reproduction, not observed AppSheet request order",
-  "parent_sql_delete": "FK rejection; exact scoped source/child/cash equality",
-  "separate_child_requests": "Unpaid loan/own charge/cash deletion committed; later paid-loan delete rejected; parent/paid loan/receipt retained",
-  "implication": "A final failure cannot roll back an earlier committed sibling request. Do not expose borrower cascade as all-or-none.",
-  "temporary_database_removed": true
-}

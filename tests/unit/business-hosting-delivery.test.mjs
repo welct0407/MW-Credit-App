@@ -826,9 +826,9 @@ test('R075 artifact must carry the R075 release in its marker and bundle',async 
 });
 test('R075 source carries only V96 from R074; the delivery commit may add this README and the backup tool',async t=>{
  const {m,source,tool,ci}=await r075Package(t);
- const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md';
+ const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nscripts/database/connect_preflight.py\nscripts/database/test_connect_preflight.py\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md\nChange Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md';
  assert.doesNotThrow(()=>validateR075Source(m,r075Git({source,tool,delivery:toolFiles})));
- for(const file of ['services/business/borrowers.mjs','infrastructure/production/runtime.tf','integration-agent/service-catalogue.json'])assert.throws(()=>validateR075Source(m,r075Git({source,tool,delivery:file})),/R075 unverified delivery/);
+ for(const file of ['services/business/borrowers.mjs','infrastructure/production/runtime.tf','integration-agent/service-catalogue.json','scripts/database/Invoke-CloudFlyway.py','scripts/database/other_tool.py'])assert.throws(()=>validateR075Source(m,r075Git({source,tool,delivery:file})),/R075 unverified delivery/);
  assert.throws(()=>validateR075Source({...m,deliveryToolChecks:{command:'npm test',exitCode:0}},r075Git({source,tool,delivery:toolFiles})),/R075 unverified delivery/);
  for(const migration of ['','database/migrations/V95__agent_role_session_pair.sql','database/migrations/'+r075Migration+'\ndatabase/migrations/V97__x.sql','database/migrations/V96__other.sql'])assert.throws(()=>validateR075Source(m,r075Git({source,tool,migration})),/R075 carries exactly the separately applied V96/);
  assert.throws(()=>validateR075Source({...m,sourceBaseline:r068Release},r075Git({source,tool})),/R075 source\/baseline/);
