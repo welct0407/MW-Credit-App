@@ -13,7 +13,9 @@ export function productionBuildEnvironment(config){
  liveConfiguration(env);return Object.freeze(env);
 }
 /** Local immutable candidate only. Deployment tooling must match URLs against actual target readback. */
-export async function buildProductionBusinessCandidate({publicConfig,outDir}){
+export async function buildProductionBusinessCandidate({publicConfig,outDir,releaseNumber}){
+ // R075: the release number is part of the reviewed input; vite.config.ts reads it from MW_RELEASE_NUMBER.
+ if(typeof releaseNumber!=='string'||!/^R\d{3}$/.test(releaseNumber))throw Error('Release number like R075 required');
  const env=productionBuildEnvironment(publicConfig),directory=resolve(outDir);
  await mkdir(directory,{recursive:true});if((await readdir(directory)).length)throw Error('Candidate output must be empty');
  const {build}=await import('vite');
@@ -22,8 +24,10 @@ export async function buildProductionBusinessCandidate({publicConfig,outDir}){
  // Disable ambient prefixed variables as well as .env files: this reviewed input
  // is the only source for production public runtime configuration.
  const define=Object.fromEntries(Object.entries({...env,PROD:true,DEV:false,BASE_URL:'/'}).map(([key,value])=>['import.meta.env.'+key,JSON.stringify(value)]));
- await build({root,configFile:resolve(root,'vite.config.ts'),mode:'live-prod',envFile:false,envPrefix:[],define,build:{outDir:directory,emptyOutDir:false}});
+ const prior=process.env.MW_RELEASE_NUMBER;process.env.MW_RELEASE_NUMBER=releaseNumber;
+ try{await build({root,configFile:resolve(root,'vite.config.ts'),mode:'live-prod',envFile:false,envPrefix:[],define,build:{outDir:directory,emptyOutDir:false}});}
+ finally{if(prior===undefined)delete process.env.MW_RELEASE_NUMBER;else process.env.MW_RELEASE_NUMBER=prior;}
  const {reportingUrl:legacyReportingUrl,...emittedPublicConfig}=publicConfig;
  await writeFile(resolve(directory,'production-public-config.json'),JSON.stringify(emittedPublicConfig,null,2)+'\n');
- return {environment:'prod',mode:'live-prod',entry:'index.html',worker:'sw.js',canonicalOrigin:publicConfig.canonicalOrigin,offlineNamespace:'mw-credit-prod-owner'};
+ return {environment:'prod',mode:'live-prod',entry:'index.html',worker:'sw.js',canonicalOrigin:publicConfig.canonicalOrigin,offlineNamespace:'mw-credit-prod-owner',release:releaseNumber};
 }

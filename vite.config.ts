@@ -17,11 +17,25 @@ function troubleshootingPublicKey(mode: string) {
   if (!override && createHash('sha256').update(der).digest('hex') !== troubleshootingKeyId) throw new Error('Troubleshooting public key does not match its committed key id');
   return pem;
 }
+// R075: the release number is injected at build time from MW_RELEASE_NUMBER (for example R075). live-prod
+// requires it; live-dev and synthetic builds without it say 'dev'. A value that is set but malformed always fails.
+// build-version.json keeps schemaVersion 1 and adds `release`: installed clients reject any other schemaVersion
+// (usePwa) and ignore extra keys.
+function releaseNumber(mode: string) {
+  const value = process.env.MW_RELEASE_NUMBER;
+  if (value === undefined) {
+    if (mode === 'live-prod') throw new Error('A live-prod build requires MW_RELEASE_NUMBER (for example R075)');
+    return 'dev';
+  }
+  if (!/^R\d{3}$/.test(value)) throw new Error('MW_RELEASE_NUMBER must look like R075');
+  return value;
+}
 export default defineConfig(({ mode }) => {
   if (!['synthetic', 'live-dev', 'live-prod'].includes(mode)) throw new Error('Choose an explicit synthetic, live-dev or live-prod build mode');
+  const release = releaseNumber(mode);
   return {
     // Merged with a caller's own define (scripts/production/build-business-candidate.mjs).
-    define: { __SOURCE_COMMIT__: JSON.stringify(sourceCommit()), __TROUBLESHOOTING_PUBLIC_KEY__: JSON.stringify(troubleshootingPublicKey(mode)) },
+    define: { __SOURCE_COMMIT__: JSON.stringify(sourceCommit()), __TROUBLESHOOTING_PUBLIC_KEY__: JSON.stringify(troubleshootingPublicKey(mode)), __RELEASE_NUMBER__: JSON.stringify(release) },
     // The dependency scanner reads raw HTML, before our mode-specific HTML transform.
     // Scan the actual entry so a cold live server discovers Firebase before browser loads.
     optimizeDeps: {
@@ -50,7 +64,7 @@ export default defineConfig(({ mode }) => {
           }
           const version=hash.digest('hex').slice(0,24);
           const entry=Object.values(bundle).find(value=>value.type==='chunk'&&value.isEntry);
-          this.emitFile({type:'asset',fileName:'build-version.json',source:JSON.stringify({schemaVersion:1,version,entry:entry?'/'+entry.fileName:null})});
+          this.emitFile({type:'asset',fileName:'build-version.json',source:JSON.stringify({schemaVersion:1,version,entry:entry?'/'+entry.fileName:null,release})});
           this.emitFile({ type: 'asset', fileName: 'sw.js', source: worker.replace('__BUILD_VERSION__', version).replace('/*APP_ASSETS*/[]', JSON.stringify(['/', ...Object.keys(bundle).filter(name => /^assets\//.test(name) && /\.(js|css|png)$/.test(name)).map(name => '/' + name)])) });
           this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: JSON.stringify({
             id: '/', start_url: '/', scope: '/', name: mode==='live-prod'?'MW Credit':'MW Credit DEV', short_name: mode==='live-prod'?'MW Credit':'MW Credit DEV', display: 'standalone',

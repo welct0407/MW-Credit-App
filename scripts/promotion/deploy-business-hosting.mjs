@@ -55,7 +55,9 @@ export async function appOnlyHostingPlan(m,{requireApplied=true}={}){
  return validatedHostingArtifact(m,recovery);
 }
 
-async function validatedHostingArtifact(m,recovery){
+// R075 (releaseInArtifact): build-version.json is the schemaVersion 1 marker plus `release` naming the package release
+// (installed clients accept only schemaVersion 1 and ignore extra keys), and the entry bundle carries it.
+async function validatedHostingArtifact(m,recovery,{release}={}){
  const root=await realpath(m.artifactRoot),contents=new Map(),files={},seen=new Set();let total=0;
  requireValue(Array.isArray(m.frontend?.files)&&m.frontend.files.length>=7&&m.frontend.files.length<=128,'bounded artifact manifest required');
  for(const f of m.frontend.files){
@@ -66,7 +68,9 @@ async function validatedHostingArtifact(m,recovery){
  const read=async name=>readFile(path.join(root,name),'utf8');const config=JSON.parse(await read('production-public-config.json'));
  requireValue(config.environment==='prod'&&config.canonicalOrigin==='https://lm.mw-credit.com'&&config.notificationsEnabled===true&&config.firebase?.projectId===project&&config.readerOrigin==='https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app'&&config.commandOrigin==='https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app','wrong PROD public bindings');
  requireValue(config.firebase.authDomain===project+'.firebaseapp.com'&&/^AIza[A-Za-z0-9_-]{35}$/.test(config.firebase.apiKey??'')&&/^1:737787224638:web:[a-f0-9]+$/.test(config.firebase.appId??'')&&!Object.hasOwn(config.firebase,'tenantId'),'invalid shared PROD Firebase bindings');
- requireValue(exact(JSON.parse(await read('build-mode.json')),{schemaVersion:1,mode:'live-prod'})&&exact(JSON.parse(await read('build-version.json')),{schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry}),'marker/mode mismatch');
+ const marker=JSON.parse(await read('build-version.json'));
+ requireValue(exact(JSON.parse(await read('build-mode.json')),{schemaVersion:1,mode:'live-prod'})&&(release||exact(marker,{schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry})),'marker/mode mismatch');
+ if(release)requireValue(exact(marker,{schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release}),release+' artifact release mismatch');
  requireValue(/^[a-f0-9]{24}$/.test(m.frontend.publicVersion)&&/^\/assets\/[A-Za-z0-9_-]+\.js$/.test(m.frontend.entry),'invalid public marker');
  const worker=(await read('sw.js')).replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g,''),html=(await read('index.html')).replace(/<!--[\s\S]*?-->/g,''),entry=await read(m.frontend.entry.slice(1));
  const versions=[...worker.matchAll(/^const VERSION\s*=\s*(['"])([^'"]+)\1;\s*$/gm)],prefixes=[...worker.matchAll(/^const PREFIX\s*=\s*(['"])([^'"]+)\1;\s*$/gm)],assets=[...worker.matchAll(/^const APP_ASSETS\s*=\s*(\[[^\r\n]+\]);\s*$/gm)];
@@ -74,6 +78,7 @@ async function validatedHostingArtifact(m,recovery){
  requireValue(prefixes.length===1&&prefixes[0][2]==='mw-credit-prod-public-'&&assets.length===1&&JSON.parse(assets[0][1]).includes(m.frontend.entry),'worker/index binding mismatch');
  requireValue([...html.matchAll(/<script\b[^>]*\bsrc\s*=\s*(['"])([^'"]+)\1[^>]*>/gi)].some(x=>x[2]===m.frontend.entry&&/\btype\s*=\s*(['"])module\1/i.test(x[0])),'active entry required');
  for(const value of [config.readerOrigin,config.commandOrigin,config.firebase.apiKey,config.firebase.appId])requireValue(typeof value==='string'&&value.length>0&&entry.includes(value),'compiled public config mismatch');
+ if(release)requireValue(['"',"'",'`'].some(q=>entry.includes(q+release+q)),release+' artifact release mismatch');
  const headers=hostingHeaders('live-prod');
  return {site:prodSite,files,contents,headers,sourceCommit:m.sourceCommit,publicVersion:m.frontend.publicVersion,rollback:recovery};
 }
@@ -322,14 +327,15 @@ export async function verifyWaveLivePackage(m,{token,request=fetch,readGithub,gi
 }
 
 // R065, R066: Hosting-only releases on the unchanged R064 runtime (image, Terraform and V93 stay).
-// R070, R071, R072, R073, R074: the same on the unchanged R069 runtime and V95. Each source descends from the previous
-// release; runtime inputs are compared with the release whose runtime stays (runtime). R074 gates CI per job (perJobCi).
-const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c',r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c',r070Release='038b5c9f9f7d1ed368f8197973a523bb0cf5eab2',r071Release='cb333f5c0024f51c197a2b5527d833605ba5fb03',r072Release='378c34825501534e9ada30a4b1e78dce0ed6c7a3',r073Release='042359b585e132cb20e3f0785320c285addc7a1e';
-// R071 to R074: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script),
+// R070 to R075: the same on the unchanged R069 runtime and V95. Each source descends from the previous
+// release; runtime inputs are compared with the release whose runtime stays (runtime). R074 and R075 gate CI per job (perJobCi);
+// R075 also requires the release number built into the artifact (releaseInArtifact).
+const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c',r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c',r070Release='038b5c9f9f7d1ed368f8197973a523bb0cf5eab2',r071Release='cb333f5c0024f51c197a2b5527d833605ba5fb03',r072Release='378c34825501534e9ada30a4b1e78dce0ed6c7a3',r073Release='042359b585e132cb20e3f0785320c285addc7a1e',r074Release='b88653d4b84860b7eab622d0edfb472d851c03ce';
+// R071 to R075: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script),
 // and database/ may change only in Markdown outside database/migrations.
-const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R072:{schemaVersion:13,baseline:r071Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R073:{schemaVersion:14,baseline:r072Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R074:{schemaVersion:15,baseline:r073Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true}};
+const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R072:{schemaVersion:13,baseline:r071Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R073:{schemaVersion:14,baseline:r072Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R074:{schemaVersion:15,baseline:r073Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true},R075:{schemaVersion:16,baseline:r074Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true,releaseInArtifact:true}};
 // From R070 the delivery-tool commit may also carry this runner's README (as for R069).
-const hostingOnlyDeliveryAllowed=L=>['R070','R071','R072','R073','R074'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
+const hostingOnlyDeliveryAllowed=L=>['R070','R071','R072','R073','R074','R075'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
 const r065RuntimeInputs=['services','database','Dockerfile','.dockerignore','.gcloudignore','cloudbuild-command.yaml','cloudbuild-business.yaml','package.json','package-lock.json','infrastructure/production','infrastructure/modules'];
 const withoutScripts=(git,root,commit)=>{let p;try{p=JSON.parse(git(root,['show',commit+':package.json']));}catch{p=null;}if(!p||typeof p!=='object'||Array.isArray(p))return null;const {scripts:_scripts,...rest}=p;return rest;};
 // R074: per-job CI evidence. Each required job cites its own run; that run's head is the delivery-tool commit
@@ -387,7 +393,7 @@ export function validateHostingOnlySource(m,git=sourceGit,release=m?.release){
  // R074 lists names with strictNames; R065 to R073 keep their original name-only diffs.
  const names=(from,to,pathspec)=>perJobCi?strictNames(git,m.repoRoot,from,to,pathspec):git(m.repoRoot,['diff','--name-only',from,to,...(pathspec?['--',...pathspec]:[])]).split('\n').filter(Boolean);
  const drift=pathspec=>perJobCi?git(m.repoRoot,['diff','--name-only',tool,'--no-renames','-z','--',...pathspec]):git(m.repoRoot,['diff','--name-only',tool,'--',...pathspec]);
- // R071 to R074: package.json is compared below; Markdown outside database/migrations is not a runtime input.
+ // R071 to R075: package.json is compared below; Markdown outside database/migrations is not a runtime input.
  const exempt=file=>(scriptsOnlyPackageJson&&file==='package.json')||(docsOnlyDatabaseMarkdown&&/^database\/(?!migrations\/).+\.md$/.test(file));
  requireValue(names(runtime,m.sourceCommit,r065RuntimeInputs).every(exempt),unchanged);
  if(scriptsOnlyPackageJson){const before=withoutScripts(git,m.repoRoot,runtime),after=withoutScripts(git,m.repoRoot,m.sourceCommit);requireValue(before&&after&&isDeepStrictEqual(before,after),unchanged+' (package.json outside scripts)');}
@@ -410,7 +416,7 @@ export async function hostingOnlyPlan(m,{git=sourceGit,release=m?.release}={}){
  for(const role of runtimeRoles)requireValue(imagePattern.test(m.runtime?.services?.[role]?.image??'')&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(m.runtime.services[role].revision??''),L+' unchanged runtime pins required');
  const recovery=m.rollback;
  requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
- return validatedHostingArtifact(m,recovery);
+ return validatedHostingArtifact(m,recovery,{release:hostingOnlyReleases[L].releaseInArtifact?L:undefined});
 }
 export async function verifyR065LivePackage(m,options={}){return verifyHostingOnlyLivePackage(m,{...options,release:'R065'});}
 export async function verifyHostingOnlyLivePackage(m,{token,request=fetch,readGithub,git=sourceGit,release=m?.release}={}){
@@ -430,7 +436,7 @@ export async function verifyHostingOnlyLivePackage(m,{token,request=fetch,readGi
   const live={};for(const kind of Object.keys(runtimeCiKinds)){const id=m.applicationCi?.[kind]?.run?.id;requireValue(Number.isSafeInteger(id)&&id>0,'actual CI run id required');live[kind]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};}
   validateWaveCi(live,m,git,L,hostingOnlyDeliveryAllowed(L));
  }
- // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070 to R074).
+ // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070 to R075).
  for(const role of runtimeRoles){
   const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
   const s=await r.json(),pin=m.runtime.services[role];
@@ -541,7 +547,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }

@@ -1,2 +1,2 @@
-/** The Open release (project/Documents/Release_Tracker.md), or while it is promoted the Frozen release just before it; a unit test enforces this. */
-export const releaseNumber='R075';
+/** The release number injected at build time (vite.config.ts, MW_RELEASE_NUMBER): 'R075' and so on, or 'dev' for a DEV or synthetic build without it. */
+export const releaseNumber: string = __RELEASE_NUMBER__;
