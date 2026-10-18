@@ -7,6 +7,7 @@
 | New product work | **R076 — Open** |
 | Next unused number | **R077**, only opened when authorized R076 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
+| R076 scope (18 October 2026), not deployed | Receipt recognition account hotfix: the slip's matched receiving account overrides a default or preselected account, an unmatched or ambiguous slip gets a note, a slip with no recipient number gives no account warning, and recognition messages sit above the receipt preview. Record: [change note](../../Change%20Logs/CHANGE_NOTES_R076_RECEIPT_ACCOUNT_HOTFIX_2026-10-18.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 

@@ -23,6 +23,20 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R076 runtime and frontend hotfix on V96
+
+`deploy-business-hosting.mjs` accepts `schemaVersion: 18`, `release: R076`, `scope: runtime-workers-frontend`, `status: prepared|applied` (`--apply` needs `applied`), modelled on R069 with R075's per-job CI, release marker and live recognizer readback.
+
+- **Source.** The source must descend from the R075 release `96b0a0b` and from the R075 PROD SQL tooling commit `6b58f00`, and carry no change under `database/migrations` (R074's strict name form). The delivery-tool commit may also carry this README and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** No migration: `sql` is baseline 96, target 96, `migrations: []`, and `sql.verified` is a read-only PROD readback of `loan_manager_prod` at 96 with 96 successful history rows.
+- **Runtime.** `build` is the PROD Cloud Build of the source; the four applied revisions run that image, are ready at 100% traffic and differ from the rollback revisions, whose image differs too.
+- **Plan.** The saved plan is `{add:0, change:4, destroy:0}` with exactly the actions `read.image`, `command.image`, `notify.image` and `jobs.image`.
+- **Recognition pin.** `recognition` is exactly `{activation: "enabled", url: "http://10.148.0.2:8790/v1/receipt-recognition"}`: the R075 wiring, unchanged.
+- **CI.** The gate is R074's per-job CI with stage-hash evidence.
+- **Artifact.** `build-version.json` is `exact({schemaVersion:1, version, entry, release:"R076"})` and the entry bundle names `"R076"`.
+- **Apply.** Apply re-reads every cited run, the Cloud Build source and digest, all four live services and the worker caller subjects, and checks the recognizer wiring live as for R075: the command service has `PROD_RECEIPT_RECOGNITION=enabled`, the pinned URL, `PROD_RECEIPTS=enabled` and private-range Direct VPC egress on the default network and subnet without a connector; the reader and the workers have no VPC access and no recognizer env.
+- **Operator proof.** The audience is `https://lm.mw-credit.com/promotion/r076`.
+
 ## R075 runtime, SQL and frontend promotion after V96
 
 `deploy-business-hosting.mjs` accepts `schemaVersion: 17`, `release: R075`, `scope: runtime-workers-frontend`, `status: prepared|applied` (`--apply` needs `applied`), modelled on R068. The former R075 Hosting-only kind (`schemaVersion: 16`) is no longer accepted.
