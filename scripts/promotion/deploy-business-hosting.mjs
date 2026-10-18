@@ -592,16 +592,65 @@ export async function r075HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
 export async function verifyR075LivePackage(m,{token,request=fetch,readGithub,git=sourceGit}={}){
  const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
  await verifyAppOnlyLivePackage(m,{token,request,readGithub,verifyCi:()=>verifyPerJobCiLive(m,gh,git,'R075',r075DeliveryAllowed)});
+ await verifyRecognizerWiringLive(m,{token,request},'R075');
+}
+/** Live: worker caller subjects and the receipt recognizer wiring, on the command service only (R075 and R076). */
+async function verifyRecognizerWiringLive(m,{token,request},L){
  const named=(value,kind)=>value==='default'||(typeof value==='string'&&value.endsWith('/'+kind+'/default'));
  for(const role of runtimeRoles){
   const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
   const s=await r.json(),env=Object.fromEntries((s.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value])),vpc=s.template?.vpcAccess;
   if(['notify','jobs'].includes(role)){let subjects;try{subjects=JSON.parse(env.WORKER_CALLER_SUBJECTS_JSON);}catch{subjects=null;}requireValue(subjects&&typeof subjects==='object'&&Object.keys(subjects).length>0&&Object.values(subjects).every(v=>/^[0-9]{10,30}$/.test(v)),'worker caller subjects required');}
   if(role==='command'){
-   requireValue(env.PROD_RECEIPT_RECOGNITION===m.recognition.activation&&env.PROD_RECEIPT_RECOGNITION_URL===R075_RECOGNIZER_URL&&(m.recognition.activation==='disabled'||env.PROD_RECEIPTS==='enabled'),'R075 live command recognizer setting drift');
-   const nics=vpc?.networkInterfaces??[];requireValue(vpc?.egress==='PRIVATE_RANGES_ONLY'&&nics.length===1&&named(nics[0].network,'networks')&&named(nics[0].subnetwork,'subnetworks')&&!vpc.connector,'R075 live command VPC egress drift');
-  }else requireValue(!vpc&&!Object.keys(env).some(name=>name.startsWith('PROD_RECEIPT_RECOGNITION')),'R075 recognizer wiring outside the command service');
+   requireValue(env.PROD_RECEIPT_RECOGNITION===m.recognition.activation&&env.PROD_RECEIPT_RECOGNITION_URL===R075_RECOGNIZER_URL&&(m.recognition.activation==='disabled'||env.PROD_RECEIPTS==='enabled'),L+' live command recognizer setting drift');
+   const nics=vpc?.networkInterfaces??[];requireValue(vpc?.egress==='PRIVATE_RANGES_ONLY'&&nics.length===1&&named(nics[0].network,'networks')&&named(nics[0].subnetwork,'subnetworks')&&!vpc.connector,L+' live command VPC egress drift');
+  }else requireValue(!vpc&&!Object.keys(env).some(name=>name.startsWith('PROD_RECEIPT_RECOGNITION')),L+' recognizer wiring outside the command service');
  }
+}
+
+// R076 (production hotfix): one new image for reader/command/notify/jobs on the unchanged V96 (no migration). The PROD
+// plan changes the four images only (0/4/0); the R075 receipt recognizer wiring stays enabled and unchanged and is read
+// back live on the command service. Source descends from the R075 release and carries the R075 PROD SQL tooling commit;
+// CI is R074's per-job gate; the artifact carries the R076 release marker. The delivery-tool commit may also carry this README.
+const r075Release='96b0a0b120be60fbe9a229d1004eabce35598a0d',r075SqlTooling='6b58f00a9500635251b569ce9824b4810d55e803';
+const r076DeliveryAllowed=file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md';
+export function validateR076Source(m,git=sourceGit){
+ requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&m.sourceBaseline===r075Release,'exact R076 source/baseline required');
+ requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
+ requireValue(git(m.repoRoot,['rev-parse',m.sourceCommit])===m.sourceCommit&&git(m.repoRoot,['merge-base',r075Release,m.sourceCommit])===r075Release,'R076 source must descend from the R075 release');
+ requireValue(git(m.repoRoot,['merge-base',r075SqlTooling,m.sourceCommit])===r075SqlTooling,'R076 source must carry the R075 PROD SQL tooling');
+ requireValue(strictNames(git,m.repoRoot,r075Release,m.sourceCommit,['database/migrations']).length===0,'R076 carries no migration');
+ const tool=m.deliveryToolSource??m.sourceCommit;
+ requireValue(/^[a-f0-9]{40}$/.test(tool)&&git(m.repoRoot,['rev-parse','HEAD'])===tool,'R076 delivery source mismatch');
+ if(tool!==m.sourceCommit){requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,tool])===m.sourceCommit,'R076 delivery source must descend from the pinned source');requireValue(strictNames(git,m.repoRoot,m.sourceCommit,tool).every(r076DeliveryAllowed)&&m.deliveryToolChecks?.command==='node --test tests/unit/business-hosting-delivery.test.mjs'&&m.deliveryToolChecks.exitCode===0,'R076 unverified delivery correction');}
+ requireValue(git(m.repoRoot,['diff','--name-only',tool,'--no-renames','-z','--',...runtimeInputs,'scripts/promotion'])==='','R076 working input drift');
+ requireValue(git(m.repoRoot,['ls-files','--others','--exclude-standard','--',...runtimeInputs,'scripts/promotion'])==='','R076 untracked input');
+}
+export async function r076HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
+ requireValue(m?.schemaVersion===18&&m.release==='R076'&&m.environment==='prod'&&m.scope==='runtime-workers-frontend'&&['prepared','applied'].includes(m.status),'wrong R076 package kind');
+ requireValue(!requireApplied||m.status==='applied','R076 runtime apply/readback required');
+ validateR076Source(m,git);
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
+ const v=m.sql?.verified;
+ requireValue(m.sql?.baselineVersion===96&&m.sql.targetVersion===96&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion==='96'&&v.historyRows===96&&v.allSuccessful===true&&zulu(v.verifiedAt),'R076 requires verified V96 with no migration');
+ validateR074Ci(m.applicationCi,m,git,'R076',r076DeliveryAllowed);
+ requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,'R076 PROD image provenance required');
+ requireValue(exact(m.recognition,{activation:'enabled',url:R075_RECOGNIZER_URL}),'R076 unchanged enabled receipt recognition wiring required');
+ requireValue(/^[a-f0-9]{64}$/.test(m.plan?.sha256??'')&&path.isAbsolute(m.plan.path??'')&&exact(m.plan.counts,{add:0,change:4,destroy:0})&&exact(m.plan.actions,waveImageActions),'R076 reviewed four-image plan required');
+ const recovery=m.rollback;
+ requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
+ for(const role of runtimeRoles)requireValue(imagePattern.test(recovery?.services?.[role]?.image??'')&&recovery.services[role].image!==m.build.image&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(recovery.services[role].revision??''),'service recovery pin required');
+ if(m.status==='applied'){
+  requireValue(m.applied?.sourceCommit===m.sourceCommit&&m.applied.planSha256===m.plan.sha256&&m.applied.database==='loan_manager_prod'&&m.applied.sqlVersion===96&&zulu(m.applied.appliedAt),'R076 applied source/plan/database mismatch');
+  for(const role of runtimeRoles){const s=m.applied.services?.[role];requireValue(s?.image===m.build.image&&s.ready===true&&s.trafficPercent===100&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(s.revision??'')&&s.revision!==recovery.services[role].revision,'R076 ready service readback required');}
+ }
+ return validatedHostingArtifact(m,recovery,{release:'R076'});
+}
+/** Live: per-job CI, Cloud Build, the four identities, worker subjects and the unchanged command-only recognizer wiring. */
+export async function verifyR076LivePackage(m,{token,request=fetch,readGithub,git=sourceGit}={}){
+ const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
+ await verifyAppOnlyLivePackage(m,{token,request,readGithub,verifyCi:()=>verifyPerJobCiLive(m,gh,git,'R076',r076DeliveryAllowed)});
+ await verifyRecognizerWiringLive(m,{token,request},'R076');
 }
 
 /** Verify the supplied token itself and a signed, audience-bound impersonation proof. */
@@ -611,7 +660,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }
@@ -689,8 +738,9 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
  const r068=inputs.schemaVersion===9&&inputs.release==='R068';
  const r069=inputs.schemaVersion===10&&inputs.release==='R069';
  const r075=inputs.schemaVersion===17&&inputs.release==='R075';
- const current=r075||r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
- const plan=r075?await r075HostingPlan(inputs,{requireApplied:!!options['--apply']}):r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
+ const r076=inputs.schemaVersion===18&&inputs.release==='R076';
+ const current=r076||r075||r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
+ const plan=r076?await r076HostingPlan(inputs,{requireApplied:!!options['--apply']}):r075?await r075HostingPlan(inputs,{requireApplied:!!options['--apply']}):r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
  if(options['--check'])console.log(JSON.stringify({dryRun:true,site:plan.site,fileCount:Object.keys(plan.files).length,sourceCommit:plan.sourceCommit,publicVersion:plan.publicVersion}));
  else{
   if(!options['--approval-reference']||!options['--output']||!path.isAbsolute(options['--output']))throw Error('Owner approval and absolute private output required');
@@ -706,7 +756,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
   try{await lstat(output);throw Error('Hosting receipt already exists');}catch(error){if(error.code!=='ENOENT')throw error;}
   const token=process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
   delete process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
-  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r075?{release:'R075'}:r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r075)await verifyR075LivePackage(inputs,{token});else if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
+  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r076?{release:'R076'}:r075?{release:'R075'}:r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r076)await verifyR076LivePackage(inputs,{token});else if(r075)await verifyR075LivePackage(inputs,{token});else if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
   const request=async(url,method,body,raw=false)=>{if(!['firebasehosting.googleapis.com','upload-firebasehosting.googleapis.com'].includes(new URL(url).hostname))throw Error('Unexpected Hosting API host');const response=await fetch(url,{method,redirect:'error',headers:{Authorization:'Bearer '+token,'x-goog-user-project':'clever-oasis-508610-n7','Content-Type':raw?'application/octet-stream':'application/json'},...(method==='GET'?{}:{body:raw?body:JSON.stringify(body)})});if(!response.ok)throw Error('Hosting API failed with status '+response.status);const text=await response.text();return text?JSON.parse(text):{};};
   const packageSha256=current?sha(await readFile(options['--inputs'])):undefined;
   if(current){await writeFile(output,JSON.stringify({schemaVersion:1,status:'pending-reconciliation',sourceCommit:plan.sourceCommit,packageSha256,site:plan.site,approvalReference:options['--approval-reference'],instruction:'Do not retry. Reconcile the live Hosting release before recovery.'},null,2),{flag:'wx'});persistReceipt();}
