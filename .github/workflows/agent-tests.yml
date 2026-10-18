@@ -1,23 +1,48 @@
 name: Agent tests
+# Markdown never triggers a run. The `changes` job skips a job that already
+# passed on this commit, a parent or an earlier head whose agent-relevant files
+# are identical (scripts/ci/reuse-evidence.mjs), so the merge of a tested pull
+# request into main does not repeat the suites.
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml']
+    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml', 'scripts/ci/**', '!**/*.md']
   push:
     branches: [main]
-    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml']
+    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml', 'scripts/ci/**', '!**/*.md']
   workflow_dispatch:
 
 permissions:
   contents: read
+  checks: read
 
 concurrency:
   group: agent-tests-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      test: ${{ steps.reuse.outputs.run_test }}
+      lab: ${{ steps.reuse.outputs.run_lab }}
+      evidence: ${{ steps.reuse.outputs.evidence }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 40
+      - name: Reuse evidence from earlier runs
+        id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/ci/reuse-evidence.mjs --workflow agent-tests --needed test=true,lab=true
+
   test:
+    needs: changes
+    if: needs.changes.outputs.test == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -55,6 +80,8 @@ jobs:
     # AGT-TEST-01: the PostgreSQL lab suites (otherwise skipped) on a disposable
     # loopback cluster built by integration-agent/tests/lab/setup.sh (agent
     # branch). The runner user is not root, as PostgreSQL requires.
+    needs: changes
+    if: needs.changes.outputs.lab == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

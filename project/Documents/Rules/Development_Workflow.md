@@ -38,7 +38,7 @@ Use the approved Secret Manager/unattended identity route before requesting huma
 - The [project overview](../../README.md) introduces the project. Detailed documentation is rooted at three entry points: [standing rules](README.md), [living documents](../README.md) and the [Data Dictionary](../Data%20Dictionary/README.md), whose [object index](../Data%20Dictionary/index.json) locates every current definition. Follow standing rules until deliberately revised under owner direction; keep routine development updates in the living references. Do not append progress reports to rule documents. Keep these indexes linked to every current document and definition when an approved file is added, moved or removed.
 - Use bounded searches and reads, batch independent operations and use maintained CLI/API tools. Prefer Terraform for infrastructure; use a documented API exception only when the provider cannot perform the reviewed change, then reconcile state. Do not use a GUI where a suitable supported tool exists.
 - Make routine reversible decisions and finish authorized implementation, relevant verification, records and publication. Reuse scoped approvals; ask only for a missing decision or authority that materially changes the work. An approval should concern a concrete prepared result.
-- Investigate a failure before changing limits or retrying. Once the affected checks pass, finish. Do no repeated audits, unchanged polling, ceremonial handoffs or full-suite runs merely for task closure.
+- Investigate a failure before changing limits or retrying. Once the affected checks pass, finish. Do no repeated audits, unchanged polling, ceremonial handoffs or full-suite runs merely for task closure; checks follow the [lean check routine](PWA_Orchestration.md#lean-check-routine).
 - Give brief progress updates during longer work and state real blockers. Stop the task and its workers when asked.
 
 ## Development, review, promotion and rollback
@@ -72,7 +72,7 @@ Documentation is part of development completion, not an optional later task. At 
 | [Events Bridge](../Grafana_MCP_Events_Bridge.md) | Current bridge contracts, configuration, recovery and unresolved limitations |
 | [Documents index](../README.md) and its linked current work/evidence records | Accurate navigation, ownership and outstanding work; update existing infrastructure/credential/release records when affected |
 
-Dewey (Agent D) owns this maintenance step for the six-agent process, obtaining facts from Archie, Byte, Echo and Forge. Chase (Agent C) checks changed documentation against the implemented behavior and test evidence; the orchestrator confirms coverage and completion before publication. For smaller documentation tasks or explicit personal execution, the executor performs these responsibilities directly. Summarize updated references and genuine gaps once in the existing task/development record. `npm run check:docs` ([below](#records-change-notes-and-retention)) must pass before publication. Do not declare the batch complete while affected documentation remains stale.
+Dewey (Agent D) owns this maintenance step for the six-agent process, obtaining facts from Archie, Byte, Echo and Forge. Chase (Agent C) checks the change note's Checks and Not run tables against the evidence it holds, in the same message as its verification report, not as a separate round; `npm run check:docs` covers links and structure. The orchestrator confirms coverage and completion before publication. For smaller documentation tasks or explicit personal execution, the executor performs these responsibilities directly. Summarize updated references and genuine gaps once in the existing task/development record. `npm run check:docs` ([below](#records-change-notes-and-retention)) must pass before publication. Do not declare the batch complete while affected documentation remains stale.
 
 ### Records, change notes and retention
 
@@ -102,7 +102,7 @@ One bullet per changed area, naming the files or objects.
 ## Checks
 | Command | Result |
 | --- | --- |
-| `<command as run>` | Pass or fail, with the key number |
+| `<command as run>` | Pass or fail, with the key number, and the commit or CI run it came from |
 
 ## Not run
 Checks skipped and why. A skipped check is not a pass.
@@ -116,6 +116,8 @@ Only decisions the owner still has to make.
 ## Remaining work
 What is left, or "none".
 ```
+
+List each check once. A check that passed on an identical tree earlier (Byte's run, or an earlier commit's CI run that the workflow reused) is cited with that commit or run, not repeated ([lean check routine](PWA_Orchestration.md#lean-check-routine)).
 
 ### New documents require owner approval
 
