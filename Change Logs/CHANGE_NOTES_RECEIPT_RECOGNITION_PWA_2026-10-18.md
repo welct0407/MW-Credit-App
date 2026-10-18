@@ -55,7 +55,7 @@ Owner instruction, 18 October 2026: "coordinate with session_01QcLEzV9QEhHt7HqJi
 None blocking. The owner has not yet checked PROD recognition with a real slip.
 
 ## Remaining work
-- Owner check of PROD recognition with a real slip; Gemini latency watch.
+- Owner check of PROD recognition with a real slip: the first check found the receiving account not filled and messages out of view; the fix moved to R076 ([change note](CHANGE_NOTES_R076_RECEIPT_ACCOUNT_HOTFIX_2026-10-18.md)). Gemini latency watch stays.
 - Pre-existing agent receipt job from 16:57Z in `RECEIPT_ARCHIVE_PENDING`: check the next runs. The 18:17:35Z `receipt_recognition_api` operation stays as is.
 - Chase's DEV smoke result was not received as a separate record.
 - Tooling gaps from the DEV rollout stay listed in [Development changes](../project/Documents/Development_Changes.md).
