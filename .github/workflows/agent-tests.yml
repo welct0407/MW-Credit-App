@@ -1,8 +1,10 @@
 name: Agent tests
-# Markdown never triggers a run. The `changes` job skips a job that already
-# passed on this commit, a parent or an earlier head whose agent-relevant files
-# are identical (scripts/ci/reuse-evidence.mjs), so the merge of a tested pull
-# request into main does not repeat the suites.
+# Markdown never triggers a run. The `changes` job skips a job that has trusted
+# evidence for the same stage hash (scripts/ci/reuse-evidence.mjs: sha256 over
+# the agent-relevant tracked files); each job uploads its
+# `evidence-agent-tests-<job>-<hash>` artifact as its last step, so the merge of
+# a tested pull request into main does not repeat the suites. All three jobs
+# check out the same candidate (the pull request head) so their hashes agree.
 
 on:
   pull_request:
@@ -15,7 +17,8 @@ on:
 
 permissions:
   contents: read
-  checks: read
+  # Evidence lookup: artifacts, runs and jobs of earlier runs.
+  actions: read
 
 concurrency:
   group: agent-tests-${{ github.event.pull_request.number || github.ref }}
@@ -30,10 +33,11 @@ jobs:
       lab: ${{ steps.reuse.outputs.run_lab }}
       evidence: ${{ steps.reuse.outputs.evidence }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Check out exact candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-          fetch-depth: 40
       - name: Reuse evidence from earlier runs
         id: reuse
         env:
@@ -51,6 +55,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
+      # Stage evidence key (scripts/ci/reuse-evidence.mjs), written outside the checkout
+      # before the tests; the runner image's node runs it.
+      - name: Evidence key
+        id: evidence
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow agent-tests --stage test --check test --out "$RUNNER_TEMP/evidence/{name}.json"
       - name: Set up Python 3.13
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
@@ -75,6 +84,15 @@ jobs:
         # Tests read package files relative to integration-agent/.
         working-directory: integration-agent
         run: python -m unittest discover -s tests -v
+      # Last step, so it runs only when every step above passed.
+      - name: Keep stage evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.evidence.outputs.name }}
+          path: ${{ steps.evidence.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true
 
   lab:
     # AGT-TEST-01: the PostgreSQL lab suites (otherwise skipped) on a disposable
@@ -90,6 +108,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
+      # Stage evidence key (scripts/ci/reuse-evidence.mjs), written outside the checkout
+      # before the tests; the runner image's node runs it.
+      - name: Evidence key
+        id: evidence
+        run: node scripts/ci/reuse-evidence.mjs --hash --workflow agent-tests --stage lab --check lab --out "$RUNNER_TEMP/evidence/{name}.json"
       - name: Set up Python 3.13
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
@@ -141,3 +164,12 @@ jobs:
         run: |
           env LAB_ROOT="$RUNNER_TEMP/agent-state-lab-ci" LAB_PORT=15540 PYTHON=python bash integration-agent/tests/lab/setup.sh stop
           pg_ctl -D "$RUNNER_TEMP/agent-fresh-migration/data" -m fast stop || true
+      # Last step, so it runs only when every step above passed.
+      - name: Keep stage evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.evidence.outputs.name }}
+          path: ${{ steps.evidence.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true

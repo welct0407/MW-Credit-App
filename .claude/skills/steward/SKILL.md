@@ -9,7 +9,7 @@ These conventions apply the [lean check routine](../../../project/Documents/Rule
 
 ## Evidence first
 
-- `Development checks` reuses evidence on its own (`scripts/ci/reuse-evidence.mjs`): a stage that passed on this commit, a parent or an earlier head of the branch with identical stage-relevant files is skipped, and the run's step summary links the run that holds the evidence. A skipped stage with linked evidence is a pass; cite that run. Only a stage marked `no evidence` ran now.
+- `Development checks` reuses evidence on its own (`scripts/ci/reuse-evidence.mjs`): a stage whose stage-relevant files hash to an existing evidence artifact from a successful same-repository run (matched by content, not commit history) is skipped, and the run's step summary links the run that holds the evidence. A skipped stage with linked evidence is a pass; cite that run. Only a stage marked `no evidence` ran now.
 - Before a push, run only the fast checks the diff invalidates (lint, type check, the unit tests for the changed files), in a clean tree. A check that already passed on the same tree in this session is not run again.
 - Never run the full Playwright suite locally. To reproduce a CI failure, run the failing spec (or the failing database group) only.
 
