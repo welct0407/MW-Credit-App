@@ -9,6 +9,7 @@ import {readOfflineDatasetDelta} from '../../services/business/offline-dataset-d
 import {writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as shared from '../../services/lib/offline-dataset-digest.mjs';
+import {TARGETED_LIMITS} from '../../services/business/offline-dataset-chunks.mjs';
 
 // R078 row-level v4 delta for collection and cash (follow-up batch): each delta-applied bundle must equal a fresh walk byte for byte
 // (canonical, asOf ignored) and reconcile to a match. Row-change scenarios run on any disposable lab migrated through V97; the
@@ -186,4 +187,43 @@ test('a day change combined with a row change equals a walk and reconciles to a 
   }
   console.log(report.join('\n'));assert.deepEqual(failures,[],'\n'+report.join('\n'));
  }finally{if(clockFile)writeFileSync(clockFile,'2026-10-31 03:00:00\n');await client.end()}
+});
+test('limit breaches walk and still end byte-equal and reconciled: many borrowers paid in one window, many cash account-days affected',{skip:!disposable&&'set MW_V4_LAB_URL to a disposable 127.0.0.1 loan_manager_dev'},async()=>{
+ const client=new pg.Client({connectionString:url});await client.connect();
+ try{
+  const q=(sql,params)=>client.query(sql,params);await labFixtures(q);
+  const seed=randomUUID().slice(0,8),count=TARGETED_LIMITS.borrowers+1,borrowers=Array.from({length:count},(_,index)=>`CL-B${index}-${seed}`);
+  // More borrowers than the targeted limit, each with a due charge.
+  await q(`INSERT INTO "Partners"("Row ID","Partner Role") VALUES ($1,'A')`,['CL-P-'+seed]);
+  await q(`INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES ($1,$2,current_date-14,'Contribution',500000::money)`,['CL-C-'+seed,'CL-P-'+seed]);
+  for(const [index,borrower] of borrowers.entries()){
+   await q(`INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ($1,$2)`,[borrower,`Limit ${index} ${seed}`]);
+   await q(`INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES ('CI-LISA',$1,$2,current_date-10,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false)`,[`CL-L${index}-${seed}`,borrower]);
+   await q(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES ($1,$2,current_date-1,30::money,5::money)`,[`CL-CH${index}-${seed}`,`CL-L${index}-${seed}`]);
+  }
+  // Cash account-days: extra accounts on the two seeded holders, each with ledger activity on four recent days.
+  const accounts=Array.from({length:8},(_,index)=>`CL-ACC${index}-${seed}`);
+  for(const [index,account] of accounts.entries()){
+   await q(`INSERT INTO "Cash Accounts"("Row ID","Ref Cash Holder","Account Label","Bank Name") VALUES ($1,$2,$3,'Synthetic')`,[account,index%2?'ch:dad':'ch:lisa',`Limit account ${index} ${seed}`]);
+   for(const day of [12,8,4,1])await q(`INSERT INTO "Business Expenses"("Row ID","Expense Date","Amount","Ref Paid By Cash Account","Expense Category") VALUES ($1,current_date-$2::int,2::money,$3,'Other')`,[`CL-EX-${index}-${day}-${seed}`,day,account]);
+  }
+  const states={collection:await walk(client,'collection'),cash:await walk(client,'cash')};
+  const scenarios=[
+   [`${count} borrowers paid in one window (collection must walk)`,async()=>{for(const [index,borrower] of borrowers.entries())await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,7::money,current_date,'Lump Sum')`,[`CL-PAY${index}-${seed}`,borrower])},{collection:'walk',cash:null}],
+   [`${accounts.length} accounts backdated expenses, more than ${TARGETED_LIMITS.accountDays??30} account-days (cash must walk)`,async()=>{for(const [index,account] of accounts.entries())await q(`INSERT INTO "Business Expenses"("Row ID","Expense Date","Amount","Ref Paid By Cash Account","Expense Category") VALUES ($1,current_date-13,1::money,$2,'Other')`,[`CL-EXB-${index}-${seed}`,account])},{collection:'unchanged',cash:'walk'}],
+  ];
+  const report=[],failures=[];
+  for(const [label,change,expected] of scenarios){
+   await change();
+   for(const domain of domains){
+    const result=await refresh(client,domain,states[domain]),fresh=await walk(client,domain),problems=[];
+    try{same(result.state.data,fresh.data,`${label}: ${domain}`)}catch{problems.push('NOT EQUAL')}
+    const answer=await reconcile(client,domain,result.state);if(answer.result!=='match')problems.push('reconcile '+answer.result+' '+JSON.stringify(answer.keys));
+    const want=expected[domain];if(want&&!(result.kind===want||want==='walk'&&result.kind.startsWith('walk')))problems.push(`kind ${result.kind}, wanted ${want}`);
+    report.push(`${label}: ${domain} ${result.kind} ${problems.length?'PROBLEM '+problems.join('; '):'ok'}`);if(problems.length)failures.push(`${label} / ${domain}: ${problems.join('; ')}`);
+    states[domain]=problems.length?fresh:result.state;
+   }
+  }
+  console.log(report.join('\n'));assert.deepEqual(failures,[],'\n'+report.join('\n'));
+ }finally{await client.end()}
 });
