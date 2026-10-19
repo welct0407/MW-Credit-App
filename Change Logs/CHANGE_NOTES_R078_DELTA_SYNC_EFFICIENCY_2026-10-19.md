@@ -35,6 +35,15 @@ Changes:
 - Collection and cash row deltas (`8b274b8c`, `746d8799`): client level 5 with a `rowDeltas` flag (a 400 steps down 5 to 4 to 3) and a new `replaceWhere` patch mode. Collection: per-borrower scope, including borrowers of allocated or repaid charges; it walks on a Cash Accounts change, an unmapped table, a borrower hidden now, more than 8 borrowers or a missing row. Cash: per-account-day scope from max(date, window start); Borrowers and Partners map to their statement days instead of walking (rollup triggers update Borrowers on every payment); it walks on Cash Accounts, Cash Holders, Cash Statement Context, r008, a missing ledger row, more than 30 account-days (`CASH_ACCOUNT_DAY_LIMIT`) or `TARGETED_LIMITS`. Client moved-row checks `deltaMovesRows` and `deltaScopeMoves`. Orchestrator decision: a rename or hide/unhide may be a delta, as long as it stays byte-equal to a walk and the reconciliation matches. The fingerprint stays the authority.
 - Own receipt seeding (`20a65f10`, `seedOwnReceipt`): the local file is stored for the payment when its SHA-256, size and type match the upload descriptor, otherwise one shared verified download is used. Seeded on the online post (`SelectedCharges.confirmOwnPayment`), a queued sync, a correction and a loan close; `PaymentResult` is a fallback only.
 
+### DEV measurement after the follow-up (19 Oct, DEV on main `113691f`)
+Own payment at 16:49:49Z: the post-write cycle was 6 requests, about 5.6 s (was about 10 s). Records: 2 requests, finished at about 1.9 s. Collection: 2 requests, 2.09 s and 1.73 s server. Cash: 2 requests, 1.41 s and 1.81 s server. Receipt downloads: 0 (was 283 KB). Unchanged poll: 0.02 to 0.03 s server.
+
+### Inline values batch (`f36f313b`, owner: "go ahead with option 1")
+- Client level 6, `inlineValues`: every schemaVersion 4 response carries its referenced values inline, so a delta answers in one request without the need round trip; the later day-change chunks keep the old path.
+- Caps: `INLINE_VALUE_BYTES` 512 KB and `INLINE_VALUE_COUNT` 2048; above them the response falls back to manifest plus need. The manifest is identical either way. Each inline value is hash-checked and a bad one goes to need.
+- Step-down 6, 5, 4, 3 on a 400; records at level 5 goes straight to 3.
+- Lab timing: collection 141 to about 70 ms (54 to 27 queries); cash about 50 to about 26 ms (44 to 22 queries).
+
 ## Baseline
 PROD, window 17 October 00:00 to 19 October 2026 (Bangkok), 17,051 request-log rows, from the report script (metadata only):
 
@@ -68,6 +77,9 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 | Follow-up batch, Byte at `746d8799` (clean tree) | Pass: lint, typecheck, `npm test` 722/722; e2e 56/56 and 190/190; new specs `offline-row-delta.test.mjs` and `own-receipt-seed-independent.spec.ts` |
 | Follow-up batch, Chase's collection/cash lab at `9295fbd0` (`c7dcf956`, `b11c72af`, `3898b67d`, `9295fbd0`), fresh libfaketime cluster | Pass 4/4, including the attack scenarios (renames across accounts, partner rename, cross-borrower allocations and repayments, ledger moves, loan and charge moves, limit breaches) |
 | Follow-up batch, Chase's other labs | Day-change clock lab 1/1; records equality, reconcile and v4 labs 5/5; targeted e2e 12/12 |
+| Inline values batch, Byte at `f36f313b` | Pass: lint, typecheck, `npm test` 726/726, e2e 194/194; Chase's labs 9/9 |
+| Inline values batch, Chase's verification | Pending |
+| DEV deploy of `113691f`, 19 October 2026 | New image on the four DEV services (Terraform plan 0/4/0), DEV Hosting release deployed; pins in the [environment inventory](../project/Documents/Environment_Inventory.md). Smoke: health 200, unauthenticated 401, `Access-Control-Max-Age` 7200, no ERRORs |
 | Echo's UX check: local build of `666ec55` in Chromium at iPhone size (390x844, touch), mocked fixtures | Fine: UX-LIST-01/03, UX-FULL-01..06 (progress monotonic in a full sync, 0 to 94 to done), UX-RECON-01..07; Echo agreed with "Open troubleshooting" and colour #8b1a1a. Fixed in `333cf89` (CSS): UX-CHK-01 data-check toast covered SyncedToast on mobile, UX-CHK-02 troubleshooting link now a 44 px touch target, UX-CHK-03 Full sync button has a disabled look while it runs. UX-CHK-04 fixed in `6607b22` (Byte): while `localPending` is set, Correct, Move interest and Delete carry the title "Available once confirmed" / "ใช้ได้หลังยืนยันแล้ว"; `tests/e2e/payment-confirming-independent.spec.ts` passes 2/2 on desktop and mobile; lint, typecheck and `npm test` 715/715 on a clean tree |
 | `npm run check:docs` | 0 failures at this note's commit |
 | PR #84 CI: `Development checks` run 39266899206 | Pass (green, e2e shards 1 to 3 run in full) |
@@ -88,7 +100,7 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 - The iPhone client-gap composition (needs client timing capture).
 - Thai rendering (checked in code only), a real recorded payment switching from Confirming to confirmed, and WebKit or a real iPhone for the UX check.
 - A signed-in offline-dataset call returning the `changes` cursor on DEV (needs the owner's sign-in).
-- The before/after measurement on DEV, and the DEV re-measurement after the follow-up deploy.
+- The DEV re-measurement after the inline-values deploy (the follow-up was measured, see above); PROD measurement.
 - A SHA, size or webp mismatch of the seeded receipt in a real browser; WebKit or a real iPhone for the follow-up batch.
 - V97 in PROD (authorized up to DEV; PROD needs a promotion instruction and a verified backup). No PROD action.
 
@@ -99,4 +111,4 @@ Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion n
 PROD promotion instruction for V97 and the release (the owner authorized up to DEV only).
 
 ## Remaining work
-PR, DEV deploy and re-measurement of the follow-up batch, the owner's DEV check, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
+PR, DEV deploy and re-measurement of the inline-values batch, the owner's DEV check, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
