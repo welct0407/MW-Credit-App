@@ -62,3 +62,43 @@ test('a reconciliation time in the future does not suppress the pass',async({pag
  await page.clock.install({time:at(18,1)});const calls=await server(page);await fixture(page,'reconcile-future',truth,at(18,1)+2*24*3600*1000);await start(page);
  await page.clock.runFor(3000);await expect.poll(()=>calls.filter(call=>call.includes(':reconcile:')).length).toBe(4);
 });
+
+// R078 one heal per slot: a domain that still differs after its heal is logged again but not walked again; the next slot tries again.
+test('a persistent mismatch is logged each time, walked once per slot and tried again in the next slot',async({page})=>{
+ await page.clock.install({time:at(18,1)});const calls:string[]=[];
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url());if(!url.pathname.startsWith('/api/'))return route.fallback();const domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON()??{};
+  if(body.reconcile){const mismatch=domain==='cash';calls.push(domain+':reconcile:'+(mismatch?'mismatch':'match'));return route.fulfill({json:{schemaVersion:3,domain,asOf,businessDate:'2026-10-14',reconcile:true,result:mismatch?'mismatch':'match',keys:mismatch?['overview']:[],patches:[],values:{},complete:true,nextCursor:null}})}
+  if(body.sourceVersion===version){calls.push(domain+':check');return route.fulfill({json:{schemaVersion:3,domain,asOf,businessDate:'2026-10-14',sourceVersion:version,unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1}}})}
+  calls.push(domain+':walk');
+  return route.fulfill({json:encodeDeltaChunk({schemaVersion:2,domain,generation:'walk',startedAt:asOf,asOf,businessDate:'2026-10-14',sourceVersion:version,patches:Object.entries(truth[domain]).map(([key,value])=>({key,mode:Array.isArray(value)?'append':'replace',value})),complete:true,nextCursor:null,progress:{completed:1,total:1}},body.need??[])});
+ });
+ await fixture(page,'reconcile-persistent',truth);await start(page);
+ const settle=async()=>{for(let step=0;step<6;step++){await page.clock.runFor(2000);await page.waitForTimeout(150)}};
+ await settle();
+ for(let poll=0;poll<4;poll++){await page.clock.runFor(31000);await page.waitForTimeout(400);await settle()}
+ expect(calls.filter(call=>call==='cash:walk')).toHaveLength(1);
+ expect(await events(page)).toEqual(expect.arrayContaining(['reconcile-mismatch:cash:overview']));
+ expect((await events(page)).filter(event=>event==='reconcile-mismatch:cash:overview').length).toBe(2);
+ // The next slot (06:00 the next day) asks again and heals again.
+ await page.clock.fastForward(12*3600*1000);await page.waitForTimeout(400);await settle();for(let poll=0;poll<2;poll++){await page.clock.runFor(31000);await page.waitForTimeout(400);await settle()}
+ expect(calls.filter(call=>call==='cash:walk').length).toBe(2);
+ expect((await events(page)).filter(event=>event==='reconcile-mismatch:cash:overview').length).toBeGreaterThanOrEqual(3);
+});
+// A heal survives a failing walk and a reload: the bundle carries needsWalk and the next start walks it from the beginning.
+test('a failed heal walk is repeated after a reload',async({page})=>{
+ await page.clock.install({time:at(18,1)});const sent:{domain:string;body:any}[]=[];let failCash=true;
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url());if(!url.pathname.startsWith('/api/'))return route.fallback();const domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON()??{};sent.push({domain,body});
+  if(body.reconcile){const keys=digestDifferences(await datasetDigests(truth[domain],sha256),body.digests);return route.fulfill({json:{schemaVersion:3,domain,asOf,businessDate:'2026-10-14',reconcile:true,result:keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null}})}
+  if(domain==='cash'&&failCash&&body.sourceVersion===null)return route.fulfill({status:503,json:{code:'temporary'}});
+  if(body.sourceVersion===version){return route.fulfill({json:{schemaVersion:3,domain,asOf,businessDate:'2026-10-14',sourceVersion:version,unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1}}})}
+  return route.fulfill({json:encodeDeltaChunk({schemaVersion:2,domain,generation:'walk',startedAt:asOf,asOf,businessDate:'2026-10-14',sourceVersion:version,patches:Object.entries(truth[domain]).map(([key,value])=>({key,mode:Array.isArray(value)?'append':'replace',value})),complete:true,nextCursor:null,progress:{completed:1,total:1}},body.need??[])});
+ });
+ await fixture(page,'reconcile-reload',{...truth,cash:{overview:{balance:'999'}}});await start(page);
+ await page.clock.runFor(3000);await expect.poll(()=>sent.filter(entry=>entry.domain==='cash'&&entry.body.sourceVersion===null).length).toBeGreaterThan(0);
+ await expect.poll(()=>page.evaluate(async()=>{const bundle=await (window as any).__syncRepo.readDataset('cash');return [bundle.needsWalk===true,bundle.sourceVersion??null,bundle.changes??null]})).toEqual([true,null,null]);
+ // Reload: a new coordinator starts from the stored bundle; the server works again.
+ failCash=false;await page.evaluate(()=>(window as any).__stopPreparation());sent.length=0;await start(page);await page.clock.runFor(3000);
+ await expect.poll(()=>page.evaluate(async()=>(await (window as any).__syncRepo.readDataset('cash')).data.overview.balance)).toBe('5');
+ expect(sent.filter(entry=>entry.domain==='cash'&&!entry.body.reconcile)[0].body.sourceVersion).toBeNull();
+ expect(await page.evaluate(async()=>(await (window as any).__syncRepo.readDataset('cash')).needsWalk??false)).toBe(false);
+});
