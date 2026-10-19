@@ -238,3 +238,21 @@ test('a stored receipt is deleted once its payment ages out of the 30-day window
  await page.clock.fastForward(2*86400000);await page.evaluate(async()=>{await (window as any).__syncRepo.authorize();window.dispatchEvent(new Event('mw-offline-prepare'))});await page.clock.runFor(3000);await settled(page);
  expect(await mediaKeys(page)).toEqual([]);expect((await state(page)).progress).toBe(100);expect((await state(page)).state).toBe('ready');
 });
+
+test('R078 progress never decreases while two domains walk and one restarts after a legacy 409',async({page})=>{
+ await fixture(page,'delta-progress-monotonic');let restarted=false;
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+  if(domain!=='records'&&domain!=='cash')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+  await new Promise(resolve=>setTimeout(resolve,domain==='records'?120:70));
+  const step=body.cursor?Number(body.cursor):0;
+  if(domain==='records'&&step===3&&!restarted){restarted=true;return route.fulfill({status:409,json:{error:'dataset_changed',code:'dataset_changed'}})}
+  return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:String(step)}}],newVersion,step<3?String(step+1):null),body.need),progress:{completed:step+1,total:4}}});
+ });
+ await page.evaluate(()=>{const w=window as any;w.__progress=[];w.__sampler=setInterval(()=>{const s=w.__datasetTest.getOfflinePreparation(w.__syncRepo.scopeName);if(s)w.__progress.push(s.progress)},15)});
+ await start(page);await expect.poll(async()=>(await page.evaluate(()=>(window as any).__progress.length))>10&&(await state(page)).progress===100,{timeout:15000}).toBe(true);
+ const samples:number[]=await page.evaluate(()=>{const w=window as any;clearInterval(w.__sampler);return w.__progress});
+ expect(restarted).toBe(true);
+ // UX-SYNC-01: the shown percentage may stall but never falls back, even when a domain restarts.
+ const drops=samples.flatMap((value,index)=>index&&value<samples[index-1]?[[samples[index-1],value]]:[]);
+ expect(drops).toEqual([]);
+});
