@@ -558,6 +558,12 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .sync-toast { position: fixed; z-index: 46; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); margin: 0; padding: 8px 12px; border-radius: 6px; background: #e6f4ea; color: #1e4620; font-size: 14px; box-shadow: 0 2px 8px rgb(0 0 0 / 25%); transition: opacity 150ms; }
 .sync-toast.idle { opacity: 0; pointer-events: none; }
 .live-shell:has(.live-bottom-nav) .sync-toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
+/* UX-CHK-01: above the bottom navigation the data-check toast still stacks above SyncedToast (one toast line + gap). */
+.live-shell:has(.live-bottom-nav) .sync-toast.data-check-toast { bottom: calc(124px + env(safe-area-inset-bottom)); }
+/* UX-CHK-02: the inline link keeps its line height but gets a 44px touch target. */
+.data-check-link { display: inline-block; padding: 11px 0; margin: -11px 0; }
+/* UX-CHK-03: a running (disabled) Full sync looks disabled, like Sign out. */
+.full-sync-button:disabled { background: #f2f2f2; border-color: #bfc3c7; color: #595959; }
 .header-load-progress { height: 6px; accent-color: #252525; border: 0; border-radius: 3px; overflow: hidden; }
 .header-load-progress::-webkit-progress-bar { background: rgb(255 255 255 / 75%); border-radius: 3px; }
 .header-load-progress::-webkit-progress-value { background: #252525; border-radius: 3px; }
