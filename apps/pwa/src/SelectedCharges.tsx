@@ -9,6 +9,7 @@ import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {beginRequest} from './request-activity';
 import {CompactPager} from './CompactPager';
 import {PaymentResult} from './PaymentResult';
+import {confirmOwnPayment,verifiedOwnReceipt,type OwnReceipt} from './own-write-apply';
 import {useOnline} from './online-status';
 import {RECOGNITION_DEADLINE_MS} from './recognition-timing';
 import type {OwnerOfflineRepository} from './owner-offline';
@@ -40,6 +41,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const checkOperation=useRef(0),checkingRef=useRef(false);
  const [outcome,setOutcome]=useState<Outcome|null>(null),[checked,setChecked]=useState(false),[storageBlocked,setStorageBlocked]=useState(false);
  const command=useRef<Command|null>(null),requestId=useRef<string>(crypto.randomUUID()),generation=useRef(0),uploadGeneration=useRef(0);
+ // R078 follow-up: the server's descriptor (sha256, sizeBytes) of the uploaded receipt, to verify the picked file locally.
+ const receiptDescriptor=useRef<OwnReceipt['descriptor']>(null);
  const [selectionRows,setSelectionRows]=useState<Draft['charges']>([]),[savedAt,setSavedAt]=useState<number|null>(null),[localImage,setLocalImage]=useState<Blob|null>(null);
  const [allMode,setAllMode]=useState(false);
  const [changedBalances,setChangedBalances]=useState<{operation:number;generation:number;charges:Draft['charges'];businessDate:string}|null>(null),[unavailableLines,setUnavailableLines]=useState<string[]>([]);
@@ -194,11 +197,11 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview)},[preview]);
  async function upload(file:File|undefined){
   const seq=++uploadGeneration.current,current=generation.current;setUploading(false);setReceipt(null);setPreview(null);setUploadFailed(false);setRecognition(null);setSlipDate(null);setTransferTime('');
-  setLocalImage(file??null);if(!file)return;
+  setLocalImage(file??null);receiptDescriptor.current=null;if(!file)return;
   if(access.offlineOnly||!navigator.onLine){if(['image/png','image/jpeg'].includes(file.type)&&file.size>0&&file.size<=5242880){setPreview(URL.createObjectURL(file));return;}setUploadFailed(true);return;}
   if(!navigator.onLine||!['image/png','image/jpeg'].includes(file.type)||!file.size||file.size>5242880){setUploadFailed(true);setError(t('Choose a PNG or JPEG up to 5 MiB while online.','เลือก PNG หรือ JPEG ไม่เกิน 5 MiB ขณะออนไลน์'));return;}
   setPreview(URL.createObjectURL(file));setUploading(true);const id=crypto.randomUUID();
-  try{const {response}=await call('/api/payment-commands/'+requestId.current+'/receipts/'+id,{method:'POST',headers:{'Content-Type':file.type,'X-Borrower-ID':borrowerId},body:file});if(!response.ok)throw Error();if(seq!==uploadGeneration.current||current!==generation.current)return;setReceipt(id);setError('');void recognize(id,seq);}
+  try{const {response,data}=await call('/api/payment-commands/'+requestId.current+'/receipts/'+id,{method:'POST',headers:{'Content-Type':file.type,'X-Borrower-ID':borrowerId},body:file});if(!response.ok)throw Error();if(seq!==uploadGeneration.current||current!==generation.current)return;receiptDescriptor.current=data?.receipt??null;setReceipt(id);setError('');void recognize(id,seq);}
   catch{if(seq===uploadGeneration.current&&current===generation.current){setUploadFailed(true);setError(t('Receipt upload failed. Retry or remove the receipt before confirming.','อัปโหลดหลักฐานไม่สำเร็จ ลองอีกครั้งหรือนำหลักฐานออกก่อนยืนยัน'));}}
   finally{if(seq===uploadGeneration.current&&current===generation.current)setUploading(false);}
  }
@@ -252,7 +255,9 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   if(autoRun)void autoAssign(slipAmount!).then(outcome=>{if(outcome==='empty'||outcome==='failed')setRecognition(old=>old?.receiptId===id&&old.phase==='done'?{...old,autoOutcome:outcome}:old)});
  }
  function result(data:any){
-  if(data.kind==='recorded'){if(data.originalOutcome.status==='rejected')setError(savedRejectionMessage({data},thai));setOutcome(data.originalOutcome);setState(data.originalOutcome.status);if(!queueEnabled||data.originalOutcome.status==='posted')clearPending();if(data.originalOutcome.status==='posted'&&notifiedPosted.current!==requestId.current){notifiedPosted.current=requestId.current;(onPosted??access.onPosted)?.(requestId.current);}}
+  if(data.kind==='recorded'){if(data.originalOutcome.status==='rejected')setError(savedRejectionMessage({data},thai));setOutcome(data.originalOutcome);setState(data.originalOutcome.status);if(!queueEnabled||data.originalOutcome.status==='posted')clearPending();if(data.originalOutcome.status==='posted'&&notifiedPosted.current!==requestId.current){notifiedPosted.current=requestId.current;
+   // R078 follow-up: applied and its receipt stored now (this screen closes once the payment is announced).
+   void confirmOwnPayment(access,requestId.current,command.current?.receiptId?{receiptId:command.current.receiptId,file:localImage,descriptor:receiptDescriptor.current}:undefined);(onPosted??access.onPosted)?.(requestId.current);}}
   else if(data.code==='command_conflict'||data.kind==='conflict'){setState('conflict');if(!queueEnabled)clearPending();}
   // W4-UX-02/03: busy is a known non-outcome (nothing applied); the same command is retried, never "outcome unknown".
   else if(data.code==='command_busy'){setState('busy');setError('');}
@@ -297,11 +302,9 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   const timer=setTimeout(()=>controller.abort(),15000);setReceiptReadError('');
   void(async()=>{
    try{
-    const token=await access.token();
-    const response=await fetch(access.origin+'/api/payment-commands/'+requestId.current+'/receipts/'+command.current!.receiptId,{headers:{Authorization:'Bearer '+token},cache:'no-store',credentials:'omit',redirect:'error',signal:controller.signal});
-    if(response.status===401||response.status===403){access.authFailure(response.status);throw Error();}
-    if(!response.ok||!['image/png','image/jpeg'].includes(response.headers.get('content-type')??''))throw Error();
-    const image=await response.blob();if(current!==generation.current||controller.signal.aborted)return;
+    // R078 follow-up: the picked file is shown when it is byte-identical to the stored receipt (upload sha256 and
+    // size); otherwise the verified copy is downloaded once and shared with the payment result and the offline seed.
+    const image=await verifiedOwnReceipt(access,requestId.current,command.current!.receiptId!,{file:localImage,descriptor:receiptDescriptor.current});if(!image)throw Error();if(current!==generation.current||controller.signal.aborted)return;
     objectUrl=URL.createObjectURL(image);setVerifiedPreview(objectUrl);
    }catch{if(current===generation.current&&active)setReceiptReadError(t('Payment remains Posted. The receipt could not be loaded.','ผลรับชำระยังคงบันทึกแล้ว แต่ไม่สามารถโหลดหลักฐานได้'));}
    finally{clearTimeout(timer);}
@@ -354,7 +357,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  {state==='busy'&&<><p role="status">{t('Busy — not saved yet','ระบบกำลังยุ่ง — ยังไม่ได้บันทึก')}</p><p>{t('Nothing was applied. Retrying automatically.','ยังไม่มีการบันทึกรายการ กำลังลองใหม่อัตโนมัติ')}</p>{command.current&&<button className="secondary-button" disabled={reviewing||access.offlineOnly||!online} onClick={()=>void confirm()}>{t('Retry same command','ลองคำขอเดิมอีกครั้ง')}</button>}</>}
  {state==='unknown'&&<><h3>{t('Outcome unknown','ยังไม่ทราบผลการรับชำระ')}</h3><p>{t('A missing response does not mean the payment failed. Check the original request.','ไม่ได้รับคำตอบไม่ได้หมายความว่าการรับชำระล้มเหลว ตรวจสอบคำขอเดิม')}</p><button className="secondary-button" disabled={checking||access.offlineOnly||!online} onClick={()=>void check()}>{t('Check status','ตรวจสอบสถานะ')}</button>{command.current&&<button className="secondary-button" disabled={checking||access.offlineOnly||!checked||!online} onClick={()=>void confirm()}>{t('Retry same command','ลองคำขอเดิมอีกครั้ง')}</button>}</>}
  {state==='posted'&&<><h3>{t('Original payment recorded as Posted','บันทึกผลคำขอเดิมว่ารับชำระแล้ว')}</h3>{command.current&&<><p>{draft?.borrower.displayName}</p><p className="field-summary">{t('Amount received','ยอดรับชำระ')}: <strong className="field-summary-value">{money(command.current.amountReceived)}</strong></p><p>{draft?.accounts.find(row=>row.id===command.current?.cashAccountId)?.label}</p><pre aria-label={t('Notes','หมายเหตุ')}>{command.current.notes}</pre></>}{verifiedPreview&&<img className="payment-receipt-preview" src={verifiedPreview} alt={t('Verified uploaded receipt','หลักฐานที่อัปโหลดและตรวจสอบแล้ว')}/>} {receiptReadError&&<p role="status">{receiptReadError}</p>}</>}{state==='rejected'&&<h3>{t('Payment could not be applied','ดำเนินการรับชำระไม่สำเร็จ')}</h3>}{state==='conflict'&&<h3>{t('Request identity conflict — do not resend changed details','คำขอขัดแย้ง — อย่าส่งรายละเอียดที่เปลี่ยนแล้วซ้ำ')}</h3>}
- {outcome&&<p>{displayValue(outcome.recordedAt)}</p>}{state==='posted'&&!access.offlineOnly&&<PaymentResult access={access} requestId={requestId.current} thai={thai}/>}{(storageBlocked||['sending','unknown','conflict'].includes(state))?<p>{t('Request reference','หมายเลขอ้างอิงคำขอ')}: <code>{requestId.current}</code> {copyReference}</p>:['queued','busy','posted','rejected'].includes(state)&&<details className="request-reference"><summary>{t('Request reference','หมายเลขอ้างอิงคำขอ')}</summary><code>{requestId.current}</code> {copyReference}</details>}{storageBlocked&&<p>{t('This browser cannot retain the reference. Copy it before leaving.','เบราว์เซอร์นี้เก็บหมายเลขอ้างอิงไม่ได้ กรุณาคัดลอกก่อนออก')}</p>}
+ {outcome&&<p>{displayValue(outcome.recordedAt)}</p>}{state==='posted'&&!access.offlineOnly&&<PaymentResult access={access} requestId={requestId.current} thai={thai} receipt={command.current?.receiptId?{receiptId:command.current.receiptId,file:localImage,descriptor:receiptDescriptor.current}:undefined}/>}{(storageBlocked||['sending','unknown','conflict'].includes(state))?<p>{t('Request reference','หมายเลขอ้างอิงคำขอ')}: <code>{requestId.current}</code> {copyReference}</p>:['queued','busy','posted','rejected'].includes(state)&&<details className="request-reference"><summary>{t('Request reference','หมายเลขอ้างอิงคำขอ')}</summary><code>{requestId.current}</code> {copyReference}</details>}{storageBlocked&&<p>{t('This browser cannot retain the reference. Copy it before leaving.','เบราว์เซอร์นี้เก็บหมายเลขอ้างอิงไม่ได้ กรุณาคัดลอกก่อนออก')}</p>}
  </section>;
 }
 

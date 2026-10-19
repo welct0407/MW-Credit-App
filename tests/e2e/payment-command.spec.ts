@@ -4,7 +4,7 @@ function preparedWire(value:any){const{data,...metadata}=value;return{...metadat
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import sharp from 'sharp';
-import {randomBytes} from 'node:crypto';
+import {randomBytes,createHash} from 'node:crypto';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
  const port=5800+info.workerIndex;base=`http://127.0.0.1:${port}`;
@@ -131,6 +131,31 @@ test('G07 removed delayed upload cannot revive receipt and Posted retains notes 
  await expect(page.getByRole('region',{name:'Payment result details'})).toContainText('Posted synthetic notes');await expect(page.getByRole('region',{name:'Payment result details'})).toContainText('฿110');
  expect(posts).toBe(1);expect(receiptGets).toBe(1);expect(postedBody.receiptId).toMatch(/^[0-9a-f-]{36}$/);expect(postedBody.receiptId).not.toBe(oldReceiptId);
  expect(await page.evaluate(()=>sessionStorage.getItem('mw-credit.pending-command'))).toBeNull();
+});
+
+// R078 follow-up: an online own payment whose upload descriptor (sha256, size) matches the picked file shows and stores
+// the receipt without downloading it; the payment's offline media key holds it with savedAt = receiptAt.
+test('An online own payment with a matching receipt is shown and stored for the payment without a download',async({page})=>{
+ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jVhQAAAAASUVORK5CYII=','base64'),sha256=createHash('sha256').update(png).digest('hex'),receiptAt='2026-10-08T05:00:00.000Z';
+ let postedBody:any,receiptGets=0;
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
+  const path=new URL(r.request().url()).pathname;
+  if(path.includes('payment-drafts'))return replyDraft(r);
+  if(path.endsWith('/result'))return r.fulfill({contentType:'application/json',body:JSON.stringify({originalCommand:postedBody,originalOutcome:{status:'posted'},currentSource:'present',payment:{id:'synthetic-payment',borrowerId:borrower.id,status:'Posted',paymentDate:'2026-10-08',amountReceived:'110',postedAmount:'110',notes:null,receiptReference:'manual-receipts/dev/pwa/'+postedBody.requestId.replaceAll('-','')+'/'+postedBody.receiptId.replaceAll('-','')+'.png',receiptAt},allocations:[],repayments:[],cashMovements:[],history:{recordedAt:receiptAt}})});
+  if(path.endsWith('/recognition'))return r.fulfill({json:{ok:true,status:'unavailable',reason:'disabled',suggestion:null,warnings:[]}});
+  if(path.includes('/receipts/')||path.endsWith('/receipt')){if(r.request().method()==='GET'){receiptGets++;return r.fulfill({body:png,contentType:'image/png'})}return r.fulfill({json:{ok:true,receipt:{receiptId:path.split('/').at(-1),mimeType:'image/png',sizeBytes:png.length,sha256,generation:'1'}}})}
+  if(r.request().method()==='GET')return r.fulfill({json:{ok:true,kind:'unresolved',safeToUseNewRequestId:false}});
+  if(path!=='/api/payment-commands')return r.fulfill({json:{ok:true}});
+  postedBody=r.request().postDataJSON();return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-payment',code:null,recordedAt:receiptAt}})});
+ });
+ await setup(page);await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges'}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('synthetic-account');
+ await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
+ await page.locator('input[type=file]').setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:png});await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Review payment'}).click();await page.getByRole('button',{name:'Confirm payment'}).click();
+ await expect(page.locator('.payment-success')).toContainText('Payment received');
+ const key='blob:https://mw-credit-app-command-dev-test.run.app/api/payment-records/synthetic-payment/receipt?source=manual';
+ await expect.poll(()=>page.evaluate(async key=>{const names=await indexedDB.databases();for(const {name} of names){if(!name)continue;const db=await new Promise<IDBDatabase>((resolve,reject)=>{const request=indexedDB.open(name);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});if(!db.objectStoreNames.contains('records')){db.close();continue}const row=await new Promise<any>(resolve=>{const request=db.transaction('records').objectStore('records').get('dataset-media:'+key);request.onsuccess=()=>resolve(request.result);request.onerror=()=>resolve(null)});db.close();if(row)return row.savedAt}return null},key),{timeout:15000}).toBe(Date.parse(receiptAt));
+ await page.waitForTimeout(500);expect(receiptGets).toBe(0);
 });
 
 for(const width of [320,390])test(`G07 receipt picker and large removable preview stay consistent through review ${width}px`,async({page},info)=>{

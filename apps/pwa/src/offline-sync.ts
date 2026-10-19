@@ -1,7 +1,9 @@
 import {commandOriginAllowed} from './environment';
 import type {CommandAccess} from './SelectedCharges';
 import type {PendingSync} from './owner-offline';
-import {confirmOwnPayment} from './own-write-apply';
+import {confirmOwnPayment,seedOperationReceipt,type OwnReceipt} from './own-write-apply';
+/** The server's descriptor of each receipt this session uploaded (sha256, sizeBytes), by request. */
+const uploaded=new Map<string,OwnReceipt['descriptor']>();
 
 export type SavedSyncResult={kind:'queued'|'synced'|'blocked';data?:any;status?:number;code?:string};
 /** Busy (409 command_busy): nothing applied, same request id retried automatically. Distinct from outcome unknown and from a rejection. */
@@ -83,7 +85,10 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
   // R078 item 6 (UX-PAY-03): a payment the server posted is applied to the offline bundles at once; the
   // confirming check (mw-read-invalidated from settlePending) then replaces it with the server's rows.
   const command=row.value?.command??row.value;
-  if(result.kind==='synced'&&Number.isInteger(command?.schemaVersion)&&[3,4,5,6,7].includes(command.schemaVersion)&&result.data?.originalOutcome?.status==='posted')void confirmOwnPayment(access,requestId);
+  // R078 follow-up: the receipt sent with it is stored for the payment (verified locally, or downloaded once).
+  const image=row.value?.receipt,ownReceipt:OwnReceipt|undefined=image&&typeof image.id==='string'&&image.image instanceof Blob?{receiptId:image.id,file:image.image,descriptor:uploaded.get(requestId)??null}:undefined;uploaded.delete(requestId);
+  if(result.kind==='synced'&&Number.isInteger(command?.schemaVersion)&&[3,4,5,6,7].includes(command.schemaVersion)&&result.data?.originalOutcome?.status==='posted')void confirmOwnPayment(access,requestId,ownReceipt);
+  else if(result.kind==='synced'&&ownReceipt&&['payment.correct','loan.close'].includes(command?.operation)&&result.data?.originalOutcome?.status==='applied')void seedOperationReceipt(access,requestId,result.data.originalOutcome.result?.paymentId,ownReceipt);
   return result;
  };
  const request=async(path:string,init:RequestInit={})=>{
@@ -141,6 +146,7 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
   if(receipt){
    const upload=await request('/api/payment-commands/'+requestId+'/receipts/'+receipt.id,{method:'POST',headers:{'Content-Type':receipt.image.type,'X-Borrower-ID':receipt.borrowerId??command.borrowerId},body:receipt.image});
    if(!upload.response.ok){const rejected=await classify(upload.response,upload.data);return rejected??settle({kind:'queued'},'receipt_unavailable')}
+   uploaded.set(requestId,upload.data?.receipt??null);
   }
   const result=await request(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(command)});
   return await classify(result.response,result.data)??settle({kind:'queued'},result.data?.code==='command_unavailable'?'command_unavailable':'outcome_unknown');
