@@ -37,7 +37,7 @@ export function PaymentResult({access,requestId,thai}:{access:CommandAccess;requ
    const stored=seed&&Number.isFinite(receiptTime)?await repo!.readDatasetMedia(seed).catch(()=>null):null;
    if(stored?.data instanceof Blob&&stored.savedAt>=receiptTime){if(active){url=URL.createObjectURL(stored.data);setImage(url)}return}
    const response=await fetch(access.origin+'/api/payment-commands/'+requestId+'/receipts/'+id,{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();const blob=await response.blob();if(active){url=URL.createObjectURL(blob);setImage(url)}
-   if(seed){try{const revision=await repo!.readRevision();if(revision!==null)await repo!.saveDatasetMedia(seed,blob,revision,seededReceiptTime(receiptAt))}catch{/* The coordinator downloads it instead. */}}
+   const savedAt=seededReceiptTime(receiptAt);if(seed&&savedAt!==null){try{const revision=await repo!.readRevision();if(revision!==null)await repo!.saveDatasetMedia(seed,blob,revision,savedAt)}catch{/* The coordinator downloads it instead. */}}
   }catch{if(active)setImageError(t('Current receipt could not be verified. Recorded payment is unchanged.','ตรวจสอบหลักฐานปัจจุบันไม่ได้ ผลรับชำระเดิมไม่เปลี่ยนแปลง'))}finally{clearTimeout(timer);done()}})();
   return()=>{active=false;controller.abort();clearTimeout(timer);if(url)URL.revokeObjectURL(url)};
  },[data?.payment?.receiptReference,data?.payment?.receiptAt,data?.payment?.id,data?.payment?.status,data?.currentSource,access.offline,requestId]);

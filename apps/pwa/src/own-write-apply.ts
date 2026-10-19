@@ -105,6 +105,7 @@ export function confirmOwnPayment(access:Access,requestId:string):Promise<string
 }
 /** The dataset media key under which the coordinator keeps a payment's manual receipt. */
 export const ownReceiptKey=(origin:string,paymentId:string)=>'blob:'+new URL('/api/payment-records/'+encodeURIComponent(paymentId)+'/receipt?source=manual',origin).href;
-/** A seeded receipt counts as current for the coordinator (saved at or after the server's receipt time,
- * read the same way the coordinator reads it), even when the device clock is behind the server. */
-export const seededReceiptTime=(receiptAt:unknown)=>Math.max(Date.now(),typeof receiptAt==='string'?Date.parse(receiptAt)||0:0);
+/** The saved time of a seeded receipt is the server's receipt time (its identity, read the way the
+ * coordinator reads it), never the device clock: a device clock running ahead must not make this copy look
+ * newer than a later replacement receipt. */
+export const seededReceiptTime=(receiptAt:unknown)=>{const value=typeof receiptAt==='string'?Date.parse(receiptAt):Number.NaN;return Number.isFinite(value)?value:null};

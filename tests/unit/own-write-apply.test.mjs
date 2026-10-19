@@ -51,7 +51,6 @@ test('only a Posted present result is applied, through the repository patch, and
  assert.deepEqual(j(await own.applyOwnPayment({offline:repo},'req-1',{...result,currentSource:'missing'})),[]);
  assert.deepEqual(j(await own.applyOwnPayment({offline:repo},'req-1',result)),['records']);assert.deepEqual(events,['records:true']);
  assert.equal(own.ownReceiptKey('https://lm.example.invalid','pay new'),'blob:https://lm.example.invalid/api/payment-records/pay%20new/receipt?source=manual');
- assert.ok(own.seededReceiptTime('2999-01-01 00:00:00')>Date.parse('2998-12-31'));
 });
 test('a payment synced from the queue reads its result once and applies it',async()=>{
  const calls=[];const fetch=async(url,init)=>{calls.push([url,init.headers.Authorization]);return {status:200,ok:true,json:async()=>structuredClone(result)}};
@@ -60,4 +59,15 @@ test('a payment synced from the queue reads its result once and applies it',asyn
  const [first,second]=await Promise.all([module.confirmOwnPayment(access,'req-2'),module.confirmOwnPayment(access,'req-2')]);
  assert.deepEqual(j(first),['records']);assert.equal(first,second);assert.deepEqual(calls,[['https://api.example.invalid/api/payment-commands/req-2/result','Bearer t']]);
  assert.ok(bundles.records.data.payments.some(row=>row.id==='pay-new'&&row.localPending.requestId==='req-2'));
+});
+
+test('a seeded receipt keeps the server receipt time even when the device clock runs ahead or behind',()=>{
+ for(const skew of [+6*3600*1000,-6*3600*1000]){
+  class SkewedDate extends Date{static now(){return Date.now()+skew}}
+  const skewed=load({Date:SkewedDate}),first='2026-10-19 08:00:00',replacement='2026-10-19 08:05:00';
+  assert.equal(skewed.seededReceiptTime(first),Date.parse(first));
+  // The coordinator re-downloads when a saved copy is older than the payment's current receipt time.
+  assert.ok(skewed.seededReceiptTime(first)<Date.parse(replacement),'a stale copy never looks newer than its replacement');
+ }
+ assert.equal(own.seededReceiptTime('not a time'),null);assert.equal(own.seededReceiptTime(null),null);
 });
