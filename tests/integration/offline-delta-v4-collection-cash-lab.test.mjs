@@ -32,14 +32,14 @@ const plain=value=>JSON.parse(JSON.stringify(value));
 const hydrate=(value,asOf,businessDate)=>Array.isArray(value)?value.map(item=>hydrate(item,asOf,businessDate)):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([key,item])=>[key,key==='asOf'&&item===null?asOf:key==='businessDate'&&item===null?businessDate:hydrate(item,asOf,businessDate)])):value;
 async function read(client,domain,input){
  await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
- try{return await readOfflineDatasetDelta(client,actor,domain,{acceptChanged:true,dates:true,...input})}finally{await client.query('ROLLBACK')}
+ try{return await readOfflineDatasetDelta(client,actor,domain,{acceptChanged:true,dates:true,rowDeltas:true,...input})}finally{await client.query('ROLLBACK')}
 }
 /** One response with its values fetched (need) and hydrated, as a client applies it. */
 async function fetchChunk(client,domain,input){
  const manifest=await read(client,domain,{...input,need:[]});
  const refs=[...new Set(manifest.patches.flatMap(patch=>patch.refs))],values={};
  for(let offset=0;offset<refs.length;offset+=2048){const batch=await read(client,domain,{...input,need:refs.slice(offset,offset+2048)});assert.deepEqual(batch.patches,manifest.patches,'the need request replays the same manifest');Object.assign(values,batch.values)}
- return {...manifest,patches:manifest.patches.map(patch=>({...patch,value:patch.mode==='append'||patch.mode==='upsert'?patch.refs.map(ref=>hydrate(structuredClone(values[ref]),manifest.asOf,manifest.businessDate)):hydrate(structuredClone(values[patch.refs[0]]),manifest.asOf,manifest.businessDate)}))};
+ return {...manifest,patches:manifest.patches.map(patch=>({...patch,value:patch.mode==='append'||patch.mode==='upsert'||patch.mode==='replaceWhere'?patch.refs.map(ref=>hydrate(structuredClone(values[ref]),manifest.asOf,manifest.businessDate)):hydrate(structuredClone(values[patch.refs[0]]),manifest.asOf,manifest.businessDate)}))};
 }
 /** A complete walk: data, version, change cursor, business date. */
 async function walk(client,domain){
@@ -78,7 +78,7 @@ async function refresh(client,domain,state){
   throw Error('Day change did not complete');
  }
  if(chunk.schemaVersion===4&&chunk.delta){
-  if(shared.deltaMovesRows(state.data,chunk.patches))return {kind:'walk (rows moved)',state:await walk(client,domain)};
+  if(shared.deltaMovesRows(state.data,chunk.patches)||shared.deltaScopeMoves(state.data,chunk.scope))return {kind:'walk (rows moved)',state:await walk(client,domain)};
   const data=plain(state.data);for(const patch of chunk.patches)applyDatasetPatch(data,patch);
   return {kind:'delta',keys:[...new Set(chunk.patches.map(patch=>patch.key+(patch.mode==='replaceWhere'?'/where':'')))],state:{data,sourceVersion:chunk.sourceVersion,changes:chunk.changes??state.changes,businessDate:chunk.businessDate}};
  }
@@ -102,6 +102,7 @@ async function build(q,tag){
  // Ledger activity on several recent days so running balances exist for later days.
  await q(`INSERT INTO "Business Expenses"("Row ID","Expense Date","Amount","Ref Paid By Cash Account","Expense Category") VALUES ($1,current_date-3,10::money,'CI-LISA','Other')`,[`CC-EX1-${tag}-${seed}`]);
  await q(`INSERT INTO "Business Expenses"("Row ID","Expense Date","Amount","Ref Paid By Cash Account","Expense Category") VALUES ($1,current_date-1,4::money,'CI-LISA','Other')`,[`CC-EX2-${tag}-${seed}`]);
+ await q(`INSERT INTO "Business Expenses"("Row ID","Expense Date","Amount","Ref Paid By Cash Account","Expense Category","Ref Payee Borrower") VALUES ($1,current_date-2,3::money,'CI-LISA','Other',$2)`,[`CC-EX3-${tag}-${seed}`,A]);
  await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,20::money,current_date,'Lump Sum')`,[`CC-PAY0-${tag}-${seed}`,A]);
  return {seed,A,B,LA,LB,P,pay0:`CC-PAY0-${tag}-${seed}`};
 }
@@ -128,10 +129,29 @@ test('collection and cash row-level deltas equal a fresh walk and reconcile to a
    ['contribution (cash overview only)',async()=>q(`INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES ($1,$2,current_date,'Contribution',500::money)`,['CC-C2-'+seed,P]),{collection:'unchanged',cash:null}],
    ['payment moved to another borrower (repair)',async()=>replica(async()=>q(`UPDATE "Payments" SET "Ref Borrower"=$2 WHERE "Row ID"=$1`,['CC-PAY3-'+seed,B])),{collection:null,cash:null}],
    // These change names or labels embedded in many rows: the delta cannot name them, so the domains must walk.
-   ['borrower rename (must walk)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Alpha renamed '||$2 WHERE "Row ID"=$1`,[A,seed]),{collection:'walk',cash:'walk'}],
+   ['borrower rename (delta or walk; every posted payment touches Borrowers, so it may be a delta)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Alpha renamed '||$2 WHERE "Row ID"=$1`,[A,seed]),{collection:null,cash:null}],
    ['cash account label change (must walk)',async()=>q(`UPDATE "Cash Accounts" SET "Account Label"='Renamed '||$2 WHERE "Row ID"=$1`,['CI-DAD',seed]),{collection:'walk',cash:'walk'}],
-   ['borrower hidden (must walk)',async()=>q(`UPDATE "Borrowers" SET "Hidden Flag"=true WHERE "Row ID"=$1`,[B]),{collection:'walk',cash:'walk'}],
-   ['borrower shown again (must walk)',async()=>q(`UPDATE "Borrowers" SET "Hidden Flag"=false WHERE "Row ID"=$1`,[B]),{collection:'walk',cash:'walk'}],
+   ['borrower hidden (collection walks; cash may be a delta)',async()=>q(`UPDATE "Borrowers" SET "Hidden Flag"=true WHERE "Row ID"=$1`,[B]),{collection:'walk',cash:null}],
+   ['borrower shown again (delta or walk)',async()=>q(`UPDATE "Borrowers" SET "Hidden Flag"=false WHERE "Row ID"=$1`,[B]),{collection:null,cash:null}],
+   // Attacks on the rename and hide deltas: every place a borrower's name or flag shows must be re-read.
+   ['rename the payee of an expense paid from another account (counterparty text)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Alpha payee '||$2 WHERE "Row ID"=$1`,[A,seed]),{collection:null,cash:null}],
+   ['rename the borrower of a loan disbursed from another account',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Bravo loan '||$2 WHERE "Row ID"=$1`,[B,seed]),{collection:null,cash:null}],
+   ['rename one borrower and pay the other in the same delta',async()=>{await q(`UPDATE "Borrowers" SET "Borrower Name"='Alpha both '||$2 WHERE "Row ID"=$1`,[A,seed]);await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,4::money,current_date,'Lump Sum')`,['CC-PAY5-'+seed,B])},{collection:null,cash:null}],
+   ['rename and hide in one delta',async()=>{await q(`UPDATE "Borrowers" SET "Borrower Name"='Bravo again '||$2 WHERE "Row ID"=$1`,[B,seed]);await q(`UPDATE "Borrowers" SET "Hidden Flag"=true WHERE "Row ID"=$1`,[A])},{collection:null,cash:null}],
+   ['unhide after hide',async()=>q(`UPDATE "Borrowers" SET "Hidden Flag"=false WHERE "Row ID"=$1`,[A]),{collection:null,cash:null}],
+   // A payment by one borrower allocated to (or repaying) another borrower's charge: both borrowers' collection rows change.
+   ['payment of A allocated to a charge of B (repair)',async()=>replica(async()=>q(`INSERT INTO "Payment Allocations"("Row ID","Ref Payment","Ref Charge","Allocated Amount","Allocated Principal","Allocated Interest","Allocation Order") VALUES ($1,$2,$3,2::money,1::money,1::money,9)`,['CC-AL-'+seed,'CC-PAY0-rows-'+seed,`CC-CH-rows-${LB}-3`])),{collection:null,cash:null}],
+   ['repayment of A\'s payment on a charge of B (repair)',async()=>replica(async()=>q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Ref Payment","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,$4,current_date,1::money,1::money)`,['CC-RP-'+seed,LB,`CC-CH-rows-${LB}-2`,'CC-PAY0-rows-'+seed])),{collection:null,cash:null}],
+   // A ledger row moved to another account or another date: the old place is not visible to the server, the client must notice.
+   ['ledger row moved to another date (repair)',async()=>replica(async()=>q(`UPDATE "Cash Ledger" SET "Movement Date"="Movement Date"-1 WHERE "Ref Business Expense"=$1`,['CC-EX1-rows-'+seed])),{collection:'unchanged',cash:null}],
+   ['ledger row moved to another account (repair)',async()=>replica(async()=>q(`UPDATE "Cash Ledger" SET "Ref From Cash Account"='CI-DAD' WHERE "Ref Business Expense"=$1`,['CC-EX2-rows-'+seed])),{collection:'unchanged',cash:null}],
+   ['ledger row moved to a later date (repair)',async()=>replica(async()=>q(`UPDATE "Cash Ledger" SET "Movement Date"="Movement Date"+1 WHERE "Ref Business Expense"=$1`,['CC-EX3-rows-'+seed])),{collection:'unchanged',cash:null}],
+   // A partner label shows on settlement statement items; a profitable payment makes a small settlement valid.
+   ['completed settlement after a profitable payment (partner label on statements)',async()=>{const rich='CC-RICH-'+seed,loan='CC-RL-'+seed;await q(`INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ($1,'Rich '||$2)`,[rich,seed]);await q(`INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES ('CI-LISA',$1,$2,current_date-10,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false)`,[loan,rich]);await q(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES ($1,$2,current_date-1,100::money,5000::money)`,['CC-RCH-'+seed,loan]);await q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,5100::money,current_date,'Lump Sum')`,['CC-RPAY-'+seed,rich]);await q(`INSERT INTO "Settlements"("Ref Paid From Cash Account","Row ID","Ref Partner","Status","Transfer Date","Amount") VALUES ('CI-LISA',$1,$2,'Completed',current_date,1::money)`,['CC-ST-'+seed,P])},{collection:null,cash:null}],
+   ['rename the settled partner (label on the settlement statement item)',async()=>q(`UPDATE "Partners" SET "Partner Name"='Partner renamed '||$2 WHERE "Row ID"=$1`,[P,seed]),{collection:null,cash:null}],
+   // The old place of a moved row is invisible to the server: the client must notice (deltaMovesRows / deltaScopeMoves) or the delta must cover it.
+   ['loan reassigned to another borrower (repair; the service refuses it once receipts exist)',async()=>replica(async()=>q(`UPDATE "Loans" SET "Ref Borrowers"=$2 WHERE "Row ID"=$1`,[LB,A])),{collection:null,cash:null}],
+   ['charge moved to a loan of another borrower',async()=>replica(async()=>q(`UPDATE "Charges" SET "Ref Loans"=$2 WHERE "Row ID"=$1`,[`CC-CH-rows-${LB}-1`,LA])),{collection:null,cash:null}],
    ['TRUNCATE Cash Statement Context (marker, cash walks)',async()=>q('TRUNCATE "Cash Statement Context"'),{collection:'unchanged',cash:'walk'}],
    ['payment deleted (a missing row walks)',async()=>replica(async()=>q('DELETE FROM "Payments" WHERE "Row ID"=$1',['CC-PAY4-'+seed])),{collection:null,cash:null}],
   ];
