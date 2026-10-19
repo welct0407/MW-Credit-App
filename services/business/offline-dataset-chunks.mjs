@@ -431,7 +431,7 @@ export async function resolveCashScope(client,changes){
 /** overview and preferences whole, and every re-read account-day statement exactly as the walk writes it. */
 export async function readCashTargeted(client,actor,stamp,{accountDays}){
  const patches=rowBudget();
- patches.push(replace('overview',await readCashOverview(client,actor,stamp)),replace('preferences',await readPreferences(client,actor,stamp)));
+ patches.push(replace('overview',await readCashOverview(client)),replace('preferences',await readPreferences(client,actor)));
  for(const [accountId,date] of accountDays){
   const key=JSON.stringify([accountId,date]);let cursor=null;
   for(let page=0;;page++){
