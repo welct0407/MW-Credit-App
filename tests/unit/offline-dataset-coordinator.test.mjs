@@ -21,25 +21,26 @@ async function until(predicate,limit=4000){const started=Date.now();while(!predi
 /** In-memory repository with the owner-offline.ts write checks that matter here (revision, expected cursor). */
 function repository(bundles){
  const rows=new Map(Object.entries(bundles).map(([domain,value])=>['dataset:'+domain,structuredClone(value)])),log=[];
- const progress=domain=>rows.get('dataset-progress:'+domain)??null;
- return {log,rows,scopeName:'synthetic-scope',environment:'synthetic',
+ const progress=domain=>rows.get('dataset-progress:'+domain)??null,saves=[];
+ return {log,rows,saves,scopeName:'synthetic-scope',environment:'synthetic',
   syncAuthorized:async()=>true,readRevision:async()=>0,readCacheRevision:async()=>0,
   readReconciledAt:async()=>rows.get('meta:reconciled-at')??null,saveReconciledAt:async at=>{rows.set('meta:reconciled-at',at);log.push(['reconciled',at]);return true},
+  readReconcileAttempt:async()=>structuredClone(rows.get('meta:reconcile-tried-at')??null),saveReconcileAttempt:async attempt=>{if(attempt)rows.set('meta:reconcile-tried-at',structuredClone(attempt));else rows.delete('meta:reconcile-tried-at');log.push(['attempt',attempt&&structuredClone(attempt)]);return true},
   readDataset:async domain=>{const row=rows.get('dataset:'+domain);return row?{...structuredClone(row),cacheStale:false}:null},
   readDatasetProgress:async domain=>structuredClone(progress(domain)),
   discardDatasetProgress:async domain=>{rows.delete('dataset-progress:'+domain)},
   saveDatasetProgress:async(domain,value,revision,expected)=>{if(revision!==0||expected!==undefined&&(progress(domain)?.nextCursor??null)!==expected){log.push(['progress-refused',domain]);return false}rows.set('dataset-progress:'+domain,structuredClone(value));log.push(['progress',domain,value.nextCursor]);return true},
-  saveDataset:async(domain,value,revision,expected)=>{if(revision!==0||expected!==undefined&&(progress(domain)?.nextCursor??null)!==expected){log.push(['dataset-refused',domain,expected]);return false}rows.set('dataset:'+domain,structuredClone(value));rows.delete('dataset-progress:'+domain);log.push(['dataset',domain]);return true},
+  saveDataset:async(domain,value,revision,expected)=>{if(revision!==0||expected!==undefined&&(progress(domain)?.nextCursor??null)!==expected){log.push(['dataset-refused',domain,expected]);return false}rows.set('dataset:'+domain,structuredClone(value));rows.delete('dataset-progress:'+domain);log.push(['dataset',domain]);saves.push([domain,structuredClone(value)]);return true},
   readDatasetMedia:async()=>null,listDatasetMediaKeys:async()=>[],removeDatasetMedia:async()=>{},saveDatasetMedia:async()=>true,
  };
 }
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[]}={}){
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),stored={},attempt}={}){
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
- const repo=repository(Object.fromEntries(all.map(domain=>[domain,corrupt.includes(domain)?{...complete(domain),data:{items:[{id:'old',corrupted:true}]}}:cursors&&domain==='records'?{...complete(domain),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'},{id:'gone'}],paymentMonths:[{borrowerId:'b1',month:'2026-10'},{borrowerId:'b2',month:'2026-10'}]}}:patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:complete(domain)])));
+ const repo=repository(Object.fromEntries(all.map(domain=>[domain,corrupt.includes(domain)?{...complete(domain),data:{items:[{id:'old',corrupted:true}]}}:cursors&&domain==='records'?{...complete(domain),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'},{id:'gone'}],paymentMonths:[{borrowerId:'b1',month:'2026-10'},{borrowerId:'b2',month:'2026-10'}]}}:patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:stored[domain]??complete(domain)])));
  const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
  async function fetch(url,init){
   const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
@@ -47,6 +48,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
   inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
   try{
    await tick();
+   if(body.reconcile&&failReconcile.has(domain)){reconciles.push({domain,result:'failed'});return reply(503,{code:'temporary'})}
    if(body.reconcile){const truth=await patchModule.datasetDigests(complete(domain).data,sha256),keys=patchModule.digestDifferences(truth,body.digests);reconciles.push({domain,result:keys.length?'mismatch':'match',keys});
     return reply(200,{schemaVersion:3,domain,...stamp,reconcile:true,result:body.sourceVersion!==version(domain)&&!walks[domain]?'stale':keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null})}
    if(rejectVersions&&body.versions)return reply(400,{code:'invalid_request'});
@@ -60,7 +62,8 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
   }finally{inflight--;flights.set(domain,flights.get(domain)-1)}
  }
  const trackedTimeout=(callback,delay)=>{timers.push(delay);return setTimeout(callback,delay)};
- class Clock extends Date{constructor(...args){if(args.length)super(...args);else super(Date.now()+clockOffset)}static now(){return Date.now()+clockOffset}}
+ let offset=clockOffset;
+ class Clock extends Date{constructor(...args){if(args.length)super(...args);else super(Date.now()+offset)}static now(){return Date.now()+offset}}
  const sandbox={Date:Clock,exports:{},require:name=>name==='./client-events'?{recordClientEvent:event=>clientEvents.push(event)}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
   window,document,navigator:{onLine:true},fetch,setTimeout:trackedTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,console};
  runInNewContext(source,sandbox);
@@ -68,7 +71,8 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
  const stop=sandbox.exports.startOfflinePreparation({origin,offline:repo,token:async()=>'synthetic',authFailure:()=>{}});
  const state=()=>sandbox.exports.getOfflinePreparation(repo.scopeName);
  if(reconciledAt!==undefined)repo.rows.set('meta:reconciled-at',reconciledAt);
- return {reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
+ if(attempt!==undefined)repo.rows.set('meta:reconcile-tried-at',attempt);
+ return {advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
 }
 const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
 
@@ -205,4 +209,44 @@ test('a corrupted stored domain is named, logged and healed by a forced walk',as
   assert.deepEqual(JSON.parse(JSON.stringify(h.repo.rows.get('dataset:cash').data)),{items:[{id:'old'}]});
   assert.equal(h.reconciles.filter(entry=>entry.domain==='cash').at(-1).result,'match','reconciled again after healing');
  }finally{h.stop()}
+});
+// Chase on 35bdda2: a failed pass is not retried at every poll, a future stored time does not switch reconciliation off,
+// and a heal survives a reload.
+const idle=async h=>{const before=h.requests.length;h.window.dispatchEvent(new Event('focus'));await until(()=>h.requests.length>before);await settled(h);await new Promise(resolve=>setTimeout(resolve,150))};
+test('a failed pass waits 30 minutes, then asks only the domains it did not finish',async()=>{
+ const failReconcile=new Set(['cash']),h=harness({reconciledAt:bangkok(19,6,30),clockOffset:bangkok(19,18,1)-Date.now(),failReconcile});try{
+  await settled(h);await until(()=>h.repo.rows.has('meta:reconcile-tried-at'));
+  assert.deepEqual(h.reconciles.map(entry=>entry.domain+':'+entry.result),['records:match','collection:match','cash:failed']);
+  const tried=h.repo.rows.get('meta:reconcile-tried-at');assert.deepEqual(JSON.parse(JSON.stringify(tried.done)),['records','collection']);assert.equal(tried.slot,bangkok(19,18,0));
+  assert.equal(h.repo.rows.get('meta:reconciled-at'),bangkok(19,6,30),'the pass is not recorded as done');
+  for(let poll=0;poll<3;poll++)await idle(h);
+  assert.equal(h.reconciles.length,3,'no retry inside the back-off');
+  failReconcile.clear();h.advance(31*60*1000);await idle(h);await until(()=>h.repo.log.some(entry=>entry[0]==='reconciled'));
+  assert.deepEqual(h.reconciles.slice(3).map(entry=>entry.domain+':'+entry.result),['cash:match','management:match'],'finished domains are not asked again');
+  assert.equal(h.repo.rows.has('meta:reconcile-tried-at'),false,'a completed pass clears the attempt');
+ }finally{h.stop()}
+});
+test('a reconciled-at or tried-at in the future counts as due, not as done',async()=>{
+ const now=bangkok(19,18,1),future=now+2*24*3600*1000;
+ const h=harness({reconciledAt:future,clockOffset:now-Date.now(),attempt:{at:future,slot:bangkok(19,18,0),done:['records','collection']}});try{
+  await settled(h);await until(()=>h.repo.log.some(entry=>entry[0]==='reconciled'));
+  assert.deepEqual(h.reconciles.map(entry=>entry.domain+':'+entry.result),['records:match','collection:match','cash:match','management:match']);
+  const saved=h.repo.rows.get('meta:reconciled-at');assert.ok(saved>=now&&saved<future,'the stored time is corrected to now');
+ }finally{h.stop()}
+});
+test('a heal clears the change cursor and is marked needsWalk; after a reload the marked domain walks instead of a v4 delta',async()=>{
+ const h=harness({reconciledAt:bangkok(18,18,30),clockOffset:bangkok(19,6,5)-Date.now(),corrupt:['cash']});try{
+  await settled(h);await until(()=>h.repo.log.some(entry=>entry[0]==='reconciled'),6000);
+  const saves=h.repo.saves.filter(entry=>entry[0]==='cash').map(entry=>entry[1]);
+  assert.equal(saves[0].needsWalk,true);assert.equal(saves[0].sourceVersion,null);assert.equal('changes' in saves[0],false);
+  assert.equal('needsWalk' in saves.at(-1),false,'the walk commits a bundle without the marker');
+ }finally{h.stop()}
+ // A reload before the walk: the stored records bundle still has a (stale) cursor and a v4 server would answer a delta.
+ const marked={...complete('records'),sourceVersion:null,needsWalk:true,changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old',corrupted:true}]}};
+ const r=harness({stored:{records:marked},v4:{patches:[]}});try{
+  await settled(r);
+  const records=r.requests.filter(request=>request.domain==='records');
+  assert.ok(records.length>=1);assert.ok(records.every(request=>request.since===null),'no v4 delta');assert.equal(records[0].sourceVersion,null);
+  const bundle=r.repo.rows.get('dataset:records');assert.equal('needsWalk' in bundle,false);assert.deepEqual(JSON.parse(JSON.stringify(bundle.data)),{items:[{id:'old'}]});
+ }finally{r.stop()}
 });

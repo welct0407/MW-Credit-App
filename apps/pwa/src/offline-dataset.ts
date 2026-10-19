@@ -42,9 +42,14 @@ export const DATASET_PROGRESS_SAVE_CHUNKS=4;
  * and after 18:00 Bangkok time, or 12 h after the last completed one (stored in IndexedDB meta). */
 const HOUR=60*60*1000,BANGKOK_OFFSET=7*HOUR;
 export const RECONCILE_MAX_AGE_MS=12*HOUR,RECONCILE_TIMEOUT_MS=50*1000;
+/** A pass that could not finish (unavailable, 5xx, timeout, network) waits this long before it is tried again. */
+export const RECONCILE_RETRY_MS=30*60*1000;
 /** The latest 06:00 or 18:00 Bangkok boundary at or before `now` (Bangkok has no daylight saving). */
 export function reconcileSlot(now:number){const local=now+BANGKOK_OFFSET,day=Math.floor(local/(24*HOUR))*24*HOUR;return Math.max(...[day-6*HOUR,day+6*HOUR,day+18*HOUR].filter(at=>at<=local))-BANGKOK_OFFSET}
-export const reconcileDue=(now:number,last:number)=>now-last>=RECONCILE_MAX_AGE_MS||last<reconcileSlot(now);
+/** A stored time ahead of now (a phone clock that was wrong) counts as due, never as "done for a while". */
+export const reconcileDue=(now:number,last:number)=>last>now||now-last>=RECONCILE_MAX_AGE_MS||last<reconcileSlot(now);
+/** Whether a failed attempt still holds the next pass back (an attempt in the future does not). */
+export const reconcileBackingOff=(now:number,attempt:{at:number}|null)=>!!attempt&&attempt.at<=now&&now-attempt.at<RECONCILE_RETRY_MS;
 const sha256Hex=async(text:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),byte=>byte.toString(16).padStart(2,'0')).join('');
 /** A protocol v4 change cursor (services/api/offline-dataset-delta.mjs validChangeCursor). */
 export const validChangeCursor=(value:any)=>!!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')==='businessDate,seq,xmin'&&/^(0|[1-9]\d{0,18})$/.test(value.seq)&&/^(0|[1-9]\d{0,19})$/.test(value.xmin)&&/^\d{4}-\d{2}-\d{2}$/.test(value.businessDate);
@@ -174,6 +179,8 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(!await repo.syncAuthorized()){paused=true;status();return}
   beginCycle();
   for(const domain of domains){const [bundle,partial]=await Promise.all([repo.readDataset(domain),repo.readDatasetProgress(domain)]);if(stopped)return;
+   // A reconciliation heal (needsWalk) survives a reload: the domain walks from the start, never a delta.
+   if(bundle?.complete&&bundle.needsWalk===true)forceWalk.add(domain);
    if(bundle?.complete){completed.add(domain);if(domain==='records'){mediaVersion.clear();media=mediaKeys(bundle);await pruneMedia()}}
    if(partial&&bundle?.complete&&partial.protocolVersion!==3)await repo.discardDatasetProgress(domain);
    if(partial?.chunks)chunkCounts.set(domain,partial.chunks);
@@ -408,7 +415,10 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // takes the Full sync path. Receipts are checked locally (present, non-empty, saved at or after their receipt time).
  let reconciling=false,reconcileAgain=false,reconcileUnsupported=false;
  const reconcileIdle=()=>!stopped&&initialized&&!paused&&navigator.onLine&&!access.offlineOnly&&document.visibilityState!=='hidden'&&activitySnapshot()===0&&!active.size&&!queue.length&&!failed.size&&!forceWalk.size&&domains.every(domain=>completed.has(domain));
- async function reconcileDomain(domain:string):Promise<'match'|'mismatch'|'other'|'skipped'>{
+ // 'failed': the server could not answer (holds the next pass back); 'skipped': a local reason (no server cost).
+ // A domain healed once in a slot is not walked again in that slot when it still differs (no walk loop).
+ const healedSlot=new Map<string,number>();
+ async function reconcileDomain(domain:string,slot:number):Promise<'match'|'mismatch'|'other'|'skipped'|'failed'>{
   const [bundle,partial]=await Promise.all([repo.readDataset(domain),repo.readDatasetProgress(domain)]);
   if(!bundle?.complete||partial||partials.has(domain)||active.has(domain)||queue.includes(domain)||localPatch(bundle)||hasLocalRows(bundle.data)||typeof bundle.sourceVersion!=='string')return 'skipped';
   const [revision,cacheRevision]=[await repo.readRevision(),await repo.readCacheRevision()];if(revision===null)return 'skipped';
@@ -417,18 +427,22 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   try{
    const response=await fetch(new URL('/api/offline-dataset?domain='+domain+'&protocol=3',access.origin),{method:'POST',body:JSON.stringify({reconcile:true,sourceVersion:bundle.sourceVersion,digests}),headers:{Authorization:'Bearer '+await access.token(),'Content-Type':'application/json'},signal:controller.signal,credentials:'omit',cache:'no-store',redirect:'error'});
    if(response.status===400){reconcileUnsupported=true;return 'skipped'}
-   if(response.status===401||response.status===403){access.authFailure(response.status);return 'skipped'}
-   if(!response.ok)return 'skipped';value=await response.json();
-  }catch{return 'skipped'}finally{clearTimeout(timer)}
-  if(stopped||value?.reconcile!==true||value.domain!==domain)return 'skipped';
+   if(response.status===401||response.status===403){access.authFailure(response.status);return 'failed'}
+   if(!response.ok)return 'failed';value=await response.json();
+  }catch{return stopped?'skipped':'failed'}finally{clearTimeout(timer)}
+  if(stopped)return 'skipped';
+  if(value?.reconcile!==true||value.domain!==domain)return 'failed';
   // The stored data must still be the data that was digested.
   if(await repo.readRevision()!==revision||await repo.readCacheRevision()!==cacheRevision||datasetBase(await repo.readDataset(domain))!==datasetBase(bundle))return 'skipped';
   if(value.result==='match'){recordClientEvent({kind:'reconcile-match',code:domain});return 'match'}
-  if(value.result!=='mismatch')return value.result==='stale'||value.result==='changed'?'other':'skipped';
+  if(value.result!=='mismatch')return value.result==='stale'||value.result==='changed'?'other':'failed';
   const keys=(Array.isArray(value.keys)?value.keys:[]).filter((key:unknown)=>typeof key==='string'&&/^[A-Za-z][A-Za-z0-9]{0,63}$/.test(key));
   recordClientEvent({kind:'reconcile-mismatch',code:domain,message:keys.join(',')});
-  const {cacheStale:_stale,...stored}=bundle;
-  if(!await repo.saveDataset(domain,{...stored,sourceVersion:null},revision,null,datasetBase(bundle),false))return 'skipped';
+  if(healedSlot.get(domain)===slot)return 'other';healedSlot.set(domain,slot);
+  // The heal is durable: no source version, no change cursor (a v4 delta would patch the corrupted rows) and a
+  // needsWalk marker that forces the walk again after a reload; the walk's commit writes a bundle without it.
+  const {cacheStale:_stale,changes:_changes,...stored}=bundle;
+  if(!await repo.saveDataset(domain,{...stored,sourceVersion:null,needsWalk:true},revision,null,datasetBase(bundle),false))return 'skipped';
   forceWalk.add(domain);if(!active.size&&!queue.length)beginCycle([domain]);else{cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain)}enqueue(domain);status();schedule();
   return 'mismatch';
  }
@@ -446,10 +460,18 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    // A first complete download is itself a fresh walk: it starts the 12-hour clock.
    if(last===null){await repo.saveReconciledAt(now);return}
    if(!reconcileDue(now,last))return;
-   let complete=true;
-   for(const domain of DATASET_RECONCILE_DOMAINS){if(!reconcileIdle()){complete=false;break}if(await reconcileDomain(domain)==='skipped')complete=false}
+   // A pass that failed waits RECONCILE_RETRY_MS; the domains it finished in the same slot are not asked again.
+   const stored=await repo.readReconcileAttempt(),slot=reconcileSlot(now),attempt=stored&&stored.at<=now&&stored.slot===slot?stored:null;
+   if(reconcileBackingOff(now,attempt))return;
+   const done=new Set(attempt?.done??[]);let complete=true,failedPass=false;
+   for(const domain of DATASET_RECONCILE_DOMAINS){if(done.has(domain))continue;if(!reconcileIdle()){complete=false;break}
+    const result=await reconcileDomain(domain,slot);if(result==='skipped'){complete=false;continue}if(result==='failed'){complete=false;failedPass=true;break}
+    // A healed domain is checked again once its walk commits (the pass resumes at the next idle moment).
+    if(result==='mismatch')complete=false;else done.add(domain)}
    await checkReceipts();
-   if(complete)await repo.saveReconciledAt(Date.now());
+   if(complete){await repo.saveReconciledAt(Date.now());await repo.saveReconcileAttempt(null)}
+   else if(failedPass)await repo.saveReconcileAttempt({at:Date.now(),slot,done:[...done]});
+   else if(done.size)await repo.saveReconcileAttempt({at:attempt?.at??0,slot,done:[...done]});
   }catch{/* The next idle moment tries again. */}finally{reconciling=false;if(reconcileAgain){reconcileAgain=false;setTimeout(()=>void maybeReconcile(),0)}}
  }
  const offline=()=>{paused=true;for(const flight of active.values())flight.abort('offline');status()};
