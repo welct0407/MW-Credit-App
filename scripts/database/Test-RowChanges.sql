@@ -80,9 +80,11 @@ DO $$ DECLARE missing text[]; extra text[]; BEGIN
  -- Tables whose rows the fixtures above insert directly or through the existing triggers (ledger projection,
  -- lump-sum allocation/repayment, cash account and holder fixtures).
  missing:=ARRAY(SELECT v.t FROM (VALUES ('Borrowers'),('Partners'),('Cash Pool Contributions'),('Loans'),('Charges'),('Payments'),('Payment Allocations'),('Repayments'),
-   ('Business Expenses'),('Settlements'),('Cash Ledger')) v(t) WHERE NOT EXISTS(SELECT 1 FROM public.pwa_row_changes c WHERE c.seq>(SELECT seq FROM rc_mark) AND c.table_name=v.t));
+   ('Business Expenses'),('Settlements'),('Cash Ledger'),('Cash Statement Context')) v(t) WHERE NOT EXISTS(SELECT 1 FROM public.pwa_row_changes c WHERE c.seq>(SELECT seq FROM rc_mark) AND c.table_name=v.t));
  IF cardinality(missing)>0 THEN RAISE EXCEPTION 'No change recorded for %',missing; END IF;
  IF NOT EXISTS(SELECT 1 FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark) AND table_name='Cash Ledger' AND row_key='cash:LOAN:RC-L') THEN RAISE EXCEPTION 'ledger projection (definer inside definer) not recorded'; END IF;
+ -- Cash Statement Context is keyed by "Ref Partner" and seeded by the Partners trigger.
+ IF NOT EXISTS(SELECT 1 FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark) AND table_name='Cash Statement Context' AND row_key='RC-A') THEN RAISE EXCEPTION 'Cash Statement Context seed not recorded under Ref Partner'; END IF;
 END $$;
 INSERT INTO "Cash Holders"("Row ID","Holder Name","Sort Order") VALUES('ch:rc','Synthetic RC holder',99);
 INSERT INTO "Cash Accounts"("Row ID","Ref Cash Holder","Account Label","Bank Name") VALUES('RC-ACC','ch:rc','Synthetic RC account','Synthetic');
@@ -91,9 +93,10 @@ INSERT INTO r008_cash_account_cutover("Ref Cash Account","Cutover At","Opening B
 SET LOCAL r008.initializing='off';
 INSERT INTO "Statistics"("Row ID") VALUES('RC-ST');
 INSERT INTO "Daily Analytics"("Row ID","Snapshot Date") VALUES('RC-DA',current_date-400);
+INSERT INTO "Loan Assessment SQL Lab"("Row ID") VALUES('RC-LA');
 DO $$ DECLARE got text; BEGIN
- SELECT string_agg(table_name||':'||row_key,' ' ORDER BY seq) INTO got FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark) AND row_key IN ('ch:rc','RC-ACC','RC-ST','RC-DA');
- IF got IS DISTINCT FROM 'Cash Holders:ch:rc Cash Accounts:RC-ACC r008_cash_account_cutover:RC-ACC Statistics:RC-ST Daily Analytics:RC-DA' THEN RAISE EXCEPTION 'Change log for keyed tables differs: %',got; END IF;
+ SELECT string_agg(table_name||':'||row_key,' ' ORDER BY seq) INTO got FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark) AND row_key IN ('ch:rc','RC-ACC','RC-ST','RC-DA','RC-LA');
+ IF got IS DISTINCT FROM 'Cash Holders:ch:rc Cash Accounts:RC-ACC r008_cash_account_cutover:RC-ACC Statistics:RC-ST Daily Analytics:RC-DA Loan Assessment SQL Lab:RC-LA' THEN RAISE EXCEPTION 'Change log for keyed tables differs: %',got; END IF;
 END $$;
 
 -- F. Retention (hourly job): rows older than 7 days go, newer rows stay, the newest row always stays.

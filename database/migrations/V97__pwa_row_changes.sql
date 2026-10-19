@@ -1,6 +1,6 @@
 -- R078 item 7 (owner decision 19 October 2026: "Authorize DEV"; PROD needs its own promotion approval):
 -- PWA row-change tracking for the offline dataset protocol v4. One additive table public.pwa_row_changes,
--- one generic AFTER INSERT OR UPDATE OR DELETE row trigger zzzzzzz_pwa_row_change on 17 source tables
+-- one generic AFTER INSERT OR UPDATE OR DELETE row trigger zzzzzzz_pwa_row_change on 19 source tables
 -- (fires after every existing non-deferred AFTER ROW trigger; no existing trigger is touched), and a
 -- 7-day retention run by the hourly recent-analytics job. Both functions are SECURITY DEFINER, owned by
 -- the closed NOLOGIN role mw_changes_owner_<env> with a pinned search_path (V93 sync_cash_ledger
@@ -35,7 +35,8 @@ BEGIN
  -- Every tracked table exists with the expected single-column primary key (the trigger argument).
  FOR t IN SELECT * FROM (VALUES ('Borrowers','Row ID'),('Loans','Row ID'),('Charges','Row ID'),('Payments','Row ID'),('Payment Allocations','Row ID'),('Repayments','Row ID'),
    ('Business Expenses','Row ID'),('Cash Accounts','Row ID'),('Cash Holders','Row ID'),('Cash Ledger','Row ID'),('Cash Pool Contributions','Row ID'),('Settlements','Row ID'),
-   ('Partners','Row ID'),('r008_cash_account_cutover','Ref Cash Account'),('pwa_payment_commands','request_id'),('Daily Analytics','Row ID'),('Statistics','Row ID')) v(relation,key_column) LOOP
+   ('Partners','Row ID'),('r008_cash_account_cutover','Ref Cash Account'),('pwa_payment_commands','request_id'),('Daily Analytics','Row ID'),('Statistics','Row ID'),
+   ('Cash Statement Context','Ref Partner'),('Loan Assessment SQL Lab','Row ID')) v(relation,key_column) LOOP
   IF to_regclass(format('public.%I',t.relation)) IS NULL THEN problems:=problems||format('public.%I is missing',t.relation);
   ELSIF NOT EXISTS(SELECT 1 FROM pg_constraint k WHERE k.conrelid=format('public.%I',t.relation)::regclass AND k.contype='p' AND cardinality(k.conkey)=1
     AND (SELECT attname FROM pg_attribute WHERE attrelid=k.conrelid AND attnum=k.conkey[1])=t.key_column) THEN
@@ -108,7 +109,8 @@ BEGIN
  REVOKE ALL ON FUNCTION public.pwa_row_changes_prune_v1() FROM PUBLIC;
  FOR t IN SELECT * FROM (VALUES ('Borrowers','Row ID'),('Loans','Row ID'),('Charges','Row ID'),('Payments','Row ID'),('Payment Allocations','Row ID'),('Repayments','Row ID'),
    ('Business Expenses','Row ID'),('Cash Accounts','Row ID'),('Cash Holders','Row ID'),('Cash Ledger','Row ID'),('Cash Pool Contributions','Row ID'),('Settlements','Row ID'),
-   ('Partners','Row ID'),('r008_cash_account_cutover','Ref Cash Account'),('pwa_payment_commands','request_id'),('Daily Analytics','Row ID'),('Statistics','Row ID')) v(relation,key_column) LOOP
+   ('Partners','Row ID'),('r008_cash_account_cutover','Ref Cash Account'),('pwa_payment_commands','request_id'),('Daily Analytics','Row ID'),('Statistics','Row ID'),
+   ('Cash Statement Context','Ref Partner'),('Loan Assessment SQL Lab','Row ID')) v(relation,key_column) LOOP
   EXECUTE format('CREATE OR REPLACE TRIGGER zzzzzzz_pwa_row_change AFTER INSERT OR UPDATE OR DELETE ON public.%I FOR EACH ROW EXECUTE FUNCTION public.pwa_track_row_change(%L)',t.relation,t.key_column);
  END LOOP;
  -- The hourly job's owner runs the retention; nobody else executes either function.
