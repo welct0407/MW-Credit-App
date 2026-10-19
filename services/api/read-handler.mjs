@@ -33,7 +33,9 @@ export function createReadHandler({ config, verifyPrincipal, store, completionLo
       const url = new URL(req.url, 'http://request.invalid');
       if (url.searchParams.has('q') && !['/api/borrowers', '/api/collection'].includes(url.pathname)) return send(400, { ok: false, code: 'invalid_request' });
       if (url.pathname === '/health') return send(200, { status: 'ok', environment: config.environment, service: 'borrower-read' });
-      const principal = await verifyPrincipal(req.headers.authorization);
+      // R078: every recognised reader route is a GET read and skips the revocation round trip;
+      // an unrecognised path keeps the checked path.
+      const principal = operation === 'unknown' ? await verifyPrincipal(req.headers.authorization) : await verifyPrincipal(req.headers.authorization, { checkRevoked: false });
       if (!principal.ok) return send(principal.status, { ok: false, code: principal.code });
       let result;
       if (url.pathname === '/api/session') { result = await store.session(principal.email); if (result.ok) result = { ...result, subject: principal.subject }; }

@@ -3,17 +3,17 @@ import {BUDGET} from '../../services/lib/budget.mjs';
 import {createIamPool} from '../../services/lib/pool.mjs';
 import {createEnvironmentCommandStore} from '../../services/payment-command/store.mjs';
 // APP-PAY-03: the request budget fits inside the unchanged 15 s Cloud Run request timeout.
-const modules=record=>async()=>({connector:{AuthTypes:{IAM:'IAM'},IpAddressTypes:{PUBLIC:'PUBLIC'},Connector:class{async getOptions(o){record.options=o;return {stream:'synthetic'};}close(){record.closed=true;}}},pg:{Pool:class{constructor(o){record.pool=o;}}}});
+const modules=record=>async()=>({connector:{AuthTypes:{IAM:'IAM'},IpAddressTypes:{PUBLIC:'PUBLIC'},Connector:class{async getOptions(o){record.options=o;return {stream:'synthetic'};}close(){record.closed=true;}}},pg:{Pool:class{constructor(o){record.pool=o;}on(event,_listener){record.listeners=[...(record.listeners??[]),event];}}}});
 test('budget: worst-case verify + connect + statement stays below 15 s',()=>{
  assert.equal(BUDGET.connectMs,3000);assert.equal(BUDGET.statementMs.command,8000);assert.equal(BUDGET.lockMs,3000);
  assert.ok(2000+BUDGET.connectMs+BUDGET.statementMs.command<15000);assert.ok(BUDGET.httpRequestTimeoutMs<15000);
 });
 test('IAM pool factory applies connect, statement and query budgets per service role',async()=>{
- for(const [serviceRole,statement,query,max] of [['command',8000,9000,4],['reader',5000,7000,2]]){
+ for(const [serviceRole,statement,query,max,idle] of [['command',8000,9000,4,600000],['reader',5000,7000,2,30000]]){
   const record={};const {pool,close}=await createIamPool({instance:'synthetic:region:instance',dbUser:'synthetic@example.iam',database:'synthetic_db',serviceRole},modules(record));
   assert.ok(pool);assert.deepEqual(record.options,{instanceConnectionName:'synthetic:region:instance',ipType:'PUBLIC',authType:'IAM'});
-  assert.deepEqual(record.pool,{stream:'synthetic',user:'synthetic@example.iam',database:'synthetic_db',max,connectionTimeoutMillis:3000,idleTimeoutMillis:30000,statement_timeout:statement,query_timeout:query});
-  close();assert.equal(record.closed,true);
+  assert.deepEqual(record.pool,{stream:'synthetic',user:'synthetic@example.iam',database:'synthetic_db',max,connectionTimeoutMillis:3000,idleTimeoutMillis:idle,keepAlive:true,keepAliveInitialDelayMillis:60000,statement_timeout:statement,query_timeout:query});
+  assert.deepEqual(record.listeners,['error']);close();assert.equal(record.closed,true);
  }
  const record={};await createIamPool({instance:'i',dbUser:'u',database:'d',connectMs:5000,statementMs:100000,queryMs:105000},modules(record));
  assert.equal(record.pool.statement_timeout,100000);assert.equal(record.pool.connectionTimeoutMillis,5000);

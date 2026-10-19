@@ -11,7 +11,10 @@ export function notificationHandler({next,store,verifyPrincipal,origins,enabled=
   if(boundary.originDenied)return reply(403,{error:'access_denied'});
   // A preflight needs an allowlisted Origin and a listed method and headers.
   if(req.method==='OPTIONS')return boundary.preflight()?reply(204,{}):reply(403,{error:'access_denied'});
-  let principal;try{principal=await verifyPrincipal(req.headers.authorization)}catch{return reply(401,{error:'session_invalid',code:'session_invalid'})}
+  // R078: reads (GET routes and the offline-dataset POST) skip the revocation round trip; subscribe,
+  // revoke, preference and anything unclassified keep verifyIdToken(token,true).
+  const read=req.method==='GET'&&(p0=>p0==='/api/notifications'||p0==='/api/notifications/status'||p0==='/api/notifications/push-config'||p0==='/api/notifications/offline-dataset'&&offlineDataset||/^\/api\/notifications\/[a-f0-9-]{36}$/.test(p0))(url.pathname)||req.method==='POST'&&url.pathname==='/api/notifications/offline-dataset'&&offlineDataset;
+  let principal;try{principal=read?await verifyPrincipal(req.headers.authorization,{checkRevoked:false}):await verifyPrincipal(req.headers.authorization)}catch{return reply(401,{error:'session_invalid',code:'session_invalid'})}
   if(!principal?.ok){const status=[401,403,503].includes(principal?.status)?principal.status:401,reason=typeof principal?.code==='string'?principal.code:'session_invalid';return reply(status,{error:reason,code:reason});}
   try{
    let value;const p=url.pathname;
