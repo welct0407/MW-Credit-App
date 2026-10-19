@@ -9,16 +9,17 @@ const domains=['records','collection','cash','management','notifications'],versi
 const truth:Record<string,any>={records:{borrowers:[{id:'b1',name:'Alpha'}],dashboard:{total:'10'}},collection:{items:[{id:'c1'}]},cash:{overview:{balance:'5'}},management:{sections:{partners:[{id:'p1'}]}},notifications:{items:[]}};
 const sha256=(text:string)=>createHash('sha256').update(text).digest('hex');
 const at=(hour:number,minute:number)=>Date.UTC(2026,9,14,hour-7,minute);
-async function fixture(page:Page,uid:string,stored:Record<string,any>){
+async function fixture(page:Page,uid:string,stored:Record<string,any>,lastReconciled=at(6,30)){
  await page.route('http://127.0.0.1:4173/',r=>r.fulfill({contentType:'text/html',body:'<meta name="viewport" content="width=device-width, initial-scale=1"><div id="root"></div><script type="module" src="/tests/e2e/fixtures/back-consumers-harness.tsx"></script>'}));
  await page.goto('/');
  await page.evaluate(async({uid,stored,domains,version,asOf,reconciledAt})=>{const w=window as any;const repo=w.__offlineTest.ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid},'synthetic');await repo.authorize();w.__syncRepo=repo;w.__syncAccess={origin:location.origin,offline:repo,token:async()=>'synthetic-only',authFailure:()=>{}};
   for(const domain of domains)await repo.saveDataset(domain,{schemaVersion:1,domain,complete:true,sourceVersion:version,generation:'initial',asOf,businessDate:'2026-10-14',data:stored[domain]},await repo.readRevision());
-  await repo.saveReconciledAt(reconciledAt)},{uid,stored,domains,version,asOf,reconciledAt:at(6,30)});
+  await repo.saveReconciledAt(reconciledAt)},{uid,stored,domains,version,asOf,reconciledAt:lastReconciled});
 }
-async function server(page:Page){
+async function server(page:Page,unavailable=false){
  const calls:string[]=[];
  await page.route('**/api/**',async route=>{const url=new URL(route.request().url());if(!url.pathname.startsWith('/api/'))return route.fallback();const domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON()??{};
+  if(body.reconcile&&unavailable){calls.push(domain+':reconcile:unavailable');return route.fulfill({json:{schemaVersion:3,domain,asOf,businessDate:'2026-10-14',reconcile:true,result:'unavailable',keys:[],patches:[],values:{},complete:true,nextCursor:null}})}
   if(body.reconcile){const keys=digestDifferences(await datasetDigests(truth[domain],sha256),body.digests);calls.push(domain+':reconcile:'+(keys.length?'mismatch':'match'));return route.fulfill({json:{schemaVersion:3,domain,asOf,businessDate:'2026-10-14',reconcile:true,result:keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null}})}
   if(body.sourceVersion===version){calls.push(domain+':check');return route.fulfill({json:{schemaVersion:3,domain,asOf,businessDate:'2026-10-14',sourceVersion:version,unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1}}})}
   calls.push(domain+':walk'+(body.need?.length?'+need':''));
@@ -46,4 +47,18 @@ test('a domain corrupted in IndexedDB is named, logged and healed by a walk',asy
  await page.clock.runFor(2000);await expect.poll(()=>calls.some(call=>call.startsWith('cash:walk'))).toBe(true);
  await expect.poll(()=>page.evaluate(async()=>(await (window as any).__syncRepo.readDataset('cash')).data.overview.balance)).toBe('5');
  await page.clock.runFor(2000);await expect.poll(()=>calls.filter(call=>call==='cash:reconcile:match').length).toBe(1);
+});
+
+// A pass that could not finish (the server's 40 s budget, a 5xx) must not repeat at every 30-second poll: each attempt walks
+// a whole domain in one request and holds the offline read slot.
+test('an unavailable answer is not retried at every poll',async({page})=>{
+ await page.clock.install({time:at(18,1)});const calls=await server(page,true);await fixture(page,'reconcile-unavailable',truth);await start(page);
+ await page.clock.runFor(3000);await expect.poll(()=>calls.filter(call=>call.includes(':reconcile:')).length).toBeGreaterThan(0);
+ for(let poll=0;poll<5;poll++){await page.clock.runFor(31000);await page.waitForTimeout(500)}
+ expect(calls.filter(call=>call.includes(':reconcile:')).length).toBeLessThanOrEqual(4);
+});
+// A phone clock that was ahead stored a reconciliation time in the future; once the clock is right the pass is due again.
+test('a reconciliation time in the future does not suppress the pass',async({page})=>{
+ await page.clock.install({time:at(18,1)});const calls=await server(page);await fixture(page,'reconcile-future',truth,at(18,1)+2*24*3600*1000);await start(page);
+ await page.clock.runFor(3000);await expect.poll(()=>calls.filter(call=>call.includes(':reconcile:')).length).toBe(4);
 });

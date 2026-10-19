@@ -1,13 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {randomUUID} from 'node:crypto';
-import {runInNewContext} from 'node:vm';
-import ts from 'typescript';
+import {randomUUID,createHash} from 'node:crypto';
 import pg from 'pg';
 import {readOfflineDatasetDelta} from '../../services/business/offline-dataset-delta.mjs';
-import {readOfflineDatasetChunk} from '../../services/business/offline-dataset-chunks.mjs';
 import {canonicalDeltaValue} from '../../services/api/offline-dataset-delta.mjs';
+import {applyDatasetPatch as apply,deltaMovesRows,datasetDigests} from '../../services/lib/offline-dataset-digest.mjs';
 
 // R078 protocol v4 equality proof on a disposable PostgreSQL database migrated through V97 (never DEV or PROD).
 // MW_V4_LAB_URL=postgres://postgres@127.0.0.1:5498/loan_manager_dev node --test tests/integration/offline-delta-v4-equality-lab.test.mjs
@@ -19,14 +17,14 @@ const disposable=!!lab&&['127.0.0.1','localhost'].includes(lab.hostname)&&lab.pa
 const actor={issuer:'synthetic',subject:'owner',partnerId:'lab-partner'};
 const plain=value=>JSON.parse(JSON.stringify(canonicalDeltaValue(value)));
 const rr=async(client,work)=>{await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');try{return await work()}finally{await client.query('ROLLBACK')}};
-// The client's real patch logic (apps/pwa/src/dataset-patch.ts), transpiled the way the unit tests do.
-const sandbox={exports:{}};runInNewContext(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/dataset-patch.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,sandbox);
-const {applyDatasetPatch:apply,deltaMovesRows}=sandbox.exports;
-async function walk(client){
+const sha256=text=>createHash('sha256').update(text).digest('hex');
+/** The client's reconciliation request for a stored bundle (R078); the server answers match, mismatch(keys), stale or changed. */
+const reconcile=async(client,domain,state)=>rr(client,async()=>readOfflineDatasetDelta(client,actor,domain,{reconcile:true,sourceVersion:state.sourceVersion,digests:await datasetDigests(state.data,sha256)}));
+async function walk(client,domain='records'){
  const data={};let cursor=null,changes=null,sourceVersion=null;
  for(let step=0;step<800;step++){
-  const response=await rr(client,()=>readOfflineDatasetDelta(client,actor,'records',{cursor,need:[],sourceVersion:null,acceptChanged:true}));
-  const chunk=await rr(client,()=>readOfflineDatasetDelta(client,actor,'records',{cursor,need:[...new Set(response.patches.flatMap(patch=>patch.refs))],sourceVersion:null,acceptChanged:true}));
+  const response=await rr(client,()=>readOfflineDatasetDelta(client,actor,domain,{cursor,need:[],sourceVersion:null,acceptChanged:true}));
+  const chunk=await rr(client,()=>readOfflineDatasetDelta(client,actor,domain,{cursor,need:[...new Set(response.patches.flatMap(patch=>patch.refs))],sourceVersion:null,acceptChanged:true}));
   assert.deepEqual(chunk.patches,response.patches);changes??=response.changes??null;
   for(const patch of response.patches)apply(data,{...patch,value:patch.mode==='append'||patch.mode==='upsert'?patch.refs.map(ref=>chunk.values[ref]):chunk.values[patch.refs[0]]});
   if(response.complete){sourceVersion=response.sourceVersion;break}
@@ -113,6 +111,9 @@ test('a client holding the previous bundle ends equal to a fresh full walk after
   for(const [label,change] of scenarios){
    try{await change()}catch(error){report.push(`${label}: change refused (${error.message.slice(0,60)})`);continue}
    const result=await refresh(client,state),fresh=await walk(client),diff=differences(result.state.data,fresh.data);
+   // Equal data reconciles to a match, whichever way the client got it (delta, walk or unchanged).
+   const recon=await reconcile(client,'records',result.state);
+   if(recon.result!=='match')report.push(`${label}: RECONCILE MISMATCH ${recon.result} ${JSON.stringify(recon.keys)}`);
    report.push(`${label}: ${result.kind}${result.keys?' ['+result.keys.join(',')+']':''} ${diff.length?'MISMATCH '+diff.join('; '):'equal'}`);
    state=result.kind==='unchanged'?state:result.state;
    if(diff.length)state=fresh;
@@ -142,4 +143,38 @@ test('a transaction that commits after the cursor was taken is still delivered b
   assert.equal(s2.kind,'delta');assert.ok(s2.keys.includes('charges'),'the late commit arrives with the next delta');
   assert.deepEqual(differences(s2.state.data,fresh.data).filter(line=>!line.endsWith('order only')),[]);
  }finally{await Promise.all([client.end(),slow.end(),quick.end()])}
+});
+
+/** One corrupted item on the phone side, per top-level key of every domain; the server names exactly that key and a full walk heals it. */
+const mutations={
+ leaf:(data,key)=>{const target=Array.isArray(data[key])?data[key][0]:data[key];const flip=holder=>{for(const name of Object.keys(holder).sort()){const value=holder[name];if(typeof value==='string'&&name!=='asOf'){holder[name]=value+'~';return true}if(typeof value==='number'){holder[name]=value+1;return true}if(typeof value==='boolean'){holder[name]=!value;return true}if(value&&typeof value==='object'&&flip(value))return true}return false};return !!target&&typeof target==='object'&&flip(target)},
+ dropRow:(data,key)=>{if(!Array.isArray(data[key])||!data[key].length)return false;data[key].shift();return true},
+ swapRows:(data,key)=>{if(!Array.isArray(data[key])||data[key].length<2||JSON.stringify(data[key][0])===JSON.stringify(data[key][1]))return false;[data[key][0],data[key][1]]=[data[key][1],data[key][0]];return true},
+};
+test('a corrupted item in any key of any domain is named by reconciliation and healed by a walk',{skip:!disposable&&'set MW_V4_LAB_URL to a disposable 127.0.0.1 loan_manager_dev'},async()=>{
+ const client=new pg.Client({connectionString:url});await client.connect();
+ try{
+  if(!(await client.query(`SELECT 1 FROM public."Cash Accounts" WHERE "Row ID"='CI-DAD'`)).rowCount)await client.query(readFileSync(new URL('../../scripts/database/Test-CashAccountFixtures.sql',import.meta.url),'utf8').replace(/^\\.*$/gm,''));
+  if(!(await client.query('SELECT 1 FROM public."Statistics"')).rowCount)await client.query(`INSERT INTO "Statistics"("Row ID","Statistics ID") VALUES ('lab-statistics','lab')`);
+  if(!(await client.query(`SELECT 1 FROM public."Partners" WHERE "Row ID"='lab-partner'`)).rowCount)await client.query(`INSERT INTO "Partners"("Row ID","Partner Role","Partner Name") VALUES ('lab-partner','B','Lab partner')`);
+  const id=randomUUID().slice(0,8),A='CR-A-'+id,B='CR-B-'+id,L='CR-L-'+id;
+  for(const [borrower,name] of [[A,'Corrupt A'],[B,'Corrupt B']])await client.query(`INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ($1,$2)`,[borrower,name+' '+id]);
+  await client.query(`INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES ('CI-LISA',$1,$2,current_date-10,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false)`,[L,A]);
+  for(const day of [2,1])await client.query(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES ($1,$2,current_date-$3::int,30::money,5::money)`,[`CR-CH-${day}-${id}`,L,day]);
+  await client.query(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,20::money,current_date,'Lump Sum')`,['CR-PAY-'+id,A]);
+  const lines=[];
+  for(const domain of ['records','collection','cash','management']){
+   const state=await walk(client,domain);assert.equal((await reconcile(client,domain,state)).result,'match',domain+' matches before any corruption');
+   for(const key of Object.keys(state.data).sort())for(const [name,mutate] of Object.entries(mutations)){
+    const corrupt=structuredClone(state.data);if(!mutate(corrupt,key))continue;
+    const answer=await reconcile(client,domain,{...state,data:corrupt});
+    assert.equal(answer.result,'mismatch',`${domain}.${key} ${name}`);assert.deepEqual(answer.keys,[key],`${domain}.${key} ${name}`);
+    lines.push(`${domain}.${key}.${name}`);
+   }
+   // Healing: the client's forced walk produces data the server matches again.
+   const healed=await walk(client,domain);assert.equal((await reconcile(client,domain,healed)).result,'match',domain+' matches after the healing walk');
+  }
+  console.log(lines.length+' corruptions detected: '+lines.filter(line=>line.startsWith('records.payments')||line.startsWith('records.loans')||line.startsWith('records.borrowers')).join(', '));
+  assert.ok(lines.some(line=>line.startsWith('records.payments.leaf')),'a records detail row was corrupted and detected');
+ }finally{await client.end()}
 });
