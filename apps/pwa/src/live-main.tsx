@@ -130,7 +130,7 @@ function App() {
   const offlineRepositoryRef=useRef(offlineRepository);offlineRepositoryRef.current=offlineRepository;
   const purgeKeepPending=(repository=offlineRepositoryRef.current)=>{if(!repository)return;purgeTask.current=repository.purge({keepPending:true}).catch(()=>{})};
   const pendingSnapshot=usePendingSnapshot(offlineRepository),pendingCount=pendingSnapshot.count,pendingVisible=pendingSnapshot.visible,signOutControl=signOutGuard(pendingCount,thai,pendingVisible);
-  const [syncingNow,setSyncingNow]=useState(false),[syncFeedback,setSyncFeedback]=useState(''),[fullSyncStarting,setFullSyncStarting]=useState(false);
+  const [syncingNow,setSyncingNow]=useState(false),[syncFeedback,setSyncFeedback]=useState('');
   // Sync state and failures show beside the refresh icon (SyncStatus); there is no separate paused banner or Retry.
   const online=useOnline();
   // sw.js asks each open tab for its running entry on activation so that build's cache is kept (R072).
@@ -462,7 +462,6 @@ function App() {
     {!compact && signOutControl.note && <p id={'signout-note-'+place} className="live-account-signout-note">{signOutControl.note}</p>}
     {pendingVisible>0 && commandAccess && <button className="secondary-button live-account-sync-now" disabled={syncingNow} aria-label={syncNowLabel(pendingVisible,thai)} title={syncNowLabel(pendingVisible,thai)} onClick={()=>void syncNow()}>{compact ? <Icon name="sync"/> : t('Sync now','ซิงค์ตอนนี้')}</button>}
     {pendingVisible>0 && syncFeedback && <p role="status">{syncFeedback}</p>}
-    {fullSyncButton(compact)}
     <button className="secondary-button live-account-signout" disabled={signOutControl.disabled} aria-disabled={signOutControl.disabled} aria-label={signOutControl.label} aria-describedby={!compact&&signOutControl.note?'signout-note-'+place:undefined} title={compact&&signOutControl.note?signOutControl.note:signOutControl.label} onClick={logout}>{compact ? <Icon name="signout"/> : signOutControl.label}</button>
     {pendingVisible>0 && <button className="secondary-button live-account-review-saved" aria-label={t('Review saved changes','ตรวจรายการที่บันทึก')} title={t('Review saved changes','ตรวจรายการที่บันทึก')} onClick={openSavedChanges}>{compact ? <Icon name="waiting"/> : t('Review saved changes','ตรวจรายการที่บันทึก')}</button>}
     </div>}
@@ -497,20 +496,6 @@ function App() {
   const preferenceSave=usePreferenceSave(commandAccess,thai);
   useEffect(()=>{const language=preferenceSave.pending?.command?.inputs?.language;if(language){languageRevision.current++;setThai(language==='ไทย');document.documentElement.lang=language==='ไทย'?'th':'en'}},[preferenceSave.pending]);
   const latestCommandAccess=useRef(commandAccess);latestCommandAccess.current=commandAccess;
-  // UX-FULL-01..06 (owner, 19 October 2026): Full sync sends saved changes first, then walks every domain from the
-  // start; the stored data stays readable and each domain is replaced only when its walk commits.
-  async function fullSync(){
-    const access=latestCommandAccess.current;if(!access?.offline||fullSyncStarting||syncingNow||offlinePreparation.fullSync||!navigator.onLine||access.offlineOnly)return;
-    if(!window.confirm(t('Re-download all data? Saved data stays usable; this takes about 20 seconds.','ดาวน์โหลดข้อมูลทั้งหมดใหม่หรือไม่ ข้อมูลที่บันทึกยังใช้ได้ ใช้เวลาประมาณ 20 วินาที')))return;
-    setFullSyncStarting(true);menuDrawer.close();
-    try{await syncSavedRequests(access);window.dispatchEvent(new Event('mw-offline-saved'))}catch{/* The full sync runs whatever the saved changes' outcome; they stay queued. */}
-    finally{window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true,full:true}}));setFullSyncStarting(false)}
-  }
-  const fullSyncButton=(compact:boolean)=>{
-    if(status!=='ready'||!user||!liveOfflineEnabled||!commandAccess?.offline)return null;
-    const unavailable=!online||!!commandAccess.offlineOnly,busy=fullSyncStarting||syncingNow||offlinePreparation.fullSync,label=unavailable?t('Full sync needs a connection','ซิงค์ทั้งหมดต้องเชื่อมต่ออินเทอร์เน็ต'):t('Full sync','ซิงค์ทั้งหมด');
-    return <button type="button" className="secondary-button live-account-full-sync" disabled={unavailable||busy} aria-busy={busy||undefined} aria-label={compact?label:undefined} title={label} onClick={()=>void fullSync()}>{compact?<Icon name="refresh"/>:t('Full sync','ซิงค์ทั้งหมด')}</button>;
-  };
   async function syncNow(){
     const access=latestCommandAccess.current;if(!access||syncingNow)return;setSyncingNow(true);setSyncFeedback('');
     try{const result=await syncSavedRequests(access);window.dispatchEvent(new Event('mw-offline-saved'));if(result.reason==='offline'){setSyncFeedback(t('Waiting for a connection. Saved changes remain on this device.','รอการเชื่อมต่อ รายการที่บันทึกยังอยู่บนอุปกรณ์'));return;}if(result.remaining>0)openSavedChanges();}catch{}
