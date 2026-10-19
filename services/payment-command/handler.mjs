@@ -70,6 +70,18 @@ function route(raw) {
   } catch { return { invalid: true, operation: 'unknown' }; }
   return { operation: 'unknown' };
 }
+/**
+ * R078 ("check on writes only"): routes whose intent is a read skip the per-request Firebase
+ * revocation round trip. Exact (operation, method) pairs only; every write, every invalid or
+ * unknown route and every method mismatch keeps verifyIdToken(token,true).
+ */
+const READ_GET=new Set(['offline_dataset','management','record_list','cash_statement','collection_receipts','upcoming','payment_image','loan_related','payment_record','borrower_options','dashboard','preferences','cash_overview','expense_options','expense_list','expense_record','loan_options','operation_status','loan_close_preview','charge_record','loan_record','borrower_record','payment_history','command_result','payment_draft','receipt','command_status']);
+/** @param {any} target @param {string|undefined} method */
+export function isReadRoute(target,method){
+  if(!target||target.invalid)return false;
+  if(target.operation==='offline_dataset')return method===(target.options?.protocol===3?'POST':'GET');
+  return method==='GET'&&READ_GET.has(target.operation);
+}
 function body(req,raw=false,timeoutMs=5000) {
   return new Promise((resolve, reject) => {
     const chunks = []; let size = 0, settled = false;
@@ -107,7 +119,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (!['GET','POST','PATCH','DELETE'].includes(req.method)) return reject(405, 'method_not_allowed');
     if(target.operation==='health')return req.method==='GET'?send(200,{ok:true}):reject(405,'method_not_allowed');
     let principal;
-    try { principal = await verifyPrincipal(req.headers.authorization); } catch { return reject(401, 'session_invalid'); }
+    try { principal = isReadRoute(target,req.method)?await verifyPrincipal(req.headers.authorization,{checkRevoked:false}):await verifyPrincipal(req.headers.authorization); } catch { return reject(401, 'session_invalid'); }
     if (!principal?.ok) return reject(principal?.status === 403 ? 403 : principal?.status === 503 ? 503 : 401, ['sign_in_required','session_invalid','access_denied','session_check_unavailable'].includes(principal?.code) ? principal.code : 'session_invalid');
     principal = {...principal, [wakeContext]: {deadline:wakeDeadline, signal:wakeAbort.signal}};
     if (target.invalid) return reject(400, 'invalid_request');

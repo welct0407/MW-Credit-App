@@ -39,8 +39,9 @@ export const usePendingCount=(repository:OwnerOfflineRepository|null):number=>us
 /** SYNC-UX-07/R02: the entry stays (it opens the saved-changes screen) but is named
  * "All synced" with no badge when nothing is waiting. The badge needs the
  * owner lease; the sign-out guard (usePendingSnapshot.count) does not. */
-export function WaitingToSyncButton({repository,thai,compact=false,onClick}:{repository:OwnerOfflineRepository|null;thai:boolean;compact?:boolean;onClick:()=>void}){
- const entry=usePendingSnapshot(repository),count=entry.authorized?entry.visible:0,title=thai?'รอซิงค์':'Waiting to sync',synced=thai?'ซิงค์ครบแล้ว':'All synced';
- const label=count>0?(thai?title+' มีรายการที่บันทึก '+count+' รายการ':title+', '+count+' saved '+(count===1?'change':'changes')):synced;
- return <button type="button" className={'secondary-button waiting-sync-button'+(count>0?'':' all-synced')} aria-label={label} title={label} onClick={onClick}>{compact?<Icon name="waiting"/>:count>0?title:synced}{count>0&&<span className="waiting-sync-badge" aria-hidden="true">{count}</span>}</button>;
+/** UX-RECON-05: with nothing waiting, a persistent data-check difference adds a warning dot (the count badge wins). */
+export function WaitingToSyncButton({repository,thai,compact=false,dataCheck=false,onClick}:{repository:OwnerOfflineRepository|null;thai:boolean;compact?:boolean;dataCheck?:boolean;onClick:()=>void}){
+ const entry=usePendingSnapshot(repository),count=entry.authorized?entry.visible:0,title=thai?'รอซิงค์':'Waiting to sync',synced=thai?'ซิงค์ครบแล้ว':'All synced',dot=count===0&&dataCheck;
+ const label=count>0?(thai?title+' มีรายการที่บันทึก '+count+' รายการ':title+', '+count+' saved '+(count===1?'change':'changes')):dot?(thai?'ซิงค์ครบแล้ว พบความแตกต่างของข้อมูล':'All synced, data check found a difference'):synced;
+ return <button type="button" className={'secondary-button waiting-sync-button'+(count>0?'':' all-synced')+(dot?' data-check':'')} aria-label={label} title={label} onClick={onClick}>{compact?<Icon name="waiting"/>:count>0?title:synced}{count>0&&<span className="waiting-sync-badge" aria-hidden="true">{count}</span>}{dot&&<span className="data-check-dot" aria-hidden="true"/>}</button>;
 }

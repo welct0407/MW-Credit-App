@@ -1,6 +1,6 @@
 // Self-contained (no relative imports) so unit tests can load it directly.
 /** R072 troubleshooting: the last 25 client events, in memory and mirrored to this tab's sessionStorage. Read only by the encrypted troubleshooting file. */
-export type ClientEventKind='error'|'rejection'|'sync-blocked'|'dataset-failed'|'read-failure'|'sign-in'|'startup';
+export type ClientEventKind='error'|'rejection'|'sync-blocked'|'dataset-failed'|'read-failure'|'sign-in'|'startup'|'reconcile-match'|'reconcile-mismatch';
 export type ClientEvent={at:string;kind:ClientEventKind;code?:string;ref?:string;message?:string;stack?:string};
 export const CLIENT_EVENT_LIMIT=25,CLIENT_EVENT_TEXT_BYTES=2048;
 const storageKey='mw-credit-client-events',encoder=new TextEncoder(),marker='…[truncated]';

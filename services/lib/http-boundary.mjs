@@ -1,4 +1,6 @@
 import {randomUUID} from 'node:crypto';
+/** Seconds a browser may cache a granted CORS preflight (Access-Control-Max-Age). */
+export const PREFLIGHT_MAX_AGE_SECONDS=7200;
 /**
  * Shared browser HTTP boundary (APP-AUTH-03): request id, JSON/no-store/nosniff headers,
  * exact Origin allowlist with CORS echo, validated preflight and one completion log.
@@ -29,6 +31,10 @@ export function beginRequest(req,res,{origins,methods,headers,logger=()=>{},reco
       const method=req.headers['access-control-request-method'];
       if(!allowed||typeof method!=='string'||!methods.includes(method)||String(req.headers['access-control-request-headers']??'').split(',').some(value=>value.trim()&&!allowedHeaders.includes(value.trim().toLowerCase())))return false;
       res.setHeader('Access-Control-Allow-Methods',methods.join(', '));res.setHeader('Access-Control-Allow-Headers',headers.join(', '));
+      // R078: browsers reuse a granted preflight for this long (Chromium caps it at 7200 s, WebKit
+      // and Firefox apply their own lower caps). The grant depends only on the static origin/method/
+      // header allowlists; authorization is still checked on every actual request.
+      res.setHeader('Access-Control-Max-Age',String(PREFLIGHT_MAX_AGE_SECONDS));
       return true;
     },
   };

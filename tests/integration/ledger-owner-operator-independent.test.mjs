@@ -32,7 +32,8 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   // roles as a superuser, so no automatic tuple exists). The DEV post-migrate hook REVOKEs/GRANTs on the
   // notify/jobs-owned tables (V88) and the journal-owned V89 functions, so the migrate window must hold the
   // same three owners as R053's prepare-agent in addition to the ledger owner (R053_OPERATOR.md steps 3-4).
-  const R053_OWNERS=['mw_notify_owner_dev','mw_jobs_owner_dev','mw_app_dev_journal_owner'];
+  // V97 (R078) adds the change-log owner to the same window: its two definers are re-owned by the migration.
+  const R053_OWNERS=['mw_notify_owner_dev','mw_jobs_owner_dev','mw_app_dev_journal_owner','mw_changes_owner_dev'];
   for(const owner of R053_OWNERS){await admin.query(`GRANT ${owner} TO postgres WITH ADMIN TRUE, INHERIT FALSE, SET FALSE`);await operator.query(`GRANT ${owner} TO postgres WITH ADMIN FALSE, INHERIT FALSE, SET FALSE GRANTED BY postgres`);}
   const WINDOW=[LEDGER,...R053_OWNERS];
 
@@ -61,7 +62,7 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   const state=plan.restoreState;
   try{
    // 4. Migrate + validate as the non-superuser runner.
-   const migrated=await flyway('migrate');assert.match(migrated.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:96,failed:0});
+   const migrated=await flyway('migrate');assert.match(migrated.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:97,failed:0});
    const validated=await flyway('validate');assert.match(validated.stdout,/"validationSuccessful"\s*:\s*true/);
    const fn=(await operator.query("SELECT pg_get_userbyid(proowner) owner,prosecdef,proconfig FROM pg_proc WHERE oid=to_regprocedure('public.sync_cash_ledger(text,text)')")).rows[0];
    assert.equal(fn.owner,LEDGER);assert.equal(fn.prosecdef,true);assert.ok(fn.proconfig.includes('search_path=pg_catalog, public'));
@@ -88,7 +89,7 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   const failure=new Error('synthetic migration failure');await assert.rejects((async()=>{try{throw failure;}finally{await restoreOwnerAuthority(operator,config,again.restoreState,{apply:true});}})(),err=>err===failure);
   assert.equal((await restoreOwnerAuthority(operator,config,again.restoreState)).mode,'authority-already-restored');assert.deepEqual(await ledgerShape(admin),{runner_can_set:false,runner_inherits:false,owner_schema_create:false});
   // A no-op migrate at the head (the routine DEV runner call) needs no authority; nothing is re-applied.
-  const rerun=await flyway('migrate');assert.match(rerun.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:96,failed:0});
+  const rerun=await flyway('migrate');assert.match(rerun.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:97,failed:0});
 
   // 8. Application-role write proof: every cash source syncs the ledger through the definer; direct writes stay denied.
   await admin.query((await readFile('scripts/database/Test-CashAccountFixtures.sql','utf8')).replace(/^\\set.*$/m,''));
@@ -110,6 +111,14 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
     {id:'cash:EXPENSE:W4-E',amount:20},{id:'cash:EXPENSE:W4-I',amount:200},{id:'cash:LOAN:W4-L',amount:1200},{id:'cash:PAYMENT:W4-P',amount:50},{id:'cash:SETTLEMENT:W4-S',amount:10}]);
    for(const sql of [`INSERT INTO "Cash Ledger"("Row ID","Movement Date","Movement Type","Amount","Ref From Cash Holder","Ref To Cash Holder") VALUES('x',current_date,'Cash Handover',1,'ch:dad','ch:lisa')`,`UPDATE "Cash Ledger" SET "Amount"=1`,`DELETE FROM "Cash Ledger"`])await assert.rejects(app.query(sql),err=>err.code==='42501');
    await assert.rejects(app.query("SELECT public.sync_cash_ledger('Loan','W4-L')"),/requires a source trigger/);
+   // V97: the same writes reach the change log through mw_changes_owner_dev's definer; the capability reads it only.
+   const changes=(await app.query(`SELECT table_name,row_key FROM public.pwa_row_changes WHERE row_key IN ('W4-L','W4-C','W4-P','W4-E','W4-I','W4-S','cash:LOAN:W4-L') GROUP BY 1,2 ORDER BY 1,2`)).rows.map(x=>x.table_name+':'+x.row_key);
+   for(const key of ['Business Expenses:W4-E','Business Expenses:W4-I','Cash Ledger:cash:LOAN:W4-L','Charges:W4-C','Loans:W4-L','Payments:W4-P','Settlements:W4-S'])assert.ok(changes.includes(key),key+' in '+changes.join(','));
+   // Cash Statement Context (keyed by "Ref Partner", seeded by the Partners trigger) and Loan Assessment SQL Lab are tracked too.
+   assert.equal((await app.query(`SELECT count(*)::int n FROM public.pwa_row_changes WHERE table_name='Cash Statement Context' AND row_key='W4-A'`)).rows[0].n>0,true);
+   assert.deepEqual((await admin.query(`SELECT tgname,tgenabled,count(*)::int n FROM pg_trigger WHERE tgname IN ('zzzzzzz_pwa_row_change','zzzzzzz_pwa_row_truncate') GROUP BY 1,2 ORDER BY 1`)).rows,
+    [{tgname:'zzzzzzz_pwa_row_change',tgenabled:'A',n:19},{tgname:'zzzzzzz_pwa_row_truncate',tgenabled:'A',n:19}],'19 ALWAYS row triggers and 19 ALWAYS truncate markers');
+   for(const sql of [`INSERT INTO public.pwa_row_changes(table_name,row_key) VALUES('Loans','x')`,`UPDATE public.pwa_row_changes SET row_key='x'`,`DELETE FROM public.pwa_row_changes`,`SELECT public.pwa_row_changes_prune_v1()`])await assert.rejects(app.query(sql),err=>err.code==='42501',sql);
   }finally{await app.end();}
  }finally{if(operator)operator.release();await operatorPool.end();await admin.end();}
 });

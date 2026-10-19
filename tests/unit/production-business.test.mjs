@@ -103,7 +103,7 @@ test('PROD factory permits authorized offline traversal and delta while retainin
  const chunk=await store.offlineDataset(principal,'records',undefined,{protocol:2});
  assert.equal(chunk.status,200,JSON.stringify(chunk));assert.equal(chunk.schemaVersion,2);assert.equal(chunk.domain,'records');assert.ok(chunk.patches.length);assert.equal(typeof chunk.nextCursor,'string');
  for(const domain of ['records','collection','cash','management']){
-  const sourceVersion=deltaValueHash(['business-offline-v3',config.issuer,principal.subject,member.partnerId,domain,'2026-10-15',[]]);
+  const sourceVersion=deltaValueHash(['business-offline-v4',config.issuer,principal.subject,member.partnerId,domain,'2026-10-15',[]]);
   const delta=await store.offlineDataset(principal,domain,undefined,{protocol:3,input:{cursor:null,need:[],sourceVersion}});
   assert.equal(delta.status,200,domain+JSON.stringify(delta));assert.equal(delta.schemaVersion,3);assert.equal(delta.unchanged,true);assert.equal(delta.sourceVersion,sourceVersion);
   assert.deepEqual(delta.values,{});assert.deepEqual(delta.patches,[]);

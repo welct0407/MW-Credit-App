@@ -543,9 +543,27 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .live-sync-status.syncing .header-load-percent { font-size: 12px; line-height: 14px; font-weight: 600; min-width: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .live-sync-status.syncing .header-load-progress { width: 60px; height: 6px; flex: 0 0 auto; border-radius: 3px; }
 .waiting-sync-button.all-synced { opacity: .8; }
+.full-sync-section { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-tint); }
+.full-sync-button { display: inline-flex; align-items: center; gap: 8px; }
+/* UX-RECON-02/05/06/07: persistent data-check difference (warning colour of the failed-refresh badge). */
+.data-check-warning { color: #8b1a1a; }
+.data-check-warning .app-icon { width: 16px; height: 16px; vertical-align: -3px; }
+.data-check-link { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; min-height: 0; }
+.data-check-indicator { display: inline-grid; place-items: center; }
+.data-check-badge { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #8b1a1a; color: #fff; border: 1px solid #fff; }
+.data-check-badge .app-icon { width: 15px; height: 15px; stroke-width: 2; }
+.data-check-dot { position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; background: #8b1a1a; border: 2px solid #fff; pointer-events: none; }
+.waiting-sync-button.all-synced.data-check { opacity: 1; }
+.sync-toast.data-check-toast { bottom: 64px; background: #fdecea; color: #8b1a1a; }
 .sync-toast { position: fixed; z-index: 46; left: 50%; bottom: 16px; transform: translateX(-50%); max-width: calc(100vw - 32px); margin: 0; padding: 8px 12px; border-radius: 6px; background: #e6f4ea; color: #1e4620; font-size: 14px; box-shadow: 0 2px 8px rgb(0 0 0 / 25%); transition: opacity 150ms; }
 .sync-toast.idle { opacity: 0; pointer-events: none; }
 .live-shell:has(.live-bottom-nav) .sync-toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
+/* UX-CHK-01: above the bottom navigation the data-check toast still stacks above SyncedToast (one toast line + gap). */
+.live-shell:has(.live-bottom-nav) .sync-toast.data-check-toast { bottom: calc(124px + env(safe-area-inset-bottom)); }
+/* UX-CHK-02: the inline link keeps its line height but gets a 44px touch target. */
+.data-check-link { display: inline-block; padding: 11px 0; margin: -11px 0; }
+/* UX-CHK-03: a running (disabled) Full sync looks disabled, like Sign out. */
+.full-sync-button:disabled { background: #f2f2f2; border-color: #bfc3c7; color: #595959; }
 .header-load-progress { height: 6px; accent-color: #252525; border: 0; border-radius: 3px; overflow: hidden; }
 .header-load-progress::-webkit-progress-bar { background: rgb(255 255 255 / 75%); border-radius: 3px; }
 .header-load-progress::-webkit-progress-value { background: #252525; border-radius: 3px; }

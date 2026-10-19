@@ -27,11 +27,12 @@ test('active delta progress excludes retained bundles and long poll focus overla
  // next one queued (progress rises) but usually not yet requested. That gap is part of the running cycle, so
  // it joins it and refetches nothing, exactly like a focus during a request.
  for(let step=0;step<4;step++){await page.clock.runFor(18000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));expect(held).toBe(step+1);const before=(await state(page)).progress;release();if(step<3){await expect.poll(async()=>(await state(page)).progress).toBeGreaterThan(before);await page.evaluate(()=>window.dispatchEvent(new Event('focus')))}await page.clock.runFor(1000);if(step<3){await expect.poll(()=>held).toBe(step+2);expect((await state(page)).progress).toBeGreaterThan(0);expect((await state(page)).progress).toBeLessThan(100)}}
- await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);expect(calls).toEqual(['records:start','collection:start','cash:start','management:start','notifications:start','records:1','records:2','records:3']);
+ await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);// R078: two domains may be in flight, so the order of different domains is not fixed; each request still happens exactly once.
+ expect([...calls].sort()).toEqual(['records:start','collection:start','cash:start','management:start','notifications:start','records:1','records:2','records:3'].sort());
  // Owner 17 Oct 2026: every focus refreshes, even seconds after a completed check. A
  // focus/visibility/online burst starts one cycle; repeated bursts while it runs join it.
  for(let burst=0;burst<3;burst++){await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('online'))});await page.clock.runFor(1000);if(!burst)await expect.poll(()=>held).toBe(5)}
- expect(held).toBe(5);expect(calls.slice(8)).toEqual(['records:start']);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
+ expect(held).toBe(5);expect([...calls.slice(8)].sort()).toEqual(['notifications:start','records:start']);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
  await context.setOffline(false);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(6);for(let step=0;step<4;step++){release();await page.clock.runFor(1000);if(step<3)await expect.poll(()=>held).toBe(7+step)}await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);
 });
 
@@ -177,7 +178,10 @@ test('legacy 409 no longer marks the domain failed, a legacy 400 drops acceptCha
   return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:torn?'42':'43'}}],torn?null:newVersion),body.need),...(torn?{changed:true}:{})}});
  });
  await start(page);await settled(page);
- expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-409']);expect(bodies[0].acceptChanged).toBe(true);expect(bodies[1].acceptChanged).toBeUndefined();
+ // R078: the first check also asks for the other domains' versions and sends dates; each 400 drops one level
+ // (dates, then versions, then acceptChanged) before the legacy 409.
+ expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-400','legacy-400','legacy-409']);expect(bodies[0].dates).toBe(true);expect(bodies[0].versions).toBe(true);expect(bodies[0].acceptChanged).toBe(true);
+ expect(bodies[1].dates).toBeUndefined();expect(bodies[1].versions).toBe(true);expect(bodies[1].acceptChanged).toBe(true);expect(bodies[2].versions).toBeUndefined();expect(bodies[2].acceptChanged).toBe(true);expect(bodies[3].versions).toBeUndefined();expect(bodies[3].acceptChanged).toBeUndefined();
  expect((await state(page)).updateFailed).toBe(false);expect((await state(page)).state).toBe('ready');
  expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).sourceVersion)).toBe(oldVersion);
  mode='torn';await page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare')));
@@ -235,4 +239,102 @@ test('a stored receipt is deleted once its payment ages out of the 30-day window
  // Two days later (the owner lease is re-verified as a live session would), a manual check moves the window.
  await page.clock.fastForward(2*86400000);await page.evaluate(async()=>{await (window as any).__syncRepo.authorize();window.dispatchEvent(new Event('mw-offline-prepare'))});await page.clock.runFor(3000);await settled(page);
  expect(await mediaKeys(page)).toEqual([]);expect((await state(page)).progress).toBe(100);expect((await state(page)).state).toBe('ready');
+});
+
+test('R078 progress never decreases while two domains walk and one restarts after a legacy 409',async({page})=>{
+ await fixture(page,'delta-progress-monotonic');let restarted=false;
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+  if(domain!=='records'&&domain!=='cash')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+  await new Promise(resolve=>setTimeout(resolve,domain==='records'?120:70));
+  const step=body.cursor?Number(body.cursor):0;
+  if(domain==='records'&&step===3&&!restarted){restarted=true;return route.fulfill({status:409,json:{error:'dataset_changed',code:'dataset_changed'}})}
+  return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:String(step)}}],newVersion,step<3?String(step+1):null),body.need),progress:{completed:step+1,total:4}}});
+ });
+ await page.evaluate(()=>{const w=window as any;w.__progress=[];w.__sampler=setInterval(()=>{const s=w.__datasetTest.getOfflinePreparation(w.__syncRepo.scopeName);if(s)w.__progress.push(s.progress)},15)});
+ await start(page);await expect.poll(async()=>(await page.evaluate(()=>(window as any).__progress.length))>10&&(await state(page)).progress===100,{timeout:15000}).toBe(true);
+ const samples:number[]=await page.evaluate(()=>{const w=window as any;clearInterval(w.__sampler);return w.__progress});
+ expect(restarted).toBe(true);
+ // UX-SYNC-01: the shown percentage may stall but never falls back, even when a domain restarts.
+ const drops=samples.flatMap((value,index)=>index&&value<samples[index-1]?[[samples[index-1],value]]:[]);
+ expect(drops).toEqual([]);
+});
+
+test('R078 full sync walks every domain from the start without version, cursor, versions or since, restarts a walk in flight and downloads no current receipt',async({page})=>{
+ const today=new Date().toISOString().slice(0,10),withReceipt={...initial,payments:[{id:'P',receiptReference:'attached',receiptAt:'2026-10-14T00:00:00Z',paymentDate:today}]};
+ await fixture(page,'delta-full-sync',withReceipt);
+ const bodies:{domain:string;body:any}[]=[];let receipts=0,mode:'check'|'change'='check',releaseSecond!:()=>void;const held=new Promise<void>(resolve=>releaseSecond=resolve);
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url());
+  if(url.pathname.includes('/receipt')){receipts++;return route.fulfill({body:'x',contentType:'image/png'})}
+  const domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();bodies.push({domain,body});
+  const walking=body.sourceVersion===null||body.cursor;
+  if(domain==='records'&&mode==='change'&&body.cursor==='2'){await held}
+  if(domain==='records'&&(walking||mode==='change'&&body.sourceVersion!==newVersion)){const step=body.cursor?Number(body.cursor):0;return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:String(step)}}],newVersion,step<2?String(step+1):null),body.need??[]),progress:{completed:step+1,total:3}}})}
+  // A request without a source version is a walk: the server cannot answer it with an unchanged check.
+  if(body.sourceVersion===null)return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[],oldVersion),body.need??[])}});
+  return route.fulfill({json:{...bundle(domain,[],domain==='records'&&mode==='change'?newVersion:oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+ });
+ await start(page);await settled(page);await expect.poll(()=>receipts).toBe(1);
+ // A walk in flight (a change found by the poll) is restarted by the full sync.
+ mode='change';bodies.length=0;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+ await expect.poll(()=>bodies.filter(entry=>entry.domain==='records'&&entry.body.cursor==='2').length).toBeGreaterThan(0);
+ const tap=bodies.length;
+ await page.evaluate(()=>{const w=window as any;w.__progress=[];w.__sampler=setInterval(()=>{const s=w.__datasetTest.getOfflinePreparation(w.__syncRepo.scopeName);if(s)w.__progress.push(s.progress)},15);window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true,full:true}}))});
+ releaseSecond();await expect.poll(async()=>(await state(page)).fullSync===false&&(await state(page)).state==='ready',{timeout:15000}).toBe(true);
+ const after=bodies.slice(tap);
+ const recordStarts=after.filter(entry=>entry.domain==='records'&&!entry.body.cursor&&!entry.body.need?.length);
+ expect(recordStarts.length).toBeGreaterThan(0);
+ // Every request after the tap starts from the beginning: no source version, cursor, versions or since (except continuing the forced walk's own cursor).
+ for(const entry of after.filter(item=>!item.body.cursor)){expect(entry.body.sourceVersion??null).toBeNull();expect(entry.body.since).toBeUndefined();expect(entry.body.versions).toBeUndefined()}
+ for(const domain of ['records','collection','cash','management'])expect(after.some(entry=>entry.domain===domain&&!entry.body.cursor&&entry.body.sourceVersion===null)).toBe(true);
+ expect(receipts).toBe(1);
+ const samples:number[]=await page.evaluate(()=>{const w=window as any;clearInterval(w.__sampler);return w.__progress});
+ expect(samples.flatMap((value,index)=>index&&value<samples[index-1]?[[samples[index-1],value]]:[])).toEqual([]);
+});
+
+// R078 day change (protocol level 4): the server answers a bundle one business date old with kept keys and a multi-chunk
+// re-read; an interrupted re-read resumes at its cursor after a reload, and a server without `dates` steps the path down.
+const dayChanges={seq:'5',xmin:'5',businessDate:'2026-10-15'};
+const dayChunk=(cursor:string|null,body:any)=>{
+ const final=cursor!==null,patches=[{key:'dash',mode:'replace',value:{total:final?'3':'2'}}];
+ return encodeDeltaChunk({schemaVersion:2,domain:'records',generation:'day-g',startedAt:asOf,asOf,businessDate:'2026-10-15',sourceVersion:newVersion,patches,complete:final,nextCursor:final?null:'c1',progress:{completed:final?2:1,total:2}},body.need??[],{dates:true});
+};
+async function dayFixture(page:Page,uid:string){
+ await fixture(page,uid,{kept:[{id:'k',businessDate:'2026-10-14',label:'Kept'}],dash:{total:'1'}});
+ await page.evaluate(async()=>{const repo=(window as any).__syncRepo,bundle=await repo.readDataset('records');await repo.saveDataset('records',{...bundle,cacheStale:undefined,changes:{seq:'1',xmin:'1',businessDate:'2026-10-14'}},await repo.readRevision())});
+}
+test('R078 a multi-chunk day change resumes after a reload and moves the kept key to the new date',async({page})=>{
+ await dayFixture(page,'delta-day-resume');const requests:any[]=[];let failResume=true;
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();requests.push({domain,body});
+  if(domain!=='records')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+  if(body.cursor==='c1'&&!body.need?.length&&failResume){failResume=false;return route.fulfill({status:503,json:{code:'temporary'}})}
+  const response=dayChunk(body.cursor??null,body);
+  // The first chunk is a v4 delta with the change cursor; continuation chunks are ordinary v3 chunks that name the day change.
+  const day={from:'2026-10-14',keep:['kept'],reread:['dash']};
+  return route.fulfill({json:body.cursor?{...response,dayChange:day}:{...response,schemaVersion:4,delta:true,dayChange:day,changes:dayChanges}});
+ });
+ await start(page);
+ await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDatasetProgress('records'))?.nextCursor)).toBe('c1');
+ expect(requests.find(entry=>entry.domain==='records').body.since).toEqual({seq:'1',xmin:'1',businessDate:'2026-10-14'});expect(requests.find(entry=>entry.domain==='records').body.dates).toBe(true);
+ // The old complete bundle stays readable; reload: a new coordinator resumes at the cursor.
+ expect((await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).businessDate))).toBe('2026-10-14');
+ await page.evaluate(()=>(window as any).__stopPreparation());requests.length=0;await start(page);
+ await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).businessDate)).toBe('2026-10-15');
+ const stored=await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')));
+ expect(stored.data.kept).toEqual([{id:'k',businessDate:'2026-10-15',label:'Kept'}]);expect(stored.data.dash).toEqual({total:'3'});expect(stored.dayChange).toBeUndefined();
+ expect(requests.filter(entry=>entry.domain==='records'&&!entry.body.need?.length).every(entry=>entry.body.cursor==='c1')).toBe(true);
+});
+test('R078 a server without dates steps the path down: dates first, then since',async({page})=>{
+ await dayFixture(page,'delta-day-stepdown');const bodies:any[]=[];
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+  if(domain==='records')bodies.push(body);
+  if(domain==='records'&&body.dates!==undefined)return route.fulfill({status:400,json:{error:'invalid_request',code:'invalid_request'}});
+  if(domain==='records'&&body.since!==undefined)return route.fulfill({status:400,json:{error:'invalid_request',code:'invalid_request'}});
+  return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+ });
+ await start(page);await settled(page);
+ const records=bodies.filter(body=>true);
+ expect(records[0].dates).toBe(true);expect(records[0].since).toBeDefined();
+ // Level 3: since without dates; level 2: neither.
+ expect(records.some(body=>body.dates===undefined&&body.since!==undefined)).toBe(true);
+ expect(records.at(-1).dates).toBeUndefined();expect(records.at(-1).since).toBeUndefined();
 });

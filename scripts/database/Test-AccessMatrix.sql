@@ -32,6 +32,7 @@ INSERT INTO am_expected_tables VALUES
   ('mw_app_dev_journal_owner','public.pwa_payment_commands','INSERT,SELECT'),
   ('mw_app_dev_journal_owner','public.r008_cash_account_cutover','INSERT'),
   ('mw_business_audit_owner','agent_audit.commits','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
+  ('mw_changes_owner_dev','public.pwa_row_changes','DELETE,INSERT,SELECT'),
   ('mw_business_audit_owner','agent_audit.exports','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.row_changes','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_jobs_owner_dev','public.pwa_job_runs','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
@@ -109,8 +110,11 @@ INSERT INTO am_expected_routines VALUES
   ('mw_business_audit_owner','agent_audit.begin_operation(uuid,text,text,text,text,jsonb,text)'),
   ('mw_business_audit_owner','agent_audit.capture_change()'),
   ('mw_business_audit_owner','agent_audit.reject_rewrite()'),
+  ('mw_changes_owner_dev','pwa_row_changes_prune_v1()'),
+  ('mw_changes_owner_dev','pwa_track_row_change()'),
   ('mw_jobs_dev','pwa_job_run_v1(text,date,text)'),
   ('mw_jobs_owner_dev','pwa_job_run_v1(text,date,text)'),
+  ('mw_jobs_owner_dev','pwa_row_changes_prune_v1()'),
   ('mw_jobs_owner_dev','pwa_worker_guard_v1(text)'),
   ('mw_ledger_owner_dev','sync_cash_ledger(text,text)'),
   ('mw_notify_api_dev','pwa_notify_history_v1(jsonb,timestamp with time zone,uuid)'),
@@ -187,6 +191,12 @@ DO $$ BEGIN
  IF NOT has_column_privilege('mw_reviewer_dml','public."Cash Ledger"','Created At','UPDATE') OR has_table_privilege('mw_reviewer_dml','public."Cash Ledger"','UPDATE') THEN RAISE EXCEPTION 'reviewer must hold the lock-only Created At column grant and no table UPDATE'; END IF;
  IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_app_dev','mw_reviewer_dml']) r CROSS JOIN unnest(ARRAY['INSERT','UPDATE','DELETE']) p WHERE has_table_privilege(r,'public."Cash Ledger"',p)) THEN RAISE EXCEPTION 'no migration-owned direct Cash Ledger write for the capability or the reviewer'; END IF;
  IF EXISTS(SELECT 1 FROM pg_auth_members WHERE member='mw_ledger_owner_dev'::regrole OR roleid='mw_ledger_owner_dev'::regrole) THEN RAISE EXCEPTION 'ledger owner must hold and grant no membership'; END IF;
+ -- V97 (R078): both change-log functions are the change owner's pinned definers; only the definer writes the log.
+ IF EXISTS(SELECT 1 FROM pg_proc WHERE oid IN ('public.pwa_track_row_change()'::regprocedure,'public.pwa_row_changes_prune_v1()'::regprocedure)
+   AND NOT (prosecdef AND pg_get_userbyid(proowner)='mw_changes_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig))) THEN RAISE EXCEPTION 'change-log functions must be the change owner''s pinned definers'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_auth_members WHERE member='mw_changes_owner_dev'::regrole OR roleid='mw_changes_owner_dev'::regrole) THEN RAISE EXCEPTION 'change owner must hold and grant no membership'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_app_dev','mw_app_dev_journal_owner','mw_reviewer_dml','mw_jobs_owner_dev','mw_jobs_dev','mw_ledger_owner_dev','mw-credit-app-command-dev@clever-oasis-508610-n7.iam','mw-credit-app-read-dev@clever-oasis-508610-n7.iam']) r
+   CROSS JOIN unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_row_changes',p)) THEN RAISE EXCEPTION 'no migration-owned direct pwa_row_changes write outside the change owner'; END IF;
 END $$;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;

@@ -12,9 +12,9 @@ const clock=(thai:boolean,at:number)=>new Intl.DateTimeFormat(thai?'th-TH':'en-G
  * focus) stay quiet and only move the time. It is text, not a control. */
 export function SyncStatus({preparation,thai,visible}:{preparation:OfflinePreparation;thai:boolean;visible:boolean}){
  const [,tick]=useState(0),[requestedAt,setRequestedAt]=useState<number|null>(null),seenPending=useRef(false);
- const [announcement,setAnnouncement]=useState(''),wasSyncing=useRef(false),texts=useRef({start:'',outcome:''}),clearTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
+ const [announcement,setAnnouncement]=useState(''),wasSyncing=useRef(false),fullSync=useRef(false),texts=useRef({start:'',outcome:''}),clearTimer=useRef<ReturnType<typeof setTimeout>>(undefined);
  useEffect(()=>{const timer=setInterval(()=>tick(value=>value+1),30000);return()=>clearInterval(timer)},[]);
- useEffect(()=>{const manual=(event:Event)=>{if((event as CustomEvent).detail?.all&&navigator.onLine)setRequestedAt(current=>{if(current===null)seenPending.current=false;return current??Date.now()})};window.addEventListener('mw-offline-prepare',manual);return()=>window.removeEventListener('mw-offline-prepare',manual)},[]);
+ useEffect(()=>{const manual=(event:Event)=>{if((event as CustomEvent).detail?.full&&navigator.onLine)fullSync.current=true;if((event as CustomEvent).detail?.all&&navigator.onLine)setRequestedAt(current=>{if(current===null)seenPending.current=false;return current??Date.now()})};window.addEventListener('mw-offline-prepare',manual);return()=>window.removeEventListener('mw-offline-prepare',manual)},[]);
  useEffect(()=>{
   if(requestedAt===null)return;
   // Finished once the data domains it queued are checked: a check that was already in flight
@@ -34,9 +34,9 @@ export function SyncStatus({preparation,thai,visible}:{preparation:OfflinePrepar
  // HDR-SYNC-03: one hidden live region that is never re-mounted receives only transitions: "Syncing…" when a tap-started sync
  // or the first download begins, then its outcome (the time, or the failure sentence). Minute ticks and quiet automatic checks
  // never write to it, and the visible variants carry no role.
- texts.current={start:t('Syncing…','กำลังซิงค์…'),outcome:failed.length?failedText+'. '+failedDetail:incomplete?t('Download incomplete','ดาวน์โหลดไม่ครบ')+'. '+incompleteDetail:at===null?'':timeText};
+ texts.current={start:t('Syncing…','กำลังซิงค์…'),outcome:failed.length?failedText+'. '+failedDetail:incomplete?t('Download incomplete','ดาวน์โหลดไม่ครบ')+'. '+incompleteDetail:at===null?'':fullSync.current?t('Full sync complete · '+timeText,'ซิงค์ทั้งหมดเสร็จแล้ว · '+timeText):timeText};
  // Each announcement is cleared after ~5 s (like the synced toast), so it is not read twice and a stale time is never re-read.
- useEffect(()=>{const text=syncing&&!wasSyncing.current?texts.current.start:!syncing&&wasSyncing.current?texts.current.outcome:null;wasSyncing.current=syncing;if(text===null)return;setAnnouncement(text);clearTimeout(clearTimer.current);clearTimer.current=setTimeout(()=>setAnnouncement(''),ANNOUNCE_MS)},[syncing]);
+ useEffect(()=>{const text=syncing&&!wasSyncing.current?texts.current.start:!syncing&&wasSyncing.current?texts.current.outcome:null;wasSyncing.current=syncing;if(text===null)return;if(!syncing)fullSync.current=false;setAnnouncement(text);clearTimeout(clearTimer.current);clearTimer.current=setTimeout(()=>setAnnouncement(''),ANNOUNCE_MS)},[syncing]);
  useEffect(()=>()=>clearTimeout(clearTimer.current),[]);
  const region=<span className="visually-hidden sync-announcement" role="status" aria-live="polite">{announcement}</span>;
  if(!visible)return region;
