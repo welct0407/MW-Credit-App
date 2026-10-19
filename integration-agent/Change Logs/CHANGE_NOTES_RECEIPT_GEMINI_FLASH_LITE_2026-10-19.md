@@ -45,4 +45,4 @@ Package: `deploy-runtime.py rollback --commit f9d4785d2f9aaecba1f01089991f42c30d
 None.
 
 ## Remaining work
-None.
+None for the model switch: the first real cycle receipts on `gemini-3.5-flash-lite` ran on 19 October 2026 (16:27Z, 17:09Z, 19:25Z), each in about 3–4 s; the follow-up on a thousands comma in one amount is in the [receipt cycle change note](CHANGE_NOTES_RECEIPT_CYCLE_GEMINI_2026-10-19.md#final-check-19-oct-1935z).

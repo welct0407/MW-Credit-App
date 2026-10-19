@@ -38,6 +38,27 @@ Read-only, on the VM as `mwagent` with the live config (`mw_agent`), at 13:01Z. 
 | Receipt runs since 02:02:42Z | 1,589, all `failures: []`; no failed run |
 | Job created 18 Oct 16:57:47Z | Not cleared: still `PENDING`, `RECEIPT_ARCHIVE_PENDING`, 0 extraction attempts, next retry rescheduled every cycle (13:01:31Z). Unrelated to Gemini; its archive step keeps deferring |
 
+## Final check 19 Oct 19:35Z
+Read-only, on the VM as `mwagent` with the live config (`mw_agent`), window from 13:01Z.
+
+| Item | Result |
+| --- | --- |
+| Cycle extractions | 3, all real receipts, provider `gemini`, model `gemini-3.5-flash-lite`, route `internal`, COMPLETED: 16:27:49Z (3.07 s), 17:09:10Z (3.96 s), 19:25:14Z (3.92 s) |
+| Their jobs | 17:08:45Z and 19:24:39Z jobs reached `REVIEW_REQUESTED` and both reviews are POSTED (17:09:17Z, 19:25:21Z). The 16:27:23Z job is `REJECTED` with `AMOUNT_UNREADABLE`: Flash-Lite returned the amount with a thousands comma, which the amount rule (`\d{1,12}(\.\d{1,2})?`) rejects although the prompt asks for no commas; the slip itself read as a successful THB transfer. 2 other jobs `IGNORED` |
+| Receiving-page recognitions | 5, all `gemini-3.5-flash-lite`, `recognized`: DEV 14:48:01Z (6.09 s), PROD 16:29:26Z (3.28 s), PROD 16:29:48Z (3.04 s), DEV 16:49:25Z (5.71 s), DEV 17:43:58Z (6.42 s) |
+| Receipt runs since 13:01Z | 948, all `failures: []` |
+| Job created 18 Oct 16:57:47Z | Still `PENDING`, `RECEIPT_ARCHIVE_PENDING`; its evidence asset is `SOURCE_PENDING` with 2 archive attempts, no captured bytes, last error `RECEIPT_ARCHIVE_NOT_DUE` |
+
+Cause of the stuck archive job: `Archive.capture` (`receipt_archive.py`) raises `RECEIPT_ARCHIVE_NOT_DUE` while `next_attempt_at` is in the future, but its own `except` block then writes a new `next_attempt_at = now + 300·2^attempts` (20 minutes at 2 attempts) for every error code, including that one. The receipt cycle calls `capture` far more often than every 20 minutes, so each call pushes the due time forward again; the attempt counter is never incremented (that happens after the due check), so the asset never reaches a third download attempt or the `SOURCE_UNAVAILABLE` limit. Pre-existing since the evidence archive (revision 23), unrelated to Gemini. Fix (not applied): leave `next_attempt_at` and `last_error_code` unchanged for `RECEIPT_ARCHIVE_NOT_DUE` (raise it before the `try`). The receipt's Instagram source URL is probably expired by now, so after the fix the job is expected to fail its downloads, reach `SOURCE_UNAVAILABLE` after 11 attempts and need an operator decision.
+
+## Follow-up fixes 19 Oct
+- `src/mw_integration_agent/receipt_rules.py`: an extracted amount with a correctly grouped thousands comma (1–3 digits, then groups of exactly 3, optional 1–2 decimals: `5,000.00`, `12,345`, `1,234,567.89`) is accepted with the commas removed; ambiguous forms (`5,00`, `1,2345`, `12,34,567`, `1.000,00`, `1 000`) stay `AMOUNT_UNREADABLE`. Validated amounts used downstream are the normalised `0.00` form, as before.
+- `src/mw_integration_agent/receipt_archive.py`: `Archive.capture` raises `RECEIPT_ARCHIVE_NOT_DUE` before its error handler, so a not-due call no longer reschedules `next_attempt_at`, changes `last_error_code` or counts an attempt; the backoff grows only after a real attempt. The only caller, `receipt_run.process`, treats every archive error alike (job retry in 5 minutes, no extraction attempt spent) and does not rely on the rescheduling.
+- Tests: `tests/test_receipts.py` (grouped commas accepted, ambiguous ones rejected), `tests/test_receipt_archive.py` (three not-due calls leave attempts, due time and last error unchanged and do not download; a due call proceeds to ARCHIVED).
+- Docs: `docs/RECEIPTS.md` (amount format), `docs/RECEIPT_EVIDENCE.md` (archive retry).
+- After deploy, the 18 October 16:57:47Z job gets its third download attempt at its stored due time. Its Instagram source URL has probably expired, so it is expected to keep failing with growing delays (up to 6 hours) and reach `SOURCE_UNAVAILABLE` after about a dozen attempts (roughly two days), which stops it for an operator decision; if the URL still works, it archives and the job proceeds normally.
+- Checks: `python -m unittest discover -s tests` (locked requirements) 581 tests OK, 85 skipped (lab suites); `ruff check --no-cache integration-agent` passed; `npm run check:docs` 0 failures.
+
 ## Recovery
 Revert this commit. Live: restore `/root/config.json.pre-gemini-cycle-2` by the config-only route (the cycle returns to Codex), then `deploy-runtime.py rollback` to the previous pin if the package must go back.
 
@@ -45,6 +66,6 @@ Revert this commit. Live: restore `/root/config.json.pre-gemini-cycle-2` by the 
 None.
 
 ## Remaining work
-- First real receipt on `gemini-3.5-flash-lite` through the cycle: confirm its audit row (provider `gemini`, model `gemini-3.5-flash-lite`, route `internal`) and that the job progresses.
-- Find out why the 18 October 16:57:47Z job stays `RECEIPT_ARCHIVE_PENDING`.
+- Deploy the agent with the follow-up fixes (standard route), then confirm that the 18 October 16:57:47Z job makes real archive attempts.
+- Owner: handle the 19 October 16:27:23Z `REJECTED` receipt (thousands comma) by manual entry or the existing reconsider command; the fix applies only to new extractions.
 - Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host).

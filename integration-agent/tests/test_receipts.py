@@ -55,6 +55,15 @@ class ReceiptRuleTests(unittest.TestCase):
             raw=receipt();raw['currency']=currency
             with self.subTest(currency=currency),self.assertRaisesRegex(ReceiptInvalid,'EXPLICIT_NON_THB_CURRENCY'):
                 validate_receipt(raw,master()['accounts'])
+    def test_correctly_grouped_thousands_comma_is_accepted_and_ambiguous_ones_rejected(self):
+        for printed,expected in (('5,000.00','5000.00'),('12,345','12345.00'),('1,234,567.89','1234567.89'),('100','100.00'),('5000.5','5000.50')):
+            raw=receipt();raw['amount']=printed
+            with self.subTest(amount=printed):
+                self.assertEqual(validate_receipt(raw,master()['accounts'])['amount'],expected)
+        for printed in ('5,00','1,2345','12,34,567','1,000,00','1,000.001',',100','100,','1,,000','1.000,00','1 000','0,000'):
+            raw=receipt();raw['amount']=printed
+            with self.subTest(amount=printed),self.assertRaisesRegex(ReceiptInvalid,'AMOUNT_UNREADABLE'):
+                validate_receipt(raw,master()['accounts'])
     def test_primary_alternative_and_mask_map_one_account(self):
         accounts=master()['accounts']
         for number in ('123-456-7890','0891234567','xxx1234567','๑๒๓๔๕๖๗๘๙๐'):

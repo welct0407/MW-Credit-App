@@ -75,6 +75,21 @@ class ReceiptArchiveTests(unittest.TestCase):
         self.archive.capture(self.job,lambda _:self.fail('must not re-download'))
         self.assertEqual(len(self.storage.objects),1)
         self.assertEqual(self.archive.get(self.key)['archive_state'],'ARCHIVED')
+    def test_not_due_call_leaves_backoff_and_attempts_unchanged_and_a_due_call_proceeds(self):
+        with self.assertRaises(ConfigurationError):self.archive.capture(self.job,lambda _:(_ for _ in ()).throw(OSError('cdn')))
+        before=self.archive.get(self.key)
+        self.assertEqual(before['attempts'],1);self.assertTrue(before['last_error_code'])
+        self.assertGreater(before['next_attempt_at'],time.time())
+        for _ in range(3):
+            with self.assertRaisesRegex(ConfigurationError,'RECEIPT_ARCHIVE_NOT_DUE'):
+                self.archive.capture(self.job,lambda _:self.fail('a not-due call must not download'))
+        after=self.archive.get(self.key)
+        self.assertEqual((after['attempts'],after['next_attempt_at'],after['last_error_code'],after['archive_state']),
+                         (before['attempts'],before['next_attempt_at'],before['last_error_code'],'SOURCE_PENDING'))
+        with self.journal.db:self.journal.db.execute('UPDATE receipt_assets SET next_attempt_at=0')
+        self.capture()
+        done=self.archive.get(self.key)
+        self.assertEqual((done['archive_state'],done['attempts']),('ARCHIVED',2))
     def test_corrupt_spool_blocks_overwrite(self):
         self.storage.lost=True
         with self.assertRaises(ConfigurationError):self.capture()

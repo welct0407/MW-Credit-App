@@ -83,14 +83,16 @@ class Archive:
         if asset['archive_state'] in ('INTEGRITY_CONFLICT','SOURCE_UNAVAILABLE'):
             raise ConfigurationError('RECEIPT_ARCHIVE_REQUIRES_OPERATOR')
         path = self.root / (receipt_id + '.raw')
+        if asset['archive_state'] != 'ARCHIVED' and asset['next_attempt_at'] > time.time():
+            # Not due: no attempt was made, so the backoff, attempt count and last error stay as they are
+            # (rescheduling here pushed the due time forward on every cycle and the attempt never came).
+            raise ConfigurationError('RECEIPT_ARCHIVE_NOT_DUE')
         try:
             if asset['archive_state'] == 'ARCHIVED':
                 raw = path.read_bytes() if path.exists() else self.storage.read(asset['object_key'], asset['generation'])
                 if hashlib.sha256(raw).hexdigest() != asset['raw_sha256']:
                     raise ConfigurationError('RECEIPT_INTEGRITY_CONFLICT')
                 return canonical_image(raw)
-            if asset['next_attempt_at'] > time.time():
-                raise ConfigurationError('RECEIPT_ARCHIVE_NOT_DUE')
             with self.db:
                 self.db.execute('UPDATE receipt_assets SET attempts=attempts+1 WHERE receipt_id=?',(receipt_id,))
             if not path.exists():
