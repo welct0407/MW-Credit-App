@@ -79,9 +79,13 @@ def validate_receipt(value, accounts, today=None):
     clock=clock[:5]
     receipt_timestamp=f'{receipt_date.isoformat()}T{clock}+07:00'
     try:
-        if not isinstance(value['amount'], str) or not re.fullmatch(r'\d{1,12}(?:\.\d{1,2})?',value['amount']):
+        text = value['amount']
+        # A correctly grouped thousands comma ("5,000.00", "1,234,567.89") is accepted; "5,00" or "1,2345" are not.
+        if isinstance(text, str) and re.fullmatch(r'\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?', text):
+            text = text.replace(',', '')
+        if not isinstance(text, str) or not re.fullmatch(r'\d{1,12}(?:\.\d{1,2})?', text):
             raise ValueError()
-        amount = Decimal(value['amount'])
+        amount = Decimal(text)
         if amount <= 0:
             raise ValueError()
     except (KeyError,InvalidOperation,ValueError,TypeError) as exc:
