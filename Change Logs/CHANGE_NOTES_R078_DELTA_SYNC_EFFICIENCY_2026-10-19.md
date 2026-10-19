@@ -44,20 +44,30 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 | Command | Result |
 | --- | --- |
 | `python3 -I project/scripts/offline-sync-log-report.py --env prod --from 2026-10-16T17:00:00Z --to 2026-10-19T17:00:00Z` | Pass, baseline above (before the changes) |
-| Byte's fast checks (biome, `npm run typecheck`, focused unit tests, `npm test`) | Pass: `npm test` 685/685 at `1e32dd4`, rising to 715/715 at `666ec55` (biome 0 errors, typecheck pass) |
+| Byte's fast checks (biome, `npm run typecheck`, focused unit tests, `npm test`) | Pass: `npm test` 685/685 at `1e32dd4`, rising to 715/715 at `666ec55` |
 | Forge's auth floor unit tests | Pass, 46/46 at `2b8f7bb` |
-| `mw-db-ci` migrations and phase8 groups (V97) | Pass at `f22335d` as reported by Forge; re-run for `50825c4` and `74fa0d5` to be confirmed by Forge |
-| Chase's labs: v4 equality against a fresh walk | Pass, 22 to 24 scenarios (`b2ed175`, `2c3bd50`) |
-| Chase's labs: reconciliation with corruption per key of every domain | Pass, 49 corruptions (`e9aa00d`) |
-| Chase's labs: day change under a shifted database clock (libfaketime) | Pass, month-end proof across 4 cases (`c25958c`) |
-| Focused Playwright runs (full sync, reconcile, data check, offline delta, day-change resume) | Pass as reported by Chase and Byte; commit per run to be added from their reports |
+| `mw-db-ci` migrations and phase8 groups (V97) | Pass, exit 0 at `f22335d`, again at `74fa0d5`, again at `50825c4` (ENABLE ALWAYS and TRUNCATE change), as reported by Forge |
+| Chase's final pass at `666ec55`: `npm test` | Pass, 715/715 (re-run by Chase) |
+| Chase's final pass at `666ec55`: Biome | 0 errors (790 warnings) |
+| Chase's final pass at `666ec55`: targeted Playwright (offline-delta, reconcile and data-check, R078 subset) | Pass, 24/24 on both projects |
+| Chase's whole-batch sweep at `666ec55` | Clean: no debug code; `pinOfflineBusinessDate` refused under `K_SERVICE`; no credentials; no `.only` or skip except the 7 environment-gated lab tests |
+| Chase's labs: v4 equality against a fresh walk (serial, disposable clusters) | Pass, 22 scenarios plus the late-commit cursor |
+| Chase's labs: reconciliation, per-key corruption | Pass, 49 cases detected and healed, plus a reconcile match after every scenario |
+| Chase's labs: day change under a shifted database clock (libfaketime) | Pass, 4 month-end cases (31 Oct, 30 Nov, 31 Dec, 28 Feb) |
+| Echo's UX check | Pending |
 | `npm run check:docs` | 0 failures at this note's commit |
 | PR `Development checks` (the one broad run) | Pending |
 | DEV apply of V97 and DEV smoke | Pending |
 | Re-run of the report script on DEV and PROD after promotion | Pending |
 
 ## Not run
-No PROD action. The DEV apply of V97 is pending; nothing is deployed. The iPhone client-gap composition (client timing capture) is not measured.
+- The wide Playwright suite (the PR CI is the broad run).
+- WebKit or a real iPhone.
+- Production data volume and latency of 8-page management, 16-page cash and the reconcile walk.
+- A clock shift past 14 days, and a wrong phone clock end to end.
+- The post-promotion report re-run.
+- The iPhone client-gap composition (needs client timing capture).
+- V97 beyond disposable labs (authorized up to DEV; the DEV apply is pending). No PROD action.
 
 ## Recovery
 Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion nothing is deployed. V97 is an immutable migration: after a PROD apply, recovery is a restore from the verified backup taken at promotion; the new table is read-only for the app role and clients fall back to the protocol 3 walk when it is unreadable.
