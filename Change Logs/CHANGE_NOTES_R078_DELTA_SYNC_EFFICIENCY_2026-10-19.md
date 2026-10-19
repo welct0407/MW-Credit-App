@@ -1,7 +1,7 @@
 # Change notes — offline dataset sync efficiency (R078), 19 October 2026
 
 ## Purpose
-The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs, and added the decisions listed below. Status: merged into main as `06a8902` (PR #84) and deployed to DEV with V97 on 19 October 2026; not promoted to PROD.
+The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs, and added the decisions listed below. Status: all batches merged into main (last `68ce669`, PR #87) and on DEV with V97 on 19 October 2026; not promoted to PROD.
 
 ## Changes
 Measurement tooling:
@@ -37,6 +37,9 @@ Changes:
 
 ### DEV measurement after the follow-up (19 Oct, DEV on main `113691f`)
 Own payment at 16:49:49Z: the post-write cycle was 6 requests, about 5.6 s (was about 10 s). Records: 2 requests, finished at about 1.9 s. Collection: 2 requests, 2.09 s and 1.73 s server. Cash: 2 requests, 1.41 s and 1.81 s server. Receipt downloads: 0 (was 283 KB). Unchanged poll: 0.02 to 0.03 s server.
+
+### DEV measurement after inline values (19 Oct, DEV on main `68ce669`)
+Own payment at 17:44:16Z: the confirming cycle was 3 requests running in parallel (records 0.27 s server, collection 1.67 s, cash 1.42 s). The cycle ended about 3.1 s after the POST and about 2.6 s after the posted response (target under 3 s). Receipt GETs: 0. Unchanged poll: 0.03 to 0.05 s. Management refreshed on the next poll, 5 requests in about 1 s. Remaining cost: the collection upcoming re-reads and the cash statement re-reads, about 27 queries per request.
 
 ### Inline values batch (`f36f313b`, owner: "go ahead with option 1")
 - Client level 6, `inlineValues`: every schemaVersion 4 response carries its referenced values inline, so a delta answers in one request without the need round trip; the later day-change chunks keep the old path.
@@ -80,6 +83,8 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 | Inline values batch, Byte at `f36f313b` | Pass: lint, typecheck, `npm test` 726/726, e2e 194/194; Chase's labs 9/9 |
 | Inline values batch, Chase's verification of `f36f313b` (tests in `41a15380`) | Pass. Each lab on its own fresh libfaketime cluster with `inlineValues:true`: collection/cash lab 4/4, day-change clock lab 1/1, records equality, reconcile and v4 labs 5/5; every scenario byte-equal to a walk and reconciled, zero need requests for deltas, limit breaches still walk. New unit test `inline-values-caps.test.mjs` 4/4 (2048/2049 count boundary, exact 512 KB boundary, identical manifest, no inline values without the flag). New e2e: tampered, truncated and wrong-key inline values fall back to need with the correct final data (8/8); step-down 6 to 5 to 3 for records (4/4). Biome 0 errors. No defects; one Info note (hash-check cost negligible) |
 | DEV deploy of `113691f`, 19 October 2026 | New image on the four DEV services (Terraform plan 0/4/0), DEV Hosting release deployed; pins in the [environment inventory](../project/Documents/Environment_Inventory.md). Smoke: health 200, unauthenticated 401, `Access-Control-Max-Age` 7200, no ERRORs |
+| PR #87 CI: `Development checks` run 39292701581; run 39292672784 | Pass; merged into main as `68ce669` |
+| DEV deploy of `68ce669`, 19 October 2026 | New image on the four DEV services (Terraform plan 0/4/0), DEV Hosting deployed; pins in the inventory. Smoke: health 200, unauthenticated 401, `Access-Control-Max-Age` 7200, bundle `68ce669`, no ERRORs |
 | Echo's UX check: local build of `666ec55` in Chromium at iPhone size (390x844, touch), mocked fixtures | Fine: UX-LIST-01/03, UX-FULL-01..06 (progress monotonic in a full sync, 0 to 94 to done), UX-RECON-01..07; Echo agreed with "Open troubleshooting" and colour #8b1a1a. Fixed in `333cf89` (CSS): UX-CHK-01 data-check toast covered SyncedToast on mobile, UX-CHK-02 troubleshooting link now a 44 px touch target, UX-CHK-03 Full sync button has a disabled look while it runs. UX-CHK-04 fixed in `6607b22` (Byte): while `localPending` is set, Correct, Move interest and Delete carry the title "Available once confirmed" / "ใช้ได้หลังยืนยันแล้ว"; `tests/e2e/payment-confirming-independent.spec.ts` passes 2/2 on desktop and mobile; lint, typecheck and `npm test` 715/715 on a clean tree |
 | `npm run check:docs` | 0 failures at this note's commit |
 | PR #84 CI: `Development checks` run 39266899206 | Pass (green, e2e shards 1 to 3 run in full) |
@@ -111,4 +116,4 @@ Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion n
 PROD promotion instruction for V97 and the release (the owner authorized up to DEV only).
 
 ## Remaining work
-PR, DEV deploy and re-measurement of the inline-values batch, the owner's DEV check, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
+The owner's DEV check, PROD promotion on the owner's instruction, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
