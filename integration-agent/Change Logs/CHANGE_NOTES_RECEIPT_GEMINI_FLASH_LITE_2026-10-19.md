@@ -18,6 +18,9 @@ The owner asked to switch the agent's Gemini model from `gemini-3.8-flash` to `g
 | Live switch by the config-only route, 09:13:41–09:13:43Z | Backup `/root/config.json.pre-flash-lite`; six worker timers stopped and idle; only `gemini_model` changed (owner and mode kept); `check` ok; receiver restarted, `/ready` true at `683cfce`; `mw-receipt-recognition.service` restarted; timers started; recognizer `/healthz` 200 `enabled:true`; 8 `mw-*` timers |
 | Synthetic recognition with the live config after the switch (cycle path, read-only) | `gemini-3.5-flash-lite`, 1.62 s, valid |
 | Receipt run after the switch | `failures: []` |
+| Agent deploy at `f9d4785` (merge of PR #81), 19 October 2026: `update-from-github.sh` to the pin, `deploy-runtime.py` dry-run (catalogue revision 29 matches; `receipt_image.py` and `receipt_rules.py` change; no units), freeze 09:20:29Z (backup `runtime-20261019T092029360053Z`), install, `check` ok, activate 09:20:36Z (probe passed, six timers resumed) | `receiver-ready` true at `f9d4785`; `mw-receipt-recognition.service` restarted 09:20:37Z, `/healthz` 200 `enabled:true`; 8 `mw-*` timers; live config still `gemini-3.5-flash-lite` on `global`, cycle provider `gemini` |
+| Synthetic slips with the live config after the deploy (cycle path, read-only) | promptpay-seconds valid in 2.28 s; masked-account ("Baht") valid 3 of 3 (1.84, 1.46, 1.44 s), currency returned as `THB` |
+| Receipt run after the deploy | `failures: []` |
 | `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements) | 579 tests OK, 85 skipped (lab suites) |
 | `ruff check --no-cache integration-agent` | All checks passed |
 | `npm run check:docs` | 0 failures (37 warnings, unchanged from `main`) |
@@ -33,14 +36,13 @@ The owner asked to switch the agent's Gemini model from `gemini-3.8-flash` to `g
 | Correct; min / median / max | 17 of 18; 1.10 / 1.39 / 4.51 s | 18 of 18; 2.62 / 4.57 / 40.99 s |
 
 ## Not run
-- Agent deploy of this code (R078): pending, after merge. Until then the live agent runs `683cfce`, where a "Baht" currency still sends the slip to review.
 - A recognition call through the recognizer endpoint: no established test path for a caller ID token; the cycle path with the live config was used instead.
 
 ## Recovery
-Model: restore `/root/config.json.pre-flash-lite` by the config-only route (stop the six worker timers and wait until idle, copy the backup back, `check`, restart `mw-instagram-webhook` and run `receiver-ready --wait 30`, restart `mw-receipt-recognition.service`, start the timers). Code: revert this commit; after a deploy, `deploy-runtime.py rollback` to the previous pin.
+Package: `deploy-runtime.py rollback --commit f9d4785d2f9aaecba1f01089991f42c30dcae072` restores `683cfce` from `runtime-20261019T092029360053Z`, then restart `mw-receipt-recognition.service`. Model: restore `/root/config.json.pre-flash-lite` by the config-only route (stop the six worker timers and wait until idle, copy the backup back, `check`, restart `mw-instagram-webhook` and run `receiver-ready --wait 30`, restart `mw-receipt-recognition.service`, start the timers). Code: revert the batch.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Deploy the agent at the merge commit (standard route), then re-run the six synthetic slips.
+None.
