@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R078 | Frozen 2026-10-19T17:47Z for the owner's production instruction of 19 October 2026; package main `68ce669` (PRs #84, #86, #87), code-identical to the DEV-tested build, plus V97 | PROD promotion in progress; [promotion record](../../Change%20Logs/CHANGE_NOTES_R078_DELTA_SYNC_EFFICIENCY_2026-10-19.md#promotion-record) |
+| R078 | Deployed to PROD (19 October 2026); frozen package main `68ce669` plus V97 | V98 read-access follow-up pending (PROD app roles lack SELECT on `pwa_row_changes`, so PROD uses the protocol 3 walk); [promotion record](../../Change%20Logs/CHANGE_NOTES_R078_DELTA_SYNC_EFFICIENCY_2026-10-19.md#promotion-record) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

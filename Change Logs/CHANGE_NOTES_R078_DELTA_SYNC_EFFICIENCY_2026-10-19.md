@@ -1,7 +1,7 @@
 # Change notes — offline dataset sync efficiency (R078), 19 October 2026
 
 ## Purpose
-The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs, and added the decisions listed below. Status: all batches merged into main (last `68ce669`, PR #87) and on DEV with V97 on 19 October 2026; not promoted to PROD.
+The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs, and added the decisions listed below. Status: all batches merged into main (last `68ce669`, PR #87), on DEV with V97 and deployed to PROD on 19 October 2026 (V97, image, Hosting); one follow-up open (V98 read grant), so not yet Released.
 
 ## Changes
 Measurement tooling:
@@ -55,18 +55,18 @@ Compact promotion template fields; pins are in the [environment inventory](../pr
 - Excluded: unrelated financial corrections, forced notifications or job runs, destructive recovery, any DEV change after `68ce669`, and unrelated service activation. A deployment instruction does not imply them.
 - Freeze: R078 frozen 2026-10-19T17:47Z when promotion started; R079 opened in the same tracker update. Package: main `68ce669`, code-identical to the DEV-tested build; SQL manifest: V97 (tree of `database/migrations` identical to the tested `98c7527`).
 - Previous deployed baseline and recovery: R077 (see the inventory); PROD V96; rollback is the prior Cloud Run revisions and Hosting version recorded by Forge, and the PROD backup for V97.
-- Test evidence: the Checks table above (PR #84, #86 and #87 CI, Chase's labs, Byte's suites, Echo's UX check) and the DEV measurements above. PR #86 CI runs are to be added by reference if the coordinator supplies them.
+- Test evidence: the Checks table above (PR #84, #86 and #87 CI, Chase's labs, Byte's suites, Echo's UX check) and the DEV measurements above. PR #86 CI: `Development checks` run 39280207017 (check, lint and e2e 1 to 3 pass) and `Database migrations` run 39280175077 (all groups pass), on head `507773d1`.
 
 | Step | Completion evidence |
 | --- | --- |
-| Scope, target, authority and usable recovery confirmed | Owner instruction above; prior revisions and Hosting version: to fill from Forge |
+| Scope, target, authority and usable recovery confirmed | Owner instruction above; baseline V96, prior revisions, Hosting version and activation generation captured (inventory) |
 | Required affected checks passed or deferral recorded | Checks table above; real gaps in Not run |
-| Tested package captured; tracker freeze/handoff published | Frozen 2026-10-19T17:47Z, R079 Open; package main `68ce669` |
-| Changed components deployed in dependency order | To fill from Forge (backup, V97 on PROD, image on the four services, Hosting) |
-| Version/environment and affected PROD smoke verified once | To fill from Forge |
-| Actual outcome recorded; publication and tag verified | To fill at closure (outcome, Released row, pruning, `R078` tag) |
+| Tested package captured; tracker freeze/handoff published | Frozen 2026-10-19T17:47Z, R079 Open; package main `68ce669`, deployed from `66ebed9` |
+| Changed components deployed in dependency order | Backup with full restore verified (32 tables, 6,481 rows); V97 applied through the guarded runner (18:36:15Z to 18:37:34Z); image on the four services (plan 0/4/0, applied 18:41:37Z to 18:42:14Z); Hosting release deployed. Pins and references are in the inventory |
+| Version/environment and affected PROD smoke verified once | Health 200; 401 without a token; OPTIONS `Access-Control-Max-Age` 7200 from `lm.mw-credit.com`; the bundle carries `68ce669`; no ERRORs 18:30Z to 18:47Z |
+| Actual outcome recorded; publication and tag verified | Deployed to PROD; not Released: one follow-up open (below). Tag and pruning at closure |
 
-PROD pins, backup reference and smoke: to fill from Forge's results. R078 is not marked Released; nothing is pruned or tagged yet.
+Deviation (orchestrator ruled it within the move-to-production scope): the PROD app roles have no SELECT on `pwa_row_changes`, because the DEV grant came from post-migrate reconciliation, which refuses PROD. Effect: PROD sync falls back to the protocol 3 walk. Items 1 to 5 and the other improvements apply; change-tracked deltas (items 6 and 7 v4 records, collection and cash row deltas, inline values) do not until the grant exists. Follow-up: a tested V98 grant migration, applied to DEV first, then to PROD with a backup at baseline 97. R078 is not marked Released; nothing is pruned or tagged yet. 
 
 ## Baseline
 PROD, window 17 October 00:00 to 19 October 2026 (Bangkok), 17,051 request-log rows, from the report script (metadata only):
@@ -128,7 +128,8 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 - A signed-in offline-dataset call returning the `changes` cursor on DEV (needs the owner's sign-in).
 - The DEV re-measurement after the inline-values deploy (the follow-up was measured, see above); PROD measurement.
 - A SHA, size or webp mismatch of the seeded receipt in a real browser; WebKit or a real iPhone for the follow-up batch.
-- V97 in PROD (authorized up to DEV; PROD needs a promotion instruction and a verified backup). No PROD action.
+- Change-tracked deltas on PROD: the app roles lack SELECT on `pwa_row_changes` until V98.
+- The PROD before/after measurement.
 
 ## Recovery
 Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion nothing is deployed. V97 is an immutable migration: after a PROD apply, recovery is a restore from the verified backup taken at promotion; the new table is read-only for the app role and clients fall back to the protocol 3 walk when it is unreadable.
@@ -137,4 +138,4 @@ Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion n
 PROD promotion instruction for V97 and the release (the owner authorized up to DEV only).
 
 ## Remaining work
-The owner's DEV check, PROD promotion on the owner's instruction, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
+The owner's DEV check, the V98 read grant (DEV, then PROD with a backup at baseline 97), the PROD measurement, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
