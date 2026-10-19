@@ -256,3 +256,35 @@ test('R078 progress never decreases while two domains walk and one restarts afte
  const drops=samples.flatMap((value,index)=>index&&value<samples[index-1]?[[samples[index-1],value]]:[]);
  expect(drops).toEqual([]);
 });
+
+test('R078 full sync walks every domain from the start without version, cursor, versions or since, restarts a walk in flight and downloads no current receipt',async({page})=>{
+ const today=new Date().toISOString().slice(0,10),withReceipt={...initial,payments:[{id:'P',receiptReference:'attached',receiptAt:'2026-10-14T00:00:00Z',paymentDate:today}]};
+ await fixture(page,'delta-full-sync',withReceipt);
+ const bodies:{domain:string;body:any}[]=[];let receipts=0,mode:'check'|'change'='check',releaseSecond!:()=>void;const held=new Promise<void>(resolve=>releaseSecond=resolve);
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url());
+  if(url.pathname.includes('/receipt')){receipts++;return route.fulfill({body:'x',contentType:'image/png'})}
+  const domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();bodies.push({domain,body});
+  const walking=body.sourceVersion===null||body.cursor;
+  if(domain==='records'&&mode==='change'&&body.cursor==='2'){await held}
+  if(domain==='records'&&(walking||mode==='change'&&body.sourceVersion!==newVersion)){const step=body.cursor?Number(body.cursor):0;return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:String(step)}}],newVersion,step<2?String(step+1):null),body.need??[]),progress:{completed:step+1,total:3}}})}
+  // A request without a source version is a walk: the server cannot answer it with an unchanged check.
+  if(body.sourceVersion===null)return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[],oldVersion),body.need??[])}});
+  return route.fulfill({json:{...bundle(domain,[],domain==='records'&&mode==='change'?newVersion:oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+ });
+ await start(page);await settled(page);await expect.poll(()=>receipts).toBe(1);
+ // A walk in flight (a change found by the poll) is restarted by the full sync.
+ mode='change';bodies.length=0;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+ await expect.poll(()=>bodies.filter(entry=>entry.domain==='records'&&entry.body.cursor==='2').length).toBeGreaterThan(0);
+ const tap=bodies.length;
+ await page.evaluate(()=>{const w=window as any;w.__progress=[];w.__sampler=setInterval(()=>{const s=w.__datasetTest.getOfflinePreparation(w.__syncRepo.scopeName);if(s)w.__progress.push(s.progress)},15);window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true,full:true}}))});
+ releaseSecond();await expect.poll(async()=>(await state(page)).fullSync===false&&(await state(page)).state==='ready',{timeout:15000}).toBe(true);
+ const after=bodies.slice(tap);
+ const recordStarts=after.filter(entry=>entry.domain==='records'&&!entry.body.cursor&&!entry.body.need?.length);
+ expect(recordStarts.length).toBeGreaterThan(0);
+ // Every request after the tap starts from the beginning: no source version, cursor, versions or since (except continuing the forced walk's own cursor).
+ for(const entry of after.filter(item=>!item.body.cursor)){expect(entry.body.sourceVersion??null).toBeNull();expect(entry.body.since).toBeUndefined();expect(entry.body.versions).toBeUndefined()}
+ for(const domain of ['records','collection','cash','management'])expect(after.some(entry=>entry.domain===domain&&!entry.body.cursor&&entry.body.sourceVersion===null)).toBe(true);
+ expect(receipts).toBe(1);
+ const samples:number[]=await page.evaluate(()=>{const w=window as any;clearInterval(w.__sampler);return w.__progress});
+ expect(samples.flatMap((value,index)=>index&&value<samples[index-1]?[[samples[index-1],value]]:[])).toEqual([]);
+});

@@ -38,9 +38,9 @@ test('sign-out is blocked with sync and review affordances until the saved reque
  // Distinct accessible names: the header affordance never collides with the saved-changes screen's own "Sync now".
  await expect(page.getByRole('button',{name:'Sync now',exact:true})).toHaveCount(0);
  const syncSaved=page.getByRole('button',{name:/^Sync now, 1 saved change$/}).filter({visible:true});await expect(syncSaved).toBeVisible();await expect(syncSaved).toHaveText('Sync now');
- // A divider and at least 12px separate the language choice from the sign-out group; the order is note, Sync now, Sign out, Review.
+ // A divider and at least 12px separate the language choice from the sign-out group; the order is note, Sync now, Full sync, Sign out, Review.
  const group=page.locator('.live-account-signout-group').filter({visible:true});await expect(group).toHaveCSS('border-top-style','solid');expect(parseFloat(await group.evaluate(e=>getComputedStyle(e).paddingTop))+parseFloat(await group.evaluate(e=>getComputedStyle(e).marginTop))).toBeGreaterThanOrEqual(12);
- expect(await group.locator(':scope > *').evaluateAll(es=>es.map(e=>e.className))).toEqual(['live-account-signout-note','secondary-button live-account-sync-now','secondary-button live-account-signout','secondary-button live-account-review-saved']);
+ expect(await group.locator(':scope > *').evaluateAll(es=>es.map(e=>e.className))).toEqual(['live-account-signout-note','secondary-button live-account-sync-now','secondary-button live-account-full-sync','secondary-button live-account-signout','secondary-button live-account-review-saved']);
  await expect(page.getByRole('button',{name:'Review saved changes',exact:true}).filter({visible:true})).toBeVisible();
  expect(await page.evaluate(()=>(window as any).signouts??0)).toBe(0);expect(await pendingRows(page)).toHaveLength(1);
  // Offline: the affordance reports that it is waiting for a connection instead of staying silent.
