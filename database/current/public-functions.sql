@@ -3376,7 +3376,7 @@ BEGIN
  IF r.state='completed' THEN RETURN jsonb_build_object('enabled',true,'state','completed','replayed',true,'resultCount',r.result_count); END IF;
  IF r.state<>'pending' THEN RAISE EXCEPTION 'job_requires_reconciliation'; END IF;
  started:=clock_timestamp();
- IF job='daily-charges' THEN affected:=public.generate_due_charges($2); ELSE affected:=public.refresh_daily_analytics($2-1,$2); END IF;
+ IF job='daily-charges' THEN affected:=public.generate_due_charges($2); ELSE affected:=public.refresh_daily_analytics($2-1,$2); PERFORM public.pwa_row_changes_prune_v1(); END IF;
  UPDATE public.pwa_job_runs SET state='completed',started_at=started,completed_at=clock_timestamp(),checkpoint=$2::text||'|'||scope,result_count=affected WHERE run_id=r.run_id;
  RETURN jsonb_build_object('enabled',true,'state','completed','replayed',false,'resultCount',affected);
 END $_$;
@@ -4021,6 +4021,26 @@ $_$;
 
 
 --
+-- Name: pwa_row_changes_prune_v1(); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_row_changes_prune_v1() RETURNS bigint
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE cutoff bigint; newest bigint; removed bigint;
+BEGIN
+ SELECT max(seq) INTO newest FROM public.pwa_row_changes;
+ IF newest IS NULL THEN RETURN 0; END IF;
+ SELECT seq INTO cutoff FROM public.pwa_row_changes WHERE changed_at>=clock_timestamp()-interval '7 days' ORDER BY seq LIMIT 1;
+ cutoff:=least(coalesce(cutoff,newest),newest);
+ DELETE FROM public.pwa_row_changes WHERE seq<cutoff;
+ GET DIAGNOSTICS removed=ROW_COUNT;
+ RETURN removed;
+END $$;
+
+
+--
 -- Name: pwa_submit_agent_operation_v1(text); Type: FUNCTION
 --
 
@@ -4582,6 +4602,26 @@ BEGIN
  END IF;
  RETURN public.pwa_command_status_v1(request,a->>'issuer',a->>'subject');
 END $_$;
+
+
+--
+-- Name: pwa_track_row_change(); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_track_row_change() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE old_key text; new_key text;
+BEGIN
+ IF TG_WHEN<>'AFTER' OR TG_LEVEL<>'ROW' OR TG_NARGS<>1 OR TG_TABLE_SCHEMA<>'public' THEN RAISE EXCEPTION 'pwa_track_row_change requires a public AFTER ROW trigger with one key column'; END IF;
+ IF TG_OP='UPDATE' AND to_jsonb(NEW)=to_jsonb(OLD) THEN RETURN NULL; END IF;
+ IF TG_OP<>'INSERT' THEN old_key:=to_jsonb(OLD)->>TG_ARGV[0]; END IF;
+ IF TG_OP<>'DELETE' THEN new_key:=to_jsonb(NEW)->>TG_ARGV[0]; END IF;
+ IF old_key IS NOT NULL AND old_key IS DISTINCT FROM new_key THEN INSERT INTO public.pwa_row_changes(table_name,row_key) VALUES(TG_TABLE_NAME,old_key); END IF;
+ IF new_key IS NOT NULL THEN INSERT INTO public.pwa_row_changes(table_name,row_key) VALUES(TG_TABLE_NAME,new_key); END IF;
+ RETURN NULL;
+END $$;
 
 
 --

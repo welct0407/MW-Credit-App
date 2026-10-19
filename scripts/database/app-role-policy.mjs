@@ -1,6 +1,7 @@
 // Stable DEV application capability policy. No credentials, ambient DSN or automatic live invocation.
 export function applicationDatabaseRoles(database){if(!['loan_manager_dev','payment_rehearsal','loan_manager_prod'].includes(database))throw Error('Explicit application database required');const suffix=database==='loan_manager_prod'?'prod':'dev';return{APP:'mw_app_'+suffix,JOURNAL_OWNER:'mw_app_'+suffix+'_journal_owner',LEDGER_OWNER:'mw_ledger_owner_'+suffix};}
-const readonly=new Set(['pwa_payment_commands','r005_cash_cutover_sources','r008_cash_account_cutover']);
+// V97 (R078): the change log and its identity sequence are written only by mw_changes_owner_<env>'s definer.
+const readonly=new Set(['pwa_payment_commands','r005_cash_cutover_sources','r008_cash_account_cutover','pwa_row_changes','pwa_row_changes_seq_seq']);
 // V93 (DB-ACCESS-08): once sync_cash_ledger is the ledger owner's SECURITY DEFINER, the capability reads
 // "Cash Ledger" only (governed writes stay with the journal owner's migration-owned grant). Before V93 the
 // invoker-rights projection still needs the capability's own DML, so the rule follows the catalog state.

@@ -17,6 +17,7 @@ INSERT INTO to_expected VALUES
   ('Charges','AFTER','ROW','UPDATE','quick_payment_request',false,false),
   ('Charges','AFTER','ROW','INSERT,DELETE,UPDATE','zzzz_business_history',false,false),
   ('Charges','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzz_business_history_commit',true,true),
+  ('Charges','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzzz_pwa_row_change',false,false),
   ('Loans','BEFORE','STATEMENT','INSERT,DELETE,UPDATE','a000_business_history_begin',false,false),
   ('Loans','BEFORE','STATEMENT','INSERT,DELETE,UPDATE','aa_cashpool_lock',false,false),
   ('Loans','BEFORE','ROW','INSERT,UPDATE','a000_blank_refs',false,false),
@@ -46,6 +47,7 @@ INSERT INTO to_expected VALUES
   ('Loans','AFTER','ROW','DELETE,UPDATE','zzy_r051_opening',false,false),
   ('Loans','AFTER','ROW','INSERT,DELETE,UPDATE','zzzz_business_history',false,false),
   ('Loans','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzz_business_history_commit',true,true),
+  ('Loans','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzzz_pwa_row_change',false,false),
   ('Payments','BEFORE','STATEMENT','INSERT,DELETE,UPDATE','a000_business_history_begin',false,false),
   ('Payments','BEFORE','ROW','INSERT,UPDATE','a000_blank_refs',false,false),
   ('Payments','BEFORE','ROW','UPDATE','a000_opening_consistency',false,false),
@@ -71,6 +73,7 @@ INSERT INTO to_expected VALUES
   ('Payments','AFTER','ROW','DELETE,UPDATE','zzz_payment_crud',false,false),
   ('Payments','AFTER','ROW','UPDATE','zzzz_payment_delete_requested',false,false),
   ('Payments','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzz_business_history_commit',true,true),
+  ('Payments','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzzz_pwa_row_change',false,false),
   ('Repayments','BEFORE','STATEMENT','INSERT,DELETE,UPDATE','a000_business_history_begin',false,false),
   ('Repayments','BEFORE','STATEMENT','INSERT,DELETE,UPDATE','aa_cashpool_lock',false,false),
   ('Repayments','BEFORE','ROW','INSERT,UPDATE','a000_blank_refs',false,false),
@@ -85,7 +88,8 @@ INSERT INTO to_expected VALUES
   ('Repayments','AFTER','ROW','INSERT,DELETE,UPDATE','vc_payment_changed',true,true),
   ('Repayments','AFTER','ROW','INSERT,DELETE,UPDATE','vc_repayment_changed',true,true),
   ('Repayments','AFTER','ROW','INSERT,DELETE,UPDATE','zzzz_business_history',false,false),
-  ('Repayments','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzz_business_history_commit',true,true)
+  ('Repayments','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzz_business_history_commit',true,true),
+  ('Repayments','AFTER','ROW','INSERT,DELETE,UPDATE','zzzzzzz_pwa_row_change',false,false)
 ;
 CREATE TEMP VIEW to_actual AS
  SELECT c.relname::text AS relation, CASE WHEN t.tgtype&2>0 THEN 'BEFORE' ELSE 'AFTER' END AS timing, CASE WHEN t.tgtype&1>0 THEN 'ROW' ELSE 'STATEMENT' END AS level,
@@ -99,6 +103,20 @@ DO $$ DECLARE unexpected text[]; missing text[]; BEGIN
  -- The blank-ref normalizer fires first in the BEFORE ROW partition of every table that has it; no legacy name remains.
  IF EXISTS(SELECT 1 FROM (SELECT c.oid, t.tgname, row_number() OVER (PARTITION BY c.oid ORDER BY t.tgname COLLATE "C") pos FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid WHERE NOT t.tgisinternal AND t.tgtype&3=3) x WHERE tgname='a000_blank_refs' AND pos<>1)
   OR (SELECT count(*) FROM pg_trigger WHERE tgname='a000_blank_refs')<>9 OR EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='appsheet_blank_refs') THEN RAISE EXCEPTION 'Blank-ref normalizer order broken'; END IF;
+END $$;
+-- V97 (R078): the change-log trigger exists exactly on the 17 tracked tables, carries the primary-key column as
+-- its one argument and is the last non-deferred AFTER ROW trigger of each (deferred commit triggers fire at commit).
+DO $$ DECLARE bad text[]; BEGIN
+ bad:=ARRAY(SELECT format('%s missing',v.relation) FROM (VALUES ('Borrowers'),('Loans'),('Charges'),('Payments'),('Payment Allocations'),('Repayments'),('Business Expenses'),('Cash Accounts'),('Cash Holders'),('Cash Ledger'),
+   ('Cash Pool Contributions'),('Settlements'),('Partners'),('r008_cash_account_cutover'),('pwa_payment_commands'),('Daily Analytics'),('Statistics')) v(relation)
+   WHERE NOT EXISTS(SELECT 1 FROM pg_trigger t WHERE t.tgrelid=format('public.%I',v.relation)::regclass AND t.tgname='zzzzzzz_pwa_row_change' AND t.tgtype=29 AND t.tgenabled='O' AND NOT t.tgdeferrable
+     AND t.tgfoid='public.pwa_track_row_change()'::regprocedure AND t.tgnargs=1
+     AND convert_from(substring(t.tgargs from 1 for length(t.tgargs)-1),'UTF8')=(SELECT a.attname FROM pg_constraint k JOIN pg_attribute a ON a.attrelid=k.conrelid AND a.attnum=k.conkey[1] WHERE k.conrelid=t.tgrelid AND k.contype='p')))
+  ||ARRAY(SELECT format('%s unexpected',t.tgrelid::regclass) FROM pg_trigger t WHERE t.tgname='zzzzzzz_pwa_row_change' AND t.tgrelid::regclass::text NOT IN ('"Borrowers"','"Loans"','"Charges"','"Payments"','"Payment Allocations"','"Repayments"',
+   '"Business Expenses"','"Cash Accounts"','"Cash Holders"','"Cash Ledger"','"Cash Pool Contributions"','"Settlements"','"Partners"','r008_cash_account_cutover','pwa_payment_commands','"Daily Analytics"','"Statistics"'))
+  ||ARRAY(SELECT format('%s fires before %s',x.tgrelid::regclass,x.tgname) FROM pg_trigger x WHERE NOT x.tgisinternal AND x.tgtype&3=1 AND NOT x.tgdeferrable AND x.tgname COLLATE "C">'zzzzzzz_pwa_row_change'
+   AND EXISTS(SELECT 1 FROM pg_trigger t WHERE t.tgrelid=x.tgrelid AND t.tgname='zzzzzzz_pwa_row_change'));
+ IF cardinality(bad)>0 THEN RAISE EXCEPTION 'Change-log trigger placement differs: %',bad; END IF;
 END $$;
 SELECT 'Trigger order snapshot passed' AS result;
 ROLLBACK;

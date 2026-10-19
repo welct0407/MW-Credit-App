@@ -12,3 +12,6 @@ CREATE ROLE mw_jobs_dev NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NO
 
 -- V93 ledger projection owner (DB-ACCESS-08): owns sync_cash_ledger only; no LOGIN, no membership.
 CREATE ROLE mw_ledger_owner_dev NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+
+-- V97 change-log owner (R078): owns pwa_track_row_change and pwa_row_changes_prune_v1 only; no LOGIN, no membership.
+CREATE ROLE mw_changes_owner_dev NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;

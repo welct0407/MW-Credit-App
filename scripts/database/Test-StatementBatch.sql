@@ -162,5 +162,7 @@ END $$;
 -- DB-SCHEMA-02: firing-order snapshot; DB-ACCESS-08: the ledger definer under the real roles.
 \ir Test-TriggerOrder.sql
 \ir Test-LedgerAccess.sql
+-- V97 (R078): the PWA change log under the real roles (DML kinds, writer denial, retention).
+\ir Test-RowChanges.sql
 -- Last: the migration-owned grant matrix (DB-CI-05 / DB-ACCESS-02).
 \ir Test-AccessMatrix.sql
