@@ -220,9 +220,9 @@ export async function resolveRecordsScope(client,changes){
  if(borrowers.size>TARGETED_LIMITS.borrowers||payments.size>TARGETED_LIMITS.payments||expenses.size>TARGETED_LIMITS.expenses)return null;
  return {borrowers:sortIds(borrowers),payments:sortIds(payments),expenses:sortIds(expenses),dashboard};
 }
-async function detailRows(client,stamp,key,read,ids,check=()=>{}){
+async function detailRows(client,stamp,key,read,ids,check=null){
  const items=[],missing=[];
- for(let offset=0;offset<ids.length;offset+=64){const slice=ids.slice(offset,offset+64),batch=bulkReadClient(client),values=await Promise.all(slice.map(id=>read(batch,id)));values.forEach((item,index)=>{if(item)items.push({...item,...stamp,...(key==='payments'?{receiptReference:item.receiptReference?'attached':null}:{})});else missing.push(slice[index])});check(items.length)}
+ for(let offset=0;offset<ids.length;offset+=64){const slice=ids.slice(offset,offset+64),batch=bulkReadClient(client),values=await Promise.all(slice.map(id=>read(batch,id)));values.forEach((item,index)=>{if(item)items.push({...item,...stamp,...(key==='payments'?{receiptReference:item.receiptReference?'attached':null}:{})});else missing.push(slice[index])});check?.(items.length)}
  return [...(items.length?[upsert(key,items,undefined,'id')]:[]),...(missing.length?[removeRows(key,missing)]:[])];
 }
 async function allPages(read){const items=[];let cursor=null,first=null;for(let page=0;page<200;page++){const value=await read(cursor);first??=value;items.push(...(value.items??[]));cursor=value.nextCursor??null;if(!cursor)return {first,items}}throw Error('source_unavailable')}

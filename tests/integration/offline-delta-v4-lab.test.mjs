@@ -62,6 +62,7 @@ test('protocol v4 sends key-only deltas for a payment and for a replica-mode wri
   state={sourceVersion:replica.sourceVersion,changes:replica.changes};
 
   // TRUNCATE writes one marker row ('*'): every domain reading the table walks.
+  await client.query(`DELETE FROM "Daily Analytics" WHERE "Snapshot Date"=(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-1`);
   await client.query(`INSERT INTO "Daily Analytics"("Row ID","Snapshot Date","Generated At") VALUES ($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-1,now())`,['V4-DA-'+id]);
   state=await walk(client);
   await client.query('TRUNCATE "Daily Analytics"');
