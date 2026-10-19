@@ -290,3 +290,51 @@ test('R078 full sync walks every domain from the start without version, cursor, 
  const samples:number[]=await page.evaluate(()=>{const w=window as any;clearInterval(w.__sampler);return w.__progress});
  expect(samples.flatMap((value,index)=>index&&value<samples[index-1]?[[samples[index-1],value]]:[])).toEqual([]);
 });
+
+// R078 day change (protocol level 4): the server answers a bundle one business date old with kept keys and a multi-chunk
+// re-read; an interrupted re-read resumes at its cursor after a reload, and a server without `dates` steps the path down.
+const dayChanges={seq:'5',xmin:'5',businessDate:'2026-10-15'};
+const dayChunk=(cursor:string|null,body:any)=>{
+ const final=cursor!==null,patches=[{key:'dash',mode:'replace',value:{total:final?'3':'2'}}];
+ return encodeDeltaChunk({schemaVersion:2,domain:'records',generation:'day-g',startedAt:asOf,asOf,businessDate:'2026-10-15',sourceVersion:newVersion,patches,complete:final,nextCursor:final?null:'c1',progress:{completed:final?2:1,total:2}},body.need??[],{dates:true});
+};
+async function dayFixture(page:Page,uid:string){
+ await fixture(page,uid,{kept:[{id:'k',businessDate:'2026-10-14',label:'Kept'}],dash:{total:'1'}});
+ await page.evaluate(async()=>{const repo=(window as any).__syncRepo,bundle=await repo.readDataset('records');await repo.saveDataset('records',{...bundle,cacheStale:undefined,changes:{seq:'1',xmin:'1',businessDate:'2026-10-14'}},await repo.readRevision())});
+}
+test('R078 a multi-chunk day change resumes after a reload and moves the kept key to the new date',async({page})=>{
+ await dayFixture(page,'delta-day-resume');const requests:any[]=[];let failResume=true;
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();requests.push({domain,body});
+  if(domain!=='records')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+  if(body.cursor==='c1'&&!body.need?.length&&failResume){failResume=false;return route.fulfill({status:503,json:{code:'temporary'}})}
+  const response=dayChunk(body.cursor??null,body);
+  // The first chunk is a v4 delta with the change cursor; continuation chunks are ordinary v3 chunks that name the day change.
+  const day={from:'2026-10-14',keep:['kept'],reread:['dash']};
+  return route.fulfill({json:body.cursor?{...response,dayChange:day}:{...response,schemaVersion:4,delta:true,dayChange:day,changes:dayChanges}});
+ });
+ await start(page);
+ await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDatasetProgress('records'))?.nextCursor)).toBe('c1');
+ expect(requests.find(entry=>entry.domain==='records').body.since).toEqual({seq:'1',xmin:'1',businessDate:'2026-10-14'});expect(requests.find(entry=>entry.domain==='records').body.dates).toBe(true);
+ // The old complete bundle stays readable; reload: a new coordinator resumes at the cursor.
+ expect((await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).businessDate))).toBe('2026-10-14');
+ await page.evaluate(()=>(window as any).__stopPreparation());requests.length=0;await start(page);
+ await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).businessDate)).toBe('2026-10-15');
+ const stored=await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')));
+ expect(stored.data.kept).toEqual([{id:'k',businessDate:'2026-10-15',label:'Kept'}]);expect(stored.data.dash).toEqual({total:'3'});expect(stored.dayChange).toBeUndefined();
+ expect(requests.filter(entry=>entry.domain==='records'&&!entry.body.need?.length).every(entry=>entry.body.cursor==='c1')).toBe(true);
+});
+test('R078 a server without dates steps the path down: dates first, then since',async({page})=>{
+ await dayFixture(page,'delta-day-stepdown');const bodies:any[]=[];
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+  if(domain==='records')bodies.push(body);
+  if(domain==='records'&&body.dates!==undefined)return route.fulfill({status:400,json:{error:'invalid_request',code:'invalid_request'}});
+  if(domain==='records'&&body.since!==undefined)return route.fulfill({status:400,json:{error:'invalid_request',code:'invalid_request'}});
+  return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+ });
+ await start(page);await settled(page);
+ const records=bodies.filter(body=>true);
+ expect(records[0].dates).toBe(true);expect(records[0].since).toBeDefined();
+ // Level 3: since without dates; level 2: neither.
+ expect(records.some(body=>body.dates===undefined&&body.since!==undefined)).toBe(true);
+ expect(records.at(-1).dates).toBeUndefined();expect(records.at(-1).since).toBeUndefined();
+});
