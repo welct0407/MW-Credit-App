@@ -6,6 +6,7 @@ connection error) is retried once while the caller's deadline allows it. Recogni
 effect, so a retry after an uncertain attempt is safe.
 """
 import base64
+import io
 import json
 import re
 import socket
@@ -13,11 +14,15 @@ import time
 import urllib.error
 import urllib.request
 
+from PIL import Image
+
 from . import http
 from .config import ConfigurationError
 from .receipt_image import PROMPT, SCHEMA, RecognitionUnavailable
 
-ATTEMPT_TIMEOUT = 12
+ATTEMPT_TIMEOUT = 36  # recognizer: one attempt inside its 40 s provider deadline (42 s request bound)
+MAX_SIDE = 1600  # long side sent to Gemini; phone photos are downscaled, aspect kept
+JPEG_QUALITY = 85
 # Receipt cycle (not interactive): config receipt_cycle_gemini_attempt_seconds / _total_seconds.
 CYCLE_ATTEMPT = 25
 CYCLE_TOTAL = 60
@@ -88,14 +93,30 @@ def thinking_config(model_id):
     return None
 
 
-def body(image_data, model_id):
+def downscaled(image_data):
+    """The image Gemini receives: long side at most MAX_SIDE (Lanczos, aspect kept), as JPEG quality 85
+    or PNG, whichever is smaller. Input is the canonical PNG; its digest and validation are unchanged."""
+    try:
+        with Image.open(io.BytesIO(image_data)) as source:
+            image = source.convert('RGB')
+        if max(image.size) > MAX_SIDE:
+            image.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
+        jpeg, png = io.BytesIO(), io.BytesIO()
+        image.save(jpeg, format='JPEG', quality=JPEG_QUALITY, optimize=True)
+        image.save(png, format='PNG', optimize=True)
+    except Exception as exc:
+        raise RecognitionUnavailable(cause='image_prepare_failed') from exc
+    return (jpeg.getvalue(), 'image/jpeg') if len(jpeg.getvalue()) <= len(png.getvalue()) else (png.getvalue(), 'image/png')
+
+
+def body(image_data, model_id, mime_type='image/png'):
     generation = {'temperature': 0, 'candidateCount': 1, 'maxOutputTokens': 2048,
                   'responseMimeType': 'application/json', 'responseSchema': vertex_schema(SCHEMA)}
     thinking = thinking_config(model_id)
     if thinking:
         generation['thinkingConfig'] = thinking
     return {'contents': [{'role': 'user', 'parts': [
-                {'inlineData': {'mimeType': 'image/png', 'data': base64.b64encode(image_data).decode('ascii')}},
+                {'inlineData': {'mimeType': mime_type, 'data': base64.b64encode(image_data).decode('ascii')}},
                 {'text': PROMPT}]}],
             'generationConfig': generation}
 
@@ -148,7 +169,8 @@ def transient(exc):
 
 
 def extract(config, image_data, deadline=None, attempt_timeout=ATTEMPT_TIMEOUT):
-    url, data = endpoint(config), json.dumps(body(image_data, model(config)), separators=(',', ':')).encode()
+    sent, mime_type = downscaled(image_data)
+    url, data = endpoint(config), json.dumps(body(sent, model(config), mime_type), separators=(',', ':')).encode()
     deadline = time.monotonic() + 2 * attempt_timeout if deadline is None else deadline
     for number in (1, 2):
         remaining = deadline - time.monotonic()
