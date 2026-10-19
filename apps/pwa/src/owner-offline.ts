@@ -143,7 +143,7 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
   async patchDataset(domain:string,mutate:(value:any)=>any){
    return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const request=store.get('dataset:'+domain);request.onsuccess=()=>{const row=request.result;if(!row?.value?.complete){done(false);return;}
     let value:any;try{value=mutate(structuredClone(row.value))}catch{value=null}
-    const prior=row.value;if(!value||value.complete!==true||value.domain!==domain||!value.data||value.sourceVersion!==prior.sourceVersion||value.asOf!==prior.asOf||value.generation!==prior.generation){done(false);return;}
+    const prior=row.value;if(value?.complete!==true||value.domain!==domain||!value.data||value.sourceVersion!==prior.sourceVersion||value.asOf!==prior.asOf||value.generation!==prior.generation){done(false);return;}
     store.put({...row,savedAt:Date.now(),value});done(true)}});
   },
   async readDatasetMedia(key:string){return cacheTransaction<CachedResponse|null>('readonly',null,(store,done)=>{const request=store.get('dataset-media:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>done({data:row.value,format:'blob',contentType:row.value.type,savedAt:row.savedAt,revision:current.result?.value??0})}})},
