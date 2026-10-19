@@ -1,11 +1,16 @@
 # Change notes — offline dataset sync efficiency (R078), 19 October 2026
 
 ## Purpose
-The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs. Status: in progress on branch `claude/delta-sync-efficiency`; the Changes below are the plan and are marked done as they land.
+The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs. Status: items 1-5 and the auth floor are committed, V97 is committed (owner authorized up to DEV), items 6-7 v4 are open. Branch `claude/delta-sync-efficiency`; the Changes below are the plan and are marked done as they land.
 
 ## Changes
 Measurement tooling (done):
 - `project/scripts/offline-sync-log-report.py`: read-only report from Cloud Run request logs (endpoint table, unchanged polls, walk bursts, post-write cycles); listed in the [scripts README](../project/scripts/README.md). Run it before and after with the same window rules.
+
+Landed so far:
+- Items 1-5 (Byte, commit `1e32dd4`): cash pages 16 and management pages 8; a client continuation without the 200 ms timer, sparser progress writes and two domains in flight; per-domain table sets (cash also includes Borrowers; records hash Daily Analytics by content without "Generated At" over Snapshot Date from the Bangkok date minus 31 days, and Statistics as ("Row ID","Statistics ID")); the fingerprint is `count(*)` plus `sum(hashtextextended(PK||':'||xmin))` with no ORDER BY; a `versions:true` body flag makes an unchanged poll 2 requests instead of 5; `Access-Control-Max-Age` on the preflight; version tag `business-offline-v4`, so every installed client walks once after deploy.
+- Auth floor (Forge, commit `2b8f7bb`, owner decision 19 October 2026 "check on writes only"): reads verify the token without `checkRevoked`; writes and unknown routes are checked; the command pool idles 10 minutes with keepalive.
+- V97 `pwa_row_changes` (Forge, commit `f22335d`, item 7 groundwork): owner authorized up to DEV on 19 October 2026; PROD needs a promotion instruction and a verified backup. A follow-up commit adds 2 more tables.
 
 The seven items (status updated as each lands):
 1. Pack cash and management pages: `deterministicPages` cash 4 to about 16 and management 1 to about 8, inside the existing byte and value budgets (`services/business/offline-dataset-delta.mjs`, `services/business/offline-dataset-chunks.mjs`). Server only, no migration.
@@ -37,8 +42,10 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 | --- | --- |
 | `python3 -I project/scripts/offline-sync-log-report.py --env prod --from 2026-10-16T17:00:00Z --to 2026-10-19T17:00:00Z` | Pass, baseline above (commit of this note) |
 | `npm run check:docs` | To fill |
-| `npm run lint`, `npm run typecheck`, `npm test` | To fill |
-| Database guards and rebuild (item 7 only) | To fill |
+| `npx biome` (lint), `npm run typecheck`, focused unit tests, `npm test` | Pass at `1e32dd4` (Byte): biome 0 errors, typecheck pass, focused 37/37, `npm test` 685/685 |
+| Auth floor unit tests | Pass at `2b8f7bb` (Forge): related tests 46/46 |
+| `mw-db-ci` migrations and phase8 groups | Pass at `f22335d` (Forge) |
+| Chase's checks, items 6 and 7 v4 | To fill |
 | Re-run of the report script on DEV and PROD after promotion | To fill |
 
 ## Not run
@@ -48,7 +55,7 @@ To fill.
 Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion nothing is deployed. Item 7 adds a migration: after a PROD apply, recovery is a restore from the verified backup taken at promotion; the migration itself stays immutable.
 
 ## Open questions
-Owner authorization for the item 7 table and migration (DEV apply and PROD promotion).
+PROD promotion instruction for V97 (the owner authorized up to DEV only).
 
 ## Remaining work
-Everything in Changes except the measurement tooling.
+Items 6 and 7 v4, Chase's checks, and the documents named in the impact list: `database/README.md` and `R053_OPERATOR.md` (already updated by Forge), the offline dataset protocol paragraphs, Solution Design, the dictionary and the Release Tracker row.
