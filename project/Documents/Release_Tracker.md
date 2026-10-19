@@ -4,10 +4,9 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R077 — Open** |
-| Next unused number | **R078**, only opened when authorized R077 promotion starts |
+| New product work | **R078 — Open** |
+| Next unused number | **R079**, only opened when authorized R078 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
-| R077 scope (19 October 2026), not deployed | Receipt recognition timeouts: the recognizer downscales the slip to 1600 px and its limits are tripled (42/40/36 s), the command route waits 45 s, the PWA deadline is 60 s, and the command service Cloud Run request timeout is 55 s in DEV and PROD. Image on the four services, Hosting, PROD Terraform (timeout), agent redeploy; no SQL. Record: [change note](../../Change%20Logs/CHANGE_NOTES_R077_RECOGNITION_TIMEOUTS_2026-10-19.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
@@ -15,6 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
+| R077 | Frozen 19 October 2026, about 08:09Z; promotion in progress | Package: source `683cfceed724778151e1e305adaea50b9ab20c94` (PR #79): receipt recognition timeouts (slip downscaled to 1600 px, recognizer limits 42/40/36 s, command route 45 s, PWA deadline 60 s, command Cloud Run request timeout 55 s in DEV and PROD). Runtime image on reader, command, notify and jobs, Hosting, PROD Terraform (timeout) and agent redeploy; no SQL. Owner instruction "yes, merge and push to dev and production once checks pass" (19 October 2026) is the scoped approval, recorded in the [R077 change note](../../Change%20Logs/CHANGE_NOTES_R077_RECOGNITION_TIMEOUTS_2026-10-19.md#promotion-authority). Closure: Released row, inventory pins, Release tag |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

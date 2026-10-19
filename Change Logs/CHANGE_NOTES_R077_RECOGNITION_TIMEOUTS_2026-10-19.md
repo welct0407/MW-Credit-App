@@ -25,7 +25,7 @@ The owner's 100-baht PWA upload of 19 October 2026 (about 14:44 Bangkok) was not
 Restore the previous image, Hosting version and agent pin recorded as rollback in the [environment inventory](../project/Documents/Environment_Inventory.md), and the previous activation tfvars generation (the command timeout returns to 15 s). No SQL is involved.
 
 ## Promotion authority
-Owner instruction, 19 October 2026: "yes, merge and push to dev and production once checks pass." This is the scoped approval under the release workflow for R077: DEV and PROD, a new application image on the four Cloud Run services (all four share one image), Hosting, the command service request timeout change by PROD Terraform, and the agent redeploy on the Debian host, with the required promotion records and evidence. It covers no SQL, no financial correction and no forced notification. R077 was frozen at source `<sha>` and R078 opened in the same tracker update.
+Owner instruction, 19 October 2026: "yes, merge and push to dev and production once checks pass." This is the scoped approval under the release workflow for R077: DEV and PROD, a new application image on the four Cloud Run services (all four share one image), Hosting, the command service request timeout change by PROD Terraform, and the agent redeploy on the Debian host, with the required promotion records and evidence. It covers no SQL, no financial correction and no forced notification. R077 was frozen at source `683cfceed724778151e1e305adaea50b9ab20c94` (PR #79) at about 08:09Z and R078 opened in the same tracker update.
 
 ## Open questions
 None.
