@@ -54,7 +54,7 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 | Chase's labs: v4 equality against a fresh walk (serial, disposable clusters) | Pass, 22 scenarios plus the late-commit cursor |
 | Chase's labs: reconciliation, per-key corruption | Pass, 49 cases detected and healed, plus a reconcile match after every scenario |
 | Chase's labs: day change under a shifted database clock (libfaketime) | Pass, 4 month-end cases (31 Oct, 30 Nov, 31 Dec, 28 Feb) |
-| Echo's UX check | Pending |
+| Echo's UX check: local build of `666ec55` in Chromium at iPhone size (390x844, touch), mocked fixtures | Fine: UX-LIST-01/03, UX-FULL-01..06 (progress monotonic in a full sync, 0 to 94 to done), UX-RECON-01..07; Echo agreed with "Open troubleshooting" and colour #8b1a1a. Fixed in `333cf89` (CSS): UX-CHK-01 data-check toast covered SyncedToast on mobile, UX-CHK-02 troubleshooting link now a 44 px touch target, UX-CHK-03 Full sync button has a disabled look while it runs. UX-CHK-04 open: Byte adds the disabled reason "Available once confirmed" to Correct, Move interest and Delete (commit to be added) |
 | `npm run check:docs` | 0 failures at this note's commit |
 | PR `Development checks` (the one broad run) | Pending |
 | DEV apply of V97 and DEV smoke | Pending |
@@ -67,6 +67,7 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 - A clock shift past 14 days, and a wrong phone clock end to end.
 - The post-promotion report re-run.
 - The iPhone client-gap composition (needs client timing capture).
+- Thai rendering (checked in code only), a real recorded payment switching from Confirming to confirmed, and WebKit or a real iPhone for the UX check.
 - V97 beyond disposable labs (authorized up to DEV; the DEV apply is pending). No PROD action.
 
 ## Recovery
