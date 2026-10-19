@@ -1,7 +1,7 @@
 # Change notes — offline dataset sync efficiency (R078), 19 October 2026
 
 ## Purpose
-The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs, and added the decisions listed below. Status: implementation complete on branch `claude/delta-sync-efficiency` (HEAD `666ec55`); not pushed to a release, not promoted. PR CI and the DEV apply are pending.
+The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs, and added the decisions listed below. Status: merged into main as `06a8902` (PR #84) and deployed to DEV with V97 on 19 October 2026; not promoted to PROD.
 
 ## Changes
 Measurement tooling:
@@ -56,8 +56,13 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 | Chase's labs: day change under a shifted database clock (libfaketime) | Pass, 4 month-end cases (31 Oct, 30 Nov, 31 Dec, 28 Feb) |
 | Echo's UX check: local build of `666ec55` in Chromium at iPhone size (390x844, touch), mocked fixtures | Fine: UX-LIST-01/03, UX-FULL-01..06 (progress monotonic in a full sync, 0 to 94 to done), UX-RECON-01..07; Echo agreed with "Open troubleshooting" and colour #8b1a1a. Fixed in `333cf89` (CSS): UX-CHK-01 data-check toast covered SyncedToast on mobile, UX-CHK-02 troubleshooting link now a 44 px touch target, UX-CHK-03 Full sync button has a disabled look while it runs. UX-CHK-04 fixed in `6607b22` (Byte): while `localPending` is set, Correct, Move interest and Delete carry the title "Available once confirmed" / "ใช้ได้หลังยืนยันแล้ว"; `tests/e2e/payment-confirming-independent.spec.ts` passes 2/2 on desktop and mobile; lint, typecheck and `npm test` 715/715 on a clean tree |
 | `npm run check:docs` | 0 failures at this note's commit |
-| PR `Development checks` (the one broad run) | Pending |
-| DEV apply of V97 and DEV smoke | Pending |
+| PR #84 CI: `Development checks` run 39266899206 | Pass (green, e2e shards 1 to 3 run in full) |
+| PR #84 CI: `Database migrations` run 39265256162; `Agent tests` run 39266904301 | Pass |
+| Merge-head run on `147fb1c` | Evidence reused from the PR runs (identical tree) |
+| Merge into main | `06a8902` (PR #84) |
+| V97 DEV apply, 19 October 2026 | Done through the guarded runner from `147fb1c` (migrations tree identical to the tested `98c7527`); backup with restore test first; owner-authority role reconciliation 0 violations. Pins and record references are in the [environment inventory](../project/Documents/Environment_Inventory.md) |
+| DEV deploy, 19 October 2026 | New image on the four DEV services (Terraform plan 0/4/0), DEV Hosting deployed with release label R078; pins in the inventory |
+| DEV smoke | Health 200; unauthenticated 401; OPTIONS returns `Access-Control-Max-Age: 7200` and the dev origin; the bundle carries `06a8902`; no DEV log errors |
 | Re-run of the report script on DEV and PROD after promotion | Pending |
 
 ## Not run
@@ -68,7 +73,9 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 - The post-promotion report re-run.
 - The iPhone client-gap composition (needs client timing capture).
 - Thai rendering (checked in code only), a real recorded payment switching from Confirming to confirmed, and WebKit or a real iPhone for the UX check.
-- V97 beyond disposable labs (authorized up to DEV; the DEV apply is pending). No PROD action.
+- A signed-in offline-dataset call returning the `changes` cursor on DEV (needs the owner's sign-in).
+- The before/after measurement on DEV.
+- V97 in PROD (authorized up to DEV; PROD needs a promotion instruction and a verified backup). No PROD action.
 
 ## Recovery
 Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion nothing is deployed. V97 is an immutable migration: after a PROD apply, recovery is a restore from the verified backup taken at promotion; the new table is read-only for the app role and clients fall back to the protocol 3 walk when it is unreadable.
@@ -77,4 +84,4 @@ Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion n
 PROD promotion instruction for V97 and the release (the owner authorized up to DEV only).
 
 ## Remaining work
-PR CI, the DEV apply and smoke, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
+The owner's DEV check, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
