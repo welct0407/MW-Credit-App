@@ -10,6 +10,7 @@ import {beginRequest} from './request-activity';
 import {CompactPager} from './CompactPager';
 import {PaymentResult} from './PaymentResult';
 import {useOnline} from './online-status';
+import {RECOGNITION_DEADLINE_MS} from './recognition-timing';
 import type {OwnerOfflineRepository} from './owner-offline';
 import React,{useEffect,useRef,useState} from 'react';
 type Draft={preferredReceivingAccountId?:string|null;nextCursor?:string|null;asOf?:string;businessDate:string;borrower:{id:string;displayName:string};charges:{id:string;chargeDate:string;loanDisplayKey:string;amountRemaining:string;principalRemaining:string;interestRemaining:string}[];accounts:{id:string;label:string}[]};
@@ -18,7 +19,6 @@ type Command={schemaVersion:3|4|5|6|7;requestId:string;borrowerId:string;selecte
 /** R075 slip recognition for the uploaded receipt; cleared with the receipt. Nothing here writes. */
 type SlipField='amount'|'account'|'reference'|'date';
 type Recognition={receiptId:string;phase:'reading'|'failed'|'unconfirmed'|'done';provider?:string|null;filled?:SlipField[];autoSkipped?:boolean;slipAmount?:string|null;slipAccountId?:string|null;slipReference?:string|null;referenceExists?:boolean;dateNotUsed?:string|null;autoOutcome?:'empty'|'failed';accountNote?:'unmatched'|'ambiguous'|null};
-const RECOGNITION_DEADLINE_MS=20000;
 const previousDay=(day:string)=>{const value=new Date(day+'T00:00:00Z');value.setUTCDate(value.getUTCDate()-1);return value.toISOString().slice(0,10)};
 const slipDays=(businessDate:string)=>[businessDate,previousDay(businessDate)];
 const normalizedReference=(value:string)=>value.replace(/[\s-]/g,'').toUpperCase();
