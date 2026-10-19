@@ -16,6 +16,7 @@
   - "public.pwa_push_subscriptions"
   - "public.pwa_notification_preferences"
   - "public.pwa_job_runs"
+  - "public.pwa_row_changes"
   "browser_routes":
   - "GET /api/notifications"
   - "GET /api/notifications/status"
@@ -62,6 +63,20 @@
   "subscription_privilege": "Device subscription, revoke and preference are read-capability actions; the store resolves the\
     \ actor with capability read for every route (services/notifications/store.mjs). Accepted by the owner, 16 October 2026\
     \ (APP-NOTIFY-01)."
+  "row_change_log":
+    "table": "public.pwa_row_changes"
+    "columns": "seq bigint identity primary key; table_name text; row_key text (primary key text, or '*' after a TRUNCATE);\
+      \ txid xid8 default pg_current_xact_id(); changed_at timestamptz default clock_timestamp()"
+    "index": "pwa_row_changes_table_seq (table_name, seq)"
+    "writers": "AFTER ROW trigger zzzzzzz_pwa_row_change on 19 source tables and AFTER TRUNCATE statement trigger zzzzzzz_pwa_row_truncate,\
+      \ both ENABLE ALWAYS; SECURITY DEFINER function pwa_track_row_change() owned by mw_changes_owner_<env> with a pinned\
+      \ search_path"
+    "retention": "pwa_row_changes_prune_v1() deletes rows older than 7 days but keeps the newest row; run by the hourly recent-analytics\
+      \ job branch"
+    "access": "mw_app_<env> SELECT only (table and identity sequence)"
+    "readers": "offline dataset protocol 4 (since cursor {seq, xmin}); an unreadable or missing table makes the server omit\
+      \ the change cursor and walk"
+    "status": "V97 authorized up to DEV on 19 October 2026; PROD applies only on a promotion instruction with a verified backup"
 "evidence":
   "/content/offline_history":
     "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
@@ -91,4 +106,14 @@
     "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
       \ paths"
     "reason": "APP-NOTIFY-01 privilege decision; ALL-ARCH-07 module path rename; APP-OFFLINE-06 protocol 1 retired"
+    "state": "value"
+  "/content/tables":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/666ec55/database/migrations/V97__pwa_row_changes.sql"
+    "reason": "R078 item 7: V97 pwa_row_changes change log (DEV-authorized 19 October 2026, not yet applied; PROD needs promotion\
+      \ approval and backup); read-service use in protocol 4"
+    "state": "value"
+  "/content/row_change_log":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/666ec55/database/migrations/V97__pwa_row_changes.sql"
+    "reason": "R078 item 7: V97 pwa_row_changes change log (DEV-authorized 19 October 2026, not yet applied; PROD needs promotion\
+      \ approval and backup); read-service use in protocol 4"
     "state": "value"
