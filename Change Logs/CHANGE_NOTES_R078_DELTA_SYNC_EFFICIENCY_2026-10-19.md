@@ -24,6 +24,17 @@ Owner decisions and additions of 19 October 2026:
 - Data-check warning UX-RECON-01..07 (`666ec55`): a mismatch that persists after its heal is shown above Full sync, as a header indicator beside the refresh icon, as a dot on the side-menu All synced button and as one toast per new occurrence; a later match, a Full sync followed by a check of the flagged areas, or sign-out clears it.
 - Day-change delta (`825fdc1`): request level 4 `dates`, 14-day limit; date-independent keys are kept with their business date moved and the rest re-read (records combines row changes, cash walks on any change, management accepts only changes feeding re-read keys, including Byte's two moves); the test-only `pinOfflineBusinessDate` is refused under `K_SERVICE`.
 
+### Follow-up batch (19 Oct): collection and cash row deltas, own receipt seeding
+The owner approved this batch on 19 October 2026 ("go ahead with both before production") after the DEV measurement of the merged work (14:45 to 14:49 UTC, owner's session; PROD baseline in brackets):
+- Unchanged poll: 2 requests, about 0.05 s server [5 requests, 1.7 s server, 3.2 s wall]. Authenticated request floor 0.02 to 0.05 s [about 0.27 s].
+- First sync after the update: about 26 s, 47 requests, about 3.3 MB. Full sync: about 14 s, 32 requests, about 0.9 MB.
+- Post-write cycle: about 10 s. Records went through v4 in about 1 s, but collection walked (13 requests, about 6 s) and cash walked (15 requests, about 8 s).
+- The own receipt was downloaded again (283 KB), because PaymentResult is not mounted on the online path.
+
+Changes:
+- Collection and cash row deltas (`8b274b8c`, `746d8799`): client level 5 with a `rowDeltas` flag (a 400 steps down 5 to 4 to 3) and a new `replaceWhere` patch mode. Collection: per-borrower scope, including borrowers of allocated or repaid charges; it walks on a Cash Accounts change, an unmapped table, a borrower hidden now, more than 8 borrowers or a missing row. Cash: per-account-day scope from max(date, window start); Borrowers and Partners map to their statement days instead of walking (rollup triggers update Borrowers on every payment); it walks on Cash Accounts, Cash Holders, Cash Statement Context, r008, a missing ledger row, more than 30 account-days (`CASH_ACCOUNT_DAY_LIMIT`) or `TARGETED_LIMITS`. Client moved-row checks `deltaMovesRows` and `deltaScopeMoves`. Orchestrator decision: a rename or hide/unhide may be a delta, as long as it stays byte-equal to a walk and the reconciliation matches. The fingerprint stays the authority.
+- Own receipt seeding (`20a65f10`, `seedOwnReceipt`): the local file is stored for the payment when its SHA-256, size and type match the upload descriptor, otherwise one shared verified download is used. Seeded on the online post (`SelectedCharges.confirmOwnPayment`), a queued sync, a correction and a loan close; `PaymentResult` is a fallback only.
+
 ## Baseline
 PROD, window 17 October 00:00 to 19 October 2026 (Bangkok), 17,051 request-log rows, from the report script (metadata only):
 
@@ -54,6 +65,9 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 | Chase's labs: v4 equality against a fresh walk (serial, disposable clusters) | Pass, 22 scenarios plus the late-commit cursor |
 | Chase's labs: reconciliation, per-key corruption | Pass, 49 cases detected and healed, plus a reconcile match after every scenario |
 | Chase's labs: day change under a shifted database clock (libfaketime) | Pass, 4 month-end cases (31 Oct, 30 Nov, 31 Dec, 28 Feb) |
+| Follow-up batch, Byte at `746d8799` (clean tree) | Pass: lint, typecheck, `npm test` 722/722; e2e 56/56 and 190/190; new specs `offline-row-delta.test.mjs` and `own-receipt-seed-independent.spec.ts` |
+| Follow-up batch, Chase's collection/cash lab at `9295fbd0` (`c7dcf956`, `b11c72af`, `3898b67d`, `9295fbd0`), fresh libfaketime cluster | Pass 4/4, including the attack scenarios (renames across accounts, partner rename, cross-borrower allocations and repayments, ledger moves, loan and charge moves, limit breaches) |
+| Follow-up batch, Chase's other labs | Day-change clock lab 1/1; records equality, reconcile and v4 labs 5/5; targeted e2e 12/12 |
 | Echo's UX check: local build of `666ec55` in Chromium at iPhone size (390x844, touch), mocked fixtures | Fine: UX-LIST-01/03, UX-FULL-01..06 (progress monotonic in a full sync, 0 to 94 to done), UX-RECON-01..07; Echo agreed with "Open troubleshooting" and colour #8b1a1a. Fixed in `333cf89` (CSS): UX-CHK-01 data-check toast covered SyncedToast on mobile, UX-CHK-02 troubleshooting link now a 44 px touch target, UX-CHK-03 Full sync button has a disabled look while it runs. UX-CHK-04 fixed in `6607b22` (Byte): while `localPending` is set, Correct, Move interest and Delete carry the title "Available once confirmed" / "ใช้ได้หลังยืนยันแล้ว"; `tests/e2e/payment-confirming-independent.spec.ts` passes 2/2 on desktop and mobile; lint, typecheck and `npm test` 715/715 on a clean tree |
 | `npm run check:docs` | 0 failures at this note's commit |
 | PR #84 CI: `Development checks` run 39266899206 | Pass (green, e2e shards 1 to 3 run in full) |
@@ -74,7 +88,8 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 - The iPhone client-gap composition (needs client timing capture).
 - Thai rendering (checked in code only), a real recorded payment switching from Confirming to confirmed, and WebKit or a real iPhone for the UX check.
 - A signed-in offline-dataset call returning the `changes` cursor on DEV (needs the owner's sign-in).
-- The before/after measurement on DEV.
+- The before/after measurement on DEV, and the DEV re-measurement after the follow-up deploy.
+- A SHA, size or webp mismatch of the seeded receipt in a real browser; WebKit or a real iPhone for the follow-up batch.
 - V97 in PROD (authorized up to DEV; PROD needs a promotion instruction and a verified backup). No PROD action.
 
 ## Recovery
@@ -84,4 +99,4 @@ Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion n
 PROD promotion instruction for V97 and the release (the owner authorized up to DEV only).
 
 ## Remaining work
-The owner's DEV check, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
+PR, DEV deploy and re-measurement of the follow-up batch, the owner's DEV check, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.

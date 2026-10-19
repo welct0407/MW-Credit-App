@@ -71,3 +71,28 @@ test('a seeded receipt keeps the server receipt time even when the device clock 
  }
  assert.equal(own.seededReceiptTime('not a time'),null);assert.equal(own.seededReceiptTime(null),null);
 });
+
+// R078 follow-up: the own receipt is seeded under the payment's media key: the local file when it is the stored
+// object (upload sha256 and size), otherwise one download shared by every caller; only for a matching Posted payment.
+test('seedPaymentReceipt: matching file stored without a download; a different file fetched once; wrong receipt or no receiptAt skipped',async()=>{
+ const {createHash}=await import('node:crypto');
+ const fetches=[];const fetch=async url=>{fetches.push(String(url));return {ok:true,status:200,headers:new Map([['content-type','image/png']]),blob:async()=>new Blob(['server-bytes'],{type:'image/png'})}};
+ const media=new Map(),saves=[];
+ const repo={scopeName:'seed-scope',readRevision:async()=>3,readDatasetMedia:async key=>media.get(key)??null,saveDatasetMedia:async(key,value,revision,savedAt)=>{saves.push({key,size:value.size,revision,savedAt});media.set(key,{data:value,savedAt});return true}};
+ const seed=load({fetch,Blob,crypto:globalThis.crypto});
+ const access={origin:'https://lm.example.invalid',offline:repo,token:async()=>'t',authFailure:()=>{}};
+ const receiptId='11111111-2222-4333-8444-555555555555',file=new Blob(['local-bytes'],{type:'image/png'}),sha=createHash('sha256').update('local-bytes').digest('hex');
+ const payment=(id,extra={})=>({id,status:'Posted',receiptReference:'manual-receipts/dev/pwa/'+'a'.repeat(32)+'/'+receiptId.replace(/-/g,'')+'.png',receiptAt:'2026-10-19T03:00:00.000Z',...extra});
+ assert.equal(await seed.seedPaymentReceipt(access,payment('pay-1'),{receiptId,file,descriptor:{sha256:sha,sizeBytes:file.size},requestId:'req-1'}),'seeded');
+ assert.deepEqual(fetches,[],'a matching file is not downloaded');assert.deepEqual(saves.map(row=>[row.key,row.size,row.savedAt]),[[seed.ownReceiptKey(access.origin,'pay-1'),file.size,Date.parse('2026-10-19T03:00:00.000Z')]]);
+ assert.equal(await seed.seedPaymentReceipt(access,payment('pay-1'),{receiptId,file,descriptor:{sha256:sha,sizeBytes:file.size},requestId:'req-1'}),'stored','an already stored receipt is kept');
+ // A different local file (the server re-encoded it, or no descriptor): one download, shared with the posted screen.
+ const other='22222222-3333-4444-8555-666666666666',otherPayment=payment('pay-2',{receiptReference:'manual-receipts/dev/pwa/'+'b'.repeat(32)+'/'+other.replace(/-/g,'')+'.jpg'});
+ const [shown,seeded]=await Promise.all([seed.verifiedOwnReceipt(access,'req-2',other,{file,descriptor:{sha256:'0'.repeat(64),sizeBytes:file.size}}),seed.seedPaymentReceipt(access,otherPayment,{receiptId:other,file,descriptor:{sha256:'0'.repeat(64),sizeBytes:file.size},requestId:'req-2'})]);
+ assert.equal(seeded,'fetched');assert.equal(fetches.length,1,'one download for the preview and the seed');assert.equal(shown.size,'server-bytes'.length);
+ assert.equal((await seed.verifiedOwnReceipt(access,'req-2',other)).size,'server-bytes'.length);assert.equal(fetches.length,1,'a later caller reuses it');
+ for(const [label,value] of [['another receipt',payment('pay-3',{receiptReference:'manual-receipts/dev/pwa/'+'c'.repeat(32)+'/'+'d'.repeat(32)+'.png'})],['no receiptAt',payment('pay-4',{receiptAt:null})],['not Posted',payment('pay-5',{status:'Processing'})]])
+  assert.equal(await seed.seedPaymentReceipt(access,value,{receiptId,file,descriptor:{sha256:sha,sizeBytes:file.size},requestId:'req-3'}),'skipped',label);
+ assert.equal(saves.length,2);assert.equal(fetches.length,1);
+ assert.equal(await seed.sameReceipt(file,{sha256:sha,sizeBytes:file.size+1}),false,'size must match too');
+});

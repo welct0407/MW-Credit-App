@@ -106,27 +106,32 @@ const borrowerUpcomingCte=`${collectionCte}, forecast_events AS MATERIALIZED (
  FROM public."Borrowers" parent_b LEFT JOIN forecast_coverage cov ON cov."Ref Borrower"=parent_b."Row ID" WHERE parent_b."Hidden Flag" IS NOT TRUE OR EXISTS(SELECT 1 FROM summaries WHERE summaries.id=parent_b."Row ID")
 )`;
 const upcomingContextError=(row,stamp)=>row.invalid||!validUpcomingDate(row.sourceDate)||!validUpcomingDate(row.horizonEnd)||row.horizonEnd!==row.expectedHorizonEnd||!Number.isInteger(row.reviewLoans)||row.reviewLoans<0||!Array.isArray(row.dates)||row.dates.length>5?'source_unavailable':row.sourceDate!==stamp.businessDate?'business_date_changed':null;
-async function borrowerUpcomingMetadata(c,a,stamp,state){
- const rows=(await c.query(`${borrowerUpcomingCte} SELECT * FROM upcoming_context WHERE ($3::text IS NULL OR id COLLATE "C">$3 COLLATE "C") ORDER BY id COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state)])).rows,patches=[];
+/** ids (R078 row delta): only these borrowers' entries, in the walk's order. */
+const borrowerUpcomingMetadata=(ids=null)=>async function borrowerUpcomingMetadata(c,a,stamp,state){
+ const rows=(await c.query(`${borrowerUpcomingCte} SELECT * FROM upcoming_context WHERE ($3::text IS NULL OR id COLLATE "C">$3 COLLATE "C") AND ($4::text[] IS NULL OR id=ANY($4::text[])) ORDER BY id COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state),ids])).rows,patches=[];
  for(const row of rows.slice(0,128))for(const scope of ['borrower','collection'])if(row[scope==='borrower'?'directory':'collection']){
   const error=upcomingContextError(row,stamp),context={...stamp,timezone:'Asia/Bangkok',horizonEnd:row.horizonEnd,reviewRequired:row.reviewLoans>0};
   if(!error&&row.dates.some(date=>!validBorrowerId(date.id)||!validUpcomingDate(date.dueDate)||date.dueDate<=stamp.businessDate||date.dueDate>row.horizonEnd||(date.totalCharge!==null&&(typeof date.totalCharge!=='string'||! /^-?\d+(?:\.\d+)?$/.test(date.totalCharge)))))throw Error('source_unavailable');
   patches.push(replace('borrowerUpcomingByKey',error?{borrowerId:row.id,scope,error}:{borrowerId:row.id,scope,...context,items:row.dates,previews:row.dates.map(date=>({ok:true,source:'dev',...context,dueDate:date.dueDate,totalCharge:date.totalCharge,items:[],nextCursor:null}))},[JSON.stringify([scope,row.id])]));
  }
  return result(patches,rows.length>128?rows[127].id:null);
-}
-async function borrowerUpcomingEvents(c,a,stamp,state){
+};
+const borrowerUpcomingEvents=(ids=null)=>async function borrowerUpcomingEvents(c,a,stamp,state){
  const after=state??{loanId:null,id:null};if(state){object(state,['loanId','id']);if(!validBorrowerId(state.loanId)||!validBorrowerId(state.id))throw Error('invalid_request')}
- const rows=(await c.query(`${borrowerUpcomingCte} SELECT ctx.*,e."Row ID" AS "eventId",e."Ref Loan" AS "loanId",e."Due Date"::text AS "dueDate",e."Principal Remaining"::text AS "principalRemaining",e."Interest Remaining"::text AS "interestRemaining",e."Amount Remaining"::text AS "amountRemaining",e."Basis" AS basis,b."Borrower Name" AS name,b."Description" AS description,l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate FROM forecast_events e JOIN upcoming_context ctx ON ctx.id=e."Ref Borrower" JOIN public."Loans" l ON l."Row ID"=e."Ref Loan" AND l."Ref Borrowers"=ctx.id JOIN public."Borrowers" b ON b."Row ID"=ctx.id WHERE ($3::text IS NULL OR (e."Ref Loan" COLLATE "C",e."Row ID" COLLATE "C")>($3 COLLATE "C",$4 COLLATE "C")) ORDER BY e."Ref Loan" COLLATE "C",e."Row ID" COLLATE "C" LIMIT 129`,[stamp.businessDate,null,after.loanId,after.id])).rows,groups=new Map();
+ const rows=(await c.query(`${borrowerUpcomingCte} SELECT ctx.*,e."Row ID" AS "eventId",e."Ref Loan" AS "loanId",e."Due Date"::text AS "dueDate",e."Principal Remaining"::text AS "principalRemaining",e."Interest Remaining"::text AS "interestRemaining",e."Amount Remaining"::text AS "amountRemaining",e."Basis" AS basis,b."Borrower Name" AS name,b."Description" AS description,l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate FROM forecast_events e JOIN upcoming_context ctx ON ctx.id=e."Ref Borrower" JOIN public."Loans" l ON l."Row ID"=e."Ref Loan" AND l."Ref Borrowers"=ctx.id JOIN public."Borrowers" b ON b."Row ID"=ctx.id WHERE ($3::text IS NULL OR (e."Ref Loan" COLLATE "C",e."Row ID" COLLATE "C")>($3 COLLATE "C",$4 COLLATE "C")) AND ($5::text[] IS NULL OR ctx.id=ANY($5::text[])) ORDER BY e."Ref Loan" COLLATE "C",e."Row ID" COLLATE "C" LIMIT 129`,[stamp.businessDate,null,after.loanId,after.id,ids])).rows,groups=new Map();
  for(const row of rows.slice(0,128)){if(upcomingContextError(row,stamp))continue;const index=row.dates.findIndex(date=>date.dueDate===row.dueDate);if(index<0)throw Error('source_unavailable');const item=projectUpcomingEvent({...row,id:row.eventId});for(const scope of ['borrower','collection'])if(row[scope==='borrower'?'directory':'collection']){const key=JSON.stringify([scope,row.id]),groupKey=JSON.stringify([key,index]);if(!groups.has(groupKey))groups.set(groupKey,{key,index,items:[]});groups.get(groupKey).items.push(item)}}
  return result([...groups.values()].map(({key,index,items})=>append('borrowerUpcomingByKey',items,[key,'previews',String(index),'items'])),rows.length>128?{loanId:rows[127].loanId,id:rows[127].eventId}:null);
-}
+};
+// The collection's charge and receipt reads, shared by the walk and the R078 row delta (same columns and order).
+const chargeColumns=`borrower_id,id,loan_id,payment_status,borrower_name,borrower_description,principal_amount,loan_date,original_rate,charge_date::text AS charge_date,payment_date::text AS payment_date,amount_remaining::text AS amount_remaining,total_paid::text AS total_paid,received_today::text AS received_today`;
+const projectCharge=row=>({borrowerId:row.borrower_id,...projectCollectionCharge(row)});
+const receiptSql=where=>`${collectionCte} SELECT p."Row ID" id,p."Ref Borrower" AS "borrowerId",p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text amount,(nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL) AS "manualReceiptPresent",(nullif(btrim(p."Receipt Image"),'') IS NOT NULL) AS "agentReceiptPresent",(CASE WHEN nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL THEN p."Uploaded Receipt At" ELSE p."Receipt Received At" END)::text AS "receiptAt",array_agg(DISTINCT e.id) AS "chargeIds" FROM public."Payments" p JOIN public."Payment Allocations" a ON a."Ref Payment"=p."Row ID" JOIN eligible e ON e.id=a."Ref Charge" AND e.borrower_id=p."Ref Borrower" WHERE p."Status"='Posted' AND a."Allocated Amount"::numeric>0 AND ${where} GROUP BY p."Row ID" ORDER BY p."Row ID" COLLATE "C"`;
 const collectionPhases=[
  page('items',(c,cursor)=>readCollection(c,{limit:100,after:decodeCollectionCursor(cursor,'collection')})),
- async(c,a,stamp,state)=>{const rows=(await c.query(`${collectionCte} SELECT borrower_id,id,loan_id,payment_status,borrower_name,borrower_description,principal_amount,loan_date,original_rate,charge_date::text AS charge_date,payment_date::text AS payment_date,amount_remaining::text AS amount_remaining,total_paid::text AS total_paid,received_today::text AS received_today FROM eligible WHERE ($3::text IS NULL OR id COLLATE "C">$3 COLLATE "C") ORDER BY id COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('charges',rows.slice(0,128).map(row=>({borrowerId:row.borrower_id,...projectCollectionCharge(row)})))],rows.length>128?rows[127].id:null)},
+ async(c,a,stamp,state)=>{const rows=(await c.query(`${collectionCte} SELECT ${chargeColumns} FROM eligible WHERE ($3::text IS NULL OR id COLLATE "C">$3 COLLATE "C") ORDER BY id COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('charges',rows.slice(0,128).map(projectCharge))],rows.length>128?rows[127].id:null)},
  async(c,a,stamp,state)=>{const value=await readStandaloneUpcoming(c,{limit:100,cursor:text(state)}),{items,nextCursor,...metadata}=value;const {dateTotals,...context}=metadata;return result([...(state?[]:[replace('upcoming',{...metadata,items:[],nextCursor:null})]),append('upcoming',items,['items']),...items.map(row=>replace('upcomingDetailsByKey',{...context,borrowerId:row.borrowerId,borrowerLabel:row.label,dueDate:row.dueDate,totalCharge:row.totalCharge,items:[],nextCursor:null},[JSON.stringify([row.borrowerId,row.dueDate])]))],nextCursor)},
- upcomingDetail,borrowerUpcomingMetadata,borrowerUpcomingEvents,
- async(c,a,stamp,state)=>{const rows=(await c.query(`${collectionCte} SELECT p."Row ID" id,p."Ref Borrower" AS "borrowerId",p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text amount,(nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL) AS "manualReceiptPresent",(nullif(btrim(p."Receipt Image"),'') IS NOT NULL) AS "agentReceiptPresent",(CASE WHEN nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL THEN p."Uploaded Receipt At" ELSE p."Receipt Received At" END)::text AS "receiptAt",array_agg(DISTINCT e.id) AS "chargeIds" FROM public."Payments" p JOIN public."Payment Allocations" a ON a."Ref Payment"=p."Row ID" JOIN eligible e ON e.id=a."Ref Charge" AND e.borrower_id=p."Ref Borrower" WHERE p."Status"='Posted' AND a."Allocated Amount"::numeric>0 AND ($3::text IS NULL OR p."Row ID" COLLATE "C">$3 COLLATE "C") GROUP BY p."Row ID" ORDER BY p."Row ID" COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('receipts',rows.slice(0,128))],rows.length>128?rows[127].id:null)}
+ upcomingDetail,borrowerUpcomingMetadata(),borrowerUpcomingEvents(),
+ async(c,a,stamp,state)=>{const rows=(await c.query(`${receiptSql('($3::text IS NULL OR p."Row ID" COLLATE "C">$3 COLLATE "C")')} LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('receipts',rows.slice(0,128))],rows.length>128?rows[127].id:null)}
 ];
 
 /** from (R078 day change): only account-days on or after this date. */
@@ -339,4 +344,102 @@ export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments
  if(dashboard)patches.push(replace('dashboard',await readDashboard(client)));
  within(0,0);
  return patches.list.filter(patch=>patch.mode!=='upsert'&&patch.mode!=='remove'||patch.value.length>0);
+}
+
+// R078 row deltas for collection and cash (owner, 19 October 2026: post-write cycle under 3 s). Same contract as
+// the records delta: a resolver returns null (walk) for anything it cannot map safely; the targeted read throws
+// 'targeted_limit' above TARGETED_LIMITS (the caller walks). The client checks rows that may have left the scope
+// (shared deltaMovesRows / deltaScopeMoves): the change log has no old values.
+const replaceWhere=(key,field,values,value,sort)=>({key,mode:'replaceWhere',field,values,value,...(sort?{sort}:{})});
+const rowPatchValues=patches=>patches.reduce((sum,patch)=>sum+(['append','upsert','replaceWhere'].includes(patch.mode)?patch.value.length:1),0);
+/** Every page of one phase, as the walk writes it. */
+async function phasePages(phase,c,a,stamp){const patches=[];let state=null;for(let page=0;page<200;page++){const value=await phase(c,a,stamp,state);patches.push(...value.patches);state=value.state;if(state===null)return patches}throw Error('source_unavailable')}
+function rowBudget(){
+ const started=Date.now(),list=[];
+ return {list,push(...items){list.push(...items);if(rowPatchValues(list)>4*MAX_CHUNK_VALUES||Date.now()-started>TARGETED_LIMITS.milliseconds)throw Error('targeted_limit')}};
+}
+const collectionRowTables=['Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Cash Ledger','pwa_payment_commands'];
+/** Collection works per borrower, through the records lookups. A Cash Accounts change, an unmapped table or a
+ * hidden changed borrower walks. loans: the changed loans (the client checks they did not leave a borrower). */
+export async function resolveCollectionScope(client,changes){
+ if(changes.some(row=>!collectionRowTables.includes(row.table)))return null;
+ const scope=await resolveRecordsScope(client,changes);if(!scope)return null;
+ const changed=sortIds(changes.filter(row=>row.table==='Borrowers').map(row=>row.key));
+ if(changed.length&&(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=ANY($1::text[]) AND "Hidden Flag" IS TRUE LIMIT 1',[changed])).rowCount)return null;
+ // A changed payment also touches the borrowers whose charges it is allocated to or repays (receipts list it
+ // under them, so a payment moved to another borrower leaves its old borrower's row).
+ const payments=sortIds(changes.filter(row=>row.table==='Payments').map(row=>row.key));
+ const charged=payments.length?(await client.query(`SELECT l."Ref Borrowers" AS id FROM public."Payment Allocations" a JOIN public."Charges" c ON c."Row ID"=a."Ref Charge" JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" WHERE a."Ref Payment"=ANY($1::text[]) UNION SELECT l."Ref Borrowers" AS id FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" WHERE r."Ref Payment"=ANY($1::text[])`,[payments])).rows.map(row=>row.id):[];
+ const borrowers=sortIds([...scope.borrowers,...charged]);if(borrowers.length>TARGETED_LIMITS.borrowers)return null;
+ return {borrowers,loans:sortIds(changes.filter(row=>row.table==='Loans').map(row=>row.key))};
+}
+/** items, upcoming and upcomingDetailsByKey whole; charges, receipts and borrowerUpcomingByKey for the borrowers. */
+export async function readCollectionTargeted(client,actor,stamp,{borrowers}){
+ const B=sortIds(borrowers),patches=rowBudget();
+ patches.push(replace('items',[]),...await phasePages(collectionPhases[0],client,actor,stamp));
+ patches.push(replace('upcomingDetailsByKey',{}),...await phasePages(collectionPhases[2],client,actor,stamp),...await phasePages(collectionPhases[3],client,actor,stamp));
+ if(B.length){
+  const charges=(await client.query(`${collectionCte} SELECT ${chargeColumns} FROM eligible WHERE borrower_id=ANY($3::text[]) ORDER BY id COLLATE "C"`,[stamp.businessDate,null,B])).rows;
+  if(charges.length>TARGETED_LIMITS.charges)throw Error('targeted_limit');
+  patches.push(replaceWhere('charges','borrowerId',B,charges.map(projectCharge),'id'));
+  patches.push(removeRows('borrowerUpcomingByKey',B.flatMap(id=>['borrower','collection'].map(scope=>JSON.stringify([scope,id])))),...await phasePages(borrowerUpcomingMetadata(B),client,actor,stamp),...await phasePages(borrowerUpcomingEvents(B),client,actor,stamp));
+  const receipts=(await client.query(receiptSql('p."Ref Borrower"=ANY($3::text[])'),[stamp.businessDate,null,B])).rows;
+  patches.push(replaceWhere('receipts','borrowerId',B,receipts,'id'));
+ }
+ return patches.list;
+}
+const cashWalkTables=['Cash Accounts','Cash Holders','Cash Statement Context','r008_cash_account_cutover'];
+const cashOverviewTables=['Cash Pool Contributions','Repayments'];
+// Rows whose labels a statement item shows (cash_statement_account_effects, readCashStatement): their ledger rows'
+// account-days are re-read, nothing later (labels do not move balances).
+const ledgerColumns='g."Row ID" AS id,g."Ref From Cash Account" AS "from",g."Ref To Cash Account" AS "to",g."Movement Date"::text AS day';
+const cashLabelSql={
+ Payments:`SELECT ${ledgerColumns} FROM public."Cash Ledger" g WHERE g."Ref Payment"=ANY($1::text[])`,
+ Loans:`SELECT ${ledgerColumns} FROM public."Cash Ledger" g WHERE g."Ref Loan"=ANY($1::text[])`,
+ 'Business Expenses':`SELECT ${ledgerColumns} FROM public."Cash Ledger" g WHERE g."Ref Business Expense"=ANY($1::text[])`,
+ Settlements:`SELECT ${ledgerColumns} FROM public."Cash Ledger" g WHERE g."Ref Settlement"=ANY($1::text[])`,
+ Partners:`SELECT ${ledgerColumns} FROM public."Cash Ledger" g JOIN public."Settlements" st ON st."Row ID"=g."Ref Settlement" WHERE st."Ref Partner"=ANY($1::text[])`,
+ Borrowers:`SELECT ${ledgerColumns} FROM public."Cash Ledger" g LEFT JOIN public."Payments" p ON p."Row ID"=g."Ref Payment" LEFT JOIN public."Loans" n ON n."Row ID"=g."Ref Loan" LEFT JOIN public."Business Expenses" e ON e."Row ID"=g."Ref Business Expense" WHERE coalesce(p."Ref Borrower",n."Ref Borrowers",e."Ref Payee Borrower")=ANY($1::text[])`,
+};
+export const CASH_ACCOUNT_DAY_LIMIT=30;
+/** Cash works per account-day. A changed ledger row re-reads its accounts from its date (or the window's start)
+ * onward, since a backdated row shifts later running balances; a label row re-reads its ledger rows' days. A
+ * change to accounts, holders, statement context or the R008 cutover, a missing ledger row, an unmapped table or
+ * more than CASH_ACCOUNT_DAY_LIMIT account-days walks. */
+export async function resolveCashScope(client,changes){
+ const keys=new Map();for(const {table,key} of changes){if(!keys.has(table))keys.set(table,new Set());keys.get(table).add(key)}
+ const shift=[],labels=[];let ledgerIds=[];
+ for(const [table,set] of keys){
+  if(cashWalkTables.includes(table))return null;
+  if(cashOverviewTables.includes(table))continue;
+  const ids=sortIds(set);
+  if(table==='Cash Ledger'){const rows=(await client.query(`SELECT ${ledgerColumns} FROM public."Cash Ledger" g WHERE g."Row ID"=ANY($1::text[])`,[ids])).rows;if(rows.length!==ids.length)return null;shift.push(...rows);ledgerIds=ids;continue}
+  const sql=cashLabelSql[table];if(!sql)return null;
+  labels.push(...(await client.query(sql,[ids])).rows);
+ }
+ const accounts=sortIds([...shift,...labels].flatMap(row=>[row.from,row.to]));
+ const window=accounts.length?(await client.query(`SELECT "Ref Cash Account" AS account,"Statement Date"::text AS day FROM public."Cash Account Daily Summary Recent" WHERE "Ref Cash Account"=ANY($1::text[]) ORDER BY "Ref Cash Account" COLLATE "C","Statement Date"`,[accounts])).rows:[];
+ const days=new Map();for(const row of window){if(!days.has(row.account))days.set(row.account,[]);days.get(row.account).push(row.day)}
+ const from={},wanted=new Set();
+ for(const row of shift)for(const account of [row.from,row.to]){if(!account)continue;const list=days.get(account)??[];if(!list.length)continue;const start=row.day>list[0]?row.day:list[0];if(from[account]===undefined||start<from[account])from[account]=start}
+ for(const [account,start] of Object.entries(from))for(const day of days.get(account)??[])if(day>=start)wanted.add(JSON.stringify([account,day]));
+ for(const row of labels)for(const account of [row.from,row.to])if(account&&(days.get(account)??[]).includes(row.day))wanted.add(JSON.stringify([account,row.day]));
+ if(wanted.size>CASH_ACCOUNT_DAY_LIMIT)return null;
+ const accountDays=[...wanted].map(key=>JSON.parse(key)).sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:a[1]<b[1]?-1:a[1]>b[1]?1:0);
+ return {accountDays,from,ledgerIds};
+}
+/** overview and preferences whole, and every re-read account-day statement exactly as the walk writes it. */
+export async function readCashTargeted(client,actor,stamp,{accountDays}){
+ const patches=rowBudget();
+ patches.push(replace('overview',await readCashOverview(client)),replace('preferences',await readPreferences(client,actor)));
+ for(const [accountId,date] of accountDays){
+  const key=JSON.stringify([accountId,date]);let cursor=null;
+  for(let page=0;;page++){
+   if(page>=200)throw Error('source_unavailable');
+   const value=await readCashStatement(client,{accountId,date,limit:100,cursor}),{items,nextCursor,...metadata}=value;
+   patches.push(...(cursor?[]:[replace('statementsByKey',{...metadata,items:[],nextCursor:null},[key])]),append('statementsByKey',items,[key,'items']));
+   if(!nextCursor)break;cursor=nextCursor;
+  }
+ }
+ return patches.list;
 }

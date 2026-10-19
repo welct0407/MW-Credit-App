@@ -38,7 +38,7 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags}={}){
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null}={}){
  const navigator={onLine:true};
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
@@ -46,7 +46,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
  const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
  async function fetch(url,init){
   const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
-  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,since:body.since??null,dates:body.dates===true,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
+  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,since:body.since??null,dates:body.dates===true,rowDeltas:body.rowDeltas===true,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
   inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
   try{
    await tick();
@@ -56,6 +56,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
     return reply(200,{schemaVersion:3,domain,...stamp,reconcile:true,result:body.sourceVersion!==version(domain)&&!walks[domain]?'stale':keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null})}
    if(rejectVersions&&body.versions)return reply(400,{code:'invalid_request'});
    if(rejectDates&&body.dates)return reply(400,{code:'invalid_request'});
+   if(rowDelta&&body.rowDeltas&&body.since&&!body.cursor&&rowDelta.domain===domain)return reply(200,{...encodeDeltaChunk({domain,generation:'v4:40',startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),delta:true,patches:rowDelta.patches,scope:rowDelta.scope,complete:true,nextCursor:null,progress:{completed:1,total:1},changes:{seq:'40',xmin:'800',businessDate:stamp.businessDate}},body.need??[],{dates:true}),schemaVersion:4});
    // R078 day change: a since request of an earlier business date re-reads in dayChange.chunks responses.
    const dayStamp={asOf:'2026-10-20T01:00:00.000Z',businessDate:'2026-10-20'},dayStep=typeof body.cursor==='string'&&body.cursor.startsWith('day:')?Number(body.cursor.slice(4)):body.since&&body.dates&&dayChange?.domains.includes(domain)?0:null;
    if(dayStep!==null){
@@ -341,5 +342,27 @@ test('after a Full sync only the flagged areas are checked, outside the slot, an
   await until(()=>flagged(h).length===0,6000);
   assert.deepEqual(h.reconciles.map(entry=>entry.domain+':'+entry.result),['management:match']);
   assert.equal(h.repo.rows.get('meta:reconciled-at'),bangkok(19,6,30),'the slot pass is untouched');assert.equal(h.state().dataCheckDomains,'');
+ }finally{h.stop()}
+});
+// R078 row deltas (level 5): collection and cash send rowDeltas with their change cursor and apply replaceWhere.
+const rowBundle=()=>({...complete('collection'),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'}],charges:[{id:'c1',borrowerId:'A',loanId:'L1'},{id:'c2',borrowerId:'B',loanId:'L2'}]}});
+test('a collection row delta replaces one borrower\'s rows in the walk order and stores the new cursor without walking',async()=>{
+ const patches=[{key:'charges',mode:'replaceWhere',field:'borrowerId',values:['B'],value:[{id:'c3',borrowerId:'B',loanId:'L2'},{id:'c0',borrowerId:'B',loanId:'L2'}],sort:'id'}];
+ const h=harness({walks:{collection:1},stored:{collection:rowBundle()},rowDelta:{domain:'collection',patches,scope:{borrowers:['B'],loans:[]}}});try{
+  await settled(h);
+  const collection=h.requests.filter(request=>request.domain==='collection');
+  assert.ok(collection[0].rowDeltas&&collection[0].since,'collection sends rowDeltas and its cursor');assert.ok(collection.every(request=>!request.cursor),'no walk');
+  assert.ok(h.requests.filter(request=>request.domain==='management').every(request=>!request.rowDeltas),'management never asks for row deltas');
+  const bundle=JSON.parse(JSON.stringify(h.repo.rows.get('dataset:collection')));
+  assert.deepEqual(bundle.data.charges.map(row=>row.id),['c0','c1','c3']);assert.deepEqual(bundle.changes,{seq:'40',xmin:'800',businessDate:stamp.businessDate});assert.equal(bundle.sourceVersion,changed('collection'));
+ }finally{h.stop()}
+});
+test('a collection row delta whose changed loan is still held under another borrower walks instead',async()=>{
+ const patches=[{key:'charges',mode:'replaceWhere',field:'borrowerId',values:['B'],value:[{id:'c2',borrowerId:'B',loanId:'L2'}],sort:'id'}];
+ const h=harness({walks:{collection:1},stored:{collection:rowBundle()},rowDelta:{domain:'collection',patches,scope:{borrowers:['B'],loans:['L1']}}});try{
+  await settled(h);
+  const collection=h.requests.filter(request=>request.domain==='collection');
+  assert.ok(collection.slice(1).some(request=>!request.since&&!request.need),'the next request walks');
+  assert.deepEqual(JSON.parse(JSON.stringify(h.repo.rows.get('dataset:collection').data)),{items:[{id:'collection-0'}]});
  }finally{h.stop()}
 });
