@@ -25,7 +25,18 @@ The owner's first switch of the Instagram receipt cycle to Gemini (18 October 20
 
 ## Not run
 - Lab suites (no SQL or state change); CI runs them.
-- A real receipt through the Gemini cycle: none has arrived yet.
+
+## Follow-up check 19 Oct 13:00Z
+Read-only, on the VM as `mwagent` with the live config (`mw_agent`), at 13:01Z. Window from the Gemini cycle switch (02:02:42Z).
+
+| Item | Result |
+| --- | --- |
+| Cycle extractions (`receipt_image_extraction`), all real Instagram receipts (verification runs are not audited) | 3, all provider `gemini`, model `gemini-3.8-flash` (all before the 09:13:43Z Flash-Lite switch, as expected), route `internal`, parent `receipt-cycle`. 07:13:39Z FAILED (`RecognitionUnavailable`, a Gemini timeout); its retry at 07:19:21Z COMPLETED; 08:00:07Z COMPLETED. Non-effect operations end COMPLETED, not COMMITTED |
+| Cycle extractions on `gemini-3.5-flash-lite` | None yet: no real Instagram receipt has reached extraction since 09:13:43Z |
+| Receiving-page recognitions since 09:13:43Z | 2, both from the PROD command service, model `gemini-3.5-flash-lite`, `recognized`: 09:37:57Z in 2.94 s, 10:53:22Z in 3.73 s |
+| Receipt jobs created since 02:02:42Z | 11: 2 `REVIEW_REQUESTED` with posted reviews (2 POSTED), 9 `IGNORED` (4 of them `BORROWER_NOT_UNIQUELY_ENABLED`, before extraction). No new job in a stuck state |
+| Receipt runs since 02:02:42Z | 1,589, all `failures: []`; no failed run |
+| Job created 18 Oct 16:57:47Z | Not cleared: still `PENDING`, `RECEIPT_ARCHIVE_PENDING`, 0 extraction attempts, next retry rescheduled every cycle (13:01:31Z). Unrelated to Gemini; its archive step keeps deferring |
 
 ## Recovery
 Revert this commit. Live: restore `/root/config.json.pre-gemini-cycle-2` by the config-only route (the cycle returns to Codex), then `deploy-runtime.py rollback` to the previous pin if the package must go back.
@@ -34,5 +45,6 @@ Revert this commit. Live: restore `/root/config.json.pre-gemini-cycle-2` by the 
 None.
 
 ## Remaining work
-- First real receipt check: confirm the first live cycle audit row has provider `gemini`, route `internal`, and that the extraction result is sound. Watch the next runs.
+- First real receipt on `gemini-3.5-flash-lite` through the cycle: confirm its audit row (provider `gemini`, model `gemini-3.5-flash-lite`, route `internal`) and that the job progresses.
+- Find out why the 18 October 16:57:47Z job stays `RECEIPT_ARCHIVE_PENDING`.
 - Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host).
