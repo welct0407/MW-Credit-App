@@ -4,10 +4,9 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R077 — Open** |
-| Next unused number | **R078**, only opened when authorized R077 promotion starts |
+| New product work | **R078 — Open** |
+| Next unused number | **R079**, only opened when authorized R078 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
-| R077 scope (19 October 2026), not deployed | Receipt recognition timeouts: the recognizer downscales the slip to 1600 px and its limits are tripled (42/40/36 s), the command route waits 45 s, the PWA deadline is 60 s, and the command service Cloud Run request timeout is 55 s in DEV and PROD. Image on the four services, Hosting, PROD Terraform (timeout), agent redeploy; no SQL. Record: [change note](../../Change%20Logs/CHANGE_NOTES_R077_RECOGNITION_TIMEOUTS_2026-10-19.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
@@ -25,6 +24,7 @@ Status and records only; deployment pins are in the [environment inventory](Envi
 
 | Release | Scope | Released | Record | Tag |
 | --- | --- | --- | --- | --- |
+| R077 | Receipt recognition timeouts: slip downscaled to 1600 px, recognizer limits 42/40/36 s, command route 45 s, PWA deadline 60 s, command Cloud Run request timeout 55 s. New image on the four services, Hosting, PROD Terraform (timeout) and agent redeploy, DEV and PROD, no SQL. Applied and verified; owner acceptance is the owner's instruction, and the owner's retry of a real slip is pending | 19 October 2026 (Bangkok) | [record](../../Change%20Logs/CHANGE_NOTES_R077_RECOGNITION_TIMEOUTS_2026-10-19.md) | `R077` |
 | R076 | Receipt recognition account hotfix: the slip's matched account overrides a preselected default, unmatched or ambiguous slip note, no warning without recipient numbers, messages above the preview. New image on the four services plus PROD Hosting, no SQL. Applied and verified in PROD; owner acceptance is the owner's production instruction, and the owner's PROD slip re-check is pending | 18 October 2026 (Bangkok) | [record](../../Change%20Logs/CHANGE_NOTES_R076_RECEIPT_ACCOUNT_HOTFIX_2026-10-18.md) | `R076` |
 | R075 | Receipt recognition for manual payments (recognizer on the Debian agent, command route, manual payment command v7 with V96, Vertex and VPC infrastructure, fill-and-warn form) and the 23-operation agent audit closure. Applied and verified in PROD; owner acceptance is the owner's production instruction, and no PROD owner check with a real slip has happened yet | 18 October 2026 (Bangkok) | [record](../../Change%20Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md) | `R075` |
 | R074 | Release number and delivery tooling: per-job/stage-hash promotion gate, stage-hash CI evidence (PROD Hosting only) | 18 October 2026 (Bangkok) | [record](https://github.com/welct0407/MW-Credit-App/blob/2c28911c1cbd7dc292364fabf22bb6ceaec1b328/project/Documents/Development_Changes.md#r074-production-promotion) | `R074` |
