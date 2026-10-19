@@ -47,6 +47,27 @@ Own payment at 17:44:16Z: the confirming cycle was 3 requests running in paralle
 - Step-down 6, 5, 4, 3 on a 400; records at level 5 goes straight to 3.
 - Lab timing: collection 141 to about 70 ms (54 to 27 queries); cash about 50 to about 26 ms (44 to 22 queries).
 
+### Promotion record
+Compact promotion template fields; pins are in the [environment inventory](../project/Documents/Environment_Inventory.md), not here.
+
+- Owner instruction: "move to production" for R078, 19 October 2026, in this session. It approves the requested scope, including the tested V97 migration, the PROD backup with restore verification, standard temporary maintenance permissions and their restoration, and the required technical records.
+- Scope: R078 code from PRs #84, #86 and #87 (items 1 to 7, Full sync, reconciliation, data-check warning, day-change delta, collection and cash row deltas, own receipt seeding, inline values, revocation on writes only) plus the V97 `pwa_row_changes` migration.
+- Excluded: unrelated financial corrections, forced notifications or job runs, destructive recovery, any DEV change after `68ce669`, and unrelated service activation. A deployment instruction does not imply them.
+- Freeze: R078 frozen 2026-10-19T17:47Z when promotion started; R079 opened in the same tracker update. Package: main `68ce669`, code-identical to the DEV-tested build; SQL manifest: V97 (tree of `database/migrations` identical to the tested `98c7527`).
+- Previous deployed baseline and recovery: R077 (see the inventory); PROD V96; rollback is the prior Cloud Run revisions and Hosting version recorded by Forge, and the PROD backup for V97.
+- Test evidence: the Checks table above (PR #84, #86 and #87 CI, Chase's labs, Byte's suites, Echo's UX check) and the DEV measurements above. PR #86 CI runs are to be added by reference if the coordinator supplies them.
+
+| Step | Completion evidence |
+| --- | --- |
+| Scope, target, authority and usable recovery confirmed | Owner instruction above; prior revisions and Hosting version: to fill from Forge |
+| Required affected checks passed or deferral recorded | Checks table above; real gaps in Not run |
+| Tested package captured; tracker freeze/handoff published | Frozen 2026-10-19T17:47Z, R079 Open; package main `68ce669` |
+| Changed components deployed in dependency order | To fill from Forge (backup, V97 on PROD, image on the four services, Hosting) |
+| Version/environment and affected PROD smoke verified once | To fill from Forge |
+| Actual outcome recorded; publication and tag verified | To fill at closure (outcome, Released row, pruning, `R078` tag) |
+
+PROD pins, backup reference and smoke: to fill from Forge's results. R078 is not marked Released; nothing is pruned or tagged yet.
+
 ## Baseline
 PROD, window 17 October 00:00 to 19 October 2026 (Bangkok), 17,051 request-log rows, from the report script (metadata only):
 
