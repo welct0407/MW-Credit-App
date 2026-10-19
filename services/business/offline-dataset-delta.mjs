@@ -137,7 +137,7 @@ async function readDayChange(client,actor,domain,request,stamp,current,sourceVer
  const chunk=await readOfflineDatasetChunk(client,actor,traversal,null,{deterministicPages:offlineDeterministicPages[domain]});
  if(chunk.businessDate!==stamp.businessDate)return null;
  const {ind:keep,dep:reread}=offlineDayKeys[domain];
- return {...encodeDeltaChunk({...chunk,patches:[...targeted,...chunk.patches],sourceVersion,delta:true,dayChange:{from,keep,reread},...publicCursor(current),nextCursor:chunk.nextCursor?wrapDeltaCursor(chunk.nextCursor,sourceVersion):null},request.need,{dates:true}),schemaVersion:4};
+ return {...encodeDeltaChunk({...chunk,patches:[...targeted,...chunk.patches],sourceVersion,delta:true,dayChange:{from,keep,reread},...publicCursor(current),nextCursor:chunk.nextCursor?wrapDeltaCursor(chunk.nextCursor,sourceVersion):null},request.need,{dates:true,inline:request.inlineValues}),schemaVersion:4};
 }
 // R078 reconciliation (owner, 19 October 2026: twice a day). The client sends the digests of its stored bundle
 // and that bundle's source version; the server walks the domain in this request (one snapshot, no round trips),
@@ -179,6 +179,8 @@ export async function readOfflineDatasetDelta(client,actor,domain,input){
  const traversal=cursor?deltaCursorTraversal(cursor):domain,day=traversal===domain?null:traversal===dayTraversal(domain,traversal.slice(domain.length+5))?{from:traversal.slice(domain.length+5)}:undefined;
  if(day===undefined)throw Error('invalid_request');
  const encode=(chunk,need)=>encodeDeltaChunk(chunk,need,{dates:request.dates});
+ // A delta (schemaVersion 4) answers in one request for a client declaring inlineValues, within the caps.
+ const encodeDelta=(chunk,need)=>encodeDeltaChunk(chunk,need,{dates:request.dates,inline:request.inlineValues});
  // R078: a check that starts a domain may ask for every domain's version (`versions`); the client
  // then skips the requests of the unchanged domains. Computed once, from the same snapshot.
  const versions=!cursor&&request.versions?await readOfflineSourceVersions(client,actor,stamp.businessDate):null,peers=versions?{versions}:{};
@@ -189,12 +191,12 @@ export async function readOfflineDatasetDelta(client,actor,domain,input){
  if(!cursor&&!request.need.length&&request.sourceVersion===sourceVersion)return {schemaVersion:3,domain,...stamp,sourceVersion,unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers};
  if(!cursor&&request.since&&request.rowDeltas&&(domain==='collection'||domain==='cash')&&current){
   const value=await guarded(client,()=>readRowDelta(client,actor,domain,request,stamp,current));
-  if(value)return {...encode({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches:value.patches,scope:value.scope,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
+  if(value)return {...encodeDelta({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches:value.patches,scope:value.scope,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
  }
  if(!cursor&&request.since&&domain==='records'&&current){
   const patches=await guarded(client,()=>readRecordsDelta(client,actor,request,stamp,current));
   // The fingerprint of this snapshot travels with the delta, so the client stores the two together.
-  if(patches)return {...encode({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
+  if(patches)return {...encodeDelta({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
  }
  // A client that hydrates businessDate (dates) and holds a bundle of an earlier business date.
  if(!cursor&&request.since&&request.dates&&current&&request.since.businessDate<stamp.businessDate&&offlineDayKeys[domain]){
