@@ -51,6 +51,8 @@ def validate(config):
         raise ConfigurationError('receipt_extraction_provider must be codex or gemini')
     if cycle == 'gemini':
         provider_module('gemini').validate(config)
+    if cycle == 'gemini' or 'receipt_cycle_gemini_attempt_seconds' in config or 'receipt_cycle_gemini_total_seconds' in config:
+        provider_module('gemini').cycle_timeouts(config)
     if type(config.get('receipt_recognition_enabled', False)) is not bool:
         raise ConfigurationError('receipt_recognition_enabled must be boolean')
     if not config.get('receipt_recognition_enabled'):

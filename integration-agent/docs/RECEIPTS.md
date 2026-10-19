@@ -82,6 +82,7 @@ Source, 18 October 2026 (catalogue revision 29); implemented, not enabled. The c
 | --- | --- |
 | `receipt_extraction_provider` | Instagram receipt cycle provider, `codex` (default) or `gemini`. Changing it is its own owner authorization. |
 | `receipt_recognition_enabled` | Recognizer switch; the catalogue entry `receipt_recognition_api` must also be enabled. Both are read per request. |
+| `receipt_cycle_gemini_attempt_seconds`, `_total_seconds` | Gemini bounds for the Instagram receipt cycle only: 25 s per attempt and 60 s in total by default (attempt 5..60, total attempt..120); one retry while at least 4 s remain. The recognizer keeps its own 18 s request, 17 s provider and 12 s attempt bounds. Codex is unaffected. |
 | `receipt_recognition_provider` | Recognizer provider, `gemini` (default) or `codex`. |
 | `receipt_recognition_listen_host`, `_listen_port` | The VM's private VPC IPv4 address (never loopback, wildcard or public) and port: `10.148.0.2`, `8790`. |
 | `receipt_recognition_audience` | The recognizer URL the callers use as ID-token audience, pinned in Terraform: `http://10.148.0.2:8790/v1/receipt-recognition`. |
@@ -89,6 +90,8 @@ Source, 18 October 2026 (catalogue revision 29); implemented, not enabled. The c
 | `gemini_project`, `gemini_location`, `gemini_model` | Vertex AI target and pinned model: `clever-oasis-508610-n7`, `global`, `gemini-3.8-flash`. |
 
 Enabling requires the PostgreSQL audit backend. The service needs Vertex AI enabled with `roles/aiplatform.user` on the VM identity, direct VPC egress from the command services and a firewall rule to the VM's service account on the port (infrastructure stage).
+
+**Cycle audit.** Each receipt-cycle extraction is one `receipt_image_extraction` operation whose plan names the provider and model (`{"provider":"codex","model":"default"}` on route `codex`, or `{"provider":"gemini","model":"gemini-3.8-flash"}` on route `internal`), so a check can tell the two apart directly.
 
 **Contract.** `POST /v1/receipt-recognition` with `Authorization: Bearer <Google ID token>`, `Content-Type: image/png` or `image/jpeg`, `X-Content-SHA256: <64 lowercase hex of the body>` and the raw image (at most 5,242,880 bytes). The token must be RS256-signed by Google with issuer `https://accounts.google.com` (or `accounts.google.com`), the configured audience, verified email and the exact email and numeric subject of an allowed caller.
 

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import time
 import urllib.parse
 import urllib.error
 import urllib.request
@@ -154,23 +155,36 @@ def checked(value):
     return value
 
 
-def recognize(config, image_data, provider=None, deadline=None):
-    """Unaudited extraction for the recognizer: result with the provider name and its pinned model."""
+def recognize(config, image_data, provider=None, deadline=None, attempt_timeout=None):
+    """Unaudited extraction: result with the provider name and its pinned model.
+
+    The recognizer passes only its request deadline; the receipt cycle passes its own Gemini deadline
+    and per-attempt timeout (Codex takes neither option).
+    """
     name = provider or extraction_provider(config)
     module = provider_module(name)
+    options = {} if attempt_timeout is None else {'attempt_timeout': attempt_timeout}
     return {'provider': name, 'model': module.model(config),
-            'result': checked(module.extract(config, image_data, deadline=deadline))}
+            'result': checked(module.extract(config, image_data, deadline=deadline, **options))}
 
 
-@audited('receipt_image_extraction',route='codex',action='PROCESS')
+def cycle_plan(name):
+    """Audit plan of a cycle extraction: provider and pinned model, so codex and gemini runs are told apart."""
+    return lambda config, _image_data: {'provider': name, 'model': provider_module(name).model(config)}
+
+
+@audited('receipt_image_extraction',route='codex',action='PROCESS',plan=cycle_plan('codex'))
 def _extract_codex(config, image_data):
     return recognize(config, image_data, 'codex')['result']
 
 
-# audit.events.route has a fixed CHECK list without 'gemini'; the provider is the decorated function's own.
-@audited('receipt_image_extraction',route='internal',action='PROCESS')
+# audit.events.route has a fixed CHECK list without 'gemini'; the plan names the provider.
+@audited('receipt_image_extraction',route='internal',action='PROCESS',plan=cycle_plan('gemini'))
 def _extract_gemini(config, image_data):
-    return recognize(config, image_data, 'gemini')['result']
+    # The cycle is not interactive: its own, longer Gemini bounds (the recognizer keeps 18/17/12 s).
+    module = provider_module('gemini')
+    attempt, total = module.cycle_timeouts(config)
+    return recognize(config, image_data, 'gemini', deadline=time.monotonic() + total, attempt_timeout=attempt)['result']
 
 
 def extract(config, image_data):

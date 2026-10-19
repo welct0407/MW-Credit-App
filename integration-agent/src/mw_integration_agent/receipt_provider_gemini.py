@@ -18,6 +18,9 @@ from .config import ConfigurationError
 from .receipt_image import PROMPT, SCHEMA, RecognitionUnavailable
 
 ATTEMPT_TIMEOUT = 12
+# Receipt cycle (not interactive): config receipt_cycle_gemini_attempt_seconds / _total_seconds.
+CYCLE_ATTEMPT = 25
+CYCLE_TOTAL = 60
 RETRY_MINIMUM = 3  # seconds a retry needs to be worth starting
 RETRY_PAUSE = 1
 RESPONSE_LIMIT = 1_048_576
@@ -38,6 +41,15 @@ def validate(config):
     name = config.get('gemini_model')
     if not isinstance(name, str) or not MODEL.fullmatch(name) or any(word in name for word in MOVING):
         raise ConfigurationError('gemini_model must be an exact versioned model id')
+
+
+def cycle_timeouts(config):
+    """(per-attempt, total) seconds for the receipt cycle; whole numbers, attempt 5..60, total attempt..120."""
+    attempt = config.get('receipt_cycle_gemini_attempt_seconds', CYCLE_ATTEMPT)
+    total = config.get('receipt_cycle_gemini_total_seconds', CYCLE_TOTAL)
+    if type(attempt) is not int or type(total) is not int or not 5 <= attempt <= 60 or not attempt <= total <= 120:
+        raise ConfigurationError('receipt_cycle_gemini_attempt_seconds must be 5..60 and _total_seconds attempt..120')
+    return attempt, total
 
 
 def model(config):
@@ -135,13 +147,13 @@ def transient(exc):
     return isinstance(exc, (urllib.error.URLError, TimeoutError, socket.timeout, ConnectionError))
 
 
-def extract(config, image_data, deadline=None):
+def extract(config, image_data, deadline=None, attempt_timeout=ATTEMPT_TIMEOUT):
     url, data = endpoint(config), json.dumps(body(image_data, model(config)), separators=(',', ':')).encode()
-    deadline = time.monotonic() + 2 * ATTEMPT_TIMEOUT if deadline is None else deadline
+    deadline = time.monotonic() + 2 * attempt_timeout if deadline is None else deadline
     for number in (1, 2):
         remaining = deadline - time.monotonic()
         try:
-            return attempt(url, data, max(0.001, min(ATTEMPT_TIMEOUT, remaining)))
+            return attempt(url, data, max(0.001, min(attempt_timeout, remaining)))
         except RecognitionUnavailable:
             raise
         except Exception as exc:

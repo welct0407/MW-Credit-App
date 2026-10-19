@@ -129,6 +129,42 @@ class ProviderTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             receipt_image.extract({'receipt_extraction_provider': 'openai'}, b'png')
 
+    def test_cycle_gemini_has_its_own_longer_bounds_and_the_recognizer_keeps_its_own(self):
+        config = {**GEMINI, 'receipt_extraction_provider': 'gemini'}
+        with patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)) as vertex:
+            started = time.monotonic()
+            receipt_image.extract(config, b'png')
+            self.assertEqual(vertex.call_args.kwargs['attempt_timeout'], 25)
+            self.assertAlmostEqual(vertex.call_args.kwargs['deadline'] - started, 60, delta=1)
+            receipt_image.extract({**config, 'receipt_cycle_gemini_attempt_seconds': 30, 'receipt_cycle_gemini_total_seconds': 90}, b'png')
+            self.assertEqual(vertex.call_args.kwargs['attempt_timeout'], 30)
+            self.assertAlmostEqual(vertex.call_args.kwargs['deadline'] - time.monotonic(), 90, delta=1)
+            receipt_image.recognize(config, b'png', 'gemini', deadline=time.monotonic() + 17)
+            self.assertNotIn('attempt_timeout', vertex.call_args.kwargs)  # recognizer: the provider default, 12 s
+        with patch('mw_integration_agent.receipt_provider_codex.extract', return_value=dict(RESULT)) as codex:
+            receipt_image.extract({}, b'png')
+        self.assertEqual(codex.call_args.kwargs, {'deadline': None})  # Codex path unchanged
+
+    def test_cycle_audit_plan_names_provider_and_model(self):
+        plans = []
+
+        class Activity:
+            def __init__(self, config, service, action, route, plan=None, effect=False):
+                plans.append((service, route, plan))
+
+            def __enter__(self):
+                return None
+
+            def __exit__(self, *_):
+                return False
+        with patch('mw_integration_agent.audit.activity', Activity), \
+                patch('mw_integration_agent.receipt_provider_codex.extract', return_value=dict(RESULT)), \
+                patch('mw_integration_agent.receipt_provider_gemini.extract', return_value=dict(RESULT)):
+            receipt_image.extract({}, b'png')
+            receipt_image.extract({**GEMINI, 'receipt_extraction_provider': 'gemini'}, b'png')
+        self.assertEqual(plans, [('receipt_image_extraction', 'codex', {'provider': 'codex', 'model': 'default'}),
+                                 ('receipt_image_extraction', 'internal', {'provider': 'gemini', 'model': 'gemini-2.0-flash-001'})])
+
     def test_shared_shape_validation_rejects_extra_missing_and_mistyped_fields(self):
         for bad in ({**RESULT, 'extra': 1}, {k: v for k, v in RESULT.items() if k != 'time'}, {**RESULT, 'amount': 1500},
                     {**RESULT, 'transfer_successful': 'true'}, {**RESULT, 'recipient_numbers': [123]}, [RESULT]):
@@ -298,6 +334,18 @@ class GeminiTests(unittest.TestCase):
         value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 3.5)
         self.assertEqual((value.reason, len(opener.requests)), ('provider_error', 1))
 
+    def test_cycle_attempt_timeout_and_retry_within_the_cycle_deadline(self):
+        opener = FakeOpener(TimeoutError(), vertex_reply())
+        with patch.object(gemini.http, 'opener', return_value=opener), patch.object(gemini.http, 'access_token', return_value='t'), \
+                patch.object(gemini.time, 'sleep'):
+            self.assertEqual(gemini.extract(GEMINI, b'png', deadline=time.monotonic() + 60, attempt_timeout=25), RESULT)
+        self.assertEqual([round(t) for _, t in opener.requests], [25, 25])
+        for bad in ({'receipt_cycle_gemini_attempt_seconds': 4}, {'receipt_cycle_gemini_attempt_seconds': 30, 'receipt_cycle_gemini_total_seconds': 20},
+                    {'receipt_cycle_gemini_total_seconds': 121}, {'receipt_cycle_gemini_attempt_seconds': 25.0}):
+            with self.subTest(bad=bad), self.assertRaises(ConfigurationError):
+                gemini.cycle_timeouts(bad)
+        self.assertEqual(gemini.cycle_timeouts({}), (25, 60))
+
     def test_no_retry_when_the_deadline_leaves_no_room(self):
         value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 1)
         self.assertIsInstance(value, RecognitionUnavailable)
@@ -374,6 +422,13 @@ class ConfigTests(unittest.TestCase):
                            {'receipt_extraction_provider': 'other'}):
                 with self.subTest(change=change), self.assertRaises(ConfigurationError):
                     validate_config(recognizer_config(directory, **change))
+
+    def test_cycle_bounds_are_validated_with_the_config(self):
+        config = load_json(ROOT / 'config.example.json')
+        validate_config({**config, 'receipt_extraction_provider': 'gemini'})
+        for bad in ({'receipt_cycle_gemini_attempt_seconds': 0}, {'receipt_cycle_gemini_total_seconds': '60'}):
+            with self.subTest(bad=bad), self.assertRaises(ConfigurationError):
+                validate_config({**config, **bad})
 
     def test_switching_the_cycle_to_gemini_needs_a_pinned_model(self):
         config = load_json(ROOT / 'config.example.json')
