@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
+import {runInNewContext} from 'node:vm';
+import ts from 'typescript';
 import pg from 'pg';
 import {readOfflineDatasetDelta} from '../../services/business/offline-dataset-delta.mjs';
 import {readOfflineDatasetChunk} from '../../services/business/offline-dataset-chunks.mjs';
@@ -17,18 +19,9 @@ const disposable=!!lab&&['127.0.0.1','localhost'].includes(lab.hostname)&&lab.pa
 const actor={issuer:'synthetic',subject:'owner',partnerId:'lab-partner'};
 const plain=value=>JSON.parse(JSON.stringify(canonicalDeltaValue(value)));
 const rr=async(client,work)=>{await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');try{return await work()}finally{await client.query('ROLLBACK')}};
-/** The client's patch application (apps/pwa/src/offline-dataset.ts), including the v4 modes. */
-function apply(data,patch){
- const path=[patch.key,...(patch.path??[])];let target=data;
- for(const key of path.slice(0,-1)){if(target[key]===undefined)target[key]={};target=target[key]}
- const key=path.at(-1);
- if(patch.mode==='append')target[key]=[...(target[key]??[]),...patch.value];
- else if(patch.mode==='merge')target[key]={...target[key],...patch.value};
- else if(patch.mode==='replace')target[key]=patch.value;
- else if(patch.mode==='upsert'){const rows=[...(target[key]??[])],at=new Map(rows.map((row,index)=>[row?.id,index]));for(const row of patch.value){const index=at.get(row.id);if(index===undefined){at.set(row.id,rows.length);rows.push(row)}else rows[index]=row}target[key]=rows}
- else if(patch.mode==='remove'){const by=patch.by??'id',drop=new Set(patch.value.map(item=>JSON.stringify(item??null))),current=target[key];if(Array.isArray(current))target[key]=current.filter(row=>!drop.has(JSON.stringify(row?.[by]??null)));else if(current&&typeof current==='object')for(const name of patch.value)delete current[name]}
- else throw Error('mode '+patch.mode);
-}
+// The client's real patch logic (apps/pwa/src/dataset-patch.ts), transpiled the way the unit tests do.
+const sandbox={exports:{}};runInNewContext(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/dataset-patch.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,sandbox);
+const {applyDatasetPatch:apply,deltaMovesRows}=sandbox.exports;
 async function walk(client){
  const data={};let cursor=null,changes=null,sourceVersion=null;
  for(let step=0;step<800;step++){
@@ -47,8 +40,11 @@ async function refresh(client,state){
  if(response.unchanged)return {kind:'unchanged',state};
  if(response.schemaVersion!==4)return {kind:'walk',state:await walk(client)};
  const fetched=await rr(client,()=>readOfflineDatasetDelta(client,actor,'records',{cursor:null,need:[...new Set(response.patches.flatMap(patch=>patch.refs))],sourceVersion:state.sourceVersion,acceptChanged:true,since:state.changes}));
+ const hydrated=response.patches.map(patch=>({...patch,value:patch.mode==='append'||patch.mode==='upsert'?patch.refs.map(ref=>fetched.values[ref]):fetched.values[patch.refs[0]]}));
+ // The client walks instead of applying a delta that moved rows between owners.
+ if(deltaMovesRows(state.data,hydrated))return {kind:'walk (rows moved)',state:await walk(client)};
  const data=structuredClone(state.data);
- for(const patch of response.patches)apply(data,{...patch,value:patch.mode==='append'||patch.mode==='upsert'?patch.refs.map(ref=>fetched.values[ref]):fetched.values[patch.refs[0]]});
+ for(const patch of hydrated)apply(data,patch);
  return {kind:'delta',keys:[...new Set(response.patches.map(patch=>patch.key))],state:{data:plain(data),sourceVersion:response.sourceVersion,changes:response.changes}};
 }
 const rowId=row=>row?.id??row?.borrowerId+'/'+row?.month??JSON.stringify(row);
@@ -89,7 +85,9 @@ test('a client holding the previous bundle ends equal to a fresh full walk after
    ['payment on A',async()=>q(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method") VALUES ('CI-DAD',$1,'Processing',$2,50::money,current_date,'Lump Sum')`,['EQ-PAY1-'+id,A])],
    ['rename referrer A (C refers to A)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Alpha renamed '||$2 WHERE "Row ID"=$1`,[A,id])],
    ['loan reassigned from B to C',async()=>q(`UPDATE "Loans" SET "Ref Borrowers"=$2 WHERE "Row ID"=$1`,[LB,C])],
-   ['payment moved from A to B',async()=>q(`UPDATE "Payments" SET "Ref Borrower"=$2 WHERE "Row ID"=$1`,['EQ-PAY1-'+id,B])],
+   // The service refuses this edit; a data repair under replica mode (still logged, V97 ENABLE ALWAYS) is the valid fixture.
+   ['payment moved from A to B (repair under replica mode)',async()=>{await q('BEGIN');await q('SET LOCAL session_replication_role=replica');await q(`UPDATE "Payments" SET "Ref Borrower"=$2 WHERE "Row ID"=$1`,['EQ-PAY1-'+id,B]);await q('COMMIT')}],
+   ['payment target loan changed (repair under replica mode)',async()=>{await q('BEGIN');await q('SET LOCAL session_replication_role=replica');await q(`UPDATE "Payments" SET "Ref Target Loan"=$2 WHERE "Row ID"=$1`,['EQ-PAY1-'+id,LB]);await q('COMMIT')}],
    ['charge edited',async()=>q(`UPDATE "Charges" SET "Interest Due"=7::money WHERE "Row ID"=$1`,[`EQ-CH-${LA}-1`])],
    ['new borrower',async()=>q(`INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ($1,'Delta '||$2)`,['EQ-D-'+id,id])],
    ['borrower hidden',async()=>q(`UPDATE "Borrowers" SET "Hidden Flag"=true WHERE "Row ID"=$1`,['EQ-D-'+id])],
@@ -97,10 +95,19 @@ test('a client holding the previous bundle ends equal to a fresh full walk after
    ['receipt attached to a payment',async()=>q(`UPDATE "Payments" SET "Uploaded Receipt"='manual-receipts/x/y.png',"Uploaded Receipt At"=now() WHERE "Row ID"=$1`,['EQ-PAY1-'+id])],
    ['two borrowers in one delta',async()=>{await q(`UPDATE "Borrowers" SET "Borrower Note"='n1' WHERE "Row ID"=$1`,[A]);await q(`UPDATE "Borrowers" SET "Borrower Note"='n2' WHERE "Row ID"=$1`,[B])}],
    ['expense payee changed to B',async()=>q(`UPDATE "Business Expenses" SET "Ref Payee Borrower"=$2 WHERE "Row ID"=$1`,['EQ-EX-'+id,B])],
-   ['settlement (dashboard only)',async()=>q(`INSERT INTO "Settlements"("Ref Paid From Cash Account","Row ID","Ref Partner","Status","Transfer Date","Amount") VALUES ('CI-LISA',$1,$2,'Completed',current_date,5::money)`,['EQ-S-'+id,partner])],
+   ['contribution (dashboard only)',async()=>q(`INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES ($1,$2,current_date,'Contribution',500::money)`,['EQ-CP2-'+id,partner])],
+   ['rename borrower named by an expense',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Alpha again '||$2 WHERE "Row ID"=$1`,[A,id])],
+   ['referrer cleared on C',async()=>q(`UPDATE "Borrowers" SET "Ref Referrer"=NULL WHERE "Row ID"=$1`,[C])],
+   ['referrer set to B on C',async()=>q(`UPDATE "Borrowers" SET "Ref Referrer"=$2 WHERE "Row ID"=$1`,[C,B])],
+   ['rename B (referrer of C, payee of expense)',async()=>q(`UPDATE "Borrowers" SET "Borrower Name"='Bravo renamed '||$2 WHERE "Row ID"=$1`,[B,id])],
+   ['repayment on A paid via payment of B',async()=>q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Ref Payment","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,$4,current_date,1::money,1::money)`,['EQ-R2-'+id,LA,`EQ-CH-${LA}-3`,'EQ-PAY1-'+id])],
    ['direct repayment row on B charge',async()=>q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,current_date,1::money,1::money)`,['EQ-R-'+id,LA,`EQ-CH-${LA}-2`])],
+   ['repayment on A with payment of B (repair under replica mode)',async()=>{await q('BEGIN');await q('SET LOCAL session_replication_role=replica');await q(`INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Ref Payment","Payment Date","Principal Paid","Interest Paid") VALUES ($1,$2,$3,$4,current_date,1::money,1::money)`,['EQ-R3-'+id,LA,`EQ-CH-${LA}-3`,'EQ-PAY1-'+id]);await q('COMMIT')}],
+   ['Daily Analytics refreshed (dashboard)',async()=>q('SELECT refresh_daily_analytics(current_date-1,current_date)')],
+   ['TRUNCATE Daily Analytics (marker, dashboard re-read)',async()=>q('TRUNCATE "Daily Analytics"')],
    ['cash account label (expect walk)',async()=>q(`UPDATE "Cash Accounts" SET "Account Label"='Renamed '||$2 WHERE "Row ID"=$1`,['CI-DAD',id])],
    ['payment deleted',async()=>q(`DELETE FROM "Payments" WHERE "Row ID"=$1`,['EQ-PAY1-'+id])],
+   ['TRUNCATE Payment Allocations CASCADE (marker -> walk)',async()=>q('TRUNCATE "Payment Allocations" CASCADE')],
   ];
   const report=[];
   for(const [label,change] of scenarios){
