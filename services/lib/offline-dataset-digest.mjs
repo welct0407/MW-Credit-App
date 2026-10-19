@@ -31,6 +31,14 @@ export function applyDatasetPatch(data,patch){
   if(patch.order==='id')rows.sort((a,b)=>codePointCompare(String(a?.id??''),String(b?.id??'')));
   target[key]=rows;
  }
+ else if(patch.mode==='replaceWhere'){
+  // R078 row deltas (collection, cash): the rows whose `field` is listed are replaced by `value`, then the walk's
+  // order is restored by `sort` (a field, compared like COLLATE "C"); stable, so equal sort values keep order.
+  const field=patch.field,sort=patch.sort;
+  if(!Array.isArray(patch.value)||!Array.isArray(patch.values)||typeof field!=='string'||!/^[A-Za-z]+$/.test(field)||sort!==undefined&&(typeof sort!=='string'||!/^[A-Za-z]+$/.test(sort))||target[key]!==undefined&&!Array.isArray(target[key])||patch.value.some((row)=>!row||typeof row!=='object'||!patch.values.some((value)=>JSON.stringify(value)===JSON.stringify(row[field]??null))))throw Error('Invalid dataset patch');
+  const drop=new Set(patch.values.map((item)=>JSON.stringify(item??null))),rows=[...(target[key]??[]).filter((row)=>!drop.has(JSON.stringify(row?.[field]??null))),...patch.value];
+  if(sort!==undefined){const order=rows.map((row,index)=>({row,index}));order.sort((a,b)=>codePointCompare(String(a.row?.[sort]??''),String(b.row?.[sort]??''))||a.index-b.index);target[key]=order.map(({row})=>row)}else target[key]=rows;
+ }
  else if(patch.mode==='remove'){
   const by=patch.by??'id';if(!Array.isArray(patch.value)||typeof by!=='string'||!/^[A-Za-z]+$/.test(by))throw Error('Invalid dataset patch');
   const drop=new Set(patch.value.map((item)=>JSON.stringify(item??null))),current=target[key];
@@ -53,6 +61,12 @@ export function deltaMovesRows(data,patches){
   payments:row=>[row?.borrowerId,row?.targetLoanId,row?.targetChargeId,ids(row?.allocations),ids(row?.repayments)],
  };
  for(const patch of patches){
+  // replaceWhere: a re-sent row (by id) still held under an owner outside the replaced set moved there.
+  if(patch?.mode==='replaceWhere'&&!patch.path?.length){
+   const drop=new Set((patch.values??[]).map((item)=>JSON.stringify(item??null))),kept=new Set((Array.isArray(data?.[patch.key])?data[patch.key]:[]).filter((row)=>!drop.has(JSON.stringify(row?.[patch.field]??null))).map((row)=>row?.id).filter((id)=>id!==undefined));
+   if((patch.value??[]).some((row)=>row?.id!==undefined&&kept.has(row.id)))return true;
+   continue;
+  }
   const owner=fields[patch?.key];if(!owner||patch.mode!=='upsert'||patch.path?.length)continue;
   const old=new Map((Array.isArray(data?.[patch.key])?data[patch.key]:[]).map((row)=>[row?.id,row]));
   for(const row of patch.value??[]){const before=old.get(row?.id);if(before&&JSON.stringify(owner(before))!==JSON.stringify(owner(row)))return true}
@@ -60,6 +74,29 @@ export function deltaMovesRows(data,patches){
  return false;
 }
 
+/** R078 row deltas: the old place of a changed row the server cannot see (the change log has no old values).
+ * collection {borrowers, loans}: a stored charge or upcoming entry of a changed loan under a borrower outside the
+ * delta's borrowers (the loan moved). cash {ledgerIds, from}: a stored statement item of a changed ledger row on
+ * an account-day the delta does not re-read from (the row moved account or date; later balances shift).
+ * @param {any} data @param {any} scope */
+export function deltaScopeMoves(data,scope){
+ if(!scope||typeof scope!=='object')return false;
+ if(Array.isArray(scope.loans)&&scope.loans.length){
+  const loans=new Set(scope.loans),borrowers=new Set(scope.borrowers??[]);
+  if((Array.isArray(data?.charges)?data.charges:[]).some((row)=>loans.has(row?.loanId)&&!borrowers.has(row?.borrowerId)))return true;
+  const hasLoan=(value)=>Array.isArray(value)?value.some(hasLoan):!!value&&typeof value==='object'&&(loans.has(value.loanId)||Object.values(value).some(hasLoan));
+  if(Object.values(data?.borrowerUpcomingByKey??{}).some((entry)=>!borrowers.has(entry?.borrowerId)&&hasLoan(entry)))return true;
+ }
+ if(Array.isArray(scope.ledgerIds)&&scope.ledgerIds.length){
+  const ledgers=new Set(scope.ledgerIds),from=scope.from&&typeof scope.from==='object'?scope.from:{};
+  for(const [key,statement] of Object.entries(data?.statementsByKey??{})){
+   if(!(statement?.items??[]).some((item)=>ledgers.has(item?.ledgerId)))continue;
+   let account,day;try{[account,day]=JSON.parse(key)}catch{return true}
+   if(typeof from[account]!=='string'||!(day>=from[account]))return true;
+  }
+ }
+ return false;
+}
 /** The reconciliation's canonical form: object keys sorted, timestamps as ISO text, and the read time (asOf)
  * blanked, exactly as a client stores a value (canonicalDeltaValue, then asOf hydrated from the envelope). */
 export function canonicalDatasetValue(value){

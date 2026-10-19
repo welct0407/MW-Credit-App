@@ -1,4 +1,4 @@
-import {readOfflineDatasetChunk,readRecordsTargeted,resolveRecordsScope,readOfflineStamp,dayTraversal,offlineDayKeys,TARGETED_LIMITS,MAX_CHUNK_VALUES} from './offline-dataset-chunks.mjs';
+import {readOfflineDatasetChunk,readRecordsTargeted,resolveRecordsScope,resolveCollectionScope,readCollectionTargeted,resolveCashScope,readCashTargeted,readOfflineStamp,dayTraversal,offlineDayKeys,TARGETED_LIMITS,MAX_CHUNK_VALUES} from './offline-dataset-chunks.mjs';
 import {createHash} from 'node:crypto';
 import {deltaValueHash,deltaCursorTraversal,encodeDeltaChunk,readDeltaCursor,readDeltaRequest,wrapDeltaCursor} from '../api/offline-dataset-delta.mjs';
 import {applyDatasetPatch,datasetDigests,digestDifferences} from '../lib/offline-dataset-digest.mjs';
@@ -92,7 +92,17 @@ async function guarded(client,work){
  try{const value=await work();await client.query('RELEASE SAVEPOINT offline_v4');return value}
  catch(error){if(error?.message==='offline_read_cancelled')throw error;await client.query('ROLLBACK TO SAVEPOINT offline_v4');await client.query('RELEASE SAVEPOINT offline_v4');return null}
 }
-const patchValueCount=patches=>patches.reduce((sum,patch)=>sum+(patch.mode==='append'||patch.mode==='upsert'?patch.value.length:1),0);
+const patchValueCount=patches=>patches.reduce((sum,patch)=>sum+(['append','upsert','replaceWhere'].includes(patch.mode)?patch.value.length:1),0);
+/** R078 row deltas for collection and cash (clients declaring rowDeltas): {patches, scope} or null (walk). scope
+ * travels to the client, which checks the rows that may have left it (deltaScopeMoves). */
+async function readRowDelta(client,actor,domain,request,stamp,current){
+ const rows=await readChangedRows(client,domain,request.since,current);
+ if(!rows?.length)return null;
+ if(domain==='collection'){const scope=await resolveCollectionScope(client,rows);if(!scope)return null;const patches=await readCollectionTargeted(client,actor,stamp,scope);return patchValueCount(patches)>4*MAX_CHUNK_VALUES?null:{patches,scope}}
+ const scope=await resolveCashScope(client,rows);if(!scope)return null;
+ const patches=await readCashTargeted(client,actor,stamp,scope);
+ return patchValueCount(patches)>4*MAX_CHUNK_VALUES?null:{patches,scope:{ledgerIds:scope.ledgerIds,from:scope.from}};
+}
 /** Records changed since the client's cursor, as targeted patches; null means walk instead. */
 async function readRecordsDelta(client,actor,request,stamp,current){
  const rows=await readChangedRows(client,'records',request.since,current);
@@ -177,6 +187,10 @@ export async function readOfflineDatasetDelta(client,actor,domain,input){
  // bundle (a walk's first request, an unchanged check, a delta) and asks for changes since it (v4).
  const current=cursor?null:await readChangeCursor(client,stamp.businessDate),changes=publicCursor(current);
  if(!cursor&&!request.need.length&&request.sourceVersion===sourceVersion)return {schemaVersion:3,domain,...stamp,sourceVersion,unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers};
+ if(!cursor&&request.since&&request.rowDeltas&&(domain==='collection'||domain==='cash')&&current){
+  const value=await guarded(client,()=>readRowDelta(client,actor,domain,request,stamp,current));
+  if(value)return {...encode({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches:value.patches,scope:value.scope,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
+ }
  if(!cursor&&request.since&&domain==='records'&&current){
   const patches=await guarded(client,()=>readRecordsDelta(client,actor,request,stamp,current));
   // The fingerprint of this snapshot travels with the delta, so the client stores the two together.
