@@ -38,8 +38,9 @@ resource "google_cloud_run_v2_service" "command_api" {
     }
   }
   template {
-    service_account                  = google_service_account.command_runtime[0].email
-    timeout                          = "15s"
+    service_account = google_service_account.command_runtime[0].email
+    # R077: receipt recognition (recognizer 42 s < route 45 s < 55 s < PWA 60 s).
+    timeout                          = "55s"
     max_instance_request_concurrency = 5
     scaling {
       min_instance_count = 0

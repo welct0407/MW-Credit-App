@@ -7,6 +7,7 @@
 | New product work | **R077 — Open** |
 | Next unused number | **R078**, only opened when authorized R077 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
+| R077 scope (19 October 2026), not deployed | Receipt recognition timeouts: the recognizer downscales the slip to 1600 px and its limits are tripled (42/40/36 s), the command route waits 45 s, the PWA deadline is 60 s, and the command service Cloud Run request timeout is 55 s in DEV and PROD. Image on the four services, Hosting, PROD Terraform (timeout), agent redeploy; no SQL. Record: [change note](../../Change%20Logs/CHANGE_NOTES_R077_RECOGNITION_TIMEOUTS_2026-10-19.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 

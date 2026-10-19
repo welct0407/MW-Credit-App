@@ -63,6 +63,8 @@ The old Windows profile and its local private files are absent. Current nonsecre
 
 `receipt-recognizer.tf` adds `receipt_recognizer = { enabled, activation }`, both off by default. `enabled = true` (requires `business_runtime_authorized`) gives only the command service Direct VPC egress with `PRIVATE_RANGES_ONLY` on the default `asia-southeast1` network/subnet, plus `PROD_RECEIPT_RECOGNITION` (= `activation`, default `disabled`) and `PROD_RECEIPT_RECOGNITION_URL` = `http://10.148.0.2:8790/v1/receipt-recognition`, which is also the exact ID-token audience. The reader is unchanged; Google APIs, Cloud SQL and the internet keep the default Cloud Run path. `activation = "enabled"` is the owner's stage-4 activation and is rejected without the egress wiring. The VM firewall rule and Vertex AI role are in `../ecosystem-debian`; the Vertex AI API stays with its existing owner, the DEV state. Mocked tests: `tests/receipt-recognizer.tftest.hcl`.
 
+R077 (prepared): the command service's Cloud Run request timeout is 55 s so receipt recognition can finish (recognizer 42 s < route 45 s < command 55 s < PWA 60 s); the reader stays at 15 s and the workers at 120 s. DEV's command service matches. Mocked test: `command_timeout_only`.
+
 ## Current preparation evidence
 
 Affected format/validation and5 application mock tests passed; the independent state root passed2 mock tests. F1 without federation/runtime proposes18 additions; the complete mocked F3 plus federation proposes29 additions, all nochange/delete. These are not live deployment results.

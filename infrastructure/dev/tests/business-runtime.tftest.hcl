@@ -42,14 +42,14 @@ run "dev_services_run_business_runtime" {
   plan_options { target = [google_cloud_run_v2_service.command_api, google_cloud_run_v2_service.read_api] }
   assert {
     condition = alltrue([for s in [google_cloud_run_v2_service.command_api[0], google_cloud_run_v2_service.read_api[0]] :
-      one(s.template[0].containers[0].args) == "services/production/business-server.mjs" && s.template[0].timeout == "15s"
+      one(s.template[0].containers[0].args) == "services/production/business-server.mjs" && s.template[0].timeout == (s.name == "mw-credit-app-command-dev" ? "55s" : "15s")
       && one([for e in s.template[0].containers[0].env : e.value if e.name == "APP_ENV"]) == "dev"
       && one([for e in s.template[0].containers[0].env : e.value if e.name == "DB_NAME"]) == "loan_manager_dev"
       && one([for e in s.template[0].containers[0].env : e.value if e.name == "DEV_CAPABILITY_POLICY_SECRET_VERSION"]) == "projects/clever-oasis-508610-n7/secrets/mw-credit-app-dev-capability-policy/versions/1"
       && one([for e in s.template[0].containers[0].env : e.value_source[0].secret_key_ref[0].version if e.name == "DEV_CAPABILITY_POLICY_JSON"]) == "1"
       && one([for e in s.template[0].containers[0].env : e.value if e.name == "DEV_CAPABILITY_POLICY_SHA256"]) == "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     && alltrue([for e in s.template[0].containers[0].env : !contains(["OWNER_IDENTITY_MODE", "OWNER_FIREBASE_UID", "COMMAND_MODE", "COMMAND_FIXTURE_JSON", "NOTIFICATION_POLICY_JSON"], e.name) && !startswith(e.name, "PROD_")])])
-    error_message = "DEV reader and command run business-server.mjs with the pinned DEV capability policy, 15 s timeout and no retired owner/fixture or PROD names."
+    error_message = "DEV reader and command run business-server.mjs with the pinned DEV capability policy, 15 s reader / 55 s command timeout and no retired owner/fixture or PROD names."
   }
   assert {
     condition     = one([for e in google_cloud_run_v2_service.read_api[0].template[0].containers[0].env : e.value if e.name == "FOUNDATION_ROLE"]) == "reader" && one([for e in google_cloud_run_v2_service.command_api[0].template[0].containers[0].env : e.value if e.name == "FOUNDATION_ROLE"]) == "command" && alltrue([for e in google_cloud_run_v2_service.read_api[0].template[0].containers[0].env : !startswith(e.name, "RECEIPT_") && e.name != "DEV_RECEIPTS"])

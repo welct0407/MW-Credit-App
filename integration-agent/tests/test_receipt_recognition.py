@@ -214,9 +214,27 @@ class GeminiTests(unittest.TestCase):
                 patch.object(gemini.http, 'access_token', return_value='vm-token') as token, \
                 patch.object(gemini.time, 'sleep') as pause:
             try:
-                return gemini.extract(GEMINI, b'\x89PNGdata', deadline=deadline), opener, token, pause
+                return gemini.extract(GEMINI, png(), deadline=deadline), opener, token, pause
             except RecognitionUnavailable as exc:
                 return exc, opener, token, pause
+
+    def test_phone_size_image_is_sent_downscaled_with_aspect_kept(self):
+        opener = FakeOpener(vertex_reply())
+        with patch.object(gemini.http, 'opener', return_value=opener), patch.object(gemini.http, 'access_token', return_value='t'):
+            self.assertEqual(gemini.extract(GEMINI, png((4000, 3000))), RESULT)
+        part = json.loads(opener.requests[0][0].data)['contents'][0]['parts'][0]['inlineData']
+        with Image.open(io.BytesIO(base64.b64decode(part['data']))) as sent:
+            self.assertEqual(sent.size, (1600, 1200))
+            self.assertEqual('image/' + sent.format.lower(), part['mimeType'])
+        sent, mime = gemini.downscaled(png((1200, 3000)))
+        with Image.open(io.BytesIO(sent)) as image:
+            self.assertEqual(image.size, (640, 1600))
+        small, _ = gemini.downscaled(png((300, 200)))
+        with Image.open(io.BytesIO(small)) as image:
+            self.assertEqual(image.size, (300, 200))  # never upscaled
+        with self.assertRaises(RecognitionUnavailable) as caught:
+            gemini.downscaled(b'not an image')
+        self.assertEqual(caught.exception.cause, 'image_prepare_failed')
 
     def test_schema_translation_uses_vertex_openapi_subset(self):
         translated = gemini.vertex_schema(SCHEMA)
@@ -239,7 +257,9 @@ class GeminiTests(unittest.TestCase):
         self.assertLessEqual(timeout, gemini.ATTEMPT_TIMEOUT)
         body = json.loads(request.data)
         image, prompt = body['contents'][0]['parts']
-        self.assertEqual(image['inlineData'], {'mimeType': 'image/png', 'data': base64.b64encode(b'\x89PNGdata').decode()})
+        self.assertIn(image['inlineData']['mimeType'], ('image/jpeg', 'image/png'))
+        with Image.open(io.BytesIO(base64.b64decode(image['inlineData']['data']))) as sent:
+            self.assertEqual((sent.size, 'image/' + sent.format.lower()), ((40, 30), image['inlineData']['mimeType']))
         self.assertEqual(prompt['text'], receipt_image.PROMPT)
         config = body['generationConfig']
         self.assertEqual((config['temperature'], config['responseMimeType'], config['thinkingConfig']),
@@ -283,7 +303,7 @@ class GeminiTests(unittest.TestCase):
         config = {**GEMINI, 'gemini_location': 'global', 'gemini_model': 'gemini-3.8-flash'}
         value, opener = None, FakeOpener(vertex_reply())
         with patch.object(gemini.http, 'opener', return_value=opener), patch.object(gemini.http, 'access_token', return_value='t'):
-            value = gemini.extract(config, b'\x89PNGdata')
+            value = gemini.extract(config, png())
         self.assertEqual(value, RESULT)
         request = opener.requests[0][0]
         self.assertEqual(request.full_url, 'https://aiplatform.googleapis.com/v1/projects/clever-oasis-508610-n7/locations/global'
@@ -317,16 +337,16 @@ class GeminiTests(unittest.TestCase):
         with patch.object(gemini.http, 'opener', return_value=opener), \
                 patch.object(gemini.http, 'access_token', side_effect=PermissionError('metadata')), patch.object(gemini.time, 'sleep'):
             with self.assertRaises(RecognitionUnavailable) as caught:
-                gemini.extract(GEMINI, b'png')
+                gemini.extract(GEMINI, png())
         self.assertEqual(caught.exception.cause, 'vm_token_unavailable')
         with self.assertRaises(RecognitionUnavailable) as caught:
             receipt_image.checked({**RESULT, 'amount': 5})
         self.assertEqual(caught.exception.cause, 'shape_invalid')
 
-    def test_timeouts_end_before_the_pwa_client_gives_up(self):
-        self.assertEqual((api.REQUEST_BOUND, api.REQUEST_BOUND - api.PROVIDER_MARGIN, gemini.ATTEMPT_TIMEOUT), (18.0, 17.0, 12))
+    def test_timeouts_end_before_the_command_route_gives_up(self):
+        self.assertEqual((api.REQUEST_BOUND, api.REQUEST_BOUND - api.PROVIDER_MARGIN, gemini.ATTEMPT_TIMEOUT), (42.0, 40.0, 36))
         self.assertEqual(gemini.RETRY_MINIMUM + gemini.RETRY_PAUSE, 4)
-        self.assertLess(api.REQUEST_BOUND, 20)
+        self.assertLess(api.REQUEST_BOUND, 45)  # recognizer 42 s < command route 45 s < PWA client 60 s
         # A retry starts only with at least 4 s of the deadline left, and never outlives it.
         value, opener, _, _ = self.run_with(http_error(503), vertex_reply(), deadline=time.monotonic() + 5)
         self.assertEqual((value, len(opener.requests)), (RESULT, 2))
@@ -338,7 +358,7 @@ class GeminiTests(unittest.TestCase):
         opener = FakeOpener(TimeoutError(), vertex_reply())
         with patch.object(gemini.http, 'opener', return_value=opener), patch.object(gemini.http, 'access_token', return_value='t'), \
                 patch.object(gemini.time, 'sleep'):
-            self.assertEqual(gemini.extract(GEMINI, b'png', deadline=time.monotonic() + 60, attempt_timeout=25), RESULT)
+            self.assertEqual(gemini.extract(GEMINI, png(), deadline=time.monotonic() + 60, attempt_timeout=25), RESULT)
         self.assertEqual([round(t) for _, t in opener.requests], [25, 25])
         for bad in ({'receipt_cycle_gemini_attempt_seconds': 4}, {'receipt_cycle_gemini_attempt_seconds': 30, 'receipt_cycle_gemini_total_seconds': 20},
                     {'receipt_cycle_gemini_total_seconds': 121}, {'receipt_cycle_gemini_attempt_seconds': 25.0}):
@@ -552,7 +572,7 @@ class ContractTests(unittest.TestCase):
                          ('recognized', 'gemini', 'gemini-2.0-flash-001', hashlib.sha256(body).hexdigest(), RESULT))
         self.assertIsInstance(reply['durationMs'], int)
         image = api.recognize.call_args.args[1]
-        self.assertLess(api.recognize.call_args.kwargs['deadline'] - time.monotonic(), 17.0)
+        self.assertLess(api.recognize.call_args.kwargs['deadline'] - time.monotonic(), 40.0)
         self.assertTrue(image.startswith(b'\x89PNG'))  # canonical PNG, not the caller's bytes object
         (config, caller, image_sha256, code, audited, _), = self.audits
         self.assertEqual((caller, image_sha256, code, audited['status']), (DEV, hashlib.sha256(body).hexdigest(), 200, 'recognized'))

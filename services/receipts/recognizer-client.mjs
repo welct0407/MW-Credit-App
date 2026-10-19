@@ -8,6 +8,12 @@ const METADATA_IDENTITY = 'http://metadata.google.internal/computeMetadata/v1/in
 const RESULT_KEYS = ['amount', 'currency', 'date', 'is_payment_receipt', 'recipient_numbers', 'reference', 'time', 'transfer_successful'];
 const RESPONSE_KEYS = ['durationMs', 'imageSha256', 'model', 'provider', 'result', 'status'];
 const MAX_RESPONSE = 65536;
+/**
+ * R077 timing chain: the agent recognizer gives up at 42 s, this route waits for it up to 45 s, and the
+ * PWA waits up to 60 s (apps/pwa/src/recognition-timing.ts). The command service's Cloud Run request
+ * timeout must exceed this upstream limit plus auth, receipt read and the rules transaction.
+ */
+export const RECOGNITION_UPSTREAM_TIMEOUT_MS = 45000;
 const plainObject = value => !!value && typeof value === 'object' && !Array.isArray(value) && [Object.prototype, null].includes(Object.getPrototypeOf(value));
 const keysAre = (value, keys) => plainObject(value) && Object.keys(value).sort().join(',') === keys.join(',');
 const boundedText = (value, max) => typeof value === 'string' && value.length <= max && value.isWellFormed();
@@ -38,7 +44,7 @@ export function recognizerUrl(value) {
 /**
  * @param {{url:string,fetch?:typeof fetch,timeoutMs?:number,mintToken?:(audience:string,signal:AbortSignal)=>Promise<string>}} options
  */
-export function createRecognizerClient({ url, fetch: fetchImpl = globalThis.fetch, timeoutMs = 25000, mintToken }) {
+export function createRecognizerClient({ url, fetch: fetchImpl = globalThis.fetch, timeoutMs = RECOGNITION_UPSTREAM_TIMEOUT_MS, mintToken }) {
   const endpoint = recognizerUrl(url);
   if (!endpoint || typeof fetchImpl !== 'function') throw Error('Invalid receipt recognizer configuration');
   const token = mintToken ?? (async (audience, signal) => {

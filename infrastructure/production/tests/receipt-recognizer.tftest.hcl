@@ -79,3 +79,22 @@ run "recognizer_rejects_unknown_activation" {
   variables { receipt_recognizer = { enabled = true, activation = "on" } }
   expect_failures = [var.receipt_recognizer]
 }
+run "command_timeout_only" {
+  command = plan
+  variables {
+    foundation_authorized              = true
+    runtime_authorized                 = true
+    business_infrastructure_authorized = true
+    owner_secret_version               = "1"
+    foundation_image                   = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    business_image                     = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    capability_policy_version          = "2"
+    capability_policy_sha256           = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    business_registered_creators       = ["postgres"]
+    business_runtime_authorized        = true
+  }
+  assert {
+    condition     = google_cloud_run_v2_service.foundation["command"].template[0].timeout == "55s" && google_cloud_run_v2_service.foundation["read"].template[0].timeout == "15s"
+    error_message = "Only the PROD command service waits 55 s for receipt recognition; the reader keeps 15 s."
+  }
+}
