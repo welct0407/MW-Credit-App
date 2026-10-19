@@ -17,11 +17,15 @@ The owner's first switch of the Instagram receipt cycle to Gemini (18 October 20
 | `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements) | 577 tests OK, 85 skipped (lab suites) |
 | `python -m unittest tests.test_receipt_recognition` | 42 tests OK |
 | `ruff check --no-cache integration-agent` | All checks passed |
+| First switch, 18 October 2026 20:34:56Z | Synthetic check 5 of 6: the injected-instruction slip timed out at about 25 s under the recognizer's 12 s per attempt; rolled back 20:36:51Z, config byte-identical; no real receipt affected |
+| Deploy at `a57fc7e` (PR #76), 02:01:29Z, 19 October 2026 | Activated; freeze backup `runtime-20261019T020122284096Z` |
+| Six synthetic slips with Gemini under the cycle bounds, 02:01:47Z to 02:02:29Z | All 6 pass; median 6.29 s, max 13.59 s |
+| Provider switch 02:02:42Z to 02:02:44Z | `receipt_extraction_provider` codex to gemini; 11 receipt runs clean to 02:07Z |
 | `npm run check:docs` | 0 failures; 37 warnings, the same count without this change (none in `integration-agent/`) |
 
 ## Not run
 - Lab suites (no SQL or state change); CI runs them.
-- Live: deploy, the six synthetic slips with the cycle bounds and the provider switch follow after merge, under the owner's approval of 19 October 2026.
+- A real receipt through the Gemini cycle: none has arrived yet.
 
 ## Recovery
 Revert this commit. Live: restore `/root/config.json.pre-gemini-cycle-2` by the config-only route (the cycle returns to Codex), then `deploy-runtime.py rollback` to the previous pin if the package must go back.
@@ -30,4 +34,5 @@ Revert this commit. Live: restore `/root/config.json.pre-gemini-cycle-2` by the 
 None.
 
 ## Remaining work
-- Deploy at the merge commit, run the six synthetic slips with Gemini under the cycle bounds, switch `receipt_extraction_provider` to `gemini` only if all six pass, then watch the next runs.
+- First real receipt check: confirm the first live cycle audit row has provider `gemini`, route `internal`, and that the extraction result is sound. Watch the next runs.
+- Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host).
