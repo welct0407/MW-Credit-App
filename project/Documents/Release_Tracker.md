@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R079 — Open** (opened at R078 promotion start) |
-| Next unused number | **R080**, only opened when authorized R079 promotion starts |
+| New product work | **R079 — Open** |
+| Next unused number | **R080**, only opened when authorized R079 promotion starts (R079 opened at R078 promotion start) |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
