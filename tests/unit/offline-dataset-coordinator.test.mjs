@@ -25,6 +25,7 @@ function repository(bundles){
  return {log,rows,saves,scopeName:'synthetic-scope',environment:'synthetic',
   syncAuthorized:async()=>true,readRevision:async()=>0,readCacheRevision:async()=>0,
   readReconciledAt:async()=>rows.get('meta:reconciled-at')??null,saveReconciledAt:async at=>{rows.set('meta:reconciled-at',at);log.push(['reconciled',at]);return true},
+  readReconcileFlags:async()=>structuredClone(rows.get('meta:reconcile-flags')??[]),saveReconcileFlags:async flags=>{if(flags.length)rows.set('meta:reconcile-flags',structuredClone(flags));else rows.delete('meta:reconcile-flags');log.push(['flags',flags.map(flag=>flag.domain)]);return true},
   readReconcileAttempt:async()=>structuredClone(rows.get('meta:reconcile-tried-at')??null),saveReconcileAttempt:async attempt=>{if(attempt)rows.set('meta:reconcile-tried-at',structuredClone(attempt));else rows.delete('meta:reconcile-tried-at');log.push(['attempt',attempt&&structuredClone(attempt)]);return true},
   readDataset:async domain=>{const row=rows.get('dataset:'+domain);return row?{...structuredClone(row),cacheStale:false}:null},
   readDatasetProgress:async domain=>structuredClone(progress(domain)),
@@ -37,7 +38,7 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false}={}){
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags}={}){
  const navigator={onLine:true};
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
@@ -51,7 +52,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
    await tick();
    if(body.reconcile&&dropReconcile.has(domain)){reconciles.push({domain,result:'dropped'});navigator.onLine=false;throw TypeError('Failed to fetch')}
    if(body.reconcile&&failReconcile.has(domain)){reconciles.push({domain,result:'failed'});return reply(503,{code:'temporary'})}
-   if(body.reconcile){const truth=await patchModule.datasetDigests(complete(domain).data,sha256),keys=patchModule.digestDifferences(truth,body.digests);reconciles.push({domain,result:keys.length?'mismatch':'match',keys});
+   if(body.reconcile){const truth=await patchModule.datasetDigests(reconcileTruth[domain]??complete(domain).data,sha256),keys=patchModule.digestDifferences(truth,body.digests);reconciles.push({domain,result:keys.length?'mismatch':'match',keys});
     return reply(200,{schemaVersion:3,domain,...stamp,reconcile:true,result:body.sourceVersion!==version(domain)&&!walks[domain]?'stale':keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null})}
    if(rejectVersions&&body.versions)return reply(400,{code:'invalid_request'});
    if(rejectDates&&body.dates)return reply(400,{code:'invalid_request'});
@@ -81,6 +82,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
  const state=()=>sandbox.exports.getOfflinePreparation(repo.scopeName);
  if(reconciledAt!==undefined)repo.rows.set('meta:reconciled-at',reconciledAt);
  if(attempt!==undefined)repo.rows.set('meta:reconcile-tried-at',attempt);
+ if(flags!==undefined)repo.rows.set('meta:reconcile-flags',flags);
  return {navigator,advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
 }
 const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
@@ -304,5 +306,40 @@ test('a server without dates is asked again at level 3: records keeps since, cas
   assert.ok(h.requests.some(request=>request.dates),'level 4 is tried first');
   assert.ok(later.some(request=>request.domain==='records'&&request.since),'records still sends since');
   assert.ok(later.filter(request=>request.domain==='cash').every(request=>!request.since),'cash sends no cursor below level 4');
+ }finally{h.stop()}
+});
+// UX-RECON-03/04: a mismatch that persists after its single heal is flagged (IndexedDB meta) and announced once.
+const flagged=h=>(h.repo.rows.get('meta:reconcile-flags')??[]).map(flag=>flag.domain);
+test('a mismatch that persists after its heal is flagged once with a notice; a mismatch the heal resolves writes nothing',async()=>{
+ const h=harness({reconciledAt:bangkok(18,18,30),clockOffset:bangkok(19,6,5)-Date.now(),reconcileTruth:{cash:{items:[{id:'server-only'}]}}});try{
+  await settled(h);await until(()=>flagged(h).includes('cash'),6000);
+  assert.deepEqual(h.reconciles.filter(entry=>entry.domain==='cash').map(entry=>entry.result),['mismatch','mismatch'],'one heal, then flagged');
+  assert.equal(h.requests.filter(request=>request.domain==='cash'&&!request.need&&request.sourceVersion===null).length,1,'a single heal walk');
+  await until(()=>h.state().dataCheckDomains==='cash');
+  const flag=h.repo.rows.get('meta:reconcile-flags')[0];assert.equal(flag.notifiedAt,flag.checkedAt);assert.equal(h.state().dataCheckNotice,flag.checkedAt+'|cash');assert.equal(h.state().dataCheckAt,flag.checkedAt);
+ }finally{h.stop()}
+ const healed=harness({reconciledAt:bangkok(18,18,30),clockOffset:bangkok(19,6,5)-Date.now(),corrupt:['cash']});try{
+  await settled(healed);await until(()=>healed.repo.log.some(entry=>entry[0]==='reconciled'),6000);
+  assert.equal(healed.repo.log.some(entry=>entry[0]==='flags'),false);assert.equal(healed.state().dataCheckDomains,'');
+ }finally{healed.stop()}
+});
+test('a stored flag survives a reload without a second notice; a normal poll keeps it and a later match clears it',async()=>{
+ const stored=[{domain:'cash',checkedAt:bangkok(19,6,0),notifiedAt:bangkok(19,6,0)}];
+ const kept=harness({reconciledAt:bangkok(19,6,30),clockOffset:bangkok(19,7,0)-Date.now(),flags:stored});try{
+  await settled(kept);await until(()=>kept.state().dataCheckDomains==='cash');assert.equal(kept.state().dataCheckNotice,'','no notice again after a reload');
+  await idle(kept);assert.deepEqual(flagged(kept),['cash'],'a normal poll does not clear it');assert.equal(kept.reconciles.length,0);
+ }finally{kept.stop()}
+ const cleared=harness({reconciledAt:bangkok(19,6,30),clockOffset:bangkok(19,18,1)-Date.now(),flags:stored});try{
+  await settled(cleared);await until(()=>cleared.repo.log.some(entry=>entry[0]==='reconciled'));
+  assert.deepEqual(flagged(cleared),[]);assert.equal(cleared.state().dataCheckDomains,'');assert.equal(cleared.state().dataCheckNotice,'');
+ }finally{cleared.stop()}
+});
+test('after a Full sync only the flagged areas are checked, outside the slot, and a match clears them',async()=>{
+ const h=harness({reconciledAt:bangkok(19,6,30),clockOffset:bangkok(19,7,0)-Date.now(),flags:[{domain:'management',checkedAt:bangkok(19,6,0),notifiedAt:bangkok(19,6,0)}]});try{
+  await settled(h);assert.equal(h.reconciles.length,0,'not due');
+  h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true,full:true}}));
+  await until(()=>flagged(h).length===0,6000);
+  assert.deepEqual(h.reconciles.map(entry=>entry.domain+':'+entry.result),['management:match']);
+  assert.equal(h.repo.rows.get('meta:reconciled-at'),bangkok(19,6,30),'the slot pass is untouched');assert.equal(h.state().dataCheckDomains,'');
  }finally{h.stop()}
 });

@@ -40,11 +40,14 @@ test('Full sync on the Saved changes page confirms, sends saved changes first, t
  // Offline: visible, disabled, the reason as its title.
  await context.setOffline(true);
  await expect(full).toBeDisabled();await expect(full).toHaveAttribute('title','Full sync needs a connection');
- await context.setOffline(false);await expect(full).toBeEnabled();
+ // Back online the app retries the saved change and checks the domains; tap once that has settled.
+ log.length=0;await context.setOffline(false);await expect(full).toBeEnabled();
+ await expect.poll(()=>log.includes('saved-change'),{timeout:10000}).toBe(true);
+ await expect(async()=>{const before=log.length;await page.waitForTimeout(700);expect(log.length).toBe(before)}).toPass({timeout:10000});await expect(full).toBeEnabled();
  // UX-FULL-02/06: one confirmation; saved changes go first, then every domain walks (no source version).
  const dialogs:string[]=[];page.on('dialog',dialog=>{dialogs.push(dialog.message());void dialog.accept()});
  log.length=0;hold=true;applied=true;await full.click();
- expect(dialogs).toEqual(['Re-download all data? Saved data stays usable; this takes about 20 seconds.']);
+ await expect.poll(()=>dialogs).toEqual(['Re-download all data? Saved data stays usable; this takes about 20 seconds.']);
  await expect.poll(()=>log.filter(entry=>entry.startsWith('dataset:')).length).toBeGreaterThanOrEqual(1);
  expect(log[0]).toBe('saved-change');expect(log.filter(entry=>entry.startsWith('dataset:')).every(entry=>entry.endsWith(':walk'))).toBe(true);
  // UX-FULL-03: while it runs the button is disabled and busy, the page stays open and the header progress shows.
