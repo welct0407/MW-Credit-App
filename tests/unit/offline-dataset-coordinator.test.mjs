@@ -32,14 +32,14 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false}={}){
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[]}={}){
  const requests=[],flights=new Map(),timers=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
- const repo=repository(Object.fromEntries(all.map(domain=>[domain,complete(domain)])));
+ const repo=repository(Object.fromEntries(all.map(domain=>[domain,patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:complete(domain)])));
  const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
  async function fetch(url,init){
   const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
-  requests.push({domain,cursor:body.cursor,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
+  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
   inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
   try{
    await tick();
@@ -47,9 +47,9 @@ function harness({walks={},failOnce=null,rejectVersions=false}={}){
    const step=body.cursor?Number(body.cursor):0;
    if(failOnce&&failOnce.domain===domain&&failOnce.step===step&&!failOnce.done){failOnce.done=true;return reply(503,{code:'temporary'})}
    const versions=body.versions&&!body.cursor?{versions:Object.fromEntries(data.map(name=>[name,walks[name]?changed(name):version(name)]))}:{};
-   if(!walks[domain])return reply(200,{schemaVersion:3,domain,...stamp,sourceVersion:version(domain),unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...versions});
-   const last=step===walks[domain]-1;
-   return reply(200,encodeDeltaChunk({schemaVersion:2,domain,generation:'new-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),patches:[{key:'items',mode:'append',value:[{id:domain+'-'+step}]}],complete:last,nextCursor:last?null:String(step+1),progress:{completed:step+1,total:walks[domain]},...versions},body.need??[]));
+   if(!walks[domain]&&body.sourceVersion===version(domain))return reply(200,{schemaVersion:3,domain,...stamp,sourceVersion:version(domain),unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...versions});
+   const chunks=walks[domain]??1,last=step===chunks-1;
+   return reply(200,encodeDeltaChunk({schemaVersion:2,domain,generation:'new-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:walks[domain]?changed(domain):version(domain),patches:[{key:'items',mode:'append',value:[{id:domain+'-'+step}]}],complete:last,nextCursor:last?null:String(step+1),progress:{completed:step+1,total:chunks},...versions},body.need??[]));
   }finally{inflight--;flights.set(domain,flights.get(domain)-1)}
  }
  const trackedTimeout=(callback,delay)=>{timers.push(delay);return setTimeout(callback,delay)};
@@ -111,5 +111,24 @@ test('a server without the versions field is asked again without it and keeps ac
   const records=h.requests.filter(request=>request.domain==='records');
   assert.deepEqual(records.map(request=>[request.versions,request.acceptChanged]),[[true,true],[false,true]]);
   assert.deepEqual(h.requests.map(request=>request.domain).sort(),['cash','collection','management','notifications','records','records']);
+ }finally{h.stop()}
+});
+
+// R078 item 6: an own write is confirmed in the domains it touches, and a locally patched bundle always walks.
+test('an own write confirms records, collection and cash only, not a full cycle',async()=>{
+ const h=harness();try{
+  await settled(h);h.requests.length=0;
+  h.window.dispatchEvent(new Event('mw-read-invalidated'));await until(()=>h.requests.length>0);await settled(h);
+  assert.deepEqual([...new Set(h.requests.map(request=>request.domain))],['records'],'collection and cash were confirmed by the records versions answer');
+  assert.ok(h.events.includes('cash:false')&&h.events.includes('collection:false'));
+ }finally{h.stop()}
+});
+test('a bundle with a locally applied own write walks instead of accepting an unchanged answer',async()=>{
+ const h=harness({patched:['records','collection']});try{
+  await settled(h);
+  const records=h.requests.find(request=>request.domain==='records'&&!request.need),collection=h.requests.find(request=>request.domain==='collection'&&!request.need);
+  assert.equal(records.sourceVersion,null);assert.ok(collection,'the patched peer is not confirmed by the versions answer');assert.equal(collection.sourceVersion,null);
+  for(const domain of ['records','collection']){const bundle=h.repo.rows.get('dataset:'+domain);assert.equal(bundle.localPending,undefined);assert.deepEqual(bundle.data.items.map(item=>item.id),[domain+'-0']);assert.equal(bundle.sourceVersion,version(domain))}
+  assert.equal(h.requests.some(request=>request.domain==='cash'),false);
  }finally{h.stop()}
 });

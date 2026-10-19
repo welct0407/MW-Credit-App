@@ -137,13 +137,23 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     store.delete(kindRange('cache'));done(true);
    }}}});
   },
+  /** R078: applies a narrow local patch to a complete bundle in one transaction. The progress row of a walk in
+   * flight, the read revision and the bundle metadata stay as they are: that walk's commit replaces the patch.
+   * mutate runs inside the transaction (synchronous) and returns the patched bundle, or null to leave it. */
+  async patchDataset(domain:string,mutate:(value:any)=>any){
+   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const request=store.get('dataset:'+domain);request.onsuccess=()=>{const row=request.result;if(!row?.value?.complete){done(false);return;}
+    let value:any;try{value=mutate(structuredClone(row.value))}catch{value=null}
+    const prior=row.value;if(!value||value.complete!==true||value.domain!==domain||!value.data||value.sourceVersion!==prior.sourceVersion||value.asOf!==prior.asOf||value.generation!==prior.generation){done(false);return;}
+    store.put({...row,savedAt:Date.now(),value});done(true)}});
+  },
   async readDatasetMedia(key:string){return cacheTransaction<CachedResponse|null>('readonly',null,(store,done)=>{const request=store.get('dataset-media:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>done({data:row.value,format:'blob',contentType:row.value.type,savedAt:row.savedAt,revision:current.result?.value??0})}})},
   /** Keys of every stored receipt (without the kind prefix); blobs are not loaded. */
   async listDatasetMediaKeys(){return cacheTransaction<string[]>('readonly',[],(store,done)=>{const request=store.getAllKeys(kindRange('dataset-media'));request.onsuccess=()=>done((request.result as string[]).map(key=>key.slice('dataset-media:'.length)))})},
   async removeDatasetMedia(key:string){return cacheTransaction<void>('readwrite',undefined,(store,done)=>{store.delete('dataset-media:'+key);done()})},
-  async saveDatasetMedia(key:string,value:Blob,revision:number){
+  /** savedAt: a receipt seeded from the server copy the owner just uploaded records the server's receipt time (R078). */
+  async saveDatasetMedia(key:string,value:Blob,revision:number,savedAt=Date.now()){
    if(!(value instanceof Blob)||!['image/png','image/jpeg','image/webp'].includes(value.type))throw Error('Invalid offline receipt');
-   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const current=store.get('meta:read-revision');current.onsuccess=()=>{if((current.result?.value??0)!==revision){done(false);return;}store.put({key:'dataset-media:'+key,kind:'dataset-media',savedAt:Date.now(),revision,value});done(true)}});
+   return cacheTransaction<boolean>('readwrite',false,(store,done)=>{const current=store.get('meta:read-revision');current.onsuccess=()=>{if((current.result?.value??0)!==revision){done(false);return;}store.put({key:'dataset-media:'+key,kind:'dataset-media',savedAt,revision,value});done(true)}});
   },
   async readCachedResponse(key:string){return cacheTransaction<CachedResponse|null>('readwrite',null,(store,done)=>{const request=store.get('cache:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>{if(row.revision!==(current.result?.value??0)){done(null);return;}store.put({...row,lastUsed:Date.now()});done({...row.value,savedAt:row.savedAt,revision:row.revision})}}})},
   async saveCachedResponse(key:string,value:Omit<CachedResponse,'savedAt'|'revision'>,revision:number,expectedCacheRevision?:number|null){

@@ -1,6 +1,7 @@
 import {commandOriginAllowed} from './environment';
 import type {CommandAccess} from './SelectedCharges';
 import type {PendingSync} from './owner-offline';
+import {confirmOwnPayment} from './own-write-apply';
 
 export type SavedSyncResult={kind:'queued'|'synced'|'blocked';data?:any;status?:number;code?:string};
 /** Busy (409 command_busy): nothing applied, same request id retried automatically. Distinct from outcome unknown and from a rejection. */
@@ -79,6 +80,10 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
   if(result.kind==='synced'&&preference?.operation==='preference.update'&&['English','ไทย'].includes(preference.inputs?.language))await repository.saveSnapshot('preference-language',{charges:[],language:preference.inputs.language});
   await repository.settlePending(requestId,owner,sync);
   if(result.kind!=='queued')outcome(repository.scopeName,requestId,result);
+  // R078 item 6 (UX-PAY-03): a payment the server posted is applied to the offline bundles at once; the
+  // confirming check (mw-read-invalidated from settlePending) then replaces it with the server's rows.
+  const command=row.value?.command??row.value;
+  if(result.kind==='synced'&&Number.isInteger(command?.schemaVersion)&&[3,4,5,6,7].includes(command.schemaVersion)&&result.data?.originalOutcome?.status==='posted')void confirmOwnPayment(access,requestId);
   return result;
  };
  const request=async(path:string,init:RequestInit={})=>{

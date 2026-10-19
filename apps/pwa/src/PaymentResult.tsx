@@ -4,6 +4,7 @@ import {ReceiptPicker} from './ReceiptPicker';
 import {invalidateCachedReads} from './read-cache';
 import {displayDate,displayTimestamp,displayValue} from './display-date';
 import {beginRequest} from './request-activity';
+import {applyOwnPayment,ownReceiptKey,seededReceiptTime} from './own-write-apply';
 import React,{useEffect,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
 export function PaymentResult({access,requestId,thai}:{access:CommandAccess;requestId:string;thai:boolean}){
@@ -17,7 +18,9 @@ export function PaymentResult({access,requestId,thai}:{access:CommandAccess;requ
  useAppUpdateBlock(busy||metadataUnknown||!!uploadError||!!localReceipt||receiptTouched||notes!==(data?.payment?.notes??''));
  const money=(value:string|null)=>value===null?'—':new Intl.NumberFormat(thai?'th-TH':'en-US',{style:'currency',currency:'THB',currencyDisplay:'narrowSymbol',maximumFractionDigits:0}).format(Number(value));
  async function call(path:string,init:RequestInit={}){if(access.offlineOnly||!navigator.onLine)throw Error();const done=beginRequest(),controller=new AbortController(),deadline=Date.now()+15000,timer=setTimeout(()=>controller.abort(),15000);try{const response=await fetch(access.origin+path,{...init,headers:{'X-MW-Wake-Deadline':String(deadline),...init.headers,Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);return {response,data:await response.json()}}finally{clearTimeout(timer);done()}}
- function accept(value:any){setMetadataUnknown(false);setUploadError('');setLocalReceipt(null);setReceiptTouched(false);setData(value);setNotes(value.payment?.notes??'');const reference=value.payment?.receiptReference;const match=typeof reference==='string'?new RegExp('^manual-receipts/'+applicationEnvironment+'/pwa/[a-f0-9]{32}/([a-f0-9]{32})\\.(png|jpg)$').exec(reference):null;setReceiptId(match?match[1].replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5'):null);setExternal(!!reference&&!match)}
+ function accept(value:any){setMetadataUnknown(false);setUploadError('');setLocalReceipt(null);setReceiptTouched(false);setData(value);setNotes(value.payment?.notes??'');const reference=value.payment?.receiptReference;const match=typeof reference==='string'?new RegExp('^manual-receipts/'+applicationEnvironment+'/pwa/[a-f0-9]{32}/([a-f0-9]{32})\\.(png|jpg)$').exec(reference):null;setReceiptId(match?match[1].replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5'):null);setExternal(!!reference&&!match);
+  // R078 item 6: a Posted server result is applied to the offline bundles (no-op once they hold the server row).
+  void applyOwnPayment(access,requestId,value)}
  async function refresh(){if(working.current)return;working.current=true;const current=++generation.current;setBusy(true);setError('');try{const result=await call('/api/payment-commands/'+requestId+'/result');if(!result.response.ok)throw Error();if(current===generation.current)accept(result.data)}catch{if(current===generation.current)setError(t('Recorded payment is unchanged. Current details could not be loaded.','ผลคำขอเดิมไม่เปลี่ยนแปลง แต่โหลดรายละเอียดปัจจุบันไม่ได้'))}finally{if(current===generation.current)setBusy(false);working.current=false}}
  useEffect(()=>{void refresh();return()=>{generation.current++}},[requestId]);
  useEffect(()=>{
@@ -27,7 +30,15 @@ export function PaymentResult({access,requestId,thai}:{access:CommandAccess;requ
   const id=match[1].replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');
   const done=beginRequest(),controller=new AbortController();let active=true,url:string|null=null;
   const timer=setTimeout(()=>controller.abort(),15000);
-  void(async()=>{try{const response=await fetch(access.origin+'/api/payment-commands/'+requestId+'/receipts/'+id,{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();const blob=await response.blob();if(active){url=URL.createObjectURL(blob);setImage(url)}}catch{if(active)setImageError(t('Current receipt could not be verified. Recorded payment is unchanged.','ตรวจสอบหลักฐานปัจจุบันไม่ได้ ผลรับชำระเดิมไม่เปลี่ยนแปลง'))}finally{clearTimeout(timer);done()}})();
+  // R078 item 6: the verified server copy is kept as the payment's offline receipt (UX-SYNC-05: never the local pick),
+  // and a copy already stored for this receipt time is shown without a second download (UX-PAY-02).
+  const repo=access.offline,payment=data?.payment,seed=repo&&data?.currentSource==='present'&&payment?.status==='Posted'&&typeof payment.id==='string'?ownReceiptKey(access.origin,payment.id):null,receiptTime=Date.parse(payment?.receiptAt??'');
+  void(async()=>{try{
+   const stored=seed&&Number.isFinite(receiptTime)?await repo!.readDatasetMedia(seed).catch(()=>null):null;
+   if(stored?.data instanceof Blob&&stored.savedAt>=receiptTime){if(active){url=URL.createObjectURL(stored.data);setImage(url)}return}
+   const response=await fetch(access.origin+'/api/payment-commands/'+requestId+'/receipts/'+id,{headers:{Authorization:'Bearer '+await access.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(response.status===401||response.status===403)access.authFailure(response.status);if(!response.ok)throw Error();const blob=await response.blob();if(active){url=URL.createObjectURL(blob);setImage(url)}
+   if(seed){try{const revision=await repo!.readRevision();if(revision!==null)await repo!.saveDatasetMedia(seed,blob,revision,seededReceiptTime(payment.receiptAt))}catch{/* The coordinator downloads it instead. */}}
+  }catch{if(active)setImageError(t('Current receipt could not be verified. Recorded payment is unchanged.','ตรวจสอบหลักฐานปัจจุบันไม่ได้ ผลรับชำระเดิมไม่เปลี่ยนแปลง'))}finally{clearTimeout(timer);done()}})();
   return()=>{active=false;controller.abort();clearTimeout(timer);if(url)URL.revokeObjectURL(url)};
  },[data?.payment?.receiptReference,data?.payment?.receiptAt,requestId]);
  async function replace(file:File|undefined){if(!file||working.current)return;if(!['image/png','image/jpeg'].includes(file.type)||file.size>5242880||file.size===0){setUploadError(t('Use PNG/JPEG up to 5 MiB.','ใช้ PNG/JPEG ไม่เกิน 5 MiB'));return}setLocalReceipt(file);working.current=true;setBusy(true);const current=++generation.current,id=crypto.randomUUID();try{const result=await call('/api/payment-commands/'+requestId+'/receipts/'+id,{method:'POST',headers:{'Content-Type':file.type,'X-Borrower-ID':data.originalCommand.borrowerId},body:file});if(!result.response.ok)throw Error();if(current===generation.current){setReceiptId(id);setReceiptTouched(true);setExternal(false);setUploadError('')}}catch{if(current===generation.current)setUploadError(t('Receipt upload failed; payment remains recorded.','อัปโหลดหลักฐานไม่สำเร็จ ผลรับชำระยังคงบันทึกแล้ว'))}finally{if(current===generation.current)setBusy(false);working.current=false}}
