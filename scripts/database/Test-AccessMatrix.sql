@@ -33,6 +33,7 @@ INSERT INTO am_expected_tables VALUES
   ('mw_app_dev_journal_owner','public.r008_cash_account_cutover','INSERT'),
   ('mw_business_audit_owner','agent_audit.commits','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_changes_owner_dev','public.pwa_row_changes','DELETE,INSERT,SELECT'),
+  ('mw_app_dev','public.pwa_row_changes','SELECT'),
   ('mw_business_audit_owner','agent_audit.exports','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.row_changes','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_jobs_owner_dev','public.pwa_job_runs','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
@@ -195,6 +196,9 @@ DO $$ BEGIN
  IF EXISTS(SELECT 1 FROM pg_proc WHERE oid IN ('public.pwa_track_row_change()'::regprocedure,'public.pwa_row_changes_prune_v1()'::regprocedure)
    AND NOT (prosecdef AND pg_get_userbyid(proowner)='mw_changes_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig))) THEN RAISE EXCEPTION 'change-log functions must be the change owner''s pinned definers'; END IF;
  IF EXISTS(SELECT 1 FROM pg_auth_members WHERE member='mw_changes_owner_dev'::regrole OR roleid='mw_changes_owner_dev'::regrole) THEN RAISE EXCEPTION 'change owner must hold and grant no membership'; END IF;
+ -- V98: the capability (and the command user through it) reads the log and its sequence, SELECT only.
+ IF NOT has_table_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_row_changes','SELECT') OR NOT has_sequence_privilege('mw_app_dev','public.pwa_row_changes_seq_seq','SELECT')
+   OR has_sequence_privilege('mw_app_dev','public.pwa_row_changes_seq_seq','USAGE') OR has_sequence_privilege('mw_app_dev','public.pwa_row_changes_seq_seq','UPDATE') THEN RAISE EXCEPTION 'mw_app_dev must read pwa_row_changes and its sequence with SELECT only'; END IF;
  IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_app_dev','mw_app_dev_journal_owner','mw_reviewer_dml','mw_jobs_owner_dev','mw_jobs_dev','mw_ledger_owner_dev','mw-credit-app-command-dev@clever-oasis-508610-n7.iam','mw-credit-app-read-dev@clever-oasis-508610-n7.iam']) r
    CROSS JOIN unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_row_changes',p)) THEN RAISE EXCEPTION 'no migration-owned direct pwa_row_changes write outside the change owner'; END IF;
 END $$;
