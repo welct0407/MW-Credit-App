@@ -27,11 +27,12 @@ test('active delta progress excludes retained bundles and long poll focus overla
  // next one queued (progress rises) but usually not yet requested. That gap is part of the running cycle, so
  // it joins it and refetches nothing, exactly like a focus during a request.
  for(let step=0;step<4;step++){await page.clock.runFor(18000);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));expect(held).toBe(step+1);const before=(await state(page)).progress;release();if(step<3){await expect.poll(async()=>(await state(page)).progress).toBeGreaterThan(before);await page.evaluate(()=>window.dispatchEvent(new Event('focus')))}await page.clock.runFor(1000);if(step<3){await expect.poll(()=>held).toBe(step+2);expect((await state(page)).progress).toBeGreaterThan(0);expect((await state(page)).progress).toBeLessThan(100)}}
- await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);expect(calls).toEqual(['records:start','collection:start','cash:start','management:start','notifications:start','records:1','records:2','records:3']);
+ await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);// R078: two domains may be in flight, so the order of different domains is not fixed; each request still happens exactly once.
+ expect([...calls].sort()).toEqual(['records:start','collection:start','cash:start','management:start','notifications:start','records:1','records:2','records:3'].sort());
  // Owner 17 Oct 2026: every focus refreshes, even seconds after a completed check. A
  // focus/visibility/online burst starts one cycle; repeated bursts while it runs join it.
  for(let burst=0;burst<3;burst++){await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('online'))});await page.clock.runFor(1000);if(!burst)await expect.poll(()=>held).toBe(5)}
- expect(held).toBe(5);expect(calls.slice(8)).toEqual(['records:start']);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
+ expect(held).toBe(5);expect([...calls.slice(8)].sort()).toEqual(['notifications:start','records:start']);expect((await state(page)).syncActive).toBe(true);expect((await state(page)).progress).toBeLessThan(100);await context.setOffline(true);expect((await state(page)).syncActive).toBe(false);expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).complete)).toBe(true);release();await page.clock.runFor(1000);expect((await state(page)).syncActive).toBe(false);
  await context.setOffline(false);await page.clock.runFor(1000);await expect.poll(()=>held).toBe(6);for(let step=0;step<4;step++){release();await page.clock.runFor(1000);if(step<3)await expect.poll(()=>held).toBe(7+step)}await page.clock.runFor(2000);await settled(page);expect((await state(page)).syncActive).toBe(false);expect((await state(page)).progress).toBe(100);
 });
 
@@ -177,7 +178,8 @@ test('legacy 409 no longer marks the domain failed, a legacy 400 drops acceptCha
   return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:torn?'42':'43'}}],torn?null:newVersion),body.need),...(torn?{changed:true}:{})}});
  });
  await start(page);await settled(page);
- expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-409']);expect(bodies[0].acceptChanged).toBe(true);expect(bodies[1].acceptChanged).toBeUndefined();
+ // R078: the first check also asks for the other domains' versions; each 400 drops one field (versions, then acceptChanged) before the legacy 409.
+ expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-400','legacy-409']);expect(bodies[0].versions).toBe(true);expect(bodies[0].acceptChanged).toBe(true);expect(bodies[1].versions).toBeUndefined();expect(bodies[1].acceptChanged).toBe(true);expect(bodies[2].versions).toBeUndefined();expect(bodies[2].acceptChanged).toBeUndefined();
  expect((await state(page)).updateFailed).toBe(false);expect((await state(page)).state).toBe('ready');
  expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).sourceVersion)).toBe(oldVersion);
  mode='torn';await page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare')));
