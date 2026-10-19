@@ -279,19 +279,20 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);succeeded(task);return}}
    // Levels: 4 dates and day-change cursors (R078), 3 since (records v4), 2 versions, 1 acceptChanged.
    // Level 5: row deltas for collection and cash (replaceWhere, scope).
-   const level=pathLevels.get(url.pathname)??5,dates=level>=4&&task!=='notifications',rowDeltas=level>=5&&DATASET_ROW_DELTA_DOMAINS.includes(task),askVersions=ownsVersions&&delta&&!partial&&level>=2;
+   // Level 6: a delta's values inline (one request, no need round trip).
+   const level=pathLevels.get(url.pathname)??6,dates=level>=4&&task!=='notifications',rowDeltas=level>=5&&DATASET_ROW_DELTA_DOMAINS.includes(task),inlineValues=level>=6&&task!=='notifications',askVersions=ownsVersions&&delta&&!partial&&level>=2;
    // R078 protocol v4: a complete records bundle asks for the records changed since its change cursor.
    // A day change (level 4) also uses the change cursor of cash and management bundles.
    const since=delta&&!partial&&!forced&&!walkNext.has(task)&&(task==='records'&&level>=3||dates&&DATASET_DAY_DOMAINS.includes(task)||rowDeltas)&&validChangeCursor(bundle?.changes)?bundle.changes:null;
    if(!askVersions)releaseVersions();
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
-   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:forced||localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{}),...(dates?{dates:true}:{}),...(rowDeltas?{rowDeltas:true}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
+   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:forced||localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{}),...(dates?{dates:true}:{}),...(rowDeltas?{rowDeltas:true}:{}),...(inlineValues?{inlineValues:true}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
    // Legacy 409: the final chunk is lost, so the walk restarts once; a repeat is
    // not a failure (saved data stays available, the next check walks again).
    const changedOnServer=async()=>{await forget(task);fractions.delete(task);chunkCounts.delete(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}softGiveUp=true;cycleDone.add(task);if(bundle?.complete)ready(task,false);else giveUp(task)};
    let response=await fetchSegment();
    if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
-   if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,rowDeltas?4:level>=4?3:since?2:askVersions?1:0);enqueue(task,true);continued=true;return}throw Error()}
+   if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,inlineValues?5:rowDeltas?4:level>=4?3:since?2:askVersions?1:0);enqueue(task,true);continued=true;return}throw Error()}
    if(response.status===409&&!isMedia){const error=await response.json().catch(()=>({}));if(error?.code==='dataset_changed'){await changedOnServer();return}throw Error()}
    if(!response.ok)throw Error();let value=isMedia?await response.blob():await response.json();
    if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error();
@@ -318,6 +319,8 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(!Array.isArray(value.patches))throw Error('Invalid delta manifest');
     const refs=value.patches.flatMap((patch:any)=>patch.refs??[]);
     if(refs.some((ref:any)=>typeof ref!=='string'||!/^[a-f0-9]{64}$/.test(ref)))throw Error('Invalid delta reference');
+    // Inline values (level 6) are verified like fetched ones; a missing or wrong one is asked for with need.
+    const wanted=new Set<string>(refs);for(const [hash,item] of Object.entries(value.values??{}))if(!(hash in values)&&wanted.has(hash)&&await valueHash(item)===hash)values[hash]=item;
     const missing=[...new Set<string>(refs.filter((ref:string)=>!(ref in values)))];
     if(missing.length){
      const manifest=JSON.stringify(value.patches),generation=value.generation;

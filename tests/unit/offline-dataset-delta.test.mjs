@@ -22,7 +22,7 @@ test('delta manifests retain page order, exclude fresh read timestamps and trans
  assert.equal(JSON.stringify(fetched.values).includes('100'),false);
 });
 test('delta request and traversal bounds reject malformed, duplicate and oversized inventories',()=>{
- assert.deepEqual(readDeltaRequest({}),{cursor:null,need:[],sourceVersion:null,acceptChanged:false,versions:false,since:null,reconcile:false,digests:null,dates:false,rowDeltas:false});
+ assert.deepEqual(readDeltaRequest({}),{cursor:null,need:[],sourceVersion:null,acceptChanged:false,versions:false,since:null,reconcile:false,digests:null,dates:false,rowDeltas:false,inlineValues:false});
  assert.equal(readDeltaRequest({dates:true}).dates,true);assert.throws(()=>readDeltaRequest({dates:'yes'}),/invalid_request/);
  assert.equal(readDeltaRequest({versions:true}).versions,true);
  assert.equal(readDeltaRequest({acceptChanged:true}).acceptChanged,true);

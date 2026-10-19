@@ -178,10 +178,10 @@ test('legacy 409 no longer marks the domain failed, a legacy 400 drops acceptCha
   return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:torn?'42':'43'}}],torn?null:newVersion),body.need),...(torn?{changed:true}:{})}});
  });
  await start(page);await settled(page);
- // R078: the first check also asks for the other domains' versions and sends dates; each 400 drops one level
- // (dates, then versions, then acceptChanged) before the legacy 409.
- expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-400','legacy-400','legacy-409']);expect(bodies[0].dates).toBe(true);expect(bodies[0].versions).toBe(true);expect(bodies[0].acceptChanged).toBe(true);
- expect(bodies[1].dates).toBeUndefined();expect(bodies[1].versions).toBe(true);expect(bodies[1].acceptChanged).toBe(true);expect(bodies[2].versions).toBeUndefined();expect(bodies[2].acceptChanged).toBe(true);expect(bodies[3].versions).toBeUndefined();expect(bodies[3].acceptChanged).toBeUndefined();
+ // R078: the first check also asks for the other domains' versions and sends dates and inlineValues; each 400 drops
+ // one level (inline values, dates, versions, then acceptChanged) before the legacy 409.
+ expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-400','legacy-400','legacy-400','legacy-409']);expect(bodies[0].inlineValues).toBe(true);expect(bodies[0].dates).toBe(true);expect(bodies[0].versions).toBe(true);expect(bodies[0].acceptChanged).toBe(true);
+ expect(bodies[1].inlineValues).toBeUndefined();expect(bodies[1].dates).toBe(true);expect(bodies[2].dates).toBeUndefined();expect(bodies[2].versions).toBe(true);expect(bodies[2].acceptChanged).toBe(true);expect(bodies[3].versions).toBeUndefined();expect(bodies[3].acceptChanged).toBe(true);expect(bodies[4].versions).toBeUndefined();expect(bodies[4].acceptChanged).toBeUndefined();
  expect((await state(page)).updateFailed).toBe(false);expect((await state(page)).state).toBe('ready');
  expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).sourceVersion)).toBe(oldVersion);
  mode='torn';await page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare')));
@@ -337,4 +337,43 @@ test('R078 a server without dates steps the path down: dates first, then since',
  // Level 3: since without dates; level 2: neither.
  expect(records.some(body=>body.dates===undefined&&body.since!==undefined)).toBe(true);
  expect(records.at(-1).dates).toBeUndefined();expect(records.at(-1).since).toBeUndefined();
+});
+
+// R078 inline values (level 6): a delta's values travel with it and each is hash-checked; a tampered or missing one is asked for with need.
+const inlineDelta=(body:any,mutate:(response:any)=>void=()=>{})=>{
+ const response={...encodeDeltaChunk({schemaVersion:2,domain:'records',generation:'v4:5',startedAt:asOf,asOf,businessDate:'2026-10-14',sourceVersion:newVersion,patches:[{key:'dash',mode:'replace',value:{total:'9'}}],complete:true,nextCursor:null,progress:{completed:1,total:1}},body.need??[],{dates:true,inline:body.inlineValues===true&&!body.need?.length}),schemaVersion:4,delta:true,changes:{seq:'5',xmin:'5',businessDate:'2026-10-14'}};
+ if(!body.need?.length)mutate(response);
+ return response;
+};
+for(const [label,mutate,needs] of [
+ ['inline values apply in one request',()=>{},false],
+ ['a tampered inline value is rejected by its hash and asked for with need',(response:any)=>{for(const hash of Object.keys(response.values))response.values[hash]={total:'666'}},true],
+ ['a truncated inline response (values missing) falls back to need',(response:any)=>{response.values={}},true],
+ ['an inline value under the wrong key is ignored and asked for with need',(response:any)=>{const [hash,value]=Object.entries(response.values)[0] as [string,any];delete response.values[hash];response.values['f'.repeat(64)]=value},true],
+] as const){
+ test('R078 '+label,async({page})=>{
+  await dayFixture(page,'delta-inline-'+needs+label.length);const requests:any[]=[];
+  await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+   if(domain!=='records')return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+   requests.push(body);return route.fulfill({json:inlineDelta(body,mutate)});
+  });
+  await start(page);
+  await expect.poll(()=>page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).data.dash?.total)).toBe('9');
+  expect(requests[0].inlineValues).toBe(true);
+  expect(requests.some(body=>body.need?.length>0)).toBe(needs);
+ });
+}
+
+test('R078 step-down from inline values: records go 6 to 5 on a server without inlineValues, and straight on to 3 without dates',async({page})=>{
+ await dayFixture(page,'delta-inline-stepdown');const bodies:any[]=[];
+ await page.route('**/api/**',async route=>{const url=new URL(route.request().url()),domain=url.searchParams.get('domain')??'notifications',body=route.request().postDataJSON();
+  if(domain==='records')bodies.push(body);
+  if(domain==='records'&&(body.inlineValues!==undefined||body.dates!==undefined))return route.fulfill({status:400,json:{error:'invalid_request',code:'invalid_request'}});
+  return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
+ });
+ await start(page);await settled(page);
+ expect(bodies[0].inlineValues).toBe(true);expect(bodies[0].dates).toBe(true);
+ // Level 5 keeps dates (a 400 on them follows), level 3 has since only: records never sent rowDeltas.
+ const second=bodies[1];expect(second.inlineValues).toBeUndefined();expect(second.dates).toBe(true);expect(second.rowDeltas).toBeUndefined();
+ const third=bodies[2];expect(third.dates).toBeUndefined();expect(third.since).toBeDefined();
 });

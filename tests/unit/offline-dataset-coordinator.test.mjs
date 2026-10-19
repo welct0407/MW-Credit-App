@@ -38,7 +38,7 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null}={}){
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false,reconcileTruth={},flags,rowDelta=null,rejectInline=false,tamperInline=false}={}){
  const navigator={onLine:true};
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
@@ -46,7 +46,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
  const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
  async function fetch(url,init){
   const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
-  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,since:body.since??null,dates:body.dates===true,rowDeltas:body.rowDeltas===true,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
+  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,since:body.since??null,dates:body.dates===true,rowDeltas:body.rowDeltas===true,inlineValues:body.inlineValues===true,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
   inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
   try{
    await tick();
@@ -56,7 +56,10 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
     return reply(200,{schemaVersion:3,domain,...stamp,reconcile:true,result:body.sourceVersion!==version(domain)&&!walks[domain]?'stale':keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null})}
    if(rejectVersions&&body.versions)return reply(400,{code:'invalid_request'});
    if(rejectDates&&body.dates)return reply(400,{code:'invalid_request'});
-   if(rowDelta&&body.rowDeltas&&body.since&&!body.cursor&&rowDelta.domain===domain)return reply(200,{...encodeDeltaChunk({domain,generation:'v4:40',startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),delta:true,patches:rowDelta.patches,scope:rowDelta.scope,complete:true,nextCursor:null,progress:{completed:1,total:1},changes:{seq:'40',xmin:'800',businessDate:stamp.businessDate}},body.need??[],{dates:true}),schemaVersion:4});
+   if(rejectInline&&body.inlineValues)return reply(400,{code:'invalid_request'});
+   if(rowDelta&&body.rowDeltas&&body.since&&!body.cursor&&rowDelta.domain===domain){const encoded=encodeDeltaChunk({domain,generation:'v4:40',startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),delta:true,patches:rowDelta.patches,scope:rowDelta.scope,complete:true,nextCursor:null,progress:{completed:1,total:1},changes:{seq:'40',xmin:'800',businessDate:stamp.businessDate}},body.need??[],{dates:true,inline:body.inlineValues===true});
+    if(tamperInline&&!body.need?.length){const first=Object.keys(encoded.values)[0];if(first)encoded.values[first]={...encoded.values[first],tampered:true}}
+    return reply(200,{...encoded,schemaVersion:4})}
    // R078 day change: a since request of an earlier business date re-reads in dayChange.chunks responses.
    const dayStamp={asOf:'2026-10-20T01:00:00.000Z',businessDate:'2026-10-20'},dayStep=typeof body.cursor==='string'&&body.cursor.startsWith('day:')?Number(body.cursor.slice(4)):body.since&&body.dates&&dayChange?.domains.includes(domain)?0:null;
    if(dayStep!==null){
@@ -134,9 +137,9 @@ test('a server without the versions field is asked again without it and keeps ac
  const h=harness({rejectVersions:true});try{
   await settled(h);
   const records=h.requests.filter(request=>request.domain==='records');
-  // Each 400 drops one level: dates (4), then versions (2); acceptChanged stays.
-  assert.deepEqual(records.map(request=>[request.dates,request.versions,request.acceptChanged]),[[true,true,true],[false,true,true],[false,false,true]]);
-  assert.deepEqual(h.requests.map(request=>request.domain).sort(),['cash','collection','management','notifications','records','records','records']);
+  // Each 400 drops one level: inline values (6), dates (4, level 5 sends the same for records), then versions (2); acceptChanged stays.
+  assert.deepEqual(records.map(request=>[request.inlineValues,request.dates,request.versions,request.acceptChanged]),[[true,true,true,true],[false,true,true,true],[false,false,true,true],[false,false,false,true]]);
+  assert.deepEqual(h.requests.map(request=>request.domain).sort(),['cash','collection','management','notifications','records','records','records','records']);
  }finally{h.stop()}
 });
 
@@ -364,5 +367,33 @@ test('a collection row delta whose changed loan is still held under another borr
   const collection=h.requests.filter(request=>request.domain==='collection');
   assert.ok(collection.slice(1).some(request=>!request.since&&!request.need),'the next request walks');
   assert.deepEqual(JSON.parse(JSON.stringify(h.repo.rows.get('dataset:collection').data)),{items:[{id:'collection-0'}]});
+ }finally{h.stop()}
+});
+// R078 inline values (level 6): one request per delta; a wrong inline value is asked for again; a 400 steps down.
+const inlinePatches=[{key:'charges',mode:'replaceWhere',field:'borrowerId',values:['B'],value:[{id:'c3',borrowerId:'B',loanId:'L2'},{id:'c0',borrowerId:'B',loanId:'L2'}],sort:'id'}];
+test('a row delta with inline values is applied from one request, without a need request',async()=>{
+ const h=harness({walks:{collection:1},stored:{collection:rowBundle()},rowDelta:{domain:'collection',patches:inlinePatches,scope:{borrowers:['B'],loans:[]}}});try{
+  await settled(h);
+  const collection=h.requests.filter(request=>request.domain==='collection');
+  assert.equal(collection.length,1,'one request');assert.ok(collection[0].inlineValues&&collection[0].rowDeltas);assert.equal(collection[0].need,0);
+  assert.deepEqual(JSON.parse(JSON.stringify(h.repo.rows.get('dataset:collection').data.charges)).map(row=>row.id),['c0','c1','c3']);
+ }finally{h.stop()}
+});
+test('an inline value whose hash does not match is not used: it is asked for with need',async()=>{
+ const h=harness({walks:{collection:1},stored:{collection:rowBundle()},rowDelta:{domain:'collection',patches:inlinePatches,scope:{borrowers:['B'],loans:[]}},tamperInline:true});try{
+  await settled(h);
+  const collection=h.requests.filter(request=>request.domain==='collection');
+  assert.deepEqual(collection.map(request=>request.need),[0,1],'one need request for the one wrong value');
+  const charges=JSON.parse(JSON.stringify(h.repo.rows.get('dataset:collection').data.charges));assert.deepEqual(charges.map(row=>row.id),['c0','c1','c3']);assert.ok(charges.every(row=>!row.tampered),'the verified value is stored');
+ }finally{h.stop()}
+});
+test('a server without inlineValues is asked again at level 5 (row deltas without inline values)',async()=>{
+ const h=harness({walks:{collection:1},stored:{collection:rowBundle()},rowDelta:{domain:'collection',patches:inlinePatches,scope:{borrowers:['B'],loans:[]}},rejectInline:true});try{
+  await settled(h);
+  const collection=h.requests.filter(request=>request.domain==='collection');
+  // The first 400 (from whichever domain asked first) sets the level for the path; nothing after it sends inline values.
+  const first=h.requests.findIndex(request=>request.inlineValues);assert.ok(first>=0,'level 6 is tried first');assert.ok(h.requests.slice(first+1).every(request=>!request.inlineValues));
+  const level5=collection.filter(request=>!request.inlineValues);assert.ok(level5.length>=1&&level5.every(request=>request.rowDeltas),'level 5 keeps row deltas');
+  assert.ok(level5.some(request=>request.need>0),'values then come by need');
  }finally{h.stop()}
 });

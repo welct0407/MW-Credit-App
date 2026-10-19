@@ -71,3 +71,18 @@ test('collection scope: borrowers through the records lookups plus the borrowers
  assert.equal(await resolveCollectionScope(fakeClient({lookups,hidden:['H']}),[{table:'Borrowers',key:'H'}]),null,'a hidden changed borrower walks');
  assert.equal(await resolveCollectionScope(fakeClient({lookups,allocated:Array.from({length:TARGETED_LIMITS.borrowers},(_,index)=>'X'+index)}),[{table:'Payments',key:'P1'}]),null,'more borrowers than the limit walk');
 });
+
+// R078 inline values (level 6): a delta's values travel with it within the caps; the manifest never changes.
+test('inline values: every referenced value within the byte and count caps, none above them, the same manifest either way',async()=>{
+ const {INLINE_VALUE_BYTES,INLINE_VALUE_COUNT}=await import('../../services/api/offline-dataset-delta.mjs');
+ const chunk=rows=>({domain:'collection',businessDate:'2026-10-19',patches:[{key:'charges',mode:'replaceWhere',field:'borrowerId',values:['A'],value:rows,sort:'id'},{key:'items',mode:'replace',value:[]}]});
+ const small=[{id:'c1',borrowerId:'A',businessDate:'2026-10-19'},{id:'c2',borrowerId:'A'}];
+ const plainChunk=encodeDeltaChunk(chunk(small),[],{dates:true}),inline=encodeDeltaChunk(chunk(small),[],{dates:true,inline:true});
+ assert.deepEqual(inline.patches,plainChunk.patches,'the manifest does not depend on inline');assert.deepEqual(plainChunk.values,{});
+ assert.deepEqual(Object.keys(inline.values).sort(),[...new Set(inline.patches.flatMap(patch=>patch.refs))].sort(),'every referenced value inline');
+ assert.equal(inline.values[inline.patches[0].refs[0]].businessDate,null,'inline values are the canonical (hashed) form');
+ const need=encodeDeltaChunk(chunk(small),[inline.patches[0].refs[1]],{dates:true,inline:true});assert.deepEqual(Object.keys(need.values),[inline.patches[0].refs[1]],'a need request answers exactly what it names');
+ const big=[{id:'big',borrowerId:'A',text:'x'.repeat(INLINE_VALUE_BYTES)}];assert.deepEqual(encodeDeltaChunk(chunk(big),[],{inline:true}).values,{},'above the byte cap: manifest + need');
+ const many=Array.from({length:INLINE_VALUE_COUNT+1},(_,index)=>({id:'r'+index,borrowerId:'A'}));assert.deepEqual(encodeDeltaChunk(chunk(many),[],{inline:true}).values,{},'above the count cap: manifest + need');
+ assert.equal(readDeltaRequest({inlineValues:true}).inlineValues,true);assert.throws(()=>readDeltaRequest({inlineValues:'yes'}),/invalid_request/);
+});
