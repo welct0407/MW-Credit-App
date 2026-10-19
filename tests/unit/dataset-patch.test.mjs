@@ -1,12 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-import {runInNewContext} from 'node:vm';
-import ts from 'typescript';
+import * as shared from '../../services/lib/offline-dataset-digest.mjs';
 
-// R078: the shared patch application keeps a v4 delta byte-equal to a walk (row order) and refuses moved rows.
-const sandbox={exports:{}};runInNewContext(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/dataset-patch.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,sandbox);
-const {applyDatasetPatch,deltaMovesRows,codePointCompare}=sandbox.exports,plain=value=>JSON.parse(JSON.stringify(value));
+// R078: the shared patch application (services/lib/offline-dataset-digest.mjs) keeps a v4 delta byte-equal to a walk (row order) and refuses moved rows.
+const {applyDatasetPatch,deltaMovesRows,codePointCompare}=shared,plain=value=>JSON.parse(JSON.stringify(value));
 test('code point order matches PostgreSQL COLLATE "C" (UTF-8 bytes), not UTF-16 units',()=>{
  assert.ok(codePointCompare('B','a')<0);assert.ok(codePointCompare('a','ab')<0);assert.equal(codePointCompare('x','x'),0);
  assert.ok(codePointCompare('￿','\u{10000}')<0,'a supplementary character sorts after U+FFFF as in UTF-8');
@@ -27,4 +24,15 @@ test('a delta re-sending a row with another owner, target or charge set is refus
  assert.equal(deltaMovesRows(data,[{key:'charges',mode:'upsert',value:[{id:'C',loanId:'L2',borrowerId:'A'}]}]),true);
  for(const change of [{borrowerId:'B'},{targetLoanId:'L'},{repayments:[{chargeId:'D'}]},{allocations:[]}])assert.equal(deltaMovesRows(data,[{key:'payments',mode:'upsert',value:[{...data.payments[0],...change}]}]),true,JSON.stringify(change));
  assert.equal(deltaMovesRows(data,[{key:'payments',mode:'upsert',value:[{...data.payments[0],notes:'edited'}]}]),false);
+});
+test('reconciliation digests: canonical form, one digest per key, and the differing key names',async()=>{
+ const {canonicalDatasetValue,datasetDigests,digestDifferences}=shared,sha=text=>import('node:crypto').then(({createHash})=>createHash('sha256').update(text).digest('hex'));
+ const at=new Date('2026-10-19T01:00:00.000Z');
+ assert.deepEqual(canonicalDatasetValue({b:1,a:{asOf:'2026-10-19T00:00:00Z',when:at,z:[{y:2,x:1}]}}),{a:{asOf:null,when:'2026-10-19T01:00:00.000Z',z:[{x:1,y:2}]},b:1});
+ const stored={payments:[{id:'p1',amount:'10',asOf:'2026-10-19T00:00:00Z'}],dashboard:{total:'5'}},server={dashboard:{total:'5'},payments:[{amount:'10',id:'p1',asOf:'2026-10-19T09:00:00Z'}]};
+ const left=await datasetDigests(stored,sha),right=await datasetDigests(server,sha);
+ assert.deepEqual(Object.keys(left.keys),['dashboard','payments']);assert.equal(left.digest,right.digest,'key order and read time do not matter');assert.deepEqual(digestDifferences(left,right),[]);
+ const changed=await datasetDigests({...server,payments:[{id:'p1',amount:'11'}]},sha);assert.deepEqual(digestDifferences(left,changed),['payments']);assert.notEqual(left.digest,changed.digest);
+ assert.deepEqual(digestDifferences(left,await datasetDigests({dashboard:{total:'5'}},sha)),['payments'],'a missing key is a difference');
+ assert.ok(/^[a-f0-9]{64}$/.test(left.keys.payments));
 });

@@ -1,5 +1,6 @@
 import {activitySnapshot,subscribeActivity} from './request-activity';
-import {applyDatasetPatch,deltaMovesRows} from './dataset-patch';
+import {applyDatasetPatch,deltaMovesRows,datasetDigests} from './dataset-patch';
+import {recordClientEvent} from './client-events';
 import type {OwnerOfflineRepository} from './owner-offline';
 
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
@@ -37,9 +38,19 @@ export const DATASET_DATA_FLIGHTS=2;
  * pause and when a chunk fails (R078); a chunk lost before it was written is fetched again on resume. */
 export const DATASET_PROGRESS_SAVE_CHUNKS=4;
 /** The data domains an own write is confirmed in (R078 item 6); management refreshes on the regular poll. */
+/** R078 reconciliation (owner, 19 October 2026: twice a day): the first idle, visible, online moment after 06:00
+ * and after 18:00 Bangkok time, or 12 h after the last completed one (stored in IndexedDB meta). */
+const HOUR=60*60*1000,BANGKOK_OFFSET=7*HOUR;
+export const RECONCILE_MAX_AGE_MS=12*HOUR,RECONCILE_TIMEOUT_MS=50*1000;
+/** The latest 06:00 or 18:00 Bangkok boundary at or before `now` (Bangkok has no daylight saving). */
+export function reconcileSlot(now:number){const local=now+BANGKOK_OFFSET,day=Math.floor(local/(24*HOUR))*24*HOUR;return Math.max(...[day-6*HOUR,day+6*HOUR,day+18*HOUR].filter(at=>at<=local))-BANGKOK_OFFSET}
+export const reconcileDue=(now:number,last:number)=>now-last>=RECONCILE_MAX_AGE_MS||last<reconcileSlot(now);
+const sha256Hex=async(text:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),byte=>byte.toString(16).padStart(2,'0')).join('');
 /** A protocol v4 change cursor (services/api/offline-dataset-delta.mjs validChangeCursor). */
 export const validChangeCursor=(value:any)=>!!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')==='businessDate,seq,xmin'&&/^(0|[1-9]\d{0,18})$/.test(value.seq)&&/^(0|[1-9]\d{0,19})$/.test(value.xmin)&&/^\d{4}-\d{2}-\d{2}$/.test(value.businessDate);
 const hasLocalRows=(value:any):boolean=>Array.isArray(value)?value.some(hasLocalRows):!!value&&typeof value==='object'&&(Object.hasOwn(value,'localPending')||Object.values(value).some(hasLocalRows));
+/** The data domains reconciled (notifications has its own endpoint and no source version). */
+export const DATASET_RECONCILE_DOMAINS=Object.freeze(['records','collection','cash','management']);
 export const DATASET_CONFIRM_DOMAINS=Object.freeze(['records','collection','cash']);
 /** R064: online and background-prepare triggers recheck a domain only after this age; focus, visible-again,
  * the poll and manual sync bypass it (owner decision 17 October 2026). */
@@ -252,7 +263,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
      // A bundle without a change cursor takes the one of this check once (protocol v4 starts from it).
      const cursor=!bundle.changes&&validChangeCursor(value.changes)?{changes:value.changes}:null;
      if((bundle.cacheStale||cursor)&&!await repo.saveDataset(task,{...bundle,cacheStale:false,...cursor},revision,null,base,!!bundle.cacheStale))throw Error('Dataset changed during check');
-     completed.add(task);cycleDone.add(task);succeeded(task);changedRetries.delete(task);domainChecked.set(task,Date.now());
+     completed.add(task);cycleDone.add(task);succeeded(task);changedRetries.delete(task);domainChecked.set(task,Date.now());if(forced)forceWalk.delete(task);
      if(task==='records')await refreshMedia(bundle);
      ready(task,false);return;
     }
@@ -341,7 +352,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     addMedia();const dataBusy=domainRunning();
     if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?[...new Set([...DATASET_CONFIRM_DOMAINS,...recheckDomains])]:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}
     if(!isMedia&&!dataBusy&&!queue.some(queued=>!isMediaTask(queued))&&!failedDomains().length&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();
-    status();if(queue.length&&!paused){if(continued)void pump();else schedule()}else if(failed.size)retryLater()
+    status();if(queue.length&&!paused){if(continued)void pump();else schedule()}else if(failed.size)retryLater();else if(!active.size)void maybeReconcile()
    }
   }
  }
@@ -391,6 +402,56 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // Re-queues failed work whose back-off has passed (a successful live read, own queued
  // command and the poll land here) and arms the timer for the rest.
  const resume=()=>{if(stopped)return;for(const task of [...failed])if(!waiting(task)){failed.delete(task);enqueue(task)}for(const domain of domains)if(!completed.has(domain)&&!active.has(domain)&&!waiting(domain))enqueue(domain);paused=false;status();schedule();retryLater()};
+ // R078 reconciliation. Runs only when the normal checks are idle, without progress UI, one domain at a time:
+ // the server walks the domain in one snapshot and compares its digests with the stored bundle's. A mismatch is
+ // logged ('reconcile-mismatch', key names only) and heals: the bundle loses its source version and the domain
+ // takes the Full sync path. Receipts are checked locally (present, non-empty, saved at or after their receipt time).
+ let reconciling=false,reconcileAgain=false,reconcileUnsupported=false;
+ const reconcileIdle=()=>!stopped&&initialized&&!paused&&navigator.onLine&&!access.offlineOnly&&document.visibilityState!=='hidden'&&activitySnapshot()===0&&!active.size&&!queue.length&&!failed.size&&!forceWalk.size&&domains.every(domain=>completed.has(domain));
+ async function reconcileDomain(domain:string):Promise<'match'|'mismatch'|'other'|'skipped'>{
+  const [bundle,partial]=await Promise.all([repo.readDataset(domain),repo.readDatasetProgress(domain)]);
+  if(!bundle?.complete||partial||partials.has(domain)||active.has(domain)||queue.includes(domain)||localPatch(bundle)||hasLocalRows(bundle.data)||typeof bundle.sourceVersion!=='string')return 'skipped';
+  const [revision,cacheRevision]=[await repo.readRevision(),await repo.readCacheRevision()];if(revision===null)return 'skipped';
+  const digests=await datasetDigests(bundle.data,sha256Hex),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),RECONCILE_TIMEOUT_MS);
+  let value:any;
+  try{
+   const response=await fetch(new URL('/api/offline-dataset?domain='+domain+'&protocol=3',access.origin),{method:'POST',body:JSON.stringify({reconcile:true,sourceVersion:bundle.sourceVersion,digests}),headers:{Authorization:'Bearer '+await access.token(),'Content-Type':'application/json'},signal:controller.signal,credentials:'omit',cache:'no-store',redirect:'error'});
+   if(response.status===400){reconcileUnsupported=true;return 'skipped'}
+   if(response.status===401||response.status===403){access.authFailure(response.status);return 'skipped'}
+   if(!response.ok)return 'skipped';value=await response.json();
+  }catch{return 'skipped'}finally{clearTimeout(timer)}
+  if(stopped||value?.reconcile!==true||value.domain!==domain)return 'skipped';
+  // The stored data must still be the data that was digested.
+  if(await repo.readRevision()!==revision||await repo.readCacheRevision()!==cacheRevision||datasetBase(await repo.readDataset(domain))!==datasetBase(bundle))return 'skipped';
+  if(value.result==='match'){recordClientEvent({kind:'reconcile-match',code:domain});return 'match'}
+  if(value.result!=='mismatch')return value.result==='stale'||value.result==='changed'?'other':'skipped';
+  const keys=(Array.isArray(value.keys)?value.keys:[]).filter((key:unknown)=>typeof key==='string'&&/^[A-Za-z][A-Za-z0-9]{0,63}$/.test(key));
+  recordClientEvent({kind:'reconcile-mismatch',code:domain,message:keys.join(',')});
+  const {cacheStale:_stale,...stored}=bundle;
+  if(!await repo.saveDataset(domain,{...stored,sourceVersion:null},revision,null,datasetBase(bundle),false))return 'skipped';
+  forceWalk.add(domain);if(!active.size&&!queue.length)beginCycle([domain]);else{cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain)}enqueue(domain);status();schedule();
+  return 'mismatch';
+ }
+ async function checkReceipts(){
+  for(const path of media){const saved=await repo.readDatasetMedia('blob:'+new URL(path,access.origin).href).catch(()=>null);const version=mediaVersion.get(path)??Number.POSITIVE_INFINITY;
+   if(!(saved?.data instanceof Blob)||saved.data.size<=0||!(saved.savedAt>=version)){completed.delete(path);succeeded(path)}}
+  addMedia();status();schedule();
+ }
+ async function maybeReconcile(){
+  // An idle moment while a pass runs (a healed domain finished its walk) is taken once that pass ends.
+  if(reconciling){reconcileAgain=true;return}
+  if(reconcileUnsupported||!reconcileIdle())return;reconciling=true;reconcileAgain=false;
+  try{
+   const last=await repo.readReconciledAt(),now=Date.now();
+   // A first complete download is itself a fresh walk: it starts the 12-hour clock.
+   if(last===null){await repo.saveReconciledAt(now);return}
+   if(!reconcileDue(now,last))return;
+   let complete=true;
+   for(const domain of DATASET_RECONCILE_DOMAINS){if(!reconcileIdle()){complete=false;break}if(await reconcileDomain(domain)==='skipped')complete=false}
+   await checkReceipts();
+   if(complete)await repo.saveReconciledAt(Date.now());
+  }catch{/* The next idle moment tries again. */}finally{reconciling=false;if(reconcileAgain){reconcileAgain=false;setTimeout(()=>void maybeReconcile(),0)}}
+ }
  const offline=()=>{paused=true;for(const flight of active.values())flight.abort('offline');status()};
  const unsubscribe=subscribeActivity(()=>{status();if(activitySnapshot()===0)schedule()});
  window.addEventListener('mw-offline-queued',resume);window.addEventListener('online',online);window.addEventListener('offline',offline);window.addEventListener('focus',focused);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-read-invalidated',request);window.addEventListener('mw-offline-prepare',request);

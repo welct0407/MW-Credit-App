@@ -146,6 +146,9 @@ export function ownerOfflineRepository(identity:{issuer:string;uid:string},envir
     const prior=row.value;if(value?.complete!==true||value.domain!==domain||!value.data||value.sourceVersion!==prior.sourceVersion||value.asOf!==prior.asOf||value.generation!==prior.generation){done(false);return;}
     store.put({...row,savedAt:Date.now(),value});done(true)}});
   },
+  /** R078 reconciliation: the time of the last completed reconciliation (meta row, survives reloads). */
+  async readReconciledAt(){return cacheTransaction<number|null>('readonly',null,(store,done)=>{const request=store.get('meta:reconciled-at');request.onsuccess=()=>{const value=request.result?.value;done(typeof value==='number'?value:null)}})},
+  async saveReconciledAt(at:number){return cacheTransaction<boolean>('readwrite',false,(store,done)=>{store.put({key:'meta:reconciled-at',kind:'meta',value:at,savedAt:Date.now()});done(true)})},
   async readDatasetMedia(key:string){return cacheTransaction<CachedResponse|null>('readonly',null,(store,done)=>{const request=store.get('dataset-media:'+key);request.onsuccess=()=>{const row=request.result;if(!row){done(null);return;}const current=store.get('meta:read-revision');current.onsuccess=()=>done({data:row.value,format:'blob',contentType:row.value.type,savedAt:row.savedAt,revision:current.result?.value??0})}})},
   /** Keys of every stored receipt (without the kind prefix); blobs are not loaded. */
   async listDatasetMediaKeys(){return cacheTransaction<string[]>('readonly',[],(store,done)=>{const request=store.getAllKeys(kindRange('dataset-media'));request.onsuccess=()=>done((request.result as string[]).map(key=>key.slice('dataset-media:'.length)))})},

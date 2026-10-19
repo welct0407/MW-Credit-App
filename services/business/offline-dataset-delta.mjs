@@ -1,5 +1,8 @@
 import {readOfflineDatasetChunk,readRecordsTargeted,resolveRecordsScope,TARGETED_LIMITS,MAX_CHUNK_VALUES} from './offline-dataset-chunks.mjs';
+import {createHash} from 'node:crypto';
 import {deltaValueHash,encodeDeltaChunk,readDeltaCursor,readDeltaRequest,wrapDeltaCursor} from '../api/offline-dataset-delta.mjs';
+import {applyDatasetPatch,datasetDigests,digestDifferences} from '../lib/offline-dataset-digest.mjs';
+import {log} from '../lib/log.mjs';
 
 // R078 source fingerprints. Polling never evaluates the forecast/analytics providers; it hashes
 // the base tables each domain's providers read (views and functions resolved against the
@@ -98,9 +101,41 @@ async function readRecordsDelta(client,actor,request,stamp,current){
  const patches=await readRecordsTargeted(client,actor,stamp,scope);
  return patchValueCount(patches)>4*MAX_CHUNK_VALUES?null:patches;
 }
+// R078 reconciliation (owner, 19 October 2026: twice a day). The client sends the digests of its stored bundle
+// and that bundle's source version; the server walks the domain in this request (one snapshot, no round trips),
+// applies the patches exactly as a client does and compares the digests key by key. Cached per actor, day and
+// source version for 12 h. A version that moved never reports a mismatch.
+const RECONCILE_CACHE_MS=12*60*60*1000,RECONCILE_BUDGET_MS=40*1000,reconcileCache=new Map();
+const sha256=text=>createHash('sha256').update(text).digest('hex');
+async function readOfflineReconcile(client,actor,domain,request,stamp){
+ const started=Date.now(),base={schemaVersion:3,domain,...stamp,reconcile:true,patches:[],values:{},complete:true,nextCursor:null};
+ const finish=(result,fields={})=>{log(result==='mismatch'?'WARNING':'INFO','offline_reconcile',{domain,result,keys:fields.keys??[],ms:Date.now()-started});return {...base,result,...fields}};
+ const sourceVersion=await readOfflineSourceVersion(client,actor,domain,stamp.businessDate);
+ if(sourceVersion!==request.sourceVersion)return finish('stale',{sourceVersion});
+ const key=JSON.stringify([domain,actor.issuer,actor.subject,actor.partnerId,stamp.businessDate,sourceVersion]),cached=reconcileCache.get(key);
+ let server=cached&&Date.now()-cached.at<RECONCILE_CACHE_MS?cached.digests:null;
+ if(!server){
+  /** @type {Record<string,unknown>} */
+  const data={};let cursor=null;
+  for(;;){
+   if(Date.now()-started>RECONCILE_BUDGET_MS)return finish('unavailable');
+   const chunk=await readOfflineDatasetChunk(client,actor,domain,cursor,{deterministicPages:offlineDeterministicPages[domain]});
+   for(const patch of chunk.patches)applyDatasetPatch(data,patch);
+   if(chunk.complete)break;cursor=chunk.nextCursor;
+  }
+  if(await readOfflineSourceVersion(client,actor,domain,stamp.businessDate)!==sourceVersion)return finish('changed');
+  server=await datasetDigests(data,sha256);
+  for(const [entry,value] of reconcileCache)if(Date.now()-value.at>=RECONCILE_CACHE_MS)reconcileCache.delete(entry);
+  while(reconcileCache.size>=64)reconcileCache.delete(reconcileCache.keys().next().value);
+  reconcileCache.set(key,{at:Date.now(),digests:server});
+ }
+ const keys=digestDifferences(server,request.digests);
+ return finish(keys.length||server.digest!==request.digests.digest?'mismatch':'match',{sourceVersion,keys,digest:server.digest});
+}
 export async function readOfflineDatasetDelta(client,actor,domain,input){
  if(!offlineSourceTables[domain])throw Error('invalid_request');
  const request=readDeltaRequest(input),cursor=readDeltaCursor(request.cursor);
+ if(request.reconcile){const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];return readOfflineReconcile(client,actor,domain,request,stamp)}
  const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
  // R078: a check that starts a domain may ask for every domain's version (`versions`); the client
  // then skips the requests of the unchanged domains. Computed once, from the same snapshot.

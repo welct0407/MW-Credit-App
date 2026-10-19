@@ -4,11 +4,13 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import ts from 'typescript';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
+import {createHash} from 'node:crypto';
+const sha256=text=>createHash('sha256').update(text).digest('hex');
 
 // R078 item 2 (client): two data domains in flight, no settle delay inside a walk, fewer durable
 // progress writes with a correct resume, and one records check standing in for unchanged peers.
 const transpile=file=>ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-const source=transpile('offline-dataset.ts'),patchModule=(()=>{const sandbox={exports:{}};runInNewContext(transpile('dataset-patch.ts'),sandbox);return sandbox.exports})();
+const source=transpile('offline-dataset.ts'),patchModule=await import('../../services/lib/offline-dataset-digest.mjs');
 const origin='https://lm.example.invalid',stamp={asOf:'2026-10-19T01:00:00.000Z',businessDate:'2026-10-19'};
 const data=['records','collection','cash','management'],all=[...data,'notifications'];
 const version=domain=>domain.length.toString(16).padStart(2,'0').repeat(32);
@@ -21,7 +23,8 @@ function repository(bundles){
  const rows=new Map(Object.entries(bundles).map(([domain,value])=>['dataset:'+domain,structuredClone(value)])),log=[];
  const progress=domain=>rows.get('dataset-progress:'+domain)??null;
  return {log,rows,scopeName:'synthetic-scope',environment:'synthetic',
-  syncAuthorized:async()=>true,readRevision:async()=>0,
+  syncAuthorized:async()=>true,readRevision:async()=>0,readCacheRevision:async()=>0,
+  readReconciledAt:async()=>rows.get('meta:reconciled-at')??null,saveReconciledAt:async at=>{rows.set('meta:reconciled-at',at);log.push(['reconciled',at]);return true},
   readDataset:async domain=>{const row=rows.get('dataset:'+domain);return row?{...structuredClone(row),cacheStale:false}:null},
   readDatasetProgress:async domain=>structuredClone(progress(domain)),
   discardDatasetProgress:async domain=>{rows.delete('dataset-progress:'+domain)},
@@ -33,10 +36,10 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null}={}){
- const requests=[],flights=new Map(),timers=[];let inflight=0,maxInflight=0;
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[]}={}){
+ const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
- const repo=repository(Object.fromEntries(all.map(domain=>[domain,cursors&&domain==='records'?{...complete(domain),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'},{id:'gone'}],paymentMonths:[{borrowerId:'b1',month:'2026-10'},{borrowerId:'b2',month:'2026-10'}]}}:patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:complete(domain)])));
+ const repo=repository(Object.fromEntries(all.map(domain=>[domain,corrupt.includes(domain)?{...complete(domain),data:{items:[{id:'old',corrupted:true}]}}:cursors&&domain==='records'?{...complete(domain),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'},{id:'gone'}],paymentMonths:[{borrowerId:'b1',month:'2026-10'},{borrowerId:'b2',month:'2026-10'}]}}:patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:complete(domain)])));
  const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
  async function fetch(url,init){
   const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
@@ -44,6 +47,8 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
   inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
   try{
    await tick();
+   if(body.reconcile){const truth=await patchModule.datasetDigests(complete(domain).data,sha256),keys=patchModule.digestDifferences(truth,body.digests);reconciles.push({domain,result:keys.length?'mismatch':'match',keys});
+    return reply(200,{schemaVersion:3,domain,...stamp,reconcile:true,result:body.sourceVersion!==version(domain)&&!walks[domain]?'stale':keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null})}
    if(rejectVersions&&body.versions)return reply(400,{code:'invalid_request'});
    if(v4&&body.since&&domain==='records')return reply(200,{...encodeDeltaChunk({domain,generation:'v4:20',startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),delta:true,patches:v4.patches,complete:true,nextCursor:null,progress:{completed:1,total:1},changes:{seq:'20',xmin:'600',businessDate:stamp.businessDate}},body.need??[]),schemaVersion:4});
    const step=body.cursor?Number(body.cursor):0;
@@ -51,17 +56,19 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
    const versions=body.versions&&!body.cursor?{versions:Object.fromEntries(data.map(name=>[name,walks[name]?changed(name):version(name)]))}:{};
    if(!walks[domain]&&body.sourceVersion===version(domain))return reply(200,{schemaVersion:3,domain,...stamp,sourceVersion:version(domain),unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...versions});
    const chunks=walks[domain]??1,last=step===chunks-1;
-   return reply(200,encodeDeltaChunk({schemaVersion:2,domain,generation:'new-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:walks[domain]?changed(domain):version(domain),patches:[{key:'items',mode:'append',value:[{id:domain+'-'+step}]}],complete:last,nextCursor:last?null:String(step+1),progress:{completed:step+1,total:chunks},...versions},body.need??[]));
+   return reply(200,encodeDeltaChunk({schemaVersion:2,domain,generation:'new-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:walks[domain]?changed(domain):version(domain),patches:[{key:'items',mode:'append',value:[walks[domain]?{id:domain+'-'+step}:{id:'old'}]}],complete:last,nextCursor:last?null:String(step+1),progress:{completed:step+1,total:chunks},...versions},body.need??[]));
   }finally{inflight--;flights.set(domain,flights.get(domain)-1)}
  }
  const trackedTimeout=(callback,delay)=>{timers.push(delay);return setTimeout(callback,delay)};
- const sandbox={exports:{},require:name=>name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
+ class Clock extends Date{constructor(...args){if(args.length)super(...args);else super(Date.now()+clockOffset)}static now(){return Date.now()+clockOffset}}
+ const sandbox={Date:Clock,exports:{},require:name=>name==='./client-events'?{recordClientEvent:event=>clientEvents.push(event)}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
   window,document,navigator:{onLine:true},fetch,setTimeout:trackedTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,console};
  runInNewContext(source,sandbox);
  const events=[];window.addEventListener('mw-offline-dataset-ready',event=>events.push(event.detail.domain+':'+event.detail.changed));
  const stop=sandbox.exports.startOfflinePreparation({origin,offline:repo,token:async()=>'synthetic',authFailure:()=>{}});
  const state=()=>sandbox.exports.getOfflinePreparation(repo.scopeName);
- return {requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
+ if(reconciledAt!==undefined)repo.rows.set('meta:reconciled-at',reconciledAt);
+ return {reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
 }
 const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
 
@@ -71,7 +78,7 @@ test('an unchanged check is one records request carrying every domain version, p
   assert.deepEqual(h.requests.map(request=>request.domain).sort(),['notifications','records']);
   assert.equal(h.requests.find(request=>request.domain==='records').versions,true);
   assert.deepEqual([...h.events].sort(),all.map(domain=>domain+':false').sort());
-  assert.equal(h.repo.log.length,0,'no bundle or progress is rewritten');
+  assert.equal(h.repo.log.filter(entry=>entry[0]!=='reconciled').length,0,'no bundle or progress is rewritten');
  }finally{h.stop()}
 });
 test('a changed peer walks while records confirms; two data domains run at once, never one twice',async()=>{
@@ -130,7 +137,7 @@ test('a bundle with a locally applied own write walks instead of accepting an un
   await settled(h);
   const records=h.requests.find(request=>request.domain==='records'&&!request.need),collection=h.requests.find(request=>request.domain==='collection'&&!request.need);
   assert.equal(records.sourceVersion,null);assert.ok(collection,'the patched peer is not confirmed by the versions answer');assert.equal(collection.sourceVersion,null);
-  for(const domain of ['records','collection']){const bundle=h.repo.rows.get('dataset:'+domain);assert.equal(bundle.localPending,undefined);assert.deepEqual(bundle.data.items.map(item=>item.id),[domain+'-0']);assert.equal(bundle.sourceVersion,version(domain))}
+  for(const domain of ['records','collection']){const bundle=h.repo.rows.get('dataset:'+domain);assert.equal(bundle.localPending,undefined);assert.deepEqual(bundle.data.items.map(item=>item.id),['old']);assert.equal(bundle.data.items[0].localPending,undefined);assert.equal(bundle.sourceVersion,version(domain))}
   assert.equal(h.requests.some(request=>request.domain==='cash'),false);
  }finally{h.stop()}
 });
@@ -169,5 +176,33 @@ test('a full sync requested during a check walks that domain again afterwards',a
   await until(()=>!h.state().fullSync&&!h.state().domainsPending&&h.state().state==='ready');
   const records=h.requests.filter(request=>request.domain==='records'&&!request.need);
   assert.ok(records.filter(request=>!request.cursor&&request.sourceVersion===null).length>=1,'a forced records walk started from the beginning');
+ }finally{h.stop()}
+});
+
+// R078 reconciliation: twice a day, idle and quiet; a mismatch heals through the Full sync path.
+const bangkok=(day,hour,minute)=>Date.UTC(2026,9,day,hour-7,minute);
+test('reconciliation at 18:01 Bangkok runs once, matches equal data without any walk and records each match',async()=>{
+ const offset=bangkok(19,18,1)-Date.now();
+ const h=harness({reconciledAt:bangkok(19,6,30),clockOffset:offset});try{
+  await settled(h);await until(()=>h.repo.log.some(entry=>entry[0]==='reconciled'));
+  assert.deepEqual(h.reconciles.map(entry=>entry.domain+':'+entry.result),['records:match','collection:match','cash:match','management:match']);
+  assert.equal(h.requests.filter(request=>!request.need&&request.sourceVersion===null).length,0,'no walk');
+  assert.deepEqual(h.clientEvents.map(event=>event.kind+':'+event.code),['reconcile-match:records','reconcile-match:collection','reconcile-match:cash','reconcile-match:management']);
+  // Later idle moments in the same slot do not reconcile again.
+  const before=h.requests.length;h.window.dispatchEvent(new Event('focus'));await until(()=>h.requests.length>before);await settled(h);await new Promise(resolve=>setTimeout(resolve,200));
+  assert.equal(h.reconciles.length,4);
+ }finally{h.stop()}
+});
+test('before the next slot nothing reconciles; a first complete download only starts the clock',async()=>{
+ const early=harness({reconciledAt:bangkok(19,6,30),clockOffset:bangkok(19,17,59)-Date.now()});try{await settled(early);await new Promise(resolve=>setTimeout(resolve,100));assert.equal(early.reconciles.length,0)}finally{early.stop()}
+ const first=harness({clockOffset:bangkok(19,18,1)-Date.now()});try{await settled(first);await until(()=>first.repo.rows.has('meta:reconciled-at'));assert.equal(first.reconciles.length,0)}finally{first.stop()}
+});
+test('a corrupted stored domain is named, logged and healed by a forced walk',async()=>{
+ const h=harness({reconciledAt:bangkok(18,18,30),clockOffset:bangkok(19,6,5)-Date.now(),corrupt:['cash']});try{
+  await settled(h);await until(()=>h.repo.log.some(entry=>entry[0]==='reconciled'),6000);
+  const mismatch=h.clientEvents.find(event=>event.kind==='reconcile-mismatch');assert.deepEqual({code:mismatch.code,message:mismatch.message},{code:'cash',message:'items'});
+  assert.ok(h.requests.some(request=>request.domain==='cash'&&!request.need&&request.sourceVersion===null),'the domain walked');
+  assert.deepEqual(JSON.parse(JSON.stringify(h.repo.rows.get('dataset:cash').data)),{items:[{id:'old'}]});
+  assert.equal(h.reconciles.filter(entry=>entry.domain==='cash').at(-1).result,'match','reconciled again after healing');
  }finally{h.stop()}
 });

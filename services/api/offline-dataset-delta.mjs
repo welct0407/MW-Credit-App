@@ -17,11 +17,13 @@ export const deltaValueHash=value=>digest(canonicalDeltaValue(value));
 const dayPattern=/^\d{4}-\d{2}-\d{2}$/;
 /** A change-log cursor: last seq seen, the snapshot's xmin (xid8) and the business date, all as text. */
 export const validChangeCursor=value=>!!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')==='businessDate,seq,xmin'&&typeof value.seq==='string'&&/^(0|[1-9]\d{0,18})$/.test(value.seq)&&typeof value.xmin==='string'&&/^(0|[1-9]\d{0,19})$/.test(value.xmin)&&typeof value.businessDate==='string'&&dayPattern.test(value.businessDate);
+/** reconcile (R078): the client's digests of its stored bundle (services/lib/offline-dataset-digest.mjs). */
+const validDigests=value=>!!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')==='digest,keys'&&typeof value.digest==='string'&&hashPattern.test(value.digest)&&!!value.keys&&typeof value.keys==='object'&&!Array.isArray(value.keys)&&Object.keys(value.keys).length<=64&&Object.entries(value.keys).every(([key,hash])=>/^[A-Za-z][A-Za-z0-9]{0,63}$/.test(key)&&typeof hash==='string'&&hashPattern.test(hash));
 export function readDeltaRequest(input){
- if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!['cursor','need','sourceVersion','acceptChanged','versions','since'].includes(key)))throw Error('invalid_request');
- const {cursor=null,need=[],sourceVersion=null,acceptChanged=false,versions=false,since=null}=input;
- if(cursor!==null&&(typeof cursor!=='string'||cursor.length>32768||!/^[A-Za-z0-9_-]+$/.test(cursor))||sourceVersion!==null&&(typeof sourceVersion!=='string'||!hashPattern.test(sourceVersion))||!Array.isArray(need)||need.length>2048||need.some(hash=>typeof hash!=='string'||!hashPattern.test(hash))||new Set(need).size!==need.length||typeof acceptChanged!=='boolean'||typeof versions!=='boolean'||since!==null&&!validChangeCursor(since))throw Error('invalid_request');
- return {cursor,need,sourceVersion,acceptChanged,versions,since};
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!['cursor','need','sourceVersion','acceptChanged','versions','since','reconcile','digests'].includes(key)))throw Error('invalid_request');
+ const {cursor=null,need=[],sourceVersion=null,acceptChanged=false,versions=false,since=null,reconcile=false,digests=null}=input;
+ if(cursor!==null&&(typeof cursor!=='string'||cursor.length>32768||!/^[A-Za-z0-9_-]+$/.test(cursor))||sourceVersion!==null&&(typeof sourceVersion!=='string'||!hashPattern.test(sourceVersion))||!Array.isArray(need)||need.length>2048||need.some(hash=>typeof hash!=='string'||!hashPattern.test(hash))||new Set(need).size!==need.length||typeof acceptChanged!=='boolean'||typeof versions!=='boolean'||since!==null&&!validChangeCursor(since)||typeof reconcile!=='boolean'||reconcile!==(digests!==null)||reconcile&&(cursor!==null||need.length>0||sourceVersion===null||!validDigests(digests)))throw Error('invalid_request');
+ return {cursor,need,sourceVersion,acceptChanged,versions,since,reconcile,digests};
 }
 /** No retained server snapshot: repeat the same deterministic provider page to
  * retrieve only the content hashes missing from the owner's durable cache. */
