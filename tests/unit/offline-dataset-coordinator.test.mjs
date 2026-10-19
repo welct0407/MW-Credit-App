@@ -37,7 +37,8 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),stored={},attempt}={}){
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt}={}){
+ const navigator={onLine:true};
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
  const repo=repository(Object.fromEntries(all.map(domain=>[domain,corrupt.includes(domain)?{...complete(domain),data:{items:[{id:'old',corrupted:true}]}}:cursors&&domain==='records'?{...complete(domain),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'},{id:'gone'}],paymentMonths:[{borrowerId:'b1',month:'2026-10'},{borrowerId:'b2',month:'2026-10'}]}}:patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:stored[domain]??complete(domain)])));
@@ -48,6 +49,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
   inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
   try{
    await tick();
+   if(body.reconcile&&dropReconcile.has(domain)){reconciles.push({domain,result:'dropped'});navigator.onLine=false;throw TypeError('Failed to fetch')}
    if(body.reconcile&&failReconcile.has(domain)){reconciles.push({domain,result:'failed'});return reply(503,{code:'temporary'})}
    if(body.reconcile){const truth=await patchModule.datasetDigests(complete(domain).data,sha256),keys=patchModule.digestDifferences(truth,body.digests);reconciles.push({domain,result:keys.length?'mismatch':'match',keys});
     return reply(200,{schemaVersion:3,domain,...stamp,reconcile:true,result:body.sourceVersion!==version(domain)&&!walks[domain]?'stale':keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null})}
@@ -65,14 +67,14 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
  let offset=clockOffset;
  class Clock extends Date{constructor(...args){if(args.length)super(...args);else super(Date.now()+offset)}static now(){return Date.now()+offset}}
  const sandbox={Date:Clock,exports:{},require:name=>name==='./client-events'?{recordClientEvent:event=>clientEvents.push(event)}:name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
-  window,document,navigator:{onLine:true},fetch,setTimeout:trackedTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,console};
+  window,document,navigator,fetch,setTimeout:trackedTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,console};
  runInNewContext(source,sandbox);
  const events=[];window.addEventListener('mw-offline-dataset-ready',event=>events.push(event.detail.domain+':'+event.detail.changed));
  const stop=sandbox.exports.startOfflinePreparation({origin,offline:repo,token:async()=>'synthetic',authFailure:()=>{}});
  const state=()=>sandbox.exports.getOfflinePreparation(repo.scopeName);
  if(reconciledAt!==undefined)repo.rows.set('meta:reconciled-at',reconciledAt);
  if(attempt!==undefined)repo.rows.set('meta:reconcile-tried-at',attempt);
- return {advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
+ return {navigator,advance:ms=>{offset+=ms},reconcileSlot:sandbox.exports.reconcileSlot,reconciles,clientEvents,requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
 }
 const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
 
@@ -249,4 +251,14 @@ test('a heal clears the change cursor and is marked needsWalk; after a reload th
   assert.ok(records.length>=1);assert.ok(records.every(request=>request.since===null),'no v4 delta');assert.equal(records[0].sourceVersion,null);
   const bundle=r.repo.rows.get('dataset:records');assert.equal('needsWalk' in bundle,false);assert.deepEqual(JSON.parse(JSON.stringify(bundle.data)),{items:[{id:'old'}]});
  }finally{r.stop()}
+});
+test('a reconcile request lost to a dropped connection does not start the back-off',async()=>{
+ const dropReconcile=new Set(['collection']),h=harness({reconciledAt:bangkok(19,6,30),clockOffset:bangkok(19,18,1)-Date.now(),dropReconcile});try{
+  await settled(h);await until(()=>h.reconciles.some(entry=>entry.result==='dropped'));await new Promise(resolve=>setTimeout(resolve,100));
+  const tried=h.repo.rows.get('meta:reconcile-tried-at');assert.ok(!tried||tried.at===0,'no back-off time stored');
+  assert.deepEqual(h.reconciles.map(entry=>entry.domain+':'+entry.result),['records:match','collection:dropped']);
+  // Back online within the same minute: the pass resumes at once, without asking records again.
+  dropReconcile.clear();h.navigator.onLine=true;h.window.dispatchEvent(new Event('online'));h.window.dispatchEvent(new Event('focus'));await until(()=>h.repo.log.some(entry=>entry[0]==='reconciled'));
+  assert.deepEqual(h.reconciles.slice(2).map(entry=>entry.domain+':'+entry.result),['collection:match','cash:match','management:match']);
+ }finally{h.stop()}
 });

@@ -429,7 +429,8 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(response.status===400){reconcileUnsupported=true;return 'skipped'}
    if(response.status===401||response.status===403){access.authFailure(response.status);return 'failed'}
    if(!response.ok)return 'failed';value=await response.json();
-  }catch{return stopped?'skipped':'failed'}finally{clearTimeout(timer)}
+  // A connection lost mid-request is not a server failure: no back-off, the pass resumes once online.
+  }catch{return stopped||!navigator.onLine?'skipped':'failed'}finally{clearTimeout(timer)}
   if(stopped)return 'skipped';
   if(value?.reconcile!==true||value.domain!==domain)return 'failed';
   // The stored data must still be the data that was digested.
