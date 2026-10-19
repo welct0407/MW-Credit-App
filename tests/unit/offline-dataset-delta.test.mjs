@@ -218,4 +218,5 @@ test('v4 request cursor, upsert/remove encoding and the cursor continuation rule
  // A day change, a cursor ahead of the log (another database) or behind its retention cannot continue.
  for(const [cursor,log] of [[{...since,businessDate:'2026-10-13'},current],[{...since,seq:'21'},current],[{...since,seq:'3'},current],[since,null]])assert.equal(await readChangedRows(client,'records',cursor,log),null);
  assert.equal(await readChangedRows({query:async()=>({rows:Array.from({length:3},(_,i)=>({table:'Payments',key:'p'+i}))})},'records',since,current,2),null,'over the size bound');
+ assert.equal(await readChangedRows({query:async()=>({rows:[{table:'Payments',key:'p1'},{table:'Daily Analytics',key:'*'}]})},'records',since,current),null,'a TRUNCATE marker walks');
 });

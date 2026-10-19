@@ -71,14 +71,18 @@ export async function readChangeCursor(client,businessDate){
  const row=(await client.query(`SELECT coalesce(max(seq),0)::text AS seq,min(seq)::text AS "minSeq",pg_snapshot_xmin(pg_current_snapshot())::text AS xmin FROM public.pwa_row_changes`)).rows[0];
  return row&&/^\d+$/.test(row.seq)&&/^\d+$/.test(row.xmin)?{seq:row.seq,xmin:row.xmin,businessDate,minSeq:row.minSeq??null}:null;
 }
+/** row_key of the change-log row V97 writes for a TRUNCATE (a real key '*' only costs an extra walk). */
+export const TRUNCATE_MARKER='*';
 const publicCursor=cursor=>cursor?{changes:{seq:cursor.seq,xmin:cursor.xmin,businessDate:cursor.businessDate}}:{};
 /** Rows changed since the client's cursor: seq after it, or written by a transaction still in progress at
- * that snapshot (seq is assigned at insert, not commit). Null when the cursor cannot be continued. */
+ * that snapshot (seq is assigned at insert, not commit). Null when the cursor cannot be continued (gap, other
+ * database, size bound, a TRUNCATE marker). */
 export async function readChangedRows(client,domain,since,current,limit=TARGETED_LIMITS.rows){
  if(!current||since.businessDate!==current.businessDate)return null;
  const seq=BigInt(since.seq);if(seq>BigInt(current.seq)||current.minSeq!==null&&seq<BigInt(current.minSeq)-1n)return null;
  const rows=(await client.query(`SELECT table_name AS "table",row_key AS key FROM public.pwa_row_changes WHERE table_name=ANY($1::text[]) AND (seq>$2::bigint OR txid>=$3::xid8) ORDER BY seq LIMIT $4`,[changeTables[domain],since.seq,since.xmin,limit+1])).rows;
- return rows.length>limit?null:rows;
+ // V97 (50825c4) logs a TRUNCATE of a tracked table as one marker row: the domain walks.
+ return rows.length>limit||rows.some(row=>row.key===TRUNCATE_MARKER)?null:rows;
 }
 async function guarded(client,work){
  await client.query('SAVEPOINT offline_v4');

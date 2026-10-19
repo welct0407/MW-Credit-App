@@ -7,7 +7,7 @@ import {readOfflineDatasetDelta,readOfflineSourceVersion} from '../../services/b
 
 // R078 protocol v4 on a disposable PostgreSQL database migrated through V97 (never DEV or PROD).
 // MW_V4_LAB_URL=postgres://postgres@127.0.0.1:5498/loan_manager_dev node --test tests/integration/offline-delta-v4-lab.test.mjs
-// A normal payment and a replica-mode write answer with key-only records deltas.
+// A normal payment and a replica-mode write answer with key-only records deltas; a TRUNCATE marker walks.
 const url=process.env.MW_V4_LAB_URL;
 const lab=url?new URL(url):null;
 const disposable=!!lab&&['127.0.0.1','localhost'].includes(lab.hostname)&&lab.pathname==='/loan_manager_dev';
@@ -59,5 +59,14 @@ test('protocol v4 sends key-only deltas for a payment and for a replica-mode wri
   assert.ok(BigInt((await client.query('SELECT max(seq) AS seq FROM public.pwa_row_changes')).rows[0].seq)>BigInt(before),'the replica-mode write is logged');
   const replica=await read(client,{cursor:null,need:[],sourceVersion:state.sourceVersion,acceptChanged:true,since:state.changes});
   assert.equal(replica.schemaVersion,4);assert.equal(replica.delta,true);assert.ok(replica.patches.some(patch=>patch.key==='borrowers'));
+  state={sourceVersion:replica.sourceVersion,changes:replica.changes};
+
+  // TRUNCATE writes one marker row ('*'): every domain reading the table walks.
+  await client.query(`INSERT INTO "Daily Analytics"("Row ID","Snapshot Date","Generated At") VALUES ($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-1,now())`,['V4-DA-'+id]);
+  state=await walk(client);
+  await client.query('TRUNCATE "Daily Analytics"');
+  assert.equal((await client.query(`SELECT count(*)::int AS n FROM public.pwa_row_changes WHERE table_name='Daily Analytics' AND row_key='*'`)).rows[0].n>=1,true,'the truncate marker is logged');
+  const truncated=await read(client,{cursor:null,need:[],sourceVersion:state.sourceVersion,acceptChanged:true,since:state.changes});
+  assert.equal(truncated.schemaVersion,3);assert.notEqual(truncated.unchanged,true);assert.ok(truncated.patches.length>0,'a walk starts');
  }finally{await client.end()}
 });
