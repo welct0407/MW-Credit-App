@@ -23,6 +23,16 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R077 runtime, command timeout and frontend on V96
+
+`schemaVersion: 19`, `release: R077`, `scope: runtime-workers-frontend`, `status: prepared|applied`: the R076 contract with these differences.
+
+- **Source.** The source must descend from the R076 release `fa67607` and carry no change under `database/migrations` since it. The SQL rule (verified V96, no migration), runtime, rollback, recognition pin (enabled, unchanged), per-job CI gate and delivery-tool allowance are R076's.
+- **Plan.** `{add:0, change:4, destroy:0}` with exactly the actions `read.image`, `command.image`, `notify.image`, `jobs.image` and `command.timeout`: the command service request timeout goes from 15 s to 55 s (receipt recognition: recognizer 42 s < route 45 s < command 55 s < PWA 60 s).
+- **Apply.** As R076, plus the live request timeouts of the four services: command `55s`, reader `15s`, notify and jobs `120s`.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R077"`; the audience is `https://lm.mw-credit.com/promotion/r077`.
+- **Not covered.** The integration agent (recognizer bound and slip downscale) is deployed and verified separately.
+
 ## R076 runtime and frontend hotfix on V96
 
 `deploy-business-hosting.mjs` accepts `schemaVersion: 18`, `release: R076`, `scope: runtime-workers-frontend`, `status: prepared|applied` (`--apply` needs `applied`), modelled on R069 with R075's per-job CI, release marker and live recognizer readback.
