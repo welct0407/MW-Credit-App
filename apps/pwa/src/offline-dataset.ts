@@ -27,9 +27,14 @@ async function indexDataset(bundle:any){
  return values;
 }
 
-/** One bounded request at a time. Foreground navigation pauses the next chunk;
- * it does not throw away a request which the server is already processing. */
+/** Bounded requests: at most DATASET_DATA_FLIGHTS data domains at once (R078; never two for one domain).
+ * Foreground navigation pauses the next chunk; it does not throw away a request which the server is
+ * already processing. */
 export const DATASET_POLL_MS=30*1000;
+export const DATASET_DATA_FLIGHTS=2;
+/** A walk writes its durable progress row for its first chunk, then once per this many chunks, before a
+ * pause and when a chunk fails (R078); a chunk lost before it was written is fetched again on resume. */
+export const DATASET_PROGRESS_SAVE_CHUNKS=4;
 /** R064: online and background-prepare triggers recheck a domain only after this age; focus, visible-again,
  * the poll and manual sync bypass it (owner decision 17 October 2026). */
 export const DATASET_RECHECK_MIN_MS=10*1000;
@@ -55,14 +60,23 @@ export function receiptRetainedOffline(row:any,now=Date.now()){
 export const receiptMediaCandidates=(url:URL)=>url.searchParams.get('source')!=='preferred'?['blob:'+url.href]:['manual','agent'].map(source=>{const alias=new URL(url);alias.searchParams.set('source',source);return 'blob:'+alias.href});
 export function startOfflinePreparation(access:Access,_options:{readOrigin?:string}={}){
  const repository=access.offline;if(!repository)return()=>{};const repo=repository;
- let stopped=false,running=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined,controller:AbortController|null=null,activeTask:string|null=null;
+ let stopped=false,initialized=false,initializing=false,queue:string[]=[],media:string[]=[],requestedDomain:string|null=null,paused=false,timer:ReturnType<typeof setTimeout>|undefined,retryTimer:ReturnType<typeof setTimeout>|undefined;
  let lastChecked:number|null=null,recheck=false,pollTimer:ReturnType<typeof setTimeout>|undefined;
+ // R078: every task in flight with its abort controller. At most DATASET_DATA_FLIGHTS data domains run
+ // at once (never the same domain twice); a receipt runs alone, only while no data domain is queued or in flight.
+ const active=new Map<string,AbortController>();
+ // While a starting records check asks for every domain's source version, the other data domains wait
+ // for that answer instead of each sending its own unchanged check.
+ let versionsPending=false;
  const recheckDomains=new Set<string>(),domainChecked=new Map<string,number>();
- // Servers before R064 reject the acceptChanged request field; remember per path.
- const legacyPaths=new Set<string>();
- // In-memory partial between chunks: the durable progress row still carries every
- // chunk for crash resume, but the growing partial is not re-read and re-cloned.
- const partials=new Map<string,{partial:any,bundle:any}>();
+ // Request fields each dataset path accepts: 2 = versions and acceptChanged (R078), 1 = acceptChanged
+ // (R064), 0 = neither. A 400 invalid_request steps the path down once per field and retries.
+ const pathLevels=new Map<string,number>();
+ // In-memory partial between chunks. The durable progress row is written for the first chunk of a walk,
+ // then every DATASET_PROGRESS_SAVE_CHUNKS chunks, before a pause and when a chunk fails; `saved` is the
+ // cursor of that durable row. A chunk lost before it was saved is fetched again on resume.
+ type WalkPartial={partial:any;bundle:any;saved:string|null;unsaved:number;revision:number};
+ const partials=new Map<string,WalkPartial>();
  const cycleDomains=new Set<string>(),cycleDone=new Set<string>();
  const beginCycle=(targets:readonly string[]=domains)=>{if(targets.length===domains.length)armPoll();cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
  const valueIndexes=new Map<string,{base:string|null,values:Record<string,any>}>();
@@ -85,12 +99,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const isMediaTask=(task:string)=>task.startsWith('/api/');
  const quietMedia=new Set<string>();
  const failedDomains=()=>domains.filter(domain=>failed.has(domain));
- const domainRunning=()=>running&&!!activeTask&&!isMediaTask(activeTask);
+ const dataFlights=()=>[...active.keys()].filter(task=>!isMediaTask(task)).length;
+ const domainRunning=()=>dataFlights()>0;
  // A chunked walk between two segments (its next segment queued with a kept partial) is still in flight for
  // refresh triggers: a poll or focus landing in that gap joins the cycle like one landing during a request.
  const walking=()=>domainRunning()||queue.some(task=>!isMediaTask(task)&&partials.has(task));
- const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(running||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||running?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(active.size>0||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||active.size?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
@@ -102,12 +117,28 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // One timer for the earliest due failed task; resume() then re-queues only the due ones.
  const retryLater=()=>{if(stopped||!navigator.onLine||paused||!failed.size)return;const due=Math.min(...[...failed].map(task=>backoff.get(task)?.next??0));if(retryTimer)clearTimeout(retryTimer);retryTimer=setTimeout(()=>{retryTimer=undefined;resume()},Math.max(0,due-Date.now()))};
  const enqueue=(task:string,first=false)=>{if(queue.includes(task))return;first?queue.unshift(task):queue.push(task)};
+ // New work starts after a short settle delay; the next segment of a walk in progress starts at once (R078).
  const schedule=()=>{if(stopped||timer)return;timer=setTimeout(()=>{timer=undefined;void pump()},200)};
  const addMedia=()=>{if(domains.every(domain=>completed.has(domain)))for(const path of media)if(!completed.has(path)&&!failed.has(path))enqueue(path)};
  const forget=async(task:string)=>{partials.delete(task);await repo.discardDatasetProgress(task)};
  // The receipt window moves with time: recompute it whenever the records check completes.
  const refreshMedia=async(records:any)=>{const oldVersions=new Map(mediaVersion);mediaVersion.clear();media=mediaKeys(records);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);succeeded(path)}await pruneMedia()};
  const giveUp=(task:string)=>{if(task===requestedDomain)failedEvent(task)};
+ // Data domains whose unchanged check a records versions answer can stand in for.
+ const versionPeer=(task:string)=>task==='collection'||task==='cash'||task==='management';
+ // A queued peer domain whose stored complete bundle already has the reported source version needs no
+ // request of its own: it is checked, unchanged (UX-REFRESH-02: the bundle is not rewritten).
+ async function applyVersions(versions:any){
+  if(!versions||typeof versions!=='object'||Array.isArray(versions))return;
+  for(const domain of domains.filter(versionPeer)){
+   const version=versions[domain];if(typeof version!=='string'||!/^[a-f0-9]{64}$/.test(version)||!queue.includes(domain)||active.has(domain)||partials.has(domain))continue;
+   const [bundle,partial]=await Promise.all([repo.readDataset(domain),repo.readDatasetProgress(domain)]);
+   if(stopped||!queue.includes(domain)||active.has(domain)||partial||!bundle?.complete||bundle.cacheStale||bundle.sourceVersion!==version)continue;
+   queue=queue.filter(queued=>queued!==domain);completed.add(domain);cycleDone.add(domain);succeeded(domain);changedRetries.delete(domain);domainChecked.set(domain,Date.now());
+   if(domain===requestedDomain)requestedDomain=null;
+   ready(domain,false);
+  }
+ }
  async function initialize(){if(initializing)return;initializing=true;try{
   if(!await repo.syncAuthorized()){paused=true;status();return}
   beginCycle();
@@ -121,16 +152,39 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   for(const path of media){const saved=await repo.readDatasetMedia('blob:'+new URL(path,access.origin).href);if(stopped)return;if(saved&&saved.savedAt>=(mediaVersion.get(path)??Infinity))completed.add(path)}
   initialized=true;paused=!navigator.onLine||!!access.offlineOnly;addMedia();status();schedule();
  }catch{paused=true;status()}finally{initializing=false}}
+ // Picks the next task that may start now, or nothing. Data domains come first (two at a time); a
+ // receipt never delays them. While the user is busy (a live read in flight) or the app is hidden,
+ // only a domain a screen is waiting on runs.
+ const pick=():string|undefined=>{
+  const free=(task:string)=>!active.has(task)&&!(versionsPending&&versionPeer(task)&&task!==requestedDomain);
+  if(activitySnapshot()>0||document.visibilityState==='hidden'){
+   const index=requestedDomain?queue.indexOf(requestedDomain):-1;
+   return index>=0&&free(requestedDomain!)&&dataFlights()<DATASET_DATA_FLIGHTS?queue.splice(index,1)[0]:undefined;
+  }
+  const index=queue.findIndex(task=>!isMediaTask(task)&&free(task));
+  if(index>=0)return dataFlights()<DATASET_DATA_FLIGHTS?queue.splice(index,1)[0]:undefined;
+  if(active.size||queue.some(task=>!isMediaTask(task)))return undefined;
+  return queue.shift();
+ };
  async function pump(){
-  if(stopped||running)return;
+  if(stopped)return;
   if(!initialized){await initialize();return}
   if(!navigator.onLine||access.offlineOnly){paused=true;status();return}
   if((activitySnapshot()>0||document.visibilityState==='hidden')&&!requestedDomain){status();return;}
-  if(!await repo.syncAuthorized()){paused=true;if(requestedDomain)failedEvent(requestedDomain);status();return}if(stopped||running)return;paused=false;
   addMedia();if(!queue.length){status();return}
-  const next=queue.findIndex(queued=>!isMediaTask(queued)),task=queue.splice(Math.max(0,next),1)[0],isMedia=isMediaTask(task);running=true;activeTask=task;controller=new AbortController();const flight=controller;status();
+  if(!await repo.syncAuthorized()){paused=true;if(requestedDomain&&!active.has(requestedDomain))failedEvent(requestedDomain);status();return}if(stopped)return;paused=false;
+  // Picking is synchronous: overlapping pumps never start the same task twice or exceed the limits.
+  for(let task=pick();task!==undefined;task=pick())void run(task);
+  status();
+ }
+ async function run(task:string){
+  const isMedia=isMediaTask(task),flight=new AbortController();active.set(task,flight);
+  // A starting records check also asks for the other domains' versions (applyVersions).
+  let ownsVersions=false;if(task==='records'&&!versionsPending&&queue.some(queued=>versionPeer(queued)&&!active.has(queued))){versionsPending=true;ownsVersions=true}
+  const releaseVersions=()=>{if(!ownsVersions)return;ownsVersions=false;versionsPending=false;if(!stopped)void pump()};
+  status();
   let timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
-  let softGiveUp=false;
+  let softGiveUp=false,continued=false;
   try{
    let revision=await repo.readRevision();if(revision===null||stopped)throw Error();
    // A read revision bump (own settled write) between or during chunks re-pins
@@ -140,23 +194,27 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const memo=isMedia?undefined:partials.get(task);
    const partial=isMedia?null:memo?memo.partial:await repo.readDatasetProgress(task);
    let bundle=isMedia?null:memo?memo.bundle:await repo.readDataset(task);
+   // Cursor of the durable progress row (the commit below expects it), not of the in-memory partial.
+   const durable:string|null=memo?memo.saved:partial?.nextCursor??null;
    const base=partial?.base??datasetBase(bundle),delta=!!bundle?.complete;
    if(partial&&(partial.base??null)!==datasetBase(bundle)){await forget(task);enqueue(task);return}
    const path=isMedia?task:task==='notifications'?'/api/notifications/offline-dataset':'/api/offline-dataset?domain='+task,url=new URL(path,access.origin);if(!isMedia){url.searchParams.set('protocol',delta?'3':'2');if(!delta&&partial?.nextCursor)url.searchParams.set('cursor',partial.nextCursor);}
    if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);succeeded(task);return}}
+   const level=pathLevels.get(url.pathname)??2,askVersions=ownsVersions&&delta&&!partial&&level>=2;
+   if(!askVersions)releaseVersions();
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
-   const legacy=legacyPaths.has(url.pathname);
-   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:bundle?.sourceVersion??null,...(legacy?{}:{acceptChanged:true})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
+   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
    // Legacy 409: the final chunk is lost, so the walk restarts once; a repeat is
    // not a failure (saved data stays available, the next check walks again).
    const changedOnServer=async()=>{await forget(task);fractions.delete(task);chunkCounts.delete(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}softGiveUp=true;cycleDone.add(task);if(bundle?.complete)ready(task,false);else giveUp(task)};
    let response=await fetchSegment();
    if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
-   if(response.status===400&&delta&&!legacy){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){legacyPaths.add(url.pathname);enqueue(task,true);return}throw Error()}
+   if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,askVersions?1:0);enqueue(task,true);continued=true;return}throw Error()}
    if(response.status===409&&!isMedia){const error=await response.json().catch(()=>({}));if(error?.code==='dataset_changed'){await changedOnServer();return}throw Error()}
    if(!response.ok)throw Error();let value=isMedia?await response.blob():await response.json();
    if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error();
    await refreshRevision();
+   if(askVersions){try{if(value?.schemaVersion===3)await applyVersions(value.versions)}catch{/* The peers then check on their own. */}releaseVersions()}
    let full=value;
    if(!isMedia&&value.schemaVersion===3){
     if(value.unchanged){
@@ -204,8 +262,8 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const torn=!isMedia&&value.complete===true&&value.changed===true;
    if(!isMedia){
     if(value.domain!==task||typeof value.generation!=='string'||!Array.isArray(value.patches)||typeof value.complete!=='boolean'||value.complete!==(value.nextCursor===null)||partial&&partial.generation!==value.generation)throw Error('Invalid dataset segment');
-    // The memoized partial was already handed to IndexedDB by value; mutating it
-    // in place is safe. A durable partial read back is cloned once.
+    // The memoized partial was already handed to IndexedDB by value, or was never
+    // stored; mutating it in place is safe. A durable partial read back is cloned once.
     const data=memo?partial?.data??{}:structuredClone(partial?.data??{});
     for(const patch of value.patches){const path=[patch?.key,...(patch?.path??[])];if(!patch||!Array.isArray(patch.path??[])||path.some(key=>typeof key!=='string'||['__proto__','prototype','constructor'].includes(key)))throw Error('Invalid dataset patch');
      let target=data;for(const key of path.slice(0,-1)){if(Array.isArray(target)&&(!/^(0|[1-9][0-9]*)$/.test(key)||Number(key)>=target.length))throw Error();if(target[key]===undefined)target[key]={};if(!target[key]||typeof target[key]!=='object')throw Error();target=target[key]}const key=path.at(-1)!;if(Array.isArray(target)&&(!/^(0|[1-9][0-9]*)$/.test(key)||Number(key)>=target.length))throw Error();
@@ -214,7 +272,16 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
      else if(patch.mode==='replace')target[key]=patch.value;else throw Error();
     }
     full={schemaVersion:1,protocolVersion:value.schemaVersion,base,sourceVersion:torn?null:value.sourceVersion,contentValues:value.contentValues,domain:task,businessDate:value.businessDate,asOf:value.asOf,startedAt:partial?.startedAt??value.startedAt??value.asOf,generation:value.generation,complete:value.complete,data,chunks:(partial?.chunks??0)+1,nextCursor:value.nextCursor,progress:value.progress};
-    if(!value.complete){if(!value.nextCursor||value.nextCursor===partial?.nextCursor||!await repo.saveDatasetProgress(task,full,revision,partial?.nextCursor??null))throw Error();partials.set(task,{partial:full,bundle});chunkCounts.set(task,full.chunks);if(value.progress?.total>0)fractions.set(task,Math.min(.99,value.progress.completed/value.progress.total));enqueue(task,task===requestedDomain);return}
+    if(!value.complete){
+     if(!value.nextCursor||value.nextCursor===partial?.nextCursor)throw Error();
+     // R078: persist the first chunk of a walk (a resume point), then every few chunks, and before a pause.
+     const unsaved=(memo?.unsaved??0)+1,save=durable===null||unsaved>=DATASET_PROGRESS_SAVE_CHUNKS||document.visibilityState==='hidden'||!navigator.onLine;
+     if(save&&!await repo.saveDatasetProgress(task,full,revision,durable))throw Error();
+     partials.set(task,save?{partial:full,bundle,saved:full.nextCursor,unsaved:0,revision}:{partial:full,bundle,saved:durable,unsaved,revision});
+     chunkCounts.set(task,full.chunks);if(value.progress?.total>0)fractions.set(task,Math.min(.99,value.progress.completed/value.progress.total));
+     // The next segment of a walk in progress goes first and starts without the settle delay.
+     enqueue(task,true);continued=true;return;
+    }
     // Commit against the durable bundle, not a memoized copy of it.
     if(memo){bundle=await repo.readDataset(task);if((partial.base??null)!==datasetBase(bundle))throw Error('Dataset base changed')}
    }
@@ -222,15 +289,25 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    // UX-REFRESH-02: a single-chunk check that changed nothing (notifications has no source
    // watermark and re-sends its content each time) keeps the stored bundle as it is.
    const keep=!isMedia&&!dataChanged&&!torn&&!partial&&!!bundle?.complete&&!bundle.cacheStale&&full.sourceVersion===bundle.sourceVersion&&full.businessDate===bundle.businessDate;
-   const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):keep||await repo.saveDataset(task,full,revision,partial?.nextCursor??null,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
+   const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):keep||await repo.saveDataset(task,full,revision,durable,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
    if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);succeeded(task);if(task==='records')await refreshMedia(full);
    if(!isMedia){
     domainChecked.set(task,Date.now());
     if(torn){const retries=changedRetries.get(task)??0;if(retries<2){changedRetries.set(task,retries+1);recheckDomains.add(task)}}else changedRetries.delete(task);
     ready(task,dataChanged);
    }
-  }catch{if(!stopped){partials.delete(task);if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task);if(!isMedia)giveUp(task)}}}finally{
-   clearTimeout(timeout);running=false;activeTask=null;controller=null;if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}if(!stopped){addMedia();if(!queue.length&&(recheck||recheckDomains.size)){const targets=recheck?domains:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}if(!isMedia&&!queue.some(queued=>!isMediaTask(queued))&&!failedDomains().length&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();status();if(queue.length&&!paused)schedule();else if(failed.size)retryLater()}
+  }catch{if(!stopped){
+   // Keep the chunks this walk applied in memory: a failed segment resumes after them.
+   const kept=partials.get(task);partials.delete(task);
+   if(kept?.unsaved){try{const current=await repo.readRevision();if(current!==null&&await repo.saveDatasetProgress(task,kept.partial,current,kept.saved)&&current!==kept.revision)recheck=true}catch{/* The durable row stays at its earlier cursor. */}}
+   if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task);if(!isMedia)giveUp(task)}}}finally{
+   clearTimeout(timeout);if(active.get(task)===flight)active.delete(task);releaseVersions();if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}
+   if(!stopped){
+    addMedia();const dataBusy=domainRunning();
+    if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?domains:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}
+    if(!isMedia&&!dataBusy&&!queue.some(queued=>!isMediaTask(queued))&&!failedDomains().length&&domains.every(domain=>completed.has(domain)))lastChecked=Date.now();
+    status();if(queue.length&&!paused){if(continued)void pump();else schedule()}else if(failed.size)retryLater()
+   }
   }
  }
  const request=(event?:Event)=>{if(stopped)return;const detail=(event as CustomEvent|undefined)?.detail;const priority=domains.includes(detail?.domain)?detail.domain:undefined;
@@ -240,13 +317,13 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(background&&priority&&(waiting(priority)||completed.has(priority)&&!failed.has(priority)&&!stale(priority)))return;
   if(!background&&retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
   if(detail?.foreground)requestedDomain=priority;
-  if(event?.type==='mw-read-invalidated'){if(running||queue.length)recheck=true;else{beginCycle();for(const domain of domains)enqueue(domain)}failed.clear()}
+  if(event?.type==='mw-read-invalidated'){if(active.size||queue.length)recheck=true;else{beginCycle();for(const domain of domains)enqueue(domain)}failed.clear()}
   else{
    // A receipt still downloading or retrying does not block a sync of the data domains (pump takes them first).
    if(!domainRunning()&&!queue.some(task=>!isMediaTask(task))&&event?.type==='mw-offline-prepare'&&!failedDomains().length){beginCycle(priority?[priority]:domains);for(const domain of cycleDomains)enqueue(domain)}
    // A manual sync of everything (header refresh: detail.all) also checks the domains that did not fail; a domain already
    // queued or in flight is joined rather than fetched twice. A plain mw-offline-prepare (read-cache background prepare) still retries only failed work.
-   else if(detail?.all&&!priority&&event?.type==='mw-offline-prepare'){const targets=domains.filter(domain=>domain!==activeTask&&!queue.includes(domain));if(targets.length){if(domainRunning()||queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}
+   else if(detail?.all&&!priority&&event?.type==='mw-offline-prepare'){const targets=domains.filter(domain=>!active.has(domain)&&!queue.includes(domain));if(targets.length){if(domainRunning()||queue.some(task=>!isMediaTask(task)))for(const domain of targets){cycleDomains.add(domain);cycleDone.delete(domain);fractions.delete(domain);enqueue(domain)}else{beginCycle(targets);for(const domain of targets)enqueue(domain)}}}
    for(const task of [...failed])if(!background||!waiting(task)){failed.delete(task);enqueue(task)}
   }
   if(priority){cycleDomains.add(priority);cycleDone.delete(priority);fractions.delete(priority);queue=queue.filter(task=>task!==priority);enqueue(priority,true)}
@@ -269,12 +346,12 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  armPoll();
  // Re-queues failed work whose back-off has passed (a successful live read, own queued
  // command and the poll land here) and arms the timer for the rest.
- const resume=()=>{if(stopped)return;for(const task of [...failed])if(!waiting(task)){failed.delete(task);enqueue(task)}for(const domain of domains)if(!completed.has(domain)&&domain!==activeTask&&!waiting(domain))enqueue(domain);paused=false;status();schedule();retryLater()};
- const offline=()=>{paused=true;controller?.abort('offline');status()};
+ const resume=()=>{if(stopped)return;for(const task of [...failed])if(!waiting(task)){failed.delete(task);enqueue(task)}for(const domain of domains)if(!completed.has(domain)&&!active.has(domain)&&!waiting(domain))enqueue(domain);paused=false;status();schedule();retryLater()};
+ const offline=()=>{paused=true;for(const flight of active.values())flight.abort('offline');status()};
  const unsubscribe=subscribeActivity(()=>{status();if(activitySnapshot()===0)schedule()});
  window.addEventListener('mw-offline-queued',resume);window.addEventListener('online',online);window.addEventListener('offline',offline);window.addEventListener('focus',focused);document.addEventListener('visibilitychange',visible);window.addEventListener('mw-read-invalidated',request);window.addEventListener('mw-offline-prepare',request);
  void initialize();
- return()=>{stopped=true;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);controller?.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
+ return()=>{stopped=true;if(timer)clearTimeout(timer);if(retryTimer)clearTimeout(retryTimer);for(const flight of active.values())flight.abort();unsubscribe();window.removeEventListener('mw-offline-queued',resume);window.removeEventListener('online',online);window.removeEventListener('offline',offline);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',visible);if(pollTimer)clearTimeout(pollTimer);window.removeEventListener('mw-read-invalidated',request);window.removeEventListener('mw-offline-prepare',request);states.delete(repo.scopeName);listeners.forEach(listener=>{listener()})};
 }
 
 export const routeDomain=(route:string)=>route.startsWith('/api/management')?'management':route.startsWith('/api/cash-')||route==='/api/preferences'?'cash':route.startsWith('/api/notifications')?'notifications':route.startsWith('/api/collection')||route.includes('/upcoming')||route.includes('/collection-receipts')?'collection':'records';

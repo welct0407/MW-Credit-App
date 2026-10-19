@@ -10,11 +10,13 @@ export function canonicalDeltaValue(value){
  return value;
 }
 export const deltaValueHash=value=>digest(canonicalDeltaValue(value));
+/** versions (R078): the response to a request without a cursor also carries every domain's
+ * source version, so one check request can confirm the other domains unchanged. */
 export function readDeltaRequest(input){
- if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!['cursor','need','sourceVersion','acceptChanged'].includes(key)))throw Error('invalid_request');
- const {cursor=null,need=[],sourceVersion=null,acceptChanged=false}=input;
- if(cursor!==null&&(typeof cursor!=='string'||cursor.length>32768||!/^[A-Za-z0-9_-]+$/.test(cursor))||sourceVersion!==null&&(typeof sourceVersion!=='string'||!hashPattern.test(sourceVersion))||!Array.isArray(need)||need.length>2048||need.some(hash=>typeof hash!=='string'||!hashPattern.test(hash))||new Set(need).size!==need.length||typeof acceptChanged!=='boolean')throw Error('invalid_request');
- return {cursor,need,sourceVersion,acceptChanged};
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!['cursor','need','sourceVersion','acceptChanged','versions'].includes(key)))throw Error('invalid_request');
+ const {cursor=null,need=[],sourceVersion=null,acceptChanged=false,versions=false}=input;
+ if(cursor!==null&&(typeof cursor!=='string'||cursor.length>32768||!/^[A-Za-z0-9_-]+$/.test(cursor))||sourceVersion!==null&&(typeof sourceVersion!=='string'||!hashPattern.test(sourceVersion))||!Array.isArray(need)||need.length>2048||need.some(hash=>typeof hash!=='string'||!hashPattern.test(hash))||new Set(need).size!==need.length||typeof acceptChanged!=='boolean'||typeof versions!=='boolean')throw Error('invalid_request');
+ return {cursor,need,sourceVersion,acceptChanged,versions};
 }
 /** No retained server snapshot: repeat the same deterministic provider page to
  * retrieve only the content hashes missing from the owner's durable cache. */

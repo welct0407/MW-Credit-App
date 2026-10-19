@@ -1,0 +1,115 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+import ts from 'typescript';
+import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
+
+// R078 item 2 (client): two data domains in flight, no settle delay inside a walk, fewer durable
+// progress writes with a correct resume, and one records check standing in for unchanged peers.
+const source=ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/offline-dataset.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const origin='https://lm.example.invalid',stamp={asOf:'2026-10-19T01:00:00.000Z',businessDate:'2026-10-19'};
+const data=['records','collection','cash','management'],all=[...data,'notifications'];
+const version=domain=>domain.length.toString(16).padStart(2,'0').repeat(32);
+const changed=domain=>'f'.repeat(62)+domain.length.toString(16).padStart(2,'0');
+const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+async function until(predicate,limit=4000){const started=Date.now();while(!predicate()){if(Date.now()-started>limit)throw Error('Timed out');await new Promise(resolve=>setTimeout(resolve,5))}}
+
+/** In-memory repository with the owner-offline.ts write checks that matter here (revision, expected cursor). */
+function repository(bundles){
+ const rows=new Map(Object.entries(bundles).map(([domain,value])=>['dataset:'+domain,structuredClone(value)])),log=[];
+ const progress=domain=>rows.get('dataset-progress:'+domain)??null;
+ return {log,rows,scopeName:'synthetic-scope',environment:'synthetic',
+  syncAuthorized:async()=>true,readRevision:async()=>0,
+  readDataset:async domain=>{const row=rows.get('dataset:'+domain);return row?{...structuredClone(row),cacheStale:false}:null},
+  readDatasetProgress:async domain=>structuredClone(progress(domain)),
+  discardDatasetProgress:async domain=>{rows.delete('dataset-progress:'+domain)},
+  saveDatasetProgress:async(domain,value,revision,expected)=>{if(revision!==0||expected!==undefined&&(progress(domain)?.nextCursor??null)!==expected){log.push(['progress-refused',domain]);return false}rows.set('dataset-progress:'+domain,structuredClone(value));log.push(['progress',domain,value.nextCursor]);return true},
+  saveDataset:async(domain,value,revision,expected)=>{if(revision!==0||expected!==undefined&&(progress(domain)?.nextCursor??null)!==expected){log.push(['dataset-refused',domain,expected]);return false}rows.set('dataset:'+domain,structuredClone(value));rows.delete('dataset-progress:'+domain);log.push(['dataset',domain]);return true},
+  readDatasetMedia:async()=>null,listDatasetMediaKeys:async()=>[],removeDatasetMedia:async()=>{},saveDatasetMedia:async()=>true,
+ };
+}
+const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
+
+/** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
+function harness({walks={},failOnce=null,rejectVersions=false}={}){
+ const requests=[],flights=new Map(),timers=[];let inflight=0,maxInflight=0;
+ const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
+ const repo=repository(Object.fromEntries(all.map(domain=>[domain,complete(domain)])));
+ const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
+ async function fetch(url,init){
+  const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
+  requests.push({domain,cursor:body.cursor,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
+  inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
+  try{
+   await tick();
+   if(rejectVersions&&body.versions)return reply(400,{code:'invalid_request'});
+   const step=body.cursor?Number(body.cursor):0;
+   if(failOnce&&failOnce.domain===domain&&failOnce.step===step&&!failOnce.done){failOnce.done=true;return reply(503,{code:'temporary'})}
+   const versions=body.versions&&!body.cursor?{versions:Object.fromEntries(data.map(name=>[name,walks[name]?changed(name):version(name)]))}:{};
+   if(!walks[domain])return reply(200,{schemaVersion:3,domain,...stamp,sourceVersion:version(domain),unchanged:true,patches:[],values:{},complete:true,nextCursor:null,progress:{completed:1,total:1},...versions});
+   const last=step===walks[domain]-1;
+   return reply(200,encodeDeltaChunk({schemaVersion:2,domain,generation:'new-'+domain,startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),patches:[{key:'items',mode:'append',value:[{id:domain+'-'+step}]}],complete:last,nextCursor:last?null:String(step+1),progress:{completed:step+1,total:walks[domain]},...versions},body.need??[]));
+  }finally{inflight--;flights.set(domain,flights.get(domain)-1)}
+ }
+ const trackedTimeout=(callback,delay)=>{timers.push(delay);return setTimeout(callback,delay)};
+ const sandbox={exports:{},require:name=>name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:(()=>{throw Error('Unexpected import '+name)})(),
+  window,document,navigator:{onLine:true},fetch,setTimeout:trackedTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,console};
+ runInNewContext(source,sandbox);
+ const events=[];window.addEventListener('mw-offline-dataset-ready',event=>events.push(event.detail.domain+':'+event.detail.changed));
+ const stop=sandbox.exports.startOfflinePreparation({origin,offline:repo,token:async()=>'synthetic',authFailure:()=>{}});
+ const state=()=>sandbox.exports.getOfflinePreparation(repo.scopeName);
+ return {requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window};
+}
+const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
+
+test('an unchanged check is one records request carrying every domain version, plus notifications',async()=>{
+ const h=harness();try{
+  await settled(h);
+  assert.deepEqual(h.requests.map(request=>request.domain).sort(),['notifications','records']);
+  assert.equal(h.requests.find(request=>request.domain==='records').versions,true);
+  assert.deepEqual([...h.events].sort(),all.map(domain=>domain+':false').sort());
+  assert.equal(h.repo.log.length,0,'no bundle or progress is rewritten');
+ }finally{h.stop()}
+});
+test('a changed peer walks while records confirms; two data domains run at once, never one twice',async()=>{
+ const h=harness({walks:{records:6,cash:3}});try{
+  await settled(h);
+  const domainsAsked=new Set(h.requests.map(request=>request.domain));
+  assert.deepEqual([...domainsAsked].sort(),['cash','notifications','records'],'unchanged collection/management were confirmed by the records answer');
+  assert.ok(h.maxInflight()<=2&&h.maxInflight()>=2,'max in flight '+h.maxInflight());
+  assert.equal(h.repo.rows.get('dataset:records').sourceVersion,changed('records'));assert.deepEqual(h.repo.rows.get('dataset:records').data.items.map(item=>item.id),['records-0','records-1','records-2','records-3','records-4','records-5']);
+  assert.equal(h.repo.rows.get('dataset:cash').data.items.length,3);
+  assert.ok(h.events.includes('records:true')&&h.events.includes('cash:true')&&h.events.includes('collection:false'));
+ }finally{h.stop()}
+});
+test('a walk in progress continues without the settle delay and writes progress for chunk 1, then every 4',async()=>{
+ const h=harness({walks:{records:7}});try{
+  await settled(h);
+  const records=h.requests.filter(request=>request.domain==='records'&&!request.need);
+  assert.equal(records.length,7);
+  // Each chunk is a manifest plus one content request; no 200 ms timer separates the chunks of a walk.
+  assert.equal(h.timers.filter(delay=>delay===200).length<=2,true,'settle timers '+h.timers.filter(delay=>delay===200).length);
+  assert.ok(records.at(-1).at-records[0].at<150,'walk took '+(records.at(-1).at-records[0].at)+' ms');
+  assert.deepEqual(h.repo.log.filter(entry=>entry[1]==='records'),[['progress','records','1'],['progress','records','5'],['dataset','records']]);
+ }finally{h.stop()}
+});
+test('a failed segment keeps the chunks applied in memory; the retry resumes after them',async()=>{
+ const failOnce={domain:'records',step:3};const h=harness({walks:{records:5},failOnce});try{
+  await until(()=>failOnce.done&&h.state().failedDomains==='records');
+  assert.equal(h.repo.rows.get('dataset-progress:records').nextCursor,'3','the unsaved chunks 2 and 3 were written when the segment failed');
+  assert.deepEqual(h.repo.rows.get('dataset-progress:records').data.items.map(item=>item.id),['records-0','records-1','records-2']);
+  h.window.dispatchEvent(new Event('focus'));await settled(h);
+  const cursors=h.requests.filter(request=>request.domain==='records'&&!request.need).map(request=>request.cursor??'start');
+  assert.deepEqual(cursors,['start','1','2','3','3','4']);
+  assert.deepEqual(h.repo.rows.get('dataset:records').data.items.map(item=>item.id),['records-0','records-1','records-2','records-3','records-4']);
+ }finally{h.stop()}
+});
+test('a server without the versions field is asked again without it and keeps acceptChanged',async()=>{
+ const h=harness({rejectVersions:true});try{
+  await settled(h);
+  const records=h.requests.filter(request=>request.domain==='records');
+  assert.deepEqual(records.map(request=>[request.versions,request.acceptChanged]),[[true,true],[false,true]]);
+  assert.deepEqual(h.requests.map(request=>request.domain).sort(),['cash','collection','management','notifications','records','records']);
+ }finally{h.stop()}
+});
