@@ -66,13 +66,16 @@ const draft=scope=>parents('Borrowers',async(c,id,cursor,a,stamp)=>{
  return {patches:[...(cursor?[]:[replace('paymentDrafts',{...metadata,charges:[],nextCursor:null},[id,scope])]),append('paymentDrafts',charges,[id,scope,'charges'])],cursor:nextCursor};
 });
 
+const borrowerListColumns=`"Row ID" id,"Borrower Name" name,coalesce("Borrower Name",'')||' - '||coalesce("Description",'') AS "borrowerDisplayName","Description" description,"Total Interest Earned"::text AS "totalProfitEarned","Creation Date"::text AS "createdDate","Has Active Loan" AS "hasActiveLoan","Total Outstanding Principal"::text AS "outstandingPrincipal","Borrower Note" note`;
+const paymentMonthGroups=filter=>`SELECT "Ref Borrower" AS "borrowerId",to_char("Payment Date",'YYYY-MM') AS month,sum("Amount Received")::numeric::text AS "amountReceived",count(*)::integer AS count FROM public."Payments"${filter} GROUP BY "Ref Borrower",to_char("Payment Date",'YYYY-MM')`;
+const paymentHistorySelect=`SELECT p."Ref Borrower" AS "borrowerId",(SELECT j.request_id::text FROM public.pwa_payment_commands j WHERE j.payment_id=p."Row ID" AND j.actor_issuer=$1 AND j.actor_subject=$2 AND j.actor_partner_id=$3 LIMIT 1) AS "requestId",p."Row ID" id,p."Status" status,p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text AS "amountReceived",p."Posted Amount"::text AS "postedAmount",p."Notes" notes,CASE WHEN nullif(btrim(p."Uploaded Receipt"),'') IS NULL THEN NULL ELSE 'attached' END AS "receiptReference",p."Uploaded Receipt At"::text AS "receiptAt",a."Account Label" AS "accountLabel" FROM public."Payments" p LEFT JOIN public."Cash Accounts" a ON a."Row ID"=p."Ref Received By Cash Account"`;
 const recordPhases=[
  details('borrowers','Borrowers',readBorrowerRecord),details('loans','Loans',readLoanRecord),details('charges','Charges',readChargeRecord),details('payments','Payments',readPaymentRecord,32),details('expenses','Business Expenses',readExpenseRecord),
- async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT "Row ID" id,"Borrower Name" name,coalesce("Borrower Name",'')||' - '||coalesce("Description",'') AS "borrowerDisplayName","Description" description,"Total Interest Earned"::text AS "totalProfitEarned","Creation Date"::text AS "createdDate","Has Active Loan" AS "hasActiveLoan","Total Outstanding Principal"::text AS "outstandingPrincipal","Borrower Note" note FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT 129`,[text(state)])).rows;return result([append('borrowerList',rows.slice(0,128))],rows.length>128?rows[127].id:null)},
+ async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT ${borrowerListColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT 129`,[text(state)])).rows;return result([append('borrowerList',rows.slice(0,128))],rows.length>128?rows[127].id:null)},
  async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers" WHERE b."Hidden Flag" IS NOT TRUE AND ($1::text IS NULL OR l."Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY l."Row ID" COLLATE "C" LIMIT 129`,[text(state)])).rows;return result([append('borrowerLoans',rows.slice(0,128).map(row=>projectLoan(row,row.borrowerId)))],rows.length>128?rows[127].id:null)},
  page('loanList',(c,cursor)=>readRecordList(c,'loans',{limit:100,cursor})),relation('charges'),relation('payments'),draft('due'),draft('future'),draft('all'),
- async(c,a,stamp,state)=>{const after=state??{borrower:'',month:''};if(typeof after.borrower!=='string'||typeof after.month!=='string')throw Error('invalid_request');const rows=(await c.query(`WITH groups AS (SELECT "Ref Borrower" AS "borrowerId",to_char("Payment Date",'YYYY-MM') AS month,sum("Amount Received")::numeric::text AS "amountReceived",count(*)::integer AS count FROM public."Payments" GROUP BY "Ref Borrower",to_char("Payment Date",'YYYY-MM')) SELECT * FROM groups WHERE ($3::boolean OR (coalesce("borrowerId",'') COLLATE "C",coalesce(month,'') COLLATE "C")>($1 COLLATE "C",$2 COLLATE "C")) ORDER BY coalesce("borrowerId",'') COLLATE "C",coalesce(month,'') COLLATE "C" LIMIT 129`,[after.borrower,after.month,state===null])).rows;return result([append('paymentMonths',rows.slice(0,128))],rows.length>128?{borrower:rows[127].borrowerId??'',month:rows[127].month??''}:null)},
- async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT p."Ref Borrower" AS "borrowerId",(SELECT j.request_id::text FROM public.pwa_payment_commands j WHERE j.payment_id=p."Row ID" AND j.actor_issuer=$1 AND j.actor_subject=$2 AND j.actor_partner_id=$3 LIMIT 1) AS "requestId",p."Row ID" id,p."Status" status,p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text AS "amountReceived",p."Posted Amount"::text AS "postedAmount",p."Notes" notes,CASE WHEN nullif(btrim(p."Uploaded Receipt"),'') IS NULL THEN NULL ELSE 'attached' END AS "receiptReference",p."Uploaded Receipt At"::text AS "receiptAt",a."Account Label" AS "accountLabel" FROM public."Payments" p LEFT JOIN public."Cash Accounts" a ON a."Row ID"=p."Ref Received By Cash Account" WHERE ($4::text IS NULL OR p."Row ID" COLLATE "C">$4 COLLATE "C") ORDER BY p."Row ID" COLLATE "C" LIMIT 129`,[a.issuer,a.subject,a.partnerId,text(state)])).rows;return result([append('paymentHistory',rows.slice(0,128))],rows.length>128?rows[127].id:null)},
+ async(c,a,stamp,state)=>{const after=state??{borrower:'',month:''};if(typeof after.borrower!=='string'||typeof after.month!=='string')throw Error('invalid_request');const rows=(await c.query(`WITH groups AS (${paymentMonthGroups('')}) SELECT * FROM groups WHERE ($3::boolean OR (coalesce("borrowerId",'') COLLATE "C",coalesce(month,'') COLLATE "C")>($1 COLLATE "C",$2 COLLATE "C")) ORDER BY coalesce("borrowerId",'') COLLATE "C",coalesce(month,'') COLLATE "C" LIMIT 129`,[after.borrower,after.month,state===null])).rows;return result([append('paymentMonths',rows.slice(0,128))],rows.length>128?{borrower:rows[127].borrowerId??'',month:rows[127].month??''}:null)},
+ async(c,a,stamp,state)=>{const rows=(await c.query(`${paymentHistorySelect} WHERE ($4::text IS NULL OR p."Row ID" COLLATE "C">$4 COLLATE "C") ORDER BY p."Row ID" COLLATE "C" LIMIT 129`,[a.issuer,a.subject,a.partnerId,text(state)])).rows;return result([append('paymentHistory',rows.slice(0,128))],rows.length>128?rows[127].id:null)},
  async(c,a,stamp)=>{const accounts=(await c.query(`SELECT a."Row ID" id,a."Account Label" label,a."Default Account" AS "isDefault",a."Ref Cash Holder" AS "holderId",a."Active" active,h."Active" AS "holderActive" FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;return result([replace('borrowerOptions',{referrers:[],accounts:accounts.map(({id,label})=>({id,label}))}),replace('loanOptions',{accounts:accounts.filter(row=>row.holderId==='ch:lisa'),businessDate:stamp.businessDate})])},
  async(c,a,stamp,state)=>{const rows=(await c.query(`SELECT "Row ID" id,"Borrower Name" label,"Description" description FROM public."Borrowers" WHERE ($1::text IS NULL OR "Row ID" COLLATE "C">$1 COLLATE "C") ORDER BY "Row ID" COLLATE "C" LIMIT 129`,[text(state)])).rows;return result([append('borrowerOptions',rows.slice(0,128),['referrers'])],rows.length>128?rows[127].id:null)},
  one('expenseOptions',readExpenseOptions),one('dashboard',readDashboard)
@@ -169,4 +172,90 @@ export async function readOfflineDatasetChunk(client,actor,domain,cursor=null,{s
  }
  const complete=next.phase===phases.length;
  return {schemaVersion:2,domain,generation:traversal.generation,startedAt:traversal.startedAt,...stamp,patches,nextCursor:complete?null:encodeTraversalCursor(next),complete,progress:{completed:next.phase,total:phases.length},chunksCompleted:next.done};
+}
+
+// R078 protocol v4 (records): re-read only the records a change-log delta can affect. Records partition by
+// borrower: every row version used by the details (pwa_*_version_v2) reads the borrower's loans, charges
+// and repayments, so a change anywhere under a borrower re-sends that borrower's rows (detail, list,
+// loan-related, drafts, history, months). Global lists (loanList) are re-read whole and the dashboard is
+// re-read on every delta. Returns null whenever a delta cannot be mapped safely: the caller then walks.
+const upsert=(key,value,path)=>({key,mode:'upsert',value,...(path?{path}:{})});
+const removeRows=(key,value,path,by)=>({key,mode:'remove',value,...(path?{path}:{}),...(by?{by}:{})});
+const sortIds=ids=>[...new Set(ids)].filter(id=>typeof id==='string').sort((a,b)=>a<b?-1:a>b?1:0);
+/** Limits of one targeted delta; above them a walk is cheaper and simpler. */
+export const TARGETED_LIMITS=Object.freeze({rows:2000,borrowers:8,payments:200,expenses:200});
+/** changes: [{table,key}] from public.pwa_row_changes. Resolves the affected borrowers, unassigned
+ * payments and expenses, or null (walk) for anything it cannot attribute: a missing row (delete or key
+ * change), a cash account/holder change (labels in every record) or an unknown table. */
+export async function resolveRecordsScope(client,changes){
+ const keys=new Map();for(const {table,key} of changes){if(!keys.has(table))keys.set(table,new Set());keys.get(table).add(key)}
+ const borrowers=new Set(),payments=new Set(),expenses=new Set(),dashboard=changes.length>0;
+ const dashboardOnly=['Settlements','Partners','Cash Pool Contributions','r008_cash_account_cutover','Statistics','Daily Analytics'];
+ // Each lookup returns, per changed key that still exists: the borrowers whose rows it affects, the
+ // payment it belongs to (re-sent on its own only when that payment has no borrower) and the expense.
+ const row=(key,borrowers,payment='NULL::text',expense='NULL::text',unassigned='false')=>`SELECT ${key} AS key,ARRAY[${borrowers}]::text[] AS borrowers,${payment} AS payment,${expense} AS expense,${unassigned} AS unassigned`;
+ const paymentJoin='LEFT JOIN public."Payments" p ON p."Row ID"=',chargeLoan='LEFT JOIN public."Charges" c ON c."Row ID"=',loanOf='LEFT JOIN public."Loans" l ON l."Row ID"=',orphan='(p."Row ID" IS NOT NULL AND p."Ref Borrower" IS NULL)';
+ const lookups={
+  Borrowers:`${row('"Row ID"','"Row ID"')} FROM public."Borrowers" WHERE "Row ID"=ANY($1::text[])`,
+  Loans:`${row('"Row ID"','"Ref Borrowers"')} FROM public."Loans" WHERE "Row ID"=ANY($1::text[])`,
+  Charges:`${row('c."Row ID"','l."Ref Borrowers"')} FROM public."Charges" c ${loanOf}c."Ref Loans" WHERE c."Row ID"=ANY($1::text[])`,
+  Payments:`${row('p."Row ID"','p."Ref Borrower"','p."Row ID"','NULL::text',orphan)} FROM public."Payments" p WHERE p."Row ID"=ANY($1::text[])`,
+  'Payment Allocations':`${row('a."Row ID"','p."Ref Borrower",l."Ref Borrowers"','a."Ref Payment"','NULL::text',orphan)} FROM public."Payment Allocations" a ${paymentJoin}a."Ref Payment" ${chargeLoan}a."Ref Charge" ${loanOf}c."Ref Loans" WHERE a."Row ID"=ANY($1::text[])`,
+  Repayments:`${row('r."Row ID"','p."Ref Borrower",l."Ref Borrowers"','r."Ref Payment"','NULL::text',orphan)} FROM public."Repayments" r ${paymentJoin}r."Ref Payment" ${chargeLoan}r."Ref Charges" ${loanOf}c."Ref Loans" WHERE r."Row ID"=ANY($1::text[])`,
+  'Cash Ledger':`${row('g."Row ID"','p."Ref Borrower",l."Ref Borrowers"','g."Ref Payment"','g."Ref Business Expense"',orphan)} FROM public."Cash Ledger" g ${paymentJoin}g."Ref Payment" ${loanOf}g."Ref Loan" WHERE g."Row ID"=ANY($1::text[])`,
+  'Business Expenses':`${row('"Row ID"','NULL::text','NULL::text','"Row ID"')} FROM public."Business Expenses" WHERE "Row ID"=ANY($1::text[])`,
+  // A command journal row affects the payment it posted or revised (pwa_payment_version_v2 revision head).
+  pwa_payment_commands:`${row('j.request_id::text','p."Ref Borrower"','p."Row ID"','NULL::text',orphan)} FROM public.pwa_payment_commands j ${paymentJoin}ANY(ARRAY[j.payment_id,j.result_json->>'paymentId',j.canonical_json::jsonb#>>'{command,targetId}']) WHERE j.request_id::text=ANY($1::text[])`,
+ };
+ for(const [table,set] of keys){
+  if(dashboardOnly.includes(table))continue;
+  const sql=lookups[table];if(!sql)return null;
+  const ids=sortIds(set),rows=(await client.query(sql,[ids])).rows,found=new Set(rows.map(item=>item.key));
+  if(ids.some(id=>!found.has(id)))return null;
+  for(const item of rows){for(const borrower of item.borrowers??[])if(borrower)borrowers.add(borrower);if(item.payment&&item.unassigned)payments.add(item.payment);if(item.expense)expenses.add(item.expense)}
+ }
+ // A payment attributed to a borrower is re-sent with that borrower's rows.
+ if(borrowers.size>TARGETED_LIMITS.borrowers||payments.size>TARGETED_LIMITS.payments||expenses.size>TARGETED_LIMITS.expenses)return null;
+ return {borrowers:sortIds(borrowers),payments:sortIds(payments),expenses:sortIds(expenses),dashboard};
+}
+async function detailRows(client,stamp,key,read,ids){
+ const items=[],missing=[];
+ for(let offset=0;offset<ids.length;offset+=64){const slice=ids.slice(offset,offset+64),batch=bulkReadClient(client),values=await Promise.all(slice.map(id=>read(batch,id)));values.forEach((item,index)=>{if(item)items.push({...item,...stamp,...(key==='payments'?{receiptReference:item.receiptReference?'attached':null}:{})});else missing.push(slice[index])})}
+ return [...(items.length?[upsert(key,items)]:[]),...(missing.length?[removeRows(key,missing)]:[])];
+}
+async function allPages(read){const items=[];let cursor=null,first=null;for(let page=0;page<200;page++){const value=await read(cursor);first??=value;items.push(...(value.items??[]));cursor=value.nextCursor??null;if(!cursor)return {first,items}}throw Error('source_unavailable')}
+/** The records patches for a resolved scope (see resolveRecordsScope). */
+export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments,expenses,dashboard}){
+ const patches=[],B=sortIds(borrowers);
+ const loans=B.length?sortIds((await client.query('SELECT "Row ID" AS id FROM public."Loans" WHERE "Ref Borrowers"=ANY($1::text[])',[B])).rows.map(row=>row.id)):[];
+ const charges=loans.length?sortIds((await client.query('SELECT "Row ID" AS id FROM public."Charges" WHERE "Ref Loans"=ANY($1::text[])',[loans])).rows.map(row=>row.id)):[];
+ const paymentIds=sortIds([...payments,...(B.length?(await client.query('SELECT "Row ID" AS id FROM public."Payments" WHERE "Ref Borrower"=ANY($1::text[])',[B])).rows.map(row=>row.id):[])]);
+ const expenseIds=sortIds([...expenses,...(B.length?(await client.query('SELECT "Row ID" AS id FROM public."Business Expenses" WHERE "Ref Related Borrower"=ANY($1::text[]) OR "Ref Payee Borrower"=ANY($1::text[]) OR "Ref Related Loan"=ANY($2::text[])',[B,loans])).rows.map(row=>row.id):[])]);
+ patches.push(...await detailRows(client,stamp,'borrowers',readBorrowerRecord,B),...await detailRows(client,stamp,'loans',readLoanRecord,loans),...await detailRows(client,stamp,'charges',readChargeRecord,charges),...await detailRows(client,stamp,'payments',readPaymentRecord,paymentIds),...await detailRows(client,stamp,'expenses',readExpenseRecord,expenseIds));
+ if(B.length){
+  const list=(await client.query(`SELECT ${borrowerListColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND "Row ID"=ANY($1::text[]) ORDER BY "Row ID" COLLATE "C"`,[B])).rows;
+  patches.push(removeRows('borrowerList',B.filter(id=>!list.some(row=>row.id===id))),upsert('borrowerList',list));
+  const shown=(await client.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers" WHERE b."Hidden Flag" IS NOT TRUE AND l."Row ID"=ANY($1::text[]) ORDER BY l."Row ID" COLLATE "C"`,[loans])).rows.map(row=>projectLoan(row,row.borrowerId));
+  patches.push(removeRows('borrowerLoans',loans.filter(id=>!shown.some(row=>row.id===id))),upsert('borrowerLoans',shown));
+  const loanList=await allPages(cursor=>readRecordList(client,'loans',{limit:100,cursor}));
+  patches.push(replace('loanList',[]),append('loanList',loanList.items));
+  for(const loanId of loans)for(const kind of ['charges','payments']){const related=await allPages(cursor=>readLoanRelated(client,loanId,kind,{limit:100,cursor}).then(value=>value??{items:[],nextCursor:null}));patches.push(replace('loanRelated',[],[loanId,kind]),...(related.items.length?[append('loanRelated',related.items,[loanId,kind])]:[]))}
+  for(const borrowerId of B)for(const scope of ['due','future','all']){
+   let first;const charges=[];try{let cursor=null;for(let page=0;;page++){if(page>=200)throw Error('source_unavailable');const value=await readOwnerPaymentDraft(client,borrowerId,{scope,limit:100,cursor});if(value.draftError){first=value;break}first??=value;charges.push(...value.charges);cursor=value.nextCursor;if(!cursor)break}}catch(error){if(error.message!=='Draft unavailable')throw error;first={draftError:'source_unavailable',status:503}}
+   if(first.draftError){patches.push(replace('paymentDrafts',first,[borrowerId,scope]));continue}
+   const {charges:_page,nextCursor:_next,...metadata}=first;patches.push(replace('paymentDrafts',{...metadata,charges:[],nextCursor:null},[borrowerId,scope]),...(charges.length?[append('paymentDrafts',charges,[borrowerId,scope,'charges'])]:[]));
+  }
+  const referrers=(await client.query('SELECT "Row ID" id,"Borrower Name" label,"Description" description FROM public."Borrowers" WHERE "Row ID"=ANY($1::text[]) ORDER BY "Row ID" COLLATE "C"',[B])).rows;
+  patches.push(upsert('borrowerOptions',referrers,['referrers']));
+ }
+ // Borrower-grouped lists: the affected borrowers' rows (and unassigned payments) are replaced.
+ const unassigned=payments.length>0,groups=B.length||unassigned;
+ if(groups){
+  const months=(await client.query(`WITH groups AS (${paymentMonthGroups(' WHERE "Ref Borrower"=ANY($1::text[]) OR ($2::boolean AND "Ref Borrower" IS NULL)')}) SELECT * FROM groups ORDER BY coalesce("borrowerId",'') COLLATE "C",coalesce(month,'') COLLATE "C"`,[B,unassigned])).rows;
+  patches.push(removeRows('paymentMonths',[...B,...(unassigned?[null]:[])],undefined,'borrowerId'),...(months.length?[append('paymentMonths',months)]:[]));
+  const history=(await client.query(`${paymentHistorySelect} WHERE p."Ref Borrower"=ANY($4::text[]) OR p."Row ID"=ANY($5::text[]) ORDER BY p."Row ID" COLLATE "C"`,[actor.issuer,actor.subject,actor.partnerId,B,payments])).rows;
+  patches.push(removeRows('paymentHistory',B,undefined,'borrowerId'),upsert('paymentHistory',history));
+ }
+ if(dashboard)patches.push(replace('dashboard',await readDashboard(client)));
+ return patches.filter(patch=>patch.mode!=='upsert'&&patch.mode!=='remove'||patch.value.length>0);
 }

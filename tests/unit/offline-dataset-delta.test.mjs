@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {canonicalDeltaValue,deltaValueHash,readDeltaRequest,encodeDeltaChunk,readDeltaCursor,wrapDeltaCursor} from '../../services/api/offline-dataset-delta.mjs';
 import {readTraversalCursor,encodeTraversalCursor} from '../../services/api/offline-dataset-cursor.mjs';
-import {readOfflineSourceVersion,readOfflineSourceVersions,readOfflineDatasetDelta,offlineSourceTables,offlineDeterministicPages} from '../../services/business/offline-dataset-delta.mjs';
+import {readOfflineSourceVersion,readOfflineSourceVersions,readOfflineDatasetDelta,offlineSourceTables,offlineDeterministicPages,readChangedRows} from '../../services/business/offline-dataset-delta.mjs';
 import {readOfflineDatasetChunk,MAX_CHUNK_VALUES} from '../../services/business/offline-dataset-chunks.mjs';
 import {createPaymentCommandHandler} from '../../services/payment-command/handler.mjs';
 
@@ -22,14 +22,14 @@ test('delta manifests retain page order, exclude fresh read timestamps and trans
  assert.equal(JSON.stringify(fetched.values).includes('100'),false);
 });
 test('delta request and traversal bounds reject malformed, duplicate and oversized inventories',()=>{
- assert.deepEqual(readDeltaRequest({}),{cursor:null,need:[],sourceVersion:null,acceptChanged:false,versions:false});
+ assert.deepEqual(readDeltaRequest({}),{cursor:null,need:[],sourceVersion:null,acceptChanged:false,versions:false,since:null});
  assert.equal(readDeltaRequest({versions:true}).versions,true);
  assert.equal(readDeltaRequest({acceptChanged:true}).acceptChanged,true);
  for(const input of [null,[],{unknown:1},{acceptChanged:'yes'},{versions:1},{need:['invalid']},{need:['a'.repeat(64),'a'.repeat(64)]},{need:Array.from({length:2049},(_,i)=>i.toString(16).padStart(64,'0'))},{sourceVersion:'old'},{cursor:'+'.repeat(2)},{cursor:'a'.repeat(32769)}])assert.throws(()=>readDeltaRequest(input),/invalid_request/);
  const wrapped=wrapDeltaCursor('inner','a'.repeat(64));assert.deepEqual(readDeltaCursor(wrapped),{v:3,sourceVersion:'a'.repeat(64),inner:'inner'});assert.throws(()=>readDeltaCursor(wrapped+'='),/invalid_request/);
 });
 test('unchanged source gate runs raw fingerprints only, actor/date changes force a new checkpoint',async()=>{
- let providerReads=0,sql='';const client={query:async query=>{if(query.startsWith('SELECT to_char'))return{rows:[stamp]};if(query.includes('AS fingerprint')){sql=query;return{rows:[{relation:'Loans',fingerprint:'stable'}]}}providerReads++;throw Error('Unexpected provider read')}};
+ let providerReads=0,sql='';const client={query:async query=>{if(query.startsWith('SELECT to_char'))return{rows:[stamp]};if(query.includes('pwa_row_changes'))return{rows:[{available:false}]};if(query.includes('AS fingerprint')){sql=query;return{rows:[{relation:'Loans',fingerprint:'stable'}]}}providerReads++;throw Error('Unexpected provider read')}};
  const source=await readOfflineSourceVersion(client,actor,'records',stamp.businessDate);
  const result=await readOfflineDatasetDelta(client,actor,'records',{cursor:null,need:[],sourceVersion:source});
  assert.equal(result.unchanged,true);assert.equal(result.sourceVersion,source);assert.deepEqual(result.values,{});assert.equal(providerReads,0);
@@ -76,6 +76,7 @@ function syntheticRecordsClient({fingerprint='stable',onQuery}={}){
  };
  return {query:async(sql,params=[])=>{onQuery?.(sql,params);
   if(sql.startsWith('SELECT to_char'))return {rows:[stamp]};
+  if(sql.includes('pwa_row_changes'))return {rows:[{available:false}]};
   if(sql.startsWith('SELECT (CURRENT_TIMESTAMP'))return {rows:[{day:stamp.businessDate,instant:stamp.asOf}]};
   if(sql.includes('AS fingerprint'))return {rows:[{relation:'Charges',fingerprint}]};
   const idRows=/^SELECT "Row ID" id FROM public\."([^"]+)" WHERE \(\$1::text IS NULL/.exec(sql);if(idRows)return {rows:idPage(idRows[1],params[0],params[1])};
@@ -179,7 +180,7 @@ test('analytics-only changes leave records, collection and cash unchanged while 
  fingerprints={Payments:'2:3'};const payment=await readOfflineSourceVersions(client,actor,stamp.businessDate);for(const domain of Object.keys(before))assert.notEqual(payment[domain],before[domain],domain);
 });
 test('a starting check asking for versions gets every domain from one fingerprint statement and an unchanged answer',async()=>{
- let fingerprintQueries=0;const client={query:async query=>{if(query.startsWith('SELECT to_char'))return {rows:[stamp]};if(query.includes('AS fingerprint')){fingerprintQueries++;return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:7'}))}}throw Error('Unexpected provider read')}};
+ let fingerprintQueries=0;const client={query:async query=>{if(query.startsWith('SELECT to_char'))return {rows:[stamp]};if(query.includes('pwa_row_changes'))return {rows:[{available:false}]};if(query.includes('AS fingerprint')){fingerprintQueries++;return {rows:query.split(' UNION ALL ').map(part=>({relation:/^SELECT '([^']+)'/.exec(part)[1],fingerprint:'1:7'}))}}throw Error('Unexpected provider read')}};
  const versions=await readOfflineSourceVersions(client,actor,stamp.businessDate);fingerprintQueries=0;
  const result=await readOfflineDatasetDelta(client,actor,'records',{cursor:null,need:[],sourceVersion:versions.records,acceptChanged:true,versions:true});
  assert.equal(result.unchanged,true);assert.deepEqual(result.versions,versions);assert.equal(result.sourceVersion,versions.records);assert.equal(fingerprintQueries,1);
@@ -201,4 +202,20 @@ test('cash statements pack 16 account-day pages per request inside the value bud
   const values=chunk.patches.reduce((sum,patch)=>sum+(patch.mode==='append'?patch.value.length:1),0);assert.ok(values<=MAX_CHUNK_VALUES);assert.ok(Buffer.byteLength(JSON.stringify(chunk.patches))<1024*1024);
   statements+=chunk.patches.filter(patch=>patch.mode==='replace').length;if(chunk.complete)break;cursor=chunk.nextCursor;assert.ok(requests<20)}
  assert.equal(statements,40);assert.equal(requests,3);
+});
+
+// R078 protocol v4 contract pieces (the real SQL path runs in tests/integration/offline-delta-v4-lab.test.mjs).
+test('v4 request cursor, upsert/remove encoding and the cursor continuation rules',async()=>{
+ const since={seq:'10',xmin:'500',businessDate:'2026-10-14'};
+ assert.deepEqual(readDeltaRequest({since}).since,since);
+ for(const bad of [{seq:10,xmin:'1',businessDate:'2026-10-14'},{seq:'01',xmin:'1',businessDate:'2026-10-14'},{seq:'1',xmin:'1'},{seq:'1',xmin:'1',businessDate:'14/10/2026'},{seq:'1',xmin:'1',businessDate:'2026-10-14',extra:1},[]])assert.throws(()=>readDeltaRequest({since:bad}),/invalid_request/,JSON.stringify(bad));
+ const encoded=encodeDeltaChunk({patches:[{key:'payments',mode:'upsert',value:[{id:'a'},{id:'b'}]},{key:'paymentMonths',mode:'remove',by:'borrowerId',value:['b1',null]}]});
+ assert.equal(encoded.patches[0].refs.length,2);assert.equal(encoded.patches[1].refs.length,1);assert.equal(encoded.patches[1].by,'borrowerId');
+ let sql=null;const client={query:async(query,params)=>{sql={query,params};return {rows:[{table:'Payments',key:'p1'}]}}};
+ const current={seq:'20',xmin:'600',businessDate:'2026-10-14',minSeq:'5'};
+ assert.deepEqual(await readChangedRows(client,'records',since,current),[{table:'Payments',key:'p1'}]);
+ assert.match(sql.query,/seq>\$2::bigint OR txid>=\$3::xid8/);assert.deepEqual(sql.params.slice(1,3),['10','500']);assert.ok(sql.params[0].includes('pwa_payment_commands')&&!sql.params[0].includes('Statistics#identity'));
+ // A day change, a cursor ahead of the log (another database) or behind its retention cannot continue.
+ for(const [cursor,log] of [[{...since,businessDate:'2026-10-13'},current],[{...since,seq:'21'},current],[{...since,seq:'3'},current],[since,null]])assert.equal(await readChangedRows(client,'records',cursor,log),null);
+ assert.equal(await readChangedRows({query:async()=>({rows:Array.from({length:3},(_,i)=>({table:'Payments',key:'p'+i}))})},'records',since,current,2),null,'over the size bound');
 });

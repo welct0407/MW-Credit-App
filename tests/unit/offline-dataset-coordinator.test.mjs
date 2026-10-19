@@ -32,18 +32,19 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[]}={}){
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null}={}){
  const requests=[],flights=new Map(),timers=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
- const repo=repository(Object.fromEntries(all.map(domain=>[domain,patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:complete(domain)])));
+ const repo=repository(Object.fromEntries(all.map(domain=>[domain,cursors&&domain==='records'?{...complete(domain),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old'},{id:'gone'}],paymentMonths:[{borrowerId:'b1',month:'2026-10'},{borrowerId:'b2',month:'2026-10'}]}}:patched.includes(domain)?{...complete(domain),localPending:['own-request'],data:{items:[{id:'local',localPending:{requestId:'own-request',at:1}}]}}:complete(domain)])));
  const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
  async function fetch(url,init){
   const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
-  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
+  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,since:body.since??null,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
   inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
   try{
    await tick();
    if(rejectVersions&&body.versions)return reply(400,{code:'invalid_request'});
+   if(v4&&body.since&&domain==='records')return reply(200,{...encodeDeltaChunk({domain,generation:'v4:20',startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),delta:true,patches:v4.patches,complete:true,nextCursor:null,progress:{completed:1,total:1},changes:{seq:'20',xmin:'600',businessDate:stamp.businessDate}},body.need??[]),schemaVersion:4});
    const step=body.cursor?Number(body.cursor):0;
    if(failOnce&&failOnce.domain===domain&&failOnce.step===step&&!failOnce.done){failOnce.done=true;return reply(503,{code:'temporary'})}
    const versions=body.versions&&!body.cursor?{versions:Object.fromEntries(data.map(name=>[name,walks[name]?changed(name):version(name)]))}:{};
@@ -130,5 +131,19 @@ test('a bundle with a locally applied own write walks instead of accepting an un
   assert.equal(records.sourceVersion,null);assert.ok(collection,'the patched peer is not confirmed by the versions answer');assert.equal(collection.sourceVersion,null);
   for(const domain of ['records','collection']){const bundle=h.repo.rows.get('dataset:'+domain);assert.equal(bundle.localPending,undefined);assert.deepEqual(bundle.data.items.map(item=>item.id),[domain+'-0']);assert.equal(bundle.sourceVersion,version(domain))}
   assert.equal(h.requests.some(request=>request.domain==='cash'),false);
+ }finally{h.stop()}
+});
+
+// R078 protocol v4: a records bundle with a change cursor receives only the changed rows.
+test('a v4 records delta upserts and removes rows, stores the new cursor and fingerprint, and never walks',async()=>{
+ const patches=[{key:'items',mode:'upsert',value:[{id:'old',name:'changed'},{id:'new'}]},{key:'items',mode:'remove',value:['gone']},{key:'paymentMonths',mode:'remove',by:'borrowerId',value:['b1']},{key:'paymentMonths',mode:'append',value:[{borrowerId:'b1',month:'2026-10',count:2}]}];
+ const h=harness({cursors:true,v4:{patches}});try{
+  await settled(h);
+  const records=h.requests.filter(request=>request.domain==='records');
+  assert.deepEqual(JSON.parse(JSON.stringify(records[0].since)),{seq:'10',xmin:'500',businessDate:stamp.businessDate});assert.ok(records.every(request=>!request.cursor),'no walk');
+  const bundle=h.repo.rows.get('dataset:records');
+  assert.deepEqual(bundle.data.items,[{id:'old',name:'changed'},{id:'new'}]);assert.deepEqual(bundle.data.paymentMonths,[{borrowerId:'b2',month:'2026-10'},{borrowerId:'b1',month:'2026-10',count:2}]);
+  assert.deepEqual(bundle.changes,{seq:'20',xmin:'600',businessDate:stamp.businessDate});assert.equal(bundle.sourceVersion,changed('records'));
+  assert.ok(h.events.includes('records:true'));assert.equal(h.repo.rows.has('dataset-progress:records'),false);
  }finally{h.stop()}
 });
