@@ -285,7 +285,7 @@ class GeminiTests(unittest.TestCase):
             gemini.validate({**GEMINI, 'gemini_location': 'asia-southeast1/../x'})
 
     def test_thinking_config_follows_the_model_generation(self):
-        for model in ('gemini-3.8-flash', 'gemini-3-flash', 'gemini-3.8-flash-lite', 'gemini-3.8-pro', 'gemini-4-flash-001'):
+        for model in ('gemini-3.8-flash', 'gemini-3-flash', 'gemini-3.8-flash-lite', 'gemini-3.5-flash-lite', 'gemini-3.8-pro', 'gemini-4-flash-001'):
             with self.subTest(model=model):
                 thinking = gemini.body(b'png', model)['generationConfig']['thinkingConfig']
                 self.assertEqual(thinking, {'thinkingLevel': 'LOW'})
@@ -406,7 +406,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config['receipt_recognition_callers'],
                          [{'email': 'mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '103101724082491419570'},
                           {'email': 'mw-credit-app-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '101534018806498664588'}])
-        self.assertEqual((config['gemini_model'], config['gemini_location']), ('gemini-3.8-flash', 'global'))
+        self.assertEqual((config['gemini_model'], config['gemini_location']), ('gemini-3.5-flash-lite', 'global'))
         # Enabling only needs the switch and the PostgreSQL audit backend.
         validate_config({**config, 'receipt_recognition_enabled': True,
                          'state_backend': 'postgres', 'state_generation': '11111111-1111-4111-8111-111111111111',

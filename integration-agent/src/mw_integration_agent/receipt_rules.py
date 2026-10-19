@@ -58,6 +58,9 @@ def match_account(numbers, accounts):
     return next(a for a in accounts if a['id'] in matches)
 
 
+THAI_BAHT = ('', 'THB', 'BAHT', 'บาท', '฿')
+
+
 def validate_receipt(value, accounts, today=None):
     if value.get('is_payment_receipt') is not True:
         raise ReceiptInvalid('NOT_PAYMENT_RECEIPT')
@@ -83,7 +86,8 @@ def validate_receipt(value, accounts, today=None):
             raise ValueError()
     except (KeyError,InvalidOperation,ValueError,TypeError) as exc:
         raise ReceiptInvalid('AMOUNT_UNREADABLE') from exc
-    if str(value.get('currency') or '').strip().upper() not in ('','THB'):
+    # A printed Thai-baht word or sign is THB (models sometimes return 'Baht' instead of the ISO code).
+    if ' '.join(str(value.get('currency') or '').split()).upper() not in THAI_BAHT:
         raise ReceiptInvalid('EXPLICIT_NON_THB_CURRENCY')
     reference = re.sub(r'[\s-]','', str(value.get('reference') or '')).upper()
     if not re.fullmatch(r'[A-Z0-9]{6,100}',reference):

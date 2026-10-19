@@ -46,6 +46,15 @@ class ReceiptRuleTests(unittest.TestCase):
         self.assertEqual(validate_receipt(raw,master()['accounts'])['amount'],raw['amount'])
         raw['amount']=''
         with self.assertRaisesRegex(ReceiptInvalid,'AMOUNT_UNREADABLE'):validate_receipt(raw,master()['accounts'])
+    def test_thai_baht_spellings_are_thb_and_other_currencies_are_rejected(self):
+        for currency in ('Baht','BAHT',' baht ','บาท','฿','thb','THB',''):
+            raw=receipt();raw['currency']=currency
+            with self.subTest(currency=currency):
+                self.assertEqual(validate_receipt(raw,master()['accounts'])['amount'],raw['amount'])
+        for currency in ('USD','US$','EUR','Bahts','THB USD'):
+            raw=receipt();raw['currency']=currency
+            with self.subTest(currency=currency),self.assertRaisesRegex(ReceiptInvalid,'EXPLICIT_NON_THB_CURRENCY'):
+                validate_receipt(raw,master()['accounts'])
     def test_primary_alternative_and_mask_map_one_account(self):
         accounts=master()['accounts']
         for number in ('123-456-7890','0891234567','xxx1234567','๑๒๓๔๕๖๗๘๙๐'):
