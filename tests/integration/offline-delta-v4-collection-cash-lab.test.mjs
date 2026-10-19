@@ -165,7 +165,7 @@ test('a write between the two version reads of a reconciliation gives changed, f
   }
  }finally{await Promise.all([client.end(),writer.end()])}
 });
-test('a day change combined with a row change takes the day-change path for collection and cash and equals a walk',{skip:!clocked&&'needs the libfaketime lab: set MW_V4_LAB_URL and MW_FAKETIME_FILE'},async()=>{
+test('a day change combined with a row change equals a walk and reconciles to a match for collection and cash (never a same-day row delta)',{skip:!clocked&&'needs the libfaketime lab: set MW_V4_LAB_URL and MW_FAKETIME_FILE'},async()=>{
  const client=new pg.Client({connectionString:url});await client.connect();
  try{
   const q=(sql,params)=>client.query(sql,params);
@@ -178,7 +178,9 @@ test('a day change combined with a row change takes the day-change path for coll
   for(const domain of domains){
    const result=await refresh(client,domain,before[domain]),fresh=await walk(client,domain),problems=[];
    try{same(result.state.data,fresh.data,domain)}catch{problems.push('NOT EQUAL')}
-   if(result.kind!=='day change')problems.push('kind '+result.kind+', wanted day change');
+   // Design: the row delta applies within one business date. Across a day change collection always walks and cash walks on any change since
+   // the cursor, so any correct answer (day change or walk) is accepted; equality and the reconciliation match are required.
+   if(!['day change','walk','walk (rows moved)'].includes(result.kind))problems.push('kind '+result.kind+': a row delta must not be applied across a date change');
    const answer=await reconcile(client,domain,result.state);if(answer.result!=='match')problems.push('reconcile '+answer.result+' '+JSON.stringify(answer.keys));
    report.push(`31 Oct -> 1 Nov with a payment: ${domain} ${result.kind} ${problems.length?'PROBLEM '+problems.join('; '):'ok'}`);if(problems.length)failures.push(`${domain}: ${problems.join('; ')}`);
   }
