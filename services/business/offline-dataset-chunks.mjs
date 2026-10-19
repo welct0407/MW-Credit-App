@@ -179,11 +179,11 @@ export async function readOfflineDatasetChunk(client,actor,domain,cursor=null,{s
 // and repayments, so a change anywhere under a borrower re-sends that borrower's rows (detail, list,
 // loan-related, drafts, history, months). Global lists (loanList) are re-read whole and the dashboard is
 // re-read on every delta. Returns null whenever a delta cannot be mapped safely: the caller then walks.
-const upsert=(key,value,path)=>({key,mode:'upsert',value,...(path?{path}:{})});
+const upsert=(key,value,path,order)=>({key,mode:'upsert',value,...(path?{path}:{}),...(order?{order}:{})});
 const removeRows=(key,value,path,by)=>({key,mode:'remove',value,...(path?{path}:{}),...(by?{by}:{})});
 const sortIds=ids=>[...new Set(ids)].filter(id=>typeof id==='string').sort((a,b)=>a<b?-1:a>b?1:0);
 /** Limits of one targeted delta; above them a walk is cheaper and simpler. */
-export const TARGETED_LIMITS=Object.freeze({rows:2000,borrowers:8,payments:200,expenses:200});
+export const TARGETED_LIMITS=Object.freeze({rows:2000,borrowers:8,payments:400,expenses:200,loans:200,charges:4000,milliseconds:5000});
 /** changes: [{table,key}] from public.pwa_row_changes. Resolves the affected borrowers, unassigned
  * payments and expenses, or null (walk) for anything it cannot attribute: a missing row (delete or key
  * change), a cash account/holder change (labels in every record) or an unknown table. */
@@ -212,6 +212,8 @@ export async function resolveRecordsScope(client,changes){
   const sql=lookups[table];if(!sql)return null;
   const ids=sortIds(set),rows=(await client.query(sql,[ids])).rows,found=new Set(rows.map(item=>item.key));
   if(ids.some(id=>!found.has(id)))return null;
+  // A loan or charge without a borrower is not in any walk's details; it cannot be attributed.
+  if((table==='Loans'||table==='Charges')&&rows.some(item=>!(item.borrowers??[]).some(Boolean)))return null;
   for(const item of rows){for(const borrower of item.borrowers??[])if(borrower)borrowers.add(borrower);if(item.payment&&item.unassigned)payments.add(item.payment);if(item.expense)expenses.add(item.expense)}
  }
  // A payment attributed to a borrower is re-sent with that borrower's rows.
@@ -221,41 +223,68 @@ export async function resolveRecordsScope(client,changes){
 async function detailRows(client,stamp,key,read,ids){
  const items=[],missing=[];
  for(let offset=0;offset<ids.length;offset+=64){const slice=ids.slice(offset,offset+64),batch=bulkReadClient(client),values=await Promise.all(slice.map(id=>read(batch,id)));values.forEach((item,index)=>{if(item)items.push({...item,...stamp,...(key==='payments'?{receiptReference:item.receiptReference?'attached':null}:{})});else missing.push(slice[index])})}
- return [...(items.length?[upsert(key,items)]:[]),...(missing.length?[removeRows(key,missing)]:[])];
+ return [...(items.length?[upsert(key,items,undefined,'id')]:[]),...(missing.length?[removeRows(key,missing)]:[])];
 }
 async function allPages(read){const items=[];let cursor=null,first=null;for(let page=0;page<200;page++){const value=await read(cursor);first??=value;items.push(...(value.items??[]));cursor=value.nextCursor??null;if(!cursor)return {first,items}}throw Error('source_unavailable')}
 /** The records patches for a resolved scope (see resolveRecordsScope). */
+/** Rows embedding another row's data, and how a delta reaches them (R078 v4 dependency audit):
+ * - borrower detail: referrer's name -> borrowers whose "Ref Referrer" is an affected borrower;
+ *   preferred receiving account label -> Cash Accounts change walks.
+ * - loan detail: borrower name, version over the loan's charges/repayments -> loans of affected borrowers;
+ *   disbursing account label -> walk.
+ * - charge detail: borrower via loan, version over loan/repayments/allocations -> charges of their loans.
+ * - payment detail: borrower name, version over the borrower's loans/charges/repayments, allocations, ledger,
+ *   revision head -> payments of affected borrowers; allocation loan labels name the charge's borrower ->
+ *   payments allocated to charges of affected loans; account labels -> walk.
+ * - expense detail: payee/related borrower labels, related loan fields -> expenses referencing affected
+ *   borrowers/loans; account/holder labels -> walk.
+ * - loanRelated payments include other borrowers' payments targeting or repaying the loan -> loans targeted or
+ *   repaid by the re-read payments.
+ * - paymentMonths groups by borrower: re-read whole (a moved payment changes a group the delta cannot name).
+ * - loanList, dashboard: re-read whole. borrowerList, borrowerLoans, referrers, paymentHistory: own rows.
+ * - A row that moved to another owner (loan, charge, payment refs) leaves the old owner's rows stale: the client
+ *   holds the old row and walks instead (apps/pwa/src/dataset-patch.ts deltaMovesRows).
+ * Bounded by TARGETED_LIMITS (counts and elapsed time); above them the caller walks. */
 export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments,expenses,dashboard}){
- const patches=[],B=sortIds(borrowers);
- const loans=B.length?sortIds((await client.query('SELECT "Row ID" AS id FROM public."Loans" WHERE "Ref Borrowers"=ANY($1::text[])',[B])).rows.map(row=>row.id)):[];
- const charges=loans.length?sortIds((await client.query('SELECT "Row ID" AS id FROM public."Charges" WHERE "Ref Loans"=ANY($1::text[])',[loans])).rows.map(row=>row.id)):[];
- const paymentIds=sortIds([...payments,...(B.length?(await client.query('SELECT "Row ID" AS id FROM public."Payments" WHERE "Ref Borrower"=ANY($1::text[])',[B])).rows.map(row=>row.id):[])]);
- const expenseIds=sortIds([...expenses,...(B.length?(await client.query('SELECT "Row ID" AS id FROM public."Business Expenses" WHERE "Ref Related Borrower"=ANY($1::text[]) OR "Ref Payee Borrower"=ANY($1::text[]) OR "Ref Related Loan"=ANY($2::text[])',[B,loans])).rows.map(row=>row.id):[])]);
- patches.push(...await detailRows(client,stamp,'borrowers',readBorrowerRecord,B),...await detailRows(client,stamp,'loans',readLoanRecord,loans),...await detailRows(client,stamp,'charges',readChargeRecord,charges),...await detailRows(client,stamp,'payments',readPaymentRecord,paymentIds),...await detailRows(client,stamp,'expenses',readExpenseRecord,expenseIds));
+ const started=Date.now(),patches=[],B=sortIds(borrowers);
+ const within=(count,limit)=>{if(count>limit||Date.now()-started>TARGETED_LIMITS.milliseconds)throw Error('targeted_limit')};
+ const ids=async(sql,params)=>sortIds((await client.query(sql,params)).rows.map(row=>row.id));
+ const loans=B.length?await ids('SELECT "Row ID" AS id FROM public."Loans" WHERE "Ref Borrowers"=ANY($1::text[])',[B]):[];within(loans.length,TARGETED_LIMITS.loans);
+ const charges=loans.length?await ids('SELECT "Row ID" AS id FROM public."Charges" WHERE "Ref Loans"=ANY($1::text[])',[loans]):[];within(charges.length,TARGETED_LIMITS.charges);
+ const paymentIds=sortIds([...payments,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Payments" WHERE "Ref Borrower"=ANY($1::text[])',[B]):[]),
+  ...(loans.length?await ids('SELECT DISTINCT a."Ref Payment" AS id FROM public."Payment Allocations" a JOIN public."Charges" c ON c."Row ID"=a."Ref Charge" WHERE c."Ref Loans"=ANY($1::text[]) AND a."Ref Payment" IS NOT NULL',[loans]):[])]);
+ within(paymentIds.length,TARGETED_LIMITS.payments);
+ const borrowerIds=sortIds([...B,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Ref Referrer"=ANY($1::text[])',[B]):[])]);within(borrowerIds.length,TARGETED_LIMITS.borrowers*8);
+ const expenseIds=sortIds([...expenses,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Business Expenses" WHERE "Ref Related Borrower"=ANY($1::text[]) OR "Ref Payee Borrower"=ANY($1::text[]) OR "Ref Related Loan"=ANY($2::text[])',[B,loans]):[])]);within(expenseIds.length,TARGETED_LIMITS.expenses);
+ const relatedLoans=sortIds([...loans,...(paymentIds.length?await ids('SELECT "Ref Target Loan" AS id FROM public."Payments" WHERE "Row ID"=ANY($1::text[]) AND "Ref Target Loan" IS NOT NULL UNION SELECT c."Ref Loans" AS id FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=ANY($1::text[]) AND c."Ref Loans" IS NOT NULL',[paymentIds]):[])]);within(relatedLoans.length,TARGETED_LIMITS.loans);
+ const details=async(key,read,list)=>{const result=await detailRows(client,stamp,key,read,list);within(0,0);return result};
+ patches.push(...await details('borrowers',readBorrowerRecord,borrowerIds),...await details('loans',readLoanRecord,loans),...await details('charges',readChargeRecord,charges),...await details('payments',readPaymentRecord,paymentIds),...await details('expenses',readExpenseRecord,expenseIds));
  if(B.length){
   const list=(await client.query(`SELECT ${borrowerListColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND "Row ID"=ANY($1::text[]) ORDER BY "Row ID" COLLATE "C"`,[B])).rows;
-  patches.push(removeRows('borrowerList',B.filter(id=>!list.some(row=>row.id===id))),upsert('borrowerList',list));
+  patches.push(removeRows('borrowerList',B.filter(id=>!list.some(row=>row.id===id))),upsert('borrowerList',list,undefined,'id'));
   const shown=(await client.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers" WHERE b."Hidden Flag" IS NOT TRUE AND l."Row ID"=ANY($1::text[]) ORDER BY l."Row ID" COLLATE "C"`,[loans])).rows.map(row=>projectLoan(row,row.borrowerId));
-  patches.push(removeRows('borrowerLoans',loans.filter(id=>!shown.some(row=>row.id===id))),upsert('borrowerLoans',shown));
+  patches.push(removeRows('borrowerLoans',loans.filter(id=>!shown.some(row=>row.id===id))),upsert('borrowerLoans',shown,undefined,'id'));
   const loanList=await allPages(cursor=>readRecordList(client,'loans',{limit:100,cursor}));
-  patches.push(replace('loanList',[]),append('loanList',loanList.items));
-  for(const loanId of loans)for(const kind of ['charges','payments']){const related=await allPages(cursor=>readLoanRelated(client,loanId,kind,{limit:100,cursor}).then(value=>value??{items:[],nextCursor:null}));patches.push(replace('loanRelated',[],[loanId,kind]),...(related.items.length?[append('loanRelated',related.items,[loanId,kind])]:[]))}
+  patches.push(replace('loanList',[]),append('loanList',loanList.items));within(0,0);
   for(const borrowerId of B)for(const scope of ['due','future','all']){
-   let first;const charges=[];try{let cursor=null;for(let page=0;;page++){if(page>=200)throw Error('source_unavailable');const value=await readOwnerPaymentDraft(client,borrowerId,{scope,limit:100,cursor});if(value.draftError){first=value;break}first??=value;charges.push(...value.charges);cursor=value.nextCursor;if(!cursor)break}}catch(error){if(error.message!=='Draft unavailable')throw error;first={draftError:'source_unavailable',status:503}}
+   let first;const items=[];try{let cursor=null;for(let page=0;;page++){if(page>=200)throw Error('source_unavailable');const value=await readOwnerPaymentDraft(client,borrowerId,{scope,limit:100,cursor});if(value.draftError){first=value;break}first??=value;items.push(...value.charges);cursor=value.nextCursor;if(!cursor)break}}catch(error){if(error.message!=='Draft unavailable')throw error;first={draftError:'source_unavailable',status:503}}
    if(first.draftError){patches.push(replace('paymentDrafts',first,[borrowerId,scope]));continue}
-   const {charges:_page,nextCursor:_next,...metadata}=first;patches.push(replace('paymentDrafts',{...metadata,charges:[],nextCursor:null},[borrowerId,scope]),...(charges.length?[append('paymentDrafts',charges,[borrowerId,scope,'charges'])]:[]));
+   const {charges:_page,nextCursor:_next,...metadata}=first;patches.push(replace('paymentDrafts',{...metadata,charges:[],nextCursor:null},[borrowerId,scope]),...(items.length?[append('paymentDrafts',items,[borrowerId,scope,'charges'])]:[]));
   }
+  within(0,0);
   const referrers=(await client.query('SELECT "Row ID" id,"Borrower Name" label,"Description" description FROM public."Borrowers" WHERE "Row ID"=ANY($1::text[]) ORDER BY "Row ID" COLLATE "C"',[B])).rows;
-  patches.push(upsert('borrowerOptions',referrers,['referrers']));
+  patches.push(upsert('borrowerOptions',referrers,['referrers'],'id'));
  }
- // Borrower-grouped lists: the affected borrowers' rows (and unassigned payments) are replaced.
- const unassigned=payments.length>0,groups=B.length||unassigned;
- if(groups){
-  const months=(await client.query(`WITH groups AS (${paymentMonthGroups(' WHERE "Ref Borrower"=ANY($1::text[]) OR ($2::boolean AND "Ref Borrower" IS NULL)')}) SELECT * FROM groups ORDER BY coalesce("borrowerId",'') COLLATE "C",coalesce(month,'') COLLATE "C"`,[B,unassigned])).rows;
-  patches.push(removeRows('paymentMonths',[...B,...(unassigned?[null]:[])],undefined,'borrowerId'),...(months.length?[append('paymentMonths',months)]:[]));
+ for(const loanId of relatedLoans)for(const kind of ['charges','payments']){const related=await allPages(cursor=>readLoanRelated(client,loanId,kind,{limit:100,cursor}).then(value=>value??{items:[],nextCursor:null}));patches.push(replace('loanRelated',[],[loanId,kind]),...(related.items.length?[append('loanRelated',related.items,[loanId,kind])]:[]))}
+ within(0,0);
+ if(B.length||payments.length){
+  // Whole, in the walk's order: a group can lose a payment that moved to a borrower outside the delta.
+  const months=(await client.query(`WITH groups AS (${paymentMonthGroups('')}) SELECT * FROM groups ORDER BY coalesce("borrowerId",'') COLLATE "C",coalesce(month,'') COLLATE "C"`)).rows;
+  patches.push(replace('paymentMonths',[]),...(months.length?[append('paymentMonths',months)]:[]));
   const history=(await client.query(`${paymentHistorySelect} WHERE p."Ref Borrower"=ANY($4::text[]) OR p."Row ID"=ANY($5::text[]) ORDER BY p."Row ID" COLLATE "C"`,[actor.issuer,actor.subject,actor.partnerId,B,payments])).rows;
-  patches.push(removeRows('paymentHistory',B,undefined,'borrowerId'),upsert('paymentHistory',history));
+  patches.push(removeRows('paymentHistory',B,undefined,'borrowerId'),upsert('paymentHistory',history,undefined,'id'));
  }
  if(dashboard)patches.push(replace('dashboard',await readDashboard(client)));
+ within(0,0);
  return patches.filter(patch=>patch.mode!=='upsert'&&patch.mode!=='remove'||patch.value.length>0);
 }

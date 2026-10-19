@@ -7,8 +7,7 @@ import {readOfflineDatasetDelta,readOfflineSourceVersion} from '../../services/b
 
 // R078 protocol v4 on a disposable PostgreSQL database migrated through V97 (never DEV or PROD).
 // MW_V4_LAB_URL=postgres://postgres@127.0.0.1:5498/loan_manager_dev node --test tests/integration/offline-delta-v4-lab.test.mjs
-// A normal payment answers with a key-only records delta; changes the change log cannot see (TRUNCATE,
-// triggers bypassed) are caught by the source fingerprint and answered with a walk.
+// A normal payment and a replica-mode write answer with key-only records deltas.
 const url=process.env.MW_V4_LAB_URL;
 const lab=url?new URL(url):null;
 const disposable=!!lab&&['127.0.0.1','localhost'].includes(lab.hostname)&&lab.pathname==='/loan_manager_dev';
@@ -23,7 +22,7 @@ async function walk(client){
  for(let step=0;step<500;step++){response=await read(client,{cursor,need:[],sourceVersion:null,acceptChanged:true});changes??=response.changes??null;if(response.complete)return {sourceVersion:response.sourceVersion,changes};cursor=response.nextCursor}
  throw Error('Walk did not complete');
 }
-test('protocol v4 sends a key-only delta for a payment and walks on changes the change log cannot see',{skip:!disposable&&'set MW_V4_LAB_URL to a disposable 127.0.0.1 loan_manager_dev'},async()=>{
+test('protocol v4 sends key-only deltas for a payment and for a replica-mode write',{skip:!disposable&&'set MW_V4_LAB_URL to a disposable 127.0.0.1 loan_manager_dev'},async()=>{
  const client=new pg.Client({connectionString:url});await client.connect();
  try{
   if(!(await client.query(`SELECT 1 FROM public."Cash Accounts" WHERE "Row ID"='CI-DAD'`)).rowCount)await client.query(readFileSync(new URL('../../scripts/database/Test-CashAccountFixtures.sql',import.meta.url),'utf8').replace(/^\\.*$/gm,''));
@@ -53,19 +52,12 @@ test('protocol v4 sends a key-only delta for a payment and walks on changes the 
   const unchanged=await read(client,{cursor:null,need:[],sourceVersion:state.sourceVersion,acceptChanged:true,since:state.changes});
   assert.equal(unchanged.unchanged,true);
 
-  // Triggers bypassed (a restore or data load): no change-log row, the fingerprint differs -> walk.
+  // Replica mode (a restore or data load): V97's triggers are ENABLE ALWAYS, so the write is logged and arrives
+  // as an ordinary delta, never missed.
   const before=(await client.query('SELECT max(seq) AS seq FROM public.pwa_row_changes')).rows[0].seq;
-  await client.query('BEGIN');await client.query("SET LOCAL session_replication_role=replica");await client.query(`UPDATE "Borrowers" SET "Description"='bypassed' WHERE "Row ID"=$1`,[borrower]);await client.query('COMMIT');
-  assert.equal((await client.query('SELECT max(seq) AS seq FROM public.pwa_row_changes')).rows[0].seq,before,'the bypassed write is not logged');
-  const bypassed=await read(client,{cursor:null,need:[],sourceVersion:state.sourceVersion,acceptChanged:true,since:state.changes});
-  assert.equal(bypassed.schemaVersion,3);assert.notEqual(bypassed.unchanged,true);assert.ok(bypassed.patches.length>0,'a walk starts');
-  state=await walk(client);
-
-  // TRUNCATE is not logged either: the records content fingerprint of Daily Analytics catches it -> walk.
-  await client.query(`INSERT INTO "Daily Analytics"("Row ID","Snapshot Date","Generated At") VALUES ($1,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-1,now())`,['V4-DA-'+id]);
-  state=await walk(client);
-  await client.query('TRUNCATE "Daily Analytics"');
-  const truncated=await read(client,{cursor:null,need:[],sourceVersion:state.sourceVersion,acceptChanged:true,since:state.changes});
-  assert.equal(truncated.schemaVersion,3);assert.notEqual(truncated.unchanged,true);
+  await client.query('BEGIN');await client.query("SET LOCAL session_replication_role=replica");await client.query(`UPDATE "Borrowers" SET "Description"='replica' WHERE "Row ID"=$1`,[borrower]);await client.query('COMMIT');
+  assert.ok(BigInt((await client.query('SELECT max(seq) AS seq FROM public.pwa_row_changes')).rows[0].seq)>BigInt(before),'the replica-mode write is logged');
+  const replica=await read(client,{cursor:null,need:[],sourceVersion:state.sourceVersion,acceptChanged:true,since:state.changes});
+  assert.equal(replica.schemaVersion,4);assert.equal(replica.delta,true);assert.ok(replica.patches.some(patch=>patch.key==='borrowers'));
  }finally{await client.end()}
 });

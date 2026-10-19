@@ -7,7 +7,8 @@ import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
 
 // R078 item 2 (client): two data domains in flight, no settle delay inside a walk, fewer durable
 // progress writes with a correct resume, and one records check standing in for unchanged peers.
-const source=ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/offline-dataset.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const transpile=file=>ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const source=transpile('offline-dataset.ts'),patchModule=(()=>{const sandbox={exports:{}};runInNewContext(transpile('dataset-patch.ts'),sandbox);return sandbox.exports})();
 const origin='https://lm.example.invalid',stamp={asOf:'2026-10-19T01:00:00.000Z',businessDate:'2026-10-19'};
 const data=['records','collection','cash','management'],all=[...data,'notifications'];
 const version=domain=>domain.length.toString(16).padStart(2,'0').repeat(32);
@@ -54,7 +55,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
   }finally{inflight--;flights.set(domain,flights.get(domain)-1)}
  }
  const trackedTimeout=(callback,delay)=>{timers.push(delay);return setTimeout(callback,delay)};
- const sandbox={exports:{},require:name=>name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:(()=>{throw Error('Unexpected import '+name)})(),
+ const sandbox={exports:{},require:name=>name==='./request-activity'?{activitySnapshot:()=>0,subscribeActivity:()=>()=>{}}:name==='./dataset-patch'?patchModule:(()=>{throw Error('Unexpected import '+name)})(),
   window,document,navigator:{onLine:true},fetch,setTimeout:trackedTimeout,clearTimeout,URL,crypto:globalThis.crypto,TextEncoder,structuredClone,Intl,CustomEvent,Event,AbortController,console};
  runInNewContext(source,sandbox);
  const events=[];window.addEventListener('mw-offline-dataset-ready',event=>events.push(event.detail.domain+':'+event.detail.changed));

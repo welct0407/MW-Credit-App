@@ -1,4 +1,5 @@
 import {activitySnapshot,subscribeActivity} from './request-activity';
+import {applyDatasetPatch,deltaMovesRows} from './dataset-patch';
 import type {OwnerOfflineRepository} from './owner-offline';
 
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
@@ -78,6 +79,8 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // Request fields each dataset path accepts: 3 = since (R078 protocol v4), 2 = versions and acceptChanged
  // (R078), 1 = acceptChanged (R064), 0 = neither. A 400 invalid_request steps the path down once per field.
  const pathLevels=new Map<string,number>();
+ // Domains whose next check walks instead of asking for a v4 delta (a delta that moved rows between owners).
+ const walkNext=new Set<string>();
  // In-memory partial between chunks. The durable progress row is written for the first chunk of a walk,
  // then every DATASET_PROGRESS_SAVE_CHUNKS chunks, before a pause and when a chunk fails; `saved` is the
  // cursor of that durable row. A chunk lost before it was saved is fetched again on resume.
@@ -218,7 +221,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);succeeded(task);return}}
    const level=pathLevels.get(url.pathname)??3,askVersions=ownsVersions&&delta&&!partial&&level>=2;
    // R078 protocol v4: a complete records bundle asks for the records changed since its change cursor.
-   const since=task==='records'&&delta&&!partial&&level>=3&&validChangeCursor(bundle?.changes)?bundle.changes:null;
+   const since=task==='records'&&delta&&!partial&&level>=3&&!walkNext.has(task)&&validChangeCursor(bundle?.changes)?bundle.changes:null;
    if(!askVersions)releaseVersions();
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
    const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
@@ -287,19 +290,10 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     // The memoized partial was already handed to IndexedDB by value, or was never
     // stored; mutating it in place is safe. A durable partial read back is cloned once.
     if(v4&&(!value.complete||value.nextCursor!==null||!validChangeCursor(value.changes)||value.sourceVersion!==null&&typeof value.sourceVersion!=='string'))throw Error('Invalid dataset delta');
+    // A delta that moved a row to another owner cannot be applied (the old owner's rows are not re-read): walk.
+    if(v4&&deltaMovesRows(bundle.data,value.patches)){walkNext.add(task);enqueue(task,true);continued=true;return}
     const data=v4?structuredClone(bundle.data):memo?partial?.data??{}:structuredClone(partial?.data??{});
-    for(const patch of value.patches){const path=[patch?.key,...(patch?.path??[])];if(!patch||!Array.isArray(patch.path??[])||path.some(key=>typeof key!=='string'||['__proto__','prototype','constructor'].includes(key)))throw Error('Invalid dataset patch');
-     let target=data;for(const key of path.slice(0,-1)){if(Array.isArray(target)&&(!/^(0|[1-9][0-9]*)$/.test(key)||Number(key)>=target.length))throw Error();if(target[key]===undefined)target[key]={};if(!target[key]||typeof target[key]!=='object')throw Error();target=target[key]}const key=path.at(-1)!;if(Array.isArray(target)&&(!/^(0|[1-9][0-9]*)$/.test(key)||Number(key)>=target.length))throw Error();
-     if(patch.mode==='append'){if(!Array.isArray(patch.value)||target[key]!==undefined&&!Array.isArray(target[key]))throw Error();target[key]=[...(target[key]??[]),...patch.value]}
-     else if(patch.mode==='merge'){if(!patch.value||Array.isArray(patch.value)||typeof patch.value!=='object')throw Error();target[key]={...target[key],...patch.value}}
-     else if(patch.mode==='replace')target[key]=patch.value;
-     // Protocol v4: upsert replaces rows by id (new rows are appended); remove drops the rows whose `by`
-     // field (default id) is listed, or the listed keys of an object.
-     else if(patch.mode==='upsert'){if(!Array.isArray(patch.value)||patch.value.some((row:any)=>typeof row?.id!=='string')||target[key]!==undefined&&!Array.isArray(target[key]))throw Error();const rows=[...(target[key]??[])],at=new Map(rows.map((row:any,index:number)=>[row?.id,index]));for(const row of patch.value){const index=at.get(row.id);if(index===undefined){at.set(row.id,rows.length);rows.push(row)}else rows[index]=row}target[key]=rows}
-     else if(patch.mode==='remove'){const by=patch.by??'id';if(!Array.isArray(patch.value)||typeof by!=='string'||!/^[A-Za-z]+$/.test(by))throw Error();const drop=new Set(patch.value.map((item:any)=>JSON.stringify(item??null)));const current=target[key];
-      if(Array.isArray(current))target[key]=current.filter((row:any)=>!drop.has(JSON.stringify(row?.[by]??null)));else if(current&&typeof current==='object')for(const name of patch.value)if(typeof name==='string'&&!['__proto__','prototype','constructor'].includes(name))delete current[name]}
-     else throw Error();
-    }
+    for(const patch of value.patches)applyDatasetPatch(data,patch);
     full={schemaVersion:1,...(v4||value.changes||partial?.changes?{changes:v4?value.changes:partial?.changes??(validChangeCursor(value.changes)?value.changes:null)}:{}),protocolVersion:value.schemaVersion,base,sourceVersion:torn?null:value.sourceVersion,contentValues:value.contentValues,domain:task,businessDate:value.businessDate,asOf:value.asOf,startedAt:partial?.startedAt??value.startedAt??value.asOf,generation:value.generation,complete:value.complete,data,chunks:(partial?.chunks??0)+1,nextCursor:value.nextCursor,progress:value.progress};
     // An own write applied locally (item 6) is settled once no locally patched row remains; otherwise the
     // next check walks (no change cursor, no source version) so the server's rows replace every local one.
@@ -322,7 +316,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    // watermark and re-sends its content each time) keeps the stored bundle as it is.
    const keep=!isMedia&&!v4&&!dataChanged&&!torn&&!partial&&!!bundle?.complete&&!bundle.cacheStale&&full.sourceVersion===bundle.sourceVersion&&full.businessDate===bundle.businessDate;
    const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):keep||await repo.saveDataset(task,full,revision,durable,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
-   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);succeeded(task);if(task==='records')await refreshMedia(full);
+   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);succeeded(task);if(!v4)walkNext.delete(task);if(task==='records')await refreshMedia(full);
    if(!isMedia){
     domainChecked.set(task,Date.now());
     if(torn){const retries=changedRetries.get(task)??0;if(retries<2){changedRetries.set(task,retries+1);recheckDomains.add(task)}}else changedRetries.delete(task);
