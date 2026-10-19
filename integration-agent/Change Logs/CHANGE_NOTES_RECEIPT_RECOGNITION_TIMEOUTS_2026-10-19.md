@@ -16,9 +16,10 @@ Two PROD uploads of a real phone slip on the receiving page (19 October 2026, 07
 | `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements) | 578 tests OK, 85 skipped (lab suites); `tests.test_receipt_recognition` 43 OK |
 | `ruff check --no-cache integration-agent` | All checks passed |
 | `npm run check:docs` | 0 failures |
+| Deploy at `683cfce` (PR #79), 08:16:21Z, 19 October 2026 | Activated after the command route and Cloud Run timeout; freeze backup `runtime-20261019T081613805861Z`; recognizer 42/40/36 s, images at most 1600 px; the cycle stays on Gemini at 25 s and 60 s. Synthetic cycle slip 4000 px became 1600 by 1440 JPEG, 88 KB, valid in 7.07 s |
 
 ## Not run
-- Live deploy: after merge, under the owner's approval of 19 October 2026.
+- A real slip through the recognizer after the deploy: the owner's retry is pending.
 
 ## Recovery
 Revert this commit; live, `deploy-runtime.py rollback` to the previous pin and restart `mw-receipt-recognition.service`.
@@ -27,4 +28,4 @@ Revert this commit; live, `deploy-runtime.py rollback` to the previous pin and r
 None.
 
 ## Remaining work
-- Deploy at the merge commit together with Byte's command route and PWA client limits (the recognizer's 42 s needs the route's 45 s; deploy the agent no earlier than the route).
+- Deployed; the owner's retry of a real slip is pending. Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host).
