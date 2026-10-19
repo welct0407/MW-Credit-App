@@ -4614,7 +4614,9 @@ CREATE FUNCTION public.pwa_track_row_change() RETURNS trigger
     AS $$
 DECLARE old_key text; new_key text;
 BEGIN
- IF TG_WHEN<>'AFTER' OR TG_LEVEL<>'ROW' OR TG_NARGS<>1 OR TG_TABLE_SCHEMA<>'public' THEN RAISE EXCEPTION 'pwa_track_row_change requires a public AFTER ROW trigger with one key column'; END IF;
+ IF TG_WHEN<>'AFTER' OR TG_NARGS<>1 OR TG_TABLE_SCHEMA<>'public' OR (TG_LEVEL='STATEMENT')<>(TG_OP='TRUNCATE') THEN
+  RAISE EXCEPTION 'pwa_track_row_change requires a public AFTER ROW (or AFTER TRUNCATE statement) trigger with one key column'; END IF;
+ IF TG_OP='TRUNCATE' THEN INSERT INTO public.pwa_row_changes(table_name,row_key) VALUES(TG_TABLE_NAME,'*'); RETURN NULL; END IF;
  IF TG_OP='UPDATE' AND to_jsonb(NEW)=to_jsonb(OLD) THEN RETURN NULL; END IF;
  IF TG_OP<>'INSERT' THEN old_key:=to_jsonb(OLD)->>TG_ARGV[0]; END IF;
  IF TG_OP<>'DELETE' THEN new_key:=to_jsonb(NEW)->>TG_ARGV[0]; END IF;

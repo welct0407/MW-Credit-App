@@ -99,6 +99,20 @@ DO $$ DECLARE got text; BEGIN
  IF got IS DISTINCT FROM 'Cash Holders:ch:rc Cash Accounts:RC-ACC r008_cash_account_cutover:RC-ACC Statistics:RC-ST Daily Analytics:RC-DA Loan Assessment SQL Lab:RC-LA' THEN RAISE EXCEPTION 'Change log for keyed tables differs: %',got; END IF;
 END $$;
 
+-- G. Paths that skip ordinary triggers: under session_replication_role=replica the ALWAYS trigger still logs
+-- each DML kind; a TRUNCATE logs one marker row with row_key '*' (the reader re-walks that table).
+CREATE TEMP TABLE rc_mark_g ON COMMIT DROP AS SELECT coalesce(max(seq),0) AS seq FROM public.pwa_row_changes;
+SET LOCAL session_replication_role=replica;
+INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('RC-R','Synthetic replica write');
+UPDATE "Borrowers" SET "Borrower Note"='replica edit' WHERE "Row ID"='RC-R';
+DELETE FROM "Borrowers" WHERE "Row ID"='RC-R';
+SET LOCAL session_replication_role=origin;
+TRUNCATE "Daily Analytics";
+DO $$ DECLARE got text; BEGIN
+ SELECT string_agg(table_name||':'||row_key,' ' ORDER BY seq) INTO got FROM public.pwa_row_changes WHERE seq>(SELECT seq FROM rc_mark_g);
+ IF got IS DISTINCT FROM 'Borrowers:RC-R Borrowers:RC-R Borrowers:RC-R Daily Analytics:*' THEN RAISE EXCEPTION 'Replica-mode or TRUNCATE change log differs: %',got; END IF;
+END $$;
+
 -- F. Retention (hourly job): rows older than 7 days go, newer rows stay, the newest row always stays.
 UPDATE public.pwa_row_changes SET changed_at=clock_timestamp()-interval '8 days';
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('RC-NEW','Synthetic recent');

@@ -1,6 +1,7 @@
 -- R078 item 7 (owner decision 19 October 2026: "Authorize DEV"; PROD needs its own promotion approval):
 -- PWA row-change tracking for the offline dataset protocol v4. One additive table public.pwa_row_changes,
--- one generic AFTER INSERT OR UPDATE OR DELETE row trigger zzzzzzz_pwa_row_change on 19 source tables
+-- one generic AFTER INSERT OR UPDATE OR DELETE row trigger zzzzzzz_pwa_row_change and one AFTER TRUNCATE
+-- statement trigger zzzzzzz_pwa_row_truncate (both ENABLE ALWAYS) on 19 source tables
 -- (fires after every existing non-deferred AFTER ROW trigger; no existing trigger is touched), and a
 -- 7-day retention run by the hourly recent-analytics job. Both functions are SECURITY DEFINER, owned by
 -- the closed NOLOGIN role mw_changes_owner_<env> with a pinned search_path (V93 sync_cash_ledger
@@ -67,16 +68,19 @@ CREATE TABLE IF NOT EXISTS public.pwa_row_changes(
  txid xid8 NOT NULL DEFAULT pg_current_xact_id(),
  changed_at timestamptz NOT NULL DEFAULT clock_timestamp());
 CREATE INDEX IF NOT EXISTS pwa_row_changes_table_seq ON public.pwa_row_changes(table_name,seq);
-COMMENT ON TABLE public.pwa_row_changes IS 'R078 offline dataset change log: one row per changed source row (table_name = relation name, row_key = primary key text); written only by pwa_track_row_change(), pruned after 7 days by pwa_row_changes_prune_v1()';
+COMMENT ON TABLE public.pwa_row_changes IS 'R078 offline dataset change log: one row per changed source row (table_name = relation name, row_key = primary key text, or * after a TRUNCATE); written only by pwa_track_row_change(), pruned after 7 days by pwa_row_changes_prune_v1()';
 REVOKE ALL ON TABLE public.pwa_row_changes FROM PUBLIC;
 
--- 3. Generic row trigger function. TG_ARGV[0] names the primary-key column. An UPDATE that leaves the row
--- identical records nothing; an UPDATE that changes the key records the old and the new key.
+-- 3. Generic trigger function. TG_ARGV[0] names the primary-key column. An UPDATE that leaves the row
+-- identical records nothing; an UPDATE that changes the key records the old and the new key. A TRUNCATE
+-- (statement-level trigger) records one marker row with row_key '*': the reader must re-walk that table.
 CREATE OR REPLACE FUNCTION public.pwa_track_row_change() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
 DECLARE old_key text; new_key text;
 BEGIN
- IF TG_WHEN<>'AFTER' OR TG_LEVEL<>'ROW' OR TG_NARGS<>1 OR TG_TABLE_SCHEMA<>'public' THEN RAISE EXCEPTION 'pwa_track_row_change requires a public AFTER ROW trigger with one key column'; END IF;
+ IF TG_WHEN<>'AFTER' OR TG_NARGS<>1 OR TG_TABLE_SCHEMA<>'public' OR (TG_LEVEL='STATEMENT')<>(TG_OP='TRUNCATE') THEN
+  RAISE EXCEPTION 'pwa_track_row_change requires a public AFTER ROW (or AFTER TRUNCATE statement) trigger with one key column'; END IF;
+ IF TG_OP='TRUNCATE' THEN INSERT INTO public.pwa_row_changes(table_name,row_key) VALUES(TG_TABLE_NAME,'*'); RETURN NULL; END IF;
  IF TG_OP='UPDATE' AND to_jsonb(NEW)=to_jsonb(OLD) THEN RETURN NULL; END IF;
  IF TG_OP<>'INSERT' THEN old_key:=to_jsonb(OLD)->>TG_ARGV[0]; END IF;
  IF TG_OP<>'DELETE' THEN new_key:=to_jsonb(NEW)->>TG_ARGV[0]; END IF;
@@ -112,6 +116,10 @@ BEGIN
    ('Partners','Row ID'),('r008_cash_account_cutover','Ref Cash Account'),('pwa_payment_commands','request_id'),('Daily Analytics','Row ID'),('Statistics','Row ID'),
    ('Cash Statement Context','Ref Partner'),('Loan Assessment SQL Lab','Row ID')) v(relation,key_column) LOOP
   EXECUTE format('CREATE OR REPLACE TRIGGER zzzzzzz_pwa_row_change AFTER INSERT OR UPDATE OR DELETE ON public.%I FOR EACH ROW EXECUTE FUNCTION public.pwa_track_row_change(%L)',t.relation,t.key_column);
+  EXECUTE format('CREATE OR REPLACE TRIGGER zzzzzzz_pwa_row_truncate AFTER TRUNCATE ON public.%I FOR EACH STATEMENT EXECUTE FUNCTION public.pwa_track_row_change(%L)',t.relation,t.key_column);
+  -- ALWAYS: both also fire under session_replication_role=replica, so no ordinary write path bypasses the log.
+  EXECUTE format('ALTER TABLE public.%I ENABLE ALWAYS TRIGGER zzzzzzz_pwa_row_change',t.relation);
+  EXECUTE format('ALTER TABLE public.%I ENABLE ALWAYS TRIGGER zzzzzzz_pwa_row_truncate',t.relation);
  END LOOP;
  -- The hourly job's owner runs the retention; nobody else executes either function.
  EXECUTE format('GRANT EXECUTE ON FUNCTION public.pwa_row_changes_prune_v1() TO %I',jobs_owner);
