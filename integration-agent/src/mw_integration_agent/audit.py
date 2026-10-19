@@ -123,13 +123,16 @@ def activity(config, service, action='PROCESS', route='internal', plan=None, key
         PARENT.reset(token)
 
 
-def audited(service, route='internal', action='PROCESS', effect=False):
-    """For entry points whose first argument is config or an object with config."""
+def audited(service, route='internal', action='PROCESS', effect=False, plan=None):
+    """For entry points whose first argument is config or an object with config.
+
+    `plan`, when given, is called with the entry point's arguments and returns the operation plan.
+    """
     def decorate(fn):
         @wraps(fn)
         def wrapped(first, *args, **kwargs):
             config = first if isinstance(first,dict) else first.config
-            with activity(config,service,action,route,effect=effect) as op:
+            with activity(config,service,action,route,plan=plan(first,*args,**kwargs) if plan else None,effect=effect) as op:
                 result=fn(first,*args,**kwargs)
                 if op:
                     from .state import transaction
