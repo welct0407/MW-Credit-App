@@ -9,6 +9,7 @@ import {readOfflineDatasetDelta} from '../../services/business/offline-dataset-d
 import {writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as shared from '../../services/lib/offline-dataset-digest.mjs';
+import {deltaValueHash} from '../../services/api/offline-dataset-delta.mjs';
 
 // R078 day change with a TRUE database clock shift (Chase's month-end equality proof). The postmaster runs under libfaketime
 // reading its clock from the file named by MW_FAKETIME_FILE (FAKETIME_TIMESTAMP_FILE, FAKETIME_NO_CACHE=1, TZ=UTC): the test writes
@@ -33,14 +34,17 @@ const plain=value=>JSON.parse(JSON.stringify(value));
 const hydrate=(value,asOf,businessDate)=>Array.isArray(value)?value.map(item=>hydrate(item,asOf,businessDate)):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([key,item])=>[key,key==='asOf'&&item===null?asOf:key==='businessDate'&&item===null?businessDate:hydrate(item,asOf,businessDate)])):value;
 async function read(client,domain,input){
  await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
- try{return await readOfflineDatasetDelta(client,actor,domain,{acceptChanged:true,dates:true,...input})}finally{await client.query('ROLLBACK')}
+ try{return await readOfflineDatasetDelta(client,actor,domain,{acceptChanged:true,dates:true,inlineValues:true,...input})}finally{await client.query('ROLLBACK')}
 }
 /** One response with its values fetched (need) and hydrated, as a client applies it. */
 async function fetchChunk(client,domain,input){
  const manifest=await read(client,domain,{...input,need:[]});
  const refs=[...new Set(manifest.patches.flatMap(patch=>patch.refs))],values={};
- for(let offset=0;offset<refs.length;offset+=2048){const batch=await read(client,domain,{...input,need:refs.slice(offset,offset+2048)});assert.deepEqual(batch.patches,manifest.patches,'the need request replays the same manifest');Object.assign(values,batch.values)}
- return {...manifest,patches:manifest.patches.map(patch=>({...patch,value:patch.mode==='append'||patch.mode==='upsert'?patch.refs.map(ref=>hydrate(structuredClone(values[ref]),manifest.asOf,manifest.businessDate)):hydrate(structuredClone(values[patch.refs[0]]),manifest.asOf,manifest.businessDate)}))};
+ // Inline values (level 6): taken from the manifest response when they hash to their key, as the client does; the rest by need.
+ for(const [hash,item] of Object.entries(manifest.values??{}))if(refs.includes(hash)&&deltaValueHash(item)===hash)values[hash]=item;
+ const missing=refs.filter(ref=>!(ref in values));let needRequests=0;
+ for(let offset=0;offset<missing.length;offset+=2048){needRequests++;const batch=await read(client,domain,{...input,inlineValues:false,need:missing.slice(offset,offset+2048)});assert.deepEqual(batch.patches,manifest.patches,'the need request replays the same manifest');Object.assign(values,batch.values)}
+ return {...manifest,needRequests,inlineCount:Object.keys(manifest.values??{}).length,patches:manifest.patches.map(patch=>({...patch,value:patch.mode==='append'||patch.mode==='upsert'||patch.mode==='replaceWhere'?patch.refs.map(ref=>hydrate(structuredClone(values[ref]),manifest.asOf,manifest.businessDate)):hydrate(structuredClone(values[patch.refs[0]]),manifest.asOf,manifest.businessDate)}))};
 }
 /** A complete walk: data, version, change cursor, business date. */
 async function walk(client,domain){
@@ -58,6 +62,7 @@ async function check(client,domain,state){
  const input={cursor:null,sourceVersion:state.sourceVersion,since:state.changes};
  let chunk=await fetchChunk(client,domain,input);
  if(!chunk.dayChange||chunk.schemaVersion!==4)return null;
+ assert.equal(chunk.needRequests,0,'the first chunk of a day change is inline (no need request)');
  const {from,keep,reread}=chunk.dayChange;
  assert.equal(from,state.businessDate);assert.ok(dayKeysCovered(state.data,keep,reread),'every stored key is named');
  const data=plain(moveBusinessDate(state.data,from,chunk.businessDate,keep)),changes=chunk.changes;
