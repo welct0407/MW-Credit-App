@@ -96,8 +96,10 @@ resource "google_cloud_run_v2_service" "foundation" {
     }
   }
   template {
-    service_account                  = google_service_account.application[each.key].email
-    timeout                          = "15s"
+    service_account = google_service_account.application[each.key].email
+    # R077: the command service waits for receipt recognition (recognizer 42 s <
+    # route 45 s < command 55 s < PWA 60 s); the reader keeps 15 s.
+    timeout                          = each.key == "command" ? "55s" : "15s"
     max_instance_request_concurrency = 5
     scaling {
       min_instance_count = 0
