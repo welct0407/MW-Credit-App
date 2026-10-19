@@ -129,14 +129,16 @@ const collectionPhases=[
  async(c,a,stamp,state)=>{const rows=(await c.query(`${collectionCte} SELECT p."Row ID" id,p."Ref Borrower" AS "borrowerId",p."Payment Date"::text AS "paymentDate",p."Amount Received"::numeric::text amount,(nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL) AS "manualReceiptPresent",(nullif(btrim(p."Receipt Image"),'') IS NOT NULL) AS "agentReceiptPresent",(CASE WHEN nullif(btrim(p."Uploaded Receipt"),'') IS NOT NULL THEN p."Uploaded Receipt At" ELSE p."Receipt Received At" END)::text AS "receiptAt",array_agg(DISTINCT e.id) AS "chargeIds" FROM public."Payments" p JOIN public."Payment Allocations" a ON a."Ref Payment"=p."Row ID" JOIN eligible e ON e.id=a."Ref Charge" AND e.borrower_id=p."Ref Borrower" WHERE p."Status"='Posted' AND a."Allocated Amount"::numeric>0 AND ($3::text IS NULL OR p."Row ID" COLLATE "C">$3 COLLATE "C") GROUP BY p."Row ID" ORDER BY p."Row ID" COLLATE "C" LIMIT 129`,[stamp.businessDate,null,text(state)])).rows;return result([append('receipts',rows.slice(0,128))],rows.length>128?rows[127].id:null)}
 ];
 
-async function statement(c,a,stamp,input){
+/** from (R078 day change): only account-days on or after this date. */
+const statementFrom=from=>async function statement(c,a,stamp,input){
  const state=object(input??{afterAccount:null,afterDate:null,current:null,cursor:null},['afterAccount','afterDate','current','cursor']);let current=state.current;
  if((state.afterAccount!==null&&!validBorrowerId(state.afterAccount))||(state.afterDate!==null&&!validUpcomingDate(state.afterDate))||(current&&(!validBorrowerId(current.accountId)||!validUpcomingDate(current.date))))throw Error('invalid_request');
- if(!current){current=(await c.query(`SELECT "Ref Cash Account" AS "accountId","Statement Date"::text AS date FROM public."Cash Account Daily Summary Recent" WHERE ($1::text IS NULL OR ("Ref Cash Account" COLLATE "C","Statement Date")>($1 COLLATE "C",$2::date)) ORDER BY "Ref Cash Account" COLLATE "C","Statement Date" LIMIT 1`,[text(state.afterAccount),text(state.afterDate)])).rows[0];if(!current)return result([])}
+ if(!current){current=(await c.query(`SELECT "Ref Cash Account" AS "accountId","Statement Date"::text AS date FROM public."Cash Account Daily Summary Recent" WHERE ($1::text IS NULL OR ("Ref Cash Account" COLLATE "C","Statement Date")>($1 COLLATE "C",$2::date))${from?' AND "Statement Date">=$3::date':''} ORDER BY "Ref Cash Account" COLLATE "C","Statement Date" LIMIT 1`,[text(state.afterAccount),text(state.afterDate),...(from?[from]:[])])).rows[0];if(!current)return result([])}
  const value=await readCashStatement(c,{...current,limit:100,cursor:text(state.cursor)}),key=JSON.stringify([current.accountId,current.date]),{items,nextCursor,...metadata}=value;
  const patches=[...(state.cursor?[]:[replace('statementsByKey',{...metadata,items:[],nextCursor:null},[key])]),append('statementsByKey',items,[key,'items'])];
  return result(patches,nextCursor?{...state,current,cursor:nextCursor}:{afterAccount:current.accountId,afterDate:current.date,current:null,cursor:null});
-}
+};
+const statement=statementFrom(null);
 const cashPhases=[one('overview',readCashOverview),one('preferences',readPreferences),statement];
 const managementKinds=['cash-accounts','cash-holders','partners','contributions','settlements','cash-movements','assessments','analytics-validation'];
 const managementPhases=managementKinds.map(kind=>async(c,a,stamp,state)=>{
@@ -147,6 +149,52 @@ const managementPhases=managementKinds.map(kind=>async(c,a,stamp,state)=>{
 managementPhases.push(parents('Cash Accounts',async(c,id)=>({patches:[append('openings',[(await readManagementOpenings(c,{id})).item].filter(Boolean))]})),one('position',readManagementPosition),one('analyticsOverview',readAnalyticsOverview));
 for(const metric of ['distribution','profit30','dailyInterest','projected','daily','weekly','monthly','outstanding30','profit30Line'])managementPhases.push(async(c,a,stamp,state)=>{const value=await readAnalyticsChart(c,{metric,limit:100,cursor:text(state)});if(value.truncated)throw Error('source_unavailable');const {items,nextCursor,...metadata}=value;return result([...(state?[]:[replace('charts',{...metadata,items:[],nextCursor:null},[metric])]),append('charts',items,[metric,'items'])],nextCursor??null)});
 
+// R078 day-change delta. When the Bangkok business date moved, a client keeps every key whose providers do not
+// read the date (IND, `ind`) and the server re-reads the others (`dep`) with the day plan below. Lists from
+// Archie's time-dependence trace (design section G); any key not named IND is DEP, and a key re-read for another
+// reason counts as DEP here (borrowerOptions: the loan-options phase rewrites it; sections.analytics-validation:
+// it lists the Daily Analytics rows the hourly job writes). collection is entirely DEP, so its day change walks.
+// A retained statementsByKey day reads only ledger effects up to that day (V27 grid, today-14..today).
+export const offlineDayKeys=Object.freeze({
+ records:Object.freeze({dep:Object.freeze(['borrowers','paymentDrafts','borrowerOptions','loanOptions','expenseOptions','dashboard']),ind:Object.freeze(['loans','charges','payments','expenses','borrowerList','borrowerLoans','loanList','loanRelated','paymentMonths','paymentHistory'])}),
+ cash:Object.freeze({dep:Object.freeze(['overview','preferences','statementsByKey']),ind:Object.freeze([])}),
+ management:Object.freeze({dep:Object.freeze(['sections.assessments','sections.analytics-validation','position','analyticsOverview','charts']),ind:Object.freeze(['sections.cash-accounts','sections.cash-holders','sections.partners','sections.contributions','sections.settlements','sections.cash-movements','openings'])}),
+});
+const clear=(key,value,path)=>async()=>result([replace(key,value,path)]);
+/** Statement keys that left the recent window (the view's window is the database's today-14..today). */
+const statementWindow=from=>async c=>{
+ const low=(await c.query(`SELECT ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-14)::text AS low`)).rows[0].low;
+ const accounts=(await c.query('SELECT "Row ID" AS id FROM public."Cash Accounts" ORDER BY "Row ID" COLLATE "C"')).rows.map(row=>row.id),keys=[];
+ for(let day=new Date(Date.parse(from+'T00:00:00Z')-14*86400000);day.toISOString().slice(0,10)<low;day=new Date(day.getTime()+86400000))for(const account of accounts)keys.push(JSON.stringify([account,day.toISOString().slice(0,10)]));
+ return result(keys.length?[{key:'statementsByKey',mode:'remove',value:keys}]:[]);
+};
+/** The DEP re-read of each domain after a day change from `from` (the client's business date). A key is cleared
+ * before its full re-read (or replaced whole by its first page), so it ends as a walk writes it. Records phases:
+ * 0 borrowers, 10-12 payment drafts, 15 borrowerOptions/loanOptions, 16 referrers, 17 expenseOptions, 18 dashboard.
+ * Management: 6 assessments, 7 analytics-validation, 9 position, 10 analyticsOverview, 11- charts. */
+function dayPlan(domain,from){
+ if(domain==='records')return [clear('borrowers',[]),recordPhases[0],clear('paymentDrafts',{}),recordPhases[10],recordPhases[11],recordPhases[12],recordPhases[15],recordPhases[16],recordPhases[17],recordPhases[18]];
+ if(domain==='cash')return [statementWindow(from),cashPhases[0],cashPhases[1],statementFrom(from)];
+ if(domain==='management')return [clear('sections',[],['assessments']),managementPhases[6],clear('sections',[],['analytics-validation']),managementPhases[7],managementPhases[9],managementPhases[10],...managementPhases.slice(11)];
+ return null;
+}
+/** The traversal domain of a day-change re-read ('records@day:2026-10-18'), or null where the domain walks. */
+export const dayTraversal=(domain,from)=>offlineDayKeys[domain]&&/^\d{4}-\d{2}-\d{2}$/.test(from)?domain+'@day:'+from:null;
+const domainPhases={records:recordPhases,collection:collectionPhases,cash:cashPhases,management:managementPhases};
+function phasesOf(traversal){
+ const [domain,plan,extra]=String(traversal).split('@');
+ if(extra!==undefined||!Object.hasOwn(domainPhases,domain))return {domain,phases:null};
+ if(plan===undefined)return {domain,phases:domainPhases[domain]};
+ const day=/^day:(\d{4}-\d{2}-\d{2})$/.exec(plan);return {domain,phases:day?dayPlan(domain,day[1]):null};
+}
+/** Test-only: pin the business date of the read stamp (a lab test crossing a day or month end). Refused on
+ * Cloud Run (K_SERVICE), so a deployed service always reads the database clock. */
+let pinnedBusinessDate=null;
+export function pinOfflineBusinessDate(day){if(day!==null&&(process.env.K_SERVICE||!/^\d{4}-\d{2}-\d{2}$/.test(day)))throw Error('Business date pin is test-only');pinnedBusinessDate=day}
+export async function readOfflineStamp(client){
+ const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
+ return pinnedBusinessDate&&!process.env.K_SERVICE?{...stamp,businessDate:pinnedBusinessDate}:stamp;
+}
 /** Bounded resumable traversal. Every request retains the ordinary transaction,
  * owner checks, per-item versions and provider calculations. */
 /** One need request may name at most this many content hashes (api/offline-dataset-delta.mjs);
@@ -154,8 +202,9 @@ for(const metric of ['distribution','profit30','dailyInterest','projected','dail
 export const MAX_CHUNK_VALUES=2048;
 const patchValues=patches=>patches.reduce((sum,patch)=>sum+(patch.mode==='append'?patch.value.length:1),0);
 export async function readOfflineDatasetChunk(client,actor,domain,cursor=null,{singlePage=false,deterministicPages=null,maxValues=MAX_CHUNK_VALUES}={}){
- const phases={records:recordPhases,collection:collectionPhases,cash:cashPhases,management:managementPhases}[domain];if(!phases)throw Error('invalid_request');
- const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
+ // domain: a domain, or its day-change traversal (dayTraversal); the chunk names the domain either way.
+ const {domain:name,phases}=phasesOf(domain);if(!phases)throw Error('invalid_request');
+ const stamp=await readOfflineStamp(client);
  const traversal=readTraversalCursor(cursor,{actor,domain,...stamp,phases:phases.length});
  let next=traversal,bytes=0,values=0;const patches=[],started=performance.now();
  // Pack small pages to avoid hundreds of HTTP round trips. Check budgets only
@@ -171,7 +220,7 @@ export async function readOfflineDatasetChunk(client,actor,domain,cursor=null,{s
   if(next.phase===phases.length||(!deterministicPages&&performance.now()-started>=750)||bytes>=524288||values>=maxValues)break;
  }
  const complete=next.phase===phases.length;
- return {schemaVersion:2,domain,generation:traversal.generation,startedAt:traversal.startedAt,...stamp,patches,nextCursor:complete?null:encodeTraversalCursor(next),complete,progress:{completed:next.phase,total:phases.length},chunksCompleted:next.done};
+ return {schemaVersion:2,domain:name,generation:traversal.generation,startedAt:traversal.startedAt,...stamp,patches,nextCursor:complete?null:encodeTraversalCursor(next),complete,progress:{completed:next.phase,total:phases.length},chunksCompleted:next.done};
 }
 
 // R078 protocol v4 (records): re-read only the records a change-log delta can affect. Records partition by

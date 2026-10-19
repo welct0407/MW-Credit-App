@@ -1,6 +1,6 @@
-import {readOfflineDatasetChunk,readRecordsTargeted,resolveRecordsScope,TARGETED_LIMITS,MAX_CHUNK_VALUES} from './offline-dataset-chunks.mjs';
+import {readOfflineDatasetChunk,readRecordsTargeted,resolveRecordsScope,readOfflineStamp,dayTraversal,offlineDayKeys,TARGETED_LIMITS,MAX_CHUNK_VALUES} from './offline-dataset-chunks.mjs';
 import {createHash} from 'node:crypto';
-import {deltaValueHash,encodeDeltaChunk,readDeltaCursor,readDeltaRequest,wrapDeltaCursor} from '../api/offline-dataset-delta.mjs';
+import {deltaValueHash,deltaCursorTraversal,encodeDeltaChunk,readDeltaCursor,readDeltaRequest,wrapDeltaCursor} from '../api/offline-dataset-delta.mjs';
 import {applyDatasetPatch,datasetDigests,digestDifferences} from '../lib/offline-dataset-digest.mjs';
 import {log} from '../lib/log.mjs';
 
@@ -79,9 +79,9 @@ export const TRUNCATE_MARKER='*';
 const publicCursor=cursor=>cursor?{changes:{seq:cursor.seq,xmin:cursor.xmin,businessDate:cursor.businessDate}}:{};
 /** Rows changed since the client's cursor: seq after it, or written by a transaction still in progress at
  * that snapshot (seq is assigned at insert, not commit). Null when the cursor cannot be continued (gap, other
- * database, size bound, a TRUNCATE marker). */
-export async function readChangedRows(client,domain,since,current,limit=TARGETED_LIMITS.rows){
- if(!current||since.businessDate!==current.businessDate)return null;
+ * database, size bound, a TRUNCATE marker). acrossDays: a day change reads the rows of an earlier day's cursor. */
+export async function readChangedRows(client,domain,since,current,limit=TARGETED_LIMITS.rows,{acrossDays=false}={}){
+ if(!current||!acrossDays&&since.businessDate!==current.businessDate)return null;
  const seq=BigInt(since.seq);if(seq>BigInt(current.seq)||current.minSeq!==null&&seq<BigInt(current.minSeq)-1n)return null;
  const rows=(await client.query(`SELECT table_name AS "table",row_key AS key FROM public.pwa_row_changes WHERE table_name=ANY($1::text[]) AND (seq>$2::bigint OR txid>=$3::xid8) ORDER BY seq LIMIT $4`,[changeTables[domain],since.seq,since.xmin,limit+1])).rows;
  // V97 (50825c4) logs a TRUNCATE of a tracked table as one marker row: the domain walks.
@@ -100,6 +100,34 @@ async function readRecordsDelta(client,actor,request,stamp,current){
  const scope=await resolveRecordsScope(client,rows);if(!scope)return null;
  const patches=await readRecordsTargeted(client,actor,stamp,scope);
  return patchValueCount(patches)>4*MAX_CHUNK_VALUES?null:patches;
+}
+// R078 day change (owner, 19 October 2026: "smaller is better, but it shouldn't compromise data integrity").
+// A bundle read on an earlier business date keeps its date-independent keys (offlineDayKeys ind) and the day plan
+// re-reads the others, as a resumable traversal ('records@day:<from>'). Row changes since the bundle's cursor are
+// combined: records re-reads them like a v4 delta; cash and management take only changes in tables that feed
+// re-read keys alone. The fingerprint stays the authority: with nothing in the change log, the sources must hash
+// to the client's version at its own date. Anything else (an error, a gap or marker, a moved row, an unlisted
+// key on the client, more than DAY_CHANGE_MAX_DAYS) walks.
+export const DAY_CHANGE_MAX_DAYS=14;
+/** Tables whose changes reach only keys the day plan re-reads (records: the dashboard-only tables). */
+const dayRereadTables=Object.freeze({records:['Settlements','Partners','Cash Pool Contributions','r008_cash_account_cutover','Statistics','Daily Analytics'],cash:[],management:['Daily Analytics','Statistics','Loan Assessment SQL Lab']});
+async function readDayChange(client,actor,domain,request,stamp,current,sourceVersion){
+ const from=request.since.businessDate,days=(Date.parse(stamp.businessDate+'T00:00:00Z')-Date.parse(from+'T00:00:00Z'))/86400000,traversal=dayTraversal(domain,from);
+ if(!traversal||!(days>=1&&days<=DAY_CHANGE_MAX_DAYS))return null;
+ const rows=await readChangedRows(client,domain,request.since,current,TARGETED_LIMITS.rows,{acrossDays:true});
+ if(!rows)return null;
+ if(!rows.length&&(request.sourceVersion===null||await readOfflineSourceVersion(client,actor,domain,from)!==request.sourceVersion))return null;
+ const rest=rows.filter(row=>!dayRereadTables[domain].includes(row.table));
+ let targeted=[];
+ if(rest.length){
+  if(domain!=='records')return null;
+  const scope=await resolveRecordsScope(client,rest);if(!scope)return null;
+  targeted=await readRecordsTargeted(client,actor,stamp,{...scope,dashboard:false});
+ }
+ const chunk=await readOfflineDatasetChunk(client,actor,traversal,null,{deterministicPages:offlineDeterministicPages[domain]});
+ if(chunk.businessDate!==stamp.businessDate)return null;
+ const {ind:keep,dep:reread}=offlineDayKeys[domain];
+ return {...encodeDeltaChunk({...chunk,patches:[...targeted,...chunk.patches],sourceVersion,delta:true,dayChange:{from,keep,reread},...publicCursor(current),nextCursor:chunk.nextCursor?wrapDeltaCursor(chunk.nextCursor,sourceVersion):null},request.need,{dates:true}),schemaVersion:4};
 }
 // R078 reconciliation (owner, 19 October 2026: twice a day). The client sends the digests of its stored bundle
 // and that bundle's source version; the server walks the domain in this request (one snapshot, no round trips),
@@ -135,8 +163,12 @@ async function readOfflineReconcile(client,actor,domain,request,stamp){
 export async function readOfflineDatasetDelta(client,actor,domain,input){
  if(!offlineSourceTables[domain])throw Error('invalid_request');
  const request=readDeltaRequest(input),cursor=readDeltaCursor(request.cursor);
- if(request.reconcile){const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];return readOfflineReconcile(client,actor,domain,request,stamp)}
- const stamp=(await client.query(`SELECT to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "asOf",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`)).rows[0];
+ const stamp=await readOfflineStamp(client);
+ if(request.reconcile)return readOfflineReconcile(client,actor,domain,request,stamp);
+ // A continuing traversal: the domain's walk, or its day-change re-read.
+ const traversal=cursor?deltaCursorTraversal(cursor):domain,day=traversal===domain?null:traversal===dayTraversal(domain,traversal.slice(domain.length+5))?{from:traversal.slice(domain.length+5)}:undefined;
+ if(day===undefined)throw Error('invalid_request');
+ const encode=(chunk,need)=>encodeDeltaChunk(chunk,need,{dates:request.dates});
  // R078: a check that starts a domain may ask for every domain's version (`versions`); the client
  // then skips the requests of the unchanged domains. Computed once, from the same snapshot.
  const versions=!cursor&&request.versions?await readOfflineSourceVersions(client,actor,stamp.businessDate):null,peers=versions?{versions}:{};
@@ -148,16 +180,21 @@ export async function readOfflineDatasetDelta(client,actor,domain,input){
  if(!cursor&&request.since&&domain==='records'&&current){
   const patches=await guarded(client,()=>readRecordsDelta(client,actor,request,stamp,current));
   // The fingerprint of this snapshot travels with the delta, so the client stores the two together.
-  if(patches)return {...encodeDeltaChunk({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
+  if(patches)return {...encode({domain,generation:'v4:'+current.seq,startedAt:stamp.asOf,...stamp,sourceVersion,delta:true,patches,complete:true,nextCursor:null,progress:{completed:1,total:1},...changes,...peers},request.need),schemaVersion:4};
+ }
+ // A client that hydrates businessDate (dates) and holds a bundle of an earlier business date.
+ if(!cursor&&request.since&&request.dates&&current&&request.since.businessDate<stamp.businessDate&&offlineDayKeys[domain]){
+  const value=await guarded(client,()=>readDayChange(client,actor,domain,request,stamp,current,sourceVersion));
+  if(value)return value;
  }
  // Stable page counts make manifest/content replay deterministic while avoiding a separate HTTP
  // round trip for every small page; the byte and value budgets still apply between pages.
- const chunk=await readOfflineDatasetChunk(client,actor,domain,cursor?.inner??null,{deterministicPages:offlineDeterministicPages[domain]});
+ const chunk={...await readOfflineDatasetChunk(client,actor,traversal,cursor?.inner??null,{deterministicPages:offlineDeterministicPages[domain]}),...(day?{dayChange:day}:{})};
  if(chunk.complete&&cursor&&await readOfflineSourceVersion(client,actor,domain,stamp.businessDate)!==sourceVersion){
   // R064: a client declaring acceptChanged keeps the walked ("torn") bundle with
   // no source version and rechecks; older clients still receive 409 and re-walk.
   if(!request.acceptChanged)throw Error('dataset_changed');
-  return encodeDeltaChunk({...chunk,sourceVersion:null,changed:true,nextCursor:null},request.need);
+  return encode({...chunk,sourceVersion:null,changed:true,nextCursor:null},request.need);
  }
- return encodeDeltaChunk({...chunk,sourceVersion,...changes,...peers,nextCursor:chunk.nextCursor?wrapDeltaCursor(chunk.nextCursor,sourceVersion):null},request.need);
+ return encode({...chunk,sourceVersion,...changes,...peers,nextCursor:chunk.nextCursor?wrapDeltaCursor(chunk.nextCursor,sourceVersion):null},request.need);
 }

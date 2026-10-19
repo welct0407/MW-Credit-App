@@ -37,7 +37,7 @@ function repository(bundles){
 const complete=domain=>({schemaVersion:1,protocolVersion:3,domain,complete:true,generation:'old-'+domain,asOf:stamp.asOf,businessDate:stamp.businessDate,sourceVersion:version(domain),data:{items:[{id:'old'}]},contentValues:{}});
 
 /** Synthetic server: `walks[domain]` is the number of chunks of a changed walk; other domains are unchanged. */
-function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt}={}){
+function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors=false,v4=null,reconciledAt,clockOffset=0,corrupt=[],failReconcile=new Set(),dropReconcile=new Set(),stored={},attempt,dayChange=null,rejectDates=false}={}){
  const navigator={onLine:true};
  const requests=[],flights=new Map(),timers=[],reconciles=[],clientEvents=[];let inflight=0,maxInflight=0;
  const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
@@ -45,7 +45,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
  const reply=(status,json)=>({status,ok:status>=200&&status<300,json:async()=>structuredClone(json),blob:async()=>null});
  async function fetch(url,init){
   const target=new URL(url),domain=target.searchParams.get('domain')??'notifications',body=JSON.parse(init.body??'{}');
-  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,since:body.since??null,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
+  requests.push({domain,cursor:body.cursor,sourceVersion:body.sourceVersion,since:body.since??null,dates:body.dates===true,need:body.need?.length??0,versions:body.versions===true,acceptChanged:body.acceptChanged===true,at:Date.now()});
   inflight++;maxInflight=Math.max(maxInflight,inflight);flights.set(domain,(flights.get(domain)??0)+1);assert.equal(flights.get(domain),1,'one request per domain at a time');
   try{
    await tick();
@@ -54,6 +54,13 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
    if(body.reconcile){const truth=await patchModule.datasetDigests(complete(domain).data,sha256),keys=patchModule.digestDifferences(truth,body.digests);reconciles.push({domain,result:keys.length?'mismatch':'match',keys});
     return reply(200,{schemaVersion:3,domain,...stamp,reconcile:true,result:body.sourceVersion!==version(domain)&&!walks[domain]?'stale':keys.length?'mismatch':'match',keys,patches:[],values:{},complete:true,nextCursor:null})}
    if(rejectVersions&&body.versions)return reply(400,{code:'invalid_request'});
+   if(rejectDates&&body.dates)return reply(400,{code:'invalid_request'});
+   // R078 day change: a since request of an earlier business date re-reads in dayChange.chunks responses.
+   const dayStamp={asOf:'2026-10-20T01:00:00.000Z',businessDate:'2026-10-20'},dayStep=typeof body.cursor==='string'&&body.cursor.startsWith('day:')?Number(body.cursor.slice(4)):body.since&&body.dates&&dayChange?.domains.includes(domain)?0:null;
+   if(dayStep!==null){
+    const last=dayStep===dayChange.chunks.length-1,chunk={domain,generation:'day-'+domain,startedAt:dayStamp.asOf,...dayStamp,sourceVersion:changed(domain),patches:dayChange.chunks[dayStep],complete:last,nextCursor:last?null:'day:'+(dayStep+1),progress:{completed:dayStep+1,total:dayChange.chunks.length}};
+    return reply(200,dayStep===0?{...encodeDeltaChunk({...chunk,delta:true,dayChange:{from:stamp.businessDate,keep:dayChange.keep,reread:dayChange.reread},changes:{seq:'30',xmin:'700',businessDate:dayStamp.businessDate}},body.need??[],{dates:true}),schemaVersion:4}:encodeDeltaChunk({...chunk,dayChange:{from:stamp.businessDate}},body.need??[],{dates:true}));
+   }
    if(v4&&body.since&&domain==='records')return reply(200,{...encodeDeltaChunk({domain,generation:'v4:20',startedAt:stamp.asOf,...stamp,sourceVersion:changed(domain),delta:true,patches:v4.patches,complete:true,nextCursor:null,progress:{completed:1,total:1},changes:{seq:'20',xmin:'600',businessDate:stamp.businessDate}},body.need??[]),schemaVersion:4});
    const step=body.cursor?Number(body.cursor):0;
    if(failOnce&&failOnce.domain===domain&&failOnce.step===step&&!failOnce.done){failOnce.done=true;return reply(503,{code:'temporary'})}
@@ -124,8 +131,9 @@ test('a server without the versions field is asked again without it and keeps ac
  const h=harness({rejectVersions:true});try{
   await settled(h);
   const records=h.requests.filter(request=>request.domain==='records');
-  assert.deepEqual(records.map(request=>[request.versions,request.acceptChanged]),[[true,true],[false,true]]);
-  assert.deepEqual(h.requests.map(request=>request.domain).sort(),['cash','collection','management','notifications','records','records']);
+  // Each 400 drops one level: dates (4), then versions (2); acceptChanged stays.
+  assert.deepEqual(records.map(request=>[request.dates,request.versions,request.acceptChanged]),[[true,true,true],[false,true,true],[false,false,true]]);
+  assert.deepEqual(h.requests.map(request=>request.domain).sort(),['cash','collection','management','notifications','records','records','records']);
  }finally{h.stop()}
 });
 
@@ -260,5 +268,41 @@ test('a reconcile request lost to a dropped connection does not start the back-o
   // Back online within the same minute: the pass resumes at once, without asking records again.
   dropReconcile.clear();h.navigator.onLine=true;h.window.dispatchEvent(new Event('online'));h.window.dispatchEvent(new Event('focus'));await until(()=>h.repo.log.some(entry=>entry[0]==='reconciled'));
   assert.deepEqual(h.reconciles.slice(2).map(entry=>entry.domain+':'+entry.result),['collection:match','cash:match','management:match']);
+ }finally{h.stop()}
+});
+// R078 day change (client): kept keys move to the new date, the re-read arrives over several chunks, any doubt walks.
+const dayBundle=(extra={})=>({...complete('cash'),changes:{seq:'10',xmin:'500',businessDate:stamp.businessDate},data:{items:[{id:'old',businessDate:stamp.businessDate,asOf:stamp.asOf}],overview:{balance:'0',businessDate:stamp.businessDate},...extra}});
+const dayChunks=[[{key:'overview',mode:'replace',value:{balance:'1',businessDate:'2026-10-20'}}],[{key:'statementsByKey',mode:'append',value:[{id:'s1',businessDate:'2026-10-20'}]}]];
+test('a day change keeps the listed keys with the new business date and applies a re-read of several chunks',async()=>{
+ const h=harness({walks:{cash:1},stored:{cash:dayBundle()},dayChange:{domains:['cash'],keep:['items'],reread:['overview','statementsByKey'],chunks:dayChunks}});try{
+  await settled(h);
+  const cash=h.requests.filter(request=>request.domain==='cash');
+  assert.ok(cash[0].since&&cash[0].dates,'a cash check sends its change cursor and dates');
+  assert.ok(cash.some(request=>request.cursor==='day:1'),'the re-read continues');assert.ok(cash.every(request=>request.cursor===undefined||request.cursor===null||String(request.cursor).startsWith('day:')),'no walk');
+  const bundle=JSON.parse(JSON.stringify(h.repo.rows.get('dataset:cash')));
+  assert.deepEqual(bundle.data,{items:[{id:'old',businessDate:'2026-10-20',asOf:stamp.asOf}],overview:{balance:'1',businessDate:'2026-10-20'},statementsByKey:[{id:'s1',businessDate:'2026-10-20'}]});
+  assert.equal(bundle.businessDate,'2026-10-20');assert.equal(bundle.sourceVersion,changed('cash'));assert.deepEqual(bundle.changes,{seq:'30',xmin:'700',businessDate:'2026-10-20'});
+  assert.equal('dayChange' in bundle,false,'the marker of a re-read in progress is not committed');
+  assert.ok(h.repo.saves.every(([domain,value])=>domain!=='cash'||!('dayChange' in value)));
+  assert.ok(h.requests.filter(request=>request.domain==='collection').every(request=>!request.since),'collection never sends a cursor');
+ }finally{h.stop()}
+});
+test('a day change walks instead when the bundle holds a key the server did not name or a kept key reads the date',async()=>{
+ for(const [label,bundle] of [['unlisted key',dayBundle({legacy:[1]})],['kept key with another date',dayBundle({items:[{id:'old',businessDate:'2026-10-01'}]})]]){
+  const h=harness({walks:{cash:1},stored:{cash:bundle},dayChange:{domains:['cash'],keep:['items'],reread:['overview','statementsByKey'],chunks:dayChunks}});try{
+   await settled(h);
+   const cash=h.requests.filter(request=>request.domain==='cash');
+   assert.ok(cash[0].since,label);assert.ok(cash.slice(1).some(request=>!request.since&&!request.need),label+': the next request walks');
+   assert.deepEqual(JSON.parse(JSON.stringify(h.repo.rows.get('dataset:cash').data)),{items:[{id:'cash-0'}]},label+': the walk replaced the bundle');
+  }finally{h.stop()}
+ }
+});
+test('a server without dates is asked again at level 3: records keeps since, cash sends neither',async()=>{
+ const h=harness({cursors:true,rejectDates:true,stored:{cash:dayBundle()}});try{
+  await settled(h);
+  const later=h.requests.filter(request=>!request.dates);
+  assert.ok(h.requests.some(request=>request.dates),'level 4 is tried first');
+  assert.ok(later.some(request=>request.domain==='records'&&request.since),'records still sends since');
+  assert.ok(later.filter(request=>request.domain==='cash').every(request=>!request.since),'cash sends no cursor below level 4');
  }finally{h.stop()}
 });

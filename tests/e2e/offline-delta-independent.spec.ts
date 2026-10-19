@@ -178,8 +178,10 @@ test('legacy 409 no longer marks the domain failed, a legacy 400 drops acceptCha
   return route.fulfill({json:{...encodeDeltaChunk(bundle(domain,[{key:'dashboard',mode:'replace',value:{total:torn?'42':'43'}}],torn?null:newVersion),body.need),...(torn?{changed:true}:{})}});
  });
  await start(page);await settled(page);
- // R078: the first check also asks for the other domains' versions; each 400 drops one field (versions, then acceptChanged) before the legacy 409.
- expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-400','legacy-409']);expect(bodies[0].versions).toBe(true);expect(bodies[0].acceptChanged).toBe(true);expect(bodies[1].versions).toBeUndefined();expect(bodies[1].acceptChanged).toBe(true);expect(bodies[2].versions).toBeUndefined();expect(bodies[2].acceptChanged).toBeUndefined();
+ // R078: the first check also asks for the other domains' versions and sends dates; each 400 drops one level
+ // (dates, then versions, then acceptChanged) before the legacy 409.
+ expect(bodies.map(body=>body.mode)).toEqual(['legacy-400','legacy-400','legacy-400','legacy-400','legacy-409']);expect(bodies[0].dates).toBe(true);expect(bodies[0].versions).toBe(true);expect(bodies[0].acceptChanged).toBe(true);
+ expect(bodies[1].dates).toBeUndefined();expect(bodies[1].versions).toBe(true);expect(bodies[1].acceptChanged).toBe(true);expect(bodies[2].versions).toBeUndefined();expect(bodies[2].acceptChanged).toBe(true);expect(bodies[3].versions).toBeUndefined();expect(bodies[3].acceptChanged).toBeUndefined();
  expect((await state(page)).updateFailed).toBe(false);expect((await state(page)).state).toBe('ready');
  expect(await page.evaluate(async()=>(await(window as any).__syncRepo.readDataset('records')).sourceVersion)).toBe(oldVersion);
  mode='torn';await page.evaluate(()=>window.dispatchEvent(new Event('mw-offline-prepare')));

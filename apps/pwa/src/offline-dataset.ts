@@ -18,7 +18,30 @@ function publish(scope:string,value:OfflinePreparation){const prior=states.get(s
 // Stable content references let a later check reuse committed display data.
 const canonicalValue=(value:any):any=>Array.isArray(value)?value.map(canonicalValue):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,key==='asOf'&&typeof value[key]==='string'?null:canonicalValue(value[key])])):value;
 const valueHash=async(value:any)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value)))),byte=>byte.toString(16).padStart(2,'0')).join('');
-const hydrateValue=(value:any,asOf:string):any=>Array.isArray(value)?value.map(item=>hydrateValue(item,asOf)):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([key,item])=>[key,key==='asOf'&&item===null?asOf:hydrateValue(item,asOf)])):value;
+/** Fills the envelope fields a content hash leaves out: asOf, and businessDate where the request said `dates`. */
+const hydrateValue=(value:any,asOf:string,businessDate:string|null=null):any=>Array.isArray(value)?value.map(item=>hydrateValue(item,asOf,businessDate)):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([key,item])=>[key,key==='asOf'&&item===null?asOf:businessDate!==null&&key==='businessDate'&&item===null?businessDate:hydrateValue(item,asOf,businessDate)])):value;
+/** R078 day change: the domains a server may answer with a day change (collection walks). */
+export const DATASET_DAY_DOMAINS=Object.freeze(['records','cash','management']);
+const dayKeyList=(value:any)=>Array.isArray(value)&&value.length<=64&&value.every(key=>typeof key==='string'&&/^[A-Za-z][A-Za-z0-9]*(\.[A-Za-z][A-Za-z0-9-]*)?$/.test(key));
+/** Every stored key is named by the server (kept or re-read) and every kept key is present; otherwise walk. */
+export function dayKeysCovered(data:any,keep:string[],reread:string[]){
+ const listed=new Set([...keep,...reread]),has=(value:any,key:string)=>!!value&&typeof value==='object'&&!Array.isArray(value)&&Object.hasOwn(value,key);
+ if(!keep.every(key=>{const [top,sub]=key.split('.');return sub===undefined?has(data,top):has(data,top)&&has(data[top],sub)}))return false;
+ return Object.entries(data??{}).every(([key,value])=>listed.has(key)||!!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).some(sub=>listed.has(key+'.'+sub))&&Object.keys(value).every(sub=>listed.has(key+'.'+sub)));
+}
+/** R078 day change: rows a kept key holds carry the read stamp's business date (`from`); they move to the new
+ * date as a walk would write them. Any other business date inside a kept key means the key reads the date: throws. */
+export function moveBusinessDate(data:any,from:string,to:string,keep:string[]){
+ const visit=(value:any,kept:boolean):any=>{
+  if(Array.isArray(value))return value.map(item=>visit(item,kept));
+  if(!value||typeof value!=='object')return value;
+  return Object.fromEntries(Object.entries(value).map(([key,item])=>{
+   if(key==='businessDate'&&typeof item==='string'){if(item===from)return [key,to];if(kept)throw Error('Day change: a kept key reads the date')}
+   return [key,visit(item,kept)];
+  }));
+ };
+ return Object.fromEntries(Object.entries(data??{}).map(([key,value])=>[key,keep.includes(key)?visit(value,true):value&&typeof value==='object'&&!Array.isArray(value)&&keep.some(name=>name.startsWith(key+'.'))?Object.fromEntries(Object.entries(value).map(([sub,item])=>[sub,visit(item,keep.includes(key+'.'+sub))])):visit(value,false)]));
+}
 const datasetBase=(bundle:any):string|null=>bundle?JSON.stringify([bundle.generation??null,bundle.asOf,bundle.sourceVersion??null]):null;
 async function indexDataset(bundle:any){
  const values:Record<string,any>={...bundle?.contentValues};
@@ -243,26 +266,29 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(forced&&partial&&!partial.forced){await forget(task);enqueue(task,true);continued=true;return}
    const path=isMedia?task:task==='notifications'?'/api/notifications/offline-dataset':'/api/offline-dataset?domain='+task,url=new URL(path,access.origin);if(!isMedia){url.searchParams.set('protocol',delta?'3':'2');if(!delta&&partial?.nextCursor)url.searchParams.set('cursor',partial.nextCursor);}
    if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);succeeded(task);return}}
-   const level=pathLevels.get(url.pathname)??3,askVersions=ownsVersions&&delta&&!partial&&level>=2;
+   // Levels: 4 dates and day-change cursors (R078), 3 since (records v4), 2 versions, 1 acceptChanged.
+   const level=pathLevels.get(url.pathname)??4,dates=level>=4&&task!=='notifications',askVersions=ownsVersions&&delta&&!partial&&level>=2;
    // R078 protocol v4: a complete records bundle asks for the records changed since its change cursor.
-   const since=task==='records'&&delta&&!partial&&!forced&&level>=3&&!walkNext.has(task)&&validChangeCursor(bundle?.changes)?bundle.changes:null;
+   // A day change (level 4) also uses the change cursor of cash and management bundles.
+   const since=delta&&!partial&&!forced&&!walkNext.has(task)&&(task==='records'&&level>=3||dates&&DATASET_DAY_DOMAINS.includes(task))&&validChangeCursor(bundle?.changes)?bundle.changes:null;
    if(!askVersions)releaseVersions();
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
-   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:forced||localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
+   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:forced||localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{}),...(dates?{dates:true}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
    // Legacy 409: the final chunk is lost, so the walk restarts once; a repeat is
    // not a failure (saved data stays available, the next check walks again).
    const changedOnServer=async()=>{await forget(task);fractions.delete(task);chunkCounts.delete(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}softGiveUp=true;cycleDone.add(task);if(bundle?.complete)ready(task,false);else giveUp(task)};
    let response=await fetchSegment();
    if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
-   if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,since?2:askVersions?1:0);enqueue(task,true);continued=true;return}throw Error()}
+   if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,level>=4?3:since?2:askVersions?1:0);enqueue(task,true);continued=true;return}throw Error()}
    if(response.status===409&&!isMedia){const error=await response.json().catch(()=>({}));if(error?.code==='dataset_changed'){await changedOnServer();return}throw Error()}
    if(!response.ok)throw Error();let value=isMedia?await response.blob():await response.json();
    if(stopped||flight.signal.aborted||!await repo.syncAuthorized())throw Error();
    await refreshRevision();
    if(askVersions){try{if(value?.schemaVersion===3)await applyVersions(value.versions)}catch{/* The peers then check on their own. */}releaseVersions()}
    let full=value;
-   // schemaVersion 4: a records delta since the bundle's change cursor (complete, applied onto the bundle).
-   const v4=!isMedia&&value.schemaVersion===4&&value.delta===true&&!!since;
+   // schemaVersion 4: a records delta since the bundle's change cursor (complete, applied onto the bundle), or a
+   // day change (dayChange: possibly several chunks, applied onto the bundle's kept keys).
+   const v4=!isMedia&&value.schemaVersion===4&&value.delta===true&&!!since,day=v4&&value.dayChange!==undefined?value.dayChange:null;
    if(!isMedia&&(value.schemaVersion===3||v4)){
     if(value.unchanged){
      if(value.domain!==task||!value.complete||value.nextCursor!==null||!bundle?.complete||partial||value.sourceVersion!==bundle.sourceVersion)throw Error('Invalid unchanged checkpoint');
@@ -302,7 +328,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     const patches=value.patches.map((patch:any)=>{
      if(!Array.isArray(patch.refs)||patch.refs.some((ref:string)=>!(ref in values))||patch.mode!=='append'&&patch.mode!=='upsert'&&patch.refs.length!==1)throw Error('Missing delta content');
      for(const ref of patch.refs)contentValues[ref]=values[ref];
-     return {...patch,value:patch.mode==='append'||patch.mode==='upsert'?patch.refs.map((ref:string)=>hydrateValue(values[ref],value.asOf)):hydrateValue(values[patch.refs[0]],value.asOf)};
+     return {...patch,value:patch.mode==='append'||patch.mode==='upsert'?patch.refs.map((ref:string)=>hydrateValue(values[ref],value.asOf,dates?value.businessDate:null)):hydrateValue(values[patch.refs[0]],value.asOf,dates?value.businessDate:null)};
     });
     value={...value,patches,contentValues};
    }else if(!isMedia&&(delta||value.schemaVersion!==2))throw Error('Unsupported dataset protocol');
@@ -313,16 +339,27 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(value.domain!==task||typeof value.generation!=='string'||!Array.isArray(value.patches)||typeof value.complete!=='boolean'||value.complete!==(value.nextCursor===null)||partial&&partial.generation!==value.generation)throw Error('Invalid dataset segment');
     // The memoized partial was already handed to IndexedDB by value, or was never
     // stored; mutating it in place is safe. A durable partial read back is cloned once.
-    if(v4&&(!value.complete||value.nextCursor!==null||!validChangeCursor(value.changes)||value.sourceVersion!==null&&typeof value.sourceVersion!=='string'))throw Error('Invalid dataset delta');
+    if(!day&&(value.dayChange?.from??null)!==(partial?.dayChange?.from??null))throw Error('Invalid dataset segment');
+    if(v4&&(!day&&(!value.complete||value.nextCursor!==null)||!validChangeCursor(value.changes)||value.sourceVersion!==null&&typeof value.sourceVersion!=='string'))throw Error('Invalid dataset delta');
     // A delta that moved a row to another owner cannot be applied (the old owner's rows are not re-read): walk.
+    // R078 day change: kept keys stay (their business date moves to the new one), the server re-read the rest.
+    // An invalid answer, a bundle key the server did not name, a kept key holding another date or a locally
+    // applied own write: walk instead.
+    let dayBase:any=null;
+    if(day){
+     try{
+      if(!day||typeof day!=='object'||day.from!==bundle.businessDate||day.from!==since.businessDate||typeof value.businessDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value.businessDate)||value.businessDate<=day.from||!dayKeyList(day.keep)||!dayKeyList(day.reread)||localPatch(bundle)||!dayKeysCovered(bundle.data,day.keep,day.reread))throw Error('Invalid day change');
+      dayBase=moveBusinessDate(bundle.data,day.from,value.businessDate,day.keep);
+     }catch{walkNext.add(task);enqueue(task,true);continued=true;return}
+    }
     if(v4&&deltaMovesRows(bundle.data,value.patches)){walkNext.add(task);enqueue(task,true);continued=true;return}
-    const data=v4?structuredClone(bundle.data):memo?partial?.data??{}:structuredClone(partial?.data??{});
+    const data=day?dayBase:v4?structuredClone(bundle.data):memo?partial?.data??{}:structuredClone(partial?.data??{});
     for(const patch of value.patches)applyDatasetPatch(data,patch);
-    full={schemaVersion:1,...(forced&&(!partial||partial.forced)?{forced:true}:{}),...(v4||value.changes||partial?.changes?{changes:v4?value.changes:partial?.changes??(validChangeCursor(value.changes)?value.changes:null)}:{}),protocolVersion:value.schemaVersion,base,sourceVersion:torn?null:value.sourceVersion,contentValues:value.contentValues,domain:task,businessDate:value.businessDate,asOf:value.asOf,startedAt:partial?.startedAt??value.startedAt??value.asOf,generation:value.generation,complete:value.complete,data,chunks:(partial?.chunks??0)+1,nextCursor:value.nextCursor,progress:value.progress};
+    full={schemaVersion:1,...(forced&&(!partial||partial.forced)?{forced:true}:{}),...(day||partial?.dayChange?{dayChange:{from:day?day.from:partial.dayChange.from}}:{}),...(v4||value.changes||partial?.changes?{changes:v4?value.changes:partial?.changes??(validChangeCursor(value.changes)?value.changes:null)}:{}),protocolVersion:value.schemaVersion,base,sourceVersion:torn?null:value.sourceVersion,contentValues:value.contentValues,domain:task,businessDate:value.businessDate,asOf:value.asOf,startedAt:partial?.startedAt??value.startedAt??value.asOf,generation:value.generation,complete:value.complete,data,chunks:(partial?.chunks??0)+1,nextCursor:value.nextCursor,progress:value.progress};
     // An own write applied locally (item 6) is settled once no locally patched row remains; otherwise the
     // next check walks (no change cursor, no source version) so the server's rows replace every local one.
     if(v4&&localPatch(bundle)){if(hasLocalRows(full.data))Object.assign(full,{localPending:bundle.localPending,changes:null,sourceVersion:null})}
-    if(value.complete)delete full.forced;
+    if(value.complete){delete full.forced;delete full.dayChange}
     if(!value.complete){
      if(!value.nextCursor||value.nextCursor===partial?.nextCursor)throw Error();
      // R078: persist the first chunk of a walk (a resume point), then every few chunks, and before a pause.
