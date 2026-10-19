@@ -82,5 +82,5 @@
   ],
   "gemini_project": "clever-oasis-508610-n7",
   "gemini_location": "global",
-  "gemini_model": "gemini-3.8-flash"
+  "gemini_model": "gemini-3.5-flash-lite"
 }
