@@ -57,15 +57,18 @@ Cause of the stuck archive job: `Archive.capture` (`receipt_archive.py`) raises 
 - Tests: `tests/test_receipts.py` (grouped commas accepted, ambiguous ones rejected), `tests/test_receipt_archive.py` (three not-due calls leave attempts, due time and last error unchanged and do not download; a due call proceeds to ARCHIVED).
 - Docs: `docs/RECEIPTS.md` (amount format), `docs/RECEIPT_EVIDENCE.md` (archive retry).
 - After deploy, the 18 October 16:57:47Z job gets its third download attempt at its stored due time. Its Instagram source URL has probably expired, so it is expected to keep failing with growing delays (up to 6 hours) and reach `SOURCE_UNAVAILABLE` after about a dozen attempts (roughly two days), which stops it for an operator decision; if the URL still works, it archives and the job proceeds normally.
+- Deployed 19 October 2026 at `55964c7` (merge of PR #92). Under `integration-agent/`, `f9d4785..55964c7` changed only `receipt_rules.py`, `receipt_archive.py`, their tests, two docs and two change notes: no catalogue, unit, config-key or lock change. `update-from-github.sh` to the pin; `deploy-runtime.py` dry-run (catalogue revision 29 matches; no units), freeze 19:42:58Z (backup `runtime-20261019T194258738433Z`), install, `check` ok (cycle provider `gemini`), activate 19:43:06Z (probe passed, six timers resumed). `receiver-ready` true at `55964c7`; `mw-receipt-recognition.service` restarted 19:43:06Z, `/healthz` 200 `enabled:true`; 8 `mw-*` timers; live config still `gemini-3.5-flash-lite` on `global`. Synthetic cycle slip valid in 2.04 s. Receipt runs after the deploy: 4, all `failures: []`.
+- The 18 October 16:57:47Z job's archive record no longer moves: before the deploy (19:42:37Z) and after it (19:43:23Z, 19:44:38Z, four cycles apart) it stayed `SOURCE_PENDING`, 2 attempts, next due 20:01:24Z. Its third real attempt is due at 20:01:24Z.
 - Checks: `python -m unittest discover -s tests` (locked requirements) 581 tests OK, 85 skipped (lab suites); `ruff check --no-cache integration-agent` passed; `npm run check:docs` 0 failures.
 
 ## Recovery
 Revert this commit. Live: restore `/root/config.json.pre-gemini-cycle-2` by the config-only route (the cycle returns to Codex), then `deploy-runtime.py rollback` to the previous pin if the package must go back.
+Follow-up fixes: `deploy-runtime.py rollback --commit 55964c78524e819722f0c6dc5886ee7720fdf08e` restores `f9d4785` from `runtime-20261019T194258738433Z`, then restart `mw-receipt-recognition.service`.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Deploy the agent with the follow-up fixes (standard route), then confirm that the 18 October 16:57:47Z job makes real archive attempts.
+- Confirm that the 18 October 16:57:47Z job makes its real archive attempt at 20:01:24Z and later ones on its growing delay, until it archives or reaches `SOURCE_UNAVAILABLE`.
 - Owner: handle the 19 October 16:27:23Z `REJECTED` receipt (thousands comma) by manual entry or the existing reconsider command; the fix applies only to new extractions.
 - Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host).
