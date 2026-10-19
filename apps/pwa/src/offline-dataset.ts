@@ -6,8 +6,8 @@ type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;
 const domains=['records','collection','cash','management','notifications'] as const;
 /** foreground: a screen is waiting on this sync (SYNC-UX-02 shows progress only then or before the first complete download). */
 /** failedDomains: the data domains whose last check failed, sorted and comma-joined (receipts are never listed). */
-export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;domainsPending:boolean;updating:boolean;updateFailed:boolean;failedDomains:string;lastChecked:number|null;foreground:boolean};
-const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,domainsPending:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false};
+export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;domainsPending:boolean;updating:boolean;updateFailed:boolean;failedDomains:string;lastChecked:number|null;foreground:boolean;fullSync:boolean};
+const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,domainsPending:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false,fullSync:false};
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
@@ -81,6 +81,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const pathLevels=new Map<string,number>();
  // Domains whose next check walks instead of asking for a v4 delta (a delta that moved rows between owners).
  const walkNext=new Set<string>();
+ // UX-FULL (owner, 19 October 2026): a full sync walks every domain from the start, ignoring the stored source
+ // version, the change cursor and the versions shortcut. A domain leaves this set when a forced walk commits.
+ const forceWalk=new Set<string>();
  // In-memory partial between chunks. The durable progress row is written for the first chunk of a walk,
  // then every DATASET_PROGRESS_SAVE_CHUNKS chunks, before a pause and when a chunk fails; `saved` is the
  // cursor of that durable row. A chunk lost before it was saved is fetched again on resume.
@@ -119,7 +122,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // refresh triggers: a poll or focus landing in that gap joins the cycle like one landing during a request.
  const walking=()=>domainRunning()||queue.some(task=>!isMediaTask(task)&&partials.has(task));
  const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(active.size>0||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||active.size?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||active.size?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,fullSync:forceWalk.size>0,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
@@ -150,7 +153,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   for(const domain of domains.filter(versionPeer)){
    const version=versions[domain];if(typeof version!=='string'||!/^[a-f0-9]{64}$/.test(version)||!queue.includes(domain)||active.has(domain)||partials.has(domain))continue;
    const [bundle,partial]=await Promise.all([repo.readDataset(domain),repo.readDatasetProgress(domain)]);
-   if(stopped||!queue.includes(domain)||active.has(domain)||partial||!bundle?.complete||bundle.cacheStale||localPatch(bundle)||bundle.sourceVersion!==version)continue;
+   if(stopped||!queue.includes(domain)||active.has(domain)||forceWalk.has(domain)||partial||!bundle?.complete||bundle.cacheStale||localPatch(bundle)||bundle.sourceVersion!==version)continue;
    queue=queue.filter(queued=>queued!==domain);completed.add(domain);cycleDone.add(domain);succeeded(domain);changedRetries.delete(domain);domainChecked.set(domain,Date.now());
    if(domain===requestedDomain)requestedDomain=null;
    ready(domain,false);
@@ -197,7 +200,8 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  async function run(task:string){
   const isMedia=isMediaTask(task),flight=new AbortController();active.set(task,flight);
   // A starting records check also asks for the other domains' versions (applyVersions).
-  let ownsVersions=false;if(task==='records'&&!versionsPending&&queue.some(queued=>versionPeer(queued)&&!active.has(queued))){versionsPending=true;ownsVersions=true}
+  const forced=forceWalk.has(task);
+  let ownsVersions=false;if(task==='records'&&!forced&&!versionsPending&&queue.some(queued=>versionPeer(queued)&&!active.has(queued))){versionsPending=true;ownsVersions=true}
   const releaseVersions=()=>{if(!ownsVersions)return;ownsVersions=false;versionsPending=false;if(!stopped)void pump()};
   status();
   let timeout=setTimeout(()=>flight.abort(),REQUEST_TIMEOUT_MS);
@@ -217,14 +221,16 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const durable:string|null=memo?memo.saved:partial?.nextCursor??null;
    const base=partial?.base??datasetBase(bundle),delta=!!bundle?.complete;
    if(partial&&(partial.base??null)!==datasetBase(bundle)){await forget(task);enqueue(task);return}
+   // A full sync restarts a walk that began before it (that walk may have started as a delta or a check).
+   if(forced&&partial&&!partial.forced){await forget(task);enqueue(task,true);continued=true;return}
    const path=isMedia?task:task==='notifications'?'/api/notifications/offline-dataset':'/api/offline-dataset?domain='+task,url=new URL(path,access.origin);if(!isMedia){url.searchParams.set('protocol',delta?'3':'2');if(!delta&&partial?.nextCursor)url.searchParams.set('cursor',partial.nextCursor);}
    if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);succeeded(task);return}}
    const level=pathLevels.get(url.pathname)??3,askVersions=ownsVersions&&delta&&!partial&&level>=2;
    // R078 protocol v4: a complete records bundle asks for the records changed since its change cursor.
-   const since=task==='records'&&delta&&!partial&&level>=3&&!walkNext.has(task)&&validChangeCursor(bundle?.changes)?bundle.changes:null;
+   const since=task==='records'&&delta&&!partial&&!forced&&level>=3&&!walkNext.has(task)&&validChangeCursor(bundle?.changes)?bundle.changes:null;
    if(!askVersions)releaseVersions();
    const token=await access.token();if(stopped||flight.signal.aborted)throw Error();
-   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
+   const fetchSegment=(need:string[]=[])=>fetch(url,{method:delta?'POST':'GET',...(!delta?{}:{body:JSON.stringify({cursor:partial?.nextCursor??null,need,sourceVersion:forced||localPatch(bundle)?null:bundle?.sourceVersion??null,...(level>=1?{acceptChanged:true}:{}),...(askVersions&&!need.length?{versions:true}:{}),...(since?{since}:{})})}),signal:flight.signal,headers:{Authorization:'Bearer '+token,...(!delta?{}:{'Content-Type':'application/json'})},credentials:'omit',cache:'no-store',redirect:'error'});
    // Legacy 409: the final chunk is lost, so the walk restarts once; a repeat is
    // not a failure (saved data stays available, the next check walks again).
    const changedOnServer=async()=>{await forget(task);fractions.delete(task);chunkCounts.delete(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}softGiveUp=true;cycleDone.add(task);if(bundle?.complete)ready(task,false);else giveUp(task)};
@@ -294,10 +300,11 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
     if(v4&&deltaMovesRows(bundle.data,value.patches)){walkNext.add(task);enqueue(task,true);continued=true;return}
     const data=v4?structuredClone(bundle.data):memo?partial?.data??{}:structuredClone(partial?.data??{});
     for(const patch of value.patches)applyDatasetPatch(data,patch);
-    full={schemaVersion:1,...(v4||value.changes||partial?.changes?{changes:v4?value.changes:partial?.changes??(validChangeCursor(value.changes)?value.changes:null)}:{}),protocolVersion:value.schemaVersion,base,sourceVersion:torn?null:value.sourceVersion,contentValues:value.contentValues,domain:task,businessDate:value.businessDate,asOf:value.asOf,startedAt:partial?.startedAt??value.startedAt??value.asOf,generation:value.generation,complete:value.complete,data,chunks:(partial?.chunks??0)+1,nextCursor:value.nextCursor,progress:value.progress};
+    full={schemaVersion:1,...(forced&&(!partial||partial.forced)?{forced:true}:{}),...(v4||value.changes||partial?.changes?{changes:v4?value.changes:partial?.changes??(validChangeCursor(value.changes)?value.changes:null)}:{}),protocolVersion:value.schemaVersion,base,sourceVersion:torn?null:value.sourceVersion,contentValues:value.contentValues,domain:task,businessDate:value.businessDate,asOf:value.asOf,startedAt:partial?.startedAt??value.startedAt??value.asOf,generation:value.generation,complete:value.complete,data,chunks:(partial?.chunks??0)+1,nextCursor:value.nextCursor,progress:value.progress};
     // An own write applied locally (item 6) is settled once no locally patched row remains; otherwise the
     // next check walks (no change cursor, no source version) so the server's rows replace every local one.
     if(v4&&localPatch(bundle)){if(hasLocalRows(full.data))Object.assign(full,{localPending:bundle.localPending,changes:null,sourceVersion:null})}
+    if(value.complete)delete full.forced;
     if(!value.complete){
      if(!value.nextCursor||value.nextCursor===partial?.nextCursor)throw Error();
      // R078: persist the first chunk of a walk (a resume point), then every few chunks, and before a pause.
@@ -316,7 +323,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    // watermark and re-sends its content each time) keeps the stored bundle as it is.
    const keep=!isMedia&&!v4&&!dataChanged&&!torn&&!partial&&!!bundle?.complete&&!bundle.cacheStale&&full.sourceVersion===bundle.sourceVersion&&full.businessDate===bundle.businessDate;
    const saved=isMedia?await repo.saveDatasetMedia('blob:'+url.href,value,revision):keep||await repo.saveDataset(task,full,revision,durable,base,dataChanged||!!bundle?.cacheStale);if(!saved)throw Error();partials.delete(task);if(!isMedia&&full.chunks)chunkCounts.set(task,full.chunks);
-   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);succeeded(task);if(!v4)walkNext.delete(task);if(task==='records')await refreshMedia(full);
+   if(stopped)return;completed.add(task);cycleDone.add(task);queue=queue.filter(queued=>queued!==task);succeeded(task);if(!v4)walkNext.delete(task);if(forced)forceWalk.delete(task);if(task==='records')await refreshMedia(full);
    if(!isMedia){
     domainChecked.set(task,Date.now());
     if(torn){const retries=changedRetries.get(task)??0;if(retries<2){changedRetries.set(task,retries+1);recheckDomains.add(task)}}else changedRetries.delete(task);
@@ -327,7 +334,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const kept=partials.get(task);partials.delete(task);
    if(kept?.unsaved){try{const current=await repo.readRevision();if(current!==null&&await repo.saveDatasetProgress(task,kept.partial,current,kept.saved)&&current!==kept.revision)recheckDomains.add(task)}catch{/* The durable row stays at its earlier cursor. */}}
    if(!navigator.onLine||flight.signal.aborted&&flight.signal.reason==='offline'){enqueue(task);paused=!navigator.onLine||!!access.offlineOnly}else{fail(task);if(!isMedia)giveUp(task)}}}finally{
-   clearTimeout(timeout);if(active.get(task)===flight)active.delete(task);releaseVersions();if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}
+   clearTimeout(timeout);if(active.get(task)===flight)active.delete(task);releaseVersions();
+   // A full sync requested while this check ran walks the domain next; a forced walk that failed ends its part of the full sync.
+   if(!stopped&&forceWalk.has(task)){if(forced&&failed.has(task))forceWalk.delete(task);else if(!forced&&!queue.includes(task)&&!failed.has(task))enqueue(task,true)}if(!queue.includes(task)||failed.has(task)||softGiveUp){if(task===requestedDomain)requestedDomain=null}
    if(!stopped){
     addMedia();const dataBusy=domainRunning();
     if(!queue.length&&!dataBusy&&(recheck||recheckDomains.size)){const targets=recheck?[...new Set([...DATASET_CONFIRM_DOMAINS,...recheckDomains])]:[...recheckDomains];recheck=false;recheckDomains.clear();beginCycle(targets);for(const domain of targets)enqueue(domain)}
@@ -343,6 +352,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(background&&priority&&(waiting(priority)||completed.has(priority)&&!failed.has(priority)&&!stale(priority)))return;
   if(!background&&retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
   if(detail?.foreground)requestedDomain=priority;
+  // UX-FULL: every domain walks from the start (detail.full, with detail.all for the header progress); stored
+  // receipts are re-checked against their receipt time and only missing or outdated ones are downloaded.
+  if(event?.type==='mw-offline-prepare'&&detail?.full&&!priority){for(const domain of domains)forceWalk.add(domain);for(const path of media)completed.delete(path);failed.clear()}
   // R078 item 6: an own write is confirmed by checking the domains it touches (DATASET_CONFIRM_DOMAINS), not a
   // full cycle; management follows on the regular poll. A domain already walking is confirmed after its walk.
   if(event?.type==='mw-read-invalidated'){

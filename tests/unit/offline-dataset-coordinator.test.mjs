@@ -61,7 +61,7 @@ function harness({walks={},failOnce=null,rejectVersions=false,patched=[],cursors
  const events=[];window.addEventListener('mw-offline-dataset-ready',event=>events.push(event.detail.domain+':'+event.detail.changed));
  const stop=sandbox.exports.startOfflinePreparation({origin,offline:repo,token:async()=>'synthetic',authFailure:()=>{}});
  const state=()=>sandbox.exports.getOfflinePreparation(repo.scopeName);
- return {requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window};
+ return {requests,repo,events,stop,state,timers,maxInflight:()=>maxInflight,window,subscribe:listener=>sandbox.exports.subscribeOfflinePreparation(listener)};
 }
 const settled=async h=>{await until(()=>h.state().state==='ready'&&!h.state().domainsPending&&h.state().lastChecked!==null)};
 
@@ -146,5 +146,28 @@ test('a v4 records delta upserts and removes rows, stores the new cursor and fin
   assert.deepEqual(bundle.data.items,[{id:'old',name:'changed'},{id:'new'}]);assert.deepEqual(bundle.data.paymentMonths,[{borrowerId:'b2',month:'2026-10'},{borrowerId:'b1',month:'2026-10',count:2}]);
   assert.deepEqual(bundle.changes,{seq:'20',xmin:'600',businessDate:stamp.businessDate});assert.equal(bundle.sourceVersion,changed('records'));
   assert.ok(h.events.includes('records:true'));assert.equal(h.repo.rows.has('dataset-progress:records'),false);
+ }finally{h.stop()}
+});
+
+// UX-FULL (owner, 19 October 2026): Full sync forces a walk of every domain.
+test('a full sync walks every domain even when every version matches, and progress never goes back',async()=>{
+ const h=harness();try{
+  await settled(h);h.requests.length=0;
+  const progress=[];const unsubscribe=h.subscribe(()=>progress.push(h.state().progress));
+  h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true,full:true}}));
+  await until(()=>h.requests.length>0);await until(()=>!h.state().fullSync&&!h.state().domainsPending&&h.state().state==='ready');unsubscribe();
+  const first=Object.fromEntries(all.map(domain=>[domain,h.requests.find(request=>request.domain===domain&&!request.need)]));
+  for(const domain of data){assert.ok(first[domain],domain+' walked');assert.equal(first[domain].sourceVersion,null,domain);assert.equal(first[domain].versions,false,domain);assert.equal(first[domain].since,null,domain)}
+  assert.ok(first.notifications);
+  for(let index=1;index<progress.length;index++)assert.ok(progress[index]>=progress[index-1]||progress[index]===100,'progress '+progress.join(','));
+ }finally{h.stop()}
+});
+test('a full sync requested during a check walks that domain again afterwards',async()=>{
+ const h=harness({walks:{records:3}});try{
+  await until(()=>h.requests.some(request=>request.domain==='records'));
+  h.window.dispatchEvent(new CustomEvent('mw-offline-prepare',{detail:{all:true,full:true}}));
+  await until(()=>!h.state().fullSync&&!h.state().domainsPending&&h.state().state==='ready');
+  const records=h.requests.filter(request=>request.domain==='records'&&!request.need);
+  assert.ok(records.filter(request=>!request.cursor&&request.sourceVersion===null).length>=1,'a forced records walk started from the beginning');
  }finally{h.stop()}
 });
