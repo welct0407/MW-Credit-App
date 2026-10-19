@@ -220,9 +220,9 @@ export async function resolveRecordsScope(client,changes){
  if(borrowers.size>TARGETED_LIMITS.borrowers||payments.size>TARGETED_LIMITS.payments||expenses.size>TARGETED_LIMITS.expenses)return null;
  return {borrowers:sortIds(borrowers),payments:sortIds(payments),expenses:sortIds(expenses),dashboard};
 }
-async function detailRows(client,stamp,key,read,ids){
+async function detailRows(client,stamp,key,read,ids,check=()=>{}){
  const items=[],missing=[];
- for(let offset=0;offset<ids.length;offset+=64){const slice=ids.slice(offset,offset+64),batch=bulkReadClient(client),values=await Promise.all(slice.map(id=>read(batch,id)));values.forEach((item,index)=>{if(item)items.push({...item,...stamp,...(key==='payments'?{receiptReference:item.receiptReference?'attached':null}:{})});else missing.push(slice[index])})}
+ for(let offset=0;offset<ids.length;offset+=64){const slice=ids.slice(offset,offset+64),batch=bulkReadClient(client),values=await Promise.all(slice.map(id=>read(batch,id)));values.forEach((item,index)=>{if(item)items.push({...item,...stamp,...(key==='payments'?{receiptReference:item.receiptReference?'attached':null}:{})});else missing.push(slice[index])});check(items.length)}
  return [...(items.length?[upsert(key,items,undefined,'id')]:[]),...(missing.length?[removeRows(key,missing)]:[])];
 }
 async function allPages(read){const items=[];let cursor=null,first=null;for(let page=0;page<200;page++){const value=await read(cursor);first??=value;items.push(...(value.items??[]));cursor=value.nextCursor??null;if(!cursor)return {first,items}}throw Error('source_unavailable')}
@@ -246,8 +246,11 @@ async function allPages(read){const items=[];let cursor=null,first=null;for(let 
  *   holds the old row and walks instead (apps/pwa/src/dataset-patch.ts deltaMovesRows).
  * Bounded by TARGETED_LIMITS (counts and elapsed time); above them the caller walks. */
 export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments,expenses,dashboard}){
- const started=Date.now(),patches=[],B=sortIds(borrowers);
- const within=(count,limit)=>{if(count>limit||Date.now()-started>TARGETED_LIMITS.milliseconds)throw Error('targeted_limit')};
+ const started=Date.now(),B=sortIds(borrowers);
+ // Counts and time are checked as the delta is built (after every detail batch), so it stops at the limit.
+ let values=0;const cap=4*MAX_CHUNK_VALUES;
+ const within=(count,limit)=>{if(count>limit||values>cap||Date.now()-started>TARGETED_LIMITS.milliseconds)throw Error('targeted_limit')};
+ const patches={push(...items){for(const patch of items){values+=patch.mode==='append'||patch.mode==='upsert'?patch.value.length:1;this.list.push(patch)}within(0,0)},list:[]};
  const ids=async(sql,params)=>sortIds((await client.query(sql,params)).rows.map(row=>row.id));
  const loans=B.length?await ids('SELECT "Row ID" AS id FROM public."Loans" WHERE "Ref Borrowers"=ANY($1::text[])',[B]):[];within(loans.length,TARGETED_LIMITS.loans);
  const charges=loans.length?await ids('SELECT "Row ID" AS id FROM public."Charges" WHERE "Ref Loans"=ANY($1::text[])',[loans]):[];within(charges.length,TARGETED_LIMITS.charges);
@@ -257,7 +260,7 @@ export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments
  const borrowerIds=sortIds([...B,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Ref Referrer"=ANY($1::text[])',[B]):[])]);within(borrowerIds.length,TARGETED_LIMITS.borrowers*8);
  const expenseIds=sortIds([...expenses,...(B.length?await ids('SELECT "Row ID" AS id FROM public."Business Expenses" WHERE "Ref Related Borrower"=ANY($1::text[]) OR "Ref Payee Borrower"=ANY($1::text[]) OR "Ref Related Loan"=ANY($2::text[])',[B,loans]):[])]);within(expenseIds.length,TARGETED_LIMITS.expenses);
  const relatedLoans=sortIds([...loans,...(paymentIds.length?await ids('SELECT "Ref Target Loan" AS id FROM public."Payments" WHERE "Row ID"=ANY($1::text[]) AND "Ref Target Loan" IS NOT NULL UNION SELECT c."Ref Loans" AS id FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=ANY($1::text[]) AND c."Ref Loans" IS NOT NULL',[paymentIds]):[])]);within(relatedLoans.length,TARGETED_LIMITS.loans);
- const details=async(key,read,list)=>{const result=await detailRows(client,stamp,key,read,list);within(0,0);return result};
+ const details=async(key,read,list)=>detailRows(client,stamp,key,read,list,count=>within(values+count>cap?Number.POSITIVE_INFINITY:0,0));
  patches.push(...await details('borrowers',readBorrowerRecord,borrowerIds),...await details('loans',readLoanRecord,loans),...await details('charges',readChargeRecord,charges),...await details('payments',readPaymentRecord,paymentIds),...await details('expenses',readExpenseRecord,expenseIds));
  if(B.length){
   const list=(await client.query(`SELECT ${borrowerListColumns} FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND "Row ID"=ANY($1::text[]) ORDER BY "Row ID" COLLATE "C"`,[B])).rows;
@@ -286,5 +289,5 @@ export async function readRecordsTargeted(client,actor,stamp,{borrowers,payments
  }
  if(dashboard)patches.push(replace('dashboard',await readDashboard(client)));
  within(0,0);
- return patches.filter(patch=>patch.mode!=='upsert'&&patch.mode!=='remove'||patch.value.length>0);
+ return patches.list.filter(patch=>patch.mode!=='upsert'&&patch.mode!=='remove'||patch.value.length>0);
 }

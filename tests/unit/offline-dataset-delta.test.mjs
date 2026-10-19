@@ -220,3 +220,9 @@ test('v4 request cursor, upsert/remove encoding and the cursor continuation rule
  assert.equal(await readChangedRows({query:async()=>({rows:Array.from({length:3},(_,i)=>({table:'Payments',key:'p'+i}))})},'records',since,current,2),null,'over the size bound');
  assert.equal(await readChangedRows({query:async()=>({rows:[{table:'Payments',key:'p1'},{table:'Daily Analytics',key:'*'}]})},'records',since,current),null,'a TRUNCATE marker walks');
 });
+test('a targeted delta stops at its limits while it is built',async()=>{
+ const {readRecordsTargeted,TARGETED_LIMITS}=await import('../../services/business/offline-dataset-chunks.mjs');
+ const loans=Array.from({length:TARGETED_LIMITS.loans+1},(_,i)=>({id:'L'+i}));let queries=0;
+ const client={query:async sql=>{queries++;if(sql.includes('FROM public."Loans" WHERE "Ref Borrowers"'))return {rows:loans};throw Error('read after the limit: '+sql.slice(0,60))}};
+ await assert.rejects(readRecordsTargeted(client,actor,stamp,{borrowers:['B'],payments:[],expenses:[],dashboard:true}),/targeted_limit/);assert.equal(queries,1);
+});
