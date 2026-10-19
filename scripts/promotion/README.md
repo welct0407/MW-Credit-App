@@ -23,6 +23,16 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R078 runtime, SQL and frontend promotion after V97
+
+`schemaVersion: 20`, `release: R078`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R075's SQL evidence with R077's runtime readback.
+
+- **Source.** The source must descend from the R077 release `683cfce` and add exactly `database/migrations/V97__pwa_row_changes.sql`. The delivery-tool commit may also carry this README and `scripts/database/Backup-ProductionPromotion.py` (baseline 96 accepted), with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** As R075 with baseline 96 and target 97: the V97 hash checked against the source bytes, the tested grouped 96-to-97 release manifest (absolute private path, SHA256, commit; no callbacks; every source migration pinned), `sql.applied` with one migration executed and the `prod-promotion-…` backup (dump SHA256, passed restore), and `sql.verified`, a read-only readback of 97 successful history rows after the apply. The V97 owner window (`mw_changes_owner_prod`) follows [R053_OPERATOR.md](../database/R053_OPERATOR.md#change-log-owner-authority-v97).
+- **Plan.** `{add:0, change:4, destroy:0}` with exactly `read.image`, `command.image`, `notify.image` and `jobs.image`.
+- **Apply.** As R077: Cloud Build source and digest, the four live services, worker caller subjects, the unchanged enabled recognizer wiring on the command service only, and the live request timeouts command `55s`, reader `15s`, notify and jobs `120s`. `applied.sqlVersion` is 97 and the runtime apply follows the SQL apply.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R078"`; the audience is `https://lm.mw-credit.com/promotion/r078`.
+
 ## R077 runtime, command timeout and frontend on V96
 
 `schemaVersion: 19`, `release: R077`, `scope: runtime-workers-frontend`, `status: prepared|applied`: the R076 contract with these differences.
