@@ -30,7 +30,7 @@ test('R080 transport sends v2 rendered text and falls back to generic text for m
  try{
   const send=await createWebPushTransport(vapid,{request:(_url,_options,callback)=>{const req=new EventEmitter();req.end=()=>queueMicrotask(()=>callback({statusCode:201,destroy(){}}));return req;}});
   const id='12345678-1234-4234-8234-123456789abc',generic={title:'MW Credit',body:'New activity'};
-  for(const [content,expected] of [[{title:'Payment received ฿5,000',body:'Somchai Jaidee'},{title:'Payment received ฿5,000',body:'Somchai Jaidee'}],[undefined,generic],[null,generic],[{title:'',body:'x'},generic],[{title:'x'.repeat(61),body:'x'},generic],[{title:'x',body:'x'.repeat(201)},generic],[{title:1,body:'x'},generic]]){
+  for(const [content,expected] of [[{title:'Payment received ฿5,000',body:'Somchai Jaidee'},{title:'Payment received ฿5,000',body:'Somchai Jaidee'}],[undefined,generic],[null,generic],[{title:'',body:'x'},generic],[{title:'Payment received ฿1,000',body:''},{title:'Payment received ฿1,000',body:''}],[{title:'Payment received ฿1,000'},generic],[{title:'',body:''},generic],[{title:'x'.repeat(61),body:'x'},generic],[{title:'x',body:'x'.repeat(201)},generic],[{title:1,body:'x'},generic]]){
    assert.deepEqual(await send(subscription,id,{content}),{kind:'accepted'});
    const {payload,options}=payloads.pop();assert.deepEqual(payload,{v:2,eventId:id,...expected,url:'/?notification='+id,tag:'mw-credit-'+id});
    assert.equal(options.TTL,3600);assert.equal(options.urgency,'normal');assert.match(options.topic,/^[a-f0-9]{32}$/);assert.doesNotMatch(JSON.stringify(payload),/update/i);

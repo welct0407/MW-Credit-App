@@ -3640,7 +3640,9 @@ BEGIN
  PERFORM public.pwa_worker_guard_v1('dispatch');
  RETURN QUERY SELECT src.source_found,e.event_type,
   CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
-  b."Borrower Name",src.source_amount
+  -- Thai: the Thai name. English: the English name only ("Description"); none when blank.
+  CASE WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  src.source_amount
  FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
  LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
  LEFT JOIN LATERAL (

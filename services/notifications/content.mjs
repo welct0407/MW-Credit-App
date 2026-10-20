@@ -37,8 +37,8 @@ export function renderNotification(facts){
  const words=TEXT[language];
  if(facts.found!==true)return{title:activity,body:words.gone};
  const amount=baht(facts.amount),title=amount?activity+' '+amount:activity;
- // Body: the borrower name only (owner decision: no actor), shortened with "…" only beyond the budget.
+ // Body: the borrower name only (owner decision: no actor), shortened with "…" only beyond the budget. V100 already
+ // picked the name for the recipient's language (English: the English name only); none gives an empty body, title only.
  const name=clean(facts.borrowerName);
- const body=graphemeLength(name)>BODY_BUDGET?cut(name,BODY_BUDGET-1):name;
- return{title,body:body||words.activity};
+ return{title,body:graphemeLength(name)>BODY_BUDGET?cut(name,BODY_BUDGET-1):name};
 }

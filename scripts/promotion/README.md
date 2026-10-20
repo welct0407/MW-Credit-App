@@ -23,6 +23,16 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R081 runtime, SQL and frontend promotion after V100
+
+`schemaVersion: 23`, `release: R081`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R080's kind (shared code path) after V100, English-name push body.
+
+- **Source.** The source must descend from the R080 release `4a7e199` (the PR #98 merge, which carried the R080 runner contract) and add exactly `database/migrations/V100__notification_english_name.sql` (R074's strict name form). The source may be the merge of the PR that carries this contract; a later delivery-tool commit may carry only the runner, its unit test, this README, `scripts/database/Backup-ProductionPromotion.py` (baseline 99 accepted), `scripts/database/R053_OPERATOR.md` and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** As R080 with baseline 99 and target 100: the V100 hash checked against the source bytes, the tested grouped 99-to-100 release manifest, `sql.applied` with one migration executed and the `prod-promotion-…` backup (dump SHA256, passed restore), and `sql.verified`, a read-only readback of 100 successful history rows after the apply. The V100 owner window (`mw_notify_owner_prod`) follows [R053_OPERATOR.md](../database/R053_OPERATOR.md#notify-owner-authority-v100).
+- **Plan, recognition pin, CI and apply.** As R080: `{add:0, change:4, destroy:0}` with exactly the four image actions, the unchanged enabled recognizer wiring, R074's per-job CI, and the live readback with request timeouts command `55s`, reader `15s`, notify and jobs `120s`. `applied.sqlVersion` is 100 and the runtime apply follows the SQL apply.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R081"`; the audience is `https://lm.mw-credit.com/promotion/r081`. R079, R080 and R081 refuse each other's packages.
+- **Not covered.** The integration agent.
+
 ## R080 runtime, SQL and frontend promotion after V99
 
 `schemaVersion: 22`, `release: R080`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R078's kind (shared code path) after V99, push notification content.

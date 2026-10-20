@@ -1,4 +1,4 @@
--- V99 (R080): the push content facts RPC under the real roles, at the migration head, in a disposable
+-- V99 (R080) and V100 (R081): the push content facts RPC under the real roles, at the migration head, in a disposable
 -- loopback cluster. One rolled-back transaction with synthetic rows: each event type, Thai/English/unset
 -- recipient language, a missing and a deleted source row (found=false), the result shape (no actor column), the V88
 -- lease fence, and the
@@ -13,7 +13,8 @@ DO $$ BEGIN
   RAISE EXCEPTION 'Content RPC ownership/security drift'; END IF;
 END $$;
 \ir Test-CashAccountFixtures.sql
-INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('NC-B','สมชาย ใจดี');
+-- V100 (R081): English recipients get "Description" (the English name) only, trimmed; blank or null gives no name.
+INSERT INTO "Borrowers"("Row ID","Borrower Name","Description") VALUES('NC-B','สมชาย ใจดี',E' Somchai Jaidee\t'),('NC-B2','สมหญิง ว่าง',E'  \t \n'),('NC-B3','สมศักดิ์ ไม่มี',NULL);
 INSERT INTO "Partners"("Row ID","Partner Role","Partner Name","Login Email","Email","Language Preference") VALUES
  ('NC-ACTOR','A','นก','nc-actor@example.invalid','nc-actor@example.invalid',NULL),
  ('NC-TH','B','Thai recipient','nc-th@example.invalid','nc-th@example.invalid','ไทย'),
@@ -22,7 +23,9 @@ INSERT INTO "Partners"("Row ID","Partner Role","Partner Name","Login Email","Ema
 INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('NC-CA','NC-ACTOR',current_date-30,'Contribution',50000::money);
 INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled")
  VALUES('CI-LISA','NC-L','NC-B',current_date-10,20000::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false),
-       ('CI-LISA','NC-L2','NC-B',current_date-10,1000::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false);
+       ('CI-LISA','NC-L2','NC-B',current_date-10,1000::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false),
+       ('CI-LISA','NC-L3','NC-B2',current_date-10,1000::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false),
+       ('CI-LISA','NC-L4','NC-B3',current_date-10,1000::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false);
 INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('NC-C','NC-L',current_date-2,4900::money,100::money);
 INSERT INTO "Payments"("Row ID","Ref Borrower","Status","Amount Received","Payment Date","Allocation Method","Ref Target Charge","Ref Received By Cash Account")
  VALUES('NC-P','NC-B','Processing',5000::money,current_date,'Lump Sum',NULL,'CI-DAD');
@@ -38,6 +41,10 @@ BEGIN
    ('closed-th','loan.closed','loan','NC-L',NULL,'NC-TH','leased'),
    ('missing-en','payment.posted','payment','NC-GONE','NC-ACTOR','NC-EN','leased'),
    ('deleted-th','loan.created','loan','NC-L2','NC-ACTOR','NC-TH','leased'),
+   ('blank-en','loan.created','loan','NC-L3','NC-ACTOR','NC-EN','leased'),
+   ('blank-th','loan.created','loan','NC-L3','NC-ACTOR','NC-TH','leased'),
+   ('null-none','loan.created','loan','NC-L4','NC-ACTOR','NC-NONE','leased'),
+   ('null-th','loan.created','loan','NC-L4','NC-ACTOR','NC-TH','leased'),
    ('pending-en','loan.created','loan','NC-L','NC-ACTOR','NC-EN','pending')) v(name,kind,source_kind,source_id,actor,recipient,state) LOOP
   n:=n+1;
   INSERT INTO public.pwa_notification_events(dedupe_key,event_type,source_kind,source_id,source_version,actor_partner_id,actor_login_email)
@@ -48,7 +55,7 @@ BEGIN
   VALUES(e,'web-push',encode(sha256(convert_to('nc-'||c.name,'UTF8')),'hex'),c.recipient,s,1,c.state,CASE WHEN c.state='leased' THEN 3 ELSE 0 END,CASE WHEN c.state='leased' THEN clock_timestamp()+interval '60 seconds' END) RETURNING delivery_id INTO d;
   INSERT INTO nc_case VALUES(c.name,d,CASE WHEN c.state='leased' THEN 3 ELSE 0 END);
  END LOOP;
- IF n<>7 THEN RAISE EXCEPTION 'fixture rows missing'; END IF;
+ IF n<>11 THEN RAISE EXCEPTION 'fixture rows missing'; END IF;
 END $$;
 -- The source row of one event is deleted after capture.
 DELETE FROM "Loans" WHERE "Row ID"='NC-L2';
@@ -71,8 +78,12 @@ DECLARE c record; got text; expected text;
 BEGIN
  FOR c IN SELECT k.name,k.delivery,k.generation,x.expected FROM nc_case k JOIN (VALUES
    ('payment-th','t|payment.posted|th|สมชาย ใจดี|5000'),
-   ('payment-en','t|payment.posted|en|สมชาย ใจดี|5000'),
-   ('created-none','t|loan.created|en|สมชาย ใจดี|20000'),
+   ('payment-en','t|payment.posted|en|Somchai Jaidee|5000'),
+   ('created-none','t|loan.created|en|Somchai Jaidee|20000'),
+   ('blank-en','t|loan.created|en|∅|1000'),
+   ('blank-th','t|loan.created|th|สมหญิง ว่าง|1000'),
+   ('null-none','t|loan.created|en|∅|1000'),
+   ('null-th','t|loan.created|th|สมศักดิ์ ไม่มี|1000'),
    ('closed-th','t|loan.closed|th|สมชาย ใจดี|20000'),
    ('missing-en','f|payment.posted|en|∅|∅'),
    ('deleted-th','f|loan.created|th|∅|∅'),
