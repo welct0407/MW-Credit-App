@@ -23,6 +23,17 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R083 Hosting-only promotion on the R081 runtime
+
+`schemaVersion: 24`, `release: R083`, `scope: frontend-only`, `status: prepared`: R074's Hosting-only kind (shared code path) on the unchanged R081 runtime and V100, with the release marker in the artifact.
+
+- **Source.** The source (`sourceCommit`, equal to `artifactSourceCommit`) must descend from the R081 release `b36dce9` (`sourceBaseline`, the PR #100 merge), and the runtime, SQL and infrastructure inputs are compared with `b36dce9` in R074's strict name form: `package.json` may change in `scripts` only and `database/` only in `.md` files outside `database/migrations/`. R082 changed only the integration agent, so the R083 package commit `a4fc75d` (the PR #104 merge) differs from `b36dce9` only in PWA sources, tests and documents. The delivery-tool commit (`deliveryToolSource`, the checked-out `HEAD`) may carry only the runner, its unit test, this README and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **No runtime or SQL change.** The package carries no `build`, `plan`, `applied` or `activation`; R081's plan, image and V100 stay. `sql` is baseline and target 100 with no migrations, plus `sql.verified` (`loan_manager_prod`, latest version `100`, all successful, a UTC `verifiedAt`). `runtime.services` pins the four live R081 services (image and revision), which apply re-reads; any drift refuses. `rollback` pins the current Hosting version and release.
+- **CI.** R074's per-job gate, with stage-hash evidence allowed.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R083"`; the audience is `https://lm.mw-credit.com/promotion/r083`.
+- **Run.** `--check --inputs ABSOLUTE_PRIVATE_PACKAGE` validates offline and prints the dry-run summary; `--apply` takes the tokens, approval reference and private `--output` as in [Linux cloud sessions](#linux-cloud-sessions).
+- **Not covered.** The integration agent (R082).
+
 ## R081 runtime, SQL and frontend promotion after V100
 
 `schemaVersion: 23`, `release: R081`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R080's kind (shared code path) after V100, English-name push body.
