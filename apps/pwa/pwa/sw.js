@@ -96,8 +96,8 @@ self.addEventListener('fetch', event => {
 self.addEventListener('push',event=>{
  event.waitUntil((async()=>{let payload;try{payload=event.data?.json()}catch{return;}
  if((payload?.v!==1&&payload?.v!==2)||typeof payload.eventId!=='string'||!/^[a-f0-9-]{36}$/.test(payload.eventId))return;
- const text=value=>typeof value==='string'&&value.length>=1;
- const own=payload.v===2&&text(payload.title)&&text(payload.body)&&payload.title.length<=60&&payload.body.length<=200;
+ // Title 1..60 and body 0..200: an empty body is a title-only push (R081, no English name).
+ const own=payload.v===2&&typeof payload.title==='string'&&payload.title.length>=1&&payload.title.length<=60&&typeof payload.body==='string'&&payload.body.length<=200;
  await self.registration.showNotification(own?payload.title:'MW Credit',{body:own?payload.body:'New activity · มีรายการใหม่',tag:'mw-credit-'+payload.eventId,data:{eventId:payload.eventId}});
  })());
 });

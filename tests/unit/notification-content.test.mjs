@@ -37,11 +37,11 @@ test('a missing source row keeps the activity without amount or names',()=>{
  assert.deepEqual(renderNotification(facts({found:undefined})).body,'Details no longer available');
 });
 
-test('null amount is omitted; a missing name falls back to the activity text; amounts are whole baht as in the app',()=>{
+test('null amount is omitted; a missing name gives a title-only push; amounts are whole baht as in the app',()=>{
  assert.equal(renderNotification(facts({amount:null})).title,'Payment received');
  assert.equal(renderNotification(facts({amount:'not a number'})).title,'Payment received');
- assert.equal(renderNotification(facts({borrowerName:null})).body,'New activity');
- assert.equal(renderNotification(facts({borrowerName:'   ',language:'th'})).body,'มีรายการใหม่');
+ assert.deepEqual(renderNotification(facts({borrowerName:null})),{title:'Payment received ฿5,000',body:''});
+ assert.deepEqual(renderNotification(facts({borrowerName:'   ',language:'th'})),{title:'รับชำระแล้ว ฿5,000',body:''});
  for(const [value,text] of [['1234567.5','฿1,234,568'],[0.4,'฿0'],[-0.4,'฿0'],['-1200','-฿1,200'],[1000000,'฿1,000,000']])assert.equal(baht(value),text);
  assert.equal(renderNotification(facts({amount:'12000.00'})).title,'Payment received ฿12,000');
 });
@@ -63,4 +63,16 @@ test('Thai names are cut on grapheme boundaries and keep their combining marks',
  // A cut that would land between a consonant and its marks moves to the grapheme boundary.
  const marks='กิ่'.repeat(100),m=renderNotification(facts({language:'th',borrowerName:marks}));
  assert.equal(m.body,'กิ่'.repeat(BODY_BUDGET-1)+'…');assert.equal(graphemeLength(m.body),BODY_BUDGET);
+});
+
+// R081 (owner rule): English recipients see the borrower's English name ("Description") only; V100 picks it in SQL and
+// returns null when it is blank, so the English push is title only. Thai recipients keep the Thai name.
+test('English push shows the English name only, or no name; Thai push shows the Thai name',()=>{
+ assert.deepEqual(renderNotification(facts({language:'en',borrowerName:'Somchai Jaidee'})),{title:'Payment received ฿5,000',body:'Somchai Jaidee'});
+ for(const borrowerName of [null,undefined,'',' ','\t\n ',' \u00a0 '])assert.deepEqual(renderNotification(facts({language:'en',amount:'1000',borrowerName})),{title:'Payment received ฿1,000',body:''},JSON.stringify(borrowerName));
+ for(const eventType of ['loan.created','loan.closed'])assert.deepEqual(renderNotification(facts({eventType,language:'en',amount:'20000',borrowerName:null})).body,'');
+ assert.deepEqual(renderNotification(facts({language:'th',borrowerName:'สมชาย ใจดี',description:'Somchai Jaidee'})),{title:'รับชำระแล้ว ฿5,000',body:'สมชาย ใจดี'});
+ // A missing source row keeps its explanation in both languages.
+ assert.equal(renderNotification(facts({found:false,language:'en',borrowerName:null})).body,'Details no longer available');
+ for(const n of [renderNotification(facts({language:'en',borrowerName:null})),renderNotification(facts({language:'th',borrowerName:null}))])withinBudgets(n);
 });

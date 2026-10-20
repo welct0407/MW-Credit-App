@@ -18,7 +18,7 @@ test('a v2 push shows the event title and body with the unchanged tag and event 
 test('v1, missing or out-of-bounds text uses the neutral fallback, never the old update wording',async()=>{
  for(const payload of [
   {v:1,eventId,title:'MW Credit',body:'An update is available.'},
-  {v:2,eventId},{v:2,eventId,title:'Payment received',body:''},{v:2,eventId,title:'',body:'x'},
+  {v:2,eventId},{v:2,eventId,title:'Payment received'},{v:2,eventId,title:'Payment received',body:null},{v:2,eventId,title:'',body:'x'},{v:2,eventId,title:'',body:''},
   {v:2,eventId,title:'x'.repeat(61),body:'x'},{v:2,eventId,title:'x',body:'x'.repeat(201)},{v:2,eventId,title:['x'],body:'x'}]){
   const shown=JSON.parse(JSON.stringify(await push(payload)));assert.deepEqual(shown,shape(fallback.title,fallback.body),JSON.stringify(payload));assert.doesNotMatch(JSON.stringify(shown),/update/i);
  }
@@ -28,4 +28,8 @@ test('unknown versions, invalid event ids and unparsable data show nothing',asyn
  for(const payload of [{v:3,eventId,title:'t',body:'b'},{v:2,eventId:'not-an-id',title:'t',body:'b'},{v:'2',eventId,title:'t',body:'b'},null])assert.deepEqual(await push(payload),[],JSON.stringify(payload));
  assert.deepEqual(await push(undefined),[]);
  const shown=[];let work;load(shown)({data:{json:()=>{throw SyntaxError('bad')}},waitUntil:promise=>{work=promise}});await work;assert.deepEqual(shown,[]);
+});
+test('R081: a v2 push with an empty body shows the title alone (English recipient without an English name)',async()=>{
+ assert.deepEqual(JSON.parse(JSON.stringify(await push({v:2,eventId,title:'Payment received ฿1,000',body:''}))),shape('Payment received ฿1,000',''));
+ assert.deepEqual(JSON.parse(JSON.stringify(await push({v:1,eventId,title:'Payment received ฿1,000',body:''}))),shape('MW Credit','New activity · มีรายการใหม่'),'v1 still falls back');
 });

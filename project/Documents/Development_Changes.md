@@ -1,6 +1,6 @@
 # Open development changes
 
-**R081 is Open**; R080, R079 and R078 are Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
+**R082 is Open**; R081, R080 and R079 are Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
 
 | Outstanding work | Owning reference |
 | --- | --- |
@@ -9,6 +9,7 @@
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
 | Owner license action | AppSheet technical retirement complete; license revocation unconfirmed |
 | Grafana revamp: alert coverage for PWA APIs, workers, Cloud SQL disk and backups; every ALL-MON item (including ALL-MON-03 checks) is a line of this entry | Pending future release (review ALL-MON-01); no alert rules applied in R063 |
+| R081 push English name (20 October 2026) | Released to DEV and PROD. The owner's next English-preference push is the real-device check (a stale R080 service worker shows its generic fallback for an empty body until the phone reopens the app). The receipt-speed session (`claude/receipt-wake-and-poll`, agent DB migration V7) may now proceed as R082; see the [change note](../../Change%20Logs/CHANGE_NOTES_R081_PUSH_ENGLISH_NAME_2026-10-20.md) |
 | R080 push notification content (20 October 2026) | Released to DEV and PROD. No real-device push seen yet: the owner's next real activity is the first iPhone check (DEV hides the notifications screen). Echo PUSH-UX-09 (deep link to the record) deferred; see the [change note](../../Change%20Logs/CHANGE_NOTES_R080_PUSH_NOTIFICATION_CONTENT_2026-10-20.md) |
 | Receipt cycle speed, batch A (20 October 2026) | One pull request (`claude/receipt-wake-and-poll`) delivers batches A and B and agent migration V7 (`partner_notices.accepted_at`, owner decision 20 October 2026). Batch A is agent code: approvals before images, image time budget, retry ladder, archive exit, one directory read per run, result notices in the same run, approval survives a charge edit with the same outcome. Not deployed; deploy (V7 applied before activation) and measurement wait for the owner's go; [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_RECEIPT_CYCLE_SPEED_2026-10-20.md) |
 | Receipt wake path and one-minute poll, batch B (20 October 2026) | Host units, in the same pull request as batch A: `mw-receipt-wake.path` and conversation poll every minute, enabled in their own window after batch A. Not deployed; own owner go; [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_RECEIPT_WAKE_AND_POLL_2026-10-20.md) |

@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "https://github.com/welct0407/MW-Credit-App/blob/4a7e199b/database/migrations/V99__notification_content_facts.sql"
-  "coverage": "R080 definition (V99, main 4a7e199). Owner mw_notify_owner_<env>, SECURITY DEFINER, pinned search_path, EXECUTE only for mw_notify_dispatch_<env> and the column grants confirmed in DEV (20 October 2026) and PROD (13:11Z); no business rows."
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/b36dce97/database/migrations/V100__notification_english_name.sql"
+  "coverage": "R081 definition (V100 replaces the V99 body in place; main b36dce9). Owner mw_notify_owner_<env>, SECURITY DEFINER, pinned search_path, EXECUTE only for mw_notify_dispatch_<env>, and the column grants confirmed in DEV (20 October 2026) and PROD (16:13Z); no business rows."
 "content":
   "definition":
     "schema": "public"
@@ -28,7 +28,9 @@
        PERFORM public.pwa_worker_guard_v1('dispatch');
        RETURN QUERY SELECT src.source_found,e.event_type,
         CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
-        b."Borrower Name",src.source_amount
+        -- Thai: the Thai name. English: the English name only ("Description"); none when blank.
+        CASE WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+        src.source_amount
        FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
        LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
        LEFT JOIN LATERAL (
@@ -52,5 +54,5 @@
     "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_dispatch_prod=X/mw_notify_owner_prod}"
     "comment": "mw-access:governance fixed notification boundary; explicit capability only"
     "extension": null
-  "purpose": "Facts for one currently leased delivery (lease generation fence): found (source row still exists), event_type, language ('th' for Partners \"Language Preference\" 'ไทย', else 'en'), borrower_name and amount. The worker renders the text in services/notifications/content.mjs; no row means not leased (generic text)."
-  "grants": "EXECUTE only mw_notify_dispatch_<env>. Owner mw_notify_owner_<env> gains column SELECT: Partners (\"Language Preference\"); Payments (\"Row ID\", \"Ref Borrower\", \"Amount Received\"); Loans (\"Row ID\", \"Ref Borrowers\", \"Principal Amount\"); Borrowers (\"Row ID\", \"Borrower Name\")."
+  "purpose": "Facts for one currently leased delivery (lease generation fence): found (source row still exists), event_type, language ('th' for Partners \"Language Preference\" 'ไทย', else 'en'), borrower_name and amount. R081: borrower_name is Borrowers \"Borrower Name\" for Thai and the trimmed English name (Borrowers \"Description\", the form's English name) for English, NULL when blank; no row means not leased (generic text). The worker renders the text in services/notifications/content.mjs."
+  "grants": "EXECUTE only mw_notify_dispatch_<env>. Owner mw_notify_owner_<env> has column SELECT: Partners (\"Language Preference\"); Payments (\"Row ID\", \"Ref Borrower\", \"Amount Received\"); Loans (\"Row ID\", \"Ref Borrowers\", \"Principal Amount\"); Borrowers (\"Row ID\", \"Borrower Name\") from V99, and Borrowers (\"Description\") from V100."
