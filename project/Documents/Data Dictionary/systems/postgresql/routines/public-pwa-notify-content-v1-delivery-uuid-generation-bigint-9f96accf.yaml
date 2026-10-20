@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "database/migrations/V100__notification_english_name.sql"
-  "coverage": "R081 definition (V100 replaces the V99 body in place; same signature, owner and ACL). R081 source in the working tree, not yet committed or deployed; owner, ACL and grants to be confirmed after the DEV migration; no business rows."
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/b36dce97/database/migrations/V100__notification_english_name.sql"
+  "coverage": "R081 definition (V100 replaces the V99 body in place; main b36dce9). Owner mw_notify_owner_<env>, SECURITY DEFINER, pinned search_path, EXECUTE only for mw_notify_dispatch_<env>, and the column grants confirmed in DEV (20 October 2026) and PROD (16:13Z); no business rows."
 "content":
   "definition":
     "schema": "public"

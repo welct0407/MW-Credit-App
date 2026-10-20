@@ -1,7 +1,7 @@
 # Change notes — push notification shows the English borrower name (R081), 20 October 2026
 
 ## Purpose
-Status: Frozen 2026-10-20T16:03Z at main `b36dce9` (PR #100). After R080 a push to the owner (English preference) showed the Thai borrower name. The owner's rule of 20 October 2026: "use the English name column, not Thai name, not combined name, not anything else". The English name already exists as the borrower form's "English name" (`Borrowers."Description"`), so no new column is needed.
+Status: Frozen 2026-10-20T16:03Z at main `b36dce9` (PR #100); Released 20 October 2026 (applied and verified in DEV and PROD; owner acceptance is the owner's production instruction; the owner's next English push is the real-device check). After R080 a push to the owner (English preference) showed the Thai borrower name. The owner's rule of 20 October 2026: "use the English name column, not Thai name, not combined name, not anything else". The English name already exists as the borrower form's "English name" (`Borrowers."Description"`), so no new column is needed.
 
 ## Changes
 - Migration `database/migrations/V100__notification_english_name.sql` replaces `public.pwa_notify_content_v1(uuid,bigint)` in place (same signature, result columns, owner, `SECURITY DEFINER`, pinned `search_path`, comment and ACL). `borrower_name` is "Borrower Name" for Thai recipients and the trimmed "Description" for English recipients, NULL when blank. The notify owner `mw_notify_owner_<env>` gains column SELECT on Borrowers ("Description"). No table, column or data change (Byte).
@@ -24,25 +24,32 @@ Status: Frozen 2026-10-20T16:03Z at main `b36dce9` (PR #100). After R080 a push 
 | Pull request #100 CI (head bf65532) | Pass: `Development checks` run 39451927188, `Database migrations` run 39451897199, agent tests run 39451927275; merged as main `b36dce9`, tree identical to the tested head |
 | Chase verification and diff review | No blocking defects. Lows, accepted: a NBSP-only Description gives a title-only push (correct); the inherit-path preflight gap fails closed; a stale R080 service worker shows its generic fallback for an empty body |
 | DEV promotion (Forge) | Backup restore-tested, dump sha256 `1da86cfd…`, `gs://mw-credit-operator-private-737787224638/dev-backups/dev-v100-11abf187092f43569dc6e744c78a8659/`. Window for the notify, jobs, journal and changes owners opened (record `3ae82d36-4990-48b1-b57d-990a851c02f0`) and restored. Migrate 15:53Z to 15:59Z, 1 migration. Reconciliation 501 statements, 0 violations (record `1a286162-567c-4ca4-8615-81ce57fbf818`); `flyway validate` ok. Terraform 0/4/0 applied 15:59:33Z to 16:00:12Z; Hosting R081 deployed. Smoke: health 200, session 401, bundle `bf65532` with R081, no ERROR logs, function owner and ACL kept, notify owner has column-level SELECT on Borrowers (Borrower Name, Description, Row ID) and no table SELECT |
+| PROD promotion, 20 October 2026 (Forge) | Backup `prod-promotion-20a6bce0db754d1e870a300e81e7e87b` (dump sha256 `df770cca…`) restore-tested (33 tables). CONNECT preflight (sha256 `6228960a…`, 0 DEV sessions) pinned in manifest `release-r081-v100-b36dce9.json`. Check showed only V100 pending; grouped apply 16:07:52Z to 16:09:14Z, V100 installed 16:08:36Z (100 rows, 0 failed). Window `mw_notify_owner_prod` opened (record `077fadd4-8ab0-47f3-8095-6946f98f9c1b`) and restored. Cloud Build `4929405a-f1a4-4a84-bab3-ea98e5b0ac9b`; `keep-r081-runtime` added and verified; Terraform 0/4/0 image only (sha256 `a0c09570…`) applied 16:10:28Z to 16:11:05Z, fresh plan clean. Hosting `4d86438208263113` via `--check` then `--apply` with operator proof. Smoke: health 200, session 401, CORS ok, bundle `b36dce9` with R081, recognizer unchanged, no ERROR logs 16:07Z to 16:13:29Z, function owner and ACL kept, notify owner column-level SELECT on Borrowers (Borrower Name, Description, Row ID), no table SELECT. No sends, jobs or financial changes. Pins and private references are in the inventory |
 | PROD promotion | pending (Forge) |
 
 ## Not run
 Pending. A skipped check is not a pass. No real-device iPhone check of an English-name push has been made yet; DEV hides the notifications screen, so it happens in PROD.
 
 ## Recovery
-Revert the batch commit. The migration only replaces a function body and adds one column grant, so the previous V99 body (Borrower Name for everyone) is recovered by a corrective migration, not by editing V100. Full database recovery for a promotion is the verified backup recorded in the promotion record and the [environment inventory](../project/Documents/Environment_Inventory.md).
+Revert the batch commit. The migration only replaces a function body and adds one column grant, so the previous V99 body (Borrower Name for everyone) is recovered by a corrective migration, not by editing V100. Full PROD recovery: restore `loan_manager_prod` from backup `prod-promotion-20a6bce0db754d1e870a300e81e7e87b` (private `prod-backups/`), set the four Cloud Run services back to the previous revisions and Hosting back to `d6082d278b41e979`, all recorded as rollback in the [environment inventory](../project/Documents/Environment_Inventory.md). Code alone can be rolled back safely with V100 in place.
 
 ## Open questions
 None.
 
 ## Remaining work
-- PROD promotion by the owner's instruction (verified backup of baseline 99 first).
-- Owner's real-device check of an English-name push in PROD.
-- The receipt-speed session (`claude/receipt-wake-and-poll`, agent-only, agent DB migration V7) waits until R081 is Released in PROD.
+- The owner's next English-preference push in PROD is the real-device check; it has not been seen yet.
+- The receipt-speed session (`claude/receipt-wake-and-poll`, agent-only, agent DB migration V7) may now proceed as R082 (R081 is Released in PROD).
 - PUSH-UX-09 (deep link to the record) stays deferred.
 
 ## Promotion record
 - Authority: owner instruction of 20 October 2026, "yes, promote R081 to prod after DEV"; it covers the tested V100 migration, backups and standard temporary maintenance permissions.
 - Freeze: R081 frozen 2026-10-20T16:03Z; R082 opened in the same tracker update for the receipt-speed work.
 - Package: main `b36dce9` (PR #100; runs 39451927188, 39451897199 and 39451927275); SQL V100 (baseline 99), plan 0/4/0 of the four images, Hosting marker R081. Pins and references go to the [environment inventory](../project/Documents/Environment_Inventory.md).
+- Result: applied and verified in DEV and PROD on 20 October 2026; pins and references are in the inventory.
 - Excluded: financial corrections, forced notifications, agent changes, the receipt-speed work, PUSH-UX-09 and anything merged after `b36dce9`.
+
+### Closure pruning (release workflow, 20 October 2026)
+- Inbound link repointed first to the commit permalink of `12c97162` (the last commit where the target exists): the tracker's R078 record link.
+- Development Changes: the R081 row now records the release; no section existed.
+- Change note deleted (R078 left the retention window of R081, R080 and R079): `Change Logs/CHANGE_NOTES_R078_DELTA_SYNC_EFFICIENCY_2026-10-19.md`.
+- Evidence deleted: none (see the `npm run check:docs` result).
