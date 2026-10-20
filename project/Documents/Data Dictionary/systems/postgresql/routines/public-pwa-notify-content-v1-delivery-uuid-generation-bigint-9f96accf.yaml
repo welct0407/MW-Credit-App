@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "database/migrations/V99__notification_content_facts.sql"
-  "coverage": "R080 source definition (V99, uncommitted, not yet applied to DEV or PROD; commit SHA pending). Owner, ACL and catalogue rows to be confirmed after the DEV migration; no business rows."
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/4a7e199b/database/migrations/V99__notification_content_facts.sql"
+  "coverage": "R080 definition (V99, main 4a7e199). Owner mw_notify_owner_<env>, SECURITY DEFINER, pinned search_path, EXECUTE only for mw_notify_dispatch_<env> and the column grants confirmed in DEV (20 October 2026) and PROD (13:11Z); no business rows."
 "content":
   "definition":
     "schema": "public"
