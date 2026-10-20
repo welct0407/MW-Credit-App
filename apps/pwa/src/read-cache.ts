@@ -5,7 +5,7 @@ import {commandOriginAllowed} from './environment';
 import {deferWhileInteracting,cancelDeferred,type HoldScope} from './interaction-hold';
 import type {OwnerOfflineRepository,CachedResponse} from './owner-offline';
 
-type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;token:()=>Promise<string>;authFailure:(status:number)=>void};
+type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;awaitStartup?:()=>Promise<void>;token:()=>Promise<string>;authFailure:(status:number)=>void};
 type Options<T>={origin?:string;signal?:AbortSignal;onCached?:(data:T)=>void;policy?:'cache-first'|'network-only'};
 /** Subscribe only mounted read-only views. The caller owns edit/generation guards;
  * this reads the committed bundle without a network request or loading state. */
@@ -66,9 +66,9 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
  failureEpochs.set(failureScope,failureEpoch);
  // HDR-SYNC-05: a read that could not run because the device is offline (or offline-only) is not a refresh failure
  // (no failed icon: the offline banner explains); the saved-data notice still follows the served fallback.
- const reportFailure=(failed:boolean,cachedFailure=false)=>{if(failureEpoch!==(failureEpochs.get(failureScope)??0))return;refreshFailure(scopeKey,failed&&navigator.onLine&&!access.offlineOnly);failure(scopeKey,failed&&cachedFailure)};
+ const reportFailure=(failed:boolean,cachedFailure=false)=>{if(gated||failureEpoch!==(failureEpochs.get(failureScope)??0))return;refreshFailure(scopeKey,failed&&navigator.onLine&&!access.offlineOnly);failure(scopeKey,failed&&cachedFailure)};
  const controller=new AbortController(),abort=()=>controller.abort();options.signal?.addEventListener('abort',abort,{once:true});if(options.signal?.aborted)controller.abort();
- let settled=false,denied=false,cached:CachedResponse|null=null;
+ let settled=false,denied=false,gated=false,cached:CachedResponse|null=null;
  let httpFailure:{response:Response;data:T;revision:number|null|undefined;cacheRevision:number|null|undefined;scoped:boolean}|null=null;
  const currentCacheRevision=async()=>{try{return await repository!.readCacheRevision()}catch{cacheAllowed=false;return undefined}};
  let cacheRevision=cacheAllowed?await currentCacheRevision():null;const cachedEpoch=cacheRevision;
@@ -89,10 +89,15 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
   }
   return value;
  }).catch(()=>null):Promise.resolve(null);
- const done=navigator.onLine&&!access.offlineOnly&&!localCursor?beginRequest():()=>{};
- const deadline=Date.now()+(localCursor?65000:15000),timer=setTimeout(()=>controller.abort(),deadline-Date.now());
+ let done=()=>{},deadline=0,timer:ReturnType<typeof setTimeout>|undefined;
  try{
   if(!navigator.onLine||access.offlineOnly)throw Error('Offline');
+  // R083: the read waits for the startup build check while saved data (above) paints at once; a cancel ends the
+  // wait. Its activity and deadline start after it. A failed check falls back to saved data silently and records
+  // no read failure (gated): the startup banner is the only explanation.
+  if(access.awaitStartup){const gate=access.awaitStartup;requireCurrent();await new Promise<void>((resolve,reject)=>{controller.signal.addEventListener('abort',()=>reject(new DOMException('Read cancelled','AbortError')),{once:true});gate().then(resolve,error=>{gated=true;reject(error)})});requireCurrent()}
+  if(!localCursor)done=beginRequest();
+  deadline=Date.now()+(localCursor?65000:15000);timer=setTimeout(()=>controller.abort(),deadline-Date.now());
   if(localCursor){
    // SYNC-UX-05: a later page is served from the complete local bundle at once;
    // the coordinator rechecks that domain in the background (throttled). Only a

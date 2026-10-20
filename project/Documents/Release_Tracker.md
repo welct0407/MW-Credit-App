@@ -8,7 +8,7 @@
 | Next unused number | **R084**, only opened when authorized R083 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
-R083 opened at R082 promotion start; it has no work yet. R082 (agent receipt speed, wake path, one-minute poll and notice `accepted_at`, agent migration V7, PR #101) and R081 (push English name, V100, PR #100) are Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
+R083 opened at R082 promotion start; its first work is fast dashboard startup (see [Development Changes](Development_Changes.md)). R082 (agent receipt speed, wake path, one-minute poll and notice `accepted_at`, agent migration V7, PR #101) and R081 (push English name, V100, PR #100) are Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
