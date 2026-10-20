@@ -617,6 +617,11 @@ async function verifyRecognizerWiringLive(m,{token,request},L){
 // services' timeouts unchanged (reader 15 s, workers 120 s). The integration agent is not covered by these contracts.
 const r075Release='96b0a0b120be60fbe9a229d1004eabce35598a0d',r075SqlTooling='6b58f00a9500635251b569ce9824b4810d55e803';
 const r076Release='fa67607e4571d1c01ed39f7919cc627fd5e27ee7';
+// R079 (production hotfix, API receipt amount parsing): the R076/R077 kind on V98 (no migration). PROD is already at V98
+// (98 history rows, applied by the R078 follow-up). The source descends from the R078 release and carries the V98 commit,
+// and has no change under database/migrations since that commit; the plan is the four images only (0/4/0), the recognizer
+// wiring stays enabled and the R077 timeouts stay, both read back live. The integration agent is not covered.
+const r078Release='68ce6694f27960a3f018634052c4cde6fc9923f7',r079V98Commit='7ae8469a4da2e79ba774907041d0f21acf068887';
 const v96DeliveryAllowed=file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md';
 const r076DeliveryAllowed=v96DeliveryAllowed,r077DeliveryAllowed=v96DeliveryAllowed;
 const r077PlanActions=[...waveImageActions,'command.timeout'];
@@ -624,6 +629,7 @@ export const R077_SERVICE_TIMEOUTS=Object.freeze({read:'15s',command:'55s',notif
 const v96Releases={
  R076:{schemaVersion:18,baseline:r075Release,baselineLabel:'R075',tooling:r075SqlTooling,actions:waveImageActions,planMessage:'R076 reviewed four-image plan required'},
  R077:{schemaVersion:19,baseline:r076Release,baselineLabel:'R076',actions:r077PlanActions,planMessage:'R077 reviewed four-image and command timeout plan required',timeouts:R077_SERVICE_TIMEOUTS},
+ R079:{schemaVersion:21,baseline:r078Release,baselineLabel:'R078',sqlVersion:98,carries:r079V98Commit,actions:waveImageActions,planMessage:'R079 reviewed four-image plan required',timeouts:R077_SERVICE_TIMEOUTS},
 };
 function validateV96RuntimeSource(m,git,L){
  const rule=v96Releases[L];
@@ -631,7 +637,8 @@ function validateV96RuntimeSource(m,git,L){
  requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
  requireValue(git(m.repoRoot,['rev-parse',m.sourceCommit])===m.sourceCommit&&git(m.repoRoot,['merge-base',rule.baseline,m.sourceCommit])===rule.baseline,L+' source must descend from the '+rule.baselineLabel+' release');
  if(rule.tooling)requireValue(git(m.repoRoot,['merge-base',rule.tooling,m.sourceCommit])===rule.tooling,L+' source must carry the R075 PROD SQL tooling');
- requireValue(strictNames(git,m.repoRoot,rule.baseline,m.sourceCommit,['database/migrations']).length===0,L+' carries no migration');
+ if(rule.carries)requireValue(git(m.repoRoot,['merge-base',rule.carries,m.sourceCommit])===rule.carries,L+' source must carry the V'+rule.sqlVersion+' commit');
+ requireValue(strictNames(git,m.repoRoot,rule.carries??rule.baseline,m.sourceCommit,['database/migrations']).length===0,L+' carries no migration');
  const tool=m.deliveryToolSource??m.sourceCommit;
  requireValue(/^[a-f0-9]{40}$/.test(tool)&&git(m.repoRoot,['rev-parse','HEAD'])===tool,L+' delivery source mismatch');
  if(tool!==m.sourceCommit){requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,tool])===m.sourceCommit,L+' delivery source must descend from the pinned source');requireValue(strictNames(git,m.repoRoot,m.sourceCommit,tool).every(v96DeliveryAllowed)&&m.deliveryToolChecks?.command==='node --test tests/unit/business-hosting-delivery.test.mjs'&&m.deliveryToolChecks.exitCode===0,L+' unverified delivery correction');}
@@ -639,13 +646,13 @@ function validateV96RuntimeSource(m,git,L){
  requireValue(git(m.repoRoot,['ls-files','--others','--exclude-standard','--',...runtimeInputs,'scripts/promotion'])==='',L+' untracked input');
 }
 async function v96RuntimeHostingPlan(m,{requireApplied,git},L){
- const rule=v96Releases[L];
+ const rule=v96Releases[L],sqlVersion=rule.sqlVersion??96;
  requireValue(m?.schemaVersion===rule.schemaVersion&&m.release===L&&m.environment==='prod'&&m.scope==='runtime-workers-frontend'&&['prepared','applied'].includes(m.status),'wrong '+L+' package kind');
  requireValue(!requireApplied||m.status==='applied',L+' runtime apply/readback required');
  validateV96RuntimeSource(m,git,L);
  requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
  const v=m.sql?.verified;
- requireValue(m.sql?.baselineVersion===96&&m.sql.targetVersion===96&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion==='96'&&v.historyRows===96&&v.allSuccessful===true&&zulu(v.verifiedAt),L+' requires verified V96 with no migration');
+ requireValue(m.sql?.baselineVersion===sqlVersion&&m.sql.targetVersion===sqlVersion&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion===String(sqlVersion)&&v.historyRows===sqlVersion&&v.allSuccessful===true&&zulu(v.verifiedAt),L+' requires verified V'+sqlVersion+' with no migration');
  validateR074Ci(m.applicationCi,m,git,L,v96DeliveryAllowed);
  requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,L+' PROD image provenance required');
  requireValue(exact(m.recognition,{activation:'enabled',url:R075_RECOGNIZER_URL}),L+' unchanged enabled receipt recognition wiring required');
@@ -654,7 +661,7 @@ async function v96RuntimeHostingPlan(m,{requireApplied,git},L){
  requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
  for(const role of runtimeRoles)requireValue(imagePattern.test(recovery?.services?.[role]?.image??'')&&recovery.services[role].image!==m.build.image&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(recovery.services[role].revision??''),'service recovery pin required');
  if(m.status==='applied'){
-  requireValue(m.applied?.sourceCommit===m.sourceCommit&&m.applied.planSha256===m.plan.sha256&&m.applied.database==='loan_manager_prod'&&m.applied.sqlVersion===96&&zulu(m.applied.appliedAt),L+' applied source/plan/database mismatch');
+  requireValue(m.applied?.sourceCommit===m.sourceCommit&&m.applied.planSha256===m.plan.sha256&&m.applied.database==='loan_manager_prod'&&m.applied.sqlVersion===sqlVersion&&zulu(m.applied.appliedAt),L+' applied source/plan/database mismatch');
   for(const role of runtimeRoles){const s=m.applied.services?.[role];requireValue(s?.image===m.build.image&&s.ready===true&&s.trafficPercent===100&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(s.revision??'')&&s.revision!==recovery.services[role].revision,L+' ready service readback required');}
  }
  return validatedHostingArtifact(m,recovery,{release:L});
@@ -673,6 +680,10 @@ export function validateR076Source(m,git=sourceGit){return validateV96RuntimeSou
 export async function r076HostingPlan(m,{requireApplied=true,git=sourceGit}={}){return v96RuntimeHostingPlan(m,{requireApplied,git},'R076');}
 /** Live: per-job CI, Cloud Build, the four identities, worker subjects and the unchanged command-only recognizer wiring. */
 export async function verifyR076LivePackage(m,options={}){return verifyV96RuntimeLivePackage(m,options,'R076');}
+export function validateR079Source(m,git=sourceGit){return validateV96RuntimeSource(m,git,'R079');}
+export async function r079HostingPlan(m,{requireApplied=true,git=sourceGit}={}){return v96RuntimeHostingPlan(m,{requireApplied,git},'R079');}
+/** Live: per-job CI, Cloud Build, the four identities, worker subjects, the unchanged recognizer wiring and the R077 timeouts (command 55 s, reader 15 s, workers 120 s). */
+export async function verifyR079LivePackage(m,options={}){return verifyV96RuntimeLivePackage(m,options,'R079');}
 export function validateR077Source(m,git=sourceGit){return validateV96RuntimeSource(m,git,'R077');}
 export async function r077HostingPlan(m,{requireApplied=true,git=sourceGit}={}){return v96RuntimeHostingPlan(m,{requireApplied,git},'R077');}
 /** Live: as R076, plus the four services' request timeouts (command 55 s, reader 15 s, workers 120 s). */
@@ -737,7 +748,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }
@@ -818,8 +829,9 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
  const r076=inputs.schemaVersion===18&&inputs.release==='R076';
  const r077=inputs.schemaVersion===19&&inputs.release==='R077';
  const r078=inputs.schemaVersion===20&&inputs.release==='R078';
- const current=r078||r077||r076||r075||r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
- const plan=r078?await r078HostingPlan(inputs,{requireApplied:!!options['--apply']}):r077?await r077HostingPlan(inputs,{requireApplied:!!options['--apply']}):r076?await r076HostingPlan(inputs,{requireApplied:!!options['--apply']}):r075?await r075HostingPlan(inputs,{requireApplied:!!options['--apply']}):r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
+ const r079=inputs.schemaVersion===21&&inputs.release==='R079';
+ const current=r079||r078||r077||r076||r075||r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
+ const plan=r079?await r079HostingPlan(inputs,{requireApplied:!!options['--apply']}):r078?await r078HostingPlan(inputs,{requireApplied:!!options['--apply']}):r077?await r077HostingPlan(inputs,{requireApplied:!!options['--apply']}):r076?await r076HostingPlan(inputs,{requireApplied:!!options['--apply']}):r075?await r075HostingPlan(inputs,{requireApplied:!!options['--apply']}):r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
  if(options['--check'])console.log(JSON.stringify({dryRun:true,site:plan.site,fileCount:Object.keys(plan.files).length,sourceCommit:plan.sourceCommit,publicVersion:plan.publicVersion}));
  else{
   if(!options['--approval-reference']||!options['--output']||!path.isAbsolute(options['--output']))throw Error('Owner approval and absolute private output required');
@@ -835,7 +847,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
   try{await lstat(output);throw Error('Hosting receipt already exists');}catch(error){if(error.code!=='ENOENT')throw error;}
   const token=process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
   delete process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
-  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r078?{release:'R078'}:r077?{release:'R077'}:r076?{release:'R076'}:r075?{release:'R075'}:r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r078)await verifyR078LivePackage(inputs,{token});else if(r077)await verifyR077LivePackage(inputs,{token});else if(r076)await verifyR076LivePackage(inputs,{token});else if(r075)await verifyR075LivePackage(inputs,{token});else if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
+  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r079?{release:'R079'}:r078?{release:'R078'}:r077?{release:'R077'}:r076?{release:'R076'}:r075?{release:'R075'}:r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r079)await verifyR079LivePackage(inputs,{token});else if(r078)await verifyR078LivePackage(inputs,{token});else if(r077)await verifyR077LivePackage(inputs,{token});else if(r076)await verifyR076LivePackage(inputs,{token});else if(r075)await verifyR075LivePackage(inputs,{token});else if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
   const request=async(url,method,body,raw=false)=>{if(!['firebasehosting.googleapis.com','upload-firebasehosting.googleapis.com'].includes(new URL(url).hostname))throw Error('Unexpected Hosting API host');const response=await fetch(url,{method,redirect:'error',headers:{Authorization:'Bearer '+token,'x-goog-user-project':'clever-oasis-508610-n7','Content-Type':raw?'application/octet-stream':'application/json'},...(method==='GET'?{}:{body:raw?body:JSON.stringify(body)})});if(!response.ok)throw Error('Hosting API failed with status '+response.status);const text=await response.text();return text?JSON.parse(text):{};};
   const packageSha256=current?sha(await readFile(options['--inputs'])):undefined;
   if(current){await writeFile(output,JSON.stringify({schemaVersion:1,status:'pending-reconciliation',sourceCommit:plan.sourceCommit,packageSha256,site:plan.site,approvalReference:options['--approval-reference'],instruction:'Do not retry. Reconcile the live Hosting release before recovery.'},null,2),{flag:'wx'});persistReceipt();}
