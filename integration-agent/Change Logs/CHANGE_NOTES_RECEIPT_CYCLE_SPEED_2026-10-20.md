@@ -27,7 +27,7 @@ Owner plan of 20 October 2026: cut the Debian agent's receipt handling from abou
 | Canonical migration runner on disposable clusters | V1 to V7 on a fresh cluster; V7 alone on a V6-populated cluster; reruns apply nothing |
 | Agent schema preflight on disposable clusters | Checksums equal what `migrate` records; refuses a cluster one migration behind and passes after V7; a database ahead of the package passes; no secret printed |
 | `npm run check:docs` | 0 failures, 0 warnings |
-| Pull request `Development checks` and Agent tests | Run on the pull request after push; result recorded there |
+| Pull request `Development checks` and Agent tests | PR #101 head `d5034e6` (input-equivalent to merge `7716176`): `Development checks` run 39456537628 success (check, lint, e2e and terraform skipped, agent-only); agent tests run 39456537639 success (unit and lab); `Database migrations` run 39456528336 guards success, rebuild skipped |
 
 ## Not run
 - The pull request's `Development checks` and Agent tests: they run after push and are recorded on the pull request.
@@ -63,3 +63,13 @@ Baseline, read-only on the VM over the last 30 days (counts and seconds only):
 - Known remaining loop case (A4): an `ARCHIVED` asset whose stored hash does not match keeps deferring the job 300 s; only the one-hour delayed alert flags it. Decide whether it needs a terminal rule.
 - Held receipts do not re-run automatically (later item, not in this plan).
 - Pins go to the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host) after deployment.
+
+## Promotion record
+
+Release R082, agent only (no Hosting, Cloud Run or business-database change), frozen 2026-10-20T16:23:47Z.
+
+- **Authority:** the owner's production instruction of 20 October 2026, "go ahead with Batch A and B and deploy once R081 is out", relayed again by the R081 session as "go ahead". It covers the agent migration V7 on `mw_agent`, the verified backup, the standard freeze and the required technical records. It does not cover a Cloud Run warm instance, the receiving page, financial corrections or forced notifications.
+- **Package:** main `7716176` (PR #101 merge). CI ran on the PR head `d5034e6`, input-equivalent to the merge: see Checks. The sibling note [wake and poll](CHANGE_NOTES_RECEIPT_WAKE_AND_POLL_2026-10-20.md) covers batch B.
+- **Sequence:** batch A with V7 first: `update-from-github.sh`, `deploy-runtime.py` dry-run and freeze, verified `mw_agent` backup, `scripts/agent-state-admin.py migrate`, `install` and `activate` with `--state-connection-file`, then verify. Batch B in its own window after A is verified: the one-minute poll timer (manual install after a copy of the host timer) and `mw-receipt-wake.path`. R082 is Released only when both are applied.
+- **Recovery:** see Recovery above; pins and rollback go to the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host) after deployment.
+- **Follow-up:** the after-deployment measurement needs real receipts and stays one follow-up row in Development Changes; it does not block Released.

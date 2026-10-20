@@ -4,11 +4,11 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R082 — Open** |
-| Next unused number | **R083**, only opened when authorized R082 promotion starts |
+| New product work | **R083 — Open** |
+| Next unused number | **R084**, only opened when authorized R083 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
-R082 opened at R081 promotion start; it will carry the receipt-speed work (branch `claude/receipt-wake-and-poll`). R081 (push English name, V100, PR #100) is Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
+R083 opened at R082 promotion start; it has no work yet. R082 (agent receipt speed, wake path, one-minute poll and notice `accepted_at`, agent migration V7, PR #101) is Frozen below; R081 (push English name, V100, PR #100) is Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
@@ -16,6 +16,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
+| R082 | Frozen 2026-10-20T16:23Z for the owner's production instruction of 20 October 2026 ("go ahead with Batch A and B and deploy once R081 is out"); package main `7716176` (PR #101; CI on the head `d5034e6`, input-equivalent to the merge: `Development checks` run 39456537628, agent tests run 39456537639, `Database migrations` run 39456528336); agent only, no Hosting, Cloud Run or business-database change; agent migration V7 | Batch A with V7 deploys to the Debian agent first, batch B (wake path unit, one-minute poll) in its own window after A is verified; Released only when both are applied; [promotion record](../../integration-agent/Change%20Logs/CHANGE_NOTES_RECEIPT_CYCLE_SPEED_2026-10-20.md#promotion-record) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

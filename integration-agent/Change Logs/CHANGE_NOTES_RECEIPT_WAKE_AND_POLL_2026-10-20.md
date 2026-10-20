@@ -18,7 +18,7 @@ Owner plan of 20 October 2026, batch B: start the receipt cycle as soon as a rec
 | `ruff check --no-cache integration-agent` | Clean |
 | `systemd-analyze verify` on the path unit | Clean, except the absent `/opt` binary on the build host |
 | `npm run check:docs` | 0 failures, 0 warnings |
-| Pull request `Development checks` and Agent tests | Run on the pull request after push; result recorded there |
+| Pull request `Development checks` and Agent tests | Same pull request #101 as batch A: see the [batch A note](CHANGE_NOTES_RECEIPT_CYCLE_SPEED_2026-10-20.md#checks) |
 
 ## Not run
 - Deployment on `vm-mw-credit-agent` and enabling the path unit in the maintenance window: waits for the owner's go (config-only route from Operations for the timer).
@@ -32,5 +32,5 @@ Revert the merge commit. Live: `systemctl disable --now mw-receipt-wake.path`, r
 None.
 
 ## Remaining work
-- Owner go, deploy batch B, then measure a third time (group receipt to POSTED median under 1.5 min; pick-up about 1 s after capture).
+- Deploy batch B in its own window after batch A is verified (owner instruction of 20 October 2026, see the [promotion record](CHANGE_NOTES_RECEIPT_CYCLE_SPEED_2026-10-20.md#promotion-record)), then measure a third time (group receipt to POSTED median under 1.5 min; pick-up about 1 s after capture).
 - Pins go to the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host) after deployment.
