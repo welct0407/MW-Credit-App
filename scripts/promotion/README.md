@@ -34,6 +34,7 @@ The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); e
 - **CI.** The gate is R074's per-job CI with stage-hash evidence, as R078.
 - **Apply.** As R077: Cloud Build source and digest, the four live services, worker caller subjects, the recognizer wiring on the command service only, and the live request timeouts command `55s`, reader `15s`, notify and jobs `120s`.
 - **Artifact and operator proof.** The marker and the entry bundle carry `"R079"`; the audience is `https://lm.mw-credit.com/promotion/r079`.
+- **Delivered.** R079 went to DEV and PROD on 20 October 2026 with this contract. The package's per-job CI cites, for each stage the lean routine skipped, the earlier run that holds its evidence: `check`, `e2e` 1 to 3, `terraform` and the four rebuild groups cite hash-named evidence artifacts (any trusted run, no ancestry check), and only `guards` cites an input-equivalent ancestor run.
 - **Not covered.** The integration agent (it already accepts the grouped thousands comma since `55964c7`).
 
 ## R078 runtime, SQL and frontend promotion after V97
