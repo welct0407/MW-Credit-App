@@ -12,7 +12,7 @@ All three Agent E refinements are applied: scannable overview, consistent reques
 
 ## Evidence and ownership
 
-- [Single checklist](promotion-checklist.md), [pinned manifest and actual results](release-manifest.json), [focused verification](verification.md), [Agent E review](ux-review.md).
+- [Single checklist](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r055-grafana/promotion-checklist.md), [pinned manifest and actual results](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r055-grafana/release-manifest.json), [focused verification](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r055-grafana/verification.md), [Agent E review](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r055-grafana/ux-review.md).
 - Application repository: outputs/r055-grafana/deployment-evidence.json; infrastructure/grafana and grafana-access own Terraform; scripts/grafana owns credential/API tooling.
 - PM source pin3aca2683, initial infrastructure promotion pind9b32ff; presentation correction PMbddee97c. Final infrastructure publication is recorded in the manifest.
 - Root owns release records and final publication. F owns infrastructure, recovery and live evidence; B/C completed source and focused verification; E completed owner-requested review. No broad CI rerun is needed for unchanged tested inputs.

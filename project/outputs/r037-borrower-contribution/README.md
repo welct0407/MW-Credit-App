@@ -1,9 +1,9 @@
 # Borrower contribution charts — R037 handover
 
-**R039 correction:** Both original amount-ranking bars are restored alongside the two pies and two lifetime ratio charts. [Six-chart layout](../r039-restore-borrower-bars/README.md).
+**R039 correction:** Both original amount-ranking bars are restored alongside the two pies and two lifetime ratio charts. [Six-chart layout](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r039-restore-borrower-bars/README.md).
 
 
-**R038 refinement:** The right-hand bar now uses lifetime interest / total original principal lent, including active and closed loans. [Current formula](../r038-lifetime-return/README.md).
+**R038 refinement:** The right-hand bar now uses lifetime interest / total original principal lent, including active and closed loans. [Current formula](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r038-lifetime-return/README.md).
 
 
 Owner selected lifetime achieved daily interest on 26 September 2026. Scope: refine new Portfolio tab104 on Metabase dashboard3. No AppSheet, SQL schema, financial data, permission or runtime change. Detail105 and original tabs retain their definitions.
