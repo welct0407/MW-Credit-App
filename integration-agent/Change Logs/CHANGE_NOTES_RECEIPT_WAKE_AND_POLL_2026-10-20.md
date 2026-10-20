@@ -1,4 +1,4 @@
-# Change notes — receipt wake path and one-minute conversation poll, batch B (host units), 20 October 2026
+# Change notes — receipt wake path and one-minute conversation poll, batch B (host units) (R082), 20 October 2026
 
 ## Purpose
 Owner plan of 20 October 2026, batch B: start the receipt cycle as soon as a receipt is captured, and read group conversations every minute instead of every five. It follows [batch A](CHANGE_NOTES_RECEIPT_CYCLE_SPEED_2026-10-20.md) and has its own deployment go.
@@ -19,18 +19,22 @@ Owner plan of 20 October 2026, batch B: start the receipt cycle as soon as a rec
 | `systemd-analyze verify` on the path unit | Clean, except the absent `/opt` binary on the build host |
 | `npm run check:docs` | 0 failures, 0 warnings |
 | Pull request `Development checks` and Agent tests | Same pull request #101 as batch A: see the [batch A note](CHANGE_NOTES_RECEIPT_CYCLE_SPEED_2026-10-20.md#checks) |
+| Deploy of batch B on `vm-mw-credit-agent` (16:40:48Z to 16:40:55Z, 20 October 2026) | Old timer copied to `/root/mw-conversation-poll.timer.pre-r082` (sha256 `cd01e1a2dd24…`); new timer sha256 `875120c7…`, diff exactly the description and the 1 min interval; `systemd-analyze verify` clean; `mw-receipt-wake.path` enabled (`paths.target.wants`) and active; `/ready` ok |
+| Wake proof | An ordinary `mwagent` touch of the wake file at 16:41:09.842Z started `mw-receipt-summary.service` at 16:41:09.875Z; no real capture occurred in the window |
+| After the deploy | Poll runs about every 70 s (one minute after the previous run ends); 0 start-limit or trigger-limit hits; 15 clean receipt runs. Monitor at 16:45:05Z showed the `oltp` and `olap` native API probes at 0 once, back to 1 at 16:47:13Z (not touched by this release; polling also showed a transient 0 at 16:25Z and 16:27Z before any change): watch |
 
 ## Not run
-- Deployment on `vm-mw-credit-agent` and enabling the path unit in the maintenance window: waits for the owner's go (config-only route from Operations for the timer).
-- Measurement after batch B: not run in this session.
-- Real systemd behaviour of the path unit on the VM. CI runs the Agent tests job, pending push.
+- A real capture waking the cycle (webhook or poll): none occurred in the verification window; only the touch was proven.
+- Measurement after batch B: needs real receipts; follow-up row in Development Changes.
 
 ## Recovery
-Revert the merge commit. Live: `systemctl disable --now mw-receipt-wake.path`, restore the poll timer from the copy taken before the manual install (the freeze backup does not hold timer files), `systemctl daemon-reload`, start the timers.
+Revert the merge commit. Live: `systemctl disable --now mw-receipt-wake.path`, reinstall `/root/mw-conversation-poll.timer.pre-r082` (the freeze backup does not hold timer files), `systemctl daemon-reload`, restart the poll timer.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Deploy batch B in its own window after batch A is verified (owner instruction of 20 October 2026, see the [promotion record](CHANGE_NOTES_RECEIPT_CYCLE_SPEED_2026-10-20.md#promotion-record)), then measure a third time (group receipt to POSTED median under 1.5 min; pick-up about 1 s after capture).
-- Pins go to the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host) after deployment.
+- Deployed 20 October 2026 (batch B, after batch A was verified); pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host).
+- Measure with real receipts (group receipt to POSTED median under 1.5 min; pick-up about 1 s after capture): one follow-up row in Development Changes.
+- Watch the transient `oltp` and `olap` probe zeros in the host monitor (not caused by this release as far as seen).
+

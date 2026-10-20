@@ -1,4 +1,4 @@
-# Change notes — receipt cycle speed, batch A (agent code), 20 October 2026
+# Change notes — receipt cycle speed, batch A (agent code) (R082), 20 October 2026
 
 ## Purpose
 Owner plan of 20 October 2026: cut the Debian agent's receipt handling from about 30–60 s after capture to about 10–20 s for automatic posting and reviewer approval, with agent code only. Batch B (wake path unit and one-minute conversation poll) has its own note: [wake and poll](CHANGE_NOTES_RECEIPT_WAKE_AND_POLL_2026-10-20.md).
@@ -28,41 +28,40 @@ Owner plan of 20 October 2026: cut the Debian agent's receipt handling from abou
 | Agent schema preflight on disposable clusters | Checksums equal what `migrate` records; refuses a cluster one migration behind and passes after V7; a database ahead of the package passes; no secret printed |
 | `npm run check:docs` | 0 failures, 0 warnings |
 | Pull request `Development checks` and Agent tests | PR #101 head `d5034e6` (input-equivalent to merge `7716176`): `Development checks` run 39456537628 success (check, lint, e2e and terraform skipped, agent-only); agent tests run 39456537639 success (unit and lab); `Database migrations` run 39456528336 guards success, rebuild skipped |
+| Deploy of batch A with V7 on `vm-mw-credit-agent` (16:25Z to 16:39Z, 20 October 2026) | Backup `mw_agent-before-r082-20261020.dump` restore-verified (33 tables, 702,060 rows); checkout `7716176`; dry-run `agent_schema` showed missing `[7]`, so install would have refused (preflight worked); freeze 16:29:40Z; `migrate` applied V7 16:29:48Z; install 16:29:59Z (schema check passed); activate 16:30:10Z, `/ready` true at `7716176`, workers paused about 30 s |
+| After the deploy, 16:30Z to 16:39Z | 21 receipt runs, 0 failures; no failed units; monitor all 1 except `receipts` 2, the same as before the deploy (the 18 October archive job) |
 
 ## Not run
-- The pull request's `Development checks` and Agent tests: they run after push and are recorded on the pull request.
-- The real VM operator connection file, and an end-to-end freeze, install, activate on a host (the preflight was verified on disposable clusters only).
-- Deployment to `vm-mw-credit-agent` (`update-from-github.sh`, `deploy-runtime.py` dry-run, freeze, install, activate): waits for the owner's go for the exact commit.
-- Measurement (baseline before, repeat after deployment): read-only on the VM, not run in this session. The baseline and the job inspection were done read-only before the change (results in Changes and Remaining work); the after-deployment run is not done.
+- Lab suites on the VM and any real-receipt timing: the after-deployment measurement needs real receipts and is not done (follow-up row in Development Changes).
+- The 18 October 16:57:47Z job was not changed by the deploy: it is still `PENDING`; it now gets the one-hour delayed alert and becomes REVIEW `RECEIPT_ARCHIVE_UNAVAILABLE` when the archive gives up.
+- Owner real-device or reviewer-approval check of the new run order: no real capture happened in the verification window.
 
 ## Recovery
-Revert the merge commit. Live (after deployment): `deploy-runtime.py rollback --commit <previous-pin>` restores the previous package from the freeze backup; config keys are optional and ignored by the older code. V7 stays applied: the older package ignores `accepted_at`, and the migration is immutable.
+Revert the merge commit. Live: `deploy-runtime.py rollback --commit 771617637b34e9a99ee9b218b067a31eeee93076` restores `55964c7` from the freeze backup `runtime-20261020T162940148900Z`; config keys are optional and ignored by the older code. V7 stays applied: the older package ignores the nullable `accepted_at` column, and the migration is immutable. The `mw_agent` backup is in the private operator bucket under `promotion-packages/r082/`.
 
 ## Open questions
 None. Owner decisions taken on 20 October 2026: no warm Cloud Run instance, agent focus, A2 default 60 s, A4 threshold 1 h, A6 cap 6, A7 policy, the `accepted_at` column, one pull request for both batches.
 
 ## Remaining work
-- Owner go, then deploy batch A: `update-from-github.sh`, `deploy-runtime.py` dry-run and freeze, apply V7 with `scripts/agent-state-admin.py migrate` (verified restorable `mw_agent` backup first), `install --state-connection-file <operator file>`, `activate --state-connection-file <operator file>` (the operator file must be on the VM); then measure again.
-- Repeat the read-only measurement query after deployment and add the "After A" column below.
+- Deployed (batch A with V7, 20 October 2026): pins and rollback are in the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host).
+- After-deployment measurement (one follow-up row in Development Changes): wait for the first real receipt and reviewer approval, rerun the read-only query, and read the result-notice time from `partner_notices.accepted_at`; then fill the "After A" column below. It does not block R082 Released.
+- Watch the 18 October 16:57:47Z archive job: still `PENDING`, now alerted after one hour, REVIEW `RECEIPT_ARCHIVE_UNAVAILABLE` when the archive gives up.
+- Known remaining loop case (A4): an `ARCHIVED` asset whose stored hash does not match keeps deferring the job 300 s; only the one-hour delayed alert flags it. Decide whether it needs a terminal rule.
+- Held receipts do not re-run automatically (later item, not in this plan).
 
 Baseline, read-only on the VM over the last 30 days (counts and seconds only):
 
 | Measure | Baseline | After A |
 | --- | --- | --- |
-| Automatic posts via conversation poll: capture to POSTED | 103 posts; median 85.7 s, p90 362 s, max 8,007 s | pending deploy |
-| Automatic posts via webhook | 0 (27 historical backfill excluded) | pending deploy |
-| Reviewer-approved posts, reply to POSTED | 0 (all 130 POSTED are automatic); no baseline | pending deploy |
-| Poll capture lag | median 171 s, p90 279 s, max 4,294 s | pending deploy |
-| Retried jobs | 2 (`RECEIPT_PROCESSING_STARTED`) | pending deploy |
-| Jobs by status | IGNORED 175, REVIEW_REQUESTED 153, REJECTED 5, PENDING 1 | pending deploy |
-| Cycle runs in `job_runs`, last 24 h | 288; average 3.9 s, max 21.1 s | pending deploy |
+| Automatic posts via conversation poll: capture to POSTED | 103 posts; median 85.7 s, p90 362 s, max 8,007 s | pending real receipts |
+| Automatic posts via webhook | 0 (27 historical backfill excluded) | pending real receipts |
+| Reviewer-approved posts, reply to POSTED | 0 (all 130 POSTED are automatic); no baseline | pending real receipts |
+| Poll capture lag | median 171 s, p90 279 s, max 4,294 s | pending real receipts |
+| Retried jobs | 2 (`RECEIPT_PROCESSING_STARTED`) | pending real receipts |
+| Jobs by status | IGNORED 175, REVIEW_REQUESTED 153, REJECTED 5, PENDING 1 | pending real receipts |
+| Cycle runs in `job_runs`, last 24 h | 288; average 3.9 s, max 21.1 s | pending real receipts |
 
 `job_runs` does not record every run, so the result-notice time is read from `partner_notices.accepted_at` after V7 (rows before V7 are NULL; the baseline has no value for it).
-
-- Targets from the plan: reply to POSTED median under 20 s; DM receipt to POSTED median under 30 s; five receipts together terminal within one run; Gemini timeout retry within 30 s.
-- Known remaining loop case (A4): an `ARCHIVED` asset whose stored hash does not match keeps deferring the job 300 s; only the one-hour delayed alert flags it. Decide whether it needs a terminal rule.
-- Held receipts do not re-run automatically (later item, not in this plan).
-- Pins go to the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host) after deployment.
 
 ## Promotion record
 
@@ -73,3 +72,9 @@ Release R082, agent only (no Hosting, Cloud Run or business-database change), fr
 - **Sequence:** batch A with V7 first: `update-from-github.sh`, `deploy-runtime.py` dry-run and freeze, verified `mw_agent` backup, `scripts/agent-state-admin.py migrate`, `install` and `activate` with `--state-connection-file`, then verify. Batch B in its own window after A is verified: the one-minute poll timer (manual install after a copy of the host timer) and `mw-receipt-wake.path`. R082 is Released only when both are applied.
 - **Recovery:** see Recovery above; pins and rollback go to the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host) after deployment.
 - **Follow-up:** the after-deployment measurement needs real receipts and stays one follow-up row in Development Changes; it does not block Released.
+
+Deployment (R082, agent only), 20 October 2026. Batch A with V7: backup `mw_agent-before-r082-20261020.dump` (sha256 `caff614166aef6cf2a28b6d5ab208872cb2f4981c4ca7a6918b7caee15e08229`), 16:25Z to 16:28Z; freeze 16:29:40Z; V7 applied 16:29:48Z (checksum `7dff9fb95e2f124fe05eee554b40778992585727d6d5af6f93f19444670f5b3d`); install 16:29:59Z (changed `mw-receipt-summary.service` and `mw-receipt-wake.path`); activate 16:30:10Z. Operator access was a temporary root-only connection file with a one-hour IAM token, removed after batch B. Batch B: see the [batch B note](CHANGE_NOTES_RECEIPT_WAKE_AND_POLL_2026-10-20.md). Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host).
+
+### Closure pruning (release workflow, 20 October 2026)
+- Deleted `Change Logs/CHANGE_NOTES_R079_RECEIPT_AMOUNT_COMMA_2026-10-20.md` (R079 is outside the retention window of R082, R081 and R080); its tracker link now points to commit `7716176`, where it still exists.
+- Deleted the two R082 rows from Development Changes; one follow-up row for the measurement remains. Agent change notes are not pruned.
