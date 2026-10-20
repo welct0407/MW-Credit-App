@@ -1,7 +1,7 @@
 # Change notes — receipt amount with thousands comma in the command API (R079), 20 October 2026
 
 ## Purpose
-Gemini returns slip amounts such as `1,480.00`. The command API's `slipFields` accepted only a plain decimal, so it warned `amount_unreadable` and the payment receiving form filled no amount; the failure is deterministic (model temperature 0), so a retry failed the same way. The integration agent already accepted the grouped comma (commit `f1cfbe4`, deployed at `55964c7`); the API rule had not been ported. Status: Open, in DEV promotion preparation.
+Gemini returns slip amounts such as `1,480.00`. The command API's `slipFields` accepted only a plain decimal, so it warned `amount_unreadable` and the payment receiving form filled no amount; the failure is deterministic (model temperature 0), so a retry failed the same way. The integration agent already accepted the grouped comma (commit `f1cfbe4`, deployed at `55964c7`); the API rule had not been ported. Status: Frozen 2026-10-20T12:02Z at main `823e9e5` (PR #95); DEV and PROD promotion in progress.
 
 ## Changes
 - API (Byte, commit `1ebe0cf`): `services/receipts/recognizer-rules.mjs` strips a correctly grouped thousands comma (`^\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?$`) before the unchanged plain-amount check. `5,00`, `1,2345` and `1,48,000` stay `amount_unreadable`; a non-zero fraction still warns `amount_fractional`. The unit test `tests/unit/receipt-recognition-rules.test.mjs` covers the cases.
@@ -15,7 +15,7 @@ Gemini returns slip amounts such as `1,480.00`. The command API's `slipFields` a
 | `node --test tests/unit/business-hosting-delivery.test.mjs` | Pass, 72 of 72 (local, 20 October 2026) |
 | `npx biome check` on the runner and its test | 0 errors; the same 3 warnings exist on `main` |
 | `npm run check:docs` | Pass (local, 20 October 2026) |
-| Receipt rule unit test and the wider CI | CI: to be filled from the pull request run |
+| PR #95 CI on main `823e9e5` (receipt rule unit test, lint, typecheck, build, e2e) | `Development checks` run 39418704634 and `Database migrations` run 39418399589 |
 | DEV promotion | To be filled |
 | PROD promotion | To be filled |
 
@@ -33,4 +33,10 @@ Owner instruction, 20 October 2026, in this session: "yes, fix it and promote to
 None.
 
 ## Remaining work
-Freeze R079 and open R080 in the release tracker at promotion start; DEV and PROD promotion; fill the Checks rows; the owner re-checks the `1,480.00` slip in PROD; record the PROD pins in the environment inventory.
+DEV and PROD promotion; fill the DEV and PROD Checks rows; the owner re-checks the `1,480.00` slip in PROD; record the PROD pins in the environment inventory.
+
+## Promotion record
+- Owner instruction: see Promotion authority above.
+- Freeze: R079 frozen 2026-10-20T12:02Z at main `823e9e593afde879fdb0ba94e198ea0351975aea` (PR #95); R080 opened in the same tracker update for the push-notification content work (V99), which deploys only after R079 is in PROD.
+- Package: that commit; no SQL (PROD stays at V98, 98 rows); plan 0/4/0 of the four images; Hosting marker R079. Pins and references go to the [environment inventory](../project/Documents/Environment_Inventory.md).
+- Excluded: any SQL, financial correction, forced notification, agent change and anything merged after `823e9e5`.
