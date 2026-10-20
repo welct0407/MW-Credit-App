@@ -53,10 +53,12 @@ export function slipFields(result, businessDate) {
   if (result.is_payment_receipt !== true || result.transfer_successful !== true) return { confirmed: false, warnings: ['slip_not_confirmed'] };
   let amountReceived = null;
   const currency = String(result.currency ?? '').trim().toUpperCase();
-  if (typeof result.amount !== 'string' || !/^\d{1,12}(?:\.\d{1,2})?$/.test(result.amount) || !/[1-9]/.test(result.amount)) warnings.push('amount_unreadable');
+  // A correctly grouped thousands comma ("5,000.00", "1,234,567.89") is accepted; "5,00" or "1,2345" are not.
+  const amount = typeof result.amount === 'string' && /^\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?$/.test(result.amount) ? result.amount.replaceAll(',', '') : result.amount;
+  if (typeof amount !== 'string' || !/^\d{1,12}(?:\.\d{1,2})?$/.test(amount) || !/[1-9]/.test(amount)) warnings.push('amount_unreadable');
   else if (!['', 'THB'].includes(currency)) warnings.push('non_thb');
   else {
-    const [whole, fraction = ''] = result.amount.split('.');
+    const [whole, fraction = ''] = amount.split('.');
     // The receiving form takes whole baht only: a non-zero fraction warns and never fills.
     if (/[1-9]/.test(fraction)) warnings.push('amount_fractional');
     else if (BigInt(whole) > 0n) amountReceived = BigInt(whole).toString();

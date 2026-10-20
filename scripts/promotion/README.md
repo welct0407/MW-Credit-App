@@ -23,6 +23,20 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R079 runtime and frontend hotfix on V98
+
+`schemaVersion: 21`, `release: R079`, `scope: runtime-workers-frontend`, `status: prepared|applied`: the R076 and R077 kind on V98 with no SQL, sharing their code path.
+
+- **Source.** The source must descend from the R078 release `68ce669` and from the V98 commit `7ae8469` (`V98__pwa_row_changes_app_read.sql`), and carry no change under `database/migrations` since the V98 commit (R074's strict name form). The delivery-tool commit may also carry this README and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** No migration and no apply: `sql` is baseline 98, target 98, `migrations: []`, and `sql.verified` is a read-only PROD readback of `loan_manager_prod` at 98 with 98 successful history rows. `applied.sqlVersion` is 98.
+- **Plan.** `{add:0, change:4, destroy:0}` with exactly `read.image`, `command.image`, `notify.image` and `jobs.image`.
+- **Recognition pin.** `recognition` is exactly `{activation: "enabled", url: "http://10.148.0.2:8790/v1/receipt-recognition"}`, unchanged.
+- **CI.** The gate is R074's per-job CI with stage-hash evidence, as R078.
+- **Apply.** As R077: Cloud Build source and digest, the four live services, worker caller subjects, the recognizer wiring on the command service only, and the live request timeouts command `55s`, reader `15s`, notify and jobs `120s`.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R079"`; the audience is `https://lm.mw-credit.com/promotion/r079`.
+- **Delivered.** R079 went to DEV and PROD on 20 October 2026 with this contract. The package's per-job CI cites, for each stage the lean routine skipped, the earlier run that holds its evidence: `check`, `e2e` 1 to 3, `terraform` and the four rebuild groups cite hash-named evidence artifacts (any trusted run, no ancestry check), and only `guards` cites an input-equivalent ancestor run.
+- **Not covered.** The integration agent (it already accepts the grouped thousands comma since `55964c7`).
+
 ## R078 runtime, SQL and frontend promotion after V97
 
 `schemaVersion: 20`, `release: R078`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R075's SQL evidence with R077's runtime readback.
