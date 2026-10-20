@@ -4,8 +4,8 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R079 — Open** |
-| Next unused number | **R080**, only opened when authorized R079 promotion starts (R079 opened at R078 promotion start) |
+| New product work | **R080 — Open** (opened at R079 promotion start); planned for the push-notification content work (other session, branch `claude/r079-push-notification-content`, V99), which deploys after R079 is in PROD |
+| Next unused number | **R081**, only opened when authorized R080 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
@@ -14,6 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
+| R079 | Frozen 2026-10-20T12:02Z for the owner's production instruction of 20 October 2026; package main `823e9e5` (PR #95; `Development checks` run 39418704634, `Database migrations` run 39418399589); receipt amount thousands comma in the command API, no SQL | DEV and PROD promotion in progress, to go to PROD before R080; [promotion record](../../Change%20Logs/CHANGE_NOTES_R079_RECEIPT_AMOUNT_COMMA_2026-10-20.md#promotion-record) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
