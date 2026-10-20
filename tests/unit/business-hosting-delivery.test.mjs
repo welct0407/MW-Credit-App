@@ -1425,3 +1425,43 @@ test('R081 operator audience and live verification re-read CI, Cloud Build, the 
   await assert.rejects(verifyR081LivePackage(m,{token:'t',request:make(edit,digest),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
  const skipped=r074Readback(m);await assert.rejects(verifyR081LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=skipped.readGithub(args);if(args[1].endsWith('/runs/25/jobs?per_page=100'))r.jobs.find(j=>j.name==='rebuild (phase8)').conclusion='skipped';return r;},git}),/R081 database rebuild \(phase8\): missing executed job/);
 });
+
+// R083: the Hosting-only kind on the unchanged R081 runtime and V100. The source descends from the R081 release, which is
+// also the runtime compared; CI is R074's per-job gate; the artifact carries the R083 marker; the R081 services are read back live.
+const r081Release='b36dce97224b803a364efba90bcbce1c68caeea7';
+const r083Marker=(m,extra={})=>JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release:'R083',...extra});
+async function r083Package(t){
+ const p=await r074Package(t),m=p.m;
+ Object.assign(m,{schemaVersion:24,release:'R083',sourceBaseline:r081Release,sql:{baselineVersion:100,targetVersion:100,migrations:[],verified:{database:'loan_manager_prod',latestVersion:'100',historyRows:100,allSuccessful:true,verifiedAt:'2026-10-20T12:00:00Z'}}});
+ await setArtifact(m,'build-version.json',r083Marker(m));
+ await setArtifact(m,'assets/test.js',(await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8'))+'\nconst release="R083";');
+ return p;
+}
+test('R083 Hosting-only package descends from R081, keeps the R081 runtime and V100 and gates CI per job',async t=>{
+ const {m,source,tool,ci}=await r083Package(t),git=r071Git({source,tool});
+ const plan=await hostingOnlyPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingVersion,m.rollback.hostingVersion);
+ for(const [mutate,pattern] of [[x=>{x.sourceBaseline=r074Release},/exact R083 source\/baseline/],[x=>{x.schemaVersion=23},/wrong R083 package kind/],[x=>{x.scope='runtime-workers-frontend'},/wrong R083 package kind/],[x=>{x.sql.targetVersion=101},/R083 requires verified V100/],[x=>{x.sql.verified.latestVersion='99'},/R083 requires verified V100/],[x=>{x.sql.migrations=[{name:'V101__x.sql'}]},/R083 requires verified V100/],[x=>{x.build={id:'b'}},/R083 package must not apply/],[x=>{x.plan={}},/R083 package must not apply/],[x=>{x.applied={}},/R083 package must not apply/],[x=>{x.runtime.services.command.revision='bad'},/R083 unchanged runtime pins/],[x=>{x.applicationCi.ci.jobs.check.headSha='0'.repeat(40)},/R083 ci check: cited run receipt/],[x=>{x.target.database='loan_manager_dev'},/wrong production target/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(hostingOnlyPlan(candidate,{git}),pattern);}
+ const detached=(root,args)=>args[0]==='merge-base'&&args[1]===r081Release?'0'.repeat(40):git(root,args);
+ await assert.rejects(hostingOnlyPlan(m,{git:detached}),/R083 source must descend from the previous release/);
+ for(const file of ['services/business/borrowers.mjs','database/migrations/V101__x.sql','database/runner.mjs','package-lock.json','infrastructure/production/runtime.tf','Dockerfile'])await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r081Release]:file}})}),/R083 must not change the R081 runtime, SQL or infrastructure$/);
+ // The R069 comparison no longer applies: runtime changes up to R081 are allowed; database Markdown stays exempt.
+ assert.equal((await hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[r069Release]:'services/business/borrowers.mjs',[r081Release]:'database/README.md'}})})).site,site);
+ await assert.rejects(hostingOnlyPlan(m,{git:r071Git({source,tool,changed:{[ci]:'apps/pwa/src/live-main.tsx'}})}),/R083 ci check: run is not input-equivalent/);
+});
+test('R083 artifact must carry the R083 release in its marker and bundle',async t=>{
+ const {m,source,tool}=await r083Package(t),git=r071Git({source,tool}),original=await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8');
+ for(const marker of [r083Marker(m,{release:'R081'}),r083Marker(m,{release:'R082'}),JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry}),r083Marker(m,{extra:true})]){const x=structuredClone(m);await setArtifact(x,'build-version.json',marker);await assert.rejects(hostingOnlyPlan(x,{git}),/R083 artifact release mismatch|marker\/mode mismatch/);}
+ await setArtifact(m,'build-version.json',r083Marker(m));
+ for(const bundle of [original.replace('"R083"','"R081"'),original.replace('"R083"','R083')]){const x=structuredClone(m);await setArtifact(x,'assets/test.js',bundle);await assert.rejects(hostingOnlyPlan(x,{git}),/R083 artifact release mismatch/);}
+});
+test('R083 operator audience, delivery corrections and live R081 runtime check',async t=>{
+ const {m,source,tool}=await r083Package(t),git=r071Git({source,tool});
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com',project='clever-oasis-508610-n7';
+ const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
+ assert.equal((await operator('R083')).operator,email);await assert.rejects(operator('R083','https://lm.mw-credit.com/promotion/r081'),/impersonation proof/);await assert.rejects(operator('R082'),/unsupported operator release/);
+ assert.doesNotThrow(()=>validateHostingOnlySource(m,r071Git({source,tool,delivery:'scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md\nChange Logs/CHANGE_NOTES_R083_FAST_STARTUP_2026-10-20.md'})));
+ for(const delivery of ['scripts/promotion/README.md\napps/pwa/src/live-main.tsx','scripts/database/Backup-ProductionPromotion.py'])assert.throws(()=>validateHostingOnlySource(m,r071Git({source,tool,delivery})),/R083 unverified delivery/);
+ const make=drift=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=m.runtime.services[role];return {ok:true,json:async()=>({latestReadyRevision:'x/'+pin.revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},template:{containers:[{image:drift===role?pin.image.replace(/.$/,'0'):pin.image}]}})};};
+ const live=r074Readback(m);await verifyHostingOnlyLivePackage(m,{token:'t',request:make(),readGithub:live.readGithub,git});assert.equal(live.calls.length,10);
+ for(const role of ['read','command','notify','jobs'])await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make(role),readGithub:r074Readback(m).readGithub,git}),/R083 live runtime differs/);
+});

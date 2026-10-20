@@ -321,7 +321,7 @@
     "automatic_apply": "Apply on any focused page only when actual dirty edits/in-flight work permit it; presence of Back\
       \ alone is not a blocker. Recheck safety immediately before reload and on controller change."
     "retry": "One automatic attempt per worker; manual retry remains available."
-    "startup_gate": "R083 (in progress, 20 October 2026). The startup build check skips registration.update() when the page entry is current, no worker is waiting or installing and the active worker reports the latest version. A signed-in device with an authorized offline bundle shows the workspace from device-cached data while the check runs; one central gate in live-main makes network reads and writes wait for the check (no failure recorded) and proceed when it passes. No Checking app indicator while the workspace shows. A newer build keeps the workspace rendered with Updating app until reload; if a form blocks the reload the existing A new version is ready banner applies and writes proceed on the current build. A failed check after the workspace was shown keeps the workspace with the inline banner Couldn't check the app version. Changes are paused. (Thai: ตรวจสอบเวอร์ชันแอปไม่สำเร็จ หยุดการบันทึกไว้ก่อน) and Retry. First launch without cache, signed-out and offline startup are unchanged."
+    "startup_gate": "R083 (Released 20 October 2026, source a4fc75d). The startup build check skips registration.update() when the page entry is current, no worker is waiting or installing and the active worker reports the latest version. A signed-in device with an authorized offline bundle shows the workspace from device-cached data while the check runs; one central gate in live-main makes network reads and writes wait for the check (no failure recorded) and proceed when it passes. No Checking app indicator while the workspace shows. A newer build keeps the workspace rendered with Updating app until reload; if a form blocks the reload the existing A new version is ready banner applies and writes proceed on the current build. A failed check after the workspace was shown keeps the workspace with the inline banner Couldn't check the app version. Changes are paused. (Thai: ตรวจสอบเวอร์ชันแอปไม่สำเร็จ หยุดการบันทึกไว้ก่อน) and Retry. First launch without cache, signed-out and offline startup are unchanged."
     "restore": "After safe reload restore only top-level menu and management section from session state, never record IDs\
       \ or editor contents."
     "delivery": "R061Released15October2026 at03:27:42Bangkok: app/artifactsource1e0dd73, runner5e823791, DEVHosting\
@@ -330,10 +330,10 @@
       \ claim. R060APIs/SQL/workers unchanged; integration carried in OpenR062,nextR063. Currentpins/recovery in inventory\
       \ and existingdevelopmentrecord."
     "sources":
-    - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/usePwa.ts"
-    - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/app-update-safety.ts"
-    - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/live-main.tsx"
-    - "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/live-style.css"
+    - "https://github.com/welct0407/MW-Credit-App/blob/a4fc75d8c9d421f2b70b0b68019bcbf360a0006c/apps/pwa/src/usePwa.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/a4fc75d8c9d421f2b70b0b68019bcbf360a0006c/apps/pwa/src/app-update-safety.ts"
+    - "https://github.com/welct0407/MW-Credit-App/blob/a4fc75d8c9d421f2b70b0b68019bcbf360a0006c/apps/pwa/src/live-main.tsx"
+    - "https://github.com/welct0407/MW-Credit-App/blob/a4fc75d8c9d421f2b70b0b68019bcbf360a0006c/apps/pwa/src/live-style.css"
   "direct_loan_delete":
     "submission": "Loan Delete immediately submits existing online operation without an initial confirm screen or durable\
       \ pending queue. If scoped session recovery metadata cannot be retained, no POST is sent."
@@ -589,8 +589,8 @@
     "reason": "Pin tested pull-gap and automatic app update behavior to immutable source."
     "state": "value"
   "/content/app_updates/startup_gate":
-    "reference": "https://github.com/welct0407/MW-Credit-App/blob/main/Change%20Logs/CHANGE_NOTES_R083_FAST_STARTUP_2026-10-20.md"
-    "reason": "Document R083 fast dashboard startup: skip needless worker update, cached workspace behind one startup gate; source pin follows the commit."
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/a4fc75d8c9d421f2b70b0b68019bcbf360a0006c/apps/pwa/src/usePwa.ts"
+    "reason": "Document R083 fast dashboard startup: skip needless worker update, cached workspace behind one startup gate; source pinned to main a4fc75d (R083 Released)."
     "state": "value"
   "/content/app_updates/sources":
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/a5c3f9f7141ece8b522fbdb76024d132a24cae11/apps/pwa/src/workspace-gestures.ts"

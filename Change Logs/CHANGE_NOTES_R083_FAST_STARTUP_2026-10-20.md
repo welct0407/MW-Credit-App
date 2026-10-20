@@ -1,7 +1,7 @@
 # Change notes — fast dashboard startup (R083), 20 October 2026
 
 ## Purpose
-The owner reported that the landing dashboard sometimes takes several seconds to appear. The PWA startup build check in `apps/pwa/src/usePwa.ts` blocked the UI on two sequential network round trips (`/build-version.json`, then `registration.update()` re-fetching sw.js) plus a worker version message. Owner-approved fix, option B, 20 October 2026. Status: in progress on `claude/r083-fast-startup`.
+The owner reported that the landing dashboard sometimes takes several seconds to appear. The PWA startup build check in `apps/pwa/src/usePwa.ts` blocked the UI on two sequential network round trips (`/build-version.json`, then `registration.update()` re-fetching sw.js) plus a worker version message. Owner-approved fix, option B, 20 October 2026. Status: Frozen 2026-10-20T18:20Z at main `a4fc75d` (PR #104); Released 20 October 2026 (applied and verified in DEV and PROD Hosting; owner acceptance is the owner's production instruction after DEV testing; the real-iPhone check is pending).
 
 ## Changes
 - `apps/pwa/src/usePwa.ts`: skip `registration.update()` when the page entry is current, no worker is waiting or installing, and the active worker reports the latest version.
@@ -26,8 +26,11 @@ The owner reported that the landing dashboard sometimes takes several seconds to
 | Chase diff review | No defects |
 | Echo UX check, local fixture build, 390 px and 1280 px, Chromium only | Warm launch passes with no layout jump; EN and TH banner render correctly; first launch unchanged. STARTUP-09 (duplicate "Showing saved data" line and red badge) was fixed by Byte in `read-cache.ts` (a gate-rejected read records no failure) with a new assertion shown to catch it |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey, closeout) |
+| Promotion tooling (Byte, commit `cda3af82`) | R083 frontend-only Hosting kind (schemaVersion 24) on the R081 runtime: `node --test tests/unit/business-hosting-delivery.test.mjs` 83/83 |
 | Pull request #104 CI (head `e390b78`) | Pass: `Development checks` run 39470902145 (check, lint, 3 e2e shards, GitGuardian) |
 | DEV Hosting deploy (Dewey, owner-authorized DEV only) | Clean tree at `e390b78`; `npm run build:live-dev` labelled `R083` (public client config written from Secret Manager `mw-credit-app-dev-firebase-web` into the gitignored `.env.live-dev` and deleted after the build); `node scripts/deploy-hosting.mjs --live-dev --check` pass. Target verified: project `clever-oasis-508610-n7`, site `mw-credit-app-dev-737787224638`, previous release `1792512054377000` (version `e637e034f772009c`) matching the inventory. Applied: version `0461ff407bb04030`, release `1792519858547000`; marker version `1fc484e8c0d4bf4d9210e7e2`, entry `/assets/index-BKLGsmXL.js` |
+| PROD promotion, 20 October 2026 (Dewey) | UI-only, so no DB backup. Target verified: project `clever-oasis-508610-n7`, site `mw-credit-prod-737787224638`, live release `1792512768522000` (version `4d86438208263113`, marker R081) as in the inventory; the four R081 services re-read live (reader `read-prod-00019-xvt`, command `command-prod-00023-4l9`, notify `notify-prod-00017-mnh`, jobs `jobs-prod-00017-k2w`); `Invoke-CloudFlyway.py verify --target prod` read-only: schema 100, validation successful, nothing pending. Built from a detached worktree at `a4fc75d` with `MW_RELEASE_NUMBER=R083` and the pinned PROD public config (no secret or env file written). Package CI: PR run 39470902145 (head `e390b78`) for check and e2e, Database run 39451897199 and Terraform evidence run 39219602724 reused as input-equivalent. Runner `--check` pass, `--apply` with operator proof: version `cde58b959b311bab`, release `1792520737312000`, marker version `63ee26404a6e98e5a5635bb4`, entry `/assets/index-DPj6nrdR.js`, package sha256 `be595143…`, 15 files, `no-store`. Private package, artifact and receipt kept in the operator bucket |
+| PROD smoke | Read-only. `https://lm.mw-credit.com/build-version.json` 200, `no-store`, release R083, matches entry and version; `/sw.js` 200 `no-store` with the version; entry bundle 200 immutable, carries `a4fc75d`, `"R083"` and "Couldn't check the app version"; `/` 200 `no-store` references the entry; the `web.app` fallback answers 200. No writes, payments or notifications |
 | DEV smoke | `https://dev-lm.mw-credit.com/build-version.json` 200, `no-store`, matches entry, version and `R083`; `/sw.js` 200 `no-store` and contains the version; entry bundle 200 immutable, carries `e390b78` and "Couldn't check the app version"; `/` 200 `no-store` references the entry. Read-only; no writes, notifications or secret output |
 
 Accepted departures from Archie's design: "upgrading" parks reads and writes instead of rejecting them; a `request()` rejected by the gate with no saved data keeps the workspace; the borrower list is not reloaded after the check passes; offline preparation does not start during checking, upgrading or error; the workspace-shown flag resets when the workspace disappears; only Sync now shows "Checking the app version..."; STARTUP-10 skipped.
@@ -35,18 +38,32 @@ Accepted departures from Archie's design: "upgrading" parks reads and writes ins
 ## Not run
 A skipped check is not a pass.
 - No iPhone WebKit or Home Screen check.
-- No live upgrade-path check.
-- No headless Chromium page load of DEV: the cloud session proxy certificate is not trusted by Chromium (`ERR_CERT_AUTHORITY_INVALID`), and TLS verification was not disabled.
+- No live upgrade-path check, and no signed-in PROD check (read-only smoke only).
+- No headless Chromium page load of DEV or PROD: the cloud session proxy certificate is not trusted by Chromium (`ERR_CERT_AUTHORITY_INVALID`), and TLS verification was not disabled.
 - The full e2e suite is left to the pull request's `Development checks`.
 - The first warm reload right after sign-in showed an empty Dashboard in the fixture, most likely because the fixture has no offline bundle; glance at it on DEV.
 - A stale-build launch may show "Updating app..." rather than the workspace, depending on timing (accepted; same as today).
 
 ## Recovery
-Revert the R083 commit on main (branch `claude/r083-fast-startup`). No database, API or infrastructure change. DEV rollback: redeploy the R081 build, Hosting version `e637e034f772009c` (release `1792512054377000`).
+Revert the R083 commit on main. No database, API or infrastructure change. PROD rollback: redeploy the R081 Hosting build, version `4d86438208263113` (release `1792512768522000`), through the same runner; an installed R083 worker upgrades back through the normal update path. DEV rollback: version `e637e034f772009c`. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
 
 ## Open questions
 None.
 
 ## Remaining work
-- Owner DEV and real-iPhone smoke (DEV is deployed; the signed-in warm-launch check is the owner's).
-- Promotion only on owner instruction.
+- The owner's real-iPhone check of the landing dashboard startup, and a glance at the first warm reload right after sign-in (empty Dashboard seen once in the offline-bundle-less fixture).
+
+## Promotion record
+- Authority: owner instruction of 20 October 2026, after testing on DEV: "Tested and it's good. Go for prod promotion". It covers the PWA-only Hosting deploy; no SQL, backup or infrastructure is in scope.
+- Freeze: R083 frozen 2026-10-20T18:20Z; R084 opened in the same tracker update; counter R085.
+- Result: applied and verified in PROD Hosting on 20 October 2026; pins and references are in the inventory.
+- DEV result: Hosting version `0461ff407bb04030` from PR #104 head `e390b78` passed the read-only smoke above, and the owner tested it ("Tested and it's good").
+- Package: main `a4fc75d` (PR #104 merge; run 39470902145), PWA-only Hosting with the marker release `R083`. Pins go to the [environment inventory](../project/Documents/Environment_Inventory.md).
+- Excluded: API, SQL, infrastructure, the integration agent, financial corrections, forced notifications and anything merged after `a4fc75d`.
+
+### Closure pruning (release workflow, 20 October 2026)
+- Inbound links repointed first to a commit permalink of `cda3af82` (the last commit where the target exists): the tracker's R080 record link and the Development Changes R080 row.
+- Development Changes: the R083 row now records the release; no section existed.
+- Change note deleted (R080 left the retention window of R083, R082 and R081): `Change Logs/CHANGE_NOTES_R080_PUSH_NOTIFICATION_CONTENT_2026-10-20.md`.
+- Evidence deleted: none (see the `npm run check:docs` result).
+- Tooling: Byte's commit `cda3af82` carries the R083 runner kind, its unit test and the README section.
