@@ -14,7 +14,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
-| R079 | Frozen 2026-10-20T12:02Z for the owner's production instruction of 20 October 2026; package main `823e9e5` (PR #95; `Development checks` run 39418704634, `Database migrations` run 39418399589); receipt amount thousands comma in the command API, no SQL | DEV and PROD promotion in progress, to go to PROD before R080; [promotion record](../../Change%20Logs/CHANGE_NOTES_R079_RECEIPT_AMOUNT_COMMA_2026-10-20.md#promotion-record) |
+| R079 | Frozen 2026-10-20T12:02Z for the owner's production instruction of 20 October 2026; package main `823e9e5` (PR #95; `Development checks` run 39418704634, `Database migrations` run 39418399589); receipt amount thousands comma in the command API, no SQL | DEV deployed 20 October 2026, PROD next, before R080; [promotion record](../../Change%20Logs/CHANGE_NOTES_R079_RECEIPT_AMOUNT_COMMA_2026-10-20.md#promotion-record) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

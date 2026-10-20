@@ -1,7 +1,7 @@
 # Change notes — receipt amount with thousands comma in the command API (R079), 20 October 2026
 
 ## Purpose
-Gemini returns slip amounts such as `1,480.00`. The command API's `slipFields` accepted only a plain decimal, so it warned `amount_unreadable` and the payment receiving form filled no amount; the failure is deterministic (model temperature 0), so a retry failed the same way. The integration agent already accepted the grouped comma (commit `f1cfbe4`, deployed at `55964c7`); the API rule had not been ported. Status: Frozen 2026-10-20T12:02Z at main `823e9e5` (PR #95); DEV and PROD promotion in progress.
+Gemini returns slip amounts such as `1,480.00`. The command API's `slipFields` accepted only a plain decimal, so it warned `amount_unreadable` and the payment receiving form filled no amount; the failure is deterministic (model temperature 0), so a retry failed the same way. The integration agent already accepted the grouped comma (commit `f1cfbe4`, deployed at `55964c7`); the API rule had not been ported. Status: Frozen 2026-10-20T12:02Z at main `823e9e5` (PR #95); deployed to DEV 20 October 2026; PROD promotion next.
 
 ## Changes
 - API (Byte, commit `1ebe0cf`): `services/receipts/recognizer-rules.mjs` strips a correctly grouped thousands comma (`^\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?$`) before the unchanged plain-amount check. `5,00`, `1,2345` and `1,48,000` stay `amount_unreadable`; a non-zero fraction still warns `amount_fractional`. The unit test `tests/unit/receipt-recognition-rules.test.mjs` covers the cases.
@@ -16,7 +16,7 @@ Gemini returns slip amounts such as `1,480.00`. The command API's `slipFields` a
 | `npx biome check` on the runner and its test | 0 errors; the same 3 warnings exist on `main` |
 | `npm run check:docs` | Pass (local, 20 October 2026) |
 | PR #95 CI on main `823e9e5` (receipt rule unit test, lint, typecheck, build, e2e) | `Development checks` run 39418704634 and `Database migrations` run 39418399589 |
-| DEV promotion | To be filled |
+| DEV promotion, 20 October 2026 (Forge, scratch clone at `823e9e5`) | Image built (Cloud Build SUCCESS 12:02:13Z) and applied on the four services (plan 0/4/0, 12:04:27Z to 12:09:05Z, re-plan No changes); Hosting deployed, label R079. Smoke: build-version R079, bundle carries `823e9e5` and `"R079"`, reader and command `/health` 200, unauthenticated `/api/session` 401, no ERROR logs 12:04Z to 12:11:33Z. Pins are in the inventory |
 | PROD promotion | To be filled |
 
 ## Not run
@@ -39,4 +39,5 @@ DEV and PROD promotion; fill the DEV and PROD Checks rows; the owner re-checks t
 - Owner instruction: see Promotion authority above.
 - Freeze: R079 frozen 2026-10-20T12:02Z at main `823e9e593afde879fdb0ba94e198ea0351975aea` (PR #95); R080 opened in the same tracker update for the push-notification content work (V99), which deploys only after R079 is in PROD.
 - Package: that commit; no SQL (PROD stays at V98, 98 rows); plan 0/4/0 of the four images; Hosting marker R079. Pins and references go to the [environment inventory](../project/Documents/Environment_Inventory.md).
+- Deviation, DEV build: `npm run build:live-dev` did not fetch Secret Manager `mw-credit-app-dev-firebase-web` itself. Forge wrote the ignored `.env.live-dev` from the secret plus the seven settings the live R078 DEV bundle carries (including `VITE_COMMAND_MODE=dev-owner-testing`), rebuilt, and deleted the file. [docs/Development.md](../docs/Development.md) now describes that step; no script changed in this release.
 - Excluded: any SQL, financial correction, forced notification, agent change and anything merged after `823e9e5`.

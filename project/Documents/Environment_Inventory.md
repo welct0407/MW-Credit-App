@@ -1,6 +1,6 @@
 # Current environment inventory
 
-Updated 19 October 2026 (R078 DEV rollout and PROD deploy: V97, image, revisions, Hosting) from existing deployment evidence (R075 promotion to PROD and DEV: runtime, V96, Hosting and agent; R076 and R077 images and Hosting). This is the only document that holds deployment pins (Hosting versions, Cloud Run revisions and image digests, Debian commit, Flyway version). Other documents link here. No unrelated live audit was performed; use [release tracker](Release_Tracker.md) for release status.
+Updated 20 October 2026 (R079 DEV deploy: image, revisions, Hosting; R078 DEV rollout and PROD deploy: V97, image, revisions, Hosting) from existing deployment evidence (R075 promotion to PROD and DEV: runtime, V96, Hosting and agent; R076 and R077 images and Hosting). This is the only document that holds deployment pins (Hosting versions, Cloud Run revisions and image digests, Debian commit, Flyway version). Other documents link here. No unrelated live audit was performed; use [release tracker](Release_Tracker.md) for release status.
 
 | Component | DEV | PROD |
 | --- | --- | --- |
@@ -24,7 +24,7 @@ One pin per cell, one row per target. Rollback entries are the previous verified
 
 | Target | Hosting version | Release / public version | Verified | Rollback version | Record |
 | --- | --- | --- | --- | --- | --- |
-| DEV | `6535d3606fe2d928` | release `1792430999751000`; `build-version.json` version `880bced12371f2a8b8922405`, release label `R078` | R078 inline values, main `68ce669`, 19 October 2026 (read from the live Hosting release list) | `d305a3e92154f8e9` (R078 follow-up, main `113691f`, release `1792427066110000`); earlier `40289b5b4514f02b` | [R078 change note](../../Change%20Logs/CHANGE_NOTES_R078_DELTA_SYNC_EFFICIENCY_2026-10-19.md) |
+| DEV | `7f473e096277c583` | release `1792498244351000`; `build-version.json` version `77edcd7f2952877766c30d48`, release label `R079` | R079 receipt amount comma, main `823e9e5`, 20 October 2026 (smoke: bundle carries `823e9e5` and `"R079"`). Private copies under `promotion-packages/r079/dev/` in the private operator bucket | `6535d3606fe2d928` (R078 inline values, release `1792430999751000`); earlier `d305a3e92154f8e9` | [R079 change note](../../Change%20Logs/CHANGE_NOTES_R079_RECEIPT_AMOUNT_COMMA_2026-10-20.md) |
 | PROD | `fb3c76a2b0b02838` | release `1792435625368000`; `build-version.json` version `c164dbbadc253404cde29868`, release `R078` | R078, built from main `68ce669` (deployed from main `66ebed9`), 19 October 2026; the bundle carries `68ce669`. Delivery receipt package sha256 `890bed141456174957d118d08919bcf447fdeb670d01e98f644440828e72eb8e` under `promotion-packages/r078/` in the private operator bucket; the tool overwrote `promotion-receipts/receipt.json`, and the R077 copy remains in `promotion-packages/r077/` | `9557401447db56b6` (R077, release `1792397801569000`); earlier `3579d07b8d5a53c9` (R076) | [R078 change note](../../Change%20Logs/CHANGE_NOTES_R078_DELTA_SYNC_EFFICIENCY_2026-10-19.md) |
 
 Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, immutable `/assets/**`, `no-store` for `/`, `sw.js`, `build-version.json`, manifest and `offline.html`; viewport zoom lock kept (accepted design, W5 R068).
@@ -33,15 +33,17 @@ Headers on both: CSP (PROD API origins only on PROD), `X-Frame-Options: DENY`, i
 
 | Target | Service | Revision (100%) | Image digest | Rollback revision and image |
 | --- | --- | --- | --- | --- |
-| DEV | reader | read-00034-qst | `api@sha256:1088156b31f6f1bab44c81e19e1951a25620bdb96b09d0479de964e81f596f3c` (R078 inline values, source `68ce669`, Cloud Build `2ab56447-6bd2-4fab-bee3-6cb9b2cd442e`; request timeout 15 s) | read-00033-g4d on `api@sha256:1422f11b87423844b8196a943f53346fc010f26f40bd9603cf09dab342750f4f` (R078 follow-up, source `113691f`) |
-| DEV | command | command-00046-bt6 | same as the DEV reader (request timeout 55 s) | command-00045-t6f on `1422f11b...`; earlier 00044-hf9 on `e9a113e8...` |
-| DEV | notify | notify-00014-j9w | same | notify-00013-glm |
-| DEV | jobs | jobs-00014-zrq | same | jobs-00013-mfd |
+| DEV | reader | read-dev-00035-mvw | `api@sha256:4e6fec1a3b7fbeaf3460f154f8189eb610e145c7d5182728c69e16c6b40d2a7b` (R079, source `823e9e5`, Cloud Build `f4bb485f-8bab-49ff-9abf-1fde66b9989f`, keep tag `keep-dev-20261020-4e6fec1a`; request timeout 15 s) | read-dev-00034-qst on `api@sha256:1088156b31f6f1bab44c81e19e1951a25620bdb96b09d0479de964e81f596f3c` (R078 inline values, source `68ce669`) |
+| DEV | command | command-dev-00047-x8b | same as the DEV reader (request timeout 55 s) | command-dev-00046-bt6 on `1088156b...` |
+| DEV | notify | notify-dev-00015-2kq (120 s) | same | notify-dev-00014-j9w |
+| DEV | jobs | jobs-dev-00015-zlp (120 s) | same | jobs-dev-00014-zrq |
 | PROD | reader | read-00016-4jg | `mw-credit-app-prod/api@sha256:4ae629173aa6d7f2334c80a1f7c600176acff2c5d9ada0f74d040990a3301d27` (R078, source `68ce669`, Cloud Build `b9af4c3e-deb9-43a5-bae0-1fb0350caeba`; request timeout 15 s) | read-00015-6xw on `api@sha256:3343d0b50bdd425c92cd6f3977737da81f0e0811d34224e830c0f9f7a15a1e50` (R077) |
 | PROD | command | command-00020-5xz (request timeout 55 s) | same | command-00019-xtc on `3343d0b5...` |
 | PROD | notify | notify-00014-8gk (120 s) | same | notify-00013-2xd |
 | PROD | jobs | jobs-00014-5ds (120 s) | same | jobs-00013-vgd |
 | PROD | bridge `mw-grafana-events` | `00015-qcs` (recorded telemetry rollout; not re-read) | `keep-grafana-events-live` `9ba9b0f2...` | not recorded |
+
+R079 DEV (20 October 2026, from a scratch clone at main `823e9e5`): Cloud Build `f4bb485f-8bab-49ff-9abf-1fde66b9989f` SUCCESS 12:02:13Z; plan 0/4/0, image only (sha256 `5fd0a8cfd016d5a1e576a56974f062b698856aea1c586d0b52f5d216007d2813`), applied 12:04:27Z to 12:09:05Z, re-plan No changes; DEV activation generation `1792498166750305`, rollback generation `1792430959610574`. Smoke: reader and command `/health` 200, unauthenticated `/api/session` 401, no ERROR logs 12:04Z to 12:11:33Z.
 
 R078 PROD (19 October 2026): plan 0/4/0 (sha256 `45ae4a0d614abfefe0c18a8f48349b5f28ae32647ca820606d2f1e20dbd82bf7`) applied 18:41:37Z to 18:42:14Z; activation generation `1792435339240935`; rollback copy `production.activation.before-r078-1792397673917349.tfvars` (baseline generation `1792397673917349`). DEV applied about 09:43Z, PROD 10:17:44 to 10:18:21Z, both 17 October 2026 (plans 0/4/0, re-plan No changes). Reader and command run `services/production/business-server.mjs`; DEV uses `APP_ENV=dev`, database user `mw-credit-app-read-dev` for the reader, Cloud Run request timeout 15 s on the reader and 55 s on the command service from R077 (DEV and PROD), startup CPU boost on reader and command. PROD workers pin `WORKER_CALLER_SUBJECTS_JSON`. PROD health 200, unauthenticated 401 and CORS verified. R078 DEV (19 October 2026): Terraform plan 0 add, 4 change, 0 destroy (plan sha256 `06f327f865561b16f62cbcf7eda84ea0557cd44b5b1883418d1541ff0f48af29`), DEV activation generation `1792420664376927`; rollback generation `1792397557965593`. R078 follow-up (main `113691f`): plan 0/4/0 (sha256 `6e9ed9dc0cdbdb567087fe827ba0c4c389aa4a49dd4e6105e18263c467c8c5c6`), DEV settings generation `1792427018346830`, rollback `1792420664376927`. R078 inline values (main `68ce669`): plan 0/4/0 (sha256 `5bf1ed0fa7766843f09754f91fb7f6137c4052ad1a85660c5105fead319b97a0`), DEV settings generation `1792430959610574`, rollback `1792427018346830`. Image keep tags `keep-dev-20261019-1088156b` (current), `keep-dev-20261019-1422f11b` (previous, rollback), `keep-dev-20261019-e9a113e8` (previous, rollback) and `keep-dev-20261019-0c9a04f5` (R077 command image). Rollback route: `dev.activation.before.tfvars` (DEV) and `production.activation.before.tfvars` (PROD) in the private R069 promotion folder. Records: [R069 follow-ups](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r069-w4-optional-follow-ups) (DEV), [R069 promotion](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r069-production-promotion) (PROD).
 
@@ -140,7 +142,8 @@ Dedicated VM-01 UAMI and Azure-to-GCP federation provide unattended administrati
 | mw-credit-app-prod/api | `keep-r059-notify` | `b4f528bc...` (rollback PROD notify) |
 | mw-credit-app-prod/api | `keep-r059-jobs` | `11c149f7...` (rollback PROD jobs) |
 | mw-monitoring/grafana-mcp-bridge | `keep-grafana-events-live` | `9ba9b0f2...` |
-| DEV api | `keep-dev-20261017-1fb9d763` | `1fb9d763451c...` (current DEV image, R069) |
+| DEV api | `keep-dev-20261020-4e6fec1a` | `4e6fec1a...` (current DEV image, R079) |
+| DEV api | `keep-dev-20261017-1fb9d763` | `1fb9d763451c...` (earlier DEV image, R069) |
 | DEV api | `keep-dev-20261017-2857d7ce` | `2857d7ce...` (previous DEV image, R068; DEV rollback) |
 | DEV api | `keep-dev-20261016-6a3effe4` | `6a3effe4...` (previous DEV image, R067) |
 | DEV api | `keep-dev-20261016-4689ce78` | `4689ce78...` (previous DEV image, R064 sync correction) |
