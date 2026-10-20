@@ -24,3 +24,16 @@ test('identity uses the same cancellation signal for token and Firebase lookup a
  const lookup=createNotificationIdentityLookup('synthetic-project',async(url,options)=>{assert.equal(options.signal,controller.signal);assert.equal(options.redirect,'error');calls++;return{ok:true,json:async()=>calls===1?{access_token:'synthetic-token'}:{users:[{localId:'subject',email:'synthetic@example.invalid',emailVerified:true,providerUserInfo:[{providerId:'google.com'}]}]}};});
  const user=await lookup('subject',{signal:controller.signal});assert.equal(user.emailVerified,true);assert.equal(user.providerData[0].providerId,'google.com');assert.equal(calls,2);
 });
+test('R079 transport sends v2 rendered text and falls back to generic text for missing or out-of-bounds content',async()=>{
+ const {default:webpush}=await import('web-push');const original=webpush.generateRequestDetails;const payloads=[];
+ webpush.generateRequestDetails=(sub,payload,options)=>{payloads.push({payload:JSON.parse(payload),options});return original.call(webpush,sub,payload,options);};
+ try{
+  const send=await createWebPushTransport(vapid,{request:(_url,_options,callback)=>{const req=new EventEmitter();req.end=()=>queueMicrotask(()=>callback({statusCode:201,destroy(){}}));return req;}});
+  const id='12345678-1234-4234-8234-123456789abc',generic={title:'MW Credit',body:'New activity'};
+  for(const [content,expected] of [[{title:'Payment received ฿5,000',body:'Somchai Jaidee'},{title:'Payment received ฿5,000',body:'Somchai Jaidee'}],[undefined,generic],[null,generic],[{title:'',body:'x'},generic],[{title:'x'.repeat(61),body:'x'},generic],[{title:'x',body:'x'.repeat(201)},generic],[{title:1,body:'x'},generic]]){
+   assert.deepEqual(await send(subscription,id,{content}),{kind:'accepted'});
+   const {payload,options}=payloads.pop();assert.deepEqual(payload,{v:2,eventId:id,...expected,url:'/?notification='+id,tag:'mw-credit-'+id});
+   assert.equal(options.TTL,3600);assert.equal(options.urgency,'normal');assert.match(options.topic,/^[a-f0-9]{32}$/);assert.doesNotMatch(JSON.stringify(payload),/update/i);
+  }
+ }finally{webpush.generateRequestDetails=original;}
+});

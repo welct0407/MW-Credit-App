@@ -1,3 +1,4 @@
+import {genericNotification,renderNotification} from './content.mjs';
 /** Claim just before each send so a slow provider cannot expire an entire batch. */
 export function createNotificationDispatcher({pool,transport,eligible,guardConnection,enabled=false,shouldStop=()=>false,remainingMs=()=>Infinity,signal=()=>undefined}){
  if(enabled&&(typeof transport!=='function'||typeof eligible!=='function'||typeof guardConnection!=='function'))throw Error('notification_dependencies_required');
@@ -13,9 +14,15 @@ export function createNotificationDispatcher({pool,transport,eligible,guardConne
    const eligibility=shouldStop()||remainingMs()<8000?null:checked;
    let result={kind:eligibility===null?'deferred':'ineligible'};
    if(eligibility===true){
+    // R079 (V99): event wording. Best effort: any failure (including a database before V99) sends the generic
+    // text and never defers, fails or re-orders the delivery; lease, fence and result handling are unchanged.
+    let content;
+    try{const facts=(await query('SELECT * FROM public.pwa_notify_content_v1($1::uuid,$2::bigint)',[delivery.delivery_id,delivery.lease_generation])).rows[0];
+     content=facts?renderNotification({found:facts.found,eventType:facts.event_type,language:facts.language,borrowerName:facts.borrower_name,amount:facts.amount}):genericNotification();}
+    catch{content=genericNotification();}
     const started=(await query('SELECT public.pwa_notify_start_send_v1($1::uuid,$2::bigint,$3::bigint) AS started',[delivery.delivery_id,delivery.lease_generation,row.version])).rows[0].started;
     if(!started){results.push({state:'fenced'});continue;}
-    try{if(shouldStop()||remainingMs()<=0)throw Error('request_expired_after_send_fence');result=await transport({endpoint:row.endpoint,expirationTime:row.expires_at?new Date(row.expires_at).getTime():null,keys:{p256dh:row.p256dh,auth:row.auth}},delivery.event_id,{timeoutMs:Math.min(8000,remainingMs()),signal:signal()});}catch{result={kind:'network'};}
+    try{if(shouldStop()||remainingMs()<=0)throw Error('request_expired_after_send_fence');result=await transport({endpoint:row.endpoint,expirationTime:row.expires_at?new Date(row.expires_at).getTime():null,keys:{p256dh:row.p256dh,auth:row.auth}},delivery.event_id,{timeoutMs:Math.min(8000,remainingMs()),signal:signal(),content});}catch{result={kind:'network'};}
    }
    if(!['accepted','expired','throttled','unavailable','network','rejected','ineligible','deferred'].includes(result.kind))throw Error('invalid_provider_result');
    const state=(await query('SELECT public.pwa_notify_complete_v1($1::uuid,$2::bigint,$3::text) AS state',[delivery.delivery_id,delivery.lease_generation,result.kind])).rows[0].state;

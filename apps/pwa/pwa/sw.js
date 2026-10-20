@@ -90,12 +90,15 @@ self.addEventListener('fetch', event => {
   })());
 });
 
-// Generic lock-screen contents only. The application resolves the opaque event
-// through authenticated same-environment APIs after sign-in.
+// R079: a v2 push carries the event's own title and body (activity, amount, borrower; owner-accepted on the
+// lock screen). A v1 push, or text out of bounds, shows the neutral fallback. The tap still resolves the
+// opaque event through authenticated same-environment APIs after sign-in.
 self.addEventListener('push',event=>{
  event.waitUntil((async()=>{let payload;try{payload=event.data?.json()}catch{return;}
- if(payload?.v!==1||typeof payload.eventId!=='string'||!/^[a-f0-9-]{36}$/.test(payload.eventId))return;
- await self.registration.showNotification('MW Credit',{body:'An update is available.',tag:'mw-credit-'+payload.eventId,data:{eventId:payload.eventId}});
+ if((payload?.v!==1&&payload?.v!==2)||typeof payload.eventId!=='string'||!/^[a-f0-9-]{36}$/.test(payload.eventId))return;
+ const text=value=>typeof value==='string'&&value.length>=1;
+ const own=payload.v===2&&text(payload.title)&&text(payload.body)&&payload.title.length<=60&&payload.body.length<=200;
+ await self.registration.showNotification(own?payload.title:'MW Credit',{body:own?payload.body:'New activity · มีรายการใหม่',tag:'mw-credit-'+payload.eventId,data:{eventId:payload.eventId}});
  })());
 });
 self.addEventListener('notificationclick',event=>{
