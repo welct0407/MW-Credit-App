@@ -180,6 +180,19 @@ class PollTests(unittest.TestCase):
         with patch('mw_integration_agent.conversation_poll.run',return_value={'image_jobs':1,'failed_conversations':1}),patch('builtins.print'):
             self.assertEqual(execute(args),2)
 
+    def test_run_wakes_receipt_cycle_only_when_images_were_queued(self):
+        from pathlib import Path
+        from mw_integration_agent.conversation_poll import run
+        config=dict(self.c,conversation_poll_enabled=True,state_directory=self.tmp.name)
+        wake=Path(self.tmp.name)/'receipt-wake'
+        for jobs,expected in ((0,False),(2,True)):
+            with self.subTest(jobs=jobs),patch('mw_integration_agent.conversation_poll.controls',return_value=config), \
+                 patch('mw_integration_agent.conversation_poll.load_json',return_value={'services':{'conversation_poll':{'enabled':True}}}), \
+                 patch('mw_integration_agent.conversation_poll.masters'),patch('mw_integration_agent.conversation_poll.Instagram'), \
+                 patch('mw_integration_agent.conversation_poll.scan',return_value={'image_jobs':jobs}):
+                self.assertEqual(run('unused','unused'),{'image_jobs':jobs})
+                self.assertEqual(wake.exists(),expected)
+
     def forwarding(self):
         self.master['borrowers'][0]['id']='borrower-row'
         self.c.update(receipt_forwarding_enabled=True,receipt_forwarder_partner_id='p',

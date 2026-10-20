@@ -103,7 +103,7 @@ class Host:
         write(self.site, INSTALLED)
         write(self.systemd, {n: '[Unit]\n# ' + n + ' old\n' for n in deploy.UNIT_FILES if n != MISSING_UNIT})
         (self.private / 'secrets').mkdir(parents=True)
-        self.timers = {u + '.timer': 'active' for u in deploy.UNITS}
+        self.timers = {t: 'active' for t in deploy.TRIGGERS}
         self.timers['mw-audit-relay.timer'] = 'inactive'
         self.invocation, self.modes, self.events, self.ancestry_rc = 1, [], [], 0
         host = self
@@ -279,7 +279,8 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual(metadata['installed_code_version'], OLD)
         self.assertEqual(set(metadata['unit_hashes']), set(deploy.UNIT_FILES) - {MISSING_UNIT})
         self.assertEqual(deploy.unit_hashes(backup / 'units'), metadata['unit_hashes'])
-        self.assertEqual(metadata['resume_timers'], [u + '.timer' for u in deploy.UNITS if u != 'mw-audit-relay'])
+        self.assertEqual(metadata['resume_timers'], [t for t in deploy.TRIGGERS if t != 'mw-audit-relay.timer'])
+        self.assertIn('mw-receipt-wake.path', metadata['resume_timers'])
         self.assertEqual(metadata['phase'], 'frozen')
 
     def test_install_removes_stale_modules_installs_units_and_token_backup(self):
@@ -380,6 +381,54 @@ class EngineFlowTests(unittest.TestCase):
             self.host.phase('rollback')
         self.assertEqual(set(self.host.timers.values()), {'inactive'})
         self.assertEqual(self.host.metadata()['phase'], 'rolling-back')
+
+    def recorded_stops(self):
+        stops, real = [], deploy.run
+
+        def run(*args):
+            if args[:2] == ('systemctl', 'stop'):
+                stops.append(args[2:])
+            return real(*args)
+        self.enterContext(patch.object(deploy, 'run', run))
+        return stops
+
+    def test_receipt_wake_path_is_a_trigger_unit(self):
+        # B1: installed with the units, stopped beside the worker timers, resumed like a timer.
+        self.assertEqual(deploy.PATHS, ['mw-receipt-wake.path'])
+        self.assertIn('mw-receipt-wake.path', deploy.UNIT_FILES)
+        self.assertEqual(set(deploy.TRIGGERS), {'mw-receipt-wake.path'} | {u + '.timer' for u in deploy.UNITS})
+        self.assertTrue((Path(__file__).parents[1] / 'systemd/mw-receipt-wake.path').is_file())
+
+    def test_path_unit_not_yet_installed_is_not_stopped_or_resumed(self):
+        # First deployment of the path unit: absent on the host reads inactive and must not reach systemctl stop.
+        del self.host.timers['mw-receipt-wake.path']
+        stops = self.recorded_stops()
+        self.deployed()
+        self.assertNotIn('mw-receipt-wake.path', [unit for call in stops for unit in call])
+        self.assertNotIn('mw-receipt-wake.path', self.host.metadata()['resume_timers'])
+        self.assertEqual(self.host.phase('activate')[0], 0)
+        self.assertEqual(self.host.timers.get('mw-receipt-wake.path', 'inactive'), 'inactive')
+
+    def test_active_path_unit_blocks_install_and_activation(self):
+        self.assertEqual(self.host.phase('freeze')[0], 0)
+        self.host.timers['mw-receipt-wake.path'] = 'active'
+        with self.assertRaisesRegex(RuntimeError, 'Timers or path units not paused'):
+            self.host.phase('install')
+        self.assertNotIn('pip', self.host.events)
+        self.host.timers['mw-receipt-wake.path'] = 'inactive'
+        self.assertEqual(self.host.phase('install')[0], 0)
+        self.host.timers['mw-receipt-wake.path'] = 'active'
+        with self.assertRaisesRegex(RuntimeError, 'Timers or path units not paused'):
+            self.host.phase('activate')
+        self.assertEqual(self.host.live(), self.host.config)
+
+    def test_manual_rollback_stops_and_resumes_the_path_unit(self):
+        self.deployed(); self.assertEqual(self.host.phase('activate')[0], 0)
+        self.assertEqual(self.host.timers['mw-receipt-wake.path'], 'active')
+        stops = self.recorded_stops()
+        self.assertEqual(self.host.phase('rollback')[0], 0)
+        self.assertIn('mw-receipt-wake.path', stops[0])
+        self.assertEqual(self.host.timers['mw-receipt-wake.path'], 'active')
 
     def test_stale_pointer_is_archived_only_for_terminal_phases(self):
         backup = self.host.pointer.parent / 'runtime-old'
@@ -484,7 +533,7 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual(report['receiver'], {'invocation_id': 'inv-7', 'active_state': 'active'})
         self.assertEqual(report['units']['compared_with'], 'checkout')
         self.assertEqual(report['units']['files'], {n: 'missing-on-host' if n == MISSING_UNIT else 'changed' for n in deploy.UNIT_FILES})
-        self.assertEqual(report['timers_to_pause_and_resume'], [u + '.timer' for u in deploy.UNITS])
+        self.assertEqual(report['timers_to_pause_and_resume'], deploy.TRIGGERS)
         self.assertEqual(set(report['identity'].values()), {'unreadable'})
         self.assertEqual([step.split(':')[0] for step in report['plan']], ['freeze', 'install', 'activate', 'on activation failure'])
 

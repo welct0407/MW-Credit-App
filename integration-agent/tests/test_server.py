@@ -185,6 +185,27 @@ class ReceiverTests(unittest.TestCase):
         self.assertEqual(self.request('POST', '/instagram', body=valid, headers=self.signed(valid)), (503, 'Receiver disabled'))
         self.assertEqual(self.journal_rows(), 1)
 
+    def test_capture_wakes_receipt_cycle_only_for_new_actionable_messages(self):
+        wake = Path(self.fixture.config['state_directory']) / 'receipt-wake'
+        def payload(mid, text='', image=False, reply=None):
+            message = {'mid': mid, 'text': text}
+            if image:message['attachments'] = [{'type': 'image', 'payload': {'url': 'https://cdn.invalid/receipt'}}]
+            if reply:message['reply_to'] = {'mid': reply}
+            return json.dumps({'object': 'instagram', 'entry': [{'id': '100', 'messaging': [
+                {'sender': {'id': '200'}, 'recipient': {'id': '100'}, 'timestamp': int(time.time() * 1000), 'message': message}]}]}).encode()
+        def post(raw, signed=True):
+            return self.request('POST', '/instagram', body=raw, headers=self.signed(raw) if signed else {})
+        image = payload('m1', image=True)
+        self.assertEqual(post(image, signed=False), (403, 'Forbidden')); self.assertFalse(wake.exists())
+        self.assertEqual(post(payload('m0', text='hello')), (200, 'EVENT_RECEIVED')); self.assertFalse(wake.exists())
+        self.assertEqual(post(image), (200, 'EVENT_RECEIVED')); self.assertTrue(wake.exists())
+        wake.unlink(); self.assertEqual(post(image), (200, 'EVENT_RECEIVED')); self.assertFalse(wake.exists())
+        for raw in (payload('m2', text='yes', reply='out'), payload('m3', text=' Review ')):
+            self.assertEqual(post(raw), (200, 'EVENT_RECEIVED')); self.assertTrue(wake.exists()); wake.unlink()
+        with patch('mw_integration_agent.receipt_wake.path', return_value=wake.parent / 'missing' / 'receipt-wake'):
+            self.assertEqual(post(payload('m4', image=True)), (200, 'EVENT_RECEIVED'))
+        self.assertFalse(wake.exists())
+
     def errors(self, method, path, body=None, headers=None):
         with patch('sys.stderr', new_callable=io.StringIO) as stderr:
             result = self.request(method, path, body=body, headers=headers)

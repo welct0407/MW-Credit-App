@@ -71,6 +71,11 @@ class RuntimeDeploymentTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 runtime.probe({}, {}, '11111111-1111-4111-8111-111111111111')
 
+    def test_runtime_deploy_pauses_and_installs_the_receipt_wake_path(self):
+        # B1: the code-only route shares the engine's unit and trigger lists.
+        self.assertIn('mw-receipt-wake.path', base.UNIT_FILES)
+        self.assertIn('mw-receipt-wake.path', base.TRIGGERS)
+
     def test_one_off_activation_scripts_are_deleted(self):
         # AGT-QUALITY-05: deploy-runtime.py (with its engine) is the one deploy helper.
         for name in ('activate-conversation-poll.sh', 'activate-partner-conversations.sh', 'activate-partner-review.sh',

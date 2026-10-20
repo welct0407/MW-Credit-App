@@ -4,7 +4,7 @@
 
 - Runs on the Debian 13 VM `vm-mw-credit-agent` (GCP project `clever-oasis-508610-n7`, `asia-southeast1`) as the `mwagent` service user, installed from `/opt/mw-integration-agent-src` (a clone of this repository).
 - Always on: the signed Instagram webhook receiver (`mw-instagram-webhook`) behind the Cloudflare tunnel, and the Cloud SQL Auth Proxy units.
-- Timers (installed from `systemd/`; which ones are enabled is set by the owner, see the [catalogue](SERVICE_CATALOGUE.md)): conversation poll, receipt summary, partner conversation, daily cash statement and its email retry, audit relay (every 30 s) and audit retention.
+- Timers (installed from `systemd/`; which ones are enabled is set by the owner, see the [catalogue](SERVICE_CATALOGUE.md)): conversation poll (every minute), receipt summary (with the `mw-receipt-wake.path` trigger), partner conversation, daily cash statement and its email retry, audit relay (every 30 s) and audit retention.
 - State and audit live in the Cloud SQL database `mw_agent`; business data stays in `loan_manager_prod`. AppSheet is retired.
 - Deployed version and pins: see the [Environment Inventory](../project/Documents/Environment_Inventory.md#latest-verified-deployments).
 - Read next: [Operations](docs/OPERATIONS.md) (deploy route, verification, recovery).

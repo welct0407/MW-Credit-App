@@ -32,7 +32,10 @@ READY_TIMEOUT = 30
 # These oneshot workers can import the replaced package; they stay paused until the receiver is ready.
 UNITS = ['mw-conversation-poll', 'mw-receipt-summary', 'mw-cash-statement',
          'mw-cash-statement-email-retry', 'mw-partner-conversation', 'mw-audit-relay']
-UNIT_FILES = [RECEIVER] + [u + '.service' for u in UNITS]
+# Path units start a worker on demand (B1 receipt wake); paused, recorded and resumed exactly like the timers.
+PATHS = ['mw-receipt-wake.path']
+TRIGGERS = [u + '.timer' for u in UNITS] + PATHS
+UNIT_FILES = [RECEIVER] + [u + '.service' for u in UNITS] + PATHS
 CONFIGS = ('config.json', 'service-catalogue.json')
 TERMINAL = ('activated', 'rolled-back')
 OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -175,12 +178,13 @@ def invocation():
 
 
 def quiet():
-    require(all(active(u + '.timer') == 'inactive' for u in UNITS), 'Timers not paused')
+    require(all(active(t) == 'inactive' for t in TRIGGERS), 'Timers or path units not paused')
     require(all(active(u + '.service') in ('inactive', 'failed') for u in UNITS), 'Worker still running')
 
 
 def pause():
-    run('systemctl', 'stop', *[u + '.timer' for u in UNITS])
+    # A path unit not yet installed reads inactive; systemctl stop would fail on a not-loaded unit.
+    run('systemctl', 'stop', *[p for p in PATHS if active(p) != 'inactive'], *[u + '.timer' for u in UNITS])
     deadline = time.monotonic() + 2400
     while any(active(u + '.service') not in ('inactive', 'failed') for u in UNITS):
         require(time.monotonic() < deadline, 'Workers still running; timers remain paused')
@@ -414,17 +418,18 @@ def dry_run(commit):
                        'checkout' if head == commit else 'not compared (commit not in checkout)',
                        'files': {name: attempt(lambda name=name: unit(name)) if comparable else 'unknown'
                                  for name in UNIT_FILES}}
-    timers = {u + '.timer': attempt(lambda u=u: active(u + '.timer')) for u in UNITS}
+    timers = {t: attempt(lambda t=t: active(t)) for t in TRIGGERS}
     report['timers_to_pause_and_resume'] = [t for t, state in timers.items() if state == 'active']
     report['timers_unreadable'] = [t for t, state in timers.items() if state == 'unreadable']
     report['plan'] = [
-        'freeze: archive a finished pointer; stop worker timers; wait for workers; back up config, catalogue, package and units; '
+        'freeze: archive a finished pointer; stop worker timers and path units; wait for workers; back up config, catalogue, package and units; '
         'record receiver InvocationID, unit hashes and ancestry',
         'install: pip install --no-deps ' + str(REPO) + '; delete installed *.py absent from source; verify installed == source; '
         'install changed units; daemon-reload; create the Graph token backup file when missing',
         'activate: read-only probe; write config/catalogue; restart ' + RECEIVER + '; wait for /ready with this commit (' +
-        str(READY_TIMEOUT) + ' s) and a new InvocationID; then start the paused timers',
-        'on activation failure: automatic rollback (package, config, units, daemon-reload, receiver restart and check); timers stay stopped']
+        str(READY_TIMEOUT) + ' s) and a new InvocationID; then start the paused timers and path units',
+        'on activation failure: automatic rollback (package, config, units, daemon-reload, receiver restart and check); '
+        'timers and path units stay stopped']
     return report
 
 
@@ -457,7 +462,7 @@ def main():
         POINTER.parent.mkdir(parents=True, exist_ok=True)
         backup = POINTER.parent / (PREFIX + stamp())
         backup.mkdir(mode=0o700)
-        metadata = {'source_commit': args.commit, 'resume_timers': [u + '.timer' for u in UNITS if active(u + '.timer') == 'active'], 'phase': 'pausing'}
+        metadata = {'source_commit': args.commit, 'resume_timers': [t for t in TRIGGERS if active(t) == 'active'], 'phase': 'pausing'}
         save(backup / 'deployment.json', metadata)
         POINTER.write_text(str(backup)); os.chmod(POINTER, 0o600)
         pause()

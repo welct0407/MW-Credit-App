@@ -1,9 +1,9 @@
 [Unit]
-Description=Read new Instagram conversation messages every five minutes
+Description=Read new Instagram conversation messages every minute
 
 [Timer]
 OnBootSec=2min
-OnUnitInactiveSec=5min
+OnUnitInactiveSec=1min
 Unit=mw-conversation-poll.service
 
 [Install]
