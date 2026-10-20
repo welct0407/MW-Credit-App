@@ -83,7 +83,7 @@ test('durable send marker distinguishes before-send retry from uncertain accepta
  }finally{await f.close();}
 });
 
-test('R079 content lookup is best effort on the real boundary: one send, unchanged states, generic or V99 text',async()=>{
+test('R080 content lookup is best effort on the real boundary: one send, unchanged states, generic or V99 text',async()=>{
  const f=await fixture();try{
   const s=await f.subscription(f.recipient,'content');await f.delivery(await f.event('content'),s);const sent=[];
   const v99=(await f.pool.query("SELECT to_regprocedure('public.pwa_notify_content_v1(uuid,bigint)') IS NOT NULL AS present")).rows[0].present;

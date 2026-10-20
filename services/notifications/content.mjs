@@ -1,4 +1,4 @@
-// R079: lock-screen wording for one push (iPhone banner: one-line title, body of at most two lines).
+// R080: lock-screen wording for one push (iPhone banner: one-line title, body of at most two lines).
 // Pure: the facts come from public.pwa_notify_content_v1 (V99); any missing or unknown fact degrades to
 // generic text, never to an error. Owner decision: borrower name and amount may show on the lock screen.
 export const TITLE_BUDGET=30,BODY_BUDGET=80;

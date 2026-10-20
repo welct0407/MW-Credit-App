@@ -13,7 +13,7 @@ test('disabled dispatcher has zero pool and transport effects',async()=>{
  const dispatch=createNotificationDispatcher({pool:{connect(){throw Error('pool touched')}},transport(){throw Error('transport touched')}});
  assert.deepEqual(await dispatch(),{enabled:false,claimed:0});
 });
-// R079: the dispatcher asks V99 for the event facts between prepare and the send fence; any failure sends generic text.
+// R080: the dispatcher asks V99 for the event facts between prepare and the send fence; any failure sends generic text.
 function scriptedPool(content){
  const calls=[];let claimed=false;
  const answer=sql=>{

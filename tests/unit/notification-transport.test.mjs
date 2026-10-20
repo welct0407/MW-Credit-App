@@ -24,7 +24,7 @@ test('identity uses the same cancellation signal for token and Firebase lookup a
  const lookup=createNotificationIdentityLookup('synthetic-project',async(url,options)=>{assert.equal(options.signal,controller.signal);assert.equal(options.redirect,'error');calls++;return{ok:true,json:async()=>calls===1?{access_token:'synthetic-token'}:{users:[{localId:'subject',email:'synthetic@example.invalid',emailVerified:true,providerUserInfo:[{providerId:'google.com'}]}]}};});
  const user=await lookup('subject',{signal:controller.signal});assert.equal(user.emailVerified,true);assert.equal(user.providerData[0].providerId,'google.com');assert.equal(calls,2);
 });
-test('R079 transport sends v2 rendered text and falls back to generic text for missing or out-of-bounds content',async()=>{
+test('R080 transport sends v2 rendered text and falls back to generic text for missing or out-of-bounds content',async()=>{
  const {default:webpush}=await import('web-push');const original=webpush.generateRequestDetails;const payloads=[];
  webpush.generateRequestDetails=(sub,payload,options)=>{payloads.push({payload:JSON.parse(payload),options});return original.call(webpush,sub,payload,options);};
  try{

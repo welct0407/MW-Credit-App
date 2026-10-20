@@ -66,7 +66,7 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
    const validated=await flyway('validate');assert.match(validated.stdout,/"validationSuccessful"\s*:\s*true/);
    const fn=(await operator.query("SELECT pg_get_userbyid(proowner) owner,prosecdef,proconfig FROM pg_proc WHERE oid=to_regprocedure('public.sync_cash_ledger(text,text)')")).rows[0];
    assert.equal(fn.owner,LEDGER);assert.equal(fn.prosecdef,true);assert.ok(fn.proconfig.includes('search_path=pg_catalog, public'));
-   // V99 (R079): the content facts RPC is re-owned by the notify owner through the same temporary window.
+   // V99 (R080): the content facts RPC is re-owned by the notify owner through the same temporary window.
    const content=(await operator.query("SELECT pg_get_userbyid(proowner) owner,prosecdef,proconfig FROM pg_proc WHERE oid=to_regprocedure('public.pwa_notify_content_v1(uuid,bigint)')")).rows[0];
    assert.equal(content.owner,'mw_notify_owner_dev');assert.equal(content.prosecdef,true);assert.ok(content.proconfig.includes('search_path=pg_catalog, public'));
    // pg_stat_statements: the non-superuser runner cannot create the untrusted extension; V93 reports a NOTICE and continues.

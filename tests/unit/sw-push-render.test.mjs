@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
-// R079: a v2 push shows its own title and body; v1, malformed or out-of-bounds text shows the neutral fallback.
+// R080: a v2 push shows its own title and body; v1, malformed or out-of-bounds text shows the neutral fallback.
 // The worker source runs unmodified in a stub scope (same harness as sw-notification-click.test.mjs).
 const source=readFileSync(new URL('../../apps/pwa/pwa/sw.js',import.meta.url),'utf8');
 const eventId='00000000-0000-4000-8000-000000000001',origin='https://app.example.test';

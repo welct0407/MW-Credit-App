@@ -21,7 +21,7 @@ export async function createWebPushTransport({subject,publicKey,privateKey},{req
  return async(subscription,eventId,{timeoutMs=8000,signal,content}={})=>{
   const valid=validateSubscription(subscription);
   if(!/^[0-9a-f-]{36}$/.test(eventId))throw Error('invalid_event');
-  // v2 (R079): the rendered event text; anything missing or out of bounds is the generic text (sw.js limits).
+  // v2 (R080): the rendered event text; anything missing or out of bounds is the generic text (sw.js limits).
   const text=typeof content?.title==='string'&&typeof content?.body==='string'&&content.title.length>=1&&content.title.length<=60&&content.body.length>=1&&content.body.length<=200?content:genericNotification();
   try{
    const details=webpush.generateRequestDetails({endpoint:valid.endpoint,keys:valid.keys},JSON.stringify({v:2,eventId,title:text.title,body:text.body,url:'/?notification='+eventId,tag:'mw-credit-'+eventId}),{vapidDetails:{subject,publicKey,privateKey},TTL:3600,contentEncoding:'aes128gcm',urgency:'normal',topic:hash(eventId).slice(0,32)});

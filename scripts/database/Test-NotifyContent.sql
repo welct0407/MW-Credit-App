@@ -1,4 +1,4 @@
--- V99 (R079): the push content facts RPC under the real roles, at the migration head, in a disposable
+-- V99 (R080): the push content facts RPC under the real roles, at the migration head, in a disposable
 -- loopback cluster. One rolled-back transaction with synthetic rows: each event type, Thai/English/unset
 -- recipient language, a missing and a deleted source row (found=false), the result shape (no actor column), the V88
 -- lease fence, and the

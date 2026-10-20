@@ -1,4 +1,4 @@
-# Change notes — push notification content (R079, to become R080), 20 October 2026
+# Change notes — push notification content (R080), 20 October 2026
 
 ## Purpose
 Push notifications said only "An update is available." The root cause was a fixed generic body in the original implementation. They now show the event in the recipient's language, sized for an iPhone banner. The owner explicitly accepted borrower name and amount on the lock screen.
@@ -45,4 +45,6 @@ PUSH-UX-09 (deep link from the notification to the record) is deferred.
 - Cloud SQL needs owner-authority `prepare` for `mw_notify_owner_<env>` before migrating V99, then `restore`.
 - `Backup-ProductionPromotion.py` does not yet accept `--expected-version 98` (promotion tooling).
 - iPhone visual check of the banner after the DEV deploy (Echo).
-- Release number: the owner confirmed a receipt hotfix ships first as R079 from another session, so this work becomes R080 once that session publishes R080 on main. Relabel this note, its file name and the tracker then; `Release_Tracker.md` and `Environment_Inventory.md` are not touched yet. Promotion is a separate owner instruction.
+- Release number: the receipt hotfix shipped as R079, so this work is R080. The branch keeps its original name `claude/r079-push-notification-content` because remote branch deletion is unavailable.
+- PROD runner `scripts/promotion/deploy-business-hosting.mjs` needs an R080 release kind with SQL baseline 98 to target 99, modelled on R078's SQL kind (R079 was schemaVersion 21).
+- DEV `build:live-dev` Firebase config step: see `docs/Development.md`.

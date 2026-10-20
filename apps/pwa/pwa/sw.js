@@ -90,7 +90,7 @@ self.addEventListener('fetch', event => {
   })());
 });
 
-// R079: a v2 push carries the event's own title and body (activity, amount, borrower; owner-accepted on the
+// R080: a v2 push carries the event's own title and body (activity, amount, borrower; owner-accepted on the
 // lock screen). A v1 push, or text out of bounds, shows the neutral fallback. The tap still resolves the
 // opaque event through authenticated same-environment APIs after sign-in.
 self.addEventListener('push',event=>{

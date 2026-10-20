@@ -1,4 +1,4 @@
--- R079: push notifications describe the event (activity, amount, borrower) in the recipient's language
+-- R080: push notifications describe the event (activity, amount, borrower) in the recipient's language
 -- instead of the generic "An update is available." text. One additive read RPC for the dispatcher; no table,
 -- column, data or trigger change, and pwa_notify_prepare_send_v1 and every other V88 routine stay untouched.
 -- pwa_notify_content_v1 returns the facts of one currently leased delivery (V88 lease fence); the worker renders

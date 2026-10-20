@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {renderNotification,genericNotification,graphemeLength,baht,TITLE_BUDGET,BODY_BUDGET} from '../../services/notifications/content.mjs';
-// R079: lock-screen wording per event and recipient language within the iPhone banner budgets.
+// R080: lock-screen wording per event and recipient language within the iPhone banner budgets.
 // Body is the borrower name only (owner decision: no actor); the title is activity plus amount.
 const facts=(over={})=>({found:true,eventType:'payment.posted',language:'en',borrowerName:'Somchai Jaidee',amount:'5000',...over});
 const withinBudgets=n=>{assert.ok(graphemeLength(n.title)<=TITLE_BUDGET,n.title);assert.ok(graphemeLength(n.body)<=BODY_BUDGET,n.body);assert.doesNotMatch(n.title+n.body,/update|อัปเดต/i);};

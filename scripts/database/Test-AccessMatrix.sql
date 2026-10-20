@@ -203,7 +203,7 @@ DO $$ BEGIN
    OR has_sequence_privilege('mw_app_dev','public.pwa_row_changes_seq_seq','USAGE') OR has_sequence_privilege('mw_app_dev','public.pwa_row_changes_seq_seq','UPDATE') THEN RAISE EXCEPTION 'mw_app_dev must read pwa_row_changes and its sequence with SELECT only'; END IF;
  IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_app_dev','mw_app_dev_journal_owner','mw_reviewer_dml','mw_jobs_owner_dev','mw_jobs_dev','mw_ledger_owner_dev','mw-credit-app-command-dev@clever-oasis-508610-n7.iam','mw-credit-app-read-dev@clever-oasis-508610-n7.iam']) r
    CROSS JOIN unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_row_changes',p)) THEN RAISE EXCEPTION 'no migration-owned direct pwa_row_changes write outside the change owner'; END IF;
- -- V99 (R079): the content facts RPC is the notify owner's pinned definer, executable only by the dispatch
+ -- V99 (R080): the content facts RPC is the notify owner's pinned definer, executable only by the dispatch
  -- capability; the owner reads exactly the source columns it needs (column grants, attacl), no whole table.
  IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_content_v1(uuid,bigint)'::regprocedure) THEN RAISE EXCEPTION 'pwa_notify_content_v1 must be the notify owner''s pinned definer'; END IF;
  IF EXISTS(SELECT 1 FROM (VALUES ('Partners','Language Preference'),('Payments','Row ID'),('Payments','Ref Borrower'),('Payments','Amount Received'),

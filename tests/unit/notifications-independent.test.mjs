@@ -25,7 +25,7 @@ test('maintained web-push actually encrypts generic payload and binds VAPID; pro
   const assertion=JSON.parse(Buffer.from(jwt[1],'base64url'));assert.equal(assertion.aud,'https://fcm.googleapis.com');assert.equal(assertion.sub,'mailto:synthetic@example.invalid');assert.ok(assertion.exp>Math.floor(Date.now()/1000));
   assert.doesNotMatch(first.body.toString(),/An update|MW Credit|aaaabbbb/);
   const payload=JSON.parse(ece.decrypt(first.body,{version:'aes128gcm',privateKey:receiver,authSecret:auth}).toString());
-  // R079: v2 payload; without rendered content the generic text, never the old "update" wording.
+  // R080: v2 payload; without rendered content the generic text, never the old "update" wording.
   assert.deepEqual(payload,{v:2,eventId:event,title:'MW Credit',body:'New activity',url:'/?notification='+event,tag:'mw-credit-'+event});
   const rendered={title:'รับชำระแล้ว ฿5,000',body:'สมชาย ใจดี'};assert.deepEqual(await transport(subscription,event,{content:rendered}),{kind:'accepted'});
   const second=requests.pop();assert.doesNotMatch(second.body.toString(),/สมชาย|5,000/);assert.equal(second.options.headers.TTL,3600);assert.match(first.options.headers.Topic,/^[a-f0-9]{32}$/);assert.equal(second.options.headers.Topic,first.options.headers.Topic);

@@ -164,7 +164,7 @@ END $$;
 \ir Test-LedgerAccess.sql
 -- V97 (R078): the PWA change log under the real roles (DML kinds, writer denial, retention).
 \ir Test-RowChanges.sql
--- V99 (R079): push content facts under the real roles (languages, missing source, lease fence, capability).
+-- V99 (R080): push content facts under the real roles (languages, missing source, lease fence, capability).
 \ir Test-NotifyContent.sql
 -- Last: the migration-owned grant matrix (DB-CI-05 / DB-ACCESS-02).
 \ir Test-AccessMatrix.sql

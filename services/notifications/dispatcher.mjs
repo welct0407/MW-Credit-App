@@ -14,7 +14,7 @@ export function createNotificationDispatcher({pool,transport,eligible,guardConne
    const eligibility=shouldStop()||remainingMs()<8000?null:checked;
    let result={kind:eligibility===null?'deferred':'ineligible'};
    if(eligibility===true){
-    // R079 (V99): event wording. Best effort: any failure (including a database before V99) sends the generic
+    // R080 (V99): event wording. Best effort: any failure (including a database before V99) sends the generic
     // text and never defers, fails or re-orders the delivery; lease, fence and result handling are unchanged.
     let content;
     try{const facts=(await query('SELECT * FROM public.pwa_notify_content_v1($1::uuid,$2::bigint)',[delivery.delivery_id,delivery.lease_generation])).rows[0];
