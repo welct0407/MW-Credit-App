@@ -51,7 +51,8 @@ test('real startup gates reads across held metadata failed asset retry and three
  // the failed install) before the retried register() resolves; register() then waits for that
  // install, which is held on the entry, so the retry shows "Checking app…" until release. Either
  // label is the retry in progress; the held entry proves an update is under way.
- await expect(page.locator('.topbar .app-update-status')).toHaveText(/^(Checking|Updating) app…$/);await expect.poll(()=>fixture.heldCount(b.entry)).toBeGreaterThan(0);expect(apiReads).toBe(baseline);let autoLoads=0;page.on('load',()=>autoLoads++);fixture.release(b.entry);await expect.poll(async()=>{try{return await page.evaluate(()=>(window as any).__syntheticBuildLabel)}catch{return null}}).toBe('B');await expect(page.getByRole('heading',{name:'KPIs',exact:true})).toBeVisible();expect(autoLoads).toBe(1);expect(oldLoads).toBe(0);await expect(old.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('old tab exact latest ไทย');expect((await repo(old,'pending'))[0].value.command.requestId).toBe(requestId);
+ // R083: this device is signed in with an authorized offline bundle, so the retry shows either the saved workspace or the upgrade status (a new build is installing, so the check turns into an upgrade at once) while the install is held; reads still wait.
+ await expect.poll(()=>fixture.heldCount(b.entry)).toBeGreaterThan(0);await expect.poll(async()=>(await page.locator('.topbar .app-update-status').allTextContents()).join('')==='Updating app…'||await page.getByRole('heading',{name:'KPIs',exact:true}).isVisible()).toBe(true);await expect(page.getByRole('heading',{name:'Unable to check app version',exact:true})).toHaveCount(0);expect(apiReads).toBe(baseline);let autoLoads=0;page.on('load',()=>autoLoads++);fixture.release(b.entry);await expect.poll(async()=>{try{return await page.evaluate(()=>(window as any).__syntheticBuildLabel)}catch{return null}}).toBe('B');await expect(page.getByRole('heading',{name:'KPIs',exact:true})).toBeVisible();expect(autoLoads).toBe(1);expect(oldLoads).toBe(0);await expect(old.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('old tab exact latest ไทย');expect((await repo(old,'pending'))[0].value.command.requestId).toBe(requestId);
  fixture.setBuildRoot(builds.C);await page.reload();await expect.poll(async()=>{try{return await page.evaluate(()=>(window as any).__syntheticBuildLabel)}catch{return null}}).toBe('C');await expect(page.getByRole('heading',{name:'KPIs',exact:true})).toBeVisible();expect(oldLoads).toBe(0);await expect(old.getByRole('textbox',{name:'Notes',exact:true})).toHaveValue('old tab exact latest ไทย');const response=await old.evaluate(async(path:string)=>{const response=await fetch(path);return{status:response.status,body:await response.text()}},oldEntry);expect(response.status).toBe(200);expect(response.body).toContain('__syntheticBuildLabel');expect((await repo(old,'pending'))[0].value.command.requestId).toBe(requestId);const entries=await old.evaluate(async()=>Promise.all((await caches.keys()).map(async name=>(await(await caches.open(name)).keys()).map(r=>new URL(r.url).pathname))));expect(entries.flat().filter(path=>/^\/(api|auth|receipt)\//.test(path))).toEqual([]);expect(s.posts).toHaveLength(0);
  // R072: activation with tabs open keeps the current and previous builds plus the build an open tab reports running, and prunes the rest.
  const publicCaches=async()=>(await page.evaluate(()=>caches.keys())).filter((name:string)=>name.startsWith('mw-credit-dev-public-')),cacheOf=(label:string)=>'mw-credit-dev-public-'+JSON.parse(readFileSync(join(builds[label],'build-version.json'),'utf8')).version;
@@ -59,3 +60,71 @@ test('real startup gates reads across held metadata failed asset retry and three
  await old.close();old=null;fixture.setVersion('D');const fourth='mw-credit-dev-public-'+createHash('sha256').update('fixture_D').digest('hex').slice(0,24);await page.reload();await expect.poll(async()=>{try{return await publicCaches()}catch{return[]}},{timeout:20000}).toEqual(expect.arrayContaining([fourth]));await expect(page.getByRole('heading',{name:'KPIs',exact:true})).toBeVisible();await expect.poll(async()=>(await publicCaches()).length).toBeLessThanOrEqual(2);expect(await publicCaches()).toContain(fourth)}finally{fixture.release('/build-version.json');for(const label of ['A','B','C'])fixture.release(JSON.parse(readFileSync(join(builds[label],'build-version.json'),'utf8')).entry);await context.close()}});
 
 
+
+// R083: a warm launch (signed in, authorized offline bundle) renders the workspace from the device while the version check is
+// in flight; network reads and writes wait for the check, and a failed check pauses changes without removing the workspace.
+test('R083 warm launch shows cached workspace while the check is held, parks reads and writes, skips the redundant update, and pauses changes inline when the check fails',async()=>{
+ test.skip(mobile,'Desktop-only: viewport is fixed by launch(); the mobile project adds no coverage for this flow');
+ let apiReads=0;
+ fixture.setBuildRoot(builds.A);fixture.fail('/build-version.json',null);
+ const{context,page,s}=await launch(async(context,target)=>{await context.route(/mw-credit-app-command-dev-test\.run\.app\/api\/operations\/[^/?]+/,r=>r.request().method()==='GET'?r.fulfill({contentType:'application/json',body:JSON.stringify({kind:'unresolved'})}):r.fallback());context.on('request',(request:any)=>{if(!/mw-credit-app-(command|read)-dev-test/.test(request.url()))return;let owner:any=null;try{owner=request.frame().page()}catch{}if(!owner||owner===target)apiReads++})});
+ const count=(path:string)=>fixture.requests.filter((r:any)=>r.path===path).length;
+ const kpis=page.getByRole('heading',{name:'KPIs',exact:true}),status=page.locator('.app-update-status'),refresh=page.locator('.header-sync-cell ~ .live-header-refresh.collection-update, .live-header-refresh.collection-update').first();
+ try{
+  // First launch has no cache: the gate keeps "Checking app…" and nothing reads until the check passes (fixture is not held, so assert on a held first load below via the context's first page only when held).
+  await expect(kpis).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>(window as any).__syntheticRepo({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-phase5-final-owner'}).authorized())).toBe(true);
+  await expect(status).toHaveCount(0);
+  // 2. Fast path: the current page, no waiting or installing worker and an up-to-date active worker make no second sw.js fetch.
+  // register() on an existing registration with the same script does not fetch; a navigation soft update is skipped by the browser
+  // while the script was checked recently. The only remaining sw.js request in a reload was the explicit registration.update().
+  const swBefore=count('/sw.js'),versionBefore=count('/build-version.json');
+  await page.reload();
+  await expect.poll(()=>count('/build-version.json')).toBe(versionBefore+1);
+  await expect(kpis).toBeVisible();await expect(status).toHaveCount(0);
+  await page.waitForTimeout(750);
+  expect(count('/sw.js')-swBefore).toBe(0);
+  expect(await page.evaluate(()=>(window as any).__syntheticBuildLabel)).toBe('A');
+  // 1. Warm launch while the check is held.
+  fixture.hold('/build-version.json');
+  const readsBeforeReload=apiReads;
+  await page.reload();
+  await expect.poll(()=>fixture.heldCount('/build-version.json')).toBeGreaterThan(0);
+  await expect(kpis).toBeVisible();
+  const readsWhileHeld=apiReads;
+  await expect(status).toHaveCount(0);await expect(page.getByText('Checking app…')).toHaveCount(0);
+  await expect(refresh).toBeDisabled();
+  await expect(page.locator('.refresh-failed')).toHaveCount(0);await expect(page.getByText(/Could not update|Couldn.t check the app version/)).toHaveCount(0);
+  await page.waitForTimeout(500);
+  expect(apiReads).toBe(readsWhileHeld);expect(readsWhileHeld).toBe(readsBeforeReload);
+  // 3a. A write submitted while the check is held waits (busy) and is sent once after the check passes.
+  await page.getByRole('button',{name:'Borrowers',exact:true}).filter({visible:true}).click();
+  await page.getByRole('button',{name:'Add borrower',exact:true}).click();
+  const region=page.getByRole('region',{name:'Borrower record',exact:true});
+  await region.getByRole('textbox',{name:/^Borrower name \(Thai\)(?: \*)?$/}).fill('SYNTHETIC parked borrower');
+  await region.getByRole('button',{name:'Save borrower',exact:true}).click();
+  await expect(region).toHaveAttribute('aria-busy','true');
+  await page.waitForTimeout(500);
+  expect(s.posts).toHaveLength(0);await expect(page.getByText(/Couldn.t check the app version/)).toHaveCount(0);
+  fixture.release('/build-version.json');
+  await expect.poll(()=>s.posts.length).toBeGreaterThanOrEqual(1);
+  expect(s.posts[0].path).toBe('/api/operations');expect(s.posts[0].body).toMatchObject({inputs:{name:'SYNTHETIC parked borrower'}});
+  await expect(status).toHaveCount(0);
+  // 3b. A failed check on a warm launch keeps the rendered workspace and pauses changes inline, with Retry.
+  // Hold the check until the cached workspace is shown, then fail it: the banner appears only for a workspace shown during the check.
+  fixture.hold('/build-version.json');
+  await page.reload();
+  await expect.poll(()=>fixture.heldCount('/build-version.json')).toBeGreaterThan(0);
+  await expect(kpis).toBeVisible();await expect(status).toHaveCount(0);
+  fixture.fail('/build-version.json',503);fixture.release('/build-version.json');
+  await expect(page.getByText("Couldn't check the app version. Changes are paused.")).toBeVisible();
+  await expect(page.locator('main')).toBeVisible();await expect(page.getByRole('heading',{name:'Unable to check app version',exact:true})).toHaveCount(0);
+  const banner=page.getByText("Couldn't check the app version. Changes are paused.").locator('xpath=ancestor-or-self::*[.//button[normalize-space()="Retry"]][1]');
+  await expect(banner.getByRole('button',{name:'Retry',exact:true})).toBeVisible();
+  await expect(page.getByText(/Showing saved data/)).toHaveCount(0);await expect(page.locator('.refresh-failed, .refresh-failure-badge')).toHaveCount(0);
+  fixture.fail('/build-version.json',null);
+  await banner.getByRole('button',{name:'Retry',exact:true}).click();
+  await expect(page.getByText("Couldn't check the app version. Changes are paused.")).toHaveCount(0);
+  await expect(status).toHaveCount(0);
+ }finally{fixture.release('/build-version.json');fixture.fail('/build-version.json',null);await context.close()}
+});

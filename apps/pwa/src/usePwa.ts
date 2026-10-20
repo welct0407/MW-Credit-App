@@ -95,6 +95,12 @@ export function usePwa() {
           try{const response=await fetch('/build-version.json',{cache:'no-store',credentials:'omit',redirect:'error',signal:abort.signal});if(!response.ok)throw Error('version_unavailable');latest=await response.json();if(latest.schemaVersion!==1||!/^[a-f0-9]{24}$/.test(latest.version)||!/^\/assets\/[^/]+\.js$/.test(latest.entry))throw Error('invalid_version')}finally{clearTimeout(timer)}
           if(disposed)return;
           const current=Array.from(document.scripts).some(script=>new URL(script.src||location.href).pathname===latest.entry);
+          const askVersion=(target:ServiceWorker)=>new Promise<string>((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version_timeout'))},5000);channel.port1.onmessage=event=>{clearTimeout(timer);channel.port1.close();resolve(event.data?.version)};target.postMessage({type:'GET_BUILD_VERSION'},[channel.port2])});
+          // R083: a running build whose active worker already holds the latest version needs no update round trip.
+          // Any other answer (mismatch, timeout) takes the full path below.
+          const fresh=current&&!value.waiting&&!value.installing&&!!value.active&&await askVersion(value.active).catch(()=>null)===latest.version;
+          if(disposed)return;
+          if(fresh){sessionStorage.removeItem('mw-startup-upgrade');setStartup('ready');return;}
           if(!current)setStartup('upgrading');
           let updateTimer:ReturnType<typeof setTimeout>|undefined;try{await Promise.race([value.update(),new Promise((_,reject)=>{updateTimer=setTimeout(()=>reject(Error('update_timeout')),20000)})]);}finally{clearTimeout(updateTimer)}
           if(disposed)return;
@@ -102,7 +108,7 @@ export function usePwa() {
           if(installing&& !['installed','activated'].includes(installing.state))await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>finish(false),20000);const changed=()=>{if(['installed','activated'].includes(installing.state))finish(true);else if(installing.state==='redundant')finish(false)};function finish(ok:boolean){clearTimeout(timer);installing!.removeEventListener('statechange',changed);ok?resolve():reject(Error('install_failed'))}installing.addEventListener('statechange',changed);changed()});
           if(disposed)return;
           const target=value.waiting??value.active??installing;if(!target)throw Error('worker_unavailable');
-          const installedVersion=await new Promise<string>((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version_timeout'))},5000);channel.port1.onmessage=event=>{clearTimeout(timer);channel.port1.close();resolve(event.data?.version)};target.postMessage({type:'GET_BUILD_VERSION'},[channel.port2])});
+          const installedVersion=await askVersion(target);
           if(disposed)return;if(installedVersion!==latest.version)throw Error('deployment_changed');
           if(!current||value.waiting){
             if(sessionStorage.getItem('mw-startup-upgrade')===latest.version)throw Error('upgrade_reload_incomplete');

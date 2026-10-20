@@ -24,7 +24,7 @@ const previousDay=(day:string)=>{const value=new Date(day+'T00:00:00Z');value.se
 const slipDays=(businessDate:string)=>[businessDate,previousDay(businessDate)];
 const normalizedReference=(value:string)=>value.replace(/[\s-]/g,'').toUpperCase();
 type Outcome={status:'posted'|'rejected';paymentId:string|null;code:string|null;recordedAt:string};
-export type CommandAccess={origin:string;fixtureBorrowerId:string;ownerTesting?:boolean;offline?:OwnerOfflineRepository;offlineOnly?:boolean;prepareSync?:()=>Promise<void>;onPosted?:(requestId:string)=>void;openSaved?:()=>void;token:()=>Promise<string>;authFailure:(status:number)=>void};
+export type CommandAccess={origin:string;fixtureBorrowerId:string;ownerTesting?:boolean;offline?:OwnerOfflineRepository;offlineOnly?:boolean;prepareSync?:()=>Promise<void>;awaitStartup?:()=>Promise<void>;onPosted?:(requestId:string)=>void;openSaved?:()=>void;token:()=>Promise<string>;authFailure:(status:number)=>void};
 const pendingKey='mw-credit.pending-command';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access:CommandAccess;borrowerId:string;thai:boolean;onBack:()=>void;onPosted?:(requestId:string)=>void}) {
