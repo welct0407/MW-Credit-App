@@ -4,11 +4,11 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R081 — Open** |
-| Next unused number | **R082**, only opened when authorized R081 promotion starts |
+| New product work | **R082 — Open** |
+| Next unused number | **R083**, only opened when authorized R082 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
-R081 opened at R080 promotion start; R080 (push-notification content, V99, PR #98) is Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
+R082 opened at R081 promotion start; it will carry the receipt-speed work (branch `claude/receipt-wake-and-poll`). R081 (push English name, V100, PR #100) is Frozen below. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
@@ -16,6 +16,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
+| R081 | Frozen 2026-10-20T16:03Z for the owner's production instruction of 20 October 2026 ("yes, promote R081 to prod after DEV"); package main `b36dce9` (PR #100; `Development checks` run 39451927188, `Database migrations` run 39451897199, agent tests run 39451927275); push English name, V100 | DEV and PROD promotion in progress; [promotion record](../../Change%20Logs/CHANGE_NOTES_R081_PUSH_ENGLISH_NAME_2026-10-20.md#promotion-record) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |
