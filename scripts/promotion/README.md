@@ -23,6 +23,19 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R080 runtime, SQL and frontend promotion after V99
+
+`schemaVersion: 22`, `release: R080`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R078's kind (shared code path) after V99, push notification content.
+
+- **Source.** The source must descend from the R079 release `823e9e5` (the PR #95 merge, which carried the R079 runner contract) and add exactly `database/migrations/V99__notification_content_facts.sql` (R074's strict name form). The source may be the merge of the PR that carries this contract; a later delivery-tool commit may carry only the runner, its unit test, this README, `scripts/database/Backup-ProductionPromotion.py` (baseline 98 accepted), `scripts/database/R053_OPERATOR.md` and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** As R078 with baseline 98 and target 99: the V99 hash checked against the source bytes, the tested grouped 98-to-99 release manifest (absolute private path, SHA256, commit; no callbacks; every source migration pinned), `sql.applied` with one migration executed and the `prod-promotion-…` backup (dump SHA256, passed restore), and `sql.verified`, a read-only readback of 99 successful history rows after the apply. The V99 owner window (`mw_notify_owner_prod`) follows [R053_OPERATOR.md](../database/R053_OPERATOR.md#notify-owner-authority-v99).
+- **Plan.** `{add:0, change:4, destroy:0}` with exactly `read.image`, `command.image`, `notify.image` and `jobs.image`.
+- **Recognition pin.** `recognition` is exactly `{activation: "enabled", url: "http://10.148.0.2:8790/v1/receipt-recognition"}`, unchanged.
+- **CI.** The gate is R074's per-job CI with stage-hash evidence, as R078 and R079.
+- **Apply.** As R078: Cloud Build source and digest, the four live services, worker caller subjects, the unchanged enabled recognizer wiring on the command service only, and the live request timeouts command `55s`, reader `15s`, notify and jobs `120s` (R077's, unchanged by R079). `applied.sqlVersion` is 99 and the runtime apply follows the SQL apply.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R080"`; the audience is `https://lm.mw-credit.com/promotion/r080`. R078, R079 and R080 refuse each other's packages.
+- **Not covered.** The integration agent.
+
 ## R079 runtime and frontend hotfix on V98
 
 `schemaVersion: 21`, `release: R079`, `scope: runtime-workers-frontend`, `status: prepared|applied`: the R076 and R077 kind on V98 with no SQL, sharing their code path.

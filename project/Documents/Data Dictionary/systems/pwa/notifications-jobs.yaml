@@ -53,6 +53,11 @@
   - "services/notifications/web-push.mjs"
   - "infrastructure/modules/workers/main.tf"
   - "database/migrations/V91__apple_push_subscription_endpoints.sql"
+  - "database/migrations/V99__notification_content_facts.sql"
+  - "services/notifications/content.mjs"
+  - "services/notifications/dispatcher.mjs"
+  - "apps/pwa/pwa/sw.js"
+  "push_content": "R080 (V99, in source, not yet deployed; commit SHA pending, so source_base is unchanged): the dispatcher reads public.pwa_notify_content_v1(delivery, generation) between prepare and start and renders title (activity + amount) and body (borrower name only) in the recipient language (Partners Language Preference ไทย is Thai, else English) with grapheme budgets 30 and 80 in services/notifications/content.mjs. A failed read sends generic New activity. Web Push payload v2 {v, eventId, title, body, url, tag}; apps/pwa/pwa/sw.js renders it and falls back for v1 or malformed payloads."
   "source_base": "https://github.com/welct0407/MW-Credit-App/blob/808cdf53225ce627ea41ef4d3666bf97a3c9cbfe/"
   "offline_history": "DEV and owner-authorized PROD recipient endpoint retains protocol2 cursor GET; protocol 1 is retired\
     \ and protocol=2 or 3 is required. Protocol3 read-only POST uses bounded content-hash manifests, transferring only requested\

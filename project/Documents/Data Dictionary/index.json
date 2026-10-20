@@ -10413,6 +10413,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-notify-content-v1-delivery-uuid-generation-bigint-9f96accf.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_content_v1(delivery uuid, generation bigint)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-notify-eligible-v1-event-uuid-subscription-uuid-8cc1a59f.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",

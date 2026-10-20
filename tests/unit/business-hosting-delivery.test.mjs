@@ -6,7 +6,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {hashEntries,evidenceName,variantOf,loadStages} from '../../scripts/ci/reuse-evidence.mjs';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage,r080HostingPlan,validateR080Source,validateR080Sql,verifyR080LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -106,15 +106,15 @@ test('R062 backup parser accepts only reviewed baselines without private access'
 tree=ast.parse(pathlib.Path('scripts/database/Backup-ProductionPromotion.py').read_text(encoding='utf-8'))
 nodes=[n for n in tree.body if (isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='parser' for t in n.targets)) or (isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='parser' and n.value.func.attr=='add_argument')]
 ns={'argparse':argparse};exec(compile(ast.Module(body=nodes,type_ignores=[]),'<synthetic parser>','exec'),ns)
-for version in [77,87,89,90,91,92,93,95,96,97]:
+for version in [77,87,89,90,91,92,93,95,96,97,98]:
  assert ns['parser'].parse_args(['--approval-reference','synthetic','--expected-version',str(version)]).expected_version==version
-for version in [76,88,94,98]:
+for version in [76,88,94,99]:
  try:
   with contextlib.redirect_stderr(io.StringIO()): ns['parser'].parse_args(['--approval-reference','synthetic','--expected-version',str(version)])
  except SystemExit as error: assert error.code==2
  else: raise AssertionError('Unsupported backup baseline accepted')
-print('Fourteen parser cases passed; no script imports, credentials or connection.')`;
- const r=spawnSync('python',['-c',script],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/Fourteen parser cases passed/);
+print('Fifteen parser cases passed; no script imports, credentials or connection.')`;
+ const r=spawnSync('python',['-c',script],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/Fifteen parser cases passed/);
 });
 
 test('R062 keyless proof uses its own release audience and rejects older proof',async()=>{
@@ -377,7 +377,7 @@ test('R071 operator proof uses its own release audience; unknown releases are re
  const run=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
  assert.equal((await run('R071')).operator,email);
  await assert.rejects(run('R071','https://lm.mw-credit.com/promotion/r070'),/impersonation proof/);
- for(const release of ['R067','R080'])await assert.rejects(run(release),/unsupported operator release/);
+ for(const release of ['R067','R081'])await assert.rejects(run(release),/unsupported operator release/);
 });
 test('R071 delivery commit may carry the runner, README and documents; live verification needs the pinned R069 services',async t=>{
  const {m,source,tool}=await r071Package(t),git=r071Git({source,tool});
@@ -941,7 +941,7 @@ test('R076 operator audience and live verification re-read per-job CI, Cloud Bui
  const {m,source,tool,image}=await r076Package(t),git=r076Git({source,tool}),project='clever-oasis-508610-n7';
  const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
  const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
- assert.equal((await operator('R076')).operator,email);await assert.rejects(operator('R076','https://lm.mw-credit.com/promotion/r075'),/impersonation proof/);await assert.rejects(operator('R080'),/unsupported operator release/);
+ assert.equal((await operator('R076')).operator,email);await assert.rejects(operator('R076','https://lm.mw-credit.com/promotion/r075'),/impersonation proof/);await assert.rejects(operator('R081'),/unsupported operator release/);
  const service=(role,edit={})=>{const env=[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`}];
   if(role==='command'){env.push({name:'PWA_NOTIFICATIONS',value:'enabled'},{name:'PROD_RECEIPT_RECOGNITION',value:edit.activation??'enabled'},{name:'PROD_RECEIPT_RECOGNITION_URL',value:edit.url??R075_RECOGNIZER_URL});if(!edit.noReceipts)env.push({name:'PROD_RECEIPTS',value:'enabled'});}
   if(['notify','jobs'].includes(role))env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})});
@@ -1013,7 +1013,7 @@ test('R077 operator audience and live verification re-read CI, Cloud Build, the 
  const {m,source,tool,image}=await r077Package(t),git=r077Git({source,tool}),project='clever-oasis-508610-n7';
  const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
  const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
- assert.equal((await operator('R077')).operator,email);await assert.rejects(operator('R077','https://lm.mw-credit.com/promotion/r076'),/impersonation proof/);await assert.rejects(operator('R080'),/unsupported operator release/);
+ assert.equal((await operator('R077')).operator,email);await assert.rejects(operator('R077','https://lm.mw-credit.com/promotion/r076'),/impersonation proof/);await assert.rejects(operator('R081'),/unsupported operator release/);
  assert.deepEqual({...R077_SERVICE_TIMEOUTS},{read:'15s',command:'55s',notify:'120s',jobs:'120s'});
  const service=(role,edit={})=>{const env=[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`}];
   if(role==='command')env.push({name:'PWA_NOTIFICATIONS',value:'enabled'},{name:'PROD_RECEIPTS',value:'enabled'},{name:'PROD_RECEIPT_RECOGNITION',value:edit.activation??'enabled'},{name:'PROD_RECEIPT_RECOGNITION_URL',value:R075_RECOGNIZER_URL});
@@ -1115,7 +1115,7 @@ test('R078 operator audience and live verification re-read CI, Cloud Build, the 
  const {m,source,tool,image}=await r078Package(t),git=r078Git({source,tool}),project='clever-oasis-508610-n7';
  const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
  const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
- assert.equal((await operator('R078')).operator,email);await assert.rejects(operator('R078','https://lm.mw-credit.com/promotion/r077'),/impersonation proof/);await assert.rejects(operator('R080'),/unsupported operator release/);
+ assert.equal((await operator('R078')).operator,email);await assert.rejects(operator('R078','https://lm.mw-credit.com/promotion/r077'),/impersonation proof/);await assert.rejects(operator('R081'),/unsupported operator release/);
  const service=(role,edit={})=>{const env=[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`}];
   if(role==='command')env.push({name:'PWA_NOTIFICATIONS',value:'enabled'},{name:'PROD_RECEIPTS',value:'enabled'},{name:'PROD_RECEIPT_RECOGNITION',value:edit.activation??'enabled'},{name:'PROD_RECEIPT_RECOGNITION_URL',value:R075_RECOGNIZER_URL});
   if(['notify','jobs'].includes(role))env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})});
@@ -1193,7 +1193,7 @@ test('R079 operator audience and live verification re-read CI, Cloud Build, the 
  const {m,source,tool,image}=await r079Package(t),git=r079Git({source,tool}),project='clever-oasis-508610-n7';
  const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
  const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
- assert.equal((await operator('R079')).operator,email);await assert.rejects(operator('R079','https://lm.mw-credit.com/promotion/r078'),/impersonation proof/);await assert.rejects(operator('R080'),/unsupported operator release/);
+ assert.equal((await operator('R079')).operator,email);await assert.rejects(operator('R079','https://lm.mw-credit.com/promotion/r078'),/impersonation proof/);await assert.rejects(operator('R081'),/unsupported operator release/);
  const service=(role,edit={})=>{const env=[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`}];
   if(role==='command')env.push({name:'PWA_NOTIFICATIONS',value:'enabled'},{name:'PROD_RECEIPTS',value:'enabled'},{name:'PROD_RECEIPT_RECOGNITION',value:edit.activation??'enabled'},{name:'PROD_RECEIPT_RECOGNITION_URL',value:edit.url??R075_RECOGNIZER_URL});
   if(['notify','jobs'].includes(role))env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})});
@@ -1207,4 +1207,113 @@ test('R079 operator audience and live verification re-read CI, Cloud Build, the 
   [{timeouts:{read:'55s'}},/R079 live read request timeout must be 15s/],[{timeouts:{notify:'15s'}},/R079 live notify request timeout must be 120s/],[{timeouts:{jobs:'55s'}},/R079 live jobs request timeout must be 120s/]])
   await assert.rejects(verifyR079LivePackage(m,{token:'t',request:make(edit,digest),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
  const skipped=r074Readback(m);await assert.rejects(verifyR079LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=skipped.readGithub(args);if(args[1].endsWith('/runs/25/jobs?per_page=100'))r.jobs.find(j=>j.name==='rebuild (migrations)').conclusion='skipped';return r;},git}),/R079 database rebuild \(migrations\): missing executed job/);
+});
+
+// R080: R078's SQL kind after the separately applied V99 (PROD 98 to 99, push notification content facts). Source
+// descends from the R079 release and adds exactly V99; plan, recognizer wiring and R077 timeouts as R078; the artifact
+// carries the R080 release marker; the delivery commit may add this README, the backup tool and the operator note.
+const r079Release='823e9e593afde879fdb0ba94e198ea0351975aea';
+const r080Migration='V99__notification_content_facts.sql';
+const r080Files={'V97__pwa_row_changes.sql':'-- v97','V98__pwa_row_changes_app_read.sql':'-- v98',[r080Migration]:'-- v99'};
+const r080Marker=(m,extra={})=>JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release:'R080',...extra});
+function r080Git({source,tool=source,changed={},delivery='',dirty='',untracked='',migration='database/migrations/'+r080Migration,releaseDatabase='',ancestors={}}={}){
+ return (_root,args)=>{
+  if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
+  if(args[0]==='merge-base')return Object.hasOwn(ancestors,args[1])?ancestors[args[1]]:args[1];
+  if(args[0]==='ls-files')return untracked;
+  if(args[0]==='ls-tree')return Object.keys(r080Files).map(name=>'database/migrations/'+name).join('\n');
+  if(args[0]==='show')return r080Files[path.posix.basename(args[1].split(':')[1])];
+  if(args[0]==='diff'){
+   if(args[2]===r079Release&&args[3]===source)return nulNames(args,migration);
+   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return nulNames(args,delivery);
+   if(args[2]===source&&args[3]===sqlRelease)return releaseDatabase;
+   if(args[3]===source)return nulNames(args,changed[args[2]]??'');
+   return nulNames(args,dirty);
+  }
+  throw Error('Unexpected synthetic Git command '+args);
+ };
+}
+async function r080Package(t){
+ const p=await r078Package(t),m=p.m,hash=value=>createHash('sha256').update(value).digest('hex');
+ const manifest={environment:'development',commit:sqlRelease,validationReference:'synthetic',productionTransaction:{baselineVersion:98,targetVersion:99,group:true,mixed:false,executeInTransaction:true,callbacks:[]},migrations:Object.entries(r080Files).map(([name,value])=>({name,sha256:hash(value)}))};
+ const releasePath=path.join(p.root,'release-r080.json'),bytes=JSON.stringify(manifest);await writeFile(releasePath,bytes);
+ Object.assign(m,{schemaVersion:22,release:'R080',sourceBaseline:r079Release,
+  sql:{baselineVersion:98,targetVersion:99,migrations:manifest.migrations.slice(-1),release:{path:releasePath,sha256:hash(bytes),commit:sqlRelease},
+   applied:{environment:'production',database:'loan_manager_prod',instance:'mw-credit-pg-20261017',releaseCommit:sqlRelease,baselineVersion:98,targetVersion:99,migrationsExecuted:1,startedAt:'2026-10-21T03:00:00Z',finishedAt:'2026-10-21T03:00:10Z',backup:{dumpSha256:'a'.repeat(64),restorePassed:true,reference:'prod-promotion-'+'c'.repeat(32)}},
+   verified:{database:'loan_manager_prod',latestVersion:'99',historyRows:99,allSuccessful:true,verifiedAt:'2026-10-21T03:02:00Z'}}});
+ m.applied.sqlVersion=99;m.applied.appliedAt='2026-10-21T03:10:00Z';
+ await setArtifact(m,'build-version.json',r080Marker(m));
+ await setArtifact(m,'assets/test.js',(await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8')).replace('const release="R078";','const release="R080";'));
+ return p;
+}
+test('R080 package validates and rejects SQL, plan, recognizer, CI, readback and artifact tampering',async t=>{
+ const {m,source,tool,root}=await r080Package(t),git=r080Git({source,tool});
+ const plan=await r080HostingPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingVersion,m.rollback.hostingVersion);
+ for(const [mutate,pattern] of [
+  [x=>x.sql.targetVersion=100,/R080 exact V98 to V99/],[x=>x.sql.baselineVersion=97,/R080 exact V98 to V99/],[x=>x.sql.migrations.push({name:'V100__x.sql',sha256:'0'.repeat(64)}),/R080 exact V98 to V99/],[x=>x.sql.migrations=[],/R080 exact V98 to V99/],[x=>x.sql.migrations[0].name='V98__pwa_row_changes_app_read.sql',/R080 exact V98 to V99/],
+  [x=>x.sql.migrations[0].sha256='0'.repeat(64),/R080 migration source hash/],[x=>x.sql.release.sha256='0'.repeat(64),/R080 SQL release changed/],[x=>x.sql.release.commit='7'.repeat(40),/R080 tested SQL release/],
+  [x=>x.sql.applied.migrationsExecuted=2,/R080 actual SQL apply/],[x=>x.sql.applied.targetVersion=98,/R080 actual SQL apply/],[x=>x.sql.applied.baselineVersion=97,/R080 actual SQL apply/],[x=>x.sql.applied.backup.restorePassed=false,/R080 actual SQL apply/],[x=>delete x.sql.applied.backup.dumpSha256,/R080 actual SQL apply/],[x=>x.sql.applied.backup.reference='dev-v99-'+'c'.repeat(32),/R080 actual SQL apply/],[x=>x.sql.applied.database='loan_manager_dev',/R080 actual SQL apply/],[x=>x.sql.applied.finishedAt='2026-10-21T02:59:00Z',/R080 actual SQL apply/],
+  [x=>x.sql.verified.latestVersion='98',/R080 read-only V99 readback/],[x=>x.sql.verified.historyRows=98,/R080 read-only V99 readback/],[x=>x.sql.verified.allSuccessful=false,/R080 read-only V99 readback/],[x=>x.sql.verified.verifiedAt='2026-10-21T03:00:05Z',/R080 read-only V99 readback/],[x=>x.sql.verified.database='loan_manager_dev',/R080 read-only V99 readback/],[x=>delete x.sql.verified,/R080 read-only V99 readback/],
+  [x=>x.applied.sqlVersion=98,/R080 applied source/],[x=>x.applied.appliedAt='2026-10-21T02:00:00Z',/R080 applied source/],[x=>x.applied.planSha256='0'.repeat(64),/R080 applied source/],[x=>x.applied.database='loan_manager_dev',/R080 applied source/],
+  [x=>x.plan.actions.push('command.timeout'),/R080 reviewed four-image plan/],[x=>x.plan.actions.push('command.vpcAccess'),/R080 reviewed/],[x=>x.plan.actions.reverse(),/R080 reviewed/],[x=>x.plan.counts={add:1,change:4,destroy:0},/R080 reviewed/],[x=>x.plan.counts.change=5,/R080 reviewed/],[x=>x.plan.counts.destroy=1,/R080 reviewed/],
+  [x=>x.recognition.activation='disabled',/R080 unchanged enabled receipt recognition/],[x=>x.recognition.url='http://10.148.0.3:8790/v1/receipt-recognition',/R080 unchanged enabled/],[x=>delete x.recognition,/R080 unchanged enabled/],[x=>x.recognition.extra=true,/R080 unchanged enabled/],
+  [x=>x.rollback.services.read.image=x.build.image,/recovery pin/],[x=>x.applied.services.notify.revision=x.rollback.services.notify.revision,/R080 ready service/],[x=>x.applied.services.command.image=x.rollback.services.command.image,/R080 ready service/],[x=>x.applied.services.jobs.ready=false,/R080 ready service/],
+  [x=>{x.applicationCi.ci.jobs.check.headSha='0'.repeat(40)},/R080 ci check: cited run receipt/],[x=>{delete x.applicationCi.database.jobs.guards},/R080 database CI jobs must be exactly/],
+  [x=>x.build.sourceCommit='4'.repeat(40),/R080 PROD image provenance/],[x=>x.target.database='loan_manager_dev',/target/],[x=>x.frontend.files[0].sha256='d'.repeat(64),/artifact/],
+  [x=>x.release='R079',/package kind/],[x=>x.schemaVersion=21,/package kind/],[x=>x.schemaVersion=20,/package kind/],[x=>x.scope='frontend-only',/package kind/],[x=>x.environment='dev',/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(r080HostingPlan(candidate,{git}),pattern,String(mutate));}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(r080HostingPlan(prepared,{git}),/R080 runtime apply\/readback/);assert.equal((await r080HostingPlan(prepared,{git,requireApplied:false})).site,site);
+ // R078, R079 and R080 refuse each other's packages.
+ await assert.rejects(r078HostingPlan(m,{git}),/wrong R078 package kind/);await assert.rejects(r079HostingPlan(m,{git}),/wrong R079 package kind/);
+ await assert.rejects(r080HostingPlan({...structuredClone(m),schemaVersion:20,release:'R078'},{git}),/wrong R080 package kind/);await assert.rejects(r080HostingPlan({...structuredClone(m),schemaVersion:21,release:'R079'},{git}),/wrong R080 package kind/);
+ await assert.rejects(r080HostingPlan({...structuredClone(m),schemaVersion:22,release:'R079'},{git}),/wrong R080 package kind/);await assert.rejects(r079HostingPlan({...structuredClone(m),schemaVersion:22},{git}),/wrong R079 package kind/);
+ const grouped=JSON.parse(await readFile(m.sql.release.path,'utf8'));grouped.productionTransaction.targetVersion=98;const groupedPath=path.join(root,'target-r080.json'),groupedBytes=JSON.stringify(grouped);await writeFile(groupedPath,groupedBytes);
+ await assert.rejects(r080HostingPlan({...structuredClone(m),sql:{...structuredClone(m.sql),release:{path:groupedPath,sha256:createHash('sha256').update(groupedBytes).digest('hex'),commit:sqlRelease}}},{git}),/R080 grouped V98 to V99 transaction/);
+ const partial=JSON.parse(await readFile(m.sql.release.path,'utf8'));partial.migrations.pop();const partialPath=path.join(root,'partial-r080.json'),partialBytes=JSON.stringify(partial);await writeFile(partialPath,partialBytes);
+ await assert.rejects(r080HostingPlan({...structuredClone(m),sql:{...structuredClone(m.sql),release:{path:partialPath,sha256:createHash('sha256').update(partialBytes).digest('hex'),commit:sqlRelease}}},{git}),/R080 complete migration manifest/);
+ await assert.rejects(r080HostingPlan(m,{git:r080Git({source,tool,releaseDatabase:'database/migrations/'+r080Migration})}),/R080 SQL release must be the pinned source migrations/);
+ assert.equal((await validateR080Sql(m,git)),undefined);
+});
+test('R080 artifact must carry the R080 release in its marker and bundle',async t=>{
+ const {m,source,tool}=await r080Package(t),git=r080Git({source,tool}),original=await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8');
+ for(const marker of [r080Marker(m,{release:'R079'}),r080Marker(m,{release:'R078'}),JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry}),r080Marker(m,{extra:true})]){const x=structuredClone(m);await setArtifact(x,'build-version.json',marker);await assert.rejects(r080HostingPlan(x,{git}),/R080 artifact release mismatch|marker\/mode mismatch/);}
+ await setArtifact(m,'build-version.json',r080Marker(m));
+ for(const bundle of [original.replace('"R080"','"R079"'),original.replace('"R080"','R080')]){const x=structuredClone(m);await setArtifact(x,'assets/test.js',bundle);await assert.rejects(r080HostingPlan(x,{git}),/R080 artifact release mismatch/);}
+});
+test('R080 source descends from R079 and adds exactly V99; the delivery commit may add this README, the backup tool and the operator note',async t=>{
+ const {m,source,tool,ci}=await r080Package(t);
+ const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nscripts/database/R053_OPERATOR.md\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md\nChange Logs/CHANGE_NOTES_R080_PUSH_NOTIFICATION_CONTENT_2026-10-21.md';
+ assert.doesNotThrow(()=>validateR080Source(m,r080Git({source,tool,delivery:toolFiles})));
+ for(const file of ['services/notifications/content.mjs','apps/pwa/pwa/sw.js','database/migrations/V100__x.sql','database/migrations/'+r080Migration,'infrastructure/production/runtime.tf','scripts/database/Test-NotifyContent.sql','scripts/database/connect_preflight.py','integration-agent/src/mw_integration_agent/receipt_image.py'])assert.throws(()=>validateR080Source(m,r080Git({source,tool,delivery:file})),/R080 unverified delivery/);
+ assert.throws(()=>validateR080Source({...m,deliveryToolChecks:{command:'npm test',exitCode:0}},r080Git({source,tool,delivery:toolFiles})),/R080 unverified delivery/);
+ assert.throws(()=>validateR080Source({...m,deliveryToolChecks:{command:'node --test tests/unit/business-hosting-delivery.test.mjs',exitCode:1}},r080Git({source,tool,delivery:toolFiles})),/R080 unverified delivery/);
+ for(const migration of ['','database/migrations/V100__x.sql','database/migrations/V98__pwa_row_changes_app_read.sql','database/migrations/'+r080Migration+'\0database/migrations/V100__x.sql','database/migrations/V97__pwa_row_changes.sql\0database/migrations/'+r080Migration])assert.throws(()=>validateR080Source(m,r080Git({source,tool,migration})),/R080 carries exactly the separately applied V99/);
+ assert.throws(()=>validateR080Source({...m,sourceBaseline:r078Release},r080Git({source,tool})),/R080 source\/baseline/);
+ assert.throws(()=>validateR080Source({...m,artifactSourceCommit:tool==='f'.repeat(40)?'e'.repeat(40):'f'.repeat(40)},r080Git({source,tool})),/R080 source\/baseline/);
+ assert.throws(()=>validateR080Source(m,r080Git({source,tool,ancestors:{[r079Release]:r078Release}})),/R080 source must descend from the R079 release/);
+ assert.throws(()=>validateR080Source(m,r080Git({source,tool,dirty:'services/notifications/dispatcher.mjs'})),/R080 working input/);
+ assert.throws(()=>validateR080Source(m,r080Git({source,tool,untracked:'apps/pwa/src/new.ts'})),/R080 untracked/);
+ // A V99 source rule must not admit R078's V97-only shape, nor R078 R080's.
+ assert.throws(()=>validateR078Source({...m,sourceBaseline:r077Release},r080Git({source,tool})),/R078 carries exactly the separately applied V97/);
+ await assert.rejects(r080HostingPlan(m,{git:r080Git({source,tool,changed:{[ci]:'services/notifications/dispatcher.mjs'}})}),/R080 ci check: run is not input-equivalent/);
+ m.applicationCi=r074Ci(tool);assert.equal((await r080HostingPlan(m,{git:r080Git({source,tool,delivery:toolFiles})})).site,site);
+ await assert.rejects(r080HostingPlan(m,{git:r080Git({source,tool,delivery:toolFiles+'\nservices/notifications/web-push.mjs'})}),/R080 unverified delivery/);
+});
+test('R080 operator audience and live verification re-read CI, Cloud Build, the recognizer wiring and the four service timeouts',async t=>{
+ const {m,source,tool,image}=await r080Package(t),git=r080Git({source,tool}),project='clever-oasis-508610-n7';
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
+ const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
+ assert.equal((await operator('R080')).operator,email);await assert.rejects(operator('R080','https://lm.mw-credit.com/promotion/r079'),/impersonation proof/);await assert.rejects(operator('R081'),/unsupported operator release/);
+ const service=(role,edit={})=>{const env=[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`}];
+  if(role==='command')env.push({name:'PWA_NOTIFICATIONS',value:'enabled'},{name:'PROD_RECEIPTS',value:'enabled'},{name:'PROD_RECEIPT_RECOGNITION',value:edit.activation??'enabled'},{name:'PROD_RECEIPT_RECOGNITION_URL',value:edit.url??R075_RECOGNIZER_URL});
+  if(['notify','jobs'].includes(role))env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})});
+  const vpc=role==='command'?{egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]}:undefined;
+  const timeout=Object.hasOwn(edit.timeouts??{},role)?edit.timeouts[role]:R077_SERVICE_TIMEOUTS[role];
+  return {name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+m.applied.services[role].revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision:m.applied.services[role].revision}],template:{serviceAccount:`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,...(timeout===undefined?{}:{timeout}),...(vpc?{vpcAccess:vpc}:{}),containers:[{image,env}]}};};
+ const make=(edit={},digest='e')=>async url=>({ok:true,json:async()=>url.includes('cloudbuild')?{status:'SUCCESS',results:{images:[{name:`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:build-1`,digest:'sha256:'+digest.repeat(64)}]},source:{storageSource:m.build.storageSource}}:service(url.split('/services/mw-credit-app-')[1].replace('-prod',''),edit)});
+ const live=r074Readback(m);await verifyR080LivePackage(m,{token:'t',request:make(),readGithub:live.readGithub,git});assert.equal(live.calls.length,10);
+ for(const [edit,pattern,digest='e'] of [[{},/build digest/,'f'],[{activation:'disabled'},/R080 live command recognizer setting drift/],[{url:'http://10.148.0.3:8790/v1/receipt-recognition'},/R080 live command recognizer setting drift/],
+  [{timeouts:{command:'15s'}},/R080 live command request timeout must be 55s/],[{timeouts:{command:'60s'}},/R080 live command request timeout/],[{timeouts:{command:undefined}},/R080 live command request timeout/],
+  [{timeouts:{read:'55s'}},/R080 live read request timeout must be 15s/],[{timeouts:{notify:'15s'}},/R080 live notify request timeout must be 120s/],[{timeouts:{jobs:'55s'}},/R080 live jobs request timeout must be 120s/]])
+  await assert.rejects(verifyR080LivePackage(m,{token:'t',request:make(edit,digest),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
+ const skipped=r074Readback(m);await assert.rejects(verifyR080LivePackage(m,{token:'t',request:make(),readGithub:args=>{const r=skipped.readGithub(args);if(args[1].endsWith('/runs/25/jobs?per_page=100'))r.jobs.find(j=>j.name==='rebuild (phase8)').conclusion='skipped';return r;},git}),/R080 database rebuild \(phase8\): missing executed job/);
 });

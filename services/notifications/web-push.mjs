@@ -1,5 +1,6 @@
 import https from 'node:https';
 import {createHash,ECDH} from 'node:crypto';
+import {genericNotification} from './content.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 export function validateSubscription(value){
  if(!value||Object.keys(value).sort().join(',')!=='endpoint,expirationTime,keys'||!value.keys||Object.keys(value.keys).sort().join(',')!=='auth,p256dh')throw Error('invalid_subscription');
@@ -16,12 +17,14 @@ export function validateSubscription(value){
 export async function createWebPushTransport({subject,publicKey,privateKey},{request=https.request}={}){
  if(typeof subject!=='string'||!/^mailto:[^\s@]+@[^\s@]+$/.test(subject)||!publicKey||!privateKey)throw Error('invalid_push_configuration');
  const {default:webpush}=await import('web-push');
- /** @param {any} subscription @param {string} eventId @param {{timeoutMs?:number,signal?:AbortSignal}} [options] */
- return async(subscription,eventId,{timeoutMs=8000,signal}={})=>{
+ /** @param {any} subscription @param {string} eventId @param {{timeoutMs?:number,signal?:AbortSignal,content?:{title:string,body:string}|null}} [options] */
+ return async(subscription,eventId,{timeoutMs=8000,signal,content}={})=>{
   const valid=validateSubscription(subscription);
   if(!/^[0-9a-f-]{36}$/.test(eventId))throw Error('invalid_event');
+  // v2 (R080): the rendered event text; anything missing or out of bounds is the generic text (sw.js limits).
+  const text=typeof content?.title==='string'&&typeof content?.body==='string'&&content.title.length>=1&&content.title.length<=60&&content.body.length>=1&&content.body.length<=200?content:genericNotification();
   try{
-   const details=webpush.generateRequestDetails({endpoint:valid.endpoint,keys:valid.keys},JSON.stringify({v:1,eventId,title:'MW Credit',body:'An update is available.',url:'/?notification='+eventId,tag:'mw-credit-'+eventId}),{vapidDetails:{subject,publicKey,privateKey},TTL:3600,contentEncoding:'aes128gcm',urgency:'normal',topic:hash(eventId).slice(0,32)});
+   const details=webpush.generateRequestDetails({endpoint:valid.endpoint,keys:valid.keys},JSON.stringify({v:2,eventId,title:text.title,body:text.body,url:'/?notification='+eventId,tag:'mw-credit-'+eventId}),{vapidDetails:{subject,publicKey,privateKey},TTL:3600,contentEncoding:'aes128gcm',urgency:'normal',topic:hash(eventId).slice(0,32)});
    const status=await new Promise((resolve,reject)=>{
     let settled=false;
     const finish=(error,value)=>{if(settled)return;settled=true;clearTimeout(timer);error?reject(error):resolve(value);};

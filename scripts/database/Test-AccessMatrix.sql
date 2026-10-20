@@ -127,6 +127,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_dispatch_dev','pwa_claim_notifications_v1(integer,integer)'),
   ('mw_notify_dispatch_dev','pwa_notify_candidates_v1(integer)'),
   ('mw_notify_dispatch_dev','pwa_notify_complete_v1(uuid,bigint,text)'),
+  ('mw_notify_dispatch_dev','pwa_notify_content_v1(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_enqueue_v1(uuid,uuid,bigint,boolean)'),
   ('mw_notify_dispatch_dev','pwa_notify_prepare_send_v1(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_start_send_v1(uuid,bigint,bigint)'),
@@ -135,6 +136,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_owner_dev','pwa_notify_actor_v1(jsonb)'),
   ('mw_notify_owner_dev','pwa_notify_candidates_v1(integer)'),
   ('mw_notify_owner_dev','pwa_notify_complete_v1(uuid,bigint,text)'),
+  ('mw_notify_owner_dev','pwa_notify_content_v1(uuid,bigint)'),
   ('mw_notify_owner_dev','pwa_notify_eligible_v1(uuid,uuid)'),
   ('mw_notify_owner_dev','pwa_notify_enqueue_v1(uuid,uuid,bigint,boolean)'),
   ('mw_notify_owner_dev','pwa_notify_history_v1(jsonb,timestamp with time zone,uuid)'),
@@ -201,6 +203,14 @@ DO $$ BEGIN
    OR has_sequence_privilege('mw_app_dev','public.pwa_row_changes_seq_seq','USAGE') OR has_sequence_privilege('mw_app_dev','public.pwa_row_changes_seq_seq','UPDATE') THEN RAISE EXCEPTION 'mw_app_dev must read pwa_row_changes and its sequence with SELECT only'; END IF;
  IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_app_dev','mw_app_dev_journal_owner','mw_reviewer_dml','mw_jobs_owner_dev','mw_jobs_dev','mw_ledger_owner_dev','mw-credit-app-command-dev@clever-oasis-508610-n7.iam','mw-credit-app-read-dev@clever-oasis-508610-n7.iam']) r
    CROSS JOIN unnest(ARRAY['INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,'public.pwa_row_changes',p)) THEN RAISE EXCEPTION 'no migration-owned direct pwa_row_changes write outside the change owner'; END IF;
+ -- V99 (R080): the content facts RPC is the notify owner's pinned definer, executable only by the dispatch
+ -- capability; the owner reads exactly the source columns it needs (column grants, attacl), no whole table.
+ IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_content_v1(uuid,bigint)'::regprocedure) THEN RAISE EXCEPTION 'pwa_notify_content_v1 must be the notify owner''s pinned definer'; END IF;
+ IF EXISTS(SELECT 1 FROM (VALUES ('Partners','Language Preference'),('Payments','Row ID'),('Payments','Ref Borrower'),('Payments','Amount Received'),
+   ('Loans','Row ID'),('Loans','Ref Borrowers'),('Loans','Principal Amount'),('Borrowers','Row ID'),('Borrowers','Borrower Name')) v(t,c) WHERE NOT has_column_privilege('mw_notify_owner_dev',format('public.%I',t),c,'SELECT'))
+  OR EXISTS(SELECT 1 FROM unnest(ARRAY['Partners','Payments','Loans','Borrowers']) t WHERE has_table_privilege('mw_notify_owner_dev',format('public.%I',t),'SELECT'))
+  OR has_column_privilege('mw_notify_owner_dev','public."Partners"','Partner Name','SELECT')
+  OR has_column_privilege('mw_notify_owner_dev','public."Payments"','Notes','SELECT') OR has_column_privilege('mw_notify_owner_dev','public."Borrowers"','Borrower Note','SELECT') THEN RAISE EXCEPTION 'notify owner source column grants differ'; END IF;
 END $$;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;

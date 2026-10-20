@@ -1,0 +1,56 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_notify_content_v1(delivery uuid, generation bigint)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V99__notification_content_facts.sql"
+  "coverage": "R080 source definition (V99, uncommitted, not yet applied to DEV or PROD; commit SHA pending). Owner, ACL and catalogue rows to be confirmed after the DEV migration; no business rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notify_content_v1"
+    "arguments": "delivery uuid, generation bigint"
+    "kind": "f"
+    "arguments_with_defaults": "delivery uuid, generation bigint"
+    "result": "TABLE(found boolean, event_type text, language text, borrower_name text, amount numeric)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_notify_content_v1(delivery uuid, generation bigint)
+       RETURNS TABLE(found boolean, event_type text, language text, borrower_name text, amount numeric)
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       PERFORM public.pwa_worker_guard_v1('dispatch');
+       RETURN QUERY SELECT src.source_found,e.event_type,
+        CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
+        b."Borrower Name",src.source_amount
+       FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
+       LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
+       LEFT JOIN LATERAL (
+        SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+        UNION ALL
+        SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+       ) source_row ON true
+       CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount) src
+       LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
+       WHERE d.delivery_id=$1 AND d.lease_generation=$2 AND d.state='leased' AND d.lease_expires_at>clock_timestamp();
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_notify_dispatch_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null
+  "purpose": "Facts for one currently leased delivery (lease generation fence): found (source row still exists), event_type, language ('th' for Partners \"Language Preference\" 'ไทย', else 'en'), borrower_name and amount. The worker renders the text in services/notifications/content.mjs; no row means not leased (generic text)."
+  "grants": "EXECUTE only mw_notify_dispatch_<env>. Owner mw_notify_owner_<env> gains column SELECT: Partners (\"Language Preference\"); Payments (\"Row ID\", \"Ref Borrower\", \"Amount Received\"); Loans (\"Row ID\", \"Ref Borrowers\", \"Principal Amount\"); Borrowers (\"Row ID\", \"Borrower Name\")."

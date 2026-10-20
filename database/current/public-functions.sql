@@ -3629,6 +3629,39 @@ COMMENT ON FUNCTION public.pwa_notify_complete_v1(delivery uuid, generation bigi
 
 
 --
+-- Name: pwa_notify_content_v1(uuid, bigint); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_notify_content_v1(delivery uuid, generation bigint) RETURNS TABLE(found boolean, event_type text, language text, borrower_name text, amount numeric)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+BEGIN
+ PERFORM public.pwa_worker_guard_v1('dispatch');
+ RETURN QUERY SELECT src.source_found,e.event_type,
+  CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
+  b."Borrower Name",src.source_amount
+ FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
+ LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
+ LEFT JOIN LATERAL (
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+ ) source_row ON true
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount) src
+ LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
+ WHERE d.delivery_id=$1 AND d.lease_generation=$2 AND d.state='leased' AND d.lease_expires_at>clock_timestamp();
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_notify_content_v1(delivery uuid, generation bigint); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_notify_content_v1(delivery uuid, generation bigint) IS 'mw-access:governance fixed notification boundary; explicit capability only';
+
+
+--
 -- Name: pwa_notify_eligible_v1(uuid, uuid); Type: FUNCTION
 --
 

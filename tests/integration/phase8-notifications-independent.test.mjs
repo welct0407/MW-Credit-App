@@ -83,6 +83,19 @@ test('durable send marker distinguishes before-send retry from uncertain accepta
  }finally{await f.close();}
 });
 
+test('R080 content lookup is best effort on the real boundary: one send, unchanged states, generic or V99 text',async()=>{
+ const f=await fixture();try{
+  const s=await f.subscription(f.recipient,'content');await f.delivery(await f.event('content'),s);const sent=[];
+  const v99=(await f.pool.query("SELECT to_regprocedure('public.pwa_notify_content_v1(uuid,bigint)') IS NOT NULL AS present")).rows[0].present;
+  const dispatch=createNotificationDispatcher({pool:f.dispatchPool,enabled:true,guardConnection:f.dispatchGuard,eligible:async()=>true,transport:async(_sub,id,options)=>{sent.push({id,content:options.content});return{kind:'accepted'};}});
+  assert.deepEqual((await dispatch()).results,[{state:'sent'}]);assert.equal(sent.length,1);
+  // The fixture event points at no source row: before V99 the RPC is absent (generic text); from V99 it reports found=false.
+  assert.deepEqual(sent[0].content,v99?{title:'Payment received',body:'Details no longer available'}:{title:'MW Credit',body:'New activity'});
+  assert.deepEqual((await f.pool.query("SELECT state,provider_result,attempts FROM public.pwa_notification_deliveries WHERE subscription_id=$1",[s.subscription_id])).rows,[{state:'sent',provider_result:'accepted',attempts:1}]);
+  assert.equal((await dispatch()).claimed,0);
+ }finally{await f.close();}
+});
+
 test('new device and reenabled preference cannot backfill prior or already queued events',async()=>{
  const f=await fixture();try{
   await f.event('before-device');const s=await f.subscription(f.recipient,'one');

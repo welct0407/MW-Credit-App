@@ -25,7 +25,11 @@ test('maintained web-push actually encrypts generic payload and binds VAPID; pro
   const assertion=JSON.parse(Buffer.from(jwt[1],'base64url'));assert.equal(assertion.aud,'https://fcm.googleapis.com');assert.equal(assertion.sub,'mailto:synthetic@example.invalid');assert.ok(assertion.exp>Math.floor(Date.now()/1000));
   assert.doesNotMatch(first.body.toString(),/An update|MW Credit|aaaabbbb/);
   const payload=JSON.parse(ece.decrypt(first.body,{version:'aes128gcm',privateKey:receiver,authSecret:auth}).toString());
-  assert.deepEqual(payload,{v:1,eventId:event,title:'MW Credit',body:'An update is available.',url:'/?notification='+event,tag:'mw-credit-'+event});
+  // R080: v2 payload; without rendered content the generic text, never the old "update" wording.
+  assert.deepEqual(payload,{v:2,eventId:event,title:'MW Credit',body:'New activity',url:'/?notification='+event,tag:'mw-credit-'+event});
+  const rendered={title:'รับชำระแล้ว ฿5,000',body:'สมชาย ใจดี'};assert.deepEqual(await transport(subscription,event,{content:rendered}),{kind:'accepted'});
+  const second=requests.pop();assert.doesNotMatch(second.body.toString(),/สมชาย|5,000/);assert.equal(second.options.headers.TTL,3600);assert.match(first.options.headers.Topic,/^[a-f0-9]{32}$/);assert.equal(second.options.headers.Topic,first.options.headers.Topic);
+  assert.deepEqual(JSON.parse(ece.decrypt(second.body,{version:'aes128gcm',privateKey:receiver,authSecret:auth}).toString()),{v:2,eventId:event,...rendered,url:'/?notification='+event,tag:'mw-credit-'+event});
   for(const [code,kind] of [[404,'expired'],[410,'expired'],[429,'throttled'],[503,'unavailable'],[400,'rejected'],[302,'network']]){status=code;assert.deepEqual(await transport(subscription,event),{kind});}
   assert.equal(requests.length,7); // A redirect was not followed.
   await assert.rejects(transport({...subscription,endpoint:'https://127.0.0.1/private'},event));assert.equal(requests.length,7);
