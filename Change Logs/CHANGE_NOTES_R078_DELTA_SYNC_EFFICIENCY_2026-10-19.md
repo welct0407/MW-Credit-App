@@ -1,7 +1,7 @@
 # Change notes — offline dataset sync efficiency (R078), 19 October 2026
 
 ## Purpose
-The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs, and added the decisions listed below. Status: all batches merged into main (last `68ce669`, PR #87), on DEV with V97 and deployed to PROD on 19 October 2026 (V97, image, Hosting); one follow-up open (V98 read grant), so not yet Released.
+The owner wants offline dataset sync to feel instant, especially right after the owner's own write (payment and receipt upload). On 19 October 2026 the owner told the team to work on all seven recommendations of an independent review of the PROD request logs, and added the decisions listed below. Status: Released 19 October 2026 (20 October Bangkok). All batches merged into main (last `68ce669`, PR #87); V97, V98 and the runtime are in DEV and PROD; the PROD measurement of an own-payment cycle is a follow-up, not a blocker.
 
 ## Changes
 Measurement tooling:
@@ -41,6 +41,15 @@ Own payment at 16:49:49Z: the post-write cycle was 6 requests, about 5.6 s (was 
 ### DEV measurement after inline values (19 Oct, DEV on main `68ce669`)
 Own payment at 17:44:16Z: the confirming cycle was 3 requests running in parallel (records 0.27 s server, collection 1.67 s, cash 1.42 s). The cycle ended about 3.1 s after the POST and about 2.6 s after the posted response (target under 3 s). Receipt GETs: 0. Unchanged poll: 0.03 to 0.05 s. Management refreshed on the next poll, 5 requests in about 1 s. Remaining cost: the collection upcoming re-reads and the cash statement re-reads, about 27 queries per request.
 
+### PROD observation after V98 (19:11Z on 19 Oct to 02:34Z on 20 Oct; request-log metadata and server log lines only)
+Two iPhone devices. First sync after the update: 45 requests, 18.7 s. Unchanged polls: 2 requests, 0.02 to 0.05 s server. Bangkok day change on device A (19:30:53Z): 10 requests, 3.2 s. Twice-daily reconciliation at 02:12 to 02:13Z: `offline_reconcile` result `match` for records (6.0 s), collection, cash and management, with `keys=[]`. 0 5xx. Device B at 02:15Z: a 33-request walk of all domains, consistent with a Full sync tap (not confirmed). Not yet measured on PROD: an own-payment confirming cycle, because no payment has been made since; it is recorded as a follow-up measurement in Development Changes, not a blocker.
+
+### Closure pruning (release workflow, 20 October 2026)
+- Inbound links repointed first to the commit permalink of `de8d66a7` (the last commit where the targets exist): the tracker's R075 record link, and 18 links in `project/outputs/r030-custom-matrix/README.md`, `r037-borrower-contribution/README.md`, `r045-forecast-planning/IMPLEMENTATION.md`, `r049-upcoming-summary/HANDOVER.md` and `r055-grafana/continuation.md`.
+- Development Changes: removed the R078 outstanding-work row (the tracker holds the status and link); added a follow-up row for the PROD own-payment measurement.
+- Change note deleted (R075 left the retention window of R078, R077 and R076): `Change Logs/CHANGE_NOTES_RECEIPT_RECOGNITION_PWA_2026-10-18.md`.
+- Evidence deleted, 37 files nothing current cites: `grafana-callback-approval-20261003/https-acceptance.json`, `r016-20260922/daily-snapshots/development-checkpoint.json`, `r033-matrix-cutover/README.md`, `r033-matrix-cutover/promotion-checklist.md`, `r033-matrix-cutover/release-manifest.json`, `r033-matrix-cutover/verification.json`, `r038-lifetime-return/README.md`, `r038-lifetime-return/data-verification.json`, `r038-lifetime-return/gui-verification.json`, `r038-lifetime-return/saved.json`, `r038-lifetime-return/verification.json`, `r039-restore-borrower-bars/README.md`, `r039-restore-borrower-bars/gui-verification.json`, `r039-restore-borrower-bars/saved.json`, `r039-restore-borrower-bars/verification.json`, `r045-forecast-planning/README.md`, `r045-forecast-planning/browser-verification.json`, `r045-forecast-planning/dictionary-catalog.json`, `r045-forecast-planning/frozen-package.json`, `r045-forecast-planning/promotion-checklist.md`, `r045-forecast-planning/release-manifest.json`, `r045-forecast-planning/saved.json`, `r045-forecast-planning/state.json`, `r049-upcoming-summary/app-config-observations.json`, `r049-upcoming-summary/app-rollback.json`, `r049-upcoming-summary/development-migrate.json`, `r049-upcoming-summary/development-validate.json`, `r049-upcoming-summary/dictionary-closure-plan.json`, `r049-upcoming-summary/release-manifest.json`, `r049-upcoming-summary/summary-development-backup.json`, `r049-upcoming-summary/view-bindings.json`, `r055-grafana/plan.md`, `r055-grafana/promotion-checklist.md`, `r055-grafana/pwa-platform-dashboard.json`, `r055-grafana/release-manifest.json`, `r055-grafana/ux-review.md`, `r055-grafana/verification.md` (all under `project/outputs/`). This clears the `check:docs` evidence warnings.
+
 ### Inline values batch (`f36f313b`, owner: "go ahead with option 1")
 - Client level 6, `inlineValues`: every schemaVersion 4 response carries its referenced values inline, so a delta answers in one request without the need round trip; the later day-change chunks keep the old path.
 - Caps: `INLINE_VALUE_BYTES` 512 KB and `INLINE_VALUE_COUNT` 2048; above them the response falls back to manifest plus need. The manifest is identical either way. Each inline value is hash-checked and a bad one goes to need.
@@ -64,9 +73,9 @@ Compact promotion template fields; pins are in the [environment inventory](../pr
 | Tested package captured; tracker freeze/handoff published | Frozen 2026-10-19T17:47Z, R079 Open; package main `68ce669`, deployed from `66ebed9` |
 | Changed components deployed in dependency order | Backup with full restore verified (32 tables, 6,481 rows); V97 applied through the guarded runner (18:36:15Z to 18:37:34Z); image on the four services (plan 0/4/0, applied 18:41:37Z to 18:42:14Z); Hosting release deployed. Pins and references are in the inventory |
 | Version/environment and affected PROD smoke verified once | Health 200; 401 without a token; OPTIONS `Access-Control-Max-Age` 7200 from `lm.mw-credit.com`; the bundle carries `68ce669`; no ERRORs 18:30Z to 18:47Z |
-| Actual outcome recorded; publication and tag verified | Deployed to PROD; not Released: one follow-up open (below). Tag and pruning at closure |
+| Actual outcome recorded; publication and tag verified | Applied and verified in PROD; Released in the tracker; pruning listed below; tag `R078` on `68ce669` through the Release tag workflow (started by the owner or coordinator) |
 
-Deviation (orchestrator ruled it within the move-to-production scope): the PROD app roles have no SELECT on `pwa_row_changes`, because the DEV grant came from post-migrate reconciliation, which refuses PROD. Effect: PROD sync falls back to the protocol 3 walk. Items 1 to 5 and the other improvements apply; change-tracked deltas (items 6 and 7 v4 records, collection and cash row deltas, inline values) do not until the grant exists. Follow-up: a tested V98 grant migration, applied to DEV first, then to PROD with a backup at baseline 97. R078 is not marked Released; nothing is pruned or tagged yet. 
+Deviation, resolved: after the V97 deploy the PROD app roles had no SELECT on `pwa_row_changes` (the DEV grant came from post-migrate reconciliation, which refuses PROD), so PROD synced by the protocol 3 walk for a few hours. V98 (`pwa_row_changes_app_read`, orchestrator ruling within the move-to-production scope) grants SELECT only on the table and its sequence; applied to DEV (19:02:49Z) and PROD (19:10:29Z, backup `prod-promotion-ad30568ef1cf44aaabaa5c0cd636e680`, restore verified 33 tables, 6,485 rows). Pins and references are in the inventory. Read-backs: `mw_app_prod` and the command user have SELECT only, the reader user none; DEV the same; no ERRORs.
 
 ## Baseline
 PROD, window 17 October 00:00 to 19 October 2026 (Bangkok), 17,051 request-log rows, from the report script (metadata only):
@@ -115,7 +124,8 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 | V97 DEV apply, 19 October 2026 | Done through the guarded runner from `147fb1c` (migrations tree identical to the tested `98c7527`); backup with restore test first; owner-authority role reconciliation 0 violations. Pins and record references are in the [environment inventory](../project/Documents/Environment_Inventory.md) |
 | DEV deploy, 19 October 2026 | New image on the four DEV services (Terraform plan 0/4/0), DEV Hosting deployed with release label R078; pins in the inventory |
 | DEV smoke | Health 200; unauthenticated 401; OPTIONS returns `Access-Control-Max-Age: 7200` and the dev origin; the bundle carries `06a8902`; no DEV log errors |
-| Re-run of the report script on DEV and PROD after promotion | Pending |
+| V98 on DEV and PROD, 19 October 2026 | Applied and verified (see the deviation above and the inventory); PROD observation above |
+| Re-run of the report script on PROD for an own-payment cycle | Follow-up (no payment since the deploy) |
 
 ## Not run
 - The wide Playwright suite (the PR CI is the broad run).
@@ -128,14 +138,13 @@ Post-write cycle under 3 s; unchanged poll under 1 s. After DEV and PROD promoti
 - A signed-in offline-dataset call returning the `changes` cursor on DEV (needs the owner's sign-in).
 - The DEV re-measurement after the inline-values deploy (the follow-up was measured, see above); PROD measurement.
 - A SHA, size or webp mismatch of the seeded receipt in a real browser; WebKit or a real iPhone for the follow-up batch.
-- Change-tracked deltas on PROD: the app roles lack SELECT on `pwa_row_changes` until V98.
-- The PROD before/after measurement.
+- The PROD own-payment cycle measurement (no payment since the deploy).
 
 ## Recovery
 Revert the batch's commits on `claude/delta-sync-efficiency`; before promotion nothing is deployed. V97 is an immutable migration: after a PROD apply, recovery is a restore from the verified backup taken at promotion; the new table is read-only for the app role and clients fall back to the protocol 3 walk when it is unreadable.
 
 ## Open questions
-PROD promotion instruction for V97 and the release (the owner authorized up to DEV only).
+None. Owner acceptance is the owner's production instruction.
 
 ## Remaining work
-The owner's DEV check, the V98 read grant (DEV, then PROD with a backup at baseline 97), the PROD measurement, the post-change report run against the targets (post-write cycle under 3 s, unchanged poll under 1 s), promotion, and the Release Tracker row at promotion.
+The PROD own-payment cycle measurement against the targets (post-write cycle under 3 s, unchanged poll under 1 s); the `R078` tag through the Release tag workflow.

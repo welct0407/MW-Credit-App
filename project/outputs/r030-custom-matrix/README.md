@@ -1,6 +1,6 @@
 # R030 — custom borrower matrix
 
-**Current placement, R033:** owner accepted the custom chart. The old native plot and its four surrounding text labels are removed from tab31; question274 remains saved for recovery. Iframe1501 is now row31; method note row53 and detail table row56. [Cutover evidence](../r033-matrix-cutover/README.md). The original comparison placement below is the dated R030 deployment.
+**Current placement, R033:** owner accepted the custom chart. The old native plot and its four surrounding text labels are removed from tab31; question274 remains saved for recovery. Iframe1501 is now row31; method note row53 and detail table row56. [Cutover evidence](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r033-matrix-cutover/README.md). The original comparison placement below is the dated R030 deployment.
 
 ## Scope
 

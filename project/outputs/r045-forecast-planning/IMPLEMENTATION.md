@@ -2,7 +2,7 @@
 
 27 September 2026 · R045 · [Open tab](https://reports.mw-credit.com/dashboard/3?tab=262).
 
-The approved [detailed design](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/forecast-planning-design-20260927/HANDOVER.md) is implemented as **13 · Forecast & Planning**, tab262 in dashboard3. Its 21 questions cover actual interest, remaining interest, month-end outlook, target gap, principal receipts, assumptions, cumulative actual/forecast lines, interest bridge, three scenarios, weekly dues, borrower contributions, loan types, watchlist, loan/event detail, coverage and conditional cash planning. Four models344–347 and questions348–368 are recorded in [state.json](state.json); exact queries, filters and layout are in [saved.json](saved.json).
+The approved [detailed design](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/forecast-planning-design-20260927/HANDOVER.md) is implemented as **13 · Forecast & Planning**, tab262 in dashboard3. Its 21 questions cover actual interest, remaining interest, month-end outlook, target gap, principal receipts, assumptions, cumulative actual/forecast lines, interest bridge, three scenarios, weekly dues, borrower contributions, loan types, watchlist, loan/event detail, coverage and conditional cash planning. Four models344–347 and questions348–368 are recorded in [state.json](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r045-forecast-planning/state.json); exact queries, filters and layout are in [saved.json](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r045-forecast-planning/saved.json).
 
 ## Calculation contract
 
@@ -20,7 +20,7 @@ Cash planning uses current BusinessCashHeld and remaining scenario receipts, nev
 - [ForecastPlanning.mjs](../../scripts/metabase/ForecastPlanning.mjs) prepares, plans, publishes once, refines only state-owned questions and verifies 21 saved questions across three filter cases. Do not replay `--publish` on an existing state. `--refine --only=key,...` scopes a reviewed correction.
 - [VerifyForecastSaved.mjs](../../scripts/metabase/VerifyForecastSaved.mjs) checks 15 independent numerical/filter reconciliations without publishing source amounts.
 - Document-Forecast.py captured affected live SQL metadata and saved Metabase definitions using guarded dictionary updates; its create-once behavior deliberately rejects existing object files.
-- SQL recovery and testing tools, sanitized evidence and the single [promotion checklist](promotion-checklist.md) are adjacent. Private backups, credentials and financial screenshots remain outside Git.
+- SQL recovery and testing tools, sanitized evidence and the single [promotion checklist](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r045-forecast-planning/promotion-checklist.md) are adjacent. Private backups, credentials and financial screenshots remain outside Git.
 
 ## Validation and recovery
 
@@ -28,4 +28,4 @@ Synthetic function tests, 48-migration rebuild, mandatory database CI, 63 DEV qu
 
 Recovery dashboard22 and private pre-change definitions are retained. Roll back only R045-owned placements/questions/models, preserving later work; compatible additive V48 may remain unused. Do not restore financial records for report rollback. Both AppSheet apps are unchanged, with previous R036 editor evidence reused; no RCs were created.
 
-Desktop Chrome verification confirms the signed-in service account, headline labels, dashed projections, comparison/driver charts and an 80% interest control update. Default settings were restored. A 390px viewport check displayed a scaled desktop presentation; mobile usability is limited and no physical-device verification is claimed. Wide detail tables require horizontal scrolling. See [browser evidence](browser-verification.json).
+Desktop Chrome verification confirms the signed-in service account, headline labels, dashed projections, comparison/driver charts and an 80% interest control update. Default settings were restored. A 390px viewport check displayed a scaled desktop presentation; mobile usability is limited and no physical-device verification is claimed. Wide detail tables require horizontal scrolling. See [browser evidence](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r045-forecast-planning/browser-verification.json).

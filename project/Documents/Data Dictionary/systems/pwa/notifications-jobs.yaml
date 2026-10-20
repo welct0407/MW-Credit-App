@@ -76,7 +76,8 @@
     "access": "mw_app_<env> SELECT only (table and identity sequence)"
     "readers": "offline dataset protocol 4 (since cursor {seq, xmin}); an unreadable or missing table makes the server omit\
       \ the change cursor and walk"
-    "status": "V97 authorized up to DEV on 19 October 2026; PROD applies only on a promotion instruction with a verified backup"
+    "status": "V97 and V98 applied to DEV and PROD on 19 October 2026 (R078); mw_app_<env> has SELECT only on the table and\
+      \ its sequence"
 "evidence":
   "/content/offline_history":
     "reference": "R063 Wave 3 app branch (claude/review-w3-app); owner decisions 16 October 2026; source read at the cited\
@@ -116,4 +117,8 @@
     "reference": "https://github.com/welct0407/MW-Credit-App/blob/666ec55/database/migrations/V97__pwa_row_changes.sql"
     "reason": "R078 item 7: V97 pwa_row_changes change log (DEV-authorized 19 October 2026, not yet applied; PROD needs promotion\
       \ approval and backup); read-service use in protocol 4"
+    "state": "value"
+  "/content/row_change_log/status":
+    "reference": "https://github.com/welct0407/MW-Credit-App/blob/ecd54a4/database/migrations/V98__pwa_row_changes_app_read.sql"
+    "reason": "R078 closure: V97 and V98 applied to DEV and PROD on 19 October 2026; app roles have SELECT only on the log"
     "state": "value"
