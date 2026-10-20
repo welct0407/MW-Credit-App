@@ -43,7 +43,9 @@ test('a clean slip fills every field; reference, time and amount are normalized'
 
 test('each failing field is null with its own warning, in the fixed order',async()=>{
  const cases=[
-  [{amount:'1,500.00'},'amount_unreadable','amountReceived'],[{amount:'0.00'},'amount_unreadable','amountReceived'],[{amount:'1500.50'},'amount_fractional','amountReceived'],
+  [{amount:'5,00'},'amount_unreadable','amountReceived'],[{amount:'1,2345'},'amount_unreadable','amountReceived'],[{amount:'1,48,000'},'amount_unreadable','amountReceived'],
+  [{amount:',480'},'amount_unreadable','amountReceived'],[{amount:'1,480.50'},'amount_fractional','amountReceived'],
+  [{amount:'0.00'},'amount_unreadable','amountReceived'],[{amount:'1500.50'},'amount_fractional','amountReceived'],
   [{currency:'USD'},'non_thb','amountReceived'],[{recipient_numbers:['xxx-x-xxxxx-x']},'account_unmatched','cashAccountId'],
   [{recipient_numbers:['xxx-x-x6789-x','081-xxx-5678']},'account_ambiguous','cashAccountId'],[{reference:'AB1'},'reference_unreadable','bankReference'],
   [{reference:'AB12/34CD'},'reference_unreadable','bankReference'],[{date:'2026-10-16'},'date_outside_window','paymentDate'],[{date:'2026-10-19'},'date_outside_window','paymentDate'],
@@ -67,5 +69,8 @@ test('an existing reference warns but still fills; the transfer time needs an ac
  assert.deepEqual(seen,['AB1234CD']);assert.equal(out.suggestion.bankReference,'AB1234CD');assert.deepEqual(out.warnings,[{code:'reference_exists'}]);
  const old=await evaluateSlip(slip({date:'2026-10-10'}),context());assert.equal(old.suggestion.transferTime,null);assert.deepEqual(old.warnings,[{code:'date_outside_window',date:'2026-10-10'}]);
  assert.equal(slipFields(slip({amount:'000120'}),'2026-10-18').amountReceived,'120');
+ // R079: a correctly grouped thousands comma (Flash-Lite's "1,480.00") fills like the agent's rule.
+ assert.equal(slipFields(slip({amount:'1,480.00'}),'2026-10-18').amountReceived,'1480');
+ assert.equal(slipFields(slip({amount:'1,234,567'}),'2026-10-18').amountReceived,'1234567');
  assert.equal(previousDay('2026-03-01'),'2026-02-28');
 });
