@@ -91,3 +91,29 @@ class HoldReplyTests(unittest.TestCase):
              patch('mw_integration_agent.review_cycle.add_payment',create=True) as add:
             self.assertFalse(cycle(self.config,self.j,lambda *_:self.identity)['failures'])
             self.assertEqual(len(self.n.due()),1);self.assertEqual(dispatch.call_count,1);add.assert_not_called()
+
+    def test_reject_on_archive_unavailable_hold_rejects_and_text_renders_blank_fields(self):
+        from mw_integration_agent.receipt_hold import held_text
+        with self.j.db:self.j.db.execute("UPDATE receipt_jobs SET detail='RECEIPT_ARCHIVE_UNAVAILABLE'")
+        key=event_key(self.job())
+        notice_id=self.n.reserve(key,self.p,'subject','body')
+        with self.n.db:self.n.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='out2',recipient_id='123' WHERE id=?",(notice_id,))
+        notice=dict(self.n.db.execute('SELECT * FROM partner_notices WHERE id=?',(notice_id,)).fetchone())
+        self.assertEqual(self.decide(event=dict(self.event,reply_to='out2'),notice=notice),'HOLD_REJECTED')
+        english=held_text(self.job(),None,'English',[])[1];thai=held_text(self.job(),None,'ไทย',[])[1]
+        self.assertIn('could not be kept as evidence',english);self.assertIn('unavailable baht',english)
+        self.assertIn('ระบบจัดเก็บภาพสลิปเป็นหลักฐานไม่ได้',thai);self.assertIn('ไม่ทราบ บาท',thai)
+        self.assertIn('send Reject',english)
+
+    def test_reply_to_archive_pending_alert_is_ignored(self):
+        from mw_integration_agent.review_cycle import cycle
+        with self.j.db:self.j.db.execute("UPDATE receipt_jobs SET status='PENDING',detail='RECEIPT_ARCHIVE_PENDING'")
+        notice_id=self.n.reserve('receipt-archive-pending:j:RECEIPT_DOWNLOAD_FAILED',self.p,'subject','body')
+        with self.n.db:self.n.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='late',recipient_id='123' WHERE id=?",(notice_id,))
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        ingress.capture('batch',[{'message_id':'in','sender_id':'123','timestamp':time.time()-1,'text':'reject','reply_to':'late'}]);ingress.close()
+        live={'partners':[self.p],'reviewer_ids':['p'],'borrowers':[],'accounts':[]}
+        with patch('mw_integration_agent.review_cycle.masters',return_value=live),patch.object(NoticeJournal,'dispatch'):
+            self.assertFalse(cycle(self.config,self.j,lambda *_:self.identity)['failures'])
+        self.assertEqual((self.job()['status'],self.job()['detail']),('PENDING','RECEIPT_ARCHIVE_PENDING'))
+        self.assertEqual(self.j.db.execute('SELECT count(*) FROM partner_review_replies').fetchone()[0],0)

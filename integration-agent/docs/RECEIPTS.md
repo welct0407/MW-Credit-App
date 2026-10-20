@@ -59,7 +59,7 @@ Manual-payment guard: `payment_match.py` reads current Payments after image extr
 
 ## Optional notifications and processing health — 2 October 2026
 
-Intake, validation and financial processing run before the optional result-delivery phase. Notification exceptions appear in `notification_failures`; processing failures remain in `failures` and retain the nonzero service exit. At most two eligible notices are dispatched per cycle, ordered by retry timestamp and ID. Unexpected recipient preparation/delivery errors defer that notice for five minutes so another queued notice can progress. The shared OAuth credential lock is nonblocking: contention is definitely unsent and follows the existing at-most-three, five-minute email retries. Unknown provider acceptance never automatically retries.
+Intake, validation and financial processing run before the optional result-delivery phase. Notification exceptions appear in `notification_failures`; processing failures remain in `failures` and retain the nonzero service exit. At most six eligible notices are dispatched per notify pass (raised from two on 20 October 2026), ordered with this run's terminal results first, then other results, hold-reply and command results, review requests, held-receipt alerts and archive-pending alerts, and within each group by retry timestamp and ID. Unexpected recipient preparation/delivery errors defer that notice for five minutes so another queued notice can progress. The shared OAuth credential lock is nonblocking: contention is definitely unsent and follows the existing at-most-three, five-minute email retries. Unknown provider acceptance never automatically retries.
 
 A master-read failure before processing one image now records a five-minute backoff without spending extraction attempts or discarding source evidence, allowing the next image to proceed on the next scheduled cycle. Existing archive, identity, freshness, duplicate and reviewer checks remain authoritative. Missing review delivery cannot authorize a payment; informational email cannot approve it.
 
@@ -72,6 +72,24 @@ A master-read failure before processing one image now records a five-minute back
 
 The command accepts only POSTED-result notices whose review still proves a payment ID, IG is UNAVAILABLE without an accepted message ID, and email is REJECTED after exactly three attempts. At most ten unique exact IDs; stale observations or changed state reject the whole transaction. Repeating the same reviewed acknowledgement is idempotent. Required review requests, UNKNOWN delivery/posting and successful notices are refused. Original notice fields, payment/review state and earlier failed audit operations remain unchanged. Acknowledgement is `ACKNOWLEDGED_UNDELIVERED`, never successful delivery, and does not reset `failed_notifications` or schedule a resend. If commit acknowledgement is lost, inspect the deterministic acknowledgement operation/event before doing anything further.
 
+## Receipt run order, image budget and retries — 20 October 2026
+
+Owner plan of 20 October 2026 (batch A, agent code only; no SQL, no new service, no catalogue revision, no change to the Cloud Run instance count, the receiving page, the Gemini model, the validation rules or the shared receipt API). One run of `mw-receipt-summary` (the `receipt-cycle` command, still one worker at a time under `receipt-worker.lock`) now runs in this order:
+
+1. Ingest captured events.
+2. Expire reviews past 24 hours.
+3. Decide reviewer replies, then execute approved reviews, then send result notices. Approvals therefore no longer wait behind an image. A review is executed at most once per run. With Partner review off, the image loop runs first as before.
+4. Process pending images under the time budget (`receipt_cycle_image_budget_seconds`), re-reading the controls before each image. The master-read backoff above applies per image, so a master failure on one image does not stop the next. A reply captured while a run is busy waits until that run ends.
+5. Propose validated receipts, execute approved reviews again (automatic payments complete in the same run), send notices again, then project evidence.
+
+**Retry ladder.** `RECEIPT_PROCESSING_UNAVAILABLE` (extraction timeout or provider failure) retries on the next run after attempt 1 and after 60 s following attempt 2; attempt 3 still ends REVIEW with `RECEIPT_RETRY_LIMIT`. A job retried this way is not picked again in the run that deferred it. `RECEIPT_PROCESSING_STARTED` (crash guard), `RECEIPT_MASTER_UNAVAILABLE` and `RECEIPT_ARCHIVE_PENDING` keep the five-minute delay.
+
+**Archive exit.** An archive error no longer defers a job for five minutes forever. When the evidence asset is `SOURCE_UNAVAILABLE` or `INTEGRITY_CONFLICT`, the job ends REVIEW with detail `RECEIPT_ARCHIVE_UNAVAILABLE` (marking it REVIEW clears its source URL and image, so the reviewer asks the borrower to resend) and the existing hold alert asks the reviewers for manual investigation (see [Partner review](PARTNER_REVIEW.md)). Other archive errors, including a source still pending after `RECEIPT_DOWNLOAD_FAILED`, defer the job 300 s and keep the source URL. A job that stays PENDING with its archive incomplete longer than `receipt_archive_alert_seconds` keeps its state and source URL; the reviewers get one "Receipt delayed" alert (⌛) per job and reason, dropped at delivery once the job is resolved (the reason is the asset's last error code; the text says no reply is needed and replies to it are ignored). Other terminal asset codes (`RECEIPT_SOURCE_MISSING`, `RECEIPT_SOURCE_CONFLICT`, `RECEIPT_SPOOL_MISSING`) follow the same alert. [Receipt evidence](RECEIPT_EVIDENCE.md) describes the archive states.
+
+**Instagram directory read.** One run caches the account's conversations directory pages on first use and answers sender identity, reply authorization, posting identity and notice recipient resolution from them. The snapshot lives for the whole run, so with a 60 to 180 s image budget it can be a few minutes old at the checks after the images; the fail-closed rules are unchanged. Ambiguous or incomplete pages still fail closed, and a failed read is not cached. Profile lookups and a forwarded group's read of the exact group stay live.
+
+Out of this scope and unchanged: the duplicate, identity, account and date checks before every post, the 24-hour review expiry, the today-or-yesterday rule, the UNKNOWN never-replay rule, every cutoff. Held receipts (REVIEW) are not re-run automatically. The owner's targets are in the [change note](../Change%20Logs/CHANGE_NOTES_RECEIPT_CYCLE_SPEED_2026-10-20.md); measured results are recorded there after deployment.
+
 ## Receipt recognition API
 
 Source, 18 October 2026 (catalogue revision 29); implemented, not enabled. The command services' payment receiving page sends an uploaded slip here for a suggestion; the agent's Instagram receipt cycle uses the same extraction module.
@@ -81,6 +99,8 @@ Source, 18 October 2026 (catalogue revision 29); implemented, not enabled. The c
 | Setting | Meaning |
 | --- | --- |
 | `receipt_extraction_provider` | Instagram receipt cycle provider, `codex` (default) or `gemini`. Changing it is its own owner authorization. |
+| `receipt_cycle_image_budget_seconds` | Time budget for the image phase of one receipt run: pending images are processed one after another until none is left or the budget is spent. Integer, default 60, allowed 10..180. A run can exceed it by one image (budget plus the 60 s Gemini total at worst). |
+| `receipt_archive_alert_seconds` | A job still PENDING with its evidence archive incomplete for longer than this sends the reviewers a hold-style alert without changing the job. Integer, default 3600, allowed 600..86400. |
 | `receipt_recognition_enabled` | Recognizer switch; the catalogue entry `receipt_recognition_api` must also be enabled. Both are read per request. |
 | `receipt_cycle_gemini_attempt_seconds`, `_total_seconds` | Gemini bounds for the Instagram receipt cycle only: 25 s per attempt and 60 s in total by default (attempt 5..60, total attempt..120); one retry while at least 4 s remain. The recognizer keeps its own 42 s request, 40 s provider and 36 s attempt bounds. Codex is unaffected. |
 | `receipt_recognition_provider` | Recognizer provider, `gemini` (default) or `codex`. |

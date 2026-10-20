@@ -44,4 +44,27 @@ class ReceiptIdentityTests(unittest.TestCase):
             conversation_identity({'instagram_account_id':'999'},'123',API(p))
 
 
+    def test_directory_snapshot_reads_once_and_keeps_fail_closed_checks(self):
+        from mw_integration_agent.receipt_run import Directory
+        from mw_integration_agent.statement_delivery import InstagramDeliveryError
+        api=API(page(('123','Noey'),('456','partner'),('456','other')))
+        directory=Directory({'instagram_account_id':'999'},api)
+        self.assertEqual(directory.identity({'instagram_account_id':'999'},'123')['username'],'noey')
+        with self.assertRaises(ReceiptInvalid):directory.identity({'instagram_account_id':'999'},'456')
+        with self.assertRaises(InstagramDeliveryError):directory.recipient(None,{'username':'noey2'})
+        self.assertEqual(len(api.calls),1)
+
+    def test_directory_failure_is_not_cached(self):
+        from mw_integration_agent.receipt_run import Directory
+        class Flaky(API):
+            def request(self,path,query):
+                if not self.calls:self.calls.append(query);raise ConfigurationError('IG_UNAVAILABLE')
+                return super().request(path,query)
+        api=Flaky(page(('123','Noey')))
+        directory=Directory({'instagram_account_id':'999'},api)
+        with self.assertRaises(ConfigurationError):directory.identity({'instagram_account_id':'999'},'123')
+        self.assertEqual(directory.identity({'instagram_account_id':'999'},'123')['username'],'noey')
+        directory.identity({'instagram_account_id':'999'},'123')
+        self.assertEqual(len(api.calls),2)  # failure, then one cached success
+
 if __name__=='__main__': unittest.main()

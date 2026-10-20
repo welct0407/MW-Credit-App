@@ -18,6 +18,7 @@ def display_notice(item):
     icon=''
     if event.startswith('review:'):icon='❓'
     elif event.startswith('receipt-held:'):icon='⚠️'
+    elif event.startswith('receipt-archive-pending:'):icon='⌛'
     elif event.startswith('hold-reply-result:'):icon='❌' if item['subject'] in ('Held receipt rejected','ปฏิเสธสลิปที่พักไว้แล้ว') else 'ℹ️'
     elif event.startswith('review-result:'):
         icon={'POSTED':'✅','REJECTED':'❌','MANUAL_REQUIRED':'📝',
@@ -154,7 +155,7 @@ class NoticeJournal:
     def close(self):self.db.close()
 
 
-def receipt_notice(receipt,borrower,language,payment_id=None):
+def receipt_notice(receipt,borrower,language,payment_id=None,facts_changed=False):
     """payment_id may be supplied only by the verified posting/readback workflow."""
     if language not in ('English','ไทย'):raise ConfigurationError('PARTNER_LANGUAGE_UNSUPPORTED')
     thai=language=='ไทย'
@@ -166,9 +167,11 @@ def receipt_notice(receipt,borrower,language,payment_id=None):
         subject='บันทึกการชำระเงินสำเร็จ' if payment_id else 'ได้รับสลิปการชำระเงิน'
         body=f"{subject}\nผู้ชำระ: {name}\nจำนวน: {amount} บาท\nวันเวลาโอน: {when} (เวลาไทย)\nรับเข้าบัญชี: {receipt['account_label']}"
         body+=f'\nรายการชำระเงิน: {payment_id}' if payment_id else '\nผ่านการตรวจสอบสลิปเบื้องต้น ยังไม่ได้บันทึกการชำระเงิน'
+        if payment_id and facts_changed:body+='\nหมายเหตุ: มีการแก้ไขข้อมูลสัญญาหลังอนุมัติ ระบบยังบันทึกยอดเต็มเป็น Lump Sum'
     else:
         subject='Payment processed' if payment_id else 'Payment receipt received'
         body=f"{subject}\nBorrower: {name}\nAmount: {amount} baht\nTransferred: {when} (Bangkok)\nReceived into: {receipt['account_label']}"
         body+=f'\nPayment ID: {payment_id}' if payment_id else '\nBasic receipt checks passed. Payment has not been recorded.'
+        if payment_id and facts_changed:body+='\nNote: loan details were updated after approval; the full amount was still posted as Lump Sum.'
     if len(body)>1000:raise ConfigurationError('NOTICE_TOO_LONG')
     return subject,body

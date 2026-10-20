@@ -80,6 +80,52 @@ class CycleTests(unittest.TestCase):
         self.run_cycle();self.run_cycle();self.assertEqual(self.submit.call_count,1)
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'POSTED')
 
+    def test_one_directory_read_serves_reply_posting_and_result_notices(self):
+        import time
+        from mw_integration_agent.receipt_run import Directory
+        class API:
+            def __init__(self):self.calls=[]
+            def request(self,path,query=None,body=None):
+                self.calls.append(path)
+                if path=='999/conversations':
+                    return {'data':[{'participants':{'data':[{'id':'999','username':'business'},{'id':i,'username':n}]}}
+                                    for i,n in (('123','borrower'),('456','partner'),('789','partner2'))]}
+                if path=='999/messages':return {'message_id':'m-'+body['recipient']['id']}
+                return {'id':path,'username':{'456':'partner','789':'partner2'}[path]}
+        api=API();self.config.update(instagram_account_id='999',receipt_summary_enabled=True)
+        self.masters.return_value['partners'].append(dict(self.p,id='p2',username='partner2'))
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to) VALUES ('approval','456',?,'yes',?,'CAPTURED_NO_PROCESSING','sent')",(time.time(),time.time()))
+        ingress.db.commit();ingress.close()
+        directory=Directory(self.config,api)
+        with patch.object(NoticeJournal,'dispatch',new=lambda journal,item,config,rows,**kw:REAL_DISPATCH(journal,item,config,rows,api=api,**kw)):
+            result=cycle(self.config,self.j,directory.identity,directory.recipient)
+        self.assertEqual(result['failures'],[])
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'POSTED')
+        self.assertEqual(api.calls.count('999/conversations'),1)
+        self.assertEqual(sorted(c for c in api.calls if c.isdigit()),['456','789'])
+        self.assertEqual(api.calls.count('999/messages'),2)
+
+    def test_results_of_this_run_lead_capped_delivery(self):
+        old=self.store.reserve('job3',dict(self.proposal,receipt=dict(self.proposal['receipt'],reference='OLD')))
+        self.j.db.execute("UPDATE partner_reviews SET state='REJECTED' WHERE id=?",(old,));self.j.db.commit()
+        pending=self.store.reserve('job2',dict(self.proposal,receipt=dict(self.proposal['receipt'],reference='OTHER')))
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        notices.reserve('review:'+pending,self.p,'s','b')
+        for i in range(3):notices.reserve(f'review-command-result:m{i}',self.p,'s','b')
+        notices.close()
+        self.run_cycle()
+        order=[c.args[0]['event_key'] for c in self.dispatch.call_args_list]
+        self.assertEqual(order[:2],['review-result:'+self.key+':POSTED','review-result:'+old+':REJECTED'])
+        self.assertTrue(all(k.startswith('review-command-result:') for k in order[2:5]))
+        self.assertEqual(order[5:],['review:'+pending])
+        self.dispatch.reset_mock()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        for i in range(8):notices.reserve(f'review-command-result:n{i}',self.p,'s','b')
+        notices.close();self.run_cycle()
+        self.assertEqual(self.dispatch.call_count,6)
+
     def test_not_sent_returns_review_to_approved_and_resubmits_same_request_id(self):
         # AGT-SEND-03: a command that never reached the API releases the claim; the next cycle re-submits
         # under the same deterministic requestId. Nothing else about the row changes.
@@ -429,7 +475,7 @@ class CycleTests(unittest.TestCase):
         mailer=Mock();mailer.send.side_effect=EmailRejected('account locked')
         # R058: no local gate; the provider's explicit window rejection is the only email trigger.
         api=Mock();api.request.side_effect=InstagramAPIError(400,10,2534022,window_expired=True)
-        self.dispatch.side_effect=lambda journal,item,config,rows: REAL_DISPATCH(
+        self.dispatch.side_effect=lambda journal,item,config,rows,**_: REAL_DISPATCH(
             journal,item,config,rows,api=api,mailer=mailer,
             resolver=lambda *_:'456')
         # Bound methods require autospec when replacing the class method.
@@ -462,15 +508,153 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(self.submit.call_count,1)
 
     def test_delivery_backlog_bounded_and_failed_item_deferred(self):
-        self.masters.return_value['partners'].extend(dict(self.p,id=str(i)) for i in range(5))
+        self.masters.return_value['partners'].extend(dict(self.p,id=str(i)) for i in range(11))
         self.dispatch.side_effect=RuntimeError('unavailable')
         self.run_cycle()
-        self.assertEqual(self.dispatch.call_count,2)
+        self.assertEqual(self.dispatch.call_count,6)
         first={call.args[0]['id'] for call in self.dispatch.call_args_list}
         self.dispatch.reset_mock();self.run_cycle()
-        self.assertEqual(self.dispatch.call_count,2)
+        self.assertEqual(self.dispatch.call_count,6)
         second={call.args[0]['id'] for call in self.dispatch.call_args_list}
         self.assertFalse(first & second)
+
+    def identity(self,*_):return {'id':'123','username':'borrower'}
+    def review(self,job='job'):return self.j.db.execute('SELECT * FROM partner_reviews WHERE job_id=?',(job,)).fetchone()
+    def notice_rows(self,prefix):
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:return [dict(r) for r in notices.db.execute('SELECT * FROM partner_notices WHERE event_key LIKE ?',(prefix+'%',))]
+        finally:notices.close()
+
+    def test_images_run_after_approvals_in_one_run(self):
+        order=[];submitted=self.submit.side_effect
+        self.submit.side_effect=lambda c,b:(order.append('post'),submitted(c,b))[1]
+        cycle(self.config,self.j,self.identity,images=lambda:order.append('image'))
+        self.assertEqual(order,['post','image'])
+
+    def test_phase_order_legacy_and_with_images(self):
+        from mw_integration_agent.review_cycle import Run
+        order=[]
+        names=('expire','propose_validated','decide_replies','execute_approved','notify')
+        patches=[patch.object(Run,n,lambda self,n=n:order.append(n)) for n in names]
+        for p in patches:p.start();self.addCleanup(p.stop)
+        cycle(self.config,self.j,self.identity)
+        self.assertEqual(order,list(names));order.clear()
+        cycle(self.config,self.j,self.identity,images=lambda:order.append('images'))
+        self.assertEqual(order,['expire','decide_replies','execute_approved','notify','images','propose_validated','execute_approved','notify'])
+
+    def test_second_execute_pass_does_not_reconcile_unknown_twice(self):
+        self.j.db.execute("UPDATE partner_reviews SET state='UNKNOWN',payment_id=?",('pwa:'+receipt_api.request_id('dev',self.key),));self.j.db.commit()
+        cycle(self.config,self.j,self.identity,images=lambda:None)
+        self.assertEqual(self.status.call_count,1)
+
+    def test_automatic_review_from_image_phase_posts_in_same_run(self):
+        self.enable_auto();self.j.db.execute("UPDATE partner_reviews SET state='POSTED'");self.j.db.commit()
+        cycle(self.config,self.j,self.identity,images=self.validated_job)
+        self.assertEqual(self.review('new-job')['state'],'POSTED');self.assertEqual(self.submit.call_count,1)
+        self.assertEqual(len(self.notice_rows('review-result:'+self.review('new-job')['id'])),1)
+
+    def test_charge_raised_then_approved_posts_with_note_and_saved_proposal_hash(self):
+        self.plan.return_value=dict(self.proposal,facts={'charges':['raised']},loan_keys=['changed'])
+        self.run_cycle()
+        row=self.review()
+        self.assertEqual((row['state'],row['detail']),('POSTED','FACTS_CHANGED_SAME_OUTCOME'))
+        self.assertEqual(self.payload.call_args.args[2],self.proposal)
+        self.assertEqual(self.submit.call_args.args[0]['_receipt_facts_outcome'],'FACTS_CHANGED_SAME_OUTCOME')
+        self.assertIn('Note: loan details were updated after approval',self.notice_rows('review-result:')[0]['body'])
+
+    def test_unchanged_facts_post_without_note(self):
+        self.run_cycle()
+        self.assertEqual(self.review()['detail'],'');self.assertNotIn('_receipt_facts_outcome',self.submit.call_args.args[0])
+        self.assertNotIn('Note:',self.notice_rows('review-result:')[0]['body'])
+
+    def test_label_only_change_posts_without_note(self):
+        loan={'id':'loan','principal':'90','loan_key':'old label'}
+        self.proposal['facts']={'loans':[loan],'charges':[]};self.proposal['loan_keys']=['old label']
+        self.j.db.execute('UPDATE partner_reviews SET proposal=?',(json.dumps(self.proposal,sort_keys=True,ensure_ascii=False),));self.j.db.commit()
+        self.plan.return_value=dict(self.proposal,facts={'loans':[dict(loan,loan_key='new label')],'charges':[]},loan_keys=['new label'])
+        self.run_cycle()
+        row=self.review();self.assertEqual((row['state'],row['detail']),('POSTED',''))
+        self.assertNotIn('_receipt_facts_outcome',self.submit.call_args.args[0])
+        self.assertNotIn('Note:',self.notice_rows('review-result:')[0]['body'])
+
+    def test_reviewer_approval_survives_fresh_overpayment(self):
+        self.plan.return_value=dict(self.proposal,action='Overpayment review',approved_allocation_method='Lump Sum',facts={'c':1})
+        self.run_cycle();self.assertEqual(self.review()['state'],'POSTED')
+
+    def test_fresh_loan_close_ends_manual_required_with_result_notice(self):
+        self.plan.return_value=dict(self.proposal,action='Loan Close',loan_id='loan',facts={'c':1})
+        self.run_cycle();self.submit.assert_not_called()
+        row=self.review();self.assertEqual((row['state'],row['detail']),('MANUAL_REQUIRED','LOAN_CLOSE_REQUIRED'))
+        self.assertIn('this payment now closes the loan',self.notice_rows('review-result:')[0]['body'])
+
+    def auto_review(self):
+        import time
+        from mw_integration_agent.review_cycle import AUTO_POLICY
+        self.enable_auto();self.j.db.execute("UPDATE partner_reviews SET detail=?",(AUTO_POLICY,))
+        self.j.db.execute("UPDATE receipt_jobs SET created_at=?",(time.time(),));self.j.db.commit()
+        return AUTO_POLICY
+
+    def test_automatic_fresh_overpayment_or_changed_borrower_stays_stale(self):
+        AUTO_POLICY=self.auto_review()
+        for fresh in (dict(self.proposal,action='Overpayment review',approved_allocation_method='Lump Sum'),
+                      dict(self.proposal,borrower=dict(self.b,id='other'))):
+            with self.subTest(fresh=fresh['action']):
+                self.j.db.execute("UPDATE partner_reviews SET state='APPROVED',detail=?,payment_id=NULL",(AUTO_POLICY,));self.j.db.commit()
+                self.plan.return_value=fresh;self.run_cycle()
+                row=self.review();self.assertEqual((row['state'],row['detail']),('STALE','PROPOSAL_FACTS_CHANGED'))
+        self.submit.assert_not_called()
+
+    def test_automatic_same_outcome_keeps_policy_marker(self):
+        AUTO_POLICY=self.auto_review()
+        self.plan.return_value=dict(self.proposal,facts={'c':1});self.run_cycle()
+        self.assertEqual(self.submit.call_count,1);self.assertTrue(self.submit.call_args.args[0]['_receipt_automatic'])
+        self.assertEqual(self.review()['detail'],AUTO_POLICY+':FACTS_CHANGED_SAME_OUTCOME')
+
+    def test_not_sent_after_facts_change_keeps_auto_marker(self):
+        AUTO_POLICY=self.auto_review()
+        self.plan.return_value=dict(self.proposal,facts={'c':1})
+        self.submit.side_effect=receipt_api.NotSent('RECEIPT_API_NOT_SENT_401')
+        self.run_cycle()
+        row=self.review();self.assertEqual((row['state'],row['detail'],row['payment_id']),('APPROVED',AUTO_POLICY,None))
+
+    def undelivered_request(self):
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING',deciding_partner=NULL");self.j.db.commit()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        notices.db.execute("UPDATE partner_notices SET ig_status='PENDING',message_id=NULL");notices.db.commit();notices.close()
+        self.facts.return_value={'c':1}
+
+    def test_undelivered_request_sent_after_same_outcome_edit(self):
+        self.undelivered_request();self.plan.return_value=dict(self.proposal,facts={'c':1})
+        self.run_cycle()
+        self.assertEqual(self.review()['state'],'PENDING')
+        self.assertEqual([c.args[0]['event_key'] for c in self.dispatch.call_args_list],['review:'+self.key])
+
+    def test_undelivered_request_stale_when_fresh_is_loan_close(self):
+        self.undelivered_request();self.plan.return_value=dict(self.proposal,action='Loan Close',facts={'c':1})
+        self.run_cycle()
+        row=self.review();self.assertEqual((row['state'],row['detail']),('STALE','PROPOSAL_FACTS_CHANGED'))
+        self.assertNotIn('review:'+self.key,[c.args[0]['event_key'] for c in self.dispatch.call_args_list])
+
+    def test_archive_pending_alert_queued_once_per_reason_and_resolved_guard(self):
+        import time
+        self.config.update(receipt_hold_notice_cutoff='2026-01-01T00:00:00+00:00',receipt_archive_alert_seconds=3600)
+        self.j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,detail,created_at) VALUES ('slow','slow','123','https://cdn.invalid/x','PENDING','RECEIPT_ARCHIVE_PENDING',?)",(time.time()-7200,))
+        self.j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,detail,created_at) VALUES ('fresh','fresh','123','https://cdn.invalid/y','PENDING','RECEIPT_ARCHIVE_PENDING',?)",(time.time()-60,))
+        self.j.db.execute("INSERT INTO receipt_assets(receipt_id,job_id,source,archive_state,attempts,last_error_code) VALUES ('r','slow','{}','SOURCE_PENDING',9,'RECEIPT_DOWNLOAD_FAILED')")
+        self.j.db.commit()
+        self.run_cycle();self.run_cycle()
+        rows=self.notice_rows('receipt-archive-pending:')
+        self.assertEqual([r['event_key'] for r in rows],['receipt-archive-pending:slow:RECEIPT_DOWNLOAD_FAILED'])
+        self.assertIn('for over 1 hour(s)',rows[0]['body']);self.assertIn('Borrower: Test',rows[0]['body'])
+        from mw_integration_agent.partner_notice import display_notice
+        self.assertTrue(display_notice(rows[0])[0].startswith('⌛'))
+        job=self.j.db.execute("SELECT status,url FROM receipt_jobs WHERE id='slow'").fetchone()
+        self.assertEqual(tuple(job),('PENDING','https://cdn.invalid/x'))
+        self.assertIn(rows[0]['event_key'],[c.args[0]['event_key'] for c in self.dispatch.call_args_list])
+        self.j.db.execute("UPDATE receipt_jobs SET status='VALIDATED',detail='' WHERE id='slow'");self.j.db.commit()
+        self.dispatch.reset_mock();self.run_cycle()
+        self.assertNotIn(rows[0]['event_key'],[c.args[0]['event_key'] for c in self.dispatch.call_args_list])
+        self.assertEqual(self.notice_rows('receipt-archive-pending:')[0]['detail'],'ARCHIVE_RESOLVED_OR_REVIEWER_REMOVED')
 
     def test_master_lookup_failure_backs_off_one_receipt_and_next_is_processed(self):
         from mw_integration_agent.receipt_run import run
@@ -478,11 +662,11 @@ class CycleTests(unittest.TestCase):
         for name,stamp in [('first',2),('second',3)]:
             self.j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,created_at) VALUES (?,?,?,'','PENDING',?)",(name,name,'123',stamp))
         self.j.db.commit()
-        def processed(job,journal,*args):journal.mark(job['id'],'IGNORED','SYNTHETIC_TEST')
+        def processed(job,journal,*args,**kwargs):journal.mark(job['id'],'IGNORED','SYNTHETIC_TEST')
         with patch('mw_integration_agent.receipt_run.controls',return_value=self.config), \
              patch('mw_integration_agent.receipt_run.masters',side_effect=[RuntimeError('unavailable'),{}]), \
              patch('mw_integration_agent.receipt_run.process',side_effect=processed) as process, \
-             patch('mw_integration_agent.review_cycle.cycle',return_value={'failures':[]}):
+             patch('mw_integration_agent.review_cycle.cycle',side_effect=lambda c,j,i,r=None,images=None:(images and images()) or {'failures':[]}):
             run('unused','unused');run('unused','unused')
         self.assertEqual(process.call_count,1)
         self.assertEqual(process.call_args.args[0]['id'],'second')

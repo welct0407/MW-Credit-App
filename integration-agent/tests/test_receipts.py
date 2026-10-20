@@ -124,6 +124,16 @@ class ReceiptRuleTests(unittest.TestCase):
         c['receipt_summary_enabled']='true'
         with self.assertRaises(ConfigurationError): validate_config(c)
 
+    def test_image_budget_and_archive_alert_config_bounds(self):
+        c=load_json(Path(__file__).resolve().parents[1]/'config.example.json')
+        validate_config(c);self.assertEqual((c['receipt_cycle_image_budget_seconds'],c['receipt_archive_alert_seconds']),(60,3600))
+        for name,good,bad in (('receipt_cycle_image_budget_seconds',(10,180),(9,181,60.0,'60',True)),
+                              ('receipt_archive_alert_seconds',(600,86400),(599,86401,'3600'))):
+            for value in good:validate_config(dict(c,**{name:value}))
+            for value in bad:
+                with self.subTest(name=name,value=value),self.assertRaises(ConfigurationError):validate_config(dict(c,**{name:value}))
+        del c['receipt_cycle_image_budget_seconds'],c['receipt_archive_alert_seconds'];validate_config(c)
+
     def test_extractor_disables_tools_and_rejects_tool_event(self):
         with tempfile.TemporaryDirectory() as d:
             def fake(command,**kwargs):
@@ -215,6 +225,69 @@ class ReceiptJournalTests(unittest.TestCase):
         with self.assertRaises(KeyboardInterrupt):
             process(job,self.j,{},master(),fetch=lambda _:(b'image','digest'),extractor=crash,identity_reader=profile)
         self.assertEqual(self.j.db.execute('SELECT attempts FROM receipt_jobs WHERE id=?',(job['id'],)).fetchone()[0],1)
+
+    def test_extraction_retry_ladder_next_run_then_sixty_seconds_crash_guard_stays_300(self):
+        import time
+        self.add()
+        def bad(*_):raise RuntimeError('timeout')
+        for attempt,delay in ((1,0),(2,60)):
+            job=dict(self.j.db.execute('SELECT * FROM receipt_jobs').fetchone());before=time.time()
+            process(job,self.j,{},master(),fetch=lambda _:(b'image','digest'),extractor=bad,identity_reader=profile)
+            row=self.j.db.execute('SELECT * FROM receipt_jobs').fetchone()
+            self.assertEqual((row['status'],row['attempts'],row['detail']),('PENDING',attempt,'RECEIPT_PROCESSING_UNAVAILABLE'))
+            self.assertAlmostEqual(row['retry_after']-before,delay,delta=2)
+            self.assertEqual(len(self.j.pending()),int(delay==0))
+        job=dict(self.j.db.execute('SELECT * FROM receipt_jobs').fetchone())
+        process(job,self.j,{},master(),fetch=lambda _:(b'image','digest'),extractor=bad,identity_reader=profile)
+        row=self.j.db.execute('SELECT * FROM receipt_jobs').fetchone()
+        self.assertEqual((row['status'],row['attempts']),('REVIEW',3))
+        self.add('crash');job=self.j.pending()[0];before=time.time()
+        def crash(*_):raise KeyboardInterrupt()
+        with self.assertRaises(KeyboardInterrupt):
+            process(job,self.j,{},master(),fetch=lambda _:(b'image','digest'),extractor=crash,identity_reader=profile)
+        row=self.j.db.execute('SELECT * FROM receipt_jobs WHERE id=?',(job['id'],)).fetchone()
+        self.assertEqual(row['detail'],'RECEIPT_PROCESSING_STARTED')
+        self.assertAlmostEqual(row['retry_after']-before,300,delta=2)
+
+    def run_images(self,processed,budget=60,clock=None,master=None):
+        from types import SimpleNamespace
+        from mw_integration_agent.receipt_run import images
+        with patch('mw_integration_agent.receipt_run.controls',return_value={}), \
+             patch('mw_integration_agent.receipt_run.masters',side_effect=master or (lambda _:{})), \
+             patch('mw_integration_agent.receipt_run.process',side_effect=processed) as process:
+            images(self.j,'unused','unused',SimpleNamespace(identity=profile),budget,clock)
+        return [c.args[0]['id'] for c in process.call_args_list]
+
+    def three_jobs(self):
+        for name in ('m1','m2','m3'):self.add(name)
+        return [j['id'] for j in self.j.pending()]
+
+    def test_three_pending_images_clear_in_one_run(self):
+        ids=self.three_jobs()
+        done=self.run_images(lambda job,journal,*a,**k:journal.mark(job['id'],'IGNORED','SYNTHETIC_TEST'))
+        self.assertEqual(done,ids);self.assertEqual(self.j.pending(),[])
+
+    def test_spent_budget_leaves_rest_for_next_run(self):
+        ids=self.three_jobs();ticks=iter([0,0,0,61])
+        done=self.run_images(lambda job,journal,*a,**k:journal.mark(job['id'],'IGNORED','SYNTHETIC_TEST'),clock=lambda:next(ticks))
+        self.assertEqual(done,ids[:2]);self.assertEqual([j['id'] for j in self.j.pending()],ids[2:])
+        self.assertEqual(self.run_images(lambda *a,**k:None,budget=60,clock=iter([0,60]).__next__),[])
+
+    def test_master_failure_on_second_image_still_runs_third(self):
+        ids=self.three_jobs();answers=iter([{},RuntimeError('unavailable'),{}])
+        def master(_):
+            value=next(answers)
+            if isinstance(value,Exception):raise value
+            return value
+        done=self.run_images(lambda job,journal,*a,**k:journal.mark(job['id'],'IGNORED','SYNTHETIC_TEST'),master=master)
+        self.assertEqual(done,[ids[0],ids[2]])
+        row=self.j.db.execute('SELECT status,attempts,detail,retry_after FROM receipt_jobs WHERE id=?',(ids[1],)).fetchone()
+        self.assertEqual(tuple(row)[:3],('PENDING',0,'RECEIPT_MASTER_UNAVAILABLE'));self.assertGreater(row['retry_after'],0)
+
+    def test_zero_delay_retry_not_repicked_in_same_run(self):
+        ids=self.three_jobs()
+        done=self.run_images(lambda job,journal,*a,**k:journal.retry(job['id'],1,'RECEIPT_PROCESSING_UNAVAILABLE',delay=0))
+        self.assertEqual(done,ids);self.assertEqual(len(self.j.pending()),3)
 
     def test_saved_extraction_reused_after_transient_database_failure(self):
         self.add();self.payment_check.side_effect=[ConfigurationError('unavailable'),None]

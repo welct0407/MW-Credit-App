@@ -73,19 +73,20 @@ class ReceiptJournal:
                     state = 'DONE'
                 conn.execute('UPDATE runtime.ingress_work SET state=%s,updated_at=clock_timestamp() WHERE message_id=%s',(state,message_id))
 
-    def pending(self):
+    def pending(self,exclude=()):
+        skip=' AND id NOT IN ('+','.join('?'*len(exclude))+')' if exclude else ''
         return [dict(r) for r in self.db.execute('''SELECT * FROM receipt_jobs
-            WHERE status='PENDING' AND retry_after<=? ORDER BY created_at LIMIT 10''',(time.time(),))]
+            WHERE status='PENDING' AND retry_after<=?'''+skip+' ORDER BY created_at LIMIT 10',(time.time(),*exclude))]
 
     def mark(self,key,status,detail):
         with self.db:
             self.db.execute('UPDATE receipt_jobs SET status=?,detail=?,image=NULL,url=\'\' WHERE id=?',
                             (status,detail,key))
 
-    def retry(self,key,attempt,detail,terminal=True):
+    def retry(self,key,attempt,detail,terminal=True,delay=300):
         with self.db:
             self.db.execute('UPDATE receipt_jobs SET attempts=?,retry_after=?,detail=? WHERE id=?',
-                            (attempt,time.time()+300,detail,key))
+                            (attempt,time.time()+delay,detail,key))
         if terminal and attempt>=3:
             self.mark(key,'REVIEW',detail)
 

@@ -1,7 +1,7 @@
 from copy import deepcopy
 import unittest
 from unittest.mock import patch
-from mw_integration_agent.review_proposal import facts, loan_display_key, same_proposal_facts
+from mw_integration_agent.review_proposal import facts, loan_display_key, same_posting_outcome
 from mw_integration_agent.receipt_rules import ReceiptInvalid
 
 
@@ -27,17 +27,12 @@ class NativeReceiptFactsTests(unittest.TestCase):
         with patch('mw_integration_agent.review_proposal.read_query',return_value={'loans':[{'label_borrower_id':None}],'charges':[]}):
             with self.assertRaises(ReceiptInvalid):facts({},'missing')
 
-    def test_only_unambiguous_label_rendering_changes_preserve_immutable_approval(self):
+    def test_label_or_balance_changes_keep_approval_only_while_outcome_is_unchanged(self):
         old={'facts':{'loans':[{'id':'loan','principal':'100','loan_key':'old'}],'charges':[]},'loan_keys':['old'],'receipt':{'amount':'100'},'borrower':{'id':'b'},'action':'Lump Sum'}
         fresh=deepcopy(old);fresh['facts']['loans'][0]['loan_key']='native';fresh['loan_keys']=['native']
-        snapshot=deepcopy(old)
-        self.assertTrue(same_proposal_facts(old,fresh));self.assertEqual(old,snapshot)
-        for key,value in [('principal','101'),('id','other'),('extra','unexpected')]:
-            changed=deepcopy(fresh);changed['facts']['loans'][0][key]=value
-            self.assertFalse(same_proposal_facts(old,changed))
-        changed=deepcopy(fresh);changed['receipt']['amount']='101';self.assertFalse(same_proposal_facts(old,changed))
-        changed=deepcopy(fresh);changed['loan_keys']=['unknown'];self.assertFalse(same_proposal_facts(old,changed))
-        changed=deepcopy(fresh);changed['facts']['loans']*=2;self.assertFalse(same_proposal_facts(old,changed))
-
+        fresh['facts']['loans'][0]['principal']='101';snapshot=deepcopy(old)
+        self.assertTrue(same_posting_outcome(old,fresh,True));self.assertEqual(old,snapshot)
+        changed=deepcopy(fresh);changed['receipt']['amount']='101';self.assertFalse(same_posting_outcome(old,changed,False))
+        changed=deepcopy(fresh);changed['borrower']={'id':'other'};self.assertFalse(same_posting_outcome(old,changed,False))
 
 if __name__=='__main__':unittest.main()

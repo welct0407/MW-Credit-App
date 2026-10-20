@@ -1,6 +1,5 @@
 """Build a fixed payment proposal from current balances, never an AI command."""
 from datetime import date,datetime
-from copy import deepcopy
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from .cash_statement import read_query
 from .receipt_rules import BANGKOK,ReceiptInvalid
@@ -48,29 +47,21 @@ def facts(config,borrower_id):
     return result
 
 
-def same_proposal_facts(saved, fresh):
-    """Retain an approval across display-only provider formatting; never rewrite it."""
-    if saved == fresh:
-        return True
+def unlabelled(current):
+    """Balance facts without display labels; a label-only change is not a facts change."""
+    try:return {**current,'loans':[{k:v for k,v in loan.items() if k!='loan_key'} for loan in current['loans']]}
+    except (KeyError,TypeError,AttributeError):return current
+
+
+def same_posting_outcome(saved, fresh, automatic):
+    """Owner rule (20 Oct 2026): an approval survives a charge/loan edit while the receipt,
+    borrower and consequence (post the full amount as Lump Sum) are unchanged. Never raises."""
+    def full(proposal):
+        return proposal.get('action')=='Lump Sum' or (not automatic and review_posts_overpayment(proposal))
     try:
-        old, new = deepcopy(saved), deepcopy(fresh)
-        old_loans, new_loans = old['facts']['loans'], new['facts']['loans']
-        old_ids = [loan['id'] for loan in old_loans]
-        new_ids = [loan['id'] for loan in new_loans]
-        if (not old_ids or len(set(old_ids)) != len(old_ids) or len(set(new_ids)) != len(new_ids)
-                or set(old_ids) != set(new_ids)):
-            return False
-        # Every listed display label must still refer to the same exact loan ID.
-        for proposal, loans in [(old, old_loans), (new, new_loans)]:
-            labels = {}
-            for loan in loans:
-                label = loan.pop('loan_key')
-                if not isinstance(label, str) or not label or label in labels:
-                    return False
-                labels[label] = loan['id']
-            proposal['loan_keys'] = [labels[label] for label in proposal['loan_keys']]
-        return old == new
-    except (KeyError, TypeError, ValueError):
+        return (saved['receipt']==fresh['receipt'] and saved['borrower']['id']==fresh['borrower']['id']
+                and full(saved) and full(fresh))
+    except (KeyError, TypeError, AttributeError):
         return False
 
 
