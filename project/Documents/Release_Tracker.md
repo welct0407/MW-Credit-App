@@ -4,9 +4,11 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R080 — Open** (opened at R079 promotion start); planned for the push-notification content work (other session, branch `claude/r079-push-notification-content`, V99), which deploys after R079 is in PROD |
+| New product work | **R080 — Open** |
 | Next unused number | **R081**, only opened when authorized R080 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
+
+R080 opened at R079 promotion start; it carries the push-notification content work (branch `claude/r079-push-notification-content`, PR #98, V99). The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
