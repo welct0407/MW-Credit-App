@@ -4,11 +4,11 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R083 — Open** |
-| Next unused number | **R084**, only opened when authorized R083 promotion starts |
+| New product work | **R084 — Open** |
+| Next unused number | **R085**, only opened when authorized R084 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
-R083 opened at R082 promotion start; its first work is fast dashboard startup (see [Development Changes](Development_Changes.md)). R082 (agent receipt speed, wake path, one-minute poll and notice `accepted_at`, agent migration V7, PR #101) and R081 (push English name, V100, PR #100) are Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
+R084 opened at R083 promotion start. R083 (fast dashboard startup, PWA-only, PR #104) is Frozen below; R082 (agent receipt speed, wake path, one-minute poll and notice `accepted_at`, agent migration V7, PR #101) and R081 (push English name, V100, PR #100) are Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 
@@ -16,6 +16,7 @@ All new features/fixes use the sole Open release. Freeze only at authorized prom
 
 | Release | Status | Remaining action / owning record |
 | --- | --- | --- |
+| R083 | Frozen 2026-10-20T18:20Z for the owner's production instruction of 20 October 2026 ("Tested and it's good. Go for prod promotion"); package main `a4fc75d` (PR #104; `Development checks` run 39470902145); fast dashboard startup, PWA-only (no API, SQL or infrastructure) | PROD Hosting promotion in progress; [promotion record](../../Change%20Logs/CHANGE_NOTES_R083_FAST_STARTUP_2026-10-20.md#promotion-record) |
 | R056 | Frozen; V91 deployed | Lisa enrollment retry/closure; [record](../outputs/r056-apple-push/README.md) |
 | R055 | Frozen; monitoring delivered | Carried credential work unfinished; [record](../outputs/r055-grafana/continuation.md) |
 | R016 | Owner-accepted reporting; administrative follow-up | Migration-key retirement evidence/final tag unresolved; do not reopen product development |

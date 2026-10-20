@@ -1,7 +1,7 @@
 # Change notes — fast dashboard startup (R083), 20 October 2026
 
 ## Purpose
-The owner reported that the landing dashboard sometimes takes several seconds to appear. The PWA startup build check in `apps/pwa/src/usePwa.ts` blocked the UI on two sequential network round trips (`/build-version.json`, then `registration.update()` re-fetching sw.js) plus a worker version message. Owner-approved fix, option B, 20 October 2026. Status: in progress on `claude/r083-fast-startup`.
+The owner reported that the landing dashboard sometimes takes several seconds to appear. The PWA startup build check in `apps/pwa/src/usePwa.ts` blocked the UI on two sequential network round trips (`/build-version.json`, then `registration.update()` re-fetching sw.js) plus a worker version message. Owner-approved fix, option B, 20 October 2026. Status: Frozen 2026-10-20T18:20Z at main `a4fc75d` (PR #104); deployed and tested on DEV.
 
 ## Changes
 - `apps/pwa/src/usePwa.ts`: skip `registration.update()` when the page entry is current, no worker is waiting or installing, and the active worker reports the latest version.
@@ -50,3 +50,10 @@ None.
 ## Remaining work
 - Owner DEV and real-iPhone smoke (DEV is deployed; the signed-in warm-launch check is the owner's).
 - Promotion only on owner instruction.
+
+## Promotion record
+- Authority: owner instruction of 20 October 2026, after testing on DEV: "Tested and it's good. Go for prod promotion". It covers the PWA-only Hosting deploy; no SQL, backup or infrastructure is in scope.
+- Freeze: R083 frozen 2026-10-20T18:20Z; R084 opened in the same tracker update; counter R085.
+- DEV result: Hosting version `0461ff407bb04030` from PR #104 head `e390b78` passed the read-only smoke above, and the owner tested it ("Tested and it's good").
+- Package: main `a4fc75d` (PR #104 merge; run 39470902145), PWA-only Hosting with the marker release `R083`. Pins go to the [environment inventory](../project/Documents/Environment_Inventory.md).
+- Excluded: API, SQL, infrastructure, the integration agent, financial corrections, forced notifications and anything merged after `a4fc75d`.
