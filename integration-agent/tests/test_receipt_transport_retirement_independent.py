@@ -62,7 +62,7 @@ class RetirementTests(unittest.TestCase):
                 if case == 'reviewer': self.masters.return_value['reviewer_ids'] = []
                 elif case == 'account': self.masters.return_value['accounts'][0]['active'] = False
                 elif case == 'actor': self.read_query.return_value = ['']
-                elif case == 'facts': self.plan.return_value = {**self.proposal, 'unexpected':'changed'}
+                elif case == 'facts': self.plan.return_value = {**self.proposal, 'action':'Overpayment review', 'facts':{'changed':True}}
                 else: self.check.side_effect = ReceiptInvalid('DUPLICATE_PAYMENT')
                 self.run_cycle()
                 state, identity, proposal = self.j.db.execute('SELECT state,payment_id,proposal FROM partner_reviews').fetchone()

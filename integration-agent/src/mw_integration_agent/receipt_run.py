@@ -12,6 +12,12 @@ from .receipt_master import masters
 from .receipt_identity import receipt_borrower
 from .payment_match import check as check_existing_payment
 from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,validate_receipt,username
+from .statement_delivery import resolve_recipient
+
+# Extraction-class failure ladder per attempt: next run, then 60 s; attempt 3 ends REVIEW.
+UNAVAILABLE_RETRY=(0,60,300)
+# Archive failures no retry can fix; any other archive error keeps the 300 s deferral.
+ARCHIVE_TERMINAL={'RECEIPT_ARCHIVE_REQUIRES_OPERATOR','RECEIPT_SOURCE_MISSING','RECEIPT_SOURCE_CONFLICT','RECEIPT_SPOOL_MISSING'}
 
 
 def controls(config_path,catalogue_path):
@@ -72,6 +78,53 @@ def conversation_identity(config,sender,api=None):
     return {'id':sender,'username':name}
 
 
+class Directory:
+    """One conversation-directory read per run for sender identity and notice recipients.
+    Only successful pages are kept; the readers' fail-closed checks run unchanged on them."""
+    def __init__(self,config,api=None):
+        self.config=config;self.api=api;self.pages={}
+
+    def request(self,path,query):
+        self.api=self.api or Instagram(self.config)
+        if path!=self.config['instagram_account_id']+'/conversations':
+            return self.api.request(path,query)  # profile lookups stay live
+        key=json.dumps(query,sort_keys=True)
+        if key not in self.pages:self.pages[key]=self.api.request(path,query)
+        return self.pages[key]
+
+    def identity(self,config,sender):return conversation_identity(config,sender,self)
+
+    def recipient(self,api,partner):return resolve_recipient(self,partner)
+
+
+def archive_state(journal,job_id):
+    try:row=journal.db.execute('SELECT archive_state FROM receipt_assets WHERE job_id=?',(job_id,)).fetchone()
+    except Exception:return None
+    return row and row['archive_state']
+
+
+def images(journal,config_path,catalogue_path,directory,budget,clock=None):
+    """Pending images oldest first until none is left or the budget is spent (one image may overrun).
+    A job tried in this run is not picked again, even when its retry is due at once."""
+    import time
+    clock=clock or time.monotonic;deadline=clock()+budget;seen=[]
+    while clock()<deadline:
+        batch=journal.pending(seen)
+        if not batch:return
+        job=batch[0];seen.append(job['id'])
+        config=controls(config_path,catalogue_path)
+        try:
+            master=masters(config)
+        except Exception:
+            # A dependency outage before extraction must not spend image
+            # attempts or discard source evidence. Let later intake run.
+            with journal.db:
+                journal.db.execute('UPDATE receipt_jobs SET retry_after=?,detail=? WHERE id=?',
+                    (time.time()+300,'RECEIPT_MASTER_UNAVAILABLE',job['id']))
+            continue
+        process(job,journal,config,master,identity_reader=directory.identity)
+
+
 def process(job,journal,config,master,fetch=download,extractor=extract,identity_reader=conversation_identity):
     from .receipt_archive import Archive,required
     archive=None
@@ -81,7 +134,10 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
             data,digest=archive.capture(job)
             journal.image(job['id'],data,digest)
             job.update(image=data,image_hash=digest)
-        except Exception:
+        except Exception as exc:
+            if isinstance(exc,ConfigurationError) and str(exc) in ARCHIVE_TERMINAL or archive_state(journal,job['id']) in (
+                    'SOURCE_UNAVAILABLE','INTEGRITY_CONFLICT'):
+                journal.mark(job['id'],'REVIEW','RECEIPT_ARCHIVE_UNAVAILABLE');return
             # Archive outages never spend extraction attempts or clear source URLs.
             import time
             with journal.db:
@@ -118,7 +174,7 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
         journal.mark(job['id'],'IGNORED' if ignored else 'REVIEW',str(exc))
     except Exception:
         # Fixed safe error codes only; do not persist provider responses or signed URLs in detail.
-        journal.retry(job['id'],attempt,'RECEIPT_PROCESSING_UNAVAILABLE')
+        journal.retry(job['id'],attempt,'RECEIPT_PROCESSING_UNAVAILABLE',delay=UNAVAILABLE_RETRY[attempt-1])
 
 
 def dispatch(email,journal,config,master,sender=None,identity_reader=conversation_identity):
@@ -157,6 +213,7 @@ def run(config_path,catalogue_path):
         except BlockingIOError:
             return {'status':'already_running'}
         journal=ReceiptJournal(root/'receipt-processing.db', config=config)
+        directory=Directory(config)
         try:
             ingress=state_connect(root/'instagram-ingress.db',config,readonly=True)
             pass  # row format supplied by state adapter
@@ -164,28 +221,18 @@ def run(config_path,catalogue_path):
                 journal.ingest(ingress,cutoff_ts(config,'receipt_activation_cutoff'))
             finally:
                 ingress.close()
-            # A slow image must not delay approvals/notices behind ten model calls.
-            for job in journal.pending()[:1]:
-                config=controls(config_path,catalogue_path)
-                try:
-                    master=masters(config)
-                except Exception:
-                    # A dependency outage before extraction must not spend image
-                    # attempts or discard source evidence. Let later intake run.
-                    import time
-                    with journal.db:
-                        journal.db.execute('UPDATE receipt_jobs SET retry_after=?,detail=? WHERE id=?',
-                            (time.time()+300,'RECEIPT_MASTER_UNAVAILABLE',job['id']))
-                    continue
-                process(job,journal,config,master)
+            budget=config.get('receipt_cycle_image_budget_seconds',60)
+            def image_phase():images(journal,config_path,catalogue_path,directory,budget)
             from .partner_notice import NoticeJournal,receipt_notice
             if config.get('partner_review_enabled'):
                 from .review_cycle import cycle
-                result=cycle(config,journal,conversation_identity)
+                # Approvals and their notices first; images after, under the time budget.
+                result=cycle(config,journal,directory.identity,directory.recipient,images=image_phase)
                 if config.get('receipt_archive_enabled'):
                     from .receipt_projection import reconcile
                     result['receipt_evidence']=reconcile(config,journal)
                 return result
+            image_phase()
             # Supersede definitely unsent legacy direct-email work. SENT/UNKNOWN history stays intact.
             with journal.db:
                 journal.db.execute("UPDATE receipt_emails SET status='SUPERSEDED' WHERE status IN ('PENDING','REJECTED')")
@@ -197,7 +244,7 @@ def run(config_path,catalogue_path):
                     (cutoff_ts(config,'partner_notice_cutoff'),)).fetchall()
                 for job in jobs:
                     result=json.loads(job['result']);live=masters(config)
-                    borrower=borrower_for(conversation_identity(config,job['sender_id']),live['borrowers'])
+                    borrower=borrower_for(directory.identity(config,job['sender_id']),live['borrowers'])
                     try:check_existing_payment(config,result['receipt'],borrower)
                     except ReceiptInvalid as exc:
                         journal.mark(job['id'],'DUPLICATE' if str(exc)=='PAYMENT_ALREADY_RECORDED' else 'REVIEW',str(exc));continue
@@ -215,7 +262,7 @@ def run(config_path,catalogue_path):
                     try:
                         if not job:raise ReceiptInvalid('RECEIPT_MISSING')
                         result=json.loads(job['result'])
-                        borrower=borrower_for(conversation_identity(config,job['sender_id']),live['borrowers'])
+                        borrower=borrower_for(directory.identity(config,job['sender_id']),live['borrowers'])
                         check_existing_payment(config,result['receipt'],borrower)
                         if borrower['id']!=result['borrower']['id']:raise ReceiptInvalid('BORROWER_MAPPING_CHANGED')
                         if not any(a['id']==result['receipt']['account_id'] and a['active'] is True for a in live['accounts']):
@@ -223,7 +270,7 @@ def run(config_path,catalogue_path):
                     except ReceiptInvalid:
                         with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='RECEIPT_MASTER_CHANGED' WHERE id=?",(notice['id'],))
                         continue
-                    notices.dispatch(notice,config,live['partners'])
+                    notices.dispatch(notice,config,live['partners'],resolver=directory.recipient)
             finally:notices.close()
             return journal.counts()
         finally:

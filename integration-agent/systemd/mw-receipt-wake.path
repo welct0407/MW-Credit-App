@@ -1,0 +1,11 @@
+[Unit]
+Description=Start the receipt cycle when a capture touches the receipt wake file
+
+[Path]
+# The receiver and the conversation poller write and close this file in state_directory after a
+# successful capture that can need the receipt cycle. The 20-second timer stays as the fallback.
+PathChanged=/var/lib/mw-integration-agent/state/receipt-wake
+Unit=mw-receipt-summary.service
+
+[Install]
+WantedBy=paths.target

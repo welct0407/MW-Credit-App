@@ -105,6 +105,43 @@ class ReceiptArchiveTests(unittest.TestCase):
         row=self.journal.db.execute('SELECT * FROM receipt_jobs WHERE id=?',(self.key,)).fetchone()
         self.assertEqual(row['attempts'],0);self.assertEqual(row['status'],'PENDING');self.assertTrue(row['url'])
         extract.assert_not_called()
+    def run_process(self,job=None):
+        with patch('mw_integration_agent.receipt_archive.GCS',return_value=self.storage), \
+             patch('mw_integration_agent.receipt_run.extract') as extract:
+            process(job or dict(self.job),self.journal,self.config,{})
+        extract.assert_not_called()
+        return self.journal.db.execute('SELECT * FROM receipt_jobs WHERE id=?',(self.key,)).fetchone()
+    def failed_download(self):
+        def fail(_):raise ConfigurationError('RECEIPT_DOWNLOAD_FAILED')
+        with self.assertRaises(ConfigurationError):self.archive.capture(self.job,fail)
+    def test_terminal_archive_state_marks_review_archive_unavailable(self):
+        for state in ('SOURCE_UNAVAILABLE','INTEGRITY_CONFLICT'):
+            with self.subTest(state=state):
+                self.failed_download()
+                with self.journal.db:
+                    self.journal.db.execute('UPDATE receipt_assets SET archive_state=?,next_attempt_at=0',(state,))
+                    self.journal.db.execute("UPDATE receipt_jobs SET status='PENDING',detail='',url=?",(self.job['url'],))
+                row=self.run_process()
+                self.assertEqual((row['status'],row['detail'],row['attempts']),('REVIEW','RECEIPT_ARCHIVE_UNAVAILABLE',0))
+    def test_source_conflict_and_spool_missing_exit_to_review(self):
+        row=self.run_process(dict(self.job,source=source('poll','different',0,'456',1,2)))
+        self.assertEqual((row['status'],row['detail']),('REVIEW','RECEIPT_ARCHIVE_UNAVAILABLE'))
+        with self.journal.db:self.journal.db.execute("UPDATE receipt_jobs SET status='PENDING',detail=''")
+        self.failed_download()
+        with self.journal.db:self.journal.db.execute("UPDATE receipt_assets SET archive_state='LOCAL_READY',raw_sha256='abc',next_attempt_at=0")
+        row=self.run_process()
+        self.assertEqual((row['status'],row['detail']),('REVIEW','RECEIPT_ARCHIVE_UNAVAILABLE'))
+    def test_transient_archive_error_still_defers_300_and_keeps_source(self):
+        self.failed_download()
+        with self.journal.db:self.journal.db.execute('UPDATE receipt_assets SET next_attempt_at=0,attempts=9')
+        before=time.time()
+        def fail(_):raise ConfigurationError('RECEIPT_DOWNLOAD_FAILED')
+        real=Archive.capture
+        with patch.object(Archive,'capture',lambda archive,job:real(archive,job,fail)):row=self.run_process()
+        self.assertEqual((row['status'],row['detail'],row['attempts'],row['url']),('PENDING','RECEIPT_ARCHIVE_PENDING',0,self.job['url']))
+        self.assertAlmostEqual(row['retry_after']-before,300,delta=2)
+        asset=self.archive.get(self.key)
+        self.assertEqual((asset['archive_state'],asset['last_error_code']),('SOURCE_PENDING','RECEIPT_DOWNLOAD_FAILED'))
     def test_source_identity_conflict_and_quota(self):
         changed=dict(self.job,source=source('poll','different',0,'456',1,2))
         with self.assertRaisesRegex(ConfigurationError,'SOURCE_CONFLICT'):self.archive.capture(changed)

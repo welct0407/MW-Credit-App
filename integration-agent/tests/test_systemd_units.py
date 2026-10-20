@@ -1,4 +1,5 @@
 """Repository unit files: worker ordering against the Cloud SQL proxy and credential write paths."""
+import json
 import unittest
 from pathlib import Path
 
@@ -104,6 +105,37 @@ class UnitFileTests(unittest.TestCase):
         for key in ('User', 'Group', 'NoNewPrivileges', 'ProtectSystem', 'ProtectHome', 'RestrictAddressFamilies'):
             with self.subTest(key=key):
                 self.assertEqual(iam['Service'][key], self.units['cloud-sql-auth-proxy']['Service'][key])
+
+
+class TriggerUnitTests(unittest.TestCase):
+    def test_receipt_wake_path_starts_the_receipt_cycle_from_the_state_directory(self):
+        # B1: the receiver and the poller touch <state_directory>/receipt-wake; both may write there.
+        unit = parse(UNITS / 'mw-receipt-wake.path')
+        state = json.loads((UNITS.parent / 'config.example.json').read_text(encoding='utf-8'))['state_directory']
+        self.assertEqual(unit['Path'], {'PathChanged': [state + '/receipt-wake'], 'Unit': ['mw-receipt-summary.service']})
+        self.assertEqual(unit['Install'], {'WantedBy': ['paths.target']})
+        for name in ('mw-receipt-summary', RECEIVER, 'mw-conversation-poll'):
+            with self.subTest(unit=name):
+                paths = words(parse(UNITS / (name + '.service'))['Service'], 'ReadWritePaths')
+                self.assertTrue(any(state == p or state.startswith(p.rstrip('/') + '/') for p in paths))
+        # Burst wakes must not hit the default start limit (5 per 10 s) and fail the path unit.
+        self.assertEqual(parse(UNITS / 'mw-receipt-summary.service')['Unit'].get('StartLimitIntervalSec'), ['0'])
+        # The 20-second timer stays as the fallback for retries, expiries and a wake missed during a run.
+        self.assertEqual(parse(UNITS / 'mw-receipt-summary.timer')['Timer']['OnUnitInactiveSec'], ['20s'])
+
+    def test_conversation_poll_runs_every_minute(self):
+        # B2 (owner, 20 October 2026): one scan per minute, 60 requests per hour.
+        timer = parse(UNITS / 'mw-conversation-poll.timer')
+        self.assertEqual(timer['Timer']['OnUnitInactiveSec'], ['1min'])
+        self.assertEqual(timer['Timer']['Unit'], ['mw-conversation-poll.service'])
+        self.assertIn('every minute', timer['Unit']['Description'][0])
+
+    def test_every_timer_and_path_unit_targets_an_existing_service(self):
+        for path in sorted(UNITS.glob('*.timer')) + sorted(UNITS.glob('*.path')):
+            section = parse(path)['Timer' if path.suffix == '.timer' else 'Path']
+            target = section.get('Unit', [path.stem + '.service'])[0]
+            with self.subTest(unit=path.name):
+                self.assertTrue((UNITS / target).is_file(), target)
 
 
 if __name__ == '__main__':

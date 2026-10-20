@@ -175,5 +175,9 @@ def run(config_path,catalogue_path,day=None):
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:return {'status':'already_running'}
         journal=ReceiptJournal(root/'receipt-processing.db', config=config)
-        try:return scan(config,Instagram(config),masters(config),journal,day=day)
+        try:result=scan(config,Instagram(config),masters(config),journal,day=day)
         finally:journal.close()
+        if result.get('image_jobs'):
+            from .receipt_wake import wake
+            wake(config)
+        return result

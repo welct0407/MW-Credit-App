@@ -262,6 +262,23 @@ class PostgreSQLStateTests(unittest.TestCase):
         self.assertNotIn(key,{r['id'] for r in first.due()})
         self.assertIn(key,{r['id'] for r in second.due()})
 
+    def test_v7_accepted_at_written_by_adapter_on_acceptance_only(self):
+        config=dict(self.config,receipt_summary_enabled=True,instagram_account_id='100')
+        notices=NoticeJournal('partner-notices.db',config)
+        self.addCleanup(notices.close)
+        partner={'id':self.key,'username':'synthetic_partner','language':'English','enabled':True,'email':'test@example.invalid'}
+        class API:
+            def request(self,path,body):return {'message_id':'synthetic-accepted'}
+        accepted=notices.reserve(self.key,partner,'synthetic','accepted')
+        notices.dispatch({'id':accepted},config,[partner],api=API(),resolver=lambda *_:'200')
+        held=notices.reserve(self.key+'-held',partner,'synthetic','held')
+        notices.dispatch({'id':held},config,[dict(partner,email='other@example.invalid')])
+        with psycopg.connect(**self.admin) as c:
+            self.assertEqual(c.execute("SELECT data_type FROM information_schema.columns WHERE table_schema='runtime' AND table_name='partner_notices' AND column_name='accepted_at'").fetchone()[0],'timestamp with time zone')
+            self.assertIsNotNone(c.execute("SELECT 1 FROM deployment.schema_history WHERE name='V7__notice_accepted_at.sql'").fetchone())
+            rows={r[0]:(r[1],r[2]) for r in c.execute("SELECT id,ig_status,coalesce(accepted_at>clock_timestamp()-interval '5 minutes',false) FROM runtime.partner_notices WHERE stream='receipt' AND id=ANY(%s)",([accepted,held],))}
+        self.assertEqual(rows,{accepted:('ACCEPTED',True),held:('REVIEW',False)})
+
     def test_memory_reviews_delivery_and_lazy_tables(self):
         store=ConversationStore('partner-conversations.db',self.config)
         store.bind(self.key,'thread-'+self.key)

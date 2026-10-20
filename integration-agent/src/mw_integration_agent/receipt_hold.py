@@ -1,6 +1,7 @@
 """Inform current reviewers about validation holds; never authorize a payment."""
 import hashlib
 import json
+import time
 from datetime import datetime
 from .receipt_identity import receipt_borrower
 from .receipt_rules import BANGKOK,match_account,ReceiptInvalid
@@ -10,9 +11,28 @@ def event_key(job):
     return 'receipt-held:'+job['id']+':'+hashlib.sha256(job['detail'].encode()).hexdigest()[:16]
 
 
+def clean(value,thai):return ' '.join(str(value or '').split())[:100] or ('ไม่ทราบ' if thai else 'unavailable')
+
+
+def captured_name(job,borrower,thai):
+    return (datetime.fromtimestamp(job['created_at'],BANGKOK).strftime('%Y-%m-%d %H:%M'),
+            clean((borrower or {}).get('name_th' if thai else 'name_en'),thai))
+
+
+def archive_key(job,reason):
+    return 'receipt-archive-pending:'+job['id']+':'+reason
+
+
+def archive_pending_text(job,borrower,language,threshold):
+    """Informational delay alert; the job keeps its source URL and keeps retrying."""
+    thai=language=='ไทย';hours=max(1,round(threshold/3600));captured,name=captured_name(job,borrower,thai)
+    if thai:
+        return 'สลิปล่าช้า ระบบยังดำเนินการอยู่',f'สลิปล่าช้า ระบบยังดำเนินการอยู่\nผู้กู้: {name}\nรับสลิป: {captured} (เวลาไทย)\nระบบยังจัดเก็บภาพสลิปเป็นหลักฐานไม่สำเร็จเกิน {hours} ชั่วโมง และกำลังลองใหม่อัตโนมัติ\nยังไม่ได้บันทึกรายการ จะแจ้งอีกครั้งเมื่อบันทึกแล้ว ต้องขออนุมัติ หรือถูกพักไว้ ไม่ต้องตอบข้อความนี้'
+    return 'Receipt delayed — still processing',f'Receipt delayed — still processing\nBorrower: {name}\nCaptured: {captured} (Bangkok)\nThe receipt image has not been saved as evidence for over {hours} hour(s). The agent keeps trying automatically.\nNo payment posted yet. You will get another message when it is posted, needs approval or is held. No reply needed.'
+
+
 def held_text(job,borrower,language,accounts):
     thai=language=='ไทย'
-    def clean(value):return ' '.join(str(value or '').split())[:100] or ('ไม่ทราบ' if thai else 'unavailable')
     try:result=json.loads(job['result'] or '{}')
     except (ValueError,TypeError):result={}
     if not isinstance(result,dict):result={}
@@ -38,16 +58,16 @@ def held_text(job,borrower,language,accounts):
       'RECEIPT_PROPOSAL_UNAVAILABLE':('The payment proposal could not be prepared. Please check the receipt and app records.','ระบบเตรียมรายการชำระเงินไม่ได้ กรุณาตรวจสอบสลิปและรายการในแอป'),
       'BALANCES_REQUIRE_RECONCILIATION':('The loan balances need reconciliation.','ยอดคงเหลือของสัญญาต้องตรวจสอบ'),
       'LOAN_CLOSE_AMBIGUOUS':('The amount matches more than one possible loan payoff.','ยอดเงินตรงกับยอดปิดมากกว่าหนึ่งสัญญา'),
+      'RECEIPT_ARCHIVE_UNAVAILABLE':('The receipt image could not be kept as evidence (no longer available or failed an integrity check). Ask the borrower to resend it if needed.','ระบบจัดเก็บภาพสลิปเป็นหลักฐานไม่ได้ (ภาพไม่มีแล้วหรือข้อมูลไม่ตรงกัน) หากจำเป็นให้ขอสลิปจากผู้กู้ใหม่'),
     }
     reason=reasons.get(job['detail'],('Receipt validation could not be completed.','ตรวจสอบสลิปไม่สำเร็จ'))[int(thai)]
-    captured=datetime.fromtimestamp(job['created_at'],BANGKOK).strftime('%Y-%m-%d %H:%M')
-    name=(borrower or {}).get('name_th' if thai else 'name_en')
+    captured,name=captured_name(job,borrower,thai)
     if thai:
         subject='สลิปถูกพักไว้ กรุณาตรวจสอบ'
-        body=f'{subject}\nผู้กู้: {clean(name)}\nรับสลิป: {captured} (เวลาไทย)\nข้อมูลที่อ่านได้ (ยังไม่ยืนยัน): {clean(receipt.get("amount"))} บาท · {clean(receipt.get("date"))} {clean(str(receipt.get("time") or "")[:5])}\nบัญชีรับ: {clean(account)}\nสาเหตุ: {reason}\nระบบยังไม่ได้บันทึก กรุณาตรวจสอบสลิปกับรายการในแอป การตอบอนุมัติข้อความนี้จะไม่ทำให้ระบบบันทึกหรือข้ามการตรวจสอบ'
+        body=f'{subject}\nผู้กู้: {name}\nรับสลิป: {captured} (เวลาไทย)\nข้อมูลที่อ่านได้ (ยังไม่ยืนยัน): {clean(receipt.get("amount"),thai)} บาท · {clean(receipt.get("date"),thai)} {clean(str(receipt.get("time") or "")[:5],thai)}\nบัญชีรับ: {clean(account,thai)}\nสาเหตุ: {reason}\nระบบยังไม่ได้บันทึก กรุณาตรวจสอบสลิปกับรายการในแอป การตอบอนุมัติข้อความนี้จะไม่ทำให้ระบบบันทึกหรือข้ามการตรวจสอบ'
     else:
         subject='Receipt held — reviewer attention needed'
-        body=f'{subject}\nBorrower: {clean(name)}\nCaptured: {captured} (Bangkok)\nRead from image (unverified): {clean(receipt.get("amount"))} baht · {clean(receipt.get("date"))} {clean(str(receipt.get("time") or "")[:5])}\nAccount: {clean(account)}\nReason: {reason}\nNo payment posted. Check the receipt against the app records. Replying approve to this alert cannot post a payment or bypass validation.'
+        body=f'{subject}\nBorrower: {name}\nCaptured: {captured} (Bangkok)\nRead from image (unverified): {clean(receipt.get("amount"),thai)} baht · {clean(receipt.get("date"),thai)} {clean(str(receipt.get("time") or "")[:5],thai)}\nAccount: {clean(account,thai)}\nReason: {reason}\nNo payment posted. Check the receipt against the app records. Replying approve to this alert cannot post a payment or bypass validation.'
     body+= ('\nหากต้องการนำออกจากคิว ให้ตอบกลับข้อความนี้ว่า Reject หรือ ปฏิเสธ' if thai else
             '\nTo remove it from the queue, use Reply on this message and send Reject.')
     return subject,body
@@ -73,3 +93,17 @@ def queue_holds(config,journal,notices,live,identity_reader,failures=None):
                 with isolated(failures,'hold-recipient'):
                     subject,body=held_text(job,borrower,partner['language'],live['accounts'])
                     notices.reserve(event,partner,subject,body)
+    threshold=config.get('receipt_archive_alert_seconds',3600)
+    for job in journal.db.execute("SELECT * FROM receipt_jobs WHERE status='PENDING' AND detail='RECEIPT_ARCHIVE_PENDING' AND created_at<?",
+                                  (time.time()-threshold,)).fetchall():
+        with isolated(failures,'archive-alert'):
+            job=dict(job)
+            asset=journal.db.execute('SELECT last_error_code FROM receipt_assets WHERE job_id=?',(job['id'],)).fetchone()
+            event=archive_key(job,(asset and asset['last_error_code']) or 'RECEIPT_ARCHIVE_PENDING')
+            pending=[p for p in reviewers if not notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=? AND partner_id=?',(event,p['id'])).fetchone()]
+            if not pending:continue
+            try:borrower=receipt_borrower(config,job,journal,live,identity_reader)
+            except Exception:borrower=None
+            for partner in pending:
+                with isolated(failures,'archive-recipient'):
+                    notices.reserve(event,partner,*archive_pending_text(job,borrower,partner['language'],threshold))

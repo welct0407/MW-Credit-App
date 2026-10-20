@@ -78,6 +78,7 @@ CATALOGUE = {'revision': 27, 'default_policy': 'deny', 'services': {'signed_webh
 SOURCE = {'__init__.py': 'new', 'server.py': 'new server', 'added.py': 'added'}
 INSTALLED = {'__init__.py': 'old', 'server.py': 'old server', 'appsheet.py': 'stale', 'assets/logo.txt': 'asset'}
 MISSING_UNIT = 'mw-audit-relay.service'
+MIGRATION_FILES = {'V1__base.sql': 'SELECT 1;\n', 'V2__next.sql': 'SELECT 2;\n'}
 
 
 def write(root, files):
@@ -99,11 +100,14 @@ class Host:
         self.pointer = root / 'rollback/runtime-current'
         write(self.repo / 'src/mw_integration_agent', SOURCE)
         write(self.repo, {'pyproject.toml': '[project]\n', 'service-catalogue.json': json.dumps(CATALOGUE)})
+        write(self.repo / 'database/migrations', MIGRATION_FILES)
+        self.connection_file = root / 'operator-connection.json'
+        self.applied, self.schema_reads = None, []  # None: everything shipped is applied
         write(self.repo / 'systemd', {n: '[Unit]\n# ' + n + ' new\n' for n in deploy.UNIT_FILES})
         write(self.site, INSTALLED)
         write(self.systemd, {n: '[Unit]\n# ' + n + ' old\n' for n in deploy.UNIT_FILES if n != MISSING_UNIT})
         (self.private / 'secrets').mkdir(parents=True)
-        self.timers = {u + '.timer': 'active' for u in deploy.UNITS}
+        self.timers = {t: 'active' for t in deploy.TRIGGERS}
         self.timers['mw-audit-relay.timer'] = 'inactive'
         self.invocation, self.modes, self.events, self.ancestry_rc = 1, [], [], 0
         host = self
@@ -174,15 +178,20 @@ class Host:
             for name, value in dict(CHECKOUT=self.checkout, REPO=self.repo, PRIVATE=self.private, SYSTEMD=self.systemd,
                                     POINTER=self.pointer, PREFIX='runtime-', READY_TIMEOUT=2, output=self.output, run=self.run,
                                     identity=lambda: None, installed=lambda: self.site, prepare=code_only,
-                                    probe=lambda *_args: None).items():
+                                    probe=lambda *_args: None, applied_migrations=self.applied_migrations).items():
                 stack.enter_context(patch.object(deploy, name, value))
             self.chown = stack.enter_context(patch.object(deploy.shutil, 'chown'))
             self.git = stack.enter_context(patch.object(deploy.subprocess, 'run',
                                                         side_effect=lambda *a, **k: SimpleNamespace(returncode=self.ancestry_rc)))
             yield
 
-    def phase(self, name):
-        with patch.object(sys, 'argv', ['deploy', name, '--commit', COMMIT, '--probe-request-id', UUID]), \
+    def applied_migrations(self, connection_file):
+        self.schema_reads.append(connection_file)
+        return deploy.shipped_migrations() if self.applied is None else self.applied
+
+    def phase(self, name, connection=True):
+        extra = ['--state-connection-file', str(self.connection_file)] if connection else []
+        with patch.object(sys, 'argv', ['deploy', name, '--commit', COMMIT, '--probe-request-id', UUID, *extra]), \
                 contextlib.redirect_stdout(io.StringIO()) as out:
             try:
                 deploy.main()
@@ -244,6 +253,26 @@ class EngineHelperTests(unittest.TestCase):
             finally:
                 host.close()
 
+    def test_schema_read_is_read_only_and_never_echoes_the_connection(self):
+        self.assertIn("SET TRANSACTION READ ONLY", deploy.SCHEMA_READ)
+        self.assertIn("SELECT version,name,sha256 FROM deployment.schema_history", deploy.SCHEMA_READ)
+        for verb in ('INSERT', 'UPDATE', 'DELETE', 'CREATE', 'ALTER', 'GRANT', 'commit()'):
+            self.assertNotIn(verb, deploy.SCHEMA_READ)
+        with patch.object(deploy.subprocess, 'run', return_value=SimpleNamespace(returncode=1, stdout='', stderr='secret')) as run:
+            with self.assertRaises(RuntimeError) as unreadable:
+                deploy.applied_migrations('/private/conn.json')
+            self.assertEqual(str(unreadable.exception), 'Agent schema history unreadable')
+            with self.assertRaises(RuntimeError) as refused, \
+                    patch.object(deploy, 'shipped_migrations', return_value={7: ['V7__x.sql', 'ab']}):
+                deploy.schema_preflight({'state_backend': 'postgres'}, '/private/conn.json')
+            self.assertEqual(str(refused.exception), 'Agent schema history unreadable; nothing installed, '
+                             'workers stay paused (run migrate, then rerun, or rollback)')
+            self.assertNotIn('secret', str(refused.exception))
+        self.assertEqual(run.call_args.args[0][:3], [deploy.PYTHON, '-I', '-c'])
+        self.assertEqual(run.call_args.kwargs['input'], '/private/conn.json')
+        with patch.object(deploy.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='[[7, "V7__x.sql", "ab"]]')):
+            self.assertEqual(deploy.applied_migrations('f'), {7: ['V7__x.sql', 'ab']})
+
 
 class EngineFlowTests(unittest.TestCase):
     def setUp(self):
@@ -279,7 +308,8 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual(metadata['installed_code_version'], OLD)
         self.assertEqual(set(metadata['unit_hashes']), set(deploy.UNIT_FILES) - {MISSING_UNIT})
         self.assertEqual(deploy.unit_hashes(backup / 'units'), metadata['unit_hashes'])
-        self.assertEqual(metadata['resume_timers'], [u + '.timer' for u in deploy.UNITS if u != 'mw-audit-relay'])
+        self.assertEqual(metadata['resume_timers'], [t for t in deploy.TRIGGERS if t != 'mw-audit-relay.timer'])
+        self.assertIn('mw-receipt-wake.path', metadata['resume_timers'])
         self.assertEqual(metadata['phase'], 'frozen')
 
     def test_install_removes_stale_modules_installs_units_and_token_backup(self):
@@ -381,6 +411,94 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual(set(self.host.timers.values()), {'inactive'})
         self.assertEqual(self.host.metadata()['phase'], 'rolling-back')
 
+    def recorded_stops(self):
+        stops, real = [], deploy.run
+
+        def run(*args):
+            if args[:2] == ('systemctl', 'stop'):
+                stops.append(args[2:])
+            return real(*args)
+        self.enterContext(patch.object(deploy, 'run', run))
+        return stops
+
+    def test_receipt_wake_path_is_a_trigger_unit(self):
+        # B1: installed with the units, stopped beside the worker timers, resumed like a timer.
+        self.assertEqual(deploy.PATHS, ['mw-receipt-wake.path'])
+        self.assertIn('mw-receipt-wake.path', deploy.UNIT_FILES)
+        self.assertEqual(set(deploy.TRIGGERS), {'mw-receipt-wake.path'} | {u + '.timer' for u in deploy.UNITS})
+        self.assertTrue((Path(__file__).parents[1] / 'systemd/mw-receipt-wake.path').is_file())
+
+    def test_path_unit_not_yet_installed_is_not_stopped_or_resumed(self):
+        # First deployment of the path unit: absent on the host reads inactive and must not reach systemctl stop.
+        del self.host.timers['mw-receipt-wake.path']
+        stops = self.recorded_stops()
+        self.deployed()
+        self.assertNotIn('mw-receipt-wake.path', [unit for call in stops for unit in call])
+        self.assertNotIn('mw-receipt-wake.path', self.host.metadata()['resume_timers'])
+        self.assertEqual(self.host.phase('activate')[0], 0)
+        self.assertEqual(self.host.timers.get('mw-receipt-wake.path', 'inactive'), 'inactive')
+
+    def test_active_path_unit_blocks_install_and_activation(self):
+        self.assertEqual(self.host.phase('freeze')[0], 0)
+        self.host.timers['mw-receipt-wake.path'] = 'active'
+        with self.assertRaisesRegex(RuntimeError, 'Timers or path units not paused'):
+            self.host.phase('install')
+        self.assertNotIn('pip', self.host.events)
+        self.host.timers['mw-receipt-wake.path'] = 'inactive'
+        self.assertEqual(self.host.phase('install')[0], 0)
+        self.host.timers['mw-receipt-wake.path'] = 'active'
+        with self.assertRaisesRegex(RuntimeError, 'Timers or path units not paused'):
+            self.host.phase('activate')
+        self.assertEqual(self.host.live(), self.host.config)
+
+    def test_manual_rollback_stops_and_resumes_the_path_unit(self):
+        self.deployed(); self.assertEqual(self.host.phase('activate')[0], 0)
+        self.assertEqual(self.host.timers['mw-receipt-wake.path'], 'active')
+        stops = self.recorded_stops()
+        self.assertEqual(self.host.phase('rollback')[0], 0)
+        self.assertIn('mw-receipt-wake.path', stops[0])
+        self.assertEqual(self.host.timers['mw-receipt-wake.path'], 'active')
+
+    def test_schema_behind_package_refuses_install_before_pip(self):
+        # V7 lesson: a package needing an unapplied agent migration must not go live on PostgreSQL state.
+        self.assertEqual(self.host.phase('freeze')[0], 0)
+        shipped = deploy.shipped_migrations()
+        self.assertEqual(sorted(shipped), [1, 2])
+        self.host.applied = {1: shipped[1]}
+        with self.assertRaises(RuntimeError) as refused:
+            self.host.phase('install')
+        self.assertEqual(str(refused.exception), 'Agent schema behind the package (missing V2); nothing installed, '
+                         'workers stay paused (run migrate, then rerun, or rollback)')
+        self.assertNotIn('pip', self.host.events)
+        self.assertEqual(self.host.metadata()['phase'], 'frozen')
+        self.host.applied = {1: shipped[1], 2: ['V2__next.sql', '0' * 64]}
+        with self.assertRaisesRegex(RuntimeError, r'^Agent schema behind the package \(checksum drift V2\); nothing installed'):
+            self.host.phase('install')
+        self.host.applied = {**shipped, 3: ['V3__newer.sql', '1' * 64]}  # a newer database is fine
+        self.assertEqual(self.host.phase('install')[0], 0)
+        self.assertEqual(self.host.schema_reads, [str(self.host.connection_file)] * 3)
+
+    def test_schema_checked_again_at_activation_and_connection_file_required(self):
+        self.deployed(); self.host.events.clear()
+        with self.assertRaisesRegex(RuntimeError, '--state-connection-file required'):
+            self.host.phase('activate', connection=False)
+        self.host.applied = {}
+        with self.assertRaisesRegex(RuntimeError, r'^Agent schema behind the package \(missing V1,2\); nothing installed, workers stay paused'):
+            self.host.phase('activate')
+        self.host.applied = {1: ['V1__base.sql', '0' * 64]}
+        with self.assertRaisesRegex(RuntimeError, r'\(missing V2; checksum drift V1\)'):
+            self.host.phase('activate')
+        self.assertEqual(self.host.live(), self.host.config)
+        self.assertNotIn('restart', self.host.events)
+        self.assertEqual(self.host.metadata()['phase'], 'installed')
+
+    def test_sqlite_state_host_skips_the_schema_check(self):
+        write(self.host.private, {'config.json': json.dumps(dict(self.host.config, state_backend='sqlite'))})
+        self.host.applied = {}
+        self.assertEqual(self.host.phase('freeze')[0], 0)
+        self.assertEqual(self.host.phase('install', connection=False)[0], 0)
+        self.assertEqual(self.host.schema_reads, [])
+
     def test_stale_pointer_is_archived_only_for_terminal_phases(self):
         backup = self.host.pointer.parent / 'runtime-old'
         backup.mkdir(parents=True)
@@ -433,7 +551,7 @@ class DryRunTests(unittest.TestCase):
         return {str(p): (p.stat().st_mtime_ns, p.read_bytes() if p.is_file() else None) for p in sorted(root.rglob('*'))
                 if '.git' not in p.relative_to(root).parts}
 
-    def dry(self, commit, python_missing=False):
+    def dry(self, commit, python_missing=False, connection_file=None):
         calls, real_output, real_run = [], subprocess.check_output, subprocess.run
 
         def check_output(args, **kwargs):
@@ -459,7 +577,8 @@ class DryRunTests(unittest.TestCase):
             stack.enter_context(patch.object(deploy.subprocess, 'run', run))
             stack.enter_context(patch.object(deploy.shutil, 'chown', side_effects))
             before = self.snapshot()
-            with patch.object(sys, 'argv', ['deploy', 'dry-run', '--commit', commit]), \
+            extra = ['--state-connection-file', connection_file] if connection_file else []
+            with patch.object(sys, 'argv', ['deploy', 'dry-run', '--commit', commit, *extra]), \
                     contextlib.redirect_stdout(io.StringIO()) as out:
                 deploy.main()
             self.assertEqual(self.snapshot(), before)
@@ -484,9 +603,11 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual(report['receiver'], {'invocation_id': 'inv-7', 'active_state': 'active'})
         self.assertEqual(report['units']['compared_with'], 'checkout')
         self.assertEqual(report['units']['files'], {n: 'missing-on-host' if n == MISSING_UNIT else 'changed' for n in deploy.UNIT_FILES})
-        self.assertEqual(report['timers_to_pause_and_resume'], [u + '.timer' for u in deploy.UNITS])
+        self.assertEqual(report['timers_to_pause_and_resume'], deploy.TRIGGERS)
         self.assertEqual(set(report['identity'].values()), {'unreadable'})
         self.assertEqual([step.split(':')[0] for step in report['plan']], ['freeze', 'install', 'activate', 'on activation failure'])
+        self.assertEqual(report['agent_schema']['shipped_through'], 2)
+        self.assertIn('not run', report['agent_schema']['check'])
 
     def test_dry_run_for_other_commit_compares_that_commit(self):
         report = self.dry(self.first)
@@ -498,6 +619,14 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual((report['checkout']['commit_in_checkout'], report['installed_vs_commit']), (False, 'commit not in checkout'))
         self.assertEqual(report['units']['compared_with'], 'not compared (commit not in checkout)')
         self.assertEqual(set(report['units']['files'].values()), {'unknown'})
+
+    def test_dry_run_compares_the_schema_when_given_a_connection_file(self):
+        with patch.object(deploy, 'applied_migrations', side_effect=lambda f: {1: deploy.shipped_migrations()[1]}):
+            report = self.dry(self.head, connection_file='conn.json')
+        self.assertEqual(report['agent_schema'], {'state_backend': 'postgres', 'shipped_through': 2, 'applied_through': 1,
+                                                  'missing': [2], 'drift': [], 'check': 'install would refuse'})
+        with patch.object(deploy, 'applied_migrations', side_effect=lambda f: deploy.shipped_migrations()):
+            self.assertEqual(self.dry(self.first, connection_file='conn.json')['agent_schema']['check'], 'ok')
 
     def test_dry_run_reports_unreadable_items(self):
         (self.host.private / 'config.json').unlink(); (self.host.private / 'config.json').mkdir()

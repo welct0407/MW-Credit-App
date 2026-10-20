@@ -1,5 +1,6 @@
 """Receipt -> automatic ordinary payment or correlated Partner review/manual handling."""
 import json
+import time
 from .state import connect as state_connect, enabled as state_enabled
 from datetime import timedelta
 from pathlib import Path
@@ -10,8 +11,9 @@ from .receipt_rules import ReceiptInvalid
 from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
+from .statement_delivery import resolve_recipient
 from .partner_review import ReviewStore,request_text,review_id
-from .review_proposal import facts,plan,review_posts_overpayment,same_proposal_facts
+from .review_proposal import facts,plan,review_posts_overpayment,same_posting_outcome,unlabelled
 from .review_execution import readback
 from . import receipt_api
 from .cash_statement import read_query
@@ -19,6 +21,9 @@ from .receipt_identity import receipt_borrower
 
 AUTO_POLICY='OWNER_AUTHORIZED_AUTO_PAYMENT'
 NOT_SENT_RETRY_SECONDS=900  # AGT-SEND-03: a persistent 401/403 or token fault re-submits every 15 minutes, not every cycle
+NOTICE_CAP=6  # bounded transport work per notify pass; failures keep the 300 s deferral
+SAME_OUTCOME='FACTS_CHANGED_SAME_OUTCOME'
+LOAN_CLOSE='LOAN_CLOSE_REQUIRED'
 
 
 @contextmanager
@@ -40,19 +45,49 @@ def reviewer_partners(live):
     return [p for p in live['partners'] if p['id'] in live.get('reviewer_ids',[])]
 
 
-def cycle(config,journal,identity_reader):
-    root=Path(config['state_directory']);db=journal.db;reviews=ReviewStore(db)
-    notices=NoticeJournal(root/'partner-notices.db', config=config)
-    cutoff=cutoff_ts(config,'partner_review_cutoff')
-    failures=[];notification_failures=[]
+def cycle(config,journal,identity_reader,resolver=resolve_recipient,images=None):
+    """images=None keeps the legacy order. With an image phase, approvals and their notices
+    run first; a second execute/notify pass completes what the image phase produced."""
+    run=Run(config,journal,identity_reader,resolver)
     try:
-        import time
-        with db:db.execute("UPDATE partner_reviews SET state='EXPIRED' WHERE state='PENDING' AND expires_at<?",(time.time(),))
-        for job in db.execute("SELECT * FROM receipt_jobs WHERE status='VALIDATED' AND created_at>=?",(cutoff,)).fetchall():
+        run.expire()
+        if images is None:
+            run.propose_validated();run.decide_replies();run.execute_approved();run.notify()
+        else:
+            run.decide_replies();run.execute_approved();run.notify()
+            images()
+            run.propose_validated();run.execute_approved();run.notify()
+        return run.result()
+    finally:run.close()
+
+
+class Run:
+    """One receipt run's review phases; execute_approved touches each review at most once per run."""
+    def __init__(self,config,journal,identity_reader,resolver=resolve_recipient):
+        self.config=config;self.journal=journal;self.db=journal.db;self.reviews=ReviewStore(self.db)
+        self.identity_reader=identity_reader;self.resolver=resolver
+        self.root=Path(config['state_directory'])
+        self.notices=NoticeJournal(self.root/'partner-notices.db', config=config)
+        self.cutoff=cutoff_ts(config,'partner_review_cutoff')
+        self.failures=[];self.notification_failures=[];self.executed=set()
+        self.states={r['id']:r['state'] for r in self.db.execute('SELECT id,state FROM partner_reviews')}
+
+    def close(self):self.notices.close()
+
+    def result(self):
+        return {'failures':self.failures,'notification_failures':self.notification_failures,
+                'reviews':[dict(r) for r in self.db.execute('SELECT state,count(*) count FROM partner_reviews GROUP BY state')]}
+
+    def expire(self):
+        with self.db:self.db.execute("UPDATE partner_reviews SET state='EXPIRED' WHERE state='PENDING' AND expires_at<?",(time.time(),))
+
+    def propose_validated(self):
+        config,journal,db,reviews,failures=self.config,self.journal,self.db,self.reviews,self.failures
+        for job in db.execute("SELECT * FROM receipt_jobs WHERE status='VALIDATED' AND created_at>=?",(self.cutoff,)).fetchall():
             with isolated(failures,'proposal',lambda job=job:journal.mark(job['id'],'REVIEW','RECEIPT_PROPOSAL_UNAVAILABLE')):
                 result=json.loads(job['result']);live=masters(config)
                 try:
-                    b=receipt_borrower(config,job,journal,live,identity_reader)
+                    b=receipt_borrower(config,job,journal,live,self.identity_reader)
                     if b['id']!=result['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
                     check(config,result['receipt'],b)
                     proposal=plan(result['receipt'],b,facts(config,b['id']))
@@ -79,20 +114,22 @@ def cycle(config,journal,identity_reader):
                         if job['detail']=='OWNER_REQUESTED_RECONSIDERATION':
                             body=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n')+body
                             if len(body)>1000:raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG')
-                        notices.reserve('review:'+key,p,subject,body)
+                        self.notices.reserve('review:'+key,p,subject,body)
                     with db:db.execute("UPDATE receipt_jobs SET status='REVIEW_REQUESTED' WHERE id=?",(job['id'],))
                 except ReceiptInvalid as exc:journal.mark(job['id'],'REVIEW',str(exc))
+
+    def decide_replies(self):
+        config,db,notices,root,identity_reader=self.config,self.db,self.notices,self.root,self.identity_reader
         # Signed direct-message replies only. API-polled borrower content cannot authorize.
         # Apply the additive local schema before the first new webhook arrives.
         from .journal import IngressJournal
         migrated=IngressJournal(root/'instagram-ingress.db', config=config);migrated.close()
         ingress=state_connect(root/'instagram-ingress.db',config,readonly=True)
-        pass  # row format supplied by state adapter
         try:
-            events=ingress.execute("SELECT * FROM messages WHERE captured_at>=? AND (reply_to<>'' OR event_timestamp>=?) " + ("AND message_id NOT IN (SELECT message_id FROM ingress_work WHERE state='REVIEW') " if state_enabled(config) else "") + "ORDER BY event_timestamp,message_id",(cutoff,time.time()-86340)).fetchall()
+            events=ingress.execute("SELECT * FROM messages WHERE captured_at>=? AND (reply_to<>'' OR event_timestamp>=?) " + ("AND message_id NOT IN (SELECT message_id FROM ingress_work WHERE state='REVIEW') " if state_enabled(config) else "") + "ORDER BY event_timestamp,message_id",(self.cutoff,time.time()-86340)).fetchall()
         finally:ingress.close()
         for event in events:
-            with isolated(failures,'reply'):
+            with isolated(self.failures,'reply'):
                 event=dict(event)
                 from .review_resend import is_command,queue
                 if is_command(event):
@@ -122,8 +159,15 @@ def cycle(config,journal,identity_reader):
                 live=masters(config)
                 try:identity=identity_reader(config,event['sender_id'])
                 except ConfigurationError:continue
-                reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
+                self.reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
+
+    def execute_approved(self):
+        config,journal,db,notices,root,failures=self.config,self.journal,self.db,self.notices,self.root,self.failures
         for review in db.execute("SELECT * FROM partner_reviews WHERE state IN ('APPROVED','POSTING','UNKNOWN')").fetchall():
+            # A second pass in the same run only sees reviews the image phase produced;
+            # an UNKNOWN/POSTING row is reconciled (one status GET) at most once per run.
+            if review['id'] in self.executed:continue
+            self.executed.add(review['id'])
             with isolated(failures,'execution'):
                 proposal=json.loads(review['proposal']);key=review['payment_id'] if review['payment_id'] is not None else 'igr:'+review['id'][:48]
                 if not isinstance(key,str) or not key.startswith(('pwa:','igr:')) or not key.removeprefix('pwa:').removeprefix('igr:'):
@@ -180,14 +224,21 @@ def cycle(config,journal,identity_reader):
                             finally:source.close()
                             sent=[n for n in sent if decision and n['message_id']==decision['reply_to']]
                         if not any(json.loads(n[0])==matches[0] for n in sent):raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
-                    b=receipt_borrower(config,job,journal,live,identity_reader)
+                    b=receipt_borrower(config,job,journal,live,self.identity_reader)
                     if b['id']!=proposal['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
                     day=today()
                     if proposal['receipt']['date'] not in (day.isoformat(),(day-timedelta(days=1)).isoformat()):
                         raise ReceiptInvalid('RECEIPT_DATE_TOO_OLD')
                     check(config,proposal['receipt'],b)
                     fresh=plan(proposal['receipt'],b,facts(config,b['id']))
-                    if not same_proposal_facts(proposal,fresh):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
+                    # Owner rule (20 Oct 2026): a charge edit keeps the approval while the
+                    # consequence is still "post the full amount as Lump Sum".
+                    marker=(AUTO_POLICY+':' if automatic else '')
+                    if fresh['action']=='Loan Close':
+                        with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED',detail=? WHERE id=?",(marker+LOAN_CLOSE,review['id']))
+                        continue
+                    if not same_posting_outcome(proposal,fresh,automatic):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
+                    outcome=SAME_OUTCOME if unlabelled(fresh['facts'])!=unlabelled(proposal['facts']) else None
                     if not any(a['id']==proposal['receipt']['account_id'] and a['active'] is True for a in live['accounts']):
                         raise ReceiptInvalid('RECEIVING_ACCOUNT_CHANGED')
                     actors=read_query(config,'SELECT coalesce(json_agg("Login Email"),\'[]\'::json) FROM public."Partners" WHERE "Row ID"=:\'pid\';',
@@ -199,6 +250,7 @@ def cycle(config,journal,identity_reader):
                 # Only never-attempted approved reviews reach this branch. All current
                 # authorization, duplicate, archive and immutable facts checks ran above.
                 # The original cutoff remains deployment history, not a legacy fallback.
+                # The payload keeps the hash of the approved proposal (what the reviewer saw).
                 asset=db.execute('SELECT * FROM receipt_assets WHERE job_id=?',(review['job_id'],)).fetchone()
                 api_payload=receipt_api.payload(config,review,proposal,asset,automatic)
                 key='pwa:'+api_payload['command']['requestId']
@@ -206,6 +258,7 @@ def cycle(config,journal,identity_reader):
                     claimed=db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",(key,review['id'])).rowcount
                 if not claimed:continue
                 posting_config=dict(config,_receipt_automatic=True) if automatic else dict(config,_receipt_reviewer_approved=True)
+                if outcome:posting_config['_receipt_facts_outcome']=outcome
                 api_result=None
                 try:
                     api_result=receipt_api.submit(posting_config,api_payload)
@@ -227,14 +280,27 @@ def cycle(config,journal,identity_reader):
                     verified=receipt_api.posted(api_result,key) and readback(config,key,proposal)
                 except Exception as exc:failures.append({'stage':'readback','exception':type(exc).__name__})
                 state='POSTED' if verified else 'MANUAL_REQUIRED' if api_result and api_result.get('originalOutcome',{}).get('status')=='rejected' else 'UNKNOWN'
-                with db:db.execute("UPDATE partner_reviews SET state=? WHERE id=?",(state,review['id']))
-        with isolated(notification_failures,'notification-cycle'):
-            notify(config,journal,notices,identity_reader,notification_failures)
-        return {'failures':failures,'notification_failures':notification_failures,'reviews':[dict(r) for r in db.execute('SELECT state,count(*) count FROM partner_reviews GROUP BY state')]}
-    finally:notices.close()
+                # The row can no longer return to APPROVED, so the facts note may join the policy marker.
+                note=outcome and marker+outcome
+                with db:db.execute("UPDATE partner_reviews SET state=?,detail=CASE WHEN ? IS NULL THEN detail ELSE ? END WHERE id=?",(state,note,note,review['id']))
+
+    def notify(self):
+        changed={i for i,s in ((r['id'],r['state']) for r in self.db.execute('SELECT id,state FROM partner_reviews')) if self.states.get(i)!=s}
+        with isolated(self.notification_failures,'notification-cycle'):
+            notify(self.config,self.journal,self.notices,self.identity_reader,self.notification_failures,self.resolver,changed)
 
 
-def notify(config,journal,notices,identity_reader,failures):
+def notice_rank(notice,changed=()):
+    """Results reached in this run, other results, reply/command acknowledgements, review requests,
+    hold alerts, archive-delay alerts; due() order (retry_after,id) is kept within each group."""
+    event=notice['event_key']
+    if event.startswith('review-result:'):return 0 if event.split(':')[1] in changed else 1
+    for rank,prefix in enumerate((('hold-reply-result:','review-command-result:'),'review:','receipt-held:','receipt-archive-pending:'),2):
+        if event.startswith(prefix):return rank
+    return 6
+
+
+def notify(config,journal,notices,identity_reader,failures,resolver=resolve_recipient,changed=()):
     """Optional delivery phase; payment/reviewer state is committed first."""
     db=journal.db
     result_master=masters(config)
@@ -244,7 +310,7 @@ def notify(config,journal,notices,identity_reader,failures):
             for p in live['partners']:
                 with isolated(failures,'result-recipient'):
                     if review['state']=='POSTED' and p['enabled'] is not True:continue
-                    if review['state']=='POSTED':subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'])
+                    if review['state']=='POSTED':subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],review['detail'].endswith(SAME_OUTCOME))
                     else:
                         thai=p['language']=='ไทย'
                         words={'REJECTED':('Rejected; no payment recorded.','ปฏิเสธแล้ว ยังไม่ได้บันทึกรายการ'),
@@ -254,15 +320,18 @@ def notify(config,journal,notices,identity_reader,failures):
                           'UNKNOWN':('Posting outcome unconfirmed. Reconciliation only; do not submit again.','ยังยืนยันผลการบันทึกไม่ได้ กรุณาตรวจสอบ ห้ามบันทึกซ้ำ')}
                         subject='ผลการตรวจสอบ' if thai else 'Receipt review result'
                         body=subject+'\n'+(proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id'])+'\n'+proposal['receipt']['amount']+' THB\n'+words[review['state']][int(thai)]
+                        if review['state']=='MANUAL_REQUIRED' and review['detail'].endswith(LOAN_CLOSE):
+                            body+='\n'+('ข้อมูลสัญญาเปลี่ยนหลังอนุมัติ: รายการนี้เป็นการปิดสัญญา' if thai else 'Loan details changed after approval: this payment now closes the loan.')
                     notices.reserve('review-result:'+review['id']+':'+review['state'],p,subject,body)
     from .receipt_hold import queue_holds,event_key
     if config.get('receipt_hold_notice_cutoff'):
         queue_holds(config,journal,notices,masters(config),identity_reader,failures)
-    eligible=[n for n in notices.due() if n['event_key'].startswith(
-        ('review:','review-result:','receipt-held:','hold-reply-result:','review-command-result:'))]
+    eligible=sorted((n for n in notices.due() if n['event_key'].startswith(
+        ('review:','review-result:','receipt-held:','receipt-archive-pending:','hold-reply-result:','review-command-result:'))),
+        key=lambda n:notice_rank(n,changed))
     # Bound optional transport work so a backlog cannot monopolize the receipt lock.
     # Retry timestamps also let untouched notices progress after a provider outage.
-    for notice in eligible[:2]:
+    for notice in eligible[:NOTICE_CAP]:
         with isolated(failures,'delivery',lambda notice=notice: notices.defer(notice['id'])):
             live=masters(config)
             if notice['event_key'].startswith(('hold-reply-result:','review-command-result:')) and not any(
@@ -274,6 +343,12 @@ def notify(config,journal,notices,identity_reader,failures):
                 if (notice['partner_id'] not in live.get('reviewer_ids',[]) or not held or
                     held['status']!='REVIEW' or event_key(held)!=notice['event_key']):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='HOLD_RESOLVED_OR_REVIEWER_REMOVED' WHERE id=?",(notice['id'],))
+                    continue
+            if notice['event_key'].startswith('receipt-archive-pending:'):
+                waiting=db.execute('SELECT status,detail FROM receipt_jobs WHERE id=?',(notice['event_key'].split(':')[1],)).fetchone()
+                if (notice['partner_id'] not in live.get('reviewer_ids',[]) or not waiting or
+                    (waiting['status'],waiting['detail'])!=('PENDING','RECEIPT_ARCHIVE_PENDING')):
+                    with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='ARCHIVE_RESOLVED_OR_REVIEWER_REMOVED' WHERE id=?",(notice['id'],))
                     continue
             if notice['event_key'].startswith('review-result:') and notice['event_key'].endswith(':POSTED'):
                 if not any(p['id']==notice['partner_id'] and p['enabled'] is True for p in live['partners']):
@@ -290,8 +365,12 @@ def notify(config,journal,notices,identity_reader,failures):
                 proposal=json.loads(row['proposal'])
                 try:
                     check(config,proposal['receipt'],proposal['borrower'])
-                    if facts(config,proposal['borrower']['id'])!=proposal['facts']:raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
+                    current=facts(config,proposal['borrower']['id'])
+                    if current!=proposal['facts']:
+                        # A request still goes out after a charge edit when approving it would post the same way.
+                        fresh=plan(proposal['receipt'],proposal['borrower'],current)
+                        if fresh['action']=='Loan Close' or not same_posting_outcome(proposal,fresh,False):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
                 except ReceiptInvalid as exc:
                     with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),row['id']))
                     continue
-            notices.dispatch(notice,config,live['partners'])
+            notices.dispatch(notice,config,live['partners'],resolver=resolver)

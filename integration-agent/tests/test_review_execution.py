@@ -24,3 +24,18 @@ class ExecutionBoundaryTests(unittest.TestCase):
                 journal.capture('hash',messages)
                 self.assertEqual(journal.db.execute('SELECT reply_to FROM messages').fetchone()[0],'out')
             finally:journal.close()
+
+    def test_same_posting_outcome_rule(self):
+        from mw_integration_agent.review_proposal import same_posting_outcome
+        lump={'action':'Lump Sum','receipt':{'amount':'100'},'borrower':{'id':'b'},'facts':{'charges':[1]}}
+        over=dict(lump,action='Overpayment review',approved_allocation_method='Lump Sum')
+        close=dict(lump,action='Loan Close',loan_id='l')
+        changed=dict(lump,facts={'charges':[2]})
+        self.assertTrue(same_posting_outcome(lump,changed,True));self.assertTrue(same_posting_outcome(lump,changed,False))
+        self.assertTrue(same_posting_outcome(over,lump,False));self.assertTrue(same_posting_outcome(lump,over,False))
+        self.assertFalse(same_posting_outcome(lump,over,True));self.assertFalse(same_posting_outcome(over,lump,True))
+        self.assertFalse(same_posting_outcome(lump,close,False));self.assertFalse(same_posting_outcome(close,close,False))
+        self.assertFalse(same_posting_outcome(dict(over,approved_allocation_method=None),lump,False))
+        self.assertFalse(same_posting_outcome(lump,dict(lump,receipt={'amount':'100','time':'10:00'}),False))
+        self.assertFalse(same_posting_outcome(lump,dict(lump,borrower={'id':'x'}),False))
+        self.assertFalse(same_posting_outcome(lump,{},False));self.assertFalse(same_posting_outcome(None,lump,False))

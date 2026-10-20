@@ -190,6 +190,9 @@ def validate_config(config: dict[str, Any]) -> None:
     timeout = config.get('conversation_timeout_seconds', 600)
     if type(timeout) is not int or not 30 <= timeout <= 900:
         raise ConfigurationError('conversation_timeout_seconds must be 30..900')
+    for name,default,low,high in (('receipt_cycle_image_budget_seconds',60,10,180),('receipt_archive_alert_seconds',3600,600,86400)):
+        value=config.get(name,default)
+        if type(value) is not int or not low<=value<=high:raise ConfigurationError(f'{name} must be {low}..{high}')
     for flag in ('partner_review_enabled','partner_review_execution_enabled'):
         if type(config.get(flag,False)) is not bool:raise ConfigurationError(flag+' must be boolean')
     if config.get('partner_review_execution_enabled') and not config.get('partner_review_enabled'):

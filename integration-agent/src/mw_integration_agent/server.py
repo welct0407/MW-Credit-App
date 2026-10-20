@@ -16,6 +16,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from .config import ConfigurationError, load_controls, load_json, load_secret, validate_catalogue, validate_config
 from .journal import IngressJournal
+from .receipt_wake import wake, wakes
 from .webhook import extract_messages, verify_signature
 
 PACKAGE = Path(__file__).resolve().parent
@@ -208,9 +209,11 @@ def handler(config_path: str, catalogue_path: str):
                 messages = extract_messages(payload, config["instagram_account_id"], stats=stats)
                 journal = IngressJournal(Path(config["state_directory"]) / "instagram-ingress.db", config=config)
                 try:
-                    journal.capture(hashlib.sha256(raw).hexdigest(), messages, stats=stats)
+                    _, inserted = journal.capture(hashlib.sha256(raw).hexdigest(), messages, stats=stats)
                 finally:
                     journal.close()
+                if inserted and any(wakes(m) for m in messages):
+                    wake(config)  # never fails the delivery; the timer is the fallback
                 self.respond(200, "EVENT_RECEIVED")
             except Exception as exc:
                 self.report("POST", exc)

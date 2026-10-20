@@ -136,7 +136,8 @@ def execute(args, outcome=None) -> int:
             return 0
         if args.command=='receipt-cycle':
             from .receipt_run import run
-            result=run(args.config,args.catalogue)
+            from .receipt_wake import rerun
+            result=rerun(run,args.config,args.catalogue)
             print(json.dumps(result))
             return 2 if result.get('failures') else 0
         if args.command == "cash-statement":
