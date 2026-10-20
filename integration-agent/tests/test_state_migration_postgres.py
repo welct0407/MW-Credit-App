@@ -122,9 +122,9 @@ class FreshCentralMigrationTests(unittest.TestCase):
 
     def test_first_run_applies_every_version_in_order_with_pinned_hashes(self):
         names = [p.name for p in self.files]
-        self.assertEqual(names[:6], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
+        self.assertEqual(names[:7], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
                                      'V3__job_ownership.sql', 'V4__receipt_evidence.sql', 'V5__audit_retention_identity.sql',
-                                     'V6__service_heartbeats.sql'])
+                                     'V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql'])
         self.assertEqual(self.first, {'applied': names, 'versions': len(names)})
         expected = [(version(p), p.name, hashlib.sha256(p.read_text(encoding='utf-8').encode()).hexdigest()) for p in self.files]
         self.assertEqual([tuple(row) for row in self.after_first], expected)
@@ -197,10 +197,11 @@ class IncrementalV6Tests(unittest.TestCase):
                 (Path(directory) / path.name).write_bytes(path.read_bytes())
             self.assertEqual(state_migration.migrate(conn, directory)['applied'][-1], 'V5__audit_retention_identity.sql')
             self.assertIsNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
-            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V6__service_heartbeats.sql'])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql'])
             self.assertIsNotNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
-            self.assertEqual([row[1] for row in history(conn)][-2:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql'])
+            self.assertEqual([row[1] for row in history(conn)][-3:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
+                                                                       'V7__notice_accepted_at.sql'])
 
 
 if __name__ == '__main__':

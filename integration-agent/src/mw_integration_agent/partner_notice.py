@@ -5,6 +5,7 @@ import json
 import sqlite3
 from .state import connect as state_connect, is_postgres
 import time
+from datetime import datetime, UTC
 
 from .config import ConfigurationError
 from .graph_email import GraphEmail, EmailRejected, valid_email
@@ -43,9 +44,17 @@ class NoticeJournal:
           email_status TEXT NOT NULL DEFAULT 'PENDING',attempts INTEGER NOT NULL DEFAULT 0,
           retry_after REAL NOT NULL DEFAULT 0,detail TEXT NOT NULL DEFAULT '')''')
         self.db.commit()
-        if 'recipient_id' not in {r[1] for r in self.db.execute('PRAGMA table_info(partner_notices)')}:
+        columns={r[1] for r in self.db.execute('PRAGMA table_info(partner_notices)')}
+        if 'recipient_id' not in columns:
             self.db.execute('ALTER TABLE partner_notices ADD COLUMN recipient_id TEXT')
             self.db.commit()
+        if 'accepted_at' not in columns:
+            self.db.execute('ALTER TABLE partner_notices ADD COLUMN accepted_at REAL')
+            self.db.commit()
+
+    def now(self):
+        """accepted_at value: timestamptz on PostgreSQL (V7), epoch seconds in the SQLite journal."""
+        return datetime.now(UTC) if is_postgres(self.db) else time.time()
 
     def reserve(self,event_key,partner,subject,body):
         key=hashlib.sha256((event_key+':'+partner['id']).encode()).hexdigest()
@@ -128,7 +137,7 @@ class NoticeJournal:
                     with self.db:self.db.execute('UPDATE partner_notices SET detail=? WHERE id=?',('IG_UNKNOWN_'+type(exc).__name__,item['id']))
                     return
                 else:
-                    with self.db:self.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id=? WHERE id=?",(str(response['message_id']),item['id']))
+                    with self.db:self.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id=?,accepted_at=? WHERE id=?",(str(response['message_id']),self.now(),item['id']))
                     return
         if not config.get('email_fallback_enabled') or not valid_email(partner.get('email')):
             with self.db:self.db.execute("UPDATE partner_notices SET email_status='REVIEW',detail='EMAIL_FALLBACK_UNAVAILABLE' WHERE id=?",(item['id'],))
@@ -150,7 +159,7 @@ class NoticeJournal:
             # The claim already holds email_status='UNKNOWN'; record why so the owner can reconcile.
             with self.db:self.db.execute('UPDATE partner_notices SET detail=? WHERE id=?',('EMAIL_UNKNOWN_'+type(exc).__name__,item['id']))
         else:
-            with self.db:self.db.execute("UPDATE partner_notices SET email_status='SENT' WHERE id=?",(item['id'],))
+            with self.db:self.db.execute("UPDATE partner_notices SET email_status='SENT',accepted_at=? WHERE id=?",(self.now(),item['id']))
 
     def close(self):self.db.close()
 

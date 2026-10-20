@@ -76,6 +76,33 @@ class RuntimeDeploymentTests(unittest.TestCase):
         self.assertIn('mw-receipt-wake.path', base.UNIT_FILES)
         self.assertIn('mw-receipt-wake.path', base.TRIGGERS)
 
+    def test_shipped_migrations_match_the_migration_runner(self):
+        # The preflight compares with deployment.schema_history as state_migration.migrate writes it.
+        import hashlib
+        from unittest.mock import patch
+        migrations = SCRIPTS.parent / 'database/migrations'
+        with patch.object(base, 'CHECKOUT', SCRIPTS.parents[1]):
+            shipped = base.shipped_migrations()
+        expected = {int(p.name.split('__')[0][1:]): [p.name, hashlib.sha256(p.read_text(encoding='utf-8').encode()).hexdigest()]
+                    for p in migrations.glob('V*__*.sql')}
+        self.assertEqual(shipped, expected)
+        self.assertGreaterEqual(max(shipped), 7)  # V7 partner_notices.accepted_at ships with this package
+
+    def test_runtime_deploy_refuses_a_package_ahead_of_the_agent_schema(self):
+        # deploy-runtime.py overrides only prepare/probe: the engine's schema preflight stays in force.
+        self.assertIs(runtime.base.schema_preflight, base.schema_preflight)
+        self.assertEqual(base.schema_preflight({'state_backend': 'sqlite'}, None), 'not applicable (sqlite state)')
+        with self.assertRaisesRegex(RuntimeError, '--state-connection-file required'):
+            base.schema_preflight({'state_backend': 'postgres'}, None)
+        from unittest.mock import patch
+        with patch.object(base, 'shipped_migrations', return_value={6: ['V6__a.sql', 'a'], 7: ['V7__b.sql', 'b']}), \
+                patch.object(base, 'applied_migrations', return_value={6: ['V6__a.sql', 'a']}):
+            with self.assertRaisesRegex(RuntimeError, 'missing V7'):
+                base.schema_preflight({'state_backend': 'postgres'}, '/private/conn.json')
+        with patch.object(base, 'shipped_migrations', return_value={7: ['V7__b.sql', 'b']}), \
+                patch.object(base, 'applied_migrations', return_value={7: ['V7__b.sql', 'b']}):
+            self.assertEqual(base.schema_preflight({'state_backend': 'postgres'}, '/private/conn.json'), 'applied through V7')
+
     def test_one_off_activation_scripts_are_deleted(self):
         # AGT-QUALITY-05: deploy-runtime.py (with its engine) is the one deploy helper.
         for name in ('activate-conversation-poll.sh', 'activate-partner-conversations.sh', 'activate-partner-review.sh',

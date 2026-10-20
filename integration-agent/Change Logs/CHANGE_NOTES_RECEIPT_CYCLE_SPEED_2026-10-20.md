@@ -14,30 +14,35 @@ Owner plan of 20 October 2026: cut the Debian agent's receipt handling from abou
 - Other source: `receipt_api.py`, `config.py` (key validation). Tests: `test_review_cycle`, `test_receipts`, `test_receipt_archive`, `test_hold_reply`, `test_receipt_identity`, `test_review_execution`, `test_native_receipt_facts`, `test_receipt_transport_retirement_independent`.
 - `config.example.json`: `receipt_cycle_image_budget_seconds` and `receipt_archive_alert_seconds`.
 - Docs: `docs/RECEIPTS.md` (run order, image budget, retry ladder, archive exit, directory read, notice cap, two settings rows), `docs/PARTNER_REVIEW.md` (A7 revision replacing "changed facts invalidate approval"; one image per cycle sentence; archive hold reason), `docs/RECEIPT_EVIDENCE.md` (archive exit).
-- No SQL migration, no new service, no catalogue revision, no unit change.
+- Measurement column (owner decision 20 October 2026, replacing the plan's "no new column" and the earlier open question): `database/migrations/V7__notice_accepted_at.sql` adds nullable `runtime.partner_notices.accepted_at timestamptz` to the agent state database `mw_agent`; no backfill. `partner_notice.py` sets it only when Instagram becomes ACCEPTED or the email fallback becomes SENT, otherwise it stays NULL; the SQLite journal gets `accepted_at REAL`. Tests: `test_partner_notice`; lab suites `test_postgres_state`, `test_state_migration_postgres`, `test_audit_retention_postgres` (latest version V7). Docs: `docs/POSTGRESQL_OPERATIONS.md` (agent V7 section), `docs/OPERATIONS.md` (deploy order).
+- `scripts/deploy-shared-receipt-api.py` (shared engine, so `deploy-runtime.py` too): agent schema preflight in `install` (after the freeze checks, before pip) and `activate` (before the probe and config write). It refuses when any shipped migration is missing or mismatched (version, name, checksum) in `deployment.schema_history`; a database ahead of the package passes; SQLite-state hosts skip it; `freeze` and `rollback` do not run it. It reads the history read-only through the operator connection file given with `--state-connection-file` (no new grants; prints only version, name and checksum); a Postgres host refuses without the file. `dry-run` reports `agent_schema`. Tests: `test_deploy_shared_receipt_api`, `test_deploy_runtime` (50 tests with the systemd units, all pass).
+- No new service, no catalogue revision, no unit change, no business-database change. The delivery is one pull request (`claude/receipt-wake-and-poll`) for batch A, this column and [batch B](CHANGE_NOTES_RECEIPT_WAKE_AND_POLL_2026-10-20.md); batch B's units are enabled in their own window after batch A.
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements) | Batch A alone 612 tests OK, 85 skipped (lab suites); combined tree with batch B 626 OK, 85 skipped (run on the uncommitted tree before the batch commit) |
+| `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements) | 636 tests OK, 86 skipped (lab suites) on the combined tree including V7 and the preflight (Chase, uncommitted tree before the final commit); earlier runs: batch A alone 612 OK, 85 skipped |
 | `ruff check --no-cache integration-agent` | Clean |
-| Lab suites against a disposable PostgreSQL 18 cluster | 83 OK, 0 skipped; `receipt_payment` audit plan verified on PostgreSQL; the state-migration and audit-retention fresh-cluster suites were not run (untouched) |
+| Lab suites against a disposable PostgreSQL 18 cluster | 11 modules including the fresh-cluster ones (`MW_AGENT_FRESH_PG_DSN`): 123 OK, 0 skipped on disposable PostgreSQL 18 clusters; `receipt_payment` audit plan verified on PostgreSQL |
+| Canonical migration runner on disposable clusters | V1 to V7 on a fresh cluster; V7 alone on a V6-populated cluster; reruns apply nothing |
+| Agent schema preflight on disposable clusters | Checksums equal what `migrate` records; refuses a cluster one migration behind and passes after V7; a database ahead of the package passes; no secret printed |
 | `npm run check:docs` | 0 failures, 0 warnings |
 | Pull request `Development checks` and Agent tests | Run on the pull request after push; result recorded there |
 
 ## Not run
-- State-migration and audit-retention fresh-cluster lab suites (untouched). CI runs the Agent tests job on the pull request, pending push.
+- The pull request's `Development checks` and Agent tests: they run after push and are recorded on the pull request.
+- The real VM operator connection file, and an end-to-end freeze, install, activate on a host (the preflight was verified on disposable clusters only).
 - Deployment to `vm-mw-credit-agent` (`update-from-github.sh`, `deploy-runtime.py` dry-run, freeze, install, activate): waits for the owner's go for the exact commit.
 - Measurement (baseline before, repeat after deployment): read-only on the VM, not run in this session. The baseline and the job inspection were done read-only before the change (results in Changes and Remaining work); the after-deployment run is not done.
 
 ## Recovery
-Revert the merge commit. Live (after deployment): `deploy-runtime.py rollback --commit <previous-pin>` restores the previous package from the freeze backup; config keys are optional and ignored by the older code.
+Revert the merge commit. Live (after deployment): `deploy-runtime.py rollback --commit <previous-pin>` restores the previous package from the freeze backup; config keys are optional and ignored by the older code. V7 stays applied: the older package ignores `accepted_at`, and the migration is immutable.
 
 ## Open questions
-Whether to add `accepted_at` to `partner_notices` so the result-notice time can be measured (separate decision, not part of this batch). Owner decisions already taken on 20 October 2026: no warm Cloud Run instance, agent focus, A2 default 60 s, A4 threshold 1 h, A6 cap 6, A7 policy.
+None. Owner decisions taken on 20 October 2026: no warm Cloud Run instance, agent focus, A2 default 60 s, A4 threshold 1 h, A6 cap 6, A7 policy, the `accepted_at` column, one pull request for both batches.
 
 ## Remaining work
-- Owner go, then deploy batch A and measure again.
+- Owner go, then deploy batch A: `update-from-github.sh`, `deploy-runtime.py` dry-run and freeze, apply V7 with `scripts/agent-state-admin.py migrate` (verified restorable `mw_agent` backup first), `install --state-connection-file <operator file>`, `activate --state-connection-file <operator file>` (the operator file must be on the VM); then measure again.
 - Repeat the read-only measurement query after deployment and add the "After A" column below.
 
 Baseline, read-only on the VM over the last 30 days (counts and seconds only):
@@ -52,7 +57,7 @@ Baseline, read-only on the VM over the last 30 days (counts and seconds only):
 | Jobs by status | IGNORED 175, REVIEW_REQUESTED 153, REJECTED 5, PENDING 1 | pending deploy |
 | Cycle runs in `job_runs`, last 24 h | 288; average 3.9 s, max 21.1 s | pending deploy |
 
-`job_runs` does not record every run, so the result-notice time cannot be read from it. Owner decision (open): add an `accepted_at` column on `partner_notices`; not added here.
+`job_runs` does not record every run, so the result-notice time is read from `partner_notices.accepted_at` after V7 (rows before V7 are NULL; the baseline has no value for it).
 
 - Targets from the plan: reply to POSTED median under 20 s; DM receipt to POSTED median under 30 s; five receipts together terminal within one run; Gemini timeout retry within 30 s.
 - Known remaining loop case (A4): an `ARCHIVED` asset whose stored hash does not match keeps deferring the job 300 s; only the one-hour delayed alert flags it. Decide whether it needs a terminal rule.

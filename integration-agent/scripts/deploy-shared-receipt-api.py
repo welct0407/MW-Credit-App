@@ -192,6 +192,73 @@ def pause():
     quiet()
 
 
+MIGRATIONS = 'integration-agent/database/migrations'
+# Read-only: the same operator connection file and owner role as agent-state-admin.py migrate, in a READ ONLY
+# transaction. Prints only versions, names and checksums; never the connection options.
+SCHEMA_READ = '''import json,sys
+from pathlib import Path
+import psycopg
+o=json.loads(Path(sys.stdin.read().strip()).read_text(encoding='utf-8-sig'))
+if o.get('dbname')!='mw_agent':raise SystemExit('connection file must target mw_agent')
+if 'password_file' in o:o['password']=Path(o.pop('password_file')).read_text().strip()
+with psycopg.connect(**o) as c:
+    c.execute('SET TRANSACTION READ ONLY');c.execute('SET LOCAL ROLE mw_agent_owner')
+    rows=c.execute('SELECT version,name,sha256 FROM deployment.schema_history ORDER BY version').fetchall()
+    c.rollback()
+print(json.dumps([list(r) for r in rows]))
+'''
+
+
+def migration_version(name):
+    match = re.fullmatch(r'V([0-9]+)__.+[.]sql', name)
+    return int(match.group(1)) if match else None
+
+
+def shipped_migrations(commit=None):
+    """{version: [name, sha256]} of the agent migrations in the checkout, or in commit when given."""
+    if commit is None:
+        files = {p.name: p.read_bytes() for p in (CHECKOUT / MIGRATIONS).glob('V*__*.sql')}
+    else:
+        names = output(*git('ls-tree', '--name-only', commit, MIGRATIONS + '/')).splitlines()
+        files = {n.rsplit('/', 1)[-1]: subprocess.check_output(git('show', commit + ':' + n)) for n in names}
+    # Same digest as state_migration.migrate: sha256 of the text as read_text() returns it (universal newlines).
+    return {migration_version(n): [n, hashlib.sha256(b.decode('utf-8').replace('\r\n', '\n').replace('\r', '\n').encode()).hexdigest()]
+            for n, b in files.items() if migration_version(n) is not None}
+
+
+def applied_migrations(connection_file):
+    result = subprocess.run([PYTHON, '-I', '-c', SCHEMA_READ], input=str(connection_file), text=True, capture_output=True)
+    require(result.returncode == 0, 'Agent schema history unreadable')
+    return {int(v): [n, sha] for v, n, sha in json.loads(result.stdout)}
+
+
+def schema_gap(shipped, applied):
+    """Shipped migrations not applied, and applied ones whose name or checksum differs (fail closed on both)."""
+    return ({'missing': sorted(v for v in shipped if v not in applied),
+             'drift': sorted(v for v in shipped if v in applied and applied[v] != shipped[v])})
+
+
+def schema_preflight(config, connection_file):
+    """PostgreSQL-state hosts only: every agent migration shipped with the package must already be applied
+    (apply with agent-state-admin.py migrate first). SQLite-state hosts are unaffected."""
+    if config.get('state_backend') != 'postgres':
+        return 'not applicable (sqlite state)'
+    require(connection_file, 'PostgreSQL state: --state-connection-file required for the agent schema check')
+    # Runs after freeze: the workers are already paused and stay paused on refusal.
+    paused = '; nothing installed, workers stay paused (run migrate, then rerun, or rollback)'
+    shipped = shipped_migrations()
+    require(shipped, 'No agent migrations in the checkout' + paused)
+    try:
+        applied = applied_migrations(connection_file)
+    except RuntimeError as exc:
+        raise RuntimeError(str(exc) + paused) from None
+    gap = schema_gap(shipped, applied)
+    parts = [label + ' V' + ','.join(map(str, gap[key])) for key, label in (('missing', 'missing'), ('drift', 'checksum drift'))
+             if gap[key]]
+    require(not parts, 'Agent schema behind the package (' + '; '.join(parts) + ')' + paused)
+    return 'applied through V' + str(max(shipped))
+
+
 def installed():
     return Path(output(PYTHON, '-c', 'import mw_integration_agent; print(next(iter(mw_integration_agent.__path__)))'))
 
@@ -361,7 +428,7 @@ def commit_tree(commit, prefix='integration-agent/src/mw_integration_agent'):
             for n in names if n.endswith('.py') and '__pycache__' not in n.split('/')}
 
 
-def dry_run(commit):
+def dry_run(commit, connection_file=None):
     """Read-only plan: no writes, no root requirement, only git/systemctl show/venv path lookup and file reads."""
     report = {'phase': 'dry-run', 'commit': commit, 'euid': os.geteuid(), 'host': os.uname().nodename,
               'identity': {key: attempt(lambda key=key: vm_metadata(key)) for key, _ in IDENTITY}}
@@ -418,15 +485,34 @@ def dry_run(commit):
                        'checkout' if head == commit else 'not compared (commit not in checkout)',
                        'files': {name: attempt(lambda name=name: unit(name)) if comparable else 'unknown'
                                  for name in UNIT_FILES}}
+    def schema():
+        backend = json.loads((PRIVATE / 'config.json').read_text()).get('state_backend')
+        if backend != 'postgres':
+            return {'state_backend': backend, 'check': 'not applicable'}
+        shipped = shipped_migrations(commit if from_commit else None) if comparable else None
+        report = {'state_backend': backend, 'shipped_through': max(shipped) if shipped else None}
+        if not connection_file:
+            return dict(report, check='not run (no --state-connection-file); install and activate will require it')
+        try:
+            applied = applied_migrations(connection_file)
+        except RuntimeError as exc:
+            return dict(report, check=str(exc))
+        report['applied_through'] = max(applied) if applied else None
+        if shipped is None:
+            return dict(report, check='not compared (commit not in checkout)')
+        gap = schema_gap(shipped, applied)
+        return dict(report, **gap, check='ok' if not gap['missing'] and not gap['drift'] else 'install would refuse')
+    report['agent_schema'] = attempt(schema)
     timers = {t: attempt(lambda t=t: active(t)) for t in TRIGGERS}
     report['timers_to_pause_and_resume'] = [t for t, state in timers.items() if state == 'active']
     report['timers_unreadable'] = [t for t, state in timers.items() if state == 'unreadable']
     report['plan'] = [
         'freeze: archive a finished pointer; stop worker timers and path units; wait for workers; back up config, catalogue, package and units; '
         'record receiver InvocationID, unit hashes and ancestry',
-        'install: pip install --no-deps ' + str(REPO) + '; delete installed *.py absent from source; verify installed == source; '
+        'install: on PostgreSQL state, refuse unless every shipped agent migration is applied (read-only schema_history); '
+        'pip install --no-deps ' + str(REPO) + '; delete installed *.py absent from source; verify installed == source; '
         'install changed units; daemon-reload; create the Graph token backup file when missing',
-        'activate: read-only probe; write config/catalogue; restart ' + RECEIVER + '; wait for /ready with this commit (' +
+        'activate: agent schema check again; read-only probe; write config/catalogue; restart ' + RECEIVER + '; wait for /ready with this commit (' +
         str(READY_TIMEOUT) + ' s) and a new InvocationID; then start the paused timers and path units',
         'on activation failure: automatic rollback (package, config, units, daemon-reload, receiver restart and check); '
         'timers and path units stay stopped']
@@ -439,10 +525,11 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--origin'); parser.add_argument('--audience'); parser.add_argument('--cutoff')
     parser.add_argument('--probe-request-id')
+    parser.add_argument('--state-connection-file', help='operator mw_agent connection file (as for agent-state-admin.py migrate)')
     args = parser.parse_args()
     if args.phase == 'dry-run':
         require(re.fullmatch('[0-9a-f]{40}', args.commit) is not None, 'Exact commit required')
-        print(json.dumps(dry_run(args.commit), indent=2))
+        print(json.dumps(dry_run(args.commit, args.state_connection_file), indent=2))
         return
     identity()
     if args.phase == 'rollback':
@@ -488,6 +575,7 @@ def main():
         require(digest(PRIVATE / name) == sha, 'Live configuration drift; left paused')
     if args.phase == 'install':
         require(metadata['phase'] == 'frozen', 'Expected frozen deployment')
+        schema_preflight(json.loads((PRIVATE / 'config.json').read_text()), args.state_connection_file)
         source = pyfiles(REPO / 'src/mw_integration_agent')
         require(source, 'Empty source tree')
         run(PYTHON, '-m', 'pip', 'install', '--no-deps', '--no-build-isolation', str(REPO))
@@ -505,6 +593,7 @@ def main():
         return
     require(metadata['phase'] == 'installed' and metadata['installed_commit'] == args.commit, 'Installed pin mismatch')
     verify_install(metadata)
+    schema_preflight(json.loads((PRIVATE / 'config.json').read_text()), args.state_connection_file)
     config, catalogue = prepare(json.loads((PRIVATE / 'config.json').read_text()), json.loads((PRIVATE / 'service-catalogue.json').read_text()),
                                 json.loads((REPO / 'service-catalogue.json').read_text()), args.commit, args.origin, args.audience, args.cutoff)
     probe(config, catalogue, args.probe_request_id)

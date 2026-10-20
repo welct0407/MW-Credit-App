@@ -14,7 +14,7 @@ Owner plan of 20 October 2026, batch B: start the receipt cycle as soon as a rec
 ## Checks
 | Command | Result |
 | --- | --- |
-| `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements) | Batch B alone 595 tests OK, 85 skipped (lab suites); combined tree with batch A 626 OK, 85 skipped (run on the uncommitted tree before the batch commit) |
+| `python -m unittest discover -s tests` (in `integration-agent/`, locked requirements) | Batch B alone 595 tests OK, 85 skipped (lab suites); combined tree with batch A, V7 and the preflight 636 OK, 86 skipped (Chase, uncommitted tree before the final commit) |
 | `ruff check --no-cache integration-agent` | Clean |
 | `systemd-analyze verify` on the path unit | Clean, except the absent `/opt` binary on the build host |
 | `npm run check:docs` | 0 failures, 0 warnings |

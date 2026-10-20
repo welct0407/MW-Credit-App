@@ -59,6 +59,42 @@ class NoticeTests(unittest.TestCase):
         self.assertEqual((self.notice()['ig_status'],self.notice()['email_status']),('WINDOW_EXPIRED','SENT'))
         self.assertIn('WINDOW_EXPIRED',self.notice()['detail'])
 
+    def test_accepted_at_set_only_on_definite_acceptance(self):
+        import time
+        before=time.time();self.dispatch()
+        self.assertEqual(self.notice()['ig_status'],'ACCEPTED');self.assertGreaterEqual(self.notice()['accepted_at'],before)
+        self.j.db.execute('DELETE FROM partner_notices');self.j.db.commit();self.j.reserve('event',self.rows[0],'subject','body')
+        self.provider(window_expired());before=time.time();self.dispatch()
+        self.assertEqual((self.notice()['ig_status'],self.notice()['email_status']),('WINDOW_EXPIRED','SENT'))
+        self.assertGreaterEqual(self.notice()['accepted_at'],before)
+        def email_failure(error):
+            def send(*args):raise error
+            return send
+        for error,mail,expected in [(InstagramAPIError(400,100),None,('REJECTED','PENDING')),
+                                    (TimeoutError(),None,('UNKNOWN','PENDING')),
+                                    (window_expired(),email_failure(EmailRejected('no')),('WINDOW_EXPIRED','REJECTED')),
+                                    (window_expired(),email_failure(TimeoutError()),('WINDOW_EXPIRED','UNKNOWN'))]:
+            with self.subTest(expected=expected):
+                self.j.db.execute('DELETE FROM partner_notices');self.j.db.commit();self.j.reserve('event',self.rows[0],'subject','body')
+                self.provider(error);self.mailer.send=mail or self.mailer.send;self.dispatch()
+                self.assertEqual((self.notice()['ig_status'],self.notice()['email_status']),expected)
+                self.assertIsNone(self.notice()['accepted_at'])
+        self.j.db.execute('DELETE FROM partner_notices');self.j.db.commit();self.j.reserve('event',self.rows[0],'subject','body')
+        self.rows[0]['email']='other@example.com';self.dispatch()
+        self.assertEqual((self.notice()['ig_status'],self.notice()['accepted_at']),('REVIEW',None))
+
+    def test_existing_journal_gains_accepted_at_without_backfill(self):
+        import sqlite3
+        path=Path(self.tmp.name)/'old.db'
+        with sqlite3.connect(path) as db:
+            db.execute('''CREATE TABLE partner_notices (id TEXT PRIMARY KEY,event_key TEXT NOT NULL,partner_id TEXT NOT NULL,
+              partner TEXT NOT NULL,subject TEXT NOT NULL,body TEXT NOT NULL,ig_status TEXT NOT NULL DEFAULT 'PENDING',message_id TEXT,
+              email_status TEXT NOT NULL DEFAULT 'PENDING',attempts INTEGER NOT NULL DEFAULT 0,
+              retry_after REAL NOT NULL DEFAULT 0,detail TEXT NOT NULL DEFAULT '',recipient_id TEXT)''')
+            db.execute("INSERT INTO partner_notices(id,event_key,partner_id,partner,subject,body,ig_status) VALUES ('old','e','p','{}','s','b','ACCEPTED')")
+        old=NoticeJournal(path);self.addCleanup(old.close)
+        self.assertIsNone(old.db.execute("SELECT accepted_at FROM partner_notices WHERE id='old'").fetchone()[0])
+
     def test_definite_rejection_blocks_email_and_replay(self):
         self.provider(InstagramAPIError(400,100))
         self.dispatch();self.dispatch()
