@@ -106,15 +106,15 @@ test('R062 backup parser accepts only reviewed baselines without private access'
 tree=ast.parse(pathlib.Path('scripts/database/Backup-ProductionPromotion.py').read_text(encoding='utf-8'))
 nodes=[n for n in tree.body if (isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='parser' for t in n.targets)) or (isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='parser' and n.value.func.attr=='add_argument')]
 ns={'argparse':argparse};exec(compile(ast.Module(body=nodes,type_ignores=[]),'<synthetic parser>','exec'),ns)
-for version in [77,87,89,90,91,92,93,95,96,97,98,99]:
+for version in [77,87,89,90,91,92,93,95,96,97,98,99,100]:
  assert ns['parser'].parse_args(['--approval-reference','synthetic','--expected-version',str(version)]).expected_version==version
-for version in [76,88,94,100]:
+for version in [76,88,94,101]:
  try:
   with contextlib.redirect_stderr(io.StringIO()): ns['parser'].parse_args(['--approval-reference','synthetic','--expected-version',str(version)])
  except SystemExit as error: assert error.code==2
  else: raise AssertionError('Unsupported backup baseline accepted')
-print('Sixteen parser cases passed; no script imports, credentials or connection.')`;
- const r=spawnSync('python',['-c',script],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/Sixteen parser cases passed/);
+print('Seventeen parser cases passed; no script imports, credentials or connection.')`;
+ const r=spawnSync('python',['-c',script],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/Seventeen parser cases passed/);
 });
 
 test('R062 keyless proof uses its own release audience and rejects older proof',async()=>{
