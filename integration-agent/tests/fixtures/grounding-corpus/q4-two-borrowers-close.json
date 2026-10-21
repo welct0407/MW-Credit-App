@@ -1,0 +1,143 @@
+{
+ "question": "Q4",
+ "request": "How much abound Borrower D and Borrower E pay if they both want to close loan today",
+ "source": "R088 argon/flash comparison of 21 Oct 2026 (synthetic runs), anonymised: borrower names, ids and file names are synthetic labels and every amount is the original × 6 (sums, rate × days and products stay exact; percentages are ratios and stay the same). Dates and counts are kept. Observations are synthetic rows shaped like the views and SQL results, holding the per-loan and per-charge source values, not the replies' derived totals.",
+ "observations": {
+  "observation-1": {
+   "columns": [
+    "borrower_id",
+    "loan_id",
+    "loan_date",
+    "original_principal",
+    "outstanding_principal",
+    "daily_interest"
+   ],
+   "rows": [
+    {
+     "borrower_id": "B-D",
+     "loan_id": "L-D-0825",
+     "loan_date": "2026-08-25",
+     "original_principal": "12000.00",
+     "outstanding_principal": "12000.00",
+     "daily_interest": "1200.00"
+    },
+    {
+     "borrower_id": "B-D",
+     "loan_id": "L-D-0901",
+     "loan_date": "2026-09-01",
+     "original_principal": "12000.00",
+     "outstanding_principal": "12000.00",
+     "daily_interest": "1200.00"
+    },
+    {
+     "borrower_id": "B-E",
+     "loan_id": "L-E-1014",
+     "loan_date": "2026-10-14",
+     "original_principal": "27000.00",
+     "outstanding_principal": "27000.00",
+     "daily_interest": "2700.00"
+    }
+   ],
+   "row_count": 3,
+   "complete": true
+  },
+  "observation-2": {
+   "columns": [
+    "Ref Loans",
+    "Charge Date",
+    "Amount Remaining",
+    "Interest Remaining",
+    "Principal Remaining"
+   ],
+   "rows": [
+    {
+     "Ref Loans": "L-D-0825",
+     "Charge Date": "2026-10-21",
+     "Amount Remaining": "1200.00",
+     "Interest Remaining": "1200.00",
+     "Principal Remaining": "0.00"
+    },
+    {
+     "Ref Loans": "L-D-0901",
+     "Charge Date": "2026-10-21",
+     "Amount Remaining": "1200.00",
+     "Interest Remaining": "1200.00",
+     "Principal Remaining": "0.00"
+    },
+    {
+     "Ref Loans": "L-E-1014",
+     "Charge Date": "2026-10-21",
+     "Amount Remaining": "18900.00",
+     "Interest Remaining": "18900.00",
+     "Principal Remaining": "0.00"
+    }
+   ],
+   "row_count": 3,
+   "complete": true
+  },
+  "observation-3": {
+   "loan_id": "L-D-0825",
+   "eligible": true,
+   "complete": true,
+   "calculation": {
+    "amount": "13200",
+    "planHash": "a7445888d76e57bed4e6f4c7fe93b63febe1edd079ddfbe59b9f939a058aa4f1",
+    "sourceVersion": "ee14c5be1f8597adf892aca34d0e696c5acd32976df480b7a054f249319540d3",
+    "businessDate": "2026-10-21",
+    "targetChargeId": "cg8:8:L-D-0825:2026-10-21",
+    "targetLoanId": "L-D-0825",
+    "mutation": null,
+    "borrowerId": "B-D",
+    "allocations": []
+   }
+  },
+  "observation-4": {
+   "loan_id": "L-D-0901",
+   "eligible": true,
+   "complete": true,
+   "calculation": {
+    "amount": "13200",
+    "planHash": "a7445888d76e57bed4e6f4c7fe93b63febe1edd079ddfbe59b9f939a058aa4f1",
+    "sourceVersion": "ee14c5be1f8597adf892aca34d0e696c5acd32976df480b7a054f249319540d3",
+    "businessDate": "2026-10-21",
+    "targetChargeId": "cg8:8:L-D-0901:2026-10-21",
+    "targetLoanId": "L-D-0901",
+    "mutation": null,
+    "borrowerId": "B-D",
+    "allocations": []
+   }
+  },
+  "observation-5": {
+   "loan_id": "L-E-1014",
+   "eligible": true,
+   "complete": true,
+   "calculation": {
+    "amount": "45900",
+    "planHash": "a7445888d76e57bed4e6f4c7fe93b63febe1edd079ddfbe59b9f939a058aa4f1",
+    "sourceVersion": "ee14c5be1f8597adf892aca34d0e696c5acd32976df480b7a054f249319540d3",
+    "businessDate": "2026-10-21",
+    "targetChargeId": "cg8:8:L-E-1014:2026-10-21",
+    "targetLoanId": "L-E-1014",
+    "mutation": null,
+    "borrowerId": "B-E",
+    "allocations": []
+   }
+  }
+ },
+ "replies": {
+  "argon": {
+   "text": "Payoff if closed today: ฿72,300 combined (Borrower D ฿26,400; Borrower E ฿45,900)\n\nBorrower D (ผู้กู้ ง) — 2 open Daily Interest loans, total ฿26,400:\n• Loan 25-Aug-2026 (฿12,000): principal outstanding ฿12,000 unpaid charge interest (21-Oct-2026) ฿1,200 interest since last charge (21-Oct-2026): ฿1,200/day × 0 days = ฿0 total ฿13,200\n• Loan 01-Sep-2026 (฿12,000): principal outstanding ฿12,000 unpaid charge interest (21-Oct-2026) ฿1,200 interest since last charge (21-Oct-2026): ฿1,200/day × 0 days = ฿0 total ฿13,200\n\nBorrower E (ผู้กู้ จ) — 1 open Daily Interest loan (14-Oct-2026, ฿27,000):\n• Principal outstanding: ฿27,000\n• Unpaid charge interest (21-Oct-2026): ฿18,900\n• Interest since last charge (21-Oct-2026): ฿2,700/day × 0 days = ฿0\n• Total: ฿45,900\n\nToday's scheduled charges (21-Oct-2026) are already recorded on all 3 loans, so no extra days of interest apply today.\n\nAs of 21-Oct-2026 22:56 Bangkok, live data",
+   "expected": {
+    "ok": true,
+    "ungrounded": []
+   }
+  },
+  "flash": {
+   "text": "Total payoff if both close today: ฿72,300 (Borrower E ฿45,900 Borrower D ฿26,400)\n\nBorrower E (1 loan): ฿45,900\n• Loan 14-Oct-2026 (฿27,000): outstanding principal ฿27,000 + unpaid charge interest ฿18,900 (due 21-Oct-2026) + interest since last charge ฿0 = ฿45,900\n\nBorrower D (2 loans): ฿26,400\n• Loan 25-Aug-2026 (฿12,000): outstanding principal ฿12,000 + unpaid charge interest ฿1,200 (due 21-Oct-2026) + interest since last charge ฿0 = ฿13,200\n• Loan 01-Sep-2026 (฿12,000): outstanding principal ฿12,000 + unpaid charge interest ฿1,200 (due 21-Oct-2026) + interest since last charge ฿0 = ฿13,200\n\nAll three loans have today's interest charge already generated, so no additional gap interest applies.\n\nAs of 21-Oct-2026 22:53 Bangkok, live data",
+   "expected": {
+    "ok": true,
+    "ungrounded": []
+   }
+  }
+ }
+}

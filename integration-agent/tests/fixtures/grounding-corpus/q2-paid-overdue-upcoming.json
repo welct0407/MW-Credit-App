@@ -1,0 +1,340 @@
+{
+ "question": "Q2",
+ "request": "How much has Borrower C paid so far, how much overdue, and how much are yet to be charged?",
+ "source": "R088 argon/flash comparison of 21 Oct 2026 (synthetic runs), anonymised: borrower names, ids and file names are synthetic labels and every amount is the original × 7 (sums, rate × days and products stay exact; percentages are ratios and stay the same). Dates and counts are kept. Observations are synthetic rows shaped like the views and SQL results, holding the per-loan and per-charge source values, not the replies' derived totals.",
+ "observations": {
+  "observation-1": {
+   "columns": [
+    "borrower_id",
+    "borrower_name",
+    "borrower_label",
+    "active_loans",
+    "outstanding_principal"
+   ],
+   "rows": [
+    {
+     "borrower_id": "B-C",
+     "borrower_name": "Borrower C",
+     "borrower_label": "ผู้กู้ ค",
+     "active_loans": 8,
+     "outstanding_principal": "149387.00"
+    }
+   ],
+   "row_count": 1,
+   "complete": true
+  },
+  "observation-2": {
+   "columns": [
+    "borrower_id",
+    "loan_id",
+    "loan_date",
+    "loan_type",
+    "loan_status",
+    "original_principal",
+    "principal_received",
+    "interest_received",
+    "outstanding_principal",
+    "daily_interest",
+    "defaulted",
+    "default_loss"
+   ],
+   "rows": [
+    {
+     "borrower_id": "B-C",
+     "loan_id": "L-C-01",
+     "loan_date": "2026-08-20",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "14000.00",
+     "principal_received": "14000.00",
+     "interest_received": "68600.00",
+     "outstanding_principal": "0.00",
+     "daily_interest": "1400.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-C",
+     "loan_id": "L-C-02",
+     "loan_date": "2026-08-26",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "21000.00",
+     "principal_received": "9100.00",
+     "interest_received": "81200.00",
+     "outstanding_principal": "11900.00",
+     "daily_interest": "2100.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-C",
+     "loan_id": "L-C-03",
+     "loan_date": "2026-09-02",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "35000.00",
+     "principal_received": "10500.00",
+     "interest_received": "99400.00",
+     "outstanding_principal": "24500.00",
+     "daily_interest": "3500.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-C",
+     "loan_id": "L-C-04",
+     "loan_date": "2026-09-06",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "28000.00",
+     "principal_received": "8400.00",
+     "interest_received": "73500.00",
+     "outstanding_principal": "19600.00",
+     "daily_interest": "2800.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-C",
+     "loan_id": "L-C-05",
+     "loan_date": "2026-09-12",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "42000.00",
+     "principal_received": "11613.00",
+     "interest_received": "88550.00",
+     "outstanding_principal": "30387.00",
+     "daily_interest": "4200.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-C",
+     "loan_id": "L-C-06",
+     "loan_date": "2026-09-15",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "17500.00",
+     "principal_received": "7000.00",
+     "interest_received": "44100.00",
+     "outstanding_principal": "10500.00",
+     "daily_interest": "1750.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-C",
+     "loan_id": "L-C-07",
+     "loan_date": "2026-09-20",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "24500.00",
+     "principal_received": "0.00",
+     "interest_received": "37877.00",
+     "outstanding_principal": "24500.00",
+     "daily_interest": "2450.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-C",
+     "loan_id": "L-C-08",
+     "loan_date": "2026-09-28",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "35000.00",
+     "principal_received": "7000.00",
+     "interest_received": "28000.00",
+     "outstanding_principal": "28000.00",
+     "daily_interest": "3500.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    }
+   ],
+   "row_count": 8,
+   "complete": true
+  },
+  "observation-3": {
+   "columns": [
+    "interest_paid",
+    "principal_paid",
+    "repayments"
+   ],
+   "rows": [
+    {
+     "interest_paid": "521227.00",
+     "principal_paid": "67613.00",
+     "repayments": 212
+    }
+   ],
+   "row_count": 1,
+   "complete": true
+  },
+  "observation-4": {
+   "columns": [
+    "Ref Borrower",
+    "Overdue Principal",
+    "Overdue Interest",
+    "Overdue Amount",
+    "Overdue Charge Count",
+    "Oldest Overdue Date"
+   ],
+   "rows": [
+    {
+     "Ref Borrower": "B-C",
+     "Overdue Principal": "110467.00",
+     "Overdue Interest": "64533.00",
+     "Overdue Amount": "175000.00",
+     "Overdue Charge Count": 75,
+     "Oldest Overdue Date": "2026-09-16"
+    }
+   ],
+   "row_count": 1,
+   "complete": true
+  },
+  "observation-5": {
+   "columns": [
+    "charge_date",
+    "amount_remaining",
+    "charges"
+   ],
+   "rows": [
+    {
+     "charge_date": "2026-10-19",
+     "amount_remaining": "7000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-10-16",
+     "amount_remaining": "14000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-10-13",
+     "amount_remaining": "14000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-10-10",
+     "amount_remaining": "14000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-10-07",
+     "amount_remaining": "21000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-10-04",
+     "amount_remaining": "21000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-10-01",
+     "amount_remaining": "21000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-09-28",
+     "amount_remaining": "21000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-09-25",
+     "amount_remaining": "14000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-09-22",
+     "amount_remaining": "14000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-09-19",
+     "amount_remaining": "7000.00",
+     "charges": 6
+    },
+    {
+     "charge_date": "2026-09-16",
+     "amount_remaining": "7000.00",
+     "charges": 6
+    }
+   ],
+   "row_count": 12,
+   "complete": true
+  },
+  "observation-6": {
+   "columns": [
+    "Ref Borrower",
+    "Ref Loan",
+    "Due Date",
+    "Principal Remaining",
+    "Interest Remaining",
+    "Amount Remaining",
+    "Basis"
+   ],
+   "rows": [
+    {
+     "Ref Borrower": "B-C",
+     "Ref Loan": "L-C-08",
+     "Due Date": "2026-10-22",
+     "Principal Remaining": "12978.00",
+     "Interest Remaining": "8022.00",
+     "Amount Remaining": "21000.00",
+     "Basis": "Recorded"
+    },
+    {
+     "Ref Borrower": "B-C",
+     "Ref Loan": "L-C-08",
+     "Due Date": "2026-10-25",
+     "Principal Remaining": "12971.00",
+     "Interest Remaining": "8029.00",
+     "Amount Remaining": "21000.00",
+     "Basis": "Recorded"
+    },
+    {
+     "Ref Borrower": "B-C",
+     "Ref Loan": "L-C-08",
+     "Due Date": "2026-10-28",
+     "Principal Remaining": "12971.00",
+     "Interest Remaining": "8029.00",
+     "Amount Remaining": "21000.00",
+     "Basis": "Recorded"
+    }
+   ],
+   "row_count": 3,
+   "complete": true
+  },
+  "observation-7": {
+   "columns": [
+    "due_today"
+   ],
+   "rows": [
+    {
+     "due_today": "0.00"
+    }
+   ],
+   "row_count": 1,
+   "complete": true
+  }
+ },
+ "replies": {
+  "argon": {
+   "text": "Paid so far: ฿588,840 (8 open Daily Interest loans, lent ฿217,000)\n• Interest: ฿521,227 (incl. ฿35,210 first-day charges deducted at disbursement)\n• Principal: ฿67,613\n\nDue now: ฿175,000 (75 overdue charges: ฿110,467 principal, ฿64,533 interest; Due today: ฿0)\n• Overdue (19-Oct-2026): ฿7,000\n• Overdue (16-Oct-2026): ฿14,000\n• Overdue (13-Oct-2026): ฿14,000\n• Overdue (10-Oct-2026): ฿14,000\n• Overdue (07-Oct-2026): ฿21,000\n• 7 older dates (16-Sep-2026 to 04-Oct-2026): ฿105,000\n\nNot yet charged:\n• Principal outstanding not on unpaid charges: ฿0 (฿149,387 outstanding principal is on ฿110,467 overdue and ฿38,920 future charges; auto-charge off)\n• Next charge 22-Oct-2026: ฿21,000 (฿12,978 principal, ฿8,022 interest, forecast)\n• Next charge 25-Oct-2026: ฿21,000 (฿12,971 principal, ฿8,029 interest, forecast)\n• Next charge 28-Oct-2026: ฿21,000 (฿12,971 principal, ฿8,029 interest, forecast)\nSend \"Borrower C detail\" as a new message (not a reply) for per-loan lines.\n\nAs of 21-Oct-2026 22:49 Bangkok, live data",
+   "expected": {
+    "ok": false,
+    "ungrounded": [
+     "฿35,210"
+    ]
+   }
+  },
+  "flash": {
+   "text": "Paid so far: ฿588,840\n• Interest: ฿521,227\n• Principal: ฿67,613\n\nDue now: ฿175,000\n• Overdue (19-Oct-2026): ฿7,000\n• Overdue (16-Oct-2026): ฿14,000\n• Overdue (13-Oct-2026): ฿14,000\n• Overdue (10-Oct-2026): ฿14,000\n• Overdue (07-Oct-2026): ฿21,000\n• 7 older dates (16-Sep to 04-Oct-2026): ฿105,000\n• Due today (21-Oct-2026): ฿0\n\nNot yet charged:\n• Principal outstanding: ฿0 (all ฿149,387 is already scheduled on charges)\n• Next charge 22-Oct-2026: ฿21,000 (principal ฿12,978 interest ฿8,022)\n• Next charge 25-Oct-2026: ฿21,000 (principal ฿12,971 interest ฿8,029)\n\nAs of 21-Oct-2026 22:46 Bangkok, live data",
+   "expected": {
+    "ok": true,
+    "ungrounded": []
+   }
+  }
+ }
+}

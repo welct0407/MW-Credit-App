@@ -22,7 +22,7 @@ from .config import ConfigurationError
 from .conversation_session import (ASSISTANT_INSTRUCTIONS, LOCATION, PROJECT, ConversationSession, Resend,  # noqa: F401
                                    bounded, digest, partner_texts, reference, vertex_host)
 
-MODELS = ('gemini-4-argon',)
+MODELS = ('gemini-4-argon', 'gemini-3.8-flash')  # R088: flash allow-listed so a switch is config-only
 THINKING_LEVELS = ('LOW', 'MEDIUM', 'HIGH', 'MAX')  # accepted live by gemini-4-argon; XHIGH is a 400
 MAX_OUTPUT_TOKENS = 16384
 DEFAULTS = {'gemini_location': 'global', 'gemini_conversation_model': 'gemini-4-argon',

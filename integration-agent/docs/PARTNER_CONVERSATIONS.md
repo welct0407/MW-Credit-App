@@ -40,13 +40,14 @@ Switching back to `codex` resumes the Partner's existing Codex thread; the Claud
 | `claude_history_token_limit` | 150000 | Starts a new history epoch |
 | `claude_seed_history_chars` | 40000 (0 to 200000) | Character budget of the "Earlier conversation" seed transcript of each epoch; 0 disables seeding |
 | `gemini_project`, `gemini_location` | existing keys | Reused by the Gemini conversation (project and location, `global`) |
-| `gemini_conversation_model` | `gemini-4-argon` | Allowlist of one model |
+| `gemini_conversation_model` | `gemini-4-argon` | Allowlist: `gemini-4-argon`, `gemini-3.8-flash` (R088; allowed so a switch is config-only; the model choice awaits a fair rerun of the comparison) |
 | `gemini_conversation_thinking_level` | `HIGH` | `LOW`, `MEDIUM`, `HIGH` or `MAX`; always sent. Owner decision: default `HIGH`; `MAX` stays allowed and can be set later if needed. `thinkingBudget` is not supported by `gemini-4-argon`. Forge's live test: all four levels return 200, `XHIGH` returns 400. Higher levels make replies slower: PROD runs `MEDIUM` since 21 October 2026 (R085; the first real turns at `HIGH` spent about 66 s in the final round), and the code default stays `HIGH`. Set it in config |
 | `gemini_conversation_request_timeout_seconds` | 300 | Per model request |
 | `gemini_conversation_max_tool_rounds` | 24 | Tool rounds per turn |
 | `gemini_conversation_history_token_limit` | 150000 | Starts a new history epoch |
 | `gemini_conversation_seed_history_chars` | 40000 | Character budget of the seed transcript; 0 disables seeding |
 | `conversation_sql_read_enabled` | `false` | Offers `sql_query` and `loan_payoff` to the Claude and Gemini providers (one switch gates both) |
+| `conversation_grounding` | `enforce` | `enforce`, `audit` or `off` (R088): the number check on `finish`, see [Number grounding](#number-grounding-r088) |
 
 Authentication for both Vertex AI providers is the VM service account's existing `roles/aiplatform.user`; no IAM, key or credential is added, and no infrastructure change is needed. Gemini: `gemini-4-argon` answers on `global` (test calls returned 200 and function calling worked). It has no per-project quota row (dynamic shared quota), so there is no quota request to make; retries are described under History, epochs and failures. Claude: the owner enabled the model in Model Garden, but Google rejected the quota request (new account), so Claude needs a quota grant for `global` `anthropic-claude-opus` before it can be used. Gemini has run two live synthetic turns on Vertex AI (owner-approved test, 21 October 2026, synthetic lab data); Claude has not run, having no quota.
 
@@ -69,6 +70,12 @@ Owner decisions, 21 October 2026: the tool has full read access, sensitive data 
 - Parallel reads: when one model round holds two or more read calls (`data_catalogue`, `read_records`, `sum_field`, `sql_query`, `loan_payoff`), they run concurrently, at most 4 at once (`TOOL_WORKERS`). Journal and audit rows are still written one at a time in call order, observation ids follow the call order, and one failing call does not fail the others. A call still running at the turn deadline fails as `TOOL_TIMEOUT`. Any round with a write, `finish` or an unknown tool runs sequentially.
 - Fewer rounds: the instructions start with FAST PATHS and COMMON QUESTIONS (a reporting question is 2 to 3 rounds), and the [business rules](CONVERSATION_BUSINESS_RULES.md) section 14 gives answer recipes on the summary views.
 - Timing: the `model_rounds` audit event carries per-turn token totals, `round_usage`, `round_ms` and `tool_ms`, and failed turns write it too (with `failure`). `scripts/conversation-timing.py --since <time>` prints one JSON line per turn and a summary, read-only, with no conversation text; turns before R085 have empty timing lists. Record: [change note](../Change%20Logs/CHANGE_NOTES_CONVERSATION_SPEED_2026-10-21.md).
+
+### Number grounding (R088)
+
+Every amount in a reply must come from the turn's own data. When the model calls `finish`, the host (all providers) checks the money amounts, per-day rates and percents of the message against this turn's tool results and the Partner's own message, after the length check and before authorization. Exempt and never checked: dates, times, the as-of line, years, list numbering, long identifiers and plain counts; amounts in the seeded earlier-conversation transcript never count as a source. An amount passes when it is an observed value, a sum or difference of observed amounts, a column total (including prefix, suffix and grouped totals, the sum of `loan_payoff` amounts and `sum_field` totals), a subset sum of a short column, rate x day count in a formula line, or an observed amount plus such a total; a percent passes when observed or equal to 100 x a / b of observed values. Money matches exactly or by whole-baht rounding; zero always passes. It catches an invented figure, not a wrong figure that was observed.
+
+`conversation_grounding`: `enforce` (default) returns the finish to the model with the amounts that have no source, up to 3 attempts; the third rejection fails the turn with `FINISH_UNGROUNDED_EXCEEDED` and the usual failure reply to the Partner. `audit` runs the same check and only logs, `off` skips it. Each check writes an audit event on the `finish` call: `grounding_passed`, or `ungrounded_amounts` (attempt, rejected amounts and their classes, candidate and observation counts, grounding-set size, truncation flag, elapsed time). The events hold the rejected amounts, not the reply text. Record: [change note](../../Change%20Logs/CHANGE_NOTES_R088_NUMBER_GROUNDING_2026-10-21.md).
 
 ### Payoff (R086)
 
@@ -93,7 +100,7 @@ The receiver touches `state/conversation-wake` after a committed capture of a me
 
 ### Reply rules
 
-Replies are plain text. Target about 700 characters; the hard limit is 1,000. For Claude and Gemini the limit is enforced in `finish`: a longer reply is returned to the model, which must shorten it, so their replies are not held for length. A Codex reply over 1,000 characters is held for review as before. Format rules CONV-UX-01..12 (answer first, labeled bullets, no tables or Markdown, explicit data date, totals and exclusions) apply to all providers.
+Replies are plain text. Target about 600 characters and at most 12 lines (R088; before it about 700); the hard limit is 1,000. For Claude and Gemini the limit is enforced in `finish`: a longer reply is returned to the model, which must shorten it, so their replies are not held for length. A Codex reply over 1,000 characters is held for review as before. Format rules CONV-UX-01..12 (answer first, labeled bullets, no tables or Markdown, explicit data date, totals and exclusions) apply to all providers.
 
 ## Controls and recovery
 
