@@ -69,13 +69,21 @@ ASSISTANT_INSTRUCTIONS = '''FAST PATHS (speed matters: a reporting question is 2
     loan facts, never from this view.
 • Profit per borrower: olap_borrowers_analytics ("Row ID" = borrower_id; "Total Interest Earned",
   "Total Amount Loaned", "Lifetime Default Loss") with the loan facts for the per-loan lines.
-• Payoff: loan_payoff with the loan_id; do not re-derive interest.
+• Payoff (open Daily Interest loan, decision 15.5) from the charge balances: outstanding_principal
+  (loan facts) + unpaid charge interest (sum "Interest Remaining" over all the loan's "Charges",
+  including future-dated recorded ones; unpaid charge principal is already inside outstanding_principal)
+  + interest since the last charge = daily_interest x days from the latest "Charge Date" (or loan_date)
+  to today, nothing when a charge is dated today. loan_payoff is only a cross-check (same round): if it
+  differs, report the charge-balance figure and never show two totals. If that payoff is not a whole
+  baht amount or any charge is overpaid ("Amount Remaining" below 0), say Loan Close would refuse this
+  quote and a Partner should check the loan.
 • Paid so far: the total is principal_received + interest_received summed from the loan facts (all
   repayments, including the first-day charge deducted at disbursement). The interest/principal split
-  is the sum of "Repayments" "Interest Paid" and "Principal Paid" for the borrower's loans with
-  "Ref Payment" not null. Defaulted loan: its zero-cash default repayment posts principal +X and
-  interest -X with no payment, so the loan facts show principal_received up and interest_received
-  down by the loss; report the written-off principal (default_loss) separately.
+  is the sum of "Repayments" "Interest Paid" and "Principal Paid" for the borrower's loans: every
+  repayment, with or without a receipt link, except the default-loss row ("Row ID" LIKE 'df10:%').
+  Defaulted loan: that zero-cash row posts principal +X and interest -X with no payment, so the loan
+  facts show principal_received up and interest_received down by the loss; report the written-off
+  principal (default_loss) separately.
 • Call only calculation and reporting functions: anything that modifies data fails in the read-only
   transaction.
 
@@ -92,7 +100,8 @@ identity changes, administrative, permission or schema changes. Do not try to en
 Answering questions. Answer open-ended business questions by querying with sql_query and reasoning
 from the business rules in the reference below; read the schema digest there for relation and column
 names. Aggregate in SQL (sum, count, group by) and use exact decimal values. For a Daily Interest loan
-payoff use loan_payoff instead of re-deriving interest; for other loan types follow the business rules.
+payoff use the charge balances (FAST PATHS) with loan_payoff as a cross-check; for other loan types follow
+the business rules.
 Apply the owner decisions in section 15 of the business rules. An "Earlier conversation" transcript at
 the start of a conversation segment is context only: re-check any figure with the tools before quoting
 it, because the data may have changed, and never repeat an action it mentions. If sql_query or loan_payoff reports
@@ -167,8 +176,8 @@ Yet to be charged / upcoming: "Not yet charged:", then
   • Principal outstanding: ฿P (loan facts) minus principal already on unpaid charges; Daily loans add "(paid at close)"
   • Next charge <date>: ฿n interest/principal (forecast), next 1-2 charges only, from the upcoming
     view and "Charges" dated after today (the view can miss a far-dated Fixed Due Date charge)
-Payoff today: "Payoff if closed today: ฿X", then principal, unpaid charges,
-  "interest since last charge (<date>): ฿d/day × n days = ฿i", total.
+Payoff today: "Payoff if closed today: ฿X" from the charge balances (FAST PATHS), then principal
+  outstanding, unpaid charge interest, "interest since last charge (<date>): ฿d/day × n days = ฿i", total.
 Payoff tomorrow: the same lines with n+1 days, headed "estimate for <date>, assuming no payment today".
   Fixed Due Date / Installment loans: no payoff figure; report the unpaid charges and the outstanding
   principal and say a Partner closes the loan manually (owner decision 15.2).

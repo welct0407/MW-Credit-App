@@ -325,6 +325,7 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual(deploy.unit_hashes(backup / 'units'), metadata['unit_hashes'])
         self.assertEqual(metadata['resume_timers'], [t for t in deploy.TRIGGERS if t != 'mw-audit-relay.timer'])
         self.assertIn('mw-receipt-wake.path', metadata['resume_timers'])
+        self.assertIn('mw-conversation-wake.path', metadata['resume_timers'])
         self.assertEqual(metadata['phase'], 'frozen')
 
     def test_install_removes_stale_modules_installs_units_and_token_backup(self):
@@ -483,12 +484,14 @@ class EngineFlowTests(unittest.TestCase):
         self.enterContext(patch.object(deploy, 'run', run))
         return stops
 
-    def test_receipt_wake_path_is_a_trigger_unit(self):
-        # B1: installed with the units, stopped beside the worker timers, resumed like a timer.
-        self.assertEqual(deploy.PATHS, ['mw-receipt-wake.path'])
-        self.assertIn('mw-receipt-wake.path', deploy.UNIT_FILES)
-        self.assertEqual(set(deploy.TRIGGERS), {'mw-receipt-wake.path'} | {u + '.timer' for u in deploy.UNITS})
-        self.assertTrue((Path(__file__).parents[1] / 'systemd/mw-receipt-wake.path').is_file())
+    def test_wake_paths_are_trigger_units(self):
+        # R082 B1 and R086: installed with the units, stopped beside the worker timers, resumed like a timer.
+        self.assertEqual(deploy.PATHS, ['mw-receipt-wake.path', 'mw-conversation-wake.path'])
+        self.assertEqual(set(deploy.TRIGGERS), set(deploy.PATHS) | {u + '.timer' for u in deploy.UNITS})
+        for name in deploy.PATHS:
+            with self.subTest(unit=name):
+                self.assertIn(name, deploy.UNIT_FILES)
+                self.assertTrue((Path(__file__).parents[1] / 'systemd' / name).is_file())
 
     def test_path_unit_not_yet_installed_is_not_stopped_or_resumed(self):
         # First deployment of the path unit: absent on the host reads inactive and must not reach systemctl stop.
@@ -499,6 +502,22 @@ class EngineFlowTests(unittest.TestCase):
         self.assertNotIn('mw-receipt-wake.path', self.host.metadata()['resume_timers'])
         self.assertEqual(self.host.phase('activate')[0], 0)
         self.assertEqual(self.host.timers.get('mw-receipt-wake.path', 'inactive'), 'inactive')
+
+    def test_new_conversation_wake_path_is_installed_but_left_for_a_manual_enable(self):
+        # R086 first deployment: the receipt wake path is paused and resumed; the conversation wake path is absent,
+        # so it is neither stopped nor resumed; install copies its file and activate leaves it inactive.
+        del self.host.timers['mw-conversation-wake.path']
+        stops = self.recorded_stops()
+        self.deployed()
+        stopped = [unit for call in stops for unit in call]
+        self.assertIn('mw-receipt-wake.path', stopped)
+        self.assertNotIn('mw-conversation-wake.path', stopped)
+        metadata = self.host.metadata()
+        self.assertIn('mw-receipt-wake.path', metadata['resume_timers'])
+        self.assertNotIn('mw-conversation-wake.path', metadata['resume_timers'])
+        self.assertEqual(self.host.phase('activate')[0], 0)
+        self.assertEqual(self.host.timers['mw-receipt-wake.path'], 'active')
+        self.assertEqual(self.host.timers.get('mw-conversation-wake.path', 'inactive'), 'inactive')
 
     def test_active_path_unit_blocks_install_and_activation(self):
         self.assertEqual(self.host.phase('freeze')[0], 0)
@@ -518,8 +537,9 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual(self.host.timers['mw-receipt-wake.path'], 'active')
         stops = self.recorded_stops()
         self.assertEqual(self.host.phase('rollback')[0], 0)
-        self.assertIn('mw-receipt-wake.path', stops[0])
-        self.assertEqual(self.host.timers['mw-receipt-wake.path'], 'active')
+        for name in deploy.PATHS:
+            self.assertIn(name, stops[0])
+            self.assertEqual(self.host.timers[name], 'active')
 
     def test_schema_behind_package_refuses_install_before_pip(self):
         # V7 lesson: a package needing an unapplied agent migration must not go live on PostgreSQL state.
