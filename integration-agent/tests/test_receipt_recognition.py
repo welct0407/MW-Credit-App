@@ -415,7 +415,8 @@ class ConfigTests(unittest.TestCase):
                          'agent_database_relay_password_file': '/etc/mw-integration-agent/secrets/relay.txt'})
         catalogue = load_json(ROOT / 'service-catalogue.json')
         validate_catalogue(catalogue)
-        self.assertEqual(catalogue['revision'], 31)
+        # Step 1 of the conversation-provider deploy pin (R075 precedent): revision 29 until step 2.
+        self.assertEqual(catalogue['revision'], 29)
         self.assertEqual(catalogue['services']['receipt_recognition_api'], {'enabled': False, 'implemented': True})
         self.validator_knows_the_name(catalogue)
 
