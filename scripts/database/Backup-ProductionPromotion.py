@@ -1,4 +1,4 @@
-"""Private fixed PROD/journal snapshot and isolated restore; no live writes or migrations."""
+"""Private fixed PROD/journal (or, with --environment development, DEV) snapshot and isolated restore; no live writes or migrations."""
 import argparse, hashlib, json, os, socket, subprocess, sys, uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -15,22 +15,27 @@ from psycopg import sql
 parser = argparse.ArgumentParser()
 parser.add_argument('--approval-reference', required=True)
 parser.add_argument('--database', choices=('loan_manager_prod','mw_agent'), default='loan_manager_prod')
-parser.add_argument('--expected-version', type=int, choices=(77,87,89,90,91,92,93,95,96,97,98,99))
+parser.add_argument('--environment', choices=('production','development'), default='production', help='development: DEV backup before a refresh (dev-backups/, explicit --expected-version)')
+parser.add_argument('--expected-version', type=int, choices=(77,87,89,90,91,92,93,95,96,97,98,99,100))
 args = parser.parse_args()
+if args.environment=='development':
+    if args.database!='loan_manager_prod': raise ValueError('Development mode backs up loan_manager_dev only')
+    if args.expected_version is None: raise ValueError('Development mode needs the explicit --expected-version from the Environment inventory')
+    args.database='loan_manager_dev'
 if not args.approval_reference.strip(): raise ValueError('Actual owner approval reference required')
 if args.database=='mw_agent' and args.expected_version is not None: raise ValueError('Journal database has no Flyway history')
-expected_version=(args.expected_version or 77) if args.database=='loan_manager_prod' else None
+expected_version=(args.expected_version or 77) if args.database!='mw_agent' else None
 repo = Path(__file__).resolve().parents[2]
-target = json.loads((repo / 'database/environments.json').read_text())['production']
-if (target['instance'], target['host'], target['port'], target['database'], target['user']) != ('mw-credit-pg-20261017', '136.85.127.134', 5432, 'loan_manager_prod', 'postgres'):
-    raise ValueError('Wrong fixed production tuple')
+target = json.loads((repo / 'database/environments.json').read_text())[args.environment]
+if (target['instance'], target['host'], target['port'], target['database'], target['user']) != ('mw-credit-pg-20261017', '136.85.127.134', 5432, {'production':'loan_manager_prod','development':'loan_manager_dev'}[args.environment], 'postgres'):
+    raise ValueError('Wrong fixed '+args.environment+' tuple')
 # Journal mode changes only the fixed database name on this verified instance.
 target={**target,'database':args.database}
 if any(os.environ.get(k) for k in ('PGHOST','PGHOSTADDR','PGPORT','PGDATABASE','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','PGOPTIONS','DATABASE_URL')):
     raise ValueError('Remove ambient database routing overrides')
 # System identifier of mw-credit-pg-20261017 (the proxy hides the server address).
 CLUSTER_SYSTEM_IDENTIFIER = 7685391508477894672
-BACKUP_BUCKET = 'gs://mw-credit-operator-private-737787224638/prod-backups/'
+BACKUP_BUCKET = 'gs://mw-credit-operator-private-737787224638/' + ('dev-backups/' if args.environment=='development' else 'prod-backups/')
 private_root = Path(os.environ.get('MW_PRIVATE_ROOT') or Path.home() / '.mw-private') / 'AppSheet-Loan-Project/flyway'
 subprocess.run(['bash', str(repo / 'scripts/database/cloud-db-tunnel.sh')], check=True, stdout=subprocess.DEVNULL)
 # Read-only backup identity (DB-ACCESS-03): IAM database user codex-cloud-read
@@ -42,10 +47,10 @@ connection = {'host': '127.0.0.1', 'port': int(os.environ.get('MW_DB_TUNNEL_PORT
 tools = Path('/workspace/.setup/postgresql-18.6/bin')
 exe = ''
 restore_base = Path('/var/tmp/mw-credit')
-restore_parent = restore_base / 'production-promotion-restores'
+restore_parent = restore_base / ('dev-refresh-restores' if args.environment=='development' else 'production-promotion-restores')
 # PostgreSQL refuses to run as root; the isolated restore server runs as postgres.
 as_server = ['runuser', '-u', 'postgres', '--'] if os.geteuid() == 0 else []
-folder = private_root / ('prod-promotion-' + uuid.uuid4().hex)
+folder = private_root / (('dev-refresh-' if args.environment=='development' else 'prod-promotion-') + uuid.uuid4().hex)
 folder.mkdir(parents=True, exist_ok=False)
 dump = folder / (target['database']+'.dump')
 data = restore_parent / uuid.uuid4().hex

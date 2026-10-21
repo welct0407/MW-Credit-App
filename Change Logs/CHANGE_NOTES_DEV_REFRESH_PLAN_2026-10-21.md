@@ -1,25 +1,34 @@
-# Change notes — DEV refresh plan, 21 October 2026
+# Change notes — DEV refresh runbook, tooling and plan, 21 October 2026
 
 ## Purpose
-The owner asked for a plan that Codex can follow to refresh `loan_manager_dev` from PROD safely. The repository has a refresh runbook but no maintained refresh runner, so the plan spells out the repository-specific traps and the phased procedure.
+The owner wants DEV refreshed from PROD by a Claude Code cloud session. The refresh runbook predated the shared Cloud SQL instance, the IAP route and the closed owner roles, and no maintained tool repaired DEV owners and privileges after a restore. This batch updates the rule, adds the tooling, proves it on a disposable cluster and leaves an executable plan.
 
 ## Changes
-- New owner-requested document [project/outputs/dev-refresh-plan-20261021/README.md](../project/outputs/dev-refresh-plan-20261021/README.md): traps to watch (shared instance and cluster-wide roles, environment-suffixed owner roles, push subscriptions as live credentials, trigger rules, Flyway history, DEV schedulers, receipt objects), a go or no-go checklist, eight phases from route proof to records, rollback, owner decisions and stop conditions.
-- No code, configuration, SQL or live target changed.
+- [Development_Refresh_Runbook.md](../project/Documents/Rules/Development_Refresh_Runbook.md) rewritten: scope and authority, executor and route, the facts that shape the procedure (shared roles, owner window before the `--clean` restore, trigger rule, notification credentials, schedulers, receipts), the eight-step procedure with the maintained tools, rollback, closure, history.
+- New `scripts/database/Refresh-DevCatalog.py` (`snapshot`, `reconcile`, `compare`) with `scripts/database/test_refresh_dev_catalog.py`; ACLs are captured server-side in one round trip per object kind.
+- `scripts/database/Backup-ProductionPromotion.py`: `--environment development` (fixed DEV tuple, `dev-backups/`, explicit `--expected-version`), version 100 accepted; PROD behaviour unchanged.
+- [database/README.md](../database/README.md) Linux cloud sessions paragraph names both tools; the R075 tooling-gaps row in Development_Changes.md marks the DEV backup gap closed.
+- [project/outputs/dev-refresh-plan-20261021/README.md](../project/outputs/dev-refresh-plan-20261021/README.md) rewritten for a Claude cloud session: facts verified on 21 October 2026, go or no-go, phases 0 to 8 as command blocks, rollback, stop conditions, owner decisions, review hook.
 
 ## Checks
 | Command | Result |
 | --- | --- |
+| `python3 -m unittest scripts/database/test_refresh_dev_catalog.py` | Pass, 10 tests |
+| Lab (PostgreSQL 18, two databases migrated to V100 with `_dev` and `_prod` roles, synthetic rows): `pg_restore --clean --if-exists --no-owner --no-privileges --exit-on-error -1` of the prod dump over dev, deletes, `reconcile --apply`, `compare` | 40 owner statements, 171 privilege statements, residual 0, catalog equal, fingerprints equal except the two emptied tables; dry run committed nothing |
+| Lab, dev-only cluster: same restore, reconcile (178 privilege statements), compare, then `Test-AccessMatrix.sql`, `Test-TriggerOrder.sql`, `Test-RowChanges.sql`, `Test-LedgerAccess.sql` | All pass |
+| Lab rollback rehearsal: dev dump restored over the refreshed dev, reconcile, compare against the dev snapshot with fingerprints | Equal |
+| Live DEV, read identity through the tunnel: `Refresh-DevCatalog.py snapshot --fingerprints` | Identity rule passed; 292 objects, 204 triggers, 100 Flyway rows, 33 tables; 5 s after the round-trip change (93 s before); no `_prod` owner or grantee |
+| Live DEV and PROD Flyway history, sessions, push subscriptions, schedulers (read-only) | Both V100 with equal history md5; DEV schedulers paused; DEV 1 subscription, PROD 4 |
 | `npm run check:docs` | Pass on this commit |
 
 ## Not run
-Database and CI checks: no SQL, runner or application change in this batch. No live read or write was performed while drafting; facts come from the current documents and scripts.
+`Backup-ProductionPromotion.py --environment development` against live DEV: it writes a backup object and is left for the refresh session (Phase 1). Database CI (`mw-db-ci`): no migration or SQL test changed. No live write of any kind was performed.
 
 ## Recovery
-Delete the two new files; nothing else changed.
+Git baseline before this batch: commit `af5f8b8`. The scripts and documents are additive; no live state changed.
 
 ## Open questions
-The five decisions listed in section 5 of the plan (receipt object copy, DEV push subscriptions, maintained tooling, code refresh, write test).
+The owner decisions listed in the plan (receipt object copy, DEV push subscription, code refresh, write test).
 
 ## Remaining work
-Execution by Codex under the owner's refresh instruction, including the one-line `--expected-version 100` addition to `scripts/database/Backup-ProductionPromotion.py` and the reviewed refresh script the plan asks for.
+The refresh itself in a later session under the owner's instruction, then the lessons-learned review that updates the runbook's History section.
