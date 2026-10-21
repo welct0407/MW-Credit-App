@@ -36,8 +36,8 @@ READY_TIMEOUT = 30
 # These oneshot workers can import the replaced package; they stay paused until the receiver is ready.
 UNITS = ['mw-conversation-poll', 'mw-receipt-summary', 'mw-cash-statement',
          'mw-cash-statement-email-retry', 'mw-partner-conversation', 'mw-audit-relay']
-# Path units start a worker on demand (B1 receipt wake); paused, recorded and resumed exactly like the timers.
-PATHS = ['mw-receipt-wake.path']
+# Path units start a worker on demand (R082 B1 receipt wake, R086 conversation wake); paused, recorded and resumed exactly like the timers.
+PATHS = ['mw-receipt-wake.path', 'mw-conversation-wake.path']
 TRIGGERS = [u + '.timer' for u in UNITS] + PATHS
 UNIT_FILES = [RECEIVER] + [u + '.service' for u in UNITS] + PATHS
 CONFIGS = ('config.json', 'service-catalogue.json')
