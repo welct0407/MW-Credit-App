@@ -145,6 +145,36 @@ class ConversationSqlLabTests(unittest.TestCase):
                 with self.assertRaisesRegex(ConfigurationError, '^SQL_FUNCTION_NOT_ALLOWED'):
                     sql.query(self.config, text)
 
+    def test_four_concurrent_reads_each_on_its_own_connection_with_the_caps_intact(self):
+        import tempfile
+        import time
+        from pathlib import Path
+        from mw_integration_agent.conversation_store import ConversationStore
+        from mw_integration_agent.conversation_tools import ASSISTANT_TOOLS, ConversationTools
+        with tempfile.TemporaryDirectory() as directory:
+            store = ConversationStore(Path(directory) / 'journal.db')
+            try:
+                bridge = ConversationTools(lambda: self.config, store, 'lab-parallel', 'q', tools=ASSISTANT_TOOLS)
+                pid = "SELECT pg_backend_pid() AS pid, count(*) AS n, '{tag}' AS tag FROM generate_series(1, 300000)"
+                calls = [('sql_query', {'sql': pid.format(tag=i)}, f'c{i}') for i in range(4)]
+                calls += [('sql_query', {'sql': 'SELECT g AS n FROM generate_series(1, 501) g'}, 'cap'),
+                          ('sql_query', {'sql': "SELECT repeat('x', 3000000) AS big"}, 'big'),
+                          ('loan_payoff', {'loan_id': 'L1'}, 'pay')]
+                outcomes, ms = bridge.call_many(calls, time.monotonic() + 60)
+            finally:
+                store.close()
+        reads = outcomes[:4]
+        self.assertEqual([r['rows'][0]['tag'] for r in reads], ['0', '1', '2', '3'])
+        self.assertEqual([r['observation'] for r in reads], ['observation-1', 'observation-2', 'observation-3', 'observation-4'])
+        self.assertEqual(len({r['rows'][0]['pid'] for r in reads}), 4)  # one connection per read
+        self.assertTrue(str(outcomes[4]).startswith('SQL_ROW_CAP_NARROW_QUERY'))
+        self.assertTrue(str(outcomes[5]).startswith('SQL_RESULT_TOO_LARGE: select fewer'))
+        self.assertTrue(outcomes[6]['eligible'])
+        self.assertEqual(len(ms), 7)
+        with psycopg.connect(self.dsn, autocommit=True) as conn:
+            left = conn.execute("SELECT count(*) FROM pg_stat_activity WHERE application_name='mw-conversation-sql'").fetchone()[0]
+        self.assertEqual(left, 0)  # every read connection was rolled back and closed
+
     def test_payoff_eligible_and_raised_ineligible(self):
         value = sql.payoff(self.config, 'L1')
         self.assertTrue(value['eligible'])

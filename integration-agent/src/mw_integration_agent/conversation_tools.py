@@ -1,5 +1,13 @@
-"""Schema discovery and generic API primitives chosen by Codex."""
+"""Schema discovery and generic API primitives chosen by the conversation model (Codex, Claude or Gemini).
+
+Identity: the start-of-turn authorization (execute) is kept as turn_config and serves every read; writes
+(api_action, database_transaction, the delete/database aliases) and finish re-authorize, and the write and
+DML modules keep their own checkpoints. Reads of one model round can run concurrently (call_many): journal
+and audit writes stay on the calling thread, in call order; only the pure fetches run in the pool.
+"""
+from concurrent.futures import ThreadPoolExecutor, wait
 import json
+import time
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
@@ -10,6 +18,14 @@ from .receipt_rules import BANGKOK
 from .conversation_schema import load_schema, table_schema, writable, PROTECTED_TABLES
 
 HIDDEN = {'_RowNumber'}
+# Read tools: answered from the start-of-turn authorization; a round made only of these may run concurrently.
+READ_TOOLS = frozenset(('data_catalogue', 'read_records', 'sum_field', 'verify_operation', 'database_catalogue',
+                        'database_read', 'sql_query', 'loan_payoff'))
+# Reads whose fetch touches no conversation journal and no reviewer gate run in the pool; the other reads of an
+# all-read round (verify_operation, database_*, the database aliases) run on the calling thread after it.
+POOLED_READS = frozenset(('data_catalogue', 'read_records', 'sum_field', 'sql_query', 'loan_payoff'))
+ALIAS_APPS = ('database', 'appsheet_delete')
+TOOL_WORKERS = 4  # concurrent reads per round; each has its own database or HTTP connection
 
 
 def spec(name, description, properties):
@@ -89,21 +105,54 @@ class ConversationTools:
         self.result = None
         self.possible_write = False
         self.write_verified = False
+        self.turn_config = None  # set by execute() from its start-of-turn authorize()
 
     def observe(self, value):
         ident = 'observation-' + str(len(self.observations) + 1)
         self.observations[ident] = value
         return {'observation': ident, 'as_of': datetime.now(BANGKOK).isoformat(), **value}
 
+    def config(self):
+        """The start-of-turn authorization; a bridge used without execute() authorizes once, lazily."""
+        if self.turn_config is None:
+            self.turn_config = self.authorize()
+        return self.turn_config
+
+    @staticmethod
+    def fresh(name, args):
+        """Writes and the delete/database aliases re-check identity before their reservation; reads use the
+        turn's check; finish re-checks once, inside its dispatch, right before it is accepted."""
+        if name == 'finish':
+            return False
+        return name not in READ_TOOLS or (isinstance(args, dict) and args.get('app') in ALIAS_APPS)
+
+    @staticmethod
+    def pooled(name, args):
+        return name in POOLED_READS and isinstance(args, dict) and args.get('app') not in ALIAS_APPS
+
+    def audit_plan(self, name, args, call_id):
+        from .audit import digest
+        return {'name': name, 'call_id': call_id, 'message_id': self.message_id,
+                'argument_keys': sorted(args) if isinstance(args, dict) else [], 'arguments_sha256': digest(args)}
+
     def call(self, name, args, call_id):
-        from .audit import activity, digest
+        from .audit import activity
         config = getattr(self.store.db,'config',{})
-        with activity(config,'conversation_tool',plan={'name':name,'call_id':call_id,'message_id':self.message_id,
-                    'argument_keys':sorted(args) if isinstance(args,dict) else [],'arguments_sha256':digest(args)}):
+        with activity(config,'conversation_tool',plan=self.audit_plan(name,args,call_id)):
             return self._call(name,args,call_id)
 
     def _call(self, name, args, call_id):
-        self.authorize()
+        self.reserve(name, args, call_id)
+        value = self.dispatch(name, args)
+        self.record(call_id, value)
+        return value
+
+    def reserve(self, name, args, call_id):
+        """Identity (fresh or turn), validation and the once-only tool_calls row; before any effect."""
+        if self.fresh(name, args):
+            self.authorize()
+        else:
+            self.config()
         if self.result is not None:
             raise ConfigurationError('TURN_ALREADY_FINISHED')
         definition = next((t for t in self.tools if t['name'] == name), None)
@@ -116,18 +165,171 @@ class ConversationTools:
                 (self.message_id, call_id, name, json.dumps(args, ensure_ascii=False))).rowcount
         if not inserted:
             raise ConfigurationError('TOOL_ALREADY_ATTEMPTED_NO_REPLAY')
-        value = self.dispatch(name, args)
+
+    def record(self, call_id, value):
         with self.store.db:
             self.store.db.execute('UPDATE tool_calls SET result=? WHERE message_id=? AND call_id=?',
                 (json.dumps(value, ensure_ascii=False), self.message_id, call_id))
-        return value
+
+    def timed_fetch(self, name, args, config):
+        started = time.monotonic()
+        try:
+            return self.fetch(name, args, config), None, round((time.monotonic() - started) * 1000)
+        except Exception as exc:
+            return None, exc, round((time.monotonic() - started) * 1000)
+
+    def call_many(self, calls, deadline=None):
+        """One model round of read calls [(name, args, call_id)] -> ([value or exception], [ms]) in call order.
+
+        On the calling thread, in call order: audit requested, identity/validation/tool_calls reservation.
+        In a pool of at most TOOL_WORKERS: the pure fetches (each opens its own connection). Joined until the
+        deadline; a call still running then is TOOL_TIMEOUT (its thread ends by itself within the statement
+        timeout). Back on the calling thread, in call order: the other reads, observe() (so observation ids
+        follow the calls), the tool_calls result and audit completed/failed. One call's error stays its own.
+        """
+        from .audit import finished, started
+        audit_config = getattr(self.store.db, 'config', {})
+        count = len(calls)
+        outcomes, ms, ops, ready = [None] * count, [0] * count, [None] * count, [False] * count
+        for index, (name, args, call_id) in enumerate(calls):
+            ops[index] = started(audit_config, 'conversation_tool', self.audit_plan(name, args, call_id))
+            try:
+                self.reserve(name, args, call_id)
+                ready[index] = True
+            except Exception as exc:
+                outcomes[index] = exc
+        config = self.config()
+        futures = {}
+        pooled = [i for i in range(count) if ready[i] and self.pooled(calls[i][0], calls[i][1])]
+        if pooled:
+            executor = ThreadPoolExecutor(max_workers=min(TOOL_WORKERS, len(pooled)), thread_name_prefix='conversation-read')
+            try:
+                for index in pooled:
+                    futures[index] = executor.submit(self.timed_fetch, calls[index][0], calls[index][1], config)
+                wait(list(futures.values()), timeout=None if deadline is None else max(0.0, deadline - time.monotonic()))
+            finally:
+                executor.shutdown(wait=False, cancel_futures=True)
+        for index, (name, args, call_id) in enumerate(calls):
+            if ready[index]:
+                started_at = time.monotonic()
+                try:
+                    if index in futures:
+                        if not futures[index].done() or futures[index].cancelled():
+                            raise ConfigurationError('TOOL_TIMEOUT')
+                        value, error, ms[index] = futures[index].result()
+                        if error is not None:
+                            raise error
+                        value = self.wrap(name, value)
+                    else:
+                        value = self.dispatch(name, args)
+                        ms[index] = round((time.monotonic() - started_at) * 1000)
+                    self.record(call_id, value)
+                    outcomes[index] = value
+                except Exception as exc:
+                    outcomes[index] = exc
+            finished(audit_config, ops[index], outcomes[index] if isinstance(outcomes[index], Exception) else None)
+        return outcomes, ms
 
     def schema(self):
-        return self.schema_reader(self.authorize())
+        return self.schema_reader(self.config())
 
-    def catalogue(self, app, table):
-        definition = table_schema(self.schema(), app, table)
+    def catalogue(self, app, table, config=None):
+        definition = table_schema(self.schema_reader(config or self.config()), app, table)
         return sorted(set(definition['columns']) - HIDDEN)
+
+    def wrap(self, name, value):
+        """The calling-thread half of a pooled read: data_catalogue answers as is, the others are observations."""
+        return value if name == 'data_catalogue' else self.observe(value)
+
+    def fetch(self, name, a, config):
+        """The pure part of a pooled read (no observe, no journal, no audit): safe on a worker thread."""
+        if name == 'data_catalogue':
+            schema = self.schema_reader(config)
+            if not a['table']:
+                return {'apps': {app: {'version': value['version'], 'tables': list(value['tables'])}
+                                 for app,value in schema['apps'].items() if not a['app'] or app==a['app']}}
+            table = table_schema(schema, a['app'], a['table'])
+            return {'app':a['app'], 'table': a['table'], 'key':table['key'],
+                    'permission':table['permission'], 'condition':table.get('condition',''),
+                    'columns': {k: v for k,v in table['columns'].items() if k not in HIDDEN},
+                    'writable_fields': {action:[k for k in table['columns'] if writable(a['table'],table,k,action)]
+                                        for action in ('Add','Edit')},
+                    'protected_table': a['table'] in PROTECTED_TABLES,
+                    'guidance': 'Use reviewed native capabilities and Ref keys. Canonical business commands and database triggers enforce their rules. Inspect related effects and pending capabilities before claiming completion. Bounded reviewer SQL is reserved for documented gaps or atomic transactions; no raw API patch authority.'}
+        if name == 'read_records':
+            table = a['table']
+            app = a['app']
+            definition = table_schema(self.schema_reader(config),app,table)
+            key = definition['key']
+            fields = self.catalogue(app,table,config)
+            keys, columns, offset, limit = a['keys'], a['columns'], a['offset'], a['limit']
+            if type(limit) is not int or not 1 <= limit <= 100:
+                raise ConfigurationError('PAGE_LIMIT_MUST_BE_INTEGER_1_TO_100')
+            if (not isinstance(keys, list) or len(keys) > 25 or any(not isinstance(k, str) or not k for k in keys)
+                    or len(set(keys)) != len(keys) or not isinstance(columns, list) or not columns
+                    or any(not isinstance(k, str) or k not in fields for k in columns)
+                    or type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 100
+                    or not isinstance(a['match_field'], str) or not isinstance(a['match_text'], str)):
+                raise ConfigurationError('INVALID_RECORD_QUERY')
+            if keys and (a['match_field'] or a['match_text']):
+                raise ConfigurationError('USE_KEYS_OR_SEARCH')
+            if a['filter'] and (keys or a['match_field'] or a['match_text']):
+                raise ConfigurationError('USE_FILTER_OR_KEYS_OR_SEARCH')
+            predicate = None
+            if a['filter']:
+                predicate = filter_expression(a['filter'])
+            elif keys:
+                predicate = {'op':'in','field':key,'value':keys}
+            elif a['match_field']:
+                field = a['match_field']
+                if field not in fields or any(c in field for c in '[]"'):
+                    raise ConfigurationError('UNKNOWN_SEARCH_FIELD')
+                predicate = {'op':'contains','field':field,'value':a['match_text']}
+            elif a['match_text']:
+                raise ConfigurationError('SEARCH_FIELD_REQUIRED')
+            projected=list(dict.fromkeys([key]+columns))
+            cache_key = (app, table, json.dumps(predicate,sort_keys=True), tuple(projected))
+            if cache_key not in self.cache:
+                rows = self.client(config,app).query(table, projected, predicate, 1001)
+                ids = [r.get(key) for r in rows]
+                if len(rows) >= 1001:
+                    raise ConfigurationError('READ_BOUND_REACHED_NARROW_SEARCH')
+                if any(not isinstance(k, str) or not k for k in ids) or len(set(ids)) != len(ids):
+                    raise ConfigurationError('RECORD_IDENTITY_MISMATCH')
+                if keys and set(ids) != set(keys):
+                    raise ConfigurationError('REQUESTED_RECORD_MISSING')
+                self.cache[cache_key] = sorted(rows, key=lambda r: r[key])
+            rows = self.cache[cache_key]
+            if any(k not in row for row in rows for k in columns):
+                raise ConfigurationError('APP_SCHEMA_CHANGED_OR_FIELD_UNAVAILABLE')
+            return {'app': app, 'table': table, 'total_matched': len(rows), 'offset': offset,
+                'rows': [{k: r.get(k) for k in dict.fromkeys([key] + columns + (['_nativeVersion'] if '_nativeVersion' in r else []))} for r in rows[offset:offset + limit]],
+                'complete': offset == 0 and len(rows) <= limit}
+        if name == 'sum_field':
+            source = self.observations.get(a['observation'])
+            if not source or 'rows' not in source:
+                raise ConfigurationError('CURRENT_OBSERVATION_REQUIRED')
+            totals = {}
+            for row in source['rows']:
+                if a['field'] not in row or (a['group_by'] and a['group_by'] not in row):
+                    raise ConfigurationError('UNOBSERVED_FIELD')
+                try:
+                    value = Decimal(str(row[a['field']]).replace(',', '').replace('฿', '').strip())
+                    if not value.is_finite():
+                        raise InvalidOperation()
+                except InvalidOperation:
+                    raise ConfigurationError('NON_NUMERIC_VALUE') from None
+                group = str(row[a['group_by']]) if a['group_by'] else 'total'
+                totals[group] = totals.get(group, Decimal(0)) + value
+            return {'totals': {k: str(v) for k, v in totals.items()}, 'source': a['observation'],
+                    'rows_count': len(source['rows']), 'complete': source['complete']}
+        if name == 'sql_query':
+            from .conversation_sql import query
+            return query(config, a['sql'])
+        if name == 'loan_payoff':
+            from .conversation_sql import payoff
+            return payoff(config, a['loan_id'])
+        raise ConfigurationError('TOOL_NOT_PERMITTED')
 
     def dispatch(self, name, a):
         if a.get('app') == 'appsheet_delete':
@@ -159,98 +361,14 @@ class ConversationTools:
                 return dml.transaction(self,{'steps_json':a['row_json'],
                     'instruction_quote':a['instruction_quote'],'reason':reason['reason']})
             raise ConfigurationError('DATABASE_ALIAS_UNSUPPORTED')
-        if name == 'data_catalogue':
-            schema = self.schema()
-            if not a['table']:
-                return {'apps': {app: {'version': value['version'], 'tables': list(value['tables'])}
-                                 for app,value in schema['apps'].items() if not a['app'] or app==a['app']}}
-            table = table_schema(schema, a['app'], a['table'])
-            return {'app':a['app'], 'table': a['table'], 'key':table['key'],
-                    'permission':table['permission'], 'condition':table.get('condition',''),
-                    'columns': {k: v for k,v in table['columns'].items() if k not in HIDDEN},
-                    'writable_fields': {action:[k for k in table['columns'] if writable(a['table'],table,k,action)]
-                                        for action in ('Add','Edit')},
-                    'protected_table': a['table'] in PROTECTED_TABLES,
-                    'guidance': 'Use reviewed native capabilities and Ref keys. Canonical business commands and database triggers enforce their rules. Inspect related effects and pending capabilities before claiming completion. Bounded reviewer SQL is reserved for documented gaps or atomic transactions; no raw API patch authority.'}
-        if name == 'read_records':
-            table = a['table']
-            app = a['app']
-            definition = table_schema(self.schema(),app,table)
-            key = definition['key']
-            fields = self.catalogue(app,table)
-            keys, columns, offset, limit = a['keys'], a['columns'], a['offset'], a['limit']
-            if type(limit) is not int or not 1 <= limit <= 100:
-                raise ConfigurationError('PAGE_LIMIT_MUST_BE_INTEGER_1_TO_100')
-            if (not isinstance(keys, list) or len(keys) > 25 or any(not isinstance(k, str) or not k for k in keys)
-                    or len(set(keys)) != len(keys) or not isinstance(columns, list) or not columns
-                    or any(not isinstance(k, str) or k not in fields for k in columns)
-                    or type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 100
-                    or not isinstance(a['match_field'], str) or not isinstance(a['match_text'], str)):
-                raise ConfigurationError('INVALID_RECORD_QUERY')
-            if keys and (a['match_field'] or a['match_text']):
-                raise ConfigurationError('USE_KEYS_OR_SEARCH')
-            if a['filter'] and (keys or a['match_field'] or a['match_text']):
-                raise ConfigurationError('USE_FILTER_OR_KEYS_OR_SEARCH')
-            predicate = None
-            if a['filter']:
-                predicate = filter_expression(a['filter'])
-            elif keys:
-                predicate = {'op':'in','field':key,'value':keys}
-            elif a['match_field']:
-                field = a['match_field']
-                if field not in fields or any(c in field for c in '[]"'):
-                    raise ConfigurationError('UNKNOWN_SEARCH_FIELD')
-                predicate = {'op':'contains','field':field,'value':a['match_text']}
-            elif a['match_text']:
-                raise ConfigurationError('SEARCH_FIELD_REQUIRED')
-            projected=list(dict.fromkeys([key]+columns))
-            cache_key = (app, table, json.dumps(predicate,sort_keys=True), tuple(projected))
-            if cache_key not in self.cache:
-                rows = self.client(self.authorize(),app).query(table, projected, predicate, 1001)
-                ids = [r.get(key) for r in rows]
-                if len(rows) >= 1001:
-                    raise ConfigurationError('READ_BOUND_REACHED_NARROW_SEARCH')
-                if any(not isinstance(k, str) or not k for k in ids) or len(set(ids)) != len(ids):
-                    raise ConfigurationError('RECORD_IDENTITY_MISMATCH')
-                if keys and set(ids) != set(keys):
-                    raise ConfigurationError('REQUESTED_RECORD_MISSING')
-                self.cache[cache_key] = sorted(rows, key=lambda r: r[key])
-            rows = self.cache[cache_key]
-            if any(k not in row for row in rows for k in columns):
-                raise ConfigurationError('APP_SCHEMA_CHANGED_OR_FIELD_UNAVAILABLE')
-            return self.observe({'app': app, 'table': table, 'total_matched': len(rows), 'offset': offset,
-                'rows': [{k: r.get(k) for k in dict.fromkeys([key] + columns + (['_nativeVersion'] if '_nativeVersion' in r else []))} for r in rows[offset:offset + limit]],
-                'complete': offset == 0 and len(rows) <= limit})
-        if name == 'sum_field':
-            source = self.observations.get(a['observation'])
-            if not source or 'rows' not in source:
-                raise ConfigurationError('CURRENT_OBSERVATION_REQUIRED')
-            totals = {}
-            for row in source['rows']:
-                if a['field'] not in row or (a['group_by'] and a['group_by'] not in row):
-                    raise ConfigurationError('UNOBSERVED_FIELD')
-                try:
-                    value = Decimal(str(row[a['field']]).replace(',', '').replace('฿', '').strip())
-                    if not value.is_finite():
-                        raise InvalidOperation()
-                except InvalidOperation:
-                    raise ConfigurationError('NON_NUMERIC_VALUE') from None
-                group = str(row[a['group_by']]) if a['group_by'] else 'total'
-                totals[group] = totals.get(group, Decimal(0)) + value
-            return self.observe({'totals': {k: str(v) for k, v in totals.items()}, 'source': a['observation'],
-                                 'rows_count': len(source['rows']), 'complete': source['complete']})
+        if self.pooled(name, a):
+            return self.wrap(name, self.fetch(name, a, self.config()))
         if name == 'api_action':
             from .conversation_write import api_action
             return self.observe(api_action(self, a))
         if name == 'verify_operation':
             from .conversation_write import verify_operation
             return self.observe(verify_operation(self, a['operation']))
-        if name == 'sql_query':
-            from .conversation_sql import query
-            return self.observe(query(self.authorize(), a['sql']))
-        if name == 'loan_payoff':
-            from .conversation_sql import payoff
-            return self.observe(payoff(self.authorize(), a['loan_id']))
         if name in ('database_catalogue', 'database_read', 'database_transaction'):
             from . import conversation_dml as dml
             if name == 'database_catalogue': return dml.catalogue(self, a['table'])

@@ -8,7 +8,7 @@
 | Next unused number | **R086**, only opened when authorized R085 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
 
-R085 opened at R084 promotion start; it has no work yet. R084 (Gemini and Claude providers for the Partner conversation, agent only, agent migration V8, PR #108) is Released; R083 (fast dashboard startup, PWA-only, PR #104) is Released; R082 (agent receipt speed, wake path, one-minute poll and notice `accepted_at`, agent migration V7, PR #101) and R081 (push English name, V100, PR #100) are Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
+R085 opened at R084 promotion start; it holds the Partner conversation speed batch (agent only, [change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_CONVERSATION_SPEED_2026-10-21.md)). R084 (Gemini and Claude providers for the Partner conversation, agent only, agent migration V8, PR #108) is Released; R083 (fast dashboard startup, PWA-only, PR #104) is Released; R082 (agent receipt speed, wake path, one-minute poll and notice `accepted_at`, agent migration V7, PR #101) and R081 (push English name, V100, PR #100) are Released. The Open row holds only the release number, because `scripts/build-live-dev.mjs` reads it.
 
 All new features/fixes use the sole Open release. Freeze only at authorized promotion start, pin the package, then publish the next Open number in the same update. Frozen corrections stay with their release; new features use the successor. Do not reserve a second Open release or reuse a number. Documentation/governance changes do not allocate releases.
 

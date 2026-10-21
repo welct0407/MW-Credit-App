@@ -90,6 +90,37 @@ def state_change(conn, config, journal, query, params, count):
     event(conn,op,'runtime_changed',{'row_count':count},state='COMPLETED')
 
 
+def started(config, service, plan=None, action='PROCESS'):
+    """The requested half of a non-effect activity(), for work that finishes later on the same thread.
+
+    Used by ConversationTools.call_many: every audit write stays on the calling thread while the reads run
+    in a pool. The parent is the current PARENT (the model_turn operation). None when audit is off.
+    """
+    from .state import enabled, transaction
+    if not enabled(config):
+        return None
+    with transaction(config) as conn:
+        op = begin(conn,config,service,str(uuid.uuid4()),action,plan)
+        event(conn,op,'requested',state='AUTHORIZED')
+    return op
+
+
+def finished(config, op, exc=None, route='internal'):
+    """The closing half of started(): completed, or failed with the exception type (as activity() writes it)."""
+    from .state import transaction
+    if op is None:
+        return
+    if exc is None:
+        with transaction(config) as conn:
+            event(conn,op,'completed',route=route,state='COMPLETED')
+        return
+    try:
+        with transaction(config) as conn:
+            event(conn,op,'failed',{'exception_type':type(exc).__name__},route,'FAILED')
+    except Exception:
+        pass
+
+
 @contextmanager
 def activity(config, service, action='PROCESS', route='internal', plan=None, key=None, effect=False):
     from .state import enabled, transaction
