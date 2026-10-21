@@ -19,7 +19,7 @@ PROD changes already done by Forge (outside Git; no code deployed yet):
   - Verified: the forecast view returns 34 rows, `agent_audit` is readable, and an INSERT is refused read-only.
 - DEV: no agent read role is in use there, so nothing changed.
 
-Code (Byte; uncommitted in the tree when this note was written, the commit holds the exact file list):
+Code (Byte; merged as `6a3673e5`, the commit holds the exact file list):
 - `conversation_session.py`, `assets/conversation-business-rules.md`: FAST PATHS at the top of the instructions (a reporting question is 2 to 3 rounds: fetch, optional follow-up, finish; batch independent reads in one round; one broad summary-view row over many narrow queries; never re-query what the turn already observed; no unfiltered scans of `"Charges"` or `"Payments"`), COMMON QUESTIONS with the exact reply figures, and sign rules (amounts shown positive with a label; only true negatives such as default loss are negative). Rules section 14 is now "Answer recipes" built on the summary views `reporting_borrower_directory_v1`, `reporting_borrower_loan_facts_v1`, `oltp_borrower_payment_health_v1`, `oltp_upcoming_charge_events_v1` and `olap_borrowers_analytics`. The upcoming view is capped: dates after today only, within 7 days or the first 5 dates, at most 93 days, so "yet to be charged" also reads `"Charges"` with `"Charge Date"` > today, and outstanding principal comes from the loan facts. The paid-so-far total comes from the loan facts (including a first-day repayment); the interest and principal split comes from `"Repayments"` `"Interest Paid"` and `"Principal Paid"` with `"Ref Payment"` not null, and the instructions carry the defaulted-loan caveat (the zero-cash default repayment). When the health view's overdue amounts are NULL the model computes them from `"Charges"` (before today, remaining > 0) and says so in one line. Name corrections in the recipes: `"Charges"` uses `"Ref Loans"`, so filter it through `"Loans"."Ref Borrowers"`; `"Basis"` has four values (`Recorded`, `Recorded settlement`, `Recorded - review status`, `Projected`); the borrower profit id is `"Row ID"`.
 - `partner_conversation.py`, `conversation_tools.py`: identity is checked three times in a read-only turn (start, finish, and at the end of execute) instead of twice per tool call; a write is re-checked before and after it. The start-of-turn check is kept as `turn_config` and serves every read. This is an owner speed decision (D2 in Chase's review): if a Partner is revoked or a kill switch is set in the middle of a turn, reads in that window still run and their data can still go to Vertex; delivery is still blocked at finish and at the final check.
 - `conversation_tools.py`, `audit.py`: reads of one model round run concurrently (`call_many`, at most 4 workers, `TOOL_WORKERS`); journal and audit writes stay on the calling thread in call order, and a call still running at the turn deadline fails as `TOOL_TIMEOUT`. A round containing a write, `finish` or an unknown tool runs one call at a time, as before. `audit.started` and `audit.finished` are the two halves of a non-effect activity.
@@ -172,12 +172,12 @@ Documentation (Dewey):
 | Byte fix round (D1, R1 to R3), clean copy of the tree, venv: `ruff check`; `scripts/build-schema-digest.py --check`; focused tests; `python -m unittest discover -s tests` | D1: a cancelled queued read now counts as `TOOL_TIMEOUT` (new test: 6 calls with a 0.2 s deadline all return `TOOL_TIMEOUT`, only 4 run, none stores a result). R1 to R3 fixed in the instruction text (see Changes). ruff passed; `--check` exit 0; focused 76 OK, 1 skipped; unit discover 741 OK, 98 skipped |
 | Digest curation re-run (Byte, final allow-list): `ruff check --no-cache integration-agent`; `scripts/build-schema-digest.py --check`; `python -m unittest discover -s tests` | ruff passed; `--check` exit 0; 740 tests OK, 98 skipped. Lab list not rerun after the curation |
 | `python -m unittest tests.test_service_catalogue` and `npm run check:docs` (Dewey) | Pending: run at the end of this batch |
-| Pull request `Development checks` | Pending: CI run after the orchestrator pushes |
+| Pull request #111 `Development checks`, merged as `6a3673e5` | Passed: agent test and lab passed, `Development checks` result success |
 
 ## Not run
 - Chase could not verify PROD connection limits, the native `read_records` path, the PostgreSQL-audit path or defaulted loans; the last three were checked by reading the code only. The lab measurement is synthetic and not a PROD turn.
-- No real Partner turn has run on the new code or with MEDIUM thinking; the turn time after R085 is not measured yet. The grants and MEDIUM are live in PROD before the code, so the next real turn already shows part of the effect (no lost forecast round, shorter finish round). `scripts/conversation-timing.py` is the measure after deployment.
-- No deployment of the R085 code yet; it needs the owner's promotion instruction.
+- No real Partner turn had run with MEDIUM thinking or the new code when R085 was deployed, so the turn time after R085 is not measured yet. `scripts/conversation-timing.py` is the measure.
+- No real Partner turn has run on the deployed R085 code yet; the post-deployment timing is the follow-up in Development Changes.
 - The CI lab test list (114 OK) was run before the digest curation and not repeated after it; the pull request's `Development checks` is the broad run.
 - The 28 owner-role functions and the `monitoring` functions were not granted, so the model cannot call them.
 
@@ -190,5 +190,20 @@ Documentation (Dewey):
 None.
 
 ## Remaining work
-- A PR with CI and the owner's promotion instruction.
-- After deployment, compare turn times with `scripts/conversation-timing.py` against the 4 min 9 s and 3 min 50 s baseline.
+- The first real PROD turn after R085, timed with `scripts/conversation-timing.py` and compared with the baseline below (one follow-up row in Development Changes).
+
+## Promotion record
+
+Release R085, agent only (no Hosting, Cloud Run or database change, no migration), 21 October 2026 (UTC).
+
+- **Authority:** the owner's words on 21 October 2026: "Go for all your suggested steps", in reply to the proposal of MEDIUM thinking, fast-path guidance, once-per-turn read authorization, parallel reads and the permission grant, built and deployed through the usual path; "I told you to expose the entire db, functions, views and everything to model, so it could choose the most efficient way to get the answer. The goal is not security, it's speed"; and "expose all business related functions, and keep other write functions away". Owner acceptance was not given separately; it is recorded as the production instruction, as for R084. The PROD thinking level and grants were applied before the code (see Changes).
+- **Package:** pull request #111 merged as `6a3673e52657d8fe97a8ae2702fd1f4a08c5552a`; CI passed (agent test and lab, `Development checks` success). Release tag `R085` on that commit.
+- **Deployment (UTC):** operator file 13:17:25Z; checkout (`update-from-github`) moved to `6a3673e5` 13:17:25Z to 13:17:30Z; dry-run 13:17:30Z (agent schema nothing missing, applied through V8; catalogue revision 31 matched; units unchanged; four modules changed: `audit.py`, `conversation_session.py`, `conversation_tools.py`, `partner_conversation.py`); freeze 13:17:41Z (backup `runtime-20261021T131741308023Z`); install 13:17:41Z, `check` ok afterwards; activate 13:17:46Z to 13:17:49Z (probe `6d90f179-bcb7-493b-bebf-e8af6816388c`); `/ready` code_version `6a3673e5`, started 13:17:48.28Z, failed none; verify 13:17:55Z (no failed units, 8 timers, wake path active, first cycle ok with 0 turns attempted, config unchanged at `MEDIUM`); operator file shredded 13:17:59Z.
+- **Recognizer not restarted:** this deploy did not restart `mw-receipt-recognition.service`, which was still broken by the revision 31 catalogue until the incident session restarted it at 13:17:58Z (see the R084 note's known issue).
+- **History reset:** the new digest changes the prompt fingerprint, so each Partner's next turn starts a new seeded epoch.
+- **Recovery:** `deploy-runtime.py rollback --commit 6a3673e5…` restores `a3646f30d9aeabad954b5b6c208ef1f5ff1617a5` from `runtime-20261021T131741308023Z`. Config and grants: see Recovery above. Pins go to the [environment inventory](../../project/Documents/Environment_Inventory.md).
+- **PROD baseline for the follow-up** (`scripts/conversation-timing.py`, all at `HIGH`, before R085): real turn `8801e7c4` 11 rounds, 249.3 s (model 199.6 s, tools 49.7 s, 15 calls); real turn `183dc67f` 12 rounds, 229.9 s (model 193.9 s, tools 35.8 s, 12 calls); synthetic `87a974e2` 3 rounds, 30.5 s. No real turn ran between the MEDIUM switch and the deployment.
+- **Outcome:** applied and verified (`/ready`, units, first cycle); owner acceptance is the owner's production instruction. The first real turn after R085 is the speed check.
+
+### Closure pruning (release workflow, 21 October 2026)
+- Nothing deleted. The retention window is now R085, R084 and R083. R082's change notes stay because the open R082 follow-up row in Development Changes links them and agent change notes are not pruned; the R085 Development Changes row became one follow-up row.
