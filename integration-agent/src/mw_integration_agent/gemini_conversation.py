@@ -195,7 +195,12 @@ class GeminiConversation(ConversationSession):
     def opening(self, prefix, request):
         return {'role': 'user', 'parts': ([{'text': prefix}] if prefix else []) + [{'text': request}]}
 
-    def results_message(self, results, note=None):
+    def results_messages(self, results, note=None):
+        # Vertex rejects a user content that mixes functionResponse and text parts (live 400 "Requests ending
+        # with a model turn are not supported"): the round-cap note is its own user content after the answers.
+        return [self.results_message(results)] + ([self.text_message(note)] if note else [])
+
+    def results_message(self, results):
         parts = []
         for result in results:
             answer = {'name': result['call']['name'],
@@ -203,8 +208,6 @@ class GeminiConversation(ConversationSession):
             if result['call']['id']:
                 answer = {'name': answer['name'], 'id': result['call']['id'], 'response': answer['response']}
             parts.append({'functionResponse': answer})
-        if note:
-            parts.append({'text': note})
         return {'role': 'user', 'parts': parts}
 
     def text_message(self, text):

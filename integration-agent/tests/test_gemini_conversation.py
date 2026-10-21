@@ -307,8 +307,30 @@ class GeminiConversationTests(unittest.TestCase):
         rounds = [reply(call('read_records', {}, f'c{i}')) for i in range(5)]
         conversation, opener, error = self.direct(*rounds, config=config)
         self.assertEqual(str(error), 'GEMINI_TOOL_ROUNDS_EXCEEDED')
-        self.assertEqual(opener.bodies()[4]['contents'][-1]['parts'][-1], {'text': session.ROUND_NUDGE})
+        self.assertEqual(opener.bodies()[4]['contents'][-1], {'role': 'user', 'parts': [{'text': session.ROUND_NUDGE}]})
         self.assertIsNone(conversation.pending_history)
+
+    def test_round_cap_nudge_is_its_own_user_content_and_replays_in_order(self):
+        # Live Vertex: functionResponse and text parts in one user content are a 400; separate contents are 200.
+        self.config['gemini_conversation_max_tool_rounds'] = 4
+        rounds = [reply(call('read_records', {}, f'c{i}')) for i in range(4)]
+        opener, row = self.turn(*rounds, reply(finish()))
+        self.assertEqual(row['status'], 'READY')
+        fifth = opener.bodies()[4]['contents']
+        self.assertEqual(fifth[-3]['role'], 'model')
+        self.assertEqual(fifth[-2]['role'], 'user')
+        self.assertTrue(fifth[-2]['parts'] and all(set(p) == {'functionResponse'} for p in fifth[-2]['parts']))
+        self.assertEqual(fifth[-1], {'role': 'user', 'parts': [{'text': session.ROUND_NUDGE}]})
+        for body in opener.bodies():
+            for content in body['contents']:
+                kinds = {'functionResponse' if 'functionResponse' in p else 'other' for p in content['parts']}
+                self.assertNotEqual(kinds, {'functionResponse', 'other'})
+        stored = [(r['role'], json.loads(r['content'])) for r in self.rows()]
+        self.assertEqual(stored[-4:-2], [('user', fifth[-2]['parts']), ('user', fifth[-1]['parts'])])
+        replay, _ = self.turn(reply(finish(ident='call_finish2')))
+        sent = fifth + [{'role': 'model', 'parts': [finish()]}]
+        self.assertEqual(json.dumps(replay.bodies()[0]['contents'][:len(sent)], ensure_ascii=False),
+                         json.dumps(sent, ensure_ascii=False))
 
     def test_every_other_finish_reason_fails_without_history(self):
         for reason in ('MAX_TOKENS', 'SAFETY', 'PROHIBITED_CONTENT', 'RECITATION', 'BLOCKLIST', 'SPII', 'OTHER',

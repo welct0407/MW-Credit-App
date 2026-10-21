@@ -58,6 +58,8 @@ Documentation (Dewey):
 | `npm run check:docs` (Dewey) | 0 failures, 0 warnings |
 | Second batch (Gemini), Byte on `51fe32a` plus the batch: ruff; `python -m unittest discover -s tests`; CI lab list (fresh lab, V8 fresh and V7 to V8); focused tests | ruff passed; 721 tests OK, 97 skipped; 113 OK; 73 OK |
 | Chase Gemini re-verification (second batch) | No High or Medium defects. Synthetic turn with Forge's real part shapes, real lab SQL and Codex seeding ended READY; replay byte-identical; Gemini to Claude to Gemini gave separate seeded epochs; all 11 tool schemas within the Vertex subset; failure shapes behaved as specified. Two Lows (duplicate call id in one response; unknown part fields) fixed by Byte |
+| Chase live Vertex test (owner-approved, 11 model calls, HEAD `50168f7`, synthetic lab data) | Turn 1 (English payoff and interest paid): READY in 76 s, correct (฿10,600 close today, ฿1,500 interest), 747 characters, plain text with an as-of line. Turn 2 (Thai follow-up): READY in 75 s, correct (฿10,900 tomorrow, forecast), 808 characters, Buddhist-Era dates. History replay after finish accepted. Cache hit 85 to 90% from the second call. Slowest call was the final finish round, about 48 to 60 s at HIGH. Defect: a round-cap nudge mixed into the `functionResponse` content got HTTP 400 "Requests ending with a model turn are not supported"; fixed by Byte (Gemini sends the nudge as a separate user content after the tool answers; the live variant was accepted; Claude unchanged) |
+| Byte fix round (after the live test) | ruff passed; focused 53 OK; unit discover 723 OK / 97 skipped |
 | Byte final round (second batch) | ruff passed; focused 74 OK; unit discover 722 OK / 97 skipped; lab list unchanged since its 113 OK |
 | Second batch (Gemini): `mw-integration-agent check` (orchestrator) | Status ok |
 | Second batch (Gemini), `tests.test_service_catalogue` (revision 31) and `npm run check:docs` (Dewey) | 1 test OK; 0 failures, 0 warnings |
@@ -66,8 +68,7 @@ Documentation (Dewey):
 - Chase's verification found guard bypasses in the first SQL tool (whole-row reads, `ts_stat` dynamic SQL with a mid-statement role switch, an `E''` hole, unbounded client memory). `READ ONLY` held against every write attempt. They are resolved by Byte's rework (server-side cursor, function deny list) and the owner's decision above; Chase re-verified the rework (Checks).
 
 ## Not run
-- Two Gemini mixed-content request shapes are not yet confirmed; one live turn must confirm them before activation.
-- No live conversation turn on Vertex AI for either provider (Gemini test calls by Forge only; Claude has no quota).
+- No live Partner turn on a deployed VM, no PROD or DEV data, and no live Claude call (no quota). Gemini ran only Chase's synthetic lab test (see Checks).
 - Nothing executed against DEV or PROD; V8 is not applied to any `mw_agent` database; the `mw_integration_agent` role is unchanged and its live grants were not verified.
 - No deployment, no config change and no provider switch; PROD activation is not authorized.
 - Disposable-lab PostgreSQL suites run only where a lab exists (see [Operations](../docs/OPERATIONS.md#test-lab-prerequisites)); Chase records which ran.

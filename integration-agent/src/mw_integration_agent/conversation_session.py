@@ -7,7 +7,7 @@ history epoch, epoch selection, the turn deadline, the round loop (finish detect
 the Vertex transport (VM token, bounded retries, no logged token or body) and the audit record.
 
 A provider implements the hooks: limits(), endpoint(), body(messages), parse(raw), opening(prefix, request),
-results_message(results, note), text_message(text), row(message) / message(role, content), prompt_digest() and
+results_messages(results, note), text_message(text), row(message) / message(role, content), prompt_digest() and
 audit_fields(response). parse returns {'message', 'calls': [{'name', 'args', 'id'}], 'input_tokens', 'audit'}
 with message the provider's own message, appended and stored verbatim.
 
@@ -315,6 +315,10 @@ class ConversationSession:
             results.append({'call': call, 'value': value, 'error': error})
         return results, finished
 
+    def results_messages(self, results, note=None):
+        """The message(s) answering one round's calls, the round-cap note included; stored and replayed in order."""
+        return [self.results_message(results, note)]
+
     def request(self, messages, deadline):
         """post() for one round; a Resend answer is re-sent once with the identical body."""
         resent = False
@@ -346,7 +350,7 @@ class ConversationSession:
                     if final_nudged:
                         raise ConfigurationError(self.PREFIX + '_TOOL_ROUNDS_EXCEEDED')
                     final_nudged, note = True, ROUND_NUDGE
-                messages.append(self.results_message(results, note))
+                messages.extend(self.results_messages(results, note))
                 if finished:
                     break
                 continue
