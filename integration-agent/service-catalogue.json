@@ -1,5 +1,5 @@
 {
-  "revision": 29,
+  "revision": 31,
   "default_policy": "deny",
   "services": {
     "receipt_evidence": {
@@ -79,6 +79,18 @@
       "implemented": true
     },
     "receipt_recognition_api": {
+      "enabled": false,
+      "implemented": true
+    },
+    "claude_partner_conversation": {
+      "enabled": false,
+      "implemented": true
+    },
+    "conversation_sql_read": {
+      "enabled": false,
+      "implemented": true
+    },
+    "gemini_partner_conversation": {
       "enabled": false,
       "implemented": true
     }

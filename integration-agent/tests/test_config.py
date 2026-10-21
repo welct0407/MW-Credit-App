@@ -241,11 +241,8 @@ class ConversationProviderTests(unittest.TestCase):
                           config["claude_seed_history_chars"]), ("claude-opus-5-5", "high", "global", 40000))
         validate_config(config)
         catalogue = load_json(ROOT / "service-catalogue.json")
-        # Step 1 (deploy pin, R075 precedent): the validator knows the names; the keys return with revision 31.
-        self.assertEqual(catalogue["revision"], 29)
         for name in ("claude_partner_conversation", "conversation_sql_read"):
-            self.assertNotIn(name, catalogue["services"])
-            catalogue["services"][name] = {"enabled": False, "implemented": True}
+            self.assertEqual(catalogue["services"][name], {"enabled": False, "implemented": True})
         catalogue["services"]["claude_partner_conversation"]["enabled"] = True
         validate_catalogue(catalogue)
         catalogue["services"]["conversation_sql_read"].update(enabled=True, implemented=False)

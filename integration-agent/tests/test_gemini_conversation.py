@@ -539,14 +539,10 @@ class GeminiConversationTests(unittest.TestCase):
 
     def test_catalogue_and_controls(self):
         catalogue = load_json(ROOT / 'service-catalogue.json')
-        # Step 1 (deploy pin, R075 precedent): the validator knows the name; the key returns with revision 31.
-        self.assertEqual(catalogue['revision'], 29)
-        self.assertNotIn('gemini_partner_conversation', catalogue['services'])
-        catalogue['services']['gemini_partner_conversation'] = {'enabled': True, 'implemented': True}
+        self.assertEqual(catalogue['revision'], 31)
+        self.assertEqual(catalogue['services']['gemini_partner_conversation'], {'enabled': False, 'implemented': True})
+        catalogue['services']['gemini_partner_conversation']['enabled'] = True
         validate_catalogue(catalogue)
-        catalogue['services']['gemini_partner_conversation']['implemented'] = False
-        with self.assertRaises(ConfigurationError):
-            validate_catalogue(catalogue)
         base = {'partner_authentication', 'operational_data_read', 'database_connectivity', 'signed_webhook_ingress',
                 'instagram_delivery'}
         def check(config, enabled):
