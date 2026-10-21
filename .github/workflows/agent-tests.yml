@@ -3,16 +3,18 @@ name: Agent tests
 # evidence for the same stage hash (scripts/ci/reuse-evidence.mjs: sha256 over
 # the agent-relevant tracked files); each job uploads its
 # `evidence-agent-tests-<job>-<hash>` artifact as its last step, so the merge of
-# a tested pull request into main does not repeat the suites. All three jobs
+# a tested pull request into main does not repeat the suites. The PostgreSQL data
+# dictionary is an input of the `test` stage only (the packaged schema digest is
+# built from it and its drift test runs there). All three jobs
 # check out the same candidate (the pull request head) so their hashes agree.
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml', 'scripts/ci/**', '!**/*.md']
+    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml', 'scripts/ci/**', 'project/Documents/Data Dictionary/systems/postgresql/**', '!**/*.md']
   push:
     branches: [main]
-    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml', 'scripts/ci/**', '!**/*.md']
+    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml', 'scripts/ci/**', 'project/Documents/Data Dictionary/systems/postgresql/**', '!**/*.md']
   workflow_dispatch:
 
 permissions:
@@ -158,7 +160,8 @@ jobs:
             tests.test_conversation_dml tests.test_notice_acknowledgement \
             tests.test_operator_audit_postgres tests.test_operator_execution_postgres \
             tests.test_receipt_audit_postgres tests.test_state_migration_postgres \
-            tests.test_audit_retention_postgres tests.test_statement_snapshot
+            tests.test_audit_retention_postgres tests.test_statement_snapshot \
+            tests.test_conversation_sql_postgres
       - name: Stop the lab cluster
         if: always()
         run: |

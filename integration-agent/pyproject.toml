@@ -18,7 +18,7 @@ mw-integration-agent = "mw_integration_agent.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-mw_integration_agent = ["assets/*.png"]
+mw_integration_agent = ["assets/*.png", "assets/*.md", "assets/*.json"]
 
 [tool.ruff]
 target-version = "py313"

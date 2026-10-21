@@ -32,6 +32,7 @@ DML_ROLES = {'prod': 'mw_reviewer_dml', 'dev': 'mw_reviewer_dml_dev'}
 PASSWORD_PORT = 5432
 IAM_PORT = 5433
 AUTH_MODES = ('password', 'iam')
+CONVERSATION_PROVIDERS = ('codex', 'claude')
 IAM_USER = r'[a-z][a-z0-9-]*@clever-oasis-508610-n7\.iam'
 
 
@@ -190,6 +191,17 @@ def validate_config(config: dict[str, Any]) -> None:
     timeout = config.get('conversation_timeout_seconds', 600)
     if type(timeout) is not int or not 30 <= timeout <= 900:
         raise ConfigurationError('conversation_timeout_seconds must be 30..900')
+    provider = config.get('conversation_provider', 'codex')
+    if provider not in CONVERSATION_PROVIDERS:
+        raise ConfigurationError('conversation_provider must be codex or claude')
+    if provider == 'claude':
+        # Codex ignores the claude_ settings, so they are checked only when they take effect.
+        from .claude_conversation import validate as validate_claude
+        validate_claude(config)
+    if type(config.get('conversation_sql_read_enabled', False)) is not bool:
+        raise ConfigurationError('conversation_sql_read_enabled must be boolean')
+    if config.get('conversation_sql_read_enabled') and not config.get('database_enabled'):
+        raise ConfigurationError('conversation SQL read requires database')
     for name,default,low,high in (('receipt_cycle_image_budget_seconds',60,10,180),('receipt_archive_alert_seconds',3600,600,86400)):
         value=config.get(name,default)
         if type(value) is not int or not low<=value<=high:raise ConfigurationError(f'{name} must be {low}..{high}')
@@ -220,8 +232,13 @@ def validate_config(config: dict[str, Any]) -> None:
         if config.get(flag) is not False:
             raise ConfigurationError(f"unimplemented capability requires {flag}=false")
 
+    # Codex sign-in paths are needed by the Codex conversation and the Codex receipt providers only.
+    codex = (provider == 'codex' or config.get('receipt_extraction_provider', 'codex') == 'codex'
+             or (config.get('receipt_recognition_enabled') and config.get('receipt_recognition_provider', 'gemini') == 'codex'))
     for key in ("state_directory", "secrets_directory", "codex_executable", "codex_home"):
         value = config.get(key)
+        if key.startswith('codex_') and not codex and value is None:
+            continue
         if not isinstance(value, str) or not PurePosixPath(value).is_absolute():
             raise ConfigurationError(f"{key} must be an absolute POSIX path")
 
@@ -309,7 +326,7 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
                         "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
                         "operational_data_api", "reviewer_database_dml", "instagram_delivery", "email_fallback", "daily_briefing",
                         "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence", "shared_receipt_payment_api", "audit_relay",
-                        "receipt_recognition_api"}:
+                        "receipt_recognition_api", "claude_partner_conversation", "conversation_sql_read"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

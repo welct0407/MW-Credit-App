@@ -43,6 +43,20 @@ TOOLS = [
           'message': STR, 'observations': STRINGS}),
 ]
 
+# Claude registry only (claude_partner_conversation); Codex threads keep TOOLS unchanged. Both tools fail
+# closed with SQL_READ_DISABLED unless conversation_sql_read_enabled, so the declared set never changes.
+CLAUDE_TOOLS = TOOLS + [
+    spec('sql_query', 'Read-only SQL over the MW Credit business database (PostgreSQL 18, schema public, '
+         'Asia/Bangkok, read-only transaction). Exactly one SELECT or WITH statement; no semicolon, comments, '
+         'dollar quoting, E strings, row locks, writes or side-effect functions; at most 8000 characters; 20 s limit. Quote mixed-case '
+         'identifiers exactly ("Loans"."Row ID"). Returns at most 500 rows with distinct column names; aggregate in '
+         'SQL instead of paging through rows; at most 256 KB per result. Use the schema digest in the system prompt.', {'sql': STR}),
+    spec('loan_payoff', "Today's payoff (Bangkok) for one open Daily Interest loan from the system's own loan close "
+         'calculation, by exact loan Row ID. Returns eligible=false with the reason for any other loan.',
+         {'loan_id': STR}),
+]
+CLAUDE_FINISH_LIMIT = 1000  # code points (Echo CONV-UX-08); Codex keeps its own 12,000 bound
+
 
 def literal(value):
     if not isinstance(value, str) or len(value) > 200 or any(c in value for c in ('"', '\\', '\n', '\r', '\x00')):
@@ -63,8 +77,10 @@ def filter_expression(value):
 
 
 class ConversationTools:
-    def __init__(self, authorize, store, message_id, instruction, client=NativeConversationClient, partner_id=None, schema_reader=load_schema):
+    def __init__(self, authorize, store, message_id, instruction, client=NativeConversationClient, partner_id=None, schema_reader=load_schema,
+                 tools=TOOLS, finish_limit=None):
         self.authorize, self.store, self.message_id = authorize, store, message_id
+        self.tools, self.finish_limit = tools, finish_limit
         self.instruction, self.client = instruction, client
         self.partner_id, self.schema_reader = partner_id, schema_reader
         self.observations, self.fields, self.cache = {}, {}, {}
@@ -88,7 +104,7 @@ class ConversationTools:
         self.authorize()
         if self.result is not None:
             raise ConfigurationError('TURN_ALREADY_FINISHED')
-        definition = next((t for t in TOOLS if t['name'] == name), None)
+        definition = next((t for t in self.tools if t['name'] == name), None)
         if not definition or not isinstance(args, dict) or set(args) != set(definition['inputSchema']['properties']):
             raise ConfigurationError('UNSUPPORTED_TOOL_OR_ARGUMENTS')
         if not isinstance(call_id, str) or not call_id:
@@ -227,6 +243,12 @@ class ConversationTools:
         if name == 'verify_operation':
             from .conversation_write import verify_operation
             return self.observe(verify_operation(self, a['operation']))
+        if name == 'sql_query':
+            from .conversation_sql import query
+            return self.observe(query(self.authorize(), a['sql']))
+        if name == 'loan_payoff':
+            from .conversation_sql import payoff
+            return self.observe(payoff(self.authorize(), a['loan_id']))
         if name in ('database_catalogue', 'database_read', 'database_transaction'):
             from . import conversation_dml as dml
             if name == 'database_catalogue': return dml.catalogue(self, a['table'])
@@ -239,6 +261,9 @@ class ConversationTools:
                     or not a['message'].strip() or len(a['message']) > 12000 or not isinstance(a['observations'], list)
                     or any(not isinstance(x, str) or x not in self.observations for x in a['observations'])):
                 raise ConfigurationError('INVALID_COMPLETION')
+            if self.finish_limit is not None and len(a['message']) > self.finish_limit:
+                raise ConfigurationError(f'FINISH_MESSAGE_TOO_LONG: {len(a["message"])} characters; the limit is '
+                                         f'{self.finish_limit}. Shorten the message and call finish again.')
             if a['status'] == 'VERIFIED' and not a['observations']:
                 raise ConfigurationError('CURRENT_EVIDENCE_REQUIRED')
             if self.possible_write and not self.write_verified:

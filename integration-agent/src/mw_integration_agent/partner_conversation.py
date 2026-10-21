@@ -1,4 +1,4 @@
-"""Signed partner messages -> isolated durable Codex turns -> durable partner replies."""
+"""Signed partner messages -> isolated durable model turns (Codex or Claude) -> durable partner replies."""
 import json
 from .state import connect as state_connect, enabled as state_enabled
 import time
@@ -6,10 +6,11 @@ from datetime import datetime
 from pathlib import Path
 
 from .cash_statement import partners
+from .claude_conversation import CLAUDE_INSTRUCTIONS, ClaudeConversation
 from .codex_conversation import CodexConversation
 from .config import ConfigurationError, cutoff_ts, load_controls
 from .conversation_store import ConversationStore, binding_key
-from .conversation_tools import ConversationTools, TOOLS
+from .conversation_tools import CLAUDE_FINISH_LIMIT, CLAUDE_TOOLS, ConversationTools, TOOLS
 from .partner_notice import NoticeJournal
 from .receipt_run import conversation_identity
 from .statement_delivery import eligible, handle
@@ -106,8 +107,12 @@ The host delivers finish.message. Text outside finish is not sent. After finish,
 
 def controls(config_path, catalogue_path):
     config, catalogue = load_controls(config_path, catalogue_path)
-    required = ['persistent_codex_conversation', 'partner_authentication', 'operational_data_read',
+    required = ['claude_partner_conversation' if config.get('conversation_provider', 'codex') == 'claude'
+                else 'persistent_codex_conversation',
+                'partner_authentication', 'operational_data_read',
                 'database_connectivity', 'signed_webhook_ingress', 'instagram_delivery']
+    if config.get('conversation_sql_read_enabled'):
+        required.append('conversation_sql_read')
     if config.get('conversation_writes_enabled'):
         required.append('operational_data_api')
     if config.get('reviewer_dml_enabled'):
@@ -146,9 +151,18 @@ def is_receipt_reply(root, event, config=None):
     return bool(event.get('reply_to')) or is_command(event)
 
 
-def execute(event, partner, store, get_config, session_factory=CodexConversation,
+def provider(config):
+    """(session class, instructions, tool registry, finish limit) for config['conversation_provider']."""
+    if config.get('conversation_provider', 'codex') == 'claude':
+        return ClaudeConversation, CLAUDE_INSTRUCTIONS, CLAUDE_TOOLS, CLAUDE_FINISH_LIMIT
+    return CodexConversation, INSTRUCTIONS, TOOLS, None
+
+
+def execute(event, partner, store, get_config, session_factory=None,
             authenticator=authenticate, client=None):
     config = get_config()
+    default_factory, instructions, tools, finish_limit = provider(config)
+    session_factory = session_factory or default_factory
     binding = binding_key(config['instagram_account_id'], partner['id'], event['sender_id'])
     if not store.reserve(event, binding, partner):
         return
@@ -162,11 +176,12 @@ def execute(event, partner, store, get_config, session_factory=CodexConversation
                        _conversation_captured_at=event.get('captured_at'))
         return current
     bridge = ConversationTools(authorize, store, event['message_id'], event['text'],
-                               partner_id=partner['id'], **({'client': client} if client else {}))
+                               partner_id=partner['id'], tools=tools, finish_limit=finish_limit,
+                               **({'client': client} if client else {}))
     try:
         authorize()
-        session = session_factory(config, binding, store, TOOLS, bridge.call)
-        session.run(INSTRUCTIONS, json.dumps({'partner_language': partner['language'],
+        session = session_factory(config, binding, store, tools, bridge.call)
+        session.run(instructions, json.dumps({'partner_language': partner['language'],
             'as_of': datetime.now(BANGKOK).isoformat(), 'request': event['text'],
             'attachments_present': bool(json.loads(event.get('attachments') or '[]')),
             'attachment_policy': 'Attachments are not interpreted by partner conversations. Ask for text if needed.',
@@ -174,7 +189,8 @@ def execute(event, partner, store, get_config, session_factory=CodexConversation
         if bridge.result is None:
             raise ConfigurationError('CONVERSATION_FINISH_MISSING')
         authorize()
-        store.finish(event['message_id'], 'READY', bridge.result)
+        # A Claude session's history rows commit with READY, or not at all.
+        store.finish(event['message_id'], 'READY', bridge.result, history=getattr(session, 'pending_history', None))
     except Exception as exc:
         reason = str(exc) if isinstance(exc, ConfigurationError) else type(exc).__name__
         status = 'UNKNOWN_WRITE' if bridge.possible_write and not bridge.write_verified else 'FAILED'
