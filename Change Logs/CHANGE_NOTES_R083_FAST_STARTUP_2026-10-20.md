@@ -51,7 +51,7 @@ Revert the R083 commit on main. No database, API or infrastructure change. PROD 
 None.
 
 ## Remaining work
-- The owner's real-iPhone check of the landing dashboard startup, and a glance at the first warm reload right after sign-in (empty Dashboard seen once in the offline-bundle-less fixture).
+None. The owner confirmed on 21 October 2026 (Bangkok), after using PROD on their iPhone, that everything works fine; this closes the real-iPhone check and the first-warm-reload glance.
 
 ## Promotion record
 - Authority: owner instruction of 20 October 2026, after testing on DEV: "Tested and it's good. Go for prod promotion". It covers the PWA-only Hosting deploy; no SQL, backup or infrastructure is in scope.
