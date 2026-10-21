@@ -315,6 +315,13 @@ class ClaudeConversationTests(unittest.TestCase):
                 session, opener, error = self.direct(http_error(code), reply(finish()))
                 self.assertEqual(str(error), f'CLAUDE_HTTP_{code}')
                 self.assertEqual(len(opener.requests), 1)
+        # Capacity answers (429/503/529) get up to three attempts with 2 s and 5 s pauses, then fail.
+        for code in (429, 503, 529):
+            self.pause.reset_mock()
+            session, opener, error = self.direct(http_error(code), http_error(code), http_error(code))
+            self.assertEqual((str(error), len(opener.requests)), (f'CLAUDE_HTTP_{code}', 3))
+            self.assertEqual([c.args[0] for c in self.pause.call_args_list], [2, 5])
+            self.assertIsNone(session.pending_history)
         session, opener, error = self.direct(http_error(500), http_error(500))
         self.assertEqual((str(error), len(opener.requests)), ('CLAUDE_HTTP_500', 2))
         session, opener, error = self.direct(TimeoutError(), TimeoutError())

@@ -301,7 +301,7 @@ class PostgreSQLStateTests(unittest.TestCase):
         store=ConversationStore('partner-conversations.db',self.config)
         binding=hashlib.sha256(self.key.encode()).hexdigest()
         content='[{"type":"thinking","thinking":"","signature":"c2ln"},{"type":"tool_use","id":"t1","name":"finish","input":{"status":"CLARIFY","message":"ไทย","observations":[]}}]'
-        history={'binding':binding,'epoch':0,'seq':0,'prompt_sha256':'b'*64,'input_tokens':1234,
+        history={'binding':binding,'epoch':0,'seq':0,'provider':'claude','prompt_sha256':'b'*64,'input_tokens':1234,
                  'messages':[{'role':'user','content':'[{"type":"text","text":"q"}]'},{'role':'assistant','content':content},
                              {'role':'user','content':'[{"type":"tool_result","tool_use_id":"t1","content":"{}"}]'}]}
         event={'message_id':self.key,'sender_id':'999'}
@@ -309,6 +309,7 @@ class PostgreSQLStateTests(unittest.TestCase):
         store.finish(self.key,'READY',{'status':'CLARIFY','message':'ไทย'},history=history)
         epoch,rows=store.history(binding)
         self.assertEqual(epoch,0)
+        self.assertEqual({r['provider'] for r in rows},{'claude'})
         self.assertEqual([(r['seq'],r['role'],r['content'],r['input_tokens']) for r in rows],
                          [(0,'user',history['messages'][0]['content'],None),(1,'assistant',content,None),(2,'user',history['messages'][2]['content'],1234)])
         # A conflicting write rolls back the READY outcome with it.

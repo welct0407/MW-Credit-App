@@ -43,7 +43,7 @@ TOOLS = [
           'message': STR, 'observations': STRINGS}),
 ]
 
-# Claude registry only (claude_partner_conversation); Codex threads keep TOOLS unchanged. Both tools fail
+# Model-provider registry (Claude and Gemini conversations); Codex threads keep TOOLS unchanged. Both tools fail
 # closed with SQL_READ_DISABLED unless conversation_sql_read_enabled, so the declared set never changes.
 CLAUDE_TOOLS = TOOLS + [
     spec('sql_query', 'Read-only SQL over the MW Credit business database (PostgreSQL 18, schema public, '
@@ -56,6 +56,8 @@ CLAUDE_TOOLS = TOOLS + [
          {'loan_id': STR}),
 ]
 CLAUDE_FINISH_LIMIT = 1000  # code points (Echo CONV-UX-08); Codex keeps its own 12,000 bound
+# The same registry and finish gate serve every model provider (Claude, Gemini); the CLAUDE_ names stay.
+ASSISTANT_TOOLS, ASSISTANT_FINISH_LIMIT = CLAUDE_TOOLS, CLAUDE_FINISH_LIMIT
 
 
 def literal(value):

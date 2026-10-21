@@ -18,18 +18,19 @@ Native schema bootstrap requires conversation_api_enabled, the exact environment
 
 ## Conversation providers (21 October 2026)
 
-`conversation_provider` selects the model behind the Partner conversation: `codex` (default, unchanged) or `claude`. Everything outside the model turn is shared and unchanged: signed ingress, cutoff, fresh authentication, once-only turn keys, host data and native-API tools, reviewer-only writes, delivery journal and the reply preflight. Switching is a configuration change, not a code deploy.
+`conversation_provider` selects the model behind the Partner conversation: `codex` (default, unchanged), `claude` or `gemini`. Gemini is the intended provider at activation (owner decision, 21 October 2026: Google rejected the Claude Vertex quota request because the account is new, so the owner chose `gemini-4-argon` on Vertex AI and kept Claude switchable). Everything outside the model turn is shared and unchanged: signed ingress, cutoff, fresh authentication, once-only turn keys, host data and native-API tools, reviewer-only writes, delivery journal and the reply preflight. Switching is a configuration change, not a code deploy.
 
 | Provider | What it is | History |
 | --- | --- | --- |
-| `codex` | Persistent Codex App Server thread per binding (above) | The Codex thread, kept even while Claude is selected |
+| `codex` | Persistent Codex App Server thread per binding (above) | The Codex thread, kept even while Claude or Gemini is selected |
+| `gemini` | `gemini-4-argon` on Vertex AI (`global`), called by the VM service account; the intended provider at activation | Same `runtime.conversation_messages` journal, rows marked with the provider; each epoch is seeded as for Claude |
 | `claude` | Claude Opus 5.5 (`claude-opus-5-5`) on Vertex AI, called by the VM service account | Append-only `runtime.conversation_messages` in `mw_agent` (agent migration V8); each epoch is seeded with a transcript of the Partner's past exchanges from both providers (below) |
 
-Switching back to `codex` resumes the Partner's existing Codex thread; the Claude rows stay. Claude history is conversational context only, never authority or current financial evidence. When a Partner's stored history reaches `claude_history_token_limit`, the host starts a new history epoch: earlier rows stay stored and are no longer sent, and the new epoch is seeded as described in [History, epochs and failures](#history-epochs-and-failures).
+Switching back to `codex` resumes the Partner's existing Codex thread; the Claude and Gemini rows stay. A change of provider starts a new history epoch, seeded from the Partner's earlier exchanges. Claude and Gemini history is conversational context only, never authority or current financial evidence. When a Partner's stored history reaches the provider's token limit (`claude_history_token_limit` or `gemini_conversation_history_token_limit`), the host starts a new history epoch: earlier rows stay stored and are no longer sent, and the new epoch is seeded as described in [History, epochs and failures](#history-epochs-and-failures).
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `conversation_provider` | `codex` | `codex` or `claude` |
+| `conversation_provider` | `codex` | `codex`, `claude` or `gemini` |
 | `claude_project` | none | GCP project for Vertex AI |
 | `claude_location` | `global` | Vertex AI location |
 | `claude_model` | `claude-opus-5-5` | Pinned model |
@@ -38,11 +39,18 @@ Switching back to `codex` resumes the Partner's existing Codex thread; the Claud
 | `claude_max_tool_rounds` | 24 | Tool rounds per turn |
 | `claude_history_token_limit` | 150000 | Starts a new history epoch |
 | `claude_seed_history_chars` | 40000 (0 to 200000) | Character budget of the "Earlier conversation" seed transcript of each epoch; 0 disables seeding |
-| `conversation_sql_read_enabled` | `false` | Offers `sql_query` and `loan_payoff` to the Claude provider (one switch gates both) |
+| `gemini_project`, `gemini_location` | existing keys | Reused by the Gemini conversation (project and location, `global`) |
+| `gemini_conversation_model` | `gemini-4-argon` | Allowlist of one model |
+| `gemini_conversation_thinking_level` | `HIGH` | `LOW`, `MEDIUM`, `HIGH` or `MAX`; always sent. Owner decision: default `HIGH`; `MAX` stays allowed and can be set later if needed. `thinkingBudget` is not supported by `gemini-4-argon`. Forge's live test: all four levels return 200, `XHIGH` returns 400. Higher levels can make replies slower; lower the level in config if they are |
+| `gemini_conversation_request_timeout_seconds` | 300 | Per model request |
+| `gemini_conversation_max_tool_rounds` | 24 | Tool rounds per turn |
+| `gemini_conversation_history_token_limit` | 150000 | Starts a new history epoch |
+| `gemini_conversation_seed_history_chars` | 40000 | Character budget of the seed transcript; 0 disables seeding |
+| `conversation_sql_read_enabled` | `false` | Offers `sql_query` and `loan_payoff` to the Claude and Gemini providers (one switch gates both) |
 
-Authentication is the VM service account's existing `roles/aiplatform.user`; no IAM, key or credential is added. Owner console prerequisites, not yet done on 21 October 2026: Model Garden enablement of the Claude model (the owner confirmed in the implementing session that it will be enabled; not enabled yet) and quota for `global` `anthropic-claude-opus` (currently 0). Until both hold, Claude calls fail and the provider stays on `codex`. Activation is a separate owner-authorized step ([Operations](OPERATIONS.md#claude-partner-conversation-activation-and-rollback)). No live Vertex call has been made.
+Authentication for both Vertex AI providers is the VM service account's existing `roles/aiplatform.user`; no IAM, key or credential is added, and no infrastructure change is needed. Gemini: `gemini-4-argon` answers on `global` (test calls returned 200 and function calling worked). It has no per-project quota row (dynamic shared quota), so there is no quota request to make; retries are described under History, epochs and failures. Claude: the owner enabled the model in Model Garden, but Google rejected the quota request (new account), so Claude needs a quota grant for `global` `anthropic-claude-opus` before it can be used. No live conversation turn has run on either provider yet.
 
-The Claude provider uses the same authorization-checked host tools and adds two read tools, `loan_payoff` (the payoff figure for a loan under the encoded payoff rules) and `sql_query`, both offered only when `conversation_sql_read_enabled` is true. Its system prompt carries the packaged [business rules](CONVERSATION_BUSINESS_RULES.md) and a generated schema digest (`scripts/build-schema-digest.py` writes `src/mw_integration_agent/assets/schema-digest.json`; regenerate it when business migrations change tables or columns).
+The Claude and Gemini providers use the same authorization-checked host tools and add two read tools, `loan_payoff` (the payoff figure for a loan under the encoded payoff rules) and `sql_query`, both offered only when `conversation_sql_read_enabled` is true. Their system prompt carries the packaged [business rules](CONVERSATION_BUSINESS_RULES.md) and a generated schema digest (`scripts/build-schema-digest.py` writes `src/mw_integration_agent/assets/schema-digest.json`; regenerate it when business migrations change tables or columns).
 
 ### SQL read tool
 
@@ -58,15 +66,19 @@ Owner decision, 21 October 2026: the tool has full read access, sensitive data i
 ### History, epochs and failures
 
 - Each `runtime.conversation_messages` row (agent V8) stores the message content as exact JSON text, not `jsonb`, because `jsonb` reorders keys and Opus 5.5 rejects replayed thinking after any change. The last row of a turn also carries `input_tokens`. `created_at` exists only in PostgreSQL.
-- A new history epoch starts when the token limit is exceeded, or when the model, system prompt (instructions, rules file, schema digest) or tool set changes. A deploy that changes the rules file or the digest therefore starts a new epoch for every Partner. Every new epoch (first Claude turn for a binding, token rollover, prompt, model or tool change, or the restart below) begins with a plain-text "Earlier conversation" transcript of that binding's past exchanges from both providers: Partner texts from the ingress messages and assistant replies from `turns.result`, oldest first with Bangkok timestamps (the turn's start time), replies labeled "Assistant:" only for READY and QUEUED turns and "Notice:" for FAILED, UNKNOWN_WRITE and INTERRUPTED turns (including their `_NOTIFIED` forms), keeping the newest whole exchanges that fit the `claude_seed_history_chars` budget; the header counts the omitted exchanges. It holds the binding's finished turns from both providers and excludes the current message, running turns and other Partners. A brand-new Partner gets no transcript and no note. Codex-era tool details are not recoverable. The model treats the transcript as context only and re-checks figures with tools. If the transcript cannot be read, or seeding is disabled (`claude_seed_history_chars` 0), the turn proceeds with an "earlier history unavailable" note. The restart after a first-round 400 is seeded too.
+- A new history epoch starts when the token limit is exceeded, when the provider changes, or when the model, system prompt (instructions, rules file, schema digest) or tool set changes. A deploy that changes the rules file or the digest therefore starts a new epoch for every Partner. Every new epoch (first Claude turn for a binding, token rollover, prompt, model or tool change, or the restart below) begins with a plain-text "Earlier conversation" transcript of that binding's past exchanges from both providers: Partner texts from the ingress messages and assistant replies from `turns.result`, oldest first with Bangkok timestamps (the turn's start time), replies labeled "Assistant:" only for READY and QUEUED turns and "Notice:" for FAILED, UNKNOWN_WRITE and INTERRUPTED turns (including their `_NOTIFIED` forms), keeping the newest whole exchanges that fit the `claude_seed_history_chars` budget; the header counts the omitted exchanges. It holds the binding's finished turns from both providers and excludes the current message, running turns and other Partners. A brand-new Partner gets no transcript and no note. Codex-era tool details are not recoverable. The model treats the transcript as context only and re-checks figures with tools. If the transcript cannot be read, or seeding is disabled (`claude_seed_history_chars` 0), the turn proceeds with an "earlier history unavailable" note. The restart after a first-round 400 is seeded too.
 - A first-round 400 for invalid replayed history restarts the turn once with empty history.
-- A refusal or `max_tokens` stop fails the turn (`CLAUDE_STOP_*`). There is no fallback model.
+- A refusal or `max_tokens` stop fails the turn (`CLAUDE_STOP_*`; Gemini: `GEMINI_STOP_<REASON>`). There is no fallback model.
+- Retries, both providers: 429, 503 and 529 get up to 3 attempts (pauses of 2 s, then 5 s); 500, 502, 504 and timeouts get one retry after 1 s; other 4xx never retry. A retry starts only if 4 s plus its pause remain before the deadline. When retries are exhausted the turn fails with `<PROVIDER>_HTTP_<code>`.
+- Gemini behaviour: `thinkingLevel` is always sent and `thinkingBudget` never; `maxOutputTokens` is 16384 and no temperature is set. Response parts are stored and replayed verbatim with their signatures and any unknown part fields (signature-only parts are accepted and replayed), `functionCall` ids are echoed in the response (a duplicate id within one response is journalled under a derived id while the model's id is still echoed), STOP with no parts fails as `GEMINI_RESPONSE_INVALID`, and a malformed call is resent once. Other Gemini failure codes: `GEMINI_PROMPT_BLOCKED_<REASON>`, `GEMINI_UNEXPECTED_PART` (only a part with no text, thought, `functionCall` or signature, that is an empty or data-only part), `GEMINI_TIMEOUT`, `GEMINI_UNREACHABLE`, `GEMINI_TOKEN_UNAVAILABLE` and `GEMINI_TOOL_ROUNDS_EXCEEDED`.
+- The instructions shared by Claude and Gemini live in `conversation_session.py` (`ASSISTANT_INSTRUCTIONS`). The prompt digest includes the provider and model, so a provider or model change, and the first Gemini deploy for any Partner with Claude history, starts a new seeded epoch.
+- The `gemini_conversation_*` keys are validated only when the provider is `gemini`; `gemini_location` defaults to `global`.
 - `codex_executable` and `codex_home` are required only when the Codex conversation or a Codex receipt provider is active.
-- Audit: the turn plan records provider, model, effort and max rounds; a separate `model_rounds` event records rounds, token usage, `seeded_exchanges`, `seeded_chars` and `seed_status`.
+- Audit: the `model_turn` plan records provider, model, effort (Claude) or thinking level (Gemini), and max rounds. A separate `model_rounds` event records token usage (Gemini: prompt, candidates, thoughts and cached-content tokens), `finish_reason`, rounds, `attempts`, the epoch, and `seeded_exchanges`, `seeded_chars` and `seed_status`.
 
 ### Reply rules
 
-Replies are plain text. Target about 700 characters; the hard limit is 1,000. For Claude the limit is enforced in `finish`: a longer reply is returned to the model, which must shorten it, so a Claude reply is not held for length. A Codex reply over 1,000 characters is held for review as before. Format rules CONV-UX-01..12 (answer first, labeled bullets, no tables or Markdown, explicit data date, totals and exclusions) apply to both providers.
+Replies are plain text. Target about 700 characters; the hard limit is 1,000. For Claude and Gemini the limit is enforced in `finish`: a longer reply is returned to the model, which must shorten it, so their replies are not held for length. A Codex reply over 1,000 characters is held for review as before. Format rules CONV-UX-01..12 (answer first, labeled bullets, no tables or Markdown, explicit data date, totals and exclusions) apply to all providers.
 
 ## Controls and recovery
 
@@ -75,7 +87,7 @@ Replies are plain text. Target about 700 characters; the hard limit is 1,000. Fo
 - `conversation_writes_enabled`: reviewer-only general API write switch; no effect on receipt posting authority.
 - `partner_conversation_cutoff`: first activation timestamp; both event and capture time must be newer. Never reset it to replay history.
 - `conversation_timeout_seconds`: 30–900 seconds, default 600.
-- `conversation_provider`: `codex` or `claude`; set it back to `codex` to roll back. `conversation_sql_read_enabled`: separate switch for `sql_query`. Other `claude_*` keys: [Conversation providers](#conversation-providers-21-october-2026).
+- `conversation_provider`: `codex`, `claude` or `gemini`; set it back to `codex` to roll back. `conversation_sql_read_enabled`: separate switch for `sql_query`. Other `claude_*` keys: [Conversation providers](#conversation-providers-21-october-2026).
 - `mw-partner-conversation.timer`: 15 seconds after the previous cycle finishes, one turn per cycle so its reply is queued promptly; a process lock prevents overlap.
 
 Generic processing/sending/writes remain false. Current master opt-in and English/ไทย preference control conversations; disabling the Partner blocks both reply channels. Fresh authenticated sender binding is also checked before email fallback. Receipt notification fallback retains its separate existing policy.

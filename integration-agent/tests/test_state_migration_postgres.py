@@ -210,23 +210,27 @@ class IncrementalV6Tests(unittest.TestCase):
 
 
 def assert_conversation_messages(case, conn):
-    """V8: grants, the JSON array check and the statement-level append-only trigger."""
+    """V8: grants, the provider/role and JSON array checks and the statement-level append-only trigger."""
     grants = conn.execute('''SELECT grantee,string_agg(privilege_type,',' ORDER BY privilege_type) FROM information_schema.role_table_grants
         WHERE table_schema='runtime' AND table_name='conversation_messages' AND grantee<>'mw_agent_owner' GROUP BY grantee ORDER BY grantee''').fetchall()
     case.assertEqual(grants, [('mw_agent_auditor', 'SELECT'), ('mw_agent_worker', 'INSERT,SELECT')])
     binding, digest = 'a' * 64, 'b' * 64
-    row = (binding, 0, 0, 'event1', 'user', '[{"type":"text","text":"x"}]', digest)
-    insert = '''INSERT INTO runtime.conversation_messages(binding,epoch,seq,message_id,role,content,prompt_sha256)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)'''
+    row = (binding, 0, 0, 'event1', 'claude', 'user', '[{"type":"text","text":"x"}]', digest)
+    insert = '''INSERT INTO runtime.conversation_messages(binding,epoch,seq,message_id,provider,role,content,prompt_sha256)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'''
     with conn.transaction():
         conn.execute('SET LOCAL ROLE mw_agent_worker')
         conn.execute(insert, row)
-        stored = conn.execute('SELECT content,input_tokens FROM runtime.conversation_messages WHERE binding=%s', (binding,)).fetchone()
-        case.assertEqual(tuple(stored), ('[{"type":"text","text":"x"}]', None))
+        stored = conn.execute('SELECT provider,content,input_tokens FROM runtime.conversation_messages WHERE binding=%s', (binding,)).fetchone()
+        case.assertEqual(tuple(stored), ('claude', '[{"type":"text","text":"x"}]', None))
         # Model JSON may carry \u0000 escapes: stored verbatim (json, not jsonb, validates the array).
         nul = '[{"type":"text","text":"a\\u0000b"}]'
-        conn.execute(insert, (binding, 0, 1, 'event1', 'assistant', nul, digest))
+        conn.execute(insert, (binding, 0, 1, 'event1', 'claude', 'assistant', nul, digest))
         case.assertEqual(conn.execute('SELECT content FROM runtime.conversation_messages WHERE seq=1').fetchone()[0], nul)
+        # A Gemini epoch stores user/model contents.
+        parts = '[{"functionCall":{"name":"finish","args":{},"id":"call_1"},"thoughtSignature":"AY89"}]'
+        conn.execute(insert, (binding, 1, 0, 'event2', 'gemini', 'user', '[{"text":"q"}]', digest))
+        conn.execute(insert, (binding, 1, 1, 'event2', 'gemini', 'model', parts, digest))
     for statement in ('UPDATE runtime.conversation_messages SET role=\'assistant\'', 'DELETE FROM runtime.conversation_messages',
                       'TRUNCATE runtime.conversation_messages'):
         with case.subTest(statement=statement), case.assertRaises(psycopg.Error):
@@ -235,13 +239,17 @@ def assert_conversation_messages(case, conn):
     with case.assertRaises(psycopg.errors.InsufficientPrivilege), conn.transaction():
         conn.execute('SET LOCAL ROLE mw_agent_worker')
         conn.execute('UPDATE runtime.conversation_messages SET role=\'assistant\'')
-    for bad in ((binding, 0, 2, 'event1', 'user', '{"not":"an array"}', digest),
-                (binding, 0, 2, 'event1', 'user', 'not json', digest),
-                (binding, 0, 2, 'event1', 'system', '[]', digest),
-                (binding, 0, 0, 'event1', 'user', '[]', digest)):
-        with case.subTest(row=bad[4:6]), case.assertRaises(psycopg.Error), conn.transaction():
+    for bad in ((binding, 0, 2, 'event1', 'claude', 'user', '{"not":"an array"}', digest),
+                (binding, 0, 2, 'event1', 'claude', 'user', 'not json', digest),
+                (binding, 0, 2, 'event1', 'claude', 'system', '[]', digest),
+                (binding, 0, 2, 'event1', 'claude', 'model', '[]', digest),
+                (binding, 0, 2, 'event1', 'gemini', 'assistant', '[]', digest),
+                (binding, 0, 2, 'event1', 'openai', 'user', '[]', digest),
+                (binding, 0, 2, 'event1', None, 'user', '[]', digest),
+                (binding, 0, 0, 'event1', 'claude', 'user', '[]', digest)):
+        with case.subTest(row=bad[4:7]), case.assertRaises(psycopg.Error), conn.transaction():
             conn.execute(insert, bad)
-    case.assertEqual(conn.execute('SELECT count(*) FROM runtime.conversation_messages').fetchone()[0], 2)
+    case.assertEqual(conn.execute('SELECT count(*) FROM runtime.conversation_messages').fetchone()[0], 4)
     case.assertEqual(conn.execute("SELECT count(*) FROM pg_trigger WHERE tgrelid='runtime.conversation_messages'::regclass AND NOT tgisinternal").fetchone()[0], 1)
 
 

@@ -7,10 +7,12 @@ from pathlib import Path
 
 from .cash_statement import partners
 from .claude_conversation import CLAUDE_INSTRUCTIONS, ClaudeConversation
+from .conversation_session import ASSISTANT_INSTRUCTIONS
+from .gemini_conversation import GeminiConversation
 from .codex_conversation import CodexConversation
 from .config import ConfigurationError, cutoff_ts, load_controls
 from .conversation_store import ConversationStore, binding_key
-from .conversation_tools import CLAUDE_FINISH_LIMIT, CLAUDE_TOOLS, ConversationTools, TOOLS
+from .conversation_tools import ASSISTANT_FINISH_LIMIT, ASSISTANT_TOOLS, CLAUDE_FINISH_LIMIT, CLAUDE_TOOLS, ConversationTools, TOOLS
 from .partner_notice import NoticeJournal
 from .receipt_run import conversation_identity
 from .statement_delivery import eligible, handle
@@ -105,10 +107,13 @@ just to fit the length limit. Summarize accurately within that limit; oversized 
 The host delivers finish.message. Text outside finish is not sent. After finish, stop.'''
 
 
+SERVICES = {'codex': 'persistent_codex_conversation', 'claude': 'claude_partner_conversation',
+            'gemini': 'gemini_partner_conversation'}
+
+
 def controls(config_path, catalogue_path):
     config, catalogue = load_controls(config_path, catalogue_path)
-    required = ['claude_partner_conversation' if config.get('conversation_provider', 'codex') == 'claude'
-                else 'persistent_codex_conversation',
+    required = [SERVICES.get(config.get('conversation_provider', 'codex'), 'persistent_codex_conversation'),
                 'partner_authentication', 'operational_data_read',
                 'database_connectivity', 'signed_webhook_ingress', 'instagram_delivery']
     if config.get('conversation_sql_read_enabled'):
@@ -155,6 +160,8 @@ def provider(config):
     """(session class, instructions, tool registry, finish limit) for config['conversation_provider']."""
     if config.get('conversation_provider', 'codex') == 'claude':
         return ClaudeConversation, CLAUDE_INSTRUCTIONS, CLAUDE_TOOLS, CLAUDE_FINISH_LIMIT
+    if config.get('conversation_provider', 'codex') == 'gemini':
+        return GeminiConversation, ASSISTANT_INSTRUCTIONS, ASSISTANT_TOOLS, ASSISTANT_FINISH_LIMIT
     return CodexConversation, INSTRUCTIONS, TOOLS, None
 
 

@@ -1,10 +1,12 @@
--- Claude Partner conversation history (owner decision 21 October 2026: Claude Opus 5.5 on Vertex AI behind the
--- Partner conversation, Codex kept switchable). One row per API message of a turn that reached finish, written
--- once in the transaction that marks the turn READY; failed or interrupted turns write nothing, so the replayed
--- prefix stays identical. content is the message's content-block array as the exact JSON text sent and received
--- (thinking blocks with signatures included); text, not jsonb, because jsonb reorders object keys and the
--- replayed history must not change. A new epoch starts when the prompt digest changes or the previous turn's
--- input tokens exceed the configured limit; older epochs stay. runtime.conversations (Codex threads) is untouched.
+-- Model-provider Partner conversation history (owner decisions 21 October 2026: Claude Opus 5.5, then Gemini
+-- gemini-4-argon, on Vertex AI behind the Partner conversation; Codex kept switchable). One row per provider
+-- message of a turn that reached finish, written once in the transaction that marks the turn READY; failed or
+-- interrupted turns write nothing, so the replayed prefix stays identical. provider names the dialect of
+-- content: Claude messages (user/assistant content blocks, thinking blocks with signatures) or Gemini contents
+-- (user/model parts, thoughtSignature included). content is that array as the exact JSON text sent and
+-- received; text, not jsonb, because jsonb reorders object keys and the replayed history must not change.
+-- A new epoch starts when the provider or the prompt digest changes or the previous turn's input tokens exceed
+-- the configured limit; older epochs stay. runtime.conversations (Codex threads) is untouched.
 -- Immutable after application.
 SET LOCAL ROLE mw_agent_owner;
 
@@ -13,7 +15,9 @@ CREATE TABLE runtime.conversation_messages (
  epoch integer NOT NULL CHECK (epoch >= 0),
  seq integer NOT NULL CHECK (seq >= 0),
  message_id text NOT NULL CHECK (btrim(message_id) <> ''),
- role text NOT NULL CHECK (role IN ('user','assistant')),
+ provider text NOT NULL CHECK (provider IN ('claude','gemini')),
+ role text NOT NULL CHECK ((provider = 'claude' AND role IN ('user','assistant'))
+                          OR (provider = 'gemini' AND role IN ('user','model'))),
  content text NOT NULL CHECK (json_typeof(content::json) = 'array'),  -- json, not jsonb: \u0000 is valid model JSON
  prompt_sha256 text NOT NULL CHECK (prompt_sha256 ~ '^[0-9a-f]{64}$'),
  input_tokens integer CHECK (input_tokens IS NULL OR input_tokens >= 0),  -- last response of the turn, on its last row

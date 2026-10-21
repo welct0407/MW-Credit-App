@@ -32,7 +32,9 @@ class ConversationStore:
             arguments TEXT NOT NULL, result TEXT, PRIMARY KEY(message_id,call_id));
           CREATE TABLE IF NOT EXISTS conversation_messages (
             binding TEXT NOT NULL, epoch INTEGER NOT NULL, seq INTEGER NOT NULL, message_id TEXT NOT NULL,
-            role TEXT NOT NULL CHECK (role IN ('user','assistant')), content TEXT NOT NULL,
+            provider TEXT NOT NULL CHECK (provider IN ('claude','gemini')),
+            role TEXT NOT NULL CHECK ((provider='claude' AND role IN ('user','assistant'))
+                                      OR (provider='gemini' AND role IN ('user','model'))), content TEXT NOT NULL,
             prompt_sha256 TEXT NOT NULL, input_tokens INTEGER, PRIMARY KEY(binding,epoch,seq));
           CREATE TRIGGER IF NOT EXISTS conversation_messages_no_update BEFORE UPDATE ON conversation_messages
             BEGIN SELECT RAISE(ABORT, 'Append-only conversation history'); END;
@@ -54,9 +56,9 @@ class ConversationStore:
     def history(self, binding):
         """Claude history of the binding's latest epoch: (epoch, [rows in seq order]) or (None, []).
 
-        Rows are dicts with role, content (the stored JSON text, verbatim), prompt_sha256 and input_tokens.
+        Rows are dicts with provider, role, content (the stored JSON text, verbatim), prompt_sha256 and input_tokens.
         """
-        rows = self.db.execute('SELECT epoch,seq,role,content,prompt_sha256,input_tokens FROM conversation_messages '
+        rows = self.db.execute('SELECT epoch,seq,provider,role,content,prompt_sha256,input_tokens FROM conversation_messages '
                                'WHERE binding=? AND epoch=(SELECT max(epoch) FROM conversation_messages WHERE binding=?) '
                                'ORDER BY seq', (binding, binding)).fetchall()
         if not rows:
@@ -78,7 +80,7 @@ class ConversationStore:
     def finish(self, message_id, status, result=None, detail=None, history=None):
         """Record the turn outcome; a READY Claude turn appends its history rows in the same transaction.
 
-        history: {'binding','epoch','seq','prompt_sha256','input_tokens','messages':[{'role','content'}]}.
+        history: {'binding','epoch','seq','provider','prompt_sha256','input_tokens','messages':[{'role','content'}]}.
         Only a turn that reached finish passes it, so a failed or interrupted turn leaves no history and the
         next turn replays an unchanged prefix. input_tokens is kept on the turn's last row only.
         """
@@ -88,11 +90,13 @@ class ConversationStore:
             if history and status == 'READY':
                 messages = history['messages']
                 for offset, message in enumerate(messages):
-                    if message['role'] not in ('user', 'assistant') or not isinstance(message['content'], str):
+                    roles = {'claude': ('user', 'assistant'), 'gemini': ('user', 'model')}.get(history.get('provider'), ())
+                    if message['role'] not in roles or not isinstance(message['content'], str):
                         raise ConfigurationError('INVALID_CONVERSATION_HISTORY')
-                    self.db.execute('INSERT INTO conversation_messages(binding,epoch,seq,message_id,role,content,prompt_sha256,input_tokens) '
-                                    'VALUES (?,?,?,?,?,?,?,?)',
-                                    (history['binding'], history['epoch'], history['seq'] + offset, message_id, message['role'],
+                    self.db.execute('INSERT INTO conversation_messages(binding,epoch,seq,message_id,provider,role,content,prompt_sha256,input_tokens) '
+                                    'VALUES (?,?,?,?,?,?,?,?,?)',
+                                    (history['binding'], history['epoch'], history['seq'] + offset, message_id,
+                                     history['provider'], message['role'],
                                      message['content'], history['prompt_sha256'],
                                      history.get('input_tokens') if offset == len(messages) - 1 else None))
 
