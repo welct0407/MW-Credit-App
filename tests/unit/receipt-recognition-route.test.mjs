@@ -14,7 +14,7 @@ const requestId='12345678-1234-4234-8234-123456789abc',receiptId='12345678-1234-
 const principal={ok:true,subject:'synthetic',email:'synthetic@example.invalid'};
 const actor={issuer:'https://issuer.invalid',subject:'synthetic',partnerId:'synthetic-partner',loginEmail:principal.email};
 const URL_OK='http://10.148.0.2:8790/v1/receipt-recognition';
-const slip={is_payment_receipt:true,transfer_successful:true,date:'2026-10-18',time:'09:41:27',amount:'1500.00',currency:'THB',reference:'AB-1234 CD',recipient_numbers:['xxx-x-x6789-x']};
+const slip={is_payment_receipt:true,transfer_successful:true,date:'2026-10-18',time:'09:41:27',amount:'1500.00',currency:'THB',reference:'AB-1234 CD',account_numbers:['xxx-x-x6789-x']};
 const call=(handler,method,url,headers={})=>{const res=new EventEmitter(),out={};res.setHeader=()=>{};res.end=b=>{out.status=res.statusCode;out.body=b?JSON.parse(b):undefined;res.emit('finish')};const req=new EventEmitter();Object.assign(req,{method,url,headers:{authorization:'Bearer synthetic',...headers}});return handler(req,res).then(()=>out);};
 const handlerFor=store=>createEnvironmentCommandHandler({config:loadBusinessConfig(businessEnv('dev','command')),verifyPrincipal:async()=>({ok:true,subject:'s',email:'e@example.invalid'}),store});
 
@@ -112,7 +112,7 @@ test('client: every failure is unavailable',async()=>{
  const outcome=async(handler,options={})=>createRecognizerClient({url:URL_OK,fetch:fakeFetch(handler),mintToken:mint,...options}).recognize({bytes,mimeType:'image/png'});
  assert.deepEqual(await outcome(()=>json(503,{status:'unavailable',reason:'busy'})),{status:'unavailable',reason:'recognizer_unavailable'});
  for(const status of [400,401,403,413,302])assert.equal((await outcome(()=>json(status,{status:'denied'}))).reason,'recognizer_refused');
- for(const body of [reply(bytes,{imageSha256:'0'.repeat(64)}),reply(bytes,{extra:1}),reply(bytes,{status:'rejected'}),reply(bytes,{result:{...slip,amount:1500}}),reply(bytes,{result:{...slip,extra:true}}),reply(bytes,{result:{...slip,recipient_numbers:'123'}}),reply(bytes,{model:'bad model'}),reply(bytes,{durationMs:-1})])
+ for(const body of [reply(bytes,{imageSha256:'0'.repeat(64)}),reply(bytes,{extra:1}),reply(bytes,{status:'rejected'}),reply(bytes,{result:{...slip,amount:1500}}),reply(bytes,{result:{...slip,extra:true}}),reply(bytes,{result:{...slip,account_numbers:'123'}}),reply(bytes,{model:'bad model'}),reply(bytes,{durationMs:-1})])
   assert.equal((await outcome(()=>json(200,body))).reason,'invalid_response',JSON.stringify(body));
  assert.equal((await outcome(()=>new Response('not json'))).reason,'invalid_response');
  assert.equal((await outcome(()=>{throw Error('ECONNREFUSED')})).reason,'recognizer_unreachable');
@@ -120,6 +120,19 @@ test('client: every failure is unavailable',async()=>{
  assert.equal((await createRecognizerClient({url:URL_OK,fetch:fakeFetch(()=>json(200,{})),mintToken:mint}).recognize({bytes,mimeType:'image/gif'})).reason,'invalid_image');
  assert.equal((await createRecognizerClient({url:URL_OK,fetch:fakeFetch(()=>new Response('',{status:500}))}).recognize({bytes,mimeType:'image/png'})).reason,'recognizer_unreachable','no identity token');
  assert.equal(validRecognition(null,'x'),null);
+});
+
+test('client: R087 account_numbers; the pre-R087 recipient_numbers key is read, exactly one key is required',()=>{
+ const bytes=Buffer.from('synthetic-png'),hash=createHash('sha256').update(bytes).digest('hex');
+ const {account_numbers:numbers,...fields}=slip;
+ const current=validRecognition(reply(bytes),hash);
+ assert.deepEqual(current.result,slip);assert.ok(Object.isFrozen(current.result)&&Object.isFrozen(current.result.account_numbers));
+ const legacy=validRecognition(reply(bytes,{result:{...fields,recipient_numbers:numbers}}),hash);
+ assert.deepEqual(legacy.result,slip,'the old key is returned as account_numbers');assert.equal('recipient_numbers' in legacy.result,false);
+ assert.ok(Object.isFrozen(legacy.result.account_numbers));
+ assert.equal(validRecognition(reply(bytes,{result:{...slip,recipient_numbers:numbers}}),hash),null,'both keys are refused');
+ assert.equal(validRecognition(reply(bytes,{result:fields}),hash),null,'neither key is refused');
+ assert.equal(validRecognition(reply(bytes,{result:{...fields,recipient_numbers:'123'}}),hash),null,'the old key is shape-checked too');
 });
 
 test('config: DEV_/PROD_RECEIPT_RECOGNITION needs receipts on the command service and a private :8790 endpoint',()=>{

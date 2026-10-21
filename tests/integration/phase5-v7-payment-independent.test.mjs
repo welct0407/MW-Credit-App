@@ -90,7 +90,7 @@ test('R075 recognition rules read this database: masked account match, ambiguity
  await admin.query('UPDATE "Cash Accounts" SET "Account Number"=$2,"Alternative Account Number"=NULL WHERE "Row ID"=$1',[fixture.receivingAccountId,'123-4-56789-0']);
  await admin.query('UPDATE "Cash Accounts" SET "Account Number"=$2 WHERE "Row ID"=$1',[fixture.lendingAccountId,'999-9-99999-9']);
  const resolveActor=async(client,p)=>{const rows=(await client.query('SELECT "Row ID" AS id FROM "Partners" WHERE lower(btrim("Login Email"))=$1',[p.email])).rows;return rows.length===1?canonicalActor({...actor(),partnerId:rows[0].id}):null};
- let calls=0;const recognizer={recognize:async()=>{calls++;return {status:'recognized',provider:'gemini',model:'synthetic-flash-001',result:{is_payment_receipt:true,transfer_successful:true,date:yesterday,time:'09:41:27',amount:'1500.00',currency:'THB',reference:'AB-1234 CD',recipient_numbers:['xxx-x-x6789-x']}}}};
+ let calls=0;const recognizer={recognize:async()=>{calls++;return {status:'recognized',provider:'gemini',model:'synthetic-flash-001',result:{is_payment_receipt:true,transfer_successful:true,date:yesterday,time:'09:41:27',amount:'1500.00',currency:'THB',reference:'AB-1234 CD',account_numbers:['xxx-x-x6789-x']}}}};
  const receiptAdapter={resolveReceipt(){},retrieve:async()=>({bytes:Buffer.from('synthetic'),mimeType:'image/png'})};
  const recognition=createEnvironmentCommandStore({pool:app,guardConnection:applicationConnectionGuard(proof),principalAllowed:()=>true,resolveActor,actorIssuer:actor().issuer,receiptAdapter,recognizer});
  const ids={requestId:randomUUID(),receiptId:randomUUID()};

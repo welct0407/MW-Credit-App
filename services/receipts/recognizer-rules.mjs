@@ -85,8 +85,9 @@ export async function evaluateSlip(result, { businessDate, accounts, referenceEx
   if (!fields.confirmed) return { status: 'unrecognized', reason: 'slip_not_confirmed', suggestion: null, warnings: fields.warnings.map(code => ({ code })) };
   const warnings = [...fields.warnings];
   let cashAccountId = null;
-  const numbers = result.recipient_numbers;
-  // R076: a slip that shows no recipient number gives no account signal (no warning, nothing filled); the form
+  // R087: every printed number, sender and recipient alike; exactly one of our active accounts must fit.
+  const numbers = result.account_numbers;
+  // R076: a slip that shows no account number gives no account signal (no warning, nothing filled); the form
   // names an unmatched or ambiguous account only when the slip printed one.
   if (!Array.isArray(numbers) || numbers.length > 5 || numbers.some(n => typeof n !== 'string')) warnings.push('account_unmatched');
   else if (numbers.length) {

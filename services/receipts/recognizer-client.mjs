@@ -5,7 +5,10 @@ import { createHash } from 'node:crypto';
 // "unavailable" outcome: recognition is optional and the receiving form continues manually.
 
 const METADATA_IDENTITY = 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity';
-const RESULT_KEYS = ['amount', 'currency', 'date', 'is_payment_receipt', 'recipient_numbers', 'reference', 'time', 'transfer_successful'];
+const RESULT_KEYS = ['account_numbers', 'amount', 'currency', 'date', 'is_payment_receipt', 'reference', 'time', 'transfer_successful'];
+// R087: the recognizer returns every printed number as account_numbers. An agent still on the pre-R086
+// key sends recipient_numbers; exactly one of the two is accepted. This fallback is removed in a later release.
+const LEGACY_RESULT_KEYS = RESULT_KEYS.map(key => key === 'account_numbers' ? 'recipient_numbers' : key).sort();
 const RESPONSE_KEYS = ['durationMs', 'imageSha256', 'model', 'provider', 'result', 'status'];
 const MAX_RESPONSE = 65536;
 /**
@@ -25,10 +28,13 @@ export function validRecognition(body, imageSha256) {
   if (typeof body.model !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._@/:-]{0,127}$/.test(body.model)) return null;
   if (!Number.isSafeInteger(body.durationMs) || body.durationMs < 0) return null;
   const r = body.result;
-  if (!keysAre(r, RESULT_KEYS) || typeof r.is_payment_receipt !== 'boolean' || typeof r.transfer_successful !== 'boolean') return null;
+  const legacy = keysAre(r, LEGACY_RESULT_KEYS);
+  if (!(legacy || keysAre(r, RESULT_KEYS)) || typeof r.is_payment_receipt !== 'boolean' || typeof r.transfer_successful !== 'boolean') return null;
   if (['date', 'time', 'amount', 'currency', 'reference'].some(key => !boundedText(r[key], 256))) return null;
-  if (!Array.isArray(r.recipient_numbers) || r.recipient_numbers.length > 20 || r.recipient_numbers.some(n => !boundedText(n, 64))) return null;
-  return Object.freeze({ provider: body.provider, model: body.model, result: Object.freeze({ ...r, recipient_numbers: Object.freeze([...r.recipient_numbers]) }) });
+  const { recipient_numbers: legacyNumbers, account_numbers: currentNumbers, ...fields } = r;
+  const numbers = legacy ? legacyNumbers : currentNumbers;
+  if (!Array.isArray(numbers) || numbers.length > 20 || numbers.some(n => !boundedText(n, 64))) return null;
+  return Object.freeze({ provider: body.provider, model: body.model, result: Object.freeze({ ...fields, account_numbers: Object.freeze([...numbers]) }) });
 }
 
 /** Full endpoint http://<private IPv4>:8790/v1/receipt-recognition, or null when it is anything else. */

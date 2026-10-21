@@ -40,7 +40,8 @@ def held_text(job,borrower,language,accounts):
     if not isinstance(receipt,dict):receipt={}
     account=receipt.get('account_label')
     if not account:
-        try:account=match_account(receipt.get('recipient_numbers') or [],accounts)['label']
+        # 'recipient_numbers' reads rows extracted before R087; the fallback is removed in a later release.
+        try:account=match_account(receipt.get('account_numbers',receipt.get('recipient_numbers')) or [],accounts)['label']
         except ReceiptInvalid:pass
     reasons={
       'POSSIBLE_EXISTING_PAYMENT_REVIEW':('An existing payment has the same bank reference but its records need reconciliation.','พบรายการที่ใช้เลขอ้างอิงธนาคารเดียวกัน ต้องตรวจสอบความสอดคล้องของข้อมูล'),

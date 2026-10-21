@@ -9,7 +9,7 @@ class ReceiptTimingTests(unittest.TestCase):
         return {'is_payment_receipt':True,'transfer_successful':True,'date':'2026-09-20',
                 'time':'18:23:12',
                 'amount':'100.00','currency':'THB','reference':'TIMETEST123',
-                'recipient_numbers':['1234567890']}
+                'account_numbers':['1234567890']}
 
     def validate(self,value):
         return validate_receipt(value,[{'id':'a','active':True,'number':'1234567890',
