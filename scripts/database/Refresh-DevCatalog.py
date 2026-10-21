@@ -185,9 +185,12 @@ def column_statements(ident, before, now):
 
 
 def owner_statements(before_objects, now_objects):
-    """ALTER ... OWNER TO statements for objects present in both snapshots whose owner differs."""
+    """ALTER ... OWNER TO statements for objects present in both snapshots whose owner differs.
+
+    Schemas come first: on Cloud SQL the new owner of an object needs CREATE on its schema, which it
+    only has once it owns the schema again (a superuser lab does not show this)."""
     statements, skipped = [], []
-    for key, now in sorted(now_objects.items()):
+    for key, now in sorted(now_objects.items(), key=lambda item: (item[0][0] != 'SCHEMA', item[0])):
         before = before_objects.get(key)
         if not before or before['owner'] == now['owner']:
             continue

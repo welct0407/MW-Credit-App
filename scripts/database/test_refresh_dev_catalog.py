@@ -43,6 +43,15 @@ class OwnerStatements(unittest.TestCase):
                                       'ALTER TABLE public.pwa_job_runs OWNER TO "mw_jobs_owner_dev"'])
         self.assertEqual([s['ident'] for s in skipped], ['loan_manager_dev', 'monitoring.pg_stat_statements'])
 
+    def test_schema_owner_is_restored_before_its_objects(self):
+        before = {('FUNCTION', 'agent_audit.capture_change()'): obj('FUNCTION', 'agent_audit.capture_change()', 'mw_business_audit_owner'),
+                  ('SCHEMA', 'agent_audit'): obj('SCHEMA', 'agent_audit', 'mw_business_audit_owner'),
+                  ('TABLE', 'agent_audit.commits'): obj('TABLE', 'agent_audit.commits', 'mw_business_audit_owner')}
+        now = {k: dict(v, owner='postgres') for k, v in before.items()}
+        self.assertEqual(M.owner_statements(before, now)[0], ['ALTER SCHEMA agent_audit OWNER TO "mw_business_audit_owner"',
+                                                              'ALTER FUNCTION agent_audit.capture_change() OWNER TO "mw_business_audit_owner"',
+                                                              'ALTER TABLE agent_audit.commits OWNER TO "mw_business_audit_owner"'])
+
     def test_identity_sequence_follows_its_table(self):
         before = {('TABLE', 'public.t'): obj('TABLE', 'public.t', 'o'), ('SEQUENCE', 'public.t_id_seq'): obj('SEQUENCE', 'public.t_id_seq', 'o', linked=True)}
         now = {k: dict(v, owner='postgres') for k, v in before.items()}
