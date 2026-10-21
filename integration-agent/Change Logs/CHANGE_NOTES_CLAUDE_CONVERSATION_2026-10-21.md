@@ -1,7 +1,7 @@
 # Change notes — Claude and Gemini Partner conversation providers, 21 October 2026
 
 ## Purpose
-Owner decision, 21 October 2026: the Partner conversation no longer depends only on the Codex App Server. A second provider, Claude Opus 5.5 on Vertex AI, can answer the same Partner turns, with a business-rules reference, a `loan_payoff` tool and an optional bounded read-only SQL tool. Later the same day Google rejected the Claude Vertex quota request (new account), so the owner chose `gemini-4-argon` on Vertex AI as the intended provider and kept Claude switchable (second batch on the same pull request, below). Source only; nothing is deployed or activated, and Codex stays the default.
+Owner decision, 21 October 2026: the Partner conversation no longer depends only on the Codex App Server. A second provider, Claude Opus 5.5 on Vertex AI, can answer the same Partner turns, with a business-rules reference, a `loan_payoff` tool and an optional bounded read-only SQL tool. Later the same day Google rejected the Claude Vertex quota request (new account), so the owner chose `gemini-4-argon` on Vertex AI as the intended provider and kept Claude switchable (second batch on the same pull request, below). Source only at this point; deployed and switched to Gemini the same day (see Promotion record). Codex stays the default in the code.
 
 ## Changes
 Owner decisions (relayed 21 October 2026; Model Garden enablement confirmed by the owner in the implementing session):
@@ -68,20 +68,40 @@ Documentation (Dewey):
 - Chase's verification found guard bypasses in the first SQL tool (whole-row reads, `ts_stat` dynamic SQL with a mid-statement role switch, an `E''` hole, unbounded client memory). `READ ONLY` held against every write attempt. They are resolved by Byte's rework (server-side cursor, function deny list) and the owner's decision above; Chase re-verified the rework (Checks).
 
 ## Not run
-- No live Partner turn on a deployed VM, no PROD or DEV data, and no live Claude call (no quota). Gemini ran only Chase's synthetic lab test (see Checks).
-- Nothing executed against DEV or PROD; V8 is not applied to any `mw_agent` database; the `mw_integration_agent` role is unchanged and its live grants were not verified.
-- No deployment, no config change and no provider switch; PROD activation is not authorized.
+- No real Partner turn yet on the deployed VM, and no live Claude call (no quota). Gemini ran Chase's synthetic lab test and the synthetic turn on the VM (see Checks and the Promotion record).
+- Nothing was run against DEV business data; the `mw_integration_agent` role is unchanged and its live grants were not separately verified beyond the synthetic turn's `sql_query` calls.
+- The owner's PROD authorization and the deployment are recorded in the Promotion record; this note's earlier text describes the source state.
 - Disposable-lab PostgreSQL suites run only where a lab exists (see [Operations](../docs/OPERATIONS.md#test-lab-prerequisites)); Chase records which ran.
 
 ## Recovery
-- Before activation: revert the batch with Git. The defaults (`codex`, SQL tool off) leave behaviour unchanged, so a deployed-but-inactive batch needs no recovery.
-- After activation: set `conversation_provider` to `codex` and `conversation_sql_read_enabled` to `false` (config-only route in [Operations](../docs/OPERATIONS.md#partner-conversation-provider-activation-and-rollback)). Codex threads resume. V8 and its rows stay; do not delete or rewrite them. Never restore an older journal over accepted sends or writes.
+- Switch back (the batch is activated on PROD): set `conversation_provider` to `codex` and `conversation_sql_read_enabled` to `false` (config-only route in [Operations](../docs/OPERATIONS.md#partner-conversation-provider-activation-and-rollback)). Codex threads resume. V8 and its rows stay; do not delete or rewrite them. Never restore an older journal over accepted sends or writes.
 
 ## Open questions
 - Claude only: a `global` `anthropic-claude-opus` quota grant (the request was rejected). Gemini needs no console action.
-- Owner authorization to deploy, to switch a Partner conversation to Gemini (or Claude) and to enable `conversation_sql_read_enabled`, each separately.
+- None for Gemini: the owner authorized the switch on 21 October 2026. Switching to Claude would be a separate owner decision after a quota grant.
 
 ## Remaining work
-- Fill the Checks table; push; read the pull request run.
-- Owner-authorized deploy (V8 first, catalogue revision 30 two-step, code), then activation and one synthetic Partner turn on the VM.
-- Confirm the existing `mw_integration_agent` grants on the VM before enabling `conversation_sql_read_enabled`.
+- The first real Partner turn answered by Gemini (one follow-up row in Development Changes).
+- Claude quota grant, only if the owner wants Claude.
+
+## Promotion record
+
+Release R084, agent only (no Hosting, Cloud Run or business-database change), frozen 2026-10-21 (UTC, at the owner's instruction, before the 11:55Z checkout update).
+
+- **Authority:** the owner's production instruction of 21 October 2026, "Go ahead with switch after the testing is done"; the live Vertex test passed after the fix (see Checks). It covers the agent migration V8 on `mw_agent` with a verified backup, the standard freeze, the config-only catalogue change, the switch of `conversation_provider` to `gemini`, enabling `conversation_sql_read_enabled` (full read access by the earlier owner decision) and the required technical records. It does not cover a Claude quota, forced notifications or financial corrections.
+- **Package:** main `d0e552b` (PR #108 merge, tested in the Checks above), then main merge `31d04d912b5ce5cefdac192ad85939be8598a3ba` (PR #109, the S1 and S2 step commits). The deployed pin is S1 `a3646f30d9aeabad954b5b6c208ef1f5ff1617a5`: code byte-identical to `d0e552b`, catalogue revision 29. CI on PR #109 is not repeated here; the code is input-equivalent.
+- **Sequence (R075 step-1 precedent):**
+  1. Verified `mw_agent` backup to `gs://mw-credit-operator-private-737787224638/promotion-packages/r084/`, then apply V8 (`scripts/agent-state-admin.py migrate`).
+  2. Pin S1 `a3646f30d9aeabad954b5b6c208ef1f5ff1617a5`: code of `d0e552b` with `service-catalogue.json` and the `SERVICE_CATALOGUE.md` table still at revision 29 (the live catalogue is revision 29, and `deploy-runtime.py` refuses a mismatch). `dry-run`, `freeze`, `install`, `activate`.
+  3. Config-only change 1: live catalogue to revision 31, the three new services disabled.
+  4. Synthetic Gemini turn on the VM: no Instagram, no history write.
+  5. Config-only change 2: `conversation_provider=gemini`, `conversation_sql_read_enabled=true`, `gemini_partner_conversation` and `conversation_sql_read` enabled in the catalogue, Codex kept enabled for rollback.
+  6. S2 is `d0e552b` itself (catalogue revision 31 in Git, equal to the live one). S2 was not deployed: the live catalogue was brought to revision 31 by the two config-only changes, and the checkout returned to `main`, so the next `deploy-runtime.py` run sees equal revisions.
+- **Recovery:** see Recovery above. Switch back by setting `conversation_provider` to `codex` (and `conversation_sql_read_enabled` to `false`). Code rollback: `deploy-runtime.py rollback --commit a3646f30d9aeabad954b5b6c208ef1f5ff1617a5` from the freeze backup. Catalogue: `/root/service-catalogue.json.pre-rev31` (29) or `/root/service-catalogue.json.pre-gemini-on` (after change 1); config: `/root/config.json.pre-gemini-on`. V8 stays applied. Pins and rollback go to the [environment inventory](../../project/Documents/Environment_Inventory.md#debian-agent-host) after deployment.
+- **Deployment (R084), 21 October 2026 (UTC):** checkout updated 11:54:59Z to 11:55:03Z; dry-run 11:55:23Z (matched the morning readback, missing [8]); backup `mw_agent-before-r084-gemini-20261021.dump` (sha256 `117a61c47c7eac098500812e323a8b5f76d2036a276ec0a9b17d09fafcbdfb10`, 46,940,826 bytes, restore verified 33 tables and 629,382 rows, `backup-report.json` MD5 matched, in `gs://mw-credit-operator-private-737787224638/promotion-packages/r084/`) taken 11:55:53Z to 11:58:34Z before the freeze, as for R082, with `--pg-bin /usr/lib/postgresql/18/bin` from the lab file; freeze 11:59:15Z (`runtime-20261021T115915803055Z`); V8 applied 11:59:26Z (sha256 `59251bafe18914877c66253977a8c10e6a2879bc6f59acf542259bffd187ddb6`); install 11:59:39Z (units unchanged); activate 11:59:52Z to 11:59:55Z (probe `e672df47-1f4d-4cc7-b869-727ac1f53590`, `/ready` code_version `a3646f30…`, failed none); verify 12:00:05Z (8 timers, wake path, workers success, resource-health clean); config change 1 12:00:21Z to 12:00:23Z (catalogue 29 to 31, three entries disabled); synthetic turn 12:00:34Z to 12:01:05Z (READY, finish VERIFIED, 510 characters, `sql_query`, `sql_query`, `finish`, 3 rounds, no retries, 30.8 s, 0 rows in `conversation_messages`; script outside Git, sha256 `d8eb7e8b…`); config change 2 12:01:33Z to 12:01:36Z (`conversation_provider=gemini`, `conversation_sql_read_enabled=true`, `gemini_partner_conversation`, `conversation_sql_read` and `persistent_codex_conversation` enabled, `claude_partner_conversation` disabled, `sending_enabled` false, receipt provider unchanged, thinking level `HIGH`); operator file shredded 12:01:47Z. First cycle after the switch: ok, 0 turns attempted. First real Partner turn on Gemini: not yet observed. Operator access: temporary root-only connection file, shredded as above.
+- **Outcome:** applied and verified (synthetic turn); owner acceptance is the owner's production instruction. The first real Partner turn is the business check.
+- **Follow-up:** the first genuine Partner question answered by Gemini is the business check; it stays one row in Development Changes until observed. Echo's cosmetic point from the synthetic reply: a subtracted "principal received" showed as a negative amount (presentation only).
+
+### Closure pruning (release workflow, 21 October 2026)
+- Deleted `Change Logs/CHANGE_NOTES_R081_PUSH_ENGLISH_NAME_2026-10-20.md` (R081 is outside the retention window of R084, R083 and R082); its tracker and Development Changes links now point to commit `31d04d91`, where it still exists.
+- The R084 Development Changes row became one follow-up row. Agent change notes are not pruned.
