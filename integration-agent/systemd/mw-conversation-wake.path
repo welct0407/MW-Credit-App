@@ -1,0 +1,12 @@
+[Unit]
+Description=Start the partner conversation cycle when a capture touches the conversation wake file
+
+[Path]
+# The receiver writes and closes this file in state_directory after a committed capture of a message the
+# conversation cycle may answer (the conversation poll feeds receipts only). The 15-second timer stays as
+# the fallback. A change while the cycle runs does not start it again; the cycle re-runs itself (rerun).
+PathChanged=/var/lib/mw-integration-agent/state/conversation-wake
+Unit=mw-partner-conversation.service
+
+[Install]
+WantedBy=paths.target

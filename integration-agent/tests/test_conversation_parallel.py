@@ -348,7 +348,7 @@ class InstructionsAndUsageTests(Base):
                     'reporting_borrower_payments_v1': {'status', 'borrower_id'},
                     'Charges': {'Ref Loans', 'Charge Date', 'Amount Remaining', 'Principal Remaining', 'Interest Remaining'},
                     'Loans': {'Ref Borrowers'},
-                    'Repayments': {'Interest Paid', 'Principal Paid', 'Ref Payment', 'Ref Loans'}}
+                    'Repayments': {'Interest Paid', 'Principal Paid', 'Row ID', 'Ref Loans'}}
         for view, columns in expected.items():
             self.assertLessEqual(columns, relations[view], view)
         for block in (fast, section):
@@ -357,8 +357,21 @@ class InstructionsAndUsageTests(Base):
             self.assertIn('within 7 days', flat)
             self.assertIn('3 month', flat.replace('3-month', '3 month'))
             self.assertIn('"Charge Date" > today', flat)
-            self.assertIn('"Ref Payment" not null', flat)  # interest/principal split (R2)
             self.assertIn('NULL', flat)  # overdue fallback (R3)
+            # R086: the split counts every repayment except the default-loss row; the payoff comes from the
+            # charge balances and loan_payoff (loan_close_calculation_v83, which ignored unlinked legacy
+            # repayments before V101) is a cross-check only.
+            self.assertIn("""Row ID" LIKE 'df10:%'""", flat)
+            self.assertIn('"Interest Remaining"', flat)
+            self.assertIn('cross-check', flat)
+            self.assertIn('two totals', flat)
+            self.assertIn('including future-dated recorded ones', flat)  # Chase R086: charges after today count
+            self.assertIn('Loan Close would refuse', flat)  # fractional or overpaid: the function raises
+        rules_flat = ' '.join(rules.replace('`', '').split())
+        self.assertNotIn('"Ref Payment" not null', rules_flat)
+        self.assertNotIn('"Ref Payment" not null', ' '.join(text.split()))
+        self.assertNotIn('Prefer calling it over recomputing', rules_flat)
+        self.assertIn('from the charge balances', text[text.index('COMMON QUESTIONS'):])
         common = text[text.index('COMMON QUESTIONS'):text.index('Signs: amounts received, paid')]
         self.assertNotIn('from Posted payments', common)
         self.assertIn('from the loan facts', common)

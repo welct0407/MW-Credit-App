@@ -30,7 +30,32 @@ INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Intere
 ('AC7-DUP-C2','AC7-DUP',current_date,0::money,20::money);
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-PART-FIRST','AC7-B','AC7-PART-C',current_date,50::money,'Single Partial','Processing');
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-PAID-FIRST','AC7-B','AC7-PAID-C',current_date,20::money,'Single Full','Processing');
+-- R086 (V101): legacy repayments without a "Ref Payment" (5 August to 18 September 2026) still pay their charges.
+-- Principal 100 at 10/day; LEGACY-C1 (20 + 10) and LEGACY-C2 (0 + 10) were paid by unlinked repayments; LEGACY-C3 (0 + 10)
+-- is unpaid. The principal repayment re-rates the loan to 8/day (80 x 10%). Payoff today = outstanding 80 + unpaid 10
+-- + one elapsed day 8 = 98. Before V101 the unlinked repayments were ignored: C1 and C2 looked unpaid again and the
+-- quote was 138, which the posting then refused because it differs from the eligible balance.
+INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
+VALUES('CI-LISA','AC7-LEGACY','AC7-B',current_date-5,100::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money);
+INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES
+('AC7-LEGACY-C1','AC7-LEGACY',current_date-3,20::money,10::money),
+('AC7-LEGACY-C2','AC7-LEGACY',current_date-2,0::money,10::money),
+('AC7-LEGACY-C3','AC7-LEGACY',current_date-1,0::money,10::money);
+INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Payment Date","Principal Paid","Interest Paid") VALUES
+('AC7-LEGACY-R1','AC7-LEGACY','AC7-LEGACY-C1',current_date-3,20::money,10::money),
+('AC7-LEGACY-R2','AC7-LEGACY','AC7-LEGACY-C2',current_date-2,0::money,10::money);
+-- A legacy principal repayment linked to no charge either: before V101 the close re-collected it (quote 118, posted,
+-- outstanding principal -20) because the inflated final charge matched the inflated quote. Now 80 + 10 + 8 = 98.
+INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
+VALUES('CI-LISA','AC7-UNLINKED','AC7-OTHER',current_date-5,100::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money);
+INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES ('AC7-UNLINKED-C','AC7-UNLINKED',current_date-1,0::money,10::money);
+INSERT INTO "Repayments"("Row ID","Ref Loans","Payment Date","Principal Paid","Interest Paid") VALUES ('AC7-UNLINKED-R','AC7-UNLINKED',current_date-3,20::money,0::money);
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" LIKE 'AC7-%';
+SELECT pg_temp.close_assert((SELECT "Ref Payment" IS NULL FROM "Repayments" WHERE "Row ID"='AC7-LEGACY-R1'),'legacy repayment has no receipt link');
+SELECT pg_temp.close_assert((SELECT (c->>'amount')::numeric=98 AND c->'mutation'->>'kind'='insert' AND (c->'mutation'->>'principal')::numeric=80
+  AND (c->'mutation'->>'interest')::numeric=8 AND jsonb_array_length(c->'allocations')=2
+  AND NOT c->'allocations' @> '[{"chargeId":"AC7-LEGACY-C1"}]' AND NOT c->'allocations' @> '[{"chargeId":"AC7-LEGACY-C2"}]'
+  FROM public.loan_close_calculation_v83('AC7-LEGACY',current_date) c),'payoff counts unlinked repayments: principal plus unpaid balances');
 DO $$ DECLARE n text; BEGIN FOREACH n IN ARRAY ARRAY['NONE','OLD','PART','PAID','SAME','FUTURE'] LOOP
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-P-'||n,'AC7-B','AC7-'||n,current_date,1::money,'Loan Close','Processing');
 END LOOP; END $$;
@@ -44,6 +69,18 @@ SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Payments" WHERE "Allocatio
 SELECT pg_temp.close_assert((SELECT "Amount Received"::numeric=120 FROM "Payments" WHERE "Row ID"='AC7-P-FUTURE'),'future principal already scheduled; no double charge');
 SELECT pg_temp.close_assert((SELECT count(*)=1 FROM "Charges" WHERE "Ref Loans"='AC7-FUTURE'),'no unnecessary today charge');
 SELECT pg_temp.close_assert((SELECT bool_and("Loan Status"='ปิดยอดแล้ว' AND "Ref Closing Payment"='AC7-P-'||substring("Row ID" from 5)) FROM "Loans" WHERE "Row ID" IN ('AC7-NONE','AC7-OLD','AC7-PART','AC7-PAID','AC7-SAME','AC7-FUTURE')),'all requested loans close causally');
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-P-LEGACY','AC7-B','AC7-LEGACY',current_date,1::money,'Loan Close','Processing');
+SELECT pg_temp.close_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=98 FROM "Payments" WHERE "Row ID"='AC7-P-LEGACY'),'legacy loan closes at principal plus unpaid balances');
+SELECT pg_temp.close_assert((SELECT "Loan Status"='ปิดยอดแล้ว' AND "Outstanding Principal"=0 FROM "Loans" WHERE "Row ID"='AC7-LEGACY'),'legacy loan closed with no principal left');
+SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Ref Payment"='AC7-P-LEGACY' AND "Ref Charges" IN ('AC7-LEGACY-C1','AC7-LEGACY-C2')),'charges paid by unlinked repayments are not paid again');
+SELECT pg_temp.close_assert((SELECT bool_and(v.remaining=0 AND v.pr=0 AND v.ir=0) FROM "Charges" c CROSS JOIN LATERAL public.vc_charge_values(c) v WHERE c."Ref Loans"='AC7-LEGACY'),'every legacy loan charge settled exactly');
+SELECT pg_temp.close_assert((SELECT sum("Principal Paid"::numeric)=100 FROM "Repayments" WHERE "Ref Loans"='AC7-LEGACY'),'principal repaid once in total');
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-P-UNLINKED','AC7-OTHER','AC7-UNLINKED',current_date,1::money,'Loan Close','Processing');
+SELECT pg_temp.close_assert((SELECT p."Status"='Posted' AND p."Amount Received"::numeric=98 AND l."Loan Status"='ปิดยอดแล้ว' AND l."Outstanding Principal"=0
+  FROM "Payments" p JOIN "Loans" l ON l."Row ID"=p."Ref Target Loan" WHERE p."Row ID"='AC7-P-UNLINKED'),'unlinked principal repayment is not collected again');
+-- The exclusion case still works: leaving out the closing receipt reproduces the plan it posted.
+SELECT pg_temp.close_assert((SELECT (c->>'amount')::numeric=98 AND c->>'excludedPayment'='AC7-P-LEGACY' AND c->'mutation'='null'::jsonb
+  FROM public.loan_close_calculation_v83('AC7-LEGACY',current_date,'AC7-P-LEGACY') c),'exclusion leaves out only the closing receipt');
 SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Payments" p WHERE p."Row ID" LIKE 'AC7-P-%' AND p."Amount Received"::numeric IS DISTINCT FROM (SELECT sum(r."Principal Paid"::numeric+r."Interest Paid"::numeric) FROM "Repayments" r WHERE r."Ref Payment"=p."Row ID")),'ledger conservation');
 UPDATE "Payments" SET "Status"='Processing',"Amount Received"="Amount Received" WHERE "Row ID"='AC7-P-NONE';
 SELECT pg_temp.close_assert((SELECT "Status"='Posted' FROM "Payments" WHERE "Row ID"='AC7-P-NONE'),'stale retry no-op');

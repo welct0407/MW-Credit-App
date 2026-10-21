@@ -15,7 +15,7 @@ CI kept failing whenever a branch added a migration, because tests and the backu
 | Command | Result |
 | --- | --- |
 | `npm test` | Pass, 765 of 765 |
-| `Run-R053OperatorIndependent.ps1 -LedgerOwner` (as `postgres`, disposable loopback cluster) | Pass at head V100; also passes with the R086 branch's `V101__loan_close_counts_unlinked_repayments.sql` copied in, the case that failed in run 39616869157 |
+| `Run-R053OperatorIndependent.ps1 -LedgerOwner` (as `postgres`, disposable loopback cluster) | Pass at head V100; passes again at V101 after merging `main` with R086 (#114), the case that failed in run 39616869157 |
 | R062 parser test with a synthetic `V101` file present | Pass |
 | `npm run check:docs` | Pass, 0 failures |
 | `npx biome lint` on the changed files | One warning, already present on `main` (line 36, unused `url`) |

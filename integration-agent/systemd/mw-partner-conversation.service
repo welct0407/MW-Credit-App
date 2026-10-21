@@ -2,6 +2,9 @@
 Description=M&W persistent partner conversations
 After=network-online.target cloud-sql-auth-proxy.service mw-instagram-webhook.service
 Wants=network-online.target cloud-sql-auth-proxy.service
+# The conversation wake path can start this oneshot in bursts; a duplicate start returns already_running.
+# Default start limits (5 per 10 s) would fail the path unit with start-limit-hit.
+StartLimitIntervalSec=0
 
 [Service]
 Type=oneshot

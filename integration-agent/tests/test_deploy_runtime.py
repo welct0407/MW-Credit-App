@@ -71,10 +71,12 @@ class RuntimeDeploymentTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 runtime.probe({}, {}, '11111111-1111-4111-8111-111111111111')
 
-    def test_runtime_deploy_pauses_and_installs_the_receipt_wake_path(self):
-        # B1: the code-only route shares the engine's unit and trigger lists.
-        self.assertIn('mw-receipt-wake.path', base.UNIT_FILES)
-        self.assertIn('mw-receipt-wake.path', base.TRIGGERS)
+    def test_runtime_deploy_pauses_and_installs_the_wake_paths(self):
+        # R082 B1 and R086: the code-only route shares the engine's unit and trigger lists.
+        for name in ('mw-receipt-wake.path', 'mw-conversation-wake.path'):
+            with self.subTest(unit=name):
+                self.assertIn(name, base.UNIT_FILES)
+                self.assertIn(name, base.TRIGGERS)
 
     def test_shipped_migrations_match_the_migration_runner(self):
         # The preflight compares with deployment.schema_history as state_migration.migrate writes it.

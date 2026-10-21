@@ -245,9 +245,10 @@ def relation_entry(document):
 # on a routine that is none of these.
 ALLOWED = {
     'public.loan_close_calculation_v83(p_loan text, p_day date)': (
-        'Authoritative payoff of an open, auto-enabled Daily Interest loan on p_day (amount, allocations, mutation, '
-        'planHash); raises P0001 for any other loan.',
-        'Prefer the loan_payoff tool; call directly only for a date other than today.'),
+        "The system's Loan Close calculation for an open, auto-enabled Daily Interest loan on p_day (amount, allocations, "
+        'mutation, planHash); raises P0001 for any other loan.',
+        'Cross-checking the charge-balance payoff (business rules section 6) through the loan_payoff tool; call '
+        'directly only for a date other than today.'),
     'public.loan_close_calculation_v83(p_loan text, p_day date, p_exclude_payment text)': (
         'The same payoff computed as if closing payment p_exclude_payment did not exist (correction preview).',
         '"What would the payoff have been without payment X".'),

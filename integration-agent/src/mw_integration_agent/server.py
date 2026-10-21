@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from .config import ConfigurationError, load_controls, load_json, load_secret, validate_catalogue, validate_config
 from .journal import IngressJournal
-from .receipt_wake import wake, wakes
+from .receipt_wake import CONVERSATION, converses, wake, wakes
 from .webhook import extract_messages, verify_signature
 
 PACKAGE = Path(__file__).resolve().parent
@@ -212,8 +212,12 @@ def handler(config_path: str, catalogue_path: str):
                     _, inserted = journal.capture(hashlib.sha256(raw).hexdigest(), messages, stats=stats)
                 finally:
                     journal.close()
+                # After the capture committed (journal closed): a wake never precedes the row it announces,
+                # and never fails the delivery; each worker's timer is the fallback.
                 if inserted and any(wakes(m) for m in messages):
-                    wake(config)  # never fails the delivery; the timer is the fallback
+                    wake(config)
+                if inserted and any(converses(m) for m in messages):
+                    wake(config, CONVERSATION)
                 self.respond(200, "EVENT_RECEIVED")
             except Exception as exc:
                 self.report("POST", exc)

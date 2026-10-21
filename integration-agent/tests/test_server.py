@@ -206,6 +206,37 @@ class ReceiverTests(unittest.TestCase):
             self.assertEqual(post(payload('m4', image=True)), (200, 'EVENT_RECEIVED'))
         self.assertFalse(wake.exists())
 
+    def test_capture_wakes_conversation_cycle_only_for_new_conversation_messages(self):
+        # R086: <state_directory>/conversation-wake starts mw-partner-conversation.service through its path unit.
+        state = Path(self.fixture.config['state_directory'])
+        talk, receipt = state / 'conversation-wake', state / 'receipt-wake'
+        def payload(mid, text='', image=False, reply=None):
+            message = {'mid': mid, 'text': text}
+            if image:message['attachments'] = [{'type': 'image', 'payload': {'url': 'https://cdn.invalid/receipt'}}]
+            if reply:message['reply_to'] = {'mid': reply}
+            return json.dumps({'object': 'instagram', 'entry': [{'id': '100', 'messaging': [
+                {'sender': {'id': '200'}, 'recipient': {'id': '100'}, 'timestamp': int(time.time() * 1000), 'message': message}]}]}).encode()
+        def post(raw, signed=True):
+            return self.request('POST', '/instagram', body=raw, headers=self.signed(raw) if signed else {})
+        def clear():
+            for path in (talk, receipt):path.unlink(missing_ok=True)
+        question = payload('q1', text='how much is overdue?')
+        self.assertEqual(post(question, signed=False), (403, 'Forbidden')); self.assertFalse(talk.exists())
+        with patch('mw_integration_agent.server.IngressJournal.capture', side_effect=RuntimeError('database down')), \
+             patch('sys.stderr', new_callable=io.StringIO):
+            self.assertEqual(post(question), (503, 'Unavailable'))  # a failed capture never wakes
+        self.assertFalse(talk.exists())
+        self.assertEqual(post(question), (200, 'EVENT_RECEIVED')); self.assertTrue(talk.exists()); self.assertFalse(receipt.exists())
+        clear(); self.assertEqual(post(question), (200, 'EVENT_RECEIVED')); self.assertFalse(talk.exists())  # redelivery
+        for raw in (payload('r1', image=True), payload('r2', text='yes', reply='out'), payload('r3', text=' Review ')):
+            self.assertEqual(post(raw), (200, 'EVENT_RECEIVED'))
+            self.assertFalse(talk.exists()); self.assertTrue(receipt.exists()); clear()
+        self.assertEqual(post(payload('b1', text='slip for Somchai', image=True)), (200, 'EVENT_RECEIVED'))
+        self.assertTrue(talk.exists()); self.assertTrue(receipt.exists()); clear()  # both apply: both are touched
+        with patch('mw_integration_agent.receipt_wake.path', return_value=state / 'missing' / 'conversation-wake'):
+            self.assertEqual(post(payload('q2', text='and today?')), (200, 'EVENT_RECEIVED'))  # a failed touch is swallowed
+        self.assertFalse(talk.exists())
+
     def errors(self, method, path, body=None, headers=None):
         with patch('sys.stderr', new_callable=io.StringIO) as stderr:
             result = self.request(method, path, body=body, headers=headers)

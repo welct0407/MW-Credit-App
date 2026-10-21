@@ -119,7 +119,8 @@ def execute(args, outcome=None) -> int:
             return 0
         if args.command == 'partner-conversation-cycle':
             from .partner_conversation import run
-            print(json.dumps(run(args.config, args.catalogue)))
+            from .receipt_wake import CONVERSATION, more_turns, rerun
+            print(json.dumps(rerun(run, args.config, args.catalogue, CONVERSATION, again=more_turns)))
             return 0
         if args.command=='receipt-reconsider':
             from .receipt_reconsider import run

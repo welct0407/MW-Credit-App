@@ -123,6 +123,23 @@ class TriggerUnitTests(unittest.TestCase):
         # The 20-second timer stays as the fallback for retries, expiries and a wake missed during a run.
         self.assertEqual(parse(UNITS / 'mw-receipt-summary.timer')['Timer']['OnUnitInactiveSec'], ['20s'])
 
+    def test_conversation_wake_path_starts_the_conversation_cycle_from_the_state_directory(self):
+        # R086: only the receiver touches <state_directory>/conversation-wake (the conversation poll feeds receipts).
+        unit = parse(UNITS / 'mw-conversation-wake.path')
+        state = json.loads((UNITS.parent / 'config.example.json').read_text(encoding='utf-8'))['state_directory']
+        self.assertEqual(unit['Path'], {'PathChanged': [state + '/conversation-wake'],
+                                        'Unit': ['mw-partner-conversation.service']})
+        self.assertEqual(unit['Install'], {'WantedBy': ['paths.target']})
+        for name in ('mw-partner-conversation', RECEIVER):
+            with self.subTest(unit=name):
+                paths = words(parse(UNITS / (name + '.service'))['Service'], 'ReadWritePaths')
+                self.assertTrue(any(state == p or state.startswith(p.rstrip('/') + '/') for p in paths))
+        service = parse(UNITS / 'mw-partner-conversation.service')
+        self.assertEqual(service['Unit'].get('StartLimitIntervalSec'), ['0'])
+        self.assertEqual(service['Service']['Type'], ['oneshot'])
+        # The 15-second timer stays as the fallback for a wake missed during a run or a failed touch.
+        self.assertEqual(parse(UNITS / 'mw-partner-conversation.timer')['Timer']['OnUnitInactiveSec'], ['15s'])
+
     def test_conversation_poll_runs_every_minute(self):
         # B2 (owner, 20 October 2026): one scan per minute, 60 requests per hour.
         timer = parse(UNITS / 'mw-conversation-poll.timer')

@@ -67,8 +67,9 @@ CLAUDE_TOOLS = TOOLS + [
          'dollar quoting, E strings, row locks, writes or side-effect functions; at most 8000 characters; 20 s limit. Quote mixed-case '
          'identifiers exactly ("Loans"."Row ID"). Returns at most 500 rows with distinct column names; aggregate in '
          'SQL instead of paging through rows; at most 256 KB per result. Use the schema digest in the system prompt.', {'sql': STR}),
-    spec('loan_payoff', "Today's payoff (Bangkok) for one open Daily Interest loan from the system's own loan close "
-         'calculation, by exact loan Row ID. Returns eligible=false with the reason for any other loan.',
+    spec('loan_payoff', "Cross-check of today's payoff (Bangkok) for one open Daily Interest loan from the system's own "
+         'loan close calculation, by exact loan Row ID; report the charge-balance payoff of the business rules. '
+         'Returns eligible=false with the reason for any other loan.',
          {'loan_id': STR}),
 ]
 CLAUDE_FINISH_LIMIT = 1000  # code points (Echo CONV-UX-08); Codex keeps its own 12,000 bound
