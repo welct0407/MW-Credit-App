@@ -53,7 +53,7 @@ Stop if the two history md5 values differ, if PROD's head is above DEV's, or if 
 python3 scripts/database/Refresh-DevCatalog.py snapshot --identity read --fingerprints --out $E/dev-catalog-before.json
 pwsh -NoProfile -c ". scripts/database/Common.ps1; Get-DbEnvironment development -Admin | Out-Null"   # the role CLI needs the admin credential file
 node scripts/database/application-role-cli.mjs --action plan | tee $E/phase1-role-plan.txt   # expect 0 violations; it prints its full idempotent set (501 statements on 21 October)
-python3 scripts/configure-dev-read-role.py | tee $E/phase1-read-role.txt || true             # known to fail "Unexpected business SELECT privilege" (stale allowlist); keep the output for the after comparison
+python3 scripts/configure-dev-read-role.py | tee $E/phase1-read-role.txt                     # expect "statements": []
 python3 scripts/database/Backup-ProductionPromotion.py --environment development --expected-version 100 \
   --approval-reference '<owner refresh instruction, date>' | tee $E/dev-backup.json
 ```

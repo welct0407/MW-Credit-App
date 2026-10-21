@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ROLE = 'mw-credit-app-read-dev@clever-oasis-508610-n7.iam'
 COLUMNS = {
     'Borrowers': ['Row ID', 'Borrower Name', 'Creation Date', 'Hidden Flag', 'Total Outstanding Principal', 'Has Active Loan', 'Borrower Note', 'Description', 'Total Interest Earned'],
-    'Partners': ['Row ID', 'Login Email'],
+    'Partners': ['Row ID', 'Login Email', 'Partner Role'],
     'Charges': ['Row ID', 'Ref Loans', 'Charge Date', 'Payment Status', 'Payment Date', 'Amount Remaining', 'Total Paid'],
     'Repayments': ['Ref Charges', 'Payment Date', 'Principal Paid', 'Interest Paid'],
     'Loans': ['Row ID', 'Ref Borrowers', 'Loan Date', 'Due Date', 'Close Date', 'Loan Type', 'Loan Status', 'Principal Amount', 'Outstanding Principal', 'Total Principal Received', 'Total Interest Received', 'Total Amount Received', 'Defaulted', 'Auto Charge Enabled', 'Original Daily Interest Rate'],
@@ -51,11 +51,14 @@ def inspect(conn):
     members = [r[0] for r in conn.execute("SELECT rolname FROM pg_roles WHERE rolname<>%s AND pg_has_role(%s,oid,'MEMBER') ORDER BY 1", (ROLE, ROLE))]
     if members != ['cloudsqliamserviceaccount']:
         raise RuntimeError('Unexpected role memberships')
+    # Only schemas the reader can use: the pg_stat_statements extension grants its views in `monitoring`
+    # (V93) to PUBLIC, but without USAGE on that schema the reader cannot reach them.
     readable = conn.execute("""SELECT n.nspname,c.relname,a.attname FROM pg_class c
         JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_attribute a ON a.attrelid=c.oid
         WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND n.nspname !~ '^pg_'
         AND c.relkind IN ('r','v','m','p') AND a.attnum>0 AND NOT a.attisdropped
-        AND has_column_privilege(%s,c.oid,a.attnum,'SELECT') ORDER BY 1,2,3""", (ROLE,)).fetchall()
+        AND has_schema_privilege(%s,n.oid,'USAGE')
+        AND has_column_privilege(%s,c.oid,a.attnum,'SELECT') ORDER BY 1,2,3""", (ROLE, ROLE)).fetchall()
     expected = {('public', table, col) for table, cols in COLUMNS.items() for col in cols}
     if not set(readable).issubset(expected):
         raise RuntimeError('Unexpected business SELECT privilege')

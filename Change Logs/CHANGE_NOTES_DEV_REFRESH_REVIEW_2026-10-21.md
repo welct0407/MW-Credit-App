@@ -24,7 +24,7 @@ No live read or write; the live run's evidence folder in the private bucket was 
 Git baseline `cf781bf`; additive script changes and documents only.
 
 ## Open questions
-Whether to bring the `configure-dev-read-role.py` allowlist up to the reader's current grants (`monitoring.pg_stat_statements*`, `Partners."Partner Role"`) in a separate batch; it needs the provenance of those grants.
+None. The `configure-dev-read-role.py` allowlist follow-up was closed the same day ([change note](CHANGE_NOTES_DEV_READ_ROLE_ALLOWLIST_2026-10-21.md)).
 
 ## Remaining work
 None for the refresh. The next refresh follows the runbook as it now stands.
