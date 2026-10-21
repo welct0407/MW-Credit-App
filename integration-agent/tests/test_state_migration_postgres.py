@@ -122,9 +122,9 @@ class FreshCentralMigrationTests(unittest.TestCase):
 
     def test_first_run_applies_every_version_in_order_with_pinned_hashes(self):
         names = [p.name for p in self.files]
-        self.assertEqual(names[:7], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
+        self.assertEqual(names[:8], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
                                      'V3__job_ownership.sql', 'V4__receipt_evidence.sql', 'V5__audit_retention_identity.sql',
-                                     'V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql'])
+                                     'V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql'])
         self.assertEqual(self.first, {'applied': names, 'versions': len(names)})
         expected = [(version(p), p.name, hashlib.sha256(p.read_text(encoding='utf-8').encode()).hexdigest()) for p in self.files]
         self.assertEqual([tuple(row) for row in self.after_first], expected)
@@ -168,6 +168,10 @@ class FreshCentralMigrationTests(unittest.TestCase):
             self.assertEqual(grants, [('mw_agent_auditor', 'SELECT'), ('mw_agent_retention', 'SELECT'), ('mw_agent_worker', 'INSERT,SELECT,UPDATE')])
             self.assertEqual(conn.execute("SELECT count(*) FROM pg_trigger WHERE tgrelid='runtime.service_heartbeats'::regclass AND NOT tgisinternal").fetchone()[0], 0)
 
+    def test_v8_conversation_messages_are_append_only(self):
+        with psycopg.connect(**self.agent) as conn:
+            assert_conversation_messages(self, conn)
+
 
 @unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')
 class IncrementalV6Tests(unittest.TestCase):
@@ -197,11 +201,89 @@ class IncrementalV6Tests(unittest.TestCase):
                 (Path(directory) / path.name).write_bytes(path.read_bytes())
             self.assertEqual(state_migration.migrate(conn, directory)['applied'][-1], 'V5__audit_retention_identity.sql')
             self.assertIsNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
-            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql'])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql',
+                                                                                  'V8__conversation_messages.sql'])
             self.assertIsNotNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
-            self.assertEqual([row[1] for row in history(conn)][-3:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
-                                                                       'V7__notice_accepted_at.sql'])
+            self.assertEqual([row[1] for row in history(conn)][-4:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
+                                                                       'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql'])
+
+
+def assert_conversation_messages(case, conn):
+    """V8: grants, the provider/role and JSON array checks and the statement-level append-only trigger."""
+    grants = conn.execute('''SELECT grantee,string_agg(privilege_type,',' ORDER BY privilege_type) FROM information_schema.role_table_grants
+        WHERE table_schema='runtime' AND table_name='conversation_messages' AND grantee<>'mw_agent_owner' GROUP BY grantee ORDER BY grantee''').fetchall()
+    case.assertEqual(grants, [('mw_agent_auditor', 'SELECT'), ('mw_agent_worker', 'INSERT,SELECT')])
+    binding, digest = 'a' * 64, 'b' * 64
+    row = (binding, 0, 0, 'event1', 'claude', 'user', '[{"type":"text","text":"x"}]', digest)
+    insert = '''INSERT INTO runtime.conversation_messages(binding,epoch,seq,message_id,provider,role,content,prompt_sha256)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'''
+    with conn.transaction():
+        conn.execute('SET LOCAL ROLE mw_agent_worker')
+        conn.execute(insert, row)
+        stored = conn.execute('SELECT provider,content,input_tokens FROM runtime.conversation_messages WHERE binding=%s', (binding,)).fetchone()
+        case.assertEqual(tuple(stored), ('claude', '[{"type":"text","text":"x"}]', None))
+        # Model JSON may carry \u0000 escapes: stored verbatim (json, not jsonb, validates the array).
+        nul = '[{"type":"text","text":"a\\u0000b"}]'
+        conn.execute(insert, (binding, 0, 1, 'event1', 'claude', 'assistant', nul, digest))
+        case.assertEqual(conn.execute('SELECT content FROM runtime.conversation_messages WHERE seq=1').fetchone()[0], nul)
+        # A Gemini epoch stores user/model contents.
+        parts = '[{"functionCall":{"name":"finish","args":{},"id":"call_1"},"thoughtSignature":"AY89"}]'
+        conn.execute(insert, (binding, 1, 0, 'event2', 'gemini', 'user', '[{"text":"q"}]', digest))
+        conn.execute(insert, (binding, 1, 1, 'event2', 'gemini', 'model', parts, digest))
+    for statement in ('UPDATE runtime.conversation_messages SET role=\'assistant\'', 'DELETE FROM runtime.conversation_messages',
+                      'TRUNCATE runtime.conversation_messages'):
+        with case.subTest(statement=statement), case.assertRaises(psycopg.Error):
+            with conn.transaction():
+                conn.execute(statement)  # as the superuser: the trigger, not a grant, refuses it
+    with case.assertRaises(psycopg.errors.InsufficientPrivilege), conn.transaction():
+        conn.execute('SET LOCAL ROLE mw_agent_worker')
+        conn.execute('UPDATE runtime.conversation_messages SET role=\'assistant\'')
+    for bad in ((binding, 0, 2, 'event1', 'claude', 'user', '{"not":"an array"}', digest),
+                (binding, 0, 2, 'event1', 'claude', 'user', 'not json', digest),
+                (binding, 0, 2, 'event1', 'claude', 'system', '[]', digest),
+                (binding, 0, 2, 'event1', 'claude', 'model', '[]', digest),
+                (binding, 0, 2, 'event1', 'gemini', 'assistant', '[]', digest),
+                (binding, 0, 2, 'event1', 'openai', 'user', '[]', digest),
+                (binding, 0, 2, 'event1', None, 'user', '[]', digest),
+                (binding, 0, 0, 'event1', 'claude', 'user', '[]', digest)):
+        with case.subTest(row=bad[4:7]), case.assertRaises(psycopg.Error), conn.transaction():
+            conn.execute(insert, bad)
+    case.assertEqual(conn.execute('SELECT count(*) FROM runtime.conversation_messages').fetchone()[0], 4)
+    case.assertEqual(conn.execute("SELECT count(*) FROM pg_trigger WHERE tgrelid='runtime.conversation_messages'::regclass AND NOT tgisinternal").fetchone()[0], 1)
+
+
+@unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')
+class IncrementalV8Tests(unittest.TestCase):
+    """V8 on a server already at V7 (the production path): only V8 applies and history becomes append-only."""
+
+    def test_v8_applies_on_top_of_v7(self):
+        server = {**conninfo_to_dict(os.environ['MW_AGENT_FRESH_PG_DSN']), 'dbname': 'postgres'}
+        if server.get('host') not in ('127.0.0.1', 'localhost') or int(server.get('port') or 5432) == 5432:
+            raise RuntimeError('Refusing a non-disposable target: loopback host and non-default port required')
+        with psycopg.connect(**server, autocommit=True) as conn:
+            if conn.execute("SELECT 1 FROM pg_database WHERE datname='mw_agent'").fetchone() or \
+                    conn.execute('SELECT 1 FROM pg_roles WHERE rolname=ANY(%s)', (list(ROLES),)).fetchone():
+                raise RuntimeError('Refusing a server that already has the agent database or roles')
+
+        def drop_created():
+            with psycopg.connect(**server, autocommit=True) as conn:
+                conn.execute('DROP DATABASE IF EXISTS mw_agent WITH (FORCE)')
+                for role in ROLES:
+                    conn.execute(sql.SQL('DROP ROLE IF EXISTS {}').format(sql.Identifier(role)))
+        self.addCleanup(drop_created)
+        with psycopg.connect(**server, autocommit=True, options=APPROVAL) as conn:
+            for statement in statements(BOOTSTRAP.read_text(encoding='utf-8')):
+                conn.execute(statement)
+        with tempfile.TemporaryDirectory(prefix='mw-agent-v7-') as directory, \
+                psycopg.connect(**{**server, 'dbname': 'mw_agent'}, autocommit=True) as conn:
+            for path in sorted(MIGRATIONS.glob('V[1-7]__*.sql')):
+                (Path(directory) / path.name).write_bytes(path.read_bytes())
+            self.assertEqual(state_migration.migrate(conn, directory)['applied'][-1], 'V7__notice_accepted_at.sql')
+            self.assertIsNone(conn.execute("SELECT to_regclass('runtime.conversation_messages')").fetchone()[0])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V8__conversation_messages.sql'])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
+            assert_conversation_messages(self, conn)
 
 
 if __name__ == '__main__':

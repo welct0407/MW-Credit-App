@@ -3,9 +3,11 @@ import contextlib
 import contextvars
 import importlib.util
 import io
+import hashlib
 import json
 import os
 from pathlib import Path
+import sqlite3
 import tempfile
 import threading
 import time
@@ -294,6 +296,40 @@ class PostgreSQLStateTests(unittest.TestCase):
             receipt.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key,1.0))
             receipt.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key,2.0))
         self.assertEqual(receipt.db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(self.key,)).fetchone()[0],2.0)
+
+    def test_claude_history_commits_with_ready_verbatim_and_append_only(self):
+        store=ConversationStore('partner-conversations.db',self.config)
+        binding=hashlib.sha256(self.key.encode()).hexdigest()
+        content='[{"type":"thinking","thinking":"","signature":"c2ln"},{"type":"tool_use","id":"t1","name":"finish","input":{"status":"CLARIFY","message":"ไทย","observations":[]}}]'
+        history={'binding':binding,'epoch':0,'seq':0,'provider':'claude','prompt_sha256':'b'*64,'input_tokens':1234,
+                 'messages':[{'role':'user','content':'[{"type":"text","text":"q"}]'},{'role':'assistant','content':content},
+                             {'role':'user','content':'[{"type":"tool_result","tool_use_id":"t1","content":"{}"}]'}]}
+        event={'message_id':self.key,'sender_id':'999'}
+        self.assertTrue(store.reserve(event,binding,{'id':'p'}))
+        store.finish(self.key,'READY',{'status':'CLARIFY','message':'ไทย'},history=history)
+        epoch,rows=store.history(binding)
+        self.assertEqual(epoch,0)
+        self.assertEqual({r['provider'] for r in rows},{'claude'})
+        self.assertEqual([(r['seq'],r['role'],r['content'],r['input_tokens']) for r in rows],
+                         [(0,'user',history['messages'][0]['content'],None),(1,'assistant',content,None),(2,'user',history['messages'][2]['content'],1234)])
+        # A conflicting write rolls back the READY outcome with it.
+        other={'message_id':self.key+'-2','sender_id':'999'}
+        store.reserve(other,binding,{'id':'p'})
+        with self.assertRaises(sqlite3.IntegrityError):
+            store.finish(other['message_id'],'READY',{'status':'CLARIFY','message':'x'},history=history)
+        self.assertEqual(store.db.execute('SELECT status FROM turns WHERE message_id=?',(other['message_id'],)).fetchone()[0],'RUNNING')
+        self.assertEqual(len(store.history(binding)[1]),3)
+        with psycopg.connect(**self.admin) as c:
+            with self.assertRaises(psycopg.Error):
+                c.execute('UPDATE runtime.conversation_messages SET role=%s WHERE binding=%s',('assistant',binding))
+        # The earlier-conversation transcript reads finished turns here and partner text from ingress.
+        self.assertEqual([(t['message_id'],t['status']) for t in store.exchanges(binding)],[(self.key,'READY')])
+        ingress=IngressJournal('instagram-ingress.db',self.config)
+        ingress.capture(self.key+'-ingress',[{'message_id':self.key,'sender_id':'999','timestamp':time.time(),'text':'ยอดค้าง?','attachments':[]}])
+        from mw_integration_agent.claude_conversation import partner_texts
+        texts=partner_texts(dict(self.config,state_directory='/unused'),[self.key,self.key+'-absent'])
+        self.assertEqual(list(texts),[self.key])
+        self.assertEqual(texts[self.key][0],'ยอดค้าง?')
 
     def test_rollback_includes_audit(self):
         store=ConversationStore('partner-conversations.db',self.config)

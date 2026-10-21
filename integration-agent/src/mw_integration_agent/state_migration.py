@@ -113,7 +113,7 @@ def import_journals(conn, source, config, batch_id, source_commit):
                         if col in columns:
                             statuses[col]={str(k):v for k,v in old.execute('SELECT "'+col+'",count(*) FROM "'+name+'" GROUP BY "'+col+'"')}
                 else:
-                    if name not in ('conversation_operations','conversation_dml','conversation_dml_inserts'):
+                    if name not in ('conversation_operations','conversation_dml','conversation_dml_inserts','conversation_messages'):
                         raise ConfigurationError('EXPECTED_SOURCE_TABLE_MISSING:'+name)
                     rows=[];readback=conn.execute(sql.SQL('SELECT 1 FROM {}').format(relation)).fetchall()
                     if readback:raise ConfigurationError('ABSENT_SOURCE_NONEMPTY_TARGET')

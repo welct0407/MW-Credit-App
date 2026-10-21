@@ -25,7 +25,7 @@ TABLES = {
         'partner_reviews','partner_review_replies','conversation_poll_state','conversation_poll_messages','receipt_reconsiderations',
         'receipt_assets','receipt_payment_links')},
     'partner-conversations.db': {'conversations':'conversations','turns':'conversation_turns','tool_calls':'conversation_tool_calls',
-        **{x:x for x in ('conversation_operations','conversation_dml','conversation_dml_inserts')}},
+        **{x:x for x in ('conversation_operations','conversation_dml','conversation_dml_inserts','conversation_messages')}},
     'partner-notices.db': {'partner_notices':'partner_notices'},
     'conversation-notices.db': {'partner_notices':'partner_notices'},
     'cash-statement-delivery.db': {x:x for x in ('cash_statement_sends','cash_statement_emails')},

@@ -161,6 +161,20 @@ The owner authorized the receiver, two-way transport foundation, daily cash stat
 
 The [receipt recognition API](RECEIPTS.md#receipt-recognition-api) (`mw-receipt-recognition.service`, catalogue revision 29) is implemented but not authorized: install the unit disabled and keep `receipt_recognition_enabled=false` and its catalogue entry off until the owner enables it, DEV first. Rolling out catalogue revision 29 needs the same two-step route as revision 28 ([details](RECEIPTS.md#receipt-recognition-api)). Switching the Instagram receipt cycle to Gemini (`receipt_extraction_provider`) is a separate owner authorization.
 
+## Partner conversation provider: activation and rollback
+
+Implemented 21 October 2026, default off: `conversation_provider` is `codex` and `conversation_sql_read_enabled` is `false`. The intended provider at activation is `gemini` (`gemini-4-argon` on Vertex AI); `claude` stays switchable. Detail: [Partner conversations](PARTNER_CONVERSATIONS.md#conversation-providers-21-october-2026).
+
+Prerequisites. Gemini: none beyond the VM service account's existing `roles/aiplatform.user`; the model answers on `global` with dynamic shared quota (no per-project quota row), the Vertex AI API is enabled and egress works. No IAM, key, secret or infrastructure change. Claude (only if chosen instead): the owner enabled the model in Model Garden, but Google rejected the `global` `anthropic-claude-opus` quota request (new account), so a quota grant is needed first.
+
+Deploy order:
+
+1. Apply agent migration V8 first (the owner decided on 21 October 2026 that V8 is applied in PROD together with activation and needs no separate approval; activation itself still needs the owner's go), through the existing guarded state migration path (`scripts/agent-state-admin.py migrate`, see [PostgreSQL operations](POSTGRESQL_OPERATIONS.md#claude-and-gemini-conversation-history-agent-v8)); `install` and `activate` refuse until `deployment.schema_history` holds it.
+2. Deploy the code with `scripts/deploy-runtime.py` ([above](#deploying-a-reviewed-commit)). The catalogue gains revisions 30 and 31, so the live and repository catalogues must agree; follow the two-step route used for revisions 28 and 29. With the defaults, behaviour is unchanged.
+3. Activation is a separate owner-authorized step: with a config-only change (stop the worker timers, edit, `check`, resume) set `gemini_project` (and any other `gemini_conversation_*` key; `gemini_conversation_model` accepts only `gemini-4-argon`), run one synthetic Partner turn, then set `conversation_provider` to `gemini`. For Claude use the `claude_*` keys and `claude` instead. Enable `conversation_sql_read_enabled` only after the owner has authorized it and the existing `mw_integration_agent` grants are confirmed.
+
+Rollback: set `conversation_provider` back to `codex` (and `conversation_sql_read_enabled` to `false`) with the same config-only change. The Partner's Codex thread resumes; Gemini and Claude history rows stay in `runtime.conversation_messages` and are not deleted. Replies already queued are delivered normally; an unknown send is never retried. V8 stays applied. Switching between `gemini` and `claude` is the same config change and starts a new, seeded epoch.
+
 ## Conversation polling
 
 The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs every minute (since 20 October 2026; five minutes before) for conversations containing AI-enabled borrowers. Browser automation is prohibited. History gaps fail without advancing the checkpoint; inspect mw-conversation-poll.service for errors. Financial writes remain disabled.

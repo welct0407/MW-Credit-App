@@ -226,5 +226,108 @@ class ConfigurationTests(unittest.TestCase):
                     receipt_projection.project(config, {}, {})
 
 
+class ConversationProviderTests(unittest.TestCase):
+    """Claude provider settings and the conversation SQL switch (claude_partner_conversation, conversation_sql_read)."""
+
+    def example(self, **changes):
+        config = load_json(ROOT / "config.example.json")
+        config.update(changes)
+        return config
+
+    def test_example_ships_codex_with_claude_defaults_and_sql_off(self):
+        config = self.example()
+        self.assertEqual((config["conversation_provider"], config["conversation_sql_read_enabled"]), ("codex", False))
+        self.assertEqual((config["claude_model"], config["claude_effort"], config["claude_location"],
+                          config["claude_seed_history_chars"]), ("claude-opus-5-5", "high", "global", 40000))
+        validate_config(config)
+        catalogue = load_json(ROOT / "service-catalogue.json")
+        for name in ("claude_partner_conversation", "conversation_sql_read"):
+            self.assertEqual(catalogue["services"][name], {"enabled": False, "implemented": True})
+        catalogue["services"]["claude_partner_conversation"]["enabled"] = True
+        validate_catalogue(catalogue)
+        catalogue["services"]["conversation_sql_read"].update(enabled=True, implemented=False)
+        with self.assertRaises(ConfigurationError):
+            validate_catalogue(catalogue)
+
+    def test_provider_allowlist_and_defaults(self):
+        validate_config(self.example(conversation_provider="claude"))
+        bare = {k: v for k, v in self.example().items() if not k.startswith("claude_")}
+        validate_config(bare)  # codex needs no claude keys
+        with self.assertRaisesRegex(ConfigurationError, "claude_project"):
+            validate_config(dict(bare, conversation_provider="claude"))
+        validate_config(dict(bare, conversation_provider="claude", claude_project="clever-oasis-508610-n7"))
+        for value in ("openai", "Claude", None, ""):
+            with self.subTest(provider=value), self.assertRaisesRegex(ConfigurationError, "conversation_provider"):
+                validate_config(self.example(conversation_provider=value))
+
+    def test_claude_settings_bounds_and_model_allowlist(self):
+        bad = {"claude_model": ["claude-opus-5", "claude-sonnet-5-5", "claude-opus-5-5@20260101", None],
+               "claude_effort": ["none", "HIGH", None],
+               "claude_location": ["", "us east", "asia_southeast1"],
+               "claude_project": ["", "Project", "x"],
+               "claude_request_timeout_seconds": [29, 601, 300.0, True],
+               "claude_max_tool_rounds": [3, 41, "24"],
+               "claude_history_token_limit": [49999, 400001, None],
+               "claude_seed_history_chars": [-1, 200001, "40000", 1.5, None]}
+        for key, values in bad.items():
+            for value in values:
+                with self.subTest(key=key, value=value), self.assertRaises(ConfigurationError):
+                    validate_config(self.example(conversation_provider="claude", **{key: value}))
+        for key, value in (("claude_request_timeout_seconds", 30), ("claude_request_timeout_seconds", 600),
+                           ("claude_max_tool_rounds", 4), ("claude_max_tool_rounds", 40), ("claude_effort", "max"),
+                           ("claude_history_token_limit", 50000), ("claude_location", "asia-southeast1"),
+                           ("claude_seed_history_chars", 0), ("claude_seed_history_chars", 200000)):
+            validate_config(self.example(conversation_provider="claude", **{key: value}))
+        with self.assertRaisesRegex(ConfigurationError, "must not exceed conversation_timeout_seconds"):
+            validate_config(self.example(conversation_provider="claude", conversation_timeout_seconds=120))
+        validate_config(self.example(conversation_provider="claude", conversation_timeout_seconds=120,
+                                     claude_request_timeout_seconds=120))
+        # Codex ignores the claude_ settings: they are not validated against a shorter Codex turn.
+        validate_config(self.example(conversation_timeout_seconds=120))
+        validate_config(self.example(claude_seed_history_chars=-1, claude_model="other"))
+
+    def test_codex_paths_are_required_only_where_codex_runs(self):
+        bare = {k: v for k, v in self.example().items() if k not in ("codex_executable", "codex_home")}
+        with self.assertRaisesRegex(ConfigurationError, "codex_executable"):
+            validate_config(bare)  # codex conversation and codex receipt extraction by default
+        with self.assertRaisesRegex(ConfigurationError, "codex_executable"):
+            validate_config(dict(bare, conversation_provider="claude"))  # receipt extraction still codex
+        validate_config(dict(bare, conversation_provider="claude", receipt_extraction_provider="gemini"))
+        with self.assertRaisesRegex(ConfigurationError, "codex_home"):
+            validate_config(dict(bare, conversation_provider="claude", receipt_extraction_provider="gemini",
+                                 codex_home="relative/path"))
+
+    def test_sql_switch_is_boolean_and_needs_the_database(self):
+        for value in ("true", 1, None):
+            with self.subTest(value=value), self.assertRaisesRegex(ConfigurationError, "conversation_sql_read_enabled"):
+                validate_config(self.example(conversation_sql_read_enabled=value))
+        with self.assertRaisesRegex(ConfigurationError, "requires database"):
+            validate_config(self.example(conversation_sql_read_enabled=True))
+        validate_config(self.example(conversation_sql_read_enabled=True, database_enabled=True))
+
+    def test_controls_require_the_provider_service_and_the_sql_service(self):
+        from unittest.mock import patch
+        from mw_integration_agent import partner_conversation
+        base = {"persistent_codex_conversation", "partner_authentication", "operational_data_read",
+                "database_connectivity", "signed_webhook_ingress", "instagram_delivery"}
+        def check(config, enabled):
+            catalogue = {"services": {name: {"enabled": True, "implemented": True} for name in enabled}}
+            with patch.object(partner_conversation, "load_controls", return_value=(config, catalogue)):
+                return partner_conversation.controls("config", "catalogue")
+        codex = {"partner_conversations_enabled": True}
+        self.assertIs(check(codex, base), codex)
+        claude = dict(codex, conversation_provider="claude")
+        with self.assertRaisesRegex(ConfigurationError, "CONVERSATION_SERVICE_DISABLED"):
+            check(claude, base)
+        claude_services = base - {"persistent_codex_conversation"} | {"claude_partner_conversation"}
+        self.assertIs(check(claude, claude_services), claude)
+        sql = dict(claude, conversation_sql_read_enabled=True)
+        with self.assertRaisesRegex(ConfigurationError, "CONVERSATION_SERVICE_DISABLED"):
+            check(sql, claude_services)
+        self.assertIs(check(sql, claude_services | {"conversation_sql_read"}), sql)
+        with self.assertRaisesRegex(ConfigurationError, "CONVERSATION_SERVICE_DISABLED"):
+            check(dict(codex, conversation_sql_read_enabled=True), base)
+
+
 if __name__ == "__main__":
     unittest.main()
