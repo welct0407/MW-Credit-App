@@ -195,12 +195,12 @@ def execute(event, partner, store, get_config, session_factory=None,
             'attachment_policy': 'Attachments are not interpreted by partner conversations. Ask for text if needed.',
             'writes_enabled': config.get('conversation_writes_enabled', False)}, ensure_ascii=False))
         if bridge.result is None:
-            raise ConfigurationError('CONVERSATION_FINISH_MISSING')
+            raise ConfigurationError('FINISH_UNGROUNDED_EXCEEDED' if bridge.grounding_exceeded else 'CONVERSATION_FINISH_MISSING')
         authorize()
         # A Claude session's history rows commit with READY, or not at all.
         store.finish(event['message_id'], 'READY', bridge.result, history=getattr(session, 'pending_history', None))
     except Exception as exc:
-        reason = str(exc) if isinstance(exc, ConfigurationError) else type(exc).__name__
+        reason = (getattr(exc, 'CODE', None) or str(exc)) if isinstance(exc, ConfigurationError) else type(exc).__name__
         status = 'UNKNOWN_WRITE' if bridge.possible_write and not bridge.write_verified else 'FAILED'
         store.finish(event['message_id'], status, detail=reason)
         # No execution retry. A durable plain failure response can be delivered safely.

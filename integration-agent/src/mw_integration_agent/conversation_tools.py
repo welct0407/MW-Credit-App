@@ -107,6 +107,7 @@ class ConversationTools:
         self.possible_write = False
         self.write_verified = False
         self.turn_config = None  # set by execute() from its start-of-turn authorize()
+        self.grounding_rejections, self.grounding_exceeded = 0, False
 
     def observe(self, value):
         ident = 'observation-' + str(len(self.observations) + 1)
@@ -230,6 +231,51 @@ class ConversationTools:
                     outcomes[index] = exc
             finished(audit_config, ops[index], outcomes[index] if isinstance(outcomes[index], Exception) else None)
         return outcomes, ms
+
+    def ground(self, message, status):
+        """R088 numeric grounding of finish.message against this turn's observations and the partner's message.
+
+        enforce (default): an amount that no observation supports rejects the finish (attempt N of 3); the third
+        rejection raises GroundingExceeded and the turn fails. audit: the same check, logged only. off: skipped.
+        CLARIFY and REFUSE are not checked (a question may quote an earlier figure); the pass event says so.
+        """
+        from .conversation_grounding import MAX_ATTEMPTS, GroundingExceeded, check, rejection
+        if self.grounding_exceeded:
+            raise GroundingExceeded()
+        mode = self.config().get('conversation_grounding', 'enforce')
+        if mode == 'off':
+            return
+        if status in ('CLARIFY', 'REFUSE'):
+            self.audit_event('grounding_passed', {'mode': mode, 'skipped': 'status', 'status': status})
+            return
+        result = check(message, self.observations, self.instruction)
+        common = {'mode': mode, 'candidates': result.candidates, 'observation_count': len(self.observations),
+                  'grounding_values': result.grounding_values, 'grounding_truncated': result.truncated,
+                  'elapsed_ms': result.elapsed_ms}
+        if result.ok:
+            self.audit_event('grounding_passed', {**common, 'rules': result.rules})
+            return
+        attempt = self.grounding_rejections + 1
+        self.audit_event('ungrounded_amounts', {**common, 'attempt': attempt, 'amounts': result.ungrounded,
+                                                'classes': result.classes})
+        if mode != 'enforce':
+            return
+        self.grounding_rejections = attempt
+        if attempt >= MAX_ATTEMPTS:
+            self.grounding_exceeded = True
+            raise GroundingExceeded(result.ungrounded)
+        raise ConfigurationError(rejection(result, attempt))
+
+    def audit_event(self, kind, payload):
+        """One event on the current conversation_tool operation (the finish call); nothing when audit is off."""
+        from .audit import PARENT, event
+        from .state import enabled, transaction
+        config = getattr(self.store.db, 'config', {})
+        operation = PARENT.get()
+        if operation is None or not enabled(config):
+            return
+        with transaction(config) as conn:
+            event(conn, operation, kind, payload)
 
     def schema(self):
         return self.schema_reader(self.config())
@@ -385,6 +431,7 @@ class ConversationTools:
             if self.finish_limit is not None and len(a['message']) > self.finish_limit:
                 raise ConfigurationError(f'FINISH_MESSAGE_TOO_LONG: {len(a["message"])} characters; the limit is '
                                          f'{self.finish_limit}. Shorten the message and call finish again.')
+            self.ground(a['message'], a['status'])
             if a['status'] == 'VERIFIED' and not a['observations']:
                 raise ConfigurationError('CURRENT_EVIDENCE_REQUIRED')
             if self.possible_write and not self.write_verified:

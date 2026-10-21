@@ -78,7 +78,7 @@ ASSISTANT_INSTRUCTIONS = '''FAST PATHS (speed matters: a reporting question is 2
   baht amount or any charge is overpaid ("Amount Remaining" below 0), say Loan Close would refuse this
   quote and a Partner should check the loan.
 • Paid so far: the total is principal_received + interest_received summed from the loan facts (all
-  repayments, including the first-day charge deducted at disbursement). The interest/principal split
+  repayments, including any first-day charge deducted at disbursement). The interest/principal split
   is the sum of "Repayments" "Interest Paid" and "Principal Paid" for the borrower's loans: every
   repayment, with or without a receipt link, except the default-loss row ("Row ID" LIKE 'df10:%').
   Defaulted loan: that zero-cash row posts principal +X and interest -X with no payment, so the loan
@@ -99,7 +99,9 @@ identity changes, administrative, permission or schema changes. Do not try to en
 
 Answering questions. Answer open-ended business questions by querying with sql_query and reasoning
 from the business rules in the reference below; read the schema digest there for relation and column
-names. Aggregate in SQL (sum, count, group by) and use exact decimal values. For a Daily Interest loan
+names. Use only column names that appear in the schema digest, spelled exactly; check the digest entry
+before writing a query and never guess a column. A column error costs a round.
+Aggregate in SQL (sum, count, group by) and use exact decimal values. For a Daily Interest loan
 payoff use the charge balances (FAST PATHS) with loan_payoff as a cross-check; for other loan types follow
 the business rules.
 Apply the owner decisions in section 15 of the business rules. An "Earlier conversation" transcript at
@@ -144,16 +146,17 @@ prefixes, table/view/field names, tool names or error codes.
 Breakdown: one labelled line per component in this order: outstanding principal, unpaid
 charges, interest (show "฿300/day × 2 days = ฿600"), fees/losses, then "Total". The lines
 must add up to the total. Several loans: one bullet per loan with labelled amounts.
-Never add received, charged and forecast amounts together; label forecasts "forecast"/"ประมาณการ".
+Never add received, charged and scheduled or forecast amounts together. Label a future charge by its "Basis": Recorded = "scheduled"/"กำหนดแล้ว", Projected = "forecast"/"ประมาณการ"; never call a recorded charge a forecast.
+Every amount you state must come from this turn's tool results or be a sum, difference or rate × days of them; the host rejects a finish with any other amount. Never estimate, recall or reuse a figure from memory or from the earlier transcript.
 Last line of every figure answer: "As of <date> <time> Bangkok, live data" (or "snapshot
 <time>, may lag up to 1 hour"). Before 00:05 say today's charges are not generated yet.
 State the definition you applied in plain words when it matters (e.g. "interest received,
 before expenses"). State what is included or excluded.
-Length: aim for about 700 characters and at most 15 lines; the hard limit is 1,000 and
+Length: aim for about 600 characters and at most 12 lines; the hard limit is 1,000 and
 Thai marks count as characters. If it will not fit: give the total, the top 5 items and
 one line for the rest ("5 others: ฿5,870"), then offer detail. Never drop a caveat to fit,
 and never split an answer across messages.
-To offer more, write: send "<words>" as a new message (not a reply). Replies are not read.
+Offer more only when you had to cut the answer: one line, send "<words>" as a new message (not a reply). Otherwise no menu or offer lines.
 Clarify (CLARIFY) only if the answer would materially differ: several matching borrowers
 or loans (list up to 3 with identifiers), an undefined period, or a write missing values.
 Ask one question. If a default rule or safe reading exists, answer and state it instead.
@@ -163,7 +166,7 @@ borrowers, attachments (ask for text), non-MW topics, data that cannot answer th
 
 COMMON QUESTIONS: produce exactly these figures, then finish. Do not gather anything else.
 Paid so far (one borrower): "Paid so far: ฿X" with X from the loan facts (FAST PATHS), then
-  • Interest: ฿a (say if it includes a first-day charge deducted at disbursement)
+  • Interest: ฿a (mention a first-day charge deducted at disbursement only when a charge dated on the loan date exists in the observations; never assume one)
   • Principal: ฿b
   a and b from "Repayments" with a payment (FAST PATHS), so a defaulted loan's write-off is not in
   them; add "Principal lost on default: ฿L" for a defaulted loan.
@@ -174,8 +177,7 @@ Overdue / due now: "Due now: ฿X" from unpaid charges dated today or earlier, t
   If the overdue amounts were computed from the charges (health view NULL), add one line saying so.
 Yet to be charged / upcoming: "Not yet charged:", then
   • Principal outstanding: ฿P (loan facts) minus principal already on unpaid charges; Daily loans add "(paid at close)"
-  • Next charge <date>: ฿n interest/principal (forecast), next 1-2 charges only, from the upcoming
-    view and "Charges" dated after today (the view can miss a far-dated Fixed Due Date charge)
+  • Scheduled/forecast charges: one line per future charge from the upcoming view and "Charges" dated after today (the view can miss a far-dated Fixed Due Date charge): date, amount, interest/principal, and scheduled or forecast. List every one; when there are more than 5, list the first 5 and add one line with the count and total of the rest.
 Payoff today: "Payoff if closed today: ฿X" from the charge balances (FAST PATHS), then principal
   outstanding, unpaid charge interest, "interest since last charge (<date>): ฿d/day × n days = ฿i", total.
 Payoff tomorrow: the same lines with n+1 days, headed "estimate for <date>, assuming no payment today".
@@ -389,6 +391,7 @@ class ConversationSession:
     def tool_results(self, calls, deadline=None):
         """Run one round's calls. A round of two or more reads goes to the bridge's call_many (concurrent);
         any round with a write, finish or an unknown tool runs sequentially, as before."""
+        from .conversation_grounding import GroundingExceeded
         from .conversation_tools import READ_TOOLS
         journals = [self.journal_id(index, call) for index, call in enumerate(calls)]
         bridge = getattr(self.call_tool, '__self__', None)
@@ -406,6 +409,8 @@ class ConversationSession:
             try:
                 value, error = self.call_tool(call['name'], call['args'], journal), False
                 finished = finished or call['name'] == 'finish'
+            except GroundingExceeded:
+                raise  # the third ungrounded finish fails the turn (durable failure reply)
             except Exception as exc:
                 value, error = self.error_text(exc), True
             self.tool_ms.append({'name': call['name'], 'ms': round((time.perf_counter() - started) * 1000)})

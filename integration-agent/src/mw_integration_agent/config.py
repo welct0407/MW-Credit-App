@@ -201,6 +201,8 @@ def validate_config(config: dict[str, Any]) -> None:
     if provider == 'gemini':
         from .gemini_conversation import validate as validate_gemini
         validate_gemini(config)
+    if config.get('conversation_grounding', 'enforce') not in ('enforce', 'audit', 'off'):
+        raise ConfigurationError('conversation_grounding must be enforce, audit or off')
     if type(config.get('conversation_sql_read_enabled', False)) is not bool:
         raise ConfigurationError('conversation_sql_read_enabled must be boolean')
     if config.get('conversation_sql_read_enabled') and not config.get('database_enabled'):

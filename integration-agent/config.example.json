@@ -5,6 +5,7 @@
   "conversation_timeout_seconds": 600,
   "conversation_provider": "codex",
   "conversation_sql_read_enabled": false,
+  "conversation_grounding": "enforce",
   "claude_project": "clever-oasis-508610-n7",
   "claude_location": "global",
   "claude_model": "claude-opus-5-5",

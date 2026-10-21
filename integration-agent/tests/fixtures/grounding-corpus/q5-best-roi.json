@@ -1,0 +1,101 @@
+{
+ "question": "Q5",
+ "request": "From whom did I get the best ROI across all borrowers?",
+ "source": "R088 argon/flash comparison of 21 Oct 2026 (synthetic runs), anonymised: borrower names, ids and file names are synthetic labels and every amount is the original × 4 (sums, rate × days and products stay exact; percentages are ratios and stay the same). Dates and counts are kept. Observations are synthetic rows shaped like the views and SQL results, holding the per-loan and per-charge source values, not the replies' derived totals.",
+ "observations": {
+  "observation-1": {
+   "columns": [
+    "Row ID",
+    "Borrower Name",
+    "Total Interest Earned",
+    "Total Amount Loaned",
+    "Lifetime Default Loss",
+    "Active Loans"
+   ],
+   "rows": [
+    {
+     "Row ID": "B-G",
+     "Borrower Name": "ผู้กู้ ช",
+     "Total Interest Earned": "71800.00",
+     "Total Amount Loaned": "12000.00",
+     "Lifetime Default Loss": "0.00",
+     "Active Loans": 1
+    },
+    {
+     "Row ID": "B-D",
+     "Borrower Name": "ผู้กู้ ง",
+     "Total Interest Earned": "85600.00",
+     "Total Amount Loaned": "16000.00",
+     "Lifetime Default Loss": "0.00",
+     "Active Loans": 2
+    },
+    {
+     "Row ID": "B-H",
+     "Borrower Name": "ผู้กู้ ซ",
+     "Total Interest Earned": "20000.00",
+     "Total Amount Loaned": "4000.00",
+     "Lifetime Default Loss": "0.00",
+     "Active Loans": 0
+    },
+    {
+     "Row ID": "B-I",
+     "Borrower Name": "ผู้กู้ ฌ",
+     "Total Interest Earned": "64800.00",
+     "Total Amount Loaned": "16000.00",
+     "Lifetime Default Loss": "0.00",
+     "Active Loans": 1
+    },
+    {
+     "Row ID": "B-F",
+     "Borrower Name": "ผู้กู้ ฉ",
+     "Total Interest Earned": "96800.00",
+     "Total Amount Loaned": "24000.00",
+     "Lifetime Default Loss": "0.00",
+     "Active Loans": 3
+    },
+    {
+     "Row ID": "B-C",
+     "Borrower Name": "ผู้กู้ ค",
+     "Total Interest Earned": "297844.00",
+     "Total Amount Loaned": "124000.00",
+     "Lifetime Default Loss": "0.00",
+     "Active Loans": 8
+    },
+    {
+     "Row ID": "B-A",
+     "Borrower Name": "Borrower A",
+     "Total Interest Earned": "36400.00",
+     "Total Amount Loaned": "46000.00",
+     "Lifetime Default Loss": "0.00",
+     "Active Loans": 4
+    },
+    {
+     "Row ID": "B-B",
+     "Borrower Name": "Borrower B",
+     "Total Interest Earned": "6000.00",
+     "Total Amount Loaned": "20000.00",
+     "Lifetime Default Loss": "0.00",
+     "Active Loans": 1
+    }
+   ],
+   "row_count": 8,
+   "complete": true
+  }
+ },
+ "replies": {
+  "argon": {
+   "text": "Best ROI borrower: ผู้กู้ ช — 598.3% of principal lent (interest received: ฿71,800 on ฿12,000 lent)\n\nTop 5 borrowers by lifetime interest return:\n• ผู้กู้ ช: 598.3% of principal lent (interest ฿71,800 lent ฿12,000 1 open loan from 30-Aug-2026)\n• ผู้กู้ ง: 535.0% of principal lent (interest ฿85,600 lent ฿16,000 2 open loans)\n• ผู้กู้ ซ: 500.0% of principal lent (interest ฿20,000 lent ฿4,000 1 closed loan from 14-Aug-2026 — highest on closed loans)\n• ผู้กู้ ฌ: 405.0% of principal lent (interest ฿64,800 lent ฿16,000 1 open loan from 06-Sep-2026)\n• ผู้กู้ ฉ: 403.3% of principal lent (interest ฿96,800 lent ฿24,000 3 open loans)\n\nBy total interest received, ผู้กู้ ค is highest at ฿297,844 on ฿124,000 lent (240.2% of principal lent).\n\nROI is lifetime interest actually received divided by total principal lent, before expenses, signed for default losses.\n\nAs of 21-Oct-2026 22:57 Bangkok, live data",
+   "expected": {
+    "ok": true,
+    "ungrounded": []
+   }
+  },
+  "flash": {
+   "text": "The highest ROI across all borrowers by lifetime interest return is ผู้กู้ ช at 598.3% of principal lent.\n\nTop borrowers by lifetime interest return:\n• ผู้กู้ ช: interest received ฿71,800 on ฿12,000 lent (598.3% of principal lent; loan started 30-Aug-2026 for ฿12,000 active)\n• ผู้กู้ ง: interest received ฿85,600 on ฿16,000 lent (535.0% of principal lent)\n• ผู้กู้ ซ: interest received ฿20,000 on ฿4,000 lent (500.0% of principal lent; closed loan)\n\nBy total baht earned (absolute profit before expenses):\n• ผู้กู้ ค: interest received ฿297,844 on ฿124,000 lent (240.2% of principal lent)\n\nDefined as gross interest received before expenses divided by total principal lent.\n\nAs of 21-Oct-2026 22:58 Bangkok, live data",
+   "expected": {
+    "ok": true,
+    "ungrounded": []
+   }
+  }
+ }
+}
