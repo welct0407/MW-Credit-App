@@ -1,6 +1,6 @@
 # MW Credit business rules for the Partner conversation assistant
 
-Draft, 21 October 2026. Written for the model that answers Partner questions in the persistent conversation, and for the owner to confirm. Every rule below is read from the SQL in `database/migrations` (cited as `V<n>:<line>`) or from a maintained document; nothing is invented. Section 15 lists the points the code leaves to the owner.
+Owner-confirmed, 21 October 2026. Written for the model that answers Partner questions in the persistent conversation. Every rule below is read from the SQL in `database/migrations` (cited as `V<n>:<line>`) or from a maintained document; nothing is invented. Section 15 records the owner's decisions on the points the code leaves open.
 
 ## 1. How to use this reference
 
@@ -9,7 +9,7 @@ Draft, 21 October 2026. Written for the model that answers Partner questions in 
 - Show the components, then the total: principal, interest, fees, expenses and losses are different measures and Partners check them separately. Keep them distinct.
 - Money is Thai baht. Inputs and stored amounts are whole baht almost everywhere; present whole baht.
 - Dates and "today" are Asia/Bangkok. A day count is a whole number of calendar days; there is no partial-day interest anywhere in the system.
-- When a rule has an open owner decision (section 15), apply the stated default and say that you did.
+- Section 15 records the owner's decisions on the points the code leaves open; apply them as rules.
 
 ## 2. Vocabulary
 
@@ -64,8 +64,8 @@ Draft, 21 October 2026. Written for the model that answers Partner questions in 
 - So "pay every 3 days, asked on day 2": payoff = outstanding principal + unpaid balances of earlier charges + daily interest × 2 days (from the last charge or the Loan Date to today). Interest runs through today, full days; there is no discount, penalty, late fee or pro-rata beyond that.
 - Worked example: principal 10,000, daily interest 300 (3%), N = 3, no earlier unpaid charge, last charge on day 0. Day 2 payoff = 10,000 + 300 × 2 = 10,600. The first-day charge (300 + fee) was netted off at disbursement and is not owed again.
 - Closing posts the receipt as `Loan Close`, sets `"Loan Status"` = `ปิดยอดแล้ว`, `"Close Date"`, `"Closed By"`, `"Ref Closing Payment"` (V59:606-623), and books a referral rebate expense of min(round(10% × interest received), 1,000) for the referrer when the borrower has `"Ref Referrer"` and the loan was not defaulted (V15:151-174).
-- Fixed Due Date and Daily Installment loans have no payoff function. "Settle everything today" for them has no encoded rule: owner decision 15.2. Default until decided: state the unpaid charge balances plus the unscheduled outstanding principal, say that the system has no early-close path for this loan type, and that a Partner must handle the close manually.
-- "Settle everything" for a borrower = the sum of the payoff of each open loan computed by type as above, plus any unpaid charges of closed loans (open balances on closed loans still accept payments).
+- Fixed Due Date and Daily Installment loans have no payoff function. "Settle everything today" for them has no encoded rule (owner decision 15.2): state the unpaid charge balances plus the unscheduled outstanding principal, say that the system has no early-close path for this loan type, and that a Partner must handle the close manually.
+- "Settle everything" for a borrower = the sum of the payoff of each open loan computed by type as above, plus any unpaid charges of closed, non-defaulted loans (those balances remain collectable, decision 15.3).
 
 ## 7. Measures: what to sum, and what not to
 
@@ -75,11 +75,11 @@ Draft, 21 October 2026. Written for the model that answers Partner questions in 
 | Unpaid interest | Σ `"Interest Remaining"` on the loan's charges | |
 | Outstanding principal | loan `"Outstanding Principal"`; borrower `"Total Outstanding Principal"` (V13) | adding `"Amount Remaining"` on top: the principal part of a charge is already inside outstanding principal (double count) |
 | Total outstanding (what is owed now) | outstanding principal + unpaid interest (+ gap interest only when quoting a payoff, section 6) | |
-| Total paid by a borrower | Σ `"Amount Received"` of `Posted` payments with that `"Ref Borrower"` (= Σ `"Repayments"` with `"Ref Payment"` not null). Say whether `Net-off at Disbursement` first-day receipts are included (owner decision 15.4; default: include and label them) | loan or borrower `"Total Principal Received"` / `"Total Interest Received"` on defaulted loans: they contain the loss entry (section 8) |
+| Total paid by a borrower | Σ `"Amount Received"` of `Posted` payments with that `"Ref Borrower"` (= Σ `"Repayments"` with `"Ref Payment"` not null). Include `Net-off at Disbursement` first-day receipts and label them as deducted at disbursement (owner decision 15.4) | loan or borrower `"Total Principal Received"` / `"Total Interest Received"` on defaulted loans: they contain the loss entry (section 8) |
 | Interest received from a borrower | borrower `"Total Interest Earned"` (= Σ `"Repayments"."Interest Paid"`, V13:29-41); `"Active Loan Interest Earned"` for open loans | charged or accrued interest (not income) |
 | Principal lent | borrower `"Total Amount Loaned"` = Σ `"Principal Amount"` | |
 
-- Charge-level balances are never forced to zero; a closed loan can carry `"Amount Remaining"` > 0 while its charges display `ชำระแล้ว` (owner decision 15.3; default: report the stored remaining and the status, both).
+- Charge-level balances are never forced to zero; a closed loan can carry `"Amount Remaining"` > 0 while its charges display `ชำระแล้ว`. Owner decision 15.3: that remaining is still collectable unless the loan was defaulted (then it is written off and the loss is in `"Default Loss Amount"`). Report it as collectable, with the paid status explained.
 - Totals on `olap_portfolio_summary` have no date limit; `reporting_*` views stop at today. Say which you used when a future-dated row could matter.
 
 ## 8. Default and loss
@@ -101,7 +101,7 @@ Draft, 21 October 2026. Written for the model that answers Partner questions in 
 - Income is interest actually received (cash basis): Σ `"Repayments"."Interest Paid"` by `"Payment Date"`. Unpaid, charged or accrued interest is never income (V22:357-359; V34:26, 91; V37:85-87). The loan transfer fee is inside the first-day interest, so it counts as interest income once paid (V83:197-198).
 - Default losses are inside income as negative interest on the default date (section 8). `"Profit Last 30 Days"` / `"Profit Last 10 Days"` exclude negative rows (V22:195-196); other 30-day figures include them.
 - Net profit = interest received − `"Business Expenses"` for the same period (V22:388; V34:91-93). Net margin = net profit / operating income.
-- "Profit of a borrower" (owner decision 15.1; default): gross interest received from that borrower (`"Total Interest Earned"`, signed for defaults), stated as "interest received before expenses". No general expense is allocated to a borrower; the only borrower-linked expense is the referral rebate paid to the referrer, which you may mention.
+- "Profit of a borrower" (owner decision 15.1): gross interest received from that borrower (`"Total Interest Earned"`, signed for defaults), stated as "interest received before expenses". No general expense is allocated to a borrower; the only borrower-linked expense is the referral rebate paid to the referrer, which you may mention.
 - "Profit % of principal" for a borrower: lifetime interest received ÷ `"Total Amount Loaned"` (Metabase model 310 "Lifetime interest return"); for a loan `"Principal Recovered by Interest %"` = `"Total Interest Received"` ÷ `"Principal Amount"` (V22:104). Other defined ratios: Return on Active Principal = Active Loan Interest Earned ÷ Total Outstanding Principal (V22:231); Return on Closed Loans = Closed Loan Interest Earned ÷ Closed Loan Principle (V22:264); 30D Return on Average Principal (V22:238, 265); Effective Daily Interest Rate (V26). Name the ratio you used.
 - Forecasts, not income: `"Accrued Interest"` = daily interest × days since last charge (V22:117); `"Projected Monthly Profit"` (V22:377); `"Pending Payment Amount"` (unpaid charges, V22:361).
 
@@ -134,16 +134,14 @@ Draft, 21 October 2026. Written for the model that answers Partner questions in 
 - What is due now: charges dated ≤ today with remaining > 0, newest first as the system would allocate, then the total; add the next forecast due date from `oltp_upcoming_charge_events_v1` as a forecast.
 - If the loan type has no encoded rule for the question, say so and give the parts that are defined.
 
-## 15. Open decisions for the owner
+## 15. Owner decisions (21 October 2026)
 
-Each item has the default the assistant applies until the owner decides.
-
-1. Profit of a borrower: gross interest received before expenses (default), or net of the referral rebate for that borrower, or net of an allocated share of expenses?
-2. Payoff for Fixed Due Date and Daily Installment loans paid early: full `"Fixed Interest"` / all scheduled interest, interest to date only, or no rule (default: no payoff quote; report balances and say the close is manual).
-3. A closed loan with `"Amount Remaining"` > 0: is the remaining collectable or written off (default: report both the stored remaining and the paid status)?
-4. "Total paid" includes `Net-off at Disbursement` first-day receipts (default: include, labelled).
-5. Loan Close adds no gap interest when a charge already exists today, and includes future-dated charges in full; it takes the latest charge date including future ones (V83:419). Confirm this is the intended payoff rule.
-6. Defaulted loans: report interest received and principal lost separately (default) in addition to the signed net.
-7. Mid-cycle principal payment: the new daily amount applies to the whole period since the last charge (as coded). Confirm.
-8. Newest-first allocation leaves older charges unpaid; confirm the assistant should explain this ordering when asked why an old charge is still open.
-9. Rate frozen as a whole percent (for example 150 on 10,000 = 1.5% → 2%) changes the daily amount after the first principal payment (owner decision R048). Confirm the assistant should explain it from `"Original Daily Interest Rate"`.
+1. Profit of a borrower = gross interest received from that borrower before expenses, signed for defaults. Mention the referral rebate paid to the referrer when relevant; no expense is allocated to a borrower.
+2. Fixed Due Date and Daily Installment loans have no early payoff quote: report the unpaid charge balances and the unscheduled outstanding principal, say the system has no early-close path for the type, and that a Partner closes it manually.
+3. A closed loan with `"Amount Remaining"` > 0: the remaining is collectable, unless the loan was defaulted (then it is written off; the loss is `"Default Loss Amount"`).
+4. "Total paid" includes `Net-off at Disbursement` first-day receipts, labelled as deducted at disbursement.
+5. Loan Close payoff is as coded: no gap interest when a charge already exists today; future-dated charges are included in full; the day count starts from the latest charge date including future ones (V83:419).
+6. Defaulted loans: report interest received and principal lost separately, then the signed net.
+7. Mid-cycle principal payment: the new daily amount applies to the whole period since the last charge, as coded.
+8. Newest-first allocation: explain the ordering when asked why an older charge is still open.
+9. The rate frozen as a whole percent (for example 150 on 10,000 = 1.5% → 2%) changes the daily amount after the first principal payment (owner decision R048): explain it from `"Original Daily Interest Rate"`.

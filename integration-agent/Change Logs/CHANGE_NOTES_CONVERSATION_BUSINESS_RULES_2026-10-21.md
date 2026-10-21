@@ -19,7 +19,7 @@ The owner decided to replace the Codex App Server behind the Partner conversatio
 - Delete the two files of this batch; nothing else depends on them yet.
 
 ## Open questions
-- Section 15 of the reference lists the owner decisions (profit definition, payoff for Fixed and Installment loans, closed-loan remaining balances, first-day net-off in "total paid", Loan Close edge cases, default reporting, mid-cycle principal, allocation order, whole-percent rate).
+- None. The owner decided the nine section-15 points on 21 October 2026 (closed-loan remaining collectable unless defaulted; Loan Close as coded with no gap interest when a charge exists today; mid-cycle principal as coded; explain newest-first allocation and the whole-percent rate; the stated defaults for the rest).
 
 ## Remaining work
-- Implementation (Claude on Vertex AI provider, local conversation history, read-only SQL tool, catalogue and docs) in the team session; the rules file becomes the system-prompt reference once the owner confirms section 15.
+- Implementation (Claude on Vertex AI provider, local conversation history, read-only SQL tool, catalogue and docs) in the team session; the rules file is the system-prompt reference.
