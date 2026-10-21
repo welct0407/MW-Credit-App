@@ -186,7 +186,8 @@ def execute(event, partner, store, get_config, session_factory=None,
                                partner_id=partner['id'], tools=tools, finish_limit=finish_limit,
                                **({'client': client} if client else {}))
     try:
-        authorize()
+        # The start-of-turn identity check serves every read of the turn; writes and finish re-check.
+        bridge.turn_config = authorize()
         session = session_factory(config, binding, store, tools, bridge.call)
         session.run(instructions, json.dumps({'partner_language': partner['language'],
             'as_of': datetime.now(BANGKOK).isoformat(), 'request': event['text'],
