@@ -12,11 +12,20 @@ sys.path.insert(0, '/workspace/.setup/python-deps')
 import psycopg
 from psycopg import sql
 
+# Accepted --expected-version values: 77 and 87 up to the latest migration in the checkout, so a new
+# migration needs no edit here. The live history must still equal the value exactly (below).
+# Never accepted: 78-86, 88 and 94.
+MIGRATIONS = Path(__file__).resolve().parents[2] / 'database/migrations'
+REFUSED_BASELINES = {88, 94}
+def supported_baselines(migrations):
+    head = max(int(p.name[1:].split('__')[0]) for p in migrations.glob('V*__*.sql'))
+    return [77] + [v for v in range(87, head + 1) if v not in REFUSED_BASELINES]
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--approval-reference', required=True)
 parser.add_argument('--database', choices=('loan_manager_prod','mw_agent'), default='loan_manager_prod')
 parser.add_argument('--environment', choices=('production','development'), default='production', help='development: DEV backup before a refresh (dev-backups/, explicit --expected-version)')
-parser.add_argument('--expected-version', type=int, choices=(77,87,89,90,91,92,93,95,96,97,98,99,100))
+parser.add_argument('--expected-version', type=int, choices=supported_baselines(MIGRATIONS))
 args = parser.parse_args()
 if args.environment=='development':
     if args.database!='loan_manager_prod': raise ValueError('Development mode backs up loan_manager_dev only')

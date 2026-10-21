@@ -4,8 +4,9 @@ import test from 'node:test';import assert from 'node:assert/strict';import pg f
 import {provisionClosedOwnerRole,prepareOwnerAuthority,restoreOwnerAuthority} from '../../scripts/database/r053-operator-tooling.mjs';
 import {planApplicationRole,reconcileApplicationRole} from '../../scripts/database/app-role-policy.mjs';
 import {runDevelopmentPostMigrationHook} from '../../scripts/database/application-role-tooling.mjs';
+import {migrationHead} from '../migration-head.mjs';
 const execute=promisify(execFile);
-const LEDGER='mw_ledger_owner_dev';
+const LEDGER='mw_ledger_owner_dev',HEAD=migrationHead();
 
 test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied with temporary authority, exact restoration, app-role ledger sync',async()=>{
  const e=process.env;assert.equal(e.PHASE8_TEST_DISPOSABLE,'1');assert.equal(e.PHASE8_TEST_HOST,'127.0.0.1');assert.equal(e.PHASE8_TEST_DATABASE,'loan_manager_dev');assert.equal(e.PHASE8_LEDGER_OWNER,'1');const d=await realpath(e.PHASE8_TEST_DATA_DIRECTORY);assert.equal(basename(d),'data');assert.match(basename(dirname(d)),/^mw-phase8-[a-f0-9]{32}$/);assert.equal(Number((await readFile(d+'/postmaster.pid','utf8')).split(/\r?\n/)[3]),Number(e.PHASE8_TEST_PORT));
@@ -62,7 +63,7 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   const state=plan.restoreState;
   try{
    // 4. Migrate + validate as the non-superuser runner.
-   const migrated=await flyway('migrate');assert.match(migrated.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:101,failed:0});
+   const migrated=await flyway('migrate');assert.match(migrated.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:HEAD,failed:0});
    const validated=await flyway('validate');assert.match(validated.stdout,/"validationSuccessful"\s*:\s*true/);
    const fn=(await operator.query("SELECT pg_get_userbyid(proowner) owner,prosecdef,proconfig FROM pg_proc WHERE oid=to_regprocedure('public.sync_cash_ledger(text,text)')")).rows[0];
    assert.equal(fn.owner,LEDGER);assert.equal(fn.prosecdef,true);assert.ok(fn.proconfig.includes('search_path=pg_catalog, public'));
@@ -95,7 +96,7 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   const failure=new Error('synthetic migration failure');await assert.rejects((async()=>{try{throw failure;}finally{await restoreOwnerAuthority(operator,config,again.restoreState,{apply:true});}})(),err=>err===failure);
   assert.equal((await restoreOwnerAuthority(operator,config,again.restoreState)).mode,'authority-already-restored');assert.deepEqual(await ledgerShape(admin),{runner_can_set:false,runner_inherits:false,owner_schema_create:false});
   // A no-op migrate at the head (the routine DEV runner call) needs no authority; nothing is re-applied.
-  const rerun=await flyway('migrate');assert.match(rerun.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:101,failed:0});
+  const rerun=await flyway('migrate');assert.match(rerun.stdout,/"success"\s*:\s*true/);assert.deepEqual(await history(operator),{version:HEAD,failed:0});
 
   // 8. Application-role write proof: every cash source syncs the ledger through the definer; direct writes stay denied.
   await admin.query((await readFile('scripts/database/Test-CashAccountFixtures.sql','utf8')).replace(/^\\set.*$/m,''));
