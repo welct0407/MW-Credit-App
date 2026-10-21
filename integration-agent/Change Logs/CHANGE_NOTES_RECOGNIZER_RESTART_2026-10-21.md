@@ -23,7 +23,7 @@ Partner slip recognition in PROD answered "unavailable" for every slip from the 
 
 ## Not run
 - The pull request's CI checks (not opened yet).
-- The engine change has not run on the VM yet. Its first use is the next agent deploy.
+- The engine change first ran on the VM at the R086 agent deploy (see Remaining work).
 - No real slip has been recognized since the restart; the partner's re-upload is the first.
 
 ## Recovery
@@ -33,4 +33,4 @@ Revert this batch's commit; the previous engine restarts only the receiver. Afte
 None.
 
 ## Remaining work
-The first agent deploy with this engine should confirm in its record that the recognizer restarted with a new InvocationID and that `/healthz` reported enabled.
+Done. The R086 agent deploy (21 October 2026, 15:12Z) was the first to restart the recognizer with this engine, and `/healthz` was ok ([record](../../Change%20Logs/CHANGE_NOTES_R086_WAKE_AND_LOAN_CLOSE_FIX_2026-10-21.md)). The R087 deploy did the same at 16:35:53Z with a new InvocationID (`1ae31900…` to `f6ac10d8…`) and `/healthz` enabled ([record](../../Change%20Logs/CHANGE_NOTES_R087_SLIP_ACCOUNT_NUMBERS_2026-10-21.md#promotion-record)). None.
