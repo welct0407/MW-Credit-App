@@ -6,7 +6,7 @@ The owner wants DEV refreshed from PROD by a Claude Code cloud session. The refr
 ## Changes
 - [Development_Refresh_Runbook.md](../project/Documents/Rules/Development_Refresh_Runbook.md) rewritten: scope and authority, executor and route, the facts that shape the procedure (shared roles, owner window before the `--clean` restore, trigger rule, notification credentials, schedulers, receipts), the eight-step procedure with the maintained tools, rollback, closure, history.
 - New `scripts/database/Refresh-DevCatalog.py` (`snapshot`, `reconcile`, `compare`) with `scripts/database/test_refresh_dev_catalog.py`; ACLs are captured server-side in one round trip per object kind.
-- `scripts/database/Backup-ProductionPromotion.py`: `--environment development` (fixed DEV tuple, `dev-backups/`, explicit `--expected-version`), version 100 accepted; PROD behaviour unchanged.
+- `scripts/database/Backup-ProductionPromotion.py`: `--environment development` (fixed DEV tuple, `dev-backups/`, explicit `--expected-version`), version 100 accepted (the parser test in `tests/unit/business-hosting-delivery.test.mjs` now accepts 100 and rejects 101); PROD behaviour unchanged.
 - [database/README.md](../database/README.md) Linux cloud sessions paragraph names both tools; the R075 tooling-gaps row in Development_Changes.md marks the DEV backup gap closed.
 - [project/outputs/dev-refresh-plan-20261021/README.md](../project/outputs/dev-refresh-plan-20261021/README.md) rewritten for a Claude cloud session: facts verified on 21 October 2026, go or no-go, phases 0 to 8 as command blocks, rollback, stop conditions, owner decisions, review hook.
 
