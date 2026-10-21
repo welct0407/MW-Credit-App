@@ -31,10 +31,10 @@ Documentation (Dewey): `integration-agent/docs/PARTNER_CONVERSATIONS.md` (settin
 | `PYTHONPATH=src python3 -m unittest discover -s tests -p test_conversation_grounding.py` in `integration-agent/` (Dewey, earlier tree, before Byte's last fixes) | 29 tests OK; superseded by Byte's 35 |
 | Chase verification on the 6 real PROD turns of 21 October (read-only; the data was shredded afterwards) | 0 false rejections over about 220 amounts; 2 to 9 ms per check. Adversarial findings B1 to B4 (month words, `฿ 2569`, "As of" lines dropped, unrecognised formats) and D1 (CLARIFY and REFUSE replies are checked) were fixed by Byte; the third rejection now tells the model it is final |
 | `npm run check:docs` (Dewey) | 0 failures, 0 warnings |
-| Pull request `Development checks` | Pending: CI run after the orchestrator pushes |
+| Pull request #119 `Development checks`, merged as `6ea1540` | Passed (agent test and lab) |
 
 ## Not run
-- No live Partner turn has run with grounding yet; Chase replayed the 6 real turns of the day offline. The `audit` mode exists to measure the live rejection rate if the owner wants.
+- No live Partner turn has run under grounding yet; Chase replayed the 6 real turns of the day offline. The first real turn is the follow-up in Development Changes.
 - The model comparison was not repeated after the guidance fixes; speed is unmeasured (Vertex slowness).
 - Documented limits of the check: ฿0 is always accepted; the sign is not checked; a wrong but observed figure passes; and the sum-and-difference rule is broad, so on wide turns it stops invented non-round amounts but not every round slip. It is a guard against invented figures, not proof that a figure is right.
 
@@ -46,5 +46,20 @@ Documentation (Dewey): `integration-agent/docs/PARTNER_CONVERSATIONS.md` (settin
 - Which model to run (`gemini-4-argon` or `gemini-3.8-flash`), after a fair rerun of the comparison with the fixes.
 
 ## Remaining work
-- A pull request with CI and the owner's promotion instruction.
-- The fair model rerun.
+- The first real turn under grounding: record the `grounding_passed` and `ungrounded_amounts` events (one follow-up row in Development Changes).
+- The fair `gemini-4-argon` against `gemini-3.8-flash` rerun: 3 runs each of the six questions, at a quiet time, with grounding in `audit` for the test only; pending the owner's timing (one follow-up row).
+
+## Promotion record
+
+Release R088, agent only (code only: no migration, no catalogue or config change), 21 October 2026 (UTC). Tag `R088` on `6ea1540907d7da04acd9ac032263dc21d18e043d` (Release tag workflow started by the orchestrator).
+
+- **Authority:** the owner approved the number check, the guidance fixes, the shorter reply target and the column guidance ("Yes"), then instructed the production deployment ("Deploy it", 21 October 2026); `conversation_grounding=enforce` was chosen on the 0 false rejections of Chase's replay. Owner acceptance was not given separately; it is recorded as the production instruction, as for R084 to R086.
+- **Package:** pull request #119 merged as `6ea1540`; CI passed (agent test and lab).
+- **Deployment (UTC):** operator file and checkout update 20:06:00Z to 20:06:06Z; dry-run 20:06:06Z (no migration missing, 8 of 8; catalogue 31 on both sides; no unit changes; 5 modules plus the new `conversation_grounding.py`); freeze 20:06:17Z (`runtime-20261021T200617667134Z`); install 20:06:18Z; activate 20:06:23Z to 20:06:27Z (probe `fd7c4bea-2f87-4bda-8d66-3c16b623f956`); operator file shredded 20:06:40Z.
+- **Verification:** `/ready` reports `6ea1540`, started 20:06:25.22Z; no failed units, 8 timers, both wake paths active, `check` ok; the recognizer was restarted and its health is ok; the next cycle was ok. `conversation_grounding` is absent from the live config, so the default `enforce` applies.
+- **Previous live code:** `bf11e408` (R087), an ancestor of the new commit.
+- **Recovery:** `deploy-runtime.py rollback --commit 6ea1540…` restores `bf11e408a9786963faa616fb839e890b016523f2` from `runtime-20261021T200617667134Z`; or set `conversation_grounding` to `audit` or `off` by the config-only route. Pins go to the [environment inventory](../project/Documents/Environment_Inventory.md).
+- **Outcome:** applied and verified (`/ready`, units, cycle); owner acceptance is the owner's production instruction. The first real turn under grounding is the check.
+
+### Closure pruning (release workflow, 21 October 2026)
+- Nothing deleted. The retention window is now R088, R087 and R086 and no root change note is outside it. The agent change notes of R085 and R084 stay (current documents link them, and agent change notes are not pruned, as at the R084 and R086 closures). The R088 Development Changes row became two follow-up rows.
