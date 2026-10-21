@@ -6,6 +6,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {hashEntries,evidenceName,variantOf,loadStages} from '../../scripts/ci/reuse-evidence.mjs';
+import {migrationHead} from '../migration-head.mjs';
 import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage,r080HostingPlan,validateR080Source,validateR080Sql,verifyR080LivePackage,r081HostingPlan,validateR081Source,validateR081Sql,verifyR081LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
@@ -101,20 +102,29 @@ test('R062 Hosting accepts exact split-source command/V92/frontend package and r
  const release={environment:'development',commit:m.deliveryToolSource,validationReference:'Synthetic tool-only source parity',migrations:Object.entries(f.sqlFiles).map(([name,sql])=>({name:path.posix.basename(name),sha256:f.hash(sql)}))};await writeFile(m.sql.releaseManifest.path,JSON.stringify(release));m.sql.releaseManifest.sha256=f.hash(JSON.stringify(release));assert.equal((await settingsHostingPlan(m,{git})).site,site);release.commit='0'.repeat(40);await writeFile(m.sql.releaseManifest.path,JSON.stringify(release));m.sql.releaseManifest.sha256=f.hash(JSON.stringify(release));await assert.rejects(settingsHostingPlan(m,{git}),/tested SQL release/);
 });
 
-test('R062 backup parser accepts only reviewed baselines without private access',()=>{
- const script=`import ast,argparse,contextlib,io,pathlib
-tree=ast.parse(pathlib.Path('scripts/database/Backup-ProductionPromotion.py').read_text(encoding='utf-8'))
-nodes=[n for n in tree.body if (isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='parser' for t in n.targets)) or (isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='parser' and n.value.func.attr=='add_argument')]
-ns={'argparse':argparse};exec(compile(ast.Module(body=nodes,type_ignores=[]),'<synthetic parser>','exec'),ns)
-for version in [77,87,89,90,91,92,93,95,96,97,98,99,100]:
+test('R062 backup parser accepts only reviewed baselines without private access',async t=>{
+ // The accepted range ends at the checkout's latest migration, so a new migration needs no edit here or in the script.
+ const head=migrationHead(),extra=await mkdtemp(path.join(tmpdir(),'mw-backup-baselines-'));t.after(()=>rm(extra,{recursive:true,force:true}));
+ await writeFile(path.join(extra,`V${head+1}__synthetic.sql`),'');
+ const script=`import ast,argparse,contextlib,io,pathlib,sys
+head=int(sys.argv[1]);source='scripts/database/Backup-ProductionPromotion.py'
+tree=ast.parse(pathlib.Path(source).read_text(encoding='utf-8'))
+def kept(n):
+ if isinstance(n,ast.FunctionDef): return n.name=='supported_baselines'
+ if isinstance(n,ast.Assign): return any(isinstance(t,ast.Name) and t.id in ('MIGRATIONS','REFUSED_BASELINES','parser') for t in n.targets)
+ return isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='parser' and n.value.func.attr=='add_argument'
+ns={'argparse':argparse,'Path':pathlib.Path,'__file__':source};exec(compile(ast.Module(body=[n for n in tree.body if kept(n)],type_ignores=[]),'<synthetic parser>','exec'),ns)
+accepted=[77,87]+[v for v in range(89,head+1) if v!=94]
+for version in accepted:
  assert ns['parser'].parse_args(['--approval-reference','synthetic','--expected-version',str(version)]).expected_version==version
-for version in [76,88,94,101]:
+for version in [76,78,86,88,94,head+1]:
  try:
   with contextlib.redirect_stderr(io.StringIO()): ns['parser'].parse_args(['--approval-reference','synthetic','--expected-version',str(version)])
  except SystemExit as error: assert error.code==2
- else: raise AssertionError('Unsupported backup baseline accepted')
-print('Seventeen parser cases passed; no script imports, credentials or connection.')`;
- const r=spawnSync('python',['-c',script],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/Seventeen parser cases passed/);
+ else: raise AssertionError('Unsupported backup baseline accepted: '+str(version))
+assert max(ns['supported_baselines'](pathlib.Path(sys.argv[2])))==head+1
+print('Parser cases passed through V'+str(head)+'; no script imports, credentials or connection.')`;
+ const r=spawnSync('python',['-c',script,String(head),extra],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,new RegExp(`Parser cases passed through V${head};`));
 });
 
 test('R062 keyless proof uses its own release audience and rejects older proof',async()=>{

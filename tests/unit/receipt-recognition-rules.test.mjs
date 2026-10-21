@@ -64,7 +64,7 @@ test('each failing field is null with its own warning, in the fixed order',async
  assert.deepEqual(many.warnings.map(w=>w.code),['amount_fractional','account_unmatched','reference_unreadable','time_unreadable']);
 });
 
-test('R086: every printed number is read; exactly one of our active accounts fills the account',async()=>{
+test('R087: every printed number is read; exactly one of our active accounts fills the account',async()=>{
  // KBank K+ prints sender -> recipient, both masked (synthetic numbers); only the recipient is ours.
  const kplus=[...accounts,{id:'acc-k',number:'503-0-00386-8',alternative:null,active:true}];
  const out=await evaluateSlip(slip({account_numbers:['xxx-x-x9562-x','xxx-x-x0386-x']}),context({accounts:kplus}));

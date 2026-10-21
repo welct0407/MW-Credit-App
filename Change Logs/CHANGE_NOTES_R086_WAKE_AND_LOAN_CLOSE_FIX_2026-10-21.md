@@ -39,23 +39,35 @@ Documentation (Dewey): `database/README.md` (V101 paragraph), `integration-agent
 | Chase review of the wake link | No lost message and no double turn. A path trigger during a run is caught by the rerun's mtime check; the process lock prevents overlap and `reserve` is idempotent; the cap is 3 passes per process, within `TimeoutStartSec` of 20 min; a capture needing both receipt and conversation touches both files; a failed touch or a redelivery falls back to the 15 s timer. On the first deploy the path unit is installed but not started, so `systemctl enable --now mw-conversation-wake.path` is needed (tested) |
 | Chase review of the payoff guidance | The formula equals the function's arithmetic exactly. Small difference: the function refuses non-whole-baht totals and overpaid charges; Byte is adding a guidance line for that |
 | Chase real-SQL test of V101 (throwaway V100 to V101 database, 4 synthetic loans) | Before V101 three loans were overquoted by 200, 1,100 and 600; after V101 all four equal the formula. The correction path (`p_exclude_payment` set) gives byte-identical output before and after; function attributes unchanged |
-| Byte: guidance line for non-whole-baht totals and overpaid charges; dictionary entry of the function | Pending |
+| Byte: guidance line for non-whole-baht totals and overpaid charges; dictionary entry of the function | Both are in the merged tree (`7e108bc9`): the rules file carries the whole-baht guidance and the dictionary entry of `loan_close_calculation_v83(text,date,text)` carries the V101 filter; no separate test result was relayed |
 | `npm run check:docs` (Dewey) | 0 failures, 0 warnings |
-| Pull request `Development checks` | Pending: CI run after the orchestrator pushes |
+| Pull request #114 `Development checks` (head `37973612`), merged as `7e108bc9` | All checks passed, including the database groups `migrations`, `receiving`, `phase5` and `phase8`. The phase8 version-pin test was fixed in `37973612`; GitHub showed phase5 as in progress late although all its steps had succeeded |
 
 ## Not run
-- V101 is not applied in PROD or DEV and the agent code is not deployed; both need the owner's promotion instruction. Nothing was run against PROD data except the read-only audit.
-- No real Partner turn has used the wake link or the new payoff guidance yet.
-- The data dictionary entry of `loan_close_calculation_v83(text,date,text)` was not rebuilt when this note was first written; Byte is regenerating it (pending row above).
+- No real Partner turn has used the wake link or the new payoff guidance yet; the turn timing is the follow-up in Development Changes.
 
 ## Recovery
-- Database: shared migrations are immutable, so V101 is reversed only by a later migration that restores the V83 function body; that would bring the bug back, so prefer a forward fix. Restore from the verified backup only for data damage, which V101 does not cause (no table, column, data or trigger change).
+- Database: V101 is forward-fix only (a V102, with owner approval). Shared migrations are immutable, and a backup restore would lose later writes and needs separate authorization; a migration that restores the V83 body would bring the bug back. Restore from the verified backup only for data damage, which V101 does not cause (no table, column, data or trigger change).
 - Agent: `deploy-runtime.py rollback` from the freeze backup. The wake link alone: `systemctl disable --now mw-conversation-wake.path`; the 15 s timer keeps the cycle running.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Byte's guidance line and the dictionary entry of `loan_close_calculation_v83` (rows above), a pull request with CI, and the owner's promotion instruction.
-- Deployment plan, in this order: (1) V101 through the guarded migration with a verified backup; (2) the agent deploy with `deploy-runtime.py` (`freeze`, `install`, `activate`): the helper installs `mw-conversation-wake.path` but does not start it; (3) once after the first `activate`, run `systemctl enable --now mw-conversation-wake.path` on the VM, then check that it is `active (waiting)`; (4) one real turn, timed with `scripts/conversation-timing.py`. Until step 3 the 15 s timer carries every turn, so skipping it loses no message.
-- After deployment: confirm the 8 loans quote the corrected payoff and time one real turn with `scripts/conversation-timing.py`.
+- The first real PROD turn after R086, timed with `scripts/conversation-timing.py` (expect about 45 s against 64 s; one follow-up row in Development Changes).
+
+## Promotion record
+
+Release R086: agent and database migration V101, 21 October 2026 (UTC). Tag `R086` on `7e108bc9179a2524c838abe1955410b9262bf21a`.
+
+- **Authority:** the owner's words this session: "go ahead with the wake link"; "go ahead with 1 and 2" (1 = fix the bot's payoff and paid-so-far guidance, 2 = fix the database payoff function); and "Check if any loan was closed with wrong amount since the bug exists". Owner acceptance was not given separately; it is recorded as the production instruction, as for R084 and R085.
+- **Package:** pull request #114 (head `37973612`) merged as `7e108bc9`; all checks passed (Checks). Release file `release-r086-v101-7e108bc.json`.
+- **DEV:** backup `dev-refresh-5b408dcecb224bd28d6e21750ca762b6` (sha256 `07b5c126…`, restore ok, 33 tables); V101 migrated 14:52:51Z. The runner's post-migrate permission check needed the documented owner-authority window (notify, jobs, journal and changes owners): opened 14:58:29Z, check 0 violations, restored 15:04:30Z (record `owner-authority-dev-prepare-475ffc6e-…`); validate ok 15:04:50Z. One extra no-op migrate ran by mistake (0 migrations executed). All 8 affected loans were correct on DEV; the other 19 were unchanged.
+- **PROD database:** backup `prod-promotion-06cb1c6e82bd4e4485561e6a8c928fea` (sha256 `20d4b044…`, restore ok, 33 tables), copied to `promotion-packages/r086/`; connect preflight 15:09:08Z (0 DEV sessions), check pending exactly [101]; apply 15:09:48Z to 15:11:07Z; V101 installed 15:10:30.95Z; schema 101, validate ok. V101 file sha256 `f984edcb…`, Flyway checksum -93685251. Function owner and ACL unchanged (`postgres`; `mw_app_prod` execute). The 8 affected loans now quote the correct payoff (total before ฿46,210, after ฿31,510); the other quotable loans are unchanged, except one that moved because of a real ฿4,000 payment at 15:07:08Z.
+- **Agent:** checkout updated to `7e108bc9`; freeze 15:12:41Z (`runtime-20261021T151241274491Z`); install (`mw-partner-conversation.service` changed, `mw-conversation-wake.path` new); activate 15:12:46Z to 15:12:50Z (probe `14c45274…`); the helper restarted the recognizer and `/healthz` is ok; wake path enabled 15:13:10Z. Proof: a touch at 15:13:11.623Z started the service at 15:13:11.659Z (35 ms), ok, 0 turns. `/ready` reports `7e108bc9`, 8 timers, no failed units.
+- **Recovery:** V101 is forward-fix only (Recovery above). Agent: `systemctl disable --now mw-conversation-wake.path`, then `deploy-runtime.py rollback --commit 7e108bc9…` restores `6a3673e52657d8fe97a8ae2702fd1f4a08c5552a` from `runtime-20261021T151241274491Z`. Pins go to the [environment inventory](../project/Documents/Environment_Inventory.md).
+- **Outcome:** applied and verified (migration, `/ready`, wake path start); the 8 loans can now be closed through Loan Close. The first real turn is the timing check.
+
+### Closure pruning (release workflow, 21 October 2026)
+- Deleted `Change Logs/CHANGE_NOTES_R083_FAST_STARTUP_2026-10-20.md` (R083 is outside the retention window of R086, R085 and R084); its tracker and Environment Inventory links now point to commit `7e108bc9`, where it still exists. The R083 row in Development Changes (owner confirmation already recorded in the tracker row) was deleted.
+- The R086 Development Changes row became one follow-up row. R082's agent change notes stay (open R082 follow-up row; agent change notes are not pruned).

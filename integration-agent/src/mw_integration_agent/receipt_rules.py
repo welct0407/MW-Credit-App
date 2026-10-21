@@ -97,7 +97,7 @@ def validate_receipt(value, accounts, today=None):
     if not re.fullmatch(r'[A-Z0-9]{6,100}',reference):
         raise ReceiptInvalid('REFERENCE_UNREADABLE')
     # Every printed number (sender and recipient); exactly one of our active accounts must fit. The
-    # 'recipient_numbers' fallback reads journal rows extracted before R086 and is removed in a later release.
+    # 'recipient_numbers' fallback reads journal rows extracted before R087 and is removed in a later release.
     numbers = value.get('account_numbers', value.get('recipient_numbers'))
     if not isinstance(numbers,list) or not 1 <= len(numbers) <= 5 or any(not isinstance(n,str) for n in numbers):
         raise ReceiptInvalid('RECIPIENT_UNREADABLE')

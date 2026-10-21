@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 
 const METADATA_IDENTITY = 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity';
 const RESULT_KEYS = ['account_numbers', 'amount', 'currency', 'date', 'is_payment_receipt', 'reference', 'time', 'transfer_successful'];
-// R086: the recognizer returns every printed number as account_numbers. An agent still on the pre-R086
+// R087: the recognizer returns every printed number as account_numbers. An agent still on the pre-R086
 // key sends recipient_numbers; exactly one of the two is accepted. This fallback is removed in a later release.
 const LEGACY_RESULT_KEYS = RESULT_KEYS.map(key => key === 'account_numbers' ? 'recipient_numbers' : key).sort();
 const RESPONSE_KEYS = ['durationMs', 'imageSha256', 'model', 'provider', 'result', 'status'];

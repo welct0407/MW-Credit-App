@@ -122,7 +122,7 @@ test('client: every failure is unavailable',async()=>{
  assert.equal(validRecognition(null,'x'),null);
 });
 
-test('client: R086 account_numbers; the pre-R086 recipient_numbers key is read, exactly one key is required',()=>{
+test('client: R087 account_numbers; the pre-R087 recipient_numbers key is read, exactly one key is required',()=>{
  const bytes=Buffer.from('synthetic-png'),hash=createHash('sha256').update(bytes).digest('hex');
  const {account_numbers:numbers,...fields}=slip;
  const current=validRecognition(reply(bytes),hash);

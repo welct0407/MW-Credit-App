@@ -1,4 +1,4 @@
-# Change notes — slip account numbers (R086), 21 October 2026
+# Change notes — slip account numbers (R087), 21 October 2026
 
 ## Purpose
 A real KBank K+ slip of 4,000.00 THB (21:37) was not matched to a cash account. The production extractor (`gemini-3.5-flash-lite`) returned only the sender's number xxx-x-x9562-x in 4 of 4 runs, while the owner's cash account "Dad SCB" matches the printed recipient xxx-x-x0386-x (all accounts and holders active). The owner recorded the payment manually. Recognition now asks for every printed account number and lets the host decide.
@@ -10,7 +10,7 @@ A real KBank K+ slip of 4,000.00 THB (21:37) was not matched to a cash account. 
 - Accepted residual, flagged to the owner: a slip of our own outgoing transfer (our account as sender, one foreign account) now matches our account. Both paths have human review: PWA form submission and Partner review approval.
 - Deploy order: Cloud Run command service first, then the VM agent package. The deploy engine restarts `mw-receipt-recognition` since the 21 October recognizer-restart fix (fab7878), not in this batch.
 - Unchanged and unlikely: `validate_receipt` fails closed (`RECIPIENT_UNREADABLE`) when the slip lists more than 5 numbers; above 5 the PWA warns `account_unmatched`.
-- Documentation (Dewey): `integration-agent/docs/RECEIPTS.md` (step 5), `project/Documents/Solution_Design.md` (receipt recognition paragraph), `project/Documents/Development_Changes.md` and `project/Documents/Release_Tracker.md` (R086).
+- Documentation (Dewey): `integration-agent/docs/RECEIPTS.md` (step 5), `project/Documents/Solution_Design.md` (receipt recognition paragraph), `project/Documents/Development_Changes.md` and `project/Documents/Release_Tracker.md` (R087).
 
 ## Checks
 All ran on the uncommitted tree, base 7e108bc, branch `claude/receipt-account-numbers`.

@@ -40,7 +40,7 @@ def held_text(job,borrower,language,accounts):
     if not isinstance(receipt,dict):receipt={}
     account=receipt.get('account_label')
     if not account:
-        # 'recipient_numbers' reads rows extracted before R086; the fallback is removed in a later release.
+        # 'recipient_numbers' reads rows extracted before R087; the fallback is removed in a later release.
         try:account=match_account(receipt.get('account_numbers',receipt.get('recipient_numbers')) or [],accounts)['label']
         except ReceiptInvalid:pass
     reasons={

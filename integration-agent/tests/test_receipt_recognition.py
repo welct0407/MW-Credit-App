@@ -176,7 +176,7 @@ class ProviderTests(unittest.TestCase):
         self.assertEqual(receipt_image.checked(dict(RESULT)), RESULT)
 
     def test_prompt_asks_for_every_printed_account_number(self):
-        # R086: sender and recipient numbers alike; the host keeps the one active cash account that fits.
+        # R087: sender and recipient numbers alike; the host keeps the one active cash account that fits.
         prompt = ' '.join(receipt_image.PROMPT.split())
         self.assertIn('account_numbers lists every bank account or PromptPay number printed on the slip, sender and '
                       'recipient alike, each once, in printed order; never a transaction reference.', prompt)

@@ -80,7 +80,7 @@ class ReceiptRuleTests(unittest.TestCase):
         with self.assertRaises(ReceiptInvalid): match_account(['0891234567'],accounts)
 
     def test_every_printed_number_is_read_and_exactly_one_of_ours_matches(self):
-        # R086: a KBank K+ slip prints sender -> recipient, both masked; the model returns both (synthetic numbers).
+        # R087: a KBank K+ slip prints sender -> recipient, both masked; the model returns both (synthetic numbers).
         ours={'id':'k','label':'KBank synthetic','active':True,'number':'5030003868','alternative':''}
         accounts=[*master()['accounts'],ours]
         kplus=['xxx-x-x9562-x','xxx-x-x0386-x']
