@@ -110,6 +110,8 @@ class Host:
         self.timers = {t: 'active' for t in deploy.TRIGGERS}
         self.timers['mw-audit-relay.timer'] = 'inactive'
         self.invocation, self.modes, self.events, self.ancestry_rc = 1, [], [], 0
+        # Recognizer: stopped unless a test starts it; stale code rejects the newly activated files (not the old ones).
+        self.recognizer, self.recognizer_invocation, self.recognizer_stale = 'inactive', 1, False
         host = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -145,11 +147,21 @@ class Host:
         self.mode = self.modes.pop(0) if self.modes else 'normal'
         self.events.append('restart')
 
+    def recognizer_get(self, config):
+        self.events.append('get /healthz')
+        live = json.loads((self.private / 'service-catalogue.json').read_text())
+        rejected = self.recognizer_stale and config.get('code_version') == COMMIT
+        enabled = bool(not rejected and config.get('receipt_recognition_enabled')
+                       and live['services'].get('receipt_recognition_api', {}).get('enabled'))
+        return 200, json.dumps({'status': 'ok', 'enabled': enabled}).encode()
+
     def output(self, *args):
         if args[0] == 'git' and args[-2:] == ('rev-parse', 'HEAD'):
             return COMMIT
         if args[0] == 'git' and args[-2:] == ('status', '--porcelain'):
             return ''
+        if args[:2] == ('systemctl', 'show') and args[2] == deploy.RECOGNIZER:
+            return f'rec-{self.recognizer_invocation}' if 'InvocationID' in args else self.recognizer
         if args[:2] == ('systemctl', 'show') and 'InvocationID' in args:
             return f'inv-{self.invocation}'
         if args[:2] == ('systemctl', 'show'):
@@ -163,6 +175,8 @@ class Host:
             self.timers.update({t: 'active' for t in args[2:]}); self.events.append('start ' + ' '.join(args[2:]))
         elif args == ('systemctl', 'restart', deploy.RECEIVER):
             self.restart()
+        elif args == ('systemctl', 'restart', deploy.RECOGNIZER):
+            self.recognizer_invocation += 1; self.events.append('restart recognizer')
         elif args == ('systemctl', 'daemon-reload'):
             self.events.append('daemon-reload')
         elif args[1:4] == ('-m', 'pip', 'install') and '--no-deps' in args and args[-1] == str(self.repo):
@@ -178,6 +192,7 @@ class Host:
             for name, value in dict(CHECKOUT=self.checkout, REPO=self.repo, PRIVATE=self.private, SYSTEMD=self.systemd,
                                     POINTER=self.pointer, PREFIX='runtime-', READY_TIMEOUT=2, output=self.output, run=self.run,
                                     identity=lambda: None, installed=lambda: self.site, prepare=code_only,
+                                    recognizer_get=self.recognizer_get,
                                     probe=lambda *_args: None, applied_migrations=self.applied_migrations).items():
                 stack.enter_context(patch.object(deploy, name, value))
             self.chown = stack.enter_context(patch.object(deploy.shutil, 'chown'))
@@ -411,6 +426,53 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual(set(self.host.timers.values()), {'inactive'})
         self.assertEqual(self.host.metadata()['phase'], 'rolling-back')
 
+    def running_recognizer(self, enabled=True):
+        self.host.recognizer = 'active'
+        catalogue = dict(CATALOGUE, services=dict(CATALOGUE['services'],
+                                                  receipt_recognition_api={'enabled': enabled, 'implemented': True}))
+        self.host.config.update(receipt_recognition_enabled=True, receipt_recognition_listen_host='127.0.0.1',
+                                receipt_recognition_listen_port=8790)
+        write(self.host.private, {'config.json': json.dumps(self.host.config), 'service-catalogue.json': json.dumps(catalogue)})
+
+    def test_activate_leaves_a_stopped_recognizer_stopped(self):
+        self.deployed(); self.host.events.clear()
+        self.assertEqual(self.host.phase('activate')[0], 0)
+        self.assertNotIn('restart recognizer', self.host.events)
+        self.assertEqual((self.host.recognizer, self.host.recognizer_invocation), ('inactive', 1))
+        self.assertIsNone(self.host.metadata()['recognizer_health'])
+
+    def test_activate_restarts_a_running_recognizer_before_timers(self):
+        self.running_recognizer(); self.deployed(); self.host.events.clear()
+        code, result = self.host.phase('activate')
+        events = self.host.events
+        self.assertEqual((code, result['phase']), (0, 'activated'))
+        self.assertEqual(events.count('restart recognizer'), 1)
+        self.assertLess(events.index('get /ready'), events.index('restart recognizer'))
+        self.assertLess(events.index('get /healthz'), events.index([e for e in events if e.startswith('start')][0]))
+        self.assertEqual(self.host.metadata()['recognizer_health'], {'status': 'ok', 'enabled': True})
+
+    def test_activate_accepts_a_recognizer_disabled_by_the_files(self):
+        self.running_recognizer(enabled=False); self.deployed()
+        self.assertEqual(self.host.phase('activate')[0], 0)
+        self.assertEqual(self.host.metadata()['recognizer_health'], {'status': 'ok', 'enabled': False})
+
+    def test_recognizer_rejecting_the_files_rolls_back_and_leaves_timers_stopped(self):
+        # 21 October 2026: the running recognizer answered "disabled" because it rejected the new catalogue.
+        self.running_recognizer(); self.host.recognizer_stale = True
+        result = self.failed_activation()
+        self.assertEqual(result['phase'], 'rolled-back')
+        self.assertIn('Recognizer not healthy with enabled=True', result['error'])
+        self.assertEqual(self.host.events.count('restart recognizer'), 2)
+        self.assert_restored(Path(self.host.pointer.read_text()))
+
+    def test_manual_rollback_restarts_a_running_recognizer(self):
+        self.running_recognizer(); self.deployed(); self.assertEqual(self.host.phase('activate')[0], 0); self.host.events.clear()
+        code, result = self.host.phase('rollback')
+        events = self.host.events
+        self.assertEqual((code, result['phase']), (0, 'rolled-back'))
+        self.assertLess(events.index('restart'), events.index('restart recognizer'))
+        self.assertLess(events.index('get /healthz'), events.index([e for e in events if e.startswith('start')][0]))
+
     def recorded_stops(self):
         stops, real = [], deploy.run
 
@@ -601,6 +663,7 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual((report['installed_code_version'], report['ancestry']), (OLD, 'unknown-object'))
         self.assertEqual(report['pointer'], {'path': str(self.host.pointer), 'phase': 'absent'})
         self.assertEqual(report['receiver'], {'invocation_id': 'inv-7', 'active_state': 'active'})
+        self.assertEqual(report['recognizer'], {'invocation_id': 'inv-7', 'active_state': 'active'})
         self.assertEqual(report['units']['compared_with'], 'checkout')
         self.assertEqual(report['units']['files'], {n: 'missing-on-host' if n == MISSING_UNIT else 'changed' for n in deploy.UNIT_FILES})
         self.assertEqual(report['timers_to_pause_and_resume'], deploy.TRIGGERS)

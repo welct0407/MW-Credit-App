@@ -1,7 +1,8 @@
 """Root-only deployment phases (R053 engine, R063 receiver gate). No payment POST, journal migration or replay.
 
-dry-run reports without writes; freeze/install/activate deploy; activate restarts the receiver and resumes
-timers only after /ready reports the pinned commit, else rolls back automatically; rollback restores the backup."""
+dry-run reports without writes; freeze/install/activate deploy; activate restarts the receiver and a running
+recognizer and resumes timers only after /ready reports the pinned commit and /healthz the expected state, else
+rolls back automatically; rollback restores the backup."""
 import argparse
 import copy
 from datetime import datetime, UTC
@@ -26,6 +27,9 @@ SYSTEMD = Path('/etc/systemd/system')
 PROJECT = 'clever-oasis-508610-n7'
 ORIGIN = 'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'
 RECEIVER = 'mw-instagram-webhook.service'
+# Long-running like the receiver: it keeps the package it started with but re-reads config and catalogue on every
+# request, so a copy left running judges new files with the old validator (21 October 2026: every slip "disabled").
+RECOGNIZER = 'mw-receipt-recognition.service'
 # Graph token backup that W1 worker units may write (ReadWritePaths=-...); must exist to be writable.
 OAUTH_BACKUP = 'secrets/outlook-email-oauth.json.bak'
 READY_TIMEOUT = 30
@@ -173,8 +177,8 @@ def active(unit):
     return output('systemctl', 'show', unit, '--property=ActiveState', '--value')
 
 
-def invocation():
-    return output('systemctl', 'show', RECEIVER, '-p', 'InvocationID', '--value')
+def invocation(unit=RECEIVER):
+    return output('systemctl', 'show', unit, '-p', 'InvocationID', '--value')
 
 
 def quiet():
@@ -330,6 +334,40 @@ def receiver_get(config, path):
         return exc.code, exc.read(4096)
 
 
+def recognizer_get(config):
+    host = config['receipt_recognition_listen_host']
+    url = f"http://{'[' + host + ']' if ':' in host else host}:{config['receipt_recognition_listen_port']}/healthz"
+    try:
+        with OPENER.open(url, timeout=5) as response:
+            return response.status, response.read(4096)
+    except urllib.error.HTTPError as exc:
+        return exc.code, exc.read(4096)
+
+
+def restart_recognizer(config, catalogue, timeout=READY_TIMEOUT):
+    """Restart a running recognizer and wait until /healthz reports the enabled state these files give.
+    A stopped recognizer (installed disabled) stays stopped; returns None then, else the health body."""
+    if active(RECOGNIZER) != 'active':
+        return None
+    expected = bool(config.get('receipt_recognition_enabled')
+                    and catalogue['services'].get('receipt_recognition_api', {}).get('enabled'))
+    before = invocation(RECOGNIZER)
+    run('systemctl', 'restart', RECOGNIZER)
+    require(invocation(RECOGNIZER) != before, 'Recognizer was not restarted')
+    deadline, last = time.monotonic() + timeout, None
+    while True:
+        try:
+            status, body = recognizer_get(config)
+            last = json.loads(body)
+            if status == 200 and last.get('status') == 'ok' and last.get('enabled') is expected:
+                return last
+        except (OSError, ValueError, AttributeError) as exc:
+            last = type(exc).__name__
+        if time.monotonic() >= deadline:
+            raise RuntimeError(f'Recognizer not healthy with enabled={expected} within {timeout}s: {json.dumps(last)}')
+        time.sleep(1)
+
+
 def wait_ready(config, expected, timeout=READY_TIMEOUT, legacy=False):
     """Poll /ready once per second until it reports ready for the expected code_version.
     legacy: a package without /ready (404) passes on /health 200; the caller checks the new InvocationID."""
@@ -370,7 +408,8 @@ def archive_pointer():
 
 
 def rollback(backup, metadata, resume=False):
-    """Restore package, configuration and units, restart the receiver and verify it. Timers resume only when asked and verified."""
+    """Restore package, configuration and units, restart the receiver and a running recognizer and verify them.
+    Timers resume only when asked and verified."""
     package = Path(metadata.get('installed_path') or installed())
     kept = set(tree(backup / 'package'))
     for path in sorted(package.rglob('*')):
@@ -394,6 +433,7 @@ def rollback(backup, metadata, resume=False):
     config = json.loads((backup / 'config.json').read_text())
     wait_ready(config, config.get('code_version'), READY_TIMEOUT, legacy=True)
     require(invocation() != before, 'Receiver was not restarted')
+    restart_recognizer(config, json.loads((backup / 'service-catalogue.json').read_text()), READY_TIMEOUT)
     metadata.update(phase='rolled-back', rolled_back_at=datetime.now(UTC).isoformat())
     save(backup / 'deployment.json', metadata)
     if resume and metadata['resume_timers']:
@@ -469,6 +509,7 @@ def dry_run(commit, connection_file=None):
             return 'invalid pointer'
     report['pointer'] = {'path': str(POINTER), 'phase': attempt(pointer)}
     report['receiver'] = {'invocation_id': attempt(invocation), 'active_state': attempt(lambda: active(RECEIVER))}
+    report['recognizer'] = {'invocation_id': attempt(lambda: invocation(RECOGNIZER)), 'active_state': attempt(lambda: active(RECOGNIZER))}
     from_commit = head != commit and known is True
 
     def unit(name):
@@ -513,8 +554,10 @@ def dry_run(commit, connection_file=None):
         'pip install --no-deps ' + str(REPO) + '; delete installed *.py absent from source; verify installed == source; '
         'install changed units; daemon-reload; create the Graph token backup file when missing',
         'activate: agent schema check again; read-only probe; write config/catalogue; restart ' + RECEIVER + '; wait for /ready with this commit (' +
-        str(READY_TIMEOUT) + ' s) and a new InvocationID; then start the paused timers and path units',
-        'on activation failure: automatic rollback (package, config, units, daemon-reload, receiver restart and check); '
+        str(READY_TIMEOUT) + ' s) and a new InvocationID; restart ' + RECOGNIZER + ' when running and wait for /healthz '
+        'to report the enabled state of the new files; then start the paused timers and path units',
+        'on activation failure: automatic rollback (package, config, units, daemon-reload, receiver and running '
+        'recognizer restart and check); '
         'timers and path units stay stopped']
     return report
 
@@ -607,6 +650,7 @@ def main():
         run('systemctl', 'restart', RECEIVER)
         wait_ready(config, args.commit, READY_TIMEOUT)
         require(invocation() != metadata['receiver_invocation'], 'Receiver was not restarted')
+        metadata['recognizer_health'] = restart_recognizer(config, catalogue, READY_TIMEOUT)
     except Exception as exc:
         recover(backup, metadata, exc)
     metadata.update(phase='activated', receiver_ready_at=datetime.now(UTC).isoformat())
