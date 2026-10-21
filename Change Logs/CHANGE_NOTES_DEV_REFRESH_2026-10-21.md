@@ -41,12 +41,4 @@ None beyond the plan's defaults: no receipt objects copied (restored receipts do
 
 ## Remaining work
 - Owner: open the DEV PWA on each DEV device and re-enable notifications.
-- Lessons-learned review (step 3 of the plan's session):
-  - Phase 3 cannot reconcile against a live snapshot as written. It needs a lab-flagged copy (`identity.lab=true`), NOLOGIN placeholders for every role the snapshot names, and the lab database owned by `cloudsqlsuperuser`.
-  - Run `pg_restore` as root over TCP: the `postgres` OS user cannot read the private folder.
-  - `application-role-cli.mjs --action plan` needs `Get-DbEnvironment development -Admin` first and always prints 501 statements.
-  - The four access tests do not fit live DEV grants.
-  - `configure-dev-read-role.py` has a stale allowlist.
-  - The reconcile and the owner window interact on `public` CREATE: re-grant before `restore`, or exclude the window's grants from the reconcile.
-  - The live restore takes about 13 minutes through the tunnel.
-  - The plan's `pkill -f` tunnel close would match its own shell; close the tunnel by the ssh PID.
+- Lessons-learned review: done the same day ([review change note](CHANGE_NOTES_DEV_REFRESH_REVIEW_2026-10-21.md)); the eight lessons listed by this run are now in the [runbook](../project/Documents/Rules/Development_Refresh_Runbook.md) and the tool. Still open outside the refresh: the stale `configure-dev-read-role.py` allowlist.

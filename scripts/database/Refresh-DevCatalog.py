@@ -10,6 +10,11 @@ atomic pg_restore command in the refresh plan. This tool does the part that is e
              --apply commits only when the residual difference is empty.
   compare    report the catalog difference against the snapshot and, with --prod-baseline, the
              table fingerprints against the PROD snapshot's baseline-private.json.
+  lab-prepare (lab only) create NOLOGIN placeholders for every role a live snapshot names, their
+             memberships and the database owner, so a rehearsal can reconcile against that snapshot.
+
+Inside the owner window pass `reconcile --window-owner <role>` for each prepared owner: their temporary
+CREATE ON SCHEMA public then stays for `owner-authority-cli.mjs restore` instead of being revoked.
 
 Targets. Live DEV (default) is reached through the Linux IAP tunnel (scripts/database/cloud-db-tunnel.sh,
 127.0.0.1:$MW_DB_TUNNEL_PORT) with the credential files that `Get-DbEnvironment development [-Admin]`
@@ -216,6 +221,44 @@ def privilege_plan(before_objects, now_objects):
     return statements
 
 
+def strip_window_grants(objects, window_owners):
+    """Drop the owner window's temporary CREATE ON SCHEMA public entries (owner-authority-cli.mjs prepare) so the
+    reconcile neither revokes them nor counts them as residual; `restore` removes them afterwards."""
+    if not window_owners:
+        return objects
+    owners = set(window_owners)
+    result = []
+    for o in objects:
+        if o['kind'] == 'SCHEMA' and o['ident'] == 'public':
+            o = dict(o, acl=[e for e in o['acl'] if not (e['privilege'] == 'CREATE' and e['grantee'] in owners)])
+        result.append(o)
+    return result
+
+
+def lab_prepare_statements(snapshot, existing_roles, existing_memberships, database):
+    """Roles, memberships and the database owner a disposable cluster needs before a rehearsal against a live
+    snapshot: every role the snapshot names, as NOLOGIN placeholders (no credential), and the database owner."""
+    statements = []
+    roles = {r['role']: r for r in snapshot['catalog']['roles']}
+    created = set()
+    for name in sorted(roles):
+        if name == 'postgres' or name.startswith('pg_') or name in existing_roles:
+            continue
+        statements.append(f'CREATE ROLE {quote_ident(name)} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS '
+                          + ('INHERIT' if roles[name]['inherit'] else 'NOINHERIT'))
+        created.add(name)
+    known = set(existing_roles) | created | {'postgres'}
+    for name in sorted(roles):
+        for m in roles[name]['memberOf']:
+            if m['role'] in known and name in known and (m['role'], name) not in existing_memberships:
+                statements.append(f'GRANT {quote_ident(m["role"])} TO {quote_ident(name)} WITH INHERIT {str(bool(m["inherit"])).upper()}, '
+                                  f'SET {str(bool(m["set"])).upper()}, ADMIN {str(bool(m["admin"])).upper()}')
+    db_owner = next((o['owner'] for o in snapshot['catalog']['objects'] if o['kind'] == 'DATABASE'), None)
+    if db_owner and db_owner != 'postgres' and db_owner in known:
+        statements.append(f'ALTER DATABASE {quote_ident(database)} OWNER TO {quote_ident(db_owner)}')
+    return statements
+
+
 def catalog_difference(before, now):
     """Report-only comparison: objects, owners, privileges, triggers, extensions, Flyway rows."""
     b, n = before['objects'], now['objects']
@@ -322,10 +365,11 @@ def load_snapshot(path):
 
 def mode_reconcile(args, conn, identity):
     before = load_snapshot(args.before)
-    if before['identity']['database'] != identity['database'] or before['identity']['lab'] != identity['lab']:
-        raise SystemExit('Snapshot was taken on a different target')
+    if before['identity']['database'] != identity['database'] or (before['identity']['lab'] and not identity['lab']):
+        raise SystemExit('Snapshot was taken on a different target (a lab snapshot never drives live DEV; a live snapshot may drive a lab)')
     before_objects = {(o['kind'], o['ident']): o for o in before['catalog']['objects']}
-    report = {'mode': 'reconcile', 'identity': identity, 'before': args.before, 'apply': args.apply}
+    window = args.window_owner or []
+    report = {'mode': 'reconcile', 'identity': identity, 'before': args.before, 'apply': args.apply, 'windowOwners': window}
     with conn.transaction():
         conn.execute("SET LOCAL statement_timeout='300s'; SET LOCAL lock_timeout='15s'")
         cur = conn.cursor()
@@ -333,11 +377,13 @@ def mode_reconcile(args, conn, identity):
         owners, skipped = owner_statements(before_objects, now_objects)
         for statement in owners:
             cur.execute(statement)
-        _, now_objects = capture_catalog(cur)  # default ACLs follow the owner
+        now_catalog, _ = capture_catalog(cur)  # default ACLs follow the owner
+        now_objects = {(o['kind'], o['ident']): o for o in strip_window_grants(now_catalog['objects'], window)}
         privileges = privilege_plan(before_objects, now_objects)
         for statement in privileges:
             cur.execute(statement)
         after, _ = capture_catalog(cur)
+        after = dict(after, objects=strip_window_grants(after['objects'], window))
         residual = catalog_difference(before['catalog'], after)
         report.update({'ownerStatements': owners, 'ownerSkipped': skipped, 'privilegeStatements': privileges, 'residual': residual})
         clean = not residual['ownerDifferences'] and not residual['privilegeDifferences']
@@ -350,6 +396,22 @@ def mode_reconcile(args, conn, identity):
     print(json.dumps(summary))
     if not clean:
         raise SystemExit('Residual owner or privilege difference remains; nothing committed')
+
+
+def mode_lab_prepare(args, conn, identity):
+    if not identity['lab']:
+        raise SystemExit('lab-prepare targets a disposable cluster only')
+    before = load_snapshot(args.before)
+    with conn.transaction():
+        cur = conn.cursor()
+        existing_roles = {r[0] for r in cur.execute('SELECT rolname FROM pg_roles').fetchall()}
+        existing_memberships = {(r[0], r[1]) for r in cur.execute(
+            'SELECT g.rolname, m.rolname FROM pg_auth_members a JOIN pg_roles g ON g.oid=a.roleid JOIN pg_roles m ON m.oid=a.member').fetchall()}
+        statements = lab_prepare_statements(before, existing_roles, existing_memberships, identity['database'])
+        for statement in statements:
+            cur.execute(statement)
+    write_json(args.report, {'mode': 'lab-prepare', 'identity': identity, 'before': args.before, 'statements': statements})
+    print(json.dumps({'mode': 'lab-prepare', 'statements': len(statements), 'roles': sum(s.startswith('CREATE ROLE') for s in statements)}))
 
 
 def mode_compare(args, conn, identity):
@@ -378,7 +440,7 @@ def mode_compare(args, conn, identity):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument('mode', choices=('snapshot', 'reconcile', 'compare'))
+    parser.add_argument('mode', choices=('snapshot', 'reconcile', 'compare', 'lab-prepare'))
     parser.add_argument('--identity', choices=('read', 'admin'), default='read', help='live DEV credential (reconcile needs admin)')
     parser.add_argument('--lab-port', type=int, help='loopback disposable cluster instead of live DEV')
     parser.add_argument('--lab-database', default=LIVE_DATABASE)
@@ -389,16 +451,19 @@ def main(argv=None):
     parser.add_argument('--report', help='reconcile/compare: JSON report file')
     parser.add_argument('--prod-baseline', help='compare: baseline-private.json of the PROD snapshot (fingerprints)')
     parser.add_argument('--expect-empty', help='compare: comma-separated schema.table list expected to hold 0 rows')
+    parser.add_argument('--window-owner', action='append', help='reconcile: owner role whose temporary CREATE ON SCHEMA public (owner window) must stay; repeatable')
     args = parser.parse_args(argv)
+    if args.mode == 'lab-prepare' and (not args.lab_port or not args.before):
+        parser.error('lab-prepare needs --lab-port and --before')
     if args.mode == 'snapshot' and not args.out:
         parser.error('snapshot needs --out')
-    if args.mode in ('reconcile', 'compare') and not args.before:
+    if args.mode in ('reconcile', 'compare', 'lab-prepare') and not args.before:
         parser.error(f'{args.mode} needs --before')
     if args.mode == 'reconcile' and not args.lab_port and args.identity != 'admin':
         parser.error('reconcile on live DEV needs --identity admin')
     conn, identity = connect(args)
     try:
-        {'snapshot': mode_snapshot, 'reconcile': mode_reconcile, 'compare': mode_compare}[args.mode](args, conn, identity)
+        {'snapshot': mode_snapshot, 'reconcile': mode_reconcile, 'compare': mode_compare, 'lab-prepare': mode_lab_prepare}[args.mode](args, conn, identity)
     finally:
         conn.close()
 

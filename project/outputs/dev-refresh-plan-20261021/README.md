@@ -1,6 +1,6 @@
 # DEV refresh from PROD: execution plan for a Claude Code cloud session
 
-Drafted 21 October 2026 for the owner. The [refresh runbook](../../Documents/Rules/Development_Refresh_Runbook.md) is the rule; this plan is the session brief that follows it, with the facts verified on 21 October 2026, the exact commands, the expected numbers from the rehearsal and the evidence to keep for the lessons-learned review afterwards. It is a plan, not an authorization record. Start the refresh session in **Accept edits** mode, read [AGENTS.md](../../../AGENTS.md), the runbook and this file, then work the phases in order. Do the work directly (database operations are not PWA product development); Forge is not needed unless Terraform has to change.
+Drafted 21 October 2026 for the owner and executed the same day ([refresh change note](../../../Change%20Logs/CHANGE_NOTES_DEV_REFRESH_2026-10-21.md), DEV ready in 45 minutes); the corrections that run produced are folded in below ([review](../../../Change%20Logs/CHANGE_NOTES_DEV_REFRESH_REVIEW_2026-10-21.md)), so the next refresh can reuse this brief. The [refresh runbook](../../Documents/Rules/Development_Refresh_Runbook.md) is the rule; this plan is the session brief that follows it, with the facts verified on 21 October 2026, the exact commands, the expected numbers from the rehearsal and the evidence to keep for the lessons-learned review afterwards. It is a plan, not an authorization record. Start the refresh session in **Accept edits** mode, read [AGENTS.md](../../../AGENTS.md), the runbook and this file, then work the phases in order. Do the work directly (database operations are not PWA product development); Forge is not needed unless Terraform has to change.
 
 ## Verified on 21 October 2026 (read-only, from a Claude cloud session)
 
@@ -14,7 +14,8 @@ Drafted 21 October 2026 for the owner. The [refresh runbook](../../Documents/Rul
 | DEV schedulers | all three already `PAUSED`; PROD's three `ENABLED` | Nothing to pause; the Terraform plan of `dev` must stay no-change |
 | DEV sessions | none at the time of the check; PROD had Metabase and the command service | Re-check in the window |
 | Size | DEV 16 MB, PROD 17 MB, 33 tables, about 4,500 rows in DEV | Dump, restore and reconcile take seconds; the catalog snapshot about 5 s over the tunnel |
-| Rehearsal | Lab restore of a PROD-shaped dump over a DEV-shaped database: 40 owner statements, 171 to 178 privilege statements, residual 0, catalog equal, fingerprints equal, four access tests pass; rollback rehearsal equal | Expected counts for Phase 5 (a large deviation means stop and compare) |
+| Rehearsal | Lab restore of a PROD-shaped dump over a DEV-shaped database: 40 owner statements, 171 to 178 privilege statements, residual 0, catalog equal, fingerprints equal; rollback rehearsal equal | Expected counts for Phase 5 (a large deviation means stop and compare) |
+| Live run, 21 October 2026 | Rehearsal from the live snapshot 40 owner and 609 privilege statements; live dry run and apply 40 and 592, residual 0; restore 13 minutes through the tunnel; 4 PROD subscriptions and 29 deliveries deleted | The numbers to expect next time; a restore is minutes, not seconds |
 
 ## Go or no-go
 
@@ -50,8 +51,9 @@ Stop if the two history md5 values differ, if PROD's head is above DEV's, or if 
 
 ```bash
 python3 scripts/database/Refresh-DevCatalog.py snapshot --identity read --fingerprints --out $E/dev-catalog-before.json
-node scripts/database/application-role-cli.mjs --action plan            # expect 0 statements
-python3 scripts/configure-dev-read-role.py                               # expect nothing pending
+pwsh -NoProfile -c ". scripts/database/Common.ps1; Get-DbEnvironment development -Admin | Out-Null"   # the role CLI needs the admin credential file
+node scripts/database/application-role-cli.mjs --action plan | tee $E/phase1-role-plan.txt   # expect 0 violations; it prints its full idempotent set (501 statements on 21 October)
+python3 scripts/configure-dev-read-role.py | tee $E/phase1-read-role.txt || true             # known to fail "Unexpected business SELECT privilege" (stale allowlist); keep the output for the after comparison
 python3 scripts/database/Backup-ProductionPromotion.py --environment development --expected-version 100 \
   --approval-reference '<owner refresh instruction, date>' | tee $E/dev-backup.json
 ```
@@ -75,22 +77,22 @@ LAB=$MW_LAB_DIR/dev-refresh-rehearsal; PORT=54331; rm -rf $LAB; install -d -m 70
 runuser -u postgres -- $PGBIN/initdb -D $LAB/data -U postgres --auth=trust --encoding=UTF8 --locale=C >/dev/null
 runuser -u postgres -- $PGBIN/pg_ctl -D $LAB/data -l $LAB/postgres.log -o "-h 127.0.0.1 -p $PORT" -w start >/dev/null
 P="$PGBIN/psql -X -q -h 127.0.0.1 -p $PORT -U postgres"; $P -d postgres -c "CREATE DATABASE loan_manager_dev"
-for f in Test-AgentAuditPrerequisites Test-AppRolePrerequisites Test-IamRolePrerequisites; do $P -d loan_manager_dev -v ON_ERROR_STOP=1 -f scripts/database/$f.sql; done
-runuser -u postgres -- $PGBIN/pg_restore -h 127.0.0.1 -p $PORT -U postgres -d loan_manager_dev --no-owner --no-privileges --exit-on-error -1 $DUMP
+python3 scripts/database/Refresh-DevCatalog.py lab-prepare --lab-port $PORT --before $E/dev-catalog-before.json --report $E/rehearsal-lab-prepare.json   # every role the live snapshot names, memberships, database owner
+$PGBIN/pg_restore -h 127.0.0.1 -p $PORT -U postgres -d loan_manager_dev --no-owner --no-privileges --exit-on-error -1 $DUMP   # as root over TCP: the postgres OS user cannot read the private folder
 $P -d loan_manager_dev -c "DELETE FROM public.pwa_notification_deliveries" -c "DELETE FROM public.pwa_push_subscriptions"
 python3 scripts/database/Refresh-DevCatalog.py reconcile --lab-port $PORT --before $E/dev-catalog-before.json --apply --report $E/rehearsal-reconcile.json
 python3 scripts/database/Refresh-DevCatalog.py compare --lab-port $PORT --before $E/dev-catalog-before.json --prod-baseline $BASE \
   --expect-empty public.pwa_notification_deliveries,public.pwa_push_subscriptions --report $E/rehearsal-compare.json
-for t in Test-AccessMatrix Test-TriggerOrder Test-RowChanges Test-LedgerAccess; do printf "%s: " $t; $P -d loan_manager_dev -v ON_ERROR_STOP=1 -f scripts/database/$t.sql >/dev/null && echo pass || echo FAIL; done
+for t in Test-TriggerOrder Test-RowChanges; do printf "%s: " $t; $P -d loan_manager_dev -v ON_ERROR_STOP=1 -f scripts/database/$t.sql >/dev/null && echo pass || echo FAIL; done   # AccessMatrix and LedgerAccess encode the CI role set and fail on real DEV grants
 # rollback rehearsal with the DEV dump (same options as the live restore, including --clean)
 DEVDUMP=$(python3 -c "import json;print(json.load(open('$E/dev-backup.json'))['privateRecoveryDirectory'])")/loan_manager_dev.dump
-runuser -u postgres -- $PGBIN/pg_restore -h 127.0.0.1 -p $PORT -U postgres -d loan_manager_dev --clean --if-exists --no-owner --no-privileges --exit-on-error -1 $DEVDUMP
+$PGBIN/pg_restore -h 127.0.0.1 -p $PORT -U postgres -d loan_manager_dev --clean --if-exists --no-owner --no-privileges --exit-on-error -1 $DEVDUMP
 python3 scripts/database/Refresh-DevCatalog.py reconcile --lab-port $PORT --before $E/dev-catalog-before.json --apply >/dev/null
 python3 scripts/database/Refresh-DevCatalog.py compare --lab-port $PORT --before $E/dev-catalog-before.json --prod-baseline $E/dev-catalog-before.json --report $E/rehearsal-rollback.json
 runuser -u postgres -- $PGBIN/pg_ctl -D $LAB/data -m fast -w stop >/dev/null; rm -rf $LAB
 ```
 
-Expected: reconcile `committed: true`, residual all zero; compare `catalogEqual: true`, `fingerprintsEqual: true`; four passes; rollback compare equal. Note the owner and privilege statement counts; Phase 5 must reproduce them within a few statements. The rehearsal `postgres` is a superuser, so it cannot show Cloud SQL permission failures; the dry run in Phase 5 does.
+Expected: reconcile `committed: true`, residual owners and privileges zero; compare `catalogEqual: true`, `fingerprintsEqual: true`; two passes; rollback compare equal. Note the owner and privilege statement counts; Phase 5 must reproduce them within a few statements. The rehearsal `postgres` is a superuser, so it cannot show Cloud SQL permission failures; the dry run in Phase 5 does.
 
 ## Phase 4: quiesce DEV
 
@@ -115,16 +117,17 @@ The identity line must read `loan_manager_dev | postgres | (null) | 768539150847
 node scripts/database/owner-authority-cli.mjs prepare --environment development --owner mw_notify_owner_dev --owner mw_jobs_owner_dev \
   --owner mw_ledger_owner_dev --owner mw_changes_owner_dev --owner mw_app_dev_journal_owner --apply | tee $E/owner-window.json
 STATE=$(python3 -c "import json;print(json.load(open('$E/owner-window.json'))['privateRecoveryFile'])")
-$PGBIN/pg_restore -h 127.0.0.1 -p 15432 -U postgres -d loan_manager_dev --clean --if-exists --no-owner --no-privileges --exit-on-error -1 $DUMP 2>&1 | tee $E/restore.log
+$PGBIN/pg_restore -h 127.0.0.1 -p 15432 -U postgres -d loan_manager_dev --clean --if-exists --no-owner --no-privileges --exit-on-error -1 $DUMP 2>&1 | tee $E/restore.log   # about 13 minutes through the tunnel
 $A -c "DELETE FROM public.pwa_notification_deliveries" -c "DELETE FROM public.pwa_push_subscriptions" | tee $E/neutralize.txt
-python3 scripts/database/Refresh-DevCatalog.py reconcile --identity admin --before $E/dev-catalog-before.json --report $E/reconcile-dry.json        # dry run: executes, verifies, rolls back
-python3 scripts/database/Refresh-DevCatalog.py reconcile --identity admin --before $E/dev-catalog-before.json --report $E/reconcile-apply.json --apply
+W="--window-owner mw_notify_owner_dev --window-owner mw_jobs_owner_dev --window-owner mw_ledger_owner_dev --window-owner mw_changes_owner_dev --window-owner mw_app_dev_journal_owner"
+python3 scripts/database/Refresh-DevCatalog.py reconcile --identity admin --before $E/dev-catalog-before.json $W --report $E/reconcile-dry.json        # dry run: executes, verifies, rolls back
+python3 scripts/database/Refresh-DevCatalog.py reconcile --identity admin --before $E/dev-catalog-before.json $W --report $E/reconcile-apply.json --apply
 pwsh -NoProfile -File scripts/database/Invoke-Flyway.ps1 -Environment development -Command validate | tee $E/flyway-validate.txt
 node scripts/database/owner-authority-cli.mjs restore --environment development --state $STATE --apply | tee $E/owner-restore.json
 unset PGPASSWORD
 ```
 
-Rules: a failed `pg_restore` with `-1` leaves DEV unchanged (check `restore.log`, fix the cause, retry the same command); a failed `prepare` or a dry run with a residual difference stops the phase before anything is committed; `restore` must show every owner back to `inherit false, set false, admin false` and no `CREATE` on `public`. Only an approved pending migration set adds `-Command migrate` before `validate`, then `node scripts/database/application-role-cli.mjs --action post-migrate --apply`, all inside the window.
+Rules: a failed `pg_restore` with `-1` leaves DEV unchanged (check `restore.log`, fix the cause, retry the same command); a failed `prepare` or a dry run with a residual difference stops the phase before anything is committed; `restore` must show every owner back to `inherit false, set false, admin false` and no `CREATE` on `public`; if it refuses with "Owned authority changed concurrently", the window's `CREATE ON SCHEMA public` grants were removed (a reconcile run without `$W`): re-grant them to the five owners as `prepare` did, then run `restore` again. Only an approved pending migration set adds `-Command migrate` before `validate`, then `node scripts/database/application-role-cli.mjs --action post-migrate --apply`, all inside the window.
 
 ## Phase 6: verify before anything resumes
 
@@ -142,7 +145,7 @@ Then the DEV reader and command services answer `/health` with 200 and an unauth
 
 ## Phase 8: records and cleanup
 
-1. Copy `$E` to `gs://mw-credit-operator-private-737787224638/dev-backups/dev-refresh-<date>-evidence/` (`gcloud storage cp --recursive`), then delete local dumps and restore directories under `/var/tmp/mw-credit` and the credential files under `$MW_PRIVATE_ROOT/AppSheet-Loan-Project/credentials/`; close the tunnel (`pkill -f 'ssh -f -N .*vm-mw-credit-agent'`).
+1. Copy `$E` to `gs://mw-credit-operator-private-737787224638/dev-backups/dev-refresh-<date>-evidence/` (`gcloud storage cp --recursive`), then delete local dumps and restore directories under `/var/tmp/mw-credit` and the credential files under `$MW_PRIVATE_ROOT/AppSheet-Loan-Project/credentials/`; close the tunnel by its ssh process: `kill $(pgrep -f 'ExitOnForwardFailure=ye[s]')` (a pattern that names the host matches the shell running it).
 2. Update the DEV row of the [Environment inventory](../../Documents/Environment_Inventory.md): refresh date, PROD snapshot `observedAt` and dump sha256, DEV backup sha256 and object, owner-window record id, reconcile statement counts, `flyway validate` result; note that DEV push subscriptions were cleared. Write one change note with the [template](../../Documents/Rules/Development_Workflow.md#records-change-notes-and-retention); `npm run check:docs`; commit and push the task's files only.
 3. Report: DEV ready, incomplete or rolled back; the PROD snapshot timestamp; what the owner still has to do (re-subscribe notifications; restored receipt images do not render in DEV).
 

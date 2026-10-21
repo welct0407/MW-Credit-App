@@ -126,6 +126,35 @@ class CatalogDifference(unittest.TestCase):
         self.assertEqual(len(diff['flywayDifferences']), 2)
 
 
+class WindowGrants(unittest.TestCase):
+    def test_window_create_on_public_is_neither_revoked_nor_residual(self):
+        before = {('SCHEMA', 'public'): obj('SCHEMA', 'public', 'pg_database_owner', [('mw_app_dev', 'USAGE', False)])}
+        now_objects = [obj('SCHEMA', 'public', 'pg_database_owner', [('mw_app_dev', 'USAGE', False), ('mw_notify_owner_dev', 'CREATE', False), ('other', 'CREATE', False)])]
+        stripped = {(o['kind'], o['ident']): o for o in M.strip_window_grants(now_objects, ['mw_notify_owner_dev'])}
+        self.assertEqual(M.privilege_plan(before, stripped), ['REVOKE CREATE ON SCHEMA public FROM "other"'])
+        self.assertEqual(M.strip_window_grants(now_objects, []), now_objects)
+
+
+class LabPrepare(unittest.TestCase):
+    def test_roles_memberships_and_database_owner(self):
+        snapshot = {'catalog': {'objects': [obj('DATABASE', 'loan_manager_dev', 'cloudsqlsuperuser')],
+                                'roles': [{'role': 'postgres', 'login': True, 'inherit': True, 'memberOf': [{'role': 'cloudsqlsuperuser', 'inherit': True, 'set': True, 'admin': False}]},
+                                          {'role': 'cloudsqlsuperuser', 'login': False, 'inherit': True, 'memberOf': []},
+                                          {'role': 'mw_notify_owner_dev', 'login': False, 'inherit': False, 'memberOf': []},
+                                          {'role': 'pg_read_all_data', 'login': False, 'inherit': True, 'memberOf': []},
+                                          {'role': 'reader@x.iam', 'login': True, 'inherit': True, 'memberOf': [{'role': 'pg_read_all_data', 'inherit': True, 'set': False, 'admin': False}]}]}}
+        statements = M.lab_prepare_statements(snapshot, {'postgres', 'mw_notify_owner_dev', 'pg_read_all_data'}, set(), 'loan_manager_dev')
+        self.assertEqual(statements, [
+            'CREATE ROLE "cloudsqlsuperuser" NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS INHERIT',
+            'CREATE ROLE "reader@x.iam" NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS INHERIT',
+            'GRANT "cloudsqlsuperuser" TO "postgres" WITH INHERIT TRUE, SET TRUE, ADMIN FALSE',
+            'GRANT "pg_read_all_data" TO "reader@x.iam" WITH INHERIT TRUE, SET FALSE, ADMIN FALSE',
+            'ALTER DATABASE "loan_manager_dev" OWNER TO "cloudsqlsuperuser"'])
+        self.assertEqual(M.lab_prepare_statements(snapshot, {'postgres', 'mw_notify_owner_dev', 'pg_read_all_data', 'cloudsqlsuperuser', 'reader@x.iam'},
+                                                  {('cloudsqlsuperuser', 'postgres'), ('pg_read_all_data', 'reader@x.iam')}, 'loan_manager_dev'),
+                         ['ALTER DATABASE "loan_manager_dev" OWNER TO "cloudsqlsuperuser"'])
+
+
 class FingerprintDifference(unittest.TestCase):
     def test_expected_empty_tables_and_differences(self):
         expected = {'public.a': {'count': 2, 'digest': 'x'}, 'public.pwa_push_subscriptions': {'count': 3, 'digest': 'y'}}
