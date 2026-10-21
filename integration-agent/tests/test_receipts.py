@@ -33,7 +33,7 @@ def receipt():
     return {'is_payment_receipt':True,'transfer_successful':True,
             'date':datetime.now(BANGKOK).date().isoformat(),'time':'18:23:12',
             'amount':'1234.50','currency':'THB',
-            'reference':'TEST20260921','recipient_numbers':['0891234567']}
+            'reference':'TEST20260921','account_numbers':['0891234567']}
 
 
 def profile(*_):
@@ -78,6 +78,40 @@ class ReceiptRuleTests(unittest.TestCase):
         with self.assertRaises(ReceiptInvalid): match_account(['1234567890','9994567890'],accounts)
         accounts[0]['active']=False
         with self.assertRaises(ReceiptInvalid): match_account(['0891234567'],accounts)
+
+    def test_every_printed_number_is_read_and_exactly_one_of_ours_matches(self):
+        # R086: a KBank K+ slip prints sender -> recipient, both masked; the model returns both (synthetic numbers).
+        ours={'id':'k','label':'KBank synthetic','active':True,'number':'5030003868','alternative':''}
+        accounts=[*master()['accounts'],ours]
+        kplus=['xxx-x-x9562-x','xxx-x-x0386-x']
+        self.assertEqual(match_account(kplus,accounts)['id'],'k')
+        r=receipt();r['account_numbers']=kplus
+        self.assertEqual(validate_receipt(r,accounts)['account_id'],'k')
+        # Two of our own accounts on one slip stay ambiguous.
+        r['account_numbers']=['xxx-x-x0386-x','0891234567']
+        with self.assertRaisesRegex(ReceiptInvalid,'RECIPIENT_UNKNOWN_OR_AMBIGUOUS'):validate_receipt(r,accounts)
+        # Nothing printed (or more than five numbers) is unreadable, as before.
+        for numbers in ([],['xxx-x-x0386-x']*6):
+            r['account_numbers']=numbers
+            with self.subTest(numbers=numbers),self.assertRaisesRegex(ReceiptInvalid,'RECIPIENT_UNREADABLE'):
+                validate_receipt(r,accounts)
+
+    def test_outgoing_transfer_from_our_account_matches_ours_residual(self):
+        # Documented residual: a slip of a transfer FROM our account to a foreign one also matches ours,
+        # because sender and recipient are not told apart. Both paths keep human review (Instagram proposal
+        # approval, PWA receiving form), so the suggestion is never posted on its own.
+        r=receipt();r['account_numbers']=['0891234567','xxx-x-x9562-x']
+        self.assertEqual(validate_receipt(r,master()['accounts'])['account_id'],'a')
+
+    def test_pre_r086_recipient_numbers_key_is_still_read(self):
+        from mw_integration_agent.receipt_hold import held_text
+        r=receipt();r['recipient_numbers']=r.pop('account_numbers')
+        self.assertEqual(validate_receipt(r,master()['accounts'])['account_id'],'a')
+        job={'id':'j','detail':'AMOUNT_UNREADABLE','created_at':1760000000,
+             'result':json.dumps({'extraction':{**r,'amount':''}})}
+        self.assertIn('Account: TTB test',held_text(job,None,'English',master()['accounts'])[1])
+        job['result']=json.dumps({'extraction':{**receipt(),'amount':''}})
+        self.assertIn('Account: TTB test',held_text(job,None,'English',master()['accounts'])[1])
 
     def test_date_amount_reference_and_nonreceipt_negative_paths(self):
         today=datetime.now(BANGKOK).date()

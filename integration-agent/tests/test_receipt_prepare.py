@@ -47,7 +47,7 @@ class PrepareTests(unittest.TestCase):
         today=datetime.now(BANGKOK).date().isoformat()
         borrower={'id':'borrower-A','username':'borrower','enabled':True,'name_en':'Test'}
         raw={'is_payment_receipt':True,'transfer_successful':True,'date':today,'time':'12:10',
-             'amount':'1300.00','currency':'THB','reference':'TESTREF123','recipient_numbers':['1234567890']}
+             'amount':'1300.00','currency':'THB','reference':'TESTREF123','account_numbers':['1234567890']}
         master={'borrowers':[borrower],'accounts':[{'id':'a','number':'1234567890','active':True,'label':'Test'}],
                 'posted_references':[]}
         message={'id':'message-A','created_time':today+'T12:10:00+07:00','from':{'id':'123','username':'borrower'},

@@ -23,7 +23,7 @@ from mw_integration_agent.receipt_image import SCHEMA, RecognitionUnavailable
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULT = {'is_payment_receipt': True, 'transfer_successful': True, 'date': '2026-10-18', 'time': '10:15:00',
-          'amount': '1500.00', 'currency': 'THB', 'reference': 'SYN123456', 'recipient_numbers': ['xxx-x-x4321-x']}
+          'amount': '1500.00', 'currency': 'THB', 'reference': 'SYN123456', 'account_numbers': ['xxx-x-x4321-x']}
 GEMINI = {'gemini_project': 'clever-oasis-508610-n7', 'gemini_location': 'asia-southeast1', 'gemini_model': 'gemini-2.0-flash-001'}
 DEV = {'email': 'mw-credit-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '111111111111111111111'}
 PROD = {'email': 'mw-credit-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '222222222222222222222'}
@@ -167,11 +167,23 @@ class ProviderTests(unittest.TestCase):
 
     def test_shared_shape_validation_rejects_extra_missing_and_mistyped_fields(self):
         for bad in ({**RESULT, 'extra': 1}, {k: v for k, v in RESULT.items() if k != 'time'}, {**RESULT, 'amount': 1500},
-                    {**RESULT, 'transfer_successful': 'true'}, {**RESULT, 'recipient_numbers': [123]}, [RESULT]):
+                    {**RESULT, 'transfer_successful': 'true'}, {**RESULT, 'account_numbers': [123]}, [RESULT],
+                    {k: v for k, v in RESULT.items() if k != 'account_numbers'} | {'recipient_numbers': ['xxx-x-x4321-x']},
+                    {**RESULT, 'recipient_numbers': ['xxx-x-x4321-x']}):
             with self.subTest(bad=bad), self.assertRaises(RecognitionUnavailable) as caught:
                 receipt_image.checked(bad)
             self.assertEqual(str(caught.exception), 'RECEIPT_EXTRACTION_UNAVAILABLE')
         self.assertEqual(receipt_image.checked(dict(RESULT)), RESULT)
+
+    def test_prompt_asks_for_every_printed_account_number(self):
+        # R086: sender and recipient numbers alike; the host keeps the one active cash account that fits.
+        prompt = ' '.join(receipt_image.PROMPT.split())
+        self.assertIn('account_numbers lists every bank account or PromptPay number printed on the slip, sender and '
+                      'recipient alike, each once, in printed order; never a transaction reference.', prompt)
+        self.assertIn('Preserve every masked digit as x. Never guess omitted/hidden digits or complete a truncated number.', prompt)
+        self.assertNotIn('recipient_numbers', prompt)
+        self.assertNotIn('never sender', prompt)
+        self.assertEqual(SCHEMA['required'][-1], 'account_numbers')
 
 
 # Gemini provider ------------------------------------------------------------------------------------
@@ -242,7 +254,7 @@ class GeminiTests(unittest.TestCase):
         self.assertEqual(translated['required'], SCHEMA['required'])
         self.assertEqual(translated['properties']['is_payment_receipt'], {'type': 'BOOLEAN'})
         self.assertEqual(translated['properties']['amount'], {'type': 'STRING'})
-        self.assertEqual(translated['properties']['recipient_numbers'], {'type': 'ARRAY', 'items': {'type': 'STRING'}})
+        self.assertEqual(translated['properties']['account_numbers'], {'type': 'ARRAY', 'items': {'type': 'STRING'}})
         self.assertNotIn('additionalProperties', json.dumps(translated))
 
     def test_request_shape_endpoint_and_parsing(self):

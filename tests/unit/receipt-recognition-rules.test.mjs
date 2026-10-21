@@ -8,7 +8,7 @@ const accounts=[
  {id:'acc-b',number:'987-6-54321-0',alternative:'0812345678',active:true},
  {id:'acc-off',number:'555-5-56789-0',alternative:null,active:false},
 ];
-const slip=(overrides={})=>({is_payment_receipt:true,transfer_successful:true,date:'2026-10-18',time:'09:41:27',amount:'1500.00',currency:'THB',reference:'ab-12 34 cd',recipient_numbers:['xxx-x-x6789-x'],...overrides});
+const slip=(overrides={})=>({is_payment_receipt:true,transfer_successful:true,date:'2026-10-18',time:'09:41:27',amount:'1500.00',currency:'THB',reference:'ab-12 34 cd',account_numbers:['xxx-x-x6789-x'],...overrides});
 const context=(overrides={})=>({businessDate:'2026-10-18',accounts,referenceExists:async()=>false,...overrides});
 
 test('account_pattern keeps printed masks, maps Thai digits and refuses other text',()=>{
@@ -46,8 +46,8 @@ test('each failing field is null with its own warning, in the fixed order',async
   [{amount:'5,00'},'amount_unreadable','amountReceived'],[{amount:'1,2345'},'amount_unreadable','amountReceived'],[{amount:'1,48,000'},'amount_unreadable','amountReceived'],
   [{amount:',480'},'amount_unreadable','amountReceived'],[{amount:'1,480.50'},'amount_fractional','amountReceived'],
   [{amount:'0.00'},'amount_unreadable','amountReceived'],[{amount:'1500.50'},'amount_fractional','amountReceived'],
-  [{currency:'USD'},'non_thb','amountReceived'],[{recipient_numbers:['xxx-x-xxxxx-x']},'account_unmatched','cashAccountId'],
-  [{recipient_numbers:['xxx-x-x6789-x','081-xxx-5678']},'account_ambiguous','cashAccountId'],[{reference:'AB1'},'reference_unreadable','bankReference'],
+  [{currency:'USD'},'non_thb','amountReceived'],[{account_numbers:['xxx-x-xxxxx-x']},'account_unmatched','cashAccountId'],
+  [{account_numbers:['xxx-x-x6789-x','081-xxx-5678']},'account_ambiguous','cashAccountId'],[{reference:'AB1'},'reference_unreadable','bankReference'],
   [{reference:'AB12/34CD'},'reference_unreadable','bankReference'],[{date:'2026-10-16'},'date_outside_window','paymentDate'],[{date:'2026-10-19'},'date_outside_window','paymentDate'],
   [{date:'18/10/2026'},'date_outside_window','paymentDate'],[{time:'9:41'},'time_unreadable','transferTime'],[{time:'24:00'},'time_unreadable','transferTime'],
  ];
@@ -56,12 +56,25 @@ test('each failing field is null with its own warning, in the fixed order',async
   const expected=code==='date_outside_window'&&/^\d{4}-\d{2}-\d{2}$/.test(override.date)?{code,date:override.date}:{code};
   assert.equal(out.status,'recognized');assert.deepEqual(out.warnings,[expected],JSON.stringify(override));assert.equal(out.suggestion[field],null,JSON.stringify(override));
  }
- const none=await evaluateSlip(slip({recipient_numbers:[]}),context());
- assert.deepEqual(none.warnings,[],'R076: no recipient number on the slip gives no account warning');assert.equal(none.suggestion.cashAccountId,null);
- const tooMany=await evaluateSlip(slip({recipient_numbers:Array(6).fill('xxx-x-x6789-x')}),context());
+ const none=await evaluateSlip(slip({account_numbers:[]}),context());
+ assert.deepEqual(none.warnings,[],'R076: no account number on the slip gives no account warning');assert.equal(none.suggestion.cashAccountId,null);
+ const tooMany=await evaluateSlip(slip({account_numbers:Array(6).fill('xxx-x-x6789-x')}),context());
  assert.deepEqual(tooMany.warnings,[{code:'account_unmatched'}]);assert.equal(tooMany.suggestion.cashAccountId,null);
- const many=await evaluateSlip(slip({time:'x',amount:'1.5',reference:'x',recipient_numbers:['9']}),context());
+ const many=await evaluateSlip(slip({time:'x',amount:'1.5',reference:'x',account_numbers:['9']}),context());
  assert.deepEqual(many.warnings.map(w=>w.code),['amount_fractional','account_unmatched','reference_unreadable','time_unreadable']);
+});
+
+test('R086: every printed number is read; exactly one of our active accounts fills the account',async()=>{
+ // KBank K+ prints sender -> recipient, both masked (synthetic numbers); only the recipient is ours.
+ const kplus=[...accounts,{id:'acc-k',number:'503-0-00386-8',alternative:null,active:true}];
+ const out=await evaluateSlip(slip({account_numbers:['xxx-x-x9562-x','xxx-x-x0386-x']}),context({accounts:kplus}));
+ assert.equal(out.suggestion.cashAccountId,'acc-k');assert.deepEqual(out.warnings,[]);
+ const two=await evaluateSlip(slip({account_numbers:['xxx-x-x0386-x','xxx-x-x6789-x']}),context({accounts:kplus}));
+ assert.equal(two.suggestion.cashAccountId,null);assert.deepEqual(two.warnings,[{code:'account_ambiguous'}],'two of ours stay ambiguous');
+ // Documented residual: a transfer FROM our account to a foreign one also matches ours (sender and recipient
+ // are not told apart). The partner still confirms on the receiving form, as the agent's proposal still needs approval.
+ const outgoing=await evaluateSlip(slip({account_numbers:['xxx-x-x6789-x','xxx-x-x9562-x']}),context());
+ assert.equal(outgoing.suggestion.cashAccountId,'acc-a');assert.deepEqual(outgoing.warnings,[]);
 });
 
 test('an existing reference warns but still fills; the transfer time needs an accepted slip date',async()=>{
