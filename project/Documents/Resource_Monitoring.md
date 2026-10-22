@@ -92,7 +92,7 @@ Twelve further rules form group **PWA 2m** in folder **MW Resource Monitoring Al
 | MW \| Scheduled job overdue | `daily_charges_age_seconds` above 90 000 or `recent_analytics_age_seconds` above 4 500 (ages only; jobs have no failed state since V94) | 10 min | KeepLast |
 | MW \| Push delivery backlog | `oldest_pending_seconds` above 900 only; `failed_24h` colours the panel and does not page (expired subscriptions are normal churn) | 10 min | KeepLast |
 | MW \| Receipt recognizer unhealthy | `recognizer` fresh and 0 (Paused does not page) | 4 min | KeepLast |
-| MW \| Partner conversation stalled | Queued at or above 1 with none running, or poll age above 600 s, or wake path inactive | 10 min | KeepLast |
+| MW \| Partner conversation stalled | `stuck_running` at or above 1 (RUNNING over 15 min), or `undelivered` at or above 1 (READY, FAILED, UNKNOWN_WRITE or INTERRUPTED over 5 min), or poll age above 600 s, or wake path inactive | 10 min | KeepLast |
 | MW \| Cloud SQL down | `database/up` is 0 | 4 min | KeepLast |
 | MW \| Cloud SQL disk high | Five-minute mean `database/disk/utilization` above 80 % | 10 min | KeepLast |
 | MW \| Cloud SQL backup overdue | Last successful automated backup older than 108 000 s, or newest run failed | 10 min | KeepLast |

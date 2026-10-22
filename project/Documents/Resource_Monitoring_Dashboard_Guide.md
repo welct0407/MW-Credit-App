@@ -44,7 +44,7 @@ Conventions on all five: state timelines show one row per component, print the s
 | 2 | Firing alerts | Grafana alert list, folder MW Resource Monitoring Alerts: firing, pending, error and no data | Shows "No alerts" when quiet; no resolved history |
 | 3 | Telemetry freshness | Age of the newest point of `database`, `pwa_hosting_prod`, `metabase_platform` and Cloud SQL CPU | Green under 360 s, grey "stale" otherwise; explains a wave of grey rows |
 | 4 | Payments pipeline | Six values: last scan (Bangkok time), pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications | Same rules as the previous Performance panels 101 to 107 |
-| 5 | Partner conversation | Queue, running turn, last turn age and state | Alert: stalled conversation |
+| 5 | Partner conversation | Five tiles: Undelivered (READY, FAILED, UNKNOWN_WRITE or INTERRUPTED over 5 minutes), Stuck (RUNNING over 15 minutes), Last turn (state), Last turn age | QUEUED is the normal delivered end state of a turn, so there is no queue tile. Alert: stalled conversation (Stuck or Undelivered at 1 or more) |
 | 6 | Push notifications | Pending, oldest pending, failed and delivered in 24 h | PROD only; alert: push delivery backlog |
 | 7 | Scheduled jobs | Daily charges and recent analytics: age of the newest completed run (jobs have no failed state, V94) | Alert: scheduled job overdue |
 | 8 | Cloud SQL capacity | Four LCD bar gauges: CPU (red 85 %), RAM used (85 %), connections (max 200, red 160), disk (red 80 %) | Alerts: Cloud SQL connections, CPU, memory and disk |
@@ -82,7 +82,7 @@ Everything is Debian-backed except the webhook check and the two public status f
 | --- | --- | --- | --- |
 | 1 | Receipt pipeline stages | The pipeline stage stats of Now 4 (scan, pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications), one stat panel | Stalled, unnotified holds, overdue reviews, unconfirmed postings and failed notifications above 0 are red; Paused does not page. There is no 12 on this dashboard |
 | 2 | Queue length over time | Receipt queue trend | Lines break at gaps over 6 minutes |
-| 3 | Turns · 24 h | Turns, verified, failed and review counts | |
+| 3 | Turns · 24 h | Turns, verified, failed and review counts, taken from the turn result (not the queue state) | A 24 h count of 0 with no new Partner message is normal |
 | 4 | Turn duration · per turn | Seconds, rounds and provider for each completed turn | One point per collector run at most; no reference line (R085 gives measurements only) |
 | 5 | Loop health | Poll age and state, wake path, timer | Alert: stalled conversation |
 | 6 | Recognizer service | Health, provider, restart age | Paused (blue) when recognition is disabled |

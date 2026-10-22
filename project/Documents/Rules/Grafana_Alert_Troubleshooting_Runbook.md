@@ -171,7 +171,7 @@ Group **PWA 2m**, folder MW Resource Monitoring Alerts, evaluated every two minu
 | Scheduled job overdue | Daily charges older than 90 000 s or recent analytics older than 4 500 s (ages only; no failed state) / 10 min | 1-E, 7 | PWA & APIs 22 |
 | Push delivery backlog | Oldest pending above 900 s / 10 min; failed deliveries in 24 h only colour the panel (expired subscriptions are normal churn) | 6 | PWA & APIs 21 |
 | Receipt recognizer unhealthy | `recognizer` fresh and 0; Paused does not page / 4 min | 1-G | Agent & Receipts 6 to 8 |
-| Partner conversation stalled | Queued with none running, poll age above 600 s, or wake path inactive / 10 min | 1-I, 5 | Agent & Receipts 3 to 5 |
+| Partner conversation stalled | RUNNING over 15 min, undelivered turn over 5 min, poll age above 600 s, or wake path inactive / 10 min | 1-I, 5 | Agent & Receipts 3 to 5 |
 | Cloud SQL down | `database/up` 0 / 4 min | 1-F | Infrastructure 1 to 4 |
 | Cloud SQL disk high | Five-minute mean above 80 % / 10 min | 8 | Infrastructure 3 |
 | Cloud SQL backup overdue | Last successful backup older than 108 000 s, or newest run failed / 10 min | 19 | Infrastructure 5 |
