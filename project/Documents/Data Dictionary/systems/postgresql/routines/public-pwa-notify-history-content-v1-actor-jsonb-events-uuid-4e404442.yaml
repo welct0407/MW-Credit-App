@@ -7,8 +7,8 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "database/migrations/V103__notification_history_content.sql"
-  "coverage": "R089 source definition only (V103, uncommitted on 22 October 2026). Not yet applied to DEV or PROD and not captured from a live catalogue; owner mw_notify_owner_<env>, SECURITY DEFINER, pinned search_path, EXECUTE only for mw_notify_api_<env>. Update this coverage line with the applied state after promotion."
+  "source": "https://github.com/welct0407/MW-Credit-App/blob/99758c71/database/migrations/V103__notification_history_content.sql"
+  "coverage": "R089 definition (V103, main 99758c71). Applied in DEV (22 October 2026, 17:28:32Z) and PROD (22 October 2026, 18:29:56Z); owner mw_notify_owner_<env>, SECURITY DEFINER, pinned search_path and the V88 boundary comment; ACL EXECUTE for the owner and mw_notify_api_<env> only, confirmed in the apply records; not a separate live catalogue capture; no business rows."
 "content":
   "definition":
     "schema": "public"
