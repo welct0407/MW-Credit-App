@@ -1476,14 +1476,14 @@ test('R083 operator audience, delivery corrections and live R081 runtime check',
  for(const role of ['read','command','notify','jobs'])await assert.rejects(verifyHostingOnlyLivePackage(m,{token:'t',request:make(role),readGithub:r074Readback(m).readGithub,git}),/R083 live runtime differs/);
 });
 
-// R089: the same SQL kind after V103 (PROD 102 to 103, notification history text). Until the separately applied V102
-// (Grafana ops health) is pinned, the source descends from the R087 release and adds exactly that V102 and V103; plan,
-// recognizer wiring and R077 timeouts as R081; the artifact carries the R089 marker.
-const r087Release='bf11e408a9786963faa616fb839e890b016523f2';
+// R089: the same SQL kind after V103 (PROD 102 to 103, notification history text). The source descends from the PR #123
+// merge that carries the separately applied V102 and adds exactly V103; plan, recognizer wiring and R077 timeouts as R081;
+// the artifact carries the R089 marker.
+const r089Baseline='0a93c0abc32c9ae120ce727ea39181c0ab06d649',r087Release='bf11e408a9786963faa616fb839e890b016523f2';
 const r089Migration='V103__notification_history_content.sql',r089Prior='database/migrations/V102__monitoring_ops_health.sql';
 const r089Files={'V101__loan_close_counts_unlinked_repayments.sql':'-- v101','V102__monitoring_ops_health.sql':'-- v102',[r089Migration]:'-- v103'};
 const r089Marker=(m,extra={})=>JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release:'R089',...extra});
-function r089Git({source,tool=source,changed={},delivery='',dirty='',untracked='',migration=r089Prior+'\ndatabase/migrations/'+r089Migration,releaseDatabase='',ancestors={}}={}){
+function r089Git({source,tool=source,changed={},delivery='',dirty='',untracked='',migration='database/migrations/'+r089Migration,releaseDatabase='',ancestors={}}={}){
  return (_root,args)=>{
   if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
   if(args[0]==='merge-base')return Object.hasOwn(ancestors,args[1])?ancestors[args[1]]:args[1];
@@ -1491,7 +1491,7 @@ function r089Git({source,tool=source,changed={},delivery='',dirty='',untracked='
   if(args[0]==='ls-tree')return Object.keys(r089Files).map(name=>'database/migrations/'+name).join('\n');
   if(args[0]==='show')return r089Files[path.posix.basename(args[1].split(':')[1])];
   if(args[0]==='diff'){
-   if(args[2]===r087Release&&args[3]===source)return nulNames(args,migration);
+   if(args[2]===r089Baseline&&args[3]===source)return nulNames(args,migration);
    if(args[2]===source&&args[3]===tool&&!args.includes('--'))return nulNames(args,delivery);
    if(args[2]===source&&args[3]===sqlRelease)return releaseDatabase;
    if(args[3]===source)return nulNames(args,changed[args[2]]??'');
@@ -1504,7 +1504,7 @@ async function r089Package(t){
  const p=await r078Package(t),m=p.m,hash=value=>createHash('sha256').update(value).digest('hex');
  const manifest={environment:'development',commit:sqlRelease,validationReference:'synthetic',productionTransaction:{baselineVersion:102,targetVersion:103,group:true,mixed:false,executeInTransaction:true,callbacks:[]},migrations:Object.entries(r089Files).map(([name,value])=>({name,sha256:hash(value)}))};
  const releasePath=path.join(p.root,'release-r089.json'),bytes=JSON.stringify(manifest);await writeFile(releasePath,bytes);
- Object.assign(m,{schemaVersion:25,release:'R089',sourceBaseline:r087Release,
+ Object.assign(m,{schemaVersion:25,release:'R089',sourceBaseline:r089Baseline,
   sql:{baselineVersion:102,targetVersion:103,migrations:manifest.migrations.slice(-1),release:{path:releasePath,sha256:hash(bytes),commit:sqlRelease},
    applied:{environment:'production',database:'loan_manager_prod',instance:'mw-credit-pg-20261017',releaseCommit:sqlRelease,baselineVersion:102,targetVersion:103,migrationsExecuted:1,startedAt:'2026-10-22T03:00:00Z',finishedAt:'2026-10-22T03:00:10Z',backup:{dumpSha256:'a'.repeat(64),restorePassed:true,reference:'prod-promotion-'+'c'.repeat(32)}},
    verified:{database:'loan_manager_prod',latestVersion:'103',historyRows:103,allSuccessful:true,verifiedAt:'2026-10-22T03:02:00Z'}}});
@@ -1546,15 +1546,15 @@ test('R089 artifact must carry the R089 release in its marker and bundle',async 
  await setArtifact(m,'build-version.json',r089Marker(m));
  for(const bundle of [original.replace('"R089"','"R081"'),original.replace('"R089"','R089')]){const x=structuredClone(m);await setArtifact(x,'assets/test.js',bundle);await assert.rejects(r089HostingPlan(x,{git}),/R089 artifact release mismatch/);}
 });
-test('R089 source descends from R087 and adds exactly the applied V102 and V103; the delivery commit may add this README, the backup tool and the operator note',async t=>{
+test('R089 source descends from the V102 merge and adds exactly V103; the delivery commit may add this README, the backup tool and the operator note',async t=>{
  const {m,source,tool,ci}=await r089Package(t);
  const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nscripts/database/R053_OPERATOR.md\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md\nChange Logs/CHANGE_NOTES_R089_NOTIFICATION_HISTORY_TEXT_2026-10-22.md';
  assert.doesNotThrow(()=>validateR089Source(m,r089Git({source,tool,delivery:toolFiles})));
  for(const file of ['services/notifications/store.mjs','apps/pwa/src/Notifications.tsx','database/migrations/V104__x.sql','database/migrations/'+r089Migration,r089Prior,'infrastructure/production/runtime.tf','scripts/database/Test-NotifyContent.sql','scripts/database/connect_preflight.py','integration-agent/src/mw_integration_agent/receipt_image.py'])assert.throws(()=>validateR089Source(m,r089Git({source,tool,delivery:file})),/R089 unverified delivery/);
  assert.throws(()=>validateR089Source({...m,deliveryToolChecks:{command:'npm test',exitCode:0}},r089Git({source,tool,delivery:toolFiles})),/R089 unverified delivery/);
- for(const migration of ['','database/migrations/'+r089Migration,r089Prior,'database/migrations/V102__x.sql\ndatabase/migrations/'+r089Migration,'database/migrations/V101__loan_close_counts_unlinked_repayments.sql\n'+r089Prior+'\ndatabase/migrations/'+r089Migration,r089Prior+'\ndatabase/migrations/'+r089Migration+'\ndatabase/migrations/V104__x.sql'])assert.throws(()=>validateR089Source(m,r089Git({source,tool,migration})),/R089 carries exactly the separately applied V103/);
- assert.throws(()=>validateR089Source({...m,sourceBaseline:'b36dce97224b803a364efba90bcbce1c68caeea7'},r089Git({source,tool})),/R089 source\/baseline/);
- assert.throws(()=>validateR089Source(m,r089Git({source,tool,ancestors:{[r087Release]:'b36dce97224b803a364efba90bcbce1c68caeea7'}})),/R089 source must descend from the R087 release/);
+ for(const migration of ['',r089Prior,r089Prior+'\ndatabase/migrations/'+r089Migration,'database/migrations/V103__x.sql','database/migrations/'+r089Migration+'\ndatabase/migrations/V104__x.sql'])assert.throws(()=>validateR089Source(m,r089Git({source,tool,migration})),/R089 carries exactly the separately applied V103/);
+ for(const sourceBaseline of ['b36dce97224b803a364efba90bcbce1c68caeea7',r087Release])assert.throws(()=>validateR089Source({...m,sourceBaseline},r089Git({source,tool})),/R089 source\/baseline/);
+ assert.throws(()=>validateR089Source(m,r089Git({source,tool,ancestors:{[r089Baseline]:r087Release}})),/R089 source must descend from the V102 \(PR #123\) release/);
  assert.throws(()=>validateR089Source(m,r089Git({source,tool,dirty:'services/notifications/store.mjs'})),/R089 working input/);
  assert.throws(()=>validateR089Source(m,r089Git({source,tool,untracked:'apps/pwa/src/new.ts'})),/R089 untracked/);
  // R081's V100 rule does not admit the R089 source.
