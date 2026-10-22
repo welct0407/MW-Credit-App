@@ -76,7 +76,7 @@ function conversation() {
     defaults: {unit: 's', decimals: 1, min: 0, noValue: 'No turns in selected range', custom: {drawStyle: 'bars', fillOpacity: 80, barAlignment: 0, lineWidth: 1}},
     overrides: providers.map(([, name, color]) => byName(name, {color: {fixedColor: color, mode: 'fixed'}}))});
   const loop = L.stat({id: 5, title: 'Conversation · loop health', gridPos: pos(16, y + 1, 8, 10),
-    description: 'Debian collector worker_timing{conversation}: conversation poll age (orange above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.',
+    description: 'Debian collector worker_timing{conversation}: conversation poll age (orange above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance (orange after 7 days).',
     targets: [ops('A', 'conversation', [{key: 'poll_age_seconds', label: 'Poll age'}, {key: 'poll_state', label: 'Poll state'},
       {key: 'wake_path_active', label: 'Wake path'}, {key: 'timer_ok', label: 'Worker timer'}, {key: 'last_send_age_seconds', label: 'Last send'}])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
@@ -84,7 +84,7 @@ function conversation() {
       byName('Poll state', {mappings: L.stateMappings(L.STATE_TEXT, 'No report')}),
       byName('Wake path', {mappings: valueMap([[0, 'Inactive', COLOR.down], [1, 'Active', COLOR.ok]], 'No report')}),
       byName('Worker timer', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'OK', COLOR.ok]], 'No report')}),
-      byName('Last send', {unit: AGE.unit, decimals: AGE.decimals})]});
+      byName('Last send', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(L.LIMITS.lastSend)})]});
   const model = L.modelTile({id: 15, title: 'Conversation · model', gridPos: pos(16, y + 11, 8, 3), component: 'conversation',
     description: 'The Partner conversation\'s configured provider and model from the Debian collector (worker_timing{conversation} provider and model:<id> fields), e.g. Gemini · gemini-4-argon; the provider alone when the model is not readable.'});
   return [L.row({id: 22, title: 'Partner conversation · Instagram chat agent', gridPos: pos(0, y, 24, 1)}), turns, duration, loop, model];

@@ -195,7 +195,8 @@ const lastMonth = cost.panels.find(p => p.id === 9);
 assert.ok(lastMonth && lastMonth.timeFrom === 'now/M' && lastMonth.timeShift === '1M');
 for (const t of lastMonth.targets.slice(0, 2)) assert.equal(JSON.parse(t.url_options.data).timeframe, 'Custom');
 // Lifted panels keep their selectors byte for byte.
-for (const [uid, old, id] of [['mw-agent', 108, 2], ['mw-infra', 31, 1], ['mw-infra', 42, 15], ['mw-cost', 201, 201]]) {
+// R090: Metabase CPU and RAM (Infrastructure 14, 15) send one combined Railway call (test_dashboard_queries.py).
+for (const [uid, old, id] of [['mw-agent', 108, 2], ['mw-infra', 31, 1], ['mw-infra', 43, 16], ['mw-cost', 201, 201]]) {
   const p = allPanels(built[uid].spec).find(e => e.panel.id === id).panel;
   assert.deepEqual(p.targets.map(t => t.root_selector), L.findPanel(old === 201 ? L.COST : L.PERF, old).targets.map(t => t.root_selector), uid + ' ' + id + ' lifted selectors');
 }
@@ -389,6 +390,7 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
         assert.ok(coded || (color.mode === 'thresholds' && steps[0].color === L.COLOR.ok && steps[1].value === 1 && [L.COLOR.down, L.COLOR.degraded].includes(steps[1].color)), where + ' green at 0, red or orange above');
         break;
       case 'age':
+      case 'limit':
         assert.ok(color.mode === 'thresholds' && steps[0].color === L.COLOR.ok && steps[1].value > 1 && [L.COLOR.degraded, L.COLOR.unknown].includes(steps[1].color), where + ' green within its limit, orange past (grey when stale)');
         break;
       default:
@@ -399,6 +401,10 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
   }
 }
 assert.ok(classified >= 75, 'stat fields classified: ' + classified);
+// R090 owner limits on the formerly neutral tiles.
+const limitOf = (uid, id, name) => panelOf(uid, id).fieldConfig.overrides.find(o => o.matcher.options === name).properties.find(x => x.id === 'thresholds').value.steps[1].value;
+for (const [uid, id, name, value] of [['mw-now', 5, 'Last turn age', 604800], ['mw-agent', 5, 'Last send', 604800], ['mw-pwa', 22, 'Last notification', 172800],
+  ['mw-pwa', 3, '401 · session invalid', 10], ['mw-now', 6, 'Pending', 5], ['mw-pwa', 21, 'Pending', 5]]) assert.equal(limitOf(uid, id, name), value, uid + ' ' + id + ' ' + name);
 // COLOUR-2: both pipeline tiles colour every stage, with the same rule for the same metric.
 for (const [uid, id] of [['mw-now', 4], ['mw-agent', 1]]) {
   const p = panelOf(uid, id);

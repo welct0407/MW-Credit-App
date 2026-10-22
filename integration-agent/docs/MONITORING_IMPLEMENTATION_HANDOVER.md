@@ -15,7 +15,7 @@ Business policies remain: ordinary payment automatic; overpayment requires a sig
 | Asset | Identity |
 | --- | --- |
 | Grafana | https://monitor.mw-credit.com |
-| Performance dashboard | `/d/mw-resource-performance` |
+| Dashboards | `/d/mw-now` (home), `/d/mw-agent` (agent and receipts); the previous Performance dashboard was retired on 22 October 2026 |
 | GCP data source UID | `mw-gcp-monitoring` (Infinity, backend JQ) |
 | GCP project / instance ID | `clever-oasis-508610-n7` / `8223265527494214160` |
 | Debian VM | `vm-mw-credit-agent`, `asia-southeast1-a` |

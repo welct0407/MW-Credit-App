@@ -121,6 +121,35 @@ function debian() {
 const ONE_LINE = '(split("\\n") as $l | [$l[0], ($l[] | (capture("^HTTP: (?<v>.+)$") | "HTTP " + .v), ' +
   '(capture("^Probe duration: (?<v>.+)$") | .v), (capture("^Archive lag: (?<v>.+)$") | "lag " + .v), ' +
   '(capture("^Snapshot age: (?<v>.+?)[.]?$") | .v + " old"))] | join(" · "))';
+/* R090 (owner: fix the intermittent error badge on Metabase RAM): the lifted CPU and RAM charts sent four
+ * Railway metrics calls each, and with the probes the page sent about ten at once, so Railway's API rate
+ * limit failed one now and then. Each chart now sends one call: both services under GraphQL aliases, usage
+ * and limit in one measurements list (as the Now gauge already does), folded into one frame per timestamp
+ * with the same four series names, so the dashed limit override still applies. */
+const RAILWAY_PROJECT = 'c8e57452-36dc-41f1-8d00-856b521a96c7';
+const RAILWAY_ENVIRONMENT = 'df3ba125-0d62-446a-b4d8-5196780982c9';
+const RAILWAY_SERVICES = {Metabase: '2959d509-c829-4420-8650-e72827d88170', Postgres: '6ba627ff-bc6d-41e7-8182-6c0f1fb03998'};
+const RAILWAY_PAIR_SELECTOR = 'if .errors then error(.errors | tostring) else [.data | to_entries[] | .key as $s | .value[] | ' +
+  '(if (.measurement | test("LIMIT")) then $s + " limit" else $s end) as $n | .values[] | {ts, n: $n, value}] | ' +
+  'group_by(.ts) | map({time: (.[0].ts * 1000)} + (map({(.n): .value}) | add)) | sort_by(.time) | .[] end';
+function railwayPair(oldId, usage, limit) {
+  const t = L.liftTarget(L.PERF, oldId, 'A');
+  const call = ([name, id]) => name + ': metrics(projectId:"' + RAILWAY_PROJECT + '",environmentId:"' + RAILWAY_ENVIRONMENT + '",serviceId:"' + id +
+    '",startDate:"${__timeFrom:date:iso}",endDate:"${__timeTo:date:iso}",measurements:[' + usage + ',' + limit +
+    '],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}}';
+  const names = Object.keys(RAILWAY_SERVICES);
+  return {...t, url_options: {...t.url_options, data: JSON.stringify({query: '{ ' + Object.entries(RAILWAY_SERVICES).map(call).join(' ') + ' }'})},
+    root_selector: RAILWAY_PAIR_SELECTOR,
+    columns: [col('time', 'Time', 'timestamp_epoch'), ...[...names, ...names.map(n => n + ' limit')].map(n => col(n, n))]};
+}
+function railwayChart(oldId, opts, usage, limit) {
+  const panel = L.lift(L.PERF, oldId, opts);
+  panel.targets = [railwayPair(oldId, usage, limit)];
+  // One frame: its field names are the series names, so drop lift()'s per-query names (they would rename all four).
+  panel.fieldConfig.overrides = panel.fieldConfig.overrides.filter(o => o.matcher.id !== 'byFrameRefID');
+  return panel;
+}
+
 function metabase() {
   // RECHECK-8: today's selectors unchanged, their multi-line details folded to one line (state, HTTP code and
   // duration, archive lag or snapshot age); the static explanation of each row is in the description.
@@ -128,10 +157,10 @@ function metabase() {
     const t = L.liftTarget(L.PERF, id);
     return {...t, refId: String.fromCharCode(65 + i), root_selector: '(' + t.root_selector + ') | .details |= ' + ONE_LINE};
   });
-  const mem = L.lift(L.PERF, 42, {id: 15, gridPos: pos(8, 32, 8, 10), title: 'Metabase RAM'});
+  const mem = railwayChart(42, {id: 15, gridPos: pos(8, 32, 8, 10), title: 'Metabase RAM'}, 'MEMORY_USAGE_GB', 'MEMORY_LIMIT_GB');
   mem.description = (mem.description || '').trim() + ' The alert fires at 90 % of the limit.';
   return [
-    L.lift(L.PERF, 41, {id: 14, gridPos: pos(0, 32, 8, 10), title: 'Metabase CPU'}),
+    railwayChart(41, {id: 14, gridPos: pos(0, 32, 8, 10), title: 'Metabase CPU'}, 'CPU_USAGE', 'CPU_LIMIT'),
     mem,
     L.lift(L.PERF, 43, {id: 16, gridPos: pos(16, 32, 8, 10), title: 'Postgres volume'}),
     // FINAL2-4: full width, so each probe's one-line details are not cut.

@@ -42,14 +42,16 @@ function errors() {
   const fivexx = target('D', DS.gcp, monitoringUrl('metric.type = "run.googleapis.com/request_count" AND resource.type = "cloud_run_revision" AND resource.labels.service_name = monitoring.regex.full_match("mw-credit-app-(read|command|notify|jobs)-${env}") AND metric.labels.response_code_class = "5xx"',
     {aligner: 'ALIGN_SUM', reducer: 'REDUCE_SUM', period: CHART_PERIOD}), jq('sum-points.jq'), [col('value', '5xx · all services')]);
   return L.stat({id: 3, title: 'Sign-in and request errors', gridPos: pos(16, 0, 8, TOP),
-    description: 'Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services\' structured request log, no user identity) and Cloud Run 5xx responses across the four ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs) stays neutral.',
+    description: 'Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services\' structured request log, no user identity) and Cloud Run 5xx responses across the four ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs, normal) turns orange from 10 in the range.',
     // READ-1: names with spaces so they wrap on a phone (the codes are in the description).
     targets: [code('A', '401 · session invalid', 'session_invalid'), code('B', '503 · session check unavailable', 'session_check_unavailable'),
       code('C', '503 · body timeout', 'body_timeout'), fivexx],
     // FINAL4-3: nothing logged in the range is the good case: "None" in green.
     defaults: {color: L.NEUTRAL, noValue: 'None', mappings: [{type: 'special', options: {match: 'null', result: {text: 'None', color: COLOR.ok, index: 0}}}]},
-    // COLOUR-1: request failures in the range need attention (orange above 0); 401 session invalid is a normal sign-out count.
-    overrides: ['503 · session check unavailable', '503 · body timeout', '5xx · all services'].map(name => byName(name, L.problemColor('orange'))),
+    // COLOUR-1: request failures in the range need attention (orange above 0); 401 session invalid is a normal sign-out
+    // count, orange from the R090 owner limit.
+    overrides: [byName('401 · session invalid', L.ageColor(L.LIMITS.sessionInvalid)),
+      ...['503 · session check unavailable', '503 · body timeout', '5xx · all services'].map(name => byName(name, L.problemColor('orange')))],
     options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}}});
 }
 
@@ -92,15 +94,16 @@ function workers() {
   const pushFields = [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
     {key: 'delivered_24h', label: 'Sent · 24 h'}, {key: 'failed_24h', label: 'Failed · 24 h'}];
   const push = L.stat({id: 21, title: 'Push delivery', gridPos: pos(8, y + 1, 8, WORKERS),
-    description: 'PROD only: worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1(); pending counts pending and retry, failed counts dead and uncertain completed in 24 h. Oldest pending orange above 900 s (the alert value).',
+    description: 'PROD only: worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1(); pending counts pending and retry, failed counts dead and uncertain completed in 24 h. Pending orange from 5; oldest pending orange above 900 s (the alert value).',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})), prodOnly(jq('ops-health.jq', {FIELDS: pushFields})),
       pushFields.map(f => col(f.label, f.label)))],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')], noValue: 'PROD only'},
-    overrides: [byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(900)}), byName('Failed · 24 h', L.problemColor('orange'))]});
+    overrides: [byName('Pending', L.ageColor(L.LIMITS.pushPending)), byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(900)}),
+      byName('Failed · 24 h', L.problemColor('orange'))]});
   const jobFields = [{key: 'daily_charges_age_seconds', label: 'Daily charges', state_key: 'daily_charges_state'},
     {key: 'recent_analytics_age_seconds', label: 'Recent analytics', state_key: 'recent_analytics_state'}];
   const jobs = L.stat({id: 22, title: 'Job freshness', gridPos: pos(16, y + 1, 8, WORKERS),
-    description: 'PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue orange at 90 000 s and 4 500 s, the alert values, red when the run failed; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification, the last dispatch in pwa_notify).',
+    description: 'PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue orange at 90 000 s and 4 500 s, the alert values, red when the run failed; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification, the last dispatch in pwa_notify; orange after 48 h).',
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_jobs'})), prodOnly(jq('ops-health.jq', {FIELDS: jobFields})), jobFields.map(f => col(f.label, f.label))),
       target('B', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
@@ -109,7 +112,7 @@ function workers() {
     defaults: {unit: AGE.unit, decimals: AGE.decimals, color: {mode: 'thresholds'}, noValue: 'PROD only',
       mappings: valueMap([[-1, 'Failed', COLOR.down], [-2, 'Overdue', COLOR.degraded]], 'No report'), thresholds: steps([null, COLOR.ok])},
     overrides: [byName('Daily charges', L.ageColor(90000)), byName('Recent analytics', L.ageColor(4500)),
-      byName('Last notification', {color: L.NEUTRAL})]});
+      byName('Last notification', L.ageColor(L.LIMITS.lastNotification))]});
   return [header, scheduler, push, jobs];
 }
 
