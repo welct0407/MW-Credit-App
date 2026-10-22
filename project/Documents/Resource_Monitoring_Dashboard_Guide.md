@@ -31,7 +31,7 @@ Five dashboards in folder MW Resource Monitoring, all tagged `mw-credit`, all wi
 | [Now](https://monitor.mw-credit.com/d/mw-now) (home) | `mw-now` | Last 3 hours ending now, 1-minute refresh | PROD only: whether everything works, what is firing, headroom |
 | [PWA & APIs](https://monitor.mw-credit.com/d/mw-pwa) | `mw-pwa` | Last 24 hours ending 2 minutes ago, 2-minute refresh | Hosting, four Cloud Run services per environment, schedulers, push, recognition route |
 | [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent) | `mw-agent` | Last 6 hours ending now, 1-minute refresh | Receipt pipeline, Partner conversation, recognizer, workers and timers, connectivity |
-| [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) | `mw-infra` | Last 24 hours ending now, 5-minute refresh | Cloud SQL, Cloud Run table, Debian VM, Metabase on Railway, collapsed Azure VM-01 |
+| [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) | `mw-infra` | Last 24 hours ending now, 5-minute refresh | Cloud SQL, Cloud Run table (full width), Debian VM, Metabase on Railway, collapsed Azure VM-01 |
 | [Cost](https://monitor.mw-credit.com/d/mw-cost) | `mw-cost` | Month to date, 1-hour refresh | Azure, GCP and Railway cost in SGD |
 
 Conventions on all five: state timelines show one row per component, print the state word in the bar and turn grey when the newest point is older than 360 s; Down is dark red (colour-blind safe, with the state word as the second cue); bar gauges are LCD style with the maximum at the documented limit and a red mark only at an alert value; a red or dashed line appears only for a documented limit or an alert value, so request-rate charts have none; stat values are 24 to 28 px, labels 12 px; panels are at least 6 grid units wide so a phone shows one panel per screen. Grid positions are x/y/w/h.
@@ -44,14 +44,14 @@ Conventions on all five: state timelines show one row per component, print the s
 | 2 | Firing alerts | Grafana alert list, folder MW Resource Monitoring Alerts: firing, pending, error and no data | Shows "No alerts" when quiet; no resolved history |
 | 3 | Telemetry freshness | Age of the newest point of `database`, `pwa_hosting_prod`, `metabase_platform` and Cloud SQL CPU | Green under 360 s, grey "stale" otherwise; explains a wave of grey rows |
 | 4 | Payments pipeline | Six values: last scan (Bangkok time), pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications | Same rules as the previous Performance panels 101 to 107 |
-| 5 | Partner conversation | Five tiles: Undelivered (READY, FAILED, UNKNOWN_WRITE or INTERRUPTED over 5 minutes), Stuck (RUNNING over 15 minutes), Last turn (state), Last turn age | QUEUED is the normal delivered end state of a turn, so there is no queue tile. Alert: stalled conversation (Stuck or Undelivered at 1 or more) |
-| 6 | Push notifications | Pending, oldest pending, failed and delivered in 24 h | PROD only; alert: push delivery backlog |
-| 7 | Scheduled jobs | Daily charges and recent analytics: age of the newest completed run (jobs have no failed state, V94) | Alert: scheduled job overdue |
+| 5 | Partner chat | Four tiles: Undelivered (READY, FAILED, UNKNOWN_WRITE or INTERRUPTED over 5 minutes), Stuck (RUNNING over 15 minutes), Last turn (state), Last turn age | QUEUED is the normal delivered end state of a turn, so there is no queue tile. Alert: stalled conversation (Stuck or Undelivered at 1 or more) |
+| 6 | Push | Pending, oldest pending, failed and delivered in 24 h | PROD only; alert: push delivery backlog |
+| 7 | Scheduled jobs | Age of the newest completed run of Notify job · last run, daily charges and recent analytics (jobs have no failed state, V94) | Alert: scheduled job overdue |
 | 8 | Cloud SQL capacity | Four LCD bar gauges: CPU (red 85 %), RAM used (85 %), connections (max 200, red 160), disk (red 80 %) | Alerts: Cloud SQL connections, CPU, memory and disk |
 | 9 | Hosts and services | Four LCD bar gauges: Debian VM RAM (red 85 %), Metabase RAM (90 %), command instances (max 2, no red), reader p95 over 5 min (max 15 000 ms, no red) | Shows "idle" without requests |
 | 16 | Edge · last 3 h | State timeline: webhook (Singapore checker only), tunnel, Tailscale, ingress, database, audit relay | The uptime check keeps three regions; only the Singapore series is read |
 | 17 | Provider status | OpenAI and Google Cloud status; one stat, current status only: worst of ChatGPT and Codex, and open Google Cloud incidents touching Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global | Google Cloud: 1 none, 2 open incident, 4 feed unreadable |
-| 19 | Backups and recovery points | Cloud SQL last automated backup, Debian snapshot, Metabase daily and weekly, PITR, audit retention: age and state | Alerts: Cloud SQL backup overdue, Debian snapshot overdue |
+| 19 | Backups and recovery points | Six rows: Cloud SQL backup, Debian snapshot, PITR archive, Audit retention, Metabase daily, Metabase weekly: age and state | Alerts: Cloud SQL backup overdue, Debian snapshot overdue |
 
 Not on Now by design: DEV, Azure VM-01, Codex readiness, the bridge, request charts and raw-data tables.
 
@@ -64,10 +64,10 @@ Variable: `env` only (prod or dev, default prod); there is no service dropdown. 
 | 1 | Hosting · ${env} | Canonical Hosting health, version marker and entry reference | One vantage (Debian), not login or multi-region |
 | 2 | API health · reader and command | Unauthenticated `/health` of both services; PROD adds the authenticated `oltp` and `olap` probes | DEV has only the unauthenticated checks |
 | 3 | Sign-in and request errors · 24 h | Counts of `session_invalid`, `session_check_unavailable`, `body_timeout` and Cloud Run 5xx | Counts only, no user identity; read from the existing request records, no services change |
-| 10 to 13 (static rows, with 101 to 103, 111 to 113, 121 to 123, 131 to 133) | Service rows: reader, command, notify, jobs | The three panels of each row: requests per 5 min (all blue solid, 4xx orange dashed, 5xx red dotted); p95 latency with a red dashed request-timeout line (reader 15 s, command 55 s, workers 120 s); instances, CPU % and memory % with a grey dashed maximum-instances line, each drawn with that service's own value | Request charts have no threshold; idle is neither Down nor Healthy |
+| 10 to 13 (static rows, with 101 to 103, 111 to 113, 121 to 123, 131 to 133; the third panel of each row is titled 'Instances · CPU · RAM · <service>') | Service rows: reader, command, notify, jobs | The three panels of each row: requests per 5 min (all blue solid, 4xx orange dashed, 5xx red dotted); p95 latency with a red dashed request-timeout line (reader 15 s, command 55 s, workers 120 s); instances, CPU % and memory % with a grey dashed maximum-instances line, each drawn with that service's own value | Request charts have no threshold; idle is neither Down nor Healthy |
 | 19 (row), 20 | Cloud Scheduler attempts · 24 h | State timeline for the notifications, daily-charges and recent-analytics jobs, from the log-based metric `mw_scheduler_attempts_<env>` (Cloud Monitoring has no `attempt_count` metric in this project) | DEV jobs are paused and show grey |
 | 21 | Push delivery | Pending (pending plus retry), failed (dead plus uncertain) and delivered in 24 h | PROD only; failed above 0 colours the value orange but does not page (expired subscriptions are normal churn) |
-| 22 | Job freshness | Age of the newest completed run per job (no failed state) | PROD only |
+| 22 | Job freshness | Age of the newest completed run per job (no failed state), plus the row 'Last notification sent' (age of the last push dispatch) | PROD only |
 | 29 (row), 30 | Recognitions · 24 h | Count per outcome by the `warning` field: none, `amount_unreadable`, `amount_fractional`, `account_unmatched`, `account_ambiguous`, `slip_not_confirmed`, other | Log-based counter `mw_recognition_outcome_<env>`; no slip content |
 | 31 | Recognition route p95 · 24 h | Latency of the receipt recognition route | Red dashed at 45 s (route budget); the PWA deadline is 60 s |
 | 32 | Recognizer service | Recognizer health and provider (gemini or codex) | Links to Agent & Receipts |
@@ -105,15 +105,15 @@ Four expanded rows and one collapsed row. Every chart draws a documented limit o
 | 1 | Cloud SQL CPU | Instance-wide CPU | Red dashed 85 % |
 | 2 | Cloud SQL memory | Usage, cache, free | Red dashed 85 % on Used |
 | 3 | Cloud SQL disk | Disk utilisation (replaces the previous storage panel 33) | Red dashed 80 %; auto-resize noted |
-| 4 | Cloud SQL connections | Backend count against the limit of 200 | 200 line, red dashed 160 |
-| 5 | Backups and restore points | Last automated backup age and status, log retention, Debian snapshot age | |
+| 4 | SQL connections | Backend count against the limit of 200 | 200 line, red dashed 160 |
+| 5 | Backups and restore points | Last automated backup age and status, log retention, Debian snapshot age | Second row of the layout (y 7) with 6 to 8: Backups, Instance facts, Top statement, Connections by database |
 | 6 | Instance facts | Tier, storage type and `max_connections` (dated snapshots), uptime | The only static text |
 | 7 | Connections by database | Backends per database | No threshold |
-| 8 | Top statement share | Share of total execution time and calls per minute of the top statement | Statement text stays on the VM; shows "not granted" until the grant exists |
-| 9 | Cloud Run · eight services | Instances, p95 CPU and memory over 15 minutes, billable instance time, maximum instances | Over 80 % orange |
+| 8 | Top statement | Share of total execution time and calls per minute of the top statement | Statement text stays on the VM; shows "not granted" until the grant exists |
+| 9 | Cloud Run · eight services (full width, y 12) | Instances, p95 CPU and memory over 15 minutes, billable instance time, maximum instances | Over 80 % orange |
 | 10 to 12 | Debian VM CPU, memory, network | CPU, used memory (red dashed 85 %), network | |
 | 13, 18 | Debian VM disk; Debian VM uptime | 13 disk throughput; 18 uptime (VM start) | |
-| 14 to 16 | Metabase on Railway | CPU cores against live `CPU_LIMIT`; memory GB against live limit (red dashed 90 %); Postgres volume (5 GB line) | |
+| 14 to 16 | Metabase CPU, Metabase RAM, Postgres volume | CPU cores against live `CPU_LIMIT`; memory GB against live limit (red dashed 90 %); Postgres volume (5 GB line) | |
 | 17 | Metabase probes | One row each: platform, app DB, reporting DB, charts, PITR, daily and weekly backup | Same selectors as the previous panels 80 to 86 |
 | 20 (collapsed row) with 21 to 24 | Azure VM-01 | The previous Azure panels 11 to 14, unchanged, as children 21 to 24 | No 24x7 expectation, no alert |
 
@@ -123,15 +123,15 @@ Time zone Asia/Bangkok for display; provider day rules are unchanged (Azure UTC 
 
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
-| 1 | TOTAL · SGD · month to date | Sum of available provider costs; panel 9 "Last month, same day" sits under it (0/3/6/2) | "Available costs only"; Railway prior month is "cycle only" |
-| 9 | Last month, same day · SGD | Prior month to the same day of the month | Reference, not a forecast |
-| 2 to 4 | Azure, GCP, Railway · SGD | Provider month-to-date stats | |
-| 5 | Conversion and coverage | FX, the GCP budget cell, and the Coverage column (complete, or incomplete naming the missing platform); also the visible host of the queries (previous A to E) behind panels 1 to 4 | Shows the dashboard constant `gcp_budget_sgd`, empty ("not created yet") until ALL-COST-01 exists; no Billing Budgets IAM |
-| 6 | GCP daily net · SGD · last 30 days | Stacked daily bars by GCP service group | Fixed 30-day window; draws a red dashed budget ÷ days line only when `gcp_budget_sgd` is set |
+| 1 | TOTAL · month to date | Sum of available provider costs in SGD; the top row reads TOTAL · month to date, Last month, same day, Azure, GCP, Railway, Coverage and FX (all at y 0, height 5) | "Available costs only"; Railway prior month is "cycle only" |
+| 9 | Last month, same day | Prior month to the same day of the month | Reference, not a forecast |
+| 2 to 4 | Azure, GCP, Railway | Provider month-to-date stats | |
+| 5 | Coverage and FX | FX, the GCP budget cell, and the Coverage column (complete, or incomplete naming the missing platform); also the visible host of the queries (previous A to E) behind panels 1 to 4 | Shows the dashboard constant `gcp_budget_sgd`, empty ("not created yet") until ALL-COST-01 exists; no Billing Budgets IAM |
+| 6 | GCP daily net · 30 d | Stacked daily bars by GCP service group | Fixed 30-day window; draws a red dashed budget ÷ days line only when `gcp_budget_sgd` is set |
 | 8 | Azure + Railway daily · USD | Stacked daily bars, provider currency | Fixed 30-day window |
-| 7 | GCP by service · SGD net | Billing export grouped by service, net of credits (month to date) | 100 MB billed-query cap |
+| 7 | GCP by service · net | Billing export grouped by service, net of credits (month to date) | 100 MB billed-query cap |
 | 10, 20, 30 (collapsed rows) | Azure, GCP, Railway | The previous Cost detail panels unchanged, with their old child IDs | Rates checked 25 September 2026 stay in the description |
-| 40 | Unchanged rules of reading | Short reading text (y 14); the collapsed provider rows follow at y 17 to 19 | References, not forecasts |
+| 40 | Unchanged rules of reading | Short reading text (y 14, height 5); the collapsed provider rows follow at y 19 to 21 | References, not forecasts |
 
 ### Alerts linked to the new dashboards
 
