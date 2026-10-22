@@ -17,6 +17,11 @@ def stamp(age=0):
     return dt.datetime.fromtimestamp(time.time() - age, dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
+def ict(epoch):
+    """HH:MM in the dashboards' Asia/Bangkok time."""
+    return time.strftime('%H:%M', time.gmtime(epoch + 25200))
+
+
 def stamp_s(text):
     return dt.datetime.strptime(text, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=dt.timezone.utc).timestamp()
 
@@ -520,11 +525,11 @@ class GeneratedSelectors(unittest.TestCase):
         # A scan is running now (last_completion 0 in the newest run); the previous completion 12 minutes ago is kept.
         data = {'timeSeries': [series([point(240, 1), point(0, 1)], field='status'),
                                series([point(240, done), point(0, 0)], field='last_completion')]}
-        self.assertEqual(run(sel, data), [{'details': 'Last scan completion', 'status': done * 1000}])
+        self.assertEqual(run(sel, data), [{'details': 'Last scan completion', 'status': '1|' + ict(done)}])
         # Freshness unchanged: a stale status sample gives no time; no positive completion gives none either.
         stale = {'timeSeries': [series([point(400, 1)], field='status'), series([point(400, done)], field='last_completion')]}
         self.assertEqual(run(sel, stale)[0]['status'], None)
-        self.assertEqual(run(sel, {'timeSeries': [series([point(0, 1)], field='status'), series([point(0, 0)], field='last_completion')]})[0]['status'], None)
+        self.assertEqual(run(sel, {'timeSeries': [series([point(0, 1)], field='status'), series([point(0, 0)], field='last_completion')]})[0]['status'], '1|no run')
         with self.assertRaises(ValueError):
             run(sel, {'nextPageToken': 'x'})
 
@@ -551,9 +556,34 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertEqual([r['status'] for r in scan], [None])
         done = int(time.time()) - 90
         fresh = {'timeSeries': [series([point(0, v)], field=k) for k, v in (('status', 1), ('last_completion', done), ('running', 0))]}
-        self.assertEqual(run(p['targets'][0]['root_selector'], fresh), [{'details': 'Last scan completion', 'status': done * 1000}])
+        self.assertEqual(run(p['targets'][0]['root_selector'], fresh), [{'details': 'Last scan completion', 'status': '1|' + ict(done)}])
         stage = run(p['targets'][1]['root_selector'], {})
-        self.assertEqual(stage, [{'pending_images': None}])
+        self.assertEqual(stage, [{'2 · Extract · waiting': None}])
+
+    def test_pipeline_stages_are_coloured_by_their_rules(self):
+        # COLOUR-2: "<state code>|<value>"; 0 red, 1 green, 2 orange, shown on its state colour.
+        def snap(**fields):
+            return {'timeSeries': [series([point(30, v)], field=k) for k, v in dict(status=1, **fields).items()]}
+        def stage(uid, pid, ref, data):
+            return list(run(self.rows(uid, pid)[ref]['root_selector'], data)[0].values())[0]
+        # Extraction waiting: green unless the oldest waiting image is older than 600 s (stalled).
+        self.assertEqual(stage('mw-now', 4, 'B', snap(pending_images=3, oldest_pending_seconds=120)), '1|3')
+        self.assertEqual(stage('mw-agent', 1, 'B', snap(pending_images=3, oldest_pending_seconds=900)), '2|3')
+        # Holds, unconfirmed postings, notification failures: green at 0, red above.
+        self.assertEqual(stage('mw-now', 4, 'C', snap(unnotified_holds=0)), '1|0')
+        self.assertEqual(stage('mw-agent', 1, 'F', snap(failed_notifications=2)), '0|2')
+        # Reviews: overdue count orange above 0 (Now); waiting green unless one is overdue (Agent).
+        self.assertEqual(stage('mw-now', 4, 'D', snap(overdue_reviews=1)), '2|1')
+        self.assertEqual(stage('mw-agent', 1, 'D', snap(pending_reviews=4, overdue_reviews=0)), '1|4')
+        self.assertEqual(stage('mw-agent', 1, 'D', snap(pending_reviews=4, overdue_reviews=1)), '2|4')
+        # Paused or stale telemetry: no value (shown as —), never green.
+        self.assertIsNone(stage('mw-now', 4, 'C', {'timeSeries': [series([point(30, 3)], field='status'), series([point(30, 0)], field='unnotified_holds')]}))
+        self.assertIsNone(stage('mw-now', 4, 'C', {'timeSeries': [series([point(400, 1)], field='status'), series([point(400, 0)], field='unnotified_holds')]}))
+        # Scan: the IG polling state colours the time.
+        scan = self.rows('mw-now', 4)['A']['root_selector']
+        degraded = {'timeSeries': [series([point(0, 2)], field='status'), series([point(0, 1761100000)], field='last_completion')]}
+        self.assertEqual(run(scan, degraded)[0]['status'], '2|' + ict(1761100000))
+        self.assertEqual(run(scan, {'timeSeries': [series([point(0, 0)], field='status')]})[0]['status'], '0|no run')
 
     def test_metabase_probe_details_are_one_line(self):
         targets = self.panel('mw-infra', 17)['targets']

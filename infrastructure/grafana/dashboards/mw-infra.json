@@ -756,7 +756,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: Age of the newest successful automated backup (red above 30 h, the alert value), Last run = the newest run's state (Success, Failed, Running), its Type (Auto = automated, Manual = on demand) and PITR = the transaction-log retention in days.",
+        "description": "Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: Age of the newest successful automated backup (orange above 30 h, the alert value), Last run = the newest run's state (Success, Failed, Running), its Type (Auto = automated, Manual = on demand) and PITR = the transaction-log retention in days.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -814,6 +814,12 @@
                   }
                 },
                 {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
                   "id": "thresholds",
                   "value": {
                     "mode": "absolute",
@@ -823,7 +829,7 @@
                         "value": null
                       },
                       {
-                        "color": "dark-red",
+                        "color": "orange",
                         "value": 108000
                       }
                     ]

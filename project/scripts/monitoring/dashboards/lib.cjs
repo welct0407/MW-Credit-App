@@ -90,6 +90,43 @@ function valueMap(entries, nullText) {
   if (nullText) m.push({type: 'special', options: {match: 'null', result: {text: nullText, color: COLOR.unknown, index: entries.length}}});
   return m;
 }
+/* COLOUR-1 (owner policy): colour only where it carries meaning; the same metric has the same colour on
+ * every page. Classes (POLICY below lists every stat field):
+ *   state    OK / Down / Degraded / Paused words on their state background (Unknown grey, no data grey);
+ *   problem  green at 0, red above when something is broken now, orange above for counts over a period
+ *            that need attention (failures in 24 h, request errors in the range, open reviews);
+ *   work     normal-work counts and volumes: neutral, coloured only through a documented age or limit;
+ *   age      ages with a documented limit: green within, orange past the limit (the alert value), grey stale;
+ *   money    neutral (the live budget comparison would need the budget in the same query; not done);
+ *   info     provider and model, uptime, budget text, ages without a documented limit: neutral. */
+const NEUTRAL = {mode: 'fixed', fixedColor: COLOR.info};
+function problemColor(level = 'red') {
+  return {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, level === 'red' ? COLOR.down : COLOR.degraded])};
+}
+function ageColor(limit) {
+  return {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [limit, COLOR.degraded])};
+}
+// State-coded text "<code>|<text>" (pipeline stages): the text shown on its state colour.
+function codedMappings(nullText = '—') {
+  return [...STATE_COLORS.map((color, code) => ({type: 'regex', options: {pattern: '^' + code + '\\|(.*)$', result: {text: '$1', color, index: code}}})),
+    {type: 'special', options: {match: 'null', result: {text: nullText, color: COLOR.unknown, index: 5}}}];
+}
+const POLICY = {
+  // A name used for two metrics is qualified by its panel title ("Provider status › Railway" vs the Cost tile Railway).
+  state: ['Service', 'Reader', 'Command', 'Chat data · live', 'Chat data · reports', 'Hosting', 'Provider status › Railway',
+    'Providers · status › Railway', 'Google Cloud',
+    'Last turn', 'Poll state', 'Wake path', 'Worker timer', 'Code version', '1 · Scan · last run', 'Group scan · last run'],
+  problem: ['Undelivered', 'Stuck', 'Failed · 24 h', 'Failed', 'Timed out', 'Open ingress reviews', '503 · session check unavailable',
+    '503 · body timeout', '5xx · all services', '3 · Validate · holds', 'Validation holds', '4 · Review · overdue', '5 · Post · unconfirmed',
+    'Posting unconfirmed', '6 · Notify · failed', 'Notify failures'],
+  work: ['Pending', 'Sent · 24 h', 'Turns', 'Verified', 'Median turn', 'Median rounds', 'Grounding rejections', 'Extractions', 'Valid',
+    'Unreadable', '401 · session invalid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
+  age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Poll age'],
+  // Lifted Cost detail tiles without a named field are classed by their title.
+  money: ['This month', 'Azure', 'GCP', 'Railway', 'Azure + GCP', 'UsageUSD', 'Azure · selected-range cost', 'GCP · before credits (SGD)',
+    'GCP · credits (SGD)', 'GCP · net cost (SGD)'],
+  info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn age', 'Last send', 'Last notification']
+};
 function nullMap(text) {
   return {type: 'special', options: {match: 'null', result: {text, color: COLOR.unknown, index: 0}}};
 }
@@ -490,6 +527,6 @@ module.exports = {
   inlineTarget, jq, receiptFields, stateSelector, rowSelector, stateRow, lookbackVariable, LOOKBACK_FROM, LOOKBACK_SECONDS, RANGE_START, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,
   timeseriesDefaults, dashedLine, table, row, text, sortKeys, serialize, healthRow, workerRow, probeRow, webhookRow, sqlUpRow,
-  schedulerFilter, schedulerSelector, schedulerRow, providerStatus, providerModelTarget, modelTile, namedFields, SINGLE_VALUE, STAT_TEXT, TEXT_TILE,
+  schedulerFilter, schedulerSelector, schedulerRow, providerStatus, NEUTRAL, problemColor, ageColor, codedMappings, POLICY, providerModelTarget, modelTile, namedFields, SINGLE_VALUE, STAT_TEXT, TEXT_TILE,
   LOOKBACKS, SCHEDULER_HOLD, readable
 };

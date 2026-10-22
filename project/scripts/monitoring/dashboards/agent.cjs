@@ -22,10 +22,10 @@ function pipeline() {
     options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, ...L.SINGLE_VALUE}});
   return [L.row({id: 20, title: 'Receipt pipeline · Instagram to recorded payment', gridPos: pos(0, y, 24, 1)}),
     require('./now.cjs').stagesStat({id: 1, title: 'Receipt pipeline · stages', gridPos: pos(0, y + 1, 8, 12), scan: 'Group scan · last run',
-      stages: [['pending_images', 'Extraction waiting'], ['unnotified_holds', 'Validation holds', true],
-        ['pending_reviews', 'Reviews waiting'], ['unconfirmed_postings', 'Posting unconfirmed', true],
-        ['failed_notifications', 'Notify failures', true]],
-      description: 'Instagram to recorded payment, Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling): group scan last run, receipts waiting for extraction, validation holds, reviewer decisions waiting, unconfirmed payment postings and notification failures. Today\'s rules: holds, unconfirmed postings and notification failures turn red above 0, normal reviewer waiting is not failure, Paused does not page. Unconfirmed postings need reconciliation, never a repeated Add.'}),
+      stages: [['pending_images', 'Extraction waiting', 'stalled'], ['unnotified_holds', 'Validation holds', 'red'],
+        ['pending_reviews', 'Reviews waiting', 'overdue'], ['unconfirmed_postings', 'Posting unconfirmed', 'red'],
+        ['failed_notifications', 'Notify failures', 'red']],
+      description: 'Instagram to recorded payment, Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling): group scan last run, receipts waiting for extraction, validation holds, reviewer decisions waiting, unconfirmed payment postings and notification failures. Every stage is coloured by its health: group scan by the IG polling state (green OK, orange Degraded, red Down, blue Paused) with the last completion time (ICT); extraction waiting green unless the oldest waiting image is older than 10 minutes (orange, stalled); reviews waiting green unless a review is overdue (orange), waiting itself is normal work; holds, unconfirmed postings and notification failures green at 0, red above. Paused does not page. Unconfirmed postings need reconciliation, never a repeated Add.'}),
     L.lift(L.PERF, 108, {id: 2, gridPos: pos(8, y + 1, 16, 15), title: 'Receipts · queue over time'}),
     reviews];
 }
@@ -44,10 +44,11 @@ function recognizer() {
   const model = L.modelTile({id: 12, title: 'Recognizer · model', gridPos: pos(0, y + 7, 8, 5), component: 'recognizer',
     description: 'The recognizer\'s configured provider and model from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable.'});
   const extractions = L.stat({id: 7, title: 'Recognizer · extractions 24 h', gridPos: pos(8, y + 1, 8, 8),
-    description: 'Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts and unreadable amounts. Outcome categories only.',
+    description: 'Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts (orange above 0) and unreadable amounts. Outcome categories only.',
     targets: [ops('A', 'recognizer', [{key: 'extractions_24h', label: 'Extractions'}, {key: 'valid_24h', label: 'Valid'},
       {key: 'timeouts_24h', label: 'Timed out'}, {key: 'unreadable_24h', label: 'Unreadable'}])],
-    defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]}});
+    defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
+    overrides: [byName('Timed out', L.problemColor('orange'))]});
   const time = L.timeseries({id: 8, title: 'Recognizer · extraction time', gridPos: pos(16, y + 1, 8, 11),
     description: 'Debian collector worker_timing{recognizer_call}: the newest extraction completed since each run, at its end time; red dashed line = the 25 s per-attempt bound.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'recognizer_call', field: 'seconds'})), L.numericSelector(),
@@ -64,7 +65,7 @@ function conversation() {
       {key: 'median_turn_seconds', label: 'Median turn'}, {key: 'median_rounds', label: 'Median rounds'}, {key: 'grounding_rejections_24h', label: 'Grounding rejections'}])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
     overrides: [byName('Median turn', {unit: AGE.unit, decimals: AGE.decimals}),
-      byName('Failed', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.degraded])})]});
+      byName('Failed', L.problemColor('orange'))]});
   const providers = [[1, 'Gemini', 'blue'], [2, 'Codex', 'purple'], [3, 'Claude', 'yellow']];
   const duration = L.timeseries({id: 4, title: 'Conversation · turn duration', gridPos: pos(8, y + 1, 8, 13),
     description: 'Debian collector worker_timing{conversation_turn}: one bar per completed turn at its end time, height = capture to reply in seconds, one series per provider. At most one turn per 2-minute collector run is plotted.',
@@ -74,11 +75,11 @@ function conversation() {
     defaults: {unit: 's', decimals: 1, min: 0, noValue: 'No turns in selected range', custom: {drawStyle: 'bars', fillOpacity: 80, barAlignment: 0, lineWidth: 1}},
     overrides: providers.map(([, name, color]) => byName(name, {color: {fixedColor: color, mode: 'fixed'}}))});
   const loop = L.stat({id: 5, title: 'Conversation · loop health', gridPos: pos(16, y + 1, 8, 10),
-    description: 'Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.',
+    description: 'Debian collector worker_timing{conversation}: conversation poll age (orange above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.',
     targets: [ops('A', 'conversation', [{key: 'poll_age_seconds', label: 'Poll age'}, {key: 'poll_state', label: 'Poll state'},
       {key: 'wake_path_active', label: 'Wake path'}, {key: 'timer_ok', label: 'Worker timer'}, {key: 'last_send_age_seconds', label: 'Last send'}])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Poll age', {unit: AGE.unit, decimals: AGE.decimals, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [600, COLOR.down])}),
+    overrides: [byName('Poll age', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(600)}),
       byName('Poll state', {mappings: L.stateMappings(L.STATE_TEXT, 'No report')}),
       byName('Wake path', {mappings: valueMap([[0, 'Inactive', COLOR.down], [1, 'Active', COLOR.ok]], 'No report')}),
       byName('Worker timer', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'OK', COLOR.ok]], 'No report')}),

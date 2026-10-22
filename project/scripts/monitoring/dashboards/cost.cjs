@@ -27,7 +27,7 @@ function total() {
     transformations: [...chain,
       {id: 'calculateField', options: {alias: 'This month', mode: 'reduceRow', reduce: {include: ['Azure', 'GCP', 'Railway'], reducer: 'sum'}, replaceFields: false}},
       {id: 'filterFieldsByName', options: {include: {names: ['This month']}}}],
-    fieldConfig: {defaults: {color: {fixedColor: 'yellow', mode: 'fixed'}, displayName: 'This month', ...SGD, noValue: 'No data', thresholds: steps([null, COLOR.ok])},
+    fieldConfig: {defaults: {color: {fixedColor: COLOR.text, mode: 'fixed'}, displayName: 'This month', ...SGD, noValue: 'No data', thresholds: steps([null, COLOR.ok])},
       overrides: []},
     options: L.statOptions({colorMode: 'value', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, ...L.SINGLE_VALUE})
   };
@@ -50,7 +50,7 @@ function lastMonth() {
       {id: 'calculateField', options: {alias: 'Azure', binary: {left: 'Azure USD', operator: '*', right: 'SGD per USD'}, mode: 'binary', replaceFields: false}},
       {id: 'calculateField', options: {alias: 'Azure + GCP', mode: 'reduceRow', reduce: {include: ['Azure', 'GCP'], reducer: 'sum'}, replaceFields: false}},
       {id: 'filterFieldsByName', options: {include: {names: ['Azure + GCP']}}}],
-    fieldConfig: {defaults: {color: {fixedColor: COLOR.unknown, mode: 'fixed'}, displayName: 'Azure + GCP', ...SGD, noValue: 'cycle only', thresholds: steps([null, COLOR.ok])}, overrides: []},
+    fieldConfig: {defaults: {color: {fixedColor: COLOR.text, mode: 'fixed'}, displayName: 'Azure + GCP', ...SGD, noValue: 'cycle only', thresholds: steps([null, COLOR.ok])}, overrides: []},
     options: L.statOptions({colorMode: 'value', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}})
   };
 }
@@ -192,6 +192,15 @@ function rules() {
     content: 'Cost data is delayed and provisional, no data is not zero spending, and the top row combines provider periods (Azure UTC days, GCP Singapore dates, Railway cycle), so it is not an invoice. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.'});
 }
 
+// COLOUR-1: money is neutral (theme text) on every stat, including the lifted provider tiles that carried
+// provider colours (an orange GCP figure read as a warning). The budget comparison would need the budget in
+// the same query, so no money tile is coloured by it.
+function neutralMoney(panel) {
+  if (panel.type === 'stat') panel.fieldConfig.defaults.color = {mode: 'fixed', fixedColor: COLOR.text};
+  for (const child of panel.panels || []) neutralMoney(child);
+  return panel;
+}
+
 function build() {
   return L.dashboard({uid: 'mw-cost', description: 'Cloud spending month to date in SGD with every provider detail in collapsed rows.',
     time: {from: 'now/M', to: 'now'}, refresh: '1h',
@@ -200,6 +209,6 @@ function build() {
       rules(),
       providerRow(10, L.findPanel(COST, 306).title, 27, 306, [102, 103, 104, 101, 110]),
       providerRow(20, L.findPanel(COST, 307).title, 28, 307, [202, 203, 204, 205, 207, 206, 201]),
-      providerRow(30, L.findPanel(COST, 308).title, 29, 308, [302, 301, 303, 304, 305])]});
+      providerRow(30, L.findPanel(COST, 308).title, 29, 308, [302, 301, 303, 304, 305])].map(neutralMoney)});
 }
 module.exports = {build, HOST};

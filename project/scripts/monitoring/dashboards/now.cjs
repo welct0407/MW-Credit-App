@@ -50,28 +50,48 @@ function freshness() {
 function scanSelector() {
   return '[\n' + jq('scan-completion.jq') + '] | map(select(.details == "Last scan completion")) | .[]';
 }
-// D6: six targets, group-scanning.jq for Scan and receipt-pipeline.jq once per stage field. Shared with Agent 1.
-// stages: [key, label, red?]; informational values carry no colour, the red ones turn red above 0 as today.
+/* D6: six targets, scan-completion.jq for Scan and receipt-pipeline.jq per stage. Shared with Agent 1.
+ * COLOUR-2 (owner review): every stage is coloured by its health with the documented rules, as text
+ * "<state code>|<value>" on its state colour (codedMappings):
+ *   Scan       the IG polling health state (health{polling}: OK green, Degraded orange, Down red, Paused blue)
+ *              with the last completion time (ICT); no fresh telemetry: grey "—";
+ *   red        green at 0, red above (holds, unconfirmed postings, notification failures: broken now);
+ *   orange     green at 0, orange above (overdue reviews: needs attention);
+ *   stalled    a count of normal work, green unless the oldest waiting item is older than 600 s (the
+ *              receipt stalled rule, receipt_health.py), then orange;
+ *   overdue    reviews waiting, green unless overdue_reviews > 0 (orange); waiting itself is normal work.
+ * stages: [key, label, rule]. */
+const STAGE_RULES = {
+  red: {code: 'if .v > 0 then 0 else 1 end'},
+  orange: {code: 'if .v > 0 then 2 else 1 end'},
+  stalled: {aux: 'oldest_pending_seconds', code: 'if (.a // 0) > 600 then 2 else 1 end'},
+  overdue: {aux: 'overdue_reviews', code: 'if (.a // 0) > 0 then 2 else 1 end'}
+};
+function stageSelector(key, label, rule) {
+  const r = STAGE_RULES[rule];
+  if (!r) throw Error('Unknown stage rule ' + rule);
+  const fields = r.aux ? [[key, key], [r.aux, r.aux]] : [[key, key]];
+  return '(' + L.receiptFields(fields) + ') | {v: .' + key + (r.aux ? ', a: .' + r.aux : '') + '} |\n{"' + label +
+    '": (if .v == null then null else ((' + r.code + ') | tostring) + "|" + (.v | tostring) end)}';
+}
 function stagesStat({id, title, gridPos, scan, stages, description}) {
   const pipeline = monitoringUrl(customFilter('receipt_pipeline'));
-  const red = name => byName(name, {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.down])});
   // RECHECK-3: a current-state stat reads the same 3-hour window on Now and Agent, whatever the picker,
   // so both send the identical Scan request (Agent's 6-hour default had shown No report).
   return L.stat({id, title, gridPos, description, timeFrom: '3h', hideTimeOverride: true,
     targets: [
-      target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'polling'})), scanSelector(), [col('status', scan)]),
-      ...stages.map(([key, label], i) => target(String.fromCharCode(66 + i), DS.gcp, pipeline, L.receiptFields([[key, label]]), [col(key, label)]))
+      target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'polling'})), scanSelector(), [col('status', scan, 'string')]),
+      ...stages.map(([key, label, rule], i) => target(String.fromCharCode(66 + i), DS.gcp, pipeline, stageSelector(key, label, rule), [col(label, label, 'string')]))
     ],
-    defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName(scan, {unit: 'time:HH:mm', noValue: '—', mappings: [L.nullMap('—')]}), ...stages.filter(x => x[2]).map(([, label]) => red(label))],
-    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}}});
+    defaults: {color: {mode: 'fixed', fixedColor: COLOR.unknown}, mappings: L.codedMappings('—'), noValue: '—'},
+    options: {reduceOptions: {calcs: ['last'], fields: L.namedFields([scan, ...stages.map(x => x[1])]), values: false}}});
 }
 function payments() {
   return stagesStat({id: 4, title: 'Payments pipeline', gridPos: pos(0, 12, 8, 17), scan: '1 · Scan · last run',
-    stages: [['pending_images', '2 · Extract · waiting'], ['unnotified_holds', '3 · Validate · holds', true],
-      ['overdue_reviews', '4 · Review · overdue', true], ['unconfirmed_postings', '5 · Post · unconfirmed', true],
-      ['failed_notifications', '6 · Notify · failed', true]],
-    description: 'Instagram to recorded payment: Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling). Holds, overdue reviews, unconfirmed postings and failed notifications turn red above 0; unconfirmed postings need reconciliation, never a repeated Add. Paused or stale telemetry shows No report.'});
+    stages: [['pending_images', '2 · Extract · waiting', 'stalled'], ['unnotified_holds', '3 · Validate · holds', 'red'],
+      ['overdue_reviews', '4 · Review · overdue', 'orange'], ['unconfirmed_postings', '5 · Post · unconfirmed', 'red'],
+      ['failed_notifications', '6 · Notify · failed', 'red']],
+    description: 'Instagram to recorded payment: Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling). Every stage is coloured by its health: Scan by the IG polling state (green OK, orange Degraded, red Down, blue Paused) with the last completion time (ICT); Extract green unless the oldest waiting image is older than 10 minutes (orange, stalled); holds, unconfirmed postings and failed notifications green at 0, red above; overdue reviews green at 0, orange above. Unconfirmed postings need reconciliation, never a repeated Add. Paused or stale telemetry shows —.'});
 }
 
 function conversation() {
@@ -82,22 +102,20 @@ function conversation() {
         {key: 'last_turn_state', label: 'Last turn'}, {key: 'last_turn_age_seconds', label: 'Last turn age'}]}),
       [col('Undelivered', 'Undelivered'), col('Stuck', 'Stuck'), col('Last turn', 'Last turn'), col('Last turn age', 'Last turn age')])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Undelivered', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.down])}),
-      byName('Stuck', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.down])}),
+    overrides: [byName('Undelivered', L.problemColor('red')), byName('Stuck', L.problemColor('red')),
       byName('Last turn', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Verified', COLOR.ok], [2, 'Review', COLOR.degraded]], 'No report')}),
       byName('Last turn age', {unit: AGE.unit, decimals: AGE.decimals})]});
 }
 
 function push() {
   return L.stat({id: 6, title: 'Push', gridPos: pos(16, 12, 8, 8),
-    description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.',
+    description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
       jq('ops-health.jq', {FIELDS: [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
         {key: 'delivered_24h', label: 'Sent · 24 h'}, {key: 'failed_24h', label: 'Failed · 24 h'}]}),
       [col('Pending', 'Pending'), col('Oldest pending', 'Oldest pending'), col('Sent · 24 h', 'Sent · 24 h'), col('Failed · 24 h', 'Failed · 24 h')])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [900, COLOR.down])}),
-      byName('Failed · 24 h', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.degraded])})]});
+    overrides: [byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(900)}), byName('Failed · 24 h', L.problemColor('orange'))]});
 }
 
 // Notifications: newest scheduler bucket of the Now 1-D query, as an age; a failed bucket maps to Failed.
@@ -107,9 +125,9 @@ function notificationsAgeSelector() {
 }
 const NOTIFY_JOB = 'Notify job · last run';
 function jobs() {
-  const jobMap = valueMap([[-1, 'Failed', COLOR.down], [-2, 'Overdue', COLOR.down]], 'No report');
+  const jobMap = valueMap([[-1, 'Failed', COLOR.down], [-2, 'Overdue', COLOR.degraded]], 'No report');
   return L.stat({id: 7, title: 'Scheduled jobs', gridPos: pos(8, 20, 8, 9),
-    description: 'Time since each job last completed: daily charges and recent analytics from worker_timing{pwa_jobs} (red when overdue: 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue), the minute notification job (Notify job · last run) from its Cloud Scheduler attempts log (grey "stale" after 6 minutes).',
+    description: 'Time since each job last completed: daily charges and recent analytics from worker_timing{pwa_jobs} (orange when overdue: 90 000 s and 4 500 s, the alert values; red when the run failed; a job with no completed run at all also shows Overdue), the minute notification job (Notify job · last run) from its Cloud Scheduler attempts log (grey "stale" after 6 minutes).',
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_jobs'})),
         jq('ops-health.jq', {FIELDS: [{key: 'daily_charges_age_seconds', label: 'Daily charges', state_key: 'daily_charges_state'},
@@ -119,8 +137,7 @@ function jobs() {
         notificationsAgeSelector(), [col('Notifications', NOTIFY_JOB)])
     ],
     defaults: {unit: AGE.unit, decimals: AGE.decimals, mappings: jobMap, color: {mode: 'thresholds'}},
-    overrides: [byName('Daily charges', {thresholds: steps([null, COLOR.ok], [90000, COLOR.down])}),
-      byName('Recent analytics', {thresholds: steps([null, COLOR.ok], [4500, COLOR.down])}),
+    overrides: [byName('Daily charges', L.ageColor(90000)), byName('Recent analytics', L.ageColor(4500)),
       // The minute job: grey "stale" above 360 s, the freshness convention; no red (the scheduler alert pages).
       byName(NOTIFY_JOB, {thresholds: steps([null, COLOR.ok], [L.STALE_SECONDS, COLOR.unknown]),
         mappings: [...jobMap, {type: 'range', options: {from: L.STALE_SECONDS + 0.001, to: 1e12, result: {text: 'stale', color: COLOR.unknown, index: 3}}}]})]});

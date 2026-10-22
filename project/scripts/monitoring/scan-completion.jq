@@ -3,7 +3,10 @@
 # While a scan runs the collector reports last_completion 0 (systemd resets the exit time on start), so
 # the newest run alone often had no completion. Freshness rule unchanged: the newest status sample must be
 # at most 360 s old (and not more than 120 s ahead), else null (shown as "—"). A completion in the future
-# is ignored. One row {details: "Last scan completion", status: epoch ms or null}.
+# is ignored. COLOUR-2: one row {details: "Last scan completion", status: "<code>|<HH:MM>"} where code is
+# the IG polling health state of the newest status sample (0 Down, 1 OK, 2 Degraded, 3 Paused, 4 Unknown)
+# and HH:MM the last completion in ICT (the dashboards' Asia/Bangkok time; "no run" when none in the
+# window), or status null when the telemetry is not fresh.
 def stamp: sub("[.][0-9]+Z$"; "Z") | fromdateiso8601;
 if .error then error("Monitoring query failed")
 elif .nextPageToken then error("Worker timing response truncated")
@@ -13,5 +16,9 @@ else
     (try (($p.interval.endTime | stamp) - now) catch 1e9) <= 120) as $fresh |
   ([.timeSeries[]? | select(.metric.labels.field == "last_completion") | .points[]? |
     (try (.value.int64Value | tonumber) catch null) | select(. != null and . > 0 and . <= now + 120)] | max) as $last |
-  {details: "Last scan completion", status: (if $fresh and $last != null then $last * 1000 else null end)}
+  (try ($p.value.int64Value | tonumber) catch 4) as $code |
+  {details: "Last scan completion",
+   status: (if $fresh | not then null
+            else ((if ($code | IN(0, 1, 2, 3, 4)) then $code else 4 end) | tostring) + "|" +
+              (if $last != null then ($last + 25200 | strftime("%H:%M")) else "no run" end) end)}
 end

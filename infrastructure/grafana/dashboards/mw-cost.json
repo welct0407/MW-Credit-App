@@ -95,7 +95,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "yellow",
+              "fixedColor": "text",
               "mode": "fixed"
             },
             "decimals": 2,
@@ -406,7 +406,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "#5794F2",
+              "fixedColor": "text",
               "mode": "fixed"
             },
             "decimals": 2,
@@ -570,7 +570,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "#FF9830",
+              "fixedColor": "text",
               "mode": "fixed"
             },
             "decimals": 2,
@@ -734,7 +734,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "#B877D9",
+              "fixedColor": "text",
               "mode": "fixed"
             },
             "decimals": 2,
@@ -898,7 +898,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "#6E7079",
+              "fixedColor": "text",
               "mode": "fixed"
             },
             "decimals": 2,
@@ -1164,7 +1164,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "transparent",
+              "fixedColor": "text",
               "mode": "fixed"
             },
             "decimals": 0,
@@ -1802,7 +1802,8 @@
             "fieldConfig": {
               "defaults": {
                 "color": {
-                  "mode": "palette-classic"
+                  "fixedColor": "text",
+                  "mode": "fixed"
                 },
                 "decimals": 2,
                 "noValue": "No data",
@@ -2493,7 +2494,8 @@
             "fieldConfig": {
               "defaults": {
                 "color": {
-                  "mode": "palette-classic"
+                  "fixedColor": "text",
+                  "mode": "fixed"
                 },
                 "decimals": 2,
                 "noValue": "No data",
@@ -2612,7 +2614,8 @@
             "fieldConfig": {
               "defaults": {
                 "color": {
-                  "mode": "palette-classic"
+                  "fixedColor": "text",
+                  "mode": "fixed"
                 },
                 "decimals": 2,
                 "noValue": "No data",
@@ -2731,7 +2734,8 @@
             "fieldConfig": {
               "defaults": {
                 "color": {
-                  "mode": "palette-classic"
+                  "fixedColor": "text",
+                  "mode": "fixed"
                 },
                 "decimals": 2,
                 "noValue": "No data",
@@ -3353,7 +3357,8 @@
             "fieldConfig": {
               "defaults": {
                 "color": {
-                  "mode": "palette-classic"
+                  "fixedColor": "text",
+                  "mode": "fixed"
                 },
                 "decimals": 2,
                 "noValue": "No data",

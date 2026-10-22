@@ -878,11 +878,11 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Instagram to recorded payment: Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling). Holds, overdue reviews, unconfirmed postings and failed notifications turn red above 0; unconfirmed postings need reconciliation, never a repeated Add. Paused or stale telemetry shows No report.",
+        "description": "Instagram to recorded payment: Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling). Every stage is coloured by its health: Scan by the IG polling state (green OK, orange Degraded, red Down, blue Paused) with the last completion time (ICT); Extract green unless the oldest waiting image is older than 10 minutes (orange, stalled); holds, unconfirmed postings and failed notifications green at 0, red above; overdue reviews green at 0, orange above. Unconfirmed postings need reconciliation, never a repeated Add. Paused or stale telemetry shows —.",
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "transparent",
+              "fixedColor": "#6E7079",
               "mode": "fixed"
             },
             "decimals": 0,
@@ -890,17 +890,72 @@
             "mappings": [
               {
                 "options": {
+                  "pattern": "^0\\|(.*)$",
+                  "result": {
+                    "color": "dark-red",
+                    "index": 0,
+                    "text": "$1"
+                  }
+                },
+                "type": "regex"
+              },
+              {
+                "options": {
+                  "pattern": "^1\\|(.*)$",
+                  "result": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "$1"
+                  }
+                },
+                "type": "regex"
+              },
+              {
+                "options": {
+                  "pattern": "^2\\|(.*)$",
+                  "result": {
+                    "color": "orange",
+                    "index": 2,
+                    "text": "$1"
+                  }
+                },
+                "type": "regex"
+              },
+              {
+                "options": {
+                  "pattern": "^3\\|(.*)$",
+                  "result": {
+                    "color": "blue",
+                    "index": 3,
+                    "text": "$1"
+                  }
+                },
+                "type": "regex"
+              },
+              {
+                "options": {
+                  "pattern": "^4\\|(.*)$",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 4,
+                    "text": "$1"
+                  }
+                },
+                "type": "regex"
+              },
+              {
+                "options": {
                   "match": "null",
                   "result": {
                     "color": "#6E7079",
-                    "index": 0,
-                    "text": "No report"
+                    "index": 5,
+                    "text": "—"
                   }
                 },
                 "type": "special"
               }
             ],
-            "noValue": "No report",
+            "noValue": "—",
             "thresholds": {
               "mode": "absolute",
               "steps": [
@@ -912,160 +967,7 @@
             },
             "unit": "none"
           },
-          "overrides": [
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "1 · Scan · last run"
-              },
-              "properties": [
-                {
-                  "id": "unit",
-                  "value": "time:HH:mm"
-                },
-                {
-                  "id": "noValue",
-                  "value": "—"
-                },
-                {
-                  "id": "mappings",
-                  "value": [
-                    {
-                      "options": {
-                        "match": "null",
-                        "result": {
-                          "color": "#6E7079",
-                          "index": 0,
-                          "text": "—"
-                        }
-                      },
-                      "type": "special"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "3 · Validate · holds"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "mode": "thresholds"
-                  }
-                },
-                {
-                  "id": "thresholds",
-                  "value": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": null
-                      },
-                      {
-                        "color": "dark-red",
-                        "value": 1
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "4 · Review · overdue"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "mode": "thresholds"
-                  }
-                },
-                {
-                  "id": "thresholds",
-                  "value": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": null
-                      },
-                      {
-                        "color": "dark-red",
-                        "value": 1
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "5 · Post · unconfirmed"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "mode": "thresholds"
-                  }
-                },
-                {
-                  "id": "thresholds",
-                  "value": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": null
-                      },
-                      {
-                        "color": "dark-red",
-                        "value": 1
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "6 · Notify · failed"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "mode": "thresholds"
-                  }
-                },
-                {
-                  "id": "thresholds",
-                  "value": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": null
-                      },
-                      {
-                        "color": "dark-red",
-                        "value": 1
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
+          "overrides": []
         },
         "gridPos": {
           "h": 17,
@@ -1085,7 +987,7 @@
             "calcs": [
               "last"
             ],
-            "fields": "",
+            "fields": "/^(1 · Scan · last run|2 · Extract · waiting|3 · Validate · holds|4 · Review · overdue|5 · Post · unconfirmed|6 · Notify · failed)$/",
             "values": false
           },
           "showPercentChange": false,
@@ -1102,7 +1004,7 @@
               {
                 "selector": "status",
                 "text": "1 · Scan · last run",
-                "type": "number"
+                "type": "string"
               }
             ],
             "datasource": {
@@ -1112,7 +1014,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "[\n# Instagram group scan, last completion (worker_timing{polling}): the newest positive last_completion\n# reported in the query window (the stat reads the last 3 hours), not only in the newest collector run.\n# While a scan runs the collector reports last_completion 0 (systemd resets the exit time on start), so\n# the newest run alone often had no completion. Freshness rule unchanged: the newest status sample must be\n# at most 360 s old (and not more than 120 s ahead), else null (shown as \"—\"). A completion in the future\n# is ignored. One row {details: \"Last scan completion\", status: epoch ms or null}.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Worker timing response truncated\")\nelse\n  ([.timeSeries[]? | select(.metric.labels.field == \"status\") | .points[]?] | sort_by(.interval.endTime) | last) as $p |\n  ($p != null and (try (now - ($p.interval.endTime | stamp)) catch 1e9) <= 360 and\n    (try (($p.interval.endTime | stamp) - now) catch 1e9) <= 120) as $fresh |\n  ([.timeSeries[]? | select(.metric.labels.field == \"last_completion\") | .points[]? |\n    (try (.value.int64Value | tonumber) catch null) | select(. != null and . > 0 and . <= now + 120)] | max) as $last |\n  {details: \"Last scan completion\", status: (if $fresh and $last != null then $last * 1000 else null end)}\nend\n] | map(select(.details == \"Last scan completion\")) | .[]",
+            "root_selector": "[\n# Instagram group scan, last completion (worker_timing{polling}): the newest positive last_completion\n# reported in the query window (the stat reads the last 3 hours), not only in the newest collector run.\n# While a scan runs the collector reports last_completion 0 (systemd resets the exit time on start), so\n# the newest run alone often had no completion. Freshness rule unchanged: the newest status sample must be\n# at most 360 s old (and not more than 120 s ahead), else null (shown as \"—\"). A completion in the future\n# is ignored. COLOUR-2: one row {details: \"Last scan completion\", status: \"<code>|<HH:MM>\"} where code is\n# the IG polling health state of the newest status sample (0 Down, 1 OK, 2 Degraded, 3 Paused, 4 Unknown)\n# and HH:MM the last completion in ICT (the dashboards' Asia/Bangkok time; \"no run\" when none in the\n# window), or status null when the telemetry is not fresh.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Worker timing response truncated\")\nelse\n  ([.timeSeries[]? | select(.metric.labels.field == \"status\") | .points[]?] | sort_by(.interval.endTime) | last) as $p |\n  ($p != null and (try (now - ($p.interval.endTime | stamp)) catch 1e9) <= 360 and\n    (try (($p.interval.endTime | stamp) - now) catch 1e9) <= 120) as $fresh |\n  ([.timeSeries[]? | select(.metric.labels.field == \"last_completion\") | .points[]? |\n    (try (.value.int64Value | tonumber) catch null) | select(. != null and . > 0 and . <= now + 120)] | max) as $last |\n  (try ($p.value.int64Value | tonumber) catch 4) as $code |\n  {details: \"Last scan completion\",\n   status: (if $fresh | not then null\n            else ((if ($code | IN(0, 1, 2, 3, 4)) then $code else 4 end) | tostring) + \"|\" +\n              (if $last != null then ($last + 25200 | strftime(\"%H:%M\")) else \"no run\" end) end)}\nend\n] | map(select(.details == \"Last scan completion\")) | .[]",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22polling%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1123,9 +1025,9 @@
           {
             "columns": [
               {
-                "selector": "pending_images",
+                "selector": "2 · Extract · waiting",
                 "text": "2 · Extract · waiting",
-                "type": "number"
+                "type": "string"
               }
             ],
             "datasource": {
@@ -1135,7 +1037,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "B",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"pending_images\",\"label\":\"2 · Extract · waiting\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "([ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"pending_images\",\"label\":\"pending_images\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"oldest_pending_seconds\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries) | {v: .pending_images, a: .oldest_pending_seconds} |\n{\"2 · Extract · waiting\": (if .v == null then null else ((if (.a // 0) > 600 then 2 else 1 end) | tostring) + \"|\" + (.v | tostring) end)}",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1146,9 +1048,9 @@
           {
             "columns": [
               {
-                "selector": "unnotified_holds",
+                "selector": "3 · Validate · holds",
                 "text": "3 · Validate · holds",
-                "type": "number"
+                "type": "string"
               }
             ],
             "datasource": {
@@ -1158,7 +1060,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "C",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unnotified_holds\",\"label\":\"3 · Validate · holds\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "([ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unnotified_holds\",\"label\":\"unnotified_holds\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries) | {v: .unnotified_holds} |\n{\"3 · Validate · holds\": (if .v == null then null else ((if .v > 0 then 0 else 1 end) | tostring) + \"|\" + (.v | tostring) end)}",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1169,9 +1071,9 @@
           {
             "columns": [
               {
-                "selector": "overdue_reviews",
+                "selector": "4 · Review · overdue",
                 "text": "4 · Review · overdue",
-                "type": "number"
+                "type": "string"
               }
             ],
             "datasource": {
@@ -1181,7 +1083,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "D",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"overdue_reviews\",\"label\":\"4 · Review · overdue\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "([ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"overdue_reviews\",\"label\":\"overdue_reviews\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries) | {v: .overdue_reviews} |\n{\"4 · Review · overdue\": (if .v == null then null else ((if .v > 0 then 2 else 1 end) | tostring) + \"|\" + (.v | tostring) end)}",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1192,9 +1094,9 @@
           {
             "columns": [
               {
-                "selector": "unconfirmed_postings",
+                "selector": "5 · Post · unconfirmed",
                 "text": "5 · Post · unconfirmed",
-                "type": "number"
+                "type": "string"
               }
             ],
             "datasource": {
@@ -1204,7 +1106,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "E",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unconfirmed_postings\",\"label\":\"5 · Post · unconfirmed\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "([ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unconfirmed_postings\",\"label\":\"unconfirmed_postings\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries) | {v: .unconfirmed_postings} |\n{\"5 · Post · unconfirmed\": (if .v == null then null else ((if .v > 0 then 0 else 1 end) | tostring) + \"|\" + (.v | tostring) end)}",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1215,9 +1117,9 @@
           {
             "columns": [
               {
-                "selector": "failed_notifications",
+                "selector": "6 · Notify · failed",
                 "text": "6 · Notify · failed",
-                "type": "number"
+                "type": "string"
               }
             ],
             "datasource": {
@@ -1227,7 +1129,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "F",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"failed_notifications\",\"label\":\"6 · Notify · failed\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "([ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"failed_notifications\",\"label\":\"failed_notifications\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries) | {v: .failed_notifications} |\n{\"6 · Notify · failed\": (if .v == null then null else ((if .v > 0 then 0 else 1 end) | tostring) + \"|\" + (.v | tostring) end)}",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1478,7 +1380,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.",
+        "description": "Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1543,7 +1445,7 @@
                         "value": null
                       },
                       {
-                        "color": "dark-red",
+                        "color": "orange",
                         "value": 900
                       }
                     ]
@@ -1659,7 +1561,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Time since each job last completed: daily charges and recent analytics from worker_timing{pwa_jobs} (red when overdue: 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue), the minute notification job (Notify job · last run) from its Cloud Scheduler attempts log (grey \"stale\" after 6 minutes).",
+        "description": "Time since each job last completed: daily charges and recent analytics from worker_timing{pwa_jobs} (orange when overdue: 90 000 s and 4 500 s, the alert values; red when the run failed; a job with no completed run at all also shows Overdue), the minute notification job (Notify job · last run) from its Cloud Scheduler attempts log (grey \"stale\" after 6 minutes).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1676,7 +1578,7 @@
                     "text": "Failed"
                   },
                   "-2": {
-                    "color": "dark-red",
+                    "color": "orange",
                     "index": 1,
                     "text": "Overdue"
                   }
@@ -1715,6 +1617,12 @@
               },
               "properties": [
                 {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
                   "id": "thresholds",
                   "value": {
                     "mode": "absolute",
@@ -1724,7 +1632,7 @@
                         "value": null
                       },
                       {
-                        "color": "dark-red",
+                        "color": "orange",
                         "value": 90000
                       }
                     ]
@@ -1739,6 +1647,12 @@
               },
               "properties": [
                 {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
                   "id": "thresholds",
                   "value": {
                     "mode": "absolute",
@@ -1748,7 +1662,7 @@
                         "value": null
                       },
                       {
-                        "color": "dark-red",
+                        "color": "orange",
                         "value": 4500
                       }
                     ]
@@ -1789,7 +1703,7 @@
                           "text": "Failed"
                         },
                         "-2": {
-                          "color": "dark-red",
+                          "color": "orange",
                           "index": 1,
                           "text": "Overdue"
                         }

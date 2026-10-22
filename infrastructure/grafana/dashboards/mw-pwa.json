@@ -202,7 +202,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Reader and command API health: Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s), plus the authenticated native OLTP and OLAP probes that always target PROD. Grey after 6 minutes without a report.",
+        "description": "Reader and command: Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s). Chat data · live and · reports: the authenticated native-API probes the Partner conversation depends on, always PROD: the collector signs in to the PROD command service's conversation API, checks the catalogue manifest version and makes one key-only read, of live loan and payment data (metric label oltp) or of analytics and reports data (olap). Grey after 6 minutes without a report.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -299,7 +299,7 @@
               "properties": [
                 {
                   "id": "displayName",
-                  "value": "Native OLTP · PROD"
+                  "value": "Chat data · live"
                 }
               ]
             },
@@ -311,7 +311,7 @@
               "properties": [
                 {
                   "id": "displayName",
-                  "value": "Native OLAP · PROD"
+                  "value": "Chat data · reports"
                 }
               ]
             }
@@ -411,7 +411,7 @@
               },
               {
                 "selector": "value",
-                "text": "Native OLTP · PROD",
+                "text": "Chat data · live",
                 "type": "number"
               }
             ],
@@ -439,7 +439,7 @@
               },
               {
                 "selector": "value",
-                "text": "Native OLAP · PROD",
+                "text": "Chat data · reports",
                 "type": "number"
               }
             ],
@@ -467,7 +467,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services' structured request log, no user identity) and Cloud Run 5xx responses across the four ${env} services. Counts only, no threshold.",
+        "description": "Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services' structured request log, no user identity) and Cloud Run 5xx responses across the four ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs) stays neutral.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -489,7 +489,98 @@
             },
             "unit": "none"
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "503 · session check unavailable"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "503 · body timeout"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx · all services"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         },
         "gridPos": {
           "h": 8,
@@ -3541,7 +3632,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "PROD only: worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1(); pending counts pending and retry, failed counts dead and uncertain completed in 24 h. Oldest pending red above 900 s (the alert value).",
+        "description": "PROD only: worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1(); pending counts pending and retry, failed counts dead and uncertain completed in 24 h. Oldest pending orange above 900 s (the alert value).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3606,7 +3697,7 @@
                         "value": null
                       },
                       {
-                        "color": "dark-red",
+                        "color": "orange",
                         "value": 900
                       }
                     ]
@@ -3722,7 +3813,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue red at 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification, the last dispatch in pwa_notify).",
+        "description": "PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue orange at 90 000 s and 4 500 s, the alert values, red when the run failed; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification, the last dispatch in pwa_notify).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3739,7 +3830,7 @@
                     "text": "Failed"
                   },
                   "-2": {
-                    "color": "dark-red",
+                    "color": "orange",
                     "index": 1,
                     "text": "Overdue"
                   }
@@ -3778,6 +3869,12 @@
               },
               "properties": [
                 {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
                   "id": "thresholds",
                   "value": {
                     "mode": "absolute",
@@ -3787,7 +3884,7 @@
                         "value": null
                       },
                       {
-                        "color": "dark-red",
+                        "color": "orange",
                         "value": 90000
                       }
                     ]
@@ -3802,6 +3899,12 @@
               },
               "properties": [
                 {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
                   "id": "thresholds",
                   "value": {
                     "mode": "absolute",
@@ -3811,10 +3914,25 @@
                         "value": null
                       },
                       {
-                        "color": "dark-red",
+                        "color": "orange",
                         "value": 4500
                       }
                     ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Last notification"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
                   }
                 }
               ]
@@ -3927,7 +4045,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "blue",
+              "fixedColor": "text",
               "mode": "fixed"
             },
             "decimals": 0,

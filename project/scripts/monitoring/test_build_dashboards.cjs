@@ -358,6 +358,59 @@ for (const [uid, id] of [['mw-now', 17], ['mw-agent', 11]]) {
   assert.ok(Object.values(p.fieldConfig.defaults.mappings[0].options).some(m => m.text === 'Maintenance'));
 }
 for (const uid of L.DASHBOARD_UIDS) assert.ok(!/openai/i.test(L.serialize(built[uid])), uid + ' reads no OpenAI status');
+// COLOUR-1 (owner policy): every stat field is in exactly one colour class, and its colour follows the class.
+// A name qualified by its panel title ("Provider status › Railway") wins over the plain name.
+const classOf = (p, name) => {
+  const qualified = Object.entries(L.POLICY).filter(([, names]) => names.includes(p.title + ' › ' + name)).map(([c]) => c);
+  return qualified.length ? qualified : Object.entries(L.POLICY).filter(([, names]) => names.includes(name)).map(([c]) => c);
+};
+const STATE_WORDS = new Set([L.COLOR.down, L.COLOR.ok, L.COLOR.degraded]);
+let classified = 0;
+for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+  if (p.type !== 'stat') continue;
+  const filter = (p.transformations || []).filter(t => t.id === 'filterFieldsByName').pop();
+  let names = (filter ? filter.options.include.names : (p.targets || []).flatMap(t => (t.columns || []).filter(c => !/^timestamp/.test(c.type)).map(c => c.text)))
+    .filter(n => n !== 'Time' && n !== 'Category');
+  if (!names.length) names = [p.title];
+  for (const name of names) {
+    const classes = classOf(p, name);
+    assert.equal(classes.length, 1, uid + ' ' + p.id + ' "' + name + '" is in exactly one colour class: ' + classes);
+    const props = Object.fromEntries((p.fieldConfig.overrides || []).filter(o => o.matcher.id === 'byName' && o.matcher.options === name).flatMap(o => o.properties.map(x => [x.id, x.value])));
+    const d = p.fieldConfig.defaults;
+    const color = props.color || d.color, thresholds = props.thresholds || d.thresholds, mappings = props.mappings || d.mappings || [];
+    const coded = mappings.some(m => m.type === 'regex' && /\\\|/.test(m.options.pattern));
+    const steps = (thresholds && thresholds.steps) || [];
+    const where = uid + ' ' + p.id + ' "' + name + '" (' + classes[0] + ')';
+    switch (classes[0]) {
+      case 'state':
+        assert.ok(coded || mappings.some(m => m.type === 'value' && Object.values(m.options).some(o => STATE_WORDS.has(o.color))), where + ' coloured by state');
+        break;
+      case 'problem':
+        assert.ok(coded || (color.mode === 'thresholds' && steps[0].color === L.COLOR.ok && steps[1].value === 1 && [L.COLOR.down, L.COLOR.degraded].includes(steps[1].color)), where + ' green at 0, red or orange above');
+        break;
+      case 'age':
+        assert.ok(color.mode === 'thresholds' && steps[0].color === L.COLOR.ok && steps[1].value > 1 && [L.COLOR.degraded, L.COLOR.unknown].includes(steps[1].color), where + ' green within its limit, orange past (grey when stale)');
+        break;
+      default:
+        // work, money, info: neutral, unless a normal-work count is coloured through a documented age or limit (stages).
+        assert.ok(coded && classes[0] === 'work' || (color.mode === 'fixed' && [L.COLOR.info, L.COLOR.text].includes(color.fixedColor)), where + ' neutral');
+    }
+    classified++;
+  }
+}
+assert.ok(classified >= 75, 'stat fields classified: ' + classified);
+// COLOUR-2: both pipeline tiles colour every stage, with the same rule for the same metric.
+for (const [uid, id] of [['mw-now', 4], ['mw-agent', 1]]) {
+  const p = panelOf(uid, id);
+  assert.ok(p.fieldConfig.defaults.mappings.filter(m => m.type === 'regex').length === 5 && !p.fieldConfig.overrides.length, uid + ' ' + id + ' every stage state-coded');
+  assert.ok(p.targets.every(t => t.columns[0].type === 'string'), uid + ' ' + id + ' coded text values');
+}
+const stage = (uid, id, ref) => panelOf(uid, id).targets.find(t => t.refId === ref).root_selector;
+assert.equal(stage('mw-now', 4, 'B'), stage('mw-agent', 1, 'B').replace('Extraction waiting', '2 · Extract · waiting'), 'Extract waiting: the same stalled rule');
+// OWNER-NATIVE: the native-API probes are named for the Partner chat data they check; metric labels unchanged.
+const api = panelOf('mw-pwa', 2);
+assert.deepEqual(api.targets.map(t => decodeURIComponent(t.url).match(/component = "([^"]+)"/)[1]), ['pwa_api_reader_${env}', 'pwa_api_command_${env}', 'oltp', 'olap']);
+assert.deepEqual(api.fieldConfig.overrides.map(o => o.properties[0].value), ['Reader', 'Command', 'Chat data · live', 'Chat data · reports']);
 
 console.log(JSON.stringify({dashboards: L.DASHBOARD_UIDS.length, panels: L.DASHBOARD_UIDS.map(u => allPanels(built[u].spec).length),
   jqCompiled: jqAvailable ? compiled : 'skipped (jq not found)', passed: true}));
