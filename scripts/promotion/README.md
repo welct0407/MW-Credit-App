@@ -23,6 +23,16 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R089 runtime, SQL and frontend promotion after V102
+
+`schemaVersion: 25`, `release: R089`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R081's kind (shared code path) after V102, notification history text.
+
+- **Source.** The source must descend from the R087 release `bf11e40` (the PR #117 merge: the live PROD runtime source, which carries V101 from R086 and the R083 runner contract) and add exactly `database/migrations/V102__notification_history_content.sql` (R074's strict name form). The source is the merge of PR #121, which carries this contract; a later delivery-tool commit may carry only the runner, its unit test, this README, `scripts/database/Backup-ProductionPromotion.py` (baseline 101 is already accepted, derived from the migration head), `scripts/database/R053_OPERATOR.md` and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** As R081 with baseline 101 and target 102: the V102 hash checked against the source bytes, the tested grouped 101-to-102 release manifest, `sql.applied` with one migration executed and the `prod-promotion-…` backup (dump SHA256, passed restore), and `sql.verified`, a read-only readback of 102 successful history rows after the apply. The V102 owner window (`mw_notify_owner_prod`) follows [R053_OPERATOR.md](../database/R053_OPERATOR.md#notify-owner-authority-v102).
+- **Plan, recognition pin, CI and apply.** As R081 (R087 changed the four images only): `{add:0, change:4, destroy:0}` with exactly the four image actions, the unchanged enabled recognizer wiring, R074's per-job CI, and the live readback with request timeouts command `55s`, reader `15s`, notify and jobs `120s`. `rollback.services` pins the live R087 revisions and image. `applied.sqlVersion` is 102 and the runtime apply follows the SQL apply.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R089"`; the audience is `https://lm.mw-credit.com/promotion/r089`. R089 refuses the other kinds' packages, and they refuse R089's.
+- **Not covered.** The integration agent.
+
 ## R083 Hosting-only promotion on the R081 runtime
 
 `schemaVersion: 24`, `release: R083`, `scope: frontend-only`, `status: prepared`: R074's Hosting-only kind (shared code path) on the unchanged R081 runtime and V100, with the release marker in the artifact.
