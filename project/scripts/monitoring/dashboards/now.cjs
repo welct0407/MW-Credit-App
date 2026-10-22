@@ -185,6 +185,7 @@ function edge() {
       L.healthRow('Local ingress', 'webhook_local'), L.healthRow('Database path', 'database'), L.healthRow('Audit relay', 'audit_relay')]});
 }
 
+const BACKUP_SOURCES = ['Cloud SQL backup', 'Debian snapshot', 'Metabase daily', 'Metabase weekly', 'PITR archive', 'Audit retention'];
 function backups() {
   const rows = [
     {component: 'cloud_sql_backup', label: 'Cloud SQL backup', age: 'age_seconds', status: 'status', red: 108000},
@@ -207,12 +208,17 @@ function backups() {
   };
   return L.table({id: 19, title: 'Backups and recovery points', gridPos: pos(16, 35, 8, 9),
     description: 'Age of the newest recovery point and its state against the documented grace: Cloud SQL automated backup and Debian disk snapshot 30 h (the alert value); Metabase daily and weekly volume backups from the Railway schedules; Metabase PITR archive and the agent audit retention run from the collector. The Metabase rows\' age is that of the newest scheduled snapshot. Age shows — when there is no recovery point (the state then says why).',
-    targets: [wt('A', rows), railway('B', 84, 'Metabase daily', 'DAILY'), railway('C', 85, 'Metabase weekly', 'WEEKLY'),
+    // FINAL4-4: a fixed list of the six sources comes first and the merge keys every row by Source (the only
+    // field all frames share), so a source whose query fails (the Railway read) keeps its row with Age "—"
+    // and state Unknown instead of disappearing; the rows keep this order.
+    targets: [L.inlineTarget('S', DS.gcp, BACKUP_SOURCES.map(Source => ({Source})), '.[]', [col('Source', 'Source', 'string')]),
+      wt('A', rows), railway('B', 84, 'Metabase daily', 'DAILY'), railway('C', 85, 'Metabase weekly', 'WEEKLY'),
       wt('D', [{component: 'metabase_pitr', label: 'PITR archive', age: 'archive_age_seconds', status: 'status', status_is_state: true}], 'metabase_probe'),
       wt('E', [{component: 'audit_retention', label: 'Audit retention', age: 'age_seconds', status: 'result'}])],
     datasource: DS.mixed,
     transformations: [{id: 'merge', options: {}}, {id: 'organize', options: {indexByName: {Source: 0, Age: 1, State: 2}}}],
     overrides: [byName('Age', {unit: AGE.unit, decimals: AGE.decimals, 'custom.width': 90, mappings: [L.nullMap('—')]}),
+      // A row without a state (its query failed) reads Unknown.
       byName('State', {mappings: L.stateMappings(), 'custom.width': 80, 'custom.cellOptions': {type: 'color-background', mode: 'basic'}, color: {mode: 'fixed', fixedColor: COLOR.unknown}})]});
 }
 

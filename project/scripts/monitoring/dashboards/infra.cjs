@@ -74,8 +74,9 @@ function cloudRun() {
   const q = (refId, metric, column, mode, aggregation) => target(refId, DS.gcp,
     monitoringUrl(filter(metric), {...aggregation, groupBy: ['resource.labels.service_name']}),
     jq('cloudrun-by-service.jq', {COLUMN: column, MODE: mode}), [col('Service', 'Service', 'string'), col(column, column)]);
-  // FINAL-3: coloured text, not a coloured cell, so the number stays readable on a phone.
-  const util = {unit: 'percentunit', decimals: 0, 'custom.cellOptions': {type: 'color-text'},
+  // FINAL4-2: a coloured cell with white text (the fills give at least 4.5:1 in both themes); the darker fills
+  // would be too dim as coloured text on the dark theme.
+  const util = {unit: 'percentunit', decimals: 0, 'custom.cellOptions': {type: 'color-background', mode: 'basic'},
     thresholds: steps([null, COLOR.ok], [0.8, COLOR.degraded]), mappings: [L.nullMap('—')]};
   return L.table({id: 9, title: 'Cloud Run · eight services', gridPos: pos(0, 14, 16, 11),
     description: 'Cloud Monitoring per service of mw-credit-app-<service>-<env>: newest instance count against Max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range.',
@@ -92,7 +93,8 @@ function cloudRun() {
       {id: 'organize', options: {indexByName: {Service: 0, Instances: 1, Max: 2, 'CPU p95': 3, 'Memory p95': 4, 'Billable time': 5}}}],
     // FINAL3-2: every column sized (an unsized column takes at least 150 px and cut Billable time at 1440 px).
     overrides: [byName('CPU p95', {...util, 'custom.width': 80}), byName('Memory p95', {...util, 'custom.width': 100}),
-      byName('Billable time', {unit: 's', decimals: 0, mappings: [L.nullMap('—')], 'custom.width': 110}),
+      // FINAL4-6: one decimal, so a minute reads "1.0 mins", never "1 mins".
+      byName('Billable time', {unit: 's', decimals: 1, mappings: [L.nullMap('—')], 'custom.width': 110}),
       byName('Instances', {mappings: [L.nullMap('0 seen')], 'custom.width': 80}), byName('Max', {'custom.width': 50}),
       // RECHECK-9/FINAL-3: service names without the common prefix ("command · prod"), so every column fits on a phone.
       byName('Service', {'custom.width': 110, mappings: [{type: 'regex', options: {pattern: '^mw-credit-app-(.+)-(prod|dev)$', result: {text: '$1 · $2', index: 0}}}]})]});

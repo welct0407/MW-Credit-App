@@ -79,7 +79,8 @@ function budgetTile() {
     description: 'The GCP budget Budget-GCP read live from the Cloud Billing Budget API: monthly amount, name and scope. It covers the whole billing account, while GCP on this page is this project only; no such budget reads "no budget", never 0. The red dashed line of the daily chart is this amount ÷ the days of the month.',
     targets: [target('A', DS.gcp, BUDGET_URL, budgetCellSelector(), [col('Category', 'Category', 'string'), col('Budget', 'GCP budget', 'string')])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')], noValue: 'No report'},
-    options: {reduceOptions: {calcs: ['last'], fields: L.namedFields(['GCP budget']), values: false}, textMode: 'value', text: L.TEXT_TILE}});
+    // FINAL4-1: money and info text carry no fill (colour mode none), so the theme text keeps full contrast.
+    options: {reduceOptions: {calcs: ['last'], fields: L.namedFields(['GCP budget']), values: false}, textMode: 'value', colorMode: 'none', text: L.TEXT_TILE}});
 }
 // Budget line rows: one per Singapore date of the last 32 (the month the picker shows at most), each the
 // monthly amount ÷ the days of that date's month; no row (no line) unless a fixed amount exists. The series

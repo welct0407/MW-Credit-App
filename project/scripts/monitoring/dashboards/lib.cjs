@@ -72,10 +72,14 @@ const TO = '${__timeTo:date:iso}';
 const CHART_PERIOD = '$__customInterval(2d,300s,14d,3600s,86400s)';
 const MONITORING_BASE = 'https://monitoring.googleapis.com/v3/projects/' + PROJECT + '/timeSeries';
 
-// Grafana named colours (CVD review): Down dark-red, OK green, Degraded orange,
-// Paused blue, Unknown fixed grey.
+// State colours (CVD review): Down dark-red, OK green, Degraded orange, Paused blue, Unknown fixed grey.
+// FINAL4-2 (Echo v11): fills carry white text in both themes, so each must give at least 4.5:1 against
+// Grafana's white (#F7F8FA) in both. Grafana's named greens and oranges resolve per theme and fall short
+// (green 2.1:1 dark / 2.8:1 light, dark-orange 2.9 / 3.5), so OK and Degraded are fixed hex shades of the same
+// hues: OK #2E7D32 4.8:1, Degraded #A65200 5.2:1; Down dark-red 5.7:1 dark / 7.1:1 light; Paused dark-blue
+// 5.6 / 7.1; Unknown #6E7079 4.6. Fixed hex is the same in both themes.
 // info: informational values carry no state colour (blue means Paused); transparent keeps the theme text.
-const COLOR = {down: 'dark-red', ok: 'green', degraded: 'orange', paused: 'blue', unknown: '#6E7079', purple: 'purple', info: 'transparent', text: 'text'};
+const COLOR = {down: 'dark-red', ok: '#2E7D32', degraded: '#A65200', paused: 'dark-blue', unknown: '#6E7079', purple: 'purple', info: 'transparent', text: 'text'};
 const STATE_TEXT = ['Down', 'OK', 'Degraded', 'Paused', 'Unknown'];
 const STATE_COLORS = [COLOR.down, COLOR.ok, COLOR.degraded, COLOR.paused, COLOR.unknown];
 
@@ -116,11 +120,10 @@ const POLICY = {
   state: ['Service', 'Reader', 'Command', 'Chat data · live', 'Chat data · reports', 'Hosting', 'Provider status › Railway',
     'Providers · status › Railway', 'Google Cloud',
     'Last turn', 'Poll state', 'Wake path', 'Worker timer', 'Code version', '1 · Scan · last run', 'Group scan · last run'],
-  problem: ['Undelivered', 'Stuck', 'Failed · 24 h', 'Failed', 'Timed out', 'Open ingress reviews', '503 · session check unavailable',
+  problem: ['Undelivered', 'Stuck', 'Failed · 24 h', 'Failed', 'Timed out', 'Unreadable', 'Grounding rejections', 'Open ingress reviews', '503 · session check unavailable',
     '503 · body timeout', '5xx · all services', '3 · Validate · holds', 'Validation holds', '4 · Review · overdue', '5 · Post · unconfirmed',
     'Posting unconfirmed', '6 · Notify · failed', 'Notify failures'],
-  work: ['Pending', 'Sent · 24 h', 'Turns', 'Verified', 'Median turn', 'Median rounds', 'Grounding rejections', 'Extractions', 'Valid',
-    'Unreadable', '401 · session invalid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
+  work: ['Pending', 'Sent · 24 h', 'Turns', 'Verified', 'Median turn', 'Median rounds', 'Extractions', 'Valid', '401 · session invalid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
   age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Poll age'],
   // Lifted Cost detail tiles without a named field are classed by their title.
   money: ['This month', 'Azure', 'GCP', 'Railway', 'Azure + GCP', 'UsageUSD', 'Azure · selected-range cost', 'GCP · before credits (SGD)',
@@ -249,7 +252,22 @@ function lift(file, id, {id: newId, gridPos, title, panelIds = {}, linkTo} = {})
     t.panelId = panelIds[t.panelId];
   }
   nameQueries(panel);
+  if (panel.type === 'stat' || panel.type === 'table') recolorStates(panel.fieldConfig);
   return {id: newId, gridPos, ...(title !== undefined ? {title} : {}), ...panel};
+}
+// FINAL4-2: a lifted tile's state words take the contrast-safe fills (their named colours are too light for
+// white text); only value-mapping results and threshold steps change, never chart series colours.
+const FILL_OF = {green: COLOR.ok, 'semi-dark-green': COLOR.ok, orange: COLOR.degraded, 'semi-dark-orange': COLOR.degraded,
+  red: COLOR.down, 'semi-dark-red': COLOR.down, blue: COLOR.paused, gray: COLOR.unknown, grey: COLOR.unknown};
+function recolorStates(fieldConfig) {
+  const fix = c => FILL_OF[c] || c;
+  for (const config of [fieldConfig.defaults, ...(fieldConfig.overrides || []).flatMap(o => o.properties.filter(p => p.id === 'mappings' || p.id === 'thresholds').map(p => ({[p.id]: p.value})))]) {
+    for (const m of config.mappings || []) {
+      if (m.options && m.options.result) m.options.result.color = fix(m.options.result.color);
+      else for (const o of Object.values(m.options || {})) if (o && o.color) o.color = fix(o.color);
+    }
+    for (const step of (config.thresholds && config.thresholds.steps) || []) step.color = fix(step.color);
+  }
 }
 /* RECHECK-2: a multi-query timeseries otherwise shows each series as "<refId> <name>" (A Used, B Cache).
  * Each query gets its own displayName from its value column; queries stay unchanged. Overrides are
@@ -497,7 +515,7 @@ function providerModelTarget(refId, component) {
 function modelTile({id, title, gridPos, component, description}) {
   return stat({id, title, gridPos, description, targets: [providerModelTarget('A', component)],
     defaults: {mappings: [nullMap('No report')], noValue: 'No report', color: {mode: 'fixed', fixedColor: COLOR.info}},
-    options: {reduceOptions: {calcs: ['last'], fields: namedFields(['Provider']), values: false}, textMode: 'value', text: TEXT_TILE}});
+    options: {reduceOptions: {calcs: ['last'], fields: namedFields(['Provider']), values: false}, textMode: 'value', colorMode: 'none', text: TEXT_TILE}});
 }
 // A stat that shows text fields too: the named fields only (the default shows numeric fields only).
 function namedFields(names) {

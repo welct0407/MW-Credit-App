@@ -534,7 +534,8 @@ class GeneratedSelectors(unittest.TestCase):
             run(sel, {'nextPageToken': 'x'})
 
     def test_metabase_backup_rows_carry_their_age(self):
-        targets = self.panel('mw-now', 19)['targets']
+        targets = {t['refId']: t for t in self.panel('mw-now', 19)['targets']}
+        targets = [targets['S'], targets['B'], targets['C']]
         created = stamp(5 * 3600)
         data = {'data': {'volumeInstanceBackupScheduleList': [{'id': 'd', 'kind': 'DAILY', 'cron': '0 3 * * *', 'retentionSeconds': 604800, 'createdAt': stamp(864000)},
                                                               {'id': 'w', 'kind': 'WEEKLY', 'cron': '0 4 * * 0', 'retentionSeconds': 2419200, 'createdAt': stamp(864000)}],
@@ -549,6 +550,24 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertEqual((none['Age'], none['State']), (None, 0))
         err = run(targets[1]['root_selector'], {'errors': [{'message': 'x'}]})[0]
         self.assertEqual((err['Age'], err['State']), (None, 4))
+
+    def test_backup_rows_stay_when_the_railway_read_fails(self):
+        # FINAL4-4: the fixed source list merges with the frames by Source; a failed query (no frame) leaves
+        # its row with no age and no state (shown as — and Unknown), in the fixed order.
+        targets = {t['refId']: t for t in self.panel('mw-now', 19)['targets']}
+        sources = run(targets['S']['root_selector'], json.loads(targets['S']['data']))
+        collector = run(targets['A']['root_selector'], {'timeSeries': [series([point(0, 3600)], component='cloud_sql_backup', field='age_seconds'),
+                                                                        series([point(0, 1)], component='cloud_sql_backup', field='status')]})
+        rows = {r['Source']: dict(r) for r in sources}
+        for frame in (collector,):  # B and C (Railway) failed: no frames
+            for r in frame:
+                rows[r['Source']].update(r)
+        self.assertEqual(list(rows), ['Cloud SQL backup', 'Debian snapshot', 'Metabase daily', 'Metabase weekly', 'PITR archive', 'Audit retention'])
+        self.assertEqual(rows['Metabase daily'], {'Source': 'Metabase daily'})
+        self.assertEqual(rows['Metabase weekly'], {'Source': 'Metabase weekly'})
+        mappings = next(o for o in self.panel('mw-now', 19)['fieldConfig']['overrides'] if o['matcher']['options'] == 'State')['properties']
+        null_text = [m['options']['result']['text'] for p in mappings if p['id'] == 'mappings' for m in p['value'] if m['type'] == 'special']
+        self.assertEqual(null_text, ['Unknown'])
 
     def test_payment_stage_selectors(self):
         p = self.panel('mw-now', 4)

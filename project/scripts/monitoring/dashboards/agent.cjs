@@ -44,11 +44,12 @@ function recognizer() {
   const model = L.modelTile({id: 12, title: 'Recognizer · model', gridPos: pos(0, y + 7, 8, 5), component: 'recognizer',
     description: 'The recognizer\'s configured provider and model from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable.'});
   const extractions = L.stat({id: 7, title: 'Recognizer · extractions 24 h', gridPos: pos(8, y + 1, 8, 8),
-    description: 'Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts (orange above 0) and unreadable amounts. Outcome categories only.',
+    description: 'Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts and unreadable amounts (both orange above 0). Outcome categories only.',
     targets: [ops('A', 'recognizer', [{key: 'extractions_24h', label: 'Extractions'}, {key: 'valid_24h', label: 'Valid'},
       {key: 'timeouts_24h', label: 'Timed out'}, {key: 'unreadable_24h', label: 'Unreadable'}])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Timed out', L.problemColor('orange'))]});
+    // FINAL4-3: timeouts and unreadable amounts need attention (0 is the expectation): green at 0, orange above.
+    overrides: ['Timed out', 'Unreadable'].map(name => byName(name, L.problemColor('orange')))});
   const time = L.timeseries({id: 8, title: 'Recognizer · extraction time', gridPos: pos(16, y + 1, 8, 11),
     description: 'Debian collector worker_timing{recognizer_call}: the newest extraction completed since each run, at its end time; red dashed line = the 25 s per-attempt bound.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'recognizer_call', field: 'seconds'})), L.numericSelector(),
@@ -60,12 +61,12 @@ function recognizer() {
 function conversation() {
   const y = ROW.conversation;
   const turns = L.stat({id: 3, title: 'Conversation · turns 24 h', gridPos: pos(0, y + 1, 8, 13),
-    description: 'Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns in 24 h (nonpartner messages excluded), Verified = turns whose answer was VERIFIED, Failed = failed, unknown-write or interrupted turns (delivered or not), median duration and rounds, and grounding rejections.',
+    description: 'Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns in 24 h (nonpartner messages excluded), Verified = turns whose answer was VERIFIED, Failed = failed, unknown-write or interrupted turns (delivered or not), median duration and rounds, and grounding rejections. Failed and grounding rejections turn orange above 0.',
     targets: [ops('A', 'conversation', [{key: 'turns_24h', label: 'Turns'}, {key: 'verified_24h', label: 'Verified'}, {key: 'failed_24h', label: 'Failed'},
       {key: 'median_turn_seconds', label: 'Median turn'}, {key: 'median_rounds', label: 'Median rounds'}, {key: 'grounding_rejections_24h', label: 'Grounding rejections'}])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
     overrides: [byName('Median turn', {unit: AGE.unit, decimals: AGE.decimals}),
-      byName('Failed', L.problemColor('orange'))]});
+      byName('Failed', L.problemColor('orange')), byName('Grounding rejections', L.problemColor('orange'))]});
   const providers = [[1, 'Gemini', 'blue'], [2, 'Codex', 'purple'], [3, 'Claude', 'yellow']];
   const duration = L.timeseries({id: 4, title: 'Conversation · turn duration', gridPos: pos(8, y + 1, 8, 13),
     description: 'Debian collector worker_timing{conversation_turn}: one bar per completed turn at its end time, height = capture to reply in seconds, one series per provider. At most one turn per 2-minute collector run is plotted.',

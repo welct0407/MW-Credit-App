@@ -120,17 +120,17 @@
                     "text": "Down"
                   },
                   "1": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "OK"
                   },
                   "2": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "Degraded"
                   },
                   "3": {
-                    "color": "blue",
+                    "color": "dark-blue",
                     "index": 3,
                     "text": "Paused"
                   },
@@ -649,7 +649,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -716,7 +716,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -903,7 +903,7 @@
                 "options": {
                   "pattern": "^1\\|(.*)$",
                   "result": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "$1"
                   }
@@ -914,7 +914,7 @@
                 "options": {
                   "pattern": "^2\\|(.*)$",
                   "result": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "$1"
                   }
@@ -925,7 +925,7 @@
                 "options": {
                   "pattern": "^3\\|(.*)$",
                   "result": {
-                    "color": "blue",
+                    "color": "dark-blue",
                     "index": 3,
                     "text": "$1"
                   }
@@ -960,7 +960,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1174,7 +1174,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1200,7 +1200,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -1230,7 +1230,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -1259,12 +1259,12 @@
                           "text": "Failed"
                         },
                         "1": {
-                          "color": "green",
+                          "color": "#2E7D32",
                           "index": 1,
                           "text": "Verified"
                         },
                         "2": {
-                          "color": "orange",
+                          "color": "#A65200",
                           "index": 2,
                           "text": "Review"
                         }
@@ -1407,7 +1407,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1441,11 +1441,11 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
-                        "color": "orange",
+                        "color": "#A65200",
                         "value": 900
                       }
                     ]
@@ -1471,11 +1471,11 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
-                        "color": "orange",
+                        "color": "#A65200",
                         "value": 1
                       }
                     ]
@@ -1578,7 +1578,7 @@
                     "text": "Failed"
                   },
                   "-2": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 1,
                     "text": "Overdue"
                   }
@@ -1602,7 +1602,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1628,11 +1628,11 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
-                        "color": "orange",
+                        "color": "#A65200",
                         "value": 90000
                       }
                     ]
@@ -1658,11 +1658,11 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
-                        "color": "orange",
+                        "color": "#A65200",
                         "value": 4500
                       }
                     ]
@@ -1682,7 +1682,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -1703,7 +1703,7 @@
                           "text": "Failed"
                         },
                         "-2": {
-                          "color": "orange",
+                          "color": "#A65200",
                           "index": 1,
                           "text": "Overdue"
                         }
@@ -1841,7 +1841,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1873,7 +1873,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -1909,7 +1909,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -1945,7 +1945,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -1981,7 +1981,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -2162,7 +2162,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -2194,7 +2194,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -2230,7 +2230,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
@@ -2266,7 +2266,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       }
                     ]
@@ -2298,7 +2298,7 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       }
                     ]
@@ -2498,17 +2498,17 @@
                     "text": "Down"
                   },
                   "1": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "OK"
                   },
                   "2": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "Degraded"
                   },
                   "3": {
-                    "color": "blue",
+                    "color": "dark-blue",
                     "index": 3,
                     "text": "Paused"
                   },
@@ -2826,17 +2826,17 @@
                     "text": "Outage"
                   },
                   "1": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "No incident"
                   },
                   "2": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "Incident open"
                   },
                   "3": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 3,
                     "text": "Maintenance"
                   },
@@ -2865,7 +2865,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -3007,7 +3007,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -3068,17 +3068,17 @@
                           "text": "Down"
                         },
                         "1": {
-                          "color": "green",
+                          "color": "#2E7D32",
                           "index": 1,
                           "text": "OK"
                         },
                         "2": {
-                          "color": "orange",
+                          "color": "#A65200",
                           "index": 2,
                           "text": "Degraded"
                         },
                         "3": {
-                          "color": "blue",
+                          "color": "dark-blue",
                           "index": 3,
                           "text": "Paused"
                         },
@@ -3137,6 +3137,30 @@
           "showHeader": true
         },
         "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              }
+            ],
+            "data": "[{\"Source\":\"Cloud SQL backup\"},{\"Source\":\"Debian snapshot\"},{\"Source\":\"Metabase daily\"},{\"Source\":\"Metabase weekly\"},{\"Source\":\"PITR archive\"},{\"Source\":\"Audit retention\"}]",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "S",
+            "root_selector": ".[]",
+            "source": "inline",
+            "type": "json",
+            "url": "",
+            "url_options": {
+              "method": "GET"
+            }
+          },
           {
             "columns": [
               {

@@ -129,7 +129,7 @@
                 "options": {
                   "pattern": "^1\\|(.*)$",
                   "result": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "$1"
                   }
@@ -140,7 +140,7 @@
                 "options": {
                   "pattern": "^2\\|(.*)$",
                   "result": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "$1"
                   }
@@ -151,7 +151,7 @@
                 "options": {
                   "pattern": "^3\\|(.*)$",
                   "result": {
-                    "color": "blue",
+                    "color": "dark-blue",
                     "index": 3,
                     "text": "$1"
                   }
@@ -186,7 +186,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -650,11 +650,11 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 },
                 {
-                  "color": "orange",
+                  "color": "#A65200",
                   "value": 1
                 }
               ]
@@ -755,17 +755,17 @@
                     "text": "Down"
                   },
                   "1": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "OK"
                   },
                   "2": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "Degraded"
                   },
                   "3": {
-                    "color": "blue",
+                    "color": "dark-blue",
                     "index": 3,
                     "text": "Paused"
                   },
@@ -794,7 +794,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -959,7 +959,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -976,7 +976,7 @@
         },
         "id": 12,
         "options": {
-          "colorMode": "background",
+          "colorMode": "none",
           "graphMode": "none",
           "justifyMode": "auto",
           "orientation": "horizontal",
@@ -1029,7 +1029,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts (orange above 0) and unreadable amounts. Outcome categories only.",
+        "description": "Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts and unreadable amounts (both orange above 0). Outcome categories only.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1056,7 +1056,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1082,11 +1082,41 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
-                        "color": "orange",
+                        "color": "#A65200",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Unreadable"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
                         "value": 1
                       }
                     ]
@@ -1299,7 +1329,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns in 24 h (nonpartner messages excluded), Verified = turns whose answer was VERIFIED, Failed = failed, unknown-write or interrupted turns (delivered or not), median duration and rounds, and grounding rejections.",
+        "description": "Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns in 24 h (nonpartner messages excluded), Verified = turns whose answer was VERIFIED, Failed = failed, unknown-write or interrupted turns (delivered or not), median duration and rounds, and grounding rejections. Failed and grounding rejections turn orange above 0.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1326,7 +1356,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1368,11 +1398,41 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
-                        "color": "orange",
+                        "color": "#A65200",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Grounding rejections"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
                         "value": 1
                       }
                     ]
@@ -1511,7 +1571,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1743,7 +1803,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -1777,11 +1837,11 @@
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
+                        "color": "#2E7D32",
                         "value": null
                       },
                       {
-                        "color": "orange",
+                        "color": "#A65200",
                         "value": 600
                       }
                     ]
@@ -1806,17 +1866,17 @@
                           "text": "Down"
                         },
                         "1": {
-                          "color": "green",
+                          "color": "#2E7D32",
                           "index": 1,
                           "text": "OK"
                         },
                         "2": {
-                          "color": "orange",
+                          "color": "#A65200",
                           "index": 2,
                           "text": "Degraded"
                         },
                         "3": {
-                          "color": "blue",
+                          "color": "dark-blue",
                           "index": 3,
                           "text": "Paused"
                         },
@@ -1860,7 +1920,7 @@
                           "text": "Inactive"
                         },
                         "1": {
-                          "color": "green",
+                          "color": "#2E7D32",
                           "index": 1,
                           "text": "Active"
                         }
@@ -1899,7 +1959,7 @@
                           "text": "Failed"
                         },
                         "1": {
-                          "color": "green",
+                          "color": "#2E7D32",
                           "index": 1,
                           "text": "OK"
                         }
@@ -2047,7 +2107,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -2064,7 +2124,7 @@
         },
         "id": 15,
         "options": {
-          "colorMode": "background",
+          "colorMode": "none",
           "graphMode": "none",
           "justifyMode": "auto",
           "orientation": "horizontal",
@@ -2159,17 +2219,17 @@
                     "text": "Down"
                   },
                   "1": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "OK"
                   },
                   "2": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "Degraded"
                   },
                   "3": {
-                    "color": "blue",
+                    "color": "dark-blue",
                     "index": 3,
                     "text": "Paused"
                   },
@@ -2551,17 +2611,17 @@
                     "text": "Down"
                   },
                   "1": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "OK"
                   },
                   "2": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "Degraded"
                   },
                   "3": {
-                    "color": "blue",
+                    "color": "dark-blue",
                     "index": 3,
                     "text": "Paused"
                   },
@@ -2879,17 +2939,17 @@
                     "text": "Outage"
                   },
                   "1": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "No incident"
                   },
                   "2": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 2,
                     "text": "Incident open"
                   },
                   "3": {
-                    "color": "orange",
+                    "color": "#A65200",
                     "index": 3,
                     "text": "Maintenance"
                   },
@@ -2918,7 +2978,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]
@@ -3054,7 +3114,7 @@
                     "text": "Mismatch"
                   },
                   "1": {
-                    "color": "green",
+                    "color": "#2E7D32",
                     "index": 1,
                     "text": "Matches"
                   },
@@ -3083,7 +3143,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
+                  "color": "#2E7D32",
                   "value": null
                 }
               ]

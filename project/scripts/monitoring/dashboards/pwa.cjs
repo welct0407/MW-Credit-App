@@ -46,7 +46,8 @@ function errors() {
     // READ-1: names with spaces so they wrap on a phone (the codes are in the description).
     targets: [code('A', '401 · session invalid', 'session_invalid'), code('B', '503 · session check unavailable', 'session_check_unavailable'),
       code('C', '503 · body timeout', 'body_timeout'), fivexx],
-    defaults: {color: L.NEUTRAL, noValue: 'None'},
+    // FINAL4-3: nothing logged in the range is the good case: "None" in green.
+    defaults: {color: L.NEUTRAL, noValue: 'None', mappings: [{type: 'special', options: {match: 'null', result: {text: 'None', color: COLOR.ok, index: 0}}}]},
     // COLOUR-1: request failures in the range need attention (orange above 0); 401 session invalid is a normal sign-out count.
     overrides: ['503 · session check unavailable', '503 · body timeout', '5xx · all services'].map(name => byName(name, L.problemColor('orange'))),
     options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}}});

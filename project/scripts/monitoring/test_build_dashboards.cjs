@@ -411,6 +411,40 @@ assert.equal(stage('mw-now', 4, 'B'), stage('mw-agent', 1, 'B').replace('Extract
 const api = panelOf('mw-pwa', 2);
 assert.deepEqual(api.targets.map(t => decodeURIComponent(t.url).match(/component = "([^"]+)"/)[1]), ['pwa_api_reader_${env}', 'pwa_api_command_${env}', 'oltp', 'olap']);
 assert.deepEqual(api.fieldConfig.overrides.map(o => o.properties[0].value), ['Reader', 'Command', 'Chat data · live', 'Chat data · reports']);
+// FINAL4-2: every fill that carries white text (stat backgrounds, coloured table cells, timeline lanes) gives at
+// least 4.5:1 against Grafana's white in both themes (named colours resolve per theme).
+const THEME_HEX = {'dark-red': ['#C4162A', '#AD0317'], 'dark-blue': ['#1F60C4', '#1250B0'], 'dark-green': ['#37872D', '#19730E'],
+  green: ['#73BF69', '#56A64B'], orange: ['#FF9830', '#FF780A'], 'dark-orange': ['#FA6400', '#E55400'], blue: ['#5794F2', '#3274D9'], red: ['#F2495C', '#E02F44']};
+const luminance = hex => { const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+const contrast = hex => (luminance('#F7F8FA') + 0.05) / (luminance(hex) + 0.05);
+const fills = new Set();
+const collect = cfg => {
+  for (const m of cfg.mappings || []) for (const r of m.options && m.options.result ? [m.options.result] : Object.values(m.options || {})) if (r && r.color) fills.add(r.color);
+  for (const step of (cfg.thresholds && cfg.thresholds.steps) || []) fills.add(step.color);
+};
+for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+  const filled = p.type === 'state-timeline' || (p.type === 'stat' && (p.options.colorMode || 'background').startsWith('background')) ||
+    (p.type === 'table' && JSON.stringify(p.fieldConfig).includes('color-background'));
+  if (!filled || p.pluginVersion) continue;
+  collect(p.fieldConfig.defaults);
+  for (const o of p.fieldConfig.overrides || []) collect(Object.fromEntries(o.properties.map(x => [x.id, x.value])));
+}
+for (const c of fills) {
+  if (c === L.COLOR.info || c === 'transparent' || c === 'text') continue;
+  for (const hex of THEME_HEX[c] || [c]) assert.ok(/^#[0-9A-F]{6}$/i.test(hex) && contrast(hex) >= 4.5, 'fill ' + c + ' (' + hex + ') gives ' + contrast(hex).toFixed(2) + ':1 with white text');
+}
+assert.ok(fills.has(L.COLOR.ok) && fills.has(L.COLOR.degraded) && fills.has(L.COLOR.down), 'state fills checked: ' + [...fills].join(', '));
+// FINAL4-1: money and info text tiles carry no fill.
+for (const [uid, id] of [['mw-cost', 8], ['mw-pwa', 33], ['mw-agent', 12], ['mw-agent', 15]]) assert.equal(panelOf(uid, id).options.colorMode, 'none', uid + ' ' + id + ' no fill');
+for (const id of [1, 2, 3, 4, 9]) assert.ok(['value', 'none'].includes(panelOf('mw-cost', id).options.colorMode), 'mw-cost ' + id + ' money without a fill');
+// FINAL4-3: nothing logged on PWA 3 is "None" in green.
+assert.deepEqual(panelOf('mw-pwa', 3).fieldConfig.defaults.mappings[0].options.result, {text: 'None', color: L.COLOR.ok, index: 0});
+// FINAL4-4: the backups table lists its six sources first and merges every row by Source.
+const backupsTable = panelOf('mw-now', 19);
+assert.equal(backupsTable.targets[0].source, 'inline');
+assert.deepEqual(JSON.parse(backupsTable.targets[0].data).map(r => r.Source), ['Cloud SQL backup', 'Debian snapshot', 'Metabase daily', 'Metabase weekly', 'PITR archive', 'Audit retention']);
+assert.deepEqual(backupsTable.targets[0].columns.map(c => c.text), ['Source']);
+assert.equal(backupsTable.transformations[0].id, 'merge');
 
 console.log(JSON.stringify({dashboards: L.DASHBOARD_UIDS.length, panels: L.DASHBOARD_UIDS.map(u => allPanels(built[u].spec).length),
   jqCompiled: jqAvailable ? compiled : 'skipped (jq not found)', passed: true}));
