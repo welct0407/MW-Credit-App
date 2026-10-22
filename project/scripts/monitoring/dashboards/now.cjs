@@ -5,7 +5,7 @@ const {DS, COLOR, col, target, pos, byName, byRef, AGE, steps, valueMap, monitor
 
 function services() {
   return L.stateTimeline({id: 1, title: 'PROD services', gridPos: pos(0, 0, 16, 12),
-    description: 'One lane per PROD service; each sample is a state code (green OK, orange degraded, red down, blue paused, grey unknown). Debian collector health, Cloud Monitoring and scheduler logs; a lane ends blank or grey after 6 minutes without a report, never green.',
+    description: 'One lane per PROD service; each sample is a state code (green OK, orange degraded, red down, blue paused, grey Unknown when the collector itself reports it). Debian collector health, Cloud Monitoring and scheduler logs; a lane is empty, with no label, before its first report and after 6 minutes without one (the Notify worker 2 minutes after its last attempt), never green.',
     rows: [
       L.healthRow('Hosting', 'pwa_hosting_prod'),
       L.healthRow('Reader API', 'pwa_api_reader_prod'),
@@ -64,10 +64,10 @@ function stagesStat({id, title, gridPos, scan, stages, description}) {
     ],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
     overrides: [byName(scan, {unit: 'time:HH:mm', noValue: '—', mappings: [L.nullMap('—')]}), ...stages.filter(x => x[2]).map(([, label]) => red(label))],
-    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, text: {titleSize: 11, valueSize: 22}}});
+    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}}});
 }
 function payments() {
-  return stagesStat({id: 4, title: 'Payments pipeline', gridPos: pos(0, 12, 9, 6), scan: '1 · Scan · last run',
+  return stagesStat({id: 4, title: 'Payments pipeline', gridPos: pos(0, 12, 8, 15), scan: '1 · Scan · last run',
     stages: [['pending_images', '2 · Extract · waiting'], ['unnotified_holds', '3 · Validate · holds', true],
       ['overdue_reviews', '4 · Review · overdue', true], ['unconfirmed_postings', '5 · Post · unconfirmed', true],
       ['failed_notifications', '6 · Notify · failed', true]],
@@ -75,7 +75,7 @@ function payments() {
 }
 
 function conversation() {
-  return L.stat({id: 5, title: 'Partner chat', gridPos: pos(9, 12, 5, 6),
+  return L.stat({id: 5, title: 'Partner chat', gridPos: pos(8, 12, 8, 8),
     description: 'Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn\'s outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age. Rounds, durations and provider are on Agent & Receipts.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'conversation'})),
       jq('ops-health.jq', {FIELDS: [{key: 'undelivered', label: 'Undelivered'}, {key: 'stuck_running', label: 'Stuck'},
@@ -85,12 +85,11 @@ function conversation() {
     overrides: [byName('Undelivered', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.down])}),
       byName('Stuck', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.down])}),
       byName('Last turn', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Verified', COLOR.ok], [2, 'Review', COLOR.degraded]], 'No report')}),
-      byName('Last turn age', {unit: AGE.unit, decimals: AGE.decimals})],
-    options: {text: {titleSize: 11, valueSize: 20}}});
+      byName('Last turn age', {unit: AGE.unit, decimals: AGE.decimals})]});
 }
 
 function push() {
-  return L.stat({id: 6, title: 'Push', gridPos: pos(14, 12, 5, 6),
+  return L.stat({id: 6, title: 'Push', gridPos: pos(16, 12, 8, 8),
     description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered (Sent 24h) and failed in 24 h.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
       jq('ops-health.jq', {FIELDS: [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
@@ -98,8 +97,7 @@ function push() {
       [col('Pending', 'Pending'), col('Oldest pending', 'Oldest pending'), col('Sent 24h', 'Sent 24h'), col('Failed · 24 h', 'Failed · 24 h')])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
     overrides: [byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [900, COLOR.down])}),
-      byName('Failed · 24 h', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.degraded])})],
-    options: {text: {titleSize: 11, valueSize: 20}}});
+      byName('Failed · 24 h', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.degraded])})]});
 }
 
 // Notifications: newest scheduler bucket of the Now 1-D query, as an age; a failed bucket maps to Failed.
@@ -110,7 +108,7 @@ function notificationsAgeSelector() {
 const NOTIFY_JOB = 'Notify job · last run';
 function jobs() {
   const jobMap = valueMap([[-1, 'Failed', COLOR.down], [-2, 'Overdue', COLOR.down]], 'No report');
-  return L.stat({id: 7, title: 'Scheduled jobs', gridPos: pos(19, 12, 5, 6),
+  return L.stat({id: 7, title: 'Scheduled jobs', gridPos: pos(8, 20, 8, 7),
     description: 'Time since each job last completed: daily charges and recent analytics from worker_timing{pwa_jobs} (red when overdue: 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue), the minute notification job (Notify job · last run) from its Cloud Scheduler attempts log (grey "stale" after 6 minutes).',
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_jobs'})),
@@ -125,8 +123,7 @@ function jobs() {
       byName('Recent analytics', {thresholds: steps([null, COLOR.ok], [4500, COLOR.down])}),
       // The minute job: grey "stale" above 360 s, the freshness convention; no red (the scheduler alert pages).
       byName(NOTIFY_JOB, {thresholds: steps([null, COLOR.ok], [L.STALE_SECONDS, COLOR.unknown]),
-        mappings: [...jobMap, {type: 'range', options: {from: L.STALE_SECONDS + 0.001, to: 1e12, result: {text: 'stale', color: COLOR.unknown, index: 3}}}]})],
-    options: {text: {titleSize: 11, valueSize: 20}}});
+        mappings: [...jobMap, {type: 'range', options: {from: L.STALE_SECONDS + 0.001, to: 1e12, result: {text: 'stale', color: COLOR.unknown, index: 3}}}]})]});
 }
 
 function gauge({id, title, description, gridPos, targets, overrides}) {
@@ -136,7 +133,7 @@ function gauge({id, title, description, gridPos, targets, overrides}) {
     fieldConfig: {defaults: {color: {mode: 'thresholds'}, decimals: 0, min: 0, noValue: 'No data', thresholds: steps([null, COLOR.ok]), unit: 'none'}, overrides},
     options: {displayMode: 'lcd', legend: {showLegend: false}, maxVizHeight: 300, minVizHeight: 16, minVizWidth: 8, namePlacement: 'left',
       orientation: 'horizontal', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, showUnfilled: true, sizing: 'auto',
-      text: {titleSize: 12, valueSize: 20}, valueMode: 'text'}};
+      text: {titleSize: 16, valueSize: 22}, valueMode: 'text'}};
 }
 function lifted(file, id, refId) {
   const t = L.liftTarget(file, id);
@@ -147,7 +144,7 @@ function scale(refId, name, unit, max, red, extra = {}) {
   return byRef(refId, {displayName: name, unit, max, thresholds: red == null ? steps([null, COLOR.ok]) : steps([null, COLOR.ok], [red, COLOR.down]), ...extra});
 }
 function capacitySql() {
-  return gauge({id: 8, title: 'Cloud SQL capacity', gridPos: pos(0, 18, 12, 5),
+  return gauge({id: 8, title: 'Cloud SQL capacity', gridPos: pos(0, 27, 12, 6),
     description: 'CPU, RAM, connections and disk of the shared instance mw-credit-pg-20261017 (Cloud Monitoring), newest 5-minute value; the bar end is the limit and the red cells start at the alert value (CPU 85 %, RAM 85 %, connections 160 of 200, disk 80 %).',
     targets: [lifted(L.PERF, 4, 'A'), lifted(L.PERF, 8, 'B'), lifted(L.PERF, 50, 'C'), lifted(L.PERF, 33, 'D')],
     overrides: [scale('A', 'CPU', 'percentunit', 1, 0.85), scale('B', 'RAM used', 'percent', 100, 85),
@@ -157,7 +154,7 @@ function capacityHosts() {
   const command = target('C', DS.gcp, monitoringUrl('metric.type = "run.googleapis.com/container/instance_count" AND resource.type = "cloud_run_revision" AND resource.labels.service_name = "mw-credit-app-command-prod"',
     {aligner: 'ALIGN_MAX', reducer: 'REDUCE_SUM', period: '300s'}), L.numericSelector(), [col('time', 'Time', 'timestamp'), col('value', 'Command instances')], {format: 'timeseries'});
   const reader = lifted(L.PWA_PLATFORM, 5, 'D');
-  return gauge({id: 9, title: 'Hosts and services', gridPos: pos(12, 18, 12, 5),
+  return gauge({id: 9, title: 'Hosts and services', gridPos: pos(12, 27, 12, 6),
     description: 'Debian VM RAM (Ops Agent, red 85 %), Metabase RAM against its live Railway limit (red 90 %), PROD command instances (max 2, no alert) and reader p95 over 5 minutes (request timeout 15 s, no alert; "idle" without requests).',
     targets: [lifted(L.PERF, 7, 'A'), lifted(L.PERF, 9, 'B'), command, reader],
     overrides: [scale('A', 'Debian RAM', 'percent', 100, 85), scale('B', 'Metabase RAM', 'percent', 100, 90),
@@ -165,8 +162,8 @@ function capacityHosts() {
 }
 
 function edge() {
-  return L.stateTimeline({id: 16, title: 'Edge', gridPos: pos(0, 23, 16, 7),
-    description: 'Public webhook check from the Singapore checker only (Cloud Monitoring uptime, grey after 12 minutes without a Singapore report) and the Debian collector\'s tunnel, Tailscale, local ingress, database path and audit relay health (grey after 6 minutes).',
+  return L.stateTimeline({id: 16, title: 'Edge', gridPos: pos(0, 33, 16, 8),
+    description: 'Public webhook check from the Singapore checker only (Cloud Monitoring uptime, empty after 12 minutes without a Singapore report) and the Debian collector\'s tunnel, Tailscale, local ingress, database path and audit relay health (empty after 6 minutes).',
     rows: [L.webhookRow('Webhook · Singapore'), L.healthRow('Cloudflare tunnel', 'tunnel'), L.healthRow('Tailscale', 'tailscale_node'),
       L.healthRow('Local ingress', 'webhook_local'), L.healthRow('Database path', 'database'), L.healthRow('Audit relay', 'audit_relay')]});
 }
@@ -184,7 +181,7 @@ function backups() {
     return {...t, refId, root_selector: '(' + t.root_selector + ') | {Source: "' + label + '", Age: null, State: .status}',
       columns: [col('Source', 'Source', 'string'), col('Age', 'Age'), col('State', 'State')]};
   };
-  return L.table({id: 19, title: 'Backups and recovery points', gridPos: pos(16, 26, 8, 8),
+  return L.table({id: 19, title: 'Backups and recovery points', gridPos: pos(16, 33, 8, 9),
     description: 'Age of the newest recovery point and its state against the documented grace: Cloud SQL automated backup and Debian disk snapshot 30 h (the alert value); Metabase daily and weekly volume backups from the Railway schedules; Metabase PITR archive and the agent audit retention run from the collector. Age shows — when the state is Unknown.',
     targets: [wt('A', rows), railway('B', 84, 'Metabase daily'), railway('C', 85, 'Metabase weekly'),
       wt('D', [{component: 'metabase_pitr', label: 'PITR archive', age: 'archive_age_seconds', status: 'status', status_is_state: true}], 'metabase_probe'),
@@ -199,6 +196,6 @@ function build() {
   return L.dashboard({uid: 'mw-now', description: 'Is MW Credit working right now? PROD only; the page the alert runbook opens first.',
     time: {from: 'now-3h', to: 'now'}, refresh: '1m',
     panels: [services(), alerts(), freshness(), payments(), conversation(), push(), jobs(), capacitySql(), capacityHosts(), edge(),
-      L.providerStatus({id: 17, gridPos: pos(16, 23, 8, 3)}), backups()]});
+      L.providerStatus({id: 17, gridPos: pos(16, 20, 8, 7)}), backups()]});
 }
 module.exports = {build, stagesStat, scanSelector};

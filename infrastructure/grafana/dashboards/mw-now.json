@@ -91,7 +91,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "One lane per PROD service; each sample is a state code (green OK, orange degraded, red down, blue paused, grey unknown). Debian collector health, Cloud Monitoring and scheduler logs; a lane ends blank or grey after 6 minutes without a report, never green.",
+        "description": "One lane per PROD service; each sample is a state code (green OK, orange degraded, red down, blue paused, grey Unknown when the collector itself reports it). Debian collector health, Cloud Monitoring and scheduler logs; a lane is empty, with no label, before its first report and after 6 minutes without one (the Notify worker 2 minutes after its last attempt), never green.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -140,17 +140,6 @@
                   }
                 },
                 "type": "value"
-              },
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 5,
-                    "text": "Unknown"
-                  }
-                },
-                "type": "special"
               }
             ],
             "noValue": "No report",
@@ -415,7 +404,7 @@
             "format": "timeseries",
             "parser": "jq-backend",
             "refId": "D",
-            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1; a bucket\n# without attempts is null (blank), never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) and $b[$i + 1].t - $r.t <= 300 then empty\n     else {time: ($r.t | todateiso8601), value: null} end)] |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 300)] | .[] | {time: (.t | todateiso8601), value}\n",
+            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1. A bucket's\n# state holds 120 s past its end (the job's expected interval plus grace), so a job\n# that runs hourly or daily keeps its last attempt's state until the next expected run;\n# after that, and before the first attempt, the row is null (an empty gap), never a\n# healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) then\n       (if $b[$i + 1].t - 300 <= $r.t + 120 then empty else {time: ($r.t + 120 | todateiso8601), value: null} end)\n     elif $r.t + 120 < now then {time: ($r.t + 120 | todateiso8601), value: null}\n     else empty end)] |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 420)] | .[] | {time: (.t | todateiso8601), value}\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_prod%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-prod-notifications%22&interval.startTime=${lookback_from}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
@@ -748,7 +737,7 @@
         },
         "id": 3,
         "options": {
-          "cellHeight": "sm",
+          "cellHeight": "md",
           "showHeader": true
         },
         "targets": [
@@ -1078,8 +1067,8 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 9,
+          "h": 15,
+          "w": 8,
           "x": 0,
           "y": 12
         },
@@ -1088,8 +1077,8 @@
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -1100,8 +1089,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 22
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -1413,17 +1402,17 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 5,
-          "x": 9,
+          "h": 8,
+          "w": 8,
+          "x": 8,
           "y": 12
         },
         "id": 5,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -1434,8 +1423,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 20
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -1594,17 +1583,17 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 5,
-          "x": 14,
+          "h": 8,
+          "w": 8,
+          "x": 16,
           "y": 12
         },
         "id": 6,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -1615,8 +1604,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 20
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -1836,17 +1825,17 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 5,
-          "x": 19,
-          "y": 12
+          "h": 7,
+          "w": 8,
+          "x": 8,
+          "y": 20
         },
         "id": 7,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -1857,8 +1846,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 20
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -1907,7 +1896,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "B",
-            "root_selector": "[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1; a bucket\n# without attempts is null (blank), never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) and $b[$i + 1].t - $r.t <= 300 then empty\n     else {time: ($r.t | todateiso8601), value: null} end)] |\n  .[]\nend\n] | map(select(.value != null)) | last |\n{Notifications: (if . == null then null elif .value == 0 then -1 else ([now - ((.time | fromdateiso8601) + 300), 0] | max | floor) end)}",
+            "root_selector": "[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1. A bucket's\n# state holds 0 s past its end (the job's expected interval plus grace), so a job\n# that runs hourly or daily keeps its last attempt's state until the next expected run;\n# after that, and before the first attempt, the row is null (an empty gap), never a\n# healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) then\n       (if $b[$i + 1].t - 300 <= $r.t + 0 then empty else {time: ($r.t + 0 | todateiso8601), value: null} end)\n     elif $r.t + 0 < now then {time: ($r.t + 0 | todateiso8601), value: null}\n     else empty end)] |\n  .[]\nend\n] | map(select(.value != null)) | last |\n{Notifications: (if . == null then null elif .value == 0 then -1 else ([now - ((.time | fromdateiso8601) + 300), 0] | max | floor) end)}",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_prod%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-prod-notifications%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
@@ -2092,10 +2081,10 @@
           ]
         },
         "gridPos": {
-          "h": 5,
+          "h": 6,
           "w": 12,
           "x": 0,
-          "y": 18
+          "y": 27
         },
         "id": 8,
         "options": {
@@ -2118,8 +2107,8 @@
           "showUnfilled": true,
           "sizing": "auto",
           "text": {
-            "titleSize": 12,
-            "valueSize": 20
+            "titleSize": 16,
+            "valueSize": 22
           },
           "valueMode": "text"
         },
@@ -2409,10 +2398,10 @@
           ]
         },
         "gridPos": {
-          "h": 5,
+          "h": 6,
           "w": 12,
           "x": 12,
-          "y": 18
+          "y": 27
         },
         "id": 9,
         "options": {
@@ -2435,8 +2424,8 @@
           "showUnfilled": true,
           "sizing": "auto",
           "text": {
-            "titleSize": 12,
-            "valueSize": 20
+            "titleSize": 16,
+            "valueSize": 22
           },
           "valueMode": "text"
         },
@@ -2565,7 +2554,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Public webhook check from the Singapore checker only (Cloud Monitoring uptime, grey after 12 minutes without a Singapore report) and the Debian collector's tunnel, Tailscale, local ingress, database path and audit relay health (grey after 6 minutes).",
+        "description": "Public webhook check from the Singapore checker only (Cloud Monitoring uptime, empty after 12 minutes without a Singapore report) and the Debian collector's tunnel, Tailscale, local ingress, database path and audit relay health (empty after 6 minutes).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -2614,17 +2603,6 @@
                   }
                 },
                 "type": "value"
-              },
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 5,
-                    "text": "Unknown"
-                  }
-                },
-                "type": "special"
               }
             ],
             "noValue": "No report",
@@ -2714,10 +2692,10 @@
           ]
         },
         "gridPos": {
-          "h": 7,
+          "h": 8,
           "w": 16,
           "x": 0,
-          "y": 23
+          "y": 33
         },
         "id": 16,
         "options": {
@@ -3006,17 +2984,17 @@
           ]
         },
         "gridPos": {
-          "h": 3,
+          "h": 7,
           "w": 8,
           "x": 16,
-          "y": 23
+          "y": 20
         },
         "id": 17,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -3027,8 +3005,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 12,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -3232,14 +3210,14 @@
           ]
         },
         "gridPos": {
-          "h": 8,
+          "h": 9,
           "w": 8,
           "x": 16,
-          "y": 26
+          "y": 33
         },
         "id": 19,
         "options": {
-          "cellHeight": "sm",
+          "cellHeight": "md",
           "showHeader": true
         },
         "targets": [

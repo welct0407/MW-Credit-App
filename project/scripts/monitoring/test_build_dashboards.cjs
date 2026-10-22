@@ -26,6 +26,7 @@ function checkGrid(uid, panels) {
     for (let j = 0; j < i; j++) assert.ok(!overlaps(g, panels[j].gridPos), uid + ' panels ' + panels[j].id + ' and ' + panels[i].id + ' overlap');
   }
 }
+function panelOf0(uid, id) { return allPanels(built[uid].spec).map(e => e.panel).find(p => p.id === id); }
 function interpolate(selector) {
   return selector.replaceAll('${env}', 'prod').replaceAll('${__from}', '0').replaceAll('${__to}', '1');
 }
@@ -40,10 +41,15 @@ for (const uid of L.DASHBOARD_UIDS) {
   assert.equal(s.timezone, 'Asia/Bangkok', uid + ' timezone');
   assert.ok(s.tags.includes('mw-credit'), uid + ' tag mw-credit');
   assert.ok(s.title && s.description, uid + ' title and description');
-  // Link bar: five explicit links in a fixed order, no time or variables carried (Echo LINK-1..3).
-  assert.deepEqual(s.links.map(l => l.url), L.DASHBOARD_UIDS.map(u => '/d/' + u), uid + ' link order');
-  assert.deepEqual(s.links.map(l => l.title), ['Now', 'PWA & APIs', 'Agent & Receipts', 'Infrastructure', 'Cost']);
-  for (const l of s.links) assert.ok(l.type === 'link' && l.keepTime === false && l.includeVars === false && l.asDropdown === false, uid + ' link options');
+  // Link bar: five explicit links in a fixed order, no time or variables carried (Echo LINK-1..3), first on
+  // every page so they keep their place; ENV-1: the PWA page adds its PROD / DEV switch after them.
+  const pages = s.links.slice(0, 5);
+  assert.deepEqual(pages.map(l => l.url), L.DASHBOARD_UIDS.map(u => '/d/' + u), uid + ' link order');
+  assert.deepEqual(pages.map(l => l.title), ['Now', 'PWA & APIs', 'Agent & Receipts', 'Infrastructure', 'Cost']);
+  for (const l of pages) assert.ok(l.type === 'link' && l.keepTime === false && l.includeVars === false && l.asDropdown === false, uid + ' link options');
+  assert.deepEqual(s.links.slice(5).map(l => [l.title, l.url, l.keepTime]), uid === 'mw-pwa' ? [['PROD', '/d/mw-pwa?var-env=prod', true], ['DEV', '/d/mw-pwa?var-env=dev', true]] : [], uid + ' extra links');
+  // No visible variable: Grafana draws variables before the links, which would move the page links.
+  assert.ok(s.templating.list.every(v => v.hide === 2), uid + ' variables hidden');
 
   const entries = allPanels(s);
   const ids = entries.map(e => e.panel.id);
@@ -71,8 +77,11 @@ for (const uid of L.DASHBOARD_UIDS) {
       assert.deepEqual(p.fieldConfig.defaults.color, {fixedColor: '#6E7079', mode: 'fixed'}, uid + ' panel ' + p.id + ' timeline colour');
       const texts = Object.values(p.fieldConfig.defaults.mappings[0].options).map(o => o.text);
       assert.deepEqual(texts, ['Down', 'OK', 'Degraded', 'Paused', 'Unknown']);
+      // TIMELINE-GAP: no word for null, so no data is an empty gap, not "Unknown".
+      assert.ok(p.fieldConfig.defaults.mappings.every(m => m.type !== 'special'), uid + ' panel ' + p.id + ' no null mapping');
     }
-    if (p.type === 'bargauge') {
+    // Capacity gauges (bars against a limit); PWA 30 Recognitions is a bar list of counts without a limit.
+    if (p.type === 'bargauge' && !(uid === 'mw-pwa' && p.id === 30)) {
       assert.equal(p.options.displayMode, 'lcd');
       assert.equal(p.options.valueMode, 'text');
       for (const t of p.targets) assert.ok(p.fieldConfig.overrides.some(o => o.matcher.options === t.refId && o.properties.some(x => x.id === 'max')), uid + ' gauge ' + p.id + ' max per field');
@@ -93,7 +102,7 @@ for (const uid of L.DASHBOARD_UIDS) {
         assert.ok(L.ALLOWED_URL_HOSTS.includes(host), uid + ' panel ' + p.id + ' host ' + host);
       }
       assert.ok(!/__[A-Z_]+__/.test(t.root_selector || ''), uid + ' panel ' + p.id + ' unreplaced placeholder');
-      assert.ok(!/\$\{(?!__timeFrom:date:iso\}|__timeTo:date:iso\}|env\}|__from\}|__to\}|lookback_from\})/.test(t.url + (t.url_options?.data || '') + (t.data || '') + (t.root_selector || '')),
+      assert.ok(!/\$\{(?!__timeFrom:date:iso\}|__timeTo:date:iso\}|env\}|__from\}|__to\}|lookback_(?:from|hour|day)\})/.test(t.url + (t.url_options?.data || '') + (t.data || '') + (t.root_selector || '')),
         uid + ' panel ' + p.id + ' only known variables');
       if (jqAvailable && t.root_selector) {
         const r = spawnSync(jqPath, ['-n', 'def __probe: ' + interpolate(t.root_selector) + '\n; 1'], {encoding: 'utf8'});
@@ -134,7 +143,7 @@ assert.ok(namedTimeseries >= 10, 'multi-query timeseries checked: ' + namedTimes
 // The four Echo found with query letters carry their series names.
 const legend = (uid, title) => allPanels(built[uid].spec).map(e => e.panel).find(p => p.title === title).fieldConfig.overrides
   .filter(o => o.matcher.id === 'byFrameRefID').map(o => o.properties.find(x => x.id === 'displayName').value);
-assert.deepEqual(legend('mw-agent', 'Queue length over time'), ['Images waiting', 'Manual holds', 'Awaiting review', 'Unconfirmed posting']);
+assert.deepEqual(legend('mw-agent', 'Receipt pipeline · queue over time'), ['Images waiting', 'Manual holds', 'Awaiting review', 'Unconfirmed posting']);
 assert.deepEqual(legend('mw-infra', 'Cloud SQL memory'), ['Used', 'Cache', 'Free']);
 assert.deepEqual(legend('mw-infra', 'Debian VM network'), ['Received', 'Sent']);
 assert.deepEqual(legend('mw-infra', 'Debian VM disk'), ['Read', 'Write']);
@@ -155,26 +164,29 @@ for (const [uid, id] of [['mw-now', 4], ['mw-agent', 1]]) {
   assert.ok(t.root_selector.endsWith('map(select(.details == "Last scan completion")) | .[]'), uid + ' ' + id + ' Scan keeps the completion row');
   assert.deepEqual(t.columns.map(c => c.selector), ['status'], uid + ' ' + id + ' Scan reads one field');
 }
-// FINAL-1: the Cost top row fills 24 columns with the providers at least 4 wide.
+// FINAL-1 / COST-5: the Cost top row is TOTAL and the three providers, 24 columns, each 6 wide.
 const top = built['mw-cost'].spec.panels.filter(p => p.gridPos.y === 0);
-assert.equal(top.reduce((n, p) => n + p.gridPos.w, 0), 24, 'Cost top row is 24 wide');
-for (const id of [2, 3, 4]) assert.ok(top.find(p => p.id === id).gridPos.w >= 4, 'Cost provider ' + id + ' at least 4 wide');
+assert.deepEqual(top.map(p => [p.id, p.gridPos.w]), [[1, 6], [2, 6], [3, 6], [4, 6]], 'Cost top row');
 // The Now home page carries no DEV series and the PWA page carries no unparameterised environment.
 const nowText = JSON.stringify(built['mw-now']);
 assert.ok(!/-dev\b|_dev\b|loan_manager_dev/.test(nowText), 'mw-now is PROD only');
 const pwaUrls = allPanels(built['mw-pwa'].spec).flatMap(e => (e.panel.targets || []).map(t => decodeURIComponent(t.url || '')));
 assert.ok(pwaUrls.filter(u => /mw-credit-app-(read|command|notify|jobs)-/.test(u)).every(u => /-\$\{env\}/.test(u)), 'mw-pwa Cloud Run filters follow ${env}');
-assert.deepEqual(built['mw-pwa'].spec.templating.list.map(v => v.name), ['env', 'lookback_from']);
+assert.deepEqual(built['mw-pwa'].spec.templating.list.map(v => v.name), ['env', 'lookback_from', 'lookback_hour', 'lookback_day']);
 // Webhook rows read the Singapore checker only.
 for (const uid of ['mw-now', 'mw-agent']) {
   const webhook = allPanels(built[uid].spec).flatMap(e => e.panel.targets || []).filter(t => (t.url || '').includes('check_passed'));
   assert.ok(webhook.length === 1 && decodeURIComponent(webhook[0].url).includes('checker_location = "' + L.UPTIME_SINGAPORE_LOCATION + '"'), uid + ' webhook Singapore only');
 }
-// The Cost query host is visible at the top and keeps today's panel 2 queries A–E unchanged.
+// COST-5: no exchange-rate tile; TOTAL (visible at the top) hosts today's panel 2 queries A–E unchanged and
+// the provider tiles read them; the FX rate stays in the conversions.
 const cost = built['mw-cost'].spec;
-const host = cost.panels.find(p => p.id === 5);
-assert.ok(host && host.gridPos.y === 0);
-assert.deepEqual(host.targets.slice(0, 5), L.findPanel(L.COST, 2).targets);
+const host = cost.panels.find(p => p.id === 1);
+assert.ok(host && host.gridPos.y === 0 && host.title === 'TOTAL · month to date');
+assert.deepEqual(host.targets, L.findPanel(L.COST, 2).targets);
+assert.ok(!cost.panels.some(p => p.id === 5) && !/Coverage and FX/.test(L.serialize(built['mw-cost'])), 'no Coverage and FX tile');
+for (const id of [2, 3, 4]) assert.deepEqual(cost.panels.find(p => p.id === id).targets.map(t => t.panelId), [1], 'provider tile ' + id + ' reads TOTAL');
+assert.ok(host.transformations.some(t => t.options.binary && t.options.binary.right === 'SGD per USD'), 'FX applied in TOTAL');
 // LIVE-10: the Cost reading rules sit above the collapsed provider rows.
 assert.ok(cost.panels.find(p => p.id === 40).gridPos.y < Math.min(...cost.panels.filter(p => p.type === 'row').map(p => p.gridPos.y)));
 // Previous-month figure: Azure Custom windows shifted by the panel (TheLastMonth is refused by Cost Management).
@@ -187,23 +199,25 @@ for (const [uid, old, id] of [['mw-agent', 108, 2], ['mw-infra', 31, 1], ['mw-in
   const p = allPanels(built[uid].spec).find(e => e.panel.id === id).panel;
   assert.deepEqual(p.targets.map(t => t.root_selector), L.findPanel(old === 201 ? L.COST : L.PERF, old).targets.map(t => t.root_selector), uid + ' ' + id + ' lifted selectors');
 }
-// COST-2 (owner decision): one stacked daily chart in SGD (Azure blue, GCP orange, Railway purple) replaces
-// GCP daily (SGD) and Azure + Railway daily (USD); the GCP budget is read live from the Budget API.
+// COST-2/COST-6 (owner decisions): one stacked daily chart in SGD (Azure blue, GCP orange) over the dashboard's
+// range (month to date by default); Railway is left out (its estimate covers only its mid-month cycle).
 const daily = cost.panels.filter(p => p.type === 'timeseries');
 assert.equal(daily.length, 1, 'Cost has one daily chart');
 const chart = daily[0];
 assert.equal(chart.id, 6);
-assert.ok(!cost.panels.some(p => p.id === 8), 'Azure + Railway daily · USD is gone');
-assert.equal(chart.timeFrom, '30d', 'daily chart is a fixed 30-day window');
+assert.equal(chart.title, 'Daily cost · this month');
+assert.equal(chart.timeFrom, undefined, 'daily chart follows the picker (month to date)');
+assert.deepEqual(cost.time, {from: 'now/M', to: 'now'});
 assert.equal(chart.fieldConfig.defaults.unit, 'prefix:S$', 'daily chart unit SGD');
 assert.equal(chart.fieldConfig.defaults.custom.drawStyle, 'bars');
 assert.deepEqual(chart.fieldConfig.defaults.custom.stacking, {group: 'A', mode: 'normal'});
 const colour = name => chart.fieldConfig.overrides.find(o => o.matcher.id === 'byName' && o.matcher.options === name)?.properties.find(x => x.id === 'color')?.value.fixedColor;
-assert.deepEqual(['Azure', 'GCP', 'Railway'].map(colour), ['#5794F2', '#FF9830', '#B877D9'], 'Azure blue, GCP orange, Railway purple');
+assert.deepEqual(['Azure', 'GCP'].map(colour), ['#5794F2', '#FF9830'], 'Azure blue, GCP orange');
+assert.ok(!chart.targets.some(t => (t.url || '').includes('railway')), 'no Railway query in the daily chart');
 const budgetLine = chart.fieldConfig.overrides.find(o => o.matcher.options === 'GCP budget (billing account) / day');
 assert.ok(budgetLine && budgetLine.properties.some(x => x.id === 'custom.stacking' && x.value.mode === 'none'), 'budget line is not stacked');
 const kept = chart.transformations.find(t => t.id === 'filterFieldsByName').options.include.names;
-assert.deepEqual(kept, ['Time', 'Azure', 'GCP', 'Railway', 'GCP budget (billing account) / day'], 'daily series Azure, GCP, Railway and the budget line');
+assert.deepEqual(kept, ['Time', 'Azure', 'GCP', 'GCP budget (billing account) / day'], 'daily series Azure, GCP and the budget line');
 assert.equal(chart.transformations[0].id, 'merge', 'daily frames merged on Time');
 for (const t of chart.targets) assert.equal(t.columns[0].selector, 'Time', 'daily query ' + t.refId + ' keyed by Time');
 // Conversion: the tiles' FX query (mw-public-fx) with the tiles' binary steps.
@@ -213,50 +227,57 @@ assert.equal(fxTarget.datasource.uid, 'efz19dcu6cwzka');
 assert.equal(fxTarget.url, tilesFx.url);
 assert.ok(fxTarget.root_selector.includes(tilesFx.root_selector), 'daily FX keeps the tiles\' FX rule');
 const binaries = chart.transformations.filter(t => t.id === 'calculateField').map(t => t.options.binary);
-assert.deepEqual(binaries, L.findPanel(L.COST, 2).transformations.filter(t => t.id === 'calculateField').map(t => t.options.binary), 'same conversion steps as the tiles');
-assert.ok(JSON.parse(chart.targets.find(t => t.refId === 'C').url_options.data).query.includes("DATE_SUB(CURRENT_DATE('Asia/Singapore'), INTERVAL 30 DAY)"), 'GCP fixed 30-day window');
+assert.deepEqual(binaries, L.findPanel(L.COST, 2).transformations.filter(t => t.id === 'calculateField').map(t => t.options.binary).slice(0, 2), 'same Azure conversion steps as the tiles');
+assert.equal(chart.targets.find(t => t.refId === 'C').url_options.data, L.liftTarget(L.COST, 201).url_options.data, 'GCP: the tiles\' picker window');
 for (const id of ['A', 'B']) assert.equal(JSON.parse(chart.targets.find(t => t.refId === id).url_options.data).timeframe, 'Custom');
 // No USD unit on the Cost page itself (the collapsed provider rows keep their native detail units).
 for (const p of cost.panels) assert.ok(!/currencyUSD|"unit":"[^"]*USD/.test(JSON.stringify(p.fieldConfig || {})), 'mw-cost panel ' + p.id + ' has no USD unit');
-// Budget from budget.jq on the Budget API, in the chart and the Coverage and FX cell; no constant left.
+// Budget from budget.jq on the Budget API, in the chart and the GCP budget tile; no constant left.
 assert.ok(!L.serialize(built['mw-cost']).includes('gcp_budget_sgd'), 'no gcp_budget_sgd');
 assert.deepEqual(cost.templating.list, [], 'Cost has no budget constant');
 const budgetJq = L.jq('budget.jq');
-for (const t of [chart.targets.find(x => x.refId === 'F'), host.targets.find(x => x.refId === 'F')]) {
+const budgetTile = cost.panels.find(p => p.id === 8);
+assert.equal(budgetTile.title, 'GCP budget');
+for (const t of [chart.targets.find(x => x.refId === 'F'), budgetTile.targets[0]]) {
   assert.equal(t.datasource.uid, 'mw-gcp-monitoring');
   assert.equal(t.url, 'https://billingbudgets.googleapis.com/v1/billingAccounts/0125EC-78CB0F-A74AAD/budgets');
   assert.equal((t.url_options.method || 'GET'), 'GET');
   assert.ok(t.root_selector.includes(budgetJq), 'budget query ' + t.refId + ' uses budget.jq');
 }
-assert.ok(host.transformations.find(t => t.id === 'filterFieldsByName').options.include.names.includes('GCP budget'));
-// Layout: rows fill 24 columns and the daily chart sits beside GCP by service.
-const second = cost.panels.filter(p => p.gridPos.y === 5);
-assert.deepEqual(second.map(p => [p.id, p.gridPos.x, p.gridPos.w]), [[6, 0, 16], [7, 16, 8]], 'Cost second row');
-// LEFT-EDGE: every state-timeline row reads from lookback_from (range start - 20 min) and is clipped by
-// range-start.jq, so it starts exactly at the range start; the hidden variable exists wherever it is used.
+assert.ok(new RegExp(budgetTile.options.reduceOptions.fields.slice(1, -1)).test('GCP budget'), 'budget tile shows its text');
+// Layout: the daily chart sits beside GCP by service.
+const third = cost.panels.filter(p => p.gridPos.y === 8);
+assert.deepEqual(third.map(p => [p.id, p.gridPos.x, p.gridPos.w]), [[6, 0, 16], [7, 16, 8]], 'Cost daily row');
+// LEFT-EDGE: every state-timeline row reads from a hidden lookback variable (range start - 20 min; hourly and
+// daily scheduler rows 80 min and 26 h, TIMELINE-GAP) and is clipped by range-start.jq, so it starts exactly at
+// the range start; each variable exists exactly where it is used.
 let clippedRows = 0;
 for (const uid of L.DASHBOARD_UIDS) {
   const s = built[uid].spec;
-  const uses = L.serialize(built[uid]).includes('${lookback_from}');
-  const v = s.templating.list.find(x => x.name === 'lookback_from');
-  assert.equal(Boolean(v), uses, uid + ' defines lookback_from exactly when it is used');
-  if (v) {
-    assert.ok(v.hide === 2 && v.refresh === 2 && v.type === 'query' && v.skipUrlSync === true, uid + ' lookback_from hidden, refreshed on time range change');
+  for (const [name, seconds] of Object.entries(L.LOOKBACKS)) {
+    const uses = L.serialize({panels: s.panels}).includes('${' + name + '}');
+    const v = s.templating.list.find(x => x.name === name);
+    assert.equal(Boolean(v), uses, uid + ' defines ' + name + ' exactly when it is used');
+    if (!v) continue;
+    assert.ok(v.hide === 2 && v.refresh === 2 && v.type === 'query' && v.skipUrlSync === true, uid + ' ' + name + ' hidden, refreshed on time range change');
     if (jqAvailable) {
       const from = 1761100000123;
       const r = spawnSync(jqPath, ['-n', '-c', v.query.infinityQuery.root_selector.replaceAll('${__from}', String(from))], {encoding: 'utf8'});
-      assert.equal(JSON.parse(r.stdout).value, new Date(Math.floor(from / 1000) * 1000 - L.LOOKBACK_SECONDS * 1000).toISOString().replace('.000Z', 'Z'), uid + ' lookback_from value');
+      assert.equal(JSON.parse(r.stdout).value, new Date(Math.floor(from / 1000) * 1000 - seconds * 1000).toISOString().replace('.000Z', 'Z'), uid + ' ' + name + ' value');
     }
   }
   for (const {panel: p} of allPanels(s)) {
     if (p.type !== 'state-timeline') continue;
     for (const t of p.targets) {
-      assert.ok(t.url.includes('interval.startTime=${lookback_from}&'), uid + ' panel ' + p.id + ' ' + t.refId + ' reads from lookback_from');
+      assert.ok(/interval\.startTime=\$\{lookback_(from|hour|day)\}&/.test(t.url), uid + ' panel ' + p.id + ' ' + t.refId + ' reads from a lookback start');
       assert.ok(t.root_selector.includes('def clip($from; $stale)') && t.root_selector.includes(L.RANGE_START), uid + ' panel ' + p.id + ' ' + t.refId + ' clipped to the range start');
       clippedRows++;
     }
   }
 }
+// TIMELINE-GAP: the PWA scheduler rows hold each attempt until the job's next expected run.
+const holds = panelOf0('mw-pwa', 20).targets.map(t => [decodeURIComponent(t.url).match(/job_id = "mw-credit-app-\$\{env\}-([a-z-]+)"/)[1], t.url.match(/lookback_(\w+)/)[1]]);
+assert.deepEqual(holds, [['notifications', 'from'], ['daily-charges', 'day'], ['recent-analytics', 'hour']]);
 assert.ok(clippedRows >= 30, 'state-timeline rows clipped: ' + clippedRows);
 // R089 follow-up: one-value stats show the value only (the title names it) at the one-value size; Recognitions
 // names each outcome (rows to fields) instead of "Count"; provider tiles show provider and model as text.
@@ -264,7 +285,7 @@ const panelOf = (uid, id) => allPanels(built[uid].spec).map(e => e.panel).find(p
 for (const [uid, id] of [['mw-agent', 13], ['mw-agent', 14], ['mw-infra', 18], ['mw-cost', 1]]) {
   const o = panelOf(uid, id).options;
   assert.equal(o.textMode, 'value', uid + ' ' + id + ' one-value tile shows the value only');
-  assert.equal(o.text.valueSize, 28, uid + ' ' + id + ' one-value size');
+  assert.ok(o.text.valueSize >= 32 && o.text.titleSize >= 16, uid + ' ' + id + ' one-value size');
 }
 for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
   if (p.type !== 'stat' || p.pluginVersion) continue;
@@ -273,18 +294,53 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
   assert.ok(!(p.options.reduceOptions.fields || '').includes('Count'), uid + ' panel ' + p.id + ' no Count value name');
 }
 const recognitions = panelOf('mw-pwa', 30);
+assert.equal(recognitions.type, 'bargauge', 'Recognitions: one bar per outcome');
 assert.equal(recognitions.transformations[0].id, 'rowsToFields');
-assert.equal(recognitions.options.reduceOptions.values, false);
-assert.equal(recognitions.options.text.valueSize, 28);
-for (const [uid, id, names] of [['mw-pwa', 32, ['Service', 'Provider']], ['mw-agent', 6, ['Service', 'Provider', 'Running for']], ['mw-agent', 5, ['Poll age', 'Provider']]]) {
+assert.ok(recognitions.fieldConfig.overrides.some(o => o.matcher.options === 'none' && o.properties[0].value === 'Clean'), 'outcomes named in words');
+// READ-1: provider and model are their own text tiles; the service tiles keep state words at the larger size.
+for (const [uid, id, component] of [['mw-pwa', 33, 'recognizer'], ['mw-agent', 12, 'recognizer'], ['mw-agent', 15, 'conversation']]) {
   const p = panelOf(uid, id);
-  const t = p.targets.find(x => x.columns[0].selector === 'Provider');
-  assert.ok(t && t.root_selector === L.jq('provider-model.jq'), uid + ' ' + id + ' provider and model from provider-model.jq');
-  const re = new RegExp(p.options.reduceOptions.fields.slice(1, -1));
-  for (const n of names) assert.ok(re.test(n), uid + ' ' + id + ' shows ' + n);
-  assert.ok(!re.test('Time'), uid + ' ' + id + ' does not show Time');
-  assert.ok(!p.fieldConfig.overrides.some(o => o.matcher.id === 'byFrameRefID'), uid + ' ' + id + ' no per-frame name on the time field');
+  assert.equal(p.targets[0].root_selector, L.jq('provider-model.jq'), uid + ' ' + id + ' provider and model from provider-model.jq');
+  assert.ok(decodeURIComponent(p.targets[0].url).includes('metric.labels.component = "' + component + '"'));
+  assert.ok(new RegExp(p.options.reduceOptions.fields.slice(1, -1)).test('Provider') && p.options.textMode === 'value');
+  assert.deepEqual(p.options.text, L.TEXT_TILE, uid + ' ' + id + ' text tile size');
 }
+for (const [uid, id] of [['mw-pwa', 32], ['mw-agent', 6], ['mw-agent', 5]]) {
+  const p = panelOf(uid, id);
+  assert.ok(!JSON.stringify(p.targets).includes('provider-model') && !p.fieldConfig.overrides.some(o => o.matcher.id === 'byFrameRefID'), uid + ' ' + id + ' no provider text, no per-frame name');
+}
+// READ-1: stat names 16 px and values 32 px (text tiles 20 px), several values listed as rows; bar gauges 16/22;
+// tables md rows; and the layout model finds no truncation at 1440 px (docked menu) or on a 390 px phone.
+const M = require('./layout-model.cjs');
+const MODEL = {'mw-pwa:30': {names: ['Clean', 'Slip not confirmed', 'Amount unreadable', 'Reference unreadable']}};
+const TABLE_ROWS = {'mw-now:3': 4, 'mw-now:19': 6, 'mw-infra:5': 1, 'mw-infra:6': 4, 'mw-infra:8': 1, 'mw-infra:9': 8, 'mw-infra:17': 7, 'mw-cost:7': 11};
+let modelled = 0;
+for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+  const key = uid + ':' + p.id;
+  if (p.type === 'stat') {
+    const t = p.options.text;
+    const tile = t.valueSize === L.TEXT_TILE.valueSize && t.titleSize === L.TEXT_TILE.titleSize;
+    assert.ok(tile || (t.titleSize >= 16 && t.valueSize >= 32), key + ' stat text 16/32');
+  }
+  if (p.type === 'bargauge') assert.ok(p.options.text.titleSize >= 16 && p.options.text.valueSize >= 22, key + ' bar gauge text');
+  if (p.type === 'table') assert.equal(p.options.cellHeight, 'md', key + ' table rows md');
+  for (const screen of ['desktop', 'phone']) {
+    const errors = p.type === 'stat' ? M.checkStat(p, screen, MODEL[key] || {}) : p.type === 'bargauge' && key !== 'mw-pwa:30' ? M.checkGauge(p, screen)
+      : p.type === 'table' && TABLE_ROWS[key] ? M.checkTable(p, screen, TABLE_ROWS[key]) : p.type === 'state-timeline' ? M.checkTimeline(p, screen) : [];
+    assert.deepEqual(errors, [], key + ' (' + p.title + ') fits at ' + screen);
+    modelled++;
+  }
+}
+assert.ok(modelled > 100, 'panels modelled: ' + modelled);
+// AGENT-ROWS: the Agent page is grouped into five titled component rows; each tile title names its component.
+const agent = built['mw-agent'].spec.panels;
+assert.deepEqual(agent.filter(p => p.type === 'row').map(p => p.title), ['Receipt pipeline · Instagram to recorded payment',
+  'Receipt recognizer · mw-receipt-recognition on Debian', 'Partner conversation · Instagram chat agent', 'Agent workers and timers · Debian units', 'Connectivity and providers']);
+const rowOf = id => { let current; for (const p of agent) { if (p.type === 'row') current = p.title; if (p.id === id) return current.split(' ·')[0]; } };
+assert.deepEqual([1, 2, 14, 6, 12, 7, 8, 3, 4, 5, 15, 9, 10, 11, 13].map(rowOf), ['Receipt pipeline', 'Receipt pipeline', 'Receipt pipeline', 'Receipt recognizer',
+  'Receipt recognizer', 'Receipt recognizer', 'Receipt recognizer', 'Partner conversation', 'Partner conversation', 'Partner conversation', 'Partner conversation',
+  'Agent workers and timers', 'Connectivity and providers', 'Connectivity and providers', 'Connectivity and providers']);
+for (const p of agent) if (p.type !== 'row' && p.id !== 11) assert.ok(/^(Receipt pipeline|Receipts|Recognizer|Conversation|Agent workers|Connectivity|Webhook receiver) /.test(p.title), 'mw-agent ' + p.id + ' title names its component: ' + p.title);
 // Provider status: Railway (Instatus) and Google Cloud; OpenAI is no longer read by the new dashboards.
 for (const [uid, id] of [['mw-now', 17], ['mw-agent', 11]]) {
   const p = panelOf(uid, id);

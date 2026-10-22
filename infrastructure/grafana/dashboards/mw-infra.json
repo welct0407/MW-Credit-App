@@ -973,14 +973,14 @@
           ]
         },
         "gridPos": {
-          "h": 5,
+          "h": 7,
           "w": 7,
           "x": 0,
           "y": 7
         },
         "id": 5,
         "options": {
-          "cellHeight": "sm",
+          "cellHeight": "md",
           "showHeader": true
         },
         "targets": [
@@ -1079,14 +1079,14 @@
           ]
         },
         "gridPos": {
-          "h": 5,
+          "h": 7,
           "w": 6,
           "x": 7,
           "y": 7
         },
         "id": 6,
         "options": {
-          "cellHeight": "sm",
+          "cellHeight": "md",
           "showHeader": true
         },
         "targets": [
@@ -1252,7 +1252,7 @@
           ]
         },
         "gridPos": {
-          "h": 5,
+          "h": 7,
           "w": 6,
           "x": 18,
           "y": 7
@@ -1467,14 +1467,14 @@
           ]
         },
         "gridPos": {
-          "h": 5,
+          "h": 7,
           "w": 5,
           "x": 13,
           "y": 7
         },
         "id": 8,
         "options": {
-          "cellHeight": "sm",
+          "cellHeight": "md",
           "showHeader": true
         },
         "targets": [
@@ -1763,14 +1763,14 @@
           ]
         },
         "gridPos": {
-          "h": 10,
+          "h": 11,
           "w": 24,
           "x": 0,
-          "y": 12
+          "y": 14
         },
         "id": 9,
         "options": {
-          "cellHeight": "sm",
+          "cellHeight": "md",
           "showHeader": true
         },
         "targets": [
@@ -2011,7 +2011,7 @@
           "h": 7,
           "w": 6,
           "x": 0,
-          "y": 22
+          "y": 25
         },
         "id": 10,
         "options": {
@@ -2145,7 +2145,7 @@
           "h": 7,
           "w": 6,
           "x": 6,
-          "y": 22
+          "y": 25
         },
         "id": 11,
         "options": {
@@ -2302,7 +2302,7 @@
           "h": 7,
           "w": 6,
           "x": 12,
-          "y": 22
+          "y": 25
         },
         "id": 12,
         "options": {
@@ -2484,10 +2484,10 @@
           ]
         },
         "gridPos": {
-          "h": 5,
+          "h": 4,
           "w": 6,
           "x": 18,
-          "y": 22
+          "y": 25
         },
         "id": 13,
         "options": {
@@ -2612,10 +2612,10 @@
           }
         },
         "gridPos": {
-          "h": 2,
+          "h": 3,
           "w": 6,
           "x": 18,
-          "y": 27
+          "y": 29
         },
         "id": 18,
         "options": {
@@ -2641,8 +2641,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 12,
-            "valueSize": 28
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value",
           "tooltip": {
@@ -2827,10 +2827,10 @@
           ]
         },
         "gridPos": {
-          "h": 7,
+          "h": 10,
           "w": 6,
           "x": 0,
-          "y": 29
+          "y": 32
         },
         "id": 14,
         "options": {
@@ -3137,10 +3137,10 @@
           ]
         },
         "gridPos": {
-          "h": 7,
+          "h": 10,
           "w": 6,
           "x": 6,
-          "y": 29
+          "y": 32
         },
         "id": 15,
         "options": {
@@ -3365,10 +3365,10 @@
           }
         },
         "gridPos": {
-          "h": 7,
+          "h": 10,
           "w": 6,
           "x": 12,
-          "y": 29
+          "y": 32
         },
         "id": 16,
         "options": {
@@ -3559,14 +3559,14 @@
           ]
         },
         "gridPos": {
-          "h": 7,
+          "h": 10,
           "w": 6,
           "x": 18,
-          "y": 29
+          "y": 32
         },
         "id": 17,
         "options": {
-          "cellHeight": "sm",
+          "cellHeight": "md",
           "showHeader": true
         },
         "targets": [
@@ -3797,7 +3797,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 36
+          "y": 42
         },
         "id": 20,
         "panels": [
@@ -3871,7 +3871,7 @@
               "h": 7,
               "w": 12,
               "x": 0,
-              "y": 37
+              "y": 43
             },
             "id": 21,
             "options": {
@@ -4004,7 +4004,7 @@
               "h": 7,
               "w": 12,
               "x": 12,
-              "y": 37
+              "y": 43
             },
             "id": 22,
             "options": {
@@ -4161,7 +4161,7 @@
               "h": 7,
               "w": 12,
               "x": 0,
-              "y": 44
+              "y": 50
             },
             "id": 23,
             "options": {
@@ -4347,7 +4347,7 @@
               "h": 7,
               "w": 12,
               "x": 12,
-              "y": 44
+              "y": 50
             },
             "id": 24,
             "options": {

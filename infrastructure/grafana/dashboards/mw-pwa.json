@@ -82,6 +82,30 @@
         "tooltip": "",
         "type": "link",
         "url": "/d/mw-cost"
+      },
+      {
+        "asDropdown": false,
+        "icon": "bolt",
+        "includeVars": false,
+        "keepTime": true,
+        "tags": [],
+        "targetBlank": false,
+        "title": "PROD",
+        "tooltip": "Show PROD (now showing ${env})",
+        "type": "link",
+        "url": "/d/mw-pwa?var-env=prod"
+      },
+      {
+        "asDropdown": false,
+        "icon": "bolt",
+        "includeVars": false,
+        "keepTime": true,
+        "tags": [],
+        "targetBlank": false,
+        "title": "DEV",
+        "tooltip": "Show DEV (now showing ${env})",
+        "type": "link",
+        "url": "/d/mw-pwa?var-env=dev"
       }
     ],
     "liveNow": false,
@@ -118,7 +142,7 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 4,
+          "h": 8,
           "w": 8,
           "x": 0,
           "y": 0
@@ -135,7 +159,8 @@
             "values": false
           },
           "text": {
-            "valueSize": 28
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value"
         },
@@ -293,7 +318,7 @@
           ]
         },
         "gridPos": {
-          "h": 4,
+          "h": 8,
           "w": 8,
           "x": 8,
           "y": 0
@@ -302,8 +327,8 @@
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -314,8 +339,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -452,7 +477,7 @@
             "decimals": 0,
             "displayName": "${__field.name}",
             "mappings": [],
-            "noValue": "None logged",
+            "noValue": "None",
             "thresholds": {
               "mode": "absolute",
               "steps": [
@@ -467,7 +492,7 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 4,
+          "h": 8,
           "w": 8,
           "x": 16,
           "y": 0
@@ -476,8 +501,8 @@
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -488,8 +513,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -499,7 +524,7 @@
             "columns": [
               {
                 "selector": "value",
-                "text": "401 session_invalid",
+                "text": "401 · session invalid",
                 "type": "number"
               }
             ],
@@ -522,7 +547,7 @@
             "columns": [
               {
                 "selector": "value",
-                "text": "503 session_check_unavailable",
+                "text": "503 · session check unavailable",
                 "type": "number"
               }
             ],
@@ -545,7 +570,7 @@
             "columns": [
               {
                 "selector": "value",
-                "text": "503 body_timeout",
+                "text": "503 · body timeout",
                 "type": "number"
               }
             ],
@@ -597,7 +622,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 4
+          "y": 8
         },
         "id": 10,
         "panels": [],
@@ -773,7 +798,7 @@
           "h": 6,
           "w": 8,
           "x": 0,
-          "y": 5
+          "y": 9
         },
         "id": 101,
         "options": {
@@ -944,7 +969,7 @@
           "h": 6,
           "w": 8,
           "x": 8,
-          "y": 5
+          "y": 9
         },
         "id": 102,
         "options": {
@@ -1158,7 +1183,7 @@
           "h": 6,
           "w": 8,
           "x": 16,
-          "y": 5
+          "y": 9
         },
         "id": 103,
         "options": {
@@ -1269,7 +1294,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 11
+          "y": 15
         },
         "id": 11,
         "panels": [],
@@ -1445,7 +1470,7 @@
           "h": 6,
           "w": 8,
           "x": 0,
-          "y": 12
+          "y": 16
         },
         "id": 111,
         "options": {
@@ -1616,7 +1641,7 @@
           "h": 6,
           "w": 8,
           "x": 8,
-          "y": 12
+          "y": 16
         },
         "id": 112,
         "options": {
@@ -1830,7 +1855,7 @@
           "h": 6,
           "w": 8,
           "x": 16,
-          "y": 12
+          "y": 16
         },
         "id": 113,
         "options": {
@@ -1941,7 +1966,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 18
+          "y": 22
         },
         "id": 12,
         "panels": [],
@@ -2117,7 +2142,7 @@
           "h": 6,
           "w": 8,
           "x": 0,
-          "y": 19
+          "y": 23
         },
         "id": 121,
         "options": {
@@ -2288,7 +2313,7 @@
           "h": 6,
           "w": 8,
           "x": 8,
-          "y": 19
+          "y": 23
         },
         "id": 122,
         "options": {
@@ -2502,7 +2527,7 @@
           "h": 6,
           "w": 8,
           "x": 16,
-          "y": 19
+          "y": 23
         },
         "id": 123,
         "options": {
@@ -2613,7 +2638,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 25
+          "y": 29
         },
         "id": 13,
         "panels": [],
@@ -2789,7 +2814,7 @@
           "h": 6,
           "w": 8,
           "x": 0,
-          "y": 26
+          "y": 30
         },
         "id": 131,
         "options": {
@@ -2960,7 +2985,7 @@
           "h": 6,
           "w": 8,
           "x": 8,
-          "y": 26
+          "y": 30
         },
         "id": 132,
         "options": {
@@ -3174,7 +3199,7 @@
           "h": 6,
           "w": 8,
           "x": 16,
-          "y": 26
+          "y": 30
         },
         "id": 133,
         "options": {
@@ -3285,7 +3310,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 32
+          "y": 36
         },
         "id": 19,
         "panels": [],
@@ -3297,7 +3322,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Log-based mw_scheduler_attempts_${env} per 5 minutes: green only successful attempts, red any failed attempt (status not OK or HTTP not 2xx). Blank = no attempt in that 5 min; DEV jobs are paused.",
+        "description": "Log-based mw_scheduler_attempts_${env} per 5 minutes: green only successful attempts, red any failed attempt (status not OK or HTTP not 2xx). Each attempt's state holds until the job's next expected run (every minute: 2 min, hourly: 65 min, daily: 25 h); before the first attempt and after that the row is empty, with no label. DEV jobs are paused.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3346,17 +3371,6 @@
                   }
                 },
                 "type": "value"
-              },
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 5,
-                    "text": "Unknown"
-                  }
-                },
-                "type": "special"
               }
             ],
             "noValue": "No attempt",
@@ -3410,10 +3424,10 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 12,
+          "h": 8,
+          "w": 8,
           "x": 0,
-          "y": 33
+          "y": 37
         },
         "id": 20,
         "options": {
@@ -3453,7 +3467,7 @@
             "format": "timeseries",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1; a bucket\n# without attempts is null (blank), never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) and $b[$i + 1].t - $r.t <= 300 then empty\n     else {time: ($r.t | todateiso8601), value: null} end)] |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 300)] | .[] | {time: (.t | todateiso8601), value}\n",
+            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1. A bucket's\n# state holds 120 s past its end (the job's expected interval plus grace), so a job\n# that runs hourly or daily keeps its last attempt's state until the next expected run;\n# after that, and before the first attempt, the row is null (an empty gap), never a\n# healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) then\n       (if $b[$i + 1].t - 300 <= $r.t + 120 then empty else {time: ($r.t + 120 | todateiso8601), value: null} end)\n     elif $r.t + 120 < now then {time: ($r.t + 120 | todateiso8601), value: null}\n     else empty end)] |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 420)] | .[] | {time: (.t | todateiso8601), value}\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_${env}%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-${env}-notifications%22&interval.startTime=${lookback_from}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
@@ -3481,10 +3495,10 @@
             "format": "timeseries",
             "parser": "jq-backend",
             "refId": "B",
-            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1; a bucket\n# without attempts is null (blank), never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) and $b[$i + 1].t - $r.t <= 300 then empty\n     else {time: ($r.t | todateiso8601), value: null} end)] |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 300)] | .[] | {time: (.t | todateiso8601), value}\n",
+            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1. A bucket's\n# state holds 90000 s past its end (the job's expected interval plus grace), so a job\n# that runs hourly or daily keeps its last attempt's state until the next expected run;\n# after that, and before the first attempt, the row is null (an empty gap), never a\n# healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) then\n       (if $b[$i + 1].t - 300 <= $r.t + 90000 then empty else {time: ($r.t + 90000 | todateiso8601), value: null} end)\n     elif $r.t + 90000 < now then {time: ($r.t + 90000 | todateiso8601), value: null}\n     else empty end)] |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 90300)] | .[] | {time: (.t | todateiso8601), value}\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_${env}%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-${env}-daily-charges%22&interval.startTime=${lookback_from}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_${env}%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-${env}-daily-charges%22&interval.startTime=${lookback_day}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -3509,10 +3523,10 @@
             "format": "timeseries",
             "parser": "jq-backend",
             "refId": "C",
-            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1; a bucket\n# without attempts is null (blank), never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) and $b[$i + 1].t - $r.t <= 300 then empty\n     else {time: ($r.t | todateiso8601), value: null} end)] |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 300)] | .[] | {time: (.t | todateiso8601), value}\n",
+            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1. A bucket's\n# state holds 3900 s past its end (the job's expected interval plus grace), so a job\n# that runs hourly or daily keeps its last attempt's state until the next expected run;\n# after that, and before the first attempt, the row is null (an empty gap), never a\n# healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) then\n       (if $b[$i + 1].t - 300 <= $r.t + 3900 then empty else {time: ($r.t + 3900 | todateiso8601), value: null} end)\n     elif $r.t + 3900 < now then {time: ($r.t + 3900 | todateiso8601), value: null}\n     else empty end)] |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 4200)] | .[] | {time: (.t | todateiso8601), value}\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_${env}%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-${env}-recent-analytics%22&interval.startTime=${lookback_from}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_${env}%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-${env}-recent-analytics%22&interval.startTime=${lookback_hour}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -3632,17 +3646,17 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 6,
-          "x": 12,
-          "y": 33
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 37
         },
         "id": 21,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -3653,8 +3667,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -3707,7 +3721,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue red at 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification sent, the last dispatch in pwa_notify).",
+        "description": "PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue red at 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification, the last dispatch in pwa_notify).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3807,17 +3821,17 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 6,
-          "x": 18,
-          "y": 33
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 37
         },
         "id": 22,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -3828,8 +3842,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -3866,8 +3880,8 @@
           {
             "columns": [
               {
-                "selector": "Last notification sent",
-                "text": "Last notification sent",
+                "selector": "Last notification",
+                "text": "Last notification",
                 "type": "number"
               }
             ],
@@ -3878,7 +3892,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "B",
-            "root_selector": "if \"${env}\" != \"prod\" then empty else (\n# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"last_dispatch_age_seconds\",\"label\":\"Last notification sent\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"last_dispatch_age_seconds\",\"label\":\"Last notification sent\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n) end",
+            "root_selector": "if \"${env}\" != \"prod\" then empty else (\n# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"last_dispatch_age_seconds\",\"label\":\"Last notification\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"last_dispatch_age_seconds\",\"label\":\"Last notification\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n) end",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_notify%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -3896,7 +3910,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 39
+          "y": 45
         },
         "id": 29,
         "panels": [],
@@ -3908,16 +3922,16 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Log-based mw_recognition_outcome_${env}: recognitions on the command service over the selected range, one value per warning (none = the form filled cleanly). Categories only; no slip content or amounts.",
+        "description": "Log-based mw_recognition_outcome_${env}: recognitions on the command service over the selected range, one bar per warning (Clean = the form filled cleanly). Categories only; no slip content or amounts.",
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "transparent",
+              "fixedColor": "blue",
               "mode": "fixed"
             },
             "decimals": 0,
             "displayName": "${__field.name}",
-            "mappings": [],
+            "min": 0,
             "noValue": "No recognitions",
             "thresholds": {
               "mode": "absolute",
@@ -3942,22 +3956,110 @@
                   "value": "Clean"
                 }
               ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "slip_not_confirmed"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Slip not confirmed"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "amount_unreadable"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Amount unreadable"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "non_thb"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Not THB"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "amount_fractional"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Amount has satang"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "reference_unreadable"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Reference unreadable"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "date_outside_window"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Date outside window"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "time_unreadable"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Time unreadable"
+                }
+              ]
             }
           ]
         },
         "gridPos": {
-          "h": 5,
+          "h": 9,
           "w": 8,
           "x": 0,
-          "y": 40
+          "y": 46
         },
         "id": 30,
         "options": {
-          "colorMode": "background",
-          "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
-          "percentChangeColorMode": "standard",
+          "displayMode": "basic",
+          "legend": {
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "left",
+          "orientation": "horizontal",
           "reduceOptions": {
             "calcs": [
               "lastNotNull"
@@ -3965,13 +4067,13 @@
             "fields": "",
             "values": false
           },
-          "showPercentChange": false,
+          "showUnfilled": true,
+          "sizing": "auto",
           "text": {
-            "titleSize": 12,
-            "valueSize": 28
+            "titleSize": 16,
+            "valueSize": 22
           },
-          "textMode": "value_and_name",
-          "wideLayout": true
+          "valueMode": "text"
         },
         "targets": [
           {
@@ -4021,7 +4123,7 @@
             }
           }
         ],
-        "type": "stat"
+        "type": "bargauge"
       },
       {
         "datasource": {
@@ -4085,10 +4187,10 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 5,
+          "h": 9,
           "w": 8,
           "x": 8,
-          "y": 40
+          "y": 46
         },
         "id": 31,
         "options": {
@@ -4142,7 +4244,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector GET /healthz of mw-receipt-recognition (paused when disabled) and its configured provider and model (e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable); callers are the DEV and PROD command services. Detail on Agent & Receipts.",
+        "description": "Debian collector GET /healthz of mw-receipt-recognition (paused when disabled); callers are the DEV and PROD command services. Detail on Agent & Receipts.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -4206,45 +4308,13 @@
             },
             "unit": "none"
           },
-          "overrides": [
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Provider"
-              },
-              "properties": [
-                {
-                  "id": "mappings",
-                  "value": [
-                    {
-                      "options": {
-                        "match": "null",
-                        "result": {
-                          "color": "#6E7079",
-                          "index": 0,
-                          "text": "No report"
-                        }
-                      },
-                      "type": "special"
-                    }
-                  ]
-                },
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "transparent",
-                    "mode": "fixed"
-                  }
-                }
-              ]
-            }
-          ]
+          "overrides": []
         },
         "gridPos": {
-          "h": 5,
+          "h": 4,
           "w": 8,
           "x": 16,
-          "y": 40
+          "y": 46
         },
         "id": 32,
         "links": [
@@ -4257,22 +4327,22 @@
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
               "last"
             ],
-            "fields": "/^(Service|Provider)$/",
+            "fields": "",
             "values": false
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
-          "textMode": "value_and_name",
+          "textMode": "value",
           "wideLayout": true
         },
         "targets": [
@@ -4303,7 +4373,81 @@
             "url_options": {
               "method": "GET"
             }
+          }
+        ],
+        "title": "Recognizer service",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "The recognizer's configured provider and model from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "transparent",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 0,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
           },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 50
+        },
+        "id": 33,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "last"
+            ],
+            "fields": "/^(Provider)$/",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 20
+          },
+          "textMode": "value",
+          "wideLayout": true
+        },
+        "targets": [
           {
             "columns": [
               {
@@ -4318,7 +4462,7 @@
             },
             "format": "table",
             "parser": "jq-backend",
-            "refId": "B",
+            "refId": "A",
             "root_selector": "# Provider and model of one collector component (worker_timing{component}): the newest run's\n# numeric provider field (1 Gemini, 2 Codex, 3 Claude) and that same run's field \"model:<id>\"\n# (value 1; the collector exports the configured model id as a label) as one text value,\n# \"Gemini · gemini-3.5-flash-lite\"; the provider alone when the run has no model field; null\n# (No report) when stale (> 360 s), future (> 120 s) or the provider code is unknown.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: (.metric.labels.field // \"\"), p: (.points // [] | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[] | select(.field == \"provider\") | .p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  ([$rows[] | select(.field == \"provider\" and .p.interval.endTime == $end) | .p.value.int64Value] | first) as $code |\n  ({\"1\": \"Gemini\", \"2\": \"Codex\", \"3\": \"Claude\"}[$code // \"\" | tostring]) as $name |\n  ([$rows[] | select((.field | startswith(\"model:\")) and .p.interval.endTime == $end) | .field[6:]] | sort | last) as $model |\n  {Provider: (if ($fresh | not) or $name == null then null elif $model == null or $model == \"\" then $name else $name + \" · \" + $model end)}\nend\n",
             "source": "url",
             "type": "json",
@@ -4328,7 +4472,7 @@
             }
           }
         ],
-        "title": "Recognizer service",
+        "title": "Recognizer model",
         "type": "stat"
       }
     ],
@@ -4345,7 +4489,7 @@
             "text": "prod",
             "value": "prod"
           },
-          "hide": 0,
+          "hide": 2,
           "includeAll": false,
           "label": "Environment",
           "multi": false,
@@ -4393,6 +4537,92 @@
               "parser": "jq-backend",
               "refId": "variable",
               "root_selector": "{value: ((${__from} / 1000 | floor) - 1200 | todateiso8601)}",
+              "source": "inline",
+              "type": "json",
+              "url": "",
+              "url_options": {
+                "method": "GET"
+              }
+            },
+            "queryType": "infinity",
+            "refId": "variable"
+          },
+          "refresh": 2,
+          "regex": "",
+          "skipUrlSync": true,
+          "sort": 0,
+          "type": "query"
+        },
+        {
+          "current": {},
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "definition": "range start - 80 min",
+          "hide": 2,
+          "includeAll": false,
+          "label": "State query start",
+          "multi": false,
+          "name": "lookback_hour",
+          "options": [],
+          "query": {
+            "infinityQuery": {
+              "columns": [
+                {
+                  "selector": "value",
+                  "text": "value",
+                  "type": "string"
+                }
+              ],
+              "data": "{}",
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "variable",
+              "root_selector": "{value: ((${__from} / 1000 | floor) - 4800 | todateiso8601)}",
+              "source": "inline",
+              "type": "json",
+              "url": "",
+              "url_options": {
+                "method": "GET"
+              }
+            },
+            "queryType": "infinity",
+            "refId": "variable"
+          },
+          "refresh": 2,
+          "regex": "",
+          "skipUrlSync": true,
+          "sort": 0,
+          "type": "query"
+        },
+        {
+          "current": {},
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "definition": "range start - 1560 min",
+          "hide": 2,
+          "includeAll": false,
+          "label": "State query start",
+          "multi": false,
+          "name": "lookback_day",
+          "options": [],
+          "query": {
+            "infinityQuery": {
+              "columns": [
+                {
+                  "selector": "value",
+                  "text": "value",
+                  "type": "string"
+                }
+              ],
+              "data": "{}",
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "variable",
+              "root_selector": "{value: ((${__from} / 1000 | floor) - 93600 | todateiso8601)}",
               "source": "inline",
               "type": "json",
               "url": "",

@@ -65,6 +65,8 @@ const FROM = '${__timeFrom:date:iso}';
  * from ${__from} and refreshes on every time range change (and so on every auto refresh). */
 const LOOKBACK_SECONDS = 1200;
 const LOOKBACK_FROM = '${lookback_from}';
+// Scheduler rows of hourly and daily jobs hold a state up to 65 min or 25 h, so they read further back.
+const LOOKBACKS = {lookback_from: LOOKBACK_SECONDS, lookback_hour: 4800, lookback_day: 93600};
 const RANGE_START = '(${__from} / 1000 | ceil)';
 const TO = '${__timeTo:date:iso}';
 const CHART_PERIOD = '$__customInterval(2d,300s,14d,3600s,86400s)';
@@ -77,11 +79,11 @@ const COLOR = {down: 'dark-red', ok: 'green', degraded: 'orange', paused: 'blue'
 const STATE_TEXT = ['Down', 'OK', 'Degraded', 'Paused', 'Unknown'];
 const STATE_COLORS = [COLOR.down, COLOR.ok, COLOR.degraded, COLOR.paused, COLOR.unknown];
 
+// nullText null: no word for null, so a timeline draws no data as an empty gap (TIMELINE-GAP).
 function stateMappings(texts = STATE_TEXT, nullText = 'Unknown') {
-  return [
-    {type: 'value', options: Object.fromEntries(texts.map((text, i) => [String(i), {text, color: STATE_COLORS[i], index: i}]))},
-    {type: 'special', options: {match: 'null', result: {text: nullText, color: COLOR.unknown, index: 5}}}
-  ];
+  const m = [{type: 'value', options: Object.fromEntries(texts.map((text, i) => [String(i), {text, color: STATE_COLORS[i], index: i}]))}];
+  if (nullText) m.push({type: 'special', options: {match: 'null', result: {text: nullText, color: COLOR.unknown, index: 5}}});
+  return m;
 }
 function valueMap(entries, nullText) {
   const m = [{type: 'value', options: Object.fromEntries(entries.map(([v, text, color], i) => [String(v), {text, color, index: i}]))}];
@@ -159,11 +161,12 @@ function stateSelector(expected = 1, stale = STALE_SECONDS) {
 function rowSelector(selector, stale) {
   return jq('range-start.jq', {FROM: RANGE_START, STALE: String(stale), SELECTOR: selector});
 }
-function lookbackVariable() {
-  return {current: {}, datasource: DS.gcp, definition: 'range start - ' + LOOKBACK_SECONDS / 60 + ' min', hide: 2, includeAll: false,
-    label: 'State query start', multi: false, name: 'lookback_from', options: [],
+function lookbackVariable(name = 'lookback_from') {
+  const seconds = LOOKBACKS[name];
+  return {current: {}, datasource: DS.gcp, definition: 'range start - ' + seconds / 60 + ' min', hide: 2, includeAll: false,
+    label: 'State query start', multi: false, name, options: [],
     query: {infinityQuery: {columns: [col('value', 'value', 'string')], data: '{}', format: 'table', parser: 'jq-backend', refId: 'variable',
-      root_selector: '{value: ((${__from} / 1000 | floor) - ' + LOOKBACK_SECONDS + ' | todateiso8601)}', source: 'inline', type: 'json', url: '',
+      root_selector: '{value: ((${__from} / 1000 | floor) - ' + seconds + ' | todateiso8601)}', source: 'inline', type: 'json', url: '',
       url_options: {method: 'GET'}}, queryType: 'infinity', refId: 'variable'},
     refresh: 2, regex: '', skipUrlSync: true, sort: 0, type: 'query'};
 }
@@ -253,14 +256,35 @@ function pos(x, y, w, h) {
   return {h, w, x, y};
 }
 
-// Five explicit links in a fixed order (Echo LINK-1..3): no tag query, no time or variables carried.
-function linkBar() {
-  return DASHBOARD_UIDS.map(uid => ({asDropdown: false, icon: 'dashboard', includeVars: false, keepTime: false,
-    tags: [], targetBlank: false, title: DASHBOARD_TITLES[uid], tooltip: '', type: 'link', url: '/d/' + uid}));
+// Five explicit links in a fixed order (Echo LINK-1..3): no tag query, no time or variables carried. A page's
+// own extra links (the PWA environment switch) follow them, so the five keep their place on every page.
+function linkBar(extra = []) {
+  return [...DASHBOARD_UIDS.map(uid => ({asDropdown: false, icon: 'dashboard', includeVars: false, keepTime: false,
+    tags: [], targetBlank: false, title: DASHBOARD_TITLES[uid], tooltip: '', type: 'link', url: '/d/' + uid})), ...extra];
 }
 
-function dashboard({uid, title, description, time, refresh, panels, templating = [], timepicker}) {
-  if (JSON.stringify(panels).includes(LOOKBACK_FROM)) templating = [...templating, lookbackVariable()];
+/* READ-1 (owner review): larger text. Stat names 16 px and values 32 px; several values are listed as rows
+ * (orientation horizontal), each row name left (wrapping onto two lines when needed) and value right. Text
+ * tiles (provider and model, budget) use 20 px values so long ids fit a phone. Tables use the md row height.
+ * Grafana has no font size for table cells, timeline row labels, legends or axes. */
+const STAT_TEXT = {titleSize: 16, valueSize: 32};
+const TEXT_TILE = {titleSize: 16, valueSize: 20};
+const SINGLE_VALUE = {textMode: 'value', text: STAT_TEXT};
+function readable(panel) {
+  if (panel.type === 'stat') {
+    const t = (panel.options || {}).text || {};
+    const tile = t.titleSize === TEXT_TILE.titleSize && t.valueSize === TEXT_TILE.valueSize;
+    panel.options = {...panel.options, text: tile ? t : {titleSize: Math.max(t.titleSize || 0, STAT_TEXT.titleSize), valueSize: Math.max(t.valueSize || 0, STAT_TEXT.valueSize)}};
+  }
+  if (panel.type === 'table') panel.options = {...panel.options, cellHeight: 'md'};
+  for (const child of panel.panels || []) readable(child);
+  return panel;
+}
+
+function dashboard({uid, title, description, time, refresh, panels, templating = [], timepicker, links = []}) {
+  panels.forEach(readable);
+  const used = JSON.stringify(panels);
+  for (const name of Object.keys(LOOKBACKS)) if (used.includes('${' + name + '}')) templating = [...templating, lookbackVariable(name)];
   return {
     apiVersion: 'dashboard.grafana.app/v1beta1',
     kind: 'Dashboard',
@@ -271,7 +295,7 @@ function dashboard({uid, title, description, time, refresh, panels, templating =
       editable: false,
       fiscalYearStartMonth: 0,
       graphTooltip: 1,
-      links: linkBar(),
+      links: linkBar(links),
       liveNow: false,
       panels,
       preload: false,
@@ -297,7 +321,7 @@ function stateTimeline({id, title, description, gridPos, rows, noValue = 'No rep
     fieldConfig: {
       // Fixed grey base: the value mappings supply colour and word (thresholds colour hides them with mergeValues).
       defaults: {color: {mode: 'fixed', fixedColor: COLOR.unknown}, displayName: '${__field.name}', custom: {fillOpacity: 80, hideFrom: {legend: false, tooltip: false, viz: false},
-        insertNulls: false, lineWidth: 0, spanNulls: false}, mappings: stateMappings(), noValue,
+        insertNulls: false, lineWidth: 0, spanNulls: false}, mappings: stateMappings(STATE_TEXT, null), noValue,
         thresholds: steps([null, COLOR.unknown])},
       overrides: rows.map((r, i) => ({matcher: {id: 'byFrameRefID', options: String.fromCharCode(65 + i)},
         properties: [{id: 'displayName', value: r.name}]}))
@@ -306,12 +330,10 @@ function stateTimeline({id, title, description, gridPos, rows, noValue = 'No rep
       mergeValues: true, rowHeight: 0.8, showValue: 'auto', tooltip: {hideZeros: false, mode: 'single', sort: 'none'}}
   };
 }
-// One-value tiles: the panel title names the value, so no field name under it, and the value at Now-tile size.
-const SINGLE_VALUE = {textMode: 'value', text: {titleSize: 12, valueSize: 28}};
 function statOptions(extra = {}) {
-  return {colorMode: 'background', graphMode: 'none', justifyMode: 'center', orientation: 'auto',
+  return {colorMode: 'background', graphMode: 'none', justifyMode: 'auto', orientation: 'horizontal',
     percentChangeColorMode: 'standard', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false},
-    showPercentChange: false, text: {titleSize: 12, valueSize: 24}, textMode: 'value_and_name', wideLayout: true, ...extra};
+    showPercentChange: false, text: STAT_TEXT, textMode: 'value_and_name', wideLayout: true, ...extra};
 }
 function stat({id, title, description, gridPos, targets, datasource, defaults = {}, overrides = [], options = {}, transformations, timeFrom, hideTimeOverride}) {
   const panel = {id, type: 'stat', title, description, gridPos, ...(timeFrom ? {timeFrom, hideTimeOverride: hideTimeOverride === true} : {}),
@@ -411,17 +433,29 @@ function sqlUpRow(name = 'Cloud SQL') {
 function schedulerFilter(env, job) {
   return 'metric.type = "' + SCHEDULER_ATTEMPT_METRIC + env + '" AND resource.labels.job_id = "mw-credit-app-' + env + '-' + job + '"';
 }
-function schedulerSelector() {
-  return jq('scheduler-attempts.jq', {STATUS_LABEL: SCHEDULER_STATUS_LABEL, HTTP_LABEL: SCHEDULER_HTTP_LABEL, PERIOD: '300'});
+function schedulerSelector(hold = 0) {
+  return jq('scheduler-attempts.jq', {STATUS_LABEL: SCHEDULER_STATUS_LABEL, HTTP_LABEL: SCHEDULER_HTTP_LABEL, PERIOD: '300', HOLD: String(hold)});
 }
-// A bucket event carries in only while its 300 s bucket covers the range start (later events end it).
-function schedulerRow(name, env, job) {
-  return {name, datasource: DS.gcp, url: monitoringUrl(schedulerFilter(env, job), {aligner: 'ALIGN_SUM', period: '300s', start: LOOKBACK_FROM}),
-    selector: rowSelector(schedulerSelector(), 300)};
+// TIMELINE-GAP: a job's last attempt holds until its next expected run (hold: every minute 120 s, hourly
+// 3 900 s, daily 90 000 s), then the row is an empty gap. A bucket carries in while its bucket plus hold covers
+// the range start, so hourly and daily rows read from lookback_hour or lookback_day.
+const SCHEDULER_HOLD = {minute: 120, hourly: 3900, daily: 90000};
+function schedulerRow(name, env, job, every = 'minute') {
+  const hold = SCHEDULER_HOLD[every];
+  const lookback = hold <= 600 ? 'lookback_from' : hold <= 4200 ? 'lookback_hour' : 'lookback_day';
+  if (300 + hold + 300 > LOOKBACKS[lookback]) throw Error('Lookback too short for ' + job);
+  return {name, datasource: DS.gcp, url: monitoringUrl(schedulerFilter(env, job), {aligner: 'ALIGN_SUM', period: '300s', start: '${' + lookback + '}'}),
+    selector: rowSelector(schedulerSelector(hold), 300 + hold)};
 }
 // Provider and model of a collector component as one text value (provider-model.jq): "Gemini · gemini-3.5-flash-lite".
 function providerModelTarget(refId, component) {
   return target(refId, DS.gcp, monitoringUrl(customFilter('worker_timing', {component})), jq('provider-model.jq'), [col('Provider', 'Provider', 'string')]);
+}
+// READ-1: provider and model as one text tile (long ids at the text-tile size; the title names the component).
+function modelTile({id, title, gridPos, component, description}) {
+  return stat({id, title, gridPos, description, targets: [providerModelTarget('A', component)],
+    defaults: {mappings: [nullMap('No report')], noValue: 'No report', color: {mode: 'fixed', fixedColor: COLOR.info}},
+    options: {reduceOptions: {calcs: ['last'], fields: namedFields(['Provider']), values: false}, textMode: 'value', text: TEXT_TILE}});
 }
 // A stat that shows text fields too: the named fields only (the default shows numeric fields only).
 function namedFields(names) {
@@ -451,5 +485,6 @@ module.exports = {
   inlineTarget, jq, receiptFields, stateSelector, rowSelector, stateRow, lookbackVariable, LOOKBACK_FROM, LOOKBACK_SECONDS, RANGE_START, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,
   timeseriesDefaults, dashedLine, table, row, text, sortKeys, serialize, healthRow, workerRow, probeRow, webhookRow, sqlUpRow,
-  schedulerFilter, schedulerSelector, schedulerRow, providerStatus, providerModelTarget, namedFields, SINGLE_VALUE
+  schedulerFilter, schedulerSelector, schedulerRow, providerStatus, providerModelTarget, modelTile, namedFields, SINGLE_VALUE, STAT_TEXT, TEXT_TILE,
+  LOOKBACKS, SCHEDULER_HOLD, readable
 };

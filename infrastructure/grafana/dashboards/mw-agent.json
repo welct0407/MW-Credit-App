@@ -87,11 +87,24 @@
     "liveNow": false,
     "panels": [
       {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 20,
+        "panels": [],
+        "title": "Receipt pipeline · Instagram to recorded payment",
+        "type": "row"
+      },
+      {
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Instagram to recorded payment, Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling); today's rules: unnotified holds, unconfirmed postings and failed notifications turn red above 0, normal reviewer waiting is not failure, Paused does not page. Unconfirmed postings need reconciliation, never a repeated Add.",
+        "description": "Instagram to recorded payment, Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling): group scan last run, receipts waiting for extraction, validation holds, reviewer decisions waiting, unconfirmed payment postings and notification failures. Today's rules: holds, unconfirmed postings and notification failures turn red above 0, normal reviewer waiting is not failure, Paused does not page. Unconfirmed postings need reconciliation, never a repeated Add.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -129,7 +142,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Group scanning · last run"
+                "options": "Group scan · last run"
               },
               "properties": [
                 {
@@ -161,7 +174,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Validation · holds"
+                "options": "Validation holds"
               },
               "properties": [
                 {
@@ -191,7 +204,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Payment posting · unconfirmed"
+                "options": "Posting unconfirmed"
               },
               "properties": [
                 {
@@ -221,7 +234,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Notification failures"
+                "options": "Notify failures"
               },
               "properties": [
                 {
@@ -251,18 +264,18 @@
           ]
         },
         "gridPos": {
-          "h": 5,
-          "w": 24,
+          "h": 12,
+          "w": 8,
           "x": 0,
-          "y": 0
+          "y": 1
         },
         "hideTimeOverride": true,
         "id": 1,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -273,8 +286,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 22
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -284,7 +297,7 @@
             "columns": [
               {
                 "selector": "status",
-                "text": "Group scanning · last run",
+                "text": "Group scan · last run",
                 "type": "number"
               }
             ],
@@ -307,7 +320,7 @@
             "columns": [
               {
                 "selector": "pending_images",
-                "text": "Extraction · waiting",
+                "text": "Extraction waiting",
                 "type": "number"
               }
             ],
@@ -318,7 +331,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "B",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"pending_images\",\"label\":\"Extraction · waiting\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"pending_images\",\"label\":\"Extraction waiting\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -330,7 +343,7 @@
             "columns": [
               {
                 "selector": "unnotified_holds",
-                "text": "Validation · holds",
+                "text": "Validation holds",
                 "type": "number"
               }
             ],
@@ -341,7 +354,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "C",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unnotified_holds\",\"label\":\"Validation · holds\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unnotified_holds\",\"label\":\"Validation holds\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -353,7 +366,7 @@
             "columns": [
               {
                 "selector": "pending_reviews",
-                "text": "Reviewer decisions · waiting",
+                "text": "Reviews waiting",
                 "type": "number"
               }
             ],
@@ -364,7 +377,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "D",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"pending_reviews\",\"label\":\"Reviewer decisions · waiting\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"pending_reviews\",\"label\":\"Reviews waiting\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -376,7 +389,7 @@
             "columns": [
               {
                 "selector": "unconfirmed_postings",
-                "text": "Payment posting · unconfirmed",
+                "text": "Posting unconfirmed",
                 "type": "number"
               }
             ],
@@ -387,7 +400,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "E",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unconfirmed_postings\",\"label\":\"Payment posting · unconfirmed\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unconfirmed_postings\",\"label\":\"Posting unconfirmed\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -399,7 +412,7 @@
             "columns": [
               {
                 "selector": "failed_notifications",
-                "text": "Notification failures",
+                "text": "Notify failures",
                 "type": "number"
               }
             ],
@@ -410,7 +423,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "F",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"failed_notifications\",\"label\":\"Notification failures\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"failed_notifications\",\"label\":\"Notify failures\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -420,7 +433,7 @@
           }
         ],
         "timeFrom": "3h",
-        "title": "Receipt pipeline stages",
+        "title": "Receipt pipeline · stages",
         "type": "stat"
       },
       {
@@ -537,10 +550,10 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 24,
-          "x": 0,
-          "y": 5
+          "h": 15,
+          "w": 16,
+          "x": 8,
+          "y": 1
         },
         "id": 2,
         "options": {
@@ -671,8 +684,652 @@
             }
           }
         ],
-        "title": "Queue length over time",
+        "title": "Receipt pipeline · queue over time",
         "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian receipt pipeline snapshot receipt_pipeline{ingress_review_open}: ingress items waiting for review; orange above 0.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 0,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 1
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 8,
+          "x": 0,
+          "y": 13
+        },
+        "id": 14,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "last"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 32
+          },
+          "textMode": "value",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "ingress_review_open",
+                "text": "Open ingress reviews",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"ingress_review_open\",\"label\":\"Open ingress reviews\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Receipts · open ingress reviews",
+        "type": "stat"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        },
+        "id": 21,
+        "panels": [],
+        "title": "Receipt recognizer · mw-receipt-recognition on Debian",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian collector GET /healthz of mw-receipt-recognition (Paused when disabled, grey after 6 minutes) and time since the service last started. Callers: the DEV and PROD command services.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "#6E7079",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "dark-red",
+                    "index": 0,
+                    "text": "Down"
+                  },
+                  "1": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "OK"
+                  },
+                  "2": {
+                    "color": "orange",
+                    "index": 2,
+                    "text": "Degraded"
+                  },
+                  "3": {
+                    "color": "blue",
+                    "index": 3,
+                    "text": "Paused"
+                  },
+                  "4": {
+                    "color": "#6E7079",
+                    "index": 4,
+                    "text": "Unknown"
+                  }
+                },
+                "type": "value"
+              },
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 5,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Running for"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "s"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 17
+        },
+        "id": 6,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "last"
+            ],
+            "fields": "/^(Service|Running for)$/",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 32
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Service",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# the freshness bound ends in null at (sample + bound), so no state stretches across\n# missing telemetry; a newest sample older than the bound also ends in null at\n# (sample + bound), with a second null at now so Unknown reaches the right edge.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 then [{time: (now | floor | todateiso8601), value: null}]\n   elif now - ($runs | last | .t) > 360\n   then [{time: ($runs | last | .t + 360 | todateiso8601), value: null}, {time: (now | floor | todateiso8601), value: null}]\n   else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Running for",
+                "text": "Running for",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"restart_age_seconds\",\"label\":\"Running for\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"restart_age_seconds\",\"label\":\"Running for\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Recognizer · service",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "The recognizer's configured provider and model from the Debian collector (worker_timing{recognizer} provider and model:<id> fields), e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "transparent",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 0,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 23
+        },
+        "id": 12,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "last"
+            ],
+            "fields": "/^(Provider)$/",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 20
+          },
+          "textMode": "value",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Provider",
+                "text": "Provider",
+                "type": "string"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Provider and model of one collector component (worker_timing{component}): the newest run's\n# numeric provider field (1 Gemini, 2 Codex, 3 Claude) and that same run's field \"model:<id>\"\n# (value 1; the collector exports the configured model id as a label) as one text value,\n# \"Gemini · gemini-3.5-flash-lite\"; the provider alone when the run has no model field; null\n# (No report) when stale (> 360 s), future (> 120 s) or the provider code is unknown.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: (.metric.labels.field // \"\"), p: (.points // [] | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[] | select(.field == \"provider\") | .p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  ([$rows[] | select(.field == \"provider\" and .p.interval.endTime == $end) | .p.value.int64Value] | first) as $code |\n  ({\"1\": \"Gemini\", \"2\": \"Codex\", \"3\": \"Claude\"}[$code // \"\" | tostring]) as $name |\n  ([$rows[] | select((.field | startswith(\"model:\")) and .p.interval.endTime == $end) | .field[6:]] | sort | last) as $model |\n  {Provider: (if ($fresh | not) or $name == null then null elif $model == null or $model == \"\" then $name else $name + \" · \" + $model end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Recognizer · model",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts and unreadable amounts. Outcome categories only.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "transparent",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 0,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 17
+        },
+        "id": 7,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 32
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Extractions",
+                "text": "Extractions",
+                "type": "number"
+              },
+              {
+                "selector": "Valid",
+                "text": "Valid",
+                "type": "number"
+              },
+              {
+                "selector": "Timed out",
+                "text": "Timed out",
+                "type": "number"
+              },
+              {
+                "selector": "Unreadable",
+                "text": "Unreadable",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"extractions_24h\",\"label\":\"Extractions\"},{\"key\":\"valid_24h\",\"label\":\"Valid\"},{\"key\":\"timeouts_24h\",\"label\":\"Timed out\"},{\"key\":\"unreadable_24h\",\"label\":\"Unreadable\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"extractions_24h\",\"label\":\"Extractions\"},{\"key\":\"valid_24h\",\"label\":\"Valid\"},{\"key\":\"timeouts_24h\",\"label\":\"Timed out\"},{\"key\":\"unreadable_24h\",\"label\":\"Unreadable\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Recognizer · extractions 24 h",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian collector worker_timing{recognizer_call}: the newest extraction completed since each run, at its end time; red dashed line = the 25 s per-attempt bound.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "points",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 6,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "always",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 1,
+            "displayName": "${__field.name}",
+            "min": 0,
+            "noValue": "No extractions in selected range",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 25
+                }
+              ]
+            },
+            "unit": "s"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 11,
+          "w": 8,
+          "x": 16,
+          "y": 17
+        },
+        "id": 8,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Extraction",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer_call%22%20AND%20metric.labels.field%20%3D%20%22seconds%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Recognizer · extraction time (s)",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 28
+        },
+        "id": 22,
+        "panels": [],
+        "title": "Partner conversation · Instagram chat agent",
+        "type": "row"
       },
       {
         "datasource": {
@@ -763,17 +1420,17 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 6,
+          "h": 13,
+          "w": 8,
           "x": 0,
-          "y": 11
+          "y": 29
         },
         "id": 3,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -784,8 +1441,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -840,7 +1497,7 @@
             }
           }
         ],
-        "title": "Turns · 24 h",
+        "title": "Conversation · turns 24 h",
         "type": "stat"
       },
       {
@@ -983,10 +1640,10 @@
           ]
         },
         "gridPos": {
-          "h": 6,
-          "w": 10,
-          "x": 6,
-          "y": 11
+          "h": 13,
+          "w": 8,
+          "x": 8,
+          "y": 29
         },
         "id": 4,
         "options": {
@@ -1088,7 +1745,7 @@
             }
           }
         ],
-        "title": "Turn duration · per turn",
+        "title": "Conversation · turn duration",
         "type": "timeseries"
       },
       {
@@ -1096,7 +1753,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer, the last Instagram send acceptance and the configured conversation provider and model (e.g. Gemini · gemini-4-argon; the provider alone when the model is not readable).",
+        "description": "Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1320,29 +1977,29 @@
           ]
         },
         "gridPos": {
-          "h": 6,
+          "h": 10,
           "w": 8,
           "x": 16,
-          "y": 11
+          "y": 29
         },
         "id": 5,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
               "lastNotNull"
             ],
-            "fields": "/^(Poll age|Poll state|Wake path|Worker timer|Last send|Provider)$/",
+            "fields": "",
             "values": false
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -1390,32 +2047,9 @@
             "url_options": {
               "method": "GET"
             }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Provider",
-                "text": "Provider",
-                "type": "string"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-gcp-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "# Provider and model of one collector component (worker_timing{component}): the newest run's\n# numeric provider field (1 Gemini, 2 Codex, 3 Claude) and that same run's field \"model:<id>\"\n# (value 1; the collector exports the configured model id as a label) as one text value,\n# \"Gemini · gemini-3.5-flash-lite\"; the provider alone when the run has no model field; null\n# (No report) when stale (> 360 s), future (> 120 s) or the provider code is unknown.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: (.metric.labels.field // \"\"), p: (.points // [] | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[] | select(.field == \"provider\") | .p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  ([$rows[] | select(.field == \"provider\" and .p.interval.endTime == $end) | .p.value.int64Value] | first) as $code |\n  ({\"1\": \"Gemini\", \"2\": \"Codex\", \"3\": \"Claude\"}[$code // \"\" | tostring]) as $name |\n  ([$rows[] | select((.field | startswith(\"model:\")) and .p.interval.endTime == $end) | .field[6:]] | sort | last) as $model |\n  {Provider: (if ($fresh | not) or $name == null then null elif $model == null or $model == \"\" then $name else $name + \" · \" + $model end)}\nend\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22conversation%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
-            "url_options": {
-              "method": "GET"
-            }
           }
         ],
-        "title": "Loop health",
+        "title": "Conversation · loop health",
         "type": "stat"
       },
       {
@@ -1423,256 +2057,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector GET /healthz of mw-receipt-recognition (Paused when disabled, grey after 6 minutes), its configured provider and model (e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable) and time since the service last started. Callers: the DEV and PROD command services.",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "fixedColor": "#6E7079",
-              "mode": "fixed"
-            },
-            "decimals": 0,
-            "displayName": "${__field.name}",
-            "mappings": [
-              {
-                "options": {
-                  "0": {
-                    "color": "dark-red",
-                    "index": 0,
-                    "text": "Down"
-                  },
-                  "1": {
-                    "color": "green",
-                    "index": 1,
-                    "text": "OK"
-                  },
-                  "2": {
-                    "color": "orange",
-                    "index": 2,
-                    "text": "Degraded"
-                  },
-                  "3": {
-                    "color": "blue",
-                    "index": 3,
-                    "text": "Paused"
-                  },
-                  "4": {
-                    "color": "#6E7079",
-                    "index": 4,
-                    "text": "Unknown"
-                  }
-                },
-                "type": "value"
-              },
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 5,
-                    "text": "No report"
-                  }
-                },
-                "type": "special"
-              }
-            ],
-            "noValue": "No report",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                }
-              ]
-            },
-            "unit": "none"
-          },
-          "overrides": [
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Provider"
-              },
-              "properties": [
-                {
-                  "id": "mappings",
-                  "value": [
-                    {
-                      "options": {
-                        "match": "null",
-                        "result": {
-                          "color": "#6E7079",
-                          "index": 0,
-                          "text": "No report"
-                        }
-                      },
-                      "type": "special"
-                    }
-                  ]
-                },
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "transparent",
-                    "mode": "fixed"
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Running for"
-              },
-              "properties": [
-                {
-                  "id": "unit",
-                  "value": "s"
-                },
-                {
-                  "id": "decimals",
-                  "value": 1
-                },
-                {
-                  "id": "mappings",
-                  "value": [
-                    {
-                      "options": {
-                        "match": "null",
-                        "result": {
-                          "color": "#6E7079",
-                          "index": 0,
-                          "text": "No report"
-                        }
-                      },
-                      "type": "special"
-                    }
-                  ]
-                },
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "transparent",
-                    "mode": "fixed"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "gridPos": {
-          "h": 5,
-          "w": 6,
-          "x": 0,
-          "y": 17
-        },
-        "id": 6,
-        "options": {
-          "colorMode": "background",
-          "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
-          "percentChangeColorMode": "standard",
-          "reduceOptions": {
-            "calcs": [
-              "last"
-            ],
-            "fields": "/^(Service|Provider|Running for)$/",
-            "values": false
-          },
-          "showPercentChange": false,
-          "text": {
-            "titleSize": 11,
-            "valueSize": 18
-          },
-          "textMode": "value_and_name",
-          "wideLayout": true
-        },
-        "targets": [
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp"
-              },
-              {
-                "selector": "value",
-                "text": "Service",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-gcp-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# the freshness bound ends in null at (sample + bound), so no state stretches across\n# missing telemetry; a newest sample older than the bound also ends in null at\n# (sample + bound), with a second null at now so Unknown reaches the right edge.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 then [{time: (now | floor | todateiso8601), value: null}]\n   elif now - ($runs | last | .t) > 360\n   then [{time: ($runs | last | .t + 360 | todateiso8601), value: null}, {time: (now | floor | todateiso8601), value: null}]\n   else [] end) |\n  .[]\nend\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
-            "url_options": {
-              "method": "GET"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Provider",
-                "text": "Provider",
-                "type": "string"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-gcp-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "# Provider and model of one collector component (worker_timing{component}): the newest run's\n# numeric provider field (1 Gemini, 2 Codex, 3 Claude) and that same run's field \"model:<id>\"\n# (value 1; the collector exports the configured model id as a label) as one text value,\n# \"Gemini · gemini-3.5-flash-lite\"; the provider alone when the run has no model field; null\n# (No report) when stale (> 360 s), future (> 120 s) or the provider code is unknown.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: (.metric.labels.field // \"\"), p: (.points // [] | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[] | select(.field == \"provider\") | .p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  ([$rows[] | select(.field == \"provider\" and .p.interval.endTime == $end) | .p.value.int64Value] | first) as $code |\n  ({\"1\": \"Gemini\", \"2\": \"Codex\", \"3\": \"Claude\"}[$code // \"\" | tostring]) as $name |\n  ([$rows[] | select((.field | startswith(\"model:\")) and .p.interval.endTime == $end) | .field[6:]] | sort | last) as $model |\n  {Provider: (if ($fresh | not) or $name == null then null elif $model == null or $model == \"\" then $name else $name + \" · \" + $model end)}\nend\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
-            "url_options": {
-              "method": "GET"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Running for",
-                "text": "Running for",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-gcp-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "C",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"restart_age_seconds\",\"label\":\"Running for\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"restart_age_seconds\",\"label\":\"Running for\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
-            "url_options": {
-              "method": "GET"
-            }
-          }
-        ],
-        "title": "Recognizer service",
-        "type": "stat"
-      },
-      {
-        "datasource": {
-          "type": "yesoreyeram-infinity-datasource",
-          "uid": "mw-gcp-monitoring"
-        },
-        "description": "Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts and unreadable amounts. Outcome categories only.",
+        "description": "The Partner conversation's configured provider and model from the Debian collector (worker_timing{conversation} provider and model:<id> fields), e.g. Gemini · gemini-4-argon; the provider alone when the model is not readable.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1709,55 +2094,40 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 5,
-          "w": 9,
-          "x": 6,
-          "y": 17
+          "h": 3,
+          "w": 8,
+          "x": 16,
+          "y": 39
         },
-        "id": 7,
+        "id": 15,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
-              "lastNotNull"
+              "last"
             ],
-            "fields": "",
+            "fields": "/^(Provider)$/",
             "values": false
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 11,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 20
           },
-          "textMode": "value_and_name",
+          "textMode": "value",
           "wideLayout": true
         },
         "targets": [
           {
             "columns": [
               {
-                "selector": "Extractions",
-                "text": "Extractions",
-                "type": "number"
-              },
-              {
-                "selector": "Valid",
-                "text": "Valid",
-                "type": "number"
-              },
-              {
-                "selector": "Timed out",
-                "text": "Timed out",
-                "type": "number"
-              },
-              {
-                "selector": "Unreadable",
-                "text": "Unreadable",
-                "type": "number"
+                "selector": "Provider",
+                "text": "Provider",
+                "type": "string"
               }
             ],
             "datasource": {
@@ -1767,138 +2137,37 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"extractions_24h\",\"label\":\"Extractions\"},{\"key\":\"valid_24h\",\"label\":\"Valid\"},{\"key\":\"timeouts_24h\",\"label\":\"Timed out\"},{\"key\":\"unreadable_24h\",\"label\":\"Unreadable\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"extractions_24h\",\"label\":\"Extractions\"},{\"key\":\"valid_24h\",\"label\":\"Valid\"},{\"key\":\"timeouts_24h\",\"label\":\"Timed out\"},{\"key\":\"unreadable_24h\",\"label\":\"Unreadable\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "root_selector": "# Provider and model of one collector component (worker_timing{component}): the newest run's\n# numeric provider field (1 Gemini, 2 Codex, 3 Claude) and that same run's field \"model:<id>\"\n# (value 1; the collector exports the configured model id as a label) as one text value,\n# \"Gemini · gemini-3.5-flash-lite\"; the provider alone when the run has no model field; null\n# (No report) when stale (> 360 s), future (> 120 s) or the provider code is unknown.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: (.metric.labels.field // \"\"), p: (.points // [] | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[] | select(.field == \"provider\") | .p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  ([$rows[] | select(.field == \"provider\" and .p.interval.endTime == $end) | .p.value.int64Value] | first) as $code |\n  ({\"1\": \"Gemini\", \"2\": \"Codex\", \"3\": \"Claude\"}[$code // \"\" | tostring]) as $name |\n  ([$rows[] | select((.field | startswith(\"model:\")) and .p.interval.endTime == $end) | .field[6:]] | sort | last) as $model |\n  {Provider: (if ($fresh | not) or $name == null then null elif $model == null or $model == \"\" then $name else $name + \" · \" + $model end)}\nend\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22conversation%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
           }
         ],
-        "title": "Extractions · 24 h",
+        "title": "Conversation · model",
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "yesoreyeram-infinity-datasource",
-          "uid": "mw-gcp-monitoring"
-        },
-        "description": "Debian collector worker_timing{recognizer_call}: the newest extraction completed since each run, at its end time; red dashed line = the 25 s per-attempt bound.",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "points",
-              "fillOpacity": 10,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 2,
-              "pointSize": 6,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "always",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "dashed"
-              }
-            },
-            "decimals": 1,
-            "displayName": "${__field.name}",
-            "min": 0,
-            "noValue": "No extractions in selected range",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "transparent",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 25
-                }
-              ]
-            },
-            "unit": "s"
-          },
-          "overrides": []
-        },
+        "collapsed": false,
         "gridPos": {
-          "h": 5,
-          "w": 9,
-          "x": 15,
-          "y": 17
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 42
         },
-        "id": 8,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "hideZeros": false,
-            "mode": "multi",
-            "sort": "desc"
-          }
-        },
-        "targets": [
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp"
-              },
-              {
-                "selector": "value",
-                "text": "Extraction",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-gcp-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
-            "source": "url",
-            "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer_call%22%20AND%20metric.labels.field%20%3D%20%22seconds%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
-            "url_options": {
-              "method": "GET"
-            }
-          }
-        ],
-        "title": "Extraction time (s)",
-        "type": "timeseries"
+        "id": 23,
+        "panels": [],
+        "title": "Agent workers and timers · Debian units",
+        "type": "row"
       },
       {
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector state per unit (the 12 Debian alert components keep their labels); grey after 6 minutes without a report. Daily jobs = cash statement plus email retry.",
+        "description": "Debian collector state per unit (the 12 Debian alert components keep their labels); a lane is empty after 6 minutes without a report. Daily jobs = cash statement plus email retry.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1947,17 +2216,6 @@
                   }
                 },
                 "type": "value"
-              },
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 5,
-                    "text": "Unknown"
-                  }
-                },
-                "type": "special"
               }
             ],
             "noValue": "No report",
@@ -2059,10 +2317,10 @@
           ]
         },
         "gridPos": {
-          "h": 8,
-          "w": 12,
+          "h": 9,
+          "w": 24,
           "x": 0,
-          "y": 22
+          "y": 43
         },
         "id": 9,
         "options": {
@@ -2279,15 +2537,28 @@
             }
           }
         ],
-        "title": "Workers and timers",
+        "title": "Agent workers and timers",
         "type": "state-timeline"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 52
+        },
+        "id": 24,
+        "panels": [],
+        "title": "Connectivity and providers",
+        "type": "row"
       },
       {
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Public webhook check from the Singapore checker (grey after 12 minutes) and the Debian collector's tunnel, Tailscale, local ingress, database path and Codex readiness (grey after 6 minutes).",
+        "description": "Public webhook check from the Singapore checker (empty after 12 minutes without a report) and the Debian collector's tunnel, Tailscale, local ingress, database path and Codex readiness (empty after 6 minutes).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -2336,17 +2607,6 @@
                   }
                 },
                 "type": "value"
-              },
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 5,
-                    "text": "Unknown"
-                  }
-                },
-                "type": "special"
               }
             ],
             "noValue": "No report",
@@ -2436,10 +2696,10 @@
           ]
         },
         "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 22
+          "h": 10,
+          "w": 16,
+          "x": 0,
+          "y": 53
         },
         "id": 10,
         "options": {
@@ -2628,7 +2888,7 @@
             }
           }
         ],
-        "title": "Connectivity, data and providers",
+        "title": "Connectivity · webhook, tunnel and data path",
         "type": "state-timeline"
       },
       {
@@ -2728,17 +2988,17 @@
           ]
         },
         "gridPos": {
-          "h": 3,
-          "w": 12,
-          "x": 0,
-          "y": 30
+          "h": 7,
+          "w": 8,
+          "x": 16,
+          "y": 53
         },
         "id": 11,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -2749,8 +3009,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 12,
-            "valueSize": 18
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value_and_name",
           "wideLayout": true
@@ -2869,16 +3129,16 @@
         },
         "gridPos": {
           "h": 3,
-          "w": 6,
-          "x": 12,
-          "y": 30
+          "w": 8,
+          "x": 16,
+          "y": 60
         },
         "id": 13,
         "options": {
           "colorMode": "background",
           "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
           "percentChangeColorMode": "standard",
           "reduceOptions": {
             "calcs": [
@@ -2889,8 +3149,8 @@
           },
           "showPercentChange": false,
           "text": {
-            "titleSize": 12,
-            "valueSize": 28
+            "titleSize": 16,
+            "valueSize": 32
           },
           "textMode": "value",
           "wideLayout": true
@@ -2925,107 +3185,7 @@
             }
           }
         ],
-        "title": "Ingress code version",
-        "type": "stat"
-      },
-      {
-        "datasource": {
-          "type": "yesoreyeram-infinity-datasource",
-          "uid": "mw-gcp-monitoring"
-        },
-        "description": "Debian receipt pipeline snapshot receipt_pipeline{ingress_review_open}: ingress items waiting for review; orange above 0.",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "decimals": 0,
-            "displayName": "${__field.name}",
-            "mappings": [
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 0,
-                    "text": "No report"
-                  }
-                },
-                "type": "special"
-              }
-            ],
-            "noValue": "No report",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "orange",
-                  "value": 1
-                }
-              ]
-            },
-            "unit": "none"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 3,
-          "w": 6,
-          "x": 18,
-          "y": 30
-        },
-        "id": 14,
-        "options": {
-          "colorMode": "background",
-          "graphMode": "none",
-          "justifyMode": "center",
-          "orientation": "auto",
-          "percentChangeColorMode": "standard",
-          "reduceOptions": {
-            "calcs": [
-              "last"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showPercentChange": false,
-          "text": {
-            "titleSize": 12,
-            "valueSize": 28
-          },
-          "textMode": "value",
-          "wideLayout": true
-        },
-        "targets": [
-          {
-            "columns": [
-              {
-                "selector": "ingress_review_open",
-                "text": "Open ingress reviews",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-gcp-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"ingress_review_open\",\"label\":\"Open ingress reviews\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
-            "source": "url",
-            "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
-            "url_options": {
-              "method": "GET"
-            }
-          }
-        ],
-        "title": "Open ingress reviews",
+        "title": "Webhook receiver · code version",
         "type": "stat"
       }
     ],

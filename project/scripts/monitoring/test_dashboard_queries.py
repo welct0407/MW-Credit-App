@@ -97,8 +97,8 @@ class StateTimeline(unittest.TestCase):
 
 
 class SchedulerAttempts(unittest.TestCase):
-    def q(self, data):
-        return query('scheduler-attempts.jq', data, STATUS_LABEL='status', HTTP_LABEL='http_status', PERIOD='300')
+    def q(self, data, hold=0):
+        return query('scheduler-attempts.jq', data, STATUS_LABEL='status', HTTP_LABEL='http_status', PERIOD='300', HOLD=str(hold))
 
     def bucket(self, age, n, **labels):
         return series([point(age, n)], **labels)
@@ -114,6 +114,19 @@ class SchedulerAttempts(unittest.TestCase):
     def test_no_attempt_is_no_row_not_success(self):
         self.assertEqual(self.q({}), [])
         self.assertEqual(self.q({'timeSeries': [self.bucket(0, 0, status='', http_status='200')]}), [])
+
+    def test_state_holds_until_the_next_expected_run(self):
+        ok = dict(status='', http_status='200')
+        # Hourly job (hold 3 900 s): runs an hour apart stay one continuous state, then empty 65 min after the last.
+        rows = self.q({'timeSeries': [self.bucket(7500, 1, **ok), self.bucket(3900, 1, **ok)]}, hold=3900)
+        self.assertEqual([r['value'] for r in rows], [1, 1, None])
+        self.assertEqual(stamp_s(rows[2]['time']) - stamp_s(rows[1]['time']), 300 + 3900)
+        # Still within the hold: no closing null, the state reaches now.
+        self.assertEqual([r['value'] for r in self.q({'timeSeries': [self.bucket(600, 1, **ok)]}, hold=3900)], [1])
+        # Every-minute job (hold 120 s): a 10-minute pause leaves an empty gap 2 minutes after the last attempt.
+        rows = self.q({'timeSeries': [self.bucket(900, 1, **ok), self.bucket(0, 1, **ok)]}, hold=120)
+        self.assertEqual([r['value'] for r in rows], [1, None, 1])
+        self.assertEqual(stamp_s(rows[1]['time']) - stamp_s(rows[0]['time']), 300 + 120)
 
     def test_gap_between_buckets_is_blank(self):
         rows = self.q({'timeSeries': [self.bucket(3600, 1, status='', http_status='200'), self.bucket(0, 1, status='', http_status='200')]})
@@ -465,7 +478,7 @@ class GeneratedSelectors(unittest.TestCase):
             self.assertNotIn('openai', (DASHBOARDS / (uid + '.json')).read_text().lower(), uid)
 
     def test_recognizer_and_conversation_show_provider_and_model(self):
-        for uid, pid, component in (('mw-pwa', 32, 'recognizer'), ('mw-agent', 6, 'recognizer'), ('mw-agent', 5, 'conversation')):
+        for uid, pid, component in (('mw-pwa', 33, 'recognizer'), ('mw-agent', 12, 'recognizer'), ('mw-agent', 15, 'conversation')):
             p = self.panel(uid, pid)
             t = next(x for x in p['targets'] if x['columns'][0]['selector'] == 'Provider')
             self.assertIn('metric.labels.component = "' + component + '"', urllib.parse.unquote(t['url']))
@@ -563,17 +576,31 @@ class GeneratedSelectors(unittest.TestCase):
             return series([{'interval': {'endTime': dt.datetime.fromtimestamp(end, dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')},
                             'value': {'int64Value': '5'}}], status=status, http_status='200')
         # The bucket ending 3 minutes after the start begins 2 minutes before it: moved to the start, not sticking out left.
+        # The every-minute job's state holds 2 minutes past its last bucket, then the lane is empty (TIMELINE-GAP).
         ev = self.at(sel, start, {'timeSeries': [bucket(start + 180), bucket(start + 480)]})
-        self.assertEqual(ev, [(start, 1), (start + 180, 1), (start + 480, None)])
-        # A bucket that ended before the start carries nothing: its end is the carried (null) event.
+        self.assertEqual(ev, [(start, 1), (start + 180, 1), (start + 600, None)])
+        # A bucket whose hold ended before the start carries nothing: its closing null is the carried event.
         old = self.at(sel, start, {'timeSeries': [bucket(start - 600), bucket(start + 420, 'UNAVAILABLE')]})
-        self.assertEqual(old, [(start, None), (start + 120, 0), (start + 420, None)])
+        self.assertEqual(old, [(start, None), (start + 120, 0), (start + 540, None)])
         self.assert_starts_at(old, start)
         # A bucket starting exactly at the start is the carried event itself.
-        self.assertEqual(self.at(sel, start, {'timeSeries': [bucket(start + 300)]}), [(start, 1), (start + 300, None)])
+        self.assertEqual(self.at(sel, start, {'timeSeries': [bucket(start + 300)]}), [(start, 1), (start + 420, None)])
+
+    def test_daily_and_hourly_jobs_carry_their_last_run_into_the_range(self):
+        rows = self.rows('mw-pwa', 20)
+        start = int(time.time()) - 3 * 3600
+        def bucket(end):
+            return series([{'interval': {'endTime': dt.datetime.fromtimestamp(end, dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')},
+                            'value': {'int64Value': '1'}}], status='', http_status='200')
+        # Daily charges ran 20 h before the range: its state holds (25 h) through the whole range, no gap, no label.
+        daily = self.at(rows['B']['root_selector'].replace('${env}', 'prod'), start, {'timeSeries': [bucket(start - 72000)]})
+        self.assertEqual(daily, [(start, 1)])
+        # Recent analytics ran 70 min before the range: past its 65-minute hold, so the lane starts empty.
+        hourly = self.at(rows['C']['root_selector'].replace('${env}', 'prod'), start, {'timeSeries': [bucket(start - 4200), bucket(start + 600)]})
+        self.assertEqual(hourly[:2], [(start, None), (start + 300, 1)])
 
     def test_cost_budget_cell_and_line(self):
-        cell = self.panel('mw-cost', 5)['targets'][5]['root_selector']
+        cell = self.panel('mw-cost', 8)['targets'][0]['root_selector']
         self.assertEqual(run(cell, {'budgets': [budget()]}), [{'Category': 'Reported costs', 'Budget': 'S$20.00 / month · Budget-GCP · whole billing account'}])
         cents = budget(amount={'specifiedAmount': {'currencyCode': 'SGD', 'units': '12', 'nanos': 50000000}})
         self.assertEqual(run(cell, {'budgets': [cents]})[0]['Budget'], 'S$12.05 / month · Budget-GCP · whole billing account')
@@ -609,19 +636,16 @@ class GeneratedSelectors(unittest.TestCase):
         azure = {'properties': {'rows': [[1.0, ymd, '/vm', 'USD'], [0.5, ymd, '/disk', 'USD']]}}
         backup = {'properties': {'rows': [[0.25, ymd, '/vault', 'USD']]}}
         gcp = {'jobComplete': True, 'rows': [{'f': [{'v': '%.7E' % (key / 1000)}, {'v': '3'}, {'v': '-1'}, {'v': v}, {'v': 'S'}, {'v': 'R'}, {'v': 'SGD'}]} for v in ('2', '0.5')]}
-        start = stamp(10 * 86400)
-        ts = key // 1000 + 3600
-        railway = {'data': {'workspace': {'customer': {'billingPeriod': {'start': start}}},
-                            'services': [{'measurement': 'CPU_USAGE', 'values': [{'ts': ts, 'value': 1}]}], 'volumes': []}}
         fx = {'base': 'USD', 'quote': 'SGD', 'rate': 1.3, 'date': str(dt.datetime.now(dt.timezone.utc).date())}
-        names = {'A': 'Azure compute USD', 'B': 'Azure backup USD', 'C': 'GCP', 'D': 'Railway USD', 'E': 'SGD per USD'}
-        fields = {'A': 'USD', 'B': 'USD', 'C': 'GCP', 'D': 'EstimatedUSD', 'E': 'FX'}
+        names = {'A': 'Azure compute USD', 'B': 'Azure backup USD', 'C': 'GCP', 'E': 'SGD per USD'}
+        fields = {'A': 'USD', 'B': 'USD', 'C': 'GCP', 'E': 'FX'}
+        self.assertEqual(sorted(targets), ['A', 'B', 'C', 'E', 'F'], 'Azure, GCP, FX and the budget line; no Railway query')
 
         def frame(ref, data):
             rows = run(targets[ref]['root_selector'], data)
             return {'fields': ['Time', names[ref]], 'rows': [{'Time': r['Time'], names[ref]: r[fields[ref]]} for r in rows]}
-        frames = {ref: frame(ref, data) for ref, data in (('A', azure), ('B', backup), ('C', gcp), ('D', railway), ('E', fx))}
-        for ref in 'ABCD':
+        frames = {ref: frame(ref, data) for ref, data in (('A', azure), ('B', backup), ('C', gcp), ('E', fx))}
+        for ref in 'ABC':
             self.assertEqual([r['Time'] for r in frames[ref]['rows']], [key], ref + ' keyed by the Singapore date')
         self.assertEqual(len(frames['E']['rows']), 32)
         self.assertIn(key, [r['Time'] for r in frames['E']['rows']])
@@ -631,22 +655,19 @@ class GeneratedSelectors(unittest.TestCase):
             m = merge_by_time([frames[r] for r in present])
             binary(m, 'Azure USD', 'Azure compute USD', '+', 'Azure backup USD')
             binary(m, 'Azure', 'Azure USD', '*', 'SGD per USD')
-            binary(m, 'Railway', 'Railway USD', '*', 'SGD per USD')
             return m, next(r for r in m['rows'] if r['Time'] == key)
-        m, row = chart('ABCDE')
+        m, row = chart('ABCE')
         self.assertAlmostEqual(row['Azure'], 1.75 * 1.3)
         self.assertAlmostEqual(row['GCP'], 2.5)
-        self.assertAlmostEqual(row['Railway'], 0.00000772 * 3600 * 1.3)
         # A failed provider (its query errors, so no frame) draws no series: never a zero series.
-        for missing, gone in (('B', 'Azure'), ('E', 'Azure'), ('E', 'Railway'), ('D', 'Railway')):
-            m, _ = chart(''.join(r for r in 'ABCDE' if r != missing))
+        for missing, gone in (('B', 'Azure'), ('E', 'Azure'), ('C', 'GCP')):
+            m, _ = chart(''.join(r for r in 'ABCE' if r != missing))
             self.assertNotIn(gone, m['fields'], missing + ' missing removes ' + gone)
         for ref, bad in (('A', {'properties': {'rows': [], 'nextLink': 'x'}}), ('A', {'properties': {'rows': [[1, ymd, 'x', 'EUR']]}}),
                          ('C', {'jobComplete': True, 'pageToken': 'x'}), ('C', {'jobComplete': True, 'rows': [{'f': [{'v': '1'}] * 6 + [{'v': 'USD'}]}]}),
-                         ('D', {'errors': [{'message': 'x'}]}), ('E', dict(fx, rate=0)), ('E', dict(fx, base='EUR'))):
+                         ('E', dict(fx, rate=0)), ('E', dict(fx, base='EUR'))):
             with self.assertRaises(ValueError, msg=ref):
                 run(targets[ref]['root_selector'], bad)
-
 
 if __name__ == '__main__':
     unittest.main()
