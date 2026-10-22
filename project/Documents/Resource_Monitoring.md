@@ -58,7 +58,7 @@ The collector imports the worker's read-only `receipt_health.inspect` and export
 
 ## Performance alerts and phone delivery (23 September 2026)
 
-Ten Grafana-managed rules in folder **MW Resource Monitoring Alerts**, group **Performance 2m**, evaluate every two minutes and send firing and resolved notifications to contact point **MW Performance IRM**. The contact point feeds the IRM integration **MW Performance Monitoring**, whose default route triggers **MW owner mobile push** to the owner. No on-call schedule, SMS or external messenger exists. Four rules evaluate several labelled instances; together with the webhook and SQL rules they cover all 23 availability and data tiles. Azure VM-01 uptime has no rule (not 24x7); Cost has no push rules.
+Nine Grafana-managed rules (ten before the OpenAI rule was removed on 22 October 2026, commit `11be21c`, apply as plan-011 pending) in folder **MW Resource Monitoring Alerts**, group **Performance 2m**, evaluate every two minutes and send firing and resolved notifications to contact point **MW Performance IRM**. The contact point feeds the IRM integration **MW Performance Monitoring**, whose default route triggers **MW owner mobile push** to the owner. No on-call schedule, SMS or external messenger exists. Four rules evaluate several labelled instances; together with the webhook and SQL rules they cover all 23 availability and data tiles. Azure VM-01 uptime has no rule (not 24x7); Cost has no push rules.
 
 | Rule | Fires when | Pending |
 |---|---|---|
@@ -66,7 +66,7 @@ Ten Grafana-managed rules in folder **MW Resource Monitoring Alerts**, group **P
 | Debian component unhealthy (`afz3o5cmmfabkb`) | One instance for each of 12 components (`tunnel`, `tailscale_node`, `webhook_local`, `oltp`, `olap`, `conversations`, `receipts`, `polling`, `daily_jobs`, `database`, `audit_relay`, `codex_ready`): fresh DOWN or DEGRADED; receipts and polling also page on missing, stale (>6 min), future (>2 min), invalid or Unknown; no-data and query errors alert. Fresh Paused does not page | 4 min |
 | Metabase component unhealthy (`ffzb4act1o0zka`) | Five instances (Platform, App DB, Reporting DB, Charts, PITR); fresh DOWN or DEGRADED. Unknown, missing and stale do not page. Selector `metabase-alert.jq` | 4 min |
 | Metabase scheduled backup unhealthy (`mw-metabase-backup-health`) | Daily and Weekly instances; missing schedule or overdue scheduled snapshot, with first-run grace | 4 min |
-| OpenAI product status impaired (`efz3obf98zksga`) | ChatGPT and Codex instances; non-operational component or matching active incident. Invalid or missing data makes the tile Unknown and does not page | 10 min |
+| ~~OpenAI product status impaired~~ (`efz3obf98zksga`), removed on the owner's decision of 22 October 2026 (OpenAI no longer required; commit `11be21c`, plan-011 apply pending) | Was: ChatGPT and Codex instances; non-operational component or matching active incident. `status.openai.com` stays on `mw-public-status` until the previous Performance dashboard's retirement batch | 10 min |
 | Cloud SQL connection pressure | Five-minute backend count above **160** of `max_connections` 200 | 10 min |
 | Cloud SQL CPU sustained high | Five-minute mean CPU above **85%** | 10 min |
 | Cloud SQL used memory high | Five-minute mean `database/memory/components` Usage above **85%** | 10 min |

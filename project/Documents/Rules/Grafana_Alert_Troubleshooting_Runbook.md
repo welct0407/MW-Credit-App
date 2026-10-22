@@ -56,7 +56,7 @@ Preserve the installed package, service switches, cutoffs, review requirements, 
 
 ## 3. Select the alert path
 
-Group PWA 2m (12 rules, R089) is in section 4.7. The Performance 2m records reconcile to **10 rules**: the original nine plus the documented 26 September scheduled-backup addition. Four rules have multiple component instances; together with webhook and SQL connection checks, they cover the 23 availability/data tiles. Four additional capacity rules cover CPU/RAM. The deleted grouped rule `dfz3jpfj9qebkc` is superseded and must not be restored as incident recovery.
+Group PWA 2m (12 rules, R089) is in section 4.7. The Performance 2m records reconcile to **9 rules** after the owner removed the OpenAI product status rule on 22 October 2026 (commit `11be21c`, plan-011 apply pending; it was 10: the original nine plus the documented 26 September scheduled-backup addition). Four rules have multiple component instances; together with webhook and SQL connection checks, they cover the 23 availability/data tiles. Four additional capacity rules cover CPU/RAM. The deleted grouped rule `dfz3jpfj9qebkc` is superseded and must not be restored as incident recovery.
 
 All rules are documented in **MW Resource Monitoring Alerts / Performance 2m**, evaluating every two minutes over a rolling ten-minute window ending now. Pending periods below precede firing; they are not repair deadlines or guaranteed notification latency. Existing delivery is through **MW Performance IRM → MW Performance Monitoring → MW owner mobile push**. The saved additive bridge route and native connection are recorded in the [bridge reference](../Grafana_MCP_Events_Bridge.md); this document does not retest delivery.
 
@@ -66,7 +66,7 @@ All rules are documented in **MW Resource Monitoring Alerts / Performance 2m**, 
 | Debian component unhealthy | `afz3o5cmmfabkb` | 12 separate components: fresh Down/Degraded; receipts/polling also missing, stale, invalid or Unknown / 4 min | 4.2–4.3, 6 |
 | Metabase component unhealthy | `ffzb4act1o0zka` | Five components: four Live checks plus PITR, fresh Down/Degraded / 4 min | 4.4 |
 | Metabase scheduled backup unhealthy | `mw-metabase-backup-health` | Daily/Weekly schedule missing or backup overdue, respecting first-run grace / 4 min | 4.5 |
-| OpenAI product status impaired | `efz3obf98zksga` | ChatGPT/Codex product component non-operational or matching active incident / 10 min | 4.6 |
+| ~~OpenAI product status impaired~~ (removed 22 October 2026, commit `11be21c`) | `efz3obf98zksga` | Was: ChatGPT/Codex product component non-operational or matching active incident / 10 min | 4.6 (historical) |
 | Cloud SQL connection pressure | `efz3jt5gcrbpca` | Five-minute aligned backend count summed across databases **>160**, configured limit 200 / 10 min | 5.1 |
 | Cloud SQL CPU sustained high | `efz3jvnnv8zcwb` | Five-minute mean utilization **>0.85 (85%)** / 10 min | 5.1 |
 | Cloud SQL used memory high | `afz3jy61wh3i8e` | Five-minute mean `database/memory/components`, **Usage >85%** / 10 min | 5.1 |
@@ -150,7 +150,7 @@ The [2 October correction](../Resource_Monitoring.md#receipt-processing-versus-o
 4. Present the last usable scheduled recovery point, the gap and the cause/evidence. Follow the [documented backup setup](../../Change%20Logs/CHANGE_NOTES_RAILWAY_PRO_BACKUPS_2026-09-26.md) for context. Schedule/retention changes, manual backup operations and restores require their applicable authorization; do not delete snapshots or count a manual snapshot as schedule recovery.
 5. Verify a subsequent qualifying scheduled snapshot and current schedule identity before declaring this alert recovered. A listed snapshot or healthy PITR archive is not proof of a successful restore, and neither protects Cloud SQL business data or runtime secrets by itself.
 
-### 4.6 OpenAI product status impaired
+### 4.6 OpenAI product status impaired (rule removed 22 October 2026; historical)
 
 1. Identify ChatGPT or Codex and inspect its matching active incident/component on the [official status page](https://status.openai.com), linked from the tile. Record incident stage, latest provider update and Grafana's Checked time separately.
 2. Check whether the incident matches the observed affected workflow. This alert describes published provider status; it does not test this user's login, subscription, quota or actual inference. Compare local `codex_ready` only when relevant.

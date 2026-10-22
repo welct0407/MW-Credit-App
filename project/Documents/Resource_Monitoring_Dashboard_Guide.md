@@ -134,7 +134,7 @@ Time zone Asia/Bangkok for display; provider day rules are unchanged (Azure UTC 
 
 ### Alerts linked to the new dashboards
 
-The ten Performance 2m rules keep their names, labels and conditions; the webhook rule now reads the Singapore checker series only. The group PWA 2m (twelve rules, applied paused, then unpaused after 24 hours without a false firing) is in the [operating alert reference](Resource_Monitoring.md#pwa-2m-alert-group-r089); each rule's query is the selector of its Now panel reduced to a 0/1 value, so panel and rule cannot disagree.
+The nine remaining Performance 2m rules keep their names, labels and conditions (the OpenAI product status rule `efz3obf98zksga` was removed on 22 October 2026 on the owner's decision, commit `11be21c`, apply pending); the webhook rule now reads the Singapore checker series only. The group PWA 2m (twelve rules, applied paused, then unpaused after 24 hours without a false firing) is in the [operating alert reference](Resource_Monitoring.md#pwa-2m-alert-group-r089); each rule's query is the selector of its Now panel reduced to a 0/1 value, so panel and rule cannot disagree.
 
 | Rule | Now panel | Depth dashboard |
 | --- | --- | --- |
@@ -157,7 +157,7 @@ Performance (`mw-resource-performance`, version 41), Cost (`mw-resource-cost`, v
 
 ## Performance — alerts linked to visuals
 
-Ten rules evaluate every two minutes over a rolling ten-minute window ending now, independent of the time picker. Thresholds, labels and no-data policy are in the [operating alert reference](Resource_Monitoring.md#performance-alerts-and-phone-delivery-23-september-2026).
+Nine rules (the OpenAI product status rule was removed on 22 October 2026, commit `11be21c`) evaluate every two minutes over a rolling ten-minute window ending now, independent of the time picker. Thresholds, labels and no-data policy are in the [operating alert reference](Resource_Monitoring.md#performance-alerts-and-phone-delivery-23-september-2026).
 
 | Visual IDs | Alert condition | Pending |
 |---|---|---|
