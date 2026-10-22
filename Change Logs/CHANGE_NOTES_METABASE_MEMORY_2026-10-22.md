@@ -5,6 +5,7 @@ Railway Metabase memory sat at about 1.9 GB of its 2.0 GB per-replica cap after 
 
 ## Changes
 - Diagnosis: the chart spike to about 3.6–4 GB between 11:19Z and 12:43Z was old and new containers counted together during four redeploys (encryption-key work), not a leak. The JVM heap stays healthy (768 MB maximum, about 0.4–0.7 GB in use); the remainder is outside the heap.
+- History (7-day Railway metrics against the deployment list): a long-running container sat at about 1.38–1.40 GB until the 16 October 19:42Z deployment, the only real deployment between then and today (no Metabase file change; a manual deployment). Memory then held about 1.95 GB for about 10 hours, relaxed to about 1.75 GB a day later and to about 1.5 GB from 18 October. Today's restarts repeat the same jump. The rise follows container restarts, not a configuration change; the current 1.9 GB is expected to relax the same way.
 - Railway Metabase (production, service `2959d509-c829-4420-8650-e72827d88170`): added `MALLOC_ARENA_MAX=2` and set `JAVA_OPTS=-Xmx768m -XX:ActiveProcessorCount=2 -XX:ReservedCodeCacheSize=128m -XX:MaxDirectMemorySize=128m`. One new deployment on the unchanged source commit; no other variable, limit or source changed.
 - `project/scripts/metabase/README.md`: current runtime settings.
 
@@ -26,4 +27,4 @@ Remove `MALLOC_ARENA_MAX` and set `JAVA_OPTS=-Xmx768m -XX:ActiveProcessorCount=2
 - Raise the 2.0 GB cap or retune the memory pressure alert, if the reported figure is mostly reclaimable file cache.
 
 ## Remaining work
-Re-read memory after a few hours of normal use and decide the next step with the owner.
+Re-read memory about 32 hours after the 13:19Z restart (scheduled 23 October 21:00Z) and decide the next step with the owner: retune the alert for post-restart warm-up if memory has relaxed, otherwise raise the cap.
