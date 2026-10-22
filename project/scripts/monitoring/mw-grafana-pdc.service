@@ -1,0 +1,31 @@
+[Unit]
+Description=Grafana Private Data Source Connect agent (R090: Cost page reads mw_agent question costs)
+Documentation=https://grafana.com/docs/grafana-cloud/connect-externally-hosted/private-data-source-connect/
+After=network-online.target cloud-sql-auth-proxy.service
+Wants=network-online.target
+
+[Service]
+# Outbound SSH tunnel to Grafana Cloud only; no listening port. The token, cluster and hosted Grafana ID
+# come from the root-only environment file as GCLOUD_PDC_* variables, never from the command line.
+User=mwpdc
+Group=mwpdc
+EnvironmentFile=/etc/mw-grafana-pdc/pdc.env
+Environment=HOME=/var/lib/mw-grafana-pdc
+StateDirectory=mw-grafana-pdc
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/mw-grafana-pdc
+ExecStart=/opt/mw-grafana-pdc/pdc
+Restart=always
+RestartSec=15
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+MemoryMax=128M
+
+[Install]
+WantedBy=multi-user.target
