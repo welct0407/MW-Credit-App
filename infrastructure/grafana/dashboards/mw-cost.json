@@ -977,7 +977,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "Query host for the top row: today's provider sums in SGD (Azure, GCP, Railway, ECB rate) and the GCP budget. Daily ECB reference conversion, not transaction-date FX. Native-currency cost details remain below. Railway cycle is independent of the date picker; GCP status is live query coverage, not a static setup note.",
+        "description": "Query host for the top row: today's provider sums in SGD (Azure, GCP, Railway, ECB rate) and the GCP budget Budget-GCP read live from the Cloud Billing Budget API (monthly amount, name and scope: it covers the whole billing account, while GCP here is this project only; no such budget reads \"no budget\", never 0). Daily ECB reference conversion, not transaction-date FX. Native-currency cost details remain below. Railway cycle is independent of the date picker; GCP status is live query coverage, not a static setup note.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1358,7 +1358,6 @@
                 "type": "string"
               }
             ],
-            "data": "{\"Category\":\"Reported costs\",\"budget\":\"${gcp_budget_sgd}\"}",
             "datasource": {
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
@@ -1366,10 +1365,10 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "F",
-            "root_selector": "{Category, Budget: (if (.budget | test(\"^[0-9]+([.][0-9]+)?$\")) then (\"S$ \" + .budget + \" / month\") else \"not created yet (ALL-COST-01)\" end)}",
-            "source": "inline",
+            "root_selector": "def money: (. * 100 | round) as $c | ($c / 100 | floor) as $u | ($u | tostring) + \".\" + (($c - $u * 100) | tostring | if length < 2 then \"0\" + . else . end);\n(\n# GCP budget \"Budget-GCP\" from the Cloud Billing Budget API v1\n# (GET billingbudgets.googleapis.com/v1/billingAccounts/<account>/budgets), one row:\n#   Name   display name, null when none\n#   Kind   \"specified\", \"last period\" or \"none\" (no budget named Budget-GCP; never 0)\n#   SGD    monthly amount, units + nanos / 1e9, null unless Kind is \"specified\"\n#   Scope  \"whole billing account\" (no project filter) or the projects it is limited to\n# Errors, never a value: provider error, truncated list (nextPageToken), unreadable response,\n# several budgets named Budget-GCP, a budget that is not monthly, a currency other than SGD.\nif type != \"object\" then error(\"Budget response unavailable\")\nelif .error then error(\"Budget API error: \" + ((.error.message // .error.status // .error) | tostring))\nelif (.nextPageToken // \"\") != \"\" then error(\"Budget list truncated\")\nelif (.budgets // []) | type != \"array\" then error(\"Budget response unavailable\")\nelse\n  [(.budgets // [])[] | select(.displayName == \"Budget-GCP\")] as $mine |\n  if ($mine | length) == 0 then {Name: null, Kind: \"none\", SGD: null, Scope: null}\n  elif ($mine | length) > 1 then error(\"Several GCP budgets named Budget-GCP\")\n  else\n    $mine[0] as $b | $b.displayName as $name |\n    ((($b.budgetFilter.projects // []) | if length == 0 then \"whole billing account\" else \"projects \" + join(\", \") end) +\n      (if (($b.budgetFilter.services // []) | length) > 0 then \" · selected services\" else \"\" end)) as $scope |\n    if $b.budgetFilter.customPeriod != null or ($b.budgetFilter.calendarPeriod // \"MONTH\") != \"MONTH\" then error(\"GCP budget \" + $name + \" is not monthly\")\n    elif $b.amount.lastPeriodAmount != null then {Name: $name, Kind: \"last period\", SGD: null, Scope: $scope}\n    elif ($b.amount.specifiedAmount | type) != \"object\" then error(\"GCP budget \" + $name + \" has no amount\")\n    elif $b.amount.specifiedAmount.currencyCode != \"SGD\" then error(\"GCP budget currency is not SGD\")\n    else {Name: $name, Kind: \"specified\", Scope: $scope,\n      SGD: ((($b.amount.specifiedAmount.units // \"0\") | tonumber) + (($b.amount.specifiedAmount.nanos // 0) / 1000000000))}\n    end\n  end\nend\n) |\n{Category: \"Reported costs\", Budget: (if .Kind == \"specified\" then \"S$\" + (.SGD | money) + \" / month · \" + .Name + \" · \" + .Scope elif .Kind == \"last period\" then \"last period amount · \" + .Name + \" · \" + .Scope else \"no budget\" end)}",
+            "source": "url",
             "type": "json",
-            "url": "",
+            "url": "https://billingbudgets.googleapis.com/v1/billingAccounts/0125EC-78CB0F-A74AAD/budgets",
             "url_options": {
               "method": "GET"
             }
@@ -1589,15 +1588,14 @@
       },
       {
         "datasource": {
-          "type": "yesoreyeram-infinity-datasource",
-          "uid": "mw-gcp-monitoring"
+          "type": "mixed",
+          "uid": "-- Mixed --"
         },
-        "description": "SGD. BigQuery billing export, net = cost + credits per Singapore date for the last 30 days, independent of the picker (same 100 MB billed-query cap). Red dashed line = the GCP budget ÷ days in month once gcp_budget_sgd is set (ALL-COST-01); no line until then.",
+        "description": "SGD per Singapore date for the last 30 days, independent of the picker, stacked: Azure (blue, Cost Management, both resource groups, provider UTC days), GCP (orange, BigQuery billing export, net = cost + credits, same 100 MB billed-query cap) and Railway (purple, estimated compute + volume from published rates, current billing cycle only). Azure and Railway USD are converted at the current ECB USD/SGD reference rate shown in Coverage and FX, one rate for every day, as the month-to-date tiles do. A platform that cannot be read shows the panel error badge and draws no bars, never zero; a day a platform has not reported draws no bar. Red dashed line = the GCP budget Budget-GCP (Budget API, monthly SGD amount) ÷ the days of that month, drawn only when it has a fixed amount. The budget covers the whole billing account while the GCP bars are this project only (the export is filtered to clever-oasis-508610-n7), so the line is a reference, not like-for-like if another project bills to the account.",
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "#FF9830",
-              "mode": "fixed"
+              "mode": "palette-classic"
             },
             "custom": {
               "axisBorderShow": false,
@@ -1622,7 +1620,7 @@
               "spanNulls": false,
               "stacking": {
                 "group": "A",
-                "mode": "none"
+                "mode": "normal"
               },
               "thresholdsStyle": {
                 "mode": "off"
@@ -1647,7 +1645,52 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Budget ÷ days"
+                "options": "Azure"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#5794F2",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "GCP"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#FF9830",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Railway"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#B877D9",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "GCP budget (billing account) / day"
               },
               "properties": [
                 {
@@ -1674,30 +1717,17 @@
                 {
                   "id": "custom.fillOpacity",
                   "value": 0
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "A"
-              },
-              "properties": [
+                },
                 {
-                  "id": "displayName",
-                  "value": "GCP net"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "B"
-              },
-              "properties": [
+                  "id": "custom.lineWidth",
+                  "value": 2
+                },
                 {
-                  "id": "displayName",
-                  "value": "Budget ÷ days"
+                  "id": "custom.stacking",
+                  "value": {
+                    "group": "A",
+                    "mode": "none"
+                  }
                 }
               ]
             }
@@ -1705,7 +1735,7 @@
         },
         "gridPos": {
           "h": 9,
-          "w": 8,
+          "w": 16,
           "x": 0,
           "y": 5
         },
@@ -1718,22 +1748,96 @@
             "showLegend": true
           },
           "tooltip": {
-            "hideZeros": false,
+            "hideZeros": true,
             "mode": "multi",
-            "sort": "desc"
+            "sort": "none"
           }
         },
         "targets": [
           {
             "columns": [
               {
-                "selector": "time",
+                "selector": "Time",
                 "text": "Time",
                 "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
-                "text": "GCP net",
+                "selector": "USD",
+                "text": "Azure compute USD",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-azure-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else\n  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\") | fromdateiso8601) - 28800) * 1000), USD: .[0]}] |\n  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end",
+            "source": "url",
+            "type": "json",
+            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
+              "headers": [
+                {
+                  "key": "ClientType",
+                  "value": "MWCreditGrafanaMonitoring"
+                }
+              ],
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "USD",
+                "text": "Azure backup USD",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-azure-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else\n  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\") | fromdateiso8601) - 28800) * 1000), USD: .[0]}] |\n  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end",
+            "source": "url",
+            "type": "json",
+            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
+              "headers": [
+                {
+                  "key": "ClientType",
+                  "value": "MWCreditGrafanaMonitoring"
+                }
+              ],
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "GCP",
+                "text": "GCP",
                 "type": "number"
               }
             ],
@@ -1741,10 +1845,10 @@
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
             },
-            "format": "timeseries",
+            "format": "table",
             "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "[\nif (.jobComplete != true) then error(\"Billing query is still running; refresh later\") elif .pageToken then error(\"Billing result truncated; shorten time range\") else .rows[]? | {Date:(if .f[0].v == null then null else ((.f[0].v|tonumber)*1000) end),Gross:(.f[1].v|if .==null then null else tonumber end),Credits:(.f[2].v|if .==null then null else tonumber end),Net:(.f[3].v|if .==null then null else tonumber end),Service:.f[4].v,Resource:.f[5].v,Currency:.f[6].v} end] | map(select(.Net != null and .Date != null)) | group_by(.Date) | map({time: .[0].Date, value: (map(.Net) | add)}) | .[]",
+            "refId": "C",
+            "root_selector": "[\nif (.jobComplete != true) then error(\"Billing query is still running; refresh later\") elif .pageToken then error(\"Billing result truncated; shorten time range\") else .rows[]? | {Date:(if .f[0].v == null then null else ((.f[0].v|tonumber)*1000) end),Gross:(.f[1].v|if .==null then null else tonumber end),Credits:(.f[2].v|if .==null then null else tonumber end),Net:(.f[3].v|if .==null then null else tonumber end),Service:.f[4].v,Resource:.f[5].v,Currency:.f[6].v} end] | if any(.[]; .Currency != null and .Currency != \"SGD\") then error(\"Unexpected GCP currency\") else\n  map(select(.Net != null and .Date != null)) | group_by(.Date)[] | {Time: .[0].Date, GCP: (map(.Net) | add)} end",
             "source": "url",
             "type": "json",
             "url": "https://bigquery.googleapis.com/bigquery/v2/projects/clever-oasis-508610-n7/queries",
@@ -1758,35 +1862,176 @@
           {
             "columns": [
               {
-                "selector": "time",
+                "selector": "Time",
                 "text": "Time",
                 "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
-                "text": "Budget ÷ days",
+                "selector": "EstimatedUSD",
+                "text": "Railway USD",
                 "type": "number"
               }
             ],
-            "data": "{\"budget\":\"${gcp_budget_sgd}\"}",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "def seconds: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef rate:\n  if . == \"CPU_USAGE\" then 0.00000772\n  elif . == \"MEMORY_USAGE_GB\" then 0.00000386\n  elif . == \"DISK_USAGE_GB\" then 0.00000006\n  else null end;\nif .errors then error(.errors | tostring)\nelif .data.workspace.customer.billingPeriod.start == null then error(\"Railway billing period unavailable\")\nelif .data.services == null or .data.volumes == null then error(\"Railway usage metrics unavailable\")\nelse\n  (.data.workspace.customer.billingPeriod.start | seconds) as $cycle_start |\n  [(.data.services[]?, .data.volumes[]?) | .measurement as $measurement |\n    ($measurement | rate) as $rate |\n    select($rate != null) |\n    .values[]? | select(.ts >= $cycle_start) |\n    {day:((((.ts + 28800) / 86400 | floor) * 86400 - 28800) * 1000),\n     cost:(.value * 3600 * $rate)}] |\n  group_by(.day)[] |\n  {Time:.[0].day, EstimatedUSD:(map(.cost)|add)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"query {\\n  workspace(workspaceId:\\\"39dfde08-39a7-4ebf-a9ad-a7701d65fc55\\\") { customer { billingPeriod { start } } }\\n  services:metrics(workspaceId:\\\"39dfde08-39a7-4ebf-a9ad-a7701d65fc55\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_USAGE,MEMORY_USAGE_GB],groupBy:[SERVICE_ID],sampleRateSeconds:3600,averagingWindowSeconds:3600) {measurement values{ts value}}\\n  volumes:metrics(workspaceId:\\\"39dfde08-39a7-4ebf-a9ad-a7701d65fc55\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[DISK_USAGE_GB],groupBy:[VOLUME_ID],sampleRateSeconds:3600,averagingWindowSeconds:3600) {measurement values{ts value}}\\n}\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "FX",
+                "text": "SGD per USD",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "efz19dcu6cwzka"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "E",
+            "root_selector": "def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; 32) | $t - . * 86400;\n(\nif .base!=\"USD\" or .quote!=\"SGD\" or (.rate|type)!=\"number\" or .rate<=0 then error(\"Invalid USD/SGD reference rate\") elif (now-(.date+\"T00:00:00Z\"|fromdateiso8601))>604800 then error(\"FX reference older than seven days\") else {Category:\"Reported costs\",FX:.rate,FXDate:.date} end\n) | .FX as $fx | sgtdays | {Time: (. * 1000), FX: $fx}",
+            "source": "url",
+            "type": "json",
+            "url": "https://api.frankfurter.dev/v2/providers/ecb/rate/USD/SGD",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "Budget",
+                "text": "GCP budget (billing account) / day",
+                "type": "number"
+              }
+            ],
             "datasource": {
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
             },
-            "format": "timeseries",
+            "format": "table",
             "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "if (.budget | test(\"^[0-9]+([.][0-9]+)?$\") | not) then empty else (now | gmtime) as $g |\n  ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400) as $days |\n  ((.budget | tonumber) / $days) as $daily |\n  {time: ((now - 30 * 86400) * 1000 | floor), value: $daily}, {time: (now * 1000 | floor), value: $daily} end",
-            "source": "inline",
+            "refId": "F",
+            "root_selector": "def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; 32) | $t - . * 86400;\ndef monthdays: (. + 28800 | gmtime) as $g | ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400);\n(\n# GCP budget \"Budget-GCP\" from the Cloud Billing Budget API v1\n# (GET billingbudgets.googleapis.com/v1/billingAccounts/<account>/budgets), one row:\n#   Name   display name, null when none\n#   Kind   \"specified\", \"last period\" or \"none\" (no budget named Budget-GCP; never 0)\n#   SGD    monthly amount, units + nanos / 1e9, null unless Kind is \"specified\"\n#   Scope  \"whole billing account\" (no project filter) or the projects it is limited to\n# Errors, never a value: provider error, truncated list (nextPageToken), unreadable response,\n# several budgets named Budget-GCP, a budget that is not monthly, a currency other than SGD.\nif type != \"object\" then error(\"Budget response unavailable\")\nelif .error then error(\"Budget API error: \" + ((.error.message // .error.status // .error) | tostring))\nelif (.nextPageToken // \"\") != \"\" then error(\"Budget list truncated\")\nelif (.budgets // []) | type != \"array\" then error(\"Budget response unavailable\")\nelse\n  [(.budgets // [])[] | select(.displayName == \"Budget-GCP\")] as $mine |\n  if ($mine | length) == 0 then {Name: null, Kind: \"none\", SGD: null, Scope: null}\n  elif ($mine | length) > 1 then error(\"Several GCP budgets named Budget-GCP\")\n  else\n    $mine[0] as $b | $b.displayName as $name |\n    ((($b.budgetFilter.projects // []) | if length == 0 then \"whole billing account\" else \"projects \" + join(\", \") end) +\n      (if (($b.budgetFilter.services // []) | length) > 0 then \" · selected services\" else \"\" end)) as $scope |\n    if $b.budgetFilter.customPeriod != null or ($b.budgetFilter.calendarPeriod // \"MONTH\") != \"MONTH\" then error(\"GCP budget \" + $name + \" is not monthly\")\n    elif $b.amount.lastPeriodAmount != null then {Name: $name, Kind: \"last period\", SGD: null, Scope: $scope}\n    elif ($b.amount.specifiedAmount | type) != \"object\" then error(\"GCP budget \" + $name + \" has no amount\")\n    elif $b.amount.specifiedAmount.currencyCode != \"SGD\" then error(\"GCP budget currency is not SGD\")\n    else {Name: $name, Kind: \"specified\", Scope: $scope,\n      SGD: ((($b.amount.specifiedAmount.units // \"0\") | tonumber) + (($b.amount.specifiedAmount.nanos // 0) / 1000000000))}\n    end\n  end\nend\n) as $b |\nif $b.Kind != \"specified\" then empty elif $b.Scope != \"whole billing account\" then error(\"GCP budget scope is \" + $b.Scope + \", not the whole billing account\") else sgtdays | {Time: (. * 1000), Budget: ($b.SGD / monthdays)} end",
+            "source": "url",
             "type": "json",
-            "url": "",
+            "url": "https://billingbudgets.googleapis.com/v1/billingAccounts/0125EC-78CB0F-A74AAD/budgets",
             "url_options": {
               "method": "GET"
             }
           }
         ],
         "timeFrom": "30d",
-        "title": "GCP daily · 30 d",
+        "title": "Daily cost · 30 d",
+        "transformations": [
+          {
+            "id": "merge",
+            "options": {}
+          },
+          {
+            "id": "calculateField",
+            "options": {
+              "alias": "Azure USD",
+              "binary": {
+                "left": "Azure compute USD",
+                "operator": "+",
+                "right": "Azure backup USD"
+              },
+              "mode": "binary",
+              "replaceFields": false
+            }
+          },
+          {
+            "id": "calculateField",
+            "options": {
+              "alias": "Azure",
+              "binary": {
+                "left": "Azure USD",
+                "operator": "*",
+                "right": "SGD per USD"
+              },
+              "mode": "binary",
+              "replaceFields": false
+            }
+          },
+          {
+            "id": "calculateField",
+            "options": {
+              "alias": "Railway",
+              "binary": {
+                "left": "Railway USD",
+                "operator": "*",
+                "right": "SGD per USD"
+              },
+              "mode": "binary",
+              "replaceFields": false
+            }
+          },
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {
+                "names": [
+                  "Time",
+                  "Azure",
+                  "GCP",
+                  "Railway",
+                  "GCP budget (billing account) / day"
+                ]
+              }
+            }
+          },
+          {
+            "id": "organize",
+            "options": {
+              "indexByName": {
+                "Azure": 1,
+                "GCP": 2,
+                "GCP budget (billing account) / day": 4,
+                "Railway": 3,
+                "Time": 0
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "desc": false,
+                  "field": "Time"
+                }
+              ]
+            }
+          }
+        ],
         "type": "timeseries"
       },
       {
@@ -1884,275 +2129,6 @@
         "title": "GCP by service · net",
         "transformations": [],
         "type": "table"
-      },
-      {
-        "datasource": {
-          "type": "mixed",
-          "uid": "-- Mixed --"
-        },
-        "description": "Azure Cost Management daily cost by provider UTC day (both resource groups) and the Railway estimated daily compute + volume from published rates within the current cycle (today's panels 103 and 305 queries), USD, following the picker.",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "bars",
-              "fillOpacity": 80,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 4,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "never",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "decimals": 2,
-            "displayName": "${__field.name}",
-            "min": 0,
-            "noValue": "No data",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                }
-              ]
-            },
-            "unit": "currencyUSD"
-          },
-          "overrides": [
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Azure rg-mwcredit"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "#5794F2",
-                    "mode": "fixed"
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Azure backup"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "#8AB8FF",
-                    "mode": "fixed"
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Railway estimate"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "#B877D9",
-                    "mode": "fixed"
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "A"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Azure rg-mwcredit"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "B"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Azure backup"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "C"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Railway estimate"
-                }
-              ]
-            }
-          ]
-        },
-        "gridPos": {
-          "h": 9,
-          "w": 8,
-          "x": 8,
-          "y": 5
-        },
-        "id": 8,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "hideZeros": false,
-            "mode": "multi",
-            "sort": "desc"
-          }
-        },
-        "targets": [
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp"
-              },
-              {
-                "selector": "value",
-                "text": "Azure rg-mwcredit",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "[\nif .properties.nextLink then error(\"Cost response truncated; shorten time range\") else .properties.rows[] | {Date:((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\"),Cost:.[0],Resource:(.[2]|split(\"/\")|last),Currency:.[3]} end] | group_by(.Date) | map({time: .[0].Date, value: (map(.Cost) | add)}) | .[]",
-            "source": "url",
-            "type": "json",
-            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-              "headers": [
-                {
-                  "key": "ClientType",
-                  "value": "MWCreditGrafanaMonitoring"
-                }
-              ],
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp"
-              },
-              {
-                "selector": "value",
-                "text": "Azure backup",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-azure-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "[\nif .properties.nextLink then error(\"Cost response truncated; shorten time range\") else .properties.rows[] | {Date:((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\"),Cost:.[0],Resource:(.[2]|split(\"/\")|last),Currency:.[3]} end] | group_by(.Date) | map({time: .[0].Date, value: (map(.Cost) | add)}) | .[]",
-            "source": "url",
-            "type": "json",
-            "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"timeframe\":\"Custom\",\"dataset\":{\"grouping\":[{\"type\":\"Dimension\",\"name\":\"ResourceId\"}],\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"granularity\":\"Daily\"},\"timePeriod\":{\"to\":\"${__timeTo:date:iso}\",\"from\":\"${__timeFrom:date:iso}\"},\"type\":\"ActualCost\"}",
-              "headers": [
-                {
-                  "key": "ClientType",
-                  "value": "MWCreditGrafanaMonitoring"
-                }
-              ],
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "Time",
-                "text": "Time",
-                "type": "timestamp_epoch"
-              },
-              {
-                "selector": "EstimatedUSD",
-                "text": "Railway estimate",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-railway-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "C",
-            "root_selector": "def seconds: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef rate:\n  if . == \"CPU_USAGE\" then 0.00000772\n  elif . == \"MEMORY_USAGE_GB\" then 0.00000386\n  elif . == \"DISK_USAGE_GB\" then 0.00000006\n  else null end;\nif .errors then error(.errors | tostring)\nelif .data.workspace.customer.billingPeriod.start == null then error(\"Railway billing period unavailable\")\nelif .data.services == null or .data.volumes == null then error(\"Railway usage metrics unavailable\")\nelse\n  (.data.workspace.customer.billingPeriod.start | seconds) as $cycle_start |\n  [(.data.services[]?, .data.volumes[]?) | .measurement as $measurement |\n    ($measurement | rate) as $rate |\n    select($rate != null) |\n    .values[]? | select(.ts >= $cycle_start) |\n    {day:((((.ts + 28800) / 86400 | floor) * 86400 - 28800) * 1000),\n     cost:(.value * 3600 * $rate)}] |\n  group_by(.day)[] |\n  {Time:.[0].day, EstimatedUSD:(map(.cost)|add)}\nend\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://backboard.railway.com/graphql/v2",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"query\":\"query {\\n  workspace(workspaceId:\\\"39dfde08-39a7-4ebf-a9ad-a7701d65fc55\\\") { customer { billingPeriod { start } } }\\n  services:metrics(workspaceId:\\\"39dfde08-39a7-4ebf-a9ad-a7701d65fc55\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_USAGE,MEMORY_USAGE_GB],groupBy:[SERVICE_ID],sampleRateSeconds:3600,averagingWindowSeconds:3600) {measurement values{ts value}}\\n  volumes:metrics(workspaceId:\\\"39dfde08-39a7-4ebf-a9ad-a7701d65fc55\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[DISK_USAGE_GB],groupBy:[VOLUME_ID],sampleRateSeconds:3600,averagingWindowSeconds:3600) {measurement values{ts value}}\\n}\"}",
-              "method": "POST"
-            }
-          }
-        ],
-        "title": "Azure + Railway daily · USD",
-        "type": "timeseries"
       },
       {
         "description": "How to read every figure on this dashboard: Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date and Railway always shows its current cycle, so the top row is not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.",
@@ -4239,16 +4215,7 @@
       "mw-credit"
     ],
     "templating": {
-      "list": [
-        {
-          "hide": 2,
-          "label": "GCP budget (SGD per month)",
-          "name": "gcp_budget_sgd",
-          "query": "",
-          "skipUrlSync": true,
-          "type": "constant"
-        }
-      ]
+      "list": []
     },
     "time": {
       "from": "now/M",

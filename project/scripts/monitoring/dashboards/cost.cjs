@@ -24,10 +24,9 @@ function source() {
   const p = L.lift(COST, 3, {id: SOURCE, gridPos: pos(19, 0, 5, 5), title: 'Coverage and FX', panelIds: {2: SOURCE}});
   const queries = L.findPanel(COST, 2).targets.map(t => structuredClone(t));
   p.datasource = DS.mixed;
-  p.description = 'Query host for the top row: today\'s provider sums in SGD (Azure, GCP, Railway, ECB rate) and the GCP budget. ' + p.description;
+  p.description = 'Query host for the top row: today\'s provider sums in SGD (Azure, GCP, Railway, ECB rate) and the GCP budget Budget-GCP read live from the Cloud Billing Budget API (monthly amount, name and scope: it covers the whole billing account, while GCP here is this project only; no such budget reads "no budget", never 0). ' + p.description;
   p.targets = [...queries,
-    L.inlineTarget('F', DS.gcp, {Category: 'Reported costs', budget: '${gcp_budget_sgd}'},
-      '{Category, Budget: (if (.budget | test("^[0-9]+([.][0-9]+)?$")) then ("S$ " + .budget + " / month") else "not created yet (ALL-COST-01)" end)}',
+    target('F', DS.gcp, BUDGET_URL, budgetCellSelector(),
       [col('Category', 'Category', 'string'), col('Budget', 'GCP budget', 'string')])];
   const filter = p.transformations.find(t => t.id === 'filterFieldsByName');
   filter.options.include.names.push('GCP budget', 'Coverage');
@@ -99,39 +98,71 @@ function platform(oldId, id, x, title) {
   return p;
 }
 
-function gcpDaily() {
-  const t = L.liftTarget(COST, 201);
-  const daily = {...t, format: 'timeseries', root_selector: '[\n' + t.root_selector + '] | map(select(.Net != null and .Date != null)) | group_by(.Date) | map({time: .[0].Date, value: (map(.Net) | add)}) | .[]',
-    columns: [col('time', 'Time', 'timestamp_epoch'), col('value', 'GCP net')],
-    url_options: replaceWindow(t, "usage_start_time >= TIMESTAMP(DATE_SUB(CURRENT_DATE('Asia/Singapore'), INTERVAL 30 DAY), 'Asia/Singapore')")};
-  const budget = L.inlineTarget('B', DS.gcp, {budget: '${gcp_budget_sgd}'},
-    'if (.budget | test("^[0-9]+([.][0-9]+)?$") | not) then empty else (now | gmtime) as $g |\n' +
-    '  ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400) as $days |\n' +
-    '  ((.budget | tonumber) / $days) as $daily |\n  {time: ((now - 30 * 86400) * 1000 | floor), value: $daily}, {time: (now * 1000 | floor), value: $daily} end',
-    [col('time', 'Time', 'timestamp_epoch'), col('value', 'Budget ÷ days')], 'timeseries');
-  return L.timeseries({id: 6, title: 'GCP daily · 30 d', gridPos: pos(0, 5, 8, 9),
-    description: 'SGD. BigQuery billing export, net = cost + credits per Singapore date for the last 30 days, independent of the picker (same 100 MB billed-query cap). Red dashed line = the GCP budget ÷ days in month once gcp_budget_sgd is set (ALL-COST-01); no line until then.',
-    targets: [{...daily, refId: 'A'}, budget], datasource: DS.gcp,
-    defaults: {...SGD, min: 0, noValue: 'No data', custom: {drawStyle: 'bars', fillOpacity: 80, lineWidth: 1}, color: {fixedColor: '#FF9830', mode: 'fixed'}},
-    overrides: [byName('Budget ÷ days', {color: {fixedColor: 'red', mode: 'fixed'}, 'custom.drawStyle': 'line', 'custom.lineStyle': {dash: [10, 10], fill: 'dash'}, 'custom.fillOpacity': 0})],
-    extra: {timeFrom: '30d'}});
+/* COST-2 (owner decision): one stacked daily chart in SGD for the last 30 days, Azure + GCP + Railway.
+ * Every query keys its rows by the Singapore date at 00:00 SGT (epoch ms) under one field Time, so the merge
+ * transformation (as today's panel 2 merges on Category) puts one date on one row. Azure and Railway are
+ * converted with the month-to-date tiles' rule: today's panel 2 query E (current ECB USD/SGD reference, one
+ * rate for every day, repeated on each date row) and the same binary calculateField steps. A query that fails
+ * leaves its field out, so the binary step that needs it adds no series and the panel shows the error badge;
+ * nothing is drawn as zero for a failed provider. */
+const DAILY_DAYS = 32; // FX and budget rows cover every Singapore date the 30-day window can touch.
+const DAY_KEYS = 'def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; ' + DAILY_DAYS + ') | $t - . * 86400;\n';
+const LAST_30_DAYS = "usage_start_time >= TIMESTAMP(DATE_SUB(CURRENT_DATE('Asia/Singapore'), INTERVAL 30 DAY), 'Asia/Singapore')";
+const BUDGET = 'GCP budget (billing account) / day';
+const DAILY_SERIES = [['Azure', '#5794F2'], ['GCP', '#FF9830'], ['Railway', '#B877D9']];
+const BUDGET_URL = 'https://billingbudgets.googleapis.com/v1/billingAccounts/0125EC-78CB0F-A74AAD/budgets';
+const budgetQuery = () => '(\n' + jq('budget.jq') + ')';
+// Coverage and FX cell: "S$20.00 / month · Budget-GCP · whole billing account"; no Budget-GCP is "no budget", never 0.
+function budgetCellSelector() {
+  return 'def money: (. * 100 | round) as $c | ($c / 100 | floor) as $u | ($u | tostring) + "." + (($c - $u * 100) | tostring | if length < 2 then "0" + . else . end);\n' +
+    budgetQuery() + ' |\n{Category: "Reported costs", Budget: (if .Kind == "specified" then "S$" + (.SGD | money) + " / month · " + .Name + " · " + .Scope ' +
+    'elif .Kind == "last period" then "last period amount · " + .Name + " · " + .Scope else "no budget" end)}';
 }
-
-function azureRailwayDaily() {
-  const azure = [0, 1].map(i => {
-    const t = structuredClone(L.findPanel(COST, 101).targets[i]);
-    return {...t, refId: String.fromCharCode(65 + i), format: 'timeseries',
-      root_selector: '[\n' + t.root_selector + '] | group_by(.Date) | map({time: .[0].Date, value: (map(.Cost) | add)}) | .[]',
-      columns: [col('time', 'Time', 'timestamp'), col('value', i === 0 ? 'Azure rg-mwcredit' : 'Azure backup')]};
-  });
-  const railway = {...L.liftTarget(COST, 305), refId: 'C'};
-  railway.columns = [railway.columns[0], {...railway.columns[1], text: 'Railway estimate'}];
-  return L.timeseries({id: 8, title: 'Azure + Railway daily · USD', gridPos: pos(8, 5, 8, 9),
-    description: 'Azure Cost Management daily cost by provider UTC day (both resource groups) and the Railway estimated daily compute + volume from published rates within the current cycle (today\'s panels 103 and 305 queries), USD, following the picker.',
-    targets: [...azure, railway], datasource: DS.mixed,
-    defaults: {unit: 'currencyUSD', decimals: 2, min: 0, noValue: 'No data', custom: {drawStyle: 'bars', fillOpacity: 80, lineWidth: 1}},
-    overrides: [byName('Azure rg-mwcredit', {color: {fixedColor: '#5794F2', mode: 'fixed'}}), byName('Azure backup', {color: {fixedColor: '#8AB8FF', mode: 'fixed'}}),
-      byName('Railway estimate', {color: {fixedColor: '#B877D9', mode: 'fixed'}})]});
+// Daily chart line: the monthly amount ÷ the days of each date's Singapore month; no row (no line) unless a fixed amount
+// exists. The series is labelled billing account, so a budget narrowed to projects or services fails visibly instead.
+function budgetLineSelector() {
+  return DAY_KEYS + 'def monthdays: (. + 28800 | gmtime) as $g | ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400);\n' +
+    budgetQuery() + ' as $b |\nif $b.Kind != "specified" then empty elif $b.Scope != "whole billing account" then error("GCP budget scope is " + $b.Scope + ", not the whole billing account") else sgtdays | {Time: (. * 1000), Budget: ($b.SGD / monthdays)} end';
+}
+function dailyCost() {
+  const [azureCompute, azureBackup, , , fx] = L.findPanel(COST, 2).targets.map(t => structuredClone(t));
+  for (const t of [azureCompute, azureBackup]) if (JSON.parse(t.url_options.data).timeframe !== 'Custom') throw Error('Azure query must keep its Custom window');
+  // Same Custom timePeriod as the tiles; the panel's relative time 30d sets it to the last 30 days.
+  const azure = (t, refId, name) => ({...t, refId,
+    root_selector: 'if .properties.nextLink then error("Cost response truncated; shorten time range") elif (.properties.rows|type)!="array" then error("Azure cost response unavailable") elif any(.properties.rows[];.[3]!="USD") then error("Unexpected Azure currency") else\n' +
+      '  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+"-"+.[4:6]+"-"+.[6:8]+"T00:00:00Z") | fromdateiso8601) - 28800) * 1000), USD: .[0]}] |\n' +
+      '  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end',
+    columns: [col('Time', 'Time', 'timestamp_epoch'), col('USD', name)]});
+  const g = L.liftTarget(COST, 201);
+  const gcp = {...g, refId: 'C',
+    root_selector: '[\n' + g.root_selector + '] | if any(.[]; .Currency != null and .Currency != "SGD") then error("Unexpected GCP currency") else\n' +
+      '  map(select(.Net != null and .Date != null)) | group_by(.Date)[] | {Time: .[0].Date, GCP: (map(.Net) | add)} end',
+    columns: [col('Time', 'Time', 'timestamp_epoch'), col('GCP', 'GCP')],
+    url_options: replaceWindow(g, LAST_30_DAYS)};
+  const r = L.liftTarget(COST, 305);
+  const railway = {...r, refId: 'D', format: 'table', columns: [col('Time', 'Time', 'timestamp_epoch'), col('EstimatedUSD', 'Railway USD')]};
+  const rate = {...fx, refId: 'E',
+    root_selector: DAY_KEYS + '(\n' + fx.root_selector + '\n) | .FX as $fx | sgtdays | {Time: (. * 1000), FX: $fx}',
+    columns: [col('Time', 'Time', 'timestamp_epoch'), col('FX', 'SGD per USD')]};
+  const budget = target('F', DS.gcp, BUDGET_URL, budgetLineSelector(), [col('Time', 'Time', 'timestamp_epoch'), col('Budget', BUDGET)]);
+  const binary = (alias, left, operator, right) => ({id: 'calculateField', options: {alias, binary: {left, operator, right}, mode: 'binary', replaceFields: false}});
+  return L.timeseries({id: 6, title: 'Daily cost · 30 d', gridPos: pos(0, 5, 16, 9),
+    description: 'SGD per Singapore date for the last 30 days, independent of the picker, stacked: Azure (blue, Cost Management, both resource groups, provider UTC days), GCP (orange, BigQuery billing export, net = cost + credits, same 100 MB billed-query cap) and Railway (purple, estimated compute + volume from published rates, current billing cycle only). Azure and Railway USD are converted at the current ECB USD/SGD reference rate shown in Coverage and FX, one rate for every day, as the month-to-date tiles do. A platform that cannot be read shows the panel error badge and draws no bars, never zero; a day a platform has not reported draws no bar. Red dashed line = the GCP budget Budget-GCP (Budget API, monthly SGD amount) ÷ the days of that month, drawn only when it has a fixed amount. The budget covers the whole billing account while the GCP bars are this project only (the export is filtered to clever-oasis-508610-n7), so the line is a reference, not like-for-like if another project bills to the account.',
+    targets: [azure(azureCompute, 'A', 'Azure compute USD'), azure(azureBackup, 'B', 'Azure backup USD'), gcp, railway, rate, budget], datasource: DS.mixed,
+    transformations: [{id: 'merge', options: {}},
+      binary('Azure USD', 'Azure compute USD', '+', 'Azure backup USD'),
+      binary('Azure', 'Azure USD', '*', 'SGD per USD'),
+      binary('Railway', 'Railway USD', '*', 'SGD per USD'),
+      {id: 'filterFieldsByName', options: {include: {names: ['Time', ...DAILY_SERIES.map(([name]) => name), BUDGET]}}},
+      {id: 'organize', options: {indexByName: {Time: 0, Azure: 1, GCP: 2, Railway: 3, [BUDGET]: 4}}},
+      {id: 'sortBy', options: {fields: {}, sort: [{desc: false, field: 'Time'}]}}],
+    defaults: {...SGD, min: 0, noValue: 'No data', custom: {drawStyle: 'bars', fillOpacity: 80, lineWidth: 1, stacking: {group: 'A', mode: 'normal'}}},
+    overrides: [...DAILY_SERIES.map(([name, color]) => byName(name, {color: {fixedColor: color, mode: 'fixed'}})),
+      byName(BUDGET, {color: {fixedColor: 'red', mode: 'fixed'}, 'custom.drawStyle': 'line', 'custom.lineStyle': {dash: [10, 10], fill: 'dash'},
+        'custom.fillOpacity': 0, 'custom.lineWidth': 2, 'custom.stacking': {group: 'A', mode: 'none'}})],
+    // The merge fills a date a platform has not reported with null, which the binary steps turn into 0: keep those out of the tooltip.
+    options: {tooltip: {hideZeros: true, mode: 'multi', sort: 'none'}},
+    extra: {timeFrom: '30d'}});
 }
 
 function byService() {
@@ -187,8 +218,7 @@ function build() {
   return L.dashboard({uid: 'mw-cost', description: 'Cloud spending month to date in SGD with every provider detail in collapsed rows.',
     time: {from: 'now/M', to: 'now'}, refresh: '1h',
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
-    templating: [{hide: 2, label: 'GCP budget (SGD per month)', name: 'gcp_budget_sgd', query: '', skipUrlSync: true, type: 'constant'}],
-    panels: [total(), lastMonth(), platform(5, 2, 7, 'Azure'), platform(6, 3, 11, 'GCP'), platform(7, 4, 15, 'Railway'), source(), gcpDaily(), byService(), azureRailwayDaily(),
+    panels: [total(), lastMonth(), platform(5, 2, 7, 'Azure'), platform(6, 3, 11, 'GCP'), platform(7, 4, 15, 'Railway'), source(), dailyCost(), byService(),
       rules(),
       providerRow(10, L.findPanel(COST, 306).title, 20, 306, [102, 103, 104, 101, 110]),
       providerRow(20, L.findPanel(COST, 307).title, 21, 307, [202, 203, 204, 205, 207, 206, 201]),

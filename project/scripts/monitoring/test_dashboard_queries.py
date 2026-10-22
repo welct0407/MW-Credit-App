@@ -299,6 +299,76 @@ class CostQueries(unittest.TestCase):
                 query('gcp-by-service.jq', bad)
 
 
+def budget(name='Budget-GCP', projects=None, amount=None, period='MONTH'):
+    """Shape of the live list response (22 Oct 2026): no projects filter, units a string, nanos absent when 0."""
+    f = {'calendarPeriod': period, 'creditTypesTreatment': 'INCLUDE_ALL_CREDITS'}
+    if projects is not None:
+        f['projects'] = list(projects)
+    return {'name': 'billingAccounts/0125EC-78CB0F-A74AAD/budgets/026a78dc-' + name.lower(), 'displayName': name, 'budgetFilter': f,
+            'amount': amount or {'specifiedAmount': {'currencyCode': 'SGD', 'units': '20'}},
+            'thresholdRules': [{'spendBasis': 'CURRENT_SPEND', 'thresholdPercent': p} for p in (0.5, 0.9, 1)]}
+
+
+class BudgetQuery(unittest.TestCase):
+    """budget.jq on the Cloud Billing Budget API v1 list response."""
+    def q(self, data):
+        return query('budget.jq', data)
+
+    def test_specified_monthly_budget(self):
+        self.assertEqual(self.q({'budgets': [budget()]}), [{'Name': 'Budget-GCP', 'Kind': 'specified', 'SGD': 20, 'Scope': 'whole billing account'}])
+        cents = budget(amount={'specifiedAmount': {'currencyCode': 'SGD', 'units': '20', 'nanos': 500000000}}, projects=['projects/737787224638'])
+        self.assertEqual(self.q({'budgets': [cents]})[0], {'Name': 'Budget-GCP', 'Kind': 'specified', 'SGD': 20.5, 'Scope': 'projects projects/737787224638'})
+
+    def test_two_budgets_keep_budget_gcp(self):
+        other = budget('Other', amount={'specifiedAmount': {'currencyCode': 'SGD', 'units': '99'}})
+        self.assertEqual(self.q({'budgets': [other, budget()]})[0]['SGD'], 20)
+        with self.assertRaises(ValueError):
+            self.q({'budgets': [budget(), budget()]})
+
+    def test_none_is_no_budget_not_zero(self):
+        for data in ({}, {'budgets': []}, {'budgets': [budget('Other')]}):
+            self.assertEqual(self.q(data), [{'Name': None, 'Kind': 'none', 'SGD': None, 'Scope': None}])
+
+    def test_last_period_amount_has_no_fixed_amount(self):
+        self.assertEqual(self.q({'budgets': [budget(amount={'lastPeriodAmount': {}})]}),
+                         [{'Name': 'Budget-GCP', 'Kind': 'last period', 'SGD': None, 'Scope': 'whole billing account'}])
+
+    def test_non_sgd_non_monthly_truncated_and_error_fail_visibly(self):
+        bad = ({'budgets': [budget(amount={'specifiedAmount': {'currencyCode': 'USD', 'units': '20'}})]},
+               {'budgets': [budget(amount={'specifiedAmount': {'units': '20'}})]},
+               {'budgets': [budget(period='QUARTER')]},
+               {'budgets': [budget()], 'nextPageToken': 'more'},
+               {'error': {'code': 403, 'message': 'denied', 'status': 'PERMISSION_DENIED'}},
+               {'budgets': {}}, [])
+        for data in bad:
+            with self.assertRaises(ValueError, msg=data):
+                self.q(data)
+
+
+def sgt_midnight_ms(date):
+    return int(dt.datetime(date.year, date.month, date.day, tzinfo=dt.timezone(dt.timedelta(hours=8))).timestamp()) * 1000
+
+
+def merge_by_time(frames):
+    """Grafana merge on the shared Time field: one row per date, null where a frame has no row."""
+    names = [n for f in frames for n in f['fields']]
+    rows = {}
+    for f in frames:
+        for r in f['rows']:
+            rows.setdefault(r['Time'], {n: None for n in names}).update(r)
+    return {'fields': ['Time'] + [n for n in names if n != 'Time'], 'rows': [rows[t] for t in sorted(rows)]}
+
+
+def binary(frame, alias, left, op, right):
+    """Grafana calculateField binary: no field when an input field is missing; JS null arithmetic otherwise."""
+    if left not in frame['fields'] or right not in frame['fields']:
+        return
+    frame['fields'].append(alias)
+    for r in frame['rows']:
+        a, b = r[left] or 0, r[right] or 0
+        r[alias] = a + b if op == '+' else a * b
+
+
 class GeneratedSelectors(unittest.TestCase):
     """Composite selectors exactly as the builder wrote them into the dashboards."""
     def panel(self, uid, pid):
@@ -354,6 +424,81 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertEqual(run(targets[4]['root_selector'], backups)[0]['details'], '💾 Daily backup — Healthy · 2 hours old')
         for t in targets:
             self.assertNotIn('\n', run(t['root_selector'], {})[0]['details'])
+
+    def test_cost_budget_cell_and_line(self):
+        cell = self.panel('mw-cost', 5)['targets'][5]['root_selector']
+        self.assertEqual(run(cell, {'budgets': [budget()]}), [{'Category': 'Reported costs', 'Budget': 'S$20.00 / month · Budget-GCP · whole billing account'}])
+        cents = budget(amount={'specifiedAmount': {'currencyCode': 'SGD', 'units': '12', 'nanos': 50000000}})
+        self.assertEqual(run(cell, {'budgets': [cents]})[0]['Budget'], 'S$12.05 / month · Budget-GCP · whole billing account')
+        self.assertEqual(run(cell, {})[0]['Budget'], 'no budget')
+        self.assertEqual(run(cell, {'budgets': [budget(amount={'lastPeriodAmount': {}})]})[0]['Budget'], 'last period amount · Budget-GCP · whole billing account')
+        line = next(t for t in self.panel('mw-cost', 6)['targets'] if t['refId'] == 'F')['root_selector']
+        rows = run(line, {'budgets': [budget()]})
+        self.assertEqual(len(rows), 32)
+        for r in rows:
+            d = dt.datetime.fromtimestamp(r['Time'] / 1000, dt.timezone(dt.timedelta(hours=8)))
+            self.assertEqual((d.hour, d.minute), (0, 0))
+            first = d.date().replace(day=1)
+            days = ((first + dt.timedelta(days=32)).replace(day=1) - first).days
+            self.assertAlmostEqual(r['Budget'], 20 / days)
+        self.assertEqual(run(line, {}), [])
+        self.assertEqual(run(line, {'budgets': [budget(amount={'lastPeriodAmount': {}})]}), [])
+        for bad in ({'nextPageToken': 'x'}, {'error': {'message': 'denied'}}, {'budgets': [budget(amount={'specifiedAmount': {'currencyCode': 'USD', 'units': '1'}})]}):
+            for sel in (cell, line):
+                with self.assertRaises(ValueError):
+                    run(sel, bad)
+        # The line is labelled billing account: a budget narrowed to a project fails visibly, the cell names its scope.
+        narrowed = {'budgets': [budget(projects=['projects/737787224638'])]}
+        with self.assertRaises(ValueError):
+            run(line, narrowed)
+        self.assertEqual(run(cell, narrowed)[0]['Budget'], 'S$20.00 / month · Budget-GCP · projects projects/737787224638')
+
+    def test_cost_daily_chart_joins_by_singapore_date_and_converts_at_tiles_fx(self):
+        targets = {t['refId']: t for t in self.panel('mw-cost', 6)['targets']}
+        today = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).date()
+        day = today - dt.timedelta(days=3)
+        key = sgt_midnight_ms(day)
+        ymd = int(day.strftime('%Y%m%d'))
+        azure = {'properties': {'rows': [[1.0, ymd, '/vm', 'USD'], [0.5, ymd, '/disk', 'USD']]}}
+        backup = {'properties': {'rows': [[0.25, ymd, '/vault', 'USD']]}}
+        gcp = {'jobComplete': True, 'rows': [{'f': [{'v': '%.7E' % (key / 1000)}, {'v': '3'}, {'v': '-1'}, {'v': v}, {'v': 'S'}, {'v': 'R'}, {'v': 'SGD'}]} for v in ('2', '0.5')]}
+        start = stamp(10 * 86400)
+        ts = key // 1000 + 3600
+        railway = {'data': {'workspace': {'customer': {'billingPeriod': {'start': start}}},
+                            'services': [{'measurement': 'CPU_USAGE', 'values': [{'ts': ts, 'value': 1}]}], 'volumes': []}}
+        fx = {'base': 'USD', 'quote': 'SGD', 'rate': 1.3, 'date': str(dt.datetime.now(dt.timezone.utc).date())}
+        names = {'A': 'Azure compute USD', 'B': 'Azure backup USD', 'C': 'GCP', 'D': 'Railway USD', 'E': 'SGD per USD'}
+        fields = {'A': 'USD', 'B': 'USD', 'C': 'GCP', 'D': 'EstimatedUSD', 'E': 'FX'}
+
+        def frame(ref, data):
+            rows = run(targets[ref]['root_selector'], data)
+            return {'fields': ['Time', names[ref]], 'rows': [{'Time': r['Time'], names[ref]: r[fields[ref]]} for r in rows]}
+        frames = {ref: frame(ref, data) for ref, data in (('A', azure), ('B', backup), ('C', gcp), ('D', railway), ('E', fx))}
+        for ref in 'ABCD':
+            self.assertEqual([r['Time'] for r in frames[ref]['rows']], [key], ref + ' keyed by the Singapore date')
+        self.assertEqual(len(frames['E']['rows']), 32)
+        self.assertIn(key, [r['Time'] for r in frames['E']['rows']])
+        self.assertTrue(all(r['SGD per USD'] == 1.3 for r in frames['E']['rows']), 'one current rate for every day')
+
+        def chart(present):
+            m = merge_by_time([frames[r] for r in present])
+            binary(m, 'Azure USD', 'Azure compute USD', '+', 'Azure backup USD')
+            binary(m, 'Azure', 'Azure USD', '*', 'SGD per USD')
+            binary(m, 'Railway', 'Railway USD', '*', 'SGD per USD')
+            return m, next(r for r in m['rows'] if r['Time'] == key)
+        m, row = chart('ABCDE')
+        self.assertAlmostEqual(row['Azure'], 1.75 * 1.3)
+        self.assertAlmostEqual(row['GCP'], 2.5)
+        self.assertAlmostEqual(row['Railway'], 0.00000772 * 3600 * 1.3)
+        # A failed provider (its query errors, so no frame) draws no series: never a zero series.
+        for missing, gone in (('B', 'Azure'), ('E', 'Azure'), ('E', 'Railway'), ('D', 'Railway')):
+            m, _ = chart(''.join(r for r in 'ABCDE' if r != missing))
+            self.assertNotIn(gone, m['fields'], missing + ' missing removes ' + gone)
+        for ref, bad in (('A', {'properties': {'rows': [], 'nextLink': 'x'}}), ('A', {'properties': {'rows': [[1, ymd, 'x', 'EUR']]}}),
+                         ('C', {'jobComplete': True, 'pageToken': 'x'}), ('C', {'jobComplete': True, 'rows': [{'f': [{'v': '1'}] * 6 + [{'v': 'USD'}]}]}),
+                         ('D', {'errors': [{'message': 'x'}]}), ('E', dict(fx, rate=0)), ('E', dict(fx, base='EUR'))):
+            with self.assertRaises(ValueError, msg=ref):
+                run(targets[ref]['root_selector'], bad)
 
 
 if __name__ == '__main__':

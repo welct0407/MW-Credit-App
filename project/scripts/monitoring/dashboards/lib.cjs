@@ -54,7 +54,8 @@ const ALLOWED_DATASOURCE_UIDS = [
 ];
 const ALLOWED_URL_HOSTS = [
   'monitoring.googleapis.com', 'bigquery.googleapis.com', 'management.azure.com',
-  'backboard.railway.com', 'status.openai.com', 'api.frankfurter.dev', 'status.cloud.google.com'
+  'backboard.railway.com', 'status.openai.com', 'api.frankfurter.dev', 'status.cloud.google.com',
+  'billingbudgets.googleapis.com'
 ];
 
 const FROM = '${__timeFrom:date:iso}';
@@ -198,9 +199,14 @@ function queryName(t) {
   const values = (t.columns || []).filter(c => !/^timestamp/.test(c.type));
   return values.length === 1 ? values[0].text : null;
 }
+function joinsFrames(panel) {
+  return (panel.transformations || []).some(t => t.id === 'joinByField' || t.id === 'merge');
+}
 function nameQueries(panel) {
   const targets = panel.targets || [];
   if (panel.type !== 'timeseries' || targets.length < 2) return panel;
+  // Joined panels draw one frame: series names are its field names, so a per-query name would rename them all.
+  if (joinsFrames(panel)) return panel;
   panel.fieldConfig = panel.fieldConfig || {defaults: {}, overrides: []};
   const overrides = panel.fieldConfig.overrides || [];
   const named = new Set(overrides.filter(o => o.matcher.id === 'byFrameRefID' && o.properties.some(p => p.id === 'displayName')).map(o => o.matcher.options));
@@ -411,7 +417,7 @@ module.exports = {
   NUM_BACKENDS_DATABASE_LABEL, ALERT_FOLDER_UID, LOG_METRIC, STALE_SECONDS, ALIGNED_STALE_SECONDS, DASHBOARD_UIDS,
   DASHBOARD_TITLES, DS, ALLOWED_DATASOURCE_UIDS, ALLOWED_URL_HOSTS, FROM, TO, CHART_PERIOD, COLOR, STATE_TEXT,
   stateMappings, valueMap, nullMap, steps, encodeFilter, monitoringUrl, customFilter, sqlFilter, labelClause, col, target,
-  inlineTarget, jq, receiptFields, stateSelector, canonical, findPanel, lift, liftTarget, nameQueries, queryName, PERF, COST, PWA_PLATFORM,
+  inlineTarget, jq, receiptFields, stateSelector, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,
   timeseriesDefaults, dashedLine, table, row, text, sortKeys, serialize, healthRow, workerRow, probeRow, webhookRow, sqlUpRow,
   schedulerFilter, schedulerSelector, schedulerRow, openAiWorstSelector, providerStatus

@@ -27,7 +27,7 @@ function checkGrid(uid, panels) {
   }
 }
 function interpolate(selector) {
-  return selector.replaceAll('${env}', 'prod').replaceAll('${__from}', '0').replaceAll('${__to}', '1').replaceAll('${gcp_budget_sgd}', '');
+  return selector.replaceAll('${env}', 'prod').replaceAll('${__from}', '0').replaceAll('${__to}', '1');
 }
 
 for (const uid of L.DASHBOARD_UIDS) {
@@ -93,7 +93,7 @@ for (const uid of L.DASHBOARD_UIDS) {
         assert.ok(L.ALLOWED_URL_HOSTS.includes(host), uid + ' panel ' + p.id + ' host ' + host);
       }
       assert.ok(!/__[A-Z_]+__/.test(t.root_selector || ''), uid + ' panel ' + p.id + ' unreplaced placeholder');
-      assert.ok(!/\$\{(?!__timeFrom:date:iso\}|__timeTo:date:iso\}|env\}|__from\}|__to\}|gcp_budget_sgd\})/.test(t.url + (t.url_options?.data || '') + (t.data || '') + (t.root_selector || '')),
+      assert.ok(!/\$\{(?!__timeFrom:date:iso\}|__timeTo:date:iso\}|env\}|__from\}|__to\})/.test(t.url + (t.url_options?.data || '') + (t.data || '') + (t.root_selector || '')),
         uid + ' panel ' + p.id + ' only known variables');
       if (jqAvailable && t.root_selector) {
         const r = spawnSync(jqPath, ['-n', 'def __probe: ' + interpolate(t.root_selector) + '\n; 1'], {encoding: 'utf8'});
@@ -115,9 +115,15 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
   }
 }
 // RECHECK-2: every multi-query timeseries, lifted or built, names each query explicitly (no "A Used" legends).
+// A panel that merges or joins its frames draws one frame named by its fields instead (Cost daily chart).
 let namedTimeseries = 0;
 for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
   if (p.type !== 'timeseries' || (p.targets || []).length < 2) continue;
+  if (L.joinsFrames(p)) {
+    assert.ok(!(p.fieldConfig.overrides || []).some(o => o.matcher.id === 'byFrameRefID'), uid + ' panel ' + p.id + ' merged frame has no per-query names');
+    assert.equal(p.fieldConfig.defaults.displayName, '${__field.name}', uid + ' panel ' + p.id + ' series named by field');
+    continue;
+  }
   const names = new Map((p.fieldConfig.overrides || []).filter(o => o.matcher.id === 'byFrameRefID')
     .flatMap(o => o.properties.filter(x => x.id === 'displayName').map(x => [o.matcher.options, x.value])));
   for (const t of p.targets) assert.ok(typeof names.get(t.refId) === 'string' && names.get(t.refId).trim() && !/^[A-Z] /.test(names.get(t.refId)),
@@ -181,6 +187,51 @@ for (const [uid, old, id] of [['mw-agent', 108, 2], ['mw-infra', 31, 1], ['mw-in
   const p = allPanels(built[uid].spec).find(e => e.panel.id === id).panel;
   assert.deepEqual(p.targets.map(t => t.root_selector), L.findPanel(old === 201 ? L.COST : L.PERF, old).targets.map(t => t.root_selector), uid + ' ' + id + ' lifted selectors');
 }
+// COST-2 (owner decision): one stacked daily chart in SGD (Azure blue, GCP orange, Railway purple) replaces
+// GCP daily (SGD) and Azure + Railway daily (USD); the GCP budget is read live from the Budget API.
+const daily = cost.panels.filter(p => p.type === 'timeseries');
+assert.equal(daily.length, 1, 'Cost has one daily chart');
+const chart = daily[0];
+assert.equal(chart.id, 6);
+assert.ok(!cost.panels.some(p => p.id === 8), 'Azure + Railway daily · USD is gone');
+assert.equal(chart.timeFrom, '30d', 'daily chart is a fixed 30-day window');
+assert.equal(chart.fieldConfig.defaults.unit, 'prefix:S$', 'daily chart unit SGD');
+assert.equal(chart.fieldConfig.defaults.custom.drawStyle, 'bars');
+assert.deepEqual(chart.fieldConfig.defaults.custom.stacking, {group: 'A', mode: 'normal'});
+const colour = name => chart.fieldConfig.overrides.find(o => o.matcher.id === 'byName' && o.matcher.options === name)?.properties.find(x => x.id === 'color')?.value.fixedColor;
+assert.deepEqual(['Azure', 'GCP', 'Railway'].map(colour), ['#5794F2', '#FF9830', '#B877D9'], 'Azure blue, GCP orange, Railway purple');
+const budgetLine = chart.fieldConfig.overrides.find(o => o.matcher.options === 'GCP budget (billing account) / day');
+assert.ok(budgetLine && budgetLine.properties.some(x => x.id === 'custom.stacking' && x.value.mode === 'none'), 'budget line is not stacked');
+const kept = chart.transformations.find(t => t.id === 'filterFieldsByName').options.include.names;
+assert.deepEqual(kept, ['Time', 'Azure', 'GCP', 'Railway', 'GCP budget (billing account) / day'], 'daily series Azure, GCP, Railway and the budget line');
+assert.equal(chart.transformations[0].id, 'merge', 'daily frames merged on Time');
+for (const t of chart.targets) assert.equal(t.columns[0].selector, 'Time', 'daily query ' + t.refId + ' keyed by Time');
+// Conversion: the tiles' FX query (mw-public-fx) with the tiles' binary steps.
+const tilesFx = L.findPanel(L.COST, 2).targets[4];
+const fxTarget = chart.targets.find(t => t.refId === 'E');
+assert.equal(fxTarget.datasource.uid, 'efz19dcu6cwzka');
+assert.equal(fxTarget.url, tilesFx.url);
+assert.ok(fxTarget.root_selector.includes(tilesFx.root_selector), 'daily FX keeps the tiles\' FX rule');
+const binaries = chart.transformations.filter(t => t.id === 'calculateField').map(t => t.options.binary);
+assert.deepEqual(binaries, L.findPanel(L.COST, 2).transformations.filter(t => t.id === 'calculateField').map(t => t.options.binary), 'same conversion steps as the tiles');
+assert.ok(JSON.parse(chart.targets.find(t => t.refId === 'C').url_options.data).query.includes("DATE_SUB(CURRENT_DATE('Asia/Singapore'), INTERVAL 30 DAY)"), 'GCP fixed 30-day window');
+for (const id of ['A', 'B']) assert.equal(JSON.parse(chart.targets.find(t => t.refId === id).url_options.data).timeframe, 'Custom');
+// No USD unit on the Cost page itself (the collapsed provider rows keep their native detail units).
+for (const p of cost.panels) assert.ok(!/currencyUSD|"unit":"[^"]*USD/.test(JSON.stringify(p.fieldConfig || {})), 'mw-cost panel ' + p.id + ' has no USD unit');
+// Budget from budget.jq on the Budget API, in the chart and the Coverage and FX cell; no constant left.
+assert.ok(!L.serialize(built['mw-cost']).includes('gcp_budget_sgd'), 'no gcp_budget_sgd');
+assert.deepEqual(cost.templating.list, [], 'Cost has no budget constant');
+const budgetJq = L.jq('budget.jq');
+for (const t of [chart.targets.find(x => x.refId === 'F'), host.targets.find(x => x.refId === 'F')]) {
+  assert.equal(t.datasource.uid, 'mw-gcp-monitoring');
+  assert.equal(t.url, 'https://billingbudgets.googleapis.com/v1/billingAccounts/0125EC-78CB0F-A74AAD/budgets');
+  assert.equal((t.url_options.method || 'GET'), 'GET');
+  assert.ok(t.root_selector.includes(budgetJq), 'budget query ' + t.refId + ' uses budget.jq');
+}
+assert.ok(host.transformations.find(t => t.id === 'filterFieldsByName').options.include.names.includes('GCP budget'));
+// Layout: rows fill 24 columns and the daily chart sits beside GCP by service.
+const second = cost.panels.filter(p => p.gridPos.y === 5);
+assert.deepEqual(second.map(p => [p.id, p.gridPos.x, p.gridPos.w]), [[6, 0, 16], [7, 16, 8]], 'Cost second row');
 
 console.log(JSON.stringify({dashboards: L.DASHBOARD_UIDS.length, panels: L.DASHBOARD_UIDS.map(u => allPanels(built[u].spec).length),
   jqCompiled: jqAvailable ? compiled : 'skipped (jq not found)', passed: true}));
