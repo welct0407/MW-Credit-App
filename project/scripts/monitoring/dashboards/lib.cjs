@@ -200,7 +200,7 @@ function jq(file, substitutions = {}) {
   if (left) throw Error(file + ' placeholder left: ' + left[0]);
   return text;
 }
-// Selectors from the existing builders, instantiated exactly as payment-dashboard.js does.
+// Selectors from the retired Performance builder, instantiated exactly as it did.
 function receiptFields(fields) {
   return '[ ' + jq('receipt-pipeline.jq', {FIELDS: fields.map(([key, label]) => ({key, label}))}) +
     ' ] | map({key:.key,value:.value}) | from_entries';

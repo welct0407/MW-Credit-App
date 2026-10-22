@@ -74,32 +74,6 @@ resource "grafana_apps_dashboard_dashboard_v2" "existing" {
 }
 
 
-# R090 owner decision (22 Oct 2026): the three previous dashboards are retired. Their
-# instances move out of the protected resource and are destroyed once; prevent_destroy
-# stays on every live dashboard. Their last JSON is kept as the builder's source under
-# project/scripts/monitoring/dashboards/retired/ (and Grafana keeps deleted dashboards
-# under Recently deleted). Keep these blocks until after the apply, then drop them.
-moved {
-  from = grafana_apps_dashboard_dashboard_v1beta1.existing["mw-resource-performance"]
-  to   = grafana_apps_dashboard_dashboard_v1beta1.retired["mw-resource-performance"]
-}
-moved {
-  from = grafana_apps_dashboard_dashboard_v1beta1.existing["mw-resource-cost"]
-  to   = grafana_apps_dashboard_dashboard_v1beta1.retired["mw-resource-cost"]
-}
-moved {
-  from = grafana_apps_dashboard_dashboard_v1beta1.existing["mw-pwa-platform"]
-  to   = grafana_apps_dashboard_dashboard_v1beta1.retired["mw-pwa-platform"]
-}
-resource "grafana_apps_dashboard_dashboard_v1beta1" "retired" {
-  for_each = {}
-  metadata {
-    uid        = each.key
-    folder_uid = each.value.folder_uid
-  }
-  spec { json = "{}" }
-}
-
 # R089: the org home dashboard (monitor.mw-credit.com/ lands on it). Org
 # preferences were empty when read on 22 Oct 2026, so only the home dashboard is
 # set; theme, timezone and week start stay at their defaults.
