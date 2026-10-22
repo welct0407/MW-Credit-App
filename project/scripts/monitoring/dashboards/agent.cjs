@@ -19,7 +19,7 @@ function stages() {
 
 function conversation() {
   const turns = L.stat({id: 3, title: 'Turns · 24 h', gridPos: pos(0, 11, 6, 6),
-    description: 'Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns completed in 24 h, how many verified or failed, median duration and rounds, and grounding rejections.',
+    description: 'Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns in 24 h (nonpartner messages excluded), Verified = turns whose answer was VERIFIED, Failed = failed, unknown-write or interrupted turns (delivered or not), median duration and rounds, and grounding rejections.',
     targets: [ops('A', 'conversation', [{key: 'turns_24h', label: 'Turns'}, {key: 'verified_24h', label: 'Verified'}, {key: 'failed_24h', label: 'Failed'},
       {key: 'median_turn_seconds', label: 'Median turn'}, {key: 'median_rounds', label: 'Median rounds'}, {key: 'grounding_rejections_24h', label: 'Grounding rejections'}])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},

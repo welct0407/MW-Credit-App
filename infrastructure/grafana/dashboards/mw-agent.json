@@ -607,7 +607,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns completed in 24 h, how many verified or failed, median duration and rounds, and grounding rejections.",
+        "description": "Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns in 24 h (nonpartner messages excluded), Verified = turns whose answer was VERIFIED, Failed = failed, unknown-write or interrupted turns (delivered or not), median duration and rounds, and grounding rejections.",
         "fieldConfig": {
           "defaults": {
             "color": {

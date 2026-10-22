@@ -495,7 +495,13 @@ def pg_stat_fields(snapshot, previous, now):
     return fields, state
 
 
-TURN_STATES = {'READY': 1, 'VERIFIED': 1, 'REVIEW': 2, 'FAILED': 0, 'UNKNOWN_WRITE': 0, 'INTERRUPTED': 0}
+# runtime.conversation_turns: RUNNING -> READY | FAILED | UNKNOWN_WRITE | INTERRUPTED (outcome held) -> QUEUED
+# (READY, reply notice reserved) or <status>_NOTIFIED. QUEUED and *_NOTIFIED are terminal; IGNORED is a
+# nonpartner. VERIFIED/CLARIFY/REFUSE are the model's answer in result->>'status', never the row status.
+# Only that status, row status and created_at (epoch) are read; the reply text in `result` is never selected.
+TURN_STATES = {'VERIFIED': 1, 'CLARIFY': 2, 'REFUSE': 2, 'FAILED': 0, 'UNKNOWN_WRITE': 0, 'INTERRUPTED': 0}
+TURN_FIELDS = ('running', 'stuck_running', 'undelivered', 'turns_24h', 'verified_24h', 'failed_24h')
+TURN_OUTCOME = "CASE WHEN result IS JSON OBJECT THEN result::jsonb->>'status' END"
 AGENT_QUERIES = {
     'recognizer': """WITH ops AS (
  SELECT o.service_name,
@@ -521,13 +527,15 @@ FROM ops""",
  FROM audit.operations o JOIN audit.events e ON e.operation_id=o.operation_id
  WHERE o.service_name='receipt_image_extraction' AND o.created_at>=now()-interval '24 hours' GROUP BY o.operation_id) x
 WHERE ended_at IS NOT NULL AND seconds IS NOT NULL AND ended_at>%s ORDER BY ended_at DESC LIMIT 1""",
-    'turns': """SELECT count(*) FILTER (WHERE status='QUEUED'), count(*) FILTER (WHERE status='RUNNING'),
- count(*) FILTER (WHERE created_at>=extract(epoch FROM now())-86400),
- count(*) FILTER (WHERE created_at>=extract(epoch FROM now())-86400 AND status IN ('READY','VERIFIED')),
- count(*) FILTER (WHERE created_at>=extract(epoch FROM now())-86400 AND status IN ('FAILED','UNKNOWN_WRITE','INTERRUPTED'))
-FROM runtime.conversation_turns""",
-    'last_turn': """SELECT message_id,status,extract(epoch FROM now())-created_at FROM runtime.conversation_turns
-WHERE status NOT IN ('QUEUED','RUNNING') ORDER BY created_at DESC LIMIT 1""",
+    'turns': """SELECT count(*) FILTER (WHERE status='RUNNING'),
+ count(*) FILTER (WHERE status='RUNNING' AND created_at<extract(epoch FROM now())-900),
+ count(*) FILTER (WHERE status IN ('READY','FAILED','UNKNOWN_WRITE','INTERRUPTED') AND created_at<extract(epoch FROM now())-300),
+ count(*) FILTER (WHERE day AND status<>'IGNORED'),
+ count(*) FILTER (WHERE (CASE WHEN day THEN """ + TURN_OUTCOME + """ END)='VERIFIED'),
+ count(*) FILTER (WHERE day AND status IN ('FAILED','UNKNOWN_WRITE','INTERRUPTED','FAILED_NOTIFIED','UNKNOWN_WRITE_NOTIFIED','INTERRUPTED_NOTIFIED'))
+FROM (SELECT status,result,created_at,created_at>=extract(epoch FROM now())-86400 AS day FROM runtime.conversation_turns) t""",
+    'last_turn': """SELECT message_id,""" + TURN_OUTCOME + """,extract(epoch FROM now())-created_at FROM runtime.conversation_turns
+WHERE status NOT IN ('IGNORED','RUNNING') AND result IS NOT NULL ORDER BY created_at DESC LIMIT 1""",
     'model_turns': """SELECT o.message_id, coalesce(o.plan->>'provider','codex'), min(e.occurred_at),
  max(e.occurred_at) FILTER (WHERE e.event_kind IN ('completed','failed','unknown')),
  (array_agg(e.payload ORDER BY e.operation_seq DESC) FILTER (WHERE e.event_kind='model_rounds'))[1]->>'rounds'
@@ -576,7 +584,7 @@ def agent_snapshot(config, last_points, reader=agent_reader):
             out['recognizer_call'] = (ended, {'seconds': int(round(float(seconds)))})
     conversation = {}
     if rows.get('turns'):
-        conversation.update(zip(('queued', 'running', 'turns_24h', 'verified_24h', 'failed_24h'), map(as_count, rows['turns'][0])))
+        conversation.update(zip(TURN_FIELDS, map(as_count, rows['turns'][0])))
     turns = []
     for message_id, provider, started, ended, rounds in rows.get('model_turns') or []:
         seconds = (ended - started).total_seconds() if isinstance(ended, dt.datetime) and isinstance(started, dt.datetime) else None
@@ -592,8 +600,8 @@ def agent_snapshot(config, last_points, reader=agent_reader):
     if counted:
         conversation['median_rounds'] = int(round(statistics.median(counted)))
     if rows.get('last_turn'):
-        message_id, status, age = rows['last_turn'][0]
-        conversation['last_turn_state'] = TURN_STATES.get(status, 4)
+        message_id, outcome, age = rows['last_turn'][0]
+        conversation['last_turn_state'] = TURN_STATES.get(outcome, 4)
         if age is not None:
             conversation['last_turn_age_seconds'] = max(0, int(age))
         match = [t for t in turns if t['message_id'] == message_id]

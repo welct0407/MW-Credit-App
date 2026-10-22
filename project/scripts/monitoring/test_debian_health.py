@@ -431,7 +431,7 @@ class PwaOpsTests(unittest.TestCase):
 class AgentSnapshotTests(unittest.TestCase):
     def rows(self):
         t=lambda s:dt.datetime.fromtimestamp(NOW-s,dt.timezone.utc)
-        return {'recognizer':[(11,9,1,1)],'recognizer_call':[(t(30),12.6)],'turns':[(0,0,9,8,1)],
+        return {'recognizer':[(11,9,1,1)],'recognizer_call':[(t(30),12.6)],'turns':[(1,0,0,9,8,1)],
                 'last_turn':[('m9','VERIFIED',720.4)],
                 'model_turns':[('m8','gemini',t(4000),t(3950),'3'),('m9','codex',t(800),t(752),'4'),('m7',None,t(9000),None,None)],
                 'grounding':[(0,)],'last_send':[(700.2,)]}
@@ -439,7 +439,7 @@ class AgentSnapshotTests(unittest.TestCase):
         out=health.agent_snapshot({},{},lambda config,since:self.rows())
         self.assertEqual(out['recognizer'],{'extractions_24h':11,'valid_24h':9,'timeouts_24h':1,'unreadable_24h':1})
         self.assertEqual(out['recognizer_call'][1],{'seconds':13})
-        self.assertEqual(out['conversation'],{'queued':0,'running':0,'turns_24h':9,'verified_24h':8,'failed_24h':1,'median_turn_seconds':49,
+        self.assertEqual(out['conversation'],{'running':1,'stuck_running':0,'undelivered':0,'turns_24h':9,'verified_24h':8,'failed_24h':1,'median_turn_seconds':49,
             'median_rounds':4,'last_turn_state':1,'last_turn_age_seconds':720,'last_turn_rounds':4,'last_turn_seconds':48,
             'grounding_rejections_24h':0,'last_send_age_seconds':700})
         ended,fields=out['conversation_turn']
@@ -455,9 +455,27 @@ class AgentSnapshotTests(unittest.TestCase):
         self.assertEqual(health.agent_snapshot({},{},Mock(side_effect=RuntimeError())),
                          {'recognizer':{},'recognizer_call':None,'conversation':{},'conversation_turn':None})
     def test_turn_states(self):
-        for status,expected in [('READY',1),('VERIFIED',1),('REVIEW',2),('FAILED',0),('UNKNOWN_WRITE',0),('INTERRUPTED',0),('ODD',4)]:
-            rows=dict(self.rows(),last_turn=[('mx',status,10)])
+        # last_turn carries result->>'status' (the model's answer), not the row status.
+        for outcome,expected in [('VERIFIED',1),('CLARIFY',2),('REFUSE',2),('FAILED',0),('UNKNOWN_WRITE',0),('INTERRUPTED',0),
+                                 ('QUEUED',4),('READY',4),(None,4)]:
+            rows=dict(self.rows(),last_turn=[('mx',outcome,10)])
             self.assertEqual(health.agent_snapshot({},{},lambda c,s:rows)['conversation']['last_turn_state'],expected)
+    def test_turn_queries_follow_the_row_lifecycle(self):
+        turns,last=health.AGENT_QUERIES['turns'],health.AGENT_QUERIES['last_turn']
+        self.assertNotIn("'QUEUED'",turns);self.assertIn("status='RUNNING' AND created_at<extract(epoch FROM now())-900",turns)
+        self.assertIn("status IN ('READY','FAILED','UNKNOWN_WRITE','INTERRUPTED') AND created_at<extract(epoch FROM now())-300",turns)
+        self.assertIn("result::jsonb->>'status' END END)='VERIFIED'",turns);self.assertIn("'INTERRUPTED_NOTIFIED'",turns)
+        self.assertIn("status NOT IN ('IGNORED','RUNNING')",last)
+        # The reply text in result never leaves the database: counts, and only result->>'status' for the newest turn.
+        self.assertEqual(turns.split('FROM (')[0].count('count(*)'),6)
+        self.assertEqual(last.split(' FROM ')[0],'SELECT message_id,'+health.TURN_OUTCOME+',extract(epoch')
+    def test_stuck_and_undelivered_are_exported(self):
+        rows=dict(self.rows(),turns=[(2,1,3,9,5,2)])
+        conv=health.agent_snapshot({},{},lambda c,s:rows)['conversation']
+        self.assertEqual({k:conv[k] for k in health.TURN_FIELDS},{'running':2,'stuck_running':1,'undelivered':3,'turns_24h':9,'verified_24h':5,'failed_24h':2})
+        self.assertNotIn('queued',conv)
+        fields=[s['metric']['labels']['field'] for s in health.timing_series('conversation',conv,{},'t')]
+        self.assertIn('stuck_running',fields);self.assertIn('undelivered',fields);self.assertNotIn('queued',fields)
 
 
 class ExportTests(unittest.TestCase):

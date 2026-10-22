@@ -69,13 +69,15 @@ function payments() {
 
 function conversation() {
   return L.stat({id: 5, title: 'Partner conversation', gridPos: pos(9, 12, 5, 6),
-    description: 'Debian collector worker_timing{conversation}: queued and running turns, the newest turn\'s state and its age. Rounds, durations and provider are on Agent & Receipts.',
+    description: 'Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn\'s outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age. Rounds, durations and provider are on Agent & Receipts.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'conversation'})),
-      jq('ops-health.jq', {FIELDS: [{key: 'queued', label: 'Queued'}, {key: 'running', label: 'Running'},
+      jq('ops-health.jq', {FIELDS: [{key: 'undelivered', label: 'Undelivered'}, {key: 'stuck_running', label: 'Stuck'},
         {key: 'last_turn_state', label: 'Last turn'}, {key: 'last_turn_age_seconds', label: 'Last turn age'}]}),
-      [col('Queued', 'Queued'), col('Running', 'Running'), col('Last turn', 'Last turn'), col('Last turn age', 'Last turn age')])],
+      [col('Undelivered', 'Undelivered'), col('Stuck', 'Stuck'), col('Last turn', 'Last turn'), col('Last turn age', 'Last turn age')])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Last turn', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Verified', COLOR.ok], [2, 'Review', COLOR.degraded]], 'No report')}),
+    overrides: [byName('Undelivered', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.down])}),
+      byName('Stuck', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.down])}),
+      byName('Last turn', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Verified', COLOR.ok], [2, 'Review', COLOR.degraded]], 'No report')}),
       byName('Last turn age', {unit: AGE.unit, decimals: AGE.decimals})],
     options: {text: {titleSize: 11, valueSize: 20}}});
 }
