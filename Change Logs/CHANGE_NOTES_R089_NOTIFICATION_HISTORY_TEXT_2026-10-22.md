@@ -38,13 +38,27 @@ The owner asked (22 October 2026) that each Notifications history button shows t
 Pending. A skipped check is not a pass. No DEV or PROD apply of V103 and no real-device or real-history check yet; the migration has not run against a live catalogue, so the dictionary entry records the source definition only.
 
 ## Recovery
-Revert the batch commit before promotion. After V103 is applied, it is forward-fix only (shared migrations are immutable): the function is read-only and unused by anything but the notification API, which falls back to generic text if it is missing or fails, so a fix is a V103 that replaces or drops it. Full database recovery for a promotion is the verified backup in the promotion record and the [environment inventory](../project/Documents/Environment_Inventory.md).
+Before PROD, the batch could be reverted by Git. In PROD, V103 is forward-fix only (shared migrations are immutable): the function is read-only and used only by the notification API, which shows generic text if it is missing or fails, so a fix is a V104 that replaces or drops it. Roll back runtime and Hosting first: restore the prior PROD activation (generation recorded in the [inventory](../project/Documents/Environment_Inventory.md)), plan, apply and publish, and set Hosting back to the previous version. Restore `loan_manager_prod` from the promotion backup recorded in the inventory only for data damage, which V103 does not cause (no table, column, data or trigger change).
 
 ## Open questions
 None.
 
 ## Remaining work
-- Owner decision of 22 October 2026: renumber to V103, hold the DEV deploy until the Grafana branch reaches main, then merge main into this PR and deploy to DEV for the owner's review.
-- PROD needs a separate owner approval after that DEV review.
-- Owner-authorized DEV and PROD promotion (requested 22 October 2026; the promotion contract is already in this PR): PROD needs a verified backup of baseline 102 and the temporary owner-authority window on `mw_notify_owner_prod` (as V99 and V100), and a new image for the API and Hosting.
-- After promotion: update the dictionary entry's coverage with the applied state and the inventory pins.
+- The owner's real-device check of the history rows in PROD, on the next real activity.
+- The DEV test event `9c430c9e-…` (owner-approved option 2) stays on DEV; cleanup SQL is available. DEV delivery stays on for the review until the owner says otherwise.
+
+## Promotion record
+- Authority: the owner's instruction of 22 October 2026, "got it. looks good. promote to prod.", approving PROD promotion of R089 including V103, backups and the standard temporary maintenance windows ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)).
+- Freeze: R089 Frozen 2026-10-22T18:14Z in the [tracker](../project/Documents/Release_Tracker.md#releases-requiring-action); R090 opened and the counter advanced to R091 in the same update. The freeze covers both R089 pieces of work: this batch and the Grafana revamp, which is already live in PROD (its own records are unchanged).
+- Package: main `99758c71` (PR #121 on top of the Grafana PR #123 merge `0a93c0ab`). DEV was deployed and reviewed from the PR head before the merge (see the [Environment Inventory](../project/Documents/Environment_Inventory.md)).
+- Result: applied and verified in DEV and PROD on 22 October 2026. Pins, backups, owner windows, revisions and Hosting are in the [Environment Inventory](../project/Documents/Environment_Inventory.md); the release tag `R089` is on `99758c71` (Release tag workflow started by the orchestrator).
+- First PROD attempt failed safely: the V103 self-check refused and the transaction rolled back fully at 18:24:26Z; the owner window was restored at 18:24:40Z and no schema change remained. The retry (window opened 18:29:04Z, restored 18:30:40Z) succeeded after the owner-approved pause of the PROD default privilege that grants new functions to `mw_integration_agent` (revoked 18:29:13Z, re-granted 18:30:34Z, `pg_default_acl` rows byte-equal afterwards, same 42 functions kept).
+- PROD smoke: bundle carries `99758c7` and `R089`, `/health` 200, `/api/session` 401, CORS 204, no ERROR logs, only the API role can execute the new function.
+- Exclusions: no notification, job or financial write was forced in PROD; no agent change; no PROD scheduler or delivery setting change. DEV received a test event `9c430c9e-…` (owner-approved option 2, kept on DEV, cleanup SQL available).
+- CI cited by the package: `guards` from run 39829528145 on `99758c71`; the other jobs from the stage-hash evidence of runs 39822265758, 39785077301, 39820936908 and 39822254364.
+
+### Closure pruning (release workflow, 22 October 2026)
+- Inbound links repointed first to the commit permalink of `5a41f8cf` (the last commit where the target exists): `database/README.md`, `integration-agent/docs/PARTNER_CONVERSATIONS.md`, `integration-agent/Change Logs/CHANGE_NOTES_RECOGNIZER_RESTART_2026-10-21.md`, `project/Documents/Development_Changes.md` and the tracker's R086 record link.
+- Change note deleted (R086 left the retention window of R089, R088 and R087): `Change Logs/CHANGE_NOTES_R086_WAKE_AND_LOAN_CLOSE_FIX_2026-10-21.md`.
+- Development Changes: both R089 rows now record the release; no R089 section existed.
+- Evidence deleted: none (see the `npm run check:docs` result).
