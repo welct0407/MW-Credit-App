@@ -43,7 +43,7 @@ Conventions on all five (owner review, `8d77284`; fit pass `9ea0209`): a tile fi
 | 1 (rows 1-A to 1-J) | PROD services · last 3 h | State timeline, one row each: 1-A Hosting `lm.mw-credit.com`; 1-B Reader API `/health`; 1-C Command API (worst of `/health`, `oltp`, `olap`); 1-D Notify worker (scheduler attempts from `mw_scheduler_attempts_prod`); 1-E Jobs worker; 1-F Cloud SQL `database/up`; 1-G Receipt recognizer; 1-H Agent receipt cycle; 1-I Partner conversation; 1-J Metabase | 0/0/16/11. Collector rows use the six-minute freshness rule; Paused (blue) is intentional |
 | 2 | Firing alerts | Grafana alert list, folder MW Resource Monitoring Alerts: firing, pending, error and no data | Shows "No alerts" when quiet; no resolved history |
 | 3 | Telemetry freshness | Age of the newest point of `database`, `pwa_hosting_prod`, `metabase_platform` and Cloud SQL CPU | Green under 360 s, grey "stale" otherwise; explains a wave of grey rows |
-| 4 | Payments pipeline | Six values: last scan (Bangkok time; the Scan tile reads only the completion-time row, which fixes an intermittent "—"), pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications | Same rules as the previous Performance panels 101 to 107 |
+| 4 | Payments pipeline (each stage coloured by health: Scan by the IG polling state, with the time shown and a grey '—' when stale; Extraction waiting green, orange when the oldest waiting image is over 600 s; holds, unconfirmed postings and notification failures green at 0 and red above 0; reviews waiting or overdue orange when any review is overdue) | Six values: last scan (Bangkok time; the Scan tile reads only the completion-time row, which fixes an intermittent "—"), pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications | Same rules as the previous Performance panels 101 to 107 |
 | 5 | Partner chat | Four tiles: Undelivered (READY, FAILED, UNKNOWN_WRITE or INTERRUPTED over 5 minutes), Stuck (RUNNING over 15 minutes), Last turn (state), Last turn age | QUEUED is the normal delivered end state of a turn, so there is no queue tile. Alert: stalled conversation (Stuck or Undelivered at 1 or more) |
 | 6 | Push | Pending, oldest pending, failed and Sent · 24 h (delivered in 24 h) | PROD only; alert: push delivery backlog |
 | 7 | Scheduled jobs | Age of the newest completed run of Notify job · last run, daily charges and recent analytics (jobs have no failed state, V94) | Alert: scheduled job overdue |
@@ -62,7 +62,7 @@ Variable: `env` (prod or dev, default prod) is hidden; the PROD and DEV links af
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
 | 1 | Hosting · ${env} | Canonical Hosting health, version marker and entry reference | One vantage (Debian), not login or multi-region |
-| 2 | API health | Unauthenticated `/health` of both services; PROD adds the authenticated `oltp` and `olap` probes | DEV has only the unauthenticated checks |
+| 2 | API health | Unauthenticated `/health` of both services; PROD adds two authenticated probes on the PROD command service, 'Chat data · live' (`oltp`: live loan and payment data) and 'Chat data · reports' (`olap`: analytics and reports); each checks the conversation-API sign-in, the catalogue manifest version and one key-only read; the metric labels `oltp` and `olap` are unchanged | DEV has only the unauthenticated checks |
 | 3 | Sign-in and request errors · 24 h | Counts of `session_invalid`, `session_check_unavailable`, `body_timeout` and Cloud Run 5xx | Counts only, no user identity; read from the existing request records, no services change |
 | 10 to 13 (static rows, with 101 to 103, 111 to 113, 121 to 123, 131 to 133; the third panel of each row is titled '<service> · instances, CPU, RAM') | Service rows: reader, command, notify, jobs | The three panels of each row: requests per 5 min (all blue solid, 4xx orange dashed, 5xx red dotted); p95 latency with a red dashed request-timeout line (reader 15 s, command 55 s, workers 120 s); instances, CPU % and memory % with a grey dashed maximum-instances line, each drawn with that service's own value | Request charts have no threshold; idle is neither Down nor Healthy |
 | 19 (row), 20 | Cloud Scheduler attempts · 24 h | State timeline for the notifications, daily-charges and recent-analytics jobs, from the log-based metric `mw_scheduler_attempts_<env>` (Cloud Monitoring has no `attempt_count` metric in this project) | DEV jobs are paused and show grey |
@@ -81,7 +81,7 @@ Everything is Debian-backed except the webhook check and the two public status f
 
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
-| 1 | Receipt pipeline · stages | The pipeline stage stats of Now 4 (scan reads only the completion-time row; pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications) | Stalled, unnotified holds, overdue reviews, unconfirmed postings and failed notifications above 0 are red; Paused does not page |
+| 1 | Receipt pipeline · stages | The pipeline stage stats of Now 4, with the same health colours (scan reads only the completion-time row; pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications) | Stalled, unnotified holds, overdue reviews, unconfirmed postings and failed notifications above 0 are red; Paused does not page |
 | 2 | Receipts · queue over time | Receipt queue trend | Lines break at gaps over 6 minutes |
 | 14 | Receipts · ingress reviews | `ingress_review_open`; above 0 is orange | Closes the former known gap for the card |
 | 6 | Recognizer · service | Health and restart age | Paused (blue) when recognition is disabled |
@@ -136,6 +136,20 @@ Time zone Asia/Bangkok for display; provider day rules are unchanged (Azure UTC 
 | 7 | GCP by service · net | Billing export grouped by service, net of credits (month to date); columns reordered, 'Monitoring and Logging' is one service name | 100 MB billed-query cap |
 | 10, 20, 30 (collapsed rows) | Azure, GCP, Railway | The previous Cost detail panels unchanged, with their old child IDs | Rates checked 25 September 2026 stay in the description |
 | 40 | Unchanged rules of reading | Short reading text (y 23, height 4); the collapsed provider rows follow at y 29 to 31 | References, not forecasts |
+
+### Colour policy for stat fields (all 78, commit `88e5f43`)
+
+| Kind of field | Colour rule | Examples |
+| --- | --- | --- |
+| State | The state colours (Healthy green, Degraded orange, Down dark red, Paused blue, Unknown grey) | Timelines, service and provider state |
+| Problem now | Red above 0 | Failed jobs, unnotified holds, unconfirmed postings, notification failures |
+| Attention over a period | Orange above 0 | Review overdue, push oldest pending over 900 s, job ages past their limit (Failed stays red), Agent poll age over 600 s, Cloud SQL backup age over 30 h, PWA 3 503 session check, body timeout and 5xx, Agent 7 timed out |
+| Normal work or volume | Neutral | Counts of requests, turns, extractions, recognitions (PWA 30 bars) |
+| Age with a documented limit | Green, orange past the limit, grey when stale | Scan time, Extraction waiting (600 s) |
+| Money | Neutral | Cost tiles |
+| Information | Neutral | Versions, models, providers |
+
+Kept neutral until a limit is documented: last turn age, last send, last notification, grounding rejections, unreadable, 401 session invalid, push pending. A budget-share colour on Cost is not added, because it needs the budget query inside TOTAL.
 
 ### Alerts linked to the new dashboards
 
