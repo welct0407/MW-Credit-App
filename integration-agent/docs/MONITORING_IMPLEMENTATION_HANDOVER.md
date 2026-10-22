@@ -54,7 +54,7 @@ Status values: 0 Down, 1 Healthy, 2 Degraded, 3 Paused, 4 Unknown. If paused or 
 | `unconfirmed_postings` | POSTING or UNKNOWN; reconciliation only, never repeat Add |
 | `undelivered_reviews` | PENDING over 5 min without an accepted IG or sent informational fallback |
 | `overdue_reviews` | PENDING over 2 hours, even if notified; proposals expire after 24 hours |
-| `failed_notifications` | Unresolved Partner result deliveries over 5 min; counts each undelivered recipient, or 1 for a missing result event; results held for an opted-out Partner (`PARTNER_DISABLED`, or `IG_PREFLIGHT_FAILED` with an opted-out snapshot) excluded |
+| `failed_notifications` | Unresolved Partner result deliveries over 5 min; counts each undelivered recipient, or 1 for a missing result event; results held for an opted-out Partner (`PARTNER_DISABLED`, or `IG_PREFLIGHT_FAILED` with an opted-out snapshot) and operator-acknowledged exhausted results excluded |
 | `inspection_failed` | Collector-only value 1 on queue inspection failure; other queue fields unavailable |
 
 Age is measured from existing job/proposal `created_at`; it is not an exact duration in the current sub-stage. No new database timestamps were introduced. A proposal approved after waiting may therefore already meet the execution age threshold until processed. Provider acceptance is not proof a human read the message. A sent fallback email is delivery for health purposes but **cannot approve a review**. Accepted old UNKNOWN-result notices do not hide missing POSTED-result delivery after reconciliation. A resolved/terminal review does not keep its earlier failed notice active.

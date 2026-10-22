@@ -8,7 +8,8 @@ The Grafana Now dashboard (R089) showed "6 · Notify · failed" at 5. Three of t
 - `review_cycle.notify()`: no result of any state is reserved for an opted-out Partner, and a reserved result whose Partner is opted out at dispatch is held as `PARTNER_DISABLED` for every state (previously POSTED only). Holding instead of emailing stays deliberate: an opted-out Partner gets neither Instagram nor email (`docs/RECEIPTS.md`, `tests/test_partner_notice.py::test_email_requires_provider_window_evidence`).
 - `receipt_health`: `failed_notifications` also excludes a result held as `IG_PREFLIGHT_FAILED` whose stored Partner snapshot is opted out, so the three existing rows stop counting without editing them. `inspect()` reads the `partner` snapshot for this; only counts leave the VM.
 - Tests: `test_review_cycle` gains the no-result-for-opted-out-Partner case for every non-POSTED state and the opted-out-at-dispatch case; `test_receipt_health` gains opted-out, opted-in and unreadable-snapshot cases.
-- Docs: `docs/RECEIPTS.md` (failed-count rule) and `docs/MONITORING_IMPLEMENTATION_HANDOVER.md` (`failed_notifications` row).
+- Owner decision (same day): acknowledge the two 2 October POSTED notices and stop counting them. `receipt_health.inspect()` reads `optional_notification_acknowledged` events read-only from `audit.events` (PostgreSQL only; on a read failure it keeps counting) and `failed_notifications` skips acknowledged notices. Tests cover the skip, the audit read, a read failure and SQLite.
+- Docs: `docs/RECEIPTS.md` (failed-count rule, acknowledgement) and `docs/MONITORING_IMPLEMENTATION_HANDOVER.md` (`failed_notifications` row).
 
 ## Checks
 | Command | Result |
@@ -28,9 +29,9 @@ The Grafana Now dashboard (R089) showed "6 · Notify · failed" at 5. Three of t
 `deploy-runtime.py rollback --commit 1d02af8…` restores `6ea1540` from `runtime-20261022T125423416236Z`; or revert this commit and redeploy. The previous rule reserves non-POSTED results for opted-out Partners again and counts them. The install and activate steps used a short-lived `codex-cloud` IAM database sign-in file in root-only tmpfs `/run/mw-op/`, shredded at 12:54:46Z, because the agent's own identity cannot read the agent schema history.
 
 ## Open questions
-- The two 2 October POSTED notices: `scripts/acknowledge-receipt-notices.py` accepts them, but by the documented rule an acknowledgement does not reset `failed_notifications`, so the tile stays at 2 after this change. Owner decision.
 - Re-enabling a Partner still reserves every POSTED result they missed while opted out (76 were sent to this Partner on 21 October). Owner decision.
 
 ## Remaining work
 - The VM checkout is detached at `1d02af8`, which is on branch `claude/vigilant-allen-kfzogm` only; merge it to `main` with a merge commit (not squash) so `update-from-github.sh` can fast-forward next time.
-- The two open questions above.
+- Deploy the acknowledgement rule, acknowledge the two 2 October notices and confirm `failed_notifications` 0 [EVIDENCE: Forge].
+- The open question above.

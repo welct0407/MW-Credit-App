@@ -55,6 +55,25 @@ class HealthTests(unittest.TestCase):
         self.assertEqual(assess([],[r],[held],self.now)['failed_notifications'],1)
         held['partner']='not json'
         self.assertEqual(assess([],[r],[held],self.now)['failed_notifications'],1)
+    def test_acknowledged_exhausted_result_no_longer_counts(self):
+        r=dict(self.review,state='POSTED',created_at=9000)
+        failed=self.notice('review-result:r:POSTED','UNAVAILABLE','REJECTED')
+        self.assertEqual(assess([],[r],[failed],self.now)['failed_notifications'],1)
+        failed['acknowledged']=True
+        health=assess([],[r],[failed],self.now)
+        self.assertEqual(health['failed_notifications'],0)
+        self.assertEqual(health['notification_status'],1)
+    def test_acknowledgements_are_read_only_from_postgres_audit(self):
+        from unittest.mock import Mock, patch
+        from mw_integration_agent import receipt_health
+        conn=Mock();conn.execute.return_value.fetchall.return_value=[('n1',),('n2',)]
+        with patch.object(receipt_health,'is_postgres',return_value=True):
+            self.assertEqual(receipt_health.acknowledged(conn),{'n1','n2'})
+            self.assertIn("event_kind='optional_notification_acknowledged'",conn.execute.call_args[0][0])
+            conn.execute.side_effect=RuntimeError('permission denied')
+            self.assertEqual(receipt_health.acknowledged(conn),set())
+        with patch.object(receipt_health,'is_postgres',return_value=False):
+            self.assertEqual(receipt_health.acknowledged(Mock()),set())
     def test_superseded_error_notice_does_not_mask_completed_payment(self):
         r=dict(self.review,state='POSTED',created_at=9000)
         notices=[self.notice('review-result:r:UNKNOWN','UNKNOWN','UNKNOWN'),self.notice('review-result:r:POSTED')]
