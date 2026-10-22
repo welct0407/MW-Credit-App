@@ -73,3 +73,23 @@ resource "grafana_apps_dashboard_dashboard_v2" "existing" {
   lifecycle { prevent_destroy = true }
 }
 
+
+# R089: the org home dashboard (monitor.mw-credit.com/ lands on it). Org
+# preferences were empty when read on 22 Oct 2026, so only the home dashboard is
+# set; theme, timezone and week start stay at their defaults.
+variable "home_dashboard_uid" {
+  type    = string
+  default = null
+}
+resource "grafana_organization_preferences" "home" {
+  count              = var.home_dashboard_uid == null ? 0 : 1
+  home_dashboard_uid = var.home_dashboard_uid
+  depends_on         = [grafana_apps_dashboard_dashboard_v1beta1.existing, grafana_apps_dashboard_dashboard_v2beta1.existing, grafana_apps_dashboard_dashboard_v2.existing]
+  lifecycle {
+    prevent_destroy = true
+    precondition {
+      condition     = contains(keys(var.dashboards), var.home_dashboard_uid)
+      error_message = "The home dashboard must be a managed dashboard."
+    }
+  }
+}

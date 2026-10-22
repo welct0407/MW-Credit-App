@@ -11,6 +11,9 @@ Environment=HOME=/var/lib/mw-integration-agent
 ExecStart=/opt/mw-integration-agent/.venv/bin/python /opt/mw-resource-monitoring/debian-health.py
 TimeoutStartSec=180
 UMask=0077
+# R089: last-points.json (newest turn and extraction already exported); the only writable path.
+StateDirectory=mw-resource-monitoring
+StateDirectoryMode=0700
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict

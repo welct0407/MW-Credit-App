@@ -167,5 +167,7 @@ END $$;
 -- V99 (R080) and V100 (R081): push content facts under the real roles (languages, English name, missing source,
 -- lease fence, capability).
 \ir Test-NotifyContent.sql
+-- V102 (R089): the monitoring ops-health RPC (counts and ages only, definer column reads, collector-only access).
+\ir Test-MonitoringOpsHealth.sql
 -- Last: the migration-owned grant matrix (DB-CI-05 / DB-ACCESS-02).
 \ir Test-AccessMatrix.sql

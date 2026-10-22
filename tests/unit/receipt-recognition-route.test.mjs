@@ -148,3 +148,22 @@ test('config: DEV_/PROD_RECEIPT_RECOGNITION needs receipts on the command servic
   assert.throws(()=>loadBusinessConfig({...env,...patch}),JSON.stringify(patch));
  assert.throws(()=>loadBusinessConfig({...businessEnv('dev','reader'),DEV_RECEIPT_RECOGNITION:'enabled',DEV_RECEIPT_RECOGNITION_URL:URL_OK}));
 });
+
+test('R089 log: a recognition answer adds its outcome category (first warning or none) to the command_request record, nothing else',async()=>{
+ const path=`/api/payment-commands/${requestId}/receipts/${receiptId}/recognition`;
+ const logged=async(recognition)=>{const logs=[];const handler=createEnvironmentCommandHandler({config:loadBusinessConfig(businessEnv('dev','command')),verifyPrincipal:async()=>({ok:true,subject:'s',email:'e@example.invalid'}),
+  store:{recognize:async()=>recognition?{ok:true,status:200,recognition}:{ok:false,status:404,code:'not_found'}},completionLogger:r=>logs.push(r)});
+  await call(handler,'POST',path);assert.equal(logs.length,1);return logs[0];};
+ const clean=await logged({status:'recognized',provider:'gemini',model:'m',suggestion:{amountReceived:'1500'},warnings:[]});
+ assert.equal(clean.event,'command_request');assert.equal(clean.operation,'receipt_recognition');assert.equal(clean.warning,'none');
+ assert.deepEqual(Object.keys(clean),['event','requestId','operation','method','status','code','durationMs','warning']);
+ assert.equal((await logged({status:'recognized',suggestion:{},warnings:[{code:'non_thb'},{code:'account_ambiguous'}]})).warning,'non_thb');
+ assert.equal((await logged({status:'recognized',suggestion:{},warnings:[{code:'date_outside_window',date:'2026-10-18'}]})).warning,'date_outside_window');
+ assert.equal((await logged({status:'unrecognized',reason:'slip_not_confirmed',suggestion:null,warnings:[{code:'slip_not_confirmed'}]})).warning,'slip_not_confirmed');
+ assert.equal((await logged({status:'unavailable',reason:'disabled',suggestion:null,warnings:[]})).warning,'unavailable');
+ assert.equal((await logged({status:'recognized',suggestion:{},warnings:[{code:'1500.00 THB'}]})).warning,'other');
+ const missing=await logged(null);assert.equal(missing.status,404);assert.equal('warning' in missing,false);
+ const logs=[];const other=createEnvironmentCommandHandler({config:loadBusinessConfig(businessEnv('dev','command')),verifyPrincipal:async()=>({ok:true,subject:'s',email:'e@example.invalid'}),
+  store:{status:async()=>({ok:true,status:200,state:'done'})},completionLogger:r=>logs.push(r)});
+ await call(other,'GET','/api/payment-commands/12345678-1234-4234-8234-123456789abc');assert.equal('warning' in logs[0],false);
+});
