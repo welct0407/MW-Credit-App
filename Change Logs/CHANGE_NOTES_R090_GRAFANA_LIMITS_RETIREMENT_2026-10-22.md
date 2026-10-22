@@ -25,6 +25,8 @@ Owner decisions after the R089 merge (22 October 2026): set the recommended limi
 | Read-back after the apply | `mw-now` 13, `mw-pwa` 12, `mw-agent` 13, `mw-infra` 11, `mw-cost` 10; the three retired UIDs return 404; `mw-public-status` allows only `https://railway.instatus.com`; home `mw-now` |
 | No-change re-plan from the same export | No changes |
 | All five Infrastructure Railway queries in one `/api/ds/query`, three times (24 h) | Every query HTTP 200, no error |
+| Re-plan from a clean export of the clean-up commit (`moved` blocks and `retired` resource removed) | No changes |
+| Builder `--check`, `test_build_dashboards.cjs`, `test_dashboard_queries.py`, `npm run check:docs` after the clean-up | Pass; docs 0 failures, 0 warnings |
 
 ## Not run
 - A screenshot review of the changed tiles (configuration only; the queries are unchanged except Infrastructure 14 and 15, checked above).
