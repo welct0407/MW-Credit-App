@@ -11,21 +11,26 @@ Operating reference for Grafana Cloud stack `olivecrab1199` (work account). Pane
 | Public webhook | Google Cloud uptime check `mw-webhook-external-health-ySLl0784KgI` (`GET https://hooks.mw-credit.com/instagram`, expects HTTPS, 403 and body `Forbidden`, every 5 minutes from Singapore, Belgium and Oregon); in Terraform (`infrastructure/ecosystem-debian`) | Google Cloud |
 | OpenAI status | Credential-free Infinity source `mw-public-status` (`cfz10a9eaokjkd`), `https://status.openai.com`; selector `scripts/monitoring/openai-status.jq` | Grafana Cloud |
 | USD/SGD conversion | Credential-free Infinity source `mw-public-fx` (`efz19dcu6cwzka`), `https://api.frankfurter.dev` | Grafana Cloud |
-| Cloud Run PWA services | `mw-gcp-monitoring` aggregate queries (PWA Platform dashboard) | Grafana Cloud |
+| Cloud Run PWA services, Cloud Scheduler, Cloud SQL | `mw-gcp-monitoring` aggregate queries (PWA & APIs, Now and Infrastructure dashboards); log-based metrics declared in `infrastructure/prod` and `infrastructure/dev` with an environment suffix because the project is shared: `mw_scheduler_attempts_<env>` (Cloud Monitoring has no Cloud Scheduler `attempt_count` series in this project), `mw_recognition_outcome_<env>`, `mw_recognition_route_latency_<env>`, and the sign-in and request error counter from the existing `read_request` and `command_request` records | Grafana Cloud, Google Cloud |
+| Google Cloud status | Credential-free Infinity source `mw-public-gcp-status` (allowed host `status.cloud.google.com`, `incidents.json`; no cache setting, because Terraform cannot set one); selector `scripts/monitoring/gcp-status.jq`. [EVIDENCE: datasource UID after apply] | Grafana Cloud |
 
 VM-01 is not available 24x7 and is not a monitoring dependency. The webhook check and OpenAI queries do not depend on either VM; other Debian-local lights become Unknown if Debian stops reporting. Native API probes use `native-api-probe --scope oltp|olap` (metric labels `oltp`/`olap` are kept for alert compatibility). No AppSheet probe remains.
 
 ## Dashboards and access
 
-Hostname **monitor.mw-credit.com** (Cloudflare DNS-only CNAME to `olivecrab1199.grafana.net`, instance URL set in the Cloud Portal; revert the instance URL before removing the CNAME). Grafana sign-in applies. Folder **MW Resource Monitoring**; times display in Asia/Singapore.
+Hostname **monitor.mw-credit.com** (Cloudflare DNS-only CNAME to `olivecrab1199.grafana.net`, instance URL set in the Cloud Portal; revert the instance URL before removing the CNAME). The record points at the stack and cannot carry a path, so it stays; `https://monitor.mw-credit.com` opens page 1 (Now) because `mw-now` is the organization home dashboard. Grafana sign-in applies. Folder **MW Resource Monitoring**; times display in Asia/Bangkok on the five current dashboards. Every dashboard is tagged `mw-credit` and carries five explicit links to the others (the time range is not carried over).
 
 | Dashboard | UID | Default view |
 | --- | --- | --- |
-| [Performance](https://monitor.mw-credit.com/d/mw-resource-performance) (home dashboard for the work account) | `mw-resource-performance` | Last 3 hours, 1-minute refresh |
-| [Cost](https://monitor.mw-credit.com/d/mw-resource-cost) | `mw-resource-cost` | Month to date, hourly refresh |
-| [PWA Platform](https://monitor.mw-credit.com/d/mw-pwa-platform) | `mw-pwa-platform` | Last 24 hours ending 2 minutes ago, 2-minute refresh |
+| [Now](https://monitor.mw-credit.com/d/mw-now) (home dashboard for the work account) | `mw-now` | Last 3 hours ending now, 1-minute refresh |
+| [PWA & APIs](https://monitor.mw-credit.com/d/mw-pwa) | `mw-pwa` | Last 24 hours ending 2 minutes ago, 2-minute refresh |
+| [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent) | `mw-agent` | Last 6 hours ending now, 1-minute refresh |
+| [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) | `mw-infra` | Last 24 hours ending now, 5-minute refresh |
+| [Cost](https://monitor.mw-credit.com/d/mw-cost) | `mw-cost` | Month to date, hourly refresh |
 
-Rebuild and deploy: definitions are in [`infrastructure/grafana/dashboards/`](../../infrastructure/grafana/dashboards/) (Terraform, runner `scripts/grafana/manage.py`, see [`infrastructure/grafana/README.md`](../../infrastructure/grafana/README.md)); builders and query helpers are in [`project/scripts/monitoring/`](../scripts/monitoring/README.md) (`Build-Dashboards.ps1`, `pwa-platform-dashboard.cjs`). Capture a fresh private backup and compare the live resource before any change; update the visual guide in the same batch. Older generated JSON in [`outputs/resource-monitoring-20260922`](../outputs/resource-monitoring-20260922/) is recovery evidence, not the live definition.
+Previous dashboards, kept until retirement (not before 14 days after the cutover, and only on the owner's explicit instruction): Performance (`mw-resource-performance`, version 41), Cost (`mw-resource-cost`, 15) and PWA Platform (`mw-pwa-platform`, 2). They are unchanged and are no longer linked from records. Now is the home dashboard through Terraform `grafana_organization_preferences` (`home_dashboard_uid` `mw-now`, not a manual UI step), per the owner's R089 decision that the root URL lands on Now. [EVIDENCE: preferences resource in the apply plan]
+
+Rebuild and deploy: definitions are in [`infrastructure/grafana/dashboards/`](../../infrastructure/grafana/dashboards/) (Terraform, runner `scripts/grafana/manage.py`, see [`infrastructure/grafana/README.md`](../../infrastructure/grafana/README.md)); the five current definitions are generated by `node project/scripts/monitoring/build-dashboards.cjs` from the modules in [`project/scripts/monitoring/`](../scripts/monitoring/README.md) (`dashboards/`, `lib.cjs`); the old builders (`Build-Dashboards.ps1`, `pwa-platform-dashboard.cjs`) stay only for the previous three. Capture a fresh private backup and compare the live resource before any change; update the visual guide in the same batch. Older generated JSON in [`outputs/resource-monitoring-20260922`](../outputs/resource-monitoring-20260922/) is recovery evidence, not the live definition.
 
 ## Availability collector
 
@@ -34,6 +39,7 @@ Rebuild and deploy: definitions are in [`infrastructure/grafana/dashboards/`](..
 - Database health: proxy active and read-only `SELECT 1` against the agent-state and reporting databases. Native probes do not certify every browser workflow. Codex readiness checks executable and login state only. Tailscale checks the node's Running/Online state, not peer reachability. Tunnel health needs four Cloudflare HA connections (fewer is degraded, zero is down).
 - Audit relay: required timer, latest completed outcome and bounded backlog or central-intent inspection. RUNNING cannot clear a completed failure. Missing completion, inspection failure or an intent older than 30 seconds is Down; completion, run duration or backlog age above 180 seconds is Degraded.
 - Hosting: public canonical checks of `dev-lm.mw-credit.com` and `lm.mw-credit.com` (components `pwa_hosting_dev`, `pwa_hosting_prod`): fixed bounds, no redirects, no credentials, 10 s per environment. The timer starts 120 s after the previous unit becomes inactive; its 180 s timeout is unchanged.
+- R089 additions (collector, one point per series per run, same export): `health` for `pwa_api_reader_prod`, `pwa_api_command_prod`, `pwa_api_reader_dev`, `pwa_api_command_dev` (unauthenticated `GET /health`, origins from `/etc/mw-resource-monitoring/pwa-api-origins.json`) and `recognizer` (`/healthz` on the agent host); `worker_timing` for `recognizer`, `recognizer_call`, `conversation`, `conversation_turn`, `pwa_notify`, `pwa_jobs`, `cloud_sql_backup`, `debian_snapshot`, `audit_retention`, `pg_stat` and a `webhook_local` code-version match. PWA queue and job values come from the SQL function `monitoring.pwa_ops_health_v1()` (migration V102) on the existing read-only reporting connection. All values are counts, ages, state codes or percentages; no borrower, amount, reference, message text, slip content or token leaves the host. The VM identity gains `roles/cloudsql.viewer` and a custom `mwSnapshotViewer` role (list and get snapshots) in `infrastructure/ecosystem-debian`; no write permission. [EVIDENCE: collector file hash and previous copy name; V102 readback; IAM plan hash]
 - IG polling also exports `worker_timing` (`status`, `running`, `last_completion`; zero means unavailable). Not an alert label.
 - Infrastructure Uptime uses `cloud_sql_prod` status and uptime through `worker_timing` on a read-only reporting connection. Failed, stale or missing observations are Unknown.
 
@@ -55,7 +61,7 @@ Ten Grafana-managed rules in folder **MW Resource Monitoring Alerts**, group **P
 
 | Rule | Fires when | Pending |
 |---|---|---|
-| Webhook external health impaired (`efz3jiz9qmhhce`) | At least one of three fresh regions fails (DEGRADED or DOWN); fewer than three fresh reports stay silent | 10 min |
+| Webhook external health impaired (`efz3jiz9qmhhce`) | Reads the Singapore `checker_location` series only (the uptime check keeps its three regions because Google requires at least three): a fresh failure pages; no fresh Singapore report within 12 minutes is Unknown and silent. Changed in R089; previously any of three fresh regions failing | 10 min |
 | Debian component unhealthy (`afz3o5cmmfabkb`) | One instance for each of 12 components (`tunnel`, `tailscale_node`, `webhook_local`, `oltp`, `olap`, `conversations`, `receipts`, `polling`, `daily_jobs`, `database`, `audit_relay`, `codex_ready`): fresh DOWN or DEGRADED; receipts and polling also page on missing, stale (>6 min), future (>2 min), invalid or Unknown; no-data and query errors alert. Fresh Paused does not page | 4 min |
 | Metabase component unhealthy (`ffzb4act1o0zka`) | Five instances (Platform, App DB, Reporting DB, Charts, PITR); fresh DOWN or DEGRADED. Unknown, missing and stale do not page. Selector `metabase-alert.jq` | 4 min |
 | Metabase scheduled backup unhealthy (`mw-metabase-backup-health`) | Daily and Weekly instances; missing schedule or overdue scheduled snapshot, with first-run grace | 4 min |
@@ -72,6 +78,27 @@ Ten Grafana-managed rules in folder **MW Resource Monitoring Alerts**, group **P
 - An additive HMAC webhook in the same contact point feeds the [bridge](Grafana_MCP_Events_Bridge.md), filtered to these ten exact names and to firing and resolved. Original IRM delivery is retained.
 - Edit or pause rules in [Alert rules](https://monitor.mw-credit.com/alerting/list), the contact point in [Notification configuration](https://monitor.mw-credit.com/alerting/notifications), the route in [IRM](https://monitor.mw-credit.com/a/grafana-irm-app/integrations). Rule configuration is maintained through the adopted Terraform and code path. To roll back only the Metabase extension, pause `ffzb4act1o0zka`. To remove alerting entirely, pause or delete all ten rules, then the contact point, IRM integration and escalation chain if unreferenced; leave dashboards and data sources.
 - Owner reports that Dots receives Grafana alerts for the whole monitored ecosystem. Response, bounded recovery and reporting are in the [runbook](Rules/Grafana_Alert_Troubleshooting_Runbook.md#recovery-authority). Delivery is not verified here.
+
+## PWA 2m alert group (R089)
+
+Twelve further rules form group **PWA 2m** in folder **MW Resource Monitoring Alerts**, evaluating every two minutes, contact point **MW Performance IRM**, label `severity=page`, runbook annotation `https://monitor.mw-credit.com/d/mw-now`. They are declared in `infrastructure/grafana/owned-services.tf.json` beside Performance 2m, applied **paused**, observed for 24 hours on the dashboards and then unpaused under the release instruction. [EVIDENCE: apply date; paused state; unpause date]. DEV never pages. The bridge name filter is not extended (the bridge is being retired). Each rule's query is the dashboard selector of its panel reduced to a 0/1 impairment value, so a rule and its panel cannot disagree.
+
+| Rule | Fires when | Pending | No data |
+|---|---|---|---|
+| MW \| PWA Hosting PROD unreachable | `pwa_hosting_prod` fresh and 0 | 4 min | KeepLast |
+| MW \| PWA API health failed | One instance each for `pwa_api_reader_prod` and `pwa_api_command_prod`: fresh and 0 | 4 min | KeepLast |
+| MW \| Cloud Run 5xx | Reader plus command PROD 5xx responses summed over 10 min at or above 5 | 10 min | OK (idle is normal) |
+| MW \| Notification scheduler failing | Non-ok `mw-credit-app-prod-notifications` attempts (log metric `mw_scheduler_attempts_prod`) summed over 10 min at or above 3 | 10 min | KeepLast |
+| MW \| Scheduled job overdue | `daily_charges_age_seconds` above 90 000 or `recent_analytics_age_seconds` above 4 500 (ages only; jobs have no failed state since V94) | 10 min | KeepLast |
+| MW \| Push delivery backlog | `oldest_pending_seconds` above 900 only; `failed_24h` colours the panel and does not page (expired subscriptions are normal churn) | 10 min | KeepLast |
+| MW \| Receipt recognizer unhealthy | `recognizer` fresh and 0 (Paused does not page) | 4 min | KeepLast |
+| MW \| Partner conversation stalled | Queued at or above 1 with none running, or poll age above 600 s, or wake path inactive | 10 min | KeepLast |
+| MW \| Cloud SQL down | `database/up` is 0 | 4 min | KeepLast |
+| MW \| Cloud SQL disk high | Five-minute mean `database/disk/utilization` above 80 % | 10 min | KeepLast |
+| MW \| Cloud SQL backup overdue | Last successful automated backup older than 108 000 s, or newest run failed | 10 min | KeepLast |
+| MW \| Debian snapshot overdue | Newest READY snapshot older than 108 000 s | 10 min | KeepLast |
+
+The 80% disk value is an operational warning like the others, not a provider limit. Roll back by pausing the group (all twelve rules) in Alert rules; dashboards are unaffected.
 
 ## Receipt processing versus optional notification health — 2 October 2026
 
@@ -119,8 +146,8 @@ Restore the reviewed prior definition through `infrastructure/grafana` with the 
 
 ## Known gaps
 
-- Eight additional bridge alerts are not created; Grafana revamp is deferred by the owner.
-- The `ingress_review_open` and `webhook_code_version` values have no card.
+- The Grafana revamp (R089) delivered the five dashboards and the PWA 2m group; the ALL-MON items it carried are recorded in [Development changes](Development_Changes.md). Eight additional bridge alerts are not created; the bridge is being decommissioned.
+- `ingress_review_open` and the ingress code-version match now have cards (Agent & Receipts 14 and 13).
 - Final Cost code-export equality for panel 110 was not verifiable.
 - Live alert and panel text for the 2 October receipt-notification policy is still to be aligned.
 - Automatic subscription renewal for the bridge is unproven (see bridge document).

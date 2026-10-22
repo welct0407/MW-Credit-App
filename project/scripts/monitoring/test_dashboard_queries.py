@@ -1,0 +1,328 @@
+"""Synthetic jq fixtures for the R089 dashboard selectors (fresh, stale, missing,
+truncated and provider-error cases). No provider reads; requires jq on PATH.
+Run: python3 -B project/scripts/monitoring/test_dashboard_queries.py"""
+import datetime as dt
+import json
+import pathlib
+import subprocess
+import time
+import unittest
+
+ROOT = pathlib.Path(__file__).resolve().parent
+DASHBOARDS = ROOT.parents[2] / 'infrastructure' / 'grafana' / 'dashboards'
+
+
+def stamp(age=0):
+    return dt.datetime.fromtimestamp(time.time() - age, dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def point(age, value, kind='int64Value'):
+    return {'interval': {'endTime': stamp(age)}, 'value': {kind: value if kind == 'boolValue' else str(value)}}
+
+
+def series(points, **labels):
+    return {'metric': {'labels': labels}, 'points': points}
+
+
+def run(code, data):
+    r = subprocess.run(['jq', '-c', code], input=json.dumps(data), text=True, capture_output=True)
+    if r.returncode:
+        raise ValueError(r.stderr)
+    return [json.loads(line) for line in r.stdout.splitlines()]
+
+
+def query(file, data, **subs):
+    code = (ROOT / file).read_text()
+    for key, value in subs.items():
+        code = code.replace('__' + key + '__', value if isinstance(value, str) else json.dumps(value))
+    return run(code, data)
+
+
+FAILURES = ({'nextPageToken': 'more'}, {'error': {'code': 403, 'message': 'denied'}})
+
+
+class StateTimeline(unittest.TestCase):
+    def q(self, data, expected=1, stale=360):
+        return query('state-timeline.jq', data, EXPECTED=str(expected), STALE=str(stale))
+
+    def test_fresh_points_keep_their_state_without_tail(self):
+        rows = self.q({'timeSeries': [series([point(240, 1), point(120, 2), point(0, 0)])]})
+        self.assertEqual([r['value'] for r in rows], [1, 2, 0])
+
+    def test_stale_and_missing_end_in_null_never_healthy(self):
+        self.assertEqual([r['value'] for r in self.q({'timeSeries': [series([point(400, 1)])]})], [1, None])
+        self.assertEqual([r['value'] for r in self.q({})], [None])
+        self.assertEqual([r['value'] for r in self.q({'timeSeries': []})], [None])
+
+    def test_gap_longer_than_stale_bound_is_broken(self):
+        rows = self.q({'timeSeries': [series([point(1000, 1), point(0, 1)])]})
+        self.assertEqual([r['value'] for r in rows], [1, None, 1])
+
+    def test_aligned_bound_allows_five_minute_points(self):
+        rows = self.q({'timeSeries': [series([point(600, True, 'boolValue'), point(300, False, 'boolValue')])]}, stale=720)
+        self.assertEqual([r['value'] for r in rows], [1, 0])
+
+    def test_worst_member_wins_and_missing_member_is_unknown(self):
+        t = point(0, 1)['interval']
+        members = [series([{'interval': t, 'value': {'int64Value': v}}]) for v in ('1', '2', '1')]
+        self.assertEqual(self.q({'timeSeries': members}, expected=3)[0]['value'], 2)
+        self.assertEqual(self.q({'timeSeries': members[:2]}, expected=3)[0]['value'], 4)
+        down = members + [series([{'interval': t, 'value': {'int64Value': '0'}}])]
+        self.assertEqual(self.q({'timeSeries': down}, expected=4)[0]['value'], 0)
+
+    def test_invalid_and_future_samples(self):
+        self.assertEqual(self.q({'timeSeries': [series([point(0, 9)])]})[0]['value'], 4)
+        self.assertEqual([r['value'] for r in self.q({'timeSeries': [series([point(-600, 1)])]})], [None])
+
+    def test_truncated_and_provider_error_fail_visibly(self):
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                self.q(data)
+
+
+class SchedulerAttempts(unittest.TestCase):
+    def q(self, data):
+        return query('scheduler-attempts.jq', data, STATUS_LABEL='status', HTTP_LABEL='http_status', PERIOD='300')
+
+    def bucket(self, age, n, **labels):
+        return series([point(age, n)], **labels)
+
+    def test_successful_failed_and_blank_buckets(self):
+        rows = self.q({'timeSeries': [self.bucket(600, 3, status='', http_status='200'), self.bucket(300, 1, status='', http_status='200')]})
+        self.assertEqual([r['value'] for r in rows], [1, 1, None])
+        self.assertEqual(self.q({'timeSeries': [self.bucket(0, 1, status='UNAVAILABLE', http_status='503'),
+                                                self.bucket(0, 2, status='', http_status='200')]})[0]['value'], 0)
+        self.assertEqual(self.q({'timeSeries': [self.bucket(0, 1, status='', http_status='503')]})[0]['value'], 0)
+        self.assertEqual(self.q({'timeSeries': [self.bucket(0, 1, status='OK', http_status='204')]})[0]['value'], 1)
+
+    def test_no_attempt_is_no_row_not_success(self):
+        self.assertEqual(self.q({}), [])
+        self.assertEqual(self.q({'timeSeries': [self.bucket(0, 0, status='', http_status='200')]}), [])
+
+    def test_gap_between_buckets_is_blank(self):
+        rows = self.q({'timeSeries': [self.bucket(3600, 1, status='', http_status='200'), self.bucket(0, 1, status='', http_status='200')]})
+        self.assertEqual([r['value'] for r in rows], [1, None, 1, None])
+
+    def test_truncated_and_provider_error_fail_visibly(self):
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                self.q(data)
+
+
+class OpsHealth(unittest.TestCase):
+    FIELDS = [{'key': 'pending', 'label': 'Pending'}, {'key': 'age', 'label': 'Age', 'state_key': 'state'},
+              {'key': 'epoch', 'label': 'When', 'scale': 1000}]
+
+    def q(self, data):
+        return query('ops-health.jq', data, FIELDS=self.FIELDS)[0]
+
+    def snapshot(self, sample_age, **values):
+        t = point(sample_age, 0)['interval']
+        return {'timeSeries': [series([{'interval': t, 'value': {'int64Value': str(v)}}], field=k) for k, v in values.items()]}
+
+    def test_fresh_values_including_real_zero(self):
+        self.assertEqual(self.q(self.snapshot(30, pending=0, age=50, state=1, epoch=10)), {'Pending': 0, 'Age': 50, 'When': 10000})
+
+    def test_state_failed_and_overdue_become_codes(self):
+        self.assertEqual(self.q(self.snapshot(0, pending=1, age=50, state=0, epoch=1))['Age'], -1)
+        self.assertEqual(self.q(self.snapshot(0, pending=1, age=50, state=2, epoch=1))['Age'], -2)
+
+    def test_stale_missing_future_and_invalid_are_null(self):
+        for data in (self.snapshot(400, pending=0, age=1, state=1, epoch=1), {}, self.snapshot(-300, pending=0, age=1, state=1, epoch=1)):
+            with self.subTest(data=data):
+                self.assertEqual(set(self.q(data).values()), {None})
+        self.assertIsNone(self.q(self.snapshot(0, pending='x', age=1, state=1, epoch=1))['Pending'])
+        self.assertIsNone(self.q(self.snapshot(0, pending=-1, age=1, state=1, epoch=1))['Pending'])
+
+    def test_older_run_fields_are_not_mixed_in(self):
+        data = self.snapshot(0, pending=3)
+        data['timeSeries'].append(series([point(120, 40)], field='age'))
+        self.assertEqual(self.q(data), {'Pending': 3, 'Age': None, 'When': None})
+
+    def test_truncated_and_provider_error_fail_visibly(self):
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                self.q(data)
+
+
+class GcpStatus(unittest.TestCase):
+    def incident(self, product='Cloud Run', locations=(), end=None):
+        return {'external_desc': 'Elevated errors', 'end': end, 'affected_products': [{'title': product}],
+                'currently_affected_locations': [{'id': x} for x in locations],
+                'most_recent_update': {'status': 'SERVICE_DISRUPTION', 'when': '2026-10-22T03:00:00+00:00'}}
+
+    def status(self, data):
+        return query('gcp-status.jq', data)[0]['status']
+
+    def test_fresh_feed(self):
+        self.assertEqual(self.status([]), 1)
+        self.assertEqual(self.status([self.incident()]), 2)
+        self.assertEqual(self.status([self.incident('Google Cloud SQL', ['asia-southeast1'])]), 2)
+        self.assertEqual(self.status([self.incident('Vertex AI Gemini API', ['global'])]), 2)
+
+    def test_unrelated_closed_or_elsewhere_is_no_incident(self):
+        self.assertEqual(self.status([self.incident('BigQuery')]), 1)
+        self.assertEqual(self.status([self.incident(end='2026-10-22T04:00:00+00:00')]), 1)
+        self.assertEqual(self.status([self.incident(locations=['us-central1'])]), 1)
+
+    def test_unreadable_feed_is_unknown(self):
+        for data in ({}, {'error': 'unavailable'}, [{'affected_products': 'x'}], ['x']):
+            with self.subTest(data=data):
+                self.assertEqual(self.status(data), 4)
+
+
+class BackupAge(unittest.TestCase):
+    ROWS = [{'component': 'cloud_sql_backup', 'label': 'SQL', 'age': 'age_seconds', 'status': 'status', 'red': 108000},
+            {'component': 'metabase_pitr', 'label': 'PITR', 'age': 'archive_age_seconds', 'status': 'status', 'status_is_state': True}]
+
+    def q(self, data):
+        return {r['Source']: (r['Age'], r['State']) for r in query('backup-age.jq', data, ROWS=self.ROWS)}
+
+    def sample(self, component, age, **values):
+        t = point(age, 0)['interval']
+        return [series([{'interval': t, 'value': {'int64Value': str(v)}}], component=component, field=k) for k, v in values.items()]
+
+    def test_fresh_within_and_beyond_grace(self):
+        data = {'timeSeries': self.sample('cloud_sql_backup', 0, age_seconds=25200, status=1) + self.sample('metabase_pitr', 0, archive_age_seconds=720, status=2)}
+        self.assertEqual(self.q(data), {'SQL': (25200, 1), 'PITR': (720, 2)})
+        self.assertEqual(self.q({'timeSeries': self.sample('cloud_sql_backup', 0, age_seconds=120000, status=1)})['SQL'], (120000, 0))
+        self.assertEqual(self.q({'timeSeries': self.sample('cloud_sql_backup', 0, age_seconds=100, status=0)})['SQL'], (100, 0))
+
+    def test_stale_and_missing_are_unknown(self):
+        self.assertEqual(self.q({'timeSeries': self.sample('cloud_sql_backup', 400, age_seconds=10, status=1)})['SQL'], (None, 4))
+        self.assertEqual(self.q({}), {'SQL': (None, 4), 'PITR': (None, 4)})
+
+    def test_truncated_and_provider_error_fail_visibly(self):
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                self.q(data)
+
+
+class Freshness(unittest.TestCase):
+    def test_age_of_newest_point_and_missing(self):
+        rows = query('freshness.jq', {'timeSeries': [series([point(400, 1), point(42, 1)])]}, LABEL='Collector')
+        self.assertEqual(rows[0]['Source'], 'Collector')
+        self.assertTrue(41 <= rows[0]['Age'] <= 44)
+        self.assertEqual(query('freshness.jq', {}, LABEL='Collector')[0]['Age'], None)
+        self.assertTrue(query('freshness.jq', {'timeSeries': [series([point(900, 1)])]}, LABEL='x')[0]['Age'] >= 900)
+
+    def test_truncated_and_provider_error_fail_visibly(self):
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                query('freshness.jq', data, LABEL='x')
+
+
+class Counters(unittest.TestCase):
+    def test_sum_points(self):
+        self.assertEqual(query('sum-points.jq', {'timeSeries': [series([point(0, 2), point(300, 3)]), series([point(0, 1)])]}), [{'value': 6}])
+        self.assertEqual(query('sum-points.jq', {}), [])
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                query('sum-points.jq', data)
+
+    def test_sum_by_label_uses_the_data_vocabulary(self):
+        data = {'timeSeries': [series([point(0, 4)], warning='none'), series([point(0, 1), point(300, 1)], warning='non_thb'),
+                               series([point(0, 1)], warning='none')]}
+        self.assertEqual(query('sum-by-label.jq', data, LABEL='warning'), [{'Outcome': 'none', 'Count': 5}, {'Outcome': 'non_thb', 'Count': 2}])
+        self.assertEqual(query('sum-by-label.jq', {}, LABEL='warning'), [])
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                query('sum-by-label.jq', data, LABEL='warning')
+
+
+class TurnPoints(unittest.TestCase):
+    def test_points_split_by_provider(self):
+        t1, t2 = point(600, 0)['interval'], point(0, 0)['interval']
+        data = {'timeSeries': [
+            series([{'interval': t1, 'value': {'int64Value': '48'}}, {'interval': t2, 'value': {'int64Value': '90'}}], field='seconds'),
+            series([{'interval': t1, 'value': {'int64Value': '1'}}, {'interval': t2, 'value': {'int64Value': '2'}}], field='provider')]}
+        self.assertEqual([r['value'] for r in query('turn-points.jq', data, VALUE='seconds', KEY='provider', CODE='1')], [48])
+        self.assertEqual([r['value'] for r in query('turn-points.jq', data, VALUE='seconds', KEY='provider', CODE='2')], [90])
+        self.assertEqual(query('turn-points.jq', {}, VALUE='seconds', KEY='provider', CODE='1'), [])
+        for bad in FAILURES:
+            with self.assertRaises(ValueError):
+                query('turn-points.jq', bad, VALUE='seconds', KEY='provider', CODE='1')
+
+
+class CloudRunByService(unittest.TestCase):
+    def data(self):
+        def s(name, pts):
+            return {'resource': {'labels': {'service_name': name}}, 'points': [{'interval': {'endTime': stamp(a)}, 'value': {'doubleValue': v}} for a, v in pts]}
+        return {'timeSeries': [s('mw-credit-app-read-prod', [(600, 0.2), (0, 0.4)]), s('mw-credit-app-jobs-dev', [])]}
+
+    def test_last_sum_and_absent_services(self):
+        self.assertEqual(query('cloudrun-by-service.jq', self.data(), COLUMN='CPU p95', MODE='last'), [{'Service': 'read-prod', 'CPU p95': 0.4}])
+        self.assertAlmostEqual(query('cloudrun-by-service.jq', self.data(), COLUMN='Billable', MODE='sum')[0]['Billable'], 0.6)
+        self.assertEqual(query('cloudrun-by-service.jq', {}, COLUMN='x', MODE='last'), [])
+        for bad in FAILURES:
+            with self.assertRaises(ValueError):
+                query('cloudrun-by-service.jq', bad, COLUMN='x', MODE='last')
+
+
+class CostQueries(unittest.TestCase):
+    def test_prior_azure_counts_days_up_to_today(self):
+        today = dt.datetime.now(dt.timezone.utc)
+        prev = (today.replace(day=1) - dt.timedelta(days=1))
+        def day(d):
+            return int(prev.strftime('%Y%m') + '%02d' % d)
+        rows = [[1.5, day(1), 'vm', 'USD'], [2.0, day(min(today.day, 28)), 'vm', 'USD'], [9.0, day(28) if today.day < 28 else day(1), 'disk', 'USD']]
+        expected = 1.5 + 2.0 + (0 if today.day < 28 else 9.0)
+        self.assertAlmostEqual(query('cost-prior-azure.jq', {'properties': {'rows': rows}})[0]['amount'], expected)
+        self.assertEqual(query('cost-prior-azure.jq', {'properties': {'rows': []}})[0]['amount'], 0)
+        for bad in ({'properties': {'nextLink': 'x', 'rows': []}}, {'properties': {}}, {'properties': {'rows': [[1, day(1), 'vm', 'EUR']]}}):
+            with self.assertRaises(ValueError):
+                query('cost-prior-azure.jq', bad)
+
+    def test_gcp_by_service(self):
+        def row(*values):
+            return {'f': [{'v': v} for v in values]}
+        data = {'jobComplete': True, 'rows': [row('Cloud Run', '1.5', '-0.5', 'SGD'), row('Cloud SQL', '4.0', '0', 'SGD')]}
+        self.assertEqual(query('gcp-by-service.jq', data),
+                         [{'Service': 'Cloud SQL', 'SGD': 4.0}, {'Service': 'Cloud Run', 'SGD': 1.5}, {'Service': 'Credits', 'SGD': -0.5}])
+        self.assertEqual(query('gcp-by-service.jq', {'jobComplete': True, 'rows': [row(None, None, None, 'SGD')]}), [])
+        for bad in ({'jobComplete': False}, {'jobComplete': True, 'pageToken': 'x'}, {'jobComplete': True, 'rows': [row('Cloud Run', '1', '0', 'USD')]}):
+            with self.assertRaises(ValueError):
+                query('gcp-by-service.jq', bad)
+
+
+class GeneratedSelectors(unittest.TestCase):
+    """Composite selectors exactly as the builder wrote them into the dashboards."""
+    def panel(self, uid, pid):
+        spec = json.loads((DASHBOARDS / (uid + '.json')).read_text())['spec']
+        for p in spec['panels']:
+            if p['id'] == pid:
+                return p
+            for c in p.get('panels', []):
+                if c['id'] == pid:
+                    return c
+        raise KeyError(pid)
+
+    def test_openai_worst_of_two_products(self):
+        sel = self.panel('mw-now', 17)['targets'][0]['root_selector']
+        self.assertEqual(run(sel, {'summary': {}})[0]['status'], 4)
+
+    def test_notifications_age_from_scheduler_buckets(self):
+        sel = self.panel('mw-now', 7)['targets'][1]['root_selector']
+        self.assertEqual(run(sel, {}), [{'Notifications': None}])
+        ok = {'timeSeries': [series([point(0, 1)], status='', http_status='200')]}
+        self.assertIsInstance(run(sel, ok)[0]['Notifications'], int)
+        bad = {'timeSeries': [series([point(0, 1)], status='UNAVAILABLE', http_status='503')]}
+        self.assertEqual(run(sel, bad)[0]['Notifications'], -1)
+        with self.assertRaises(ValueError):
+            run(sel, {'nextPageToken': 'x'})
+
+    def test_prod_only_panels_are_empty_on_dev(self):
+        sel = self.panel('mw-pwa', 21)['targets'][0]['root_selector']
+        self.assertEqual(run(sel.replace('${env}', 'dev'), {}), [])
+        self.assertEqual(set(run(sel.replace('${env}', 'prod'), {})[0].values()), {None})
+
+    def test_payment_stage_selectors(self):
+        p = self.panel('mw-now', 4)
+        scan = run(p['targets'][0]['root_selector'], {})
+        self.assertEqual([r['status'] for r in scan], [4, None])
+        stage = run(p['targets'][1]['root_selector'], {})
+        self.assertEqual(stage, [{'pending_images': None}])
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,0 +1,4135 @@
+{
+  "apiVersion": "dashboard.grafana.app/v1beta1",
+  "kind": "Dashboard",
+  "spec": {
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "description": "Capacity and limits: Cloud SQL, Cloud Run, the Debian VM, Metabase on Railway and the on-demand Azure VM-01.",
+    "editable": false,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 1,
+    "links": [
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Now",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-now"
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "PWA & APIs",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-pwa"
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Agent & Receipts",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-agent"
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Infrastructure",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-infra"
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Cost",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-cost"
+      }
+    ],
+    "liveNow": false,
+    "panels": [
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Red line: 100% of provider-reported capacity/quota. This is capacity, not an invented warning level.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "axisSoftMax": 1,
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "max": 1,
+            "min": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 0.85
+                }
+              ]
+            },
+            "unit": "percentunit"
+          }
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "CPU",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fcpu%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Cloud SQL CPU",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Cloud SQL database/memory/components: Usage (displayed as Used), Cache and Free, each as a percentage of instance memory. Values are already 0–100 percentages. The 100% line is total capacity, not a memory-pressure warning. Cache is shown separately from Used.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "axisSoftMax": 100,
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "max": 100,
+            "min": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 85
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "(^|.* )Used$"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "orange",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "(^|.* )Cache$"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": "(^|.* )Free$"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "green",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "id": 2,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Used",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.component%20%3D%20%22Usage%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Cache",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.component%20%3D%20%22Cache%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Free",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.component%20%3D%20%22Free%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Cloud SQL memory components",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Red line: 100% of provider-reported capacity/quota. This is capacity, not an invented warning level.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "axisSoftMax": 1,
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "max": 1,
+            "min": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 0.8
+                }
+              ]
+            },
+            "unit": "percentunit"
+          }
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "id": 3,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Storage",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fdisk%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Cloud SQL disk utilisation",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Live Cloud SQL database flag max_connections=200, verified 22 September 2026. Instance-wide ceiling; reserved PostgreSQL connections reduce ordinary-client availability. Samples are interval averages.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "axisSoftMax": 210,
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 160
+                },
+                {
+                  "color": "#6E7079",
+                  "value": 200
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "id": 4,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Connections",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Cloud SQL connections · limit 200",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: age of the newest successful automated backup (red above 30 h, the alert value), newest run state, its type and the transaction-log (PITR) retention.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "footer": {
+                "reducers": []
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "mappings": [],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Last backup age"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "dtdurations"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 108000
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Newest run"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "0": {
+                          "color": "dark-red",
+                          "index": 0,
+                          "text": "Failed"
+                        },
+                        "1": {
+                          "color": "green",
+                          "index": 1,
+                          "text": "Successful"
+                        },
+                        "2": {
+                          "color": "blue",
+                          "index": 2,
+                          "text": "Running"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 3,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Type"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "1": {
+                          "color": "blue",
+                          "index": 0,
+                          "text": "Automated"
+                        },
+                        "2": {
+                          "color": "blue",
+                          "index": 1,
+                          "text": "On demand"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 2,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "PITR log retention"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "d"
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 7
+        },
+        "id": 5,
+        "options": {
+          "cellHeight": "sm",
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Last backup age",
+                "text": "Last backup age",
+                "type": "number"
+              },
+              {
+                "selector": "Newest run",
+                "text": "Newest run",
+                "type": "number"
+              },
+              {
+                "selector": "Type",
+                "text": "Type",
+                "type": "number"
+              },
+              {
+                "selector": "PITR log retention",
+                "text": "PITR log retention",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"age_seconds\",\"label\":\"Last backup age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR log retention\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"age_seconds\",\"label\":\"Last backup age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR log retention\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22cloud_sql_backup%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Backups and restore points",
+        "transformations": [],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "mixed",
+          "uid": "-- Mixed --"
+        },
+        "description": "Configuration snapshots, dated (the only static text on this dashboard), plus PostgreSQL uptime from the collector's read-only reporting connection.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "footer": {
+                "reducers": []
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "mappings": [],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 7
+        },
+        "id": 6,
+        "options": {
+          "cellHeight": "sm",
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Fact",
+                "text": "Fact",
+                "type": "string"
+              },
+              {
+                "selector": "Value",
+                "text": "Value",
+                "type": "string"
+              }
+            ],
+            "data": "[{\"Fact\":\"Tier\",\"Value\":\"db-g1-small (since 16 Oct 2026)\"},{\"Fact\":\"Storage\",\"Value\":\"PD_SSD 10 GB, automatic increase (since 17 Oct 2026)\"},{\"Fact\":\"max_connections\",\"Value\":\"200 (database flag, verified 22 Sep 2026)\"}]",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": ".[]",
+            "source": "inline",
+            "type": "json",
+            "url": "",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Fact",
+                "text": "Fact",
+                "type": "string"
+              },
+              {
+                "selector": "Value",
+                "text": "Value",
+                "type": "string"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "(if .error then error(\"SQL uptime query failed\") elif .nextPageToken then error(\"Truncated SQL uptime response\") else\n  (.timeSeries // []) as $s |\n  if any($s[]; .metric.type!=\"custom.googleapis.com/mw_resource_monitoring/worker_timing\" or\n      .metric.labels.component!=\"cloud_sql_prod\" or .resource.type!=\"gce_instance\" or\n      .resource.labels.project_id!=\"clever-oasis-508610-n7\" or .resource.labels.instance_id!=\"8223265527494214160\" or\n      .resource.labels.zone!=\"asia-southeast1-a\" or\n      (.metric.labels.field!=\"status\" and .metric.labels.field!=\"uptime_seconds\"))\n  then error(\"Unexpected SQL uptime resource\") else\n    [$s[]|{field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n    if ([$rows[]|.field]|unique|length)!=($rows|length) then error(\"Ambiguous SQL uptime fields\") else\n      ($rows|map(select(.field==\"status\"))|first|.p) as $p |\n      ($rows|map(select(.field==\"uptime_seconds\"))|first|.p) as $u |\n      (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t |\n      (try ($p.value.int64Value|tonumber) catch null) as $status |\n      (try ($u.value.int64Value|tonumber) catch null) as $v |\n      {Uptime:(if $t!=null and now-$t<=360 and $t-now<=120 and $status==1 and\n        $u.interval.endTime==$p.interval.endTime and $v!=null and $v>=0 and ($v|floor)==$v\n        then $v else null end)}\n    end\n  end end | . + {UptimeText:(if .Uptime==null then null else\n  (.Uptime/60|floor) as $m | (($m/1440|floor)|tostring)+\"d \"+\n  (\"0\"+((($m%1440)/60|floor)|tostring)|.[-2:])+\"h \"+\n  (\"0\"+(($m%60)|tostring)|.[-2:])+\"m\" end)}) | {Fact: \"PostgreSQL uptime\", Value: (.UptimeText // \"No report\")}",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20metric.labels.component%20%3D%20%22cloud_sql_prod%22%20AND%20resource.type%20%3D%20%22gce_instance%22%20AND%20resource.labels.project_id%20%3D%20%22clever-oasis-508610-n7%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20resource.labels.zone%20%3D%20%22asia-southeast1-a%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Instance facts",
+        "transformations": [
+          {
+            "id": "merge",
+            "options": {}
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Cloud SQL num_backends per database (metric label database); explains who holds connections. No threshold.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 4,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 0,
+            "min": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 7
+        },
+        "id": 7,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "loan_manager_prod",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.database%20%3D%20%22loan_manager_prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "mw_agent",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.database%20%3D%20%22mw_agent%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "loan_manager_dev",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.database%20%3D%20%22loan_manager_dev%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Connections by database",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian collector worker_timing{pg_stat}: share of total execution time and call rate of the heaviest statement in monitoring.pg_stat_statements. The statement text stays in the collector's local log.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "footer": {
+                "reducers": []
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "mappings": [],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Top statement share"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Read"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "0": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "Not granted"
+                        },
+                        "1": {
+                          "color": "green",
+                          "index": 1,
+                          "text": "Read"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 2,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 12
+        },
+        "id": 8,
+        "options": {
+          "cellHeight": "sm",
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Top statement share",
+                "text": "Top statement share",
+                "type": "number"
+              },
+              {
+                "selector": "Calls per minute",
+                "text": "Calls per minute",
+                "type": "number"
+              },
+              {
+                "selector": "Read",
+                "text": "Read",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"top1_share_percent\",\"label\":\"Top statement share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls per minute\"},{\"key\":\"status\",\"label\":\"Read\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"top1_share_percent\",\"label\":\"Top statement share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls per minute\"},{\"key\":\"status\",\"label\":\"Read\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pg_stat%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Top statement share",
+        "transformations": [],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Cloud Monitoring per service: newest instance count against max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "footer": {
+                "reducers": []
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "mappings": [],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "CPU p95"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percentunit"
+                },
+                {
+                  "id": "decimals",
+                  "value": 0
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 0.8
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Memory p95"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percentunit"
+                },
+                {
+                  "id": "decimals",
+                  "value": 0
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 0.8
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Billable time"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "s"
+                },
+                {
+                  "id": "decimals",
+                  "value": 0
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Instances"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "0 seen"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 16,
+          "x": 8,
+          "y": 12
+        },
+        "id": 9,
+        "options": {
+          "cellHeight": "sm",
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Service",
+                "text": "Service",
+                "type": "string"
+              },
+              {
+                "selector": "Max instances",
+                "text": "Max instances",
+                "type": "number"
+              }
+            ],
+            "data": "[{\"Service\":\"read-prod\",\"Max instances\":1},{\"Service\":\"command-prod\",\"Max instances\":2},{\"Service\":\"notify-prod\",\"Max instances\":1},{\"Service\":\"jobs-prod\",\"Max instances\":1},{\"Service\":\"read-dev\",\"Max instances\":2},{\"Service\":\"command-dev\",\"Max instances\":2},{\"Service\":\"notify-dev\",\"Max instances\":1},{\"Service\":\"jobs-dev\",\"Max instances\":1}]",
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": ".[]",
+            "source": "inline",
+            "type": "json",
+            "url": "",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Service",
+                "text": "Service",
+                "type": "string"
+              },
+              {
+                "selector": "Instances",
+                "text": "Instances",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# One row per Cloud Run service from a Cloud Monitoring response aggregated by\n# resource.label.service_name: last \"last\" keeps the newest aligned point,\n# \"sum\" adds every point in the range. Services without data are absent, so the\n# table shows no value for them rather than a zero.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Cloud Run response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {service: (.resource.labels.service_name // .metric.labels.service_name),\n    points: [.points[]? | {t: .interval.endTime,\n      v: (try ((.value.doubleValue // .value.int64Value) | tonumber) catch null)} | select(.v != null)]} |\n    select(.service != null and (.points | length) > 0)] |\n  group_by(.service)[] |\n  {Service: (.[0].service | sub(\"^mw-credit-app-\"; \"\")),\n   \"Instances\": (if \"last\" == \"sum\" then ([.[].points[].v] | add)\n     else ([.[].points[]] | sort_by(.t) | last | .v) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Service",
+                "text": "Service",
+                "type": "string"
+              },
+              {
+                "selector": "CPU p95",
+                "text": "CPU p95",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "# One row per Cloud Run service from a Cloud Monitoring response aggregated by\n# resource.label.service_name: last \"last\" keeps the newest aligned point,\n# \"sum\" adds every point in the range. Services without data are absent, so the\n# table shows no value for them rather than a zero.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Cloud Run response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {service: (.resource.labels.service_name // .metric.labels.service_name),\n    points: [.points[]? | {t: .interval.endTime,\n      v: (try ((.value.doubleValue // .value.int64Value) | tonumber) catch null)} | select(.v != null)]} |\n    select(.service != null and (.points | length) > 0)] |\n  group_by(.service)[] |\n  {Service: (.[0].service | sub(\"^mw-credit-app-\"; \"\")),\n   \"CPU p95\": (if \"last\" == \"sum\" then ([.[].points[].v] | add)\n     else ([.[].points[]] | sort_by(.t) | last | .v) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fcpu%2Futilizations%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=900s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Service",
+                "text": "Service",
+                "type": "string"
+              },
+              {
+                "selector": "Memory p95",
+                "text": "Memory p95",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "# One row per Cloud Run service from a Cloud Monitoring response aggregated by\n# resource.label.service_name: last \"last\" keeps the newest aligned point,\n# \"sum\" adds every point in the range. Services without data are absent, so the\n# table shows no value for them rather than a zero.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Cloud Run response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {service: (.resource.labels.service_name // .metric.labels.service_name),\n    points: [.points[]? | {t: .interval.endTime,\n      v: (try ((.value.doubleValue // .value.int64Value) | tonumber) catch null)} | select(.v != null)]} |\n    select(.service != null and (.points | length) > 0)] |\n  group_by(.service)[] |\n  {Service: (.[0].service | sub(\"^mw-credit-app-\"; \"\")),\n   \"Memory p95\": (if \"last\" == \"sum\" then ([.[].points[].v] | add)\n     else ([.[].points[]] | sort_by(.t) | last | .v) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fmemory%2Futilizations%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=900s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Service",
+                "text": "Service",
+                "type": "string"
+              },
+              {
+                "selector": "Billable time",
+                "text": "Billable time",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "E",
+            "root_selector": "# One row per Cloud Run service from a Cloud Monitoring response aggregated by\n# resource.label.service_name: sum \"last\" keeps the newest aligned point,\n# \"sum\" adds every point in the range. Services without data are absent, so the\n# table shows no value for them rather than a zero.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Cloud Run response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {service: (.resource.labels.service_name // .metric.labels.service_name),\n    points: [.points[]? | {t: .interval.endTime,\n      v: (try ((.value.doubleValue // .value.int64Value) | tonumber) catch null)} | select(.v != null)]} |\n    select(.service != null and (.points | length) > 0)] |\n  group_by(.service)[] |\n  {Service: (.[0].service | sub(\"^mw-credit-app-\"; \"\")),\n   \"Billable time\": (if \"sum\" == \"sum\" then ([.[].points[].v] | add)\n     else ([.[].points[]] | sort_by(.t) | last | .v) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fbillable_instance_time%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=3600s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Cloud Run · eight services",
+        "transformations": [
+          {
+            "id": "joinByField",
+            "options": {
+              "byField": "Service",
+              "mode": "outerTabular"
+            }
+          },
+          {
+            "id": "organize",
+            "options": {
+              "indexByName": {
+                "Billable time": 5,
+                "CPU p95": 3,
+                "Instances": 1,
+                "Max instances": 2,
+                "Memory p95": 4,
+                "Service": 0
+              }
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Red line: 100% of provider-reported capacity/quota. This is capacity, not an invented warning level.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "axisSoftMax": 1,
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "max": 1,
+            "min": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "red",
+                  "value": 1
+                }
+              ]
+            },
+            "unit": "percentunit"
+          }
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 0,
+          "y": 17
+        },
+        "id": 10,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "CPU",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22compute.googleapis.com%2Finstance%2Fcpu%2Futilization%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Debian VM CPU",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Red line: 100% of provider-reported capacity/quota. This is capacity, not an invented warning level.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "axisSoftMax": 100,
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "max": 100,
+            "min": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 85
+                }
+              ]
+            },
+            "unit": "percent"
+          }
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 6,
+          "y": 17
+        },
+        "id": 11,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Used",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22agent.googleapis.com%2Fmemory%2Fpercent_used%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.state%20%3D%20%22used%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Debian VM used memory",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": " No directly comparable configured hard cap was exposed for this metric; no arbitrary threshold is drawn.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "Bps"
+          }
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 12,
+          "y": 17
+        },
+        "id": 12,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Received",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22compute.googleapis.com%2Finstance%2Fnetwork%2Freceived_bytes_count%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_RATE&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Sent",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22compute.googleapis.com%2Finstance%2Fnetwork%2Fsent_bytes_count%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_RATE&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Debian VM network",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "No directly comparable configured hard cap was exposed for this metric; no arbitrary threshold is drawn. Snapshot age: Backups and recovery points on Now.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "Bps"
+          }
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 6,
+          "x": 18,
+          "y": 17
+        },
+        "id": 13,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Read",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22compute.googleapis.com%2Finstance%2Fdisk%2Fread_bytes_count%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_RATE&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Write",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22compute.googleapis.com%2Finstance%2Fdisk%2Fwrite_bytes_count%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_RATE&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Debian VM disk throughput",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Elapsed time since Compute Engine VM start, shown in days, hours and minutes. Source: uptime_total GAUGE for vm-mw-credit-agent, sampled every 60 seconds with up to 120 seconds visibility delay. This is VM-start uptime, not service availability or guaranteed guest-reboot age. Uses the latest raw sample without extrapolation. Samples older than 6 minutes, more than 2 minutes in the future, missing or invalid are Unknown. Query errors remain visible. Historical ranges excluding fresh data are Unknown. Display floors to whole minutes; raw seconds retained internally.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "blue",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "Debian VM",
+            "min": 0,
+            "noValue": "Unknown",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "string"
+          }
+        },
+        "gridPos": {
+          "h": 2,
+          "w": 6,
+          "x": 18,
+          "y": 22
+        },
+        "id": 18,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom"
+          },
+          "orientation": "vertical",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "last"
+            ],
+            "fields": "/.*/",
+            "values": true
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 12,
+            "valueSize": 18
+          },
+          "textMode": "value_and_name",
+          "tooltip": {
+            "mode": "multi",
+            "sort": "desc"
+          },
+          "wideLayout": true
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "UptimeText",
+                "text": "Uptime",
+                "type": "string"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .error then error(\"Uptime query failed\") elif .nextPageToken then error(\"Truncated uptime response\") else\n  (.timeSeries // []) as $series |\n  if ($series|length)>1 then error(\"Ambiguous VM uptime series\")\n  elif ($series|length)==0 then {Uptime:null}\n  elif $series[0].metric.type!=\"compute.googleapis.com/instance/uptime_total\" or\n    $series[0].resource.type!=\"gce_instance\" or\n    $series[0].resource.labels.project_id!=\"clever-oasis-508610-n7\" or\n    $series[0].resource.labels.instance_id!=\"8223265527494214160\" or\n    $series[0].resource.labels.zone!=\"asia-southeast1-a\"\n  then error(\"Unexpected uptime resource\") else\n    [$series[0].points[]?] | sort_by(.interval.endTime) | last as $p |\n    (try ($p.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601) catch null) as $t |\n    (try ($p.value.int64Value|tonumber) catch null) as $v |\n    {Uptime:(if $t!=null and now-$t<=360 and $t-now<=120 and\n      $v!=null and ($v|type)==\"number\" and $v>=0 and ($v|floor)==$v\n      then $v else null end)}\n  end end | . + {UptimeText:(if .Uptime==null then null else\n  (.Uptime/60|floor) as $m | (($m/1440|floor)|tostring)+\"d \"+\n  (\"0\"+((($m%1440)/60|floor)|tostring)|.[-2:])+\"h \"+\n  (\"0\"+(($m%60)|tostring)|.[-2:])+\"m\" end)}",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22compute.googleapis.com%2Finstance%2Fuptime_total%22%20AND%20resource.type%20%3D%20%22gce_instance%22%20AND%20resource.labels.project_id%20%3D%20%22clever-oasis-508610-n7%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20resource.labels.zone%20%3D%20%22asia-southeast1-a%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Debian VM uptime",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-railway-monitoring"
+        },
+        "description": "Dashed limit series come from Railway CPU_LIMIT/MEMORY_LIMIT_GB and follow changes over time. Each service has its own limit.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 1,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "cores"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*[Ll]imit.*"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "red",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "custom.fillOpacity",
+                  "value": 0
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "dash": [
+                      6,
+                      4
+                    ],
+                    "fill": "dash"
+                  }
+                },
+                {
+                  "id": "custom.lineWidth",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 0,
+          "y": 24
+        },
+        "id": 14,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Metabase",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_USAGE],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Postgres",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_USAGE],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Metabase limit",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_LIMIT],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Postgres limit",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_LIMIT],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          }
+        ],
+        "title": "Metabase CPU · cores",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-railway-monitoring"
+        },
+        "description": "Dashed limit series come from Railway CPU_LIMIT/MEMORY_LIMIT_GB and follow changes over time. Each service has its own limit. The alert fires at 90 % of the limit.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 1,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "suffix:GB"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*[Ll]imit.*"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "red",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "custom.fillOpacity",
+                  "value": 0
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "dash": [
+                      6,
+                      4
+                    ],
+                    "fill": "dash"
+                  }
+                },
+                {
+                  "id": "custom.lineWidth",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 6,
+          "y": 24
+        },
+        "id": 15,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Metabase",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_USAGE_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Postgres",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_USAGE_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Metabase limit",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_LIMIT_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Postgres limit",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_LIMIT_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          }
+        ],
+        "title": "Metabase memory · GB",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-railway-monitoring"
+        },
+        "description": "Postgres attached volume sizeMB=5000 (5 GB), verified 22 September 2026. Metabase has no attached persistent volume and is omitted.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "axisSoftMax": 5.25,
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 12,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "showValues": false,
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 1,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            },
+            "unit": "suffix:GB"
+          }
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 12,
+          "y": 24
+        },
+        "id": 16,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "legend": {
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "pluginVersion": "13.3.0-36978054224",
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Postgres",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[DISK_USAGE_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          }
+        ],
+        "title": "Postgres volume · GB",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "mixed",
+          "uid": "-- Mixed --"
+        },
+        "description": "Today's Metabase probe, backup and PITR selectors unchanged (Debian collector and Railway API): one row each with its state and details.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "footer": {
+                "reducers": []
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "mappings": [],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Status"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "0": {
+                          "color": "dark-red",
+                          "index": 0,
+                          "text": "Down"
+                        },
+                        "1": {
+                          "color": "green",
+                          "index": 1,
+                          "text": "OK"
+                        },
+                        "2": {
+                          "color": "orange",
+                          "index": 2,
+                          "text": "Degraded"
+                        },
+                        "3": {
+                          "color": "blue",
+                          "index": 3,
+                          "text": "Paused"
+                        },
+                        "4": {
+                          "color": "#6E7079",
+                          "index": 4,
+                          "text": "Unknown"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 5,
+                          "text": "Unknown"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "custom.width",
+                  "value": 90
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Details"
+              },
+              "properties": [
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "type": "auto",
+                    "wrapText": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 18,
+          "y": 24
+        },
+        "id": 17,
+        "options": {
+          "cellHeight": "sm",
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "details",
+                "text": "Details",
+                "type": "string"
+              },
+              {
+                "selector": "status",
+                "text": "Status",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"▦ Platform — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase liveness /livez; reports.mw-credit.com responds.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_platform%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "details",
+                "text": "Details",
+                "type": "string"
+              },
+              {
+                "selector": "status",
+                "text": "Status",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🗄 App DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase readiness /readyz includes its application database connection.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_appdb%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "details",
+                "text": "Details",
+                "type": "string"
+              },
+              {
+                "selector": "status",
+                "text": "Status",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛢 Reporting DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nUncached saved SELECT 1 through Metabase source 2; no business rows.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_reporting%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "details",
+                "text": "Details",
+                "type": "string"
+              },
+              {
+                "selector": "status",
+                "text": "Status",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"📊 Charts — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\ncharts.mw-credit.com shell and protected API response; no private data or rendering check.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_charts%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "details",
+                "text": "Details",
+                "type": "string"
+              },
+              {
+                "selector": "status",
+                "text": "Status",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "E",
+            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"💾 Daily backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"DAILY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 108000 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 108000 then 1 elif $age <= 129600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"💾 Daily backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"query { volumeInstanceBackupList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { createdAt scheduleId } volumeInstanceBackupScheduleList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { id kind cron createdAt retentionSeconds } }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "details",
+                "text": "Details",
+                "type": "string"
+              },
+              {
+                "selector": "status",
+                "text": "Status",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "F",
+            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"🗓 Weekly backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"WEEKLY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 691200 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 691200 then 1 elif $age <= 777600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"🗓 Weekly backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"query { volumeInstanceBackupList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { createdAt scheduleId } volumeInstanceBackupScheduleList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { id kind cron createdAt retentionSeconds } }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "details",
+                "text": "Details",
+                "type": "string"
+              },
+              {
+                "selector": "status",
+                "text": "Status",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "G",
+            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"PITR response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛡 PITR archive — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nRailway Postgres pgBackRest coverage and live WAL archiver.\"+\n \"\\nLatest WAL archive: \"+(if ($v.last_archived//0)>0 then ($v.last_archived+28800|gmtime|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nArchive lag: \"+(if $fresh and ($v.last_archived//0)>0 then (($v.archive_age_seconds//0)/60|floor|tostring)+\" minutes\" else \"Unavailable\" end)+\n \"\\nBackup sets: \"+(if $fresh then (($v.backup_sets//0)|tostring) else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nGreen requires an enabled archive, reachable live probe, backup set, WAL coverage and a recent successful archive. This does not validate a restore.\")}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_pitr%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Metabase probes and recovery",
+        "transformations": [
+          {
+            "id": "merge",
+            "options": {}
+          },
+          {
+            "id": "organize",
+            "options": {
+              "indexByName": {
+                "Details": 1,
+                "Status": 0
+              }
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 31
+        },
+        "id": 20,
+        "panels": [
+          {
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-azure-monitoring"
+            },
+            "description": "Red line: 100% of provider-reported capacity/quota. This is capacity, not an invented warning level.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "axisSoftMax": 100,
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 12,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "smooth",
+                  "lineWidth": 2,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "dashed"
+                  }
+                },
+                "decimals": 0,
+                "max": 100,
+                "min": 0,
+                "noValue": "No data",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                },
+                "unit": "percent"
+              }
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 12,
+              "x": 0,
+              "y": 32
+            },
+            "id": 21,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "area",
+              "legend": {
+                "calcs": [
+                  "lastNotNull",
+                  "max"
+                ],
+                "displayMode": "table",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "textMode": "auto",
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "pluginVersion": "13.3.0-36978054224",
+            "targets": [
+              {
+                "columns": [
+                  {
+                    "selector": "time",
+                    "text": "Time",
+                    "type": "timestamp"
+                  },
+                  {
+                    "selector": "value",
+                    "text": "CPU",
+                    "type": "number"
+                  }
+                ],
+                "datasource": {
+                  "type": "yesoreyeram-infinity-datasource",
+                  "uid": "mw-azure-monitoring"
+                },
+                "format": "timeseries",
+                "parser": "jq-backend",
+                "refId": "A",
+                "root_selector": "[.value[] | .timeseries[] | .data[] | select(.average != null) | {time:.timeStamp,value:.average}] | sort_by(.time) | .[]",
+                "source": "url",
+                "type": "json",
+                "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/microsoft.insights/metrics?api-version=2023-10-01&metricnames=Percentage%20CPU&timespan=${__timeFrom:date:iso}/${__timeTo:date:iso}&interval=$__customInterval(2d,PT5M,14d,PT1H,P1D)&aggregation=Average",
+                "url_options": {
+                  "method": "GET"
+                }
+              }
+            ],
+            "title": "VM-01 · CPU utilization",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-azure-monitoring"
+            },
+            "description": "Available memory reaches exhaustion at 0%; the upper capacity reference is 100%. The summary above displays used memory.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 12,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "smooth",
+                  "lineWidth": 2,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "dashed"
+                  }
+                },
+                "decimals": 0,
+                "max": 100,
+                "min": 0,
+                "noValue": "No data",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                },
+                "unit": "percent"
+              }
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 12,
+              "x": 12,
+              "y": 32
+            },
+            "id": 22,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "area",
+              "legend": {
+                "calcs": [
+                  "lastNotNull",
+                  "max"
+                ],
+                "displayMode": "table",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "textMode": "auto",
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "pluginVersion": "13.3.0-36978054224",
+            "targets": [
+              {
+                "columns": [
+                  {
+                    "selector": "time",
+                    "text": "Time",
+                    "type": "timestamp"
+                  },
+                  {
+                    "selector": "value",
+                    "text": "Available",
+                    "type": "number"
+                  }
+                ],
+                "datasource": {
+                  "type": "yesoreyeram-infinity-datasource",
+                  "uid": "mw-azure-monitoring"
+                },
+                "format": "timeseries",
+                "parser": "jq-backend",
+                "refId": "A",
+                "root_selector": "[.value[] | .timeseries[] | .data[] | select(.average != null) | {time:.timeStamp,value:.average}] | sort_by(.time) | .[]",
+                "source": "url",
+                "type": "json",
+                "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/microsoft.insights/metrics?api-version=2023-10-01&metricnames=Available%20Memory%20Percentage&timespan=${__timeFrom:date:iso}/${__timeTo:date:iso}&interval=$__customInterval(2d,PT5M,14d,PT1H,P1D)&aggregation=Average",
+                "url_options": {
+                  "method": "GET"
+                }
+              }
+            ],
+            "title": "VM-01 · Available memory",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-azure-monitoring"
+            },
+            "description": "Transferred bytes in each provider aggregation interval. Interval is 5 minutes up to 2 days, 1 hour up to 14 days, and 1 day for longer ranges. No directly comparable configured hard cap was exposed for this metric; no arbitrary threshold is drawn.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 12,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "smooth",
+                  "lineWidth": 2,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 0,
+                "noValue": "No data",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "bytes"
+              }
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 12,
+              "x": 0,
+              "y": 39
+            },
+            "id": 23,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "area",
+              "legend": {
+                "calcs": [
+                  "lastNotNull",
+                  "max"
+                ],
+                "displayMode": "table",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "textMode": "auto",
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "pluginVersion": "13.3.0-36978054224",
+            "targets": [
+              {
+                "columns": [
+                  {
+                    "selector": "time",
+                    "text": "Time",
+                    "type": "timestamp"
+                  },
+                  {
+                    "selector": "value",
+                    "text": "Received",
+                    "type": "number"
+                  }
+                ],
+                "datasource": {
+                  "type": "yesoreyeram-infinity-datasource",
+                  "uid": "mw-azure-monitoring"
+                },
+                "format": "timeseries",
+                "parser": "jq-backend",
+                "refId": "A",
+                "root_selector": "[.value[] | .timeseries[] | .data[] | select(.total != null) | {time:.timeStamp,value:.total}] | sort_by(.time) | .[]",
+                "source": "url",
+                "type": "json",
+                "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/microsoft.insights/metrics?api-version=2023-10-01&metricnames=Network%20In%20Total&timespan=${__timeFrom:date:iso}/${__timeTo:date:iso}&interval=$__customInterval(2d,PT5M,14d,PT1H,P1D)&aggregation=Total",
+                "url_options": {
+                  "method": "GET"
+                }
+              },
+              {
+                "columns": [
+                  {
+                    "selector": "time",
+                    "text": "Time",
+                    "type": "timestamp"
+                  },
+                  {
+                    "selector": "value",
+                    "text": "Sent",
+                    "type": "number"
+                  }
+                ],
+                "datasource": {
+                  "type": "yesoreyeram-infinity-datasource",
+                  "uid": "mw-azure-monitoring"
+                },
+                "format": "timeseries",
+                "parser": "jq-backend",
+                "refId": "B",
+                "root_selector": "[.value[] | .timeseries[] | .data[] | select(.total != null) | {time:.timeStamp,value:.total}] | sort_by(.time) | .[]",
+                "source": "url",
+                "type": "json",
+                "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/microsoft.insights/metrics?api-version=2023-10-01&metricnames=Network%20Out%20Total&timespan=${__timeFrom:date:iso}/${__timeTo:date:iso}&interval=$__customInterval(2d,PT5M,14d,PT1H,P1D)&aggregation=Total",
+                "url_options": {
+                  "method": "GET"
+                }
+              }
+            ],
+            "title": "VM-01 · Network transfer per interval",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-azure-monitoring"
+            },
+            "description": "Red line: configured OS disk baseline throughput 100 MB/s (diskMBpsReadWrite). Shared by reads and writes; this is not an independent allowance for each series. Bursting/cache/VM limits may alter observed throughput.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "axisSoftMax": 105000000,
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 12,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "smooth",
+                  "lineWidth": 2,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "dashed"
+                  }
+                },
+                "decimals": 0,
+                "noValue": "No data",
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 100000000
+                    }
+                  ]
+                },
+                "unit": "Bps"
+              }
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 12,
+              "x": 12,
+              "y": 39
+            },
+            "id": 24,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "area",
+              "legend": {
+                "calcs": [
+                  "lastNotNull",
+                  "max"
+                ],
+                "displayMode": "table",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "textMode": "auto",
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "pluginVersion": "13.3.0-36978054224",
+            "targets": [
+              {
+                "columns": [
+                  {
+                    "selector": "time",
+                    "text": "Time",
+                    "type": "timestamp"
+                  },
+                  {
+                    "selector": "value",
+                    "text": "Read",
+                    "type": "number"
+                  }
+                ],
+                "datasource": {
+                  "type": "yesoreyeram-infinity-datasource",
+                  "uid": "mw-azure-monitoring"
+                },
+                "format": "timeseries",
+                "parser": "jq-backend",
+                "refId": "A",
+                "root_selector": "[.value[] | .timeseries[] | .data[] | select(.average != null) | {time:.timeStamp,value:.average}] | sort_by(.time) | .[]",
+                "source": "url",
+                "type": "json",
+                "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/microsoft.insights/metrics?api-version=2023-10-01&metricnames=OS%20Disk%20Read%20Bytes%2Fsec&timespan=${__timeFrom:date:iso}/${__timeTo:date:iso}&interval=$__customInterval(2d,PT5M,14d,PT1H,P1D)&aggregation=Average",
+                "url_options": {
+                  "method": "GET"
+                }
+              },
+              {
+                "columns": [
+                  {
+                    "selector": "time",
+                    "text": "Time",
+                    "type": "timestamp"
+                  },
+                  {
+                    "selector": "value",
+                    "text": "Write",
+                    "type": "number"
+                  }
+                ],
+                "datasource": {
+                  "type": "yesoreyeram-infinity-datasource",
+                  "uid": "mw-azure-monitoring"
+                },
+                "format": "timeseries",
+                "parser": "jq-backend",
+                "refId": "B",
+                "root_selector": "[.value[] | .timeseries[] | .data[] | select(.average != null) | {time:.timeStamp,value:.average}] | sort_by(.time) | .[]",
+                "source": "url",
+                "type": "json",
+                "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/microsoft.insights/metrics?api-version=2023-10-01&metricnames=OS%20Disk%20Write%20Bytes%2Fsec&timespan=${__timeFrom:date:iso}/${__timeTo:date:iso}&interval=$__customInterval(2d,PT5M,14d,PT1H,P1D)&aggregation=Average",
+                "url_options": {
+                  "method": "GET"
+                }
+              }
+            ],
+            "title": "VM-01 · OS disk throughput",
+            "type": "timeseries"
+          }
+        ],
+        "title": "Azure VM-01 · on-demand operator host (no 24x7 expectation, no alert)",
+        "type": "row"
+      }
+    ],
+    "preload": false,
+    "refresh": "5m",
+    "schemaVersion": 42,
+    "tags": [
+      "mw-credit"
+    ],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "1m",
+        "2m",
+        "5m",
+        "15m",
+        "1h"
+      ]
+    },
+    "timezone": "Asia/Bangkok",
+    "title": "MW Credit · Infrastructure"
+  }
+}

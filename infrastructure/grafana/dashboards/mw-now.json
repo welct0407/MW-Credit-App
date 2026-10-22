@@ -1,0 +1,3297 @@
+{
+  "apiVersion": "dashboard.grafana.app/v1beta1",
+  "kind": "Dashboard",
+  "spec": {
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "description": "Is MW Credit working right now? PROD only; the page the alert runbook opens first.",
+    "editable": false,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 1,
+    "links": [
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Now",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-now"
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "PWA & APIs",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-pwa"
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Agent & Receipts",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-agent"
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Infrastructure",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-infra"
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Cost",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/mw-cost"
+      }
+    ],
+    "liveNow": false,
+    "panels": [
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "One lane per PROD service; each sample is a state code (green OK, orange degraded, red down, blue paused, grey unknown). Debian collector health, Cloud Monitoring and scheduler logs; a lane ends blank or grey after 6 minutes without a report, never green.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "fillOpacity": 80,
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineWidth": 0,
+              "spanNulls": false
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "dark-red",
+                    "index": 0,
+                    "text": "Down"
+                  },
+                  "1": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "OK"
+                  },
+                  "2": {
+                    "color": "orange",
+                    "index": 2,
+                    "text": "Degraded"
+                  },
+                  "3": {
+                    "color": "blue",
+                    "index": 3,
+                    "text": "Paused"
+                  },
+                  "4": {
+                    "color": "#6E7079",
+                    "index": 4,
+                    "text": "Unknown"
+                  }
+                },
+                "type": "value"
+              },
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 5,
+                    "text": "Unknown"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#6E7079",
+                  "value": null
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Hosting"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Reader API"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Command API"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "D"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Notify worker"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "E"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Jobs worker"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "F"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Cloud SQL"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "G"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Recognizer"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "H"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Receipt cycle"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "I"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Conversation"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "J"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Metabase"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 11,
+          "w": 16,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "options": {
+          "alignValue": "left",
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "mergeValues": true,
+          "rowHeight": 0.8,
+          "showValue": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Hosting",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_hosting_prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Reader API",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_api_reader_prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Command API",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 3 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 3 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20one_of(%22pwa_api_command_prod%22%2C%22oltp%22%2C%22olap%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Notify worker",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1; a bucket\n# without attempts is null (blank), never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) and $b[$i + 1].t - $r.t <= 300 then empty\n     else {time: ($r.t | todateiso8601), value: null} end)] |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_prod%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-prod-notifications%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Jobs worker",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "E",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_jobs%22%20AND%20metric.labels.field%20%3D%20%22status%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Cloud SQL",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "F",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 720 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 720\n     then {time: ($r.t + 720 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 720\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fup%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Recognizer",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "G",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Receipt cycle",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "H",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22receipts%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Conversation",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "I",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22conversations%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Metabase",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "J",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_platform%22%20AND%20metric.labels.field%20%3D%20%22status%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "PROD services",
+        "type": "state-timeline"
+      },
+      {
+        "description": "Grafana alert rules in folder MW Resource Monitoring Alerts. Empty list = nothing firing. Paused rules (PWA 2m during observation) are not listed.",
+        "gridPos": {
+          "h": 6,
+          "w": 8,
+          "x": 16,
+          "y": 0
+        },
+        "id": 2,
+        "options": {
+          "alertInstanceLabelFilter": "",
+          "alertName": "",
+          "dashboardAlerts": false,
+          "folder": {
+            "title": "MW Resource Monitoring Alerts",
+            "uid": "f9w88d"
+          },
+          "groupBy": [],
+          "groupMode": "default",
+          "maxItems": 20,
+          "showInactiveAlerts": false,
+          "showInstances": true,
+          "sortOrder": 3,
+          "stateFilter": {
+            "error": true,
+            "firing": true,
+            "noData": true,
+            "normal": false,
+            "pending": true
+          },
+          "viewMode": "list"
+        },
+        "title": "Firing alerts",
+        "type": "alertlist"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Age of the newest sample per source; above 6 minutes the source is stale and every state built on it turns grey together. Cloud SQL CPU stands for the Cloud Monitoring ingestion delay.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "footer": {
+                "reducers": []
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "mappings": [],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Age"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "dtdurations"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "from": 360.001,
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "stale"
+                        },
+                        "to": 1000000000000
+                      },
+                      "type": "range"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "stale"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "#6E7079",
+                        "value": 360
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 6
+        },
+        "id": 3,
+        "options": {
+          "cellHeight": "sm",
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Telemetry freshness: age in seconds of the newest sample of one source, so a\n# wave of grey state rows can be traced to stale telemetry. No sample at all\n# gives Age null; the panel maps null and ages above 360 s to \"stale\".\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  ([.timeSeries[]?.points[]?.interval.endTime | try stamp catch empty] | map(select(. <= now + 120)) | max) as $t |\n  {Source: \"Debian collector\", Age: (if $t == null then null else ([now - $t, 0] | max | floor) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22database%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# Telemetry freshness: age in seconds of the newest sample of one source, so a\n# wave of grey state rows can be traced to stale telemetry. No sample at all\n# gives Age null; the panel maps null and ages above 360 s to \"stale\".\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  ([.timeSeries[]?.points[]?.interval.endTime | try stamp catch empty] | map(select(. <= now + 120)) | max) as $t |\n  {Source: \"Hosting check\", Age: (if $t == null then null else ([now - $t, 0] | max | floor) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_hosting_prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "# Telemetry freshness: age in seconds of the newest sample of one source, so a\n# wave of grey state rows can be traced to stale telemetry. No sample at all\n# gives Age null; the panel maps null and ages above 360 s to \"stale\".\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  ([.timeSeries[]?.points[]?.interval.endTime | try stamp catch empty] | map(select(. <= now + 120)) | max) as $t |\n  {Source: \"Metabase probes\", Age: (if $t == null then null else ([now - $t, 0] | max | floor) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_platform%22%20AND%20metric.labels.field%20%3D%20%22status%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "# Telemetry freshness: age in seconds of the newest sample of one source, so a\n# wave of grey state rows can be traced to stale telemetry. No sample at all\n# gives Age null; the panel maps null and ages above 360 s to \"stale\".\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  ([.timeSeries[]?.points[]?.interval.endTime | try stamp catch empty] | map(select(. <= now + 120)) | max) as $t |\n  {Source: \"Cloud Monitoring ingestion\", Age: (if $t == null then null else ([now - $t, 0] | max | floor) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fcpu%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Telemetry freshness",
+        "transformations": [
+          {
+            "id": "merge",
+            "options": {}
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling). Holds, overdue reviews, unconfirmed postings and failed notifications turn red above 0; unconfirmed postings need reconciliation, never a repeated Add. Paused or stale telemetry shows No report.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "blue",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "mappings": [
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 0,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "1 · Scan · last run"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "time:HH:mm"
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "2 · Extract · waiting"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "3 · Validate · holds"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4 · Review · overdue"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5 · Post · unconfirmed"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "6 · Notify · failed"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 9,
+          "x": 0,
+          "y": 11
+        },
+        "id": 4,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "last"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 11,
+            "valueSize": 22
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "status",
+                "text": "1 · Scan · last run",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\");\nif .nextPageToken then error(\"Worker timing response truncated\") else\n  [.timeSeries[]? | {field:.metric.labels.field, point:(.points | sort_by(.interval.endTime) | last)}] as $rows |\n  ($rows | map(select(.field == \"status\")) | first | .point) as $p |\n  ($p != null and (now - ($p.interval.endTime | stamp)) <= 360 and\n    (($p.interval.endTime | stamp) - now) <= 120 and\n    ($p.value.int64Value | tonumber | IN(0,1,2,3,4))) as $fresh |\n  (if $fresh then ($p.value.int64Value | tonumber) else 4 end) as $status |\n  ([$rows[] | select(.point.interval.endTime == $p.interval.endTime) |\n    {key:.field,value:(.point.value.int64Value | tonumber)}] | from_entries) as $v |\n  [\n    {details:(\"IG polling — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n      \"\\nLast scan completion: \" + (if $fresh and ($v.last_completion // 0) > 0 then ($v.last_completion | sgt) else \"Unavailable\" end) +\n      \"\\nWorker: \" + (if $fresh and $v.running == 1 then \"Running\" elif $fresh and $v.running == 0 then \"Idle\" else \"Not observed\" end) +\n      \"\\nSchedule: 5 minutes after the previous run finishes (plus timer scheduling delay).\" +\n      \"\\nCompletion includes scans with no new images; it does not mean a payment was posted.\" +\n      \"\\nObserved: \" + (if $p != null then ($p.interval.endTime | stamp | sgt) else \"Unavailable\" end) +\n      (if $fresh then \"\\nTiming telemetry updates about every 2 minutes.\" else \"\\nTelemetry missing or older than 6 minutes; refresh for current status.\" end)),\n     status:$status},\n    {details:\"Last scan completion\",status:(if $fresh and ($v.last_completion // 0) > 0 then $v.last_completion * 1000 else null end)}\n  ][]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22polling%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "pending_images",
+                "text": "2 · Extract · waiting",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"pending_images\",\"label\":\"2 · Extract · waiting\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "unnotified_holds",
+                "text": "3 · Validate · holds",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unnotified_holds\",\"label\":\"3 · Validate · holds\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "overdue_reviews",
+                "text": "4 · Review · overdue",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"overdue_reviews\",\"label\":\"4 · Review · overdue\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "unconfirmed_postings",
+                "text": "5 · Post · unconfirmed",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "E",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"unconfirmed_postings\",\"label\":\"5 · Post · unconfirmed\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "failed_notifications",
+                "text": "6 · Notify · failed",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "F",
+            "root_selector": "[ def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken or .error then error(\"Receipt telemetry unavailable or truncated\") else\n[.timeSeries[]? | {field:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n([$rows[]|select(.field==\"status\")]|sort_by(.p.interval.endTime)|last|.p) as $p |\n(try ($p.interval.endTime|stamp) catch null) as $t |\n(try ($p.value.int64Value|tonumber) catch null) as $status |\n($t!=null and now-$t<=360 and $t-now<=120 and ($status|IN(0,1,2,3,4))) as $fresh |\n[{\"key\":\"failed_notifications\",\"label\":\"6 · Notify · failed\"}][] as $f |\n([$rows[]|select(.field==$f.key and .p.interval.endTime==$p.interval.endTime)]|first|.p.value.int64Value) as $raw |\n(try ($raw|tonumber) catch null) as $v |\n{name:$f.label,key:$f.key,value:(if $fresh and $status!=3 and $v!=null and $v>=0 and ($v|floor)==$v then $v else null end)}\nend\n ] | map({key:.key,value:.value}) | from_entries",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Freceipt_pipeline%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Payments · Instagram to recorded payment",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian collector worker_timing{conversation}: queued and running turns, the newest turn's state and its age. Rounds, durations and provider are on Agent & Receipts.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "blue",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "mappings": [
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 0,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Last turn"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "0": {
+                          "color": "dark-red",
+                          "index": 0,
+                          "text": "Failed"
+                        },
+                        "1": {
+                          "color": "green",
+                          "index": 1,
+                          "text": "Verified"
+                        },
+                        "2": {
+                          "color": "orange",
+                          "index": 2,
+                          "text": "Review"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 3,
+                          "text": "No report"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Last turn age"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "dtdurations"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 5,
+          "x": 9,
+          "y": 11
+        },
+        "id": 5,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 11,
+            "valueSize": 20
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Queued",
+                "text": "Queued",
+                "type": "number"
+              },
+              {
+                "selector": "Running",
+                "text": "Running",
+                "type": "number"
+              },
+              {
+                "selector": "Last turn",
+                "text": "Last turn",
+                "type": "number"
+              },
+              {
+                "selector": "Last turn age",
+                "text": "Last turn age",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"queued\",\"label\":\"Queued\"},{\"key\":\"running\",\"label\":\"Running\"},{\"key\":\"last_turn_state\",\"label\":\"Last turn\"},{\"key\":\"last_turn_age_seconds\",\"label\":\"Last turn age\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"queued\",\"label\":\"Queued\"},{\"key\":\"running\",\"label\":\"Running\"},{\"key\":\"last_turn_state\",\"label\":\"Last turn\"},{\"key\":\"last_turn_age_seconds\",\"label\":\"Last turn age\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22conversation%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Partner conversation",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered and failed in 24 h.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "blue",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "mappings": [
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 0,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Oldest pending"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "dtdurations"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 900
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Failed · 24 h"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "orange",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 5,
+          "x": 14,
+          "y": 11
+        },
+        "id": 6,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 11,
+            "valueSize": 20
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Pending",
+                "text": "Pending",
+                "type": "number"
+              },
+              {
+                "selector": "Oldest pending",
+                "text": "Oldest pending",
+                "type": "number"
+              },
+              {
+                "selector": "Delivered · 24 h",
+                "text": "Delivered · 24 h",
+                "type": "number"
+              },
+              {
+                "selector": "Failed · 24 h",
+                "text": "Failed · 24 h",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Delivered · 24 h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Delivered · 24 h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_notify%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Push notifications",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Time since each job last completed: daily charges and recent analytics from worker_timing{pwa_jobs} (red when overdue: 90 000 s and 4 500 s, the alert values), the minute notification job from its Cloud Scheduler attempts log.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 1,
+            "mappings": [
+              {
+                "options": {
+                  "-1": {
+                    "color": "dark-red",
+                    "index": 0,
+                    "text": "Failed"
+                  },
+                  "-2": {
+                    "color": "dark-red",
+                    "index": 1,
+                    "text": "Overdue"
+                  }
+                },
+                "type": "value"
+              },
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 2,
+                    "text": "No report"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "dtdurations"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Daily charges"
+              },
+              "properties": [
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 90000
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Recent analytics"
+              },
+              "properties": [
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 4500
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Notifications"
+              },
+              "properties": [
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 5,
+          "x": 19,
+          "y": 11
+        },
+        "id": 7,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 11,
+            "valueSize": 20
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Daily charges",
+                "text": "Daily charges",
+                "type": "number"
+              },
+              {
+                "selector": "Recent analytics",
+                "text": "Recent analytics",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"daily_charges_age_seconds\",\"label\":\"Daily charges\",\"state_key\":\"daily_charges_state\"},{\"key\":\"recent_analytics_age_seconds\",\"label\":\"Recent analytics\",\"state_key\":\"recent_analytics_state\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"daily_charges_age_seconds\",\"label\":\"Daily charges\",\"state_key\":\"daily_charges_state\"},{\"key\":\"recent_analytics_age_seconds\",\"label\":\"Recent analytics\",\"state_key\":\"recent_analytics_state\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_jobs%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Notifications",
+                "text": "Notifications",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "[\n# Cloud Scheduler attempts from the log-based counter mw_scheduler_attempts_<env>,\n# ALIGN_SUM per 300 s bucket and per label series. An attempt failed when its\n# status label is non-empty and not OK, or its http_status label is\n# not 2xx. Bucket with any failed attempt 0, only successful attempts 1; a bucket\n# without attempts is null (blank), never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Scheduler attempt response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? |\n    ((.metric.labels.status // \"\") as $s | $s != \"\" and $s != \"OK\") as $bad_status |\n    ((.metric.labels.http_status // \"\") as $h | $h != \"\" and ($h | startswith(\"2\") | not)) as $bad_http |\n    ($bad_status or $bad_http) as $failed |\n    .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     n: (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0),\n     failed: $failed}] |\n  map(select(.t != null and .n > 0)) |\n  group_by(.t) | map({t: .[0].t, v: (if any(.[]; .failed) then 0 else 1 end)}) as $b |\n  [range(0; $b | length) as $i | $b[$i] as $r |\n    {time: ($r.t - 300 | todateiso8601), value: $r.v},\n    (if $i + 1 < ($b | length) and $b[$i + 1].t - $r.t <= 300 then empty\n     else {time: ($r.t | todateiso8601), value: null} end)] |\n  .[]\nend\n] | map(select(.value != null)) | last |\n{Notifications: (if . == null then null elif .value == 0 then -1 else ([now - ((.time | fromdateiso8601) + 300), 0] | max | floor) end)}",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_scheduler_attempts_prod%22%20AND%20resource.labels.job_id%20%3D%20%22mw-credit-app-prod-notifications%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Scheduled jobs",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Cloud Monitoring, shared instance mw-credit-pg-20261017, newest 5-minute value; the bar end is the limit and the red cells start at the alert value (CPU 85 %, RAM 85 %, connections 160 of 200, disk 80 %).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 0,
+            "min": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "CPU"
+                },
+                {
+                  "id": "unit",
+                  "value": "percentunit"
+                },
+                {
+                  "id": "max",
+                  "value": 1
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 0.85
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "RAM used"
+                },
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "max",
+                  "value": 100
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 85
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Connections"
+                },
+                {
+                  "id": "unit",
+                  "value": "none"
+                },
+                {
+                  "id": "max",
+                  "value": 200
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 160
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "D"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Disk"
+                },
+                {
+                  "id": "unit",
+                  "value": "percentunit"
+                },
+                {
+                  "id": "max",
+                  "value": 1
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 0.8
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 17
+        },
+        "id": 8,
+        "options": {
+          "displayMode": "lcd",
+          "legend": {
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "left",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "text"
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Value",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fcpu%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Used",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fmemory%2Fcomponents%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22%20AND%20metric.labels.component%20%3D%20%22Usage%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Connections",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fpostgresql%2Fnum_backends%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000&aggregation.crossSeriesReducer=REDUCE_SUM",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Storage",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22cloudsql.googleapis.com%2Fdatabase%2Fdisk%2Futilization%22%20AND%20resource.labels.database_id%20%3D%20%22clever-oasis-508610-n7%3Amw-credit-pg-20261017%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Cloud SQL · CPU, memory, connections, disk",
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "mixed",
+          "uid": "-- Mixed --"
+        },
+        "description": "Debian VM RAM (Ops Agent, red 85 %), Metabase RAM against its live Railway limit (red 90 %), PROD command instances (max 2, no alert) and reader p95 over 5 minutes (request timeout 15 s, no alert; \"idle\" without requests).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 0,
+            "min": 0,
+            "noValue": "No data",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Debian VM RAM"
+                },
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "max",
+                  "value": 100
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 85
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Metabase RAM"
+                },
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "max",
+                  "value": 100
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 90
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Command instances"
+                },
+                {
+                  "id": "unit",
+                  "value": "none"
+                },
+                {
+                  "id": "max",
+                  "value": 2
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "D"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Reader p95"
+                },
+                {
+                  "id": "unit",
+                  "value": "ms"
+                },
+                {
+                  "id": "max",
+                  "value": 15000
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "noValue",
+                  "value": "idle"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 17
+        },
+        "id": 9,
+        "options": {
+          "displayMode": "lcd",
+          "legend": {
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "left",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "text"
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Used",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22agent.googleapis.com%2Fmemory%2Fpercent_used%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.state%20%3D%20%22used%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_MEAN&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp_epoch"
+              },
+              {
+                "selector": "value",
+                "text": "Used",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .errors then error(.errors|tostring) else ([.data.metrics[] | select(.measurement==\"MEMORY_LIMIT_GB\") | .values[]] | sort_by(.ts)) as $limits | [.data.metrics[] | select(.measurement==\"MEMORY_USAGE_GB\") | .values[] | . as $used | ([$limits[] | select(.ts <= $used.ts)] | last) as $limit | select($limit.value > 0) | {time:(.ts*1000),value:(100*.value/$limit.value)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_USAGE_GB,MEMORY_LIMIT_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Command instances",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-command-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "p95",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "if .error then error(\"Monitoring query failed\") elif .nextPageToken then error(\"Metric response truncated; shorten range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime,value:((.value.doubleValue // .value.int64Value)|tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-read-prod%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Hosts and services · RAM, instances, latency",
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Public webhook check from the Singapore checker only (Cloud Monitoring uptime, grey after 12 minutes without a Singapore report) and the Debian collector's tunnel, Tailscale, local ingress, database path and audit relay health (grey after 6 minutes).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "fillOpacity": 80,
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineWidth": 0,
+              "spanNulls": false
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "dark-red",
+                    "index": 0,
+                    "text": "Down"
+                  },
+                  "1": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "OK"
+                  },
+                  "2": {
+                    "color": "orange",
+                    "index": 2,
+                    "text": "Degraded"
+                  },
+                  "3": {
+                    "color": "blue",
+                    "index": 3,
+                    "text": "Paused"
+                  },
+                  "4": {
+                    "color": "#6E7079",
+                    "index": 4,
+                    "text": "Unknown"
+                  }
+                },
+                "type": "value"
+              },
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 5,
+                    "text": "Unknown"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#6E7079",
+                  "value": null
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Webhook · Singapore"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Cloudflare tunnel"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Tailscale"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "D"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Local ingress"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "E"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Database path"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "F"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Audit relay"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 16,
+          "x": 0,
+          "y": 22
+        },
+        "id": 16,
+        "options": {
+          "alignValue": "left",
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "mergeValues": true,
+          "rowHeight": 0.8,
+          "showValue": "auto",
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Webhook · Singapore",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 720 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 720\n     then {time: ($r.t + 720 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 720\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22monitoring.googleapis.com%2Fuptime_check%2Fcheck_passed%22%20AND%20metric.labels.check_id%20%3D%20%22mw-webhook-external-health-ySLl0784KgI%22%20AND%20metric.labels.checker_location%20%3D%20%22apac-singapore%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Cloudflare tunnel",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22tunnel%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Tailscale",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22tailscale_node%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Local ingress",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22webhook_local%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Database path",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "E",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22database%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Audit relay",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "F",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# 360 s, and a newest sample older than that, end in null so no state\n# stretches across missing telemetry. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 or now - ($runs | last | .t) > 360\n   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22audit_relay%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Edge",
+        "type": "state-timeline"
+      },
+      {
+        "datasource": {
+          "type": "mixed",
+          "uid": "-- Mixed --"
+        },
+        "description": "Current public status only, no history: OpenAI (worst of ChatGPT and Codex, status.openai.com) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "#6E7079",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "dark-red",
+                    "index": 0,
+                    "text": "Outage"
+                  },
+                  "1": {
+                    "color": "green",
+                    "index": 1,
+                    "text": "No incident"
+                  },
+                  "2": {
+                    "color": "orange",
+                    "index": 2,
+                    "text": "Incident open"
+                  },
+                  "4": {
+                    "color": "#6E7079",
+                    "index": 3,
+                    "text": "Feed unreadable"
+                  }
+                },
+                "type": "value"
+              },
+              {
+                "options": {
+                  "match": "null",
+                  "result": {
+                    "color": "#6E7079",
+                    "index": 4,
+                    "text": "Feed unreadable"
+                  }
+                },
+                "type": "special"
+              }
+            ],
+            "noValue": "Feed unreadable",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 8,
+          "x": 16,
+          "y": 22
+        },
+        "id": 17,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "/^(OpenAI|Google Cloud)$/",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 12,
+            "valueSize": 18
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "status",
+                "text": "OpenAI",
+                "type": "number"
+              },
+              {
+                "selector": "details",
+                "text": "OpenAI details",
+                "type": "string"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "cfz10a9eaokjkd"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "[\n# The current OpenAI website's public summary includes groups and active incidents.\n# Emit one stable alert label per product; incident text is dashboard-only metadata.\ndef sgt: try (sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601 | . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\")) catch \"Time unavailable\";\ndef text: if type == \"string\" then . else \"\" end;\n.summary as $s |\n[\"ChatGPT\", \"Codex\"][] as $product |\n([$s.structure.items[]?.group? | select(.name == $product)] | first) as $group |\n[$group.components[]? | select(.hidden != true) | .component_id] as $ids |\n[$s.affected_components[]? | select(.component_id as $id | $ids | index($id))] as $affected |\n[$s.ongoing_incidents[]? | select(.status != \"resolved\" and .status != \"closed\") |\n select(any(.affected_components[]?; .component_id as $id | $ids | index($id)))] as $incidents |\n(($s.id == \"01JMDK9XYNY6RXSED6SDWW50WY\") and ($s.name == \"OpenAI\") and\n (($s.affected_components | type) == \"array\") and (($s.ongoing_incidents | type) == \"array\") and\n ($ids | length) > 0 and\n (all($s.ongoing_incidents[]?; (.affected_components | type) == \"array\" and (.affected_components | length) > 0)) and\n (all($affected[]; .status == \"operational\" or .status == \"degraded_performance\" or .status == \"partial_outage\" or .status == \"full_outage\" or .status == \"major_outage\" or .status == \"under_maintenance\"))) as $valid |\n(if $valid != true then 4\n elif any($affected[]; .status == \"full_outage\" or .status == \"major_outage\") then 0\n elif any($affected[]; .status != \"operational\") or ($incidents | length) > 0 then 2\n else 1 end) as $status |\n(if $status == 4 then \"Unknown\" elif $status == 0 then \"Down\" elif $status == 2 then \"Degraded\" else \"Healthy\" end) as $state |\n($incidents | sort_by(.published_at) | reverse) as $ordered |\n{component:($product | ascii_downcase), status:$status, value:(if $status == 0 or $status == 2 then 1 else 0 end),\n details:($product + \" — \" + $state + \"\\n\" +\n   (if $status == 4 then \"Current provider status unavailable or response format changed.\"\n    elif ($ordered | length) > 0 then\n      ([$ordered[] | (.updates | sort_by(.published_at) | last) as $update |\n        .name + \"\\nStatus: \" + (.status | text) +\n        \"\\nUpdated: \" + (($update.published_at // .published_at) | sgt) +\n        \"\\n\" + (($update.message_string // $update.message.markdown // \"No explanation published yet.\") | text) +\n        \"\\nhttps://status.openai.com/incidents/\" + .id] | join(\"\\n\\n\"))\n    elif $status != 1 then \"Affected components: \" + ([$affected[] | .component_id as $id | $group.components[] | select(.component_id == $id) | .name] | join(\", \")) + \". No incident explanation published yet.\"\n    else \"No active incident reported.\" end) +\n   \"\\nChecked: \" + (now + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\"))),\n url:(if ($ordered | length) > 0 then \"https://status.openai.com/incidents/\" + $ordered[0].id else \"https://status.openai.com/\" end)}\n] as $r |\n{name: \"OpenAI\", status: ([$r[].status] as $s | if any($s[]; . == 0) then 0 elif any($s[]; . == 4) or ($s | length) == 0 then 4 elif any($s[]; . == 2) then 2 else 1 end), details: ([$r[].details] | join(\"\\n\\n\"))}",
+            "source": "url",
+            "type": "json",
+            "url": "https://status.openai.com/proxy/status.openai.com",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "status",
+                "text": "Google Cloud",
+                "type": "number"
+              },
+              {
+                "selector": "details",
+                "text": "Google Cloud details",
+                "type": "string"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-public-gcp-status"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# Google Cloud public incidents feed (status.cloud.google.com/incidents.json, an\n# array). Open incidents (no end) whose affected products include a service MW\n# Credit uses and whose current locations are empty (global) or include\n# asia-southeast1 or global: status 2 with titles and update time; none 1; a\n# response that is not the documented array shape 4 (feed unreadable).\ndef bkk: try (sub(\"[.][0-9]+\"; \"\") | sub(\"[+]00:00$\"; \"Z\") | fromdateiso8601 | . + 25200 |\n  strftime(\"%Y-%m-%d %H:%M ICT\")) catch \"time unavailable\";\n[\"Cloud Run\", \"Cloud SQL\", \"Vertex AI\", \"Cloud Scheduler\", \"Cloud Monitoring\", \"Firebase Hosting\"] as $products |\nif type != \"array\" or any(.[]; type != \"object\" or ((.affected_products // []) | type) != \"array\")\nthen {name: \"Google Cloud\", status: 4, details: \"Google Cloud status feed unreadable or format changed.\"}\nelse\n  [.[] | select(.end == null) |\n    select(any(.affected_products[]?; (.title // \"\") as $t | any($products[]; . as $p | $t | contains($p)))) |\n    select(((.currently_affected_locations // []) | length) == 0 or\n      any(.currently_affected_locations[]?; .id == \"asia-southeast1\" or .id == \"global\"))] as $open |\n  {name: \"Google Cloud\",\n   status: (if ($open | length) > 0 then 2 else 1 end),\n   details: (if ($open | length) == 0 then \"No open incident for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global.\"\n     else ([$open[] | (.external_desc // \"Incident\") + \" · \" + ((.most_recent_update.status // .severity // \"\") | tostring) +\n       \" · updated \" + ((.most_recent_update.when // \"\") | bkk)] | join(\"\\n\")) end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://status.cloud.google.com/incidents.json",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Provider status",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "mixed",
+          "uid": "-- Mixed --"
+        },
+        "description": "Age of the newest recovery point and its state against the documented grace (Cloud SQL and Debian 30 h, the alert value; Metabase daily and weekly from the Railway schedules; PITR archive and audit retention from the collector).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "footer": {
+                "reducers": []
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "mappings": [],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Age"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "dtdurations"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "State"
+              },
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "0": {
+                          "color": "dark-red",
+                          "index": 0,
+                          "text": "Down"
+                        },
+                        "1": {
+                          "color": "green",
+                          "index": 1,
+                          "text": "OK"
+                        },
+                        "2": {
+                          "color": "orange",
+                          "index": 2,
+                          "text": "Degraded"
+                        },
+                        "3": {
+                          "color": "blue",
+                          "index": 3,
+                          "text": "Paused"
+                        },
+                        "4": {
+                          "color": "#6E7079",
+                          "index": 4,
+                          "text": "Unknown"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 5,
+                          "text": "Unknown"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#6E7079",
+                        "value": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 25
+        },
+        "id": 19,
+        "options": {
+          "cellHeight": "sm",
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              },
+              {
+                "selector": "State",
+                "text": "State",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Recovery points from collector snapshots (worker_timing or metabase_probe).\n# [{\"component\":\"cloud_sql_backup\",\"label\":\"Cloud SQL automated backup\",\"age\":\"age_seconds\",\"status\":\"status\",\"red\":108000},{\"component\":\"debian_snapshot\",\"label\":\"Debian disk snapshot\",\"age\":\"age_seconds\",\"red\":108000}] is a list of {component, label, age, status?, status_is_state?, red?}:\n# Age is the age field of the newest same-run sample; State 0 when the status\n# field reports failure (0) or the age exceeds the documented red bound, the\n# status itself when status_is_state, otherwise 1. Missing or stale (> 360 s)\n# telemetry gives Age null and State 4, never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {component: .metric.labels.component, field: .metric.labels.field,\n    p: (.points | sort_by(.interval.endTime) | last)} | select(.p != null)] as $rows |\n  [{\"component\":\"cloud_sql_backup\",\"label\":\"Cloud SQL automated backup\",\"age\":\"age_seconds\",\"status\":\"status\",\"red\":108000},{\"component\":\"debian_snapshot\",\"label\":\"Debian disk snapshot\",\"age\":\"age_seconds\",\"red\":108000}][] as $r |\n  [$rows[] | select(.component == $r.component)] as $mine |\n  ([$mine[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    if $key == null then null else\n      ([$mine[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n      (try ($raw | tonumber) catch null) as $v |\n      if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end\n    end;\n  (value($r.age)) as $age | (value($r.status)) as $status |\n  {Source: $r.label,\n   Age: $age,\n   State: (if $age == null then 4\n     elif $r.status != null and $status == null then 4\n     elif $r.status_is_state == true then (if $status | IN(0, 1, 2, 3, 4) then $status else 4 end)\n     elif $r.status != null and $status == 0 then 0\n     elif $r.red != null and $age > $r.red then 0\n     else 1 end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20one_of(%22cloud_sql_backup%22%2C%22debian_snapshot%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              },
+              {
+                "selector": "State",
+                "text": "State",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"💾 Daily backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"DAILY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 108000 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 108000 then 1 elif $age <= 129600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"💾 Daily backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n) | {Source: \"Metabase daily volume backup\", Age: null, State: .status}",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"query { volumeInstanceBackupList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { createdAt scheduleId } volumeInstanceBackupScheduleList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { id kind cron createdAt retentionSeconds } }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              },
+              {
+                "selector": "State",
+                "text": "State",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-railway-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"🗓 Weekly backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"WEEKLY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 691200 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 691200 then 1 elif $age <= 777600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"🗓 Weekly backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n) | {Source: \"Metabase weekly volume backup\", Age: null, State: .status}",
+            "source": "url",
+            "type": "json",
+            "url": "https://backboard.railway.com/graphql/v2",
+            "url_options": {
+              "body_content_type": "application/json",
+              "body_type": "raw",
+              "data": "{\"query\":\"query { volumeInstanceBackupList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { createdAt scheduleId } volumeInstanceBackupScheduleList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { id kind cron createdAt retentionSeconds } }\"}",
+              "method": "POST"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              },
+              {
+                "selector": "State",
+                "text": "State",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "# Recovery points from collector snapshots (worker_timing or metabase_probe).\n# [{\"component\":\"metabase_pitr\",\"label\":\"Metabase PITR archive\",\"age\":\"archive_age_seconds\",\"status\":\"status\",\"status_is_state\":true}] is a list of {component, label, age, status?, status_is_state?, red?}:\n# Age is the age field of the newest same-run sample; State 0 when the status\n# field reports failure (0) or the age exceeds the documented red bound, the\n# status itself when status_is_state, otherwise 1. Missing or stale (> 360 s)\n# telemetry gives Age null and State 4, never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {component: .metric.labels.component, field: .metric.labels.field,\n    p: (.points | sort_by(.interval.endTime) | last)} | select(.p != null)] as $rows |\n  [{\"component\":\"metabase_pitr\",\"label\":\"Metabase PITR archive\",\"age\":\"archive_age_seconds\",\"status\":\"status\",\"status_is_state\":true}][] as $r |\n  [$rows[] | select(.component == $r.component)] as $mine |\n  ([$mine[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    if $key == null then null else\n      ([$mine[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n      (try ($raw | tonumber) catch null) as $v |\n      if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end\n    end;\n  (value($r.age)) as $age | (value($r.status)) as $status |\n  {Source: $r.label,\n   Age: $age,\n   State: (if $age == null then 4\n     elif $r.status != null and $status == null then 4\n     elif $r.status_is_state == true then (if $status | IN(0, 1, 2, 3, 4) then $status else 4 end)\n     elif $r.status != null and $status == 0 then 0\n     elif $r.red != null and $age > $r.red then 0\n     else 1 end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_pitr%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Source",
+                "text": "Source",
+                "type": "string"
+              },
+              {
+                "selector": "Age",
+                "text": "Age",
+                "type": "number"
+              },
+              {
+                "selector": "State",
+                "text": "State",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "E",
+            "root_selector": "# Recovery points from collector snapshots (worker_timing or metabase_probe).\n# [{\"component\":\"audit_retention\",\"label\":\"Agent audit retention run\",\"age\":\"age_seconds\",\"status\":\"result\"}] is a list of {component, label, age, status?, status_is_state?, red?}:\n# Age is the age field of the newest same-run sample; State 0 when the status\n# field reports failure (0) or the age exceeds the documented red bound, the\n# status itself when status_is_state, otherwise 1. Missing or stale (> 360 s)\n# telemetry gives Age null and State 4, never a healthy value.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {component: .metric.labels.component, field: .metric.labels.field,\n    p: (.points | sort_by(.interval.endTime) | last)} | select(.p != null)] as $rows |\n  [{\"component\":\"audit_retention\",\"label\":\"Agent audit retention run\",\"age\":\"age_seconds\",\"status\":\"result\"}][] as $r |\n  [$rows[] | select(.component == $r.component)] as $mine |\n  ([$mine[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    if $key == null then null else\n      ([$mine[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n      (try ($raw | tonumber) catch null) as $v |\n      if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end\n    end;\n  (value($r.age)) as $age | (value($r.status)) as $status |\n  {Source: $r.label,\n   Age: $age,\n   State: (if $age == null then 4\n     elif $r.status != null and $status == null then 4\n     elif $r.status_is_state == true then (if $status | IN(0, 1, 2, 3, 4) then $status else 4 end)\n     elif $r.status != null and $status == 0 then 0\n     elif $r.red != null and $age > $r.red then 0\n     else 1 end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22audit_retention%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Backups and recovery points",
+        "transformations": [
+          {
+            "id": "merge",
+            "options": {}
+          }
+        ],
+        "type": "table"
+      }
+    ],
+    "preload": false,
+    "refresh": "1m",
+    "schemaVersion": 42,
+    "tags": [
+      "mw-credit"
+    ],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-3h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "1m",
+        "2m",
+        "5m",
+        "15m",
+        "1h"
+      ]
+    },
+    "timezone": "Asia/Bangkok",
+    "title": "MW Credit · Now"
+  }
+}

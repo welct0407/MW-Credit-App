@@ -1,12 +1,12 @@
 # Resource monitoring dashboard — visual guide
 
-Covers the deployed Performance, Cost and PWA Platform dashboards. [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, alert rules and recovery; the [alert troubleshooting runbook](Rules/Grafana_Alert_Troubleshooting_Runbook.md) owns incident response. Definitions live in [`infrastructure/grafana/dashboards/`](../../infrastructure/grafana/dashboards/) and are built by [`project/scripts/monitoring/`](../scripts/monitoring/README.md) (deploy and rebuild steps: see the operating reference). Panel IDs are unique within each dashboard; use dashboard, group and ID together.
+Covers the five dashboards Now, PWA & APIs, Agent & Receipts, Infrastructure and Cost (R089), then the three previous dashboards (Performance, Cost, PWA Platform) that stay until retirement. [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, alert rules and recovery; the [alert troubleshooting runbook](Rules/Grafana_Alert_Troubleshooting_Runbook.md) owns incident response. Definitions live in [`infrastructure/grafana/dashboards/`](../../infrastructure/grafana/dashboards/) and are built by [`project/scripts/monitoring/`](../scripts/monitoring/README.md) (deploy and rebuild steps: see the operating reference). Panel IDs are unique within each dashboard; use dashboard, group and ID together.
 
-- [Performance](https://monitor.mw-credit.com/d/mw-resource-performance) · [Cost](https://monitor.mw-credit.com/d/mw-resource-cost) · [PWA Platform](https://monitor.mw-credit.com/d/mw-pwa-platform)
+- [Now](https://monitor.mw-credit.com/d/mw-now) · [PWA & APIs](https://monitor.mw-credit.com/d/mw-pwa) · [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent) · [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) · [Cost](https://monitor.mw-credit.com/d/mw-cost)
 
 ## Reading the dashboards
 
-- Times are Singapore (UTC+8). Refresh requests new data; it does not make provider data arrive sooner. Defaults are in the operating reference.
+- Times are Asia/Bangkok (UTC+7) on the five dashboards; the previous Performance and Cost dashboards still show Singapore (UTC+8). Refresh requests new data; it does not make provider data arrive sooner. Defaults are in the operating reference.
 - Large CPU/RAM numbers show the last available sample in the selected range, not an average. VM-01 is not 24x7, so a stale last number does not prove it is online. Charts show gaps, never invented zeroes.
 - Availability lights show health at refresh time, not uptime percentages or history. Most use Debian telemetry (reports older than six minutes are Unknown); the webhook and OpenAI lights do not. Use a range ending now; a historical range can turn a light Unknown. OpenAI always reads current status.
 - Percent, count and throughput labels use whole numbers; cores, GB and money keep precision. A red reference line marks a documented capacity or configuration limit, not a warning threshold. Alerts add no chart lines.
@@ -16,11 +16,144 @@ Covers the deployed Performance, Cost and PWA Platform dashboards. [Resource Mon
 | --- | --- | --- |
 | Green | Healthy | The specific checks pass, limited to what each check tests |
 | Orange | Degraded | Partial failure, provider impairment, overdue completion or excessive runtime |
-| Red | Down | A checked path failed or a required timer stopped |
+| Red (dark red on the five current dashboards) | Down | A checked path failed or a required timer stopped |
 | Blue | Paused | The component's activation flag is disabled (intentional) |
 | White | Unknown | Missing or stale telemetry, unavailable check or query error |
 
 If many Debian-backed lights go Unknown together, investigate Debian and its monitoring timer before assuming each service failed.
+
+## Dashboard set (R089)
+
+Five dashboards in folder MW Resource Monitoring, all tagged `mw-credit`, all with a link bar of five explicit links to the others (the time range is not carried between dashboards) and time zone Asia/Bangkok. Now is the home dashboard for the work account (Terraform `grafana_organization_preferences`, `home_dashboard_uid` `mw-now`). Panel IDs restart at 1 in each dashboard; the rows below name dashboard, panel ID and what the panel reads. Group rows are plain headers, not collapsible, except where stated. Every panel has a title.
+
+| Dashboard | UID | Default view | Reads |
+| --- | --- | --- | --- |
+| [Now](https://monitor.mw-credit.com/d/mw-now) (home) | `mw-now` | Last 3 hours ending now, 1-minute refresh | PROD only: whether everything works, what is firing, headroom |
+| [PWA & APIs](https://monitor.mw-credit.com/d/mw-pwa) | `mw-pwa` | Last 24 hours ending 2 minutes ago, 2-minute refresh | Hosting, four Cloud Run services per environment, schedulers, push, recognition route |
+| [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent) | `mw-agent` | Last 6 hours ending now, 1-minute refresh | Receipt pipeline, Partner conversation, recognizer, workers and timers, connectivity |
+| [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) | `mw-infra` | Last 24 hours ending now, 5-minute refresh | Cloud SQL, Cloud Run table, Debian VM, Metabase on Railway, collapsed Azure VM-01 |
+| [Cost](https://monitor.mw-credit.com/d/mw-cost) | `mw-cost` | Month to date, 1-hour refresh | Azure, GCP and Railway cost in SGD |
+
+Conventions on all five: state timelines show one row per component, print the state word in the bar and turn grey when the newest point is older than 360 s; Down is dark red (colour-blind safe, with the state word as the second cue); bar gauges are LCD style with the maximum at the documented limit and a red mark only at an alert value; a red or dashed line appears only for a documented limit or an alert value, so request-rate charts have none; stat values are 24 to 28 px, labels 12 px; panels are at least 6 grid units wide so a phone shows one panel per screen. Grid positions are x/y/w/h.
+
+### Now (`mw-now`)
+
+| ID | Panel | Shows | Notes |
+| --- | --- | --- | --- |
+| 1 (rows 1-A to 1-J) | PROD services · last 3 h | State timeline, one row each: 1-A Hosting `lm.mw-credit.com`; 1-B Reader API `/health`; 1-C Command API (worst of `/health`, `oltp`, `olap`); 1-D Notify worker (scheduler attempts from `mw_scheduler_attempts_prod`); 1-E Jobs worker; 1-F Cloud SQL `database/up`; 1-G Receipt recognizer; 1-H Agent receipt cycle; 1-I Partner conversation; 1-J Metabase | 0/0/16/11. Collector rows use the six-minute freshness rule; Paused (blue) is intentional |
+| 2 | Firing alerts | Grafana alert list, folder MW Resource Monitoring Alerts: firing, pending, error and no data | Shows "No alerts" when quiet; no resolved history |
+| 3 | Telemetry freshness | Age of the newest point of `database`, `pwa_hosting_prod`, `metabase_platform` and Cloud SQL CPU | Green under 360 s, grey "stale" otherwise; explains a wave of grey rows |
+| 4 | Payments · Instagram to recorded payment | Six values: last scan (Bangkok time), pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications | Same rules as the previous Performance panels 101 to 107 |
+| 5 | Partner conversation | Queue, running turn, last turn age and state | Alert: stalled conversation |
+| 6 | Push notifications | Pending, oldest pending, failed and delivered in 24 h | PROD only; alert: push delivery backlog |
+| 7 | Scheduled jobs | Daily charges and recent analytics: age of the newest completed run (jobs have no failed state, V94) | Alert: scheduled job overdue |
+| 8 | Cloud SQL gauges | Four LCD bar gauges: CPU (red 85 %), RAM used (85 %), connections (max 200, red 160), disk (red 80 %) | Alerts: Cloud SQL connections, CPU, memory and disk |
+| 9 | Host and service gauges | Four LCD bar gauges: Debian VM RAM (red 85 %), Metabase RAM (90 %), command instances (max 2, no red), reader p95 over 5 min (max 15 000 ms, no red) | Shows "idle" without requests |
+| 16 | Edge · last 3 h | State timeline: webhook (Singapore checker only), tunnel, Tailscale, ingress, database, audit relay | The uptime check keeps three regions; only the Singapore series is read |
+| 17 | Provider status | OpenAI and Google Cloud status; one stat, current status only: worst of ChatGPT and Codex, and open Google Cloud incidents touching Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global | Google Cloud: 1 none, 2 open incident, 4 feed unreadable |
+| 19 | Backups and recovery points | Cloud SQL last automated backup, Debian snapshot, Metabase daily and weekly, PITR, audit retention: age and state | Alerts: Cloud SQL backup overdue, Debian snapshot overdue |
+
+Not on Now by design: DEV, Azure VM-01, Codex readiness, the bridge, request charts and raw-data tables.
+
+### PWA & APIs (`mw-pwa`)
+
+Variable: `env` only (prod or dev, default prod); there is no service dropdown. The previous PWA Platform copies are replaced by `env`, and the four Cloud Run services (read, command, notify, jobs) are static rows. The business-database panels (21, 22) read PROD only and show "PROD only" for DEV.
+
+| ID | Panel | Shows | Notes |
+| --- | --- | --- | --- |
+| 1 | Hosting · ${env} | Canonical Hosting health, version marker and entry reference | One vantage (Debian), not login or multi-region |
+| 2 | API health · reader and command | Unauthenticated `/health` of both services; PROD adds the authenticated `oltp` and `olap` probes | DEV has only the unauthenticated checks |
+| 3 | Sign-in and request errors · 24 h | Counts of `session_invalid`, `session_check_unavailable`, `body_timeout` and Cloud Run 5xx | Counts only, no user identity; read from the existing request records, no services change |
+| 10 to 13 (static rows, with 101 to 103, 111 to 113, 121 to 123, 131 to 133) | Service rows: reader, command, notify, jobs | The three panels of each row: requests per 5 min (all blue solid, 4xx orange dashed, 5xx red dotted); p95 latency with a red dashed request-timeout line (reader 15 s, command 55 s, workers 120 s); instances, CPU % and memory % with a grey dashed maximum-instances line, each drawn with that service's own value | Request charts have no threshold; idle is neither Down nor Healthy |
+| 19 (row), 20 | Cloud Scheduler attempts · 24 h | State timeline for the notifications, daily-charges and recent-analytics jobs, from the log-based metric `mw_scheduler_attempts_<env>` (Cloud Monitoring has no `attempt_count` metric in this project) | DEV jobs are paused and show grey |
+| 21 | Push delivery | Pending (pending plus retry), failed (dead plus uncertain) and delivered in 24 h | PROD only; failed above 0 colours the value orange but does not page (expired subscriptions are normal churn) |
+| 22 | Job freshness | Age of the newest completed run per job (no failed state) | PROD only |
+| 29 (row), 30 | Recognitions · 24 h | Count per outcome by the `warning` field: none, `amount_unreadable`, `amount_fractional`, `account_unmatched`, `account_ambiguous`, `slip_not_confirmed`, other | Log-based counter `mw_recognition_outcome_<env>`; no slip content |
+| 31 | Recognition route p95 · 24 h | Latency of the receipt recognition route | Red dashed at 45 s (route budget); the PWA deadline is 60 s |
+| 32 | Recognizer service | Recognizer health and provider (gemini or codex) | Links to Agent & Receipts |
+
+HTTP metrics do not prove job-boundary completion, push provider acceptance or device delivery; use 20, 21 and 22 for those.
+
+### Agent & Receipts (`mw-agent`)
+
+Everything is Debian-backed except the webhook check and the two public status feeds. The 12 Debian alert components keep their metric labels.
+
+| ID | Panel | Shows | Notes |
+| --- | --- | --- | --- |
+| 101, 103 to 107 | Receipt pipeline stage tiles | The pipeline stage stats of Now 4 (scan, pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications), lifted verbatim from the previous panels of the same IDs | Stalled, unnotified holds, overdue reviews, unconfirmed postings and failed notifications above 0 are red; Paused does not page. There is no 1, 2 or 12 on this dashboard |
+| 108 | Queue length over time | Receipt queue trend (previous panel 108) | Lines break at gaps over 6 minutes |
+| 3 | Turns · 24 h | Turns, verified, failed and review counts | |
+| 4 | Turn duration · per turn | Seconds, rounds and provider for each completed turn | One point per collector run at most; no reference line (R085 gives measurements only) |
+| 5 | Loop health | Poll age and state, wake path, timer | Alert: stalled conversation |
+| 6 | Recognizer service | Health, provider, restart age | Paused (blue) when recognition is disabled |
+| 7 | Extractions · 24 h | Extractions, valid, timeouts and unreadable | Counts from the agent audit schema, no content |
+| 8 | Extraction time (s) | Duration of the newest extraction per run | Red dashed at 25 s (per-attempt bound) |
+| 9 | Workers and timers · last 6 h | State timeline: receipts, conversations, conversation poll state, polling, daily jobs, audit relay, audit retention | |
+| 10 | Connectivity, data and providers · last 6 h | State timeline: webhook (Singapore), tunnel, Tailscale, ingress, database, Codex readiness | |
+| 11 | Provider status | OpenAI and Google Cloud status; same stat as Now 17 | Feeds have no history, so a stat, not timeline rows |
+| 13 | Ingress code version | 1 when the receiver's code version matches the deployed commit prefix | Closes the former known gap for `webhook_code_version` |
+| 14 | Open ingress reviews | `ingress_review_open`; above 0 is orange | Closes the former known gap for the card |
+
+The bridge tiles of the previous row 5 (121 to 127) are not carried over; the Grafana-to-Dots bridge is being decommissioned and has no panel.
+
+### Infrastructure (`mw-infra`)
+
+Four expanded rows and one collapsed row. Every chart draws a documented limit or an alert value as a dashed line.
+
+| ID | Panel | Shows | Limit / threshold |
+| --- | --- | --- | --- |
+| 1 | Cloud SQL CPU | Instance-wide CPU | Red dashed 85 % |
+| 2 | Cloud SQL memory components | Usage, cache, free | Red dashed 85 % on Used |
+| 3 | Cloud SQL disk utilisation | Disk utilisation (replaces the previous storage panel 33) | Red dashed 80 %; auto-resize noted |
+| 4 | Cloud SQL connections · limit 200 | Backend count | 200 line, red dashed 160 |
+| 5 | Backups and restore points | Last automated backup age and status, log retention, Debian snapshot age | |
+| 6 | Instance facts | Tier, storage type and `max_connections` (dated snapshots), uptime | The only static text |
+| 7 | Connections by database | Backends per database | No threshold |
+| 8 | Top statement share | Share of total execution time and calls per minute of the top statement | Statement text stays on the VM; shows "not granted" until the grant exists |
+| 9 | Cloud Run · eight services | Instances, p95 CPU and memory over 15 minutes, billable instance time, maximum instances | Over 80 % orange |
+| 10 to 12 | Debian VM | CPU, used memory (red dashed 85 %), network | |
+| 13, 18 | Debian VM disk and uptime | 13 disk throughput; 18 Debian uptime (VM start) | |
+| 14 to 16 | Metabase on Railway | CPU cores against live `CPU_LIMIT`; memory GB against live limit (red dashed 90 %); Postgres volume (5 GB line) | |
+| 17 | Metabase probes and recovery | One row each: platform, app DB, reporting DB, charts, PITR, daily and weekly backup | Same selectors as the previous panels 80 to 86 |
+| 20 (collapsed row) with 21 to 24 | Azure VM-01 | The previous Azure panels 11 to 14, unchanged, as children 21 to 24 | No 24x7 expectation, no alert |
+
+### Cost (`mw-cost`)
+
+Time zone Asia/Bangkok for display; provider day rules are unchanged (Azure UTC days, GCP Singapore date, Railway current billing cycle). No forecast. Cost data is delayed and provisional.
+
+| ID | Panel | Shows | Notes |
+| --- | --- | --- | --- |
+| 1 | TOTAL · SGD · month to date | Sum of available provider costs, the prior month to the same day, and a Coverage tile (complete, or incomplete with the missing platform named) | "Available costs only"; Railway prior month is "cycle only" |
+| 2 to 4 | Azure, GCP, Railway · SGD | Provider month-to-date stats | |
+| 5 | Conversion and coverage | FX, coverage and the GCP budget cell; also the visible host of the queries (previous A to E) behind panels 1 to 4 | Shows the dashboard constant `gcp_budget_sgd`, empty ("not created yet") until ALL-COST-01 exists; no Billing Budgets IAM |
+| 6 | GCP daily · SGD net | Stacked daily bars by GCP service group | Fixed 30-day window; draws a red dashed budget ÷ days line only when `gcp_budget_sgd` is set |
+| 8 | Azure + Railway daily · USD | Stacked daily bars, provider currency | Fixed 30-day window |
+| 7 | GCP by service · month to date · SGD net | Billing export grouped by service, net of credits | 100 MB billed-query cap |
+| 10, 20, 30 (collapsed rows) | Azure, GCP, Railway | The previous Cost detail panels unchanged, with their old child IDs | Rates checked 25 September 2026 stay in the description |
+| 40 | Unchanged rules of reading | Short reading text | References, not forecasts |
+
+### Alerts linked to the new dashboards
+
+The ten Performance 2m rules keep their names, labels and conditions; the webhook rule now reads the Singapore checker series only. The group PWA 2m (twelve rules, applied paused, then unpaused after 24 hours without a false firing) is in the [operating alert reference](Resource_Monitoring.md#pwa-2m-alert-group-r089); each rule's query is the selector of its Now panel reduced to a 0/1 value, so panel and rule cannot disagree.
+
+| Rule | Now panel | Depth dashboard |
+| --- | --- | --- |
+| PWA Hosting PROD unreachable | 1-A | PWA & APIs 1 |
+| PWA API health failed | 1-B, 1-C | PWA & APIs 2 |
+| Cloud Run 5xx | 1-B, 1-C | PWA & APIs 3, 10 to 13 |
+| Notification scheduler failing | 1-D | PWA & APIs 20 |
+| Scheduled job overdue | 1-E, 7 | PWA & APIs 22 |
+| Push delivery backlog (oldest pending over 15 min only) | 6 | PWA & APIs 21 |
+| Receipt recognizer unhealthy | 1-G | Agent & Receipts 6 |
+| Partner conversation stalled | 1-I, 5 | Agent & Receipts 3 to 5 |
+| Cloud SQL down | 1-F | Infrastructure 1 to 4 |
+| Cloud SQL disk high | 8 | Infrastructure 3 |
+| Cloud SQL backup overdue | 19 | Infrastructure 5 |
+| Debian snapshot overdue | 19 | Infrastructure 5 |
+
+## Previous dashboards — kept until retirement
+
+Performance (`mw-resource-performance`, version 41), Cost (`mw-resource-cost`, version 15) and PWA Platform (`mw-pwa-platform`, version 2) are unchanged and stay in the folder for at least 14 days after the cutover. They are retired only on the owner's explicit instruction, which removes the sections below. Performance and Cost still display Singapore time. Do not use them for new links.
 
 ## Performance — alerts linked to visuals
 

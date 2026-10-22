@@ -25,17 +25,17 @@ The alert permission does not authorize code/configuration/schema/access/schedul
 
 | Surface | Documented target and first use |
 | --- | --- |
-| Grafana | Stack `olivecrab1199`; [Performance](https://monitor.mw-credit.com/d/mw-resource-performance), [alert rules](https://monitor.mw-credit.com/alerting/list), [IRM](https://monitor.mw-credit.com/a/grafana-irm-app/integrations). Open the affected rule's state/health/history and component instance. |
+| Grafana | Stack `olivecrab1199`; [Now](https://monitor.mw-credit.com/d/mw-now) (the root URL `monitor.mw-credit.com` opens it as the home dashboard), [PWA & APIs](https://monitor.mw-credit.com/d/mw-pwa), [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent), [Infrastructure](https://monitor.mw-credit.com/d/mw-infra), [Cost](https://monitor.mw-credit.com/d/mw-cost), [alert rules](https://monitor.mw-credit.com/alerting/list), [IRM](https://monitor.mw-credit.com/a/grafana-irm-app/integrations). Open the affected rule's state/health/history and component instance. |
 | GCP | Project `clever-oasis-508610-n7`; Debian VM `vm-mw-credit-agent`; shared Cloud SQL instance `mw-credit-pg-20261017`. `loan_manager_dev`, `loan_manager_prod` and internal `mw_agent` are separate databases on that instance. An instance action can affect all three. |
 | Railway / Metabase | `MW Credit Metabase`, production environment; Metabase and its separate Railway PostgreSQL application database. [Reports](https://reports.mw-credit.com) uses Cloud SQL for business reporting; Railway PostgreSQL stores Metabase configuration. Do not confuse their recovery paths. |
 | Debian services | Integration services, local SQL proxy, chart service and health collector. Metabase and Grafana are hosted elsewhere; AppSheet is retired. [Runtime placement](Development_Workflow.md#debian-runtime-and-deployment-boundaries) identifies the units and owning repositories. |
 | Azure and other resources | VM-01 is intentionally not 24x7 and is not a monitoring dependency. No VM-01 uptime or Cost push rule is documented. For an unexpected/new alert, identify its resource and owning runbook before acting; use section 7. |
 
-Grafana displays **Singapore time (UTC+8)**; owner-facing incident reports use **Bangkok time (UTC+7)** unless otherwise requested. Keep the original UTC timestamp alongside converted times when correlating logs; never treat these clocks as interchangeable.
+Grafana displays **Bangkok time (UTC+7, Asia/Bangkok)** on the five current dashboards (the previous Performance and Cost dashboards, kept until retirement, still show Singapore time, UTC+8); owner-facing incident reports use **Bangkok time (UTC+7)** unless otherwise requested. Keep the original UTC timestamp alongside converted times when correlating logs; never treat these clocks as interchangeable.
 
 ## 2. Establish the condition before recovery
 
-1. Open Performance with a range ending **now**, covering the incident onset. Inspect sample timestamps, component labels and rule health. Dashboard refresh/time range does not change the rule's independent evaluation window.
+1. Open [Now](https://monitor.mw-credit.com/d/mw-now) with a range ending **now** (its Firing alerts and Telemetry freshness panels come first; then the depth dashboard named in the rule's row), covering the incident onset. Inspect sample timestamps, component labels and rule health. Dashboard refresh/time range does not change the rule's independent evaluation window.
 2. Compare the firing value with the matching metric and the selector semantics in section 3. Distinguish a real threshold breach from Unknown, missing data or query failure. A green chart or a Normal rule under KeepLast does not prove fresh health.
 3. Check related dependencies once: widespread Debian Unknown suggests collection/VM failure; webhook plus ingress/tunnel failures may share a cause; SQL pressure plus reporting/worker failures may share the instance. Diagnose the common dependency before treating each alert as an independent outage.
 4. Collect bounded evidence around onset: service/timer state and last result, completion/runtime, sanitized error category, provider metrics/events, recent authorized changes and relevant queue counts. Do not retrieve unrestricted business data, full environment/configuration dumps, tokens, borrower documents or message bodies.
@@ -56,13 +56,13 @@ Preserve the installed package, service switches, cutoffs, review requirements, 
 
 ## 3. Select the alert path
 
-The records reconcile to **10 rules**: the original nine plus the documented 26 September scheduled-backup addition. Four rules have multiple component instances; together with webhook and SQL connection checks, they cover the 23 availability/data tiles. Four additional capacity rules cover CPU/RAM. The deleted grouped rule `dfz3jpfj9qebkc` is superseded and must not be restored as incident recovery.
+Group PWA 2m (12 rules, R089) is in section 4.7. The Performance 2m records reconcile to **10 rules**: the original nine plus the documented 26 September scheduled-backup addition. Four rules have multiple component instances; together with webhook and SQL connection checks, they cover the 23 availability/data tiles. Four additional capacity rules cover CPU/RAM. The deleted grouped rule `dfz3jpfj9qebkc` is superseded and must not be restored as incident recovery.
 
 All rules are documented in **MW Resource Monitoring Alerts / Performance 2m**, evaluating every two minutes over a rolling ten-minute window ending now. Pending periods below precede firing; they are not repair deadlines or guaranteed notification latency. Existing delivery is through **MW Performance IRM → MW Performance Monitoring → MW owner mobile push**. The saved additive bridge route and native connection are recorded in the [bridge reference](../Grafana_MCP_Events_Bridge.md); this document does not retest delivery.
 
 | Rule (display names may start with `MW \|`) | UID | Firing condition / pending | Procedure |
 | --- | --- | --- | --- |
-| Webhook external health impaired | `efz3jiz9qmhhce` | Any regional failure when all three reports are fresh within 12 min / 10 min | 4.1 |
+| Webhook external health impaired | `efz3jiz9qmhhce` | Fresh failure on the Singapore checker series; no fresh Singapore report within 12 min is Unknown and silent / 10 min | 4.1 |
 | Debian component unhealthy | `afz3o5cmmfabkb` | 12 separate components: fresh Down/Degraded; receipts/polling also missing, stale, invalid or Unknown / 4 min | 4.2–4.3, 6 |
 | Metabase component unhealthy | `ffzb4act1o0zka` | Five components: four Live checks plus PITR, fresh Down/Degraded / 4 min | 4.4 |
 | Metabase scheduled backup unhealthy | `mw-metabase-backup-health` | Daily/Weekly schedule missing or backup overdue, respecting first-run grace / 4 min | 4.5 |
@@ -81,7 +81,7 @@ Collector status codes are Down **0**, Healthy **1**, Degraded **2**, Paused **3
 
 ### 4.1 Webhook external health impaired
 
-1. Inspect the GCP uptime check `mw-webhook-external-health-ySLl0784KgI`: Singapore, Belgium and Oregon results, timestamps and failure categories. Checks run every five minutes. Confirm HTTPS, HTTP 403 and the receiver's `Forbidden` answer at `https://hooks.mw-credit.com/instagram` (unsigned GET); `/health` is local only since 16 October 2026. Do not submit a business webhook.
+1. Inspect the GCP uptime check `mw-webhook-external-health-ySLl0784KgI`: the rule and the Edge panels read the Singapore result only (the check keeps Belgium and Oregon because Google requires three locations; read them as supporting evidence), results, timestamps and failure categories. Checks run every five minutes. Confirm HTTPS, HTTP 403 and the receiver's `Forbidden` answer at `https://hooks.mw-credit.com/instagram` (unsigned GET); `/health` is local only since 16 October 2026. Do not submit a business webhook.
 2. Compare the local Ingress and Tunnel tiles. If local ingress fails, inspect `mw-instagram-webhook.service` and its existing receiver flag. If local ingress passes but tunnel fails, inspect `mw-cloudflared-instagram.service` and HA connection metrics. At least four connections is healthy, one to three degraded, zero down; missing metrics is Unknown.
 3. If both pass but external regions fail, examine DNS/TLS/public routing and regional error evidence. Use the established Cloudflare API/access procedure for control-plane reads; do not change DNS, certificates or tunnel configuration under worker recovery permission.
 4. After an authorized recovery, verify local health and new passing samples from all three regions, then the rule evaluation. A single successful local request does not establish public recovery.
@@ -158,6 +158,27 @@ The [2 October correction](../Resource_Monitoring.md#receipt-processing-versus-o
 4. Report provider impact and any independently observed local symptoms to the owner. A provider incident is not a reason to restart local workers or replay uncertain operations. Reuse existing retry safeguards; any change of provider/model/configuration needs the appropriate authorization.
 5. Verify provider resolution and any previously affected local workflow before closure; distinguish published recovery from unverified application recovery.
 
+### 4.7 PWA 2m rules (R089)
+
+Group **PWA 2m**, folder MW Resource Monitoring Alerts, evaluated every two minutes, same contact point; applied paused and unpaused after 24 hours of observation. Each query is the selector of the named Now panel reduced to 0/1, so open Now first, then the depth row. DEV never pages. Recovery stays within the [recovery authority](#recovery-authority); these rules add no new authority.
+
+| Rule (prefix `MW \|`) | Fires when / pending | Now panel | Depth row |
+| --- | --- | --- | --- |
+| PWA Hosting PROD unreachable | `pwa_hosting_prod` fresh and 0 / 4 min | 1-A | PWA & APIs 1 |
+| PWA API health failed | Reader or command `/health` fresh and 0 (one instance each) / 4 min | 1-B, 1-C | PWA & APIs 2 |
+| Cloud Run 5xx | Reader plus command PROD 5xx at or above 5 in 10 min / 10 min; idle is normal | 1-B, 1-C | PWA & APIs 3 and 10 to 13 |
+| Notification scheduler failing | Non-ok notifications job attempts (log metric `mw_scheduler_attempts_prod`) at or above 3 in 10 min / 10 min | 1-D | PWA & APIs 20 |
+| Scheduled job overdue | Daily charges older than 90 000 s or recent analytics older than 4 500 s (ages only; no failed state) / 10 min | 1-E, 7 | PWA & APIs 22 |
+| Push delivery backlog | Oldest pending above 900 s / 10 min; failed deliveries in 24 h only colour the panel (expired subscriptions are normal churn) | 6 | PWA & APIs 21 |
+| Receipt recognizer unhealthy | `recognizer` fresh and 0; Paused does not page / 4 min | 1-G | Agent & Receipts 6 to 8 |
+| Partner conversation stalled | Queued with none running, poll age above 600 s, or wake path inactive / 10 min | 1-I, 5 | Agent & Receipts 3 to 5 |
+| Cloud SQL down | `database/up` 0 / 4 min | 1-F | Infrastructure 1 to 4 |
+| Cloud SQL disk high | Five-minute mean above 80 % / 10 min | 8 | Infrastructure 3 |
+| Cloud SQL backup overdue | Last successful backup older than 108 000 s, or newest run failed / 10 min | 19 | Infrastructure 5 |
+| Debian snapshot overdue | Newest READY snapshot older than 108 000 s / 10 min | 19 | Infrastructure 5 |
+
+First establish freshness (Now 3). For a job or push alert, the HTTP charts do not prove completion; read the job and delivery panels, and check the failed count on the push panel even though it does not page. For backups and snapshots, verify with the provider before acting; creating a backup or snapshot is not worker recovery authority. A Normal state caused by missing data under KeepLast is not recovery.
+
 ## 5. Capacity alerts
 
 ### 5.1 Cloud SQL connections, CPU or used memory
@@ -232,4 +253,4 @@ V58 operator/relay hardening is applied in both DEV and PROD. The matching canon
 
 For row 5 failures, distinguish bridge availability, natural dispatch freshness, backlog, expected registration membership, grant/renewal authority and retained delivery failures. Read the [bridge protocol and recovery procedure](../Grafana_MCP_Events_Bridge.md) and [visual semantics](../Resource_Monitoring_Dashboard_Guide.md#r051-row-5-and-azure-daily-availability-chart--live-verified). Counts/host acceptance do not prove owner-visible receipt; a quiet no-event period does not prove a failure. Recorded registration replacement recovered Healthy on 5 October, but automatic renewal was not proven. Obtain current evidence before recovery; do not create a duplicate automation or resend an uncertain event.
 
-The [PWA Platform dashboard](../Resource_Monitoring_Dashboard_Guide.md#r055-pwa-platform--deployed-13-october-2026) separates DEV/PROD Hosting and native reader/command/jobs/notify services. Platform HTTP metrics do not establish job-boundary completion, financial success or notification-provider/device outcomes. Use the affected owning PWA/API procedure and exact environment; idle min-zero service no-data alone is neither Down nor Healthy. No new platform or bridge IRM rule is authorized by these visuals.
+The [PWA & APIs dashboard](../Resource_Monitoring_Dashboard_Guide.md#pwa--apis-mw-pwa) separates DEV/PROD Hosting and native reader/command/jobs/notify services. Platform HTTP metrics do not establish job-boundary completion, financial success or notification-provider/device outcomes. Use the affected owning PWA/API procedure and exact environment; idle min-zero service no-data alone is neither Down nor Healthy. No new platform or bridge IRM rule is authorized by these visuals.
