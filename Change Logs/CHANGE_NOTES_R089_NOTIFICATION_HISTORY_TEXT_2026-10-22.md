@@ -48,3 +48,9 @@ None.
 - PROD needs a separate owner approval after that DEV review.
 - Owner-authorized DEV and PROD promotion (requested 22 October 2026; the promotion contract is already in this PR): PROD needs a verified backup of baseline 102 and the temporary owner-authority window on `mw_notify_owner_prod` (as V99 and V100), and a new image for the API and Hosting.
 - After promotion: update the dictionary entry's coverage with the applied state and the inventory pins.
+
+## Promotion record
+- Authority: the owner's instruction of 22 October 2026, "got it. looks good. promote to prod.", approving PROD promotion of R089 including V103, backups and the standard temporary maintenance windows ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)).
+- Freeze: R089 Frozen 2026-10-22T18:14Z in the [tracker](../project/Documents/Release_Tracker.md#releases-requiring-action); R090 opened and the counter advanced to R091 in the same update. The freeze covers both R089 pieces of work: this batch and the Grafana revamp, which is already live in PROD (its own records are unchanged).
+- Package: main `99758c71` (PR #121 on top of the Grafana PR #123 merge `0a93c0ab`). DEV was deployed and reviewed from the PR head before the merge (see the [Environment Inventory](../project/Documents/Environment_Inventory.md)).
+- PROD result: pending.
