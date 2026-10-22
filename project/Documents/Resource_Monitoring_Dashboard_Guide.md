@@ -149,7 +149,9 @@ Time zone Asia/Bangkok for display; provider day rules are unchanged (Azure UTC 
 | Money | Neutral | Cost tiles |
 | Information | Neutral | Versions, models, providers |
 
-Kept neutral until a limit is documented: last turn age, last send, last notification, grounding rejections, unreadable, 401 session invalid, push pending. A budget-share colour on Cost is not added, because it needs the budget query inside TOTAL.
+Fixed state fills (commit `447eb1e`), readable with white text in both themes: OK `#2E7D32` (4.8:1), Degraded `#A65200` (5.2:1), Down dark red (5.7:1 light, 7.1:1 dark), Paused dark blue (5.6:1 light, 7.1:1 dark), Unknown `#6E7079` (4.6:1). They apply to stat backgrounds, coloured table cells (the Cloud Run CPU and Memory cells now have coloured backgrounds) and timeline lanes, and lifted tiles map to the same shades; the build test enforces at least 4.5:1 in both themes. Cost 8 GCP budget and the provider and model text tiles (PWA 33, Agent 12, Agent 15) have no fill. Agent 7 Unreadable and Agent 3 Grounding rejections are attention counts (green 0, orange above 0); PWA 3 'None' is green (the 401 count stays neutral). Now 19 keeps a fixed list of six backup rows, and a failed Railway read shows Metabase daily and weekly as '—' (Unknown). Cloud Run billable time shows one decimal.
+
+Kept neutral until a limit is documented: last turn age, last send, last notification, 401 session invalid, push pending. A budget-share colour on Cost is not added, because it needs the budget query inside TOTAL.
 
 ### Alerts linked to the new dashboards
 
