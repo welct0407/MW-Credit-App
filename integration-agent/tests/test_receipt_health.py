@@ -45,6 +45,48 @@ class HealthTests(unittest.TestCase):
         self.assertEqual(health['status'],1)
         notices[1]['email_status']='SENT'
         self.assertEqual(assess([],[r],notices,self.now)['status'],1)
+    def test_result_held_for_opted_out_partner_is_not_a_failed_delivery(self):
+        import json
+        r=dict(self.review,state='REJECTED',created_at=9000)
+        held=dict(self.notice('review-result:r:REJECTED','REVIEW'),detail='IG_PREFLIGHT_FAILED',
+                  partner=json.dumps({'id':'p','enabled':False}))
+        self.assertEqual(assess([],[r],[held],self.now)['failed_notifications'],0)
+        held['partner']=json.dumps({'id':'p','enabled':True})  # opted in: a real preflight failure
+        self.assertEqual(assess([],[r],[held],self.now)['failed_notifications'],1)
+        held['partner']='not json'
+        self.assertEqual(assess([],[r],[held],self.now)['failed_notifications'],1)
+    def test_acknowledged_exhausted_result_no_longer_counts(self):
+        r=dict(self.review,state='POSTED',created_at=9000)
+        failed=self.notice('review-result:r:POSTED','UNAVAILABLE','REJECTED')
+        self.assertEqual(assess([],[r],[failed],self.now)['failed_notifications'],1)
+        failed['acknowledged']=True
+        health=assess([],[r],[failed],self.now)
+        self.assertEqual(health['failed_notifications'],0)
+        self.assertEqual(health['notification_status'],1)
+    def test_acknowledgements_are_read_in_a_read_only_worker_transaction(self):
+        from contextlib import nullcontext
+        from unittest.mock import MagicMock
+        from mw_integration_agent import receipt_health
+        conn=MagicMock();conn.transaction.return_value=nullcontext()
+        conn.execute.return_value.fetchall.return_value=[('n1',),('n2',)]
+        opened=[]
+        def opener(config,role):opened.append(role);return conn
+        config={'state_backend':'postgres'}
+        self.assertEqual(receipt_health.acknowledged(config,opener),{'n1','n2'})
+        self.assertEqual(opened,['worker'])
+        sql=[c.args[0] for c in conn.execute.call_args_list]
+        self.assertEqual(sql[0],'SET TRANSACTION READ ONLY')
+        self.assertIn("FROM audit.events WHERE event_kind='optional_notification_acknowledged'",sql[1])
+        conn.close.assert_called_once()
+        conn.execute.side_effect=RuntimeError('permission denied')
+        self.assertEqual(receipt_health.acknowledged(config,opener),set())
+        self.assertEqual(receipt_health.acknowledged({'state_backend':'sqlite'},opener),set())
+    def test_inspect_does_not_read_audit_through_the_state_adapter(self):
+        import inspect as pyinspect
+        from mw_integration_agent import receipt_health
+        source=pyinspect.getsource(receipt_health.inspect)
+        self.assertIn('acknowledged(config)',source)
+        self.assertNotIn('audit.events',source)
     def test_superseded_error_notice_does_not_mask_completed_payment(self):
         r=dict(self.review,state='POSTED',created_at=9000)
         notices=[self.notice('review-result:r:UNKNOWN','UNKNOWN','UNKNOWN'),self.notice('review-result:r:POSTED')]

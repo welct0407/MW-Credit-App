@@ -306,10 +306,18 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
     result_master=masters(config)
     for review in db.execute("SELECT * FROM partner_reviews WHERE state IN ('POSTED','REJECTED','MANUAL_REQUIRED','STALE','EXPIRED','UNKNOWN')").fetchall():
         with isolated(failures,'result'):
+            # No catch-up (owner, 22 October 2026): a result is reserved in the run that reaches it, or
+            # later only while no Partner has it yet (crash recovery). A Partner opted in later does
+            # not receive results decided while they were opted out.
+            event='review-result:'+review['id']+':'+review['state']
+            if review['id'] not in changed and notices.db.execute(
+                    'SELECT 1 FROM partner_notices WHERE event_key=? LIMIT 1',(event,)).fetchone():continue
             proposal=json.loads(review['proposal']);live=result_master
             for p in live['partners']:
                 with isolated(failures,'result-recipient'):
-                    if review['state']=='POSTED' and p['enabled'] is not True:continue
+                    # Opted-out partners get no result of any state (R089: non-POSTED results were
+                    # reserved, then held as IG_PREFLIGHT_FAILED and counted as failed deliveries).
+                    if p['enabled'] is not True:continue
                     if review['state']=='POSTED':subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],review['detail'].endswith(SAME_OUTCOME))
                     else:
                         thai=p['language']=='ไทย'
@@ -322,7 +330,7 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                         body=subject+'\n'+(proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id'])+'\n'+proposal['receipt']['amount']+' THB\n'+words[review['state']][int(thai)]
                         if review['state']=='MANUAL_REQUIRED' and review['detail'].endswith(LOAN_CLOSE):
                             body+='\n'+('ข้อมูลสัญญาเปลี่ยนหลังอนุมัติ: รายการนี้เป็นการปิดสัญญา' if thai else 'Loan details changed after approval: this payment now closes the loan.')
-                    notices.reserve('review-result:'+review['id']+':'+review['state'],p,subject,body)
+                    notices.reserve(event,p,subject,body)
     from .receipt_hold import queue_holds,event_key
     if config.get('receipt_hold_notice_cutoff'):
         queue_holds(config,journal,notices,masters(config),identity_reader,failures)
@@ -350,7 +358,7 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     (waiting['status'],waiting['detail'])!=('PENDING','RECEIPT_ARCHIVE_PENDING')):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='ARCHIVE_RESOLVED_OR_REVIEWER_REMOVED' WHERE id=?",(notice['id'],))
                     continue
-            if notice['event_key'].startswith('review-result:') and notice['event_key'].endswith(':POSTED'):
+            if notice['event_key'].startswith('review-result:'):
                 if not any(p['id']==notice['partner_id'] and p['enabled'] is True for p in live['partners']):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
                     continue
