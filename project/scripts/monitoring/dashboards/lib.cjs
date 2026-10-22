@@ -59,6 +59,13 @@ const ALLOWED_URL_HOSTS = [
 ];
 
 const FROM = '${__timeFrom:date:iso}';
+/* LEFT-EDGE: state-timeline rows read from 20 minutes before the range start (one 300 s alignment period
+ * plus 15 minutes), so the state at the start is known; range-start.jq then carries it to exactly the start.
+ * Grafana has no time arithmetic in URLs, so the hidden variable lookback_from computes the start in jq
+ * from ${__from} and refreshes on every time range change (and so on every auto refresh). */
+const LOOKBACK_SECONDS = 1200;
+const LOOKBACK_FROM = '${lookback_from}';
+const RANGE_START = '(${__from} / 1000 | ceil)';
 const TO = '${__timeTo:date:iso}';
 const CHART_PERIOD = '$__customInterval(2d,300s,14d,3600s,86400s)';
 const MONITORING_BASE = 'https://monitoring.googleapis.com/v3/projects/' + PROJECT + '/timeSeries';
@@ -93,8 +100,8 @@ function encodeFilter(filter) {
   // Keep Grafana ${variables} literal so the dashboard interpolates them.
   return encodeURIComponent(filter).replace(/%24%7B([A-Za-z0-9_:]+)%7D/g, '${$1}');
 }
-function monitoringUrl(filter, {aligner, reducer, period = CHART_PERIOD, groupBy = []} = {}) {
-  let url = MONITORING_BASE + '?filter=' + encodeFilter(filter) + '&interval.startTime=' + FROM + '&interval.endTime=' + TO;
+function monitoringUrl(filter, {aligner, reducer, period = CHART_PERIOD, groupBy = [], start = FROM} = {}) {
+  let url = MONITORING_BASE + '?filter=' + encodeFilter(filter) + '&interval.startTime=' + start + '&interval.endTime=' + TO;
   if (aligner) {
     url += '&aggregation.alignmentPeriod=' + period + '&aggregation.perSeriesAligner=' + aligner;
     if (reducer) url += '&aggregation.crossSeriesReducer=' + reducer;
@@ -147,6 +154,18 @@ function receiptFields(fields) {
 }
 function stateSelector(expected = 1, stale = STALE_SECONDS) {
   return jq('state-timeline.jq', {EXPECTED: String(expected), STALE: String(stale)});
+}
+// A state-timeline row selector: its events clipped to start exactly at the range start (range-start.jq).
+function rowSelector(selector, stale) {
+  return jq('range-start.jq', {FROM: RANGE_START, STALE: String(stale), SELECTOR: selector});
+}
+function lookbackVariable() {
+  return {current: {}, datasource: DS.gcp, definition: 'range start - ' + LOOKBACK_SECONDS / 60 + ' min', hide: 2, includeAll: false,
+    label: 'State query start', multi: false, name: 'lookback_from', options: [],
+    query: {infinityQuery: {columns: [col('value', 'value', 'string')], data: '{}', format: 'table', parser: 'jq-backend', refId: 'variable',
+      root_selector: '{value: ((${__from} / 1000 | floor) - ' + LOOKBACK_SECONDS + ' | todateiso8601)}', source: 'inline', type: 'json', url: '',
+      url_options: {method: 'GET'}}, queryType: 'infinity', refId: 'variable'},
+    refresh: 2, regex: '', skipUrlSync: true, sort: 0, type: 'query'};
 }
 
 /* lift(): copy a proven panel from the current canonical dashboard JSON. The copy is
@@ -241,6 +260,7 @@ function linkBar() {
 }
 
 function dashboard({uid, title, description, time, refresh, panels, templating = [], timepicker}) {
+  if (JSON.stringify(panels).includes(LOOKBACK_FROM)) templating = [...templating, lookbackVariable()];
   return {
     apiVersion: 'dashboard.grafana.app/v1beta1',
     kind: 'Dashboard',
@@ -363,26 +383,28 @@ function serialize(d) {
 }
 
 /* State rows and panels shared by several dashboards. */
+// State-timeline rows: query from lookback_from, selector clipped to the range start (LEFT-EDGE).
+function stateRow(name, filter, {expected = 1, stale = STALE_SECONDS, aligner, period} = {}) {
+  return {name, datasource: DS.gcp, url: monitoringUrl(filter, {aligner, period, start: LOOKBACK_FROM}),
+    selector: rowSelector(stateSelector(expected, stale), stale)};
+}
 function healthRow(name, component, expected) {
   const list = Array.isArray(component) ? component : [component];
-  return {name, datasource: DS.gcp, url: monitoringUrl(customFilter('health', {component: list.length > 1 ? list : list[0]})),
-    selector: stateSelector(expected || list.length)};
+  return stateRow(name, customFilter('health', {component: list.length > 1 ? list : list[0]}), {expected: expected || list.length});
 }
 function workerRow(name, component, field) {
-  return {name, datasource: DS.gcp, url: monitoringUrl(customFilter('worker_timing', {component, field})), selector: stateSelector(1)};
+  return stateRow(name, customFilter('worker_timing', {component, field}));
 }
 function probeRow(name, component) {
-  return {name, datasource: DS.gcp, url: monitoringUrl(customFilter('metabase_probe', {component, field: 'status'})), selector: stateSelector(1)};
+  return stateRow(name, customFilter('metabase_probe', {component, field: 'status'}));
 }
 // Singapore checker only (owner decision); raw 5-minute points, Unknown after 12 minutes.
 function webhookRow(name = 'Webhook · Singapore') {
-  return {name, datasource: DS.gcp, url: monitoringUrl('metric.type = "monitoring.googleapis.com/uptime_check/check_passed" AND metric.labels.check_id = "' +
-    WEBHOOK_CHECK_ID + '" AND metric.labels.checker_location = "' + UPTIME_SINGAPORE_LOCATION + '"'),
-    selector: stateSelector(1, ALIGNED_STALE_SECONDS)};
+  return stateRow(name, 'metric.type = "monitoring.googleapis.com/uptime_check/check_passed" AND metric.labels.check_id = "' +
+    WEBHOOK_CHECK_ID + '" AND metric.labels.checker_location = "' + UPTIME_SINGAPORE_LOCATION + '"', {stale: ALIGNED_STALE_SECONDS});
 }
 function sqlUpRow(name = 'Cloud SQL') {
-  return {name, datasource: DS.gcp, url: monitoringUrl(sqlFilter('cloudsql.googleapis.com/database/up'), {aligner: 'ALIGN_MAX', period: '300s'}),
-    selector: stateSelector(1, ALIGNED_STALE_SECONDS)};
+  return stateRow(name, sqlFilter('cloudsql.googleapis.com/database/up'), {stale: ALIGNED_STALE_SECONDS, aligner: 'ALIGN_MAX', period: '300s'});
 }
 function schedulerFilter(env, job) {
   return 'metric.type = "' + SCHEDULER_ATTEMPT_METRIC + env + '" AND resource.labels.job_id = "mw-credit-app-' + env + '-' + job + '"';
@@ -390,8 +412,10 @@ function schedulerFilter(env, job) {
 function schedulerSelector() {
   return jq('scheduler-attempts.jq', {STATUS_LABEL: SCHEDULER_STATUS_LABEL, HTTP_LABEL: SCHEDULER_HTTP_LABEL, PERIOD: '300'});
 }
+// A bucket event carries in only while its 300 s bucket covers the range start (later events end it).
 function schedulerRow(name, env, job) {
-  return {name, datasource: DS.gcp, url: monitoringUrl(schedulerFilter(env, job), {aligner: 'ALIGN_SUM', period: '300s'}), selector: schedulerSelector()};
+  return {name, datasource: DS.gcp, url: monitoringUrl(schedulerFilter(env, job), {aligner: 'ALIGN_SUM', period: '300s', start: LOOKBACK_FROM}),
+    selector: rowSelector(schedulerSelector(), 300)};
 }
 // Worst of ChatGPT and Codex from the unchanged openai-status.jq (today's panels 54 and 55).
 function openAiWorstSelector() {
@@ -417,7 +441,7 @@ module.exports = {
   NUM_BACKENDS_DATABASE_LABEL, ALERT_FOLDER_UID, LOG_METRIC, STALE_SECONDS, ALIGNED_STALE_SECONDS, DASHBOARD_UIDS,
   DASHBOARD_TITLES, DS, ALLOWED_DATASOURCE_UIDS, ALLOWED_URL_HOSTS, FROM, TO, CHART_PERIOD, COLOR, STATE_TEXT,
   stateMappings, valueMap, nullMap, steps, encodeFilter, monitoringUrl, customFilter, sqlFilter, labelClause, col, target,
-  inlineTarget, jq, receiptFields, stateSelector, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
+  inlineTarget, jq, receiptFields, stateSelector, rowSelector, stateRow, lookbackVariable, LOOKBACK_FROM, LOOKBACK_SECONDS, RANGE_START, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,
   timeseriesDefaults, dashedLine, table, row, text, sortKeys, serialize, healthRow, workerRow, probeRow, webhookRow, sqlUpRow,
   schedulerFilter, schedulerSelector, schedulerRow, openAiWorstSelector, providerStatus

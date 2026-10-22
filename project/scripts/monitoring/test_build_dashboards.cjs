@@ -93,7 +93,7 @@ for (const uid of L.DASHBOARD_UIDS) {
         assert.ok(L.ALLOWED_URL_HOSTS.includes(host), uid + ' panel ' + p.id + ' host ' + host);
       }
       assert.ok(!/__[A-Z_]+__/.test(t.root_selector || ''), uid + ' panel ' + p.id + ' unreplaced placeholder');
-      assert.ok(!/\$\{(?!__timeFrom:date:iso\}|__timeTo:date:iso\}|env\}|__from\}|__to\})/.test(t.url + (t.url_options?.data || '') + (t.data || '') + (t.root_selector || '')),
+      assert.ok(!/\$\{(?!__timeFrom:date:iso\}|__timeTo:date:iso\}|env\}|__from\}|__to\}|lookback_from\})/.test(t.url + (t.url_options?.data || '') + (t.data || '') + (t.root_selector || '')),
         uid + ' panel ' + p.id + ' only known variables');
       if (jqAvailable && t.root_selector) {
         const r = spawnSync(jqPath, ['-n', 'def __probe: ' + interpolate(t.root_selector) + '\n; 1'], {encoding: 'utf8'});
@@ -164,7 +164,7 @@ const nowText = JSON.stringify(built['mw-now']);
 assert.ok(!/-dev\b|_dev\b|loan_manager_dev/.test(nowText), 'mw-now is PROD only');
 const pwaUrls = allPanels(built['mw-pwa'].spec).flatMap(e => (e.panel.targets || []).map(t => decodeURIComponent(t.url || '')));
 assert.ok(pwaUrls.filter(u => /mw-credit-app-(read|command|notify|jobs)-/.test(u)).every(u => /-\$\{env\}/.test(u)), 'mw-pwa Cloud Run filters follow ${env}');
-assert.deepEqual(built['mw-pwa'].spec.templating.list.map(v => v.name), ['env']);
+assert.deepEqual(built['mw-pwa'].spec.templating.list.map(v => v.name), ['env', 'lookback_from']);
 // Webhook rows read the Singapore checker only.
 for (const uid of ['mw-now', 'mw-agent']) {
   const webhook = allPanels(built[uid].spec).flatMap(e => e.panel.targets || []).filter(t => (t.url || '').includes('check_passed'));
@@ -232,6 +232,32 @@ assert.ok(host.transformations.find(t => t.id === 'filterFieldsByName').options.
 // Layout: rows fill 24 columns and the daily chart sits beside GCP by service.
 const second = cost.panels.filter(p => p.gridPos.y === 5);
 assert.deepEqual(second.map(p => [p.id, p.gridPos.x, p.gridPos.w]), [[6, 0, 16], [7, 16, 8]], 'Cost second row');
+// LEFT-EDGE: every state-timeline row reads from lookback_from (range start - 20 min) and is clipped by
+// range-start.jq, so it starts exactly at the range start; the hidden variable exists wherever it is used.
+let clippedRows = 0;
+for (const uid of L.DASHBOARD_UIDS) {
+  const s = built[uid].spec;
+  const uses = L.serialize(built[uid]).includes('${lookback_from}');
+  const v = s.templating.list.find(x => x.name === 'lookback_from');
+  assert.equal(Boolean(v), uses, uid + ' defines lookback_from exactly when it is used');
+  if (v) {
+    assert.ok(v.hide === 2 && v.refresh === 2 && v.type === 'query' && v.skipUrlSync === true, uid + ' lookback_from hidden, refreshed on time range change');
+    if (jqAvailable) {
+      const from = 1761100000123;
+      const r = spawnSync(jqPath, ['-n', '-c', v.query.infinityQuery.root_selector.replaceAll('${__from}', String(from))], {encoding: 'utf8'});
+      assert.equal(JSON.parse(r.stdout).value, new Date(Math.floor(from / 1000) * 1000 - L.LOOKBACK_SECONDS * 1000).toISOString().replace('.000Z', 'Z'), uid + ' lookback_from value');
+    }
+  }
+  for (const {panel: p} of allPanels(s)) {
+    if (p.type !== 'state-timeline') continue;
+    for (const t of p.targets) {
+      assert.ok(t.url.includes('interval.startTime=${lookback_from}&'), uid + ' panel ' + p.id + ' ' + t.refId + ' reads from lookback_from');
+      assert.ok(t.root_selector.includes('def clip($from; $stale)') && t.root_selector.includes(L.RANGE_START), uid + ' panel ' + p.id + ' ' + t.refId + ' clipped to the range start');
+      clippedRows++;
+    }
+  }
+}
+assert.ok(clippedRows >= 30, 'state-timeline rows clipped: ' + clippedRows);
 
 console.log(JSON.stringify({dashboards: L.DASHBOARD_UIDS.length, panels: L.DASHBOARD_UIDS.map(u => allPanels(built[u].spec).length),
   jqCompiled: jqAvailable ? compiled : 'skipped (jq not found)', passed: true}));

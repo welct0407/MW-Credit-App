@@ -2,8 +2,10 @@
 # 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one
 # collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and
 # a run missing any of the __EXPECTED__ members is Unknown. A gap longer than
-# __STALE__ s, and a newest sample older than that, end in null so no state
-# stretches across missing telemetry. Provider errors and truncation fail visibly.
+# the freshness bound ends in null at (sample + bound), so no state stretches across
+# missing telemetry; a newest sample older than the bound also ends in null at
+# (sample + bound), with a second null at now so Unknown reaches the right edge.
+# Provider errors and truncation fail visibly.
 def stamp: sub("[.][0-9]+Z$"; "Z") | fromdateiso8601;
 def code: if type == "boolean" then (if . then 1 else 0 end)
   else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;
@@ -21,7 +23,9 @@ else
     {time: ($r.t | todateiso8601), value: (if $r.n == __EXPECTED__ then $r.v else 4 end)},
     (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > __STALE__
      then {time: ($r.t + __STALE__ | todateiso8601), value: null} else empty end)] +
-  (if ($runs | length) == 0 or now - ($runs | last | .t) > __STALE__
-   then [{time: (now | floor | todateiso8601), value: null}] else [] end) |
+  (if ($runs | length) == 0 then [{time: (now | floor | todateiso8601), value: null}]
+   elif now - ($runs | last | .t) > __STALE__
+   then [{time: ($runs | last | .t + __STALE__ | todateiso8601), value: null}, {time: (now | floor | todateiso8601), value: null}]
+   else [] end) |
   .[]
 end

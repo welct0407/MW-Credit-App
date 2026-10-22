@@ -16,6 +16,10 @@ def stamp(age=0):
     return dt.datetime.fromtimestamp(time.time() - age, dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
+def stamp_s(text):
+    return dt.datetime.strptime(text, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=dt.timezone.utc).timestamp()
+
+
 def point(age, value, kind='int64Value'):
     return {'interval': {'endTime': stamp(age)}, 'value': {kind: value if kind == 'boolValue' else str(value)}}
 
@@ -50,9 +54,20 @@ class StateTimeline(unittest.TestCase):
         self.assertEqual([r['value'] for r in rows], [1, 2, 0])
 
     def test_stale_and_missing_end_in_null_never_healthy(self):
-        self.assertEqual([r['value'] for r in self.q({'timeSeries': [series([point(400, 1)])]})], [1, None])
+        self.assertEqual([r['value'] for r in self.q({'timeSeries': [series([point(400, 1)])]})], [1, None, None])
         self.assertEqual([r['value'] for r in self.q({})], [None])
         self.assertEqual([r['value'] for r in self.q({'timeSeries': []})], [None])
+
+    def test_stale_tail_ends_at_its_freshness_bound_then_unknown_to_now(self):
+        rows = self.q({'timeSeries': [series([point(1200, 1)])]})
+        times = [dt.datetime.strptime(r['time'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=dt.timezone.utc).timestamp() for r in rows]
+        self.assertEqual([r['value'] for r in rows], [1, None, None])
+        self.assertEqual(times[1] - times[0], 360, 'state ends 360 s after the last point')
+        self.assertAlmostEqual(times[2], time.time(), delta=2)
+        # Aligned rows (720 s bound) likewise; a fresh newest point has no tail.
+        aligned = self.q({'timeSeries': [series([point(1200, True, 'boolValue')])]}, stale=720)
+        self.assertEqual(stamp_s(aligned[1]['time']) - stamp_s(aligned[0]['time']), 720)
+        self.assertEqual([r['value'] for r in self.q({'timeSeries': [series([point(100, 1)])]})], [1])
 
     def test_gap_longer_than_stale_bound_is_broken(self):
         rows = self.q({'timeSeries': [series([point(1000, 1), point(0, 1)])]})
@@ -424,6 +439,66 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertEqual(run(targets[4]['root_selector'], backups)[0]['details'], '💾 Daily backup — Healthy · 2 hours old')
         for t in targets:
             self.assertNotIn('\n', run(t['root_selector'], {})[0]['details'])
+
+    def rows(self, uid, pid):
+        return {t['refId']: t for t in self.panel(uid, pid)['targets']}
+
+    def at(self, sel, start, data):
+        """Run a row selector with ${__from} = start (epoch s); times back as epoch s."""
+        out = run(sel.replace('${__from}', str(start * 1000)), data)
+        return [(int(dt.datetime.strptime(r['time'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=dt.timezone.utc).timestamp()), r['value']) for r in out]
+
+    def assert_starts_at(self, events, start):
+        self.assertEqual(events[0][0], start, 'row starts exactly at the range start')
+        self.assertTrue(all(start <= t <= time.time() + 1 for t, _ in events), 'no event before the start or after now')
+
+    def test_state_rows_start_at_the_range_start(self):
+        rows = self.rows('mw-now', 1)
+        start = int(time.time()) - 3 * 3600
+        def p(t, v, kind='int64Value'):
+            return {'interval': {'endTime': dt.datetime.fromtimestamp(t, dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')},
+                    'value': {kind: v if kind == 'boolValue' else str(v)}}
+        # Collector row (Hosting): the last report before the start is carried to the start.
+        ev = self.at(rows['A']['root_selector'], start, {'timeSeries': [series([p(start - 100, 1), p(start - 40, 2), p(start + 20, 1)])]})
+        self.assertEqual(ev[:2], [(start, 2), (start + 20, 1)])
+        self.assert_starts_at(ev, start)
+        # Aligned Cloud SQL row: the 300 s bucket ending 4 min after the start would otherwise start the row late.
+        sql = self.at(rows['F']['root_selector'], start, {'timeSeries': [series([p(start - 60, True, 'boolValue'), p(start + 240, True, 'boolValue')])]})
+        self.assertEqual(sql[:2], [(start, 1), (start + 240, 1)])
+        self.assert_starts_at(sql, start)
+        # Stale carried state becomes null, never a stretched old state; nothing before the start is null too.
+        stale = self.at(rows['A']['root_selector'], start, {'timeSeries': [series([p(start - 1000, 1), p(start + 600, 1)])]})
+        self.assertEqual(stale[:2], [(start, None), (start + 600, 1)])
+        empty = self.at(rows['A']['root_selector'], start, {'timeSeries': [series([p(start + 60, 0)])]})
+        self.assertEqual(empty[:2], [(start, None), (start + 60, 0)])
+        self.assertEqual(self.at(rows['A']['root_selector'], start, {})[0], (start, None))
+        # Generated row, stale tail: a last report 20 minutes old ends 360 s later, Unknown from there to now.
+        tail = self.at(rows['A']['root_selector'], start, {'timeSeries': [series([p(int(time.time()) - 1200, 1)])]})
+        self.assertEqual([v for _, v in tail], [None, 1, None, None])
+        self.assertEqual(tail[2][0] - tail[1][0], 360)
+        self.assertAlmostEqual(tail[3][0], time.time(), delta=2)
+        # Webhook (raw 5-minute checks, 720 s bound): a check 5 minutes before the start carries in.
+        edge = self.rows('mw-now', 16)
+        hook = self.at(edge['A']['root_selector'], start, {'timeSeries': [series([p(start - 290, True, 'boolValue'), p(start + 10, True, 'boolValue')])]})
+        self.assertEqual(hook[:2], [(start, 1), (start + 10, 1)])
+        with self.assertRaises(ValueError):
+            run(rows['A']['root_selector'].replace('${__from}', str(start * 1000)), {'nextPageToken': 'x'})
+
+    def test_notify_worker_bucket_straddling_the_start_aligns(self):
+        sel = self.rows('mw-now', 1)['D']['root_selector']
+        start = int(time.time()) - 3 * 3600
+        def bucket(end, status=''):
+            return series([{'interval': {'endTime': dt.datetime.fromtimestamp(end, dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')},
+                            'value': {'int64Value': '5'}}], status=status, http_status='200')
+        # The bucket ending 3 minutes after the start begins 2 minutes before it: moved to the start, not sticking out left.
+        ev = self.at(sel, start, {'timeSeries': [bucket(start + 180), bucket(start + 480)]})
+        self.assertEqual(ev, [(start, 1), (start + 180, 1), (start + 480, None)])
+        # A bucket that ended before the start carries nothing: its end is the carried (null) event.
+        old = self.at(sel, start, {'timeSeries': [bucket(start - 600), bucket(start + 420, 'UNAVAILABLE')]})
+        self.assertEqual(old, [(start, None), (start + 120, 0), (start + 420, None)])
+        self.assert_starts_at(old, start)
+        # A bucket starting exactly at the start is the carried event itself.
+        self.assertEqual(self.at(sel, start, {'timeSeries': [bucket(start + 300)]}), [(start, 1), (start + 300, None)])
 
     def test_cost_budget_cell_and_line(self):
         cell = self.panel('mw-cost', 5)['targets'][5]['root_selector']
