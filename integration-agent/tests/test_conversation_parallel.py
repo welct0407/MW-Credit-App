@@ -390,12 +390,14 @@ class InstructionsAndUsageTests(Base):
             clock.sleep = lambda *_: None
             from mw_integration_agent import audit
             token = audit.PARENT.set('op')
+            conversation.current = 'm1'
             try:
                 conversation.converse(session.ASSISTANT_INSTRUCTIONS, '{}')
             finally:
                 audit.PARENT.reset(token)
         kind, payload = events[-1]
         self.assertEqual(kind, 'model_rounds')
+        self.assertEqual(payload['message_id'], 'm1')
         self.assertEqual((payload['prompt_tokens'], payload['thoughts_tokens'], payload['cached_content_tokens']), (2000, 10, 1600))
         self.assertEqual(payload['finish_reason'], 'STOP')
         self.assertEqual(len(payload['round_usage']), 2)

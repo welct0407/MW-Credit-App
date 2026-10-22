@@ -26,7 +26,7 @@ AGENT = Path(__file__).resolve().parents[1]
 MIGRATIONS = AGENT / 'database/migrations'
 BOOTSTRAP = AGENT / 'database/setup/bootstrap.sql'
 APPROVAL = '-c mw_design.execution_approved=agent-postgresql-20260922-v1'
-ROLES = ('mw_agent_owner', 'mw_agent_worker', 'mw_agent_relay', 'mw_agent_auditor', 'mw_business_audit_owner', 'mw_agent_retention')
+ROLES = ('mw_agent_owner', 'mw_agent_worker', 'mw_agent_relay', 'mw_agent_auditor', 'mw_business_audit_owner', 'mw_agent_retention', 'mw_agent_dashboard')
 
 
 def history(conn):
@@ -122,9 +122,10 @@ class FreshCentralMigrationTests(unittest.TestCase):
 
     def test_first_run_applies_every_version_in_order_with_pinned_hashes(self):
         names = [p.name for p in self.files]
-        self.assertEqual(names[:8], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
+        self.assertEqual(names[:9], ['V1__audit_and_control.sql', 'V2__runtime_compatibility.sql',
                                      'V3__job_ownership.sql', 'V4__receipt_evidence.sql', 'V5__audit_retention_identity.sql',
-                                     'V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql'])
+                                     'V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql',
+                                     'V9__recent_question_usage.sql'])
         self.assertEqual(self.first, {'applied': names, 'versions': len(names)})
         expected = [(version(p), p.name, hashlib.sha256(p.read_text(encoding='utf-8').encode()).hexdigest()) for p in self.files]
         self.assertEqual([tuple(row) for row in self.after_first], expected)
@@ -173,6 +174,55 @@ class FreshCentralMigrationTests(unittest.TestCase):
             assert_conversation_messages(self, conn)
 
 
+    def test_recent_questions_join_usage_by_message_id_or_time_and_only_the_dashboard_may_call(self):
+        """V9: the latest answered turns with their question text and model_rounds usage (by message_id, or the
+        first id-less event in the turn's window); IGNORED turns are skipped; Codex turns have no usage; the
+        dashboard role may call only the function and no table."""
+        import json
+        from datetime import UTC, datetime
+        base = datetime(2026, 10, 22, tzinfo=UTC).timestamp()
+        login = 'mw_dashboard_lab_login'
+        with psycopg.connect(**self.agent) as conn:
+            self.addCleanup(lambda: psycopg.connect(**self.server, autocommit=True).execute('DROP ROLE IF EXISTS ' + login))
+            conn.execute("INSERT INTO runtime.service_control(service_name,backend,active_generation,processing_enabled) "
+                         "VALUES ('agent','postgres',gen_random_uuid(),true) ON CONFLICT DO NOTHING")
+            turns = [('q1', 'QUEUED', 0), ('q2', 'QUEUED', 600), ('noise', 'IGNORED', 700), ('q3', 'QUEUED', 1200)]
+            for message_id, status, offset in turns:
+                conn.execute("INSERT INTO runtime.ingress_messages(message_id,sender_id,event_timestamp,text,captured_at,status) "
+                             "VALUES (%s,'s',%s,%s,%s,'CAPTURED_NO_PROCESSING')", (message_id, base + offset - 5, 'question ' + message_id, base + offset))
+                conn.execute("INSERT INTO runtime.conversation_turns(message_id,binding,partner,sender_id,status,created_at) "
+                             "VALUES (%s,'b','p','s',%s,%s)", (message_id, status, base + offset))
+            op = conn.execute("""INSERT INTO audit.operations(operation_id,service_name,idempotency_key,environment,action,actor_kind,
+                plan_sha256,code_version,policy_version,process_generation) VALUES (gen_random_uuid(),'model_turn','k','test','PROCESS',
+                'system',%s,'lab','lab',gen_random_uuid()) RETURNING operation_id""", ('0' * 64,)).fetchone()[0]
+            usage = [  # q1: an id-less event inside its window; q3: tagged with its id (q2 is Codex: none)
+                (1, base + 60, {'provider': 'gemini', 'model': 'gemini-4-argon', 'rounds': 2, 'prompt_tokens': 1000,
+                                'cached_content_tokens': 600, 'candidates_tokens': 50, 'thoughts_tokens': 20}),
+                (2, base + 1260, {'provider': 'claude', 'model': 'claude-opus-5-5', 'message_id': 'q3', 'rounds': 1,
+                                  'input_tokens': 900, 'cache_read_input_tokens': 300, 'output_tokens': 40})]
+            for seq, at, payload in usage:
+                conn.execute("""INSERT INTO audit.events(event_id,operation_id,operation_seq,event_kind,route,occurred_at,payload,payload_sha256)
+                    VALUES (gen_random_uuid(),%s,%s,'model_rounds','internal',to_timestamp(%s),%s::jsonb,%s)""", (op, seq, at, json.dumps(payload), '0' * 64))
+            conn.execute('CREATE ROLE ' + login + ' LOGIN')
+            conn.execute('GRANT mw_agent_dashboard TO ' + login)
+        dashboard = {**self.agent, 'user': login}
+        with psycopg.connect(**dashboard) as conn:
+            rows = conn.execute('SELECT question,status,provider,model,rounds,input_tokens,cached_tokens,output_tokens,thinking_tokens '
+                                'FROM monitoring.recent_questions_v1(10)').fetchall()
+            self.assertEqual([tuple(r) for r in rows], [
+                ('question q3', 'QUEUED', 'claude', 'claude-opus-5-5', 1, 900, 300, 40, None),
+                ('question q2', 'QUEUED', None, None, None, None, None, None, None),
+                ('question q1', 'QUEUED', 'gemini', 'gemini-4-argon', 2, 1000, 600, 50, 20)])
+            self.assertEqual(len(conn.execute('SELECT * FROM monitoring.recent_questions_v1(1)').fetchall()), 1)
+            # Settings belong to the role; the live Grafana login gets the same two (POSTGRESQL_OPERATIONS.md).
+            settings = conn.execute("""SELECT s.setconfig FROM pg_db_role_setting s JOIN pg_roles r ON r.oid=s.setrole
+                JOIN pg_database d ON d.oid=s.setdatabase WHERE r.rolname='mw_agent_dashboard' AND d.datname='mw_agent'""").fetchone()[0]
+            self.assertEqual(sorted(settings), ['default_transaction_read_only=on', 'statement_timeout=10s'])
+            for table in ('runtime.ingress_messages', 'runtime.conversation_turns', 'audit.events'):
+                with self.subTest(table=table), self.assertRaises(psycopg.errors.InsufficientPrivilege):
+                    conn.execute('SELECT 1 FROM ' + table + ' LIMIT 1')
+
+
 @unittest.skipUnless(os.environ.get('MW_AGENT_FRESH_PG_DSN'), 'empty disposable PostgreSQL server required')
 class IncrementalV6Tests(unittest.TestCase):
     """V6 on a server already at V5 (the production path): only V6 applies and the heartbeat table appears."""
@@ -202,11 +252,11 @@ class IncrementalV6Tests(unittest.TestCase):
             self.assertEqual(state_migration.migrate(conn, directory)['applied'][-1], 'V5__audit_retention_identity.sql')
             self.assertIsNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V6__service_heartbeats.sql', 'V7__notice_accepted_at.sql',
-                                                                                  'V8__conversation_messages.sql'])
+                                                                                  'V8__conversation_messages.sql', 'V9__recent_question_usage.sql'])
             self.assertIsNotNone(conn.execute("SELECT to_regclass('runtime.service_heartbeats')").fetchone()[0])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
-            self.assertEqual([row[1] for row in history(conn)][-4:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
-                                                                       'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql'])
+            self.assertEqual([row[1] for row in history(conn)][-5:], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
+                                                                       'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql', 'V9__recent_question_usage.sql'])
 
 
 def assert_conversation_messages(case, conn):
@@ -281,7 +331,7 @@ class IncrementalV8Tests(unittest.TestCase):
                 (Path(directory) / path.name).write_bytes(path.read_bytes())
             self.assertEqual(state_migration.migrate(conn, directory)['applied'][-1], 'V7__notice_accepted_at.sql')
             self.assertIsNone(conn.execute("SELECT to_regclass('runtime.conversation_messages')").fetchone()[0])
-            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V8__conversation_messages.sql'])
+            self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V8__conversation_messages.sql', 'V9__recent_question_usage.sql'])
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], [])
             assert_conversation_messages(self, conn)
 

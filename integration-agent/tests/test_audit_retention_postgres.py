@@ -30,7 +30,7 @@ MIGRATIONS = AGENT / 'database/migrations'
 BOOTSTRAP = AGENT / 'database/setup/bootstrap.sql'
 APPROVAL = '-c mw_design.execution_approved=agent-postgresql-20260922-v1'
 ROLES = ('mw_agent_owner', 'mw_agent_worker', 'mw_agent_relay', 'mw_agent_auditor', 'mw_business_audit_owner',
-         'mw_agent_retention')
+         'mw_agent_retention', 'mw_agent_dashboard')
 LOGIN = 'mw_iam_lab_login'  # NOINHERIT login holding mw_agent_retention WITH INHERIT FALSE, SET TRUE (the IAM user's shape)
 TABLES = ('runtime.job_runs', 'runtime.operation_state', 'audit.events', 'audit.operations')
 SHA = '0' * 64
@@ -75,7 +75,7 @@ class RetentionPurgeTests(unittest.TestCase):
                 conn.execute(statement)
         cls.admin = {**server, 'dbname': 'mw_agent', 'autocommit': True}
         with psycopg.connect(**cls.admin) as conn:
-            assert state_migration.migrate(conn, MIGRATIONS)['applied'][-1] == 'V8__conversation_messages.sql'
+            assert state_migration.migrate(conn, MIGRATIONS)['applied'][-1] == 'V9__recent_question_usage.sql'
             conn.execute('ALTER ROLE mw_agent_worker LOGIN')
             conn.execute('ALTER ROLE mw_agent_retention LOGIN')
             conn.execute('CREATE ROLE ' + LOGIN + ' LOGIN NOINHERIT')
@@ -469,7 +469,7 @@ class MaintIndexAdoptionTests(unittest.TestCase):
             conn.execute("UPDATE pg_index SET indisvalid=false WHERE indexrelid='runtime.maint_job_runs_operation_idx'::regclass")
             adopted = conn.execute("SELECT 'runtime.maint_operation_state_last_event_idx'::regclass::oid").fetchone()[0]
             self.assertEqual(state_migration.migrate(conn, MIGRATIONS)['applied'], ['V5__audit_retention_identity.sql', 'V6__service_heartbeats.sql',
-                                                                          'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql'])
+                                                                          'V7__notice_accepted_at.sql', 'V8__conversation_messages.sql', 'V9__recent_question_usage.sql'])
             rows = conn.execute('''SELECT c.relname,i.indisvalid,c.oid FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
                 JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='runtime'
                 AND c.relname IN ('operation_state_last_event_idx','job_runs_operation_idx','maint_operation_state_last_event_idx',

@@ -202,14 +202,46 @@ function neutralMoney(panel) {
   return panel;
 }
 
+/* R090 (owner, 22 October 2026): the latest 10 Partner chat questions and what each cost. The text and token
+ * counts come straight from the agent database (monitoring.recent_questions_v1, agent migration V9) through
+ * Grafana PDC; nothing is copied to Cloud Monitoring. Cost = uncached input, cached input and output plus
+ * thinking tokens at the billed unit prices in model-prices.json (SGD per million tokens). */
+const PRICES = require('../model-prices.json');
+function questionsSql() {
+  const values = Object.entries(PRICES.models).map(([model, p]) => "('" + model + "', " + p.input + ', ' + p.cached + ', ' + p.output + ')').join(', ');
+  return ['SELECT q.asked_at AS "Asked", q.question AS "Question",',
+    "  coalesce(q.model, 'No usage record') AS \"Model\",",
+    '  q.input_tokens - coalesce(q.cached_tokens, 0) AS "Input", q.cached_tokens AS "Cached", q.output_tokens AS "Output",',
+    '  q.thinking_tokens AS "Thinking",',
+    '  round(((q.input_tokens - coalesce(q.cached_tokens, 0)) * p.input + coalesce(q.cached_tokens, 0) * p.cached',
+    '    + (q.output_tokens + coalesce(q.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS "Cost (SGD)"',
+    'FROM monitoring.recent_questions_v1(10) q',
+    'LEFT JOIN (VALUES ' + values + ') AS p(model, input, cached, output) ON p.model = q.model',
+    'ORDER BY q.asked_at DESC'].join('\n');
+}
+const QUESTIONS_Y = 27;
+function questions() {
+  const panel = L.table({id: 50, title: 'Partner chat · last 10 questions', gridPos: pos(0, QUESTIONS_Y + 1, 24, 13),
+    description: 'The 10 latest answered Partner chat questions (Instagram conversation agent), newest first, read live from the agent database (monitoring.recent_questions_v1 through Grafana PDC; not stored in Cloud Monitoring). Input = uncached input tokens, Cached = cached input, Output and Thinking = generated tokens (thinking bills as output); every round of the turn, including tool calls, is included. Cost (SGD) = tokens at the billed Vertex AI unit prices (model-prices.json: Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output per million). No usage record = a Codex turn (subscription) or usage older than the 7-day audit retention. The footer sums the listed questions.',
+    targets: [{refId: 'A', datasource: L.DS.agentQuestions, editorMode: 'code', format: 'table', rawQuery: true, rawSql: questionsSql()}],
+    defaults: {noValue: 'No questions', decimals: 0, unit: 'none', custom: {align: 'auto', cellOptions: {type: 'auto'}, inspect: false}},
+    overrides: [byName('Asked', {unit: 'dateTimeAsLocal', 'custom.width': 150}),
+      byName('Question', {'custom.cellOptions': {type: 'auto', wrapText: true}, 'custom.minWidth': 300}),
+      byName('Model', {'custom.width': 150}),
+      ...['Input', 'Cached', 'Output', 'Thinking'].map(name => byName(name, {unit: 'short', 'custom.width': 90})),
+      byName('Cost (SGD)', {unit: 'currencySGD', decimals: 4, 'custom.width': 110})],
+    options: {cellHeight: 'md', footer: {show: true, reducer: ['sum'], fields: ['Cost (SGD)'], countRows: false}}});
+  return [L.row({id: 49, title: 'Partner chat · cost per question', gridPos: pos(0, QUESTIONS_Y, 24, 1)}), panel];
+}
+
 function build() {
   return L.dashboard({uid: 'mw-cost', description: 'Cloud spending month to date in SGD with every provider detail in collapsed rows.',
     time: {from: 'now/M', to: 'now'}, refresh: '1h',
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
     panels: [total(), platform(5, 2, 6, 'Azure'), platform(6, 3, 12, 'GCP'), platform(7, 4, 18, 'Railway'), lastMonth(), budgetTile(), dailyCost(), byService(),
-      rules(),
-      providerRow(10, L.findPanel(COST, 306).title, 27, 306, [102, 103, 104, 101, 110]),
-      providerRow(20, L.findPanel(COST, 307).title, 28, 307, [202, 203, 204, 205, 207, 206, 201]),
-      providerRow(30, L.findPanel(COST, 308).title, 29, 308, [302, 301, 303, 304, 305])].map(neutralMoney)});
+      rules(), ...questions(),
+      providerRow(10, L.findPanel(COST, 306).title, 41, 306, [102, 103, 104, 101, 110]),
+      providerRow(20, L.findPanel(COST, 307).title, 42, 307, [202, 203, 204, 205, 207, 206, 201]),
+      providerRow(30, L.findPanel(COST, 308).title, 43, 308, [302, 301, 303, 304, 305])].map(neutralMoney)});
 }
 module.exports = {build, HOST};
