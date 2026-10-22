@@ -81,7 +81,7 @@ Ten Grafana-managed rules in folder **MW Resource Monitoring Alerts**, group **P
 
 ## PWA 2m alert group (R089)
 
-Twelve further rules form group **PWA 2m** in folder **MW Resource Monitoring Alerts**, evaluating every two minutes, contact point **MW Performance IRM**, label `severity=page`, runbook annotation `https://monitor.mw-credit.com/d/mw-now`. They are declared in `infrastructure/grafana/owned-services.tf.json` beside Performance 2m, applied **paused**, observed for 24 hours on the dashboards and then unpaused under the release instruction. Applied 22 October 2026, all twelve paused; [EVIDENCE: unpause date after 24 h].. DEV never pages. The bridge name filter is not extended (the bridge is being retired). Each rule's query is the dashboard selector of its panel reduced to a 0/1 impairment value, so a rule and its panel cannot disagree.
+Twelve further rules form group **PWA 2m** in folder **MW Resource Monitoring Alerts**, evaluating every two minutes, contact point **MW Performance IRM**, label `severity=page`, runbook annotation `https://monitor.mw-credit.com/d/mw-now`. They are declared in `infrastructure/grafana/owned-services.tf.json` beside Performance 2m, applied **paused**, observed for 24 hours on the dashboards and then unpaused under the release instruction. Applied 22 October 2026, all twelve paused; unpause date pending, after 24 h.. DEV never pages. The bridge name filter is not extended (the bridge is being retired). Each rule's query is the dashboard selector of its panel reduced to a 0/1 impairment value, so a rule and its panel cannot disagree.
 
 | Rule | Fires when | Pending | No data |
 |---|---|---|---|
