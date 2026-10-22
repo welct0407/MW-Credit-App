@@ -24,16 +24,16 @@ The Grafana Now dashboard (R089) showed "6 · Notify · failed" at 5. Three of t
 | `receipt_health.inspect()` and the collector | `failed_notifications` 5 → 2; collector exported 2 at 12:55:06Z (5 until 12:52:55Z) |
 | Acknowledgement rule `9d30d60`: read-only pre-check on the VM, then `deploy-runtime.py` | Pre-check: `acknowledged(config)` returned both 2 October notices, `inspect()` 0. Dry-run 13:07:21Z (only `receipt_health.py`), freeze 13:07:22Z backup `runtime-20261022T130722225055Z` (metadata sha256 `be0df72e…8ce1`), activate 13:07:26–31Z probe `c6188244-…`; receiver `7eb71b83…` `/ready` `9d30d60`, recognizer `7193ac49…` `/healthz` ok; receipt cycle 13:07:38Z clean |
 | `failed_notifications` after the acknowledgement rule | `inspect()` 0, `notification_status` 1; collector 2 through 13:06:10Z, 0 at 13:08:20Z |
+| No-catch-up rule `d444d67`: read-only adapter check, then `deploy-runtime.py` | The new lookup runs through the PostgreSQL state adapter as `SELECT 1 FROM runtime.partner_notices WHERE stream='receipt' AND event_key=%s LIMIT 1` (row for an existing event, none for a made-up one). Dry-run 13:27:01Z (only `review_cycle.py`), freeze 13:27:02Z backup `runtime-20261022T132702444836Z` (metadata sha256 `97780d17…493c`), activate 13:27:07–12Z probe `38110fef-…`; receiver `80c3a603…` `/ready` `d444d67`, recognizer `d5e08326…` `/healthz` ok; receipt cycle 13:27:25Z clean; `failed_notifications` 0 |
 
 ## Not run
 - The pull request's CI checks.
 
 ## Recovery
-`deploy-runtime.py rollback --commit 9d30d60…` restores `1d02af8` from `runtime-20261022T130722225055Z`, and `rollback --commit 1d02af8…` restores `6ea1540` from `runtime-20261022T125423416236Z`; or revert this commit and redeploy. The previous rule reserves non-POSTED results for opted-out Partners again and counts them. The install and activate steps used a short-lived `codex-cloud` IAM database sign-in file in root-only tmpfs `/run/mw-op/`, shredded at 12:54:46Z, because the agent's own identity cannot read the agent schema history.
+`deploy-runtime.py rollback --commit d444d67…` restores `9d30d60` from `runtime-20261022T132702444836Z`, `rollback --commit 9d30d60…` restores `1d02af8` from `runtime-20261022T130722225055Z`, and `rollback --commit 1d02af8…` restores `6ea1540` from `runtime-20261022T125423416236Z`; or revert this commit and redeploy. The previous rule reserves non-POSTED results for opted-out Partners again and counts them. The install and activate steps used a short-lived `codex-cloud` IAM database sign-in file in root-only tmpfs `/run/mw-op/`, shredded at 12:54:46Z, because the agent's own identity cannot read the agent schema history.
 
 ## Open questions
 None.
 
 ## Remaining work
-- The VM checkout is detached at `9d30d60`, which is on branch `claude/vigilant-allen-kfzogm` only; merge it to `main` with a merge commit (not squash) so `update-from-github.sh` can fast-forward next time.
-- Deploy the no-catch-up rule [EVIDENCE: Forge].
+- The VM checkout is detached at `d444d67`, which is on branch `claude/vigilant-allen-kfzogm` only; merge it to `main` with a merge commit (not squash) so `update-from-github.sh` can fast-forward next time.
