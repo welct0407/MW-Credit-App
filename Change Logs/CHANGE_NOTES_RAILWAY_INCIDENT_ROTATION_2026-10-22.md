@@ -8,7 +8,13 @@ Railway disclosed on 22 October 2026 (incident QH8L8B3E) that customers' environ
 - Reporting source: new `metabase_borrower_reader` password (`mw-metabase-reporting-password` v1), set through the Cloud SQL Admin API on `mw-credit-pg-20261017`; Metabase database 2 updated through the API.
 - Chart: new bearer key (`mw-report-charts-key` v1). The digest is in `/etc/mw-report-charts/config.json`, `mw-report-charts.service` was restarted, and only the iframe on dashboard 3 dashcard 1501 was changed.
 - Cloud SQL key: the owner created key `43b5a81c…` for `metabase-cloudsql@` in Cloud Shell under a temporary project policy exception, which was removed and verified enforced again. It is stored in `mw-metabase-cloudsql-sa-key` v1.
-- Metabase deploy: `CSQL_PROXY_JSON_CREDENTIALS`, `MB_ENCRYPTION_SECRET_KEY` (new key, `mw-metabase-encryption-key` v2) and `MB_ENCRYPTION_SECRET_KEY_OLD` set through the Railway API, with a pre-deploy `rotate-encryption-key` command. `mw-metabase-encryption-key` v1 holds the old, compromised key, kept for rollback only.
+- Metabase deploys, all set through the Railway API with the workspace token:
+  - Deployment `05c5945d` failed in pre-deploy without changing anything (the new key reached `rotate-encryption-key` empty through `run_metabase.sh`).
+  - Deployment `7a12caf1` put the new Cloud SQL key in place. The old key `baf7f71a…` was then disabled and deleted.
+  - Deployment `a4d7151e` was a deliberately failing diagnostic. It confirmed that both key variables reach the pre-deploy shell.
+  - Deployment `407582d3` rotated the encryption key to `mw-metabase-encryption-key` v2 by calling `java` directly.
+  - Afterwards the pre-deploy command and `MB_ENCRYPTION_SECRET_KEY_OLD` were removed without a redeploy. `mw-metabase-encryption-key` v1 holds the old, compromised key, kept for rollback only.
+- Temporary credentials: Metabase API key 5 (`incident-rotation`) revoked; its secret and the unused `mw-railway-incident-ops-token` deleted.
 - Records: `project/Documents/Resource_Monitoring.md`, `project/Documents/Environment_Inventory.md`, `project/scripts/metabase/README.md` (rotation steps), `project/outputs/r030-custom-matrix/README.md`, `infrastructure/grafana/operational-secret-references.json`.
 
 ## Checks
@@ -19,20 +25,24 @@ Railway disclosed on 22 October 2026 (incident QH8L8B3E) that customers' environ
 | Saved question 276 after the reporting password change | Pass: completed, 1 row |
 | `charts.mw-credit.com/api/matrix` with the old and the new key | Pass: 401 for old, 200 for new; dashboard 3 still has 272 dashcards and the same tabs |
 | Effective `iam.disableServiceAccountKeyCreation` and `iam.managed.disableServiceAccountKeyCreation` after the owner's Cloud Shell step | Pass: enforced, no project override |
+| After deployment `7a12caf1`: `/api/health`, question 276, chart; then again after disabling key `baf7f71a…` | Pass: 200, completed, 200; question 276 still completed |
+| Deployment `407582d3` pre-deploy log | Pass: `Encryption key rotation OK` |
+| After deployment `407582d3`: `/api/health`, `GET /api/database/2` details, question 276, chart | Pass: 200, details decrypted, completed, 200 |
+| Railway service config after cleanup | Pass: pre-deploy command empty, original variable set, no extra deployment |
+| Temporary Metabase key after revocation | Pass: 401 |
 
 ## Not run
-- Metabase redeploy: queued in Railway's slow deploy queue since 11:19 UTC; result not yet verified.
 - Rotation of the Metabase application-database password: not done. It needs shell access in Railway Postgres; the database has no public endpoint and Railway rotated the backup-bucket credentials itself.
 - No access-log review for misuse of the old credentials yet.
 
 ## Recovery
 - Reporting password, chart key, Railway tokens: add a Secret Manager version and repeat the step. Old values are not restored, because they are exposed.
-- Encryption key: if the deploy fails after the pre-deploy step, set `MB_ENCRYPTION_SECRET_KEY` to `mw-metabase-encryption-key` v2. If the pre-deploy step failed, the stored data still uses v1.
-- Cloud SQL key: until the old key is disabled, the previous deployment keeps working with it.
+- Encryption key: stored data now uses `mw-metabase-encryption-key` v2. An application-database restore from before 12:40 UTC on 22 October needs v1.
+- Cloud SQL key: the old key is deleted. Create a replacement key with the owner's Cloud Shell procedure in `project/scripts/metabase/README.md`.
 
 ## Open questions
 - Whether to revoke Metabase API key 3 ("Report development", admin). It was kept by owner instruction until the report migration ends; Metabase stores only a hash of it.
 
 ## Remaining work
-- Verify the Metabase deploy, then disable old key `baf7f71a…`, clear the pre-deploy command and `MB_ENCRYPTION_SECRET_KEY_OLD`, and revoke the temporary Metabase admin key `incident-rotation` (ID 5).
 - Review Cloud SQL and Metabase logs for use of the old credentials.
+- Optional: rotate the Metabase application-database password.
