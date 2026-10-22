@@ -111,7 +111,7 @@ Since worker revision 25, optional result-notification failures are separate fro
 | --- | --- | --- |
 | Cloud SQL `max_connections` | 200 | Instance-wide; reserved slots reduce ordinary-client capacity. Chart line and SQL tile turn red at 200 |
 | Cloud SQL storage | Percent of current allocation (10 GB, auto-resize on) | 100% is not a lifetime budget |
-| Railway CPU and memory | Live `CPU_LIMIT` and `MEMORY_LIMIT_GB` series | Metabase about 2 cores / 2 GB; Postgres 1 core / 0.5 GB at last inspection |
+| Railway CPU and memory | Live `CPU_LIMIT` and `MEMORY_LIMIT_GB` series | Metabase 2 cores / 3 GB (since 22 October 2026); Postgres 1 core / 0.5 GB at last inspection |
 | Railway Postgres volume | 5000 MB | Metabase has no persistent volume |
 | Azure OS disk throughput | 100 MB/s baseline, shared by reads and writes | Reference line only; ignores burst and cache |
 | Bridge Grafana ingress | 50 alerts and 256 KiB per request | See bridge document |

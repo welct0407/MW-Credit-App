@@ -54,7 +54,7 @@ Deployed on 22 September 2026. Build this directory as the Railway Metabase serv
 
 Keep the existing Railway PostgreSQL application-database variables, Java heap and Bangkok timezone. Add these runtime secrets/settings only after preserving the application database and recovery material outside Git:
 
-Current runtime: both services are in Singapore on Pro (upgraded 26 September 2026). One Metabase replica is capped at 2 GB / 2 vCPU with `JAVA_OPTS=-Xmx768m -XX:ActiveProcessorCount=2`, `MB_ASYNC_QUERY_THREAD_POOL_SIZE=6` and `MB_JETTY_MAXTHREADS=25`; PostgreSQL is capped at 0.5 GB / 1 vCPU. The original trial 1 GB cap failed under a full page load. Preserve these measured settings on new deployments. [Current deployment/recovery evidence](../../outputs/r016-20260922/README.md) supersedes the POC trial checkpoint.
+Current runtime: both services are in Singapore on Pro (upgraded 26 September 2026). One Metabase replica is capped at 3 GB / 2 vCPU (raised from 2 GB on 22 October 2026 after post-restart memory sat near the old cap) with `JAVA_OPTS=-Xmx768m -XX:ActiveProcessorCount=2`, `MB_ASYNC_QUERY_THREAD_POOL_SIZE=6` and `MB_JETTY_MAXTHREADS=25`; PostgreSQL is capped at 0.5 GB / 1 vCPU. The original trial 1 GB cap failed under a full page load. Preserve these measured settings on new deployments. [Current deployment/recovery evidence](../../outputs/r016-20260922/README.md) supersedes the POC trial checkpoint.
 
 - `CSQL_PROXY_INSTANCE_CONNECTION_NAME`: verified GCP project:region:instance.
 - `CSQL_PROXY_JSON_CREDENTIALS`: dedicated service-account JSON, scoped to Cloud SQL Client on the intended instance.
