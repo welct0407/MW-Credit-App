@@ -10443,6 +10443,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-notify-history-content-v1-actor-jsonb-events-uuid-4e404442.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_history_content_v1(actor jsonb, events uuid[])",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-notify-history-v1-actor-jsonb-before-at-timestamp-with-time-zone-before-id-uuid-bf7c0177.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",

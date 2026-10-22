@@ -3,6 +3,18 @@ import {withOfflineReadSlot,offlineReadClient} from '../api/offline-read-slot.mj
 import {readTraversalCursor,encodeTraversalCursor} from '../api/offline-dataset-cursor.mjs';
 import {readDeltaRequest,encodeDeltaChunk} from '../api/offline-dataset-delta.mjs';
 import {isUuidAny as uuid} from '../lib/ids.mjs';
+import {renderNotification,genericNotification} from './content.mjs';
+/** R089: each history row carries the push it stood for (title/body), rendered from the V103 facts of the page's
+ * events with the caller as recipient; an event without facts shows the generic push. One query per page. Best effort,
+ * like the dispatcher: an RPC failure (e.g. before V103) rolls back to a savepoint and the page shows generic text. */
+async function withContent(c,a,items){
+ if(!items.length)return items;
+ let facts=new Map();
+ await c.query('SAVEPOINT history_content');
+ try{facts=new Map((await c.query('SELECT * FROM public.pwa_notify_history_content_v1($1::jsonb,$2::uuid[])',[a,items.map(row=>row.eventId)])).rows.map(row=>[row.eventId,row]));await c.query('RELEASE SAVEPOINT history_content');}
+ catch{await c.query('ROLLBACK TO SAVEPOINT history_content');} // A failed rollback (cancelled read, lost connection) propagates.
+ return items.map(row=>({...row,...(facts.has(row.eventId)?renderNotification(facts.get(row.eventId)):genericNotification('en'))}));
+}
 /** Only fixed RPCs touch protected notification state. Identity is resolved afresh. */
 export function createNotificationStore({pool,guardConnection,resolveActor,issuer}){
  async function run(principal,action,readonly=false){
@@ -20,7 +32,7 @@ export function createNotificationStore({pool,guardConnection,resolveActor,issue
     const before=traversal.state;
     if(before!==null&&(!before||Object.keys(before).sort().join(',')!=='at,id'||!uuid(before.id)||typeof before.at!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(before.at)||!Number.isFinite(Date.parse(before.at))))throw Error('invalid_request');
     const rows=(await c.query('SELECT * FROM public.pwa_notify_history_v1($1::jsonb,$2::timestamptz,$3::uuid)',[a,before?.at??null,before?.id??null])).rows;
-    const items=rows.slice(0,25),complete=rows.length<=25;
+    const items=await withContent(c,a,rows.slice(0,25)),complete=rows.length<=25;
     const targets=items.length?(await c.query('SELECT event_id AS "eventId",to_jsonb(target) AS value FROM unnest($2::uuid[]) AS events(event_id) CROSS JOIN LATERAL public.pwa_notify_target_v1($1::jsonb,event_id) target',[a,items.map(row=>row.eventId)])).rows.map(row=>({eventId:row.eventId,...row.value})):[];
     const patches=[{key:'items',mode:'append',value:items},{key:'targets',mode:'append',value:targets}];
     if(traversal.done===0)patches.push({key:'status',mode:'replace',value:(await c.query('SELECT public.pwa_notify_status_v1($1::jsonb,NULL::text) AS value',[a])).rows[0].value});
@@ -40,7 +52,7 @@ export function createNotificationStore({pool,guardConnection,resolveActor,issue
    let cursor=null;
    if(before!==null){try{cursor=JSON.parse(Buffer.from(before,'base64url').toString());if(Object.keys(cursor).join(',')!=='at,id'||!uuid(cursor.id)||typeof cursor.at!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(cursor.at)||new Date(cursor.at).toISOString().slice(0,19)!==cursor.at.slice(0,19)||Buffer.from(JSON.stringify(cursor)).toString('base64url')!==before)throw Error();}catch{throw Error('invalid_request');}}
    const rows=(await c.query('SELECT * FROM public.pwa_notify_history_v1($1::jsonb,$2::timestamptz,$3::uuid)',[a,cursor?.at??null,cursor?.id??null])).rows;
-   return{items:rows.slice(0,25),nextCursor:rows.length>25?Buffer.from(JSON.stringify({at:rows[24].occurredAt,id:rows[24].eventId})).toString('base64url'):null};
+   return{items:await withContent(c,a,rows.slice(0,25)),nextCursor:rows.length>25?Buffer.from(JSON.stringify({at:rows[24].occurredAt,id:rows[24].eventId})).toString('base64url'):null};
   }),
   target:(p,id)=>run(p,async(c,a)=>{if(!uuid(id))throw Error('invalid_request');const row=(await c.query('SELECT * FROM public.pwa_notify_target_v1($1::jsonb,$2::uuid)',[a,id])).rows[0];if(!row)throw Error('not_found');return row;})
  };

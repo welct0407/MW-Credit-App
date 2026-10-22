@@ -164,8 +164,8 @@ END $$;
 \ir Test-LedgerAccess.sql
 -- V97 (R078): the PWA change log under the real roles (DML kinds, writer denial, retention).
 \ir Test-RowChanges.sql
--- V99 (R080) and V100 (R081): push content facts under the real roles (languages, English name, missing source,
--- lease fence, capability).
+-- V99 (R080), V100 (R081) and V103 (R089): push content facts under the real roles (languages, English name, missing
+-- source, lease fence, capability; history content for the caller as recipient).
 \ir Test-NotifyContent.sql
 -- V102 (R089): the monitoring ops-health RPC (counts and ages only, definer column reads, collector-only access).
 \ir Test-MonitoringOpsHealth.sql

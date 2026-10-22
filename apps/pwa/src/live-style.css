@@ -506,6 +506,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .chart-tick{font-size:16px;fill:#444;font-variant-numeric:tabular-nums}.analytics-pie-legend{list-style:none;padding:0;margin:12px 0;font-size:14px}.analytics-pie-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;align-items:baseline;margin:6px 0}.analytics-pie-legend li>span:nth-child(2){overflow-wrap:anywhere}.pie-swatch{width:12px;height:12px;display:inline-block;border:1px solid #777}.analytics-pie-legend strong{white-space:nowrap;font-variant-numeric:tabular-nums}
 
 .notification-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.notifications-record ul{list-style:none;padding:0;margin:12px 0;display:flex;flex-direction:column;gap:6px}.notifications-record .borrower-card.notification-history-row{display:flex;flex-direction:column;align-items:stretch;gap:2px;min-height:44px;padding:8px 12px;border:1px solid var(--border-tint,#dedede);border-radius:6px;font:inherit;color:inherit}.notification-history-row>*{min-width:0;overflow-wrap:anywhere}.notification-history-row>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}.notification-history-row>small{font-size:14px;line-height:1.5;color:#444}
 
 .collection-note textarea{overflow-y:hidden;resize:none}
 .collection-receipt-gallery{display:flex;gap:12px;overflow-x:auto;max-width:100%;padding-block:4px 12px;overscroll-behavior-x:contain}

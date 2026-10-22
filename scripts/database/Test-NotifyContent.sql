@@ -1,4 +1,4 @@
--- V99 (R080) and V100 (R081): the push content facts RPC under the real roles, at the migration head, in a disposable
+-- V99 (R080), V100 (R081) and V103 (R089): the push content facts RPCs under the real roles, at the migration head, in a disposable
 -- loopback cluster. One rolled-back transaction with synthetic rows: each event type, Thai/English/unset
 -- recipient language, a missing and a deleted source row (found=false), the result shape (no actor column), the V88
 -- lease fence, and the
@@ -120,6 +120,43 @@ DO $$ BEGIN
  IF has_function_privilege('mw_notify_api_dev','public.pwa_notify_content_v1(uuid,bigint)','EXECUTE') OR has_function_privilege('mw_app_dev','public.pwa_notify_content_v1(uuid,bigint)','EXECUTE')
   OR has_function_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_notify_content_v1(uuid,bigint)','EXECUTE')
   OR NOT has_function_privilege('mw_notify_dispatch_dev','public.pwa_notify_content_v1(uuid,bigint)','EXECUTE') THEN RAISE EXCEPTION 'Content RPC EXECUTE must be the dispatch capability only'; END IF;
+END $$;
+
+-- D. V103 (R089): history content for a page of events, as the API capability with the caller as recipient. Same facts
+-- as the leased-delivery RPC (any delivery state); another partner's event is absent; over 26 ids or NULL is refused.
+CREATE TEMP TABLE nc_event ON COMMIT DROP AS SELECT k.name,d.event_id FROM nc_case k JOIN public.pwa_notification_deliveries d ON d.delivery_id=k.delivery;
+GRANT SELECT ON nc_event TO PUBLIC;
+SET SESSION AUTHORIZATION v99_content_api;
+DO $$
+DECLARE th jsonb:=jsonb_build_object('issuer','https://securetoken.google.com/clever-oasis-508610-n7','subject','nc-th','partnerId','NC-TH','loginEmail','nc-th@example.invalid');
+ en jsonb:=jsonb_build_object('issuer','https://securetoken.google.com/clever-oasis-508610-n7','subject','nc-en','partnerId','NC-EN','loginEmail','nc-en@example.invalid');
+ got text; ids uuid[];
+BEGIN
+ SELECT array_agg(event_id) INTO ids FROM nc_event;
+ SELECT string_agg(concat_ws('|',k.name,CASE WHEN r.found THEN 't' ELSE 'f' END,r."eventType",r.language,coalesce(r."borrowerName",'∅'),coalesce(trim_scale(r.amount)::text,'∅')),';' ORDER BY k.name)
+  INTO got FROM public.pwa_notify_history_content_v1(th,ids||ids) r JOIN nc_event k ON k.event_id=r."eventId";
+ IF got IS DISTINCT FROM 'blank-th|t|loan.created|th|สมหญิง ว่าง|1000;closed-th|t|loan.closed|th|สมชาย ใจดี|20000;deleted-th|f|loan.created|th|∅|∅;null-th|t|loan.created|th|สมศักดิ์ ไม่มี|1000;payment-th|t|payment.posted|th|สมชาย ใจดี|5000' THEN
+  RAISE EXCEPTION 'Thai history content differs: %',got; END IF;
+ SELECT string_agg(concat_ws('|',k.name,CASE WHEN r.found THEN 't' ELSE 'f' END,r."eventType",r.language,coalesce(r."borrowerName",'∅'),coalesce(trim_scale(r.amount)::text,'∅')),';' ORDER BY k.name)
+  INTO got FROM public.pwa_notify_history_content_v1(en,ids) r JOIN nc_event k ON k.event_id=r."eventId";
+ IF got IS DISTINCT FROM 'blank-en|t|loan.created|en|∅|1000;missing-en|f|payment.posted|en|∅|∅;payment-en|t|payment.posted|en|Somchai Jaidee|5000;pending-en|t|loan.created|en|Somchai Jaidee|20000' THEN
+  RAISE EXCEPTION 'English history content differs: %',got; END IF;
+ BEGIN PERFORM public.pwa_notify_history_content_v1(th,array_fill(gen_random_uuid(),ARRAY[27])); RAISE EXCEPTION 'over-page request accepted';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_request' THEN RAISE; END IF; END;
+ BEGIN PERFORM public.pwa_notify_history_content_v1(th,NULL); RAISE EXCEPTION 'NULL request accepted';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_request' THEN RAISE; END IF; END;
+END $$;
+RESET SESSION AUTHORIZATION;
+SET SESSION AUTHORIZATION v99_content_dispatch;
+DO $$ BEGIN
+ BEGIN PERFORM public.pwa_notify_history_content_v1('{}'::jsonb,ARRAY[]::uuid[]); RAISE EXCEPTION 'dispatch capability executed the history content RPC';
+ EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF has_function_privilege('mw_app_dev','public.pwa_notify_history_content_v1(jsonb,uuid[])','EXECUTE')
+  OR has_function_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_notify_history_content_v1(jsonb,uuid[])','EXECUTE')
+  OR NOT has_function_privilege('mw_notify_api_dev','public.pwa_notify_history_content_v1(jsonb,uuid[])','EXECUTE') THEN RAISE EXCEPTION 'History content RPC EXECUTE must be the API capability only'; END IF;
 END $$;
 SELECT 'Notification content regression passed' AS result;
 ROLLBACK;

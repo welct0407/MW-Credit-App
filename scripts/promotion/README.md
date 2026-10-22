@@ -23,6 +23,16 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R089 runtime, SQL and frontend promotion after V103
+
+`schemaVersion: 25`, `release: R089`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R081's kind (shared code path) after V103, notification history text.
+
+- **Source.** V102 (`V102__monitoring_ops_health.sql`, the R089 Grafana work) was applied to DEV and PROD separately, before this package. The source must descend from `0a93c0a` (the PR #123 merge on main, which carries V102 and descends from the R087 release `bf11e40`, the live PROD runtime source with V101 and the R083 runner contract) and add exactly `database/migrations/V103__notification_history_content.sql` (R074's strict name form). The source is the merge of PR #121, which carries this contract; a later delivery-tool commit may carry only the runner, its unit test, this README, `scripts/database/Backup-ProductionPromotion.py` (baseline 102 is accepted, derived from the migration head), `scripts/database/R053_OPERATOR.md` and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** As R081 with baseline 102 and target 103: the V103 hash checked against the source bytes, the tested grouped 102-to-103 release manifest (complete, so it also pins the V102 bytes), `sql.applied` with one migration executed and the `prod-promotion-…` backup (dump SHA256, passed restore), and `sql.verified`, a read-only readback of 103 successful history rows after the apply. The notify owner window (`mw_notify_owner_prod`) follows [R053_OPERATOR.md](../database/R053_OPERATOR.md#notify-owner-authority-v103).
+- **Plan, recognition pin, CI and apply.** As R081 (R087 changed the four images only): `{add:0, change:4, destroy:0}` with exactly the four image actions, the unchanged enabled recognizer wiring, R074's per-job CI, and the live readback with request timeouts command `55s`, reader `15s`, notify and jobs `120s`. `rollback.services` pins the live R087 revisions and image. `applied.sqlVersion` is 103 and the runtime apply follows the SQL apply.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R089"`; the audience is `https://lm.mw-credit.com/promotion/r089`. R089 refuses the other kinds' packages, and they refuse R089's.
+- **Not covered.** The integration agent and the Grafana collector.
+
 ## R083 Hosting-only promotion on the R081 runtime
 
 `schemaVersion: 24`, `release: R083`, `scope: frontend-only`, `status: prepared`: R074's Hosting-only kind (shared code path) on the unchanged R081 runtime and V100, with the release marker in the artifact.
