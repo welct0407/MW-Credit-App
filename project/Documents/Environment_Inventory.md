@@ -99,7 +99,7 @@ Host state: IAM sign-in is active since 16 October 2026 (ALL-ARCH-03): proxy lis
 
 Native schedules: notifications every minute for recovery; daily charges 00:05; recent analytics hourly. Immediate push is post-commit. Existing agent timers/cutoffs/routes are governed by the integration-agent service catalogue.
 
-The separate `mw_agent` database holds integration journals/audit state. Metabase remains on Railway, using governed PostgreSQL reporting sources and its own application database. The Debian-hosted borrower chart remains separately owned.
+The separate `mw_agent` database holds integration journals/audit state. Metabase remains on Railway, using governed PostgreSQL reporting sources and its own application database. The Debian-hosted borrower chart remains separately owned. After Railway incident QH8L8B3E (22 October 2026), the Metabase credentials have canonical copies in Secret Manager: `mw-metabase-cloudsql-sa-key` (key for `metabase-cloudsql@`), `mw-metabase-reporting-password` (`metabase_borrower_reader`), `mw-metabase-encryption-key` (version 1 is the old, compromised key and is kept only for rollback; version 2 is current), `mw-report-charts-key` (chart bearer key) and the two Railway monitoring tokens `mw-railway-grafana-monitoring-token` and `mw-railway-pitr-token`. [Change note](../../Change%20Logs/CHANGE_NOTES_RAILWAY_INCIDENT_ROTATION_2026-10-22.md).
 
 R060 corrected the confirmed production-store mode veto for main offline-dataset reads. [Recovery and evidence](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Documents/Development_Changes.md#r060-production-offline-dataset-recovery).
 
