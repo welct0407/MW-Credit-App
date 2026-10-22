@@ -94,7 +94,7 @@
         "url": "",
         "is_default": false,
         "basic_auth_enabled": false,
-        "json_data_encoded": "{\"allowedHosts\":[\"https://status.openai.com\"],\"global_queries\":[],\"pdcInjected\":true}",
+        "json_data_encoded": "{\"allowedHosts\":[\"https://status.openai.com\",\"https://railway.instatus.com\"],\"global_queries\":[],\"pdcInjected\":true}",
         "lifecycle": {
           "prevent_destroy": true,
           "ignore_changes": [
