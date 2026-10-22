@@ -214,7 +214,7 @@ DO $$ BEGIN
   OR EXISTS(SELECT 1 FROM unnest(ARRAY['Partners','Payments','Loans','Borrowers']) t WHERE has_table_privilege('mw_notify_owner_dev',format('public.%I',t),'SELECT'))
   OR has_column_privilege('mw_notify_owner_dev','public."Partners"','Partner Name','SELECT')
   OR has_column_privilege('mw_notify_owner_dev','public."Payments"','Notes','SELECT') OR has_column_privilege('mw_notify_owner_dev','public."Borrowers"','Borrower Note','SELECT') THEN RAISE EXCEPTION 'notify owner source column grants differ'; END IF;
- -- V102 (R089): the history content RPC is the notify owner's pinned definer over the same column grants (no new grant).
+ -- V103 (R089): the history content RPC is the notify owner's pinned definer over the same column grants (no new grant).
  IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_history_content_v1(jsonb,uuid[])'::regprocedure) THEN RAISE EXCEPTION 'pwa_notify_history_content_v1 must be the notify owner''s pinned definer'; END IF;
 END $$;
 SELECT 'Access matrix regression passed' AS result;

@@ -23,7 +23,7 @@ Original daily interest uses frozen integer percentage points. Daily-interest pr
 
 The command journal stores idempotent request identity/outcome. PWA and machine entry points authenticate separately and converge on the native command boundary. Agent receipt commands supply deterministic request IDs and validated archive evidence. See [PWA/API contracts](Data%20Dictionary/systems/pwa/README.md).
 
-Notification events, deliveries, subscriptions and preferences separate committed events from transport retries. Job runs record duplicate-safe scheduled work. These records are not additional financial receipts. The push text is derived at send time from the event and its source rows (V99 `pwa_notify_content_v1`, R080); no content is stored in these tables. The Notifications history text (R089, V102 `pwa_notify_history_content_v1`) is derived the same way for the rows of one history page and is not stored either.
+Notification events, deliveries, subscriptions and preferences separate committed events from transport retries. Job runs record duplicate-safe scheduled work. These records are not additional financial receipts. The push text is derived at send time from the event and its source rows (V99 `pwa_notify_content_v1`, R080); no content is stored in these tables. The Notifications history text (R089, V103 `pwa_notify_history_content_v1`) is derived the same way for the rows of one history page and is not stored either.
 
 ## Receipts
 

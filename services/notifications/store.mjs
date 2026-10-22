@@ -4,9 +4,9 @@ import {readTraversalCursor,encodeTraversalCursor} from '../api/offline-dataset-
 import {readDeltaRequest,encodeDeltaChunk} from '../api/offline-dataset-delta.mjs';
 import {isUuidAny as uuid} from '../lib/ids.mjs';
 import {renderNotification,genericNotification} from './content.mjs';
-/** R089: each history row carries the push it stood for (title/body), rendered from the V102 facts of the page's
+/** R089: each history row carries the push it stood for (title/body), rendered from the V103 facts of the page's
  * events with the caller as recipient; an event without facts shows the generic push. One query per page. Best effort,
- * like the dispatcher: an RPC failure (e.g. before V102) rolls back to a savepoint and the page shows generic text. */
+ * like the dispatcher: an RPC failure (e.g. before V103) rolls back to a savepoint and the page shows generic text. */
 async function withContent(c,a,items){
  if(!items.length)return items;
  let facts=new Map();

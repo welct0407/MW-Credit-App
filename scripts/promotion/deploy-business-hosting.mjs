@@ -705,9 +705,12 @@ export async function verifyR077LivePackage(m,options={}){return verifyV96Runtim
 // carry this README, the PROD backup tool (baseline 98 accepted) and the operator note.
 // R081: the same kind after V100 (PROD 99 to 100, English-name push body: pwa_notify_content_v1 replaced in place, notify
 // owner window mw_notify_owner_prod). The source descends from the R080 release and adds exactly V100.
-// R089: the same kind after V102 (PROD 101 to 102, notification history text: new pwa_notify_history_content_v1, notify
-// owner window mw_notify_owner_prod). The source descends from the R087 release bf11e40 (the live PROD runtime source,
-// which carries V101 from R086 and the R083 runner contract) and adds exactly V102; plan, recognizer wiring and R077
+// R089: the same kind after V103 (PROD 102 to 103, notification history text: new pwa_notify_history_content_v1, notify
+// owner window mw_notify_owner_prod). V102 (monitoring_ops_health, the R089 Grafana work) was applied to DEV and PROD
+// separately before this package, so the SQL step is V103 only. Until that V102 work's PR is merged on main and pinned
+// here, the baseline stays the R087 release bf11e40 (the live PROD runtime source, which carries V101 and the R083 runner
+// contract) and the source must add exactly that already-applied V102 file plus V103 (priorMigrations). PIN: after the
+// V102 PR merges, set the R089 baseline to that merge commit and drop priorMigrations. Plan, recognizer wiring and R077
 // timeouts as R081 (R087 changed images only).
 const r077Release='683cfceed724778151e1e305adaea50b9ab20c94',r079Release='823e9e593afde879fdb0ba94e198ea0351975aea',r080Release='4a7e199bd258f7f71fac7aad240b2beced3235fd',r087Release='bf11e408a9786963faa616fb839e890b016523f2';
 const sqlRuntimeReleases={
@@ -717,7 +720,7 @@ const sqlRuntimeReleases={
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md']},
  R081:{schemaVersion:23,baseline:r080Release,baselineLabel:'R080',migrations:['V100__notification_english_name.sql'],sqlBaseline:99,sqlTarget:100,
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md']},
- R089:{schemaVersion:25,baseline:r087Release,baselineLabel:'R087',migrations:['V102__notification_history_content.sql'],sqlBaseline:101,sqlTarget:102,
+ R089:{schemaVersion:25,baseline:r087Release,baselineLabel:'R087',priorMigrations:['V102__monitoring_ops_health.sql'],migrations:['V103__notification_history_content.sql'],sqlBaseline:102,sqlTarget:103,
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md']},
 };
 const sqlRuntimeDeliveryAllowed=L=>file=>runtimeDeliveryAllowed(file)||sqlRuntimeReleases[L].delivery.includes(file);
@@ -726,7 +729,7 @@ function validateSqlRuntimeSource(m,git,L){
  requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&m.sourceBaseline===rule.baseline,'exact '+L+' source/baseline required');
  requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
  requireValue(git(m.repoRoot,['rev-parse',m.sourceCommit])===m.sourceCommit&&git(m.repoRoot,['merge-base',rule.baseline,m.sourceCommit])===rule.baseline,L+' source must descend from the '+rule.baselineLabel+' release');
- requireValue(exact(strictNames(git,m.repoRoot,rule.baseline,m.sourceCommit,['database/migrations']),rule.migrations.map(name=>'database/migrations/'+name)),L+' carries exactly the separately applied V'+rule.sqlTarget);
+ requireValue(exact(strictNames(git,m.repoRoot,rule.baseline,m.sourceCommit,['database/migrations']),[...(rule.priorMigrations??[]),...rule.migrations].map(name=>'database/migrations/'+name)),L+' carries exactly the separately applied V'+rule.sqlTarget);
  const tool=m.deliveryToolSource??m.sourceCommit;
  requireValue(/^[a-f0-9]{40}$/.test(tool)&&git(m.repoRoot,['rev-parse','HEAD'])===tool,L+' delivery source mismatch');
  if(tool!==m.sourceCommit){requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,tool])===m.sourceCommit,L+' delivery source must descend from the pinned source');requireValue(strictNames(git,m.repoRoot,m.sourceCommit,tool).every(allowed)&&m.deliveryToolChecks?.command==='node --test tests/unit/business-hosting-delivery.test.mjs'&&m.deliveryToolChecks.exitCode===0,L+' unverified delivery correction');}

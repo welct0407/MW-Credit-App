@@ -47,7 +47,7 @@ BEGIN
    IF NOT has_schema_privilege(notify_owner,'public','CREATE') THEN problems:=problems||format('%s lacks CREATE on schema public (required by ALTER FUNCTION OWNER; grant temporarily)',notify_owner); END IF;
   END IF;
  END IF;
- IF cardinality(problems)>0 THEN RAISE EXCEPTION 'V102 preflight: %', array_to_string(problems,'; '); END IF;
+ IF cardinality(problems)>0 THEN RAISE EXCEPTION 'V103 preflight: %', array_to_string(problems,'; '); END IF;
 END $preflight$;
 
 -- 2. The content facts of up to 26 history events (one history page) for the calling partner. One row per distinct
@@ -97,5 +97,5 @@ BEGIN
   OR EXISTS(SELECT 1 FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE p.oid='public.pwa_notify_history_content_v1(jsonb,uuid[])'::regprocedure AND a.privilege_type='EXECUTE' AND a.grantee NOT IN (p.proowner,api::regrole))
   OR NOT has_function_privilege(api,'public.pwa_notify_history_content_v1(jsonb,uuid[])','EXECUTE')
   OR obj_description('public.pwa_notify_history_content_v1(jsonb,uuid[])'::regprocedure,'pg_proc') IS DISTINCT FROM 'mw-access:governance fixed notification boundary; explicit capability only' THEN
-  RAISE EXCEPTION 'V102: pwa_notify_history_content_v1 must be the notify owner''s pinned definer executable only by %',api; END IF;
+  RAISE EXCEPTION 'V103: pwa_notify_history_content_v1 must be the notify owner''s pinned definer executable only by %',api; END IF;
 END $check$;

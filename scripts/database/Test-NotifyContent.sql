@@ -1,4 +1,4 @@
--- V99 (R080), V100 (R081) and V102 (R089): the push content facts RPCs under the real roles, at the migration head, in a disposable
+-- V99 (R080), V100 (R081) and V103 (R089): the push content facts RPCs under the real roles, at the migration head, in a disposable
 -- loopback cluster. One rolled-back transaction with synthetic rows: each event type, Thai/English/unset
 -- recipient language, a missing and a deleted source row (found=false), the result shape (no actor column), the V88
 -- lease fence, and the
@@ -122,7 +122,7 @@ DO $$ BEGIN
   OR NOT has_function_privilege('mw_notify_dispatch_dev','public.pwa_notify_content_v1(uuid,bigint)','EXECUTE') THEN RAISE EXCEPTION 'Content RPC EXECUTE must be the dispatch capability only'; END IF;
 END $$;
 
--- D. V102 (R089): history content for a page of events, as the API capability with the caller as recipient. Same facts
+-- D. V103 (R089): history content for a page of events, as the API capability with the caller as recipient. Same facts
 -- as the leased-delivery RPC (any delivery state); another partner's event is absent; over 26 ids or NULL is refused.
 CREATE TEMP TABLE nc_event ON COMMIT DROP AS SELECT k.name,d.event_id FROM nc_case k JOIN public.pwa_notification_deliveries d ON d.delivery_id=k.delivery;
 GRANT SELECT ON nc_event TO PUBLIC;
