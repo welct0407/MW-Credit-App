@@ -13,7 +13,7 @@ Railway disclosed on 22 October 2026 (incident QH8L8B3E) that customers' environ
   - Deployment `7a12caf1` put the new Cloud SQL key in place. The old key `baf7f71a…` was then disabled and deleted.
   - Deployment `a4d7151e` was a deliberately failing diagnostic. It confirmed that both key variables reach the pre-deploy shell.
   - Deployment `407582d3` rotated the encryption key to `mw-metabase-encryption-key` v2 by calling `java` directly.
-  - Afterwards the pre-deploy command and `MB_ENCRYPTION_SECRET_KEY_OLD` were removed without a redeploy. `mw-metabase-encryption-key` v1 holds the old, compromised key, kept for rollback only.
+  - Afterwards the pre-deploy command and `MB_ENCRYPTION_SECRET_KEY_OLD` were removed. Deleting the variable triggered one more restart (deployment `79e97ca2`, live at 13:19 UTC), with the same configuration. `mw-metabase-encryption-key` v1 holds the old, compromised key, kept for rollback only.
 - Temporary credentials: Metabase API key 5 (`incident-rotation`) revoked; its secret and the unused `mw-railway-incident-ops-token` deleted.
 - Records: `project/Documents/Resource_Monitoring.md`, `project/Documents/Environment_Inventory.md`, `project/scripts/metabase/README.md` (rotation steps), `project/outputs/r030-custom-matrix/README.md`, `infrastructure/grafana/operational-secret-references.json`.
 
@@ -39,6 +39,9 @@ Railway disclosed on 22 October 2026 (incident QH8L8B3E) that customers' environ
 - Reporting password, chart key, Railway tokens: add a Secret Manager version and repeat the step. Old values are not restored, because they are exposed.
 - Encryption key: stored data now uses `mw-metabase-encryption-key` v2. An application-database restore from before 12:40 UTC on 22 October needs v1.
 - Cloud SQL key: the old key is deleted. Create a replacement key with the owner's Cloud Shell procedure in `project/scripts/metabase/README.md`.
+
+## Follow-up elsewhere
+- Since the first fresh start at 12:12 UTC, Metabase memory sits at about 1.9 of 2.0 GB (about 1.4 GB before), and the Grafana memory-pressure alert fires. The memory limit, replica count and `JAVA_OPTS` are unchanged. The owner assigned this alert to another session.
 
 ## Open questions
 - Whether to revoke Metabase API key 3 ("Report development", admin). It was kept by owner instruction until the report migration ends; Metabase stores only a hash of it.
