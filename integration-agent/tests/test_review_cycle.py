@@ -452,6 +452,20 @@ class CycleTests(unittest.TestCase):
         notices=NoticeJournal(self.root/'partner-notices.db')
         try:self.assertEqual(tuple(notices.db.execute('SELECT ig_status,detail FROM partner_notices WHERE id=?',(key,)).fetchone()),('REVIEW','PARTNER_DISABLED'))
         finally:notices.close()
+    def test_partner_opted_in_later_gets_no_earlier_results(self):
+        self.masters.return_value['partners'].append(dict(self.p,id='late',username='late',enabled=False))
+        self.run_cycle()
+        self.masters.return_value['partners'][-1]['enabled']=True
+        self.run_cycle()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual({r[0] for r in notices.db.execute("SELECT partner_id FROM partner_notices WHERE event_key LIKE 'review-result:%'")},{'p'})
+        finally:notices.close()
+    def test_result_with_no_notice_yet_is_reserved_on_a_later_run(self):
+        self.j.db.execute("UPDATE partner_reviews SET state='REJECTED'");self.j.db.commit()
+        self.run_cycle()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual(notices.db.execute("SELECT count(*) FROM partner_notices WHERE event_key=?",('review-result:'+self.key+':REJECTED',)).fetchone()[0],1)
+        finally:notices.close()
     def test_new_requests_only_to_reviewer(self):
         self.validated_job()
         self.masters.return_value['partners'].append(dict(self.p,id='other',username='other'))

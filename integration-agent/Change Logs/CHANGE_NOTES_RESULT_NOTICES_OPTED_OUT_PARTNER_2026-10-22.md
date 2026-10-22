@@ -9,7 +9,8 @@ The Grafana Now dashboard (R089) showed "6 · Notify · failed" at 5. Three of t
 - `receipt_health`: `failed_notifications` also excludes a result held as `IG_PREFLIGHT_FAILED` whose stored Partner snapshot is opted out, so the three existing rows stop counting without editing them. `inspect()` reads the `partner` snapshot for this; only counts leave the VM.
 - Tests: `test_review_cycle` gains the no-result-for-opted-out-Partner case for every non-POSTED state and the opted-out-at-dispatch case; `test_receipt_health` gains opted-out, opted-in and unreadable-snapshot cases.
 - Owner decision (same day): acknowledge the two 2 October POSTED notices and stop counting them. Both were already acknowledged on 2 October 2026 09:25:53Z (`ACKNOWLEDGED_UNDELIVERED`, operations `1394a205…` and `7517abd5…`), so no new acknowledgement is written. `receipt_health.inspect()` reads `optional_notification_acknowledged` events from `audit.events` on a direct worker connection in a read-only transaction (the state adapter serves only `runtime` tables; a first version read through it and was refused with `STATE_TABLE_NOT_ALLOWED`, caught before deploy); on a read failure it keeps counting. `failed_notifications` skips acknowledged notices. Tests cover the skip, the read-only worker transaction, a read failure, SQLite and that `inspect()` does not read audit through the adapter.
-- Docs: `docs/RECEIPTS.md` (failed-count rule, acknowledgement) and `docs/MONITORING_IMPLEMENTATION_HANDOVER.md` (`failed_notifications` row).
+- Owner decision (same day), no catch-up: `notify()` reserves a result in the run that reaches it, or on a later run only while no notice for that result exists yet (crash recovery). A Partner opted in again later no longer receives every POSTED (or other) result decided while opted out; previously 76 such results went to the re-enabled Partner on 21 October. Known limit: if every Partner was opted out when a result was reached, the first Partner opted in afterwards still receives it. Tests: a Partner opted in later gets no earlier result; a result with no notice yet is still reserved on a later run.
+- Docs: `docs/RECEIPTS.md` (failed-count rule, acknowledgement, no catch-up) and `docs/MONITORING_IMPLEMENTATION_HANDOVER.md` (`failed_notifications` row).
 
 ## Checks
 | Command | Result |
@@ -31,8 +32,8 @@ The Grafana Now dashboard (R089) showed "6 · Notify · failed" at 5. Three of t
 `deploy-runtime.py rollback --commit 9d30d60…` restores `1d02af8` from `runtime-20261022T130722225055Z`, and `rollback --commit 1d02af8…` restores `6ea1540` from `runtime-20261022T125423416236Z`; or revert this commit and redeploy. The previous rule reserves non-POSTED results for opted-out Partners again and counts them. The install and activate steps used a short-lived `codex-cloud` IAM database sign-in file in root-only tmpfs `/run/mw-op/`, shredded at 12:54:46Z, because the agent's own identity cannot read the agent schema history.
 
 ## Open questions
-- Re-enabling a Partner still reserves every POSTED result they missed while opted out (76 were sent to this Partner on 21 October). Owner decision.
+None.
 
 ## Remaining work
 - The VM checkout is detached at `9d30d60`, which is on branch `claude/vigilant-allen-kfzogm` only; merge it to `main` with a merge commit (not squash) so `update-from-github.sh` can fast-forward next time.
-- The open question above.
+- Deploy the no-catch-up rule [EVIDENCE: Forge].
