@@ -170,10 +170,23 @@ class OpsHealth(unittest.TestCase):
         self.assertIsNone(self.q(self.snapshot(0, pending='x', age=1, state=1, epoch=1))['Pending'])
         self.assertIsNone(self.q(self.snapshot(0, pending=-1, age=1, state=1, epoch=1))['Pending'])
 
-    def test_older_run_fields_are_not_mixed_in(self):
+    def test_field_missing_from_the_newest_run_keeps_its_newest_fresh_sample(self):
+        # FINAL3-1: Poll age is left out of a run while a poll is running; its sample of 2 minutes ago still shows.
         data = self.snapshot(0, pending=3)
-        data['timeSeries'].append(series([point(120, 40)], field='age'))
-        self.assertEqual(self.q(data), {'Pending': 3, 'Age': None, 'When': None})
+        data['timeSeries'] += self.snapshot(120, age=40, state=1, epoch=7)['timeSeries']
+        self.assertEqual(self.q(data), {'Pending': 3, 'Age': 40, 'When': 7000})
+        # Older than 360 s: no report, never a stretched value.
+        stale = self.snapshot(0, pending=3)
+        stale['timeSeries'] += self.snapshot(400, age=40, state=1, epoch=7)['timeSeries']
+        self.assertEqual(self.q(stale), {'Pending': 3, 'Age': None, 'When': None})
+
+    def test_newest_fresh_sample_wins_and_state_comes_from_its_run(self):
+        t_new, t_old = point(0, 0)['interval'], point(120, 0)['interval']
+        rows = [series([{'interval': t_old, 'value': {'int64Value': '9'}}, {'interval': t_new, 'value': {'int64Value': '5'}}], field='pending'),
+                series([{'interval': t_old, 'value': {'int64Value': '50'}}], field='age'),
+                series([{'interval': t_new, 'value': {'int64Value': '0'}}], field='state')]
+        # Pending: the newest of its own samples. Age: its run has no state sample (the state is from a newer run), so null.
+        self.assertEqual(self.q({'timeSeries': rows}), {'Pending': 5, 'Age': None, 'When': None})
 
     def test_truncated_and_provider_error_fail_visibly(self):
         for data in FAILURES:

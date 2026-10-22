@@ -36,12 +36,13 @@ function cloudSql() {
       description: 'Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: Age of the newest successful automated backup (red above 30 h, the alert value), Last run = the newest run\'s state (Success, Failed, Running), its Type (Auto = automated, Manual = on demand) and PITR = the transaction-log retention in days.',
       targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'cloud_sql_backup'})), jq('ops-health.jq', {FIELDS: backupFields}),
         backupFields.map(f => col(f.label, f.label)))],
-      overrides: [byName('Age', {unit: AGE.unit, decimals: AGE.decimals, 'custom.cellOptions': {type: 'color-background', mode: 'basic'},
+      // FINAL3-2: explicit column widths (Grafana gives an unsized column at least 150 px, which cut Type and PITR).
+      overrides: [byName('Age', {unit: AGE.unit, decimals: AGE.decimals, 'custom.width': 90, 'custom.cellOptions': {type: 'color-background', mode: 'basic'},
           thresholds: steps([null, COLOR.ok], [108000, COLOR.down]), mappings: [L.nullMap('—')]}),
-        byName('Last run', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Success', COLOR.ok], [2, 'Running', COLOR.text]], '—'),
+        byName('Last run', {'custom.width': 80, mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Success', COLOR.ok], [2, 'Running', COLOR.text]], '—'),
           'custom.cellOptions': {type: 'color-background', mode: 'basic'}}),
-        byName('Type', {mappings: valueMap([[1, 'Auto', COLOR.text], [2, 'Manual', COLOR.text]], '—')}),
-        byName('PITR', {unit: 'd', mappings: [L.nullMap('—')]})]}),
+        byName('Type', {'custom.width': 70, mappings: valueMap([[1, 'Auto', COLOR.text], [2, 'Manual', COLOR.text]], '—')}),
+        byName('PITR', {'custom.width': 70, unit: 'd', mappings: [L.nullMap('—')]})]}),
     L.table({id: 6, title: 'Instance facts', gridPos: pos(8, 7, 8, 7),
       description: 'Configuration snapshots, dated (the only static text on this dashboard): tier db-g1-small since 16 Oct 2026; storage PD_SSD 10 GB with automatic increase since 17 Oct 2026; max_connections 200 (database flag) verified 22 Sep 2026. Plus PostgreSQL uptime from the collector\'s read-only reporting connection.',
       datasource: DS.mixed,
@@ -58,8 +59,9 @@ function cloudSql() {
       description: 'Debian collector worker_timing{pg_stat}: Share of total execution time and Calls / min of the heaviest statement in monitoring.pg_stat_statements; Read = whether the collector may read the view. The statement text stays in the collector\'s local log.',
       targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pg_stat'})), jq('ops-health.jq', {FIELDS: statFields}),
         statFields.map(f => col(f.label, f.label)))],
-      overrides: [byName('Share', {unit: 'percent', mappings: [L.nullMap('No report')]}),
-        byName('Read', {mappings: valueMap([[0, 'Not granted', COLOR.unknown], [1, 'Read', COLOR.ok]], 'No report')})]})
+      overrides: [byName('Share', {'custom.width': 80, unit: 'percent', mappings: [L.nullMap('No report')]}),
+        byName('Calls / min', {'custom.width': 100}),
+        byName('Read', {'custom.width': 110, mappings: valueMap([[0, 'Not granted', COLOR.unknown], [1, 'Read', COLOR.ok]], 'No report')})]})
   ];
 }
 
@@ -88,7 +90,9 @@ function cloudRun() {
     ],
     transformations: [{id: 'joinByField', options: {byField: 'Service', mode: 'outerTabular'}},
       {id: 'organize', options: {indexByName: {Service: 0, Instances: 1, Max: 2, 'CPU p95': 3, 'Memory p95': 4, 'Billable time': 5}}}],
-    overrides: [byName('CPU p95', util), byName('Memory p95', util), byName('Billable time', {unit: 's', decimals: 0, mappings: [L.nullMap('—')]}),
+    // FINAL3-2: every column sized (an unsized column takes at least 150 px and cut Billable time at 1440 px).
+    overrides: [byName('CPU p95', {...util, 'custom.width': 80}), byName('Memory p95', {...util, 'custom.width': 100}),
+      byName('Billable time', {unit: 's', decimals: 0, mappings: [L.nullMap('—')], 'custom.width': 110}),
       byName('Instances', {mappings: [L.nullMap('0 seen')], 'custom.width': 80}), byName('Max', {'custom.width': 50}),
       // RECHECK-9/FINAL-3: service names without the common prefix ("command · prod"), so every column fits on a phone.
       byName('Service', {'custom.width': 110, mappings: [{type: 'regex', options: {pattern: '^mw-credit-app-(.+)-(prod|dev)$', result: {text: '$1 · $2', index: 0}}}]})]});
@@ -102,6 +106,7 @@ function debian() {
   uptime.options = {...uptime.options, ...L.SINGLE_VALUE};
   const disk = L.lift(L.PERF, 24, {id: 13, gridPos: pos(18, 25, 6, 7), title: 'Debian VM disk'});
   disk.description = (disk.description || '').trim() + ' Snapshot age: Backups and recovery points on Now.';
+  disk.fieldConfig.defaults.decimals = 1; // FINAL3-3: no repeated axis labels ("4 MB/s" twice).
   return [
     L.lift(L.PERF, 21, {id: 10, gridPos: pos(0, 25, 6, 7), title: 'Debian VM CPU'}),
     liftWithLine(22, 11, pos(6, 25, 6, 7), 'Debian VM memory', 85),

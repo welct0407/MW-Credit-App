@@ -119,6 +119,23 @@ function checkTable(panel, screen, rows) {
   return need <= box.height + 2 * GRID.padding ? [] : [rows + ' rows need ' + need + ' px, ' + Math.round(box.height + 2 * GRID.padding) + ' available'];
 }
 
+// FINAL3-2: table columns. Grafana gives a column without a width at least 150 px; the columns' sum must
+// fit the panel, else the last ones are cut. Columns: the organize order, else the query columns.
+const COLUMN_MIN = 150;
+function checkTableColumns(panel, screen) {
+  const organize = (panel.transformations || []).find(t => t.id === 'organize');
+  const names = organize ? Object.keys(organize.options.indexByName)
+    : [...new Set((panel.targets || []).flatMap(t => (t.columns || []).map(c => c.text)))];
+  const width = name => {
+    const props = (panel.fieldConfig.overrides || []).filter(o => o.matcher.id === 'byName' && o.matcher.options === name).flatMap(o => o.properties);
+    const fixed = props.find(p => p.id === 'custom.width');
+    return fixed ? fixed.value : COLUMN_MIN;
+  };
+  const need = names.reduce((sum, n) => sum + width(n), 0);
+  const room = contentBox(panel.gridPos, screen).width;
+  return need <= room ? [] : ['columns ' + names.join(', ') + ' need ' + need + ' px, ' + Math.round(room) + ' available'];
+}
+
 function checkTimeline(panel, screen) {
   const box = contentBox(panel.gridPos, screen);
   const rowH = (box.height - 26) / panel.targets.length;
@@ -145,4 +162,4 @@ function checkLaneLabels(panel, screen) {
   return errors;
 }
 
-module.exports = {GRID, SCREENS, checkTitle, checkLaneLabels, LANE, contentBox, checkStat, checkGauge, checkTable, checkTimeline, lines, textWidth};
+module.exports = {GRID, SCREENS, checkTitle, checkTableColumns, checkLaneLabels, LANE, contentBox, checkStat, checkGauge, checkTable, checkTimeline, lines, textWidth};

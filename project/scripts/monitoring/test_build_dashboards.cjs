@@ -328,7 +328,10 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
     // FINAL2-1/2: every panel title fits its one line, every timeline lane label its label axis.
     const errors = (p.type === 'stat' ? M.checkStat(p, screen, MODEL[key] || {}) : p.type === 'bargauge' && key !== 'mw-pwa:30' ? M.checkGauge(p, screen)
       : p.type === 'table' && TABLE_ROWS[key] ? M.checkTable(p, screen, TABLE_ROWS[key]) : p.type === 'state-timeline' ? M.checkTimeline(p, screen) : [])
-      .concat(M.checkTitle(p, screen));
+      .concat(M.checkTitle(p, screen))
+      // FINAL3-2: built tables' columns fit (lifted provider detail tables in collapsed Cost rows scroll; the
+      // eight-service Cloud Run table scrolls sideways on a phone, its six columns cannot share 342 px).
+      .concat(p.type === 'table' && !p.pluginVersion && !(key === 'mw-infra:9' && screen === 'phone') ? M.checkTableColumns(p, screen) : []);
     assert.deepEqual(errors, [], key + ' (' + p.title + ') fits at ' + screen);
     modelled++;
   }
