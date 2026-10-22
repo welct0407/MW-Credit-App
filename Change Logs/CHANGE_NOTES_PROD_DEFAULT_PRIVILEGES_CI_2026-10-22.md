@@ -17,7 +17,7 @@ The first R089 PROD attempt at V103 failed its own ACL self-check: PROD's defaul
 | `Test-MigrationsCloud.py --sql-only` as `postgres` | 103 migrations, idempotent rerun, `public-functions.sql` matches, SQL batch (including `Test-LedgerAccess.sql`, which creates its own `mw_integration_agent`) passes |
 | Same run without the V103 pause (temporary copy, deleted) | Fails at V103 with `V103: pwa_notify_history_content_v1 must be the notify owner's pinned definer executable only by mw_notify_api_dev`, the PROD error |
 | `npm run check:docs` | 0 failures, 0 warnings |
-| Pull request `Development checks` | Not run: no pull request opened; the branch push triggers `database.yml` |
+| Pull request `Development checks` (PR #125, head `36ab562`) | `Development checks result` pass; `database.yml` run 39834558549: guards, migrations, phase5, phase8 pass; receiving stalled in `apt-get update` before any test (runner mirror) and was re-run once |
 
 ## Not run
 The full `Test-CI.ps1` groups and the concurrency scripts were not run locally (lean check routine); the `database.yml` run on the push covers them. The Windows route `Test-Migrations.ps1` does not replay the defaults.
