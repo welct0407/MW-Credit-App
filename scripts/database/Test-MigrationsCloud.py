@@ -20,6 +20,15 @@ SETUP=Path(os.environ.get('MW_DB_TOOL_ROOT') or '/workspace/.setup')
 PG=Path(os.environ.get('MW_PG_BIN') or (SETUP/'postgresql-18.6/bin' if (SETUP/'postgresql-18.6/bin/pg_ctl').exists() else '/usr/lib/postgresql/18/bin'))
 FLYWAY=SETUP/('flyway-'+json.loads((REPO/'database/toolchain.json').read_text())['flywayVersion'])/'flyway'
 PWSH=SETUP/'powershell-7.5.4/pwsh' if (SETUP/'powershell-7.5.4/pwsh').exists() else Path(shutil.which('pwsh') or 'pwsh')
+# PROD default privileges (Test-ProdDefaultPrivileges.sql) replayed after the version where each changed in PROD,
+# so migration self-checks see PROD-like defaults (R089: V103 passed here and failed in PROD). Recorded history only.
+PROD_DEFAULTS=((101,'apply'),(102,'pause'),(103,'resume'))
+
+def migration_plan(latest,pre_target=None):
+ """(target version, step) pairs: migrate to the target, then run the step; a final None target migrates the rest."""
+ steps=[(pre_target,'pre')] if pre_target else []
+ steps+=[(v,s) for v,s in PROD_DEFAULTS if v<=latest]
+ return sorted(steps,key=lambda x:x[0])+[(None,'remove' if latest>=PROD_DEFAULTS[0][0] else None)]
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--sql',default='scripts/database/Test-StatementBatch.sql');p.add_argument('--pre-sql');p.add_argument('--pre-target',type=int);p.add_argument('--sql-only',action='store_true');args=p.parse_args()
@@ -41,12 +50,16 @@ def main():
   run(psql+['-f',REPO/'scripts/database/Test-AgentAuditPrerequisites.sql'],stdout=subprocess.DEVNULL)
   run(psql+['-f',REPO/'scripts/database/Test-AppRolePrerequisites.sql'],stdout=subprocess.DEVNULL)
   run(psql+['-f',REPO/'scripts/database/Test-IamRolePrerequisites.sql'],stdout=subprocess.DEVNULL)
-  if args.pre_sql or args.pre_target:
-   if not args.pre_sql or not args.pre_target:raise ValueError('Both pre-migration fixture and target are required')
-   run(flyway+[f'-target={args.pre_target}','migrate'],cwd=REPO,stdout=subprocess.DEVNULL)
-   run(psql+['-f',REPO/args.pre_sql],cwd=REPO,stdout=subprocess.DEVNULL)
-  first=json.loads(run(flyway+['migrate'],cwd=REPO,capture_output=True,text=True).stdout)
-  assert first['success']
+  if (args.pre_sql or args.pre_target) and not (args.pre_sql and args.pre_target):raise ValueError('Both pre-migration fixture and target are required')
+  latest=max(int(f.name[1:].split('__')[0]) for f in migrations.glob('V*__*.sql'))
+  first=dict(success=True,migrationsExecuted=0)
+  for target,step in migration_plan(latest,args.pre_target):
+   segment=json.loads(run(flyway+([f'-target={target}'] if target else [])+['migrate'],cwd=REPO,capture_output=True,text=True).stdout)
+   assert segment['success']
+   first['migrationsExecuted']+=segment['migrationsExecuted']
+   if step=='pre':
+    run(psql+['-f',REPO/args.pre_sql],cwd=REPO,stdout=subprocess.DEVNULL);first['migrationsExecuted']=0
+   elif step:run(psql+['-q','-v','step='+step,'-f',REPO/'scripts/database/Test-ProdDefaultPrivileges.sql'],cwd=REPO,stdout=subprocess.DEVNULL)
   assert json.loads(run(flyway+['validate'],cwd=REPO,capture_output=True,text=True).stdout)['validationSuccessful']
   second=json.loads(run(flyway+['migrate'],cwd=REPO,capture_output=True,text=True).stdout)
   assert second['success'] and second['migrationsExecuted']==0
