@@ -309,10 +309,12 @@ class RecognizerTests(unittest.TestCase):
 
 
 class GoogleApiTests(unittest.TestCase):
-    def fetcher(self,answers):
+    def fetcher(self,answers,timeouts=None):
         calls=[]
-        def fetch(url,headers=None):
-            calls.append((url,headers));return answers[len(calls)-1]
+        def fetch(url,headers=None,timeout=None):
+            calls.append((url,headers))
+            if timeouts is not None:timeouts.append(timeout)
+            return answers[len(calls)-1]
         return fetch,calls
     def test_cloud_sql_backup_age_status_type_retention(self):
         import json
@@ -333,8 +335,34 @@ class GoogleApiTests(unittest.TestCase):
         items={'items':[{'status':'READY','creationTimestamp':iso(72000)},{'status':'READY','creationTimestamp':iso(160000)},{'status':'CREATING','creationTimestamp':iso(60)}]}
         fetch,calls=self.fetcher([(200,json.dumps(items))])
         self.assertEqual(health.debian_snapshot('t',NOW,fetch),{'age_seconds':72000})
-        self.assertIn('filter=sourceDisk%20eq%20.%2Avm-mw-credit-agent',calls[0][0]);self.assertIn('orderBy=creationTimestamp%20desc',calls[0][0])
+        self.assertIn('filter=sourceDisk%20eq%20.%2Avm-mw-credit-agent',calls[0][0])
+        # The Compute API answers 400 to filter plus orderBy; the newest is picked locally.
+        self.assertNotIn('orderBy',calls[0][0]);self.assertNotIn('pageToken',calls[0][0])
+        self.assertEqual(calls[0][1],{'Authorization':'Bearer t'})
         fetch,_=self.fetcher([(200,'{}')]);self.assertEqual(health.debian_snapshot('t',NOW,fetch),{})
+    def test_debian_snapshot_newest_ready_across_pages(self):
+        import json
+        pages=[{'items':[{'status':'READY','creationTimestamp':iso(160000)},{'status':'CREATING','creationTimestamp':iso(10)}],'nextPageToken':'p/2+'},
+               {'items':[{'status':'READY','creationTimestamp':iso(7200)},{'status':'FAILED','creationTimestamp':iso(60)}],'nextPageToken':'p3'},
+               {'items':[{'status':'READY','creationTimestamp':iso(90000)}]}]
+        timeouts=[];clock=iter([0,0,3,7]).__next__
+        fetch,calls=self.fetcher([(200,json.dumps(p)) for p in pages],timeouts)
+        self.assertEqual(health.debian_snapshot('t',NOW,fetch,clock=clock),{'age_seconds':7200})
+        self.assertEqual(len(calls),3)
+        self.assertTrue(all('orderBy' not in url for url,_ in calls))
+        self.assertIn('&pageToken=p%2F2%2B',calls[1][0]);self.assertIn('&pageToken=p3',calls[2][0])
+        self.assertEqual(timeouts,[10,7,3])  # one shared 10 s deadline across pages
+    def test_debian_snapshot_errors_are_visible_not_exported(self):
+        import json
+        fetch,calls=self.fetcher([(400,'')])
+        out=health.debian_snapshot('t',NOW,fetch);self.assertEqual(out,{'error':'http_400'});self.assertEqual(len(calls),1)
+        self.assertEqual(health.timing_series('debian_snapshot',out,{},'t'),[])
+        self.assertEqual(health.debian_snapshot('t',NOW,Mock(side_effect=TimeoutError())),{'error':'TimeoutError'})
+        fetch,_=self.fetcher([(200,'not json')]);self.assertEqual(health.debian_snapshot('t',NOW,fetch),{'error':'JSONDecodeError'})
+        fetch,calls=self.fetcher([(200,json.dumps({'items':[],'nextPageToken':'x'}))]*health.SNAPSHOT_PAGES)
+        self.assertEqual(health.debian_snapshot('t',NOW,fetch),{'error':'too_many_pages'});self.assertEqual(len(calls),health.SNAPSHOT_PAGES)
+        fetch,calls=self.fetcher([(200,json.dumps({'items':[],'nextPageToken':'x'}))]*2)
+        self.assertEqual(health.debian_snapshot('t',NOW,fetch,clock=iter([0,0,10]).__next__),{'error':'TimeoutError'});self.assertEqual(len(calls),1)
 
 
 class AgentUnitTests(unittest.TestCase):
@@ -452,7 +480,7 @@ class CollectR089Tests(unittest.TestCase):
     """The whole addition with every external call faked."""
     def test_one_run(self):
         import json
-        def fetcher(url,headers=None):
+        def fetcher(url,headers=None,timeout=None):
             if url.endswith('/health'):return (200,'{"ok":true}') if 'prod' in url else (503,'')
             if url.endswith('/healthz'):return (200,'{"status":"ok","enabled":true}')
             if 'backupRuns' in url:return (200,json.dumps({'items':[{'status':'SUCCESSFUL','type':'AUTOMATED','windowStartTime':iso(30000),'endTime':iso(25200)}]}))
@@ -485,7 +513,7 @@ class CollectR089Tests(unittest.TestCase):
         self.assertEqual(out['metabase'],{})
         self.assertEqual(out['health'],{'pwa_api_reader_prod':4,'pwa_api_command_prod':4,'pwa_api_reader_dev':4,'pwa_api_command_dev':4,'recognizer':4})
         timing={c:f for c,f,_ in out['timing']}
-        self.assertEqual((timing['pwa_jobs'],timing['pwa_notify'],timing['cloud_sql_backup'],timing['debian_snapshot']),({'status':4},{},{},{}))
+        self.assertEqual((timing['pwa_jobs'],timing['pwa_notify'],timing['cloud_sql_backup'],timing['debian_snapshot']),({'status':4},{},{},{'error':'TimeoutError'}))
         self.assertNotIn('conversation_turn',timing)
 
 if __name__=='__main__': unittest.main()

@@ -374,15 +374,41 @@ def cloud_sql_backup(token, now, fetcher=bounded_fetch):
     return fields
 
 
-def debian_snapshot(token, now, fetcher=bounded_fetch):
-    """Age of the newest READY snapshot of the agent VM's disk (Compute API list, newest first)."""
-    url = ('https://compute.googleapis.com/compute/v1/projects/' + PROJECT + '/global/snapshots?filter='
-           + urllib.parse.quote('sourceDisk eq .*vm-mw-credit-agent') + '&orderBy=' + urllib.parse.quote('creationTimestamp desc') + '&maxResults=50')
-    items = [i for i in google_json(url, token, fetcher).get('items') or [] if isinstance(i, dict) and i.get('status') == 'READY']
-    if not items:
-        return {}
-    newest = max(parse_time(i['creationTimestamp']) for i in items)
-    return {'age_seconds': max(0, int(now - newest))}
+SNAPSHOT_PAGES = 5
+
+
+def debian_snapshot(token, now, fetcher=bounded_fetch, clock=time.monotonic):
+    """Age of the newest READY snapshot of the agent VM's disk, read with the VM identity.
+
+    The Compute API rejects `filter` together with `orderBy` (HTTP 400), so every page is read
+    and the newest creationTimestamp is picked here. All pages share one NEW_CALL_SECONDS deadline.
+    A failure returns {'error': ...}: a string, shown in the run output but never exported.
+    """
+    base = ('https://compute.googleapis.com/compute/v1/projects/' + PROJECT + '/global/snapshots?filter='
+            + urllib.parse.quote('sourceDisk eq .*vm-mw-credit-agent') + '&maxResults=500&fields='
+            + urllib.parse.quote('items(status,creationTimestamp),nextPageToken'))
+    deadline = clock() + NEW_CALL_SECONDS
+    ready, page_token = [], None
+    try:
+        for _ in range(SNAPSHOT_PAGES):
+            remaining = deadline - clock()
+            if remaining <= 0:
+                raise TimeoutError('Snapshot list deadline')
+            url = base + ('&pageToken=' + urllib.parse.quote(page_token, safe='') if page_token else '')
+            status, body = fetcher(url, {'Authorization': 'Bearer ' + token}, timeout=remaining)
+            if status != 200:
+                return {'error': 'http_' + str(status)}
+            page = json.loads(body)
+            ready += [parse_time(i['creationTimestamp']) for i in page.get('items') or []
+                      if isinstance(i, dict) and i.get('status') == 'READY']
+            page_token = page.get('nextPageToken')
+            if not page_token:
+                break
+        else:
+            return {'error': 'too_many_pages'}
+    except Exception as exc:
+        return {'error': type(exc).__name__}
+    return {'age_seconds': max(0, int(now - max(ready)))} if ready else {}
 
 
 def audit_retention(service, uptime, now):
