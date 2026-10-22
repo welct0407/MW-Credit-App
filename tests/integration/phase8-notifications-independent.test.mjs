@@ -96,6 +96,23 @@ test('R080 content lookup is best effort on the real boundary: one send, unchang
  }finally{await f.close();}
 });
 
+test('R089 history and offline pages carry the push title/body on the real boundary: V102 text or generic fallback, no cross-recipient leak',async()=>{
+ const f=await fixture();try{
+  const mine=await f.subscription(f.recipient,'history-content'),theirs=await f.subscription(f.other,'history-content-other');
+  const event=await f.event('history-content');await f.delivery(event,mine);await f.delivery(event,theirs);
+  const v102=(await f.pool.query("SELECT to_regprocedure('public.pwa_notify_history_content_v1(jsonb,uuid[])') IS NOT NULL AS present")).rows[0].present;
+  // The fixture event points at no source row: before V102 the RPC is absent and the savepoint falls back to generic text on a still-usable
+  // transaction; from V102 it reports found=false for the recipient ("Details no longer available").
+  const expected=v102?{title:'Payment received',body:'Details no longer available'}:{title:'MW Credit',body:'New activity'};
+  const page=await f.store.history(f.principal(f.recipient),null);const item=page.items.find(row=>row.eventId===event.event_id);
+  assert.ok(item);assert.deepEqual({title:item.title,body:item.body},expected);
+  const offline=await f.store.offlineDataset(f.principal(f.recipient),undefined,{protocol:2});const offlineItem=offline.patches.find(p=>p.key==='items').value.find(row=>row.eventId===event.event_id);
+  assert.deepEqual({title:offlineItem.title,body:offlineItem.body},expected);
+  // V102 authorization: only events delivered to the calling partner; the actor (no delivery) sees none.
+  assert.deepEqual((await f.store.history(f.principal(f.actor),null)).items.filter(row=>row.eventId===event.event_id),[]);
+ }finally{await f.close();}
+});
+
 test('new device and reenabled preference cannot backfill prior or already queued events',async()=>{
  const f=await fixture();try{
   await f.event('before-device');const s=await f.subscription(f.recipient,'one');

@@ -3721,6 +3721,41 @@ COMMENT ON FUNCTION public.pwa_notify_enqueue_v1(event uuid, subscription uuid, 
 
 
 --
+-- Name: pwa_notify_history_content_v1(jsonb, uuid[]); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_notify_history_content_v1(actor jsonb, events uuid[]) RETURNS TABLE("eventId" uuid, found boolean, "eventType" text, language text, "borrowerName" text, amount numeric)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE partner text:=public.pwa_notify_actor_v1(actor);
+BEGIN
+ IF events IS NULL OR cardinality(events)>26 THEN RAISE EXCEPTION 'invalid_request'; END IF;
+ RETURN QUERY SELECT e.event_id,src.source_found,e.event_type,
+  CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
+  CASE WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  src.source_amount
+ FROM public.pwa_notification_events e
+ LEFT JOIN public."Partners" recipient ON recipient."Row ID"=partner
+ LEFT JOIN LATERAL (
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+ ) source_row ON true
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount) src
+ LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
+ WHERE e.event_id=ANY(events) AND EXISTS(SELECT 1 FROM public.pwa_notification_deliveries d WHERE d.event_id=e.event_id AND d.recipient_partner_id=partner);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_notify_history_content_v1(actor jsonb, events uuid[]); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_notify_history_content_v1(actor jsonb, events uuid[]) IS 'mw-access:governance fixed notification boundary; explicit capability only';
+
+
+--
 -- Name: pwa_notify_history_v1(jsonb, timestamp with time zone, uuid); Type: FUNCTION
 --
 
