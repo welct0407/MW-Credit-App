@@ -724,7 +724,7 @@
             "for": "4m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "The collector reports the PROD Hosting origin Down on a fresh sample for 4 minutes. Stale or Unknown telemetry does not page. Inspect Now 1 row Hosting.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -784,7 +784,7 @@
             "for": "4m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "A fresh collector GET of the PROD Cloud Run /health returned non-200 for 4 minutes. A missing origins file reports Unknown and does not page. Inspect Now 1 rows Reader and Command and PWA & APIs.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -844,7 +844,7 @@
             "for": "10m",
             "no_data_state": "OK",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "Reader plus command PROD request_count with response_code_class 5xx summed over the last 10 minutes is at or above 5. Idle (no requests) is normal and does not page. Inspect PWA & APIs request and error charts.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -904,7 +904,7 @@
             "for": "10m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "Cloud Scheduler job mw-credit-app-prod-notifications finished 3 or more attempts with a non-OK status in 10 minutes. Inspect Now 1 row Notify worker and PWA & APIs Cloud Scheduler attempts. Never force a live notification.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -964,7 +964,7 @@
             "for": "10m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "The newest completed daily-charges run is older than 25 h or the newest completed recent-analytics run is older than 75 min (pwa_job_runs via the collector; state 2 = overdue). Stale telemetry does not page. Inspect Now 7 and the PWA & APIs scheduler row.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -1024,7 +1024,7 @@
             "for": "10m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "The oldest pending or retry push delivery is older than 15 minutes. Failed deliveries in 24 hours are shown on Now 6 but do not page (expired subscriptions are normal churn). Reconcile an uncertain send before any retry; never force a live notification.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -1084,7 +1084,7 @@
             "for": "4m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "A fresh collector probe of the recognizer /healthz failed for 4 minutes. Paused (enabled false) and stale telemetry do not page. Inspect Now 1 row Receipt recognizer and Agent & Receipts.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -1144,7 +1144,7 @@
             "for": "10m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "A Partner turn running for over 15 minutes, a finished turn whose reply notice is still unreserved after 5 minutes, a poll older than 10 minutes, or the wake path inactive, for 10 minutes. The 10-minute pending period covers a long turn briefly counted as undelivered until its notice is reserved. Stale telemetry does not page. Inspect Now 5 and Agent & Receipts.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -1204,7 +1204,7 @@
             "for": "4m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "cloudsql database/up reports 0 for the shared instance for 4 minutes. Both DEV and PROD databases are affected. Inspect Now 1 row Cloud SQL and Infrastructure.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -1264,7 +1264,7 @@
             "for": "10m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "Five-minute mean disk utilization of the shared Cloud SQL instance is above 80% for 10 minutes. Inspect Now 11 and Infrastructure.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -1324,7 +1324,7 @@
             "for": "10m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "The newest successful Cloud SQL backup is older than 30 hours, or the newest backup run failed. Stale telemetry does not page. Inspect Now 19.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
@@ -1384,7 +1384,7 @@
             "for": "10m",
             "no_data_state": "KeepLast",
             "exec_err_state": "KeepLast",
-            "is_paused": true,
+            "is_paused": false,
             "annotations": {
               "description": "The newest READY snapshot of the Debian agent boot disk is older than 30 hours. Stale telemetry does not page. Inspect Now 19.",
               "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
