@@ -15,6 +15,7 @@ Railway Metabase memory sat at about 1.9 GB of its 2.0 GB per-replica cap after 
 | Railway deployment status and deploy logs | Pass: SUCCESS 13:19Z; JVM reports 768.0 MB heap, 2 processors; no option errors |
 | Railway health check `/api/health` | Pass: 200 at 13:18:57Z |
 | Railway `MEMORY_USAGE_GB` at 13:48Z | Not improved: 1.94 GB of 2.0 GB (97%); before the change 1.89 GB |
+| Railway `MEMORY_USAGE_GB`, 13:57Z–16:57Z | Starting to relax: current 1.80 GB, average 1.87, peak 1.99 GB (99.6% of the cap); same deployment still SUCCESS, no restart or out-of-memory entries in its logs |
 
 ## Not run
 Memory inside the container (process RSS against file cache) could not be measured: the Railway tools give no shell into the container.
