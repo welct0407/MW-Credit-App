@@ -45,6 +45,11 @@ function freshness() {
       thresholds: steps([null, COLOR.ok], [L.STALE_SECONDS, COLOR.unknown])})]});
 }
 
+// FINAL-2: group-scanning.jq yields two rows (the polling state, then the last completion time); the Scan
+// tile keeps only the completion row, so the stat cannot reduce the state code instead of the time.
+function scanSelector() {
+  return '[\n' + jq('group-scanning.jq') + '] | map(select(.details == "Last scan completion")) | .[]';
+}
 // D6: six targets, group-scanning.jq for Scan and receipt-pipeline.jq once per stage field. Shared with Agent 1.
 // stages: [key, label, red?]; informational values carry no colour, the red ones turn red above 0 as today.
 function stagesStat({id, title, gridPos, scan, stages, description}) {
@@ -54,7 +59,7 @@ function stagesStat({id, title, gridPos, scan, stages, description}) {
   // so both send the identical Scan request (Agent's 6-hour default had shown No report).
   return L.stat({id, title, gridPos, description, timeFrom: '3h', hideTimeOverride: true,
     targets: [
-      target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'polling'})), jq('group-scanning.jq'), [col('status', scan)]),
+      target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'polling'})), scanSelector(), [col('status', scan)]),
       ...stages.map(([key, label], i) => target(String.fromCharCode(66 + i), DS.gcp, pipeline, L.receiptFields([[key, label]]), [col(key, label)]))
     ],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
@@ -86,11 +91,11 @@ function conversation() {
 
 function push() {
   return L.stat({id: 6, title: 'Push', gridPos: pos(14, 12, 5, 6),
-    description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered and failed in 24 h.',
+    description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered (Sent 24h) and failed in 24 h.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
       jq('ops-health.jq', {FIELDS: [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
-        {key: 'delivered_24h', label: 'Delivered · 24 h'}, {key: 'failed_24h', label: 'Failed · 24 h'}]}),
-      [col('Pending', 'Pending'), col('Oldest pending', 'Oldest pending'), col('Delivered · 24 h', 'Delivered · 24 h'), col('Failed · 24 h', 'Failed · 24 h')])],
+        {key: 'delivered_24h', label: 'Sent 24h'}, {key: 'failed_24h', label: 'Failed · 24 h'}]}),
+      [col('Pending', 'Pending'), col('Oldest pending', 'Oldest pending'), col('Sent 24h', 'Sent 24h'), col('Failed · 24 h', 'Failed · 24 h')])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
     overrides: [byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [900, COLOR.down])}),
       byName('Failed · 24 h', {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.degraded])})],
@@ -196,4 +201,4 @@ function build() {
     panels: [services(), alerts(), freshness(), payments(), conversation(), push(), jobs(), capacitySql(), capacityHosts(), edge(),
       L.providerStatus({id: 17, gridPos: pos(16, 23, 8, 3)}), backups()]});
 }
-module.exports = {build, stagesStat};
+module.exports = {build, stagesStat, scanSelector};

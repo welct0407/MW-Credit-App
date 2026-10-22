@@ -61,7 +61,7 @@ function serviceRow(s, index) {
     description: 'Cloud Run request_latencies, distributions merged per 5 minutes then the 95th percentile across revisions; the red dashed line is the request timeout (' + s.timeoutMs / 1000 + ' s). Logarithmic axis.',
     targets: [ts('A', monitoringUrl(run('run.googleapis.com/request_latencies', s.key), {aligner: 'ALIGN_SUM', reducer: 'REDUCE_PERCENTILE_95', period: '300s'}), 'p95')],
     defaults: {unit: 'ms', min: 10, noValue: 'No requests', ...L.dashedLine(s.timeoutMs), custom: {scaleDistribution: {type: 'log', log: 10}, thresholdsStyle: {mode: 'dashed'}}}});
-  const instances = L.timeseries({id: id + 3, title: 'Instances · CPU · RAM · ' + s.label, gridPos: pos(16, y + 1, 8, 6),
+  const instances = L.timeseries({id: id + 3, title: s.label + ' · instances, CPU, RAM', gridPos: pos(16, y + 1, 8, 6),
     description: 'Cloud Run instance_count (max per 5 minutes, left axis; grey dashed line = PROD max instances ' + s.maxInstances + (s.key === 'command' ? ', DEV 1' : '') + ') and container CPU and memory utilisation p95 (right axis).',
     targets: [
       ts('A', monitoringUrl(run('run.googleapis.com/container/instance_count', s.key), {aligner: 'ALIGN_MAX', reducer: 'REDUCE_SUM', period: '300s'}), 'Instances'),
@@ -83,7 +83,7 @@ function workers() {
     rows: [L.schedulerRow('notifications · every minute', '${env}', 'notifications'), L.schedulerRow('daily charges · 00:05', '${env}', 'daily-charges'),
       L.schedulerRow('recent analytics · hourly', '${env}', 'recent-analytics')]});
   const pushFields = [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
-    {key: 'delivered_24h', label: 'Delivered · 24 h'}, {key: 'failed_24h', label: 'Failed · 24 h'}];
+    {key: 'delivered_24h', label: 'Sent 24h'}, {key: 'failed_24h', label: 'Failed · 24 h'}];
   const push = L.stat({id: 21, title: 'Push delivery', gridPos: pos(12, y + 1, 6, 6),
     description: 'PROD only: worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1(); pending counts pending and retry, failed counts dead and uncertain completed in 24 h. Oldest pending red above 900 s (the alert value).',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})), prodOnly(jq('ops-health.jq', {FIELDS: pushFields})),

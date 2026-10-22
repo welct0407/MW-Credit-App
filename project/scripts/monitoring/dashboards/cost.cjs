@@ -21,7 +21,7 @@ function replaceWindow(t, window) {
 }
 
 function source() {
-  const p = L.lift(COST, 3, {id: SOURCE, gridPos: pos(17, 0, 7, 5), title: 'Coverage and FX', panelIds: {2: SOURCE}});
+  const p = L.lift(COST, 3, {id: SOURCE, gridPos: pos(19, 0, 5, 5), title: 'Coverage and FX', panelIds: {2: SOURCE}});
   const queries = L.findPanel(COST, 2).targets.map(t => structuredClone(t));
   p.datasource = DS.mixed;
   p.description = 'Query host for the top row: today\'s provider sums in SGD (Azure, GCP, Railway, ECB rate) and the GCP budget. ' + p.description;
@@ -76,7 +76,7 @@ function lastMonth() {
   const guarded = (t, column) => ({...t, root_selector: jq('cost-prior-azure.jq'), columns: [col('Category', 'Category', 'string'), col('amount', column)]});
   for (const t of [azure, backup]) if (JSON.parse(t.url_options.data).timeframe !== 'Custom') throw Error('Azure query must keep its Custom window');
   return {
-    id: 9, type: 'stat', title: 'Last month, same day', gridPos: pos(4, 0, 4, 5),
+    id: 9, type: 'stat', title: 'Last month, same day', gridPos: pos(4, 0, 3, 5),
     description: 'SGD. Azure and GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M), converted at the current ECB rate. Railway has no past-cycle figure (cycle only). A reference, not a forecast.',
     datasource: DS.mixed, timeFrom: 'now/M', timeShift: '1M', hideTimeOverride: true,
     targets: [guarded(azure, 'Azure compute USD'), guarded(backup, 'Azure backup USD'), gcp, fx],
@@ -91,7 +91,7 @@ function lastMonth() {
 }
 
 function platform(oldId, id, x, title) {
-  const p = L.lift(COST, oldId, {id, gridPos: pos(x, 0, 3, 5), title, panelIds: {2: SOURCE}});
+  const p = L.lift(COST, oldId, {id, gridPos: pos(x, 0, 4, 5), title, panelIds: {2: SOURCE}});
   p.description = p.description.replace('Conversion and coverage are shown below.', 'Conversion and coverage: the Coverage and FX panel.');
   if (!p.description.includes('SGD')) throw Error('Platform panel ' + oldId + ' description lost its currency');
   p.targets = consumer();
@@ -109,7 +109,7 @@ function gcpDaily() {
     '  ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400) as $days |\n' +
     '  ((.budget | tonumber) / $days) as $daily |\n  {time: ((now - 30 * 86400) * 1000 | floor), value: $daily}, {time: (now * 1000 | floor), value: $daily} end',
     [col('time', 'Time', 'timestamp_epoch'), col('value', 'Budget ÷ days')], 'timeseries');
-  return L.timeseries({id: 6, title: 'GCP daily net · 30 d', gridPos: pos(0, 5, 8, 9),
+  return L.timeseries({id: 6, title: 'GCP daily · 30 d', gridPos: pos(0, 5, 8, 9),
     description: 'SGD. BigQuery billing export, net = cost + credits per Singapore date for the last 30 days, independent of the picker (same 100 MB billed-query cap). Red dashed line = the GCP budget ÷ days in month once gcp_budget_sgd is set (ALL-COST-01); no line until then.',
     targets: [{...daily, refId: 'A'}, budget], datasource: DS.gcp,
     defaults: {...SGD, min: 0, noValue: 'No data', custom: {drawStyle: 'bars', fillOpacity: 80, lineWidth: 1}, color: {fixedColor: '#FF9830', mode: 'fixed'}},
@@ -178,7 +178,7 @@ function providerRow(id, title, y, oldRowId, ids) {
 }
 
 function rules() {
-  return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 14, 24, 5),
+  return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 14, 24, 6),
     description: 'How to read every figure on this dashboard: Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date and Railway always shows its current cycle, so the top row is not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.',
     content: 'Cost data is delayed and provisional, no data is not zero spending, and the top row combines provider periods (Azure UTC days, GCP Singapore dates, Railway cycle), so it is not an invoice. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.'});
 }
@@ -188,10 +188,10 @@ function build() {
     time: {from: 'now/M', to: 'now'}, refresh: '1h',
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
     templating: [{hide: 2, label: 'GCP budget (SGD per month)', name: 'gcp_budget_sgd', query: '', skipUrlSync: true, type: 'constant'}],
-    panels: [total(), lastMonth(), platform(5, 2, 8, 'Azure'), platform(6, 3, 11, 'GCP'), platform(7, 4, 14, 'Railway'), source(), gcpDaily(), byService(), azureRailwayDaily(),
+    panels: [total(), lastMonth(), platform(5, 2, 7, 'Azure'), platform(6, 3, 11, 'GCP'), platform(7, 4, 15, 'Railway'), source(), gcpDaily(), byService(), azureRailwayDaily(),
       rules(),
-      providerRow(10, L.findPanel(COST, 306).title, 19, 306, [102, 103, 104, 101, 110]),
-      providerRow(20, L.findPanel(COST, 307).title, 20, 307, [202, 203, 204, 205, 207, 206, 201]),
-      providerRow(30, L.findPanel(COST, 308).title, 21, 308, [302, 301, 303, 304, 305])]});
+      providerRow(10, L.findPanel(COST, 306).title, 20, 306, [102, 103, 104, 101, 110]),
+      providerRow(20, L.findPanel(COST, 307).title, 21, 307, [202, 203, 204, 205, 207, 206, 201]),
+      providerRow(30, L.findPanel(COST, 308).title, 22, 308, [302, 301, 303, 304, 305])]});
 }
 module.exports = {build, SOURCE};

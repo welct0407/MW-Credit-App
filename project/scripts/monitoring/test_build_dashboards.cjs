@@ -142,6 +142,17 @@ const scanOf = (uid, id) => built[uid].spec.panels.find(p => p.id === id);
 assert.equal(scanOf('mw-now', 4).timeFrom, '3h');
 assert.equal(scanOf('mw-agent', 1).timeFrom, '3h');
 assert.deepEqual({...scanOf('mw-now', 4).targets[0], columns: null}, {...scanOf('mw-agent', 1).targets[0], columns: null});
+// FINAL-2: the Scan tile reads only the completion-time row, never the polling state code.
+for (const [uid, id] of [['mw-now', 4], ['mw-agent', 1]]) {
+  const t = scanOf(uid, id).targets[0];
+  assert.equal(t.root_selector, require('./dashboards/now.cjs').scanSelector(), uid + ' ' + id + ' Scan selector');
+  assert.ok(t.root_selector.endsWith('map(select(.details == "Last scan completion")) | .[]'), uid + ' ' + id + ' Scan keeps the completion row');
+  assert.deepEqual(t.columns.map(c => c.selector), ['status'], uid + ' ' + id + ' Scan reads one field');
+}
+// FINAL-1: the Cost top row fills 24 columns with the providers at least 4 wide.
+const top = built['mw-cost'].spec.panels.filter(p => p.gridPos.y === 0);
+assert.equal(top.reduce((n, p) => n + p.gridPos.w, 0), 24, 'Cost top row is 24 wide');
+for (const id of [2, 3, 4]) assert.ok(top.find(p => p.id === id).gridPos.w >= 4, 'Cost provider ' + id + ' at least 4 wide');
 // The Now home page carries no DEV series and the PWA page carries no unparameterised environment.
 const nowText = JSON.stringify(built['mw-now']);
 assert.ok(!/-dev\b|_dev\b|loan_manager_dev/.test(nowText), 'mw-now is PROD only');

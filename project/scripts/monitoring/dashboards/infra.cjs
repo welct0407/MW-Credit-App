@@ -49,7 +49,7 @@ function cloudSql() {
           columns: [col('Fact', 'Fact', 'string'), col('Value', 'Value', 'string')]}],
       transformations: [{id: 'merge', options: {}}],
       overrides: [byName('Fact', {'custom.width': 110})]}),
-    L.timeseries({id: 7, title: 'Connections by database', gridPos: pos(18, 7, 6, 5),
+    L.timeseries({id: 7, title: 'Connections by DB', gridPos: pos(18, 7, 6, 5),
       description: 'Cloud SQL num_backends per database (metric label ' + L.NUM_BACKENDS_DATABASE_LABEL + '); explains who holds connections. No threshold.',
       targets: [db('A', 'loan_manager_prod'), db('B', 'mw_agent'), db('C', 'loan_manager_dev')],
       defaults: {min: 0}}),
@@ -71,9 +71,10 @@ function cloudRun() {
   const q = (refId, metric, column, mode, aggregation) => target(refId, DS.gcp,
     monitoringUrl(filter(metric), {...aggregation, groupBy: ['resource.labels.service_name']}),
     jq('cloudrun-by-service.jq', {COLUMN: column, MODE: mode}), [col('Service', 'Service', 'string'), col(column, column)]);
-  const util = {unit: 'percentunit', decimals: 0, 'custom.cellOptions': {type: 'color-background', mode: 'basic'},
+  // FINAL-3: coloured text, not a coloured cell, so the number stays readable on a phone.
+  const util = {unit: 'percentunit', decimals: 0, 'custom.cellOptions': {type: 'color-text'},
     thresholds: steps([null, COLOR.ok], [0.8, COLOR.degraded]), mappings: [L.nullMap('—')]};
-  return L.table({id: 9, title: 'Cloud Run · eight services', gridPos: pos(0, 12, 24, 9),
+  return L.table({id: 9, title: 'Cloud Run · eight services', gridPos: pos(0, 12, 24, 10),
     description: 'Cloud Monitoring per service of mw-credit-app-<service>-<env>: newest instance count against Max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range.',
     datasource: DS.gcp,
     targets: [
@@ -88,20 +89,20 @@ function cloudRun() {
       {id: 'organize', options: {indexByName: {Service: 0, Instances: 1, Max: 2, 'CPU p95': 3, 'Memory p95': 4, 'Billable time': 5}}}],
     overrides: [byName('CPU p95', util), byName('Memory p95', util), byName('Billable time', {unit: 's', decimals: 0, mappings: [L.nullMap('—')]}),
       byName('Instances', {mappings: [L.nullMap('0 seen')], 'custom.width': 80}), byName('Max', {'custom.width': 50}),
-      // RECHECK-9: service names without the common prefix (read-prod), so every column fits on a phone.
-      byName('Service', {'custom.width': 100, mappings: [{type: 'regex', options: {pattern: '^mw-credit-app-(.+)$', result: {text: '$1', index: 0}}}]})]});
+      // RECHECK-9/FINAL-3: service names without the common prefix ("command · prod"), so every column fits on a phone.
+      byName('Service', {'custom.width': 110, mappings: [{type: 'regex', options: {pattern: '^mw-credit-app-(.+)-(prod|dev)$', result: {text: '$1 · $2', index: 0}}}]})]});
 }
 
 function debian() {
-  const uptime = L.lift(L.PERF, 128, {id: 18, gridPos: pos(18, 26, 6, 2), title: 'Debian VM uptime'});
+  const uptime = L.lift(L.PERF, 128, {id: 18, gridPos: pos(18, 27, 6, 2), title: 'Debian VM uptime'});
   // LIVE-3: an informational value, not Paused blue.
   uptime.fieldConfig.defaults.color = {mode: 'fixed', fixedColor: COLOR.text};
-  const disk = L.lift(L.PERF, 24, {id: 13, gridPos: pos(18, 21, 6, 5), title: 'Debian VM disk'});
+  const disk = L.lift(L.PERF, 24, {id: 13, gridPos: pos(18, 22, 6, 5), title: 'Debian VM disk'});
   disk.description = (disk.description || '').trim() + ' Snapshot age: Backups and recovery points on Now.';
   return [
-    L.lift(L.PERF, 21, {id: 10, gridPos: pos(0, 21, 6, 7), title: 'Debian VM CPU'}),
-    liftWithLine(22, 11, pos(6, 21, 6, 7), 'Debian VM memory', 85),
-    L.lift(L.PERF, 23, {id: 12, gridPos: pos(12, 21, 6, 7), title: 'Debian VM network'}),
+    L.lift(L.PERF, 21, {id: 10, gridPos: pos(0, 22, 6, 7), title: 'Debian VM CPU'}),
+    liftWithLine(22, 11, pos(6, 22, 6, 7), 'Debian VM memory', 85),
+    L.lift(L.PERF, 23, {id: 12, gridPos: pos(12, 22, 6, 7), title: 'Debian VM network'}),
     disk, uptime
   ];
 }
@@ -117,13 +118,13 @@ function metabase() {
     const t = L.liftTarget(L.PERF, id);
     return {...t, refId: String.fromCharCode(65 + i), root_selector: '(' + t.root_selector + ') | .details |= ' + ONE_LINE};
   });
-  const mem = L.lift(L.PERF, 42, {id: 15, gridPos: pos(6, 28, 6, 7), title: 'Metabase RAM'});
+  const mem = L.lift(L.PERF, 42, {id: 15, gridPos: pos(6, 29, 6, 7), title: 'Metabase RAM'});
   mem.description = (mem.description || '').trim() + ' The alert fires at 90 % of the limit.';
   return [
-    L.lift(L.PERF, 41, {id: 14, gridPos: pos(0, 28, 6, 7), title: 'Metabase CPU'}),
+    L.lift(L.PERF, 41, {id: 14, gridPos: pos(0, 29, 6, 7), title: 'Metabase CPU'}),
     mem,
-    L.lift(L.PERF, 43, {id: 16, gridPos: pos(12, 28, 6, 7), title: 'Postgres volume'}),
-    L.table({id: 17, title: 'Metabase probes', gridPos: pos(18, 28, 6, 7),
+    L.lift(L.PERF, 43, {id: 16, gridPos: pos(12, 29, 6, 7), title: 'Postgres volume'}),
+    L.table({id: 17, title: 'Metabase probes', gridPos: pos(18, 29, 6, 7),
       description: 'Today\'s Metabase probe, backup and PITR selectors (Debian collector about every 2 minutes, and the Railway API), one row each: Platform = /livez on reports.mw-credit.com; App DB = /readyz including the application database; Reporting DB = an uncached saved SELECT 1 through source 2; Charts = charts.mw-credit.com shell and protected API; Daily and Weekly backup = the newest scheduled Railway volume snapshot (Degraded past 30 h or 8 days, a listed snapshot is not a tested restore); PITR archive = pgBackRest coverage and WAL archive lag. Details shows the state, HTTP code and probe duration, the archive lag or the snapshot age. Degraded = slower than 5 s.',
       datasource: DS.mixed, targets: probes,
       transformations: [{id: 'merge', options: {}}, {id: 'organize', options: {indexByName: {Status: 0, Details: 1}}}],
@@ -133,8 +134,8 @@ function metabase() {
 }
 
 function azure() {
-  return L.row({id: 20, title: 'Azure VM-01 · on-demand operator host (no 24x7 expectation, no alert)', gridPos: pos(0, 35, 24, 1), collapsed: true,
-    panels: [[11, 21, 0, 36], [12, 22, 12, 36], [13, 23, 0, 43], [14, 24, 12, 43]].map(([old, id, x, y]) =>
+  return L.row({id: 20, title: 'Azure VM-01 · on-demand operator host (no 24x7 expectation, no alert)', gridPos: pos(0, 36, 24, 1), collapsed: true,
+    panels: [[11, 21, 0, 37], [12, 22, 12, 37], [13, 23, 0, 44], [14, 24, 12, 44]].map(([old, id, x, y]) =>
       L.lift(L.PERF, old, {id, gridPos: pos(x, y, 12, 7), title: 'VM-01 · ' + L.findPanel(L.PERF, old).title}))});
 }
 

@@ -333,7 +333,10 @@ class GeneratedSelectors(unittest.TestCase):
     def test_payment_stage_selectors(self):
         p = self.panel('mw-now', 4)
         scan = run(p['targets'][0]['root_selector'], {})
-        self.assertEqual([r['status'] for r in scan], [4, None])
+        self.assertEqual([r['status'] for r in scan], [None])
+        done = int(time.time()) - 90
+        fresh = {'timeSeries': [series([point(0, v)], field=k) for k, v in (('status', 1), ('last_completion', done), ('running', 0))]}
+        self.assertEqual(run(p['targets'][0]['root_selector'], fresh), [{'details': 'Last scan completion', 'status': done * 1000}])
         stage = run(p['targets'][1]['root_selector'], {})
         self.assertEqual(stage, [{'pending_images': None}])
 
