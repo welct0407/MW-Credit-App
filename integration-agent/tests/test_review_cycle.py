@@ -433,6 +433,25 @@ class CycleTests(unittest.TestCase):
         notices=NoticeJournal(self.root/'partner-notices.db')
         try:self.assertEqual({r[0] for r in notices.db.execute("SELECT partner_id FROM partner_notices WHERE event_key LIKE 'review-result:%'")},{'p'})
         finally:notices.close()
+    def test_no_result_of_any_state_for_disabled_partner(self):
+        self.masters.return_value['partners'].append(dict(self.p,id='disabled',username='disabled',enabled=False))
+        for state in ('REJECTED','MANUAL_REQUIRED','STALE','EXPIRED','UNKNOWN'):
+            key=self.store.reserve('job-'+state,dict(self.proposal,receipt=dict(self.proposal['receipt'],reference=state)))
+            self.j.db.execute("UPDATE partner_reviews SET state=? WHERE id=?",(state,key))
+        self.j.db.commit()
+        self.run_cycle()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual({r[0] for r in notices.db.execute("SELECT partner_id FROM partner_notices WHERE event_key LIKE 'review-result:%'")},{'p'})
+        finally:notices.close()
+    def test_reserved_result_to_partner_disabled_later_is_marked_not_sent(self):
+        self.j.db.execute("UPDATE partner_reviews SET state='REJECTED'");self.j.db.commit()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        key=notices.reserve('review-result:'+self.key+':REJECTED',self.p,'s','b');notices.close()
+        self.masters.return_value['partners'][0]=dict(self.p,enabled=False)
+        self.run_cycle();self.dispatch.assert_not_called()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual(tuple(notices.db.execute('SELECT ig_status,detail FROM partner_notices WHERE id=?',(key,)).fetchone()),('REVIEW','PARTNER_DISABLED'))
+        finally:notices.close()
     def test_new_requests_only_to_reviewer(self):
         self.validated_job()
         self.masters.return_value['partners'].append(dict(self.p,id='other',username='other'))

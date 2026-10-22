@@ -45,6 +45,16 @@ class HealthTests(unittest.TestCase):
         self.assertEqual(health['status'],1)
         notices[1]['email_status']='SENT'
         self.assertEqual(assess([],[r],notices,self.now)['status'],1)
+    def test_result_held_for_opted_out_partner_is_not_a_failed_delivery(self):
+        import json
+        r=dict(self.review,state='REJECTED',created_at=9000)
+        held=dict(self.notice('review-result:r:REJECTED','REVIEW'),detail='IG_PREFLIGHT_FAILED',
+                  partner=json.dumps({'id':'p','enabled':False}))
+        self.assertEqual(assess([],[r],[held],self.now)['failed_notifications'],0)
+        held['partner']=json.dumps({'id':'p','enabled':True})  # opted in: a real preflight failure
+        self.assertEqual(assess([],[r],[held],self.now)['failed_notifications'],1)
+        held['partner']='not json'
+        self.assertEqual(assess([],[r],[held],self.now)['failed_notifications'],1)
     def test_superseded_error_notice_does_not_mask_completed_payment(self):
         r=dict(self.review,state='POSTED',created_at=9000)
         notices=[self.notice('review-result:r:UNKNOWN','UNKNOWN','UNKNOWN'),self.notice('review-result:r:POSTED')]

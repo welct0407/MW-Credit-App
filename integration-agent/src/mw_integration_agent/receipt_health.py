@@ -5,9 +5,18 @@ only leave the VM. A delivered review is not itself a stuck payment.
 """
 from pathlib import Path
 from contextlib import ExitStack
+import json
 import time
 from .state import connect
 from .receipt_hold import event_key
+
+
+def opted_out(n):
+    """A notice held because its partner was opted out when it was dispatched is not a failed delivery."""
+    if n.get('detail')=='PARTNER_DISABLED':return True
+    if n.get('detail')!='IG_PREFLIGHT_FAILED' or not n.get('partner'):return False
+    try:return json.loads(n['partner']).get('enabled') is not True
+    except (TypeError,ValueError):return False
 
 
 def assess(jobs,reviews,notices,now,hold_replies=()):
@@ -45,13 +54,13 @@ def assess(jobs,reviews,notices,now,hold_replies=()):
         if not job or now-job['created_at']<=300:continue
         items=by_event.get(result_key(reply['message_id']),[])
         counts['failed_notifications']+=1 if not items else sum(
-            n['ig_status']!='ACCEPTED' and n['email_status']!='SENT' and n.get('detail')!='PARTNER_DISABLED' for n in items)
+            n['ig_status']!='ACCEPTED' and n['email_status']!='SENT' and not opted_out(n) for n in items)
     for event,items in by_event.items():
         if not event.startswith('review-result:'):continue
         _,rid,state=event.split(':',2);review=reviews.get(rid)
         if not review or review['state']!=state or now-review['created_at']<=300:continue
         counts['failed_notifications']+=sum(n['ig_status']!='ACCEPTED' and n['email_status']!='SENT' and
-               n.get('detail')!='PARTNER_DISABLED' for n in items)
+               not opted_out(n) for n in items)
     # Optional result delivery remains visible without declaring intake/posting
     # broken. Required review/hold attention and uncertain money stay degraded.
     status=2 if any(v for k,v in counts.items() if k!='failed_notifications') else 1
@@ -92,5 +101,5 @@ def inspect(config,now=None):
         jobs=[dict(r) for r in db.execute("SELECT id,status,detail,created_at FROM receipt_jobs WHERE status IN ('PENDING','VALIDATED','REVIEW','REVIEW_REQUESTED','REJECTED')")]
         reviews=[dict(r) for r in db.execute("SELECT id,job_id,state,created_at FROM partner_reviews WHERE state<>'SUPERSEDED'")]
         replies=[dict(r) for r in db.execute("SELECT message_id,review_id,outcome FROM partner_review_replies WHERE review_id LIKE 'receipt-held:%' AND outcome IN ('HOLD_REJECTED','HOLD_NOT_ACTIVE','HOLD_REJECT_REQUIRED','HOLD_HAS_REVIEW')")]
-        sent=[dict(r) for r in notices.execute("SELECT event_key,ig_status,email_status,detail FROM partner_notices WHERE (event_key LIKE 'review:%' OR event_key LIKE 'review-result:%' OR event_key LIKE 'receipt-held:%' OR event_key LIKE 'hold-reply-result:%')")]
+        sent=[dict(r) for r in notices.execute("SELECT event_key,ig_status,email_status,detail,partner FROM partner_notices WHERE (event_key LIKE 'review:%' OR event_key LIKE 'review-result:%' OR event_key LIKE 'receipt-held:%' OR event_key LIKE 'hold-reply-result:%')")]
         return {**assess(jobs,reviews,sent,now,replies),'ingress_review_open':review_open}

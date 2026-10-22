@@ -309,7 +309,9 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
             proposal=json.loads(review['proposal']);live=result_master
             for p in live['partners']:
                 with isolated(failures,'result-recipient'):
-                    if review['state']=='POSTED' and p['enabled'] is not True:continue
+                    # Opted-out partners get no result of any state (R089: non-POSTED results were
+                    # reserved, then held as IG_PREFLIGHT_FAILED and counted as failed deliveries).
+                    if p['enabled'] is not True:continue
                     if review['state']=='POSTED':subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],review['detail'].endswith(SAME_OUTCOME))
                     else:
                         thai=p['language']=='ไทย'
@@ -350,7 +352,7 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     (waiting['status'],waiting['detail'])!=('PENDING','RECEIPT_ARCHIVE_PENDING')):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='ARCHIVE_RESOLVED_OR_REVIEWER_REMOVED' WHERE id=?",(notice['id'],))
                     continue
-            if notice['event_key'].startswith('review-result:') and notice['event_key'].endswith(':POSTED'):
+            if notice['event_key'].startswith('review-result:'):
                 if not any(p['id']==notice['partner_id'] and p['enabled'] is True for p in live['partners']):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
                     continue
