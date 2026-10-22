@@ -308,7 +308,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "[\ndef stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\");\nif .nextPageToken then error(\"Worker timing response truncated\") else\n  [.timeSeries[]? | {field:.metric.labels.field, point:(.points | sort_by(.interval.endTime) | last)}] as $rows |\n  ($rows | map(select(.field == \"status\")) | first | .point) as $p |\n  ($p != null and (now - ($p.interval.endTime | stamp)) <= 360 and\n    (($p.interval.endTime | stamp) - now) <= 120 and\n    ($p.value.int64Value | tonumber | IN(0,1,2,3,4))) as $fresh |\n  (if $fresh then ($p.value.int64Value | tonumber) else 4 end) as $status |\n  ([$rows[] | select(.point.interval.endTime == $p.interval.endTime) |\n    {key:.field,value:(.point.value.int64Value | tonumber)}] | from_entries) as $v |\n  [\n    {details:(\"IG polling — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n      \"\\nLast scan completion: \" + (if $fresh and ($v.last_completion // 0) > 0 then ($v.last_completion | sgt) else \"Unavailable\" end) +\n      \"\\nWorker: \" + (if $fresh and $v.running == 1 then \"Running\" elif $fresh and $v.running == 0 then \"Idle\" else \"Not observed\" end) +\n      \"\\nSchedule: 5 minutes after the previous run finishes (plus timer scheduling delay).\" +\n      \"\\nCompletion includes scans with no new images; it does not mean a payment was posted.\" +\n      \"\\nObserved: \" + (if $p != null then ($p.interval.endTime | stamp | sgt) else \"Unavailable\" end) +\n      (if $fresh then \"\\nTiming telemetry updates about every 2 minutes.\" else \"\\nTelemetry missing or older than 6 minutes; refresh for current status.\" end)),\n     status:$status},\n    {details:\"Last scan completion\",status:(if $fresh and ($v.last_completion // 0) > 0 then $v.last_completion * 1000 else null end)}\n  ][]\nend\n] | map(select(.details == \"Last scan completion\")) | .[]",
+            "root_selector": "[\n# Instagram group scan, last completion (worker_timing{polling}): the newest positive last_completion\n# reported in the query window (the stat reads the last 3 hours), not only in the newest collector run.\n# While a scan runs the collector reports last_completion 0 (systemd resets the exit time on start), so\n# the newest run alone often had no completion. Freshness rule unchanged: the newest status sample must be\n# at most 360 s old (and not more than 120 s ahead), else null (shown as \"—\"). A completion in the future\n# is ignored. One row {details: \"Last scan completion\", status: epoch ms or null}.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Worker timing response truncated\")\nelse\n  ([.timeSeries[]? | select(.metric.labels.field == \"status\") | .points[]?] | sort_by(.interval.endTime) | last) as $p |\n  ($p != null and (try (now - ($p.interval.endTime | stamp)) catch 1e9) <= 360 and\n    (try (($p.interval.endTime | stamp) - now) catch 1e9) <= 120) as $fresh |\n  ([.timeSeries[]? | select(.metric.labels.field == \"last_completion\") | .points[]? |\n    (try (.value.int64Value | tonumber) catch null) | select(. != null and . > 0 and . <= now + 120)] | max) as $last |\n  {details: \"Last scan completion\", status: (if $fresh and $last != null then $last * 1000 else null end)}\nend\n] | map(select(.details == \"Last scan completion\")) | .[]",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22polling%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -684,7 +684,7 @@
             }
           }
         ],
-        "title": "Receipt pipeline · queue over time",
+        "title": "Receipts · queue over time",
         "type": "timeseries"
       },
       {
@@ -784,7 +784,7 @@
             }
           }
         ],
-        "title": "Receipts · open ingress reviews",
+        "title": "Receipts · ingress reviews",
         "type": "stat"
       },
       {
@@ -1315,7 +1315,7 @@
             }
           }
         ],
-        "title": "Recognizer · extraction time (s)",
+        "title": "Recognizer · extraction time",
         "type": "timeseries"
       },
       {
@@ -1540,7 +1540,7 @@
                 "mode": "off"
               }
             },
-            "decimals": 0,
+            "decimals": 1,
             "displayName": "${__field.name}",
             "min": 0,
             "noValue": "No turns in selected range",
@@ -2175,6 +2175,7 @@
               "mode": "fixed"
             },
             "custom": {
+              "axisWidth": 170,
               "fillOpacity": 80,
               "hideFrom": {
                 "legend": false,
@@ -2566,6 +2567,7 @@
               "mode": "fixed"
             },
             "custom": {
+              "axisWidth": 170,
               "fillOpacity": 80,
               "hideFrom": {
                 "legend": false,
@@ -2696,7 +2698,7 @@
           ]
         },
         "gridPos": {
-          "h": 10,
+          "h": 12,
           "w": 16,
           "x": 0,
           "y": 53
@@ -2888,7 +2890,7 @@
             }
           }
         ],
-        "title": "Connectivity · webhook, tunnel and data path",
+        "title": "Connectivity · edge and data",
         "type": "state-timeline"
       },
       {
@@ -2988,7 +2990,7 @@
           ]
         },
         "gridPos": {
-          "h": 7,
+          "h": 9,
           "w": 8,
           "x": 16,
           "y": 53
@@ -3063,7 +3065,7 @@
             }
           }
         ],
-        "title": "Provider status",
+        "title": "Providers · status",
         "type": "stat"
       },
       {
@@ -3071,7 +3073,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{webhook_local, code_version_match}: 1 when the receiver's /ready code version equals the deployed commit.",
+        "description": "Webhook receiver code version. Debian collector worker_timing{webhook_local, code_version_match}: 1 when the receiver's /ready code version equals the deployed commit.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3131,7 +3133,7 @@
           "h": 3,
           "w": 8,
           "x": 16,
-          "y": 60
+          "y": 62
         },
         "id": 13,
         "options": {
@@ -3185,7 +3187,7 @@
             }
           }
         ],
-        "title": "Webhook receiver · code version",
+        "title": "Connectivity · code version",
         "type": "stat"
       }
     ],

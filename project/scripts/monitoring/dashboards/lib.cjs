@@ -312,6 +312,9 @@ function dashboard({uid, title, description, time, refresh, panels, templating =
 }
 
 /* Panel helpers. Every panel carries a title and a one-line description naming its source. */
+function laneAxisWidth(names) {
+  return Math.ceil((Math.max(...names.map(n => n.length)) * 7.2 + 16 + 8) / 10) * 10;
+}
 function stateTimeline({id, title, description, gridPos, rows, noValue = 'No report'}) {
   return {
     id, type: 'state-timeline', title, description, gridPos,
@@ -320,7 +323,9 @@ function stateTimeline({id, title, description, gridPos, rows, noValue = 'No rep
       [col('time', 'Time', 'timestamp'), col('value', r.name)], {format: 'timeseries'})),
     fieldConfig: {
       // Fixed grey base: the value mappings supply colour and word (thresholds colour hides them with mergeValues).
-      defaults: {color: {mode: 'fixed', fixedColor: COLOR.unknown}, displayName: '${__field.name}', custom: {fillOpacity: 80, hideFrom: {legend: false, tooltip: false, viz: false},
+      // FINAL2-1: a fixed label axis as wide as the longest lane name (12 px text), so no name is cut.
+      defaults: {color: {mode: 'fixed', fixedColor: COLOR.unknown}, displayName: '${__field.name}', custom: {axisWidth: laneAxisWidth(rows.map(r => r.name)),
+        fillOpacity: 80, hideFrom: {legend: false, tooltip: false, viz: false},
         insertNulls: false, lineWidth: 0, spanNulls: false}, mappings: stateMappings(STATE_TEXT, null), noValue,
         thresholds: steps([null, COLOR.unknown])},
       overrides: rows.map((r, i) => ({matcher: {id: 'byFrameRefID', options: String.fromCharCode(65 + i)},
@@ -464,8 +469,8 @@ function namedFields(names) {
 
 // Owner decision (R089 follow-up): Railway (hosts Metabase and the reports) replaces OpenAI, which is no longer required.
 const STATUS_MAP = [[0, 'Outage', COLOR.down], [1, 'No incident', COLOR.ok], [2, 'Incident open', COLOR.degraded], [3, 'Maintenance', COLOR.degraded], [4, 'Feed unreadable', COLOR.unknown]];
-function providerStatus({id, gridPos}) {
-  return stat({id, title: 'Provider status', gridPos, datasource: DS.mixed,
+function providerStatus({id, gridPos, title = 'Provider status'}) {
+  return stat({id, title, gridPos, datasource: DS.mixed,
     description: 'Current public status only, no history: Railway (railway.instatus.com, hosts Metabase and the reports: Outage for a major-outage incident, Incident open, Maintenance in progress) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).',
     targets: [
       target('A', DS.publicStatus, 'https://railway.instatus.com/summary.json', jq('railway-status.jq'), [col('status', 'Railway')]),

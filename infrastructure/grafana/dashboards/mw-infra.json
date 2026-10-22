@@ -163,11 +163,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -567,11 +564,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -703,11 +697,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -765,7 +756,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: Age of the newest successful automated backup (red above 30 h, the alert value), Newest run state, its Type and the transaction-log (PITR) retention in days.",
+        "description": "Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: Age of the newest successful automated backup (red above 30 h, the alert value), Last run = the newest run's state (Success, Failed, Running), its Type (Auto = automated, Manual = on demand) and PITR = the transaction-log retention in days.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -843,7 +834,7 @@
                         "result": {
                           "color": "#6E7079",
                           "index": 0,
-                          "text": "No report"
+                          "text": "—"
                         }
                       },
                       "type": "special"
@@ -855,7 +846,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Newest run"
+                "options": "Last run"
               },
               "properties": [
                 {
@@ -871,7 +862,7 @@
                         "1": {
                           "color": "green",
                           "index": 1,
-                          "text": "Successful"
+                          "text": "Success"
                         },
                         "2": {
                           "color": "text",
@@ -887,7 +878,7 @@
                         "result": {
                           "color": "#6E7079",
                           "index": 3,
-                          "text": "No report"
+                          "text": "—"
                         }
                       },
                       "type": "special"
@@ -917,12 +908,12 @@
                         "1": {
                           "color": "text",
                           "index": 0,
-                          "text": "Automated"
+                          "text": "Auto"
                         },
                         "2": {
                           "color": "text",
                           "index": 1,
-                          "text": "On demand"
+                          "text": "Manual"
                         }
                       },
                       "type": "value"
@@ -933,7 +924,7 @@
                         "result": {
                           "color": "#6E7079",
                           "index": 2,
-                          "text": "No report"
+                          "text": "—"
                         }
                       },
                       "type": "special"
@@ -945,7 +936,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "PITR logs"
+                "options": "PITR"
               },
               "properties": [
                 {
@@ -961,7 +952,7 @@
                         "result": {
                           "color": "#6E7079",
                           "index": 0,
-                          "text": "No report"
+                          "text": "—"
                         }
                       },
                       "type": "special"
@@ -974,7 +965,7 @@
         },
         "gridPos": {
           "h": 7,
-          "w": 7,
+          "w": 8,
           "x": 0,
           "y": 7
         },
@@ -992,8 +983,8 @@
                 "type": "number"
               },
               {
-                "selector": "Newest run",
-                "text": "Newest run",
+                "selector": "Last run",
+                "text": "Last run",
                 "type": "number"
               },
               {
@@ -1002,8 +993,8 @@
                 "type": "number"
               },
               {
-                "selector": "PITR logs",
-                "text": "PITR logs",
+                "selector": "PITR",
+                "text": "PITR",
                 "type": "number"
               }
             ],
@@ -1014,7 +1005,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"age_seconds\",\"label\":\"Age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR logs\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"age_seconds\",\"label\":\"Age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR logs\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"age_seconds\",\"label\":\"Age\"},{\"key\":\"status\",\"label\":\"Last run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"age_seconds\",\"label\":\"Age\"},{\"key\":\"status\",\"label\":\"Last run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22cloud_sql_backup%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1072,7 +1063,7 @@
               "properties": [
                 {
                   "id": "custom.width",
-                  "value": 110
+                  "value": 140
                 }
               ]
             }
@@ -1080,8 +1071,8 @@
         },
         "gridPos": {
           "h": 7,
-          "w": 6,
-          "x": 7,
+          "w": 8,
+          "x": 8,
           "y": 7
         },
         "id": 6,
@@ -1103,7 +1094,7 @@
                 "type": "string"
               }
             ],
-            "data": "[{\"Fact\":\"Tier\",\"Value\":\"db-g1-small · 16 Oct\"},{\"Fact\":\"Storage\",\"Value\":\"SSD 10 GB, auto-grow · 17 Oct\"},{\"Fact\":\"Max connections\",\"Value\":\"200 · 22 Sep\"}]",
+            "data": "[{\"Fact\":\"Tier\",\"Value\":\"db-g1-small\"},{\"Fact\":\"Storage\",\"Value\":\"SSD 10 GB, auto-grow\"},{\"Fact\":\"Max connections\",\"Value\":\"200\"}]",
             "datasource": {
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
@@ -1252,10 +1243,10 @@
           ]
         },
         "gridPos": {
-          "h": 7,
-          "w": 6,
-          "x": 18,
-          "y": 7
+          "h": 11,
+          "w": 8,
+          "x": 16,
+          "y": 14
         },
         "id": 7,
         "options": {
@@ -1467,9 +1458,9 @@
           ]
         },
         "gridPos": {
-          "h": 7,
-          "w": 5,
-          "x": 13,
+          "h": 4,
+          "w": 8,
+          "x": 16,
           "y": 7
         },
         "id": 8,
@@ -1764,7 +1755,7 @@
         },
         "gridPos": {
           "h": 11,
-          "w": 24,
+          "w": 16,
           "x": 0,
           "y": 14
         },
@@ -2018,11 +2009,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -2152,11 +2140,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -2309,11 +2294,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -2484,7 +2466,7 @@
           ]
         },
         "gridPos": {
-          "h": 4,
+          "h": 7,
           "w": 6,
           "x": 18,
           "y": 25
@@ -2494,11 +2476,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -2613,9 +2592,9 @@
         },
         "gridPos": {
           "h": 3,
-          "w": 6,
-          "x": 18,
-          "y": 29
+          "w": 8,
+          "x": 16,
+          "y": 11
         },
         "id": 18,
         "options": {
@@ -2828,7 +2807,7 @@
         },
         "gridPos": {
           "h": 10,
-          "w": 6,
+          "w": 8,
           "x": 0,
           "y": 32
         },
@@ -2837,11 +2816,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -3138,8 +3114,8 @@
         },
         "gridPos": {
           "h": 10,
-          "w": 6,
-          "x": 6,
+          "w": 8,
+          "x": 8,
           "y": 32
         },
         "id": 15,
@@ -3147,11 +3123,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -3366,8 +3339,8 @@
         },
         "gridPos": {
           "h": 10,
-          "w": 6,
-          "x": 12,
+          "w": 8,
+          "x": 16,
           "y": 32
         },
         "id": 16,
@@ -3375,11 +3348,8 @@
           "colorMode": "value",
           "graphMode": "area",
           "legend": {
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ],
-            "displayMode": "table",
+            "calcs": [],
+            "displayMode": "list",
             "placement": "bottom",
             "showLegend": true
           },
@@ -3560,9 +3530,9 @@
         },
         "gridPos": {
           "h": 10,
-          "w": 6,
-          "x": 18,
-          "y": 32
+          "w": 24,
+          "x": 0,
+          "y": 42
         },
         "id": 17,
         "options": {
@@ -3797,7 +3767,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 42
+          "y": 52
         },
         "id": 20,
         "panels": [
@@ -3871,18 +3841,15 @@
               "h": 7,
               "w": 12,
               "x": 0,
-              "y": 43
+              "y": 53
             },
             "id": 21,
             "options": {
               "colorMode": "value",
               "graphMode": "area",
               "legend": {
-                "calcs": [
-                  "lastNotNull",
-                  "max"
-                ],
-                "displayMode": "table",
+                "calcs": [],
+                "displayMode": "list",
                 "placement": "bottom",
                 "showLegend": true
               },
@@ -4004,18 +3971,15 @@
               "h": 7,
               "w": 12,
               "x": 12,
-              "y": 43
+              "y": 53
             },
             "id": 22,
             "options": {
               "colorMode": "value",
               "graphMode": "area",
               "legend": {
-                "calcs": [
-                  "lastNotNull",
-                  "max"
-                ],
-                "displayMode": "table",
+                "calcs": [],
+                "displayMode": "list",
                 "placement": "bottom",
                 "showLegend": true
               },
@@ -4161,18 +4125,15 @@
               "h": 7,
               "w": 12,
               "x": 0,
-              "y": 50
+              "y": 60
             },
             "id": 23,
             "options": {
               "colorMode": "value",
               "graphMode": "area",
               "legend": {
-                "calcs": [
-                  "lastNotNull",
-                  "max"
-                ],
-                "displayMode": "table",
+                "calcs": [],
+                "displayMode": "list",
                 "placement": "bottom",
                 "showLegend": true
               },
@@ -4250,7 +4211,7 @@
                 }
               }
             ],
-            "title": "VM-01 · Network transfer per interval",
+            "title": "VM-01 · Network transfer",
             "type": "timeseries"
           },
           {
@@ -4347,18 +4308,15 @@
               "h": 7,
               "w": 12,
               "x": 12,
-              "y": 50
+              "y": 60
             },
             "id": 24,
             "options": {
               "colorMode": "value",
               "graphMode": "area",
               "legend": {
-                "calcs": [
-                  "lastNotNull",
-                  "max"
-                ],
-                "displayMode": "table",
+                "calcs": [],
+                "displayMode": "list",
                 "placement": "bottom",
                 "showLegend": true
               },

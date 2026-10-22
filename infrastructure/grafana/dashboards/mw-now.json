@@ -99,6 +99,7 @@
               "mode": "fixed"
             },
             "custom": {
+              "axisWidth": 120,
               "fillOpacity": 80,
               "hideFrom": {
                 "legend": false,
@@ -1067,7 +1068,7 @@
           ]
         },
         "gridPos": {
-          "h": 15,
+          "h": 17,
           "w": 8,
           "x": 0,
           "y": 12
@@ -1111,7 +1112,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "[\ndef stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\");\nif .nextPageToken then error(\"Worker timing response truncated\") else\n  [.timeSeries[]? | {field:.metric.labels.field, point:(.points | sort_by(.interval.endTime) | last)}] as $rows |\n  ($rows | map(select(.field == \"status\")) | first | .point) as $p |\n  ($p != null and (now - ($p.interval.endTime | stamp)) <= 360 and\n    (($p.interval.endTime | stamp) - now) <= 120 and\n    ($p.value.int64Value | tonumber | IN(0,1,2,3,4))) as $fresh |\n  (if $fresh then ($p.value.int64Value | tonumber) else 4 end) as $status |\n  ([$rows[] | select(.point.interval.endTime == $p.interval.endTime) |\n    {key:.field,value:(.point.value.int64Value | tonumber)}] | from_entries) as $v |\n  [\n    {details:(\"IG polling — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n      \"\\nLast scan completion: \" + (if $fresh and ($v.last_completion // 0) > 0 then ($v.last_completion | sgt) else \"Unavailable\" end) +\n      \"\\nWorker: \" + (if $fresh and $v.running == 1 then \"Running\" elif $fresh and $v.running == 0 then \"Idle\" else \"Not observed\" end) +\n      \"\\nSchedule: 5 minutes after the previous run finishes (plus timer scheduling delay).\" +\n      \"\\nCompletion includes scans with no new images; it does not mean a payment was posted.\" +\n      \"\\nObserved: \" + (if $p != null then ($p.interval.endTime | stamp | sgt) else \"Unavailable\" end) +\n      (if $fresh then \"\\nTiming telemetry updates about every 2 minutes.\" else \"\\nTelemetry missing or older than 6 minutes; refresh for current status.\" end)),\n     status:$status},\n    {details:\"Last scan completion\",status:(if $fresh and ($v.last_completion // 0) > 0 then $v.last_completion * 1000 else null end)}\n  ][]\nend\n] | map(select(.details == \"Last scan completion\")) | .[]",
+            "root_selector": "[\n# Instagram group scan, last completion (worker_timing{polling}): the newest positive last_completion\n# reported in the query window (the stat reads the last 3 hours), not only in the newest collector run.\n# While a scan runs the collector reports last_completion 0 (systemd resets the exit time on start), so\n# the newest run alone often had no completion. Freshness rule unchanged: the newest status sample must be\n# at most 360 s old (and not more than 120 s ahead), else null (shown as \"—\"). A completion in the future\n# is ignored. One row {details: \"Last scan completion\", status: epoch ms or null}.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Worker timing response truncated\")\nelse\n  ([.timeSeries[]? | select(.metric.labels.field == \"status\") | .points[]?] | sort_by(.interval.endTime) | last) as $p |\n  ($p != null and (try (now - ($p.interval.endTime | stamp)) catch 1e9) <= 360 and\n    (try (($p.interval.endTime | stamp) - now) catch 1e9) <= 120) as $fresh |\n  ([.timeSeries[]? | select(.metric.labels.field == \"last_completion\") | .points[]? |\n    (try (.value.int64Value | tonumber) catch null) | select(. != null and . > 0 and . <= now + 120)] | max) as $last |\n  {details: \"Last scan completion\", status: (if $fresh and $last != null then $last * 1000 else null end)}\nend\n] | map(select(.details == \"Last scan completion\")) | .[]",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22polling%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1477,7 +1478,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered (Sent 24h) and failed in 24 h.",
+        "description": "Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1624,8 +1625,8 @@
                 "type": "number"
               },
               {
-                "selector": "Sent 24h",
-                "text": "Sent 24h",
+                "selector": "Sent · 24 h",
+                "text": "Sent · 24 h",
                 "type": "number"
               },
               {
@@ -1641,7 +1642,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Sent 24h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Sent 24h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Sent · 24 h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Sent · 24 h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_notify%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1825,7 +1826,7 @@
           ]
         },
         "gridPos": {
-          "h": 7,
+          "h": 9,
           "w": 8,
           "x": 8,
           "y": 20
@@ -2084,7 +2085,7 @@
           "h": 6,
           "w": 12,
           "x": 0,
-          "y": 27
+          "y": 29
         },
         "id": 8,
         "options": {
@@ -2401,7 +2402,7 @@
           "h": 6,
           "w": 12,
           "x": 12,
-          "y": 27
+          "y": 29
         },
         "id": 9,
         "options": {
@@ -2562,6 +2563,7 @@
               "mode": "fixed"
             },
             "custom": {
+              "axisWidth": 170,
               "fillOpacity": 80,
               "hideFrom": {
                 "legend": false,
@@ -2695,7 +2697,7 @@
           "h": 8,
           "w": 16,
           "x": 0,
-          "y": 33
+          "y": 35
         },
         "id": 16,
         "options": {
@@ -2984,7 +2986,7 @@
           ]
         },
         "gridPos": {
-          "h": 7,
+          "h": 9,
           "w": 8,
           "x": 16,
           "y": 20
@@ -3067,7 +3069,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "Age of the newest recovery point and its state against the documented grace: Cloud SQL automated backup and Debian disk snapshot 30 h (the alert value); Metabase daily and weekly volume backups from the Railway schedules; Metabase PITR archive and the agent audit retention run from the collector. Age shows — when the state is Unknown.",
+        "description": "Age of the newest recovery point and its state against the documented grace: Cloud SQL automated backup and Debian disk snapshot 30 h (the alert value); Metabase daily and weekly volume backups from the Railway schedules; Metabase PITR archive and the agent audit retention run from the collector. The Metabase rows' age is that of the newest scheduled snapshot. Age shows — when there is no recovery point (the state then says why).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3213,7 +3215,7 @@
           "h": 9,
           "w": 8,
           "x": 16,
-          "y": 33
+          "y": 35
         },
         "id": 19,
         "options": {
@@ -3279,7 +3281,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "B",
-            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"💾 Daily backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"DAILY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 108000 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 108000 then 1 elif $age <= 129600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"💾 Daily backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n) | {Source: \"Metabase daily\", Age: null, State: .status}",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\n(if .errors then null else (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"DAILY\")) | first) as $s |\n  (.data.volumeInstanceBackupList // [] | map(select($s != null and .scheduleId == $s.id)) | sort_by(.createdAt) | last) as $b |\n  (if $b == null then null else ([now - ($b.createdAt | stamp), 0] | max | floor) end) end)) as $age | (def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"💾 Daily backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"DAILY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 108000 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 108000 then 1 elif $age <= 129600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"💾 Daily backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n) | {Source: \"Metabase daily\", Age: $age, State: .status}",
             "source": "url",
             "type": "json",
             "url": "https://backboard.railway.com/graphql/v2",
@@ -3315,7 +3317,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "C",
-            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"🗓 Weekly backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"WEEKLY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 691200 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 691200 then 1 elif $age <= 777600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"🗓 Weekly backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n) | {Source: \"Metabase weekly\", Age: null, State: .status}",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\n(if .errors then null else (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"WEEKLY\")) | first) as $s |\n  (.data.volumeInstanceBackupList // [] | map(select($s != null and .scheduleId == $s.id)) | sort_by(.createdAt) | last) as $b |\n  (if $b == null then null else ([now - ($b.createdAt | stamp), 0] | max | floor) end) end)) as $age | (def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"🗓 Weekly backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"WEEKLY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 691200 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 691200 then 1 elif $age <= 777600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"🗓 Weekly backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n) | {Source: \"Metabase weekly\", Age: $age, State: .status}",
             "source": "url",
             "type": "json",
             "url": "https://backboard.railway.com/graphql/v2",

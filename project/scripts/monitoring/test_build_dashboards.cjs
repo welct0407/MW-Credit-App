@@ -143,7 +143,7 @@ assert.ok(namedTimeseries >= 10, 'multi-query timeseries checked: ' + namedTimes
 // The four Echo found with query letters carry their series names.
 const legend = (uid, title) => allPanels(built[uid].spec).map(e => e.panel).find(p => p.title === title).fieldConfig.overrides
   .filter(o => o.matcher.id === 'byFrameRefID').map(o => o.properties.find(x => x.id === 'displayName').value);
-assert.deepEqual(legend('mw-agent', 'Receipt pipeline · queue over time'), ['Images waiting', 'Manual holds', 'Awaiting review', 'Unconfirmed posting']);
+assert.deepEqual(legend('mw-agent', 'Receipts · queue over time'), ['Images waiting', 'Manual holds', 'Awaiting review', 'Unconfirmed posting']);
 assert.deepEqual(legend('mw-infra', 'Cloud SQL memory'), ['Used', 'Cache', 'Free']);
 assert.deepEqual(legend('mw-infra', 'Debian VM network'), ['Received', 'Sent']);
 assert.deepEqual(legend('mw-infra', 'Debian VM disk'), ['Read', 'Write']);
@@ -182,7 +182,7 @@ for (const uid of ['mw-now', 'mw-agent']) {
 // the provider tiles read them; the FX rate stays in the conversions.
 const cost = built['mw-cost'].spec;
 const host = cost.panels.find(p => p.id === 1);
-assert.ok(host && host.gridPos.y === 0 && host.title === 'TOTAL · month to date');
+assert.ok(host && host.gridPos.y === 0 && host.title === 'Total · this month');
 assert.deepEqual(host.targets, L.findPanel(L.COST, 2).targets);
 assert.ok(!cost.panels.some(p => p.id === 5) && !/Coverage and FX/.test(L.serialize(built['mw-cost'])), 'no Coverage and FX tile');
 for (const id of [2, 3, 4]) assert.deepEqual(cost.panels.find(p => p.id === id).targets.map(t => t.panelId), [1], 'provider tile ' + id + ' reads TOTAL');
@@ -325,8 +325,10 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
   if (p.type === 'bargauge') assert.ok(p.options.text.titleSize >= 16 && p.options.text.valueSize >= 22, key + ' bar gauge text');
   if (p.type === 'table') assert.equal(p.options.cellHeight, 'md', key + ' table rows md');
   for (const screen of ['desktop', 'phone']) {
-    const errors = p.type === 'stat' ? M.checkStat(p, screen, MODEL[key] || {}) : p.type === 'bargauge' && key !== 'mw-pwa:30' ? M.checkGauge(p, screen)
-      : p.type === 'table' && TABLE_ROWS[key] ? M.checkTable(p, screen, TABLE_ROWS[key]) : p.type === 'state-timeline' ? M.checkTimeline(p, screen) : [];
+    // FINAL2-1/2: every panel title fits its one line, every timeline lane label its label axis.
+    const errors = (p.type === 'stat' ? M.checkStat(p, screen, MODEL[key] || {}) : p.type === 'bargauge' && key !== 'mw-pwa:30' ? M.checkGauge(p, screen)
+      : p.type === 'table' && TABLE_ROWS[key] ? M.checkTable(p, screen, TABLE_ROWS[key]) : p.type === 'state-timeline' ? M.checkTimeline(p, screen) : [])
+      .concat(M.checkTitle(p, screen));
     assert.deepEqual(errors, [], key + ' (' + p.title + ') fits at ' + screen);
     modelled++;
   }
@@ -340,7 +342,11 @@ const rowOf = id => { let current; for (const p of agent) { if (p.type === 'row'
 assert.deepEqual([1, 2, 14, 6, 12, 7, 8, 3, 4, 5, 15, 9, 10, 11, 13].map(rowOf), ['Receipt pipeline', 'Receipt pipeline', 'Receipt pipeline', 'Receipt recognizer',
   'Receipt recognizer', 'Receipt recognizer', 'Receipt recognizer', 'Partner conversation', 'Partner conversation', 'Partner conversation', 'Partner conversation',
   'Agent workers and timers', 'Connectivity and providers', 'Connectivity and providers', 'Connectivity and providers']);
-for (const p of agent) if (p.type !== 'row' && p.id !== 11) assert.ok(/^(Receipt pipeline|Receipts|Recognizer|Conversation|Agent workers|Connectivity|Webhook receiver) /.test(p.title), 'mw-agent ' + p.id + ' title names its component: ' + p.title);
+for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Receipts|Recognizer|Conversation|Agent workers|Connectivity|Providers) /.test(p.title), 'mw-agent ' + p.id + ' title names its component: ' + p.title);
+// FINAL2-1: the PWA scheduler lanes carry short names that fit the label axis.
+assert.deepEqual(panelOf('mw-pwa', 20).targets.map(t => t.columns[1].text), ['Notify · 1 min', 'Charges · 00:05', 'Analytics · hourly']);
+// FINAL2-4: Infrastructure chart legends are lists below the chart with the full names.
+for (const {panel: p} of allPanels(built['mw-infra'].spec)) if (p.type === 'timeseries') assert.deepEqual(p.options.legend, {calcs: [], displayMode: 'list', placement: 'bottom', showLegend: true}, 'mw-infra ' + p.id + ' legend');
 // Provider status: Railway (Instatus) and Google Cloud; OpenAI is no longer read by the new dashboards.
 for (const [uid, id] of [['mw-now', 17], ['mw-agent', 11]]) {
   const p = panelOf(uid, id);

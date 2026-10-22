@@ -323,7 +323,7 @@
             }
           }
         ],
-        "title": "TOTAL · month to date",
+        "title": "Total · this month",
         "transformations": [
           {
             "id": "merge",
@@ -1430,7 +1430,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else\n  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\") | fromdateiso8601) - 28800) * 1000), USD: .[0]}] |\n  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end",
+            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else\n  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\") | fromdateiso8601) + 14400) * 1000), USD: .[0]}] |\n  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end",
             "source": "url",
             "type": "json",
             "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
@@ -1467,7 +1467,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "B",
-            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else\n  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\") | fromdateiso8601) - 28800) * 1000), USD: .[0]}] |\n  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end",
+            "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") elif (.properties.rows|type)!=\"array\" then error(\"Azure cost response unavailable\") elif any(.properties.rows[];.[3]!=\"USD\") then error(\"Unexpected Azure currency\") else\n  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\") | fromdateiso8601) + 14400) * 1000), USD: .[0]}] |\n  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end",
             "source": "url",
             "type": "json",
             "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
@@ -1504,7 +1504,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "C",
-            "root_selector": "[\nif (.jobComplete != true) then error(\"Billing query is still running; refresh later\") elif .pageToken then error(\"Billing result truncated; shorten time range\") else .rows[]? | {Date:(if .f[0].v == null then null else ((.f[0].v|tonumber)*1000) end),Gross:(.f[1].v|if .==null then null else tonumber end),Credits:(.f[2].v|if .==null then null else tonumber end),Net:(.f[3].v|if .==null then null else tonumber end),Service:.f[4].v,Resource:.f[5].v,Currency:.f[6].v} end] | if any(.[]; .Currency != null and .Currency != \"SGD\") then error(\"Unexpected GCP currency\") else\n  map(select(.Net != null and .Date != null)) | group_by(.Date)[] | {Time: .[0].Date, GCP: (map(.Net) | add)} end",
+            "root_selector": "[\nif (.jobComplete != true) then error(\"Billing query is still running; refresh later\") elif .pageToken then error(\"Billing result truncated; shorten time range\") else .rows[]? | {Date:(if .f[0].v == null then null else ((.f[0].v|tonumber)*1000) end),Gross:(.f[1].v|if .==null then null else tonumber end),Credits:(.f[2].v|if .==null then null else tonumber end),Net:(.f[3].v|if .==null then null else tonumber end),Service:.f[4].v,Resource:.f[5].v,Currency:.f[6].v} end] | if any(.[]; .Currency != null and .Currency != \"SGD\") then error(\"Unexpected GCP currency\") else\n  map(select(.Net != null and .Date != null)) | group_by(.Date)[] | {Time: (.[0].Date + 43200000), GCP: (map(.Net) | add)} end",
             "source": "url",
             "type": "json",
             "url": "https://bigquery.googleapis.com/bigquery/v2/projects/clever-oasis-508610-n7/queries",
@@ -1535,7 +1535,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "E",
-            "root_selector": "def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; 32) | $t - . * 86400;\n(\nif .base!=\"USD\" or .quote!=\"SGD\" or (.rate|type)!=\"number\" or .rate<=0 then error(\"Invalid USD/SGD reference rate\") elif (now-(.date+\"T00:00:00Z\"|fromdateiso8601))>604800 then error(\"FX reference older than seven days\") else {Category:\"Reported costs\",FX:.rate,FXDate:.date} end\n) | .FX as $fx | sgtdays | {Time: (. * 1000), FX: $fx}",
+            "root_selector": "def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; 32) | $t - . * 86400;\n(\nif .base!=\"USD\" or .quote!=\"SGD\" or (.rate|type)!=\"number\" or .rate<=0 then error(\"Invalid USD/SGD reference rate\") elif (now-(.date+\"T00:00:00Z\"|fromdateiso8601))>604800 then error(\"FX reference older than seven days\") else {Category:\"Reported costs\",FX:.rate,FXDate:.date} end\n) | .FX as $fx | sgtdays | {Time: ((. + 43200) * 1000), FX: $fx}",
             "source": "url",
             "type": "json",
             "url": "https://api.frankfurter.dev/v2/providers/ecb/rate/USD/SGD",
@@ -1563,7 +1563,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "F",
-            "root_selector": "def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; 32) | $t - . * 86400;\ndef monthdays: (. + 28800 | gmtime) as $g | ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400);\n(\n# GCP budget \"Budget-GCP\" from the Cloud Billing Budget API v1\n# (GET billingbudgets.googleapis.com/v1/billingAccounts/<account>/budgets), one row:\n#   Name   display name, null when none\n#   Kind   \"specified\", \"last period\" or \"none\" (no budget named Budget-GCP; never 0)\n#   SGD    monthly amount, units + nanos / 1e9, null unless Kind is \"specified\"\n#   Scope  \"whole billing account\" (no project filter) or the projects it is limited to\n# Errors, never a value: provider error, truncated list (nextPageToken), unreadable response,\n# several budgets named Budget-GCP, a budget that is not monthly, a currency other than SGD.\nif type != \"object\" then error(\"Budget response unavailable\")\nelif .error then error(\"Budget API error: \" + ((.error.message // .error.status // .error) | tostring))\nelif (.nextPageToken // \"\") != \"\" then error(\"Budget list truncated\")\nelif (.budgets // []) | type != \"array\" then error(\"Budget response unavailable\")\nelse\n  [(.budgets // [])[] | select(.displayName == \"Budget-GCP\")] as $mine |\n  if ($mine | length) == 0 then {Name: null, Kind: \"none\", SGD: null, Scope: null}\n  elif ($mine | length) > 1 then error(\"Several GCP budgets named Budget-GCP\")\n  else\n    $mine[0] as $b | $b.displayName as $name |\n    ((($b.budgetFilter.projects // []) | if length == 0 then \"whole billing account\" else \"projects \" + join(\", \") end) +\n      (if (($b.budgetFilter.services // []) | length) > 0 then \" · selected services\" else \"\" end)) as $scope |\n    if $b.budgetFilter.customPeriod != null or ($b.budgetFilter.calendarPeriod // \"MONTH\") != \"MONTH\" then error(\"GCP budget \" + $name + \" is not monthly\")\n    elif $b.amount.lastPeriodAmount != null then {Name: $name, Kind: \"last period\", SGD: null, Scope: $scope}\n    elif ($b.amount.specifiedAmount | type) != \"object\" then error(\"GCP budget \" + $name + \" has no amount\")\n    elif $b.amount.specifiedAmount.currencyCode != \"SGD\" then error(\"GCP budget currency is not SGD\")\n    else {Name: $name, Kind: \"specified\", Scope: $scope,\n      SGD: ((($b.amount.specifiedAmount.units // \"0\") | tonumber) + (($b.amount.specifiedAmount.nanos // 0) / 1000000000))}\n    end\n  end\nend\n) as $b |\nif $b.Kind != \"specified\" then empty elif $b.Scope != \"whole billing account\" then error(\"GCP budget scope is \" + $b.Scope + \", not the whole billing account\") else sgtdays | {Time: (. * 1000), Budget: ($b.SGD / monthdays)} end",
+            "root_selector": "def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; 32) | $t - . * 86400;\ndef monthdays: (. + 28800 | gmtime) as $g | ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400);\n(\n# GCP budget \"Budget-GCP\" from the Cloud Billing Budget API v1\n# (GET billingbudgets.googleapis.com/v1/billingAccounts/<account>/budgets), one row:\n#   Name   display name, null when none\n#   Kind   \"specified\", \"last period\" or \"none\" (no budget named Budget-GCP; never 0)\n#   SGD    monthly amount, units + nanos / 1e9, null unless Kind is \"specified\"\n#   Scope  \"whole billing account\" (no project filter) or the projects it is limited to\n# Errors, never a value: provider error, truncated list (nextPageToken), unreadable response,\n# several budgets named Budget-GCP, a budget that is not monthly, a currency other than SGD.\nif type != \"object\" then error(\"Budget response unavailable\")\nelif .error then error(\"Budget API error: \" + ((.error.message // .error.status // .error) | tostring))\nelif (.nextPageToken // \"\") != \"\" then error(\"Budget list truncated\")\nelif (.budgets // []) | type != \"array\" then error(\"Budget response unavailable\")\nelse\n  [(.budgets // [])[] | select(.displayName == \"Budget-GCP\")] as $mine |\n  if ($mine | length) == 0 then {Name: null, Kind: \"none\", SGD: null, Scope: null}\n  elif ($mine | length) > 1 then error(\"Several GCP budgets named Budget-GCP\")\n  else\n    $mine[0] as $b | $b.displayName as $name |\n    ((($b.budgetFilter.projects // []) | if length == 0 then \"whole billing account\" else \"projects \" + join(\", \") end) +\n      (if (($b.budgetFilter.services // []) | length) > 0 then \" · selected services\" else \"\" end)) as $scope |\n    if $b.budgetFilter.customPeriod != null or ($b.budgetFilter.calendarPeriod // \"MONTH\") != \"MONTH\" then error(\"GCP budget \" + $name + \" is not monthly\")\n    elif $b.amount.lastPeriodAmount != null then {Name: $name, Kind: \"last period\", SGD: null, Scope: $scope}\n    elif ($b.amount.specifiedAmount | type) != \"object\" then error(\"GCP budget \" + $name + \" has no amount\")\n    elif $b.amount.specifiedAmount.currencyCode != \"SGD\" then error(\"GCP budget currency is not SGD\")\n    else {Name: $name, Kind: \"specified\", Scope: $scope,\n      SGD: ((($b.amount.specifiedAmount.units // \"0\") | tonumber) + (($b.amount.specifiedAmount.nanos // 0) / 1000000000))}\n    end\n  end\nend\n) as $b |\nif $b.Kind != \"specified\" then empty elif $b.Scope != \"whole billing account\" then error(\"GCP budget scope is \" + $b.Scope + \", not the whole billing account\") else sgtdays | {Time: ((. + 43200) * 1000), Budget: ($b.SGD / monthdays)} end",
             "source": "url",
             "type": "json",
             "url": "https://billingbudgets.googleapis.com/v1/billingAccounts/0125EC-78CB0F-A74AAD/budgets",
@@ -1679,7 +1679,20 @@
             },
             "unit": "prefix:S$"
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "SGD"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 110
+                }
+              ]
+            }
+          ]
         },
         "gridPos": {
           "h": 15,
@@ -1730,19 +1743,29 @@
             "url_options": {
               "body_content_type": "application/json",
               "body_type": "raw",
-              "data": "{\"location\":\"US\",\"query\":\"DECLARE export_table STRING;\\nSET export_table=(SELECT table_name FROM `clever-oasis-508610-n7.mw_cloud_billing.INFORMATION_SCHEMA.TABLES` WHERE STARTS_WITH(table_name,'gcp_billing_export_resource_v1_') ORDER BY table_name LIMIT 1);\\nIF export_table IS NULL THEN\\n SELECT CAST(NULL AS STRING) AS Service, CAST(NULL AS FLOAT64) AS Gross, CAST(NULL AS FLOAT64) AS Credits, 'SGD' AS Currency;\\nELSE\\n EXECUTE IMMEDIATE FORMAT('''SELECT CASE WHEN STARTS_WITH(service.description,'Cloud SQL') THEN 'Cloud SQL' WHEN STARTS_WITH(service.description,'Cloud Run') THEN 'Cloud Run' WHEN STARTS_WITH(service.description,'Vertex AI') THEN 'Vertex AI' WHEN service.description='Compute Engine' THEN 'Compute Engine' WHEN STRPOS(service.description,'Monitoring')>0 OR STRPOS(service.description,'Logging')>0 THEN 'Cloud Monitoring and Logging' WHEN STRPOS(service.description,'Network')>0 THEN 'Networking' WHEN STRPOS(service.description,'Firestore')>0 THEN 'Firestore' WHEN service.description='Cloud Storage' THEN 'Cloud Storage' ELSE 'other' END AS Service, SUM(cost) AS Gross, SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Credits, currency AS Currency FROM `clever-oasis-508610-n7.mw_cloud_billing.%s` WHERE project.id='clever-oasis-508610-n7' AND usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}') GROUP BY Service, Currency''',export_table);\\nEND IF;\",\"useQueryCache\":true,\"useLegacySql\":false,\"maximumBytesBilled\":\"100000000\",\"timeoutMs\":20000,\"maxResults\":10000}",
+              "data": "{\"location\":\"US\",\"query\":\"DECLARE export_table STRING;\\nSET export_table=(SELECT table_name FROM `clever-oasis-508610-n7.mw_cloud_billing.INFORMATION_SCHEMA.TABLES` WHERE STARTS_WITH(table_name,'gcp_billing_export_resource_v1_') ORDER BY table_name LIMIT 1);\\nIF export_table IS NULL THEN\\n SELECT CAST(NULL AS STRING) AS Service, CAST(NULL AS FLOAT64) AS Gross, CAST(NULL AS FLOAT64) AS Credits, 'SGD' AS Currency;\\nELSE\\n EXECUTE IMMEDIATE FORMAT('''SELECT CASE WHEN STARTS_WITH(service.description,'Cloud SQL') THEN 'Cloud SQL' WHEN STARTS_WITH(service.description,'Cloud Run') THEN 'Cloud Run' WHEN STARTS_WITH(service.description,'Vertex AI') THEN 'Vertex AI' WHEN service.description='Compute Engine' THEN 'Compute Engine' WHEN STRPOS(service.description,'Monitoring')>0 OR STRPOS(service.description,'Logging')>0 THEN 'Monitoring and Logging' WHEN STRPOS(service.description,'Network')>0 THEN 'Networking' WHEN STRPOS(service.description,'Firestore')>0 THEN 'Firestore' WHEN service.description='Cloud Storage' THEN 'Cloud Storage' ELSE 'other' END AS Service, SUM(cost) AS Gross, SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Credits, currency AS Currency FROM `clever-oasis-508610-n7.mw_cloud_billing.%s` WHERE project.id='clever-oasis-508610-n7' AND usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}') GROUP BY Service, Currency''',export_table);\\nEND IF;\",\"useQueryCache\":true,\"useLegacySql\":false,\"maximumBytesBilled\":\"100000000\",\"timeoutMs\":20000,\"maxResults\":10000}",
               "method": "POST"
             }
           }
         ],
         "title": "GCP by service · net",
-        "transformations": [],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "indexByName": {
+                "SGD": 1,
+                "Service": 0
+              }
+            }
+          }
+        ],
         "type": "table"
       },
       {
         "description": "How to read every figure on this dashboard: Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date and Railway always shows its current cycle, so the top row is not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.",
         "gridPos": {
-          "h": 6,
+          "h": 4,
           "w": 24,
           "x": 0,
           "y": 23
@@ -1766,7 +1789,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 29
+          "y": 27
         },
         "id": 10,
         "panels": [
@@ -1803,7 +1826,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 30
+              "y": 28
             },
             "id": 102,
             "options": {
@@ -1944,7 +1967,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 30
+              "y": 28
             },
             "id": 103,
             "options": {
@@ -2079,7 +2102,7 @@
               "h": 7,
               "w": 8,
               "x": 0,
-              "y": 34
+              "y": 32
             },
             "id": 104,
             "options": {
@@ -2193,7 +2216,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 41
+              "y": 39
             },
             "id": 101,
             "options": {
@@ -2298,7 +2321,7 @@
                 }
               }
             ],
-            "title": "Azure · daily resource detail (USD)",
+            "title": "Azure · daily detail (USD)",
             "transformations": [
               {
                 "id": "merge",
@@ -2387,7 +2410,7 @@
               "h": 8,
               "w": 24,
               "x": 0,
-              "y": 50
+              "y": 48
             },
             "id": 110,
             "options": {
@@ -2444,7 +2467,7 @@
                 }
               }
             ],
-            "title": "VM-01 · observed running & available hours by day",
+            "title": "VM-01 · running hours by day",
             "type": "barchart"
           }
         ],
@@ -2457,7 +2480,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 30
+          "y": 28
         },
         "id": 20,
         "panels": [
@@ -2494,7 +2517,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 31
+              "y": 29
             },
             "id": 202,
             "options": {
@@ -2613,7 +2636,7 @@
               "h": 4,
               "w": 8,
               "x": 8,
-              "y": 31
+              "y": 29
             },
             "id": 203,
             "options": {
@@ -2732,7 +2755,7 @@
               "h": 4,
               "w": 8,
               "x": 16,
-              "y": 31
+              "y": 29
             },
             "id": 204,
             "options": {
@@ -2824,7 +2847,7 @@
               "h": 3,
               "w": 24,
               "x": 0,
-              "y": 35
+              "y": 33
             },
             "id": 205,
             "options": {
@@ -2898,7 +2921,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 38
+              "y": 36
             },
             "id": 207,
             "options": {
@@ -3051,7 +3074,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 38
+              "y": 36
             },
             "id": 206,
             "options": {
@@ -3093,7 +3116,7 @@
                 "withTransforms": false
               }
             ],
-            "title": "GCP · daily cost and credits (SGD)",
+            "title": "GCP · daily cost (SGD)",
             "transformations": [
               {
                 "id": "filterByValue",
@@ -3210,7 +3233,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 49
+              "y": 47
             },
             "id": 201,
             "options": {
@@ -3317,7 +3340,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 31
+          "y": 29
         },
         "id": 30,
         "panels": [
@@ -3354,7 +3377,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 32
+              "y": 30
             },
             "id": 302,
             "options": {
@@ -3402,7 +3425,7 @@
                 "withTransforms": false
               }
             ],
-            "title": "Railway · accrued resource usage",
+            "title": "Railway · accrued usage",
             "transformations": [
               {
                 "id": "filterFieldsByName",
@@ -3474,7 +3497,7 @@
               "h": 4,
               "w": 16,
               "x": 8,
-              "y": 32
+              "y": 30
             },
             "id": 301,
             "options": {
@@ -3536,7 +3559,7 @@
                 }
               }
             ],
-            "title": "Railway · billing period and accrued usage",
+            "title": "Railway · billing period",
             "type": "table"
           },
           {
@@ -3545,7 +3568,7 @@
               "h": 5,
               "w": 24,
               "x": 0,
-              "y": 36
+              "y": 34
             },
             "id": 303,
             "options": {
@@ -3619,7 +3642,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 41
+              "y": 39
             },
             "id": 304,
             "options": {
@@ -3666,7 +3689,7 @@
                 }
               }
             ],
-            "title": "Railway · by resource (USD est.)",
+            "title": "Railway · resources (USD est.)",
             "transformations": [
               {
                 "id": "sortBy",
@@ -3765,7 +3788,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 41
+              "y": 39
             },
             "id": 305,
             "options": {
@@ -3829,7 +3852,7 @@
                 }
               }
             ],
-            "title": "Railway · estimated daily compute + volume (USD)",
+            "title": "Railway · daily estimate (USD)",
             "type": "timeseries"
           }
         ],

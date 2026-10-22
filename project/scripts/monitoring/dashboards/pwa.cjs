@@ -25,8 +25,8 @@ function hosting() {
 function apiHealth() {
   const q = (refId, name, component) => target(refId, DS.gcp, monitoringUrl(customFilter('health', {component})), L.stateSelector(1),
     [col('time', 'Time', 'timestamp'), col('value', name)], {format: 'timeseries'});
-  return L.stat({id: 2, title: 'API health · reader and command', gridPos: pos(8, 0, 8, TOP),
-    description: 'Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s), plus the authenticated native OLTP and OLAP probes that always target PROD. Grey after 6 minutes without a report.',
+  return L.stat({id: 2, title: 'API health', gridPos: pos(8, 0, 8, TOP),
+    description: 'Reader and command API health: Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s), plus the authenticated native OLTP and OLAP probes that always target PROD. Grey after 6 minutes without a report.',
     targets: [q('A', 'Reader', 'pwa_api_reader_${env}'), q('B', 'Command', 'pwa_api_command_${env}'),
       q('C', 'Native OLTP · PROD', 'oltp'), q('D', 'Native OLAP · PROD', 'olap')],
     defaults: {mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
@@ -80,12 +80,12 @@ function workers() {
   const y = TOP + SERVICES.length * 7;
   const header = L.row({id: 19, title: 'Workers', gridPos: pos(0, y, 24, 1)});
   const scheduler = L.stateTimeline({id: 20, title: 'Cloud Scheduler attempts', gridPos: pos(0, y + 1, 8, WORKERS),
-    description: 'Log-based mw_scheduler_attempts_${env} per 5 minutes: green only successful attempts, red any failed attempt (status not OK or HTTP not 2xx). Each attempt\'s state holds until the job\'s next expected run (every minute: 2 min, hourly: 65 min, daily: 25 h); before the first attempt and after that the row is empty, with no label. DEV jobs are paused.',
+    description: 'Log-based mw_scheduler_attempts_${env} per 5 minutes for the jobs notifications (Notify, every minute), daily-charges (Charges, 00:05) and recent-analytics (Analytics, hourly): green only successful attempts, red any failed attempt (status not OK or HTTP not 2xx). Each attempt\'s state holds until the job\'s next expected run (every minute: 2 min, hourly: 65 min, daily: 25 h); before the first attempt and after that the row is empty, with no label. DEV jobs are paused.',
     noValue: 'No attempt',
-    rows: [L.schedulerRow('notifications · every minute', '${env}', 'notifications', 'minute'), L.schedulerRow('daily charges · 00:05', '${env}', 'daily-charges', 'daily'),
-      L.schedulerRow('recent analytics · hourly', '${env}', 'recent-analytics', 'hourly')]});
+    rows: [L.schedulerRow('Notify · 1 min', '${env}', 'notifications', 'minute'), L.schedulerRow('Charges · 00:05', '${env}', 'daily-charges', 'daily'),
+      L.schedulerRow('Analytics · hourly', '${env}', 'recent-analytics', 'hourly')]});
   const pushFields = [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
-    {key: 'delivered_24h', label: 'Sent 24h'}, {key: 'failed_24h', label: 'Failed · 24 h'}];
+    {key: 'delivered_24h', label: 'Sent · 24 h'}, {key: 'failed_24h', label: 'Failed · 24 h'}];
   const push = L.stat({id: 21, title: 'Push delivery', gridPos: pos(8, y + 1, 8, WORKERS),
     description: 'PROD only: worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1(); pending counts pending and retry, failed counts dead and uncertain completed in 24 h. Oldest pending red above 900 s (the alert value).',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})), prodOnly(jq('ops-health.jq', {FIELDS: pushFields})),

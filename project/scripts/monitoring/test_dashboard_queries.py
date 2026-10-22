@@ -500,6 +500,38 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertEqual(run(sel.replace('${env}', 'dev'), {}), [])
         self.assertEqual(set(run(sel.replace('${env}', 'prod'), {})[0].values()), {None})
 
+    def test_scan_keeps_the_newest_completion_in_the_window(self):
+        sel = self.panel('mw-now', 4)['targets'][0]['root_selector']
+        self.assertEqual(sel, self.panel('mw-agent', 1)['targets'][0]['root_selector'])
+        done = int(time.time()) - 720
+        # A scan is running now (last_completion 0 in the newest run); the previous completion 12 minutes ago is kept.
+        data = {'timeSeries': [series([point(240, 1), point(0, 1)], field='status'),
+                               series([point(240, done), point(0, 0)], field='last_completion')]}
+        self.assertEqual(run(sel, data), [{'details': 'Last scan completion', 'status': done * 1000}])
+        # Freshness unchanged: a stale status sample gives no time; no positive completion gives none either.
+        stale = {'timeSeries': [series([point(400, 1)], field='status'), series([point(400, done)], field='last_completion')]}
+        self.assertEqual(run(sel, stale)[0]['status'], None)
+        self.assertEqual(run(sel, {'timeSeries': [series([point(0, 1)], field='status'), series([point(0, 0)], field='last_completion')]})[0]['status'], None)
+        with self.assertRaises(ValueError):
+            run(sel, {'nextPageToken': 'x'})
+
+    def test_metabase_backup_rows_carry_their_age(self):
+        targets = self.panel('mw-now', 19)['targets']
+        created = stamp(5 * 3600)
+        data = {'data': {'volumeInstanceBackupScheduleList': [{'id': 'd', 'kind': 'DAILY', 'cron': '0 3 * * *', 'retentionSeconds': 604800, 'createdAt': stamp(864000)},
+                                                              {'id': 'w', 'kind': 'WEEKLY', 'cron': '0 4 * * 0', 'retentionSeconds': 2419200, 'createdAt': stamp(864000)}],
+                         'volumeInstanceBackupList': [{'scheduleId': 'd', 'createdAt': created}, {'scheduleId': 'w', 'createdAt': stamp(3 * 86400)}]}}
+        daily, weekly = run(targets[1]['root_selector'], data)[0], run(targets[2]['root_selector'], data)[0]
+        self.assertEqual((daily['Source'], daily['State']), ('Metabase daily', 1))
+        self.assertAlmostEqual(daily['Age'], 5 * 3600, delta=5)
+        self.assertEqual(weekly['Source'], 'Metabase weekly')
+        self.assertAlmostEqual(weekly['Age'], 3 * 86400, delta=5)
+        # No scheduled snapshot or an API error: no age, and the state says why (never OK without an age).
+        none = run(targets[1]['root_selector'], {'data': {'volumeInstanceBackupScheduleList': data['data']['volumeInstanceBackupScheduleList'], 'volumeInstanceBackupList': []}})[0]
+        self.assertEqual((none['Age'], none['State']), (None, 0))
+        err = run(targets[1]['root_selector'], {'errors': [{'message': 'x'}]})[0]
+        self.assertEqual((err['Age'], err['State']), (None, 4))
+
     def test_payment_stage_selectors(self):
         p = self.panel('mw-now', 4)
         scan = run(p['targets'][0]['root_selector'], {})
@@ -611,7 +643,7 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertEqual(len(rows), 32)
         for r in rows:
             d = dt.datetime.fromtimestamp(r['Time'] / 1000, dt.timezone(dt.timedelta(hours=8)))
-            self.assertEqual((d.hour, d.minute), (0, 0))
+            self.assertEqual((d.hour, d.minute), (12, 0), 'bars at Singapore noon')
             first = d.date().replace(day=1)
             days = ((first + dt.timedelta(days=32)).replace(day=1) - first).days
             self.assertAlmostEqual(r['Budget'], 20 / days)
@@ -631,11 +663,12 @@ class GeneratedSelectors(unittest.TestCase):
         targets = {t['refId']: t for t in self.panel('mw-cost', 6)['targets']}
         today = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).date()
         day = today - dt.timedelta(days=3)
-        key = sgt_midnight_ms(day)
+        midnight = sgt_midnight_ms(day)
+        key = midnight + 12 * 3600 * 1000  # FINAL2-8: each date at Singapore noon, so the first bar is not cut
         ymd = int(day.strftime('%Y%m%d'))
         azure = {'properties': {'rows': [[1.0, ymd, '/vm', 'USD'], [0.5, ymd, '/disk', 'USD']]}}
         backup = {'properties': {'rows': [[0.25, ymd, '/vault', 'USD']]}}
-        gcp = {'jobComplete': True, 'rows': [{'f': [{'v': '%.7E' % (key / 1000)}, {'v': '3'}, {'v': '-1'}, {'v': v}, {'v': 'S'}, {'v': 'R'}, {'v': 'SGD'}]} for v in ('2', '0.5')]}
+        gcp = {'jobComplete': True, 'rows': [{'f': [{'v': '%.7E' % (midnight / 1000)}, {'v': '3'}, {'v': '-1'}, {'v': v}, {'v': 'S'}, {'v': 'R'}, {'v': 'SGD'}]} for v in ('2', '0.5')]}
         fx = {'base': 'USD', 'quote': 'SGD', 'rate': 1.3, 'date': str(dt.datetime.now(dt.timezone.utc).date())}
         names = {'A': 'Azure compute USD', 'B': 'Azure backup USD', 'C': 'GCP', 'E': 'SGD per USD'}
         fields = {'A': 'USD', 'B': 'USD', 'C': 'GCP', 'E': 'FX'}

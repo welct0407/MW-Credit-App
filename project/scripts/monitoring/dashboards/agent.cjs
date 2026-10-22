@@ -14,7 +14,7 @@ const ROW = {pipeline: 0, recognizer: 16, conversation: 28, workers: 42, connect
 // stage field), stage names per AGENT-2 shortened for the larger text; today's panel 108 beside it as panel 2.
 function pipeline() {
   const y = ROW.pipeline;
-  const reviews = L.stat({id: 14, title: 'Receipts · open ingress reviews', gridPos: pos(0, y + 13, 8, 3),
+  const reviews = L.stat({id: 14, title: 'Receipts · ingress reviews', gridPos: pos(0, y + 13, 8, 3),
     description: 'Debian receipt pipeline snapshot receipt_pipeline{ingress_review_open}: ingress items waiting for review; orange above 0.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('receipt_pipeline')), L.receiptFields([['ingress_review_open', 'Open ingress reviews']]),
       [col('ingress_review_open', 'Open ingress reviews')])],
@@ -26,7 +26,7 @@ function pipeline() {
         ['pending_reviews', 'Reviews waiting'], ['unconfirmed_postings', 'Posting unconfirmed', true],
         ['failed_notifications', 'Notify failures', true]],
       description: 'Instagram to recorded payment, Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling): group scan last run, receipts waiting for extraction, validation holds, reviewer decisions waiting, unconfirmed payment postings and notification failures. Today\'s rules: holds, unconfirmed postings and notification failures turn red above 0, normal reviewer waiting is not failure, Paused does not page. Unconfirmed postings need reconciliation, never a repeated Add.'}),
-    L.lift(L.PERF, 108, {id: 2, gridPos: pos(8, y + 1, 16, 15), title: 'Receipt pipeline · queue over time'}),
+    L.lift(L.PERF, 108, {id: 2, gridPos: pos(8, y + 1, 16, 15), title: 'Receipts · queue over time'}),
     reviews];
 }
 
@@ -48,7 +48,7 @@ function recognizer() {
     targets: [ops('A', 'recognizer', [{key: 'extractions_24h', label: 'Extractions'}, {key: 'valid_24h', label: 'Valid'},
       {key: 'timeouts_24h', label: 'Timed out'}, {key: 'unreadable_24h', label: 'Unreadable'}])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]}});
-  const time = L.timeseries({id: 8, title: 'Recognizer · extraction time (s)', gridPos: pos(16, y + 1, 8, 11),
+  const time = L.timeseries({id: 8, title: 'Recognizer · extraction time', gridPos: pos(16, y + 1, 8, 11),
     description: 'Debian collector worker_timing{recognizer_call}: the newest extraction completed since each run, at its end time; red dashed line = the 25 s per-attempt bound.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'recognizer_call', field: 'seconds'})), L.numericSelector(),
       [col('time', 'Time', 'timestamp'), col('value', 'Extraction')], {format: 'timeseries'})],
@@ -70,7 +70,8 @@ function conversation() {
     description: 'Debian collector worker_timing{conversation_turn}: one bar per completed turn at its end time, height = capture to reply in seconds, one series per provider. At most one turn per 2-minute collector run is plotted.',
     targets: providers.map(([code, name], i) => target(String.fromCharCode(65 + i), DS.gcp, wt('conversation_turn'),
       jq('turn-points.jq', {VALUE: 'seconds', KEY: 'provider', CODE: String(code)}), [col('time', 'Time', 'timestamp'), col('value', name)], {format: 'timeseries'})),
-    defaults: {unit: 's', min: 0, noValue: 'No turns in selected range', custom: {drawStyle: 'bars', fillOpacity: 80, barAlignment: 0, lineWidth: 1}},
+    // FINAL2-7: one decimal, so axis ticks of whole minutes do not all read "2 mins".
+    defaults: {unit: 's', decimals: 1, min: 0, noValue: 'No turns in selected range', custom: {drawStyle: 'bars', fillOpacity: 80, barAlignment: 0, lineWidth: 1}},
     overrides: providers.map(([, name, color]) => byName(name, {color: {fixedColor: color, mode: 'fixed'}}))});
   const loop = L.stat({id: 5, title: 'Conversation · loop health', gridPos: pos(16, y + 1, 8, 10),
     description: 'Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.',
@@ -99,18 +100,18 @@ function workers() {
 
 function connectivity() {
   const y = ROW.connectivity;
-  const version = L.stat({id: 13, title: 'Webhook receiver · code version', gridPos: pos(16, y + 8, 8, 3),
-    description: 'Debian collector worker_timing{webhook_local, code_version_match}: 1 when the receiver\'s /ready code version equals the deployed commit.',
+  const version = L.stat({id: 13, title: 'Connectivity · code version', gridPos: pos(16, y + 10, 8, 3),
+    description: 'Webhook receiver code version. Debian collector worker_timing{webhook_local, code_version_match}: 1 when the receiver\'s /ready code version equals the deployed commit.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'webhook_local', field: 'code_version_match'})), L.stateSelector(1),
       [col('time', 'Time', 'timestamp'), col('value', 'Code version')], {format: 'timeseries'})],
     defaults: {mappings: valueMap([[0, 'Mismatch', COLOR.down], [1, 'Matches', COLOR.ok], [4, 'No report', COLOR.unknown]], 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
     options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, ...L.SINGLE_VALUE}});
   return [L.row({id: 24, title: 'Connectivity and providers', gridPos: pos(0, y, 24, 1)}),
-    L.stateTimeline({id: 10, title: 'Connectivity · webhook, tunnel and data path', gridPos: pos(0, y + 1, 16, 10),
+    L.stateTimeline({id: 10, title: 'Connectivity · edge and data', gridPos: pos(0, y + 1, 16, 12),
       description: 'Public webhook check from the Singapore checker (empty after 12 minutes without a report) and the Debian collector\'s tunnel, Tailscale, local ingress, database path and Codex readiness (empty after 6 minutes).',
       rows: [L.webhookRow('Webhook · Singapore'), L.healthRow('Cloudflare tunnel', 'tunnel'), L.healthRow('Tailscale', 'tailscale_node'),
         L.healthRow('Local ingress', 'webhook_local'), L.healthRow('Database path', 'database'), L.healthRow('Codex ready', 'codex_ready')]}),
-    L.providerStatus({id: 11, gridPos: pos(16, y + 1, 8, 7)}), version];
+    L.providerStatus({id: 11, title: 'Providers · status', gridPos: pos(16, y + 1, 8, 9)}), version];
 }
 
 function build() {

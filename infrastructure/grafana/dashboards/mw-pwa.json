@@ -202,7 +202,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s), plus the authenticated native OLTP and OLAP probes that always target PROD. Grey after 6 minutes without a report.",
+        "description": "Reader and command API health: Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s), plus the authenticated native OLTP and OLAP probes that always target PROD. Grey after 6 minutes without a report.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -459,7 +459,7 @@
             }
           }
         ],
-        "title": "API health · reader and command",
+        "title": "API health",
         "type": "stat"
       },
       {
@@ -3322,7 +3322,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Log-based mw_scheduler_attempts_${env} per 5 minutes: green only successful attempts, red any failed attempt (status not OK or HTTP not 2xx). Each attempt's state holds until the job's next expected run (every minute: 2 min, hourly: 65 min, daily: 25 h); before the first attempt and after that the row is empty, with no label. DEV jobs are paused.",
+        "description": "Log-based mw_scheduler_attempts_${env} per 5 minutes for the jobs notifications (Notify, every minute), daily-charges (Charges, 00:05) and recent-analytics (Analytics, hourly): green only successful attempts, red any failed attempt (status not OK or HTTP not 2xx). Each attempt's state holds until the job's next expected run (every minute: 2 min, hourly: 65 min, daily: 25 h); before the first attempt and after that the row is empty, with no label. DEV jobs are paused.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3330,6 +3330,7 @@
               "mode": "fixed"
             },
             "custom": {
+              "axisWidth": 160,
               "fillOpacity": 80,
               "hideFrom": {
                 "legend": false,
@@ -3393,7 +3394,7 @@
               "properties": [
                 {
                   "id": "displayName",
-                  "value": "notifications · every minute"
+                  "value": "Notify · 1 min"
                 }
               ]
             },
@@ -3405,7 +3406,7 @@
               "properties": [
                 {
                   "id": "displayName",
-                  "value": "daily charges · 00:05"
+                  "value": "Charges · 00:05"
                 }
               ]
             },
@@ -3417,7 +3418,7 @@
               "properties": [
                 {
                   "id": "displayName",
-                  "value": "recent analytics · hourly"
+                  "value": "Analytics · hourly"
                 }
               ]
             }
@@ -3456,7 +3457,7 @@
               },
               {
                 "selector": "value",
-                "text": "notifications · every minute",
+                "text": "Notify · 1 min",
                 "type": "number"
               }
             ],
@@ -3484,7 +3485,7 @@
               },
               {
                 "selector": "value",
-                "text": "daily charges · 00:05",
+                "text": "Charges · 00:05",
                 "type": "number"
               }
             ],
@@ -3512,7 +3513,7 @@
               },
               {
                 "selector": "value",
-                "text": "recent analytics · hourly",
+                "text": "Analytics · hourly",
                 "type": "number"
               }
             ],
@@ -3687,8 +3688,8 @@
                 "type": "number"
               },
               {
-                "selector": "Sent 24h",
-                "text": "Sent 24h",
+                "selector": "Sent · 24 h",
+                "text": "Sent · 24 h",
                 "type": "number"
               },
               {
@@ -3704,7 +3705,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "if \"${env}\" != \"prod\" then empty else (\n# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Sent 24h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Sent 24h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n) end",
+            "root_selector": "if \"${env}\" != \"prod\" then empty else (\n# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Sent · 24 h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"pending\",\"label\":\"Pending\"},{\"key\":\"oldest_pending_seconds\",\"label\":\"Oldest pending\"},{\"key\":\"delivered_24h\",\"label\":\"Sent · 24 h\"},{\"key\":\"failed_24h\",\"label\":\"Failed · 24 h\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n) end",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_notify%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",

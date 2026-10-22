@@ -21,7 +21,7 @@ function bigQueryBody(t, query) {
 function total() {
   const chain = sourceChain().filter(t => t.id !== 'filterFieldsByName' && t.id !== 'organize');
   return {
-    id: HOST, type: 'stat', title: 'TOTAL · month to date', gridPos: pos(0, 0, 6, 4),
+    id: HOST, type: 'stat', title: 'Total · this month', gridPos: pos(0, 0, 6, 4),
     description: 'SGD. Available costs only: the sum of the platforms that answered (Azure and GCP for the selected dates, Railway for its billing cycle), Azure and Railway converted from USD at the current ECB USD/SGD reference rate. When a platform cannot be read its tile shows the error and this total is incomplete (it then covers only the other platforms). Query host for the Azure, GCP and Railway tiles. The previous month\'s figure is below.',
     datasource: DS.mixed, targets: L.findPanel(COST, 2).targets.map(t => structuredClone(t)),
     transformations: [...chain,
@@ -88,11 +88,12 @@ const DAILY_DAYS = 32;
 const DAY_KEYS = 'def sgtdays: (now | ((. + 28800) / 86400 | floor) * 86400 - 28800) as $t | range(0; ' + DAILY_DAYS + ') | $t - . * 86400;\n';
 function budgetLineSelector() {
   return DAY_KEYS + 'def monthdays: (. + 28800 | gmtime) as $g | ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400);\n' +
-    budgetQuery() + ' as $b |\nif $b.Kind != "specified" then empty elif $b.Scope != "whole billing account" then error("GCP budget scope is " + $b.Scope + ", not the whole billing account") else sgtdays | {Time: (. * 1000), Budget: ($b.SGD / monthdays)} end';
+    budgetQuery() + ' as $b |\nif $b.Kind != "specified" then empty elif $b.Scope != "whole billing account" then error("GCP budget scope is " + $b.Scope + ", not the whole billing account") else sgtdays | {Time: ((. + 43200) * 1000), Budget: ($b.SGD / monthdays)} end';
 }
 /* COST-6 (owner review): one stacked daily chart in SGD over the dashboard's range (month to date by default,
  * the owner's billing month for Azure and GCP), Azure + GCP. Every query keys its rows by the Singapore date at
- * 00:00 SGT (epoch ms) under one field Time, so the merge transformation (as today's panel 2 merges on
+ * 12:00 SGT (epoch ms; noon, so each date's bar sits inside its day and the month's first bar is not cut at the
+ * range start, FINAL2-8) under one field Time, so the merge transformation (as today's panel 2 merges on
  * Category) puts one date on one row. Azure is converted with the month-to-date tiles' rule: today's panel 2
  * query E (current ECB USD/SGD reference, one rate for every day, repeated on each date row) and the same
  * binary calculateField steps. Railway is left out: its estimate exists only from its billing cycle's start
@@ -104,7 +105,7 @@ function dailyCost() {
   // The tiles' Custom timePeriod over the picker's range (provider UTC days).
   const azure = (t, refId, name) => ({...t, refId,
     root_selector: 'if .properties.nextLink then error("Cost response truncated; shorten time range") elif (.properties.rows|type)!="array" then error("Azure cost response unavailable") elif any(.properties.rows[];.[3]!="USD") then error("Unexpected Azure currency") else\n' +
-      '  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+"-"+.[4:6]+"-"+.[6:8]+"T00:00:00Z") | fromdateiso8601) - 28800) * 1000), USD: .[0]}] |\n' +
+      '  [.properties.rows[] | {Time: (((((.[1]|tostring)|.[0:4]+"-"+.[4:6]+"-"+.[6:8]+"T00:00:00Z") | fromdateiso8601) + 14400) * 1000), USD: .[0]}] |\n' +
       '  group_by(.Time)[] | {Time: .[0].Time, USD: (map(.USD) | add)} end',
     columns: [col('Time', 'Time', 'timestamp_epoch'), col('USD', name)]});
   // The tiles' BigQuery window over the picker's range, grouped by Singapore date.
@@ -112,10 +113,10 @@ function dailyCost() {
   if (!JSON.parse(g.url_options.data).query.includes(WINDOW)) throw Error('GCP daily query must keep the picker window');
   const gcp = {...g, refId: 'C',
     root_selector: '[\n' + g.root_selector + '] | if any(.[]; .Currency != null and .Currency != "SGD") then error("Unexpected GCP currency") else\n' +
-      '  map(select(.Net != null and .Date != null)) | group_by(.Date)[] | {Time: .[0].Date, GCP: (map(.Net) | add)} end',
+      '  map(select(.Net != null and .Date != null)) | group_by(.Date)[] | {Time: (.[0].Date + 43200000), GCP: (map(.Net) | add)} end',
     columns: [col('Time', 'Time', 'timestamp_epoch'), col('GCP', 'GCP')]};
   const rate = {...fx, refId: 'E',
-    root_selector: DAY_KEYS + '(\n' + fx.root_selector + '\n) | .FX as $fx | sgtdays | {Time: (. * 1000), FX: $fx}',
+    root_selector: DAY_KEYS + '(\n' + fx.root_selector + '\n) | .FX as $fx | sgtdays | {Time: ((. + 43200) * 1000), FX: $fx}',
     columns: [col('Time', 'Time', 'timestamp_epoch'), col('FX', 'SGD per USD')]};
   const budget = target('F', DS.gcp, BUDGET_URL, budgetLineSelector(), [col('Time', 'Time', 'timestamp_epoch'), col('Budget', BUDGET)]);
   const binary = (alias, left, operator, right) => ({id: 'calculateField', options: {alias, binary: {left, operator, right}, mode: 'binary', replaceFields: false}});
@@ -140,7 +141,7 @@ function byService() {
   const t = structuredClone(L.findPanel(COST, 2).targets[2]);
   const category = "CASE WHEN STARTS_WITH(service.description,'Cloud SQL') THEN 'Cloud SQL' WHEN STARTS_WITH(service.description,'Cloud Run') THEN 'Cloud Run' " +
     "WHEN STARTS_WITH(service.description,'Vertex AI') THEN 'Vertex AI' WHEN service.description='Compute Engine' THEN 'Compute Engine' " +
-    "WHEN STRPOS(service.description,'Monitoring')>0 OR STRPOS(service.description,'Logging')>0 THEN 'Cloud Monitoring and Logging' " +
+    "WHEN STRPOS(service.description,'Monitoring')>0 OR STRPOS(service.description,'Logging')>0 THEN 'Monitoring and Logging' " +
     "WHEN STRPOS(service.description,'Network')>0 THEN 'Networking' WHEN STRPOS(service.description,'Firestore')>0 THEN 'Firestore' " +
     "WHEN service.description='Cloud Storage' THEN 'Cloud Storage' ELSE 'other' END";
   const query = "DECLARE export_table STRING;\nSET export_table=(SELECT table_name FROM `clever-oasis-508610-n7.mw_cloud_billing.INFORMATION_SCHEMA.TABLES` WHERE STARTS_WITH(table_name,'gcp_billing_export_resource_v1_') ORDER BY table_name LIMIT 1);\n" +
@@ -151,7 +152,10 @@ function byService() {
   return L.table({id: 7, title: 'GCP by service · net', gridPos: pos(16, 8, 8, 15),
     description: 'SGD. BigQuery billing export for the selected dates grouped by service: cost before credits per service (Vertex AI is the variable line) and one Credits row, so the total is the net cost. Same 100 MB billed-query cap; a missing export shows no rows, not zero.',
     targets: [{...t, refId: 'A', root_selector: jq('gcp-by-service.jq'), columns: [col('Service', 'Service', 'string'), col('SGD', 'SGD')], url_options: bigQueryBody(t, query)}],
+    // FINAL2-8: Service first with the room it needs, the amount in a narrow right column.
+    transformations: [{id: 'organize', options: {indexByName: {Service: 0, SGD: 1}}}],
     defaults: {...SGD, noValue: 'No data'},
+    overrides: [byName('SGD', {'custom.width': 110})],
     options: {footer: {countRows: false, fields: ['SGD'], reducer: ['sum'], show: true}}});
 }
 
@@ -169,18 +173,21 @@ const DESCRIPTIONS = {
   303: 'How the Railway estimate is built from published rates.'
 };
 // Collapsed provider rows: today's panels unchanged, moved under their row with relative positions kept.
+// FINAL2-2: lifted titles shortened to one line on a phone.
+const ROW_TITLES = {101: 'Azure · daily detail (USD)', 110: 'VM-01 · running hours by day', 206: 'GCP · daily cost (SGD)',
+  302: 'Railway · accrued usage', 301: 'Railway · billing period', 304: 'Railway · resources (USD est.)', 305: 'Railway · daily estimate (USD)'};
 function providerRow(id, title, y, oldRowId, ids) {
   const oldRow = L.findPanel(COST, oldRowId);
   const children = ids.map(old => {
     const p = L.findPanel(COST, old);
     return L.lift(COST, old, {id: old, gridPos: pos(p.gridPos.x, y + 1 + p.gridPos.y - oldRow.gridPos.y - 1, p.gridPos.w, p.gridPos.h),
-      title: p.title, panelIds: {101: 101, 201: 201, 301: 301}});
+      title: ROW_TITLES[old] || p.title, panelIds: {101: 101, 201: 201, 301: 301}});
   }).map(p => (p.description ? p : {...p, description: DESCRIPTIONS[p.id]}));
   return L.row({id, title, gridPos: pos(0, y, 24, 1), collapsed: true, panels: children});
 }
 
 function rules() {
-  return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 23, 24, 6),
+  return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 23, 24, 4),
     description: 'How to read every figure on this dashboard: Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date and Railway always shows its current cycle, so the top row is not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.',
     content: 'Cost data is delayed and provisional, no data is not zero spending, and the top row combines provider periods (Azure UTC days, GCP Singapore dates, Railway cycle), so it is not an invoice. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.'});
 }
@@ -191,8 +198,8 @@ function build() {
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
     panels: [total(), platform(5, 2, 6, 'Azure'), platform(6, 3, 12, 'GCP'), platform(7, 4, 18, 'Railway'), lastMonth(), budgetTile(), dailyCost(), byService(),
       rules(),
-      providerRow(10, L.findPanel(COST, 306).title, 29, 306, [102, 103, 104, 101, 110]),
-      providerRow(20, L.findPanel(COST, 307).title, 30, 307, [202, 203, 204, 205, 207, 206, 201]),
-      providerRow(30, L.findPanel(COST, 308).title, 31, 308, [302, 301, 303, 304, 305])]});
+      providerRow(10, L.findPanel(COST, 306).title, 27, 306, [102, 103, 104, 101, 110]),
+      providerRow(20, L.findPanel(COST, 307).title, 28, 307, [202, 203, 204, 205, 207, 206, 201]),
+      providerRow(30, L.findPanel(COST, 308).title, 29, 308, [302, 301, 303, 304, 305])]});
 }
 module.exports = {build, HOST};

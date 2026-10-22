@@ -1,6 +1,8 @@
 /* READ-1 layout model: does every stat, bar gauge, table and timeline of a generated dashboard show its
- * text untruncated at 1440 px (Grafana's docked menu leaves about 1108 px of grid) and on a 390 px phone
- * (every panel full width, 358 px)? It follows Grafana's stat layout (VizRepeater rows for orientation
+ * text untruncated at 1440 px (Grafana's docked menu and side toolbar leave a 1024 px grid, measured on
+ * Echo's v8 screenshots: a 6-column panel is 250 px) and on a 390 px phone (every panel full width, 358 px)?
+ * FINAL2: panel titles (14 px, one line, beside the info icon and menu) and timeline lane labels (12 px,
+ * an axis of fixed width) are checked too. It follows Grafana's stat layout (VizRepeater rows for orientation
  * horizontal, BigValue wide layout when a cell is wider than 2.5 x its height: name left and wrapping, value
  * right; stacked otherwise; explicit text sizes are not auto-fitted) with conservative glyph widths. It is a
  * model, not a renderer: it catches overflow by arithmetic, a screenshot review still decides the look.
@@ -8,7 +10,7 @@
 'use strict';
 
 const GRID = {cellHeight: 30, margin: 8, header: 32, padding: 8};
-const SCREENS = {desktop: 1108, phone: 358};
+const SCREENS = {desktop: 1024, phone: 358};
 const GLYPH = {value: 0.6, title: 0.55};
 const LINE = 1.2;
 
@@ -120,7 +122,27 @@ function checkTable(panel, screen, rows) {
 function checkTimeline(panel, screen) {
   const box = contentBox(panel.gridPos, screen);
   const rowH = (box.height - 26) / panel.targets.length;
-  return rowH >= 22 ? [] : ['timeline lanes ' + Math.round(rowH) + ' px high'];
+  return (rowH >= 22 ? [] : ['timeline lanes ' + Math.round(rowH) + ' px high']).concat(checkLaneLabels(panel, screen));
 }
 
-module.exports = {GRID, SCREENS, contentBox, checkStat, checkGauge, checkTable, checkTimeline, lines, textWidth};
+// Panel title: 14 px, about 8 px a glyph, single line; the header keeps about 90 px for padding, info icon and menu.
+const TITLE = {glyph: 8, reserved: 90};
+function checkTitle(panel, screen) {
+  if (panel.type === 'row' || !panel.title) return [];
+  const room = panelWidth(panel.gridPos.w, screen) - TITLE.reserved;
+  const need = panel.title.replace(/\$\{env\}/g, 'prod').length * TITLE.glyph;
+  return need <= room ? [] : ['title "' + panel.title + '" needs ' + need + ' px, ' + Math.round(room) + ' available'];
+}
+// Timeline lane labels: 12 px axis text, about 7.2 px a glyph, in the panel's fixed axis width (custom.axisWidth,
+// less the 16 px gap), and that axis leaves at least half the panel for the lanes.
+const LANE = {glyph: 7.2, gap: 16};
+function checkLaneLabels(panel, screen) {
+  const width = (panel.fieldConfig.defaults.custom || {}).axisWidth;
+  if (!width) return ['no fixed axis width for the lane labels'];
+  const names = panel.targets.map(t => t.columns.find(c => c.selector === 'value').text);
+  const errors = names.filter(n => n.length * LANE.glyph > width - LANE.gap).map(n => 'lane label "' + n + '" wider than ' + (width - LANE.gap) + ' px');
+  if (width > contentBox(panel.gridPos, screen).width / 2) errors.push('label axis ' + width + ' px takes over half the panel');
+  return errors;
+}
+
+module.exports = {GRID, SCREENS, checkTitle, checkLaneLabels, LANE, contentBox, checkStat, checkGauge, checkTable, checkTimeline, lines, textWidth};
