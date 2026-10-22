@@ -648,64 +648,6 @@
                 "contact_point": "MW Performance IRM"
               }
             ]
-          },
-          {
-            "uid": "efz3obf98zksga",
-            "name": "MW | OpenAI product status impaired",
-            "condition": "C",
-            "for": "10m",
-            "no_data_state": "KeepLast",
-            "exec_err_state": "KeepLast",
-            "is_paused": false,
-            "annotations": {
-              "description": "OpenAI reports an active incident or non-operational component in the {{ $labels.component }} product group for 10 minutes. Hover its Performance dashboard light for incident details and Singapore update time. Provider report only; unknown/missing response does not page.",
-              "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
-              "summary": "Published OpenAI {{ $labels.component }} status is impaired"
-            },
-            "labels": {},
-            "data": [
-              {
-                "ref_id": "A",
-                "datasource_uid": "cfz10a9eaokjkd",
-                "query_type": "",
-                "relative_time_range": [
-                  {
-                    "from": 600,
-                    "to": 0
-                  }
-                ],
-                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"cfz10a9eaokjkd\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def sgt: try (sub(\\\"[.][0-9]+Z$\\\"; \\\"Z\\\") | fromdateiso8601 | . + 28800 | strftime(\\\"%Y-%m-%d %H:%M SGT\\\")) catch \\\"Time unavailable\\\";\\ndef text: if type == \\\"string\\\" then . else \\\"\\\" end;\\n.summary as $s | [\\\"ChatGPT\\\", \\\"Codex\\\"][] as $product |\\n([$s.structure.items[]?.group? | select(.name == $product)] | first) as $group |\\n[$group.components[]? | select(.hidden != true) | .component_id] as $ids |\\n[$s.affected_components[]? | select(.component_id as $id | $ids | index($id))] as $affected |\\n[$s.ongoing_incidents[]? | select(.status != \\\"resolved\\\" and .status != \\\"closed\\\") | select(any(.affected_components[]?; .component_id as $id | $ids | index($id)))] as $incidents |\\n(($s.id == \\\"01JMDK9XYNY6RXSED6SDWW50WY\\\") and ($s.name == \\\"OpenAI\\\") and (($s.affected_components | type) == \\\"array\\\") and (($s.ongoing_incidents | type) == \\\"array\\\") and ($ids | length) > 0 and (all($s.ongoing_incidents[]?; (.affected_components | type) == \\\"array\\\" and (.affected_components | length) > 0)) and (all($affected[]; .status == \\\"operational\\\" or .status == \\\"degraded_performance\\\" or .status == \\\"partial_outage\\\" or .status == \\\"full_outage\\\" or .status == \\\"major_outage\\\" or .status == \\\"under_maintenance\\\"))) as $valid |\\n(if $valid != true then 4 elif any($affected[]; .status == \\\"full_outage\\\" or .status == \\\"major_outage\\\") then 0 elif any($affected[]; .status != \\\"operational\\\") or ($incidents | length) > 0 then 2 else 1 end) as $status |\\n(if $status == 4 then \\\"Unknown\\\" elif $status == 0 then \\\"Down\\\" elif $status == 2 then \\\"Degraded\\\" else \\\"Healthy\\\" end) as $state |\\n($incidents | sort_by(.published_at) | reverse) as $ordered |\\n{component:($product | ascii_downcase), status:$status, value:(if $status == 0 or $status == 2 then 1 else 0 end),\\n details:($product + \\\" \\u2014 \\\" + $state + \\\"\\n\\\" + (if $status == 4 then \\\"Current provider status unavailable or response format changed.\\\" elif ($ordered | length) > 0 then ([$ordered[] | (.updates | sort_by(.published_at) | last) as $update | .name + \\\"\\nStatus: \\\" + (.status | text) + \\\"\\nUpdated: \\\" + (($update.published_at // .published_at) | sgt) + \\\"\\n\\\" + (($update.message_string // $update.message.markdown // \\\"No explanation published yet.\\\") | text) + \\\"\\nhttps://status.openai.com/incidents/\\\" + .id] | join(\\\"\\n\\n\\\")) elif $status != 1 then \\\"Affected components: \\\" + ([$affected[] | .component_id as $id | $group.components[] | select(.component_id == $id) | .name] | join(\\\", \\\")) + \\\". No incident explanation published yet.\\\" else \\\"No active incident reported.\\\" end) + \\\"\\nChecked: \\\" + (now + 28800 | strftime(\\\"%Y-%m-%d %H:%M SGT\\\"))),\\n url:(if ($ordered | length) > 0 then \\\"https://status.openai.com/incidents/\\\" + $ordered[0].id else \\\"https://status.openai.com/\\\" end)} | {component,value}\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://status.openai.com/proxy/status.openai.com\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
-              },
-              {
-                "ref_id": "reducer",
-                "datasource_uid": "__expr__",
-                "query_type": "expression",
-                "relative_time_range": [
-                  {
-                    "from": 0,
-                    "to": 0
-                  }
-                ],
-                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
-              },
-              {
-                "ref_id": "C",
-                "datasource_uid": "__expr__",
-                "query_type": "expression",
-                "relative_time_range": [
-                  {
-                    "from": 0,
-                    "to": 0
-                  }
-                ],
-                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
-              }
-            ],
-            "notification_settings": [
-              {
-                "contact_point": "MW Performance IRM"
-              }
-            ]
           }
         ],
         "lifecycle": {
