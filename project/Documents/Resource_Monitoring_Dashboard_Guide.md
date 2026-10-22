@@ -34,7 +34,7 @@ Five dashboards in folder MW Resource Monitoring, all tagged `mw-credit`, all wi
 | [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) | `mw-infra` | Last 24 hours ending now, 5-minute refresh | Cloud SQL, Cloud Run table (full width), Debian VM, Metabase on Railway, collapsed Azure VM-01 |
 | [Cost](https://monitor.mw-credit.com/d/mw-cost) | `mw-cost` | Month to date, 1-hour refresh | Azure, GCP and Railway cost in SGD |
 
-Conventions on all five: state timelines (Now 1 and 16, PWA 20, Agent 9 and 10) read from the hidden dashboard variable `lookback_from` (range start minus 20 minutes, refreshed when the time range changes), so every row starts at the left edge with the last state at or before the range start (Unknown when that state is older than the row's freshness limit: 360 s collector, 720 s Cloud SQL and webhook, 300 s scheduler), nothing is drawn before the start or after now, and a stale row ends at its last point plus the freshness limit and shows Unknown up to now; timeseries are unchanged because Grafana clips them; daily and hourly rows (for example daily charges, audit retention) are blank between runs by design, since there is no attempt and no fresh state. State timelines show one row per component, print the state word in the bar and turn grey when the newest point is older than 360 s; Down is dark red (colour-blind safe, with the state word as the second cue); bar gauges are LCD style with the maximum at the documented limit and a red mark only at an alert value; a red or dashed line appears only for a documented limit or an alert value, so request-rate charts have none; stat values are 24 to 28 px, labels 12 px; panels are at least 6 grid units wide so a phone shows one panel per screen. Grid positions are x/y/w/h.
+Conventions on all five: one-value tiles show the value only, at size 28 (Agent 13 and 14, Infrastructure 18, Cost 1, PWA 1); PWA 30 Recognitions shows one value per outcome ('Clean' for none); state timelines (Now 1 and 16, PWA 20, Agent 9 and 10) read from the hidden dashboard variable `lookback_from` (range start minus 20 minutes, refreshed when the time range changes), so every row starts at the left edge with the last state at or before the range start (Unknown when that state is older than the row's freshness limit: 360 s collector, 720 s Cloud SQL and webhook, 300 s scheduler), nothing is drawn before the start or after now, and a stale row ends at its last point plus the freshness limit and shows Unknown up to now; timeseries are unchanged because Grafana clips them; daily and hourly rows (for example daily charges, audit retention) are blank between runs by design, since there is no attempt and no fresh state. State timelines show one row per component, print the state word in the bar and turn grey when the newest point is older than 360 s; Down is dark red (colour-blind safe, with the state word as the second cue); bar gauges are LCD style with the maximum at the documented limit and a red mark only at an alert value; a red or dashed line appears only for a documented limit or an alert value, so request-rate charts have none; stat values are 24 to 28 px, labels 12 px; panels are at least 6 grid units wide so a phone shows one panel per screen. Grid positions are x/y/w/h.
 
 ### Now (`mw-now`)
 
@@ -50,7 +50,7 @@ Conventions on all five: state timelines (Now 1 and 16, PWA 20, Agent 9 and 10) 
 | 8 | Cloud SQL capacity | Four LCD bar gauges: CPU (red 85 %), RAM used (85 %), connections (max 200, red 160), disk (red 80 %) | Alerts: Cloud SQL connections, CPU, memory and disk |
 | 9 | Hosts and services | Four LCD bar gauges: Debian VM RAM (red 85 %), Metabase RAM (90 %), command instances (max 2, no red), reader p95 over 5 min (max 15 000 ms, no red) | Shows "idle" without requests |
 | 16 | Edge · last 3 h | State timeline: webhook (Singapore checker only), tunnel, Tailscale, ingress, database, audit relay | The uptime check keeps three regions; only the Singapore series is read |
-| 17 | Provider status | OpenAI and Google Cloud status; one stat, current status only: worst of ChatGPT and Codex, and open Google Cloud incidents touching Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global | Google Cloud: 1 none, 2 open incident, 4 feed unreadable |
+| 17 | Provider status | Railway and Google Cloud status; one stat, current status only (OpenAI is no longer on the new dashboards): Railway from the Instatus feed `https://railway.instatus.com/summary.json` (0 Outage for a major outage; 2 Incident open for an active incident or HASISSUES; 3 Maintenance for maintenance in progress or UNDERMAINTENANCE; 1 No incident for UP; otherwise 4 Feed unreadable), and open Google Cloud incidents touching Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global | Google Cloud: 1 none, 2 open incident, 4 feed unreadable |
 | 19 | Backups and recovery points | Six rows: Cloud SQL backup, Debian snapshot, PITR archive, Audit retention, Metabase daily, Metabase weekly: age and state | Alerts: Cloud SQL backup overdue, Debian snapshot overdue |
 
 Not on Now by design: DEV, Azure VM-01, Codex readiness, the bridge, request charts and raw-data tables.
@@ -70,7 +70,7 @@ Variable: `env` only (prod or dev, default prod); there is no service dropdown. 
 | 22 | Job freshness | Age of the newest completed run per job (no failed state), plus the row 'Last notification sent' (age of the last push dispatch) | PROD only |
 | 29 (row), 30 | Recognitions · 24 h | Count per outcome by the `warning` field: none, `amount_unreadable`, `amount_fractional`, `account_unmatched`, `account_ambiguous`, `slip_not_confirmed`, other | Log-based counter `mw_recognition_outcome_<env>`; no slip content |
 | 31 | Recognition route p95 · 24 h | Latency of the receipt recognition route | Red dashed at 45 s (route budget); the PWA deadline is 60 s |
-| 32 | Recognizer service | Recognizer health and provider (gemini or codex) | Links to Agent & Receipts |
+| 32 | Recognizer service | Recognizer health and provider with model, for example 'Gemini · gemini-3.5-flash-lite' (from the collector field `model:<id>`) | Links to Agent & Receipts |
 
 HTTP metrics do not prove job-boundary completion, push provider acceptance or device delivery; use 20, 21 and 22 for those.
 
@@ -84,13 +84,13 @@ Everything is Debian-backed except the webhook check and the two public status f
 | 2 | Queue length over time | Receipt queue trend | Lines break at gaps over 6 minutes |
 | 3 | Turns · 24 h | Turns, verified, failed and review counts, taken from the turn result (not the queue state) | A 24 h count of 0 with no new Partner message is normal |
 | 4 | Turn duration · per turn | Seconds, rounds and provider for each completed turn | One point per collector run at most; no reference line (R085 gives measurements only) |
-| 5 | Loop health | Poll age and state, wake path, timer | Alert: stalled conversation |
-| 6 | Recognizer service | Health, provider, restart age | Paused (blue) when recognition is disabled |
+| 5 | Loop health | Poll age and state, wake path, timer, and the conversation Provider value (provider and model) | Alert: stalled conversation |
+| 6 | Recognizer service | Health, provider and model (for example 'Gemini · gemini-3.5-flash-lite'), restart age | Paused (blue) when recognition is disabled |
 | 7 | Extractions · 24 h | Extractions, valid, timeouts and unreadable | Counts from the agent audit schema, no content |
 | 8 | Extraction time (s) | Duration of the newest extraction per run | Red dashed at 25 s (per-attempt bound) |
 | 9 | Workers and timers · last 6 h | State timeline: receipts, conversations, conversation poll state, polling, daily jobs, audit relay, audit retention | |
 | 10 | Connectivity, data and providers · last 6 h | State timeline: webhook (Singapore), tunnel, Tailscale, ingress, database, Codex readiness | |
-| 11 | Provider status | OpenAI and Google Cloud status; same stat as Now 17 | Feeds have no history, so a stat, not timeline rows |
+| 11 | Provider status | Railway and Google Cloud status; same stat as Now 17 | Feeds have no history, so a stat, not timeline rows |
 | 13 | Ingress code version | 1 when the receiver's code version matches the deployed commit prefix | Closes the former known gap for `webhook_code_version` |
 | 14 | Open ingress reviews | `ingress_review_open`; above 0 is orange | Closes the former known gap for the card |
 
