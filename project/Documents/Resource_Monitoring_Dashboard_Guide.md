@@ -43,12 +43,12 @@ Conventions on all five: state timelines show one row per component, print the s
 | 1 (rows 1-A to 1-J) | PROD services · last 3 h | State timeline, one row each: 1-A Hosting `lm.mw-credit.com`; 1-B Reader API `/health`; 1-C Command API (worst of `/health`, `oltp`, `olap`); 1-D Notify worker (scheduler attempts from `mw_scheduler_attempts_prod`); 1-E Jobs worker; 1-F Cloud SQL `database/up`; 1-G Receipt recognizer; 1-H Agent receipt cycle; 1-I Partner conversation; 1-J Metabase | 0/0/16/11. Collector rows use the six-minute freshness rule; Paused (blue) is intentional |
 | 2 | Firing alerts | Grafana alert list, folder MW Resource Monitoring Alerts: firing, pending, error and no data | Shows "No alerts" when quiet; no resolved history |
 | 3 | Telemetry freshness | Age of the newest point of `database`, `pwa_hosting_prod`, `metabase_platform` and Cloud SQL CPU | Green under 360 s, grey "stale" otherwise; explains a wave of grey rows |
-| 4 | Payments · Instagram to recorded payment | Six values: last scan (Bangkok time), pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications | Same rules as the previous Performance panels 101 to 107 |
+| 4 | Payments pipeline | Six values: last scan (Bangkok time), pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications | Same rules as the previous Performance panels 101 to 107 |
 | 5 | Partner conversation | Queue, running turn, last turn age and state | Alert: stalled conversation |
 | 6 | Push notifications | Pending, oldest pending, failed and delivered in 24 h | PROD only; alert: push delivery backlog |
 | 7 | Scheduled jobs | Daily charges and recent analytics: age of the newest completed run (jobs have no failed state, V94) | Alert: scheduled job overdue |
-| 8 | Cloud SQL gauges | Four LCD bar gauges: CPU (red 85 %), RAM used (85 %), connections (max 200, red 160), disk (red 80 %) | Alerts: Cloud SQL connections, CPU, memory and disk |
-| 9 | Host and service gauges | Four LCD bar gauges: Debian VM RAM (red 85 %), Metabase RAM (90 %), command instances (max 2, no red), reader p95 over 5 min (max 15 000 ms, no red) | Shows "idle" without requests |
+| 8 | Cloud SQL capacity | Four LCD bar gauges: CPU (red 85 %), RAM used (85 %), connections (max 200, red 160), disk (red 80 %) | Alerts: Cloud SQL connections, CPU, memory and disk |
+| 9 | Hosts and services | Four LCD bar gauges: Debian VM RAM (red 85 %), Metabase RAM (90 %), command instances (max 2, no red), reader p95 over 5 min (max 15 000 ms, no red) | Shows "idle" without requests |
 | 16 | Edge · last 3 h | State timeline: webhook (Singapore checker only), tunnel, Tailscale, ingress, database, audit relay | The uptime check keeps three regions; only the Singapore series is read |
 | 17 | Provider status | OpenAI and Google Cloud status; one stat, current status only: worst of ChatGPT and Codex, and open Google Cloud incidents touching Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global | Google Cloud: 1 none, 2 open incident, 4 feed unreadable |
 | 19 | Backups and recovery points | Cloud SQL last automated backup, Debian snapshot, Metabase daily and weekly, PITR, audit retention: age and state | Alerts: Cloud SQL backup overdue, Debian snapshot overdue |
@@ -80,8 +80,8 @@ Everything is Debian-backed except the webhook check and the two public status f
 
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
-| 101, 103 to 107 | Receipt pipeline stage tiles | The pipeline stage stats of Now 4 (scan, pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications), lifted verbatim from the previous panels of the same IDs | Stalled, unnotified holds, overdue reviews, unconfirmed postings and failed notifications above 0 are red; Paused does not page. There is no 1, 2 or 12 on this dashboard |
-| 108 | Queue length over time | Receipt queue trend (previous panel 108) | Lines break at gaps over 6 minutes |
+| 1 | Receipt pipeline stages | The pipeline stage stats of Now 4 (scan, pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications), one stat panel | Stalled, unnotified holds, overdue reviews, unconfirmed postings and failed notifications above 0 are red; Paused does not page. There is no 12 on this dashboard |
+| 2 | Queue length over time | Receipt queue trend | Lines break at gaps over 6 minutes |
 | 3 | Turns · 24 h | Turns, verified, failed and review counts | |
 | 4 | Turn duration · per turn | Seconds, rounds and provider for each completed turn | One point per collector run at most; no reference line (R085 gives measurements only) |
 | 5 | Loop health | Poll age and state, wake path, timer | Alert: stalled conversation |
@@ -103,18 +103,18 @@ Four expanded rows and one collapsed row. Every chart draws a documented limit o
 | ID | Panel | Shows | Limit / threshold |
 | --- | --- | --- | --- |
 | 1 | Cloud SQL CPU | Instance-wide CPU | Red dashed 85 % |
-| 2 | Cloud SQL memory components | Usage, cache, free | Red dashed 85 % on Used |
-| 3 | Cloud SQL disk utilisation | Disk utilisation (replaces the previous storage panel 33) | Red dashed 80 %; auto-resize noted |
-| 4 | Cloud SQL connections · limit 200 | Backend count | 200 line, red dashed 160 |
+| 2 | Cloud SQL memory | Usage, cache, free | Red dashed 85 % on Used |
+| 3 | Cloud SQL disk | Disk utilisation (replaces the previous storage panel 33) | Red dashed 80 %; auto-resize noted |
+| 4 | Cloud SQL connections | Backend count against the limit of 200 | 200 line, red dashed 160 |
 | 5 | Backups and restore points | Last automated backup age and status, log retention, Debian snapshot age | |
 | 6 | Instance facts | Tier, storage type and `max_connections` (dated snapshots), uptime | The only static text |
 | 7 | Connections by database | Backends per database | No threshold |
 | 8 | Top statement share | Share of total execution time and calls per minute of the top statement | Statement text stays on the VM; shows "not granted" until the grant exists |
 | 9 | Cloud Run · eight services | Instances, p95 CPU and memory over 15 minutes, billable instance time, maximum instances | Over 80 % orange |
-| 10 to 12 | Debian VM | CPU, used memory (red dashed 85 %), network | |
-| 13, 18 | Debian VM disk and uptime | 13 disk throughput; 18 Debian uptime (VM start) | |
+| 10 to 12 | Debian VM CPU, memory, network | CPU, used memory (red dashed 85 %), network | |
+| 13, 18 | Debian VM disk; Debian VM uptime | 13 disk throughput; 18 uptime (VM start) | |
 | 14 to 16 | Metabase on Railway | CPU cores against live `CPU_LIMIT`; memory GB against live limit (red dashed 90 %); Postgres volume (5 GB line) | |
-| 17 | Metabase probes and recovery | One row each: platform, app DB, reporting DB, charts, PITR, daily and weekly backup | Same selectors as the previous panels 80 to 86 |
+| 17 | Metabase probes | One row each: platform, app DB, reporting DB, charts, PITR, daily and weekly backup | Same selectors as the previous panels 80 to 86 |
 | 20 (collapsed row) with 21 to 24 | Azure VM-01 | The previous Azure panels 11 to 14, unchanged, as children 21 to 24 | No 24x7 expectation, no alert |
 
 ### Cost (`mw-cost`)
@@ -123,14 +123,15 @@ Time zone Asia/Bangkok for display; provider day rules are unchanged (Azure UTC 
 
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
-| 1 | TOTAL · SGD · month to date | Sum of available provider costs, the prior month to the same day, and a Coverage tile (complete, or incomplete with the missing platform named) | "Available costs only"; Railway prior month is "cycle only" |
+| 1 | TOTAL · SGD · month to date | Sum of available provider costs; panel 9 "Last month, same day" sits under it (0/3/6/2) | "Available costs only"; Railway prior month is "cycle only" |
+| 9 | Last month, same day · SGD | Prior month to the same day of the month | Reference, not a forecast |
 | 2 to 4 | Azure, GCP, Railway · SGD | Provider month-to-date stats | |
-| 5 | Conversion and coverage | FX, coverage and the GCP budget cell; also the visible host of the queries (previous A to E) behind panels 1 to 4 | Shows the dashboard constant `gcp_budget_sgd`, empty ("not created yet") until ALL-COST-01 exists; no Billing Budgets IAM |
-| 6 | GCP daily · SGD net | Stacked daily bars by GCP service group | Fixed 30-day window; draws a red dashed budget ÷ days line only when `gcp_budget_sgd` is set |
+| 5 | Conversion and coverage | FX, the GCP budget cell, and the Coverage column (complete, or incomplete naming the missing platform); also the visible host of the queries (previous A to E) behind panels 1 to 4 | Shows the dashboard constant `gcp_budget_sgd`, empty ("not created yet") until ALL-COST-01 exists; no Billing Budgets IAM |
+| 6 | GCP daily net · SGD · last 30 days | Stacked daily bars by GCP service group | Fixed 30-day window; draws a red dashed budget ÷ days line only when `gcp_budget_sgd` is set |
 | 8 | Azure + Railway daily · USD | Stacked daily bars, provider currency | Fixed 30-day window |
-| 7 | GCP by service · month to date · SGD net | Billing export grouped by service, net of credits | 100 MB billed-query cap |
+| 7 | GCP by service · SGD net | Billing export grouped by service, net of credits (month to date) | 100 MB billed-query cap |
 | 10, 20, 30 (collapsed rows) | Azure, GCP, Railway | The previous Cost detail panels unchanged, with their old child IDs | Rates checked 25 September 2026 stay in the description |
-| 40 | Unchanged rules of reading | Short reading text | References, not forecasts |
+| 40 | Unchanged rules of reading | Short reading text (y 14); the collapsed provider rows follow at y 17 to 19 | References, not forecasts |
 
 ### Alerts linked to the new dashboards
 

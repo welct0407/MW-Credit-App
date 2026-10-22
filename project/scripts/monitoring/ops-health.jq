@@ -2,7 +2,8 @@
 # (worker_timing or metabase_probe). __FIELDS__ is a list of
 # {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);
 # state_key names a same-run state field whose 0 (failed) turns the value into -1
-# and whose 2 (overdue) turns it into -2, so the panel maps them to words.
+# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing
+# state sample makes the value null (No report) rather than an unqualified age.
 # Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are
 # null, never zero. Provider errors and truncation fail visibly.
 def stamp: sub("[.][0-9]+Z$"; "Z") | fromdateiso8601;
@@ -22,6 +23,7 @@ else
     (value($f.key)) as $v |
     {key: $f.label,
      value: (if $v == null then null
+             elif $f.state_key != null and value($f.state_key) == null then null
              elif $f.state_key != null and value($f.state_key) == 0 then -1
              elif $f.state_key != null and value($f.state_key) == 2 then -2
              else $v * ($f.scale // 1) end)}] |

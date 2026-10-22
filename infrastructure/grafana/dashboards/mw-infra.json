@@ -451,7 +451,7 @@
             }
           }
         ],
-        "title": "Cloud SQL memory components",
+        "title": "Cloud SQL memory",
         "type": "timeseries"
       },
       {
@@ -585,7 +585,7 @@
             }
           }
         ],
-        "title": "Cloud SQL disk utilisation",
+        "title": "Cloud SQL disk",
         "type": "timeseries"
       },
       {
@@ -721,7 +721,7 @@
             }
           }
         ],
-        "title": "Cloud SQL connections · limit 200",
+        "title": "Cloud SQL connections",
         "type": "timeseries"
       },
       {
@@ -746,6 +746,7 @@
               "inspect": false
             },
             "decimals": 0,
+            "displayName": "${__field.name}",
             "mappings": [],
             "noValue": "No report",
             "thresholds": {
@@ -768,7 +769,7 @@
               "properties": [
                 {
                   "id": "unit",
-                  "value": "dtdurations"
+                  "value": "s"
                 },
                 {
                   "id": "decimals",
@@ -837,7 +838,7 @@
                           "text": "Successful"
                         },
                         "2": {
-                          "color": "blue",
+                          "color": "text",
                           "index": 2,
                           "text": "Running"
                         }
@@ -878,12 +879,12 @@
                     {
                       "options": {
                         "1": {
-                          "color": "blue",
+                          "color": "text",
                           "index": 0,
                           "text": "Automated"
                         },
                         "2": {
-                          "color": "blue",
+                          "color": "text",
                           "index": 1,
                           "text": "On demand"
                         }
@@ -977,7 +978,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"age_seconds\",\"label\":\"Last backup age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR log retention\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"age_seconds\",\"label\":\"Last backup age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR log retention\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"age_seconds\",\"label\":\"Last backup age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR log retention\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"age_seconds\",\"label\":\"Last backup age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR log retention\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22cloud_sql_backup%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1012,6 +1013,7 @@
               "inspect": false
             },
             "decimals": 0,
+            "displayName": "${__field.name}",
             "mappings": [],
             "noValue": "No report",
             "thresholds": {
@@ -1025,7 +1027,20 @@
             },
             "unit": "none"
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Fact"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 120
+                }
+              ]
+            }
+          ]
         },
         "gridPos": {
           "h": 5,
@@ -1147,6 +1162,7 @@
               }
             },
             "decimals": 0,
+            "displayName": "${__field.name}",
             "min": 0,
             "noValue": "No data",
             "thresholds": {
@@ -1293,6 +1309,7 @@
               "inspect": false
             },
             "decimals": 0,
+            "displayName": "${__field.name}",
             "mappings": [],
             "noValue": "No report",
             "thresholds": {
@@ -1413,7 +1430,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"top1_share_percent\",\"label\":\"Top statement share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls per minute\"},{\"key\":\"status\",\"label\":\"Read\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"top1_share_percent\",\"label\":\"Top statement share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls per minute\"},{\"key\":\"status\",\"label\":\"Read\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"top1_share_percent\",\"label\":\"Top statement share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls per minute\"},{\"key\":\"status\",\"label\":\"Read\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"top1_share_percent\",\"label\":\"Top statement share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls per minute\"},{\"key\":\"status\",\"label\":\"Read\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pg_stat%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1448,6 +1465,7 @@
               "inspect": false
             },
             "decimals": 0,
+            "displayName": "${__field.name}",
             "mappings": [],
             "noValue": "No report",
             "thresholds": {
@@ -2074,7 +2092,7 @@
             }
           }
         ],
-        "title": "Debian VM used memory",
+        "title": "Debian VM memory",
         "type": "timeseries"
       },
       {
@@ -2392,7 +2410,7 @@
             }
           }
         ],
-        "title": "Debian VM disk throughput",
+        "title": "Debian VM disk",
         "type": "timeseries"
       },
       {
@@ -2404,7 +2422,7 @@
         "fieldConfig": {
           "defaults": {
             "color": {
-              "fixedColor": "blue",
+              "fixedColor": "text",
               "mode": "fixed"
             },
             "decimals": 0,
@@ -3177,6 +3195,7 @@
               "inspect": false
             },
             "decimals": 0,
+            "displayName": "${__field.name}",
             "mappings": [],
             "noValue": "No report",
             "thresholds": {
@@ -3488,7 +3507,7 @@
             }
           }
         ],
-        "title": "Metabase probes and recovery",
+        "title": "Metabase probes",
         "transformations": [
           {
             "id": "merge",

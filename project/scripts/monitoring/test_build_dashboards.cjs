@@ -55,7 +55,7 @@ for (const uid of L.DASHBOARD_UIDS) {
   for (const p of s.panels) if (p.type === 'row' && p.collapsed) checkGrid(uid + ' row ' + p.id, p.panels);
   for (const p of s.panels) if (p.type === 'row') assert.equal(p.gridPos.w, 24, uid + ' row width');
   if (uid === 'mw-now') {
-    for (const p of s.panels) assert.ok(p.gridPos.w >= (p.gridPos.y === 11 ? 5 : 6), 'mw-now panel ' + p.id + ' at least 6 wide (5 on the y11 row)');
+    for (const p of s.panels) assert.ok(p.gridPos.w >= (p.gridPos.y === 12 ? 5 : 6), 'mw-now panel ' + p.id + ' at least 6 wide (5 on the flows row)');
   }
 
   for (const {panel: p, parent} of entries) {
@@ -67,6 +67,8 @@ for (const uid of L.DASHBOARD_UIDS) {
       assert.equal(p.options.rowHeight, 0.8);
       assert.equal(p.options.mergeValues, true);
       for (const t of p.targets) assert.equal(t.format, 'timeseries', uid + ' panel ' + p.id + ' timeline target format');
+      // LIVE-1: fixed grey base so the mappings colour each state (thresholds colour hides them).
+      assert.deepEqual(p.fieldConfig.defaults.color, {fixedColor: '#6E7079', mode: 'fixed'}, uid + ' panel ' + p.id + ' timeline colour');
       const texts = Object.values(p.fieldConfig.defaults.mappings[0].options).map(o => o.text);
       assert.deepEqual(texts, ['Down', 'OK', 'Degraded', 'Paused', 'Unknown']);
     }
@@ -104,6 +106,14 @@ for (const uid of L.DASHBOARD_UIDS) {
 
 // No generated dashboard links to a retiring dashboard.
 for (const uid of L.DASHBOARD_UIDS) assert.ok(!L.OLD_DASHBOARD_LINK.test(L.serialize(built[uid])), uid + ' has no link to a retiring dashboard');
+// LIVE-2/3: no query letter in names (field-name display), no Paused blue on informational stat values.
+for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+  if (p.type === 'stat' && p.fieldConfig.defaults.color?.mode === 'fixed') assert.notEqual(p.fieldConfig.defaults.color.fixedColor, 'blue', uid + ' panel ' + p.id + ' informational colour');
+  if (['stat', 'table', 'timeseries', 'state-timeline'].includes(p.type)) {
+    // Multi-frame panels the builder writes (lifted panels keep their proven config and pluginVersion).
+    if ((p.targets || []).length > 1 && !p.pluginVersion) assert.ok(p.fieldConfig.defaults.displayName, uid + ' panel ' + p.id + ' explicit display name');
+  }
+}
 // The Now home page carries no DEV series and the PWA page carries no unparameterised environment.
 const nowText = JSON.stringify(built['mw-now']);
 assert.ok(!/-dev\b|_dev\b|loan_manager_dev/.test(nowText), 'mw-now is PROD only');
@@ -120,8 +130,15 @@ const cost = built['mw-cost'].spec;
 const host = cost.panels.find(p => p.id === 5);
 assert.ok(host && host.gridPos.y === 0);
 assert.deepEqual(host.targets.slice(0, 5), L.findPanel(L.COST, 2).targets);
+// LIVE-10: the Cost reading rules sit above the collapsed provider rows.
+assert.ok(cost.panels.find(p => p.id === 40).gridPos.y < Math.min(...cost.panels.filter(p => p.type === 'row').map(p => p.gridPos.y)));
+// Previous-month figure: Azure Custom windows shifted by the panel (TheLastMonth is refused by Cost Management).
+assert.ok(!L.serialize(built['mw-cost']).includes('TheLastMonth'), 'mw-cost uses no TheLastMonth timeframe');
+const lastMonth = cost.panels.find(p => p.id === 9);
+assert.ok(lastMonth && lastMonth.timeFrom === 'now/M' && lastMonth.timeShift === '1M');
+for (const t of lastMonth.targets.slice(0, 2)) assert.equal(JSON.parse(t.url_options.data).timeframe, 'Custom');
 // Lifted panels keep their selectors byte for byte.
-for (const [uid, old, id] of [['mw-agent', 101, 101], ['mw-agent', 108, 108], ['mw-infra', 31, 1], ['mw-infra', 42, 15], ['mw-cost', 201, 201]]) {
+for (const [uid, old, id] of [['mw-agent', 108, 2], ['mw-infra', 31, 1], ['mw-infra', 42, 15], ['mw-cost', 201, 201]]) {
   const p = allPanels(built[uid].spec).find(e => e.panel.id === id).panel;
   assert.deepEqual(p.targets.map(t => t.root_selector), L.findPanel(old === 201 ? L.COST : L.PERF, old).targets.map(t => t.root_selector), uid + ' ' + id + ' lifted selectors');
 }

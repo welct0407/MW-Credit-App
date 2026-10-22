@@ -96,6 +96,13 @@ function body(req,raw=false,timeoutMs=5000) {
     if(req.aborted)abort();
   });
 }
+/** First warning code of a recognition answer, 'none' when a recognized form has none, otherwise the
+ *  answer's status (unavailable). Only a fixed-shape category is logged: no slip content or amounts. */
+function recognitionWarning(recognition){
+  const first=Array.isArray(recognition?.warnings)?recognition.warnings[0]?.code:undefined;
+  const value=typeof first==='string'?first:recognition?.status==='recognized'?'none':recognition?.status;
+  return typeof value==='string'&&/^[a-z_]{1,40}$/.test(value)?value:'other';
+}
 /** No listener or runtime auth switch. A test-owned server binds this handler to loopback only. */
 /** @param {{origins:readonly string[],verifyPrincipal:any,store:any,completionLogger?:(record:object)=>void,bodyTimeoutMs?:{json:number,raw:number}}} options */
 function buildHandler({ origins, verifyPrincipal, store, completionLogger = () => {}, bodyTimeoutMs = {json:5000,raw:12000} }) {
@@ -107,10 +114,11 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     res.once('close',()=>wakeAbort.abort());
     const target = route(req.url);
     const operation = req.method === 'OPTIONS' ? 'preflight' : target.operation;
-    let code = 'command_unavailable';
+    let code = 'command_unavailable', warning;
     // Logging cannot alter financial responses (the boundary swallows logger errors).
+    // R089: a recognition answer also logs its outcome category (log metric mw_recognition_outcome).
     const boundary = beginRequest(req, res, { origins: allowedOrigins, methods: ['GET','POST','PATCH','DELETE'], headers: ['Authorization','Content-Type','X-Borrower-ID','X-MW-Wake-Deadline'], logger: completionLogger,
-      record: ({ requestId, status }) => ({ event: 'command_request', requestId, operation, method: ['GET','POST','PATCH','DELETE','OPTIONS'].includes(req.method) ? req.method : 'OTHER', status, code, durationMs: boundary.durationMs() }) });
+      record: ({ requestId, status }) => ({ event: 'command_request', requestId, operation, method: ['GET','POST','PATCH','DELETE','OPTIONS'].includes(req.method) ? req.method : 'OTHER', status, code, durationMs: boundary.durationMs(), ...(operation === 'receipt_recognition' && warning ? { warning } : {}) }) });
     const send = (status, value) => { code = codes.has(value?.code) ? value.code : status < 400 ? 'ok' : 'command_unavailable'; res.statusCode = status; res.end(value === undefined ? undefined : JSON.stringify(value)); };
     const reject = (status, reason) => send(status, { ok: false, code: reason });
     const rejectBody = error => reject(error.bodyCode === 'body_too_large' ? 413 : error.bodyCode === 'body_timeout' ? 503 : 400, error.bodyCode || 'invalid_request');
@@ -202,7 +210,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
         // malformed or the receipt is unknown; recognition is optional and never writes.
         if(req.headers['content-length']&&req.headers['content-length']!=='0'||req.headers['transfer-encoding'])return reject(400,'invalid_request');
         result=await store.recognize(principal,{requestId:target.requestId,receiptId:target.receiptId});
-        if(result.ok&&result.recognition)return send(200,{ok:true,...result.recognition});
+        if(result.ok&&result.recognition){warning=recognitionWarning(result.recognition);return send(200,{ok:true,...result.recognition});}
       } else if (target.operation === 'command_status') result = await store.status(principal, target.requestId);
       else return reject(404, 'not_found');
       const { status, ...value } = result;return send(status, value);

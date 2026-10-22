@@ -8,10 +8,14 @@ import json
 import os
 import re
 from pathlib import Path
+import statistics
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 CONFIG = '/etc/mw-integration-agent/config.json'
 PROJECT = 'clever-oasis-508610-n7'
@@ -124,7 +128,7 @@ def hosting_status(environment, fetcher=None, clock=time.monotonic):
 def properties(unit):
     result = run(['systemctl', 'show', unit, '-p', 'LoadState', '-p', 'ActiveState',
                   '-p', 'Result', '-p', 'ExecMainStatus', '-p', 'ExecMainExitTimestampMonotonic',
-                  '-p', 'ExecMainStartTimestampMonotonic'])
+                  '-p', 'ExecMainStartTimestampMonotonic', '-p', 'ActiveEnterTimestampMonotonic'])
     if result.returncode:
         raise RuntimeError('systemd query failed')
     return dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
@@ -204,12 +208,14 @@ def sql_uptime_snapshot(conn):
 PROBE_OPTIONS = '-c default_transaction_read_only=on -c statement_timeout=5000'
 
 
-def database_probe(config):
+def database_probe(config, extras=None):
     """SELECT 1 on mw_agent as the worker and on the business database as database_user.
 
     Each login follows its auth key (ALL-ARCH-03): password, or the IAM user on the
     auto-iam-authn listener with SET ROLE as the first statement. Returns
     (status, (sql_uptime, observed) or None); the uptime sample uses the business read.
+    R089: on loan_manager_prod the same read-only reporting connection also fills `extras`
+    with the PWA ops health (monitoring.pwa_ops_health_v1) and the pg_stat_statements top share.
     """
     import psycopg
     from mw_integration_agent.config import auth_mode, iam_port, load_secret
@@ -227,6 +233,9 @@ def database_probe(config):
         if conn.execute('SELECT 1').fetchone() != (1,):
             return 0, None
         sample = sql_uptime_snapshot(conn) if config['database_name'] == 'loan_manager_prod' else None
+        if extras is not None and config['database_name'] == 'loan_manager_prod':
+            extras['ops_health'] = ops_health_snapshot(conn)
+            extras['pg_stat'] = pg_stat_snapshot(conn)
     return 1, sample
 
 
@@ -237,6 +246,396 @@ def sql_uptime_series(snapshot, observed, resource):
              'points': [{'interval': {'endTime': observed},
                          'value': {'int64Value': str(value)}}]}
             for field, value in snapshot.items()]
+
+
+# R089 (design section A): new read-only checks. Every network call is bounded to 10 s; every value is a
+# count, an age in seconds, a state code or a percentage. No identifier, amount, text or token is exported.
+NEW_CALL_SECONDS = 10
+PWA_API_ORIGINS = '/etc/mw-resource-monitoring/pwa-api-origins.json'
+PWA_API_COMPONENTS = ('pwa_api_reader_prod', 'pwa_api_command_prod', 'pwa_api_reader_dev', 'pwa_api_command_dev')
+STATE_FILE = '/var/lib/mw-resource-monitoring/last-points.json'
+SQL_INSTANCE = 'mw-credit-pg-20261017'
+DAILY_CHARGES_OVERDUE = 90000
+RECENT_ANALYTICS_OVERDUE = 4500
+PROVIDER_CODES = {'gemini': 1, 'codex': 2, 'claude': 3}
+
+
+def bounded_fetch(url, headers=None, timeout=NEW_CALL_SECONDS, limit=262144, clock=time.monotonic):
+    """GET without redirects: (HTTP status, body). The whole call, body included, ends within `timeout`."""
+    until = clock() + timeout
+    request = urllib.request.Request(url, headers={'User-Agent': 'MW-Resource-Monitor/1.0', **(headers or {})})
+    try:
+        response = urllib.request.build_opener(NoHostingRedirect()).open(request, timeout=timeout)
+    except urllib.error.HTTPError as exc:
+        exc.close()
+        return exc.code, ''
+    with response:
+        chunks, size = [], 0
+        while True:
+            if clock() >= until:
+                raise TimeoutError('Probe deadline')
+            chunk = response.read(16384)
+            if not chunk:
+                break
+            size += len(chunk)
+            if size > limit:
+                raise ValueError('Probe response too large')
+            chunks.append(chunk)
+        return response.status, b''.join(chunks).decode('utf-8')
+
+
+def load_origins(path=PWA_API_ORIGINS):
+    """The four Cloud Run origins (copied from the Terraform outputs); None when missing or unreadable."""
+    try:
+        value = json.loads(Path(path).read_text())
+    except Exception:
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def pwa_api_status(component, origins, fetcher=bounded_fetch):
+    """GET <origin>/health, no credentials, no redirects, 10 s: 200 = 1, any other answer = 0, no origin = 4."""
+    if component not in PWA_API_COMPONENTS:
+        raise ValueError('Unknown PWA API component')
+    if origins is None:
+        return 4
+    _, _, service, environment = component.split('_')
+    service = 'read' if service == 'reader' else service
+    origin = origins.get(component)
+    if not isinstance(origin, str) or not re.fullmatch(
+            r'https://mw-credit-app-' + service + '-' + environment + r'-[0-9]+\.asia-southeast1\.run\.app', origin):
+        return 4
+    try:
+        status, _ = fetcher(origin + '/health')
+    except Exception:
+        return 0
+    return 1 if status == 200 else 0
+
+
+def recognizer_health(config, fetcher=bounded_fetch):
+    """GET /healthz of mw-receipt-recognition: {status: ok, enabled: true} = 1, enabled false = 3 (paused), else 0."""
+    host = config.get('receipt_recognition_listen_host')
+    port = config.get('receipt_recognition_listen_port', 8790)
+    if not isinstance(host, str) or not host or type(port) is not int:
+        return 4
+    try:
+        status, body = fetcher('http://' + host + ':' + str(port) + '/healthz')
+        value = json.loads(body) if status == 200 else {}
+    except Exception:
+        return 0
+    if not isinstance(value, dict) or value.get('status') != 'ok':
+        return 0
+    return 1 if value.get('enabled') is True else 3 if value.get('enabled') is False else 0
+
+
+def unit_age(service, uptime):
+    """Seconds since the unit last became active in this boot; None when not active or unknown."""
+    entered = int(service.get('ActiveEnterTimestampMonotonic', '0') or 0) / 1e6
+    if service.get('ActiveState') != 'active' or not entered or entered > uptime:
+        return None
+    return int(uptime - entered)
+
+
+def recognizer_timing(config, service, uptime, counts):
+    fields = {'provider': PROVIDER_CODES.get(config.get('receipt_recognition_provider', 'gemini')),
+              'restart_age_seconds': unit_age(service, uptime)}
+    fields.update(counts or {})
+    return fields
+
+
+def google_json(url, token, fetcher=bounded_fetch):
+    status, body = fetcher(url, {'Authorization': 'Bearer ' + token})
+    if status != 200:
+        raise RuntimeError('Google API answered ' + str(status))
+    return json.loads(body)
+
+
+def parse_time(value):
+    return dt.datetime.fromisoformat(str(value).replace('Z', '+00:00')).timestamp()
+
+
+def cloud_sql_backup(token, now, fetcher=bounded_fetch):
+    """SQL Admin backupRuns (newest five) and the instance's PITR log retention, read with the VM identity."""
+    base = 'https://sqladmin.googleapis.com/v1/projects/' + PROJECT + '/instances/' + SQL_INSTANCE
+    runs = google_json(base + '/backupRuns?maxResults=5', token, fetcher).get('items') or []
+    instance = google_json(base, token, fetcher)
+    runs = sorted((r for r in runs if isinstance(r, dict)), key=lambda r: r.get('windowStartTime') or r.get('enqueuedTime') or '', reverse=True)
+    successful = [r for r in runs if r.get('status') == 'SUCCESSFUL' and r.get('endTime')]
+    fields = {}
+    if runs:
+        newest = runs[0].get('status')
+        fields['status'] = 1 if newest == 'SUCCESSFUL' else 2 if newest in ('RUNNING', 'ENQUEUED', 'PENDING') else 0
+    if successful:
+        fields['age_seconds'] = max(0, int(now - parse_time(successful[0]['endTime'])))
+        fields['type'] = {'AUTOMATED': 1, 'ON_DEMAND': 2}.get(successful[0].get('type'))
+    retention = (((instance.get('settings') or {}).get('backupConfiguration') or {}).get('transactionLogRetentionDays'))
+    if type(retention) is int:
+        fields['log_retention_days'] = retention
+    return fields
+
+
+def debian_snapshot(token, now, fetcher=bounded_fetch):
+    """Age of the newest READY snapshot of the agent VM's disk (Compute API list, newest first)."""
+    url = ('https://compute.googleapis.com/compute/v1/projects/' + PROJECT + '/global/snapshots?filter='
+           + urllib.parse.quote('sourceDisk eq .*vm-mw-credit-agent') + '&orderBy=' + urllib.parse.quote('creationTimestamp desc') + '&maxResults=50')
+    items = [i for i in google_json(url, token, fetcher).get('items') or [] if isinstance(i, dict) and i.get('status') == 'READY']
+    if not items:
+        return {}
+    newest = max(parse_time(i['creationTimestamp']) for i in items)
+    return {'age_seconds': max(0, int(now - newest))}
+
+
+def audit_retention(service, uptime, now):
+    """mw-audit-retention.service: last Result (success 1, else 0) and the age of its last exit in this boot."""
+    if service.get('LoadState') != 'loaded':
+        return {}
+    ended = completion_epoch(service, uptime, now)
+    fields = {'result': 1 if service.get('Result') == 'success' and service.get('ExecMainStatus') in ('0', None) else 0}
+    if ended:
+        fields['age_seconds'] = max(0, int(now - ended))
+    return fields
+
+
+def code_version_match(config, reported):
+    """1 when the receiver's /ready code version is the deployed one in the agent config, 0 otherwise."""
+    deployed = config.get('code_version')
+    if not isinstance(reported, str) or not reported or not isinstance(deployed, str) or not deployed:
+        return None
+    return 1 if reported == deployed else 0
+
+
+def ops_health_snapshot(conn):
+    """One call of monitoring.pwa_ops_health_v1() (V102) in a savepoint of the reporting transaction."""
+    try:
+        with conn.transaction():
+            row = conn.execute('SELECT * FROM monitoring.pwa_ops_health_v1()').fetchone()
+        if row is None or len(row) != 10:
+            return None
+        return dict(zip(('pending', 'oldest_pending_seconds', 'delivered_24h', 'failed_24h', 'subscriptions',
+                         'last_dispatch_age_seconds', 'daily_completed_at', 'daily_state', 'analytics_completed_at',
+                         'analytics_state'), row))
+    except Exception:
+        return None
+
+
+def pwa_ops_fields(snapshot, now):
+    """worker_timing{pwa_notify} and {pwa_jobs}. Job state: 1 completed on time, 2 overdue (V94: no failed state)."""
+    if snapshot is None:
+        return {}, {'status': 4}
+    count = lambda v: v if type(v) is int and v >= 0 else None
+    notify = {'pending': count(snapshot['pending']), 'delivered_24h': count(snapshot['delivered_24h']),
+              'failed_24h': count(snapshot['failed_24h']), 'subscriptions': count(snapshot['subscriptions']),
+              'oldest_pending_seconds': 0 if snapshot['pending'] == 0 else count(snapshot['oldest_pending_seconds']),
+              'last_dispatch_age_seconds': count(snapshot['last_dispatch_age_seconds'])}
+    jobs = {}
+    for name, key, bound in (('daily_charges', 'daily_completed_at', DAILY_CHARGES_OVERDUE),
+                             ('recent_analytics', 'analytics_completed_at', RECENT_ANALYTICS_OVERDUE)):
+        completed = snapshot[key]
+        age = max(0, int(now - completed.timestamp())) if isinstance(completed, dt.datetime) else None
+        jobs[name + '_age_seconds'] = age
+        jobs[name + '_state'] = 1 if age is not None and age <= bound else 2
+    jobs['status'] = 1 if jobs['daily_charges_state'] == jobs['recent_analytics_state'] == 1 else 2
+    return notify, jobs
+
+
+def pg_stat_snapshot(conn):
+    """Heaviest statement by total execution time (V93 view; V102 grants queryid, calls, total_exec_time only).
+    The statement text is never selected."""
+    try:
+        with conn.transaction():
+            row = conn.execute('SELECT queryid::text,calls,total_exec_time,sum(total_exec_time) OVER () '
+                               'FROM monitoring.pg_stat_statements ORDER BY total_exec_time DESC LIMIT 1').fetchone()
+        if row is None:
+            return {'status': 1}
+        queryid, calls, top, total = row
+        return {'status': 1, 'queryid': queryid, 'calls': int(calls), 'share': (100 * float(top) / float(total)) if total else None}
+    except Exception:
+        return {'status': 0}
+
+
+def pg_stat_fields(snapshot, previous, now):
+    """top1_share_percent and top1_calls_per_min (calls since the previous run of the same statement)."""
+    if not snapshot:
+        return {}, previous
+    fields = {'status': snapshot['status']}
+    if snapshot.get('share') is not None:
+        fields['top1_share_percent'] = int(round(snapshot['share']))
+    state = previous
+    if snapshot.get('queryid') is not None:
+        state = {'queryid': snapshot['queryid'], 'calls': snapshot['calls'], 'at': now}
+        if (isinstance(previous, dict) and previous.get('queryid') == snapshot['queryid']
+                and snapshot['calls'] >= previous.get('calls', 0) and 0 < now - previous.get('at', now) <= 900):
+            fields['top1_calls_per_min'] = int(round((snapshot['calls'] - previous['calls']) * 60 / (now - previous['at'])))
+    return fields, state
+
+
+TURN_STATES = {'READY': 1, 'VERIFIED': 1, 'REVIEW': 2, 'FAILED': 0, 'UNKNOWN_WRITE': 0, 'INTERRUPTED': 0}
+AGENT_QUERIES = {
+    'recognizer': """WITH ops AS (
+ SELECT o.service_name,
+  (array_agg(e.payload ORDER BY e.operation_seq DESC) FILTER (WHERE e.event_kind='result_observed'))[1] AS observed,
+  bool_or(e.event_kind='completed') AS completed,
+  (array_agg(e.payload->>'exception_type' ORDER BY e.operation_seq DESC) FILTER (WHERE e.event_kind='failed'))[1] AS failure
+ FROM audit.operations o JOIN audit.events e ON e.operation_id=o.operation_id
+ WHERE o.service_name IN ('receipt_recognition_api','receipt_image_extraction') AND o.created_at>=now()-interval '24 hours'
+ GROUP BY o.operation_id,o.service_name)
+SELECT count(*),
+ count(*) FILTER (WHERE (service_name='receipt_recognition_api' AND observed->>'outcome'='recognized') OR (service_name='receipt_image_extraction' AND completed)),
+ count(*) FILTER (WHERE (service_name='receipt_recognition_api' AND observed->>'reason'='timeout') OR (service_name='receipt_image_extraction' AND failure ILIKE '%%timeout%%')),
+ count(*) FILTER (WHERE (service_name='receipt_recognition_api' AND observed->>'outcome'='rejected') OR (service_name='receipt_image_extraction' AND failure IS NOT NULL AND failure NOT ILIKE '%%timeout%%'))
+FROM ops""",
+    'recognizer_call': """SELECT ended_at,seconds FROM (
+ SELECT max(e.occurred_at) FILTER (WHERE e.event_kind='result_observed') AS ended_at,
+  max((e.payload->>'duration_ms')::numeric) FILTER (WHERE e.event_kind='result_observed')/1000 AS seconds
+ FROM audit.operations o JOIN audit.events e ON e.operation_id=o.operation_id
+ WHERE o.service_name='receipt_recognition_api' AND o.created_at>=now()-interval '24 hours' GROUP BY o.operation_id
+ UNION ALL
+ SELECT max(e.occurred_at) FILTER (WHERE e.event_kind IN ('completed','failed')),
+  extract(epoch FROM max(e.occurred_at)-min(e.occurred_at))
+ FROM audit.operations o JOIN audit.events e ON e.operation_id=o.operation_id
+ WHERE o.service_name='receipt_image_extraction' AND o.created_at>=now()-interval '24 hours' GROUP BY o.operation_id) x
+WHERE ended_at IS NOT NULL AND seconds IS NOT NULL AND ended_at>%s ORDER BY ended_at DESC LIMIT 1""",
+    'turns': """SELECT count(*) FILTER (WHERE status='QUEUED'), count(*) FILTER (WHERE status='RUNNING'),
+ count(*) FILTER (WHERE created_at>=extract(epoch FROM now())-86400),
+ count(*) FILTER (WHERE created_at>=extract(epoch FROM now())-86400 AND status IN ('READY','VERIFIED')),
+ count(*) FILTER (WHERE created_at>=extract(epoch FROM now())-86400 AND status IN ('FAILED','UNKNOWN_WRITE','INTERRUPTED'))
+FROM runtime.conversation_turns""",
+    'last_turn': """SELECT message_id,status,extract(epoch FROM now())-created_at FROM runtime.conversation_turns
+WHERE status NOT IN ('QUEUED','RUNNING') ORDER BY created_at DESC LIMIT 1""",
+    'model_turns': """SELECT o.message_id, coalesce(o.plan->>'provider','codex'), min(e.occurred_at),
+ max(e.occurred_at) FILTER (WHERE e.event_kind IN ('completed','failed','unknown')),
+ (array_agg(e.payload ORDER BY e.operation_seq DESC) FILTER (WHERE e.event_kind='model_rounds'))[1]->>'rounds'
+FROM audit.operations o JOIN audit.events e ON e.operation_id=o.operation_id
+WHERE o.service_name='model_turn' AND o.created_at>=now()-interval '24 hours'
+GROUP BY o.operation_id,o.message_id,o.plan""",
+    'grounding': """SELECT count(*) FROM audit.events WHERE event_kind='ungrounded_amounts' AND occurred_at>=now()-interval '24 hours'""",
+    'last_send': """SELECT extract(epoch FROM now()-max(accepted_at)) FROM runtime.partner_notices WHERE stream='conversation'""",
+}
+
+
+def agent_reader(config, since):
+    """Run AGENT_QUERIES in one READ ONLY worker transaction on mw_agent (as conversation-timing.py connects)."""
+    from mw_integration_agent.state import transaction
+    with transaction(config, readonly=True) as conn:
+        conn.execute("SET LOCAL statement_timeout='8s'")
+        out = {}
+        for name, sql in AGENT_QUERIES.items():
+            params = (since.get(name) or dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc),) if name == 'recognizer_call' else None
+            out[name] = [tuple(r.values()) if isinstance(r, dict) else tuple(r) for r in conn.execute(sql, params).fetchall()]
+        return out
+
+
+def as_count(value):
+    return value if type(value) is int and value >= 0 else None
+
+
+def agent_snapshot(config, last_points, reader=agent_reader):
+    """Recognizer counts and the newest extraction, conversation loop counts and the newest model turn.
+
+    Returns {'recognizer': {...}, 'recognizer_call': (end, {...}) or None, 'conversation': {...},
+    'conversation_turn': (end, {...}) or None}; an unreadable agent database yields empty sections.
+    """
+    since = {'recognizer_call': parse_iso(last_points.get('recognizer_call'))}
+    try:
+        rows = reader(config, since)
+    except Exception:
+        return {'recognizer': {}, 'recognizer_call': None, 'conversation': {}, 'conversation_turn': None}
+    out = {'recognizer': {}, 'recognizer_call': None, 'conversation': {}, 'conversation_turn': None}
+    if rows.get('recognizer'):
+        values = rows['recognizer'][0]
+        out['recognizer'] = dict(zip(('extractions_24h', 'valid_24h', 'timeouts_24h', 'unreadable_24h'), map(as_count, values)))
+    if rows.get('recognizer_call'):
+        ended, seconds = rows['recognizer_call'][0]
+        if isinstance(ended, dt.datetime) and seconds is not None and float(seconds) >= 0:
+            out['recognizer_call'] = (ended, {'seconds': int(round(float(seconds)))})
+    conversation = {}
+    if rows.get('turns'):
+        conversation.update(zip(('queued', 'running', 'turns_24h', 'verified_24h', 'failed_24h'), map(as_count, rows['turns'][0])))
+    turns = []
+    for message_id, provider, started, ended, rounds in rows.get('model_turns') or []:
+        seconds = (ended - started).total_seconds() if isinstance(ended, dt.datetime) and isinstance(started, dt.datetime) else None
+        try:
+            rounds = int(rounds) if rounds is not None else None
+        except ValueError:
+            rounds = None
+        turns.append({'message_id': message_id, 'provider': PROVIDER_CODES.get(provider), 'ended': ended, 'seconds': seconds, 'rounds': rounds})
+    timed = [t['seconds'] for t in turns if t['seconds'] is not None]
+    if timed:
+        conversation['median_turn_seconds'] = int(round(statistics.median(timed)))
+    counted = [t['rounds'] for t in turns if t['rounds'] is not None]
+    if counted:
+        conversation['median_rounds'] = int(round(statistics.median(counted)))
+    if rows.get('last_turn'):
+        message_id, status, age = rows['last_turn'][0]
+        conversation['last_turn_state'] = TURN_STATES.get(status, 4)
+        if age is not None:
+            conversation['last_turn_age_seconds'] = max(0, int(age))
+        match = [t for t in turns if t['message_id'] == message_id]
+        if match:
+            conversation['last_turn_rounds'] = match[-1]['rounds']
+            if match[-1]['seconds'] is not None:
+                conversation['last_turn_seconds'] = int(round(match[-1]['seconds']))
+    if rows.get('grounding'):
+        conversation['grounding_rejections_24h'] = as_count(rows['grounding'][0][0])
+    if rows.get('last_send') and rows['last_send'][0][0] is not None:
+        conversation['last_send_age_seconds'] = max(0, int(rows['last_send'][0][0]))
+    out['conversation'] = conversation
+    previous = parse_iso(last_points.get('conversation_turn'))
+    finished = [t for t in turns if isinstance(t['ended'], dt.datetime) and t['seconds'] is not None and (previous is None or t['ended'] > previous)]
+    if finished:
+        newest = max(finished, key=lambda t: t['ended'])
+        out['conversation_turn'] = (newest['ended'], {'seconds': int(round(newest['seconds'])), 'rounds': newest['rounds'],
+                                                      'provider': newest['provider']})
+    return out
+
+
+def conversation_loop(config, polling_timing, poll_state, wake, timer, now):
+    """Loop fields from systemd: poll age (last mw-conversation-poll exit), wake path, worker timer, provider."""
+    fields = {'poll_state': poll_state,
+              'wake_path_active': None if wake is None else int(wake.get('ActiveState') == 'active'),
+              'timer_ok': None if timer is None else int(timer.get('LoadState') == 'loaded' and timer.get('ActiveState') == 'active'),
+              'provider': PROVIDER_CODES.get(config.get('conversation_provider', 'codex'))}
+    if polling_timing.get('last_completion', 0) > 0:
+        fields['poll_age_seconds'] = max(0, int(now - polling_timing['last_completion']))
+    return fields
+
+
+def parse_iso(value):
+    try:
+        return dt.datetime.fromisoformat(value) if isinstance(value, str) else None
+    except ValueError:
+        return None
+
+
+def load_points(path=STATE_FILE):
+    try:
+        value = json.loads(Path(path).read_text())
+        return value if isinstance(value, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_points(points, path=STATE_FILE):
+    """Atomic replace; saved before the export so a point is never written twice (a lost point is acceptable)."""
+    target = Path(path)
+    temporary = target.with_name(target.name + '.tmp')
+    temporary.write_text(json.dumps(points, sort_keys=True))
+    os.replace(temporary, target)
+
+
+def timing_series(component, fields, resource, end_time):
+    """INT64 worker_timing gauges; a missing (None) value is not exported, so the dashboard shows No report."""
+    return [{'metric': {'type': WORKER_METRIC, 'labels': {'component': component, 'field': field}},
+             'resource': resource, 'metricKind': 'GAUGE', 'valueType': 'INT64',
+             'points': [{'interval': {'endTime': end_time}, 'value': {'int64Value': str(int(value))}}]}
+            for field, value in fields.items() if value is not None and type(value) in (int, bool)]
+
+
+def safely(future, fallback):
+    try:
+        return future.result()
+    except Exception:
+        return fallback
 
 
 def receipt_snapshot(config, job, inspector=None):
@@ -280,6 +679,61 @@ def relay_snapshot(config, job, inspector=None):
     except Exception:
         values.update(status=0,inspection_failed=1)
     return values
+
+
+def collect_r089(config, token, uptime, now, result, polling_timing, extras, reported_version, points,
+                 metabase_collect, fetcher=bounded_fetch, props=None, origins_loader=load_origins, reader=agent_reader):
+    """R089 additions, network checks in the same concurrent block as the Metabase probes (each bounded to 10 s).
+
+    Returns {'metabase', 'health', 'timing': [(component, fields, end_time or None)], 'points'}.
+    `now` is epoch seconds; `result` holds this run's existing health codes (polling, conversations).
+    """
+    props = props or properties
+    origins = origins_loader()
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        metabase = pool.submit(metabase_collect)
+        api = {c: pool.submit(pwa_api_status, c, origins, fetcher) for c in PWA_API_COMPONENTS}
+        recognizer = pool.submit(recognizer_health, config, fetcher)
+        backup = pool.submit(cloud_sql_backup, token, now, fetcher)
+        snapshot = pool.submit(debian_snapshot, token, now, fetcher)
+        agent = pool.submit(agent_snapshot, config, points, reader)
+    health = {c: safely(f, 0) for c, f in api.items()}
+    health['recognizer'] = safely(recognizer, 0)
+    agent = safely(agent, {'recognizer': {}, 'recognizer_call': None, 'conversation': {}, 'conversation_turn': None})
+    unit = lambda name: safely_call(lambda: props(name), None)
+    timing = []
+    recognizer_unit = unit('mw-receipt-recognition.service') or {}
+    timing.append(('recognizer', recognizer_timing(config, recognizer_unit, uptime, agent['recognizer']), None))
+    loop = conversation_loop(config, polling_timing, result.get('polling'), unit('mw-conversation-wake.path'),
+                             unit('mw-partner-conversation.timer'), now)
+    timing.append(('conversation', dict(agent['conversation'], **loop), None))
+    notify, jobs = pwa_ops_fields((extras or {}).get('ops_health'), now)
+    timing.append(('pwa_notify', notify, None))
+    timing.append(('pwa_jobs', jobs, None))
+    timing.append(('cloud_sql_backup', safely(backup, {}), None))
+    timing.append(('debian_snapshot', safely(snapshot, {}), None))
+    retention = unit('mw-audit-retention.service')
+    timing.append(('audit_retention', audit_retention(retention, uptime, now) if retention else {}, None))
+    stat, stat_state = pg_stat_fields((extras or {}).get('pg_stat'), points.get('pg_stat'), now)
+    timing.append(('pg_stat', stat, None))
+    timing.append(('webhook_local', {'code_version_match': code_version_match(config, reported_version)}, None))
+    new_points = dict(points)
+    if stat_state is not None:
+        new_points['pg_stat'] = stat_state
+    for component in ('recognizer_call', 'conversation_turn'):
+        if agent.get(component):
+            ended, fields = agent[component]
+            if now - ended.timestamp() <= 86400:
+                timing.append((component, fields, ended.astimezone(dt.timezone.utc).isoformat()))
+                new_points[component] = ended.isoformat()
+    return {'metabase': safely(metabase, {}), 'health': health, 'timing': timing, 'points': new_points}
+
+
+def safely_call(fn, fallback):
+    try:
+        return fn()
+    except Exception:
+        return fallback
 
 
 def main():
@@ -335,11 +789,12 @@ def main():
             return 0
         return 2 if s.get('Health') else 1
     check('tailscale_node', tailscale)
+    extras = {}
     def database():
         nonlocal sql_uptime, sql_observed
         if properties('cloud-sql-auth-proxy.service').get('ActiveState') != 'active':
             return 0
-        status, sample = database_probe(config)
+        status, sample = database_probe(config, extras)
         if sample:
             sql_uptime, sql_observed = sample
         return status
@@ -356,11 +811,14 @@ def main():
     for environment in ('dev', 'prod'):
         check('pwa_hosting_' + environment, lambda environment=environment: hosting_status(environment))
     from metabase_probes import collect
-    metabase = collect()
-    timestamp = dt.datetime.now(dt.timezone.utc).isoformat()
     meta = {'Metadata-Flavor': 'Google'}
     instance = fetch('http://metadata.google.internal/computeMetadata/v1/instance/id', meta).strip()
     token = json.loads(fetch('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', meta))['access_token']
+    points = load_points()
+    added = collect_r089(config, token, uptime, time.time(), result, polling_timing, extras, webhook['code_version'], points, collect)
+    metabase = added['metabase']
+    result.update(added['health'])
+    timestamp = dt.datetime.now(dt.timezone.utc).isoformat()
     series = [{'metric': {'type': METRIC, 'labels': {'component': k}}, 'resource': {'type': 'gce_instance',
                'labels': {'project_id': PROJECT, 'instance_id': instance, 'zone': 'asia-southeast1-a'}},
                'metricKind': 'GAUGE', 'valueType': 'INT64',
@@ -387,6 +845,13 @@ def main():
                            'labels': {'component': component, 'field': field}},
                            'resource': series[0]['resource'], 'metricKind': 'GAUGE', 'valueType': 'INT64',
                            'points': [{'interval': {'endTime': timestamp}, 'value': {'int64Value': str(value)}}]})
+    for component, fields, end_time in added['timing']:
+        series.extend(timing_series(component, fields, series[0]['resource'], end_time or timestamp))
+    # Saved before the export: a point is never sent twice out of order (losing one is acceptable).
+    try:
+        save_points(added['points'])
+    except Exception:
+        pass
     req = urllib.request.Request(f'https://monitoring.googleapis.com/v3/projects/{PROJECT}/timeSeries',
           data=json.dumps({'timeSeries': series}).encode(), method='POST',
           headers={'Authorization': 'Bearer '+token, 'Content-Type': 'application/json'})
@@ -394,6 +859,7 @@ def main():
         response.read()
     print(json.dumps({'checkedAt': timestamp, 'health': result, 'receipt_pipeline':receipt_pipeline,
                      'audit_relay':audit_relay,'webhook_code_version':webhook['code_version'],'sql_uptime':sql_uptime,'sql_uptime_observed_at':sql_observed,
+                     'timing':{c:f for c,f,_ in added['timing']},
                      'exported': True}))
 
 

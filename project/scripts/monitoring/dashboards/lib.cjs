@@ -64,7 +64,8 @@ const MONITORING_BASE = 'https://monitoring.googleapis.com/v3/projects/' + PROJE
 
 // Grafana named colours (CVD review): Down dark-red, OK green, Degraded orange,
 // Paused blue, Unknown fixed grey.
-const COLOR = {down: 'dark-red', ok: 'green', degraded: 'orange', paused: 'blue', unknown: '#6E7079', purple: 'purple'};
+// info: informational values carry no state colour (blue means Paused); transparent keeps the theme text.
+const COLOR = {down: 'dark-red', ok: 'green', degraded: 'orange', paused: 'blue', unknown: '#6E7079', purple: 'purple', info: 'transparent', text: 'text'};
 const STATE_TEXT = ['Down', 'OK', 'Degraded', 'Paused', 'Unknown'];
 const STATE_COLORS = [COLOR.down, COLOR.ok, COLOR.degraded, COLOR.paused, COLOR.unknown];
 
@@ -246,7 +247,8 @@ function stateTimeline({id, title, description, gridPos, rows, noValue = 'No rep
     targets: rows.map((r, i) => target(String.fromCharCode(65 + i), r.datasource, r.url, r.selector,
       [col('time', 'Time', 'timestamp'), col('value', r.name)], {format: 'timeseries'})),
     fieldConfig: {
-      defaults: {color: {mode: 'thresholds'}, custom: {fillOpacity: 80, hideFrom: {legend: false, tooltip: false, viz: false},
+      // Fixed grey base: the value mappings supply colour and word (thresholds colour hides them with mergeValues).
+      defaults: {color: {mode: 'fixed', fixedColor: COLOR.unknown}, displayName: '${__field.name}', custom: {fillOpacity: 80, hideFrom: {legend: false, tooltip: false, viz: false},
         insertNulls: false, lineWidth: 0, spanNulls: false}, mappings: stateMappings(), noValue,
         thresholds: steps([null, COLOR.unknown])},
       overrides: rows.map((r, i) => ({matcher: {id: 'byFrameRefID', options: String.fromCharCode(65 + i)},
@@ -265,7 +267,7 @@ function stat({id, title, description, gridPos, targets, datasource, defaults = 
   const panel = {id, type: 'stat', title, description, gridPos,
     datasource: datasource || (targets.every(t => t.datasource.uid === targets[0].datasource.uid) ? targets[0].datasource : DS.mixed),
     targets,
-    fieldConfig: {defaults: {color: {mode: 'thresholds'}, decimals: 0, mappings: [], noValue: 'No report',
+    fieldConfig: {defaults: {color: {mode: 'thresholds'}, decimals: 0, displayName: '${__field.name}', mappings: [], noValue: 'No report',
       thresholds: steps([null, COLOR.ok]), unit: 'none', ...defaults}, overrides},
     options: statOptions(options)};
   if (transformations) panel.transformations = transformations;
@@ -277,15 +279,15 @@ function byName(name, properties) {
 function byRef(refId, properties) {
   return {matcher: {id: 'byFrameRefID', options: refId}, properties: Object.entries(properties).map(([id, value]) => ({id, value}))};
 }
-// Ages in seconds (NOW-7): human durations, one decimal.
-const AGE = {unit: 'dtdurations', decimals: 1};
+// Ages in seconds: unit s with one decimal, so Grafana shows one auto-scaled unit ("2.1 min", "9.1 hour").
+const AGE = {unit: 's', decimals: 1};
 
 function timeseriesDefaults(extra = {}, custom = {}) {
   return {color: {mode: 'palette-classic'}, custom: {axisBorderShow: false, axisPlacement: 'auto', barAlignment: 0,
     drawStyle: 'line', fillOpacity: 10, gradientMode: 'none', hideFrom: {legend: false, tooltip: false, viz: false},
     insertNulls: false, lineInterpolation: 'linear', lineWidth: 2, pointSize: 4, scaleDistribution: {type: 'linear'},
     showPoints: 'never', spanNulls: false, stacking: {group: 'A', mode: 'none'}, thresholdsStyle: {mode: 'off'}, ...custom},
-    decimals: 0, noValue: 'No data', thresholds: steps([null, COLOR.ok]), unit: 'short', ...extra};
+    decimals: 0, displayName: '${__field.name}', noValue: 'No data', thresholds: steps([null, COLOR.ok]), unit: 'short', ...extra};
 }
 // INFRA-1: a dashed threshold line only, base step transparent.
 function dashedLine(value, color = 'red') {
@@ -307,7 +309,7 @@ function table({id, title, description, gridPos, targets, defaults = {}, overrid
     datasource: datasource || (targets.every(t => t.datasource.uid === targets[0].datasource.uid) ? targets[0].datasource : DS.mixed),
     targets,
     fieldConfig: {defaults: {color: {mode: 'thresholds'}, custom: {align: 'auto', cellOptions: {type: 'auto'},
-      footer: {reducers: []}, inspect: false}, decimals: 0, mappings: [], noValue: 'No report',
+      footer: {reducers: []}, inspect: false}, decimals: 0, displayName: '${__field.name}', mappings: [], noValue: 'No report',
       thresholds: steps([null, COLOR.ok]), unit: 'none', ...defaults}, overrides},
     options: {cellHeight: 'sm', showHeader: true, ...options},
     transformations: transformations || []};
@@ -372,12 +374,13 @@ function providerStatus({id, gridPos}) {
   return stat({id, title: 'Provider status', gridPos, datasource: DS.mixed,
     description: 'Current public status only, no history: OpenAI (worst of ChatGPT and Codex, status.openai.com) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).',
     targets: [
-      target('A', DS.openai, openai.url, openAiWorstSelector(), [col('status', 'OpenAI'), col('details', 'OpenAI details', 'string')]),
-      target('B', DS.gcpStatus, 'https://status.cloud.google.com/incidents.json', jq('gcp-status.jq'), [col('status', 'Google Cloud'), col('details', 'Google Cloud details', 'string')])
+      target('A', DS.openai, openai.url, openAiWorstSelector(), [col('status', 'OpenAI')]),
+      target('B', DS.gcpStatus, 'https://status.cloud.google.com/incidents.json', jq('gcp-status.jq'), [col('status', 'Google Cloud')])
     ],
     defaults: {mappings: valueMap([[0, 'Outage', COLOR.down], [1, 'No incident', COLOR.ok], [2, 'Incident open', COLOR.degraded], [4, 'Feed unreadable', COLOR.unknown]], 'Feed unreadable'),
       noValue: 'Feed unreadable', color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    options: {reduceOptions: {calcs: ['lastNotNull'], fields: '/^(OpenAI|Google Cloud)$/', values: false}, text: {titleSize: 12, valueSize: 18}}});
+    overrides: [byRef('A', {displayName: 'OpenAI'}), byRef('B', {displayName: 'Google Cloud'})],
+    options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, text: {titleSize: 12, valueSize: 18}}});
 }
 
 module.exports = {

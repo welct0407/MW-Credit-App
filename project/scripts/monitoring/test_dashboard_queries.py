@@ -127,6 +127,13 @@ class OpsHealth(unittest.TestCase):
         self.assertEqual(self.q(self.snapshot(0, pending=1, age=50, state=0, epoch=1))['Age'], -1)
         self.assertEqual(self.q(self.snapshot(0, pending=1, age=50, state=2, epoch=1))['Age'], -2)
 
+    def test_missing_state_sample_makes_the_age_null(self):
+        fields = [{'key': 'daily_charges_age_seconds', 'label': 'Daily charges', 'state_key': 'daily_charges_state'}]
+        data = self.snapshot(0, daily_charges_age_seconds=5)
+        self.assertEqual(query('ops-health.jq', data, FIELDS=fields)[0], {'Daily charges': None})
+        data = self.snapshot(0, daily_charges_age_seconds=5, daily_charges_state=1)
+        self.assertEqual(query('ops-health.jq', data, FIELDS=fields)[0], {'Daily charges': 5})
+
     def test_stale_missing_future_and_invalid_are_null(self):
         for data in (self.snapshot(400, pending=0, age=1, state=1, epoch=1), {}, self.snapshot(-300, pending=0, age=1, state=1, epoch=1)):
             with self.subTest(data=data):
@@ -268,6 +275,10 @@ class CostQueries(unittest.TestCase):
         rows = [[1.5, day(1), 'vm', 'USD'], [2.0, day(min(today.day, 28)), 'vm', 'USD'], [9.0, day(28) if today.day < 28 else day(1), 'disk', 'USD']]
         expected = 1.5 + 2.0 + (0 if today.day < 28 else 9.0)
         self.assertAlmostEqual(query('cost-prior-azure.jq', {'properties': {'rows': rows}})[0]['amount'], expected)
+        # The shifted Bangkok window can reach the last UTC day of the month before: never counted.
+        older = (prev.replace(day=1) - dt.timedelta(days=1))
+        stray = [[50.0, int(older.strftime('%Y%m%d')), 'vm', 'USD'], [60.0, int(today.strftime('%Y%m%d')), 'vm', 'USD']]
+        self.assertAlmostEqual(query('cost-prior-azure.jq', {'properties': {'rows': rows + stray}})[0]['amount'], expected)
         self.assertEqual(query('cost-prior-azure.jq', {'properties': {'rows': []}})[0]['amount'], 0)
         for bad in ({'properties': {'nextLink': 'x', 'rows': []}}, {'properties': {}}, {'properties': {'rows': [[1, day(1), 'vm', 'EUR']]}}):
             with self.assertRaises(ValueError):

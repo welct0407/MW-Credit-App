@@ -15,7 +15,7 @@ Replace the three live Grafana dashboards (Performance, Cost, PWA Platform) with
 2. PWA & APIs has no service dropdown or repeat: four static service rows with per-service timeout and instance lines, and the `env` variable only.
 3. Scheduled jobs have no failed state (V94), so the rule is renamed "MW | Scheduled job overdue" and uses ages only.
 4. The push rule pages on oldest pending above 15 minutes only; `failed_24h` is a panel colour, because expired subscriptions are normal churn.
-5. Result codes need no services change (the existing `read_request` and `command_request` records carry them). Recognition outcome adds one `warning` field to the existing `command_request` record: a small services change, DEV then PROD.
+5. Result codes need no services change (the existing `read_request` and `command_request` records carry them). Recognition outcome adds one `warning` field to the existing `command_request` record for receipt recognition (the first warning code, `none`, `unavailable` or `other`): a small change in `services/payment-command/handler.mjs`, DEV then PROD. Not yet deployed; its inventory entry follows the deploy.
 6. Cost: the daily stack is split into GCP in SGD (budget line from the dashboard constant `gcp_budget_sgd`, empty until ALL-COST-01) and Azure plus Railway in USD. No Billing Budgets IAM in R089.
 7. Link bar: five explicit links; the time range is not carried between dashboards.
 8. UX: Down is dark red for colour-blind safety, timelines print state words, the capacity gauges are merged into two panels, and OpenAI plus Google Cloud status are one "Provider status" stat.

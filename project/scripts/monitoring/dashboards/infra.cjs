@@ -28,18 +28,18 @@ function cloudSql() {
     [col('time', 'Time', 'timestamp'), col('value', name)], {format: 'timeseries'});
   return [
     liftWithLine(31, 1, pos(0, 0, 6, 7), 'Cloud SQL CPU', 0.85),
-    liftWithLine(32, 2, pos(6, 0, 6, 7), 'Cloud SQL memory components', 85),
-    liftWithLine(33, 3, pos(12, 0, 6, 7), 'Cloud SQL disk utilisation', 0.8),
-    liftWithLine(34, 4, pos(18, 0, 6, 7), 'Cloud SQL connections · limit 200', 160, [[200, COLOR.unknown]]),
+    liftWithLine(32, 2, pos(6, 0, 6, 7), 'Cloud SQL memory', 85),
+    liftWithLine(33, 3, pos(12, 0, 6, 7), 'Cloud SQL disk', 0.8),
+    liftWithLine(34, 4, pos(18, 0, 6, 7), 'Cloud SQL connections', 160, [[200, COLOR.unknown]]),
     L.table({id: 5, title: 'Backups and restore points', gridPos: pos(0, 7, 8, 5),
       description: 'Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: age of the newest successful automated backup (red above 30 h, the alert value), newest run state, its type and the transaction-log (PITR) retention.',
       targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'cloud_sql_backup'})), jq('ops-health.jq', {FIELDS: backupFields}),
         backupFields.map(f => col(f.label, f.label)))],
       overrides: [byName('Last backup age', {unit: AGE.unit, decimals: AGE.decimals, 'custom.cellOptions': {type: 'color-background', mode: 'basic'},
           thresholds: steps([null, COLOR.ok], [108000, COLOR.down]), mappings: [L.nullMap('No report')]}),
-        byName('Newest run', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Successful', COLOR.ok], [2, 'Running', COLOR.paused]], 'No report'),
+        byName('Newest run', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Successful', COLOR.ok], [2, 'Running', COLOR.text]], 'No report'),
           'custom.cellOptions': {type: 'color-background', mode: 'basic'}}),
-        byName('Type', {mappings: valueMap([[1, 'Automated', COLOR.paused], [2, 'On demand', COLOR.paused]], 'No report')}),
+        byName('Type', {mappings: valueMap([[1, 'Automated', COLOR.text], [2, 'On demand', COLOR.text]], 'No report')}),
         byName('PITR log retention', {unit: 'd', mappings: [L.nullMap('No report')]})]}),
     L.table({id: 6, title: 'Instance facts', gridPos: pos(8, 7, 8, 5),
       description: 'Configuration snapshots, dated (the only static text on this dashboard), plus PostgreSQL uptime from the collector\'s read-only reporting connection.',
@@ -47,7 +47,8 @@ function cloudSql() {
       targets: [L.inlineTarget('A', DS.gcp, facts, '.[]', [col('Fact', 'Fact', 'string'), col('Value', 'Value', 'string')]),
         {...uptime, refId: 'B', root_selector: '(' + uptime.root_selector + ') | {Fact: "PostgreSQL uptime", Value: (.UptimeText // "No report")}',
           columns: [col('Fact', 'Fact', 'string'), col('Value', 'Value', 'string')]}],
-      transformations: [{id: 'merge', options: {}}]}),
+      transformations: [{id: 'merge', options: {}}],
+      overrides: [byName('Fact', {'custom.width': 120})]}),
     L.timeseries({id: 7, title: 'Connections by database', gridPos: pos(16, 7, 8, 5),
       description: 'Cloud SQL num_backends per database (metric label ' + L.NUM_BACKENDS_DATABASE_LABEL + '); explains who holds connections. No threshold.',
       targets: [db('A', 'loan_manager_prod'), db('B', 'mw_agent'), db('C', 'loan_manager_dev')],
@@ -91,11 +92,13 @@ function cloudRun() {
 
 function debian() {
   const uptime = L.lift(L.PERF, 128, {id: 18, gridPos: pos(18, 22, 6, 2), title: 'Debian VM uptime'});
-  const disk = L.lift(L.PERF, 24, {id: 13, gridPos: pos(18, 17, 6, 5), title: 'Debian VM disk throughput'});
+  // LIVE-3: an informational value, not Paused blue.
+  uptime.fieldConfig.defaults.color = {mode: 'fixed', fixedColor: COLOR.text};
+  const disk = L.lift(L.PERF, 24, {id: 13, gridPos: pos(18, 17, 6, 5), title: 'Debian VM disk'});
   disk.description = (disk.description || '').trim() + ' Snapshot age: Backups and recovery points on Now.';
   return [
     L.lift(L.PERF, 21, {id: 10, gridPos: pos(0, 17, 6, 7), title: 'Debian VM CPU'}),
-    liftWithLine(22, 11, pos(6, 17, 6, 7), 'Debian VM used memory', 85),
+    liftWithLine(22, 11, pos(6, 17, 6, 7), 'Debian VM memory', 85),
     L.lift(L.PERF, 23, {id: 12, gridPos: pos(12, 17, 6, 7), title: 'Debian VM network'}),
     disk, uptime
   ];
@@ -109,7 +112,7 @@ function metabase() {
     L.lift(L.PERF, 41, {id: 14, gridPos: pos(0, 24, 6, 7), title: 'Metabase CPU · cores'}),
     mem,
     L.lift(L.PERF, 43, {id: 16, gridPos: pos(12, 24, 6, 7), title: 'Postgres volume · GB'}),
-    L.table({id: 17, title: 'Metabase probes and recovery', gridPos: pos(18, 24, 6, 7),
+    L.table({id: 17, title: 'Metabase probes', gridPos: pos(18, 24, 6, 7),
       description: 'Today\'s Metabase probe, backup and PITR selectors unchanged (Debian collector and Railway API): one row each with its state and details.',
       datasource: DS.mixed, targets: probes,
       transformations: [{id: 'merge', options: {}}, {id: 'organize', options: {indexByName: {Status: 0, Details: 1}}}],
