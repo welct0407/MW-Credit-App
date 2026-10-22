@@ -61,7 +61,7 @@ function serviceRow(s, index) {
     description: 'Cloud Run request_latencies, distributions merged per 5 minutes then the 95th percentile across revisions; the red dashed line is the request timeout (' + s.timeoutMs / 1000 + ' s). Logarithmic axis.',
     targets: [ts('A', monitoringUrl(run('run.googleapis.com/request_latencies', s.key), {aligner: 'ALIGN_SUM', reducer: 'REDUCE_PERCENTILE_95', period: '300s'}), 'p95')],
     defaults: {unit: 'ms', min: 10, noValue: 'No requests', ...L.dashedLine(s.timeoutMs), custom: {scaleDistribution: {type: 'log', log: 10}, thresholdsStyle: {mode: 'dashed'}}}});
-  const instances = L.timeseries({id: id + 3, title: 'Instances · CPU · memory · ' + s.label, gridPos: pos(16, y + 1, 8, 6),
+  const instances = L.timeseries({id: id + 3, title: 'Instances · CPU · RAM · ' + s.label, gridPos: pos(16, y + 1, 8, 6),
     description: 'Cloud Run instance_count (max per 5 minutes, left axis; grey dashed line = PROD max instances ' + s.maxInstances + (s.key === 'command' ? ', DEV 1' : '') + ') and container CPU and memory utilisation p95 (right axis).',
     targets: [
       ts('A', monitoringUrl(run('run.googleapis.com/container/instance_count', s.key), {aligner: 'ALIGN_MAX', reducer: 'REDUCE_SUM', period: '300s'}), 'Instances'),
@@ -95,11 +95,11 @@ function workers() {
   const jobFields = [{key: 'daily_charges_age_seconds', label: 'Daily charges', state_key: 'daily_charges_state'},
     {key: 'recent_analytics_age_seconds', label: 'Recent analytics', state_key: 'recent_analytics_state'}];
   const jobs = L.stat({id: 22, title: 'Job freshness', gridPos: pos(18, y + 1, 6, 6),
-    description: 'PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue red at 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue) and since the last notification dispatch (pwa_notify).',
+    description: 'PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue red at 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification sent, the last dispatch in pwa_notify).',
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_jobs'})), prodOnly(jq('ops-health.jq', {FIELDS: jobFields})), jobFields.map(f => col(f.label, f.label))),
       target('B', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
-        prodOnly(jq('ops-health.jq', {FIELDS: [{key: 'last_dispatch_age_seconds', label: 'Notification dispatch'}]})), [col('Notification dispatch', 'Notification dispatch')])
+        prodOnly(jq('ops-health.jq', {FIELDS: [{key: 'last_dispatch_age_seconds', label: 'Last notification sent'}]})), [col('Last notification sent', 'Last notification sent')])
     ],
     defaults: {unit: AGE.unit, decimals: AGE.decimals, color: {mode: 'thresholds'}, noValue: 'PROD only',
       mappings: valueMap([[-1, 'Failed', COLOR.down], [-2, 'Overdue', COLOR.down]], 'No report'), thresholds: steps([null, COLOR.ok])},

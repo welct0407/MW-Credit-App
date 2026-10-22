@@ -91,7 +91,7 @@
           "type": "datasource",
           "uid": "-- Dashboard --"
         },
-        "description": "Available costs only: the sum of the platforms that answered (Azure and GCP for the selected dates, Railway for its billing cycle). The Coverage column of Conversion and coverage turns grey and names the platform when one is missing; the total is then incomplete. The previous month's figure is the panel below.",
+        "description": "SGD. Available costs only: the sum of the platforms that answered (Azure and GCP for the selected dates, Railway for its billing cycle). The Coverage column of Coverage and FX turns grey and names the platform when one is missing; the total is then incomplete. The previous month's figure is the next panel.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -114,8 +114,8 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 3,
-          "w": 6,
+          "h": 5,
+          "w": 4,
           "x": 0,
           "y": 0
         },
@@ -152,7 +152,7 @@
             "withTransforms": false
           }
         ],
-        "title": "TOTAL · SGD · month to date",
+        "title": "TOTAL · month to date",
         "transformations": [
           {
             "id": "merge",
@@ -231,7 +231,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "Azure and GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M), converted at the current ECB rate. Railway has no past-cycle figure (cycle only). A reference, not a forecast.",
+        "description": "SGD. Azure and GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M), converted at the current ECB rate. Railway has no past-cycle figure (cycle only). A reference, not a forecast.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -255,10 +255,10 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 2,
-          "w": 6,
-          "x": 0,
-          "y": 3
+          "h": 5,
+          "w": 4,
+          "x": 4,
+          "y": 0
         },
         "hideTimeOverride": true,
         "id": 9,
@@ -430,7 +430,7 @@
         ],
         "timeFrom": "now/M",
         "timeShift": "1M",
-        "title": "Last month, same day · SGD",
+        "title": "Last month, same day",
         "transformations": [
           {
             "id": "merge",
@@ -497,7 +497,7 @@
           "type": "datasource",
           "uid": "-- Dashboard --"
         },
-        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage are shown below.",
+        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage: the Coverage and FX panel.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -524,8 +524,8 @@
         },
         "gridPos": {
           "h": 5,
-          "w": 4,
-          "x": 6,
+          "w": 3,
+          "x": 8,
           "y": 0
         },
         "id": 2,
@@ -570,7 +570,7 @@
             "withTransforms": false
           }
         ],
-        "title": "Azure · SGD",
+        "title": "Azure",
         "transformations": [
           {
             "id": "merge",
@@ -657,7 +657,7 @@
           "type": "datasource",
           "uid": "-- Dashboard --"
         },
-        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage are shown below.",
+        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage: the Coverage and FX panel.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -684,8 +684,8 @@
         },
         "gridPos": {
           "h": 5,
-          "w": 4,
-          "x": 10,
+          "w": 3,
+          "x": 11,
           "y": 0
         },
         "id": 3,
@@ -730,7 +730,7 @@
             "withTransforms": false
           }
         ],
-        "title": "GCP · SGD",
+        "title": "GCP",
         "transformations": [
           {
             "id": "merge",
@@ -817,7 +817,7 @@
           "type": "datasource",
           "uid": "-- Dashboard --"
         },
-        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage are shown below.",
+        "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage: the Coverage and FX panel.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -844,7 +844,7 @@
         },
         "gridPos": {
           "h": 5,
-          "w": 4,
+          "w": 3,
           "x": 14,
           "y": 0
         },
@@ -890,7 +890,7 @@
             "withTransforms": false
           }
         ],
-        "title": "Railway · SGD",
+        "title": "Railway",
         "transformations": [
           {
             "id": "merge",
@@ -977,7 +977,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "Query host for the top row: today's provider sums (Azure, GCP, Railway, ECB rate) and the GCP budget. Daily ECB reference conversion, not transaction-date FX. Native-currency cost details remain below. Railway cycle is independent of the date picker; GCP status is live query coverage, not a static setup note.",
+        "description": "Query host for the top row: today's provider sums in SGD (Azure, GCP, Railway, ECB rate) and the GCP budget. Daily ECB reference conversion, not transaction-date FX. Native-currency cost details remain below. Railway cycle is independent of the date picker; GCP status is live query coverage, not a static setup note.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1154,8 +1154,8 @@
         },
         "gridPos": {
           "h": 5,
-          "w": 6,
-          "x": 18,
+          "w": 7,
+          "x": 17,
           "y": 0
         },
         "id": 5,
@@ -1375,7 +1375,7 @@
             }
           }
         ],
-        "title": "Conversion and coverage",
+        "title": "Coverage and FX",
         "transformations": [
           {
             "id": "merge",
@@ -1592,7 +1592,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "BigQuery billing export, net = cost + credits per Singapore date for the last 30 days, independent of the picker (same 100 MB billed-query cap). Red dashed line = the GCP budget ÷ days in month once gcp_budget_sgd is set (ALL-COST-01); no line until then.",
+        "description": "SGD. BigQuery billing export, net = cost + credits per Singapore date for the last 30 days, independent of the picker (same 100 MB billed-query cap). Red dashed line = the GCP budget ÷ days in month once gcp_budget_sgd is set (ALL-COST-01); no line until then.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1674,6 +1674,30 @@
                 {
                   "id": "custom.fillOpacity",
                   "value": 0
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "GCP net"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Budget ÷ days"
                 }
               ]
             }
@@ -1762,7 +1786,7 @@
           }
         ],
         "timeFrom": "30d",
-        "title": "GCP daily net · SGD · last 30 days",
+        "title": "GCP daily net · 30 d",
         "type": "timeseries"
       },
       {
@@ -1770,7 +1794,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "BigQuery billing export for the selected dates grouped by service: cost before credits per service (Vertex AI is the variable line) and one Credits row, so the total is the net cost. Same 100 MB billed-query cap; a missing export shows no rows, not zero.",
+        "description": "SGD. BigQuery billing export for the selected dates grouped by service: cost before credits per service (Vertex AI is the variable line) and one Credits row, so the total is the net cost. Same 100 MB billed-query cap; a missing export shows no rows, not zero.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1857,7 +1881,7 @@
             }
           }
         ],
-        "title": "GCP by service · SGD net",
+        "title": "GCP by service · net",
         "transformations": [],
         "type": "table"
       },
@@ -1959,6 +1983,42 @@
                     "fixedColor": "#B877D9",
                     "mode": "fixed"
                   }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Azure rg-mwcredit"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Azure backup"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Railway estimate"
                 }
               ]
             }
@@ -2095,9 +2155,9 @@
         "type": "timeseries"
       },
       {
-        "description": "How to read every figure on this dashboard.",
+        "description": "How to read every figure on this dashboard: Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date and Railway always shows its current cycle, so the top row is not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.",
         "gridPos": {
-          "h": 3,
+          "h": 5,
           "w": 24,
           "x": 0,
           "y": 14
@@ -2109,7 +2169,7 @@
             "showLineNumbers": false,
             "showMiniMap": false
           },
-          "content": "Cost data is delayed and provisional; no data is not zero spending. Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date, Railway always shows its current cycle. The top row combines provider periods and is not a common-period invoice. There is no forecast: the previous-month figure and the budget line are references, not predictions. Refresh hourly; frequent manual refreshes can reach provider limits.",
+          "content": "Cost data is delayed and provisional, no data is not zero spending, and the top row combines provider periods (Azure UTC days, GCP Singapore dates, Railway cycle), so it is not an invoice. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.",
           "mode": "markdown"
         },
         "title": "Unchanged rules of reading",
@@ -2121,7 +2181,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 17
+          "y": 19
         },
         "id": 10,
         "panels": [
@@ -2158,7 +2218,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 18
+              "y": 20
             },
             "id": 102,
             "options": {
@@ -2295,7 +2355,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 18
+              "y": 20
             },
             "id": 103,
             "options": {
@@ -2430,7 +2490,7 @@
               "h": 7,
               "w": 8,
               "x": 0,
-              "y": 22
+              "y": 24
             },
             "id": 104,
             "options": {
@@ -2544,7 +2604,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 29
+              "y": 31
             },
             "id": 101,
             "options": {
@@ -2738,7 +2798,7 @@
               "h": 8,
               "w": 24,
               "x": 0,
-              "y": 38
+              "y": 40
             },
             "id": 110,
             "options": {
@@ -2808,7 +2868,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 18
+          "y": 20
         },
         "id": 20,
         "panels": [
@@ -2845,7 +2905,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 19
+              "y": 21
             },
             "id": 202,
             "options": {
@@ -2960,7 +3020,7 @@
               "h": 4,
               "w": 8,
               "x": 8,
-              "y": 19
+              "y": 21
             },
             "id": 203,
             "options": {
@@ -3075,7 +3135,7 @@
               "h": 4,
               "w": 8,
               "x": 16,
-              "y": 19
+              "y": 21
             },
             "id": 204,
             "options": {
@@ -3163,7 +3223,7 @@
               "h": 3,
               "w": 24,
               "x": 0,
-              "y": 23
+              "y": 25
             },
             "id": 205,
             "options": {
@@ -3237,7 +3297,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 26
+              "y": 28
             },
             "id": 207,
             "options": {
@@ -3390,7 +3450,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 26
+              "y": 28
             },
             "id": 206,
             "options": {
@@ -3549,7 +3609,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 37
+              "y": 39
             },
             "id": 201,
             "options": {
@@ -3656,7 +3716,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 19
+          "y": 21
         },
         "id": 30,
         "panels": [
@@ -3693,7 +3753,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 20
+              "y": 22
             },
             "id": 302,
             "options": {
@@ -3809,7 +3869,7 @@
               "h": 4,
               "w": 16,
               "x": 8,
-              "y": 20
+              "y": 22
             },
             "id": 301,
             "options": {
@@ -3880,7 +3940,7 @@
               "h": 5,
               "w": 24,
               "x": 0,
-              "y": 24
+              "y": 26
             },
             "id": 303,
             "options": {
@@ -3954,7 +4014,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 29
+              "y": 31
             },
             "id": 304,
             "options": {
@@ -4100,7 +4160,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 29
+              "y": 31
             },
             "id": 305,
             "options": {

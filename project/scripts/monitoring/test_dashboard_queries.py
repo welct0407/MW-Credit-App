@@ -198,6 +198,9 @@ class BackupAge(unittest.TestCase):
     def test_stale_and_missing_are_unknown(self):
         self.assertEqual(self.q({'timeSeries': self.sample('cloud_sql_backup', 400, age_seconds=10, status=1)})['SQL'], (None, 4))
         self.assertEqual(self.q({}), {'SQL': (None, 4), 'PITR': (None, 4)})
+        # A reported Unknown state (PITR status 4) or a missing status field shows no age.
+        self.assertEqual(self.q({'timeSeries': self.sample('metabase_pitr', 0, archive_age_seconds=720, status=4)})['PITR'], (None, 4))
+        self.assertEqual(self.q({'timeSeries': self.sample('cloud_sql_backup', 0, age_seconds=100)})['SQL'], (None, 4))
 
     def test_truncated_and_provider_error_fail_visibly(self):
         for data in FAILURES:
@@ -333,6 +336,21 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertEqual([r['status'] for r in scan], [4, None])
         stage = run(p['targets'][1]['root_selector'], {})
         self.assertEqual(stage, [{'pending_images': None}])
+
+    def test_metabase_probe_details_are_one_line(self):
+        targets = self.panel('mw-infra', 17)['targets']
+        fresh = {'timeSeries': [series([point(0, v)], field=k) for k, v in (('status', 1), ('http_code', 200), ('duration_ms', 412))]}
+        platform = run(targets[0]['root_selector'], fresh)[0]
+        self.assertEqual(platform, {'status': 1, 'details': '▦ Platform — Healthy · HTTP 200 · 412 ms'})
+        self.assertEqual(run(targets[0]['root_selector'], {})[0]['details'], '▦ Platform — Unknown · HTTP Unavailable · Unavailable')
+        pitr = {'timeSeries': [series([point(0, v)], field=k) for k, v in
+                               (('status', 1), ('last_archived', int(time.time()) - 120), ('archive_age_seconds', 120), ('backup_sets', 2))]}
+        self.assertEqual(run(targets[6]['root_selector'], pitr)[0]['details'], '🛡 PITR archive — Healthy · lag 2 minutes')
+        backups = {'data': {'volumeInstanceBackupScheduleList': [{'id': 's', 'kind': 'DAILY', 'cron': '0 3 * * *', 'retentionSeconds': 604800, 'createdAt': stamp(864000)}],
+                            'volumeInstanceBackupList': [{'scheduleId': 's', 'createdAt': stamp(7300)}]}}
+        self.assertEqual(run(targets[4]['root_selector'], backups)[0]['details'], '💾 Daily backup — Healthy · 2 hours old')
+        for t in targets:
+            self.assertNotIn('\n', run(t['root_selector'], {})[0]['details'])
 
 
 if __name__ == '__main__':

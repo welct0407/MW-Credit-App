@@ -21,10 +21,10 @@ function replaceWindow(t, window) {
 }
 
 function source() {
-  const p = L.lift(COST, 3, {id: SOURCE, gridPos: pos(18, 0, 6, 5), title: 'Conversion and coverage', panelIds: {2: SOURCE}});
+  const p = L.lift(COST, 3, {id: SOURCE, gridPos: pos(17, 0, 7, 5), title: 'Coverage and FX', panelIds: {2: SOURCE}});
   const queries = L.findPanel(COST, 2).targets.map(t => structuredClone(t));
   p.datasource = DS.mixed;
-  p.description = 'Query host for the top row: today\'s provider sums (Azure, GCP, Railway, ECB rate) and the GCP budget. ' + p.description;
+  p.description = 'Query host for the top row: today\'s provider sums in SGD (Azure, GCP, Railway, ECB rate) and the GCP budget. ' + p.description;
   p.targets = [...queries,
     L.inlineTarget('F', DS.gcp, {Category: 'Reported costs', budget: '${gcp_budget_sgd}'},
       '{Category, Budget: (if (.budget | test("^[0-9]+([.][0-9]+)?$")) then ("S$ " + .budget + " / month") else "not created yet (ALL-COST-01)" end)}',
@@ -56,8 +56,8 @@ function coverageTransforms() {
 function total() {
   const chain = sourceChain().filter(t => t.id !== 'filterFieldsByName' && t.id !== 'organize');
   return {
-    id: 1, type: 'stat', title: 'TOTAL · SGD · month to date', gridPos: pos(0, 0, 6, 3),
-    description: 'Available costs only: the sum of the platforms that answered (Azure and GCP for the selected dates, Railway for its billing cycle). The Coverage column of Conversion and coverage turns grey and names the platform when one is missing; the total is then incomplete. The previous month\'s figure is the panel below.',
+    id: 1, type: 'stat', title: 'TOTAL · month to date', gridPos: pos(0, 0, 4, 5),
+    description: 'SGD. Available costs only: the sum of the platforms that answered (Azure and GCP for the selected dates, Railway for its billing cycle). The Coverage column of Coverage and FX turns grey and names the platform when one is missing; the total is then incomplete. The previous month\'s figure is the next panel.',
     datasource: DS.dashboard, targets: consumer(),
     transformations: [...chain,
       {id: 'calculateField', options: {alias: 'This month', mode: 'reduceRow', reduce: {include: ['Azure', 'GCP', 'Railway'], reducer: 'sum'}, replaceFields: false}},
@@ -76,8 +76,8 @@ function lastMonth() {
   const guarded = (t, column) => ({...t, root_selector: jq('cost-prior-azure.jq'), columns: [col('Category', 'Category', 'string'), col('amount', column)]});
   for (const t of [azure, backup]) if (JSON.parse(t.url_options.data).timeframe !== 'Custom') throw Error('Azure query must keep its Custom window');
   return {
-    id: 9, type: 'stat', title: 'Last month, same day · SGD', gridPos: pos(0, 3, 6, 2),
-    description: 'Azure and GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M), converted at the current ECB rate. Railway has no past-cycle figure (cycle only). A reference, not a forecast.',
+    id: 9, type: 'stat', title: 'Last month, same day', gridPos: pos(4, 0, 4, 5),
+    description: 'SGD. Azure and GCP from the 1st of the previous month to the same moment of that month (relative time now/M shifted 1M), converted at the current ECB rate. Railway has no past-cycle figure (cycle only). A reference, not a forecast.',
     datasource: DS.mixed, timeFrom: 'now/M', timeShift: '1M', hideTimeOverride: true,
     targets: [guarded(azure, 'Azure compute USD'), guarded(backup, 'Azure backup USD'), gcp, fx],
     transformations: [{id: 'merge', options: {}},
@@ -90,8 +90,10 @@ function lastMonth() {
   };
 }
 
-function platform(oldId, id, x) {
-  const p = L.lift(COST, oldId, {id, gridPos: pos(x, 0, 4, 5), panelIds: {2: SOURCE}});
+function platform(oldId, id, x, title) {
+  const p = L.lift(COST, oldId, {id, gridPos: pos(x, 0, 3, 5), title, panelIds: {2: SOURCE}});
+  p.description = p.description.replace('Conversion and coverage are shown below.', 'Conversion and coverage: the Coverage and FX panel.');
+  if (!p.description.includes('SGD')) throw Error('Platform panel ' + oldId + ' description lost its currency');
   p.targets = consumer();
   p.transformations = [...sourceChain(), ...p.transformations];
   return p;
@@ -107,8 +109,8 @@ function gcpDaily() {
     '  ((([$g[0], $g[1] + 1, 1, 0, 0, 0, 0, 0] | mktime) - ([$g[0], $g[1], 1, 0, 0, 0, 0, 0] | mktime)) / 86400) as $days |\n' +
     '  ((.budget | tonumber) / $days) as $daily |\n  {time: ((now - 30 * 86400) * 1000 | floor), value: $daily}, {time: (now * 1000 | floor), value: $daily} end',
     [col('time', 'Time', 'timestamp_epoch'), col('value', 'Budget ÷ days')], 'timeseries');
-  return L.timeseries({id: 6, title: 'GCP daily net · SGD · last 30 days', gridPos: pos(0, 5, 8, 9),
-    description: 'BigQuery billing export, net = cost + credits per Singapore date for the last 30 days, independent of the picker (same 100 MB billed-query cap). Red dashed line = the GCP budget ÷ days in month once gcp_budget_sgd is set (ALL-COST-01); no line until then.',
+  return L.timeseries({id: 6, title: 'GCP daily net · 30 d', gridPos: pos(0, 5, 8, 9),
+    description: 'SGD. BigQuery billing export, net = cost + credits per Singapore date for the last 30 days, independent of the picker (same 100 MB billed-query cap). Red dashed line = the GCP budget ÷ days in month once gcp_budget_sgd is set (ALL-COST-01); no line until then.',
     targets: [{...daily, refId: 'A'}, budget], datasource: DS.gcp,
     defaults: {...SGD, min: 0, noValue: 'No data', custom: {drawStyle: 'bars', fillOpacity: 80, lineWidth: 1}, color: {fixedColor: '#FF9830', mode: 'fixed'}},
     overrides: [byName('Budget ÷ days', {color: {fixedColor: 'red', mode: 'fixed'}, 'custom.drawStyle': 'line', 'custom.lineStyle': {dash: [10, 10], fill: 'dash'}, 'custom.fillOpacity': 0})],
@@ -144,8 +146,8 @@ function byService() {
     " EXECUTE IMMEDIATE FORMAT('''SELECT " + category + " AS Service, SUM(cost) AS Gross, SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Credits, currency AS Currency " +
     "FROM `clever-oasis-508610-n7.mw_cloud_billing.%s` WHERE project.id='clever-oasis-508610-n7' AND " + WINDOW + " GROUP BY Service, Currency''',export_table);\nEND IF;";
   if (query.replace(/%s/g, '').includes('%')) throw Error('Unescaped % inside FORMAT');
-  return L.table({id: 7, title: 'GCP by service · SGD net', gridPos: pos(16, 5, 8, 9),
-    description: 'BigQuery billing export for the selected dates grouped by service: cost before credits per service (Vertex AI is the variable line) and one Credits row, so the total is the net cost. Same 100 MB billed-query cap; a missing export shows no rows, not zero.',
+  return L.table({id: 7, title: 'GCP by service · net', gridPos: pos(16, 5, 8, 9),
+    description: 'SGD. BigQuery billing export for the selected dates grouped by service: cost before credits per service (Vertex AI is the variable line) and one Credits row, so the total is the net cost. Same 100 MB billed-query cap; a missing export shows no rows, not zero.',
     targets: [{...t, refId: 'A', root_selector: jq('gcp-by-service.jq'), columns: [col('Service', 'Service', 'string'), col('SGD', 'SGD')], url_options: bigQueryBody(t, query)}],
     defaults: {...SGD, noValue: 'No data'},
     options: {footer: {countRows: false, fields: ['SGD'], reducer: ['sum'], show: true}}});
@@ -176,9 +178,9 @@ function providerRow(id, title, y, oldRowId, ids) {
 }
 
 function rules() {
-  return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 14, 24, 3),
-    description: 'How to read every figure on this dashboard.',
-    content: 'Cost data is delayed and provisional; no data is not zero spending. Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date, Railway always shows its current cycle. The top row combines provider periods and is not a common-period invoice. There is no forecast: the previous-month figure and the budget line are references, not predictions. Refresh hourly; frequent manual refreshes can reach provider limits.'});
+  return L.text({id: 40, title: 'Unchanged rules of reading', gridPos: pos(0, 14, 24, 5),
+    description: 'How to read every figure on this dashboard: Azure keeps provider UTC days (08:00 Singapore), GCP groups by Singapore date and Railway always shows its current cycle, so the top row is not a common-period invoice. Refresh hourly; frequent manual refreshes can reach provider limits.',
+    content: 'Cost data is delayed and provisional, no data is not zero spending, and the top row combines provider periods (Azure UTC days, GCP Singapore dates, Railway cycle), so it is not an invoice. There is no forecast: the previous-month figure and the budget line are references; refresh hourly.'});
 }
 
 function build() {
@@ -186,10 +188,10 @@ function build() {
     time: {from: 'now/M', to: 'now'}, refresh: '1h',
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
     templating: [{hide: 2, label: 'GCP budget (SGD per month)', name: 'gcp_budget_sgd', query: '', skipUrlSync: true, type: 'constant'}],
-    panels: [total(), lastMonth(), platform(5, 2, 6), platform(6, 3, 10), platform(7, 4, 14), source(), gcpDaily(), byService(), azureRailwayDaily(),
+    panels: [total(), lastMonth(), platform(5, 2, 8, 'Azure'), platform(6, 3, 11, 'GCP'), platform(7, 4, 14, 'Railway'), source(), gcpDaily(), byService(), azureRailwayDaily(),
       rules(),
-      providerRow(10, L.findPanel(COST, 306).title, 17, 306, [102, 103, 104, 101, 110]),
-      providerRow(20, L.findPanel(COST, 307).title, 18, 307, [202, 203, 204, 205, 207, 206, 201]),
-      providerRow(30, L.findPanel(COST, 308).title, 19, 308, [302, 301, 303, 304, 305])]});
+      providerRow(10, L.findPanel(COST, 306).title, 19, 306, [102, 103, 104, 101, 110]),
+      providerRow(20, L.findPanel(COST, 307).title, 20, 307, [202, 203, 204, 205, 207, 206, 201]),
+      providerRow(30, L.findPanel(COST, 308).title, 21, 308, [302, 301, 303, 304, 305])]});
 }
 module.exports = {build, SOURCE};

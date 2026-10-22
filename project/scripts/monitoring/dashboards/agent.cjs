@@ -31,7 +31,7 @@ function conversation() {
     description: 'Debian collector worker_timing{conversation_turn}: one bar per completed turn at its end time, height = capture to reply in seconds, one series per provider. At most one turn per 2-minute collector run is plotted.',
     targets: providers.map(([code, name], i) => target(String.fromCharCode(65 + i), DS.gcp, wt('conversation_turn'),
       jq('turn-points.jq', {VALUE: 'seconds', KEY: 'provider', CODE: String(code)}), [col('time', 'Time', 'timestamp'), col('value', name)], {format: 'timeseries'})),
-    defaults: {unit: 's', min: 0, noValue: 'No turns', custom: {drawStyle: 'bars', fillOpacity: 80, barAlignment: 0, lineWidth: 1}},
+    defaults: {unit: 's', min: 0, noValue: 'No turns in selected range', custom: {drawStyle: 'bars', fillOpacity: 80, barAlignment: 0, lineWidth: 1}},
     overrides: providers.map(([, name, color]) => byName(name, {color: {fixedColor: color, mode: 'fixed'}}))});
   const loop = L.stat({id: 5, title: 'Loop health', gridPos: pos(16, 11, 8, 6),
     description: 'Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.',
@@ -69,7 +69,7 @@ function recognizer() {
     description: 'Debian collector worker_timing{recognizer_call}: the newest extraction completed since each run, at its end time; red dashed line = the 25 s per-attempt bound.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'recognizer_call', field: 'seconds'})), L.numericSelector(),
       [col('time', 'Time', 'timestamp'), col('value', 'Extraction')], {format: 'timeseries'})],
-    defaults: {unit: 's', decimals: 1, min: 0, noValue: 'No extractions', ...L.dashedLine(25), custom: {drawStyle: 'points', pointSize: 6, showPoints: 'always', thresholdsStyle: {mode: 'dashed'}}}});
+    defaults: {unit: 's', decimals: 1, min: 0, noValue: 'No extractions in selected range', ...L.dashedLine(25), custom: {drawStyle: 'points', pointSize: 6, showPoints: 'always', thresholdsStyle: {mode: 'dashed'}}}});
   return [service, extractions, time];
 }
 

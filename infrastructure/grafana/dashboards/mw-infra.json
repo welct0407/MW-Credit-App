@@ -330,6 +330,42 @@
                   }
                 }
               ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Used"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Cache"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Free"
+                }
+              ]
             }
           ]
         },
@@ -721,7 +757,7 @@
             }
           }
         ],
-        "title": "Cloud SQL connections",
+        "title": "SQL connections",
         "type": "timeseries"
       },
       {
@@ -729,7 +765,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: age of the newest successful automated backup (red above 30 h, the alert value), newest run state, its type and the transaction-log (PITR) retention.",
+        "description": "Debian collector worker_timing{cloud_sql_backup} from the SQL Admin API, read-only: Age of the newest successful automated backup (red above 30 h, the alert value), Newest run state, its Type and the transaction-log (PITR) retention in days.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -764,7 +800,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Last backup age"
+                "options": "Age"
               },
               "properties": [
                 {
@@ -909,7 +945,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "PITR log retention"
+                "options": "PITR logs"
               },
               "properties": [
                 {
@@ -938,7 +974,7 @@
         },
         "gridPos": {
           "h": 5,
-          "w": 8,
+          "w": 7,
           "x": 0,
           "y": 7
         },
@@ -951,8 +987,8 @@
           {
             "columns": [
               {
-                "selector": "Last backup age",
-                "text": "Last backup age",
+                "selector": "Age",
+                "text": "Age",
                 "type": "number"
               },
               {
@@ -966,8 +1002,8 @@
                 "type": "number"
               },
               {
-                "selector": "PITR log retention",
-                "text": "PITR log retention",
+                "selector": "PITR logs",
+                "text": "PITR logs",
                 "type": "number"
               }
             ],
@@ -978,7 +1014,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"age_seconds\",\"label\":\"Last backup age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR log retention\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"age_seconds\",\"label\":\"Last backup age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR log retention\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"age_seconds\",\"label\":\"Age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR logs\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"age_seconds\",\"label\":\"Age\"},{\"key\":\"status\",\"label\":\"Newest run\"},{\"key\":\"type\",\"label\":\"Type\"},{\"key\":\"log_retention_days\",\"label\":\"PITR logs\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22cloud_sql_backup%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -996,7 +1032,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "Configuration snapshots, dated (the only static text on this dashboard), plus PostgreSQL uptime from the collector's read-only reporting connection.",
+        "description": "Configuration snapshots, dated (the only static text on this dashboard): tier db-g1-small since 16 Oct 2026; storage PD_SSD 10 GB with automatic increase since 17 Oct 2026; max_connections 200 (database flag) verified 22 Sep 2026. Plus PostgreSQL uptime from the collector's read-only reporting connection.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1036,7 +1072,7 @@
               "properties": [
                 {
                   "id": "custom.width",
-                  "value": 120
+                  "value": 110
                 }
               ]
             }
@@ -1044,8 +1080,8 @@
         },
         "gridPos": {
           "h": 5,
-          "w": 8,
-          "x": 8,
+          "w": 6,
+          "x": 7,
           "y": 7
         },
         "id": 6,
@@ -1067,7 +1103,7 @@
                 "type": "string"
               }
             ],
-            "data": "[{\"Fact\":\"Tier\",\"Value\":\"db-g1-small (since 16 Oct 2026)\"},{\"Fact\":\"Storage\",\"Value\":\"PD_SSD 10 GB, automatic increase (since 17 Oct 2026)\"},{\"Fact\":\"max_connections\",\"Value\":\"200 (database flag, verified 22 Sep 2026)\"}]",
+            "data": "[{\"Fact\":\"Tier\",\"Value\":\"db-g1-small · 16 Oct\"},{\"Fact\":\"Storage\",\"Value\":\"SSD 10 GB, auto-grow · 17 Oct\"},{\"Fact\":\"Max connections\",\"Value\":\"200 · 22 Sep\"}]",
             "datasource": {
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
@@ -1176,12 +1212,49 @@
             },
             "unit": "short"
           },
-          "overrides": []
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "loan_manager_prod"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "mw_agent"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "loan_manager_dev"
+                }
+              ]
+            }
+          ]
         },
         "gridPos": {
           "h": 5,
-          "w": 8,
-          "x": 16,
+          "w": 6,
+          "x": 18,
           "y": 7
         },
         "id": 7,
@@ -1292,7 +1365,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{pg_stat}: share of total execution time and call rate of the heaviest statement in monitoring.pg_stat_statements. The statement text stays in the collector's local log.",
+        "description": "Debian collector worker_timing{pg_stat}: Share of total execution time and Calls / min of the heaviest statement in monitoring.pg_stat_statements; Read = whether the collector may read the view. The statement text stays in the collector's local log.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1327,7 +1400,7 @@
             {
               "matcher": {
                 "id": "byName",
-                "options": "Top statement share"
+                "options": "Share"
               },
               "properties": [
                 {
@@ -1395,9 +1468,9 @@
         },
         "gridPos": {
           "h": 5,
-          "w": 8,
-          "x": 0,
-          "y": 12
+          "w": 5,
+          "x": 13,
+          "y": 7
         },
         "id": 8,
         "options": {
@@ -1408,13 +1481,13 @@
           {
             "columns": [
               {
-                "selector": "Top statement share",
-                "text": "Top statement share",
+                "selector": "Share",
+                "text": "Share",
                 "type": "number"
               },
               {
-                "selector": "Calls per minute",
-                "text": "Calls per minute",
+                "selector": "Calls / min",
+                "text": "Calls / min",
                 "type": "number"
               },
               {
@@ -1430,7 +1503,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"top1_share_percent\",\"label\":\"Top statement share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls per minute\"},{\"key\":\"status\",\"label\":\"Read\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"top1_share_percent\",\"label\":\"Top statement share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls per minute\"},{\"key\":\"status\",\"label\":\"Read\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"top1_share_percent\",\"label\":\"Share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls / min\"},{\"key\":\"status\",\"label\":\"Read\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"top1_share_percent\",\"label\":\"Share\"},{\"key\":\"top1_calls_per_min\",\"label\":\"Calls / min\"},{\"key\":\"status\",\"label\":\"Read\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pg_stat%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -1439,7 +1512,7 @@
             }
           }
         ],
-        "title": "Top statement share",
+        "title": "Top statement",
         "transformations": [],
         "type": "table"
       },
@@ -1448,7 +1521,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Cloud Monitoring per service: newest instance count against max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range.",
+        "description": "Cloud Monitoring per service of mw-credit-app-<service>-<env>: newest instance count against Max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1643,15 +1716,58 @@
                       "type": "special"
                     }
                   ]
+                },
+                {
+                  "id": "custom.width",
+                  "value": 80
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Max"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 50
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Service"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 100
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "pattern": "^mw-credit-app-(.+)$",
+                        "result": {
+                          "index": 0,
+                          "text": "$1"
+                        }
+                      },
+                      "type": "regex"
+                    }
+                  ]
                 }
               ]
             }
           ]
         },
         "gridPos": {
-          "h": 5,
-          "w": 16,
-          "x": 8,
+          "h": 9,
+          "w": 24,
+          "x": 0,
           "y": 12
         },
         "id": 9,
@@ -1668,12 +1784,12 @@
                 "type": "string"
               },
               {
-                "selector": "Max instances",
-                "text": "Max instances",
+                "selector": "Max",
+                "text": "Max",
                 "type": "number"
               }
             ],
-            "data": "[{\"Service\":\"read-prod\",\"Max instances\":1},{\"Service\":\"command-prod\",\"Max instances\":2},{\"Service\":\"notify-prod\",\"Max instances\":1},{\"Service\":\"jobs-prod\",\"Max instances\":1},{\"Service\":\"read-dev\",\"Max instances\":2},{\"Service\":\"command-dev\",\"Max instances\":2},{\"Service\":\"notify-dev\",\"Max instances\":1},{\"Service\":\"jobs-dev\",\"Max instances\":1}]",
+            "data": "[{\"Service\":\"read-prod\",\"Max\":1},{\"Service\":\"command-prod\",\"Max\":2},{\"Service\":\"notify-prod\",\"Max\":1},{\"Service\":\"jobs-prod\",\"Max\":1},{\"Service\":\"read-dev\",\"Max\":2},{\"Service\":\"command-dev\",\"Max\":2},{\"Service\":\"notify-dev\",\"Max\":1},{\"Service\":\"jobs-dev\",\"Max\":1}]",
             "datasource": {
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
@@ -1818,7 +1934,7 @@
                 "Billable time": 5,
                 "CPU p95": 3,
                 "Instances": 1,
-                "Max instances": 2,
+                "Max": 2,
                 "Memory p95": 4,
                 "Service": 0
               }
@@ -1897,7 +2013,7 @@
           "h": 7,
           "w": 6,
           "x": 0,
-          "y": 17
+          "y": 21
         },
         "id": 10,
         "options": {
@@ -2031,7 +2147,7 @@
           "h": 7,
           "w": 6,
           "x": 6,
-          "y": 17
+          "y": 21
         },
         "id": 11,
         "options": {
@@ -2156,13 +2272,39 @@
               ]
             },
             "unit": "Bps"
-          }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Received"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Sent"
+                }
+              ]
+            }
+          ]
         },
         "gridPos": {
           "h": 7,
           "w": 6,
           "x": 12,
-          "y": 17
+          "y": 21
         },
         "id": 12,
         "options": {
@@ -2315,13 +2457,39 @@
               ]
             },
             "unit": "Bps"
-          }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Read"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Write"
+                }
+              ]
+            }
+          ]
         },
         "gridPos": {
           "h": 5,
           "w": 6,
           "x": 18,
-          "y": 17
+          "y": 21
         },
         "id": 13,
         "options": {
@@ -2449,7 +2617,7 @@
           "h": 2,
           "w": 6,
           "x": 18,
-          "y": 22
+          "y": 26
         },
         "id": 18,
         "options": {
@@ -2609,6 +2777,54 @@
                   "value": 1
                 }
               ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Metabase"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Postgres"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Metabase limit"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "D"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Postgres limit"
+                }
+              ]
             }
           ]
         },
@@ -2616,7 +2832,7 @@
           "h": 7,
           "w": 6,
           "x": 0,
-          "y": 24
+          "y": 28
         },
         "id": 14,
         "options": {
@@ -2773,7 +2989,7 @@
             }
           }
         ],
-        "title": "Metabase CPU · cores",
+        "title": "Metabase CPU",
         "type": "timeseries"
       },
       {
@@ -2871,6 +3087,54 @@
                   "value": 1
                 }
               ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Metabase"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Postgres"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Metabase limit"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "D"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Postgres limit"
+                }
+              ]
             }
           ]
         },
@@ -2878,7 +3142,7 @@
           "h": 7,
           "w": 6,
           "x": 6,
-          "y": 24
+          "y": 28
         },
         "id": 15,
         "options": {
@@ -3035,7 +3299,7 @@
             }
           }
         ],
-        "title": "Metabase memory · GB",
+        "title": "Metabase RAM",
         "type": "timeseries"
       },
       {
@@ -3106,7 +3370,7 @@
           "h": 7,
           "w": 6,
           "x": 12,
-          "y": 24
+          "y": 28
         },
         "id": 16,
         "options": {
@@ -3170,7 +3434,7 @@
             }
           }
         ],
-        "title": "Postgres volume · GB",
+        "title": "Postgres volume",
         "type": "timeseries"
       },
       {
@@ -3178,7 +3442,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "Today's Metabase probe, backup and PITR selectors unchanged (Debian collector and Railway API): one row each with its state and details.",
+        "description": "Today's Metabase probe, backup and PITR selectors (Debian collector about every 2 minutes, and the Railway API), one row each: Platform = /livez on reports.mw-credit.com; App DB = /readyz including the application database; Reporting DB = an uncached saved SELECT 1 through source 2; Charts = charts.mw-credit.com shell and protected API; Daily and Weekly backup = the newest scheduled Railway volume snapshot (Degraded past 30 h or 8 days, a listed snapshot is not a tested restore); PITR archive = pgBackRest coverage and WAL archive lag. Details shows the state, HTTP code and probe duration, the archive lag or the snapshot age. Degraded = slower than 5 s.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3272,6 +3536,10 @@
                 {
                   "id": "custom.width",
                   "value": 90
+                },
+                {
+                  "id": "custom.minWidth",
+                  "value": 90
                 }
               ]
             },
@@ -3285,7 +3553,7 @@
                   "id": "custom.cellOptions",
                   "value": {
                     "type": "auto",
-                    "wrapText": true
+                    "wrapText": false
                   }
                 }
               ]
@@ -3296,7 +3564,7 @@
           "h": 7,
           "w": 6,
           "x": 18,
-          "y": 24
+          "y": 28
         },
         "id": 17,
         "options": {
@@ -3324,7 +3592,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"▦ Platform — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase liveness /livez; reports.mw-credit.com responds.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"▦ Platform — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase liveness /livez; reports.mw-credit.com responds.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n) | .details |= (split(\"\\n\") as $l | [$l[0], ($l[] | (capture(\"^HTTP: (?<v>.+)$\") | \"HTTP \" + .v), (capture(\"^Probe duration: (?<v>.+)$\") | .v), (capture(\"^Archive lag: (?<v>.+)$\") | \"lag \" + .v), (capture(\"^Snapshot age: (?<v>.+?)[.]?$\") | .v + \" old\"))] | join(\" · \"))",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_platform%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -3352,7 +3620,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "B",
-            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🗄 App DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase readiness /readyz includes its application database connection.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🗄 App DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase readiness /readyz includes its application database connection.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n) | .details |= (split(\"\\n\") as $l | [$l[0], ($l[] | (capture(\"^HTTP: (?<v>.+)$\") | \"HTTP \" + .v), (capture(\"^Probe duration: (?<v>.+)$\") | .v), (capture(\"^Archive lag: (?<v>.+)$\") | \"lag \" + .v), (capture(\"^Snapshot age: (?<v>.+?)[.]?$\") | .v + \" old\"))] | join(\" · \"))",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_appdb%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -3380,7 +3648,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "C",
-            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛢 Reporting DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nUncached saved SELECT 1 through Metabase source 2; no business rows.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛢 Reporting DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nUncached saved SELECT 1 through Metabase source 2; no business rows.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n) | .details |= (split(\"\\n\") as $l | [$l[0], ($l[] | (capture(\"^HTTP: (?<v>.+)$\") | \"HTTP \" + .v), (capture(\"^Probe duration: (?<v>.+)$\") | .v), (capture(\"^Archive lag: (?<v>.+)$\") | \"lag \" + .v), (capture(\"^Snapshot age: (?<v>.+?)[.]?$\") | .v + \" old\"))] | join(\" · \"))",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_reporting%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -3408,7 +3676,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "D",
-            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"📊 Charts — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\ncharts.mw-credit.com shell and protected API response; no private data or rendering check.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"📊 Charts — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\ncharts.mw-credit.com shell and protected API response; no private data or rendering check.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n) | .details |= (split(\"\\n\") as $l | [$l[0], ($l[] | (capture(\"^HTTP: (?<v>.+)$\") | \"HTTP \" + .v), (capture(\"^Probe duration: (?<v>.+)$\") | .v), (capture(\"^Archive lag: (?<v>.+)$\") | \"lag \" + .v), (capture(\"^Snapshot age: (?<v>.+?)[.]?$\") | .v + \" old\"))] | join(\" · \"))",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_charts%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -3436,7 +3704,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "E",
-            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"💾 Daily backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"DAILY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 108000 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 108000 then 1 elif $age <= 129600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"💾 Daily backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"💾 Daily backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"DAILY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 108000 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 108000 then 1 elif $age <= 129600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"💾 Daily backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n) | .details |= (split(\"\\n\") as $l | [$l[0], ($l[] | (capture(\"^HTTP: (?<v>.+)$\") | \"HTTP \" + .v), (capture(\"^Probe duration: (?<v>.+)$\") | .v), (capture(\"^Archive lag: (?<v>.+)$\") | \"lag \" + .v), (capture(\"^Snapshot age: (?<v>.+?)[.]?$\") | .v + \" old\"))] | join(\" · \"))",
             "source": "url",
             "type": "json",
             "url": "https://backboard.railway.com/graphql/v2",
@@ -3467,7 +3735,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "F",
-            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"🗓 Weekly backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"WEEKLY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 691200 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 691200 then 1 elif $age <= 777600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"🗓 Weekly backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"🗓 Weekly backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"WEEKLY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 691200 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 691200 then 1 elif $age <= 777600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"🗓 Weekly backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n) | .details |= (split(\"\\n\") as $l | [$l[0], ($l[] | (capture(\"^HTTP: (?<v>.+)$\") | \"HTTP \" + .v), (capture(\"^Probe duration: (?<v>.+)$\") | .v), (capture(\"^Archive lag: (?<v>.+)$\") | \"lag \" + .v), (capture(\"^Snapshot age: (?<v>.+?)[.]?$\") | .v + \" old\"))] | join(\" · \"))",
             "source": "url",
             "type": "json",
             "url": "https://backboard.railway.com/graphql/v2",
@@ -3498,7 +3766,7 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "G",
-            "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"PITR response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛡 PITR archive — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nRailway Postgres pgBackRest coverage and live WAL archiver.\"+\n \"\\nLatest WAL archive: \"+(if ($v.last_archived//0)>0 then ($v.last_archived+28800|gmtime|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nArchive lag: \"+(if $fresh and ($v.last_archived//0)>0 then (($v.archive_age_seconds//0)/60|floor|tostring)+\" minutes\" else \"Unavailable\" end)+\n \"\\nBackup sets: \"+(if $fresh then (($v.backup_sets//0)|tostring) else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nGreen requires an enabled archive, reachable live probe, backup set, WAL coverage and a recent successful archive. This does not validate a restore.\")}\nend\n",
+            "root_selector": "(def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"PITR response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛡 PITR archive — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nRailway Postgres pgBackRest coverage and live WAL archiver.\"+\n \"\\nLatest WAL archive: \"+(if ($v.last_archived//0)>0 then ($v.last_archived+28800|gmtime|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nArchive lag: \"+(if $fresh and ($v.last_archived//0)>0 then (($v.archive_age_seconds//0)/60|floor|tostring)+\" minutes\" else \"Unavailable\" end)+\n \"\\nBackup sets: \"+(if $fresh then (($v.backup_sets//0)|tostring) else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nGreen requires an enabled archive, reachable live probe, backup set, WAL coverage and a recent successful archive. This does not validate a restore.\")}\nend\n) | .details |= (split(\"\\n\") as $l | [$l[0], ($l[] | (capture(\"^HTTP: (?<v>.+)$\") | \"HTTP \" + .v), (capture(\"^Probe duration: (?<v>.+)$\") | .v), (capture(\"^Archive lag: (?<v>.+)$\") | \"lag \" + .v), (capture(\"^Snapshot age: (?<v>.+?)[.]?$\") | .v + \" old\"))] | join(\" · \"))",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_pitr%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -3531,7 +3799,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 31
+          "y": 35
         },
         "id": 20,
         "panels": [
@@ -3605,7 +3873,7 @@
               "h": 7,
               "w": 12,
               "x": 0,
-              "y": 32
+              "y": 36
             },
             "id": 21,
             "options": {
@@ -3738,7 +4006,7 @@
               "h": 7,
               "w": 12,
               "x": 12,
-              "y": 32
+              "y": 36
             },
             "id": 22,
             "options": {
@@ -3863,13 +4131,39 @@
                   ]
                 },
                 "unit": "bytes"
-              }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "A"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Received"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "B"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Sent"
+                    }
+                  ]
+                }
+              ]
             },
             "gridPos": {
               "h": 7,
               "w": 12,
               "x": 0,
-              "y": 39
+              "y": 43
             },
             "id": 23,
             "options": {
@@ -4023,13 +4317,39 @@
                   ]
                 },
                 "unit": "Bps"
-              }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "A"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Read"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "B"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Write"
+                    }
+                  ]
+                }
+              ]
             },
             "gridPos": {
               "h": 7,
               "w": 12,
               "x": 12,
-              "y": 39
+              "y": 43
             },
             "id": 24,
             "options": {

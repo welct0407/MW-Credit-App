@@ -21,7 +21,7 @@ function services() {
 }
 
 function alerts() {
-  return {id: 2, type: 'alertlist', title: 'Firing alerts', gridPos: pos(16, 0, 8, 6),
+  return {id: 2, type: 'alertlist', title: 'Firing alerts', gridPos: pos(16, 0, 8, 5),
     description: 'Grafana alert rules in folder MW Resource Monitoring Alerts. Empty list = nothing firing. Paused rules (PWA 2m during observation) are not listed.',
     options: {alertInstanceLabelFilter: '', alertName: '', dashboardAlerts: false, folder: {uid: L.ALERT_FOLDER_UID, title: 'MW Resource Monitoring Alerts'},
       groupBy: [], groupMode: 'default', maxItems: 20, showInactiveAlerts: false, showInstances: false, sortOrder: 3,
@@ -31,7 +31,7 @@ function alerts() {
 function freshness() {
   const q = (refId, label, filter, opts) => target(refId, DS.gcp, monitoringUrl(filter, opts), jq('freshness.jq', {LABEL: label}),
     [col('Source', 'Source', 'string'), col('Age', 'Age')]);
-  return L.table({id: 3, title: 'Telemetry freshness', gridPos: pos(16, 6, 8, 6),
+  return L.table({id: 3, title: 'Telemetry freshness', gridPos: pos(16, 5, 8, 7),
     description: 'Age of the newest sample per source; above 6 minutes the source is stale and every state built on it turns grey together. Cloud SQL CPU stands for the Cloud Monitoring ingestion delay.',
     targets: [
       q('A', 'Debian collector', customFilter('health', {component: 'database'})),
@@ -50,13 +50,15 @@ function freshness() {
 function stagesStat({id, title, gridPos, scan, stages, description}) {
   const pipeline = monitoringUrl(customFilter('receipt_pipeline'));
   const red = name => byName(name, {color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [1, COLOR.down])});
-  return L.stat({id, title, gridPos, description,
+  // RECHECK-3: a current-state stat reads the same 3-hour window on Now and Agent, whatever the picker,
+  // so both send the identical Scan request (Agent's 6-hour default had shown No report).
+  return L.stat({id, title, gridPos, description, timeFrom: '3h', hideTimeOverride: true,
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'polling'})), jq('group-scanning.jq'), [col('status', scan)]),
       ...stages.map(([key, label], i) => target(String.fromCharCode(66 + i), DS.gcp, pipeline, L.receiptFields([[key, label]]), [col(key, label)]))
     ],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName(scan, {unit: 'time:HH:mm'}), ...stages.filter(x => x[2]).map(([, label]) => red(label))],
+    overrides: [byName(scan, {unit: 'time:HH:mm', noValue: '—', mappings: [L.nullMap('—')]}), ...stages.filter(x => x[2]).map(([, label]) => red(label))],
     options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, text: {titleSize: 11, valueSize: 22}}});
 }
 function payments() {
@@ -68,7 +70,7 @@ function payments() {
 }
 
 function conversation() {
-  return L.stat({id: 5, title: 'Partner conversation', gridPos: pos(9, 12, 5, 6),
+  return L.stat({id: 5, title: 'Partner chat', gridPos: pos(9, 12, 5, 6),
     description: 'Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn\'s outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age. Rounds, durations and provider are on Agent & Receipts.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'conversation'})),
       jq('ops-health.jq', {FIELDS: [{key: 'undelivered', label: 'Undelivered'}, {key: 'stuck_running', label: 'Stuck'},
@@ -83,7 +85,7 @@ function conversation() {
 }
 
 function push() {
-  return L.stat({id: 6, title: 'Push notifications', gridPos: pos(14, 12, 5, 6),
+  return L.stat({id: 6, title: 'Push', gridPos: pos(14, 12, 5, 6),
     description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (red above 900 s, the alert value), delivered and failed in 24 h.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
       jq('ops-health.jq', {FIELDS: [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
@@ -100,23 +102,24 @@ function notificationsAgeSelector() {
   return '[\n' + L.schedulerSelector() + '] | map(select(.value != null)) | last |\n' +
     '{Notifications: (if . == null then null elif .value == 0 then -1 else ([now - ((.time | fromdateiso8601) + 300), 0] | max | floor) end)}';
 }
+const NOTIFY_JOB = 'Notify job · last run';
 function jobs() {
   const jobMap = valueMap([[-1, 'Failed', COLOR.down], [-2, 'Overdue', COLOR.down]], 'No report');
   return L.stat({id: 7, title: 'Scheduled jobs', gridPos: pos(19, 12, 5, 6),
-    description: 'Time since each job last completed: daily charges and recent analytics from worker_timing{pwa_jobs} (red when overdue: 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue), the minute notification job from its Cloud Scheduler attempts log (grey "stale" after 6 minutes).',
+    description: 'Time since each job last completed: daily charges and recent analytics from worker_timing{pwa_jobs} (red when overdue: 90 000 s and 4 500 s, the alert values; a job with no completed run at all also shows Overdue), the minute notification job (Notify job · last run) from its Cloud Scheduler attempts log (grey "stale" after 6 minutes).',
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_jobs'})),
         jq('ops-health.jq', {FIELDS: [{key: 'daily_charges_age_seconds', label: 'Daily charges', state_key: 'daily_charges_state'},
           {key: 'recent_analytics_age_seconds', label: 'Recent analytics', state_key: 'recent_analytics_state'}]}),
         [col('Daily charges', 'Daily charges'), col('Recent analytics', 'Recent analytics')]),
       target('B', DS.gcp, monitoringUrl(L.schedulerFilter('prod', 'notifications'), {aligner: 'ALIGN_SUM', period: '300s'}),
-        notificationsAgeSelector(), [col('Notifications', 'Notifications')])
+        notificationsAgeSelector(), [col('Notifications', NOTIFY_JOB)])
     ],
     defaults: {unit: AGE.unit, decimals: AGE.decimals, mappings: jobMap, color: {mode: 'thresholds'}},
     overrides: [byName('Daily charges', {thresholds: steps([null, COLOR.ok], [90000, COLOR.down])}),
       byName('Recent analytics', {thresholds: steps([null, COLOR.ok], [4500, COLOR.down])}),
       // The minute job: grey "stale" above 360 s, the freshness convention; no red (the scheduler alert pages).
-      byName('Notifications', {thresholds: steps([null, COLOR.ok], [L.STALE_SECONDS, COLOR.unknown]),
+      byName(NOTIFY_JOB, {thresholds: steps([null, COLOR.ok], [L.STALE_SECONDS, COLOR.unknown]),
         mappings: [...jobMap, {type: 'range', options: {from: L.STALE_SECONDS + 0.001, to: 1e12, result: {text: 'stale', color: COLOR.unknown, index: 3}}}]})],
     options: {text: {titleSize: 11, valueSize: 20}}});
 }
@@ -165,8 +168,8 @@ function edge() {
 
 function backups() {
   const rows = [
-    {component: 'cloud_sql_backup', label: 'Cloud SQL automated backup', age: 'age_seconds', status: 'status', red: 108000},
-    {component: 'debian_snapshot', label: 'Debian disk snapshot', age: 'age_seconds', red: 108000}
+    {component: 'cloud_sql_backup', label: 'Cloud SQL backup', age: 'age_seconds', status: 'status', red: 108000},
+    {component: 'debian_snapshot', label: 'Debian snapshot', age: 'age_seconds', red: 108000}
   ];
   const wt = (refId, rs, metric = 'worker_timing') => target(refId, DS.gcp, monitoringUrl(customFilter(metric, {component: rs.map(r => r.component).length > 1 ? rs.map(r => r.component) : rs[0].component})),
     jq('backup-age.jq', {ROWS: rs}), [col('Source', 'Source', 'string'), col('Age', 'Age'), col('State', 'State')]);
@@ -176,15 +179,15 @@ function backups() {
     return {...t, refId, root_selector: '(' + t.root_selector + ') | {Source: "' + label + '", Age: null, State: .status}',
       columns: [col('Source', 'Source', 'string'), col('Age', 'Age'), col('State', 'State')]};
   };
-  return L.table({id: 19, title: 'Backups and recovery points', gridPos: pos(16, 26, 8, 7),
-    description: 'Age of the newest recovery point and its state against the documented grace (Cloud SQL and Debian 30 h, the alert value; Metabase daily and weekly from the Railway schedules; PITR archive and audit retention from the collector).',
-    targets: [wt('A', rows), railway('B', 84, 'Metabase daily volume backup'), railway('C', 85, 'Metabase weekly volume backup'),
-      wt('D', [{component: 'metabase_pitr', label: 'Metabase PITR archive', age: 'archive_age_seconds', status: 'status', status_is_state: true}], 'metabase_probe'),
-      wt('E', [{component: 'audit_retention', label: 'Agent audit retention run', age: 'age_seconds', status: 'result'}])],
+  return L.table({id: 19, title: 'Backups and recovery points', gridPos: pos(16, 26, 8, 8),
+    description: 'Age of the newest recovery point and its state against the documented grace: Cloud SQL automated backup and Debian disk snapshot 30 h (the alert value); Metabase daily and weekly volume backups from the Railway schedules; Metabase PITR archive and the agent audit retention run from the collector. Age shows — when the state is Unknown.',
+    targets: [wt('A', rows), railway('B', 84, 'Metabase daily'), railway('C', 85, 'Metabase weekly'),
+      wt('D', [{component: 'metabase_pitr', label: 'PITR archive', age: 'archive_age_seconds', status: 'status', status_is_state: true}], 'metabase_probe'),
+      wt('E', [{component: 'audit_retention', label: 'Audit retention', age: 'age_seconds', status: 'result'}])],
     datasource: DS.mixed,
     transformations: [{id: 'merge', options: {}}, {id: 'organize', options: {indexByName: {Source: 0, Age: 1, State: 2}}}],
-    overrides: [byName('Age', {unit: AGE.unit, decimals: AGE.decimals, 'custom.width': 110, mappings: [L.nullMap('—')]}),
-      byName('State', {mappings: L.stateMappings(), 'custom.width': 90, 'custom.cellOptions': {type: 'color-background', mode: 'basic'}, color: {mode: 'fixed', fixedColor: COLOR.unknown}})]});
+    overrides: [byName('Age', {unit: AGE.unit, decimals: AGE.decimals, 'custom.width': 90, mappings: [L.nullMap('—')]}),
+      byName('State', {mappings: L.stateMappings(), 'custom.width': 80, 'custom.cellOptions': {type: 'color-background', mode: 'basic'}, color: {mode: 'fixed', fixedColor: COLOR.unknown}})]});
 }
 
 function build() {

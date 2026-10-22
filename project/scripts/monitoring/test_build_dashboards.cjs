@@ -114,6 +114,34 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
     if ((p.targets || []).length > 1 && !p.pluginVersion) assert.ok(p.fieldConfig.defaults.displayName, uid + ' panel ' + p.id + ' explicit display name');
   }
 }
+// RECHECK-2: every multi-query timeseries, lifted or built, names each query explicitly (no "A Used" legends).
+let namedTimeseries = 0;
+for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+  if (p.type !== 'timeseries' || (p.targets || []).length < 2) continue;
+  const names = new Map((p.fieldConfig.overrides || []).filter(o => o.matcher.id === 'byFrameRefID')
+    .flatMap(o => o.properties.filter(x => x.id === 'displayName').map(x => [o.matcher.options, x.value])));
+  for (const t of p.targets) assert.ok(typeof names.get(t.refId) === 'string' && names.get(t.refId).trim() && !/^[A-Z] /.test(names.get(t.refId)),
+    uid + ' panel ' + p.id + ' (' + p.title + ') query ' + t.refId + ' has a displayName override');
+  namedTimeseries++;
+}
+assert.ok(namedTimeseries >= 10, 'multi-query timeseries checked: ' + namedTimeseries);
+// The four Echo found with query letters carry their series names.
+const legend = (uid, title) => allPanels(built[uid].spec).map(e => e.panel).find(p => p.title === title).fieldConfig.overrides
+  .filter(o => o.matcher.id === 'byFrameRefID').map(o => o.properties.find(x => x.id === 'displayName').value);
+assert.deepEqual(legend('mw-agent', 'Queue length over time'), ['Images waiting', 'Manual holds', 'Awaiting review', 'Unconfirmed posting']);
+assert.deepEqual(legend('mw-infra', 'Cloud SQL memory'), ['Used', 'Cache', 'Free']);
+assert.deepEqual(legend('mw-infra', 'Debian VM network'), ['Received', 'Sent']);
+assert.deepEqual(legend('mw-infra', 'Debian VM disk'), ['Read', 'Write']);
+// RECHECK-6: Grafana drops a gridPos equal to its default {x 0, y 0, w 6, h 3} when it stores a dashboard.
+for (const uid of L.DASHBOARD_UIDS) for (const p of built[uid].spec.panels) {
+  const g = p.gridPos;
+  assert.ok(!(g.x === 0 && g.y === 0 && g.w === 6 && g.h === 3), uid + ' panel ' + p.id + ' gridPos is not the Grafana default');
+}
+// RECHECK-3: Now 4 and Agent 1 send the identical Scan request over the same fixed window.
+const scanOf = (uid, id) => built[uid].spec.panels.find(p => p.id === id);
+assert.equal(scanOf('mw-now', 4).timeFrom, '3h');
+assert.equal(scanOf('mw-agent', 1).timeFrom, '3h');
+assert.deepEqual({...scanOf('mw-now', 4).targets[0], columns: null}, {...scanOf('mw-agent', 1).targets[0], columns: null});
 // The Now home page carries no DEV series and the PWA page carries no unparameterised environment.
 const nowText = JSON.stringify(built['mw-now']);
 assert.ok(!/-dev\b|_dev\b|loan_manager_dev/.test(nowText), 'mw-now is PROD only');

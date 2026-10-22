@@ -135,6 +135,26 @@
                 {
                   "id": "unit",
                   "value": "time:HH:mm"
+                },
+                {
+                  "id": "noValue",
+                  "value": "—"
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
                 }
               ]
             },
@@ -236,6 +256,7 @@
           "x": 0,
           "y": 0
         },
+        "hideTimeOverride": true,
         "id": 1,
         "options": {
           "colorMode": "background",
@@ -398,6 +419,7 @@
             }
           }
         ],
+        "timeFrom": "3h",
         "title": "Receipt pipeline stages",
         "type": "stat"
       },
@@ -462,7 +484,57 @@
               ]
             },
             "unit": "short"
-          }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Images waiting"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Manual holds"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Awaiting review"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "D"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Unconfirmed posting"
+                }
+              ]
+            }
+          ]
         },
         "gridPos": {
           "h": 6,
@@ -814,7 +886,7 @@
             "decimals": 0,
             "displayName": "${__field.name}",
             "min": 0,
-            "noValue": "No turns",
+            "noValue": "No turns in selected range",
             "thresholds": {
               "mode": "absolute",
               "steps": [
@@ -869,6 +941,42 @@
                     "fixedColor": "yellow",
                     "mode": "fixed"
                   }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Gemini"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Codex"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Claude"
                 }
               ]
             }
@@ -1698,7 +1806,7 @@
             "decimals": 1,
             "displayName": "${__field.name}",
             "min": 0,
-            "noValue": "No extractions",
+            "noValue": "No extractions in selected range",
             "thresholds": {
               "mode": "absolute",
               "steps": [

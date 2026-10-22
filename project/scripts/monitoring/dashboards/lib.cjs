@@ -149,9 +149,10 @@ function stateSelector(expected = 1, stale = STALE_SECONDS) {
 }
 
 /* lift(): copy a proven panel from the current canonical dashboard JSON. The copy is
- * deep; only id, gridPos and title are replaced, and every '-- Dashboard --' target's
+ * deep; only id, gridPos and title are replaced, every '-- Dashboard --' target's
  * panelId is remapped through `panelIds` (old id -> new id), failing on any id the
- * map does not cover so no reference can dangle. Queries stay byte for byte. */
+ * map does not cover so no reference can dangle, and a multi-query timeseries gets one
+ * displayName override per query (nameQueries). Queries stay byte for byte. */
 const sources = new Map();
 function canonical(file) {
   if (!sources.has(file)) sources.set(file, JSON.parse(fs.readFileSync(path.join(DASHBOARD_DIR, file), 'utf8')).spec);
@@ -187,7 +188,28 @@ function lift(file, id, {id: newId, gridPos, title, panelIds = {}, linkTo} = {})
     if (!(t.panelId in panelIds)) throw Error('Unmapped panelId ' + t.panelId + ' in lifted panel ' + id);
     t.panelId = panelIds[t.panelId];
   }
+  nameQueries(panel);
   return {id: newId, gridPos, ...(title !== undefined ? {title} : {}), ...panel};
+}
+/* RECHECK-2: a multi-query timeseries otherwise shows each series as "<refId> <name>" (A Used, B Cache).
+ * Each query gets its own displayName from its value column; queries stay unchanged. Overrides are
+ * matched on the original field name, so the proven colour and limit overrides still apply. */
+function queryName(t) {
+  const values = (t.columns || []).filter(c => !/^timestamp/.test(c.type));
+  return values.length === 1 ? values[0].text : null;
+}
+function nameQueries(panel) {
+  const targets = panel.targets || [];
+  if (panel.type !== 'timeseries' || targets.length < 2) return panel;
+  panel.fieldConfig = panel.fieldConfig || {defaults: {}, overrides: []};
+  const overrides = panel.fieldConfig.overrides || [];
+  const named = new Set(overrides.filter(o => o.matcher.id === 'byFrameRefID' && o.properties.some(p => p.id === 'displayName')).map(o => o.matcher.options));
+  for (const t of targets) {
+    const name = queryName(t);
+    if (name && !named.has(t.refId)) overrides.push({matcher: {id: 'byFrameRefID', options: t.refId}, properties: [{id: 'displayName', value: name}]});
+  }
+  panel.fieldConfig.overrides = overrides;
+  return panel;
 }
 function liftTarget(file, id, refId = 'A') {
   const t = findPanel(file, id).targets.find(x => x.refId === refId);
@@ -263,8 +285,8 @@ function statOptions(extra = {}) {
     percentChangeColorMode: 'standard', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false},
     showPercentChange: false, text: {titleSize: 12, valueSize: 24}, textMode: 'value_and_name', wideLayout: true, ...extra};
 }
-function stat({id, title, description, gridPos, targets, datasource, defaults = {}, overrides = [], options = {}, transformations}) {
-  const panel = {id, type: 'stat', title, description, gridPos,
+function stat({id, title, description, gridPos, targets, datasource, defaults = {}, overrides = [], options = {}, transformations, timeFrom, hideTimeOverride}) {
+  const panel = {id, type: 'stat', title, description, gridPos, ...(timeFrom ? {timeFrom, hideTimeOverride: hideTimeOverride === true} : {}),
     datasource: datasource || (targets.every(t => t.datasource.uid === targets[0].datasource.uid) ? targets[0].datasource : DS.mixed),
     targets,
     fieldConfig: {defaults: {color: {mode: 'thresholds'}, decimals: 0, displayName: '${__field.name}', mappings: [], noValue: 'No report',
@@ -302,7 +324,7 @@ function timeseries({id, title, description, gridPos, targets, defaults = {}, ov
     options: {legend: {calcs: [], displayMode: 'list', placement: 'bottom', showLegend: true},
       tooltip: {hideZeros: false, mode: 'multi', sort: 'desc'}, ...options}, ...extra};
   if (transformations) panel.transformations = transformations;
-  return panel;
+  return nameQueries(panel);
 }
 function table({id, title, description, gridPos, targets, defaults = {}, overrides = [], transformations, datasource, options = {}}) {
   return {id, type: 'table', title, description, gridPos,
@@ -389,7 +411,7 @@ module.exports = {
   NUM_BACKENDS_DATABASE_LABEL, ALERT_FOLDER_UID, LOG_METRIC, STALE_SECONDS, ALIGNED_STALE_SECONDS, DASHBOARD_UIDS,
   DASHBOARD_TITLES, DS, ALLOWED_DATASOURCE_UIDS, ALLOWED_URL_HOSTS, FROM, TO, CHART_PERIOD, COLOR, STATE_TEXT,
   stateMappings, valueMap, nullMap, steps, encodeFilter, monitoringUrl, customFilter, sqlFilter, labelClause, col, target,
-  inlineTarget, jq, receiptFields, stateSelector, canonical, findPanel, lift, liftTarget, PERF, COST, PWA_PLATFORM,
+  inlineTarget, jq, receiptFields, stateSelector, canonical, findPanel, lift, liftTarget, nameQueries, queryName, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,
   timeseriesDefaults, dashedLine, table, row, text, sortKeys, serialize, healthRow, workerRow, probeRow, webhookRow, sqlUpRow,
   schedulerFilter, schedulerSelector, schedulerRow, openAiWorstSelector, providerStatus
