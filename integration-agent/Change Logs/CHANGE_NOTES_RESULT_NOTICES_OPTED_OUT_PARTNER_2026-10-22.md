@@ -16,17 +16,21 @@ The Grafana Now dashboard (R089) showed "6 · Notify · failed" at 5. Three of t
 | `PYTHONPATH=src python3 -m unittest tests.test_review_cycle tests.test_receipt_health tests.test_partner_notice tests.test_hold_reply` (in `integration-agent/`) | 109 tests OK |
 | `PYTHONPATH=src python3 -m unittest discover -s tests` (in `integration-agent/`) | 2 failures and 27 errors, all present on the unchanged tree in this cloud session (no `psycopg`, PostgreSQL lab suites, and `test_claude_conversation` / `test_server` failing the same way before the change) |
 | `ruff check --no-cache` on the four changed files | Clean |
+| `deploy-runtime.py` on `vm-mw-credit-agent` (owner go in session), from `/opt/mw-integration-agent-src` detached at `1d02af8` (previously `6ea1540`, an ancestor) | dry-run 12:54:09Z: agent schema through V8, only `receipt_health.py` and `review_cycle.py` change, 9 units unchanged; freeze 12:54:23Z, backup `runtime-20261022T125423416236Z` (metadata sha256 `bbc97e9a…5059`); install 12:54:24Z; activate 12:54:30–34Z, probe `976af0b7-…` |
+| Receiver and recognizer after activate | Receiver InvocationID `702885bf…` → `d2b81907…`, `/ready` `code_version` `1d02af8`, `failed: []`; recognizer `65e63543…` → `6e382bed…`, `/healthz` `{"status":"ok","enabled":true}`; 0 failed units, 8 timers and both wake paths active |
+| Receipt cycle after deploy | 12:54:42Z and the next run: `failures: []`, `notification_failures: []` |
+| `receipt_health.inspect()` and the collector | `failed_notifications` 5 → 2; collector exported 2 at 12:55:06Z (5 until 12:52:55Z) |
 
 ## Not run
 - The pull request's CI checks.
-- The runtime deploy to `vm-mw-credit-agent` and the live count after it (see Remaining work).
 
 ## Recovery
-Revert this batch's commit and redeploy; the previous rule reserves non-POSTED results for opted-out Partners again and counts them.
+`deploy-runtime.py rollback --commit 1d02af8…` restores `6ea1540` from `runtime-20261022T125423416236Z`; or revert this commit and redeploy. The previous rule reserves non-POSTED results for opted-out Partners again and counts them. The install and activate steps used a short-lived `codex-cloud` IAM database sign-in file in root-only tmpfs `/run/mw-op/`, shredded at 12:54:46Z, because the agent's own identity cannot read the agent schema history.
 
 ## Open questions
 - The two 2 October POSTED notices: `scripts/acknowledge-receipt-notices.py` accepts them, but by the documented rule an acknowledgement does not reset `failed_notifications`, so the tile stays at 2 after this change. Owner decision.
 - Re-enabling a Partner still reserves every POSTED result they missed while opted out (76 were sent to this Partner on 21 October). Owner decision.
 
 ## Remaining work
-Deploy with `scripts/deploy-runtime.py` and confirm `failed_notifications` drops from 5 to 2.
+- The VM checkout is detached at `1d02af8`, which is on branch `claude/vigilant-allen-kfzogm` only; merge it to `main` with a merge commit (not squash) so `update-from-github.sh` can fast-forward next time.
+- The two open questions above.
