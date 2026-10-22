@@ -13,6 +13,8 @@ The owner asked (22 October 2026) that each Notifications history button shows t
 
 - Migration number clash (22 October 2026): the Grafana revamp, also R089 (branch `claude/vigilant-allen-kfzogm`, not yet on main), applied `V102__monitoring_ops_health.sql` to DEV and PROD first, so this migration was renumbered from V102 to `V103__notification_history_content.sql` (Byte). Both batches belong to R089, the sole Open release. Every V103 reference here and in the documents above is the renumbered one; the schema baseline for V103 is 102.
 
+- DEV deploy (22 October 2026, PR #121 head): V103, the API image and Hosting are deployed to DEV; the pins and the smoke result are in the [Environment Inventory](../project/Documents/Environment_Inventory.md). DEV notification delivery was switched on for the review on the owner's instruction of 22 October 2026; the inventory has the details and the quick pause. PROD is not deployed.
+
 ## Checks
 | Command | Result |
 | --- | --- |
