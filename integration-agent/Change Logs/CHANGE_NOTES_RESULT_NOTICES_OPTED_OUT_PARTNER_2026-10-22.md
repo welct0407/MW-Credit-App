@@ -8,7 +8,7 @@ The Grafana Now dashboard (R089) showed "6 · Notify · failed" at 5. Three of t
 - `review_cycle.notify()`: no result of any state is reserved for an opted-out Partner, and a reserved result whose Partner is opted out at dispatch is held as `PARTNER_DISABLED` for every state (previously POSTED only). Holding instead of emailing stays deliberate: an opted-out Partner gets neither Instagram nor email (`docs/RECEIPTS.md`, `tests/test_partner_notice.py::test_email_requires_provider_window_evidence`).
 - `receipt_health`: `failed_notifications` also excludes a result held as `IG_PREFLIGHT_FAILED` whose stored Partner snapshot is opted out, so the three existing rows stop counting without editing them. `inspect()` reads the `partner` snapshot for this; only counts leave the VM.
 - Tests: `test_review_cycle` gains the no-result-for-opted-out-Partner case for every non-POSTED state and the opted-out-at-dispatch case; `test_receipt_health` gains opted-out, opted-in and unreadable-snapshot cases.
-- Owner decision (same day): acknowledge the two 2 October POSTED notices and stop counting them. `receipt_health.inspect()` reads `optional_notification_acknowledged` events read-only from `audit.events` (PostgreSQL only; on a read failure it keeps counting) and `failed_notifications` skips acknowledged notices. Tests cover the skip, the audit read, a read failure and SQLite.
+- Owner decision (same day): acknowledge the two 2 October POSTED notices and stop counting them. Both were already acknowledged on 2 October 2026 09:25:53Z (`ACKNOWLEDGED_UNDELIVERED`, operations `1394a205…` and `7517abd5…`), so no new acknowledgement is written. `receipt_health.inspect()` reads `optional_notification_acknowledged` events from `audit.events` on a direct worker connection in a read-only transaction (the state adapter serves only `runtime` tables; a first version read through it and was refused with `STATE_TABLE_NOT_ALLOWED`, caught before deploy); on a read failure it keeps counting. `failed_notifications` skips acknowledged notices. Tests cover the skip, the read-only worker transaction, a read failure, SQLite and that `inspect()` does not read audit through the adapter.
 - Docs: `docs/RECEIPTS.md` (failed-count rule, acknowledgement) and `docs/MONITORING_IMPLEMENTATION_HANDOVER.md` (`failed_notifications` row).
 
 ## Checks
@@ -33,5 +33,5 @@ The Grafana Now dashboard (R089) showed "6 · Notify · failed" at 5. Three of t
 
 ## Remaining work
 - The VM checkout is detached at `1d02af8`, which is on branch `claude/vigilant-allen-kfzogm` only; merge it to `main` with a merge commit (not squash) so `update-from-github.sh` can fast-forward next time.
-- Deploy the acknowledgement rule, acknowledge the two 2 October notices and confirm `failed_notifications` 0 [EVIDENCE: Forge].
+- Deploy the acknowledgement rule and confirm `failed_notifications` 0 [EVIDENCE: Forge].
 - The open question above.

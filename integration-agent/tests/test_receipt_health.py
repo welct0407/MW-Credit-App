@@ -63,17 +63,30 @@ class HealthTests(unittest.TestCase):
         health=assess([],[r],[failed],self.now)
         self.assertEqual(health['failed_notifications'],0)
         self.assertEqual(health['notification_status'],1)
-    def test_acknowledgements_are_read_only_from_postgres_audit(self):
-        from unittest.mock import Mock, patch
+    def test_acknowledgements_are_read_in_a_read_only_worker_transaction(self):
+        from contextlib import nullcontext
+        from unittest.mock import MagicMock
         from mw_integration_agent import receipt_health
-        conn=Mock();conn.execute.return_value.fetchall.return_value=[('n1',),('n2',)]
-        with patch.object(receipt_health,'is_postgres',return_value=True):
-            self.assertEqual(receipt_health.acknowledged(conn),{'n1','n2'})
-            self.assertIn("event_kind='optional_notification_acknowledged'",conn.execute.call_args[0][0])
-            conn.execute.side_effect=RuntimeError('permission denied')
-            self.assertEqual(receipt_health.acknowledged(conn),set())
-        with patch.object(receipt_health,'is_postgres',return_value=False):
-            self.assertEqual(receipt_health.acknowledged(Mock()),set())
+        conn=MagicMock();conn.transaction.return_value=nullcontext()
+        conn.execute.return_value.fetchall.return_value=[('n1',),('n2',)]
+        opened=[]
+        def opener(config,role):opened.append(role);return conn
+        config={'state_backend':'postgres'}
+        self.assertEqual(receipt_health.acknowledged(config,opener),{'n1','n2'})
+        self.assertEqual(opened,['worker'])
+        sql=[c.args[0] for c in conn.execute.call_args_list]
+        self.assertEqual(sql[0],'SET TRANSACTION READ ONLY')
+        self.assertIn("FROM audit.events WHERE event_kind='optional_notification_acknowledged'",sql[1])
+        conn.close.assert_called_once()
+        conn.execute.side_effect=RuntimeError('permission denied')
+        self.assertEqual(receipt_health.acknowledged(config,opener),set())
+        self.assertEqual(receipt_health.acknowledged({'state_backend':'sqlite'},opener),set())
+    def test_inspect_does_not_read_audit_through_the_state_adapter(self):
+        import inspect as pyinspect
+        from mw_integration_agent import receipt_health
+        source=pyinspect.getsource(receipt_health.inspect)
+        self.assertIn('acknowledged(config)',source)
+        self.assertNotIn('audit.events',source)
     def test_superseded_error_notice_does_not_mask_completed_payment(self):
         r=dict(self.review,state='POSTED',created_at=9000)
         notices=[self.notice('review-result:r:UNKNOWN','UNKNOWN','UNKNOWN'),self.notice('review-result:r:POSTED')]

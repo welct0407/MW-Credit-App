@@ -7,7 +7,7 @@ from pathlib import Path
 from contextlib import ExitStack
 import json
 import time
-from .state import connect, is_postgres
+from .state import connect, enabled, open_connection
 from .receipt_hold import event_key
 
 
@@ -24,10 +24,18 @@ def settled(n):
     return opted_out(n) or n.get('acknowledged') is True
 
 
-def acknowledged(notices):
-    """Notice ids with an optional_notification_acknowledged audit event; none on SQLite or when unreadable."""
-    if not is_postgres(notices):return set()
-    try:rows=notices.execute("SELECT payload->>'notice_id' FROM audit.events WHERE event_kind='optional_notification_acknowledged'").fetchall()
+def acknowledged(config, opener=None):
+    """Notice ids with an optional_notification_acknowledged audit event, read in a read-only
+    transaction on a direct worker connection (the state adapter only serves runtime tables).
+    None on SQLite; on a read failure the notices keep counting."""
+    if not enabled(config):return set()
+    try:
+        conn=(opener or open_connection)(config,'worker')
+        try:
+            with conn.transaction():
+                conn.execute('SET TRANSACTION READ ONLY')
+                rows=conn.execute("SELECT payload->>'notice_id' FROM audit.events WHERE event_kind='optional_notification_acknowledged'").fetchall()
+        finally:conn.close()
     except Exception:return set()
     return {r[0] for r in rows}
 
@@ -115,6 +123,6 @@ def inspect(config,now=None):
         reviews=[dict(r) for r in db.execute("SELECT id,job_id,state,created_at FROM partner_reviews WHERE state<>'SUPERSEDED'")]
         replies=[dict(r) for r in db.execute("SELECT message_id,review_id,outcome FROM partner_review_replies WHERE review_id LIKE 'receipt-held:%' AND outcome IN ('HOLD_REJECTED','HOLD_NOT_ACTIVE','HOLD_REJECT_REQUIRED','HOLD_HAS_REVIEW')")]
         sent=[dict(r) for r in notices.execute("SELECT id,event_key,ig_status,email_status,detail,partner FROM partner_notices WHERE (event_key LIKE 'review:%' OR event_key LIKE 'review-result:%' OR event_key LIKE 'receipt-held:%' OR event_key LIKE 'hold-reply-result:%')")]
-        acked=acknowledged(notices)
+        acked=acknowledged(config)
         for n in sent:n['acknowledged']=n['id'] in acked
         return {**assess(jobs,reviews,sent,now,replies),'ingress_review_open':review_open}
