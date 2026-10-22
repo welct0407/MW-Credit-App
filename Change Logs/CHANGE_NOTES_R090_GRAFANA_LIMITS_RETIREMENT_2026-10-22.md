@@ -19,9 +19,14 @@ Owner decisions after the R089 merge (22 October 2026): set the recommended limi
 | `python3 -B project/scripts/monitoring/test_dashboard_queries.py` | 62 tests OK |
 | `terraform validate`, `terraform fmt -check` (offline copy of `infrastructure/grafana`) | Valid, formatted |
 | Live `/api/ds/query` of the built Infrastructure 14 and 15 targets (6 h) | HTTP 200, one frame each with Metabase, Metabase limit, Postgres, Postgres limit; 73 rows |
+| Private backup of the three dashboards before the destroy (`~/.mw-private/.../r090-grafana/backup-retired`, outside Git) | Performance version 42, Cost 15, PWA Platform 2 read through the API; differences from the retired JSON are Grafana normalisation only (empty titles omitted, ids, schema defaults) |
+| Grafana plan-001 from a clean `git archive` export of `2ef0c9a` | sha256 `540cb5bd9d5963df1b15c4fe70bd97593d5121c4930972aa27f9dd41f4d2cb33`, 0 to add, 5 to change (`mw-now`, `mw-pwa`, `mw-agent`, `mw-infra`, datasource `cfz10a9eaokjkd` allowedHosts only), 3 to destroy (the three retired dashboards, moved to `retired` first); applied |
+| Read-back after the apply | `mw-now` 13, `mw-pwa` 12, `mw-agent` 13, `mw-infra` 11, `mw-cost` 10; the three retired UIDs return 404; `mw-public-status` allows only `https://railway.instatus.com`; home `mw-now` |
+| No-change re-plan from the same export | No changes |
+| All five Infrastructure Railway queries in one `/api/ds/query`, three times (24 h) | Every query HTTP 200, no error |
 
 ## Not run
-- The Grafana apply (plan, apply, read-back, no-change re-plan) and the live check of the five dashboards; recorded in this note after they run.
+- A screenshot review of the changed tiles (configuration only; the queries are unchanged except Infrastructure 14 and 15, checked above).
 - The pull request's CI checks.
 
 ## Recovery
