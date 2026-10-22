@@ -34,7 +34,7 @@ Five dashboards in folder MW Resource Monitoring, all tagged `mw-credit`, all wi
 | [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) | `mw-infra` | Last 24 hours ending now, 5-minute refresh | Cloud SQL, Cloud Run table (full width), Debian VM, Metabase on Railway, collapsed Azure VM-01 |
 | [Cost](https://monitor.mw-credit.com/d/mw-cost) | `mw-cost` | Month to date, 1-hour refresh | Azure, GCP and Railway cost in SGD |
 
-Conventions on all five: one-value tiles show the value only, at size 28 (Agent 13 and 14, Infrastructure 18, Cost 1, PWA 1); PWA 30 Recognitions shows one value per outcome ('Clean' for none); state timelines (Now 1 and 16, PWA 20, Agent 9 and 10) read from the hidden dashboard variable `lookback_from` (range start minus 20 minutes, refreshed when the time range changes), so every row starts at the left edge with the last state at or before the range start (Unknown when that state is older than the row's freshness limit: 360 s collector, 720 s Cloud SQL and webhook, 300 s scheduler), nothing is drawn before the start or after now, and a stale row ends at its last point plus the freshness limit and shows Unknown up to now; timeseries are unchanged because Grafana clips them; daily and hourly rows (for example daily charges, audit retention) are blank between runs by design, since there is no attempt and no fresh state. State timelines show one row per component, print the state word in the bar and turn grey when the newest point is older than 360 s; Down is dark red (colour-blind safe, with the state word as the second cue); bar gauges are LCD style with the maximum at the documented limit and a red mark only at an alert value; a red or dashed line appears only for a documented limit or an alert value, so request-rate charts have none; stat values are 24 to 28 px, labels 12 px; panels are at least 6 grid units wide so a phone shows one panel per screen. Grid positions are x/y/w/h.
+Conventions on all five (owner review, `8d77284`): text is larger: stat names 16 px, values 32 px, multi-value tiles as name/value rows, gauges 16/22 px, tables medium, text tiles 20 px (Grafana cannot size timeline labels, legends and axes, table font or the alert list; `project/scripts/monitoring/layout-model.cjs` checks the layout at 1440 and 390 px). One-value tiles show the value only (Agent 13, Infrastructure 18, Cost 1, PWA 1). State timelines (Now 1 and 16, PWA 20, Agent 9 and 10) read from the hidden variable `lookback_from` (range start minus 20 minutes, refreshed when the time range changes), so every row starts at the left edge with the last state at or before the range start and nothing is drawn before the start or after now. There is no word for missing data: a row with no point shows an empty gap, and Unknown appears only when the collector itself reports state 4. A state older than the row's freshness limit (360 s collector, 720 s Cloud SQL and webhook, 300 s scheduler) ends at its last point plus the limit and leaves a gap up to now. Scheduled-job rows hold their last state for 2 min (every-minute jobs), 65 min (hourly) and 25 h (daily), through the hidden variables `lookback_hour` (80 min) and `lookback_day` (26 h) on PWA & APIs; for example the daily-charges row is empty until its 17:05Z run. Timeseries are unchanged because Grafana clips them. State timelines show one row per component and print the state word in the bar; Down is dark red (colour-blind safe, with the state word as the second cue); bar gauges are LCD style with the maximum at the documented limit and a red mark only at an alert value; a red or dashed line appears only for a documented limit or an alert value, so request-rate charts have none; panels are at least 6 grid units wide so a phone shows one panel per screen. Grid positions are x/y/w/h.
 
 ### Now (`mw-now`)
 
@@ -57,7 +57,7 @@ Not on Now by design: DEV, Azure VM-01, Codex readiness, the bridge, request cha
 
 ### PWA & APIs (`mw-pwa`)
 
-Variable: `env` only (prod or dev, default prod); there is no service dropdown. The previous PWA Platform copies are replaced by `env`, and the four Cloud Run services (read, command, notify, jobs) are static rows. The business-database panels (21, 22) read PROD only and show "PROD only" for DEV.
+Variable: `env` (prod or dev, default prod) is hidden; the PROD and DEV links after Cost switch it. The hidden `lookback_from`, `lookback_hour` and `lookback_day` feed the timeline rows. There is no service dropdown. The previous PWA Platform copies are replaced by `env`, and the four Cloud Run services (read, command, notify, jobs) are static rows. The business-database panels (21, 22) read PROD only and show "PROD only" for DEV.
 
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
@@ -68,9 +68,10 @@ Variable: `env` only (prod or dev, default prod); there is no service dropdown. 
 | 19 (row), 20 | Cloud Scheduler attempts · 24 h | State timeline for the notifications, daily-charges and recent-analytics jobs, from the log-based metric `mw_scheduler_attempts_<env>` (Cloud Monitoring has no `attempt_count` metric in this project) | DEV jobs are paused and show grey |
 | 21 | Push delivery | Pending (pending plus retry), failed (dead plus uncertain) and Sent 24h (delivered in 24 h) | PROD only; failed above 0 colours the value orange but does not page (expired subscriptions are normal churn) |
 | 22 | Job freshness | Age of the newest completed run per job (no failed state), plus the row 'Last notification sent' (age of the last push dispatch) | PROD only |
-| 29 (row), 30 | Recognitions · 24 h | Count per outcome by the `warning` field: none, `amount_unreadable`, `amount_fractional`, `account_unmatched`, `account_ambiguous`, `slip_not_confirmed`, other | Log-based counter `mw_recognition_outcome_<env>`; no slip content |
+| 29 (row), 30 | Recognitions · 24 h (one bar gauge per outcome; 'Clean' for none) | Count per outcome by the `warning` field: none, `amount_unreadable`, `amount_fractional`, `account_unmatched`, `account_ambiguous`, `slip_not_confirmed`, other | Log-based counter `mw_recognition_outcome_<env>`; no slip content |
 | 31 | Recognition route p95 · 24 h | Latency of the receipt recognition route | Red dashed at 45 s (route budget); the PWA deadline is 60 s |
-| 32 | Recognizer service | Recognizer health and provider with model, for example 'Gemini · gemini-3.5-flash-lite' (from the collector field `model:<id>`) | Links to Agent & Receipts |
+| 32 | Recognizer service | Service state only (health) | Links to Agent & Receipts |
+| 33 | Recognizer model | Provider with model, for example 'Gemini · gemini-3.5-flash-lite' (collector field `model:<id>`) | |
 
 HTTP metrics do not prove job-boundary completion, push provider acceptance or device delivery; use 20, 21 and 22 for those.
 
@@ -80,19 +81,23 @@ Everything is Debian-backed except the webhook check and the two public status f
 
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
-| 1 | Receipt pipeline stages | The pipeline stage stats of Now 4 (scan reads only the completion-time row; pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications), one stat panel | Stalled, unnotified holds, overdue reviews, unconfirmed postings and failed notifications above 0 are red; Paused does not page. There is no 12 on this dashboard |
-| 2 | Queue length over time | Receipt queue trend | Lines break at gaps over 6 minutes |
-| 3 | Turns · 24 h | Turns, verified, failed and review counts, taken from the turn result (not the queue state) | A 24 h count of 0 with no new Partner message is normal |
-| 4 | Turn duration · per turn | Seconds, rounds and provider for each completed turn | One point per collector run at most; no reference line (R085 gives measurements only) |
-| 5 | Loop health | Poll age and state, wake path, timer, and the conversation Provider value (provider and model) | Alert: stalled conversation |
-| 6 | Recognizer service | Health, provider and model (for example 'Gemini · gemini-3.5-flash-lite'), restart age | Paused (blue) when recognition is disabled |
-| 7 | Extractions · 24 h | Extractions, valid, timeouts and unreadable | Counts from the agent audit schema, no content |
-| 8 | Extraction time (s) | Duration of the newest extraction per run | Red dashed at 25 s (per-attempt bound) |
-| 9 | Workers and timers · last 6 h | State timeline: receipts, conversations, conversation poll state, polling, daily jobs, audit relay, audit retention | |
-| 10 | Connectivity, data and providers · last 6 h | State timeline: webhook (Singapore), tunnel, Tailscale, ingress, database, Codex readiness | |
-| 11 | Provider status | Railway and Google Cloud status; same stat as Now 17 | Feeds have no history, so a stat, not timeline rows |
-| 13 | Ingress code version | 1 when the receiver's code version matches the deployed commit prefix | Closes the former known gap for `webhook_code_version` |
-| 14 | Open ingress reviews | `ingress_review_open`; above 0 is orange | Closes the former known gap for the card |
+| 1 | Receipt pipeline · stages | The pipeline stage stats of Now 4 (scan reads only the completion-time row; pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications) | Stalled, unnotified holds, overdue reviews, unconfirmed postings and failed notifications above 0 are red; Paused does not page |
+| 2 | Receipt pipeline · queue over time | Receipt queue trend | Lines break at gaps over 6 minutes |
+| 14 | Receipts · open ingress reviews | `ingress_review_open`; above 0 is orange | Closes the former known gap for the card |
+| 6 | Recognizer · service | Health and restart age | Paused (blue) when recognition is disabled |
+| 12 | Recognizer · model | Provider with model, for example 'Gemini · gemini-3.5-flash-lite' | From the collector field `model:<id>` |
+| 7 | Recognizer · extractions 24 h | Extractions, valid, timeouts and unreadable | Counts from the agent audit schema, no content |
+| 8 | Recognizer · extraction time (s) | Duration of the newest extraction per run | Red dashed at 25 s (per-attempt bound) |
+| 3 | Conversation · turns 24 h | Turns, verified, failed and review counts, taken from the turn result (not the queue state) | A 24 h count of 0 with no new Partner message is normal |
+| 4 | Conversation · turn duration | Seconds, rounds and provider for each completed turn | One point per collector run at most; no reference line |
+| 5 | Conversation · loop health | Poll age and state, wake path, timer | Alert: stalled conversation |
+| 15 | Conversation · model | Provider and model of the Partner conversation | |
+| 9 | Agent workers and timers | State timeline: receipts, conversations, conversation poll state, polling, daily jobs, audit relay, audit retention | Holds last state 2 min, 65 min or 25 h by job cadence |
+| 10 | Connectivity · webhook, tunnel and data path | State timeline: webhook (Singapore), tunnel, Tailscale, ingress, database, Codex readiness | |
+| 11 | Provider status | Railway and Google Cloud status; same stat as Now 17 | Feeds have no history, so a stat |
+| 13 | Webhook receiver · code version | 1 when the receiver's code version matches the deployed commit prefix | Closes the former known gap for `webhook_code_version` |
+
+Rows by component: Receipt pipeline (20: panels 1, 2, 14), Receipt recognizer (21: 6, 12, 7, 8), Partner conversation (22: 3, 4, 5, 15), Agent workers and timers (23: 9), Connectivity and providers (24: 10, 11, 13).
 
 The bridge tiles of the previous row 5 (121 to 127) are not carried over; the Grafana-to-Dots bridge is being decommissioned and has no panel.
 
@@ -123,14 +128,14 @@ Time zone Asia/Bangkok for display; provider day rules are unchanged (Azure UTC 
 
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
-| 1 | TOTAL · month to date | Sum of available provider costs in SGD; the top row reads TOTAL · month to date, Last month, same day, Azure, GCP, Railway, Coverage and FX (all at y 0, height 5; widths TOTAL 4, Last month, same day 3, Azure, GCP and Railway 4 each, Coverage and FX 5) | "Available costs only"; Railway prior month is "cycle only" |
-| 9 | Last month, same day | Prior month to the same day of the month | Reference, not a forecast |
+| 1 | TOTAL · month to date | Sum of available provider costs in SGD; it hosts the shared queries A to E behind the provider tiles (the former Coverage and FX panel 5 is removed). Top row: TOTAL, Azure, GCP, Railway (y 0, height 4, width 6 each) | "Available costs only"; Railway prior month is "cycle only" |
 | 2 to 4 | Azure, GCP, Railway | Provider month-to-date stats | |
-| 5 | Coverage and FX | FX, the GCP budget cell, and the Coverage column (complete, or incomplete naming the missing platform); also the visible host of the queries (previous A to E) behind panels 1 to 4 | The budget cell is read live from the Cloud Billing Budget API (`Budget-GCP`, 20 SGD monthly, account-wide: it covers every project on the billing account, including `cs-project-xwidnnhn`, not only MW Credit); needs `roles/billing.viewer` for the Grafana service account. The cell reads "S$20.00 / month · Budget-GCP · whole billing account" |
-| 6 | Daily cost · 30 d | One stacked SGD chart: Azure blue, GCP orange, Railway purple. Azure and Railway use the tiles' FX rule (one current ECB rate for all days); GCP is net, from BigQuery filtered to `clever-oasis-508610-n7` | Fixed 30-day window; the line 'GCP budget (billing account) / day' is the live budget ÷ days in the month. Not like-for-like: GCP cost is project-only, the budget covers the whole billing account. Railway returned an error while its token was revoked (04:17 to about 11:20 UTC, 22 October 2026) and returns data since the replacement |
+| 9 | Last month, same day | Prior month to the same day of the month (y 4) | Reference, not a forecast |
+| 8 | GCP budget | Live from the Cloud Billing Budget API: `Budget-GCP`, 20 SGD monthly, account-wide (covers every project on the billing account, including `cs-project-xwidnnhn`); needs `roles/billing.viewer` for the Grafana service account | Cell text 'S$20.00 / month · Budget-GCP · whole billing account' |
+| 6 | Daily cost · this month | One stacked SGD chart that follows the date picker (month to date): Azure blue and GCP orange, GCP net from BigQuery filtered to `clever-oasis-508610-n7`. Railway is left out because its estimate starts mid-month | The line 'GCP budget (billing account) / day' is the live budget ÷ days in the month. Not like-for-like: GCP cost is project-only, the budget covers the whole billing account |
 | 7 | GCP by service · net | Billing export grouped by service, net of credits (month to date) | 100 MB billed-query cap |
 | 10, 20, 30 (collapsed rows) | Azure, GCP, Railway | The previous Cost detail panels unchanged, with their old child IDs | Rates checked 25 September 2026 stay in the description |
-| 40 | Unchanged rules of reading | Short reading text (y 14, height 6); the collapsed provider rows follow at y 20 to 22 | References, not forecasts |
+| 40 | Unchanged rules of reading | Short reading text (y 23, height 6); the collapsed provider rows follow at y 29 to 31 | References, not forecasts |
 
 ### Alerts linked to the new dashboards
 
