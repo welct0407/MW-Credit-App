@@ -495,6 +495,26 @@ class GeneratedSelectors(unittest.TestCase):
         for uid in ('mw-now', 'mw-agent', 'mw-pwa', 'mw-infra', 'mw-cost'):
             self.assertNotIn('openai', (DASHBOARDS / (uid + '.json')).read_text().lower(), uid)
 
+    def test_metabase_charts_send_one_railway_call(self):
+        # R090: one call per chart (both services aliased, usage and limit together), one row per timestamp.
+        data = {'data': {
+            'Metabase': [{'measurement': 'MEMORY_USAGE_GB', 'values': [{'ts': 200, 'value': 1.8}, {'ts': 100, 'value': 1.7}]},
+                         {'measurement': 'MEMORY_LIMIT_GB', 'values': [{'ts': 100, 'value': 2}, {'ts': 200, 'value': 2}]}],
+            'Postgres': [{'measurement': 'MEMORY_USAGE_GB', 'values': [{'ts': 100, 'value': 0.3}]},
+                         {'measurement': 'MEMORY_LIMIT_GB', 'values': [{'ts': 100, 'value': 0.5}]}]}}
+        for pid, usage, limit in ((14, 'CPU_USAGE', 'CPU_LIMIT'), (15, 'MEMORY_USAGE_GB', 'MEMORY_LIMIT_GB')):
+            targets = self.panel('mw-infra', pid)['targets']
+            self.assertEqual(len(targets), 1, pid)
+            query = json.loads(targets[0]['url_options']['data'])['query']
+            self.assertEqual(query.count('metrics('), 2, pid)
+            self.assertEqual(query.count('measurements:[' + usage + ',' + limit + ']'), 2, pid)
+            self.assertEqual([c['text'] for c in targets[0]['columns']], ['Time', 'Metabase', 'Postgres', 'Metabase limit', 'Postgres limit'])
+        rows = run(targets[0]['root_selector'], data)
+        self.assertEqual(rows, [{'time': 100000, 'Metabase': 1.7, 'Metabase limit': 2, 'Postgres': 0.3, 'Postgres limit': 0.5},
+                                {'time': 200000, 'Metabase': 1.8, 'Metabase limit': 2}])
+        with self.assertRaises(ValueError):
+            run(targets[0]['root_selector'], {'errors': [{'message': 'rate limited'}]})
+
     def test_recognizer_and_conversation_show_provider_and_model(self):
         for uid, pid, component in (('mw-pwa', 33, 'recognizer'), ('mw-agent', 12, 'recognizer'), ('mw-agent', 15, 'conversation')):
             p = self.panel(uid, pid)

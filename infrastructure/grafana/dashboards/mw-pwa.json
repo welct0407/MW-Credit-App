@@ -467,7 +467,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services' structured request log, no user identity) and Cloud Run 5xx responses across the four ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs) stays neutral.",
+        "description": "Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services' structured request log, no user identity) and Cloud Run 5xx responses across the four ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs, normal) turns orange from 10 in the range.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -502,6 +502,36 @@
             "unit": "none"
           },
           "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "401 · session invalid"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 10
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
             {
               "matcher": {
                 "id": "byName",
@@ -3644,7 +3674,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "PROD only: worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1(); pending counts pending and retry, failed counts dead and uncertain completed in 24 h. Oldest pending orange above 900 s (the alert value).",
+        "description": "PROD only: worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1(); pending counts pending and retry, failed counts dead and uncertain completed in 24 h. Pending orange from 5; oldest pending orange above 900 s (the alert value).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3679,6 +3709,36 @@
             "unit": "none"
           },
           "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Pending"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 5
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
             {
               "matcher": {
                 "id": "byName",
@@ -3825,7 +3885,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue orange at 90 000 s and 4 500 s, the alert values, red when the run failed; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification, the last dispatch in pwa_notify).",
+        "description": "PROD only: time since each job last completed (pwa_job_runs via worker_timing{pwa_jobs}; overdue orange at 90 000 s and 4 500 s, the alert values, red when the run failed; a job with no completed run at all also shows Overdue) and since the last notification was sent (Last notification, the last dispatch in pwa_notify; orange after 48 h).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -3943,8 +4003,23 @@
                 {
                   "id": "color",
                   "value": {
-                    "fixedColor": "transparent",
-                    "mode": "fixed"
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 172800
+                      }
+                    ]
                   }
                 }
               ]

@@ -96,7 +96,7 @@ function payments() {
 
 function conversation() {
   return L.stat({id: 5, title: 'Partner chat', gridPos: pos(8, 12, 8, 8),
-    description: 'Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn\'s outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age. Rounds, durations and provider are on Agent & Receipts.',
+    description: 'Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn\'s outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age (orange after 7 days without a turn). Rounds, durations and provider are on Agent & Receipts.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'conversation'})),
       jq('ops-health.jq', {FIELDS: [{key: 'undelivered', label: 'Undelivered'}, {key: 'stuck_running', label: 'Stuck'},
         {key: 'last_turn_state', label: 'Last turn'}, {key: 'last_turn_age_seconds', label: 'Last turn age'}]}),
@@ -104,18 +104,19 @@ function conversation() {
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
     overrides: [byName('Undelivered', L.problemColor('red')), byName('Stuck', L.problemColor('red')),
       byName('Last turn', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Verified', COLOR.ok], [2, 'Review', COLOR.degraded]], 'No report')}),
-      byName('Last turn age', {unit: AGE.unit, decimals: AGE.decimals})]});
+      byName('Last turn age', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(L.LIMITS.lastTurnAge)})]});
 }
 
 function push() {
   return L.stat({id: 6, title: 'Push', gridPos: pos(16, 12, 8, 8),
-    description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.',
+    description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries (orange from 5), oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
       jq('ops-health.jq', {FIELDS: [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
         {key: 'delivered_24h', label: 'Sent · 24 h'}, {key: 'failed_24h', label: 'Failed · 24 h'}]}),
       [col('Pending', 'Pending'), col('Oldest pending', 'Oldest pending'), col('Sent · 24 h', 'Sent · 24 h'), col('Failed · 24 h', 'Failed · 24 h')])],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(900)}), byName('Failed · 24 h', L.problemColor('orange'))]});
+    overrides: [byName('Pending', L.ageColor(L.LIMITS.pushPending)), byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(900)}),
+      byName('Failed · 24 h', L.problemColor('orange'))]});
 }
 
 // Notifications: newest scheduler bucket of the Now 1-D query, as an age; a failed bucket maps to Failed.

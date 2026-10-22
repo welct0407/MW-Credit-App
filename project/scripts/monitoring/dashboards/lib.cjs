@@ -8,6 +8,8 @@ const path = require('node:path');
 const MONITORING_DIR = path.resolve(__dirname, '..');
 const REPO_ROOT = path.resolve(MONITORING_DIR, '..', '..', '..');
 const DASHBOARD_DIR = path.join(REPO_ROOT, 'infrastructure', 'grafana', 'dashboards');
+// R090: the three retired dashboards' last deployed JSON, kept only as the source lift() copies proven panels from.
+const RETIRED_DIR = path.join(__dirname, 'retired');
 
 const PROJECT = 'clever-oasis-508610-n7';
 const INSTANCE_ID = '8223265527494214160';
@@ -54,7 +56,7 @@ const ALLOWED_DATASOURCE_UIDS = [
 ];
 const ALLOWED_URL_HOSTS = [
   'monitoring.googleapis.com', 'bigquery.googleapis.com', 'management.azure.com',
-  'backboard.railway.com', 'status.openai.com', 'api.frankfurter.dev', 'status.cloud.google.com', 'railway.instatus.com',
+  'backboard.railway.com', 'api.frankfurter.dev', 'status.cloud.google.com', 'railway.instatus.com',
   'billingbudgets.googleapis.com'
 ];
 
@@ -100,7 +102,9 @@ function valueMap(entries, nullText) {
  *   problem  green at 0, red above when something is broken now, orange above for counts over a period
  *            that need attention (failures in 24 h, request errors in the range, open reviews);
  *   work     normal-work counts and volumes: neutral, coloured only through a documented age or limit;
- *   age      ages with a documented limit: green within, orange past the limit (the alert value), grey stale;
+ *   limit    normal-work counts with an owner-set limit (R090): green below, orange from the limit;
+ *   age      ages with a documented limit: green within, orange past the limit (the alert value or, without
+ *            an alert, the owner-set limit in LIMITS), grey stale;
  *   money    neutral (the live budget comparison would need the budget in the same query; not done);
  *   info     provider and model, uptime, budget text, ages without a documented limit: neutral. */
 const NEUTRAL = {mode: 'fixed', fixedColor: COLOR.info};
@@ -123,13 +127,20 @@ const POLICY = {
   problem: ['Undelivered', 'Stuck', 'Failed · 24 h', 'Failed', 'Timed out', 'Unreadable', 'Grounding rejections', 'Open ingress reviews', '503 · session check unavailable',
     '503 · body timeout', '5xx · all services', '3 · Validate · holds', 'Validation holds', '4 · Review · overdue', '5 · Post · unconfirmed',
     'Posting unconfirmed', '6 · Notify · failed', 'Notify failures'],
-  work: ['Pending', 'Sent · 24 h', 'Turns', 'Verified', 'Median turn', 'Median rounds', 'Extractions', 'Valid', '401 · session invalid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
-  age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Poll age'],
+  work: ['Sent · 24 h', 'Turns', 'Verified', 'Median turn', 'Median rounds', 'Extractions', 'Valid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
+  limit: ['Pending', '401 · session invalid'],
+  age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Poll age', 'Last turn age', 'Last send', 'Last notification'],
   // Lifted Cost detail tiles without a named field are classed by their title.
   money: ['This month', 'Azure', 'GCP', 'Railway', 'Azure + GCP', 'UsageUSD', 'Azure · selected-range cost', 'GCP · before credits (SGD)',
     'GCP · credits (SGD)', 'GCP · net cost (SGD)'],
-  info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn age', 'Last send', 'Last notification']
+  info: ['Provider', 'Running for', 'Uptime', 'GCP budget']
 };
+/* R090 owner decision: limits for tiles without an alert value (recommended by the team, set on 22 October
+ * 2026). Partner chat is irregular (about one turn a day), so a week without a turn or a reply is the signal;
+ * a push goes out on most days, so two days without one is unusual; a sign-out (401) is normal, ten in the
+ * selected range (24 h by default) is not; a push is normally delivered within the minute, so five waiting
+ * is a backlog (Oldest pending keeps the 900 s alert value). */
+const LIMITS = {lastTurnAge: 604800, lastSend: 604800, lastNotification: 172800, sessionInvalid: 10, pushPending: 5};
 function nullMap(text) {
   return {type: 'special', options: {match: 'null', result: {text, color: COLOR.unknown, index: 0}}};
 }
@@ -189,7 +200,7 @@ function jq(file, substitutions = {}) {
   if (left) throw Error(file + ' placeholder left: ' + left[0]);
   return text;
 }
-// Selectors from the existing builders, instantiated exactly as payment-dashboard.js does.
+// Selectors from the retired Performance builder, instantiated exactly as it did.
 function receiptFields(fields) {
   return '[ ' + jq('receipt-pipeline.jq', {FIELDS: fields.map(([key, label]) => ({key, label}))}) +
     ' ] | map({key:.key,value:.value}) | from_entries';
@@ -211,14 +222,14 @@ function lookbackVariable(name = 'lookback_from') {
     refresh: 2, regex: '', skipUrlSync: true, sort: 0, type: 'query'};
 }
 
-/* lift(): copy a proven panel from the current canonical dashboard JSON. The copy is
+/* lift(): copy a proven panel from a retired dashboard's last JSON (RETIRED_DIR). The copy is
  * deep; only id, gridPos and title are replaced, every '-- Dashboard --' target's
  * panelId is remapped through `panelIds` (old id -> new id), failing on any id the
  * map does not cover so no reference can dangle, and a multi-query timeseries gets one
  * displayName override per query (nameQueries). Queries stay byte for byte. */
 const sources = new Map();
 function canonical(file) {
-  if (!sources.has(file)) sources.set(file, JSON.parse(fs.readFileSync(path.join(DASHBOARD_DIR, file), 'utf8')).spec);
+  if (!sources.has(file)) sources.set(file, JSON.parse(fs.readFileSync(path.join(RETIRED_DIR, file), 'utf8')).spec);
   return sources.get(file);
 }
 function findPanel(file, id) {
@@ -545,6 +556,6 @@ module.exports = {
   inlineTarget, jq, receiptFields, stateSelector, rowSelector, stateRow, lookbackVariable, LOOKBACK_FROM, LOOKBACK_SECONDS, RANGE_START, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,
   timeseriesDefaults, dashedLine, table, row, text, sortKeys, serialize, healthRow, workerRow, probeRow, webhookRow, sqlUpRow,
-  schedulerFilter, schedulerSelector, schedulerRow, providerStatus, NEUTRAL, problemColor, ageColor, codedMappings, POLICY, providerModelTarget, modelTile, namedFields, SINGLE_VALUE, STAT_TEXT, TEXT_TILE,
+  schedulerFilter, schedulerSelector, schedulerRow, providerStatus, NEUTRAL, problemColor, ageColor, codedMappings, POLICY, LIMITS, providerModelTarget, modelTile, namedFields, SINGLE_VALUE, STAT_TEXT, TEXT_TILE,
   LOOKBACKS, SCHEDULER_HOLD, readable
 };

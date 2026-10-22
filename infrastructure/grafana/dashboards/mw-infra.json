@@ -2810,54 +2810,6 @@
                   "value": 1
                 }
               ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "A"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Metabase"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "B"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Postgres"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "C"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Metabase limit"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "D"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Postgres limit"
-                }
-              ]
             }
           ]
         },
@@ -2902,100 +2854,22 @@
                 "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
+                "selector": "Metabase",
                 "text": "Metabase",
                 "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-railway-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
-            "source": "url",
-            "type": "json",
-            "url": "https://backboard.railway.com/graphql/v2",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_USAGE],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
+                "selector": "Postgres",
                 "text": "Postgres",
                 "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-railway-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
-            "source": "url",
-            "type": "json",
-            "url": "https://backboard.railway.com/graphql/v2",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_USAGE],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
+                "selector": "Metabase limit",
                 "text": "Metabase limit",
                 "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-railway-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "C",
-            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
-            "source": "url",
-            "type": "json",
-            "url": "https://backboard.railway.com/graphql/v2",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_LIMIT],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
+                "selector": "Postgres limit",
                 "text": "Postgres limit",
                 "type": "number"
               }
@@ -3006,15 +2880,15 @@
             },
             "format": "timeseries",
             "parser": "jq-backend",
-            "refId": "D",
-            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "refId": "A",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data | to_entries[] | .key as $s | .value[] | (if (.measurement | test(\"LIMIT\")) then $s + \" limit\" else $s end) as $n | .values[] | {ts, n: $n, value}] | group_by(.ts) | map({time: (.[0].ts * 1000)} + (map({(.n): .value}) | add)) | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
             "url": "https://backboard.railway.com/graphql/v2",
             "url_options": {
               "body_content_type": "application/json",
               "body_type": "raw",
-              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_LIMIT],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "data": "{\"query\":\"{ Metabase: metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_USAGE,CPU_LIMIT],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} Postgres: metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[CPU_USAGE,CPU_LIMIT],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
               "method": "POST"
             }
           }
@@ -3117,54 +2991,6 @@
                   "value": 1
                 }
               ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "A"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Metabase"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "B"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Postgres"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "C"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Metabase limit"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "D"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Postgres limit"
-                }
-              ]
             }
           ]
         },
@@ -3209,100 +3035,22 @@
                 "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
+                "selector": "Metabase",
                 "text": "Metabase",
                 "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-railway-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
-            "source": "url",
-            "type": "json",
-            "url": "https://backboard.railway.com/graphql/v2",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_USAGE_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
+                "selector": "Postgres",
                 "text": "Postgres",
                 "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-railway-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
-            "source": "url",
-            "type": "json",
-            "url": "https://backboard.railway.com/graphql/v2",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_USAGE_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
+                "selector": "Metabase limit",
                 "text": "Metabase limit",
                 "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-railway-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "C",
-            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
-            "source": "url",
-            "type": "json",
-            "url": "https://backboard.railway.com/graphql/v2",
-            "url_options": {
-              "body_content_type": "application/json",
-              "body_type": "raw",
-              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_LIMIT_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
-              "method": "POST"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp_epoch"
               },
               {
-                "selector": "value",
+                "selector": "Postgres limit",
                 "text": "Postgres limit",
                 "type": "number"
               }
@@ -3313,15 +3061,15 @@
             },
             "format": "timeseries",
             "parser": "jq-backend",
-            "refId": "D",
-            "root_selector": "if .errors then error(.errors | tostring) else [.data.metrics[] | .values[] | {time:(.ts*1000),value:.value}] | sort_by(.time) | .[] end",
+            "refId": "A",
+            "root_selector": "if .errors then error(.errors | tostring) else [.data | to_entries[] | .key as $s | .value[] | (if (.measurement | test(\"LIMIT\")) then $s + \" limit\" else $s end) as $n | .values[] | {ts, n: $n, value}] | group_by(.ts) | map({time: (.[0].ts * 1000)} + (map({(.n): .value}) | add)) | sort_by(.time) | .[] end",
             "source": "url",
             "type": "json",
             "url": "https://backboard.railway.com/graphql/v2",
             "url_options": {
               "body_content_type": "application/json",
               "body_type": "raw",
-              "data": "{\"query\":\"{ metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_LIMIT_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
+              "data": "{\"query\":\"{ Metabase: metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"2959d509-c829-4420-8650-e72827d88170\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_USAGE_GB,MEMORY_LIMIT_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} Postgres: metrics(projectId:\\\"c8e57452-36dc-41f1-8d00-856b521a96c7\\\",environmentId:\\\"df3ba125-0d62-446a-b4d8-5196780982c9\\\",serviceId:\\\"6ba627ff-bc6d-41e7-8182-6c0f1fb03998\\\",startDate:\\\"${__timeFrom:date:iso}\\\",endDate:\\\"${__timeTo:date:iso}\\\",measurements:[MEMORY_USAGE_GB,MEMORY_LIMIT_GB],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }\"}",
               "method": "POST"
             }
           }

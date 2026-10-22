@@ -1147,7 +1147,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn's outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age. Rounds, durations and provider are on Agent & Receipts.",
+        "description": "Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn's outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age (orange after 7 days without a turn). Rounds, durations and provider are on Agent & Receipts.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1299,6 +1299,28 @@
                 {
                   "id": "decimals",
                   "value": 1
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 604800
+                      }
+                    ]
+                  }
                 }
               ]
             }
@@ -1380,7 +1402,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries, oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.",
+        "description": "Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries (orange from 5), oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1415,6 +1437,36 @@
             "unit": "none"
           },
           "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Pending"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 5
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
             {
               "matcher": {
                 "id": "byName",

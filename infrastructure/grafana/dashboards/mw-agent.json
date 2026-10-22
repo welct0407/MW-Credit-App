@@ -1776,7 +1776,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{conversation}: conversation poll age (orange above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.",
+        "description": "Debian collector worker_timing{conversation}: conversation poll age (orange above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance (orange after 7 days).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1994,6 +1994,28 @@
                 {
                   "id": "decimals",
                   "value": 1
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 604800
+                      }
+                    ]
+                  }
                 }
               ]
             }
