@@ -249,7 +249,8 @@ def sql_uptime_series(snapshot, observed, resource):
 
 
 # R089 (design section A): new read-only checks. Every network call is bounded to 10 s; every value is a
-# count, an age in seconds, a state code or a percentage. No identifier, amount, text or token is exported.
+# count, an age in seconds, a state code or a percentage. No identifier, amount, text or token is exported,
+# except the configured model id of the recognizer and the conversation provider as a field label (MODEL_ID).
 NEW_CALL_SECONDS = 10
 PWA_API_ORIGINS = '/etc/mw-resource-monitoring/pwa-api-origins.json'
 PWA_API_COMPONENTS = ('pwa_api_reader_prod', 'pwa_api_command_prod', 'pwa_api_reader_dev', 'pwa_api_command_dev')
@@ -258,6 +259,14 @@ SQL_INSTANCE = 'mw-credit-pg-20261017'
 DAILY_CHARGES_OVERDUE = 90000
 RECENT_ANALYTICS_OVERDUE = 4500
 PROVIDER_CODES = {'gemini': 1, 'codex': 2, 'claude': 3}
+# Model ids are exported as a label, worker_timing{field="model:<id>"} = 1 (metrics are numeric). Only a plain
+# lower-case id (as gemini-3.5-flash-lite) is exported; anything else, or an unreadable setting, is omitted.
+MODEL_ID = re.compile(r'[a-z0-9][a-z0-9._-]{0,63}')
+# Config keys per provider, as the integration agent reads them; codex has no model key (its CLI reads the
+# `model` of <codex_home>/config.toml). Conversation defaults mirror gemini_conversation.py and
+# claude_conversation.py DEFAULTS, used by the agent when the key is absent.
+RECOGNIZER_MODEL_KEYS = {'gemini': ('gemini_model', None)}
+CONVERSATION_MODEL_KEYS = {'gemini': ('gemini_conversation_model', 'gemini-4-argon'), 'claude': ('claude_model', 'claude-opus-5-5')}
 
 
 def bounded_fetch(url, headers=None, timeout=NEW_CALL_SECONDS, limit=262144, clock=time.monotonic):
@@ -336,9 +345,31 @@ def unit_age(service, uptime):
     return int(uptime - entered)
 
 
-def recognizer_timing(config, service, uptime, counts):
-    fields = {'provider': PROVIDER_CODES.get(config.get('receipt_recognition_provider', 'gemini')),
-              'restart_age_seconds': unit_age(service, uptime)}
+def codex_model(config, read=lambda path: path.read_text()):
+    """The `model` of <codex_home>/config.toml, which the codex CLI uses; None when absent or unreadable."""
+    try:
+        import tomllib
+        return tomllib.loads(read(Path(config['codex_home']) / 'config.toml')).get('model')
+    except Exception:
+        return None
+
+
+def model_field(config, provider, keys, read=lambda path: path.read_text()):
+    """{'model:<id>': 1} for the configured model of `provider`, or {} when unknown, unreadable or not a plain id."""
+    if provider == 'codex':
+        value = codex_model(config, read)
+    elif provider in keys:
+        key, default = keys[provider]
+        value = config.get(key, default)
+    else:
+        value = None
+    return {'model:' + value: 1} if isinstance(value, str) and MODEL_ID.fullmatch(value) else {}
+
+
+def recognizer_timing(config, service, uptime, counts, read=lambda path: path.read_text()):
+    provider = config.get('receipt_recognition_provider', 'gemini')
+    fields = {'provider': PROVIDER_CODES.get(provider), 'restart_age_seconds': unit_age(service, uptime)}
+    fields.update(model_field(config, provider, RECOGNIZER_MODEL_KEYS, read))
     fields.update(counts or {})
     return fields
 
@@ -623,12 +654,14 @@ def agent_snapshot(config, last_points, reader=agent_reader):
     return out
 
 
-def conversation_loop(config, polling_timing, poll_state, wake, timer, now):
-    """Loop fields from systemd: poll age (last mw-conversation-poll exit), wake path, worker timer, provider."""
+def conversation_loop(config, polling_timing, poll_state, wake, timer, now, read=lambda path: path.read_text()):
+    """Loop fields from systemd: poll age (last mw-conversation-poll exit), wake path, worker timer, provider, model."""
+    provider = config.get('conversation_provider', 'codex')
     fields = {'poll_state': poll_state,
               'wake_path_active': None if wake is None else int(wake.get('ActiveState') == 'active'),
               'timer_ok': None if timer is None else int(timer.get('LoadState') == 'loaded' and timer.get('ActiveState') == 'active'),
-              'provider': PROVIDER_CODES.get(config.get('conversation_provider', 'codex'))}
+              'provider': PROVIDER_CODES.get(provider)}
+    fields.update(model_field(config, provider, CONVERSATION_MODEL_KEYS, read))
     if polling_timing.get('last_completion', 0) > 0:
         fields['poll_age_seconds'] = max(0, int(now - polling_timing['last_completion']))
     return fields

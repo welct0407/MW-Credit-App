@@ -42,7 +42,7 @@ const DS = {
   gcp: {type: INFINITY, uid: 'mw-gcp-monitoring'},
   azure: {type: INFINITY, uid: 'mw-azure-monitoring'},
   railway: {type: INFINITY, uid: 'mw-railway-monitoring'},
-  openai: {type: INFINITY, uid: 'cfz10a9eaokjkd'},
+  publicStatus: {type: INFINITY, uid: 'cfz10a9eaokjkd'}, // mw-public-status, credential-free
   fx: {type: INFINITY, uid: 'efz19dcu6cwzka'},
   gcpStatus: {type: INFINITY, uid: 'mw-public-gcp-status'},
   dashboard: {type: 'datasource', uid: '-- Dashboard --'},
@@ -54,7 +54,7 @@ const ALLOWED_DATASOURCE_UIDS = [
 ];
 const ALLOWED_URL_HOSTS = [
   'monitoring.googleapis.com', 'bigquery.googleapis.com', 'management.azure.com',
-  'backboard.railway.com', 'status.openai.com', 'api.frankfurter.dev', 'status.cloud.google.com',
+  'backboard.railway.com', 'status.openai.com', 'api.frankfurter.dev', 'status.cloud.google.com', 'railway.instatus.com',
   'billingbudgets.googleapis.com'
 ];
 
@@ -306,6 +306,8 @@ function stateTimeline({id, title, description, gridPos, rows, noValue = 'No rep
       mergeValues: true, rowHeight: 0.8, showValue: 'auto', tooltip: {hideZeros: false, mode: 'single', sort: 'none'}}
   };
 }
+// One-value tiles: the panel title names the value, so no field name under it, and the value at Now-tile size.
+const SINGLE_VALUE = {textMode: 'value', text: {titleSize: 12, valueSize: 28}};
 function statOptions(extra = {}) {
   return {colorMode: 'background', graphMode: 'none', justifyMode: 'center', orientation: 'auto',
     percentChangeColorMode: 'standard', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false},
@@ -417,21 +419,26 @@ function schedulerRow(name, env, job) {
   return {name, datasource: DS.gcp, url: monitoringUrl(schedulerFilter(env, job), {aligner: 'ALIGN_SUM', period: '300s', start: LOOKBACK_FROM}),
     selector: rowSelector(schedulerSelector(), 300)};
 }
-// Worst of ChatGPT and Codex from the unchanged openai-status.jq (today's panels 54 and 55).
-function openAiWorstSelector() {
-  return '[\n' + jq('openai-status.jq') + '] as $r |\n{name: "OpenAI", status: ([$r[].status] as $s | if any($s[]; . == 0) then 0 elif any($s[]; . == 4) or ($s | length) == 0 then 4 elif any($s[]; . == 2) then 2 else 1 end), details: ([$r[].details] | join("\\n\\n"))}';
+// Provider and model of a collector component as one text value (provider-model.jq): "Gemini · gemini-3.5-flash-lite".
+function providerModelTarget(refId, component) {
+  return target(refId, DS.gcp, monitoringUrl(customFilter('worker_timing', {component})), jq('provider-model.jq'), [col('Provider', 'Provider', 'string')]);
 }
+// A stat that shows text fields too: the named fields only (the default shows numeric fields only).
+function namedFields(names) {
+  return '/^(' + names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')$/';
+}
+
+// Owner decision (R089 follow-up): Railway (hosts Metabase and the reports) replaces OpenAI, which is no longer required.
+const STATUS_MAP = [[0, 'Outage', COLOR.down], [1, 'No incident', COLOR.ok], [2, 'Incident open', COLOR.degraded], [3, 'Maintenance', COLOR.degraded], [4, 'Feed unreadable', COLOR.unknown]];
 function providerStatus({id, gridPos}) {
-  const openai = liftTarget(PERF, 54);
   return stat({id, title: 'Provider status', gridPos, datasource: DS.mixed,
-    description: 'Current public status only, no history: OpenAI (worst of ChatGPT and Codex, status.openai.com) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).',
+    description: 'Current public status only, no history: Railway (railway.instatus.com, hosts Metabase and the reports: Outage for a major-outage incident, Incident open, Maintenance in progress) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).',
     targets: [
-      target('A', DS.openai, openai.url, openAiWorstSelector(), [col('status', 'OpenAI')]),
+      target('A', DS.publicStatus, 'https://railway.instatus.com/summary.json', jq('railway-status.jq'), [col('status', 'Railway')]),
       target('B', DS.gcpStatus, 'https://status.cloud.google.com/incidents.json', jq('gcp-status.jq'), [col('status', 'Google Cloud')])
     ],
-    defaults: {mappings: valueMap([[0, 'Outage', COLOR.down], [1, 'No incident', COLOR.ok], [2, 'Incident open', COLOR.degraded], [4, 'Feed unreadable', COLOR.unknown]], 'Feed unreadable'),
-      noValue: 'Feed unreadable', color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    overrides: [byRef('A', {displayName: 'OpenAI'}), byRef('B', {displayName: 'Google Cloud'})],
+    defaults: {mappings: valueMap(STATUS_MAP, 'Feed unreadable'), noValue: 'Feed unreadable', color: {mode: 'fixed', fixedColor: COLOR.unknown}},
+    overrides: [byRef('A', {displayName: 'Railway'}), byRef('B', {displayName: 'Google Cloud'})],
     options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, text: {titleSize: 12, valueSize: 18}}});
 }
 
@@ -444,5 +451,5 @@ module.exports = {
   inlineTarget, jq, receiptFields, stateSelector, rowSelector, stateRow, lookbackVariable, LOOKBACK_FROM, LOOKBACK_SECONDS, RANGE_START, canonical, findPanel, lift, liftTarget, nameQueries, queryName, joinsFrames, PERF, COST, PWA_PLATFORM,
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,
   timeseriesDefaults, dashedLine, table, row, text, sortKeys, serialize, healthRow, workerRow, probeRow, webhookRow, sqlUpRow,
-  schedulerFilter, schedulerSelector, schedulerRow, openAiWorstSelector, providerStatus
+  schedulerFilter, schedulerSelector, schedulerRow, providerStatus, providerModelTarget, namedFields, SINGLE_VALUE
 };

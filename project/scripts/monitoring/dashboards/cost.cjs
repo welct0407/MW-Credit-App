@@ -63,7 +63,7 @@ function total() {
       {id: 'filterFieldsByName', options: {include: {names: ['This month']}}}],
     fieldConfig: {defaults: {color: {fixedColor: 'yellow', mode: 'fixed'}, ...SGD, noValue: 'No data', thresholds: steps([null, COLOR.ok])},
       overrides: []},
-    options: L.statOptions({colorMode: 'value', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, text: {titleSize: 12, valueSize: 22}})
+    options: L.statOptions({colorMode: 'value', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, ...L.SINGLE_VALUE})
   };
 }
 

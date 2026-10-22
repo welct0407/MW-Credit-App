@@ -2642,9 +2642,9 @@
           "showPercentChange": false,
           "text": {
             "titleSize": 12,
-            "valueSize": 18
+            "valueSize": 28
           },
-          "textMode": "value_and_name",
+          "textMode": "value",
           "tooltip": {
             "mode": "multi",
             "sort": "desc"

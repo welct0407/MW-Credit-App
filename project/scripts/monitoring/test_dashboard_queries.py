@@ -7,6 +7,7 @@ import pathlib
 import subprocess
 import time
 import unittest
+import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent
 DASHBOARDS = ROOT.parents[2] / 'infrastructure' / 'grafana' / 'dashboards'
@@ -360,6 +361,64 @@ class BudgetQuery(unittest.TestCase):
                 self.q(data)
 
 
+class RailwayStatus(unittest.TestCase):
+    """railway-status.jq on railway.instatus.com/summary.json (live shape when healthy: page only)."""
+    UP = {'page': {'name': 'Railway', 'url': 'https://status.railway.com', 'status': 'UP'}}
+
+    def q(self, data):
+        return query('railway-status.jq', data)[0]['status']
+
+    def test_up_is_no_incident(self):
+        self.assertEqual(self.q(self.UP), 1)
+        self.assertEqual(self.q(dict(self.UP, activeIncidents=[], activeMaintenances=[{'name': 'Later', 'status': 'NOTSTARTEDYET'}])), 1)
+
+    def test_has_issues_and_incidents(self):
+        partial = {'name': 'Builds delayed', 'impact': 'PARTIALOUTAGE', 'status': 'INVESTIGATING'}
+        self.assertEqual(self.q({'page': dict(self.UP['page'], status='HASISSUES')}), 2)
+        self.assertEqual(self.q(dict(self.UP, activeIncidents=[partial])), 2)
+        rows = query('railway-status.jq', {'page': dict(self.UP['page'], status='HASISSUES'), 'activeIncidents': [partial]})
+        self.assertEqual(rows[0]['details'], 'Builds delayed · PARTIALOUTAGE')
+        self.assertEqual(self.q({'page': dict(self.UP['page'], status='HASISSUES'), 'activeIncidents': [dict(partial, impact='MAJOROUTAGE')]}), 0)
+
+    def test_maintenance(self):
+        self.assertEqual(self.q({'page': dict(self.UP['page'], status='UNDERMAINTENANCE')}), 3)
+        self.assertEqual(self.q(dict(self.UP, activeMaintenances=[{'name': 'DB upgrade', 'status': 'INPROGRESS'}])), 3)
+
+    def test_unreadable_feed(self):
+        up = self.UP
+        for data in ({}, [], {'page': {}}, {'page': {'status': 1}}, dict(up, activeIncidents={}), {'page': dict(up['page'], status='SOMETHINGNEW')}):
+            self.assertEqual(self.q(data), 4, data)
+
+
+class ProviderModel(unittest.TestCase):
+    """provider-model.jq: newest run's provider code and its model:<id> field as one text value."""
+    @staticmethod
+    def data(code, model=None, age=0, model_age=None):
+        rows = [series([point(age, code)], field='provider')]
+        if model:
+            rows.append(series([point(age if model_age is None else model_age, 1)], field='model:' + model))
+        return {'timeSeries': rows}
+
+    def q(self, data):
+        return query('provider-model.jq', data)[0]['Provider']
+
+    def test_provider_and_model(self):
+        self.assertEqual(self.q(self.data(1, 'gemini-3.5-flash-lite')), 'Gemini · gemini-3.5-flash-lite')
+        self.assertEqual(self.q(self.data(2, 'gpt-5.5')), 'Codex · gpt-5.5')
+        self.assertEqual(self.q(self.data(3)), 'Claude')
+
+    def test_model_of_an_older_run_is_not_shown(self):
+        self.assertEqual(self.q(self.data(1, 'gemini-2.5-flash', age=0, model_age=600)), 'Gemini')
+
+    def test_stale_unknown_and_failures(self):
+        self.assertIsNone(self.q(self.data(1, 'gemini-3.5-flash-lite', age=400)))
+        self.assertIsNone(self.q(self.data(9)))
+        self.assertIsNone(self.q({}))
+        for bad in FAILURES:
+            with self.assertRaises(ValueError):
+                query('provider-model.jq', bad)
+
+
 def sgt_midnight_ms(date):
     return int(dt.datetime(date.year, date.month, date.day, tzinfo=dt.timezone(dt.timedelta(hours=8))).timestamp()) * 1000
 
@@ -396,9 +455,22 @@ class GeneratedSelectors(unittest.TestCase):
                     return c
         raise KeyError(pid)
 
-    def test_openai_worst_of_two_products(self):
-        sel = self.panel('mw-now', 17)['targets'][0]['root_selector']
-        self.assertEqual(run(sel, {'summary': {}})[0]['status'], 4)
+    def test_provider_status_reads_railway_not_openai(self):
+        for uid, pid in (('mw-now', 17), ('mw-agent', 11)):
+            t = self.panel(uid, pid)['targets']
+            self.assertEqual((t[0]['url'], t[0]['datasource']['uid']), ('https://railway.instatus.com/summary.json', 'cfz10a9eaokjkd'))
+            self.assertEqual(run(t[0]['root_selector'], RailwayStatus.UP)[0]['status'], 1)
+            self.assertEqual(t[1]['url'], 'https://status.cloud.google.com/incidents.json')
+        for uid in ('mw-now', 'mw-agent', 'mw-pwa', 'mw-infra', 'mw-cost'):
+            self.assertNotIn('openai', (DASHBOARDS / (uid + '.json')).read_text().lower(), uid)
+
+    def test_recognizer_and_conversation_show_provider_and_model(self):
+        for uid, pid, component in (('mw-pwa', 32, 'recognizer'), ('mw-agent', 6, 'recognizer'), ('mw-agent', 5, 'conversation')):
+            p = self.panel(uid, pid)
+            t = next(x for x in p['targets'] if x['columns'][0]['selector'] == 'Provider')
+            self.assertIn('metric.labels.component = "' + component + '"', urllib.parse.unquote(t['url']))
+            self.assertEqual(run(t['root_selector'], ProviderModel.data(1, 'gemini-3.5-flash-lite')), [{'Provider': 'Gemini · gemini-3.5-flash-lite'}])
+            self.assertRegex('Provider', p['options']['reduceOptions']['fields'].strip('/'))
 
     def test_notifications_age_from_scheduler_buckets(self):
         sel = self.panel('mw-now', 7)['targets'][1]['root_selector']

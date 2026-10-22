@@ -34,31 +34,33 @@ function conversation() {
     defaults: {unit: 's', min: 0, noValue: 'No turns in selected range', custom: {drawStyle: 'bars', fillOpacity: 80, barAlignment: 0, lineWidth: 1}},
     overrides: providers.map(([, name, color]) => byName(name, {color: {fixedColor: color, mode: 'fixed'}}))});
   const loop = L.stat({id: 5, title: 'Loop health', gridPos: pos(16, 11, 8, 6),
-    description: 'Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.',
+    description: 'Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer, the last Instagram send acceptance and the configured conversation provider and model (e.g. Gemini · gemini-4-argon; the provider alone when the model is not readable).',
     targets: [ops('A', 'conversation', [{key: 'poll_age_seconds', label: 'Poll age'}, {key: 'poll_state', label: 'Poll state'},
-      {key: 'wake_path_active', label: 'Wake path'}, {key: 'timer_ok', label: 'Worker timer'}, {key: 'last_send_age_seconds', label: 'Last send'}])],
+      {key: 'wake_path_active', label: 'Wake path'}, {key: 'timer_ok', label: 'Worker timer'}, {key: 'last_send_age_seconds', label: 'Last send'}]),
+      L.providerModelTarget('B', 'conversation')],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
     overrides: [byName('Poll age', {unit: AGE.unit, decimals: AGE.decimals, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [600, COLOR.down])}),
       byName('Poll state', {mappings: L.stateMappings(L.STATE_TEXT, 'No report')}),
       byName('Wake path', {mappings: valueMap([[0, 'Inactive', COLOR.down], [1, 'Active', COLOR.ok]], 'No report')}),
       byName('Worker timer', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'OK', COLOR.ok]], 'No report')}),
       byName('Last send', {unit: AGE.unit, decimals: AGE.decimals})],
-    options: {text: {titleSize: 11, valueSize: 18}}});
+    options: {reduceOptions: {calcs: ['lastNotNull'], fields: L.namedFields(['Poll age', 'Poll state', 'Wake path', 'Worker timer', 'Last send', 'Provider']), values: false},
+      text: {titleSize: 11, valueSize: 18}}});
   return [turns, duration, loop];
 }
 
 function recognizer() {
   const service = L.stat({id: 6, title: 'Recognizer service', gridPos: pos(0, 17, 6, 5),
-    description: 'Debian collector GET /healthz of mw-receipt-recognition (Paused when disabled, grey after 6 minutes), its configured provider and time since the service last started. Callers: the DEV and PROD command services.',
+    description: 'Debian collector GET /healthz of mw-receipt-recognition (Paused when disabled, grey after 6 minutes), its configured provider and model (e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable) and time since the service last started. Callers: the DEV and PROD command services.',
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('health', {component: 'recognizer'})), L.stateSelector(1), [col('time', 'Time', 'timestamp'), col('value', 'Service')], {format: 'timeseries'}),
-      ops('B', 'recognizer', [{key: 'provider', label: 'Provider'}, {key: 'restart_age_seconds', label: 'Running for'}])
+      L.providerModelTarget('B', 'recognizer'),
+      ops('C', 'recognizer', [{key: 'restart_age_seconds', label: 'Running for'}])
     ],
     defaults: {mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    overrides: [byRef('A', {displayName: 'Service'}),
-      byName('Provider', {mappings: valueMap([[1, 'Gemini', COLOR.info], [2, 'Codex', COLOR.info], [3, 'Claude', COLOR.info]], 'No report')}),
+    overrides: [byName('Provider', {mappings: [L.nullMap('No report')], color: {mode: 'fixed', fixedColor: COLOR.info}}),
       byName('Running for', {unit: AGE.unit, decimals: AGE.decimals, mappings: [L.nullMap('No report')], color: {mode: 'fixed', fixedColor: COLOR.info}})],
-    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, text: {titleSize: 11, valueSize: 18}}});
+    options: {reduceOptions: {calcs: ['last'], fields: L.namedFields(['Service', 'Provider', 'Running for']), values: false}, text: {titleSize: 11, valueSize: 18}}});
   const extractions = L.stat({id: 7, title: 'Extractions · 24 h', gridPos: pos(6, 17, 9, 5),
     description: 'Debian collector worker_timing{recognizer} from mw_agent audit records, read-only: extractions in 24 h by the PWA route and the Instagram cycle, valid forms, timeouts and unreadable amounts. Outcome categories only.',
     targets: [ops('A', 'recognizer', [{key: 'extractions_24h', label: 'Extractions'}, {key: 'valid_24h', label: 'Valid'},
@@ -92,13 +94,13 @@ function details() {
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'webhook_local', field: 'code_version_match'})), L.stateSelector(1),
       [col('time', 'Time', 'timestamp'), col('value', 'Code version')], {format: 'timeseries'})],
     defaults: {mappings: valueMap([[0, 'Mismatch', COLOR.down], [1, 'Matches', COLOR.ok], [4, 'No report', COLOR.unknown]], 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, textMode: 'value'}});
+    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, ...L.SINGLE_VALUE}});
   const reviews = L.stat({id: 14, title: 'Open ingress reviews', gridPos: pos(18, 30, 6, 3),
     description: 'Debian receipt pipeline snapshot receipt_pipeline{ingress_review_open}: ingress items waiting for review; orange above 0.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('receipt_pipeline')), L.receiptFields([['ingress_review_open', 'Open ingress reviews']]),
       [col('ingress_review_open', 'Open ingress reviews')])],
     defaults: {mappings: [L.nullMap('No report')], thresholds: steps([null, COLOR.ok], [1, COLOR.degraded])},
-    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, textMode: 'value'}});
+    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, ...L.SINGLE_VALUE}});
   return [L.providerStatus({id: 11, gridPos: pos(0, 30, 12, 3)}), version, reviews];
 }
 

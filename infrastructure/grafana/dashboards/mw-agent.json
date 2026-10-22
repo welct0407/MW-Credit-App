@@ -1096,7 +1096,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance.",
+        "description": "Debian collector worker_timing{conversation}: conversation poll age (red above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer, the last Instagram send acceptance and the configured conversation provider and model (e.g. Gemini · gemini-4-argon; the provider alone when the model is not readable).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1336,7 +1336,7 @@
             "calcs": [
               "lastNotNull"
             ],
-            "fields": "",
+            "fields": "/^(Poll age|Poll state|Wake path|Worker timer|Last send|Provider)$/",
             "values": false
           },
           "showPercentChange": false,
@@ -1390,6 +1390,29 @@
             "url_options": {
               "method": "GET"
             }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Provider",
+                "text": "Provider",
+                "type": "string"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# Provider and model of one collector component (worker_timing{component}): the newest run's\n# numeric provider field (1 Gemini, 2 Codex, 3 Claude) and that same run's field \"model:<id>\"\n# (value 1; the collector exports the configured model id as a label) as one text value,\n# \"Gemini · gemini-3.5-flash-lite\"; the provider alone when the run has no model field; null\n# (No report) when stale (> 360 s), future (> 120 s) or the provider code is unknown.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: (.metric.labels.field // \"\"), p: (.points // [] | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[] | select(.field == \"provider\") | .p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  ([$rows[] | select(.field == \"provider\" and .p.interval.endTime == $end) | .p.value.int64Value] | first) as $code |\n  ({\"1\": \"Gemini\", \"2\": \"Codex\", \"3\": \"Claude\"}[$code // \"\" | tostring]) as $name |\n  ([$rows[] | select((.field | startswith(\"model:\")) and .p.interval.endTime == $end) | .field[6:]] | sort | last) as $model |\n  {Provider: (if ($fresh | not) or $name == null then null elif $model == null or $model == \"\" then $name else $name + \" · \" + $model end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22conversation%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
           }
         ],
         "title": "Loop health",
@@ -1400,7 +1423,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector GET /healthz of mw-receipt-recognition (Paused when disabled, grey after 6 minutes), its configured provider and time since the service last started. Callers: the DEV and PROD command services.",
+        "description": "Debian collector GET /healthz of mw-receipt-recognition (Paused when disabled, grey after 6 minutes), its configured provider and model (e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable) and time since the service last started. Callers: the DEV and PROD command services.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1467,18 +1490,6 @@
           "overrides": [
             {
               "matcher": {
-                "id": "byFrameRefID",
-                "options": "A"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
-                  "value": "Service"
-                }
-              ]
-            },
-            {
-              "matcher": {
                 "id": "byName",
                 "options": "Provider"
               },
@@ -1488,36 +1499,23 @@
                   "value": [
                     {
                       "options": {
-                        "1": {
-                          "color": "transparent",
-                          "index": 0,
-                          "text": "Gemini"
-                        },
-                        "2": {
-                          "color": "transparent",
-                          "index": 1,
-                          "text": "Codex"
-                        },
-                        "3": {
-                          "color": "transparent",
-                          "index": 2,
-                          "text": "Claude"
-                        }
-                      },
-                      "type": "value"
-                    },
-                    {
-                      "options": {
                         "match": "null",
                         "result": {
                           "color": "#6E7079",
-                          "index": 3,
+                          "index": 0,
                           "text": "No report"
                         }
                       },
                       "type": "special"
                     }
                   ]
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
+                  }
                 }
               ]
             },
@@ -1579,7 +1577,7 @@
             "calcs": [
               "last"
             ],
-            "fields": "",
+            "fields": "/^(Service|Provider|Running for)$/",
             "values": false
           },
           "showPercentChange": false,
@@ -1624,8 +1622,26 @@
               {
                 "selector": "Provider",
                 "text": "Provider",
-                "type": "number"
-              },
+                "type": "string"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# Provider and model of one collector component (worker_timing{component}): the newest run's\n# numeric provider field (1 Gemini, 2 Codex, 3 Claude) and that same run's field \"model:<id>\"\n# (value 1; the collector exports the configured model id as a label) as one text value,\n# \"Gemini · gemini-3.5-flash-lite\"; the provider alone when the run has no model field; null\n# (No report) when stale (> 360 s), future (> 120 s) or the provider code is unknown.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: (.metric.labels.field // \"\"), p: (.points // [] | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[] | select(.field == \"provider\") | .p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  ([$rows[] | select(.field == \"provider\" and .p.interval.endTime == $end) | .p.value.int64Value] | first) as $code |\n  ({\"1\": \"Gemini\", \"2\": \"Codex\", \"3\": \"Claude\"}[$code // \"\" | tostring]) as $name |\n  ([$rows[] | select((.field | startswith(\"model:\")) and .p.interval.endTime == $end) | .field[6:]] | sort | last) as $model |\n  {Provider: (if ($fresh | not) or $name == null then null elif $model == null or $model == \"\" then $name else $name + \" · \" + $model end)}\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
               {
                 "selector": "Running for",
                 "text": "Running for",
@@ -1638,8 +1654,8 @@
             },
             "format": "table",
             "parser": "jq-backend",
-            "refId": "B",
-            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"provider\",\"label\":\"Provider\"},{\"key\":\"restart_age_seconds\",\"label\":\"Running for\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"provider\",\"label\":\"Provider\"},{\"key\":\"restart_age_seconds\",\"label\":\"Running for\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
+            "refId": "C",
+            "root_selector": "# Newest same-run snapshot of one collector component's numeric fields\n# (worker_timing or metabase_probe). [{\"key\":\"restart_age_seconds\",\"label\":\"Running for\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms);\n# state_key names a same-run state field whose 0 (failed) turns the value into -1\n# and whose 2 (overdue) turns it into -2, so the panel maps them to words; a missing\n# state sample makes the value null (No report) rather than an unqualified age.\n# Missing, negative, non-integer, stale (> 360 s) or future (> 120 s) samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {field: .metric.labels.field, p: (.points | sort_by(.interval.endTime) | last)} |\n    select(.p != null)] as $rows |\n  ([$rows[].p.interval.endTime] | max) as $end |\n  (try ($end | stamp) catch null) as $t |\n  ($t != null and now - $t <= 360 and $t - now <= 120) as $fresh |\n  def value($key):\n    ([$rows[] | select(.field == $key and .p.interval.endTime == $end)] | first | .p.value.int64Value) as $raw |\n    (try ($raw | tonumber) catch null) as $v |\n    if $fresh and $v != null and $v >= 0 and ($v | floor) == $v then $v else null end;\n  [[{\"key\":\"restart_age_seconds\",\"label\":\"Running for\"}][] as $f |\n    (value($f.key)) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key != null and value($f.state_key) == null then null\n             elif $f.state_key != null and value($f.state_key) == 0 then -1\n             elif $f.state_key != null and value($f.state_key) == 2 then -2\n             else $v * ($f.scale // 1) end)}] |\n  from_entries\nend\n",
             "source": "url",
             "type": "json",
             "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
@@ -2620,7 +2636,7 @@
           "type": "mixed",
           "uid": "-- Mixed --"
         },
-        "description": "Current public status only, no history: OpenAI (worst of ChatGPT and Codex, status.openai.com) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).",
+        "description": "Current public status only, no history: Railway (railway.instatus.com, hosts Metabase and the reports: Outage for a major-outage incident, Incident open, Maintenance in progress) and Google Cloud (status.cloud.google.com, open incidents for Cloud Run, Cloud SQL, Vertex AI, Cloud Scheduler, Cloud Monitoring or Firebase Hosting in asia-southeast1 or global).",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -2647,9 +2663,14 @@
                     "index": 2,
                     "text": "Incident open"
                   },
+                  "3": {
+                    "color": "orange",
+                    "index": 3,
+                    "text": "Maintenance"
+                  },
                   "4": {
                     "color": "#6E7079",
-                    "index": 3,
+                    "index": 4,
                     "text": "Feed unreadable"
                   }
                 },
@@ -2660,7 +2681,7 @@
                   "match": "null",
                   "result": {
                     "color": "#6E7079",
-                    "index": 4,
+                    "index": 5,
                     "text": "Feed unreadable"
                   }
                 },
@@ -2688,7 +2709,7 @@
               "properties": [
                 {
                   "id": "displayName",
-                  "value": "OpenAI"
+                  "value": "Railway"
                 }
               ]
             },
@@ -2739,7 +2760,7 @@
             "columns": [
               {
                 "selector": "status",
-                "text": "OpenAI",
+                "text": "Railway",
                 "type": "number"
               }
             ],
@@ -2750,10 +2771,10 @@
             "format": "table",
             "parser": "jq-backend",
             "refId": "A",
-            "root_selector": "[\n# The current OpenAI website's public summary includes groups and active incidents.\n# Emit one stable alert label per product; incident text is dashboard-only metadata.\ndef sgt: try (sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601 | . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\")) catch \"Time unavailable\";\ndef text: if type == \"string\" then . else \"\" end;\n.summary as $s |\n[\"ChatGPT\", \"Codex\"][] as $product |\n([$s.structure.items[]?.group? | select(.name == $product)] | first) as $group |\n[$group.components[]? | select(.hidden != true) | .component_id] as $ids |\n[$s.affected_components[]? | select(.component_id as $id | $ids | index($id))] as $affected |\n[$s.ongoing_incidents[]? | select(.status != \"resolved\" and .status != \"closed\") |\n select(any(.affected_components[]?; .component_id as $id | $ids | index($id)))] as $incidents |\n(($s.id == \"01JMDK9XYNY6RXSED6SDWW50WY\") and ($s.name == \"OpenAI\") and\n (($s.affected_components | type) == \"array\") and (($s.ongoing_incidents | type) == \"array\") and\n ($ids | length) > 0 and\n (all($s.ongoing_incidents[]?; (.affected_components | type) == \"array\" and (.affected_components | length) > 0)) and\n (all($affected[]; .status == \"operational\" or .status == \"degraded_performance\" or .status == \"partial_outage\" or .status == \"full_outage\" or .status == \"major_outage\" or .status == \"under_maintenance\"))) as $valid |\n(if $valid != true then 4\n elif any($affected[]; .status == \"full_outage\" or .status == \"major_outage\") then 0\n elif any($affected[]; .status != \"operational\") or ($incidents | length) > 0 then 2\n else 1 end) as $status |\n(if $status == 4 then \"Unknown\" elif $status == 0 then \"Down\" elif $status == 2 then \"Degraded\" else \"Healthy\" end) as $state |\n($incidents | sort_by(.published_at) | reverse) as $ordered |\n{component:($product | ascii_downcase), status:$status, value:(if $status == 0 or $status == 2 then 1 else 0 end),\n details:($product + \" — \" + $state + \"\\n\" +\n   (if $status == 4 then \"Current provider status unavailable or response format changed.\"\n    elif ($ordered | length) > 0 then\n      ([$ordered[] | (.updates | sort_by(.published_at) | last) as $update |\n        .name + \"\\nStatus: \" + (.status | text) +\n        \"\\nUpdated: \" + (($update.published_at // .published_at) | sgt) +\n        \"\\n\" + (($update.message_string // $update.message.markdown // \"No explanation published yet.\") | text) +\n        \"\\nhttps://status.openai.com/incidents/\" + .id] | join(\"\\n\\n\"))\n    elif $status != 1 then \"Affected components: \" + ([$affected[] | .component_id as $id | $group.components[] | select(.component_id == $id) | .name] | join(\", \")) + \". No incident explanation published yet.\"\n    else \"No active incident reported.\" end) +\n   \"\\nChecked: \" + (now + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\"))),\n url:(if ($ordered | length) > 0 then \"https://status.openai.com/incidents/\" + $ordered[0].id else \"https://status.openai.com/\" end)}\n] as $r |\n{name: \"OpenAI\", status: ([$r[].status] as $s | if any($s[]; . == 0) then 0 elif any($s[]; . == 4) or ($s | length) == 0 then 4 elif any($s[]; . == 2) then 2 else 1 end), details: ([$r[].details] | join(\"\\n\\n\"))}",
+            "root_selector": "# Railway public status (Instatus, railway.instatus.com/summary.json; Railway hosts Metabase and\n# the reports). Live when healthy: {\"page\": {\"name\": \"Railway\", \"url\": ..., \"status\": \"UP\"}}; when\n# not, page.status is HASISSUES or UNDERMAINTENANCE and the optional arrays activeIncidents\n# ({name, impact, status, started}) and activeMaintenances ({name, status, start}) list the events.\n# Status codes as the Google Cloud row: 0 Outage (a MAJOROUTAGE incident), 2 Incident open (any\n# active incident or HASISSUES), 3 Maintenance (an in-progress maintenance or UNDERMAINTENANCE),\n# 1 No incident (UP, nothing active), 4 Feed unreadable (anything else, including a changed shape).\ndef listed($k): (.[$k] // []) | if type == \"array\" then [.[] | select(type == \"object\")] else null end;\nif type != \"object\" or (.page | type) != \"object\" or (.page.status | type) != \"string\"\n   or listed(\"activeIncidents\") == null or listed(\"activeMaintenances\") == null\nthen {name: \"Railway\", status: 4, details: \"Railway status feed unreadable or format changed.\"}\nelse\n  listed(\"activeIncidents\") as $incidents |\n  [listed(\"activeMaintenances\")[] | select((.status // \"INPROGRESS\") == \"INPROGRESS\")] as $maintenance |\n  .page.status as $page |\n  {name: \"Railway\",\n   status: (if any($incidents[]; .impact == \"MAJOROUTAGE\") then 0\n            elif ($incidents | length) > 0 or $page == \"HASISSUES\" then 2\n            elif ($maintenance | length) > 0 or $page == \"UNDERMAINTENANCE\" then 3\n            elif $page == \"UP\" then 1 else 4 end),\n   details: (if ($incidents | length) + ($maintenance | length) == 0 then \"Railway status: \" + $page + \".\"\n     else ([$incidents[] | (.name // \"Incident\") + \" · \" + ((.impact // .status // \"\") | tostring)] +\n           [$maintenance[] | (.name // \"Maintenance\") + \" · maintenance\"] | join(\"\\n\")) end)}\nend\n",
             "source": "url",
             "type": "json",
-            "url": "https://status.openai.com/proxy/status.openai.com",
+            "url": "https://railway.instatus.com/summary.json",
             "url_options": {
               "method": "GET"
             }
@@ -2869,7 +2890,7 @@
           "showPercentChange": false,
           "text": {
             "titleSize": 12,
-            "valueSize": 24
+            "valueSize": 28
           },
           "textMode": "value",
           "wideLayout": true
@@ -2974,7 +2995,7 @@
           "showPercentChange": false,
           "text": {
             "titleSize": 12,
-            "valueSize": 24
+            "valueSize": 28
           },
           "textMode": "value",
           "wideLayout": true

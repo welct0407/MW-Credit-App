@@ -258,6 +258,41 @@ for (const uid of L.DASHBOARD_UIDS) {
   }
 }
 assert.ok(clippedRows >= 30, 'state-timeline rows clipped: ' + clippedRows);
+// R089 follow-up: one-value stats show the value only (the title names it) at the one-value size; Recognitions
+// names each outcome (rows to fields) instead of "Count"; provider tiles show provider and model as text.
+const panelOf = (uid, id) => allPanels(built[uid].spec).map(e => e.panel).find(p => p.id === id);
+for (const [uid, id] of [['mw-agent', 13], ['mw-agent', 14], ['mw-infra', 18], ['mw-cost', 1]]) {
+  const o = panelOf(uid, id).options;
+  assert.equal(o.textMode, 'value', uid + ' ' + id + ' one-value tile shows the value only');
+  assert.equal(o.text.valueSize, 28, uid + ' ' + id + ' one-value size');
+}
+for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+  if (p.type !== 'stat' || p.pluginVersion) continue;
+  const values = (p.targets || []).flatMap(t => (t.columns || []).filter(c => !/^timestamp/.test(c.type)));
+  if (values.length === 1 && !p.transformations) assert.equal(p.options.textMode, 'value', uid + ' panel ' + p.id + ' (' + p.title + ') single value without its name');
+  assert.ok(!(p.options.reduceOptions.fields || '').includes('Count'), uid + ' panel ' + p.id + ' no Count value name');
+}
+const recognitions = panelOf('mw-pwa', 30);
+assert.equal(recognitions.transformations[0].id, 'rowsToFields');
+assert.equal(recognitions.options.reduceOptions.values, false);
+assert.equal(recognitions.options.text.valueSize, 28);
+for (const [uid, id, names] of [['mw-pwa', 32, ['Service', 'Provider']], ['mw-agent', 6, ['Service', 'Provider', 'Running for']], ['mw-agent', 5, ['Poll age', 'Provider']]]) {
+  const p = panelOf(uid, id);
+  const t = p.targets.find(x => x.columns[0].selector === 'Provider');
+  assert.ok(t && t.root_selector === L.jq('provider-model.jq'), uid + ' ' + id + ' provider and model from provider-model.jq');
+  const re = new RegExp(p.options.reduceOptions.fields.slice(1, -1));
+  for (const n of names) assert.ok(re.test(n), uid + ' ' + id + ' shows ' + n);
+  assert.ok(!re.test('Time'), uid + ' ' + id + ' does not show Time');
+  assert.ok(!p.fieldConfig.overrides.some(o => o.matcher.id === 'byFrameRefID'), uid + ' ' + id + ' no per-frame name on the time field');
+}
+// Provider status: Railway (Instatus) and Google Cloud; OpenAI is no longer read by the new dashboards.
+for (const [uid, id] of [['mw-now', 17], ['mw-agent', 11]]) {
+  const p = panelOf(uid, id);
+  assert.deepEqual(p.targets.map(t => t.url), ['https://railway.instatus.com/summary.json', 'https://status.cloud.google.com/incidents.json']);
+  assert.equal(p.targets[0].datasource.uid, 'cfz10a9eaokjkd');
+  assert.ok(Object.values(p.fieldConfig.defaults.mappings[0].options).some(m => m.text === 'Maintenance'));
+}
+for (const uid of L.DASHBOARD_UIDS) assert.ok(!/openai/i.test(L.serialize(built[uid])), uid + ' reads no OpenAI status');
 
 console.log(JSON.stringify({dashboards: L.DASHBOARD_UIDS.length, panels: L.DASHBOARD_UIDS.map(u => allPanels(built[u].spec).length),
   jqCompiled: jqAvailable ? compiled : 'skipped (jq not found)', passed: true}));

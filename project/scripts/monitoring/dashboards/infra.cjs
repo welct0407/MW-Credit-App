@@ -97,6 +97,8 @@ function debian() {
   const uptime = L.lift(L.PERF, 128, {id: 18, gridPos: pos(18, 27, 6, 2), title: 'Debian VM uptime'});
   // LIVE-3: an informational value, not Paused blue.
   uptime.fieldConfig.defaults.color = {mode: 'fixed', fixedColor: COLOR.text};
+  // One value: the title names it (no "Uptime" under it), at the one-value tile size.
+  uptime.options = {...uptime.options, ...L.SINGLE_VALUE};
   const disk = L.lift(L.PERF, 24, {id: 13, gridPos: pos(18, 22, 6, 5), title: 'Debian VM disk'});
   disk.description = (disk.description || '').trim() + ' Snapshot age: Backups and recovery points on Now.';
   return [

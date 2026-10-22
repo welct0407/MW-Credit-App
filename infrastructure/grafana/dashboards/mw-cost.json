@@ -136,9 +136,9 @@
           "showPercentChange": false,
           "text": {
             "titleSize": 12,
-            "valueSize": 22
+            "valueSize": 28
           },
-          "textMode": "value_and_name",
+          "textMode": "value",
           "wideLayout": true
         },
         "targets": [

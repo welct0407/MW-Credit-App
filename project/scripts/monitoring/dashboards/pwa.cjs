@@ -18,7 +18,7 @@ function hosting() {
   const p = L.lift(L.PWA_PLATFORM, 3, {id: 1, gridPos: pos(0, 0, 8, 4), title: 'Hosting · ${env}'});
   for (const t of p.targets) t.url = t.url.replace('pwa_hosting_prod%22', 'pwa_hosting_${env}%22');
   if (!p.targets[0].url.includes('pwa_hosting_${env}')) throw Error('Hosting filter not parameterised');
-  p.options = {...p.options, text: {...(p.options.text || {}), valueSize: 28}};
+  p.options = {...p.options, textMode: 'value', text: {...(p.options.text || {}), valueSize: 28}};
   return p;
 }
 
@@ -116,22 +116,24 @@ function recognition() {
     description: 'Log-based mw_recognition_outcome_${env}: recognitions on the command service over the selected range, one value per warning (none = the form filled cleanly). Categories only; no slip content or amounts.',
     targets: [target('A', DS.gcp, monitoringUrl('metric.type = "' + L.LOG_METRIC + 'mw_recognition_outcome_${env}"', {aligner: 'ALIGN_SUM', period: CHART_PERIOD}),
       jq('sum-by-label.jq', {LABEL: 'warning'}), [col('Outcome', 'Outcome', 'string'), col('Count', 'Count')])],
+    // One value per outcome, named by the outcome (rows to fields), not one "Count" per row.
+    transformations: [{id: 'rowsToFields', options: {mappings: [{fieldName: 'Outcome', handlerKey: 'field.name'}, {fieldName: 'Count', handlerKey: 'field.value'}]}}],
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, noValue: 'No recognitions'},
-    options: {reduceOptions: {calcs: ['lastNotNull'], fields: '/^Count$/', values: true}, text: {titleSize: 11, valueSize: 18}}});
+    overrides: [byName('none', {displayName: 'Clean'})],
+    options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, text: {titleSize: 12, valueSize: 28}}});
   const latency = L.timeseries({id: 31, title: 'Recognition route p95', gridPos: pos(8, y + 1, 8, 5),
     description: 'Log-based distribution mw_recognition_route_latency_${env} from the request latency of POST /receipts/{id}/recognition; red dashed line = the 45 s route budget (the PWA deadline is 60 s).',
     targets: [ts('A', monitoringUrl('metric.type = "' + L.LOG_METRIC + 'mw_recognition_route_latency_${env}"', {aligner: 'ALIGN_DELTA', reducer: 'REDUCE_PERCENTILE_95', period: CHART_PERIOD}), 'p95')],
     defaults: {unit: 's', decimals: 1, min: 0, noValue: 'No recognitions', ...L.dashedLine(45), custom: {thresholdsStyle: {mode: 'dashed'}}}});
   const service = L.stat({id: 32, title: 'Recognizer service', gridPos: pos(16, y + 1, 8, 5),
-    description: 'Debian collector GET /healthz of mw-receipt-recognition (paused when disabled) and its configured provider; callers are the DEV and PROD command services. Detail on Agent & Receipts.',
+    description: 'Debian collector GET /healthz of mw-receipt-recognition (paused when disabled) and its configured provider and model (e.g. Gemini · gemini-3.5-flash-lite; the provider alone when the model is not readable); callers are the DEV and PROD command services. Detail on Agent & Receipts.',
     targets: [
       target('A', DS.gcp, monitoringUrl(customFilter('health', {component: 'recognizer'})), L.stateSelector(1), [col('time', 'Time', 'timestamp'), col('value', 'Service')], {format: 'timeseries'}),
-      target('B', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'recognizer'})), jq('ops-health.jq', {FIELDS: [{key: 'provider', label: 'Provider'}]}), [col('Provider', 'Provider')])
+      L.providerModelTarget('B', 'recognizer')
     ],
     defaults: {mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    overrides: [byRef('A', {displayName: 'Service'}),
-      byName('Provider', {mappings: valueMap([[1, 'Gemini', COLOR.info], [2, 'Codex', COLOR.info], [3, 'Claude', COLOR.info]], 'No report')})],
-    options: {reduceOptions: {calcs: ['last'], fields: '', values: false}, text: {titleSize: 11, valueSize: 18}}});
+    overrides: [byName('Provider', {mappings: [L.nullMap('No report')], color: {mode: 'fixed', fixedColor: COLOR.info}})],
+    options: {reduceOptions: {calcs: ['last'], fields: L.namedFields(['Service', 'Provider']), values: false}, text: {titleSize: 11, valueSize: 18}}});
   service.links = [{targetBlank: false, title: 'Agent & Receipts', url: '/d/mw-agent'}];
   return [header, outcomes, latency, service];
 }

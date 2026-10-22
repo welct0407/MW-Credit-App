@@ -306,6 +306,24 @@ class RecognizerTests(unittest.TestCase):
         unit={'ActiveState':'active','ActiveEnterTimestampMonotonic':'400000000'}
         self.assertEqual(health.recognizer_timing(self.CONFIG,unit,1000,{'extractions_24h':3}),{'provider':1,'restart_age_seconds':600,'extractions_24h':3})
         self.assertEqual(health.recognizer_timing(dict(self.CONFIG,receipt_recognition_provider='codex'),{'ActiveState':'failed'},1000,{}),{'provider':2,'restart_age_seconds':None})
+    def test_model_is_a_field_label(self):
+        unit={'ActiveState':'active','ActiveEnterTimestampMonotonic':'400000000'}
+        fields=health.recognizer_timing(dict(self.CONFIG,gemini_model='gemini-3.5-flash-lite'),unit,1000,{})
+        self.assertEqual(fields,{'provider':1,'restart_age_seconds':600,'model:gemini-3.5-flash-lite':1})
+        series=health.timing_series('recognizer',fields,{},'t')
+        self.assertIn('model:gemini-3.5-flash-lite',[s['metric']['labels']['field'] for s in series])
+        self.assertTrue(all(s['valueType']=='INT64' for s in series))
+        # Not a plain lower-case id (or too long, or not a string): omitted, the numeric provider stays.
+        for bad in ('Gemini 3.5','gemini/3.5','a'*65,'',None,35):
+            self.assertEqual(health.recognizer_timing(dict(self.CONFIG,gemini_model=bad),unit,1000,{}),{'provider':1,'restart_age_seconds':600},bad)
+        # Codex: the model of <codex_home>/config.toml; unreadable or absent gives no model field.
+        codex=dict(self.CONFIG,receipt_recognition_provider='codex',codex_home='/home/agent/.codex')
+        read=Mock(return_value='model = "gpt-5.5-codex"\nmodel_reasoning_effort = "high"\n')
+        self.assertEqual(health.recognizer_timing(codex,unit,1000,{},read=read)['model:gpt-5.5-codex'],1)
+        self.assertEqual(str(read.call_args[0][0]),'/home/agent/.codex/config.toml')
+        self.assertNotIn('model:',''.join(health.recognizer_timing(codex,unit,1000,{},read=Mock(side_effect=PermissionError()))))
+        self.assertNotIn('model:',''.join(health.recognizer_timing(codex,unit,1000,{},read=Mock(return_value='x = 1'))))
+        self.assertNotIn('model:',''.join(health.recognizer_timing(codex,unit,1000,{},read=Mock(return_value='not toml ['))))
 
 
 class GoogleApiTests(unittest.TestCase):
@@ -377,8 +395,16 @@ class AgentUnitTests(unittest.TestCase):
         self.assertIsNone(health.code_version_match({},'6ea1540'));self.assertIsNone(health.code_version_match({'code_version':'x'},None))
     def test_conversation_loop(self):
         fields=health.conversation_loop({'conversation_provider':'gemini'},{'last_completion':int(NOW)-50},1,{'ActiveState':'active'},{'LoadState':'loaded','ActiveState':'inactive'},NOW)
-        self.assertEqual(fields,{'poll_state':1,'wake_path_active':1,'timer_ok':0,'provider':1,'poll_age_seconds':50})
+        self.assertEqual(fields,{'poll_state':1,'wake_path_active':1,'timer_ok':0,'provider':1,'model:gemini-4-argon':1,'poll_age_seconds':50})
         self.assertEqual(health.conversation_loop({},{'last_completion':0},4,None,None,NOW),{'poll_state':4,'wake_path_active':None,'timer_ok':None,'provider':2})
+    def test_conversation_model(self):
+        loop=lambda config,**kw: health.conversation_loop(config,{'last_completion':0},1,None,None,NOW,**kw)
+        self.assertEqual(loop({'conversation_provider':'gemini','gemini_conversation_model':'gemini-3.8-flash'})['model:gemini-3.8-flash'],1)
+        self.assertEqual(loop({'conversation_provider':'claude'})['model:claude-opus-5-5'],1)
+        codex=loop({'conversation_provider':'codex','codex_home':'/c'},read=Mock(return_value='model = "gpt-5.5"'))
+        self.assertEqual(codex['model:gpt-5.5'],1)
+        self.assertFalse([k for k in loop({'conversation_provider':'codex','codex_home':'/c'},read=Mock(side_effect=OSError())) if k.startswith('model:')])
+        self.assertFalse([k for k in loop({'conversation_provider':'gemini','gemini_conversation_model':'GEMINI 4'}) if k.startswith('model:')])
 
 
 class FakeReportingConnection:
