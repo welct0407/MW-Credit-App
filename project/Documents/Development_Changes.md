@@ -1,6 +1,6 @@
 # Open development changes
 
-**R090 is Open**; R089, R088 and R087 are Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
+**R090 is Frozen for promotion and R091 is Open**; R089, R088 and R087 are Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
 
 | Outstanding work | Owning reference |
 | --- | --- |

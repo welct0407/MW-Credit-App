@@ -289,3 +289,35 @@ Why this and not the alternatives: (b) "a poll while still claimed counts as det
 
 One: approve the nullable column `pwa_chat_messages.detached_at` in V105 (the only new column of R090). Everything else in this section is implementation detail within the approved chat-push scope.
 
+## Promotion record
+
+[Template](../project/scripts/releases/templates/promotion-checklist.md), revision 14 October 2026. Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md).
+
+### Continue here
+- Outcome/scope and affected components: R090 to PROD. Scope: the monitoring work already live in Grafana (tile limits, previous dashboards retired, Cost page last-10 questions with agent migrations V9 and V10); the in-app chatbot batches 1, 2 and 2c (chat service `mw-credit-app-chat-prod`, V104 to V106, the notify and jobs worker changes, command `cpu_idle=false`, PWA Chat screen with the push and model label, Hosting). Phase 0 (Instagram Partner conversation stopped on `vm-mw-credit-agent`) is already done and live; the decommission (design section 12) is not part of this promotion.
+- State and next action or actual blocker: frozen and prepared; Forge's PROD steps are pending. Placeholder: Forge records each step below.
+- Source/artifact/configuration pins; runner manifest link: source `297b7649` (runtime, SQL and infrastructure identical to the DEV-tested `bfa9bfc`; adds the R090 promotion tooling) on `claude/pensive-archimedes-2f98cw` (PR welct0407/MW-Credit-App#131); the DEV-tested image was built from `bfa9bfc` (DEV image digest in the [Environment inventory](../project/Documents/Environment_Inventory.md)) and is code-identical to the source commit. Placeholder: the PROD candidate image digest, SQL manifest and hashes (V104, V105, V106), activation file generation and Hosting build, from Forge.
+- Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 23 October 2026, "Notification worked. Push to prod.", approving PROD promotion of R090 ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)): tested schema migrations in the scope, backups and the standard temporary maintenance windows; not unrelated financial corrections, forced notifications or the Instagram decommission. `chat_authorized` is part of this scope (the chat service in PROD).
+- Previous deployed baseline and recovery: PROD stays at V103 with the R089 images and Hosting recorded in the Environment inventory; recovery follows the Recovery section above (restore the recorded previous Hosting version and images, set the chat service off through `chat_authorized`, V104 to V106 are additive and immutable so SQL recovery is a restore from the verified pre-apply backup only if needed).
+- Scope freeze/next-number handoff: R090 Frozen 2026-10-23T18:26Z (prepared; effective when the tracker update is published) in the [tracker](../project/Documents/Release_Tracker.md#releases-requiring-action); R091 opened and the counter advanced to R092 in the same update. `scripts/build-live-dev.mjs` reads the Open row (now R091).
+- Checks: PR #131 `Development checks` passed on `36f2166` (runs cited in Checks above); later batches were checked as listed in Checks and deployed and verified on DEV (batch 2 at 15:02Z to 15:18Z, batch 2c at 16:11Z to 16:23Z, 23 October 2026). Owner test on DEV, 23 October 2026: the chat push arrived on the iPhone (web push accepted by Apple about 1.5 s after commit on all three turns). Real gaps: no PROD test exists yet; `gemini-4-argon` timed out twice in one window on Google-side latency (the owner's default-model decision is open); the B5 accuracy comparison across all three models is open. Placeholder: the CI run on `88426e2` once pushed.
+
+### Promotion
+| Step | Completion evidence |
+| --- | --- |
+| Scope, target, authority and usable recovery confirmed | Placeholder: Forge (project, instance, database, services and storage prefix verified) |
+| Required affected checks passed or explicit owner deferral recorded | Placeholder: CI result on the freeze commit (package source `297b7649`) |
+| Tested package captured; tracker freeze/handoff published | Placeholder: PROD candidate pins; tracker update published with the freeze push |
+| Changed components deployed in dependency order | Placeholder: verified PROD backup; owner windows (notify, jobs, chat); V104, V105, V106 guarded runner; roles and grants as in the [database README](../database/README.md#chat-journal-v104-r090); Terraform for the chat service and workers; images; Hosting with `VITE_CHAT_API_ORIGIN` |
+| Version/environment and affected PROD smoke verified once | Placeholder: Forge and Chase |
+| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Placeholder: Environment inventory pins; release tag `R090` through the Release tag workflow |
+
+SQL: V104, V105 and V106 are the full pending set from V103; the manifest, hashes and backup reference are placeholders for Forge. Infrastructure: the reviewed plan and actual apply/readback are placeholders. Notification and jobs: chat pushes go only to the asking Partner's own subscriptions; PROD schedulers and delivery settings change only as the plan states. No forced notification, financial write or Instagram decommission is part of this promotion.
+
+### Close
+- Outcome: Placeholder
+- Recovery reference: Recovery section above; backup reference placeholder
+- Changed documents, if any: Placeholder
+- Published evidence/tag: Placeholder
+- Outstanding owner action, if any: choose the default chat model; later the Instagram decommission (design section 12) after the owner's PROD test.
+
