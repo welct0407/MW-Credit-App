@@ -61,41 +61,70 @@ export function listMessages(access:ChatAccess,threadId:string,before:string|nul
  return readChat<Page<ChatMessage>>(access,threadPath(threadId)+'/messages?'+query,options);
 }
 export const createThread=(access:ChatAccess,thread:{id:string;model:string})=>write<{item:ChatThread}>(access,'/api/chat/threads','POST',thread).then(value=>value.item);
+/** One thread by id, network only (batch 2: a notification tap may open a thread the list page does not hold). */
+export async function getThread(access:ChatAccess,id:string,signal?:AbortSignal):Promise<ChatThread>{
+ const response=await send(access,threadPath(id),{signal});
+ if(!response.ok)throw await failure(response);
+ return (await response.json() as {item:ChatThread}).item;
+}
 export const updateThread=(access:ChatAccess,id:string,patch:{title?:string;model?:string;status?:'active'|'archived'})=>write<{item:ChatThread}>(access,threadPath(id),'PATCH',patch).then(value=>value.item);
 
-export type TurnResult={kind:'stream';complete:boolean}|{kind:'completed';user:ChatMessage;assistant:ChatMessage|null};
+export type TurnResult={kind:'stream';complete:boolean;detached?:boolean}|{kind:'completed';user:ChatMessage;assistant:ChatMessage|null};
 /**
  * Sends one message and streams its events to `onEvent`. Returns `complete:false` when the body ended (or went
  * silent for `idleMs`; the service pings every 15 s) before `done`: the caller then polls the outcome. A re-POST
  * of a finished message answers JSON `{user, assistant}`. HTTP errors throw ChatHttpError; 401/403 ChatAccessError.
+ * Batch 2 (B3, "app active"): the stream is aborted at once when the page is hidden or left (visibilitychange to
+ * hidden, pagehide), so the service sees the device detach and pushes the reply; the result then has `detached`.
  */
 export async function streamTurn(access:ChatAccess,threadId:string,body:{id:string;text:string;model?:string},onEvent:(name:string,data:unknown)=>void,{signal,idleMs=45000}:{signal?:AbortSignal;idleMs?:number}={}):Promise<TurnResult>{
- const response=await send(access,threadPath(threadId)+'/messages',{method:'POST',body,signal,accept:'text/event-stream'});
- if(!response.ok)throw await failure(response);
- if(!/text\/event-stream/i.test(response.headers.get('Content-Type')??'')){
-  const value=await response.json() as {user:ChatMessage;assistant:ChatMessage|null};
-  return {kind:'completed',user:value.user,assistant:value.assistant??null};
- }
- let complete=false,timer:ReturnType<typeof setTimeout>|undefined;
- const parser=createSseParser((name,data)=>{if(name==='done')complete=true;onEvent(name,data)});
- const reader=response.body?.getReader();if(!reader)return {kind:'stream',complete:false};
- const decoder=new TextDecoder(),idle=()=>{clearTimeout(timer);timer=setTimeout(()=>{void reader.cancel().catch(()=>{})},idleMs)};
+ const controller=new AbortController();let detached=false;
+ const forward=()=>controller.abort(signal?.reason);signal?.addEventListener('abort',forward,{once:true});if(signal?.aborted)forward();
+ const leave=()=>{if(detached||controller.signal.aborted)return;detached=true;controller.abort(new DOMException('Page hidden','AbortError'))};
+ const hidden=()=>{if(document.visibilityState==='hidden')leave()};
+ document.addEventListener('visibilitychange',hidden);window.addEventListener('pagehide',leave);
+ let complete=false,timer:ReturnType<typeof setTimeout>|undefined,reader:ReadableStreamDefaultReader<Uint8Array>|undefined;
  try{
-  idle();
-  for(;;){
-   const {value,done}=await reader.read();
-   if(done)break;
-   idle();parser.push(decoder.decode(value,{stream:true}));
-   if(complete)break;
+  if(document.visibilityState==='hidden')leave();
+  let response:Response;
+  try{response=await send(access,threadPath(threadId)+'/messages',{method:'POST',body,signal:controller.signal,accept:'text/event-stream'})}
+  catch(error){if(detached&&!signal?.aborted)return {kind:'stream',complete:false,detached:true};throw error}
+  if(!response.ok)throw await failure(response);
+  if(!/text\/event-stream/i.test(response.headers.get('Content-Type')??'')){
+   const value=await response.json() as {user:ChatMessage;assistant:ChatMessage|null};
+   return {kind:'completed',user:value.user,assistant:value.assistant??null};
   }
- }catch(error){
-  if(signal?.aborted)throw error;
-  // A dropped connection: the outcome poll decides what happened.
+  const parser=createSseParser((name,data)=>{if(name==='done')complete=true;onEvent(name,data)});
+  reader=response.body?.getReader();if(!reader)return {kind:'stream',complete:false};
+  const stream=reader,decoder=new TextDecoder(),idle=()=>{clearTimeout(timer);timer=setTimeout(()=>{void stream.cancel().catch(()=>{})},idleMs)};
+  try{
+   idle();
+   for(;;){
+    const {value,done}=await stream.read();
+    if(done)break;
+    idle();parser.push(decoder.decode(value,{stream:true}));
+    if(complete)break;
+   }
+  }catch(error){
+   if(signal?.aborted)throw error;
+   // A dropped connection or a hidden page: the outcome poll decides what happened.
+  }finally{parser.end()}
+  return {kind:'stream',complete,...(detached&&!complete?{detached:true}:{})};
  }finally{
-  clearTimeout(timer);parser.end();
-  if(complete)void reader.cancel().catch(()=>{});
+  clearTimeout(timer);signal?.removeEventListener('abort',forward);
+  document.removeEventListener('visibilitychange',hidden);window.removeEventListener('pagehide',leave);
+  if(complete||detached)void reader?.cancel().catch(()=>{});
  }
- return {kind:'stream',complete};
+}
+/** Resolves once the page is visible (at once when it already is): outcome polling runs only in the foreground. */
+export function whenVisible(signal?:AbortSignal):Promise<void>{
+ if(document.visibilityState!=='hidden')return Promise.resolve();
+ return new Promise((resolve,reject)=>{
+  const done=()=>{if(document.visibilityState==='hidden')return;cleanup();resolve()};
+  const abort=()=>{cleanup();reject(signal?.reason)};
+  const cleanup=()=>{document.removeEventListener('visibilitychange',done);window.removeEventListener('pageshow',done);signal?.removeEventListener('abort',abort)};
+  document.addEventListener('visibilitychange',done);window.addEventListener('pageshow',done);signal?.addEventListener('abort',abort,{once:true});
+ });
 }
 /** Polls `GET …/messages/:id` every 3 s for up to 5 minutes; 404 means the service never stored the message. */
 export function waitForOutcome(access:ChatAccess,threadId:string,messageId:string,signal?:AbortSignal):Promise<PollResult>{

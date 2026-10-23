@@ -16,6 +16,8 @@ const FAILURES:Record<string,Pair>={
  lost:['Reply not received. Refresh the chat.','ยังไม่ได้รับคำตอบ รีเฟรชแชทนี้'],
  turn_in_progress:['A reply is still being prepared in this thread.','กำลังเตรียมคำตอบในแชทนี้อยู่'],
  thread_full:['This chat is full. Start a new chat.','แชทนี้เต็มแล้ว เริ่มแชทใหม่'],
+ thread_gone:['This thread is no longer available.','แชทนี้ไม่มีแล้ว'],
+ thread_unavailable:['Could not open this thread.','เปิดแชทนี้ไม่ได้'],
 };
 export const failureText=(code:string|undefined,thai:boolean)=>pick(FAILURES[code??'']??FAILURES.INTERNAL,thai);
 export type FailureAction='retry'|'edit'|'model'|'new';

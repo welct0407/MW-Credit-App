@@ -95,3 +95,68 @@ test('notify accepts only exact command and scheduler, waits for bounded RPC dra
  const pending=invoke({'x-mw-wake-deadline':String(Date.now()+15000)}).then(code=>{done=true;return code;});await ready;assert.equal(done,false);release();assert.equal(await pending,200);await runtime.close();
  assert.throws(()=>loadWorkerConfig({...notify,NOTIFICATION_AGENT_CALLER_EMAIL:`mw-integration-agent@${project}.iam.gserviceaccount.com`}));
 });
+
+test('R090 batch 2: a wake that arrives while a dispatch runs is queued (202) and the running dispatch makes one more pass',async()=>{
+ const key=createECDH('prime256v1');key.generateKeys();
+ const notify={...env,WORKER_ROLE:'notify',WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(SUBJECTS),DB_USER:env.DB_USER.replace('-jobs-','-notify-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-jobs-','-notify-'),WORKER_AUDIENCE:env.WORKER_AUDIENCE.replace('-jobs-','-notify-'),WEB_PUSH_VAPID_JSON:JSON.stringify({publicKey:key.getPublicKey().toString('base64url'),privateKey:key.getPrivateKey().toString('base64url')}),WEB_PUSH_SUBJECT:'mailto:synthetic@example.invalid',NOTIFICATION_POLICY_JSON:JSON.stringify({schemaVersion:1,environment:'dev',evidenceSha256:'a'.repeat(64),members:[{partnerId:'owner',loginEmail:'welct0407@mw-credit.com',partnerRole:'A',capabilities:['read']}],owner:{subject:'owner',partnerId:'owner',loginEmail:'welct0407@mw-credit.com',endpointSha256:'b'.repeat(64)}})};
+ const caller=`mw-credit-app-command-dev@${project}.iam.gserviceaccount.com`;let candidates=0,release,entered;
+ const ready=new Promise(r=>entered=r),gate=new Promise(r=>release=r);
+ const client={release(){},query:async(sql)=>{if(sql.includes('FROM pg_roles'))return{rows:[{database:notify.DB_NAME,principal:notify.DB_USER,session:notify.DB_USER,rolcanlogin:true,capability:true,other_membership:false}]};
+  if(sql.includes('pwa_notify_candidates')){candidates++;if(candidates===1){entered();await gate;}}return{rows:[]};}};
+ const runtime=await createWorkerRuntime(notify,{createPool:async()=>({connect:async()=>client,end:async()=>{}}),getUser:async()=>{},verifyOidc:async()=>oidc({aud:notify.WORKER_AUDIENCE,iss:'https://accounts.google.com',email:caller,email_verified:true})});
+ const invoke=async(headers={})=>{let code,body;await runtime.handler({method:'POST',url:'/internal/dispatch',headers:{authorization:'Bearer token',...headers}},{writeHead(c){code=c;},end(b){body=b;}});return {code,body:JSON.parse(body)};};
+ const first=invoke({'x-mw-wake-deadline':String(Date.now()+15000)});await ready;
+ // Busy: the second wake is queued at once (no 409 worker_busy) ...
+ assert.deepEqual(await invoke({'x-mw-wake-deadline':String(Date.now()+15000)}),{code:202,body:{queued:true}});
+ // ... an expired one is still refused, and queuing twice needs only one more pass.
+ assert.equal((await invoke({'x-mw-wake-deadline':String(Date.now()+500)})).code,409);
+ assert.equal((await invoke({'x-mw-wake-deadline':String(Date.now()+15000)})).code,202);
+ release();const result=await first;
+ assert.equal(result.code,200);assert.equal(result.body.passes,2);assert.equal(candidates,2,'the queued wake ran its own candidate pass');
+ // Idle again: the next wake runs normally.
+ assert.equal((await invoke({'x-mw-wake-deadline':String(Date.now()+15000)})).code,200);assert.equal(candidates,3);
+ await runtime.close();
+});
+
+test('R090 batch 2: a queued wake with under 11 s left is dropped (logged); a producer wake gets up to 30 s',async()=>{
+ const key=createECDH('prime256v1');key.generateKeys();
+ const notify={...env,WORKER_ROLE:'notify',WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(SUBJECTS),DB_USER:env.DB_USER.replace('-jobs-','-notify-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-jobs-','-notify-'),WORKER_AUDIENCE:env.WORKER_AUDIENCE.replace('-jobs-','-notify-'),WEB_PUSH_VAPID_JSON:JSON.stringify({publicKey:key.getPublicKey().toString('base64url'),privateKey:key.getPrivateKey().toString('base64url')}),WEB_PUSH_SUBJECT:'mailto:synthetic@example.invalid',NOTIFICATION_POLICY_JSON:JSON.stringify({schemaVersion:1,environment:'dev',evidenceSha256:'a'.repeat(64),members:[{partnerId:'owner',loginEmail:'welct0407@mw-credit.com',partnerRole:'A',capabilities:['read']}],owner:{subject:'owner',partnerId:'owner',loginEmail:'welct0407@mw-credit.com',endpointSha256:'b'.repeat(64)}})};
+ const caller=`mw-credit-app-command-dev@${project}.iam.gserviceaccount.com`,logs=[];let candidates=0,release,entered;
+ const ready=new Promise(r=>entered=r),gate=new Promise(r=>release=r);
+ const client={release(){},query:async(sql)=>{if(sql.includes('FROM pg_roles'))return{rows:[{database:notify.DB_NAME,principal:notify.DB_USER,session:notify.DB_USER,rolcanlogin:true,capability:true,other_membership:false}]};
+  if(sql.includes('pwa_notify_candidates')){candidates++;if(candidates===1){entered();await gate;}}return{rows:[]};}};
+ const runtime=await createWorkerRuntime(notify,{createPool:async()=>({connect:async()=>client,end:async()=>{}}),getUser:async()=>{},log:r=>logs.push(r),verifyOidc:async()=>oidc({aud:notify.WORKER_AUDIENCE,iss:'https://accounts.google.com',email:caller,email_verified:true})});
+ const invoke=async(headers={})=>{let code,body;await runtime.handler({method:'POST',url:'/internal/dispatch',headers:{authorization:'Bearer token',...headers}},{writeHead(c){code=c;},end(b){body=b;}});return {code,body:JSON.parse(body)};};
+ // A 60 s producer deadline: the worker keeps 30 s from arrival (minus its 1 s reserve), so it enqueues (candidates read).
+ const first=invoke({'x-mw-wake-deadline':String(Date.now()+60000)});await ready;
+ assert.equal((await invoke({'x-mw-wake-deadline':String(Date.now()+12000)})).code,202);
+ release();const result=await first;
+ assert.equal(result.code,200);assert.equal(result.body.passes,undefined,'no second pass with under 11 s left');assert.equal(candidates,1);
+ assert.ok(logs.some(r=>r.event==='queued_wake_dropped'));
+ await runtime.close();
+});
+
+test('R090 batch 2: every producer may wake dispatch; the jobs worker wakes it after a fresh daily-charges run only',async()=>{
+ const caller=s=>`mw-credit-app-${s}-dev@${project}.iam.gserviceaccount.com`;
+ const audience='https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app';
+ const dispatchEnv={NOTIFICATION_DISPATCH_ENABLED:'true',NOTIFICATION_DISPATCH_URL:audience+'/internal/dispatch',NOTIFICATION_DISPATCH_AUDIENCE:audience};
+ const key=createECDH('prime256v1');key.generateKeys();
+ const notify={...env,WORKER_ROLE:'notify',DB_USER:env.DB_USER.replace('-jobs-','-notify-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-jobs-','-notify-'),WORKER_AUDIENCE:env.WORKER_AUDIENCE.replace('-jobs-','-notify-'),WEB_PUSH_VAPID_JSON:JSON.stringify({publicKey:key.getPublicKey().toString('base64url'),privateKey:key.getPrivateKey().toString('base64url')}),WEB_PUSH_SUBJECT:'mailto:synthetic@example.invalid',NOTIFICATION_POLICY_JSON:JSON.stringify({schemaVersion:1,environment:'dev',evidenceSha256:'a'.repeat(64),members:[{partnerId:'owner',loginEmail:'welct0407@mw-credit.com',partnerRole:'A',capabilities:['read']}],owner:{subject:'owner',partnerId:'owner',loginEmail:'welct0407@mw-credit.com',endpointSha256:'b'.repeat(64)}})};
+ const subjects={[caller('scheduler')]:'1001',[caller('command')]:'1002',[caller('chat')]:'1003',[caller('jobs')]:'1004'};
+ assert.deepEqual(loadWorkerConfig({...notify,WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(subjects)}).callers,[caller('scheduler'),caller('command'),caller('chat'),caller('jobs')]);
+ assert.throws(()=>loadWorkerConfig({...notify,WORKER_CALLER_SUBJECTS_JSON:JSON.stringify({...subjects,[caller('read')]:'1005'})}),/invalid_worker_configuration/);
+ assert.throws(()=>loadWorkerConfig({...notify,WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(subjects),...dispatchEnv}),/invalid_worker_configuration/,'notify never wakes itself');
+ assert.throws(()=>loadWorkerConfig({...env,WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(subjects)}),/invalid_worker_configuration/,'jobs accepts the scheduler only');
+ assert.equal(loadWorkerConfig(env).dispatch,null);assert.deepEqual(loadWorkerConfig({...env,...dispatchEnv}).dispatch,{audience,url:audience+'/internal/dispatch'});
+ assert.throws(()=>loadWorkerConfig({...env,...dispatchEnv,NOTIFICATION_DISPATCH_URL:'https://other.invalid/internal/dispatch'}),/invalid_worker_configuration/);
+ let replayed=false,now=Date.parse('2026-10-11T17:06:00Z');const posts=[];
+ const client={release(){},query:async sql=>{if(sql.includes('FROM pg_roles'))return{rows:[{database:env.DB_NAME,principal:env.DB_USER,session:env.DB_USER,rolcanlogin:true,capability:true,other_membership:false}]};
+  if(sql.includes('clock_timestamp'))return{rows:[{day:'2026-10-12',hour:'00',milliseconds:String(now)}]};return{rows:[{result:{enabled:true,state:'completed',replayed,resultCount:3}}]};}};
+ const runtime=await createWorkerRuntime({...env,...dispatchEnv},{createPool:async()=>({connect:async()=>client,end:async()=>{}}),verifyOidc:async()=>oidc({aud:env.WORKER_AUDIENCE,iss:'https://accounts.google.com',email:env.SCHEDULER_SERVICE_ACCOUNT,email_verified:true}),
+  fetch:async(url,options)=>{if(/identity/.test(url))return{ok:true,text:async()=> 'a.b.c'};posts.push({url,options});return{status:200,body:null};}});
+ const invoke=async(job,time)=>{let code;await runtime.handler({method:'POST',url:'/internal/jobs/'+job,headers:{authorization:'Bearer token','x-cloudscheduler-scheduletime':time}},{writeHead(c){code=c;},end(){}});return code;};
+ assert.equal(await invoke('daily-charges','2026-10-11T17:05:00Z'),200);assert.equal(posts.length,1);assert.equal(posts[0].url,audience+'/internal/dispatch');assert.match(posts[0].options.headers['X-MW-Wake-Deadline'],/^\d{13}$/);
+ replayed=true;assert.equal(await invoke('daily-charges','2026-10-11T17:05:00Z'),200);assert.equal(posts.length,1,'a replayed run created nothing');
+ replayed=false;now=Date.parse('2026-10-11T17:03:00Z');assert.equal(await invoke('recent-analytics','2026-10-11T17:00:00Z'),200);assert.equal(posts.length,1,'analytics produce no notification');
+ await runtime.close();
+});

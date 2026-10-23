@@ -17,8 +17,10 @@ export function storeError(error){
 
 /** readRole: the membership lookup (Partners) runs under SET LOCAL ROLE readRole, then RESET ROLE before the RPCs: the
  * IAM user holds the read role WITH INHERIT FALSE, SET TRUE and inherits only mw_chat_api_<env> (EXECUTE).
- * @param {{pool:any,guardConnection:(client:any)=>Promise<void>,resolveActor:(client:any,principal:any,capability:string)=>Promise<any>,issuer:string,readRole?:string}} options */
-export function createChatStore({pool,guardConnection,resolveActor,issuer,readRole}){
+ * afterCommit: the notification dispatch wake (createPostCommitWake), called after a completion that recorded a
+ * chat reply event (batch 2, B3); log: service log for a reply event that could not be recorded.
+ * @param {{pool:any,guardConnection:(client:any)=>Promise<void>,resolveActor:(client:any,principal:any,capability:string)=>Promise<any>,issuer:string,readRole?:string,afterCommit?:(wake?:{deadline?:number})=>Promise<void>,log?:(record:object)=>void}} options */
+export function createChatStore({pool,guardConnection,resolveActor,issuer,readRole,afterCommit=async()=>{},log=()=>{}}){
  const asReader=readRole?`SET LOCAL ROLE "${readRole.replaceAll('"','""')}"`:null;
  async function run(principal,action,readonly=false){
   const c=await pool.connect();let healthy=false;
@@ -41,6 +43,7 @@ export function createChatStore({pool,guardConnection,resolveActor,issuer,readRo
   modelsDefault:p=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_models_default_v1($1::jsonb) AS value',[a]),true),
   threads:(p,{status,before,limit})=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_threads_v1($1::jsonb,$2::text,$3::timestamptz,$4::integer) AS value',[a,status,before,limit]),true),
   createThread:(p,input)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_thread_create_v1($1::jsonb,$2::jsonb) AS value',[a,input])),
+  thread:(p,id)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_thread_v1($1::jsonb,$2::uuid) AS value',[a,id]),true),
   updateThread:(p,id,patch)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_thread_update_v1($1::jsonb,$2::uuid,$3::jsonb) AS value',[a,id,patch])),
   messages:(p,thread,{before,limit})=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_messages_v1($1::jsonb,$2::uuid,$3::integer,$4::integer) AS value',[a,thread,before,limit]),true),
   message:(p,thread,id)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_message_v1($1::jsonb,$2::uuid,$3::uuid) AS value',[a,thread,id]),true),
@@ -56,7 +59,30 @@ export function createChatStore({pool,guardConnection,resolveActor,issuer,readRo
    }
    return {actor:a,value};
   }),
-  complete:(p,messageId,assistant,history,toolCalls)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_turn_complete_v1($1::jsonb,$2::uuid,$3::jsonb,$4::jsonb,$5::jsonb) AS value',
-   [a,messageId,assistant,history===null?null:JSON.stringify(history),JSON.stringify(toolCalls)])),
+  /**
+   * Commits the turn. notify ({thread}) when the asking device is no longer attached: the reply event
+   * (pwa_notify_chat_reply_v1, V105) is recorded in the same transaction under a savepoint, so a failure (for example
+   * V105 not applied) is logged and never fails the turn; after COMMIT the dispatch wake runs (bounded, logged).
+   */
+  complete:async(p,messageId,assistant,history,toolCalls,notify=null)=>{
+   let notified=false;
+   const row=await run(p,async(c,a)=>{
+    const value=await one(c,'SELECT public.pwa_chat_turn_complete_v1($1::jsonb,$2::uuid,$3::jsonb,$4::jsonb,$5::jsonb) AS value',
+     [a,messageId,assistant,history===null?null:JSON.stringify(history),JSON.stringify(toolCalls)]);
+    if(notify){
+     await c.query('SAVEPOINT chat_reply_event');
+     try{
+      notified=(await c.query('SELECT public.pwa_notify_chat_reply_v1($1::jsonb,$2::uuid,$3::uuid,$4::text) AS value',[a,notify.thread,messageId,assistant.status==='ok'?'ok':'failed'])).rows[0].value===true;
+      await c.query('RELEASE SAVEPOINT chat_reply_event');
+     }catch(error){
+      await c.query('ROLLBACK TO SAVEPOINT chat_reply_event');
+      log({event:'chat_reply_event_failed',thread:notify.thread,messageId,sqlstate:typeof error?.code==='string'?error.code:undefined});
+     }
+    }
+    return value;
+   });
+   if(notified){try{await afterCommit();}catch{/* the wake logs its own deferral; the scheduler tick recovers */}}
+   return row;
+  },
  };
 }

@@ -174,3 +174,156 @@ run "caller_subjects_without_dispatch_skip_command" {
     error_message = "Without direct dispatch the command identity is neither read nor accepted."
   }
 }
+run "chat_dispatch_pins_chat_caller_and_invoker" {
+  command = plan
+  variables {
+    enabled               = true
+    image                 = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version         = "1"
+    policy_version        = "1"
+    push_subject          = "mailto:synthetic@example.invalid"
+    registered_creators   = ["postgres"]
+    notification_enabled  = true
+    chat_dispatch_enabled = true
+    chat_caller           = { email = "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000003" }
+  }
+  override_resource {
+    target          = google_service_account.scheduler[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000001" }
+  }
+  assert {
+    condition     = jsondecode(one([for e in google_cloud_run_v2_service.worker["notify"].template[0].containers[0].env : e.value if e.name == "WORKER_CALLER_SUBJECTS_JSON"])) == { "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" = "100000000000000000001", "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" = "100000000000000000003" }
+    error_message = "Notify pins the scheduler and the chat identity by unique id when chat dispatch is on."
+  }
+  assert {
+    condition     = google_cloud_run_v2_service_iam_member.chat_dispatch[0].role == "roles/run.invoker" && google_cloud_run_v2_service_iam_member.chat_dispatch[0].member == "serviceAccount:mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" && google_cloud_run_v2_service_iam_member.chat_dispatch[0].name == "mw-credit-app-notify-dev"
+    error_message = "Only the DEV chat identity gets invoker on the DEV notify worker."
+  }
+  assert {
+    condition     = jsondecode(one([for e in google_cloud_run_v2_service.worker["jobs"].template[0].containers[0].env : e.value if e.name == "WORKER_CALLER_SUBJECTS_JSON"])) == { "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" = "100000000000000000001" }
+    error_message = "Jobs still pins the scheduler only."
+  }
+}
+run "chat_dispatch_default_off" {
+  command = plan
+  variables {
+    enabled              = true
+    image                = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version        = "1"
+    policy_version       = "1"
+    push_subject         = "mailto:synthetic@example.invalid"
+    registered_creators  = ["postgres"]
+    notification_enabled = true
+    chat_caller          = { email = "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000003" }
+  }
+  override_resource {
+    target          = google_service_account.scheduler[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000001" }
+  }
+  assert {
+    condition     = length(google_cloud_run_v2_service_iam_member.chat_dispatch) == 0 && keys(jsondecode(one([for e in google_cloud_run_v2_service.worker["notify"].template[0].containers[0].env : e.value if e.name == "WORKER_CALLER_SUBJECTS_JSON"]))) == ["mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"]
+    error_message = "Without chat dispatch the chat identity is neither invoker nor an accepted caller."
+  }
+}
+run "chat_dispatch_requires_chat_caller" {
+  command = plan
+  variables {
+    enabled               = true
+    image                 = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version         = "1"
+    policy_version        = "1"
+    push_subject          = "mailto:synthetic@example.invalid"
+    registered_creators   = ["postgres"]
+    notification_enabled  = true
+    chat_dispatch_enabled = true
+  }
+  expect_failures = [google_cloud_run_v2_service_iam_member.chat_dispatch]
+}
+run "chat_caller_rejects_other_identity" {
+  command = plan
+  variables {
+    chat_caller = { email = "mw-credit-app-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000002" }
+  }
+  expect_failures = [var.chat_caller]
+}
+run "jobs_dispatch_pins_jobs_caller_env_and_invoker" {
+  command = plan
+  variables {
+    enabled               = true
+    image                 = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version         = "1"
+    policy_version        = "1"
+    push_subject          = "mailto:synthetic@example.invalid"
+    registered_creators   = ["postgres"]
+    notification_enabled  = true
+    jobs_enabled          = true
+    jobs_dispatch_enabled = true
+  }
+  override_resource {
+    target          = google_service_account.scheduler[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000001" }
+  }
+  override_resource {
+    target          = google_service_account.worker["jobs"]
+    override_during = plan
+    values          = { email = "mw-credit-app-jobs-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000005" }
+  }
+  override_resource {
+    target          = google_service_account.worker["notify"]
+    override_during = plan
+    values          = { email = "mw-credit-app-notify-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000006" }
+  }
+  assert {
+    condition     = jsondecode(one([for e in google_cloud_run_v2_service.worker["notify"].template[0].containers[0].env : e.value if e.name == "WORKER_CALLER_SUBJECTS_JSON"])) == { "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" = "100000000000000000001", "mw-credit-app-jobs-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" = "100000000000000000005" }
+    error_message = "Notify pins the scheduler and the jobs identity by unique id when jobs dispatch is on."
+  }
+  assert {
+    condition     = google_cloud_run_v2_service_iam_member.jobs_dispatch[0].member == "serviceAccount:mw-credit-app-jobs-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" && google_cloud_run_v2_service_iam_member.jobs_dispatch[0].role == "roles/run.invoker" && google_cloud_run_v2_service_iam_member.jobs_dispatch[0].name == "mw-credit-app-notify-dev"
+    error_message = "Only the jobs identity gets invoker on the notify worker."
+  }
+  assert {
+    condition = (one([for e in google_cloud_run_v2_service.worker["jobs"].template[0].containers[0].env : e.value if e.name == "NOTIFICATION_DISPATCH_URL"]) == "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app/internal/dispatch"
+      && one([for e in google_cloud_run_v2_service.worker["jobs"].template[0].containers[0].env : e.value if e.name == "NOTIFICATION_DISPATCH_AUDIENCE"]) == "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app"
+      && one([for e in google_cloud_run_v2_service.worker["jobs"].template[0].containers[0].env : e.value if e.name == "NOTIFICATION_DISPATCH_ENABLED"]) == "true"
+    && alltrue([for e in google_cloud_run_v2_service.worker["notify"].template[0].containers[0].env : !startswith(e.name, "NOTIFICATION_DISPATCH_")]))
+    error_message = "Only the jobs worker carries the three wake keys, bound to the DEV notify origin."
+  }
+}
+run "jobs_dispatch_default_off" {
+  command = plan
+  variables {
+    enabled              = true
+    image                = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version        = "1"
+    policy_version       = "1"
+    push_subject         = "mailto:synthetic@example.invalid"
+    registered_creators  = ["postgres"]
+    notification_enabled = true
+    jobs_enabled         = true
+  }
+  override_resource {
+    target          = google_service_account.scheduler[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000001" }
+  }
+  assert {
+    condition     = length(google_cloud_run_v2_service_iam_member.jobs_dispatch) == 0 && alltrue([for e in google_cloud_run_v2_service.worker["jobs"].template[0].containers[0].env : !startswith(e.name, "NOTIFICATION_DISPATCH_")]) && keys(jsondecode(one([for e in google_cloud_run_v2_service.worker["notify"].template[0].containers[0].env : e.value if e.name == "WORKER_CALLER_SUBJECTS_JSON"]))) == ["mw-credit-app-scheduler-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"]
+    error_message = "Without jobs dispatch the jobs worker has no wake keys and is not a notify caller."
+  }
+}
+run "jobs_dispatch_requires_enabled_workers" {
+  command = plan
+  variables {
+    enabled               = true
+    image                 = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    vapid_version         = "1"
+    policy_version        = "1"
+    push_subject          = "mailto:synthetic@example.invalid"
+    registered_creators   = ["postgres"]
+    jobs_dispatch_enabled = true
+  }
+  expect_failures = [google_cloud_run_v2_service_iam_member.jobs_dispatch]
+}

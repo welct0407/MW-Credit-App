@@ -81,6 +81,8 @@ test('wording: failure reasons, progress row, sources line and placeholder title
  assert.equal(failureText('TURN_TIMEOUT',false),'The question took too long. Ask a narrower question.');
  assert.equal(failureText('unavailable',false),'The assistant is unavailable. Try again.');
  assert.equal(failureText('lost',false),'Reply not received. Refresh the chat.');
+ assert.equal(failureText('thread_gone',false),'This thread is no longer available.');assert.equal(failureText('thread_gone',true),'แชทนี้ไม่มีแล้ว');
+ assert.equal(failureText('thread_unavailable',false),'Could not open this thread.');assert.equal(failureText('thread_unavailable',true),'เปิดแชทนี้ไม่ได้');
  assert.equal(failureText('INTERNAL',false),'Something went wrong. Try again.');
  assert.equal(failureText('SOMETHING_NEW',false),failureText('INTERNAL',false));
  assert.equal(failureText('INTERNAL',true),'เกิดข้อผิดพลาด ลองอีกครั้ง');assert.equal(failureText('TURN_TIMEOUT',true),'คำถามนี้ใช้เวลานานเกินไป ลองถามให้เจาะจงขึ้น');

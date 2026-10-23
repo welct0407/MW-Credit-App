@@ -51,7 +51,8 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
  const modelOrFail=id=>{if(typeof id!=='string'||!availableModel(chat,id))throw new RequestError(400,'model_unavailable');return id;};
 
  /** One turn after the claim: runs the engine, journals the outcome, streams events through emit. */
- async function turn({principal,actor,thread,claim,text,emit}){
+ /** attached(): whether the asking device still holds the stream (batch 2, B3); a detached turn records a reply event. */
+ async function turn({principal,actor,thread,claim,text,emit,attached=()=>true}){
   const started=now();
   const model=claim.thread.model,messageId=claim.message.id;
   let outcome;
@@ -66,13 +67,13 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   log({event:'chat_turn',thread,messageId,model,ok:outcome.ok,code:outcome.ok?'ok':outcome.code,detail:outcome.ok?undefined:outcome.detail,rounds:outcome.rounds,attempts:outcome.attempts,
    epoch:outcome.epoch,tools:outcome.toolCalls.length,...outcome.usage,latencyMs:assistant.latencyMs});
   try{
-   const row=await store.complete(principal,messageId,assistant,outcome.ok?outcome.history:null,outcome.toolCalls);
+   const row=await store.complete(principal,messageId,assistant,outcome.ok?outcome.history:null,outcome.toolCalls,attached()?null:{thread});
    if(outcome.ok)emit('message',row);
    else emit('error',{code:outcome.code});
   }catch(error){
    // A late completion after a re-claim fails on UNIQUE (thread_id, seq); identity loss fails the commit too.
    log({event:'chat_turn_complete_failed',thread,messageId,sqlstate:typeof error?.code==='string'?error.code:undefined,code:error?.message==='access_denied'?'access_denied':'INTERNAL'});
-   await release({principal,thread,claim,started,usage:assistant,cause:error});
+   await release({principal,thread,claim,started,usage:assistant,cause:error,attached});
    emit('error',{code:'INTERNAL'});
   }
  }
@@ -81,14 +82,14 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   * holding the thread for 5 minutes: try once to store a failed reply (INTERNAL) with no history and no tool rows.
   * Not after a late completion (23505: another claim owns the turn) or a lost identity (42501 / access_denied).
   */
- /** @param {{principal:any,thread:string,claim:any,started:number,usage?:Record<string,any>,cause:any}} input */
- async function release({principal,thread,claim,started,usage={},cause}){
+ /** @param {{principal:any,thread:string,claim:any,started:number,usage?:Record<string,any>,cause:any,attached?:()=>boolean}} input */
+ async function release({principal,thread,claim,started,usage={},cause,attached=()=>true}){
   if(cause?.code==='23505'||cause?.code==='42501'||cause?.message==='access_denied')return false;
   const messageId=claim.message.id;
   const failed={status:'failed',text:failureText(claim.partnerLanguage),model:claim.thread.model,thinkingLevel:chat.thinkingLevel,
    rounds:usage.rounds??0,attempts:usage.attempts??0,promptTokens:usage.promptTokens??0,outputTokens:usage.outputTokens??0,thoughtsTokens:usage.thoughtsTokens??0,cachedTokens:usage.cachedTokens??0,
    latencyMs:Math.max(0,Math.round(now()-started)),errorCode:'INTERNAL'};
-  try{await store.complete(principal,messageId,failed,null,[]);log({event:'chat_turn_released',thread,messageId});return true;}
+  try{await store.complete(principal,messageId,failed,null,[],attached()?null:{thread});log({event:'chat_turn_released',thread,messageId});return true;}
   catch(error){log({event:'chat_turn_release_failed',thread,messageId,sqlstate:typeof error?.code==='string'?error.code:undefined});return false;}
  }
 
@@ -104,7 +105,7 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   route=path==='/api/chat/models'?'models':path==='/api/chat/threads'?'threads':THREAD.test(path)?'thread':MESSAGES.test(path)?'messages':MESSAGE.test(path)?'message':'unknown';
   if(route==='unknown')return reply(404,{error:'not_found'});
   if(req.method==='OPTIONS')return boundary.preflight()?reply(204,{}):reply(403,{error:'access_denied'});
-  const allowed={models:['GET'],threads:['GET','POST'],thread:['PATCH'],messages:['GET','POST'],message:['GET']}[route];
+  const allowed={models:['GET'],threads:['GET','POST'],thread:['GET','PATCH'],messages:['GET','POST'],message:['GET']}[route];
   if(!allowed.includes(req.method))return reply(404,{error:'not_found'});
   // R078: reads skip the revocation round trip; POST and PATCH keep it.
   let principal;
@@ -149,6 +150,8 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
    if(route==='thread'){
     query(url,[]);
     const id=THREAD.exec(path)[1];if(!UUID_V4.test(id))throw invalid();
+    // Batch 2: one thread by id (the PWA opens a notification's thread before its list page has it).
+    if(req.method==='GET')return reply(200,{item:await store.thread(principal,id)});
     const body=await readBody(req);
     if(!plain(body)||!Object.keys(body).length||Object.keys(body).some(k=>!['title','model','status'].includes(k))
      ||(body.title!==undefined&&!validTitle(body.title))||(body.status!==undefined&&!['active','archived'].includes(body.status)))throw invalid();
@@ -188,6 +191,10 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
     return reply(200,outcome);
    }
    // Server-Sent Events: the turn runs to completion even when the client goes away.
+   // Batch 2 (B3): the stream counts as detached once the response closes before it ended (the PWA aborts on hidden or
+   // pagehide). Only the response's 'close' is watched: the request's 'close' also fires once its body has been read.
+   let closed=false;res.on('close',()=>{closed=true;});
+   const attached=()=>!closed&&!res.destroyed&&!res.writableEnded;
    res.statusCode=200;
    res.setHeader('Content-Type','text/event-stream; charset=utf-8');
    res.setHeader('Cache-Control','no-store');
@@ -198,10 +205,10 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
    const ping=setInterval(()=>write(': ping\n\n'),pingMs);
    try{
     emit('accepted',{messageId:claim.message.id,seq:claim.message.seq,model:claim.thread.model});
-    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit});
+    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit,attached});
    }catch(error){
     log({event:'chat_turn_failed',thread,messageId:claim.message.id,reason:error?.name});
-    await release({principal,thread,claim,started:now(),cause:error});
+    await release({principal,thread,claim,started:now(),cause:error,attached});
     emit('error',{code:'INTERNAL'});
    }finally{
     clearInterval(ping);

@@ -1,4 +1,4 @@
-import {test,expect,chromium,devices,type Page} from '@playwright/test';
+import {test,expect,chromium,devices,type BrowserContext,type Page} from '@playwright/test';
 import {spawnSync} from 'node:child_process';import {mkdtempSync,rmSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';
 import {startCanonicalFixture,fixtureLaunchArgs,assertServed} from './fixtures/canonical-server';
 import {chooseLanguage as chooseLiveLanguage} from './live-controls';
@@ -11,14 +11,14 @@ const host='dev-lm.mw-credit.com',readHost='mw-credit-app-read-dev-test.run.app'
 const uid='synthetic-chat-owner',shots=process.env.CHAT_CAPTURE_ROOT??'test-results/r090-chat';
 let fixture:any,root:string,mobile=false,project='';
 test.beforeEach(async({browserName:_browser},info)=>{project=info.project.name;mobile=project.startsWith('mobile')});
-function build(outDir:string,withChat:boolean){
+function build(outDir:string,withChat:boolean,notifications=false){
  const transform=(code:string,id:string)=>id.endsWith('/apps/pwa/src/live-main.tsx')?code+";import {getAuth as fixtureGetAuth,signInWithCustomToken as fixtureSignIn} from 'firebase/auth';globalThis.__syntheticSdk={fixtureGetAuth,fixtureSignIn};":undefined;
  const script='import{build}from"vite";await build(Object.assign('+JSON.stringify({mode:'live-dev',logLevel:'warn',build:{outDir,emptyOutDir:true}})+',{plugins:[{name:"synthetic-sdk-bridge",enforce:"pre",transform:'+transform.toString()+'}]}));';
- const env:Record<string,string|undefined>={...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-key',VITE_FIREBASE_APP_ID:'synthetic-app',VITE_API_ORIGIN:'https://'+readHost,VITE_COMMAND_API_ORIGIN:'https://'+commandHost,VITE_COMMAND_MODE:'dev-owner-testing',VITE_CHAT_API_ORIGIN:withChat?chatOrigin:undefined};
+ const env:Record<string,string|undefined>={...process.env,VITE_FIREBASE_PROJECT_ID:'clever-oasis-508610-n7',VITE_FIREBASE_AUTH_DOMAIN:'clever-oasis-508610-n7.firebaseapp.com',VITE_FIREBASE_API_KEY:'synthetic-public-key',VITE_FIREBASE_APP_ID:'synthetic-app',VITE_API_ORIGIN:'https://'+readHost,VITE_COMMAND_API_ORIGIN:'https://'+commandHost,VITE_COMMAND_MODE:'dev-owner-testing',VITE_CHAT_API_ORIGIN:withChat?chatOrigin:undefined,...(notifications?{VITE_NOTIFICATIONS:'enabled'}:{})};
  if(!withChat)delete env.VITE_CHAT_API_ORIGIN;
  const result=spawnSync(process.execPath,['--input-type=module','-e',script],{encoding:'utf8',env});expect(result.status,result.stderr).toBe(0);
 }
-test.beforeAll(async()=>{root=mkdtempSync(join(tmpdir(),'mw-chat-e2e-'));build(join(root,'chat'),true);build(join(root,'plain'),false);fixture=await startCanonicalFixture(join(root,'chat'))});
+test.beforeAll(async()=>{root=mkdtempSync(join(tmpdir(),'mw-chat-e2e-'));build(join(root,'chat'),true);build(join(root,'plain'),false);build(join(root,'notify'),true,true);fixture=await startCanonicalFixture(join(root,'chat'))});
 test.afterAll(async()=>{await fixture?.close();rmSync(root,{recursive:true,force:true})});
 test.setTimeout(60000);
 
@@ -40,7 +40,7 @@ const ev=(name:string,data:unknown)=>`event: ${name}\ndata: ${JSON.stringify(dat
 async function feed(page:Page,...chunks:string[]){for(const chunk of chunks)await page.evaluate(text=>(window as any).__chatStreams.at(-1).push(text),chunk)}
 const streams=(page:Page)=>page.evaluate(()=>(window as any).__chatStreams.map((entry:any)=>({url:entry.url,body:entry.body,headers:entry.headers})));
 
-async function launch({seed=false,denied=false,width}:{seed?:boolean;denied?:boolean;width?:number}={}){
+async function launch({seed=false,denied=false,width,path='',target,configure}:{seed?:boolean;denied?:boolean;width?:number;path?:string;target?:{kind:string;id:string};configure?:(context:BrowserContext)=>Promise<void>}={}){
  const device=mobile?devices['Pixel 7']:devices['Desktop Chrome'];
  const context=await chromium.launchPersistentContext('',{headless:true,...device,viewport:width?{width,height:mobile?915:900}:mobile?device.viewport:{width:1440,height:900},args:fixtureLaunchArgs(fixture.port,[],host)});
  context.setDefaultTimeout(5000);
@@ -71,6 +71,7 @@ async function launch({seed=false,denied=false,width}:{seed?:boolean;denied?:boo
    if(method==='POST'&&u.pathname==='/api/operations')return route.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}});
    if(method!=='GET')return route.abort('failed');
    if(u.pathname.startsWith('/api/operations/'))return route.fulfill({json:{ok:true,kind:'unresolved'}});
+   if(target&&/^\/api\/notifications\/[0-9a-f-]{36}$/.test(u.pathname))return route.fulfill({json:target});
    if(u.pathname==='/api/dashboard')return route.fulfill({json:{collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]}});
    if(u.pathname==='/api/preferences')return route.fulfill({json:{item:{id:'C-partner',version:'a'.repeat(64),language:'English',statementAccountId:null,statementDate:null},accounts:[],dates:[]}});
    return route.fulfill({json:{ok:true,items:[],nextCursor:null}});
@@ -78,7 +79,8 @@ async function launch({seed=false,denied=false,width}:{seed?:boolean;denied?:boo
   if(u.hostname===chatHost)return chatRoute(route,s);
   return route.abort();
  });
- await page.goto('https://'+host);assertServed(fixture,host);
+ if(configure)await configure(context);
+ await page.goto('https://'+host+path);assertServed(fixture,host);
  await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);
  await page.evaluate(async()=>{const sdk=(window as any).__syntheticSdk;await sdk.fixtureSignIn(sdk.fixtureGetAuth(),'synthetic-custom-token')});
  await expect(page.locator(mobile||(width??1440)<=1050?'.live-bottom-nav':'#live-desktop-navigation nav')).toBeVisible({timeout:15000});
@@ -91,6 +93,7 @@ async function chatRoute(route:any,s:Stub){
  if(path==='/api/chat/threads'&&method==='GET'){const status=u.searchParams.get('status')??'active';return route.fulfill({json:{items:s.threads.filter(thread=>thread.status===status),nextCursor:null}})}
  if(path==='/api/chat/threads'&&method==='POST'){const body=request.postDataJSON();s.creates.push(body);const item={id:body.id,title:'New chat',model:body.model,status:'active',createdAt:new Date().toISOString(),lastMessageAt:null,messageCount:0};s.threads.unshift(item);s.messages[item.id]=[];return route.fulfill({status:201,json:{item}})}
  let match=/^\/api\/chat\/threads\/([^/]+)$/.exec(path);
+ if(match&&method==='GET'){const thread=s.threads.find(row=>row.id===match![1]);return thread?route.fulfill({json:{item:thread}}):route.fulfill({status:404,json:{error:'not_found'}})}
  if(match&&method==='PATCH'){const body=request.postDataJSON();s.patches.push({id:match[1],body});if(s.patchStatus)return route.fulfill({status:s.patchStatus,json:{error:'unavailable'}});const thread=s.threads.find(row=>row.id===match![1]);Object.assign(thread,body);return route.fulfill({json:{item:thread}})}
  match=/^\/api\/chat\/threads\/([^/]+)\/messages$/.exec(path);
  if(match&&method==='GET')return route.fulfill({json:{items:s.messages[match[1]]??[],nextCursor:null}});
@@ -247,6 +250,71 @@ test('failed replies offer the action that fits: Edit question, Choose model, Re
   await expect.poll(async()=>(await streams(page)).length).toBe(3);const third=(await streams(page))[2];
   expect(third.body.text).toBe('Profit this year');expect(third.body.id).not.toBe(second.body.id);expect(third.body.id).not.toBe(first.body.id);
  }finally{await context.close()}
+});
+
+test('batch 2: hiding the app aborts the stream; the outcome is polled only once the app is visible again',async()=>{
+ const {context,page,s}=await launch({seed:true});
+ try{
+  await openChat(page);await expect(page.locator('.chat-assistant').first()).toContainText('12,450');
+  await composer(page).fill('Payoff for Somchai next week?');await page.getByRole('button',{name:'Send',exact:true}).click();
+  await expect.poll(async()=>(await streams(page)).length).toBe(1);const [post]=await streams(page);
+  await feed(page,ev('accepted',{messageId:post.body.id,seq:4,model:'gemini-a'}),ev('round',{n:1}));
+  await page.evaluate(()=>{(window as any).__aborted=false;const entry=(window as any).__chatStreams.at(-1);const push=entry.push;entry.push=(t:string)=>{try{push(t)}catch{(window as any).__aborted=true}};
+   Object.defineProperty(document,'visibilityState',{configurable:true,get:()=>'hidden'});document.dispatchEvent(new Event('visibilitychange'))});
+  // Aborted at once: the next server event cannot be delivered, and nothing is polled while hidden.
+  await expect.poll(()=>page.evaluate(()=>{const entry=(window as any).__chatStreams.at(-1);try{entry.push(': ping\n\n')}catch{return true}return (window as any).__aborted})).toBe(true);
+  await expect(page.locator('.chat-progress')).toHaveText('Waiting for the reply…');
+  await page.waitForTimeout(1500);expect(s.polls).toEqual([]);
+  const user={id:post.body.id,seq:4,role:'user',text:'Payoff for Somchai next week?',status:'ok'};
+  s.outcomes.push({user,assistant:{id:'eeeeeeee-0000-4000-8000-000000000001',seq:5,role:'assistant',text:'Next week it is **12,520** baht.',status:'ok',tools:[{name:'loan_payoff',count:1}]}});
+  await page.evaluate(()=>{delete (document as any).visibilityState;document.dispatchEvent(new Event('visibilitychange'))});
+  await expect(page.locator('.chat-assistant:not(.chat-provisional)').last()).toContainText('Next week it is 12,520 baht.');expect(s.polls).toEqual([post.body.id]);
+ }finally{await context.close()}
+});
+
+test('batch 2: a chat-reply notification opens its thread (cold start with ?notification=)',async()=>{
+ fixture.setBuildRoot(join(root,'notify'));
+ try{
+  const {context,page}=await launch({seed:true,path:'/?notification=99999999-9999-4999-8999-999999999999',target:{kind:'chat',id:T2}});
+  try{
+   await expect(page.locator('main[data-workspace="chat"] .chat-workspace')).toBeVisible({timeout:10000});
+   await expect(page.locator('.chat-assistant').last()).toContainText('Profit this month is 8,200 baht.');
+   await openThreads(page);await expect(page.locator('.chat-thread.current .chat-thread-title')).toHaveText('Profit this month');
+  }finally{await context.close()}
+ }finally{fixture.setBuildRoot(join(root,'chat'))}
+});
+
+test('batch 2: a notification for an archived thread off the first page loads its record and opens it read-only',async()=>{
+ fixture.setBuildRoot(join(root,'notify'));
+ try{
+  const {context,page}=await launch({seed:true,path:'/?notification=88888888-8888-4888-8888-888888888888',target:{kind:'chat',id:T3}});
+  try{
+   await expect(page.locator('main[data-workspace="chat"] .chat-workspace')).toBeVisible({timeout:10000});
+   await expect(page.getByText('This thread is archived. Unarchive it to continue.',{exact:true})).toBeVisible();
+   await expect(composer(page)).toBeDisabled();await expect(page.getByRole('button',{name:'Unarchive',exact:true}).filter({visible:true})).toBeVisible();
+   if(mobile)await expect(page.locator('.chat-threads-current')).toHaveText('Old cash question');else await expect(page.locator('.live-brand h1')).toHaveText('Chat · Old cash question');
+  }finally{await context.close()}
+ }finally{fixture.setBuildRoot(join(root,'chat'))}
+});
+
+test('batch 2: a notification for a thread that is gone explains it and shows the thread list; a failed load offers Try again',async()=>{
+ fixture.setBuildRoot(join(root,'notify'));
+ try{
+  const gone='77777777-7777-4777-8777-777777777777';
+  let r=await launch({seed:true,path:'/?notification=88888888-8888-4888-8888-888888888888',target:{kind:'chat',id:gone}});
+  try{
+   await expect(r.page.getByText('This thread is no longer available.',{exact:true})).toBeVisible({timeout:10000});
+   await expect(r.page.locator('.chat-pane')).toBeVisible();await expect(r.page.locator('.chat-thread-title').first()).toHaveText('Payoff for Somchai today');
+  }finally{await r.context.close()}
+  // Network failure on the record: the notice offers Try again, which loads it.
+  r=await launch({seed:true,path:'/?notification=88888888-8888-4888-8888-888888888888',target:{kind:'chat',id:T3},configure:async context=>{
+   let failed=false;await context.route(chatOrigin+'/api/chat/threads/'+T3,async route=>{if(!failed&&route.request().method()==='GET'){failed=true;return route.abort('failed')}return route.fallback()});}});
+  try{
+   const notice=r.page.getByText('Could not open this thread.',{exact:false});await expect(notice).toBeVisible({timeout:10000});await expect(composer(r.page)).toBeDisabled();
+   await r.page.getByRole('alert').filter({hasText:'Could not open this thread.'}).getByRole('button',{name:'Try again',exact:true}).click();
+   await expect(r.page.getByText('This thread is archived. Unarchive it to continue.',{exact:true})).toBeVisible();await expect(notice).toHaveCount(0);
+  }finally{await r.context.close()}
+ }finally{fixture.setBuildRoot(join(root,'chat'))}
 });
 
 test('a 403 from the chat service shows the access denied card',async()=>{

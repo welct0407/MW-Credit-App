@@ -28,9 +28,9 @@ export const readRoleGuard=(guardConnection,readRole)=>async client=>{
 };
 
 /** The chat handler of a validated chat configuration (called from business-runtime.mjs). */
-export function createChatServiceHandler({config,verifyPrincipal,membership,pool,guardConnection,transport,completionLogger,log}){
+export function createChatServiceHandler({config,verifyPrincipal,membership,pool,guardConnection,transport,completionLogger,log,afterCommit}){
  const readRole=chatRoles(config.environment).read;
- const store=createChatStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer,readRole});
+ const store=createChatStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer,readRole,afterCommit,log});
  const sqlTool=createSqlTool({pool,guardConnection,dbUser:config.dbUser,readRole,database:config.database});
  const readGuard=readRoleGuard(guardConnection,readRole);
  const createTools=actor=>createChatTools({readProvider:chatReadProvider({pool,guardConnection:readGuard,actor}),sqlTool,actor});

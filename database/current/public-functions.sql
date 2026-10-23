@@ -3505,6 +3505,30 @@ COMMENT ON FUNCTION public.pwa_chat_thread_update_v1(actor jsonb, id uuid, patch
 
 
 --
+-- Name: pwa_chat_thread_v1(jsonb, uuid); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_thread_v1(actor jsonb, id uuid) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); value jsonb;
+BEGIN
+ IF id IS NULL THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ SELECT public.pwa_chat_thread_json_v1(t) INTO value FROM public.pwa_chat_threads t WHERE t.id=$2 AND t.partner_id=partner;
+ IF value IS NULL THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ RETURN value;
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_thread_v1(actor jsonb, id uuid); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_thread_v1(actor jsonb, id uuid) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
 -- Name: pwa_chat_threads_v1(jsonb, text, timestamp with time zone, integer); Type: FUNCTION
 --
 
@@ -3797,6 +3821,30 @@ COMMENT ON FUNCTION public.pwa_job_run_v1(job text, business_date date, scope te
 
 
 --
+-- Name: pwa_job_status_v1(integer); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_job_status_v1(days integer) RETURNS TABLE(job_name text, business_date date, scope_key text, state text, started_at timestamp with time zone, completed_at timestamp with time zone, result_count bigint)
+    LANGUAGE plpgsql STABLE SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+BEGIN
+ IF days IS NULL OR days NOT BETWEEN 1 AND 90 THEN RAISE EXCEPTION 'invalid_request'; END IF;
+ RETURN QUERY SELECT j.job_name,j.business_date,j.scope_key,j.state,j.started_at,j.completed_at,j.result_count
+ FROM public.pwa_job_runs j
+ WHERE j.business_date>=(clock_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-days
+ ORDER BY j.business_date DESC,j.job_name,j.scope_key LIMIT 500;
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_job_status_v1(days integer); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_job_status_v1(days integer) IS 'mw-access:governance read-only job status for the chat SQL tool';
+
+
+--
 -- Name: pwa_loan_version_v2(text); Type: FUNCTION
 --
 
@@ -4006,6 +4054,47 @@ COMMENT ON FUNCTION public.pwa_notify_candidates_v1(batch_limit integer) IS 'mw-
 
 
 --
+-- Name: pwa_notify_chat_reply_v1(jsonb, uuid, uuid, text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_notify_chat_reply_v1(actor jsonb, thread uuid, message uuid, outcome text) RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE suffix text; partner text; matches bigint; inserted boolean;
+BEGIN
+ IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ suffix:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;
+ IF current_user<>'mw_notify_owner_'||suffix OR NOT pg_has_role(session_user,'mw_chat_api_'||suffix,'USAGE') OR pg_has_role(session_user,'mw_notify_owner_'||suffix,'MEMBER') THEN
+  RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ IF actor IS NULL OR jsonb_typeof(actor)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(actor) key) IS DISTINCT FROM ARRAY['issuer','loginEmail','partnerId','subject']::text[]
+  OR EXISTS(SELECT 1 FROM jsonb_each(actor) e WHERE jsonb_typeof(e.value)<>'string')
+  OR actor->>'issuer'<>'https://securetoken.google.com/clever-oasis-508610-n7'
+  OR coalesce(length(actor->>'subject'),0) NOT BETWEEN 1 AND 128 OR coalesce(length(actor->>'partnerId'),0) NOT BETWEEN 1 AND 256
+  OR coalesce(length(actor->>'loginEmail'),0) NOT BETWEEN 1 AND 320 OR actor->>'loginEmail'<>lower(btrim(actor->>'loginEmail')) THEN
+  RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ SELECT count(*),min("Row ID") INTO matches,partner FROM public."Partners" WHERE lower(btrim("Login Email"))=actor->>'loginEmail';
+ IF matches<>1 OR partner IS DISTINCT FROM actor->>'partnerId' THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ IF thread IS NULL OR message IS NULL OR outcome IS NULL OR outcome NOT IN ('ok','failed') THEN RAISE EXCEPTION 'invalid_request'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner) THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.id=message AND m.thread_id=thread) THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ INSERT INTO public.pwa_notification_events(dedupe_key,event_type,source_kind,source_id,source_version,actor_partner_id,actor_login_email)
+ VALUES('chat.reply:'||message::text,'chat.reply','chat',thread::text,outcome||':'||message::text,partner,actor->>'loginEmail')
+ ON CONFLICT(dedupe_key) DO NOTHING;
+ inserted:=FOUND;
+ IF inserted THEN PERFORM pg_catalog.pg_notify('mw_pwa_notifications_v1',''); END IF;
+ RETURN inserted;
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_notify_chat_reply_v1(actor jsonb, thread uuid, message uuid, outcome text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_notify_chat_reply_v1(actor jsonb, thread uuid, message uuid, outcome text) IS 'mw-access:governance fixed notification boundary; explicit capability only';
+
+
+--
 -- Name: pwa_notify_complete_v1(uuid, bigint, text); Type: FUNCTION
 --
 
@@ -4045,19 +4134,23 @@ CREATE FUNCTION public.pwa_notify_content_v1(delivery uuid, generation bigint) R
     AS $_$
 BEGIN
  PERFORM public.pwa_worker_guard_v1('dispatch');
- RETURN QUERY SELECT src.source_found,e.event_type,
+ RETURN QUERY SELECT src.source_found,
+  -- A chat reply carries its outcome ('chat.reply:ok' / 'chat.reply:failed', from source_version 'ok:<message>').
+  CASE WHEN e.event_type='chat.reply' THEN 'chat.reply:'||split_part(e.source_version,':',1) ELSE e.event_type END,
   CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
-  -- Thai: the Thai name. English: the English name only ("Description"); none when blank.
-  CASE WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  -- Chat: the thread title. Thai: the Thai name. English: the English name only ("Description"); none when blank.
+  CASE WHEN e.source_kind='chat' THEN src.source_title WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
   src.source_amount
  FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
  LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
  LEFT JOIN LATERAL (
-  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
   UNION ALL
-  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,NULL::text,NULL::numeric,t.title FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=d.recipient_partner_id
  ) source_row ON true
- CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount) src
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title) src
  LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
  WHERE d.delivery_id=$1 AND d.lease_generation=$2 AND d.state='leased' AND d.lease_expires_at>clock_timestamp();
 END $_$;
@@ -4080,7 +4173,7 @@ CREATE FUNCTION public.pwa_notify_eligible_v1(event uuid, subscription uuid) RET
     AS $$
  SELECT EXISTS(
   SELECT 1 FROM public.pwa_notification_events e JOIN public.pwa_push_subscriptions s ON s.subscription_id=subscription
-  WHERE e.event_id=event AND e.actor_partner_id IS NOT NULL AND s.partner_id<>e.actor_partner_id
+  WHERE e.event_id=event AND e.actor_partner_id IS NOT NULL AND CASE WHEN e.event_type='chat.reply' THEN s.partner_id=e.actor_partner_id ELSE s.partner_id<>e.actor_partner_id END
   AND s.enabled AND (s.expires_at IS NULL OR s.expires_at>statement_timestamp()) AND s.created_at<=e.occurred_at
   AND (SELECT count(*) FROM public."Partners" p WHERE lower(btrim(p."Login Email"))=e.actor_login_email)=1
   AND EXISTS(SELECT 1 FROM public."Partners" p WHERE p."Row ID"=e.actor_partner_id AND lower(btrim(p."Login Email"))=e.actor_login_email)
@@ -4138,18 +4231,21 @@ CREATE FUNCTION public.pwa_notify_history_content_v1(actor jsonb, events uuid[])
 DECLARE partner text:=public.pwa_notify_actor_v1(actor);
 BEGIN
  IF events IS NULL OR cardinality(events)>26 THEN RAISE EXCEPTION 'invalid_request'; END IF;
- RETURN QUERY SELECT e.event_id,src.source_found,e.event_type,
+ RETURN QUERY SELECT e.event_id,src.source_found,
+  CASE WHEN e.event_type='chat.reply' THEN 'chat.reply:'||split_part(e.source_version,':',1) ELSE e.event_type END,
   CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
-  CASE WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  CASE WHEN e.source_kind='chat' THEN src.source_title WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
   src.source_amount
  FROM public.pwa_notification_events e
  LEFT JOIN public."Partners" recipient ON recipient."Row ID"=partner
  LEFT JOIN LATERAL (
-  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
   UNION ALL
-  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,NULL::text,NULL::numeric,t.title FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=partner
  ) source_row ON true
- CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount) src
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title) src
  LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
  WHERE e.event_id=ANY(events) AND EXISTS(SELECT 1 FROM public.pwa_notification_deliveries d WHERE d.event_id=e.event_id AND d.recipient_partner_id=partner);
 END $$;

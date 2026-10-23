@@ -39,7 +39,7 @@ variable "chat_models" {
     location              = "global"
     default               = "gemini-4-argon"
     thinkingLevel         = "MEDIUM"
-    maxRounds             = 24
+    maxRounds             = 16
     requestTimeoutSeconds = 120
     turnTimeoutSeconds    = 240
     historyTokenLimit     = 150000
@@ -123,6 +123,10 @@ resource "google_cloud_run_v2_service" "chat_api" {
       condition     = var.capability_policy_version != null && var.capability_policy_sha256 != null
       error_message = "Chat requires the reviewed numeric DEV capability policy pin and evidence hash."
     }
+    precondition {
+      condition     = !var.workers.chat_dispatch_enabled || (var.workers.enabled && var.workers.image != null && var.workers.notification_enabled)
+      error_message = "Chat dispatch wake requires the enabled DEV notify worker."
+    }
   }
   template {
     service_account = google_service_account.chat_runtime[0].email
@@ -149,7 +153,11 @@ resource "google_cloud_run_v2_service" "chat_api" {
           DB_USER                 = google_sql_user.chat_runtime[0].name
           RUNTIME_SERVICE_ACCOUNT = google_service_account.chat_runtime[0].email
           CHAT_MODELS_JSON        = local.chat_models_json
-        })
+          }, var.workers.chat_dispatch_enabled ? {
+          NOTIFICATION_DISPATCH_ENABLED  = "true"
+          NOTIFICATION_DISPATCH_URL      = "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app/internal/dispatch"
+          NOTIFICATION_DISPATCH_AUDIENCE = "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app"
+        } : {})
         content {
           name  = env.key
           value = env.value

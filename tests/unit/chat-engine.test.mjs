@@ -9,7 +9,7 @@ import {createVertexTransport,ChunkMerger,endpoint} from '../../services/chat/ge
 import {createChatTools} from '../../services/chat/tools.mjs';
 import {promptDigest,FINISH_NUDGE,ROUND_NUDGE,HISTORY_NOTE,ASSISTANT_INSTRUCTIONS} from '../../services/chat/prompt.mjs';
 
-const CHAT={location:'global',default:'gemini-4-argon',thinkingLevel:'MEDIUM',maxRounds:24,requestTimeoutSeconds:120,turnTimeoutSeconds:240,
+const CHAT={location:'global',default:'gemini-4-argon',thinkingLevel:'MEDIUM',maxRounds:16,requestTimeoutSeconds:120,turnTimeoutSeconds:240,
  historyTokenLimit:150000,seedChars:40000,maxOutputTokens:16384,models:[{id:'gemini-4-argon',label:'Argon',available:true}]};
 const USAGE={promptTokenCount:100,candidatesTokenCount:10,thoughtsTokenCount:5,cachedContentTokenCount:40};
 const ACTOR={issuer:'https://securetoken.google.com/clever-oasis-508610-n7',subject:'s1',partnerId:'P1',loginEmail:'p1@example.invalid'};
@@ -221,4 +221,25 @@ test('chunk merge: plain text concatenates; thought and signature parts and call
 test('signatures replay verbatim in the next round',async()=>{
  const {requests}=await turn([[chunk([{functionCall:readCall('a','L1'),thoughtSignature:'sig-1'}],{finishReason:'STOP',usage:USAGE})],reply('Due now: ฿1,000')]);
  assert.deepEqual(requests[1].contents[1],{role:'model',parts:[{functionCall:readCall('a','L1'),thoughtSignature:'sig-1'}]});
+});
+
+test('batch 2 (B4): the QUERY DISCIPLINE block follows FAST PATHS verbatim, with the pronoun rule in REPLY FORMAT',()=>{
+ const block=`QUERY DISCIPLINE (every round re-sends the whole conversation; rounds, not rows, cost time and tokens)
+• Plan the turn before the first call: list every fact the answer needs, then fetch them in at most two
+  rounds. Round 1 resolves the borrower(s) in reporting_borrower_directory_v1. Round 2 fetches everything
+  else in ONE batch of concurrent calls: loan facts, the borrower's charges, payment health, upcoming
+  charges and the loan_payoff cross-checks.
+• One query per relation per turn, naming every column you may need from it. Never fetch one column of
+  a row and another column of the same row in a later round; never SELECT * from a wide view.
+• Join or UNION in SQL instead of several small statements; aggregate in SQL.
+• A later round is justified only by a fact you could not know earlier (an unexpected value, a missing
+  row, an error). If you reach round 4 after the borrower is resolved, stop fetching: answer with what
+  you have and say what is unverified.
+• Charges missing for a date: read pwa_job_status_v1(7) once (job_name 'daily-charges', business_date,
+  state, completed_at) and report it in plain words ("the daily charge job did not run on 22-Oct-2026");
+  never probe other tables to explain a permission error.`;
+ const at=ASSISTANT_INSTRUCTIONS.indexOf(block);
+ assert.ok(at>ASSISTANT_INSTRUCTIONS.indexOf('FAST PATHS')&&at<ASSISTANT_INSTRUCTIONS.indexOf('You are the MW partner operations assistant'));
+ const identify=ASSISTANT_INSTRUCTIONS.indexOf('Identify loans by borrower name'),pronoun=ASSISTANT_INSTRUCTIONS.indexOf("Refer to a borrower by name; use she/he/her/his only when the Partner's current message used that pronoun for them.");
+ assert.ok(identify>ASSISTANT_INSTRUCTIONS.indexOf('REPLY FORMAT')&&pronoun>identify);
 });

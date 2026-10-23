@@ -8,7 +8,9 @@
 "verification":
   "status": "documented"
   "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows. R090\
+    \ batch 2: V105 widens event_type to add chat.reply and source_kind to add chat (definitions from the migration source\
+    \ and a disposable rebuild, not captured)."
 "content":
   "definition":
     "schema": "public"
@@ -299,7 +301,7 @@
       "relation": "pwa_notification_events"
       "name": "pwa_notification_events_event_type_check"
       "kind": "c"
-      "definition": "CHECK (event_type = ANY (ARRAY['loan.created'::text, 'loan.closed'::text, 'payment.posted'::text]))"
+      "definition": "CHECK ((event_type = ANY (ARRAY['loan.created'::text, 'loan.closed'::text, 'payment.posted'::text, 'chat.reply'::text])))"
       "deferrable": false
       "initially_deferred": false
       "validated": true
@@ -401,7 +403,7 @@
       "relation": "pwa_notification_events"
       "name": "pwa_notification_events_source_kind_check"
       "kind": "c"
-      "definition": "CHECK (source_kind = ANY (ARRAY['loan'::text, 'payment'::text]))"
+      "definition": "CHECK ((source_kind = ANY (ARRAY['loan'::text, 'payment'::text, 'chat'::text])))"
       "deferrable": false
       "initially_deferred": false
       "validated": true

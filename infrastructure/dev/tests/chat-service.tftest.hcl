@@ -7,7 +7,7 @@ mock_provider "google-beta" {}
 override_resource {
   target          = google_service_account.chat_runtime[0]
   override_during = plan
-  values          = { email = "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com" }
+  values          = { email = "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000003" }
 }
 override_resource {
   target          = google_firebase_hosting_site.dev
@@ -91,9 +91,10 @@ run "chat_service_runtime" {
   assert {
     condition = (jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "gemini-4-argon"
       && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).location == "global"
+      && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).maxRounds == 16
       && [for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.id] == ["gemini-4-argon", "gemini-3.8-flash", "gemini-3.5-flash"]
     && alltrue([for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.available && !can(m.reason)]))
-    error_message = "CHAT_MODELS_JSON lists the three approved models, default gemini-4-argon on global, with no null reason keys."
+    error_message = "CHAT_MODELS_JSON lists the three approved models, default gemini-4-argon on global, 16 rounds, with no null reason keys."
   }
 }
 
@@ -158,3 +159,38 @@ run "reject_unpinned_policy" {
   variables { capability_policy_version = null }
   expect_failures = [google_cloud_run_v2_service.chat_api]
 }
+
+run "chat_dispatch_wake_env_when_enabled" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables {
+    workers = {
+      enabled                      = true
+      image                        = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      notification_enabled         = true
+      command_notification_enabled = true
+      chat_dispatch_enabled        = true
+      policy_version               = "1"
+      vapid_version                = "1"
+      push_subject                 = "mailto:synthetic@example.invalid"
+      registered_creators          = ["postgres"]
+      web_push_public_key          = "synthetic-public-key"
+    }
+  }
+  assert {
+    condition = (one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "NOTIFICATION_DISPATCH_ENABLED"]) == "true"
+      && one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "NOTIFICATION_DISPATCH_URL"]) == "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app/internal/dispatch"
+      && one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "NOTIFICATION_DISPATCH_AUDIENCE"]) == "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app"
+    && alltrue([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : !contains(["PWA_NOTIFICATIONS", "WEB_PUSH_PUBLIC_KEY", "NOTIFICATION_POLICY_JSON"], e.name) && !startswith(e.name, "AGENT_") && !startswith(e.name, "RECEIPT_")]))
+    error_message = "Chat dispatch adds exactly the three wake keys bound to the DEV notify origin and nothing else from notifications."
+  }
+}
+
+run "chat_dispatch_requires_notify_worker" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables { workers = { chat_dispatch_enabled = true } }
+  expect_failures = [google_cloud_run_v2_service.chat_api]
+}
+
+

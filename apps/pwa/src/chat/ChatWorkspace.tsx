@@ -7,7 +7,7 @@ import {ChatThreads} from './ChatThreads';
 import {ChatMessageView,ProvisionalMessage} from './ChatMessage';
 import {ChatComposer} from './ChatComposer';
 import {applyTurnEvent,initialTurn,type ChatMessage,type TurnState} from './chat-protocol';
-import {ChatAccessError,ChatHttpError,createThread,listMessages,listModels,listThreads,streamTurn,updateThread,waitForOutcome,type ChatAccess,type ChatModels,type ChatThread,type Page} from './chat-client';
+import {ChatAccessError,ChatHttpError,createThread,getThread,listMessages,listModels,listThreads,streamTurn,updateThread,waitForOutcome,whenVisible,type ChatAccess,type ChatModels,type ChatThread,type Page} from './chat-client';
 import {EXAMPLES,failureText,progressText,threadTitle,type FailureAction} from './chat-text';
 
 // R090 chat screen (design §6.2): thread list (left pane on desktop, a sheet on phones), the conversation and the
@@ -23,7 +23,7 @@ export function defaultModel(models:ChatModels|null){
 }
 const codeOf=(error:unknown)=>error instanceof ChatHttpError?error.code==='model_unavailable'?'MODEL_UNAVAILABLE':error.detail==='thread_full'?'thread_full':'unavailable':'unavailable';
 
-export function ChatWorkspace({access,thai,onTitle}:{access:ChatAccess;thai:boolean;onTitle?:(title:string)=>void}){
+export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:ChatAccess;thai:boolean;onTitle?:(title:string)=>void;openRequest?:{threadId:string;nonce:number}|null}){
  const t=(en:string,th:string)=>thai?th:en,online=useOnline();
  const accessRef=useRef(access);accessRef.current=access;
  const [models,setModels]=useState<ChatModels|null>(null),[modelsError,setModelsError]=useState(false);
@@ -32,6 +32,7 @@ export function ChatWorkspace({access,thai,onTitle}:{access:ChatAccess;thai:bool
  const [items,setItems]=useState<Item[]>([]),[itemsCursor,setItemsCursor]=useState<string|null>(null),[itemsBusy,setItemsBusy]=useState(false),[itemsError,setItemsError]=useState(false);
  const [drafts,setDrafts]=useState<Record<string,string>>({});
  const [turn,setTurn]=useState<Turn|null>(null);
+ const [recordFailed,setRecordFailed]=useState<string|null>(null);
  const [newModel,setNewModel]=useState<string|null>(null),[modelNote,setModelNote]=useState(false),[notice,setNotice]=useState<string|null>(null),[sheet,setSheet]=useState(false),[announce,setAnnounce]=useState('');
  // Phones keep the header to "Chat"; the thread title moves into the Threads button (desktop shows it in the header).
  const [wide,setWide]=useState(()=>matchMedia('(min-width:1051px)').matches);
@@ -110,6 +111,30 @@ export function ChatWorkspace({access,thai,onTitle}:{access:ChatAccess;thai:bool
  useEffect(()=>{if(!sheet)return;sheetClose.current?.focus();const onEscape=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!event.defaultPrevented){event.preventDefault();closeSheet()}};document.addEventListener('keydown',onEscape);return()=>document.removeEventListener('keydown',onEscape)},[sheet]);
  // biome-ignore lint/correctness/useExhaustiveDependencies: first load only; later loads are explicit.
  useEffect(()=>{void loadModels();void loadThreads(false);return()=>{threadsGen.current++;itemsGen.current++;turnAbort.current?.abort()}},[]);
+ // Batch 2 (B3): a chat-reply notification tap opens that thread at its newest messages.
+ // biome-ignore lint/correctness/useExhaustiveDependencies: each request (nonce) opens once; state is read at that moment.
+ useEffect(()=>{
+  if(!openRequest||!/^[0-9a-f-]{36}$/.test(openRequest.threadId))return;
+  picked.current=true;
+  const known=threads.find(row=>row.id===openRequest.threadId)??(threadRef.current?.id===openRequest.threadId?threadRef.current:null);
+  if(known){openThread(known);return}
+  // Not on the loaded list page (older, or archived): open it now and load its own record (title, model, status),
+  // so an archived thread is read-only and the picker shows its model.
+  openThread({id:openRequest.threadId,title:'',model:'',status:'active'});
+  void loadRecord(openRequest.threadId);
+ },[openRequest?.nonce]);
+ /** The record of a thread opened by id. 404 (gone, or not this Partner's): say so and show the thread list; a
+  * network failure: say so with Try again. The composer stays disabled until the record arrives. */
+ async function loadRecord(id:string){
+  setRecordFailed(null);
+  try{const record=await getThread(accessRef.current,id);if(threadRef.current?.id===id)setThread(record)}
+  catch(error){
+   if(error instanceof ChatAccessError)return;
+   // The message load may have answered 404 first and cleared the thread; still explain it.
+   if(error instanceof ChatHttpError&&error.status===404){if(threadRef.current&&threadRef.current.id!==id)return;startNew();setNotice(failureText('thread_gone',thaiRef.current));setSheet(true);return}
+   if(threadRef.current?.id===id)setRecordFailed(id);
+  }
+ }
  useContextRefresh(true,t('Refresh chat','รีเฟรชแชท'),()=>{void loadModels();void loadThreads(archivedRef.current);const open=threadRef.current;if(open&&!turnRef.current)void loadMessages(open,null)},10);
 
  const finish=(messageId:string,user:ChatMessage|null,assistant:ChatMessage|null)=>{
@@ -128,6 +153,9 @@ export function ChatWorkspace({access,thai,onTitle}:{access:ChatAccess;thai:bool
   // Unchecked streamed text is not shown while waiting for the stored reply.
   setTurn({threadId:target.id,messageId,phase:'polling',state:{...state,provisional:'',checking:false}});
   try{
+   // Batch 2 (B3): the poll starts only while the app is in the foreground (first read at once, then every 3 s).
+   await whenVisible(controller.signal);
+   if(controller.signal.aborted)return;
    const outcome=await waitForOutcome(accessRef.current,target.id,messageId,controller.signal);
    if(controller.signal.aborted)return;
    if(outcome.state==='done')finish(messageId,outcome.user,outcome.assistant);
@@ -228,7 +256,8 @@ export function ChatWorkspace({access,thai,onTitle}:{access:ChatAccess;thai:bool
  function toggleArchived(){const next=!archivedRef.current;setArchived(next);setThreads([]);setThreadsCursor(null);void loadThreads(next)}
 
  const key=thread?.id??NEW,draft=drafts[key]??'';
- const currentModel=thread?.model??newModel??defaultModel(models);
+ // A thread opened from a notification before the list arrived has no model yet (''): show the default meanwhile.
+ const currentModel=thread?.model||newModel||defaultModel(models);
  const modelOptions=models?.models??[];
  const readOnly=thread?.status==='archived';
  const activeTurn=turn&&(turn.threadId===thread?.id||(!thread&&turn.threadId===''))?turn:null;
@@ -260,6 +289,7 @@ export function ChatWorkspace({access,thai,onTitle}:{access:ChatAccess;thai:bool
    <section ref={listRef} className="chat-messages" aria-label={t('Messages','ข้อความ')}>
     {itemsCursor&&<button type="button" className="secondary-button chat-earlier" disabled={itemsBusy} onClick={()=>{if(thread)void loadMessages(thread,itemsCursor)}}>{t('Load earlier messages','โหลดข้อความก่อนหน้า')}</button>}
     {itemsBusy&&!items.length&&<p className="chat-loading" role="status">{t('Loading…','กำลังโหลด…')}</p>}
+    {recordFailed&&recordFailed===thread?.id&&<p className="chat-notice" role="alert">{failureText('thread_unavailable',thai)} <button type="button" className="text-action" onClick={()=>void loadRecord(recordFailed)}>{t('Try again','ลองอีกครั้ง')}</button></p>}
     {itemsError&&<p className="chat-notice" role="alert">{t('Messages unavailable.','โหลดข้อความไม่ได้')} <button type="button" className="text-action" onClick={()=>{if(thread)void loadMessages(thread,null)}}>{t('Try again','ลองอีกครั้ง')}</button></p>}
     {empty&&<div className="chat-welcome">
      <p>{t('Ask about loans, payments and cash. Answers come from the current records.','ถามเรื่องสินเชื่อ การรับชำระ และเงินสด คำตอบมาจากข้อมูลปัจจุบัน')}</p>
@@ -280,7 +310,7 @@ export function ChatWorkspace({access,thai,onTitle}:{access:ChatAccess;thai:bool
     </div>}
     <div ref={endRef} className="chat-end"/>
    </section>
-   <ChatComposer value={draft} thai={thai} inputRef={composer} note={composerNote} disabled={!!turn||!online||readOnly||(!thread&&!currentModel)}
+   <ChatComposer value={draft} thai={thai} inputRef={composer} note={composerNote} disabled={!!turn||!online||readOnly||(!thread&&!currentModel)||(!!thread&&!thread.model)}
     onChange={value=>setDrafts(previous=>({...previous,[key]:value}))} onSend={()=>void send(draft)}/>
    {readOnly&&thread&&<p className="chat-archived-actions"><button type="button" className="secondary-button" onClick={()=>void changeStatus(thread,'active')}>{t('Unarchive','เลิกเก็บถาวร')}</button></p>}
    <p className="visually-hidden" role="status" aria-live="polite">{announce}</p>

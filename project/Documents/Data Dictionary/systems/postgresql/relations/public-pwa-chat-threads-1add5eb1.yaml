@@ -47,7 +47,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/mw_chat_owner_prod}"
       "comment": null
     "partner_id":
       "schema": "public"
@@ -65,7 +65,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/mw_chat_owner_prod}"
       "comment": null
     "title":
       "schema": "public"
@@ -83,7 +83,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/mw_chat_owner_prod}"
       "comment": null
     "model":
       "schema": "public"
@@ -119,7 +119,7 @@
       "compression": ""
       "default_expression": "'active'::text"
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/mw_chat_owner_prod}"
       "comment": null
     "created_at":
       "schema": "public"
@@ -486,11 +486,11 @@
       "access_method": "btree"
       "comment": null
   "triggers":
-    "RI_ConstraintTrigger_a_16625":
+    "RI_ConstraintTrigger_a_16487":
       "schema": "public"
       "relation": "pwa_chat_threads"
-      "name": "RI_ConstraintTrigger_a_16625"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16625\" AFTER DELETE ON pwa_chat_threads FROM pwa_chat_messages\
+      "name": "RI_ConstraintTrigger_a_16487"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16487\" AFTER DELETE ON pwa_chat_threads FROM pwa_chat_messages\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
       "enabled": "O"
       "internal": true
@@ -498,11 +498,11 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_a_16626":
+    "RI_ConstraintTrigger_a_16488":
       "schema": "public"
       "relation": "pwa_chat_threads"
-      "name": "RI_ConstraintTrigger_a_16626"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16626\" AFTER UPDATE ON pwa_chat_threads FROM pwa_chat_messages\
+      "name": "RI_ConstraintTrigger_a_16488"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16488\" AFTER UPDATE ON pwa_chat_threads FROM pwa_chat_messages\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
       "enabled": "O"
       "internal": true
@@ -510,11 +510,11 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_a_16652":
+    "RI_ConstraintTrigger_a_16514":
       "schema": "public"
       "relation": "pwa_chat_threads"
-      "name": "RI_ConstraintTrigger_a_16652"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16652\" AFTER DELETE ON pwa_chat_threads FROM pwa_chat_history\
+      "name": "RI_ConstraintTrigger_a_16514"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16514\" AFTER DELETE ON pwa_chat_threads FROM pwa_chat_history\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
       "enabled": "O"
       "internal": true
@@ -522,11 +522,11 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_a_16653":
+    "RI_ConstraintTrigger_a_16515":
       "schema": "public"
       "relation": "pwa_chat_threads"
-      "name": "RI_ConstraintTrigger_a_16653"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16653\" AFTER UPDATE ON pwa_chat_threads FROM pwa_chat_history\
+      "name": "RI_ConstraintTrigger_a_16515"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16515\" AFTER UPDATE ON pwa_chat_threads FROM pwa_chat_history\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
       "enabled": "O"
       "internal": true

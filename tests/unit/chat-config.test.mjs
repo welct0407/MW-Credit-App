@@ -6,7 +6,8 @@ import {parseChatModels,availableModel} from '../../services/chat/config.mjs';
 import {loadBusinessConfig} from '../../services/production/business-config.mjs';
 import {createChatConnectionGuard} from '../../services/chat/guard.mjs';
 import {BUDGET} from '../../services/lib/budget.mjs';
-import {PROJECT_ID} from '../../services/lib/identity.mjs';
+import {PROJECT_ID,runUrl} from '../../services/lib/identity.mjs';
+import {loadDispatchConfig} from '../../services/notifications/postcommit.mjs';
 import {businessEnv} from './business-env-fixture.mjs';
 import {MODELS,chatEnv} from './chat-fixture.mjs';
 
@@ -46,9 +47,18 @@ test('business config: role chat refuses other identities, receipt, notification
  const reader=businessEnv('dev','reader'),command=businessEnv('dev','command');
  for(const patch of [{DB_USER:reader.DB_USER},{RUNTIME_SERVICE_ACCOUNT:command.RUNTIME_SERVICE_ACCOUNT},{DB_USER:`mw-credit-app-chat-prod@${PROJECT_ID}.iam`},
   {DEV_RECEIPTS:'disabled'},{DEV_RECEIPTS:'enabled'},{DEV_RECEIPT_RECOGNITION:'disabled'},{RECEIPT_BUCKET:'x'},{PWA_NOTIFICATIONS:'disabled'},{WEB_PUSH_PUBLIC_KEY:'x'},
-  {NOTIFICATION_DISPATCH_ENABLED:'false'},{AGENT_CONVERSATION_API_ENABLED:'false'},{AGENT_RECEIPT_API_ENABLED:'false'},{CHAT_MODELS_JSON:undefined},{CHAT_MODELS_JSON:'{}'},
+  {NOTIFICATION_SCHEDULE_ENABLED:'false'},{NOTIFICATION_POLICY_JSON:'{}'},{WEB_PUSH_PRIVATE_KEY_SECRET:'x'},{AGENT_CONVERSATION_API_ENABLED:'false'},{AGENT_RECEIPT_API_ENABLED:'false'},{CHAT_MODELS_JSON:undefined},{CHAT_MODELS_JSON:'{}'},
   {FOUNDATION_ROLE:'chat-admin'}])
   assert.throws(()=>loadBusinessConfig(chatEnv('dev',patch)),undefined,JSON.stringify(patch));
+});
+
+test('business config: role chat accepts exactly the three dispatch wake keys (batch 2, B1)',()=>{
+ for(const environment of ['dev','prod']){
+  const audience=runUrl(`mw-credit-app-notify-${environment}`);
+  const env=chatEnv(environment,{NOTIFICATION_DISPATCH_ENABLED:'true',NOTIFICATION_DISPATCH_URL:audience+'/internal/dispatch',NOTIFICATION_DISPATCH_AUDIENCE:audience});
+  assert.equal(loadBusinessConfig(env).serviceRole,'chat');assert.deepEqual(loadDispatchConfig(env,environment),{audience,url:audience+'/internal/dispatch'});
+  assert.equal(loadBusinessConfig(chatEnv(environment,{NOTIFICATION_DISPATCH_ENABLED:'false'})).serviceRole,'chat');
+ }
 });
 
 test('budget: the chat request outlasts the 240 s turn and the client query timeout outlasts the 20 s SQL tool',()=>{
@@ -105,4 +115,34 @@ test('read role is SET, never inherited: the membership lookup and native reads 
  assert.deepEqual(sql.slice(0,7),['BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY',"SET LOCAL statement_timeout='8000ms'",'guard','SET LOCAL ROLE "mw_chat_read_dev"','resolve','RESET ROLE','SELECT public.pwa_chat_models_default_v1($1::jsonb) AS value']);
  sql.length=0;await readRoleGuard(async()=>{sql.push('guard');},'mw_chat_read_dev')(client);
  assert.deepEqual(sql,['guard','SET LOCAL ROLE "mw_chat_read_dev"']);
+});
+
+test('store: a detached completion records the reply event under a savepoint, then wakes dispatch; a failure only logs',async()=>{
+ const {createChatStore}=await import('../../services/chat/store.mjs');
+ const assistant={status:'ok',text:'Hi'};
+ const setup=({notifyResult=true,notifyError=null}={})=>{
+  const sql=[],logs=[],wakes=[];
+  const client={async query(text){const q=typeof text==='string'?text:text.text;sql.push(q);
+   if(q.includes('pwa_notify_chat_reply_v1')){if(notifyError)throw notifyError;return {rows:[{value:notifyResult}]};}
+   if(q.includes('pwa_chat_turn_complete_v1'))return {rows:[{value:{id:'r',role:'assistant'}}]};
+   return {rows:[{value:null}]};},release(){}};
+  const store=createChatStore({pool:{connect:async()=>client},guardConnection:async()=>{},issuer:'iss',readRole:'mw_chat_read_dev',
+   resolveActor:async()=>({issuer:'iss',subject:'s',partnerId:'P',loginEmail:'p@example.invalid'}),afterCommit:async()=>{wakes.push(sql.at(-1));},log:r=>logs.push(r)});
+  return {sql,logs,wakes,store};
+ };
+ // Attached (notify null): no event, no wake.
+ let t=setup();assert.deepEqual(await t.store.complete({},'m1',assistant,null,[]),{id:'r',role:'assistant'});
+ assert.equal(t.sql.some(q=>q.includes('pwa_notify_chat_reply_v1')),false);assert.deepEqual(t.wakes,[]);
+ // Detached: the event inside the completion transaction, the wake after COMMIT.
+ t=setup();await t.store.complete({},'m1',{status:'failed',text:'x'},null,[],{thread:'T1'});
+ const at=t.sql.findIndex(q=>q.includes('pwa_notify_chat_reply_v1'));
+ assert.deepEqual(t.sql.slice(at-2,at+3).map(q=>q.split('(')[0].trim()),['SELECT public.pwa_chat_turn_complete_v1','SAVEPOINT chat_reply_event','SELECT public.pwa_notify_chat_reply_v1','RELEASE SAVEPOINT chat_reply_event','COMMIT']);
+ assert.deepEqual(t.wakes,['COMMIT']);
+ // A repeated message (false) records nothing new and wakes nobody.
+ t=setup({notifyResult:false});await t.store.complete({},'m1',assistant,null,[],{thread:'T1'});assert.deepEqual(t.wakes,[]);
+ // V105 missing: rolled back to the savepoint, logged, the turn still commits.
+ t=setup({notifyError:Object.assign(Error('function does not exist'),{code:'42883'})});
+ assert.deepEqual(await t.store.complete({},'m1',assistant,null,[],{thread:'T1'}),{id:'r',role:'assistant'});
+ assert.ok(t.sql.includes('ROLLBACK TO SAVEPOINT chat_reply_event')&&t.sql.at(-1)==='COMMIT');assert.deepEqual(t.wakes,[]);
+ assert.deepEqual(t.logs,[{event:'chat_reply_event_failed',thread:'T1',messageId:'m1',sqlstate:'42883'}]);
 });

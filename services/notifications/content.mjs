@@ -5,7 +5,11 @@ export const TITLE_BUDGET=30,BODY_BUDGET=80;
 const ACTIVITY={
  'payment.posted':{en:'Payment received',th:'รับชำระแล้ว'},
  'loan.created':{en:'New loan',th:'สินเชื่อใหม่'},
- 'loan.closed':{en:'Loan closed',th:'ปิดสินเชื่อแล้ว'}
+ 'loan.closed':{en:'Loan closed',th:'ปิดสินเชื่อแล้ว'},
+ // R090 batch 2 (B3): pwa_notify_content_v1 (V105) reports a chat reply's outcome in the event type; the body is the
+ // thread title (in the borrower-name slot), shortened like a name; no figures.
+ 'chat.reply:ok':{en:'Reply ready',th:'ตอบแล้ว'},
+ 'chat.reply:failed':{en:'Reply failed',th:'ตอบไม่สำเร็จ'}
 };
 const TEXT={
  en:{gone:'Details no longer available',activity:'New activity'},

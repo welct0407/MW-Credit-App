@@ -211,5 +211,126 @@ BEGIN
  IF has_function_privilege('mw_chat_api_dev','monitoring.pwa_chat_recent_questions_v1(integer)','EXECUTE') OR has_function_privilege('public','monitoring.pwa_chat_recent_questions_v1(integer)','EXECUTE') THEN
   RAISE EXCEPTION 'cost function must not be executable by the API role or PUBLIC'; END IF;
 END $$;
+-- G. V105 (R090 batch 2): the chat reply event, its eligibility and content, and the job status for the SQL tool.
+CREATE ROLE v105_dispatch LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+GRANT mw_notify_dispatch_dev TO v105_dispatch WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+CREATE ROLE v105_notify_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+GRANT mw_notify_api_dev TO v105_notify_api WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+GRANT USAGE ON SCHEMA public TO v105_dispatch,v105_notify_api;
+CREATE TEMP TABLE v105_case(name text PRIMARY KEY,id uuid) ON COMMIT DROP;
+SELECT set_config('v105.title',(SELECT title FROM public.pwa_chat_threads WHERE id='11111111-1111-4111-8111-111111111111'),false);
+-- The reply events name real user messages of thread t1 (the RPC checks the message belongs to the thread).
+SELECT set_config('v105.ok',(SELECT id::text FROM public.pwa_chat_messages WHERE thread_id='11111111-1111-4111-8111-111111111111' AND role='user' ORDER BY seq LIMIT 1),false),
+ set_config('v105.failed',(SELECT id::text FROM public.pwa_chat_messages WHERE thread_id='11111111-1111-4111-8111-111111111111' AND role='user' ORDER BY seq OFFSET 1 LIMIT 1),false);
+DO $$ BEGIN IF coalesce(current_setting('v105.failed',true),'')='' OR current_setting('v105.ok')=current_setting('v105.failed') THEN RAISE EXCEPTION 'thread t1 needs two user messages'; END IF; END $$;
+GRANT SELECT ON v105_case TO PUBLIC;
+-- Subscriptions exist before the events (eligibility needs created_at <= occurred_at).
+WITH s AS (
+ INSERT INTO public.pwa_push_subscriptions(issuer,subject,partner_id,endpoint_hash,endpoint,p256dh,auth,created_at)
+ SELECT 'https://securetoken.google.com/clever-oasis-508610-n7','sub-'||p,'CH-'||upper(p),encode(sha256(convert_to('v105-'||p,'UTF8')),'hex'),'https://fcm.googleapis.com/fcm/send/v105-'||p,'synthetic','synthetic',clock_timestamp()-interval '1 minute'
+ FROM unnest(ARRAY['a','b']) p RETURNING partner_id,subscription_id)
+INSERT INTO v105_case SELECT 'sub-'||partner_id,subscription_id FROM s;
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); b jsonb:=pg_temp.actor('b'); t1 uuid:='11111111-1111-4111-8111-111111111111';
+ ok uuid:=current_setting('v105.ok')::uuid; failed uuid:=current_setting('v105.failed')::uuid; elsewhere uuid:='c1111111-1111-4111-8111-111111111111';
+BEGIN
+ IF NOT public.pwa_notify_chat_reply_v1(a,t1,ok,'ok') THEN RAISE EXCEPTION 'first chat reply event not inserted'; END IF;
+ IF public.pwa_notify_chat_reply_v1(a,t1,ok,'ok') THEN RAISE EXCEPTION 'repeated message inserted a second event'; END IF;
+ IF NOT public.pwa_notify_chat_reply_v1(a,t1,failed,'failed') THEN RAISE EXCEPTION 'failed reply event not inserted'; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_notify_chat_reply_v1(%L::jsonb,%L::uuid,%L::uuid,''ok'')',b,t1,gen_random_uuid()),'42501','access_denied');
+ -- The message must belong to the thread: another thread's message, or an unknown id, is refused.
+ PERFORM pg_temp.expect(format('SELECT public.pwa_notify_chat_reply_v1(%L::jsonb,%L::uuid,%L::uuid,''ok'')',a,t1,elsewhere),'42501','access_denied');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_notify_chat_reply_v1(%L::jsonb,%L::uuid,%L::uuid,''ok'')',a,t1,gen_random_uuid()),'42501','access_denied');
+ -- pwa_chat_thread_v1: the caller's own thread, the list's JSON; another Partner's thread is not found.
+ IF public.pwa_chat_thread_v1(a,t1)->>'id'<>t1::text OR public.pwa_chat_thread_v1(a,t1)->>'title' IS NULL OR public.pwa_chat_thread_v1(a,t1)->>'model' IS NULL THEN RAISE EXCEPTION 'thread read'; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_thread_v1(%L::jsonb,%L::uuid)',b,t1),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_notify_chat_reply_v1(%L::jsonb,%L::uuid,%L::uuid,''done'')',a,t1,gen_random_uuid()),'P0001','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_notify_chat_reply_v1(%L::jsonb,%L::uuid,%L::uuid,''ok'')',jsonb_set(a,'{partnerId}','"CH-B"'),t1,gen_random_uuid()),'42501','access_denied');
+ -- The API role writes no notification table directly and calls no other notification routine.
+ PERFORM pg_temp.expect('SELECT count(*) FROM public.pwa_notification_events','42501');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_notify_target_v1(%L::jsonb,%L::uuid)',a,gen_random_uuid()),'42501');
+END $$;
+RESET SESSION AUTHORIZATION;
+SET SESSION AUTHORIZATION v104_chat_other;
+SELECT pg_temp.expect(format('SELECT public.pwa_notify_chat_reply_v1(%L::jsonb,%L::uuid,%L::uuid,''ok'')',pg_temp.actor('a'),'11111111-1111-4111-8111-111111111111',gen_random_uuid()),'42501');
+RESET SESSION AUTHORIZATION;
+INSERT INTO v105_case SELECT CASE WHEN source_version LIKE 'ok:%' THEN 'event-ok' ELSE 'event-failed' END,event_id FROM public.pwa_notification_events WHERE event_type='chat.reply';
+INSERT INTO public.pwa_notification_events(dedupe_key,event_type,source_kind,source_id,source_version,actor_partner_id,actor_login_email)
+ VALUES('v105-business','payment.posted','payment','V105-P','posted','CH-A','ch-a@example.invalid');
+INSERT INTO v105_case SELECT 'event-business',event_id FROM public.pwa_notification_events WHERE dedupe_key='v105-business';
+DO $$
+DECLARE ev record; c record; sub_a uuid:=(SELECT id FROM v105_case WHERE name='sub-CH-A'); sub_b uuid:=(SELECT id FROM v105_case WHERE name='sub-CH-B');
+BEGIN
+ SELECT * INTO STRICT ev FROM public.pwa_notification_events WHERE event_id=(SELECT id FROM v105_case WHERE name='event-ok');
+ IF ev.source_kind<>'chat' OR ev.source_id<>'11111111-1111-4111-8111-111111111111' OR ev.source_version<>'ok:'||current_setting('v105.ok')
+  OR ev.dedupe_key<>'chat.reply:'||current_setting('v105.ok') OR ev.actor_partner_id<>'CH-A' OR ev.actor_login_email<>'ch-a@example.invalid' THEN RAISE EXCEPTION 'chat reply event %',to_jsonb(ev); END IF;
+ IF (SELECT count(*) FROM public.pwa_notification_events WHERE event_type='chat.reply')<>2 THEN RAISE EXCEPTION 'one chat event per message'; END IF;
+ -- A chat reply goes to the asking Partner's own device; a business event still goes to the other Partner.
+ FOR c IN SELECT * FROM (VALUES ('event-ok',sub_a,true),('event-ok',sub_b,false),('event-failed',sub_a,true),('event-business',sub_a,false),('event-business',sub_b,true)) v(name,sub,expected) LOOP
+  IF public.pwa_notify_eligible_v1((SELECT id FROM v105_case WHERE name=c.name),c.sub) IS DISTINCT FROM c.expected THEN RAISE EXCEPTION 'eligibility of % for % must be %',c.name,c.sub,c.expected; END IF;
+ END LOOP;
+ -- The web-push preference governs chat pushes too.
+ INSERT INTO public.pwa_notification_preferences(partner_id,channel,enabled,updated_at) VALUES('CH-A','web-push',false,clock_timestamp()-interval '2 minutes');
+ IF public.pwa_notify_eligible_v1((SELECT id FROM v105_case WHERE name='event-ok'),sub_a) THEN RAISE EXCEPTION 'disabled preference still eligible'; END IF;
+ DELETE FROM public.pwa_notification_preferences WHERE partner_id='CH-A';
+ -- Leased deliveries for the content RPC: the asking Partner (Thai) for both outcomes, and the other Partner.
+ INSERT INTO public.pwa_notification_deliveries(event_id,channel,destination_key,recipient_partner_id,subscription_id,subscription_version,state,lease_generation,lease_expires_at)
+ SELECT (SELECT id FROM v105_case WHERE name=x.event),'web-push',encode(sha256(convert_to('v105-'||x.dest,'UTF8')),'hex'),x.recipient,x.sub,1,'leased',3,clock_timestamp()+interval '60 seconds'
+ FROM (VALUES ('event-ok','a','CH-A',sub_a),('event-failed','a','CH-A',sub_a),('event-ok','b','CH-B',sub_b)) x(event,dest,recipient,sub);
+ INSERT INTO v105_case SELECT 'delivery-'||e.source_version||'-'||d.recipient_partner_id,d.delivery_id FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e USING(event_id) WHERE e.event_type='chat.reply';
+END $$;
+SET SESSION AUTHORIZATION v105_dispatch;
+DO $$
+DECLARE got text;
+BEGIN
+ SELECT string_agg(concat_ws('|',k.name,CASE WHEN r.found THEN 't' ELSE 'f' END,r.event_type,r.language,coalesce(r.borrower_name,'∅'),coalesce(r.amount::text,'∅')),';' ORDER BY k.name) INTO got
+ FROM v105_case k CROSS JOIN LATERAL public.pwa_notify_content_v1(k.id,3) r WHERE k.name LIKE 'delivery-%';
+ IF got IS DISTINCT FROM 'delivery-failed:'||current_setting('v105.failed')||'-CH-A|t|chat.reply:failed|th|'||current_setting('v105.title')||'|∅;'
+  ||'delivery-ok:'||current_setting('v105.ok')||'-CH-A|t|chat.reply:ok|th|'||current_setting('v105.title')||'|∅;'
+  ||'delivery-ok:'||current_setting('v105.ok')||'-CH-B|f|chat.reply:ok|en|∅|∅' THEN RAISE EXCEPTION 'chat content differs: %',got; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+-- History rows show what the device was meant to receive (R089): the same facts for the calling partner.
+SET SESSION AUTHORIZATION v105_notify_api;
+DO $$
+DECLARE got text; ids uuid[]:=ARRAY[(SELECT id FROM v105_case WHERE name='event-ok'),(SELECT id FROM v105_case WHERE name='event-failed')];
+BEGIN
+ SELECT string_agg(concat_ws('|',r."eventType",CASE WHEN r.found THEN 't' ELSE 'f' END,r.language,coalesce(r."borrowerName",'∅'),coalesce(r.amount::text,'∅')),';' ORDER BY r."eventType") INTO got
+ FROM public.pwa_notify_history_content_v1(pg_temp.actor('a'),ids) r;
+ IF got IS DISTINCT FROM 'chat.reply:failed|t|th|'||current_setting('v105.title')||'|∅;chat.reply:ok|t|th|'||current_setting('v105.title')||'|∅' THEN RAISE EXCEPTION 'chat history content for the asker differs: %',got; END IF;
+ -- The other Partner holds a delivery of the ok event only, and the thread is not theirs.
+ SELECT string_agg(concat_ws('|',r."eventType",CASE WHEN r.found THEN 't' ELSE 'f' END,r.language,coalesce(r."borrowerName",'∅')),';') INTO got
+ FROM public.pwa_notify_history_content_v1(pg_temp.actor('b'),ids) r;
+ IF got IS DISTINCT FROM 'chat.reply:ok|f|en|∅' THEN RAISE EXCEPTION 'chat history content for the other partner differs: %',got; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+-- Job status: the SQL-tool role reads the job state through the function only; the API role cannot call it.
+INSERT INTO public.pwa_job_runs(job_name,business_date,scope_key,state,started_at,completed_at,result_count,checkpoint) VALUES
+ ('daily-charges',(clock_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-1,'daily','completed',clock_timestamp()-interval '1 day',clock_timestamp()-interval '1 day',12,'secret-checkpoint'),
+ ('recent-analytics',(clock_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-1,'hour:07','pending',NULL,NULL,NULL,NULL),
+ ('daily-charges',(clock_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-30,'daily','completed',clock_timestamp()-interval '30 days',clock_timestamp()-interval '30 days',3,NULL);
+SET SESSION AUTHORIZATION "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam";
+SELECT pg_temp.expect('SELECT * FROM public.pwa_job_status_v1(7)','42501');
+SET LOCAL ROLE mw_chat_read_dev;
+DO $$
+DECLARE got text;
+BEGIN
+ SELECT string_agg(concat_ws('|',job_name,business_date=(clock_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-1,scope_key,state,completed_at IS NOT NULL,coalesce(result_count::text,'∅')),';') INTO got FROM public.pwa_job_status_v1(7);
+ IF got IS DISTINCT FROM 'daily-charges|t|daily|completed|t|12;recent-analytics|t|hour:07|pending|f|∅' THEN RAISE EXCEPTION 'job status differs: %',got; END IF;
+ IF (SELECT count(*) FROM public.pwa_job_status_v1(90))<>3 THEN RAISE EXCEPTION 'job status over 90 days'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p,unnest(p.proargnames) n WHERE p.oid='public.pwa_job_status_v1(integer)'::regprocedure AND n IN ('run_id','checkpoint')) THEN RAISE EXCEPTION 'job status exposes run ids or checkpoints'; END IF;
+END $$;
+SELECT pg_temp.expect('SELECT * FROM public.pwa_job_status_v1(0)','P0001','invalid_request');
+SELECT pg_temp.expect('SELECT * FROM public.pwa_job_status_v1(91)','P0001','invalid_request');
+SELECT pg_temp.expect('SELECT count(*) FROM public.pwa_job_runs','42501');
+SELECT pg_temp.expect(format('SELECT public.pwa_notify_chat_reply_v1(%L::jsonb,%L::uuid,%L::uuid,''ok'')',pg_temp.actor('a'),'11111111-1111-4111-8111-111111111111',gen_random_uuid()),'42501');
+SELECT pg_temp.expect(format('SELECT public.pwa_chat_thread_v1(%L::jsonb,%L::uuid)',pg_temp.actor('a'),'11111111-1111-4111-8111-111111111111'),'42501');
+RESET ROLE;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF has_function_privilege('mw_chat_api_dev','public.pwa_job_status_v1(integer)','EXECUTE') OR has_function_privilege('mw_notify_api_dev','public.pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)','EXECUTE')
+  OR has_function_privilege('mw_chat_read_dev','public.pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)','EXECUTE') THEN RAISE EXCEPTION 'V105 routines reach the wrong capability'; END IF;
+END $$;
 SELECT 'Chat regression passed' AS result;
 ROLLBACK;

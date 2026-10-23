@@ -35,7 +35,7 @@ variable "chat_models" {
     location              = "global"
     default               = "gemini-4-argon"
     thinkingLevel         = "MEDIUM"
-    maxRounds             = 24
+    maxRounds             = 16
     requestTimeoutSeconds = 120
     turnTimeoutSeconds    = 240
     historyTokenLimit     = 150000
@@ -130,6 +130,10 @@ resource "google_cloud_run_v2_service" "chat" {
       condition     = var.business_image != null && var.capability_policy_version != null && var.capability_policy_sha256 != null && length(var.business_registered_creators) > 0
       error_message = "PROD chat requires the tested business image, the reviewed numeric capability policy pin/hash and registered creators."
     }
+    precondition {
+      condition     = !var.workers.chat_dispatch_enabled || (var.workers.enabled && var.workers.image != null && var.workers.notification_enabled)
+      error_message = "PROD chat dispatch wake requires the enabled PROD notify worker."
+    }
   }
   template {
     service_account = google_service_account.chat[0].email
@@ -151,7 +155,7 @@ resource "google_cloud_run_v2_service" "chat" {
         startup_cpu_boost = true
       }
       dynamic "env" {
-        for_each = {
+        for_each = merge({
           APP_ENV                               = "prod"
           BUSINESS_ACTIVATION                   = "approved-candidate"
           BUSINESS_MODE                         = "business-candidate"
@@ -173,7 +177,11 @@ resource "google_cloud_run_v2_service" "chat" {
           PROD_SQL_JOURNAL_OWNER_ROLE           = "mw_app_prod_journal_owner"
           PROD_SQL_REGISTERED_CREATORS          = jsonencode(var.business_registered_creators)
           CHAT_MODELS_JSON                      = local.chat_models_json
-        }
+          }, var.workers.chat_dispatch_enabled ? {
+          NOTIFICATION_DISPATCH_ENABLED  = "true"
+          NOTIFICATION_DISPATCH_URL      = "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app/internal/dispatch"
+          NOTIFICATION_DISPATCH_AUDIENCE = "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app"
+        } : {})
         content {
           name  = env.key
           value = env.value

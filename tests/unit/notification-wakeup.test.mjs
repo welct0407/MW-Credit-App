@@ -35,12 +35,35 @@ test('wake follows acknowledged commit and release after the result is returned,
   assert.equal(result.ok,!commitFailure);assert.equal(wakes,0);
   await settle();assert.equal(wakes,commitFailure?0:1);
   if(commitFailure)assert.equal(result.code,'operation_outcome_unknown');
-  else{assert.ok(received.deadline<=Date.now()+1500&&received.deadline>=before+1000,'wake capped at about 1.5 s');assert.equal(received.signal,undefined);await store.operationStatus(principal,command.requestId);await settle();assert.equal(wakes,1);assert.equal(calls.includes('ROLLBACK'),false);}
+  else{assert.ok(received.deadline>=Date.now()+29000&&received.deadline<=Date.now()+30000,'wake budget is the 30 s post-commit default, not the browser deadline');assert.equal(received.signal,undefined);await store.operationStatus(principal,command.requestId);await settle();assert.equal(wakes,1);assert.equal(calls.includes('ROLLBACK'),false);}
  }
 });
-test('a shorter client wake deadline still bounds the deferred wake',async()=>{
+// R090 batch 2: the reply is already sent, so the browser's request deadline no longer bounds the background wake.
+test('the deferred wake ignores a short browser deadline and keeps the post-commit budget',async()=>{
  let received=null;
  const pool={connect:async()=>({release(){},query:async(sql)=>sql.includes('canonical_json')?{rows:[]}:sql.includes('pwa_submit_operation_v2')?{rows:[{result:{kind:'recorded',originalOutcome:{status:'applied'}}}]}:{rows:[]}})};
  const store=createEnvironmentCommandStore({pool,guardConnection:async()=>{},principalAllowed:()=>true,resolveActor:async()=>({issuer:'https://issuer.invalid',subject:principal.subject,partnerId:'synthetic',loginEmail:principal.email}),actorIssuer:'https://issuer.invalid',afterCommit:async context=>{received=context}});
- const deadline=Date.now()+200;assert.equal((await store.operation({...principal,[wakeContext]:{deadline}},command)).ok,true);await settle();assert.equal(received.deadline,deadline);
+ const deadline=Date.now()+200;assert.equal((await store.operation({...principal,[wakeContext]:{deadline}},command)).ok,true);await settle();assert.ok(received.deadline>=Date.now()+29000);
+});
+
+// R090 batch 2 (B1/B3): the chat service is a second post-commit caller: a detached turn's reply event commits with the
+// turn, then the same wake runs (OIDC POST with the deadline); a rejected wake never fails the committed turn.
+import {createChatStore} from '../../services/chat/store.mjs';
+test('chat completion wakes dispatch after COMMIT only when it recorded a reply event; wake failure keeps the result',async()=>{
+ for(const wakeStatus of [200,503]){
+  const sql=[],calls=[];
+  const client={async query(text){sql.push(text);if(String(text).includes('pwa_notify_chat_reply_v1'))return {rows:[{value:true}]};return {rows:[{value:{id:'r'}}]};},release(){}};
+  const afterCommit=createPostCommitWake(loadDispatchConfig(env,'dev'),{fetch:async(url,options)=>{calls.push({url,options,after:sql.at(-1)});return calls.length===1?{ok:true,text:async()=> 'a.b.c'}:{status:wakeStatus};}});
+  const store=createChatStore({pool:{connect:async()=>client},guardConnection:async()=>{},issuer:'iss',resolveActor:async()=>({issuer:'iss'}),afterCommit});
+  assert.deepEqual(await store.complete({},'m',{status:'ok'},null,[],{thread:'t'}),{id:'r'});
+  assert.equal(calls.length,2);assert.equal(calls[0].after,'COMMIT');assert.equal(calls[1].url,env.NOTIFICATION_DISPATCH_URL);assert.match(calls[1].options.headers['X-MW-Wake-Deadline'],/^\d{13}$/);
+ }
+});
+
+test('a 202 (wake queued by a busy worker) is a delivered wake, not a deferral',async()=>{
+ const logs=[];
+ await createPostCommitWake(loadDispatchConfig(env,'dev'),{log:r=>logs.push(r),fetch:async url=>/identity/.test(url)?{ok:true,text:async()=> 'a.b.c'}:{status:202}})();
+ assert.deepEqual(logs,[]);
+ await createPostCommitWake(loadDispatchConfig(env,'dev'),{log:r=>logs.push(r),fetch:async url=>/identity/.test(url)?{ok:true,text:async()=> 'a.b.c'}:{status:409}})();
+ assert.deepEqual(logs,[{component:'notification-wake',event:'deferred_to_recovery'}]);
 });

@@ -1,5 +1,5 @@
 import {BUSINESS_TODAY_QUERY} from '../lib/business-date.mjs';
-import {wakeContext} from '../notifications/postcommit.mjs';
+import {WAKE_MS} from '../notifications/postcommit.mjs';
 import {offlineDomains} from '../business/offline-dataset.mjs';
 import {readOfflineDatasetChunk} from '../business/offline-dataset-chunks.mjs';
 import {readOfflineDatasetDelta} from '../business/offline-dataset-delta.mjs';
@@ -98,12 +98,14 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     }
     // Outside the transaction catch and after releasing its client: a failed hint
     // must never turn an acknowledged COMMIT into an unknown financial outcome.
-    // The response is sent first; the wake runs in the next check phase with a short
-    // cap and without the response-bound abort signal (res 'close' fires on finish).
-    // The minute recovery worker owns any wake that misses this budget.
+    // The response is sent first; the wake runs in the next check phase without the
+    // response-bound abort signal (res 'close' fires on finish). R090 batch 2: the wake has
+    // the post-commit budget (30 s), not the browser's request deadline or the former 1.5 s
+    // cap: the reply is already sent, and the notify worker enqueues only with 11 s left
+    // after its cold start, so a shorter budget made the wake a no-op.
+    // The minute recovery worker owns any wake that still misses.
     if (!readonly && afterCommit) {
-      const context = principal[wakeContext];
-      setImmediate(() => { Promise.resolve().then(() => afterCommit({deadline: Math.min(context?.deadline ?? Infinity, Date.now() + 1500)})).catch(() => { /* Recovery owns a missed wake. */ }); });
+      setImmediate(() => { Promise.resolve().then(() => afterCommit({deadline: Date.now() + WAKE_MS})).catch(() => { /* Recovery owns a missed wake. */ }); });
     }
     return committedResult;
   }

@@ -17,8 +17,12 @@ const PROFILES=Object.freeze({
 });
 const AMBIENT=['DATABASE_URL','PGHOST','PGHOSTADDR','PGDATABASE','PGPORT','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','FIREBASE_AUTH_EMULATOR_HOST','FIREBASE_AUTH_TENANT_ID','STORAGE_EMULATOR_HOST','COMMAND_MODE','COMMAND_FIXTURE_JSON','OWNER_FIREBASE_UID','ALLOWED_WEB_ORIGIN'];
 const DEV_RECEIPT_KEYS=['RECEIPT_BUCKET','RECEIPT_SQL_PREFIX','RECEIPT_OBJECT_PREFIX','RECEIPT_COMPATIBILITY_EVIDENCE','RECEIPT_NATIVE_CATALOG_JSON'];
-/** R090: the chat service holds no receipt, notification, push or agent API configuration (fail closed). */
-const chatForbidden=(key,prefix)=>key.startsWith(prefix+'RECEIPT')||/^(?:RECEIPT_|AGENT_|NOTIFICATION_|WEB_PUSH_)/.test(key)||key==='PWA_NOTIFICATIONS';
+/**
+ * R090: the chat service holds no receipt, notification, push or agent API configuration (fail closed), except the
+ * three post-commit dispatch wake keys (batch 2, B1), which loadDispatchConfig validates and pins to the notify service.
+ */
+const CHAT_DISPATCH_KEYS=new Set(['NOTIFICATION_DISPATCH_ENABLED','NOTIFICATION_DISPATCH_URL','NOTIFICATION_DISPATCH_AUDIENCE']);
+const chatForbidden=(key,prefix)=>!CHAT_DISPATCH_KEYS.has(key)&&(key.startsWith(prefix+'RECEIPT')||/^(?:RECEIPT_|AGENT_|NOTIFICATION_|WEB_PUSH_)/.test(key)||key==='PWA_NOTIFICATIONS');
 const DB_USER_NAMES=Object.freeze({reader:'read',command:'command',chat:'chat'});
 /**
  * Nothing becomes active through omission, a browser URL, or a foundation mode change.

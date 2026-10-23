@@ -7,8 +7,11 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "source": "database/migrations/V105__chat_reply_notification_and_job_status.sql"
+  "coverage": "R090 batch 2 definition (V105 replaces the actor test in place: a chat reply goes to the asking Partner's own\
+    \ subscriptions, every other type to the other Partner; owner, ACL and comment kept; reviewed from the migration source,\
+    \ not captured). Earlier basis: Actual affected PROD89 catalogue after maintained migration and authority restoration;\
+    \ no business rows."
 "content":
   "definition":
     "schema": "public"
@@ -26,7 +29,7 @@
       AS $function$
        SELECT EXISTS(
         SELECT 1 FROM public.pwa_notification_events e JOIN public.pwa_push_subscriptions s ON s.subscription_id=subscription
-        WHERE e.event_id=event AND e.actor_partner_id IS NOT NULL AND s.partner_id<>e.actor_partner_id
+        WHERE e.event_id=event AND e.actor_partner_id IS NOT NULL AND CASE WHEN e.event_type='chat.reply' THEN s.partner_id=e.actor_partner_id ELSE s.partner_id<>e.actor_partner_id END
         AND s.enabled AND (s.expires_at IS NULL OR s.expires_at>statement_timestamp()) AND s.created_at<=e.occurred_at
         AND (SELECT count(*) FROM public."Partners" p WHERE lower(btrim(p."Login Email"))=e.actor_login_email)=1
         AND EXISTS(SELECT 1 FROM public."Partners" p WHERE p."Row ID"=e.actor_partner_id AND lower(btrim(p."Login Email"))=e.actor_login_email)

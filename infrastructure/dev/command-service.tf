@@ -63,8 +63,9 @@ resource "google_cloud_run_v2_service" "command_api" {
       command = ["node"]
       args    = ["services/production/business-server.mjs"]
       resources {
-        limits            = { cpu = "1", memory = "512Mi" }
-        cpu_idle          = true
+        limits = { cpu = "1", memory = "512Mi" }
+        # R090 batch 2: CPU stays allocated so the post-commit notification wake runs after the response.
+        cpu_idle          = false
         startup_cpu_boost = true
       }
       dynamic "env" {

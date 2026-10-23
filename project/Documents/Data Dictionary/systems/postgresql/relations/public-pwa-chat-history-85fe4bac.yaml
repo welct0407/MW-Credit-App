@@ -523,11 +523,11 @@
       "access_method": "btree"
       "comment": null
   "triggers":
-    "RI_ConstraintTrigger_c_16654":
+    "RI_ConstraintTrigger_c_16516":
       "schema": "public"
       "relation": "pwa_chat_history"
-      "name": "RI_ConstraintTrigger_c_16654"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16654\" AFTER INSERT ON pwa_chat_history FROM pwa_chat_threads\
+      "name": "RI_ConstraintTrigger_c_16516"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16516\" AFTER INSERT ON pwa_chat_history FROM pwa_chat_threads\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
       "enabled": "O"
       "internal": true
@@ -535,11 +535,11 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_c_16655":
+    "RI_ConstraintTrigger_c_16517":
       "schema": "public"
       "relation": "pwa_chat_history"
-      "name": "RI_ConstraintTrigger_c_16655"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16655\" AFTER UPDATE ON pwa_chat_history FROM pwa_chat_threads\
+      "name": "RI_ConstraintTrigger_c_16517"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16517\" AFTER UPDATE ON pwa_chat_history FROM pwa_chat_threads\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
       "enabled": "O"
       "internal": true
@@ -547,11 +547,11 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_c_16659":
+    "RI_ConstraintTrigger_c_16521":
       "schema": "public"
       "relation": "pwa_chat_history"
-      "name": "RI_ConstraintTrigger_c_16659"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16659\" AFTER INSERT ON pwa_chat_history FROM pwa_chat_messages\
+      "name": "RI_ConstraintTrigger_c_16521"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16521\" AFTER INSERT ON pwa_chat_history FROM pwa_chat_messages\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
       "enabled": "O"
       "internal": true
@@ -559,11 +559,11 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_c_16660":
+    "RI_ConstraintTrigger_c_16522":
       "schema": "public"
       "relation": "pwa_chat_history"
-      "name": "RI_ConstraintTrigger_c_16660"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16660\" AFTER UPDATE ON pwa_chat_history FROM pwa_chat_messages\
+      "name": "RI_ConstraintTrigger_c_16522"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16522\" AFTER UPDATE ON pwa_chat_history FROM pwa_chat_messages\
         \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
       "enabled": "O"
       "internal": true

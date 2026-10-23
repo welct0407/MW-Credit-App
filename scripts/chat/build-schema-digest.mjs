@@ -24,7 +24,8 @@ const SCHEMAS=['public','agent_audit'];
 const ROUTINE_SCHEMAS=['public','agent_audit','assessment_lab'];
 const TRIGGER_RESULTS=['trigger','event_trigger'];
 const COMMENT_LIMIT=200;
-const EXCLUDED_RELATIONS=/^public\.pwa_chat_/;
+// The chat journal and (batch 2, B4) the job journal, which the SQL role reads only through pwa_job_status_v1.
+const EXCLUDED_RELATIONS=/^public\.(?:pwa_chat_|pwa_job_runs$)/;
 
 // Owner (R085), Archie's classification, verbatim from the agent builder.
 export const ALLOWED=new Map([
@@ -82,6 +83,9 @@ export const ALLOWED=new Map([
   "Which account receives by default."]],
  ["public.receiving_cash_account(p_borrower text)",["The account a borrower should pay into.",
   "\"Where should borrower X transfer\"."]],
+ // R090 batch 2 (B4): the read-only job status (V105), the one pwa_ function in the digest.
+ ["public.pwa_job_status_v1(days integer)",["State of the daily charge and analytics jobs per business date",
+  "Whether charges were generated for a date; why a day's charges are missing"]],
  ["public.pwa_cash_opening_basis_v2(p_holder text)",["A holder's current balance and per-account balances.",
   "Current cash held by Tommy/Lisa (or \"Cash Account Balances\")."]],
 ]);
@@ -158,7 +162,7 @@ export async function build(client){
  relations.sort((a,b)=>codePointCompare(a.relation,b.relation));
  functions.sort((a,b)=>codePointCompare(a.function,b.function));
  return {format:1,migration:head,
-  source:'disposable rebuild of database/migrations (relations in public and agent_audit except the chat journal; the allow-listed business functions)',
+  source:'disposable rebuild of database/migrations (relations in public and agent_audit except the chat and job journals; the allow-listed business functions)',
   notes:'PostgreSQL 18, search_path pg_catalog, public; quote mixed-case identifiers exactly as written ("Loans"."Row ID"). Business dates are Asia/Bangkok. Call only the functions listed here; anything that modifies data fails in the read-only transaction.',
   relations,functions};
 }

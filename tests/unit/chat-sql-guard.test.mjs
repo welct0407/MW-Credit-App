@@ -163,3 +163,7 @@ test('payoff eligible and ineligible',async()=>{
  assert.deepEqual([value.eligible,value.loan_id,value.reason],[false,'L2','Loan L2 is not an open auto-enabled Daily Interest loan']);
  for(const bad of ['',' ','x'.repeat(201),'a\x00b',null])await assert.rejects(tool(connection()).payoff(bad),/INVALID_LOAN_ID/);
 });
+
+test('batch 2 (B4): the job status function passes the guard like the other reporting functions',()=>{
+ for(const sql of ["SELECT job_name, business_date, state, completed_at FROM pwa_job_status_v1(7) WHERE job_name='daily-charges'",'SELECT * FROM public.pwa_job_status_v1(7)'])assert.equal(guard(sql),sql);
+});

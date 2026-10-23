@@ -35,6 +35,7 @@ function memoryStore(){
    clock+=1000;const t={id:input.id,partner:a.partnerId,title:input.title??'New chat',model:input.model,status:'active',createdAt:new Date(clock).toISOString(),lastMessageAt:null,messageCount:0,sortAt:new Date(clock).toISOString().replace('Z','000Z')};
    threads.set(t.id,t);messages.set(t.id,[]);return {created:true,item:item(t)};},
   async updateThread(p,tid,patch){const t=own(actor(p),tid);Object.assign(t,patch);return item(t);},
+  async thread(p,tid){return item(own(actor(p),tid));},
   async messages(p,tid,{before,limit}){own(actor(p),tid);return messages.get(tid).filter(m=>!before||m.seq<before).toReversed().slice(0,limit+1).map(msg);},
   async message(p,tid,mid){own(actor(p),tid);const list=messages.get(tid),u=list.find(m=>m.id===mid&&m.role==='user');if(!u)throw Error('not_found');
    const a=list.find(m=>m.seq===u.seq+1);return {user:msg(u),assistant:a?msg(a):null};},
@@ -47,8 +48,8 @@ function memoryStore(){
    if(model)t.model=model;
    const u={id:mid,seq:list.length+1,role:'user',text,status:'ok',claimed:true};list.push(u);t.messageCount++;
    return {actor:a,value:{state:'claimed',message:{id:mid,seq:u.seq,createdAt:'2026-10-23T03:00:00.000Z'},thread:{id:tid,model:t.model,title:t.title,messageCount:t.messageCount},partnerLanguage:'English',history:null,seed:[]}};},
-  async complete(p,mid,assistant,history,toolCalls){
-   const a=actor(p);log.push(['complete',mid,assistant,history,toolCalls]);
+  async complete(p,mid,assistant,history,toolCalls,notify=null){
+   const a=actor(p);log.push(['complete',mid,assistant,history,toolCalls,notify]);
    if(store.completeFail){const failure=store.completeFail;store.completeFail=null;throw failure;}
    const t=[...threads.values()].find(x=>messages.get(x.id).some(m=>m.id===mid));own(a,t.id);
    const list=messages.get(t.id),u=list.find(m=>m.id===mid);u.claimed=false;
@@ -72,7 +73,7 @@ async function server({script=[],store=memoryStore(),pingMs=15000,delay=0}={}){
  const handler=createChatHandler({config,verifyPrincipal,store,createTools,transport,log:r=>logs.push(r),pingMs});
  const srv=http.createServer(handler);await new Promise(r=>srv.listen(0,'127.0.0.1',r));
  const base=`http://127.0.0.1:${srv.address().port}`;
- const call=(path,{method='GET',token='a',body,headers={},raw}={})=>fetch(base+path,{method,headers:{...(token?{Authorization:'Bearer token-'+token}:{}),...(body!==undefined||raw!==undefined?{'Content-Type':'application/json'}:{}),...headers},body:raw??(body===undefined?undefined:JSON.stringify(body))});
+ const call=(path,{method='GET',token='a',body,headers={},raw,signal}={})=>fetch(base+path,{method,signal,headers:{...(token?{Authorization:'Bearer token-'+token}:{}),...(body!==undefined||raw!==undefined?{'Content-Type':'application/json'}:{}),...headers},body:raw??(body===undefined?undefined:JSON.stringify(body))});
  return {call,store,logs,revocation,close:()=>new Promise(r=>srv.close(r))};
 }
 /** Parses an SSE body into [name, data] pairs and counts ping comments. */
@@ -202,6 +203,28 @@ test('a commit that fails (not a late completion) stores a failed INTERNAL reply
  s.store.completeFail=Object.assign(Error('unique_violation'),{code:'23505'});
  await events(await s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:id(14),text:'Late'},headers:{Accept:'text/event-stream'}}));
  assert.equal(s.store.log.filter(x=>x[0]==='complete').length,before+1);
+});
+
+test('batch 2: a turn whose stream closed records the reply event; an attached stream and ?stream=0 never do',async t=>{
+ const s=await server({delay:150,script:[reply('Hello'),reply('Gone'),reply('Plain')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ await events(await s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:M1,text:'Hi'},headers:{Accept:'text/event-stream'}}));
+ // The device leaves mid-turn (the PWA aborts on hidden or pagehide): the completion carries the thread to notify.
+ const controller=new AbortController();
+ const response=await s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:M2,text:'Again'},headers:{Accept:'text/event-stream'},signal:controller.signal});
+ const reader=response.body.getReader();await reader.read();controller.abort();
+ const deadline=Date.now()+5000;while(!s.store.log.some(x=>x[0]==='complete'&&x[1]===M2)&&Date.now()<deadline)await new Promise(r=>setTimeout(r,20));
+ const plain=await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:id(15),text:'Plain'}});assert.equal(plain.status,200);
+ const notify=Object.fromEntries(s.store.log.filter(x=>x[0]==='complete').map(x=>[x[1],x[5]]));
+ assert.deepEqual(notify,{[M1]:null,[M2]:{thread:T1},[id(15)]:null});
+});
+
+test('batch 2: GET one thread returns the caller\'s own record; another Partner gets 404, a bad id 400',async t=>{
+ const s=await server();t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ const own=await s.call(`/api/chat/threads/${T1}`);assert.equal(own.status,200);assert.deepEqual(Object.keys((await own.json()).item).sort(),['createdAt','id','lastMessageAt','messageCount','model','status','title']);
+ assert.equal((await s.call(`/api/chat/threads/${T1}`,{token:'b'})).status,404);
+ assert.equal((await s.call('/api/chat/threads/00000000-0000-1000-8000-000000000000')).status,400);
 });
 
 test('a re-POST of a finished message returns its outcome without applying a model override',async t=>{

@@ -90,6 +90,7 @@ run "chat_authorized_exact_prod_service" {
       && one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "DB_USER"]) == "mw-credit-app-chat-prod@clever-oasis-508610-n7.iam"
       && one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value_source[0].secret_key_ref[0].version if e.name == "PROD_CAPABILITY_POLICY_JSON"]) == "2"
       && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "gemini-4-argon"
+      && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).maxRounds == 16
       && alltrue([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : !startswith(e.name, "DEV_") && !startswith(e.name, "AGENT_") && !startswith(e.name, "NOTIFICATION_") && !startswith(e.name, "WEB_PUSH_") && !startswith(e.name, "PROD_RECEIPT") && !startswith(e.name, "RECEIPT_") && !strcontains(e.name, "RECEIPT")
     && !contains(["PWA_NOTIFICATIONS", "WEB_PUSH_PUBLIC_KEY", "OWNER_IDENTITY_MODE", "OWNER_IDENTITY_SECRET_VERSION", "PROD_OWNER_FIREBASE_UID", "FOUNDATION_MODE"], e.name)]))
     error_message = "PROD chat carries the PROD business environment with role chat and no DEV, receipt, notification, agent or owner-identity settings."
@@ -129,4 +130,67 @@ run "chat_rejects_dev_image" {
     runtime_image_overrides = { chat = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" }
   }
   expect_failures = [var.runtime_image_overrides]
+}
+
+run "chat_dispatch_prod_behind_chat_authorized" {
+  command = plan
+  override_resource {
+    target          = module.workers.google_service_account.scheduler[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-scheduler-prod@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000001" }
+  }
+  override_resource {
+    target          = google_service_account.chat[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-chat-prod@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000004" }
+  }
+  override_resource {
+    target          = google_secret_manager_secret.business["capability-policy"]
+    override_during = plan
+    values          = { secret_id = "mw-credit-app-prod-capability-policy" }
+  }
+  variables {
+    foundation_authorized              = true
+    runtime_authorized                 = true
+    business_infrastructure_authorized = true
+    business_runtime_authorized        = true
+    chat_authorized                    = true
+    owner_secret_version               = "1"
+    foundation_image                   = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    business_image                     = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    capability_policy_version          = "2"
+    capability_policy_sha256           = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    business_registered_creators       = ["postgres"]
+    workers                            = { enabled = true, image = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", vapid_version = "1", policy_version = "2", push_subject = "mailto:synthetic@example.invalid", registered_creators = ["postgres"], notification_enabled = true, chat_dispatch_enabled = true }
+  }
+  assert {
+    condition     = one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "NOTIFICATION_DISPATCH_URL"]) == "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app/internal/dispatch" && one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "NOTIFICATION_DISPATCH_AUDIENCE"]) == "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app" && contains(module.workers.notify_callers, "mw-credit-app-chat-prod@clever-oasis-508610-n7.iam.gserviceaccount.com")
+    error_message = "PROD chat dispatch binds the exact PROD notify origin and pins the PROD chat identity as a notify caller."
+  }
+}
+
+run "chat_dispatch_prod_off_by_default" {
+  command = plan
+  variables {
+    foundation_authorized              = true
+    runtime_authorized                 = true
+    business_infrastructure_authorized = true
+    business_runtime_authorized        = true
+    chat_authorized                    = true
+    owner_secret_version               = "1"
+    foundation_image                   = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    business_image                     = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    capability_policy_version          = "2"
+    capability_policy_sha256           = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    business_registered_creators       = ["postgres"]
+  }
+  override_resource {
+    target          = google_service_account.chat[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-chat-prod@clever-oasis-508610-n7.iam.gserviceaccount.com", unique_id = "100000000000000000004" }
+  }
+  assert {
+    condition     = alltrue([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : !startswith(e.name, "NOTIFICATION_")])
+    error_message = "PROD chat carries no dispatch keys unless chat dispatch is enabled."
+  }
 }

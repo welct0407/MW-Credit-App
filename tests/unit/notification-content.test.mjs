@@ -76,3 +76,14 @@ test('English push shows the English name only, or no name; Thai push shows the 
  assert.equal(renderNotification(facts({found:false,language:'en',borrowerName:null})).body,'Details no longer available');
  for(const n of [renderNotification(facts({language:'en',borrowerName:null})),renderNotification(facts({language:'th',borrowerName:null}))])withinBudgets(n);
 });
+
+test('R090 batch 2: chat replies say Reply ready or Reply failed with the thread title as the body',()=>{
+ assert.deepEqual(renderNotification({found:true,eventType:'chat.reply:ok',language:'en',borrowerName:'Payoff for Somchai today',amount:null}),{title:'Reply ready',body:'Payoff for Somchai today'});
+ assert.deepEqual(renderNotification({found:true,eventType:'chat.reply:ok',language:'th',borrowerName:'ปิดยอดสมชาย',amount:null}),{title:'ตอบแล้ว',body:'ปิดยอดสมชาย'});
+ assert.deepEqual(renderNotification({found:true,eventType:'chat.reply:failed',language:'en',borrowerName:'Profit',amount:null}),{title:'Reply failed',body:'Profit'});
+ assert.deepEqual(renderNotification({found:true,eventType:'chat.reply:failed',language:'th',borrowerName:'กำไร',amount:null}),{title:'ตอบไม่สำเร็จ',body:'กำไร'});
+ const long='q'.repeat(150),r=renderNotification({found:true,eventType:'chat.reply:ok',language:'en',borrowerName:long+'\nsecond line',amount:null});
+ assert.equal(r.title,'Reply ready');assert.equal(graphemeLength(r.body),BODY_BUDGET);assert.ok(r.body.endsWith('…'));
+ assert.deepEqual(renderNotification({found:false,eventType:'chat.reply:ok',language:'en',borrowerName:null,amount:null}),{title:'Reply ready',body:'Details no longer available'});
+ for(const title of ['Reply ready','ตอบแล้ว','Reply failed','ตอบไม่สำเร็จ'])assert.ok(graphemeLength(title)<=TITLE_BUDGET);
+});

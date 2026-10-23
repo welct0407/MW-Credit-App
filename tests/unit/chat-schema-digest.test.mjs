@@ -25,12 +25,17 @@ test('relations: public and agent_audit with every column, the chat journal excl
 });
 
 test('functions: exactly the allow-listed business functions; writers and chat RPCs excluded',()=>{
- assert.equal(ALLOWED.size,28);
+ assert.equal(ALLOWED.size,29);
  assert.deepEqual(digest.functions.map(f=>f.function).sort(),[...ALLOWED.keys()].sort());
  for(const f of digest.functions){
   assert.deepEqual([f.purpose,f.use_when],ALLOWED.get(f.function));
   assert.ok(['IMMUTABLE','STABLE','VOLATILE'].includes(f.volatility));
  }
+ // R090 batch 2 (B4): the job status is the one pwa_ reader the model sees; the reply event stays out.
+ const jobs=digest.functions.find(f=>f.function==='public.pwa_job_status_v1(days integer)');
+ assert.ok(jobs&&jobs.volatility==='STABLE'&&/job_name text, business_date date/.test(jobs.result),'pwa_job_status_v1 in the digest');
+ assert.equal(classify('public.pwa_notify_chat_reply_v1(actor jsonb, thread uuid, message uuid, outcome text)','boolean'),'excluded');
+ assert.equal(digest.relations.some(r=>r.relation==='public.pwa_job_runs'),false,'the job journal is read through the function only');
  const payoff=digest.functions.find(f=>f.function==='public.loan_close_calculation_v83(p_loan text, p_day date)');
  assert.deepEqual([payoff.result,payoff.volatility],['jsonb','STABLE']);
  for(const writer of ['public.pwa_apply_payment_v2(canonical text)','public.post_payment_explicit_v6(p_id text)','public.pwa_chat_turn_begin_v1(actor jsonb, thread uuid, message jsonb)',

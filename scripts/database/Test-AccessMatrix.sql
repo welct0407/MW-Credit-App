@@ -117,6 +117,9 @@ INSERT INTO am_expected_routines VALUES
   ('mw_business_audit_owner','agent_audit.reject_rewrite()'),
   ('mw_changes_owner_dev','pwa_row_changes_prune_v1()'),
   ('mw_chat_api_dev','pwa_chat_message_v1(jsonb,uuid,uuid)'),
+  ('mw_chat_api_dev','pwa_chat_thread_v1(jsonb,uuid)'),
+  ('mw_chat_api_dev','pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)'),
+  ('mw_chat_read_dev','pwa_job_status_v1(integer)'),
   ('mw_chat_api_dev','pwa_chat_messages_v1(jsonb,uuid,integer,integer)'),
   ('mw_chat_api_dev','pwa_chat_models_default_v1(jsonb)'),
   ('mw_chat_api_dev','pwa_chat_thread_create_v1(jsonb,jsonb)'),
@@ -134,12 +137,14 @@ INSERT INTO am_expected_routines VALUES
   ('mw_chat_owner_dev','pwa_chat_thread_create_v1(jsonb,jsonb)'),
   ('mw_chat_owner_dev','pwa_chat_thread_json_v1(pwa_chat_threads)'),
   ('mw_chat_owner_dev','pwa_chat_thread_update_v1(jsonb,uuid,jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_thread_v1(jsonb,uuid)'),
   ('mw_chat_owner_dev','pwa_chat_threads_v1(jsonb,text,timestamp with time zone,integer)'),
   ('mw_chat_owner_dev','pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)'),
   ('mw_chat_owner_dev','pwa_chat_turn_complete_v1(jsonb,uuid,jsonb,jsonb,jsonb)'),
   ('mw_changes_owner_dev','pwa_track_row_change()'),
   ('mw_jobs_dev','pwa_job_run_v1(text,date,text)'),
   ('mw_jobs_owner_dev','pwa_job_run_v1(text,date,text)'),
+  ('mw_jobs_owner_dev','pwa_job_status_v1(integer)'),
   ('mw_jobs_owner_dev','pwa_row_changes_prune_v1()'),
   ('mw_jobs_owner_dev','pwa_worker_guard_v1(text)'),
   ('mw_ledger_owner_dev','sync_cash_ledger(text,text)'),
@@ -161,6 +166,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_owner_dev','pwa_claim_notifications_v1(integer,integer)'),
   ('mw_notify_owner_dev','pwa_notify_actor_v1(jsonb)'),
   ('mw_notify_owner_dev','pwa_notify_candidates_v1(integer)'),
+  ('mw_notify_owner_dev','pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)'),
   ('mw_notify_owner_dev','pwa_notify_complete_v1(uuid,bigint,text)'),
   ('mw_notify_owner_dev','pwa_notify_content_v1(uuid,bigint)'),
   ('mw_notify_owner_dev','pwa_notify_eligible_v1(uuid,uuid)'),
@@ -255,6 +261,20 @@ DO $$ BEGIN
    OR (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_integration_agent') AND has_function_privilege('mw_integration_agent',p.oid,'EXECUTE')))) THEN RAISE EXCEPTION 'the SQL-tool and agent roles must not execute a chat routine'; END IF;
  IF NOT has_function_privilege('mw-credit-app-chat-dev@clever-oasis-508610-n7.iam','public.pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)','EXECUTE')
   OR has_function_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)','EXECUTE') THEN RAISE EXCEPTION 'only the chat user executes the chat RPCs'; END IF;
+ -- V105 (R090 batch 2): the notify owner reads exactly four thread columns by column grant (the only cross-owner grant);
+ -- the API role executes exactly ten routines (nine chat RPCs and the reply event), the SQL-tool role only the job
+ -- status from the migration chain; the agent role executes neither new routine and reads no job run.
+ IF (SELECT array_agg(a.attname::text ORDER BY a.attname) FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_chat_threads'::regclass AND x.grantee='mw_notify_owner_dev'::regrole AND x.privilege_type='SELECT')
+   IS DISTINCT FROM ARRAY['id','partner_id','status','title'] OR has_table_privilege('mw_notify_owner_dev','public.pwa_chat_threads','SELECT')
+   OR EXISTS(SELECT 1 FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_chat_threads'::regclass AND x.grantee<>'mw_notify_owner_dev'::regrole) THEN
+  RAISE EXCEPTION 'pwa_chat_threads column grants must be the notify owner''s four columns only'; END IF;
+ IF (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_api_dev')<>10 OR (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_read_dev')<>1 THEN
+  RAISE EXCEPTION 'chat API role must execute 10 routines and the SQL-tool role 1 from the migration chain'; END IF;
+ IF (SELECT array_agg(a.attname::text ORDER BY a.attname) FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_chat_messages'::regclass AND x.grantee='mw_notify_owner_dev'::regrole AND x.privilege_type='SELECT')
+   IS DISTINCT FROM ARRAY['id','thread_id'] OR has_table_privilege('mw_notify_owner_dev','public.pwa_chat_messages','SELECT') THEN
+  RAISE EXCEPTION 'the notify owner must read exactly pwa_chat_messages (id, thread_id) by column grant'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_integration_agent') AND (has_function_privilege('mw_integration_agent','public.pwa_job_status_v1(integer)','EXECUTE')
+   OR has_function_privilege('mw_integration_agent','public.pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)','EXECUTE')) THEN RAISE EXCEPTION 'the agent role must not execute the V105 routines'; END IF;
  IF NOT has_column_privilege('postgres','public.pwa_chat_messages','text','SELECT') OR EXISTS(SELECT 1 FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) x WHERE c.oid='public.pwa_chat_messages'::regclass AND x.grantee='postgres'::regrole) THEN
   RAISE EXCEPTION 'the Cost page definer reads its chat columns by column grant only'; END IF;
 END $$;
