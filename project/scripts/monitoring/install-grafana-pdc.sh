@@ -1,6 +1,7 @@
 #!/bin/sh
 # R090: install the Grafana Private Data Source Connect agent on the Debian agent VM, so the Cost page's
-# PostgreSQL datasource (mw-agent-questions) reaches the Cloud SQL proxy's password listener at
+# PostgreSQL datasource (uid mw-agent-questions; since R091 database loan_manager_prod, the in-app chat
+# questions) reaches the Cloud SQL proxy's password listener at
 # localhost:5432. Run as root from the repository checkout:
 #   printf '%s' "$TOKEN" | sudo sh project/scripts/monitoring/install-grafana-pdc.sh <cluster> <hosted-grafana-id>
 # The token (Secret Manager mw-grafana-pdc-token) is read from stdin and written only to the root-only

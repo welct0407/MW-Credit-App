@@ -22,17 +22,14 @@ function hosting() {
   return p;
 }
 
-const NATIVE = {oltp: 'Chat data · live', olap: 'Chat data · reports'};
 function apiHealth() {
   const q = (refId, name, component) => target(refId, DS.gcp, monitoringUrl(customFilter('health', {component})), L.stateSelector(1),
     [col('time', 'Time', 'timestamp'), col('value', name)], {format: 'timeseries'});
   return L.stat({id: 2, title: 'API health', gridPos: pos(8, 0, 8, TOP),
-    description: 'Reader and command: Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s). Chat data · live and · reports: the authenticated native-API probes the Partner conversation depends on, always PROD: the collector signs in to the PROD command service\'s conversation API, checks the catalogue manifest version and makes one key-only read, of live loan and payment data (metric label oltp) or of analytics and reports data (olap). Grey after 6 minutes without a report.',
-    // OWNER-NATIVE: the native-API probes keep their metric labels (oltp, olap), named for what they protect.
-    targets: [q('A', 'Reader', 'pwa_api_reader_${env}'), q('B', 'Command', 'pwa_api_command_${env}'),
-      q('C', NATIVE.oltp, 'oltp'), q('D', NATIVE.olap, 'olap')],
+    description: 'Reader and command: Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s). Grey after 6 minutes without a report.',
+    targets: [q('A', 'Reader', 'pwa_api_reader_${env}'), q('B', 'Command', 'pwa_api_command_${env}')],
     defaults: {mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    overrides: ['A', 'B', 'C', 'D'].map((r, i) => byRef(r, {displayName: ['Reader', 'Command', NATIVE.oltp, NATIVE.olap][i]})),
+    overrides: ['A', 'B'].map((r, i) => byRef(r, {displayName: ['Reader', 'Command'][i]})),
     options: {reduceOptions: {calcs: ['last'], fields: '', values: false}}});
 }
 

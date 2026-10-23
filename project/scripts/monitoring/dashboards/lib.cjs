@@ -47,8 +47,9 @@ const DS = {
   publicStatus: {type: INFINITY, uid: 'cfz10a9eaokjkd'}, // mw-public-status, credential-free
   fx: {type: INFINITY, uid: 'efz19dcu6cwzka'},
   gcpStatus: {type: INFINITY, uid: 'mw-public-gcp-status'},
-  // R090: the agent database through Grafana PDC, login limited to monitoring.recent_questions_v1().
-  agentQuestions: {type: 'grafana-postgresql-datasource', uid: 'mw-agent-questions'},
+  // R091: loan_manager_prod through Grafana PDC, login limited to monitoring.pwa_chat_recent_questions_v1() (V104).
+  // The uid is the one the R090 datasource was created with, so the live datasource and its password are kept.
+  chatQuestions: {type: 'grafana-postgresql-datasource', uid: 'mw-agent-questions'},
   dashboard: {type: 'datasource', uid: '-- Dashboard --'},
   mixed: {type: 'mixed', uid: '-- Mixed --'}
 };
@@ -142,7 +143,7 @@ const POLICY = {
  * a push goes out on most days, so two days without one is unusual; a sign-out (401) is normal, ten in the
  * selected range (24 h by default) is not; a push is normally delivered within the minute, so five waiting
  * is a backlog (Oldest pending keeps the 900 s alert value). */
-const LIMITS = {lastTurnAge: 604800, lastSend: 604800, lastNotification: 172800, sessionInvalid: 10, pushPending: 5};
+const LIMITS = {lastNotification: 172800, sessionInvalid: 10, pushPending: 5};
 function nullMap(text) {
   return {type: 'special', options: {match: 'null', result: {text, color: COLOR.unknown, index: 0}}};
 }

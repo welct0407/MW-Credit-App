@@ -9,13 +9,12 @@ function services() {
     rows: [
       L.healthRow('Hosting', 'pwa_hosting_prod'),
       L.healthRow('Reader API', 'pwa_api_reader_prod'),
-      L.healthRow('Command API', ['pwa_api_command_prod', 'oltp', 'olap']),
+      L.healthRow('Command API', 'pwa_api_command_prod'),
       L.schedulerRow('Notify worker', 'prod', 'notifications'),
       L.workerRow('Jobs worker', 'pwa_jobs', 'status'),
       L.sqlUpRow('Cloud SQL'),
       L.healthRow('Recognizer', 'recognizer'),
       L.healthRow('Receipt cycle', 'receipts'),
-      L.healthRow('Conversation', 'conversations'),
       L.probeRow('Metabase', 'metabase_platform')
     ]});
 }
@@ -94,21 +93,9 @@ function payments() {
     description: 'Instagram to recorded payment: Debian receipt pipeline snapshot (receipt_pipeline) and IG scan timing (worker_timing polling). Every stage is coloured by its health: Scan by the IG polling state (green OK, orange Degraded, red Down, blue Paused) with the last completion time (ICT); Extract green unless the oldest waiting image is older than 10 minutes (orange, stalled); holds, unconfirmed postings and failed notifications green at 0, red above; overdue reviews green at 0, orange above. Unconfirmed postings need reconciliation, never a repeated Add. Paused or stale telemetry shows —.'});
 }
 
-function conversation() {
-  return L.stat({id: 5, title: 'Partner chat', gridPos: pos(8, 12, 8, 8),
-    description: 'Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn\'s outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age (orange after 7 days without a turn). Rounds, durations and provider are on Agent & Receipts.',
-    targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'conversation'})),
-      jq('ops-health.jq', {FIELDS: [{key: 'undelivered', label: 'Undelivered'}, {key: 'stuck_running', label: 'Stuck'},
-        {key: 'last_turn_state', label: 'Last turn'}, {key: 'last_turn_age_seconds', label: 'Last turn age'}]}),
-      [col('Undelivered', 'Undelivered'), col('Stuck', 'Stuck'), col('Last turn', 'Last turn'), col('Last turn age', 'Last turn age')])],
-    defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Undelivered', L.problemColor('red')), byName('Stuck', L.problemColor('red')),
-      byName('Last turn', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'Verified', COLOR.ok], [2, 'Review', COLOR.degraded]], 'No report')}),
-      byName('Last turn age', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(L.LIMITS.lastTurnAge)})]});
-}
-
 function push() {
-  return L.stat({id: 6, title: 'Push', gridPos: pos(16, 12, 8, 8),
+  // R091: Push spans the slot of the retired Partner chat tile (5).
+  return L.stat({id: 6, title: 'Push', gridPos: pos(8, 12, 16, 8),
     description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries (orange from 5), oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
       jq('ops-health.jq', {FIELDS: [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
@@ -226,7 +213,7 @@ function backups() {
 function build() {
   return L.dashboard({uid: 'mw-now', description: 'Is MW Credit working right now? PROD only; the page the alert runbook opens first.',
     time: {from: 'now-3h', to: 'now'}, refresh: '1m',
-    panels: [services(), alerts(), freshness(), payments(), conversation(), push(), jobs(), capacitySql(), capacityHosts(), edge(),
+    panels: [services(), alerts(), freshness(), payments(), push(), jobs(), capacitySql(), capacityHosts(), edge(),
       L.providerStatus({id: 17, gridPos: pos(16, 20, 8, 9)}), backups()]});
 }
 module.exports = {build, stagesStat, scanSelector};

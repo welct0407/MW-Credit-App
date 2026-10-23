@@ -7,8 +7,9 @@ const wt = component => monitoringUrl(customFilter('worker_timing', {component})
 const ops = (refId, component, fields) => target(refId, DS.gcp, wt(component), jq('ops-health.jq', {FIELDS: fields}), fields.map(f => col(f.label, f.label)));
 
 /* AGENT-ROWS (owner review): the page is grouped into titled rows by component, and every tile title names
- * its component, so no tile is ambiguous. Panel ids are kept; rows 20-24 and tiles 12 and 15 are new. */
-const ROW = {pipeline: 0, recognizer: 16, conversation: 28, workers: 42, connectivity: 52};
+ * its component, so no tile is ambiguous. Panel ids are kept; rows 20-24 and tile 12 are new. R091: the Partner
+ * conversation row (22, tiles 3, 4, 5 and 15) is gone with the Instagram conversation; the rows below moved up. */
+const ROW = {pipeline: 0, recognizer: 16, workers: 28, connectivity: 38};
 
 // LIVE-12: one six-value stat built like Now 4 (same queries: group-scanning.jq and receipt-pipeline.jq per
 // stage field), stage names per AGENT-2 shortened for the larger text; today's panel 108 beside it as panel 2.
@@ -58,45 +59,12 @@ function recognizer() {
   return [L.row({id: 21, title: 'Receipt recognizer · mw-receipt-recognition on Debian', gridPos: pos(0, y, 24, 1)}), service, model, extractions, time];
 }
 
-function conversation() {
-  const y = ROW.conversation;
-  const turns = L.stat({id: 3, title: 'Conversation · turns 24 h', gridPos: pos(0, y + 1, 8, 13),
-    description: 'Debian collector worker_timing{conversation} from the agent runtime tables, read-only: Partner turns in 24 h (nonpartner messages excluded), Verified = turns whose answer was VERIFIED, Failed = failed, unknown-write or interrupted turns (delivered or not), median duration and rounds, and grounding rejections. Failed and grounding rejections turn orange above 0.',
-    targets: [ops('A', 'conversation', [{key: 'turns_24h', label: 'Turns'}, {key: 'verified_24h', label: 'Verified'}, {key: 'failed_24h', label: 'Failed'},
-      {key: 'median_turn_seconds', label: 'Median turn'}, {key: 'median_rounds', label: 'Median rounds'}, {key: 'grounding_rejections_24h', label: 'Grounding rejections'}])],
-    defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Median turn', {unit: AGE.unit, decimals: AGE.decimals}),
-      byName('Failed', L.problemColor('orange')), byName('Grounding rejections', L.problemColor('orange'))]});
-  const providers = [[1, 'Gemini', 'blue'], [2, 'Codex', 'purple'], [3, 'Claude', 'yellow']];
-  const duration = L.timeseries({id: 4, title: 'Conversation · turn duration', gridPos: pos(8, y + 1, 8, 13),
-    description: 'Debian collector worker_timing{conversation_turn}: one bar per completed turn at its end time, height = capture to reply in seconds, one series per provider. At most one turn per 2-minute collector run is plotted.',
-    targets: providers.map(([code, name], i) => target(String.fromCharCode(65 + i), DS.gcp, wt('conversation_turn'),
-      jq('turn-points.jq', {VALUE: 'seconds', KEY: 'provider', CODE: String(code)}), [col('time', 'Time', 'timestamp'), col('value', name)], {format: 'timeseries'})),
-    // FINAL2-7: one decimal, so axis ticks of whole minutes do not all read "2 mins".
-    defaults: {unit: 's', decimals: 1, min: 0, noValue: 'No turns in selected range', custom: {drawStyle: 'bars', fillOpacity: 80, barAlignment: 0, lineWidth: 1}},
-    overrides: providers.map(([, name, color]) => byName(name, {color: {fixedColor: color, mode: 'fixed'}}))});
-  const loop = L.stat({id: 5, title: 'Conversation · loop health', gridPos: pos(16, y + 1, 8, 10),
-    description: 'Debian collector worker_timing{conversation}: conversation poll age (orange above 600 s, the alert value) and state, the mw-conversation-wake path, the 15 s worker timer and the last Instagram send acceptance (orange after 7 days).',
-    targets: [ops('A', 'conversation', [{key: 'poll_age_seconds', label: 'Poll age'}, {key: 'poll_state', label: 'Poll state'},
-      {key: 'wake_path_active', label: 'Wake path'}, {key: 'timer_ok', label: 'Worker timer'}, {key: 'last_send_age_seconds', label: 'Last send'}])],
-    defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
-    overrides: [byName('Poll age', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(600)}),
-      byName('Poll state', {mappings: L.stateMappings(L.STATE_TEXT, 'No report')}),
-      byName('Wake path', {mappings: valueMap([[0, 'Inactive', COLOR.down], [1, 'Active', COLOR.ok]], 'No report')}),
-      byName('Worker timer', {mappings: valueMap([[0, 'Failed', COLOR.down], [1, 'OK', COLOR.ok]], 'No report')}),
-      byName('Last send', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(L.LIMITS.lastSend)})]});
-  const model = L.modelTile({id: 15, title: 'Conversation · model', gridPos: pos(16, y + 11, 8, 3), component: 'conversation',
-    description: 'The Partner conversation\'s configured provider and model from the Debian collector (worker_timing{conversation} provider and model:<id> fields), e.g. Gemini · gemini-4-argon; the provider alone when the model is not readable.'});
-  return [L.row({id: 22, title: 'Partner conversation · Instagram chat agent', gridPos: pos(0, y, 24, 1)}), turns, duration, loop, model];
-}
-
 function workers() {
   const y = ROW.workers;
   return [L.row({id: 23, title: 'Agent workers and timers · Debian units', gridPos: pos(0, y, 24, 1)}),
     L.stateTimeline({id: 9, title: 'Agent workers and timers', gridPos: pos(0, y + 1, 24, 9),
-      description: 'Debian collector state per unit (the 12 Debian alert components keep their labels); a lane is empty after 6 minutes without a report. Daily jobs = cash statement plus email retry.',
-      rows: [L.healthRow('Receipt cycle', 'receipts'), L.healthRow('Partner conversation', 'conversations'),
-        L.workerRow('Conversation poll', 'conversation', 'poll_state'), L.healthRow('IG polling', 'polling'),
+      description: 'Debian collector state per unit (the Debian alert components keep their labels); a lane is empty after 6 minutes without a report. Daily jobs = cash statement plus email retry.',
+      rows: [L.healthRow('Receipt cycle', 'receipts'), L.healthRow('IG polling', 'polling'),
         L.healthRow('Daily jobs', 'daily_jobs'), L.healthRow('Audit relay', 'audit_relay'), L.workerRow('Audit retention', 'audit_retention', 'result')]})];
 }
 
@@ -117,8 +85,8 @@ function connectivity() {
 }
 
 function build() {
-  return L.dashboard({uid: 'mw-agent', description: 'Debian integration agent: receipt pipeline, Partner conversation, receipt recognizer, units and connectivity.',
+  return L.dashboard({uid: 'mw-agent', description: 'Debian integration agent: receipt pipeline, receipt recognizer, units and connectivity.',
     time: {from: 'now-6h', to: 'now'}, refresh: '1m',
-    panels: [...pipeline(), ...recognizer(), ...conversation(), ...workers(), ...connectivity()]});
+    panels: [...pipeline(), ...recognizer(), ...workers(), ...connectivity()]});
 }
 module.exports = {build};

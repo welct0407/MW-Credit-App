@@ -122,14 +122,14 @@
       },
       "mw_agent_questions": {
         "uid": "mw-agent-questions",
-        "name": "MW \u00b7 Agent questions (mw_agent via PDC)",
+        "name": "MW \u00b7 Chat questions (loan_manager_prod via PDC)",
         "type": "grafana-postgresql-datasource",
         "access_mode": "proxy",
         "url": "127.0.0.1:5432",
         "username": "mw_grafana_reader",
         "is_default": false,
         "basic_auth_enabled": false,
-        "json_data_encoded": "{\"connMaxLifetime\":300,\"database\":\"mw_agent\",\"enableSecureSocksProxy\":true,\"maxIdleConns\":1,\"maxIdleConnsAuto\":false,\"maxOpenConns\":2,\"postgresVersion\":1800,\"secureSocksProxyUsername\":\"b69f5334-ca2f-4ad7-bc8f-3a93fe9e74ba\",\"sslmode\":\"disable\",\"timescaledb\":false}",
+        "json_data_encoded": "{\"connMaxLifetime\":300,\"database\":\"loan_manager_prod\",\"enableSecureSocksProxy\":true,\"maxIdleConns\":1,\"maxIdleConnsAuto\":false,\"maxOpenConns\":2,\"postgresVersion\":1800,\"secureSocksProxyUsername\":\"b69f5334-ca2f-4ad7-bc8f-3a93fe9e74ba\",\"sslmode\":\"disable\",\"timescaledb\":false}",
         "lifecycle": {
           "prevent_destroy": true,
           "ignore_changes": [
@@ -634,7 +634,7 @@
                     "to": 0
                   }
                 ],
-                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def stamp: sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\") | fromdateiso8601;\\nif .nextPageToken or .error then error(\\\"Health response unavailable or truncated\\\") else\\n[\\\"tunnel\\\",\\\"tailscale_node\\\",\\\"webhook_local\\\",\\\"oltp\\\",\\\"olap\\\",\\\"conversations\\\",\\\"receipts\\\",\\\"polling\\\",\\\"daily_jobs\\\",\\\"database\\\",\\\"audit_relay\\\",\\\"codex_ready\\\"] as $wanted |\\n[(.timeSeries // [])[] | {c:.metric.labels.component,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\\n$wanted[] as $n | ($n==\\\"receipts\\\" or $n==\\\"polling\\\") as $critical |\\n([$rows[]|select(.c==$n)]|sort_by(.p.interval.endTime)|last|.p) as $p |\\n(try ($p.interval.endTime|stamp) catch null) as $t |\\n(try ($p.value.int64Value|tonumber) catch null) as $v |\\n($t!=null and now-$t<=360 and $t-now<=120 and ($v|IN(0,1,2,3,4))) as $valid |\\n{component:$n,value:(if ($valid|not) then (if $critical then 1 else 0 end)\\n elif $v==0 or $v==2 or ($critical and $v==4) then 1 else 0 end)}\\nend\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
+                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def stamp: sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\") | fromdateiso8601;\\nif .nextPageToken or .error then error(\\\"Health response unavailable or truncated\\\") else\\n[\\\"tunnel\\\",\\\"tailscale_node\\\",\\\"webhook_local\\\",\\\"receipts\\\",\\\"polling\\\",\\\"daily_jobs\\\",\\\"database\\\",\\\"audit_relay\\\",\\\"codex_ready\\\"] as $wanted |\\n[(.timeSeries // [])[] | {c:.metric.labels.component,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\\n$wanted[] as $n | ($n==\\\"receipts\\\" or $n==\\\"polling\\\") as $critical |\\n([$rows[]|select(.c==$n)]|sort_by(.p.interval.endTime)|last|.p) as $p |\\n(try ($p.interval.endTime|stamp) catch null) as $t |\\n(try ($p.value.int64Value|tonumber) catch null) as $v |\\n($t!=null and now-$t<=360 and $t-now<=120 and ($v|IN(0,1,2,3,4))) as $valid |\\n{component:$n,value:(if ($valid|not) then (if $critical then 1 else 0 end)\\n elif $v==0 or $v==2 or ($critical and $v==4) then 1 else 0 end)}\\nend\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
               },
               {
                 "ref_id": "reducer",
@@ -1065,66 +1065,6 @@
                   }
                 ],
                 "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def stamp: sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\") | fromdateiso8601;\\nif .nextPageToken or .error then error(\\\"Health response unavailable or truncated\\\") else\\n[(.timeSeries // [])[] | {c:.metric.labels.component,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |\\n[\\\"recognizer\\\"][] as $n |\\n([$rows[]|select(.c==$n)]|sort_by(.p.interval.endTime)|last|.p) as $p |\\n(try ($p.interval.endTime|stamp) catch null) as $t |\\n(try ($p.value.int64Value|tonumber) catch null) as $v |\\n{component:$n,value:(if $t != null and now - $t <= 360 and $t - now <= 120 and $v == 0 then 1 else 0 end)}\\nend\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22recognizer%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
-              },
-              {
-                "ref_id": "reducer",
-                "datasource_uid": "__expr__",
-                "query_type": "expression",
-                "relative_time_range": [
-                  {
-                    "from": 0,
-                    "to": 0
-                  }
-                ],
-                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0,0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[]},\"reducer\":{\"params\":[],\"type\":\"avg\"},\"type\":\"query\"}],\"datasource\":{\"name\":\"Expression\",\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"A\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"reducer\":\"last\",\"refId\":\"reducer\",\"type\":\"reduce\"}"
-              },
-              {
-                "ref_id": "C",
-                "datasource_uid": "__expr__",
-                "query_type": "expression",
-                "relative_time_range": [
-                  {
-                    "from": 0,
-                    "to": 0
-                  }
-                ],
-                "model": "{\"conditions\":[{\"evaluator\":{\"params\":[0],\"type\":\"gt\"},\"operator\":{\"type\":\"and\"},\"query\":{\"params\":[\"C\"]},\"reducer\":{\"params\":[],\"type\":\"last\"},\"type\":\"query\"}],\"datasource\":{\"type\":\"__expr__\",\"uid\":\"__expr__\"},\"expression\":\"reducer\",\"intervalMs\":1000,\"maxDataPoints\":43200,\"refId\":\"C\",\"type\":\"threshold\"}"
-              }
-            ],
-            "notification_settings": [
-              {
-                "contact_point": "MW Performance IRM"
-              }
-            ]
-          },
-          {
-            "uid": "mw-pwa-conversation-stalled",
-            "name": "MW | Partner conversation stalled",
-            "condition": "C",
-            "for": "10m",
-            "no_data_state": "KeepLast",
-            "exec_err_state": "KeepLast",
-            "is_paused": false,
-            "annotations": {
-              "description": "A Partner turn running for over 15 minutes, a finished turn whose reply notice is still unreserved after 5 minutes, a poll older than 10 minutes, or the wake path inactive, for 10 minutes. The 10-minute pending period covers a long turn briefly counted as undelivered until its notice is reserved. Stale telemetry does not page. Inspect Now 5 and Agent & Receipts.",
-              "runbook_url": "https://monitor.mw-credit.com/d/mw-now",
-              "summary": "Partner conversation stalled: turn stuck, reply undelivered or polling stopped"
-            },
-            "labels": {
-              "severity": "page"
-            },
-            "data": [
-              {
-                "ref_id": "A",
-                "datasource_uid": "mw-gcp-monitoring",
-                "query_type": "",
-                "relative_time_range": [
-                  {
-                    "from": 600,
-                    "to": 0
-                  }
-                ],
-                "model": "{\"columns\":[{\"selector\":\"component\",\"text\":\"\",\"type\":\"string\"},{\"selector\":\"value\",\"text\":\"\",\"type\":\"number\"}],\"datasource\":{\"type\":\"yesoreyeram-infinity-datasource\",\"uid\":\"mw-gcp-monitoring\"},\"filters\":[],\"format\":\"table\",\"global_query_id\":\"\",\"instant\":true,\"intervalMs\":1000,\"maxDataPoints\":43200,\"parser\":\"jq-backend\",\"refId\":\"A\",\"root_selector\":\"def stamp: sub(\\\"[.][0-9]+Z$\\\";\\\"Z\\\") | fromdateiso8601;\\nif .nextPageToken or .error then error(\\\"Worker timing response unavailable or truncated\\\") else\\n[(.timeSeries // [])[] | {f:.metric.labels.field,p:(.points|sort_by(.interval.endTime)|last)} | select(.p != null)] as $rows |\\n($rows|map(.p.interval.endTime)|max) as $last |\\n(try ($last|stamp) catch null) as $t |\\n([$rows[]|select(.p.interval.endTime == $last)|{key:.f,value:(.p.value.int64Value|tonumber)}]|from_entries) as $v |\\n{component:\\\"conversation\\\",value:(if $t != null and now - $t <= 360 and $t - now <= 120 and (($v.stuck_running // 0) >= 1 or ($v.undelivered // 0) >= 1 or ($v.poll_age_seconds // 0) > 600 or $v.wake_path_active == 0) then 1 else 0 end)}\\nend\",\"source\":\"url\",\"type\":\"json\",\"url\":\"https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22conversation%22&interval.startTime=$${__timeFrom:date:iso}&interval.endTime=$${__timeTo:date:iso}&pageSize=100000\",\"url_options\":{\"data\":\"\",\"method\":\"GET\"}}"
               },
               {
                 "ref_id": "reducer",

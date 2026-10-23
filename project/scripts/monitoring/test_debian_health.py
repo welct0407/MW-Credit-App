@@ -86,51 +86,6 @@ class RelaySnapshotTests(unittest.TestCase):
         self.assertEqual(health.relay_snapshot({},Mock(return_value=0),Mock(return_value=self.values))['status'],0)
         self.assertEqual(health.relay_snapshot({},Mock(side_effect=RuntimeError()),Mock(return_value=self.values))['status'],0)
 
-class NativeApiProbeTests(unittest.TestCase):
-    def setUp(self):
-        self.digest='a'*64
-        self.config={'conversation_api_enabled':True,'conversation_api_manifest_sha256':self.digest,
-                     'conversation_api_environment':'prod','database_name':'loan_manager_prod',
-                     'conversation_api_origin':'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app',
-                     'conversation_api_audience':'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'}
-    def result(self,scope='oltp',**values):
-        import json
-        return Mock(returncode=0,stdout=json.dumps(dict(authenticated=True,scope=scope,count=1,targetVersion=self.digest,**values)))
-    def test_disabled_never_uses_old_appsheet_switch(self):
-        runner=Mock()
-        self.assertEqual(health.native_api_status({'appsheet_enabled':True},'oltp',runner),4)
-        runner.assert_not_called()
-    def test_explicit_disabled_and_invalid_flag_are_distinct(self):
-        for flag,expected in [(False,3),('true',0),(1,0),(None,0)]:
-            runner=Mock()
-            self.assertEqual(health.native_api_status(dict(self.config,conversation_api_enabled=flag),'oltp',runner),expected)
-            runner.assert_not_called()
-    def test_wrong_environment_or_binding_never_runs(self):
-        for field,value in [('conversation_api_environment','dev'),('database_name','loan_manager_dev'),('conversation_api_origin','https://unreviewed.invalid'),('conversation_api_audience','other')]:
-            runner=Mock()
-            self.assertEqual(health.native_api_status(dict(self.config,**{field:value}),'oltp',runner),0)
-            runner.assert_not_called()
-    def test_both_native_scopes_have_fixed_read_only_command(self):
-        for scope in ('oltp','olap'):
-            runner=Mock(return_value=self.result(scope))
-            self.assertEqual(health.native_api_status(self.config,scope,runner),1)
-            runner.assert_called_once_with(['/opt/mw-integration-agent/.venv/bin/mw-integration-agent','native-api-probe','--scope',scope,'--config',health.CONFIG,'--catalogue','/etc/mw-integration-agent/service-catalogue.json'],70)
-    def test_wrong_scope_manifest_and_unbounded_or_boolean_count_are_down(self):
-        import json
-        for value in [dict(authenticated=True,scope='olap',count=1,targetVersion=self.digest),dict(authenticated=True,scope='oltp',count=1,targetVersion='b'*64),dict(authenticated=True,scope='oltp',count=2,targetVersion=self.digest),dict(authenticated=True,scope='oltp',count=True,targetVersion=self.digest),dict(authenticated=False,scope='oltp',count=1,targetVersion=self.digest)]:
-            self.assertEqual(health.native_api_status(self.config,'oltp',Mock(return_value=Mock(returncode=0,stdout=json.dumps(value)))),0)
-    def test_missing_pin_does_not_invoke(self):
-        runner=Mock()
-        self.assertEqual(health.native_api_status({'conversation_api_enabled':True},'oltp',runner),0)
-        runner.assert_not_called()
-    def test_subprocess_failure_invalid_output_and_timeout_are_down(self):
-        for runner in [Mock(return_value=Mock(returncode=1,stdout='')),Mock(return_value=Mock(returncode=0,stdout='not json')),Mock(side_effect=TimeoutError())]:
-            self.assertEqual(health.native_api_status(self.config,'oltp',runner),0)
-    def test_unknown_scope_refused_before_subprocess(self):
-        runner=Mock()
-        with self.assertRaises(ValueError):health.native_api_status(self.config,'other',runner)
-        runner.assert_not_called()
-
 class WebhookReadinessTests(unittest.TestCase):
     def test_ready_with_code_version_is_healthy_and_reports_version(self):
         fetch=Mock(return_value='{"ready": true, "code_version": "abc", "started_at": "t", "failed": []}')
@@ -393,18 +348,6 @@ class AgentUnitTests(unittest.TestCase):
         self.assertEqual(health.code_version_match({'code_version':'6ea1540'},'6ea1540'),1)
         self.assertEqual(health.code_version_match({'code_version':'7e108bc9'},'6ea1540'),0)
         self.assertIsNone(health.code_version_match({},'6ea1540'));self.assertIsNone(health.code_version_match({'code_version':'x'},None))
-    def test_conversation_loop(self):
-        fields=health.conversation_loop({'conversation_provider':'gemini'},{'last_completion':int(NOW)-50},1,{'ActiveState':'active'},{'LoadState':'loaded','ActiveState':'inactive'},NOW)
-        self.assertEqual(fields,{'poll_state':1,'wake_path_active':1,'timer_ok':0,'provider':1,'model:gemini-4-argon':1,'poll_age_seconds':50})
-        self.assertEqual(health.conversation_loop({},{'last_completion':0},4,None,None,NOW),{'poll_state':4,'wake_path_active':None,'timer_ok':None,'provider':2})
-    def test_conversation_model(self):
-        loop=lambda config,**kw: health.conversation_loop(config,{'last_completion':0},1,None,None,NOW,**kw)
-        self.assertEqual(loop({'conversation_provider':'gemini','gemini_conversation_model':'gemini-3.8-flash'})['model:gemini-3.8-flash'],1)
-        self.assertEqual(loop({'conversation_provider':'claude'})['model:claude-opus-5-5'],1)
-        codex=loop({'conversation_provider':'codex','codex_home':'/c'},read=Mock(return_value='model = "gpt-5.5"'))
-        self.assertEqual(codex['model:gpt-5.5'],1)
-        self.assertFalse([k for k in loop({'conversation_provider':'codex','codex_home':'/c'},read=Mock(side_effect=OSError())) if k.startswith('model:')])
-        self.assertFalse([k for k in loop({'conversation_provider':'gemini','gemini_conversation_model':'GEMINI 4'}) if k.startswith('model:')])
 
 
 class FakeReportingConnection:
@@ -457,51 +400,28 @@ class PwaOpsTests(unittest.TestCase):
 class AgentSnapshotTests(unittest.TestCase):
     def rows(self):
         t=lambda s:dt.datetime.fromtimestamp(NOW-s,dt.timezone.utc)
-        return {'recognizer':[(11,9,1,1)],'recognizer_call':[(t(30),12.6)],'turns':[(1,0,0,9,8,1)],
-                'last_turn':[('m9','VERIFIED',720.4)],
-                'model_turns':[('m8','gemini',t(4000),t(3950),'3'),('m9','codex',t(800),t(752),'4'),('m7',None,t(9000),None,None)],
-                'grounding':[(0,)],'last_send':[(700.2,)]}
-    def test_counts_last_turn_and_points(self):
+        return {'recognizer':[(11,9,1,1)],'recognizer_call':[(t(30),12.6)]}
+    def test_counts_and_points(self):
         out=health.agent_snapshot({},{},lambda config,since:self.rows())
         self.assertEqual(out['recognizer'],{'extractions_24h':11,'valid_24h':9,'timeouts_24h':1,'unreadable_24h':1})
         self.assertEqual(out['recognizer_call'][1],{'seconds':13})
-        self.assertEqual(out['conversation'],{'running':1,'stuck_running':0,'undelivered':0,'turns_24h':9,'verified_24h':8,'failed_24h':1,'median_turn_seconds':49,
-            'median_rounds':4,'last_turn_state':1,'last_turn_age_seconds':720,'last_turn_rounds':4,'last_turn_seconds':48,
-            'grounding_rejections_24h':0,'last_send_age_seconds':700})
-        ended,fields=out['conversation_turn']
-        self.assertEqual((fields,round(NOW-ended.timestamp())),({'seconds':48,'rounds':4,'provider':2},752))
-    def test_points_already_sent_are_not_repeated(self):
-        rows=self.rows()
-        seen={'conversation_turn':dt.datetime.fromtimestamp(NOW-752,dt.timezone.utc).isoformat()}
-        self.assertIsNone(health.agent_snapshot({},seen,lambda config,since:rows)['conversation_turn'])
-        reader=Mock(return_value=rows)
+        self.assertEqual(set(out),{'recognizer','recognizer_call'})
+    def test_since_is_the_last_sent_point(self):
+        reader=Mock(return_value=self.rows())
         health.agent_snapshot({},{'recognizer_call':'2026-10-22T03:00:00+00:00'},reader)
         self.assertEqual(reader.call_args.args[1]['recognizer_call'],dt.datetime(2026,10,22,3,tzinfo=dt.timezone.utc))
     def test_unreadable_agent_database_exports_nothing(self):
-        self.assertEqual(health.agent_snapshot({},{},Mock(side_effect=RuntimeError())),
-                         {'recognizer':{},'recognizer_call':None,'conversation':{},'conversation_turn':None})
-    def test_turn_states(self):
-        # last_turn carries result->>'status' (the model's answer), not the row status.
-        for outcome,expected in [('VERIFIED',1),('CLARIFY',2),('REFUSE',2),('FAILED',0),('UNKNOWN_WRITE',0),('INTERRUPTED',0),
-                                 ('QUEUED',4),('READY',4),(None,4)]:
-            rows=dict(self.rows(),last_turn=[('mx',outcome,10)])
-            self.assertEqual(health.agent_snapshot({},{},lambda c,s:rows)['conversation']['last_turn_state'],expected)
-    def test_turn_queries_follow_the_row_lifecycle(self):
-        turns,last=health.AGENT_QUERIES['turns'],health.AGENT_QUERIES['last_turn']
-        self.assertNotIn("'QUEUED'",turns);self.assertIn("status='RUNNING' AND created_at<extract(epoch FROM now())-900",turns)
-        self.assertIn("status IN ('READY','FAILED','UNKNOWN_WRITE','INTERRUPTED') AND created_at<extract(epoch FROM now())-300",turns)
-        self.assertIn("result::jsonb->>'status' END END)='VERIFIED'",turns);self.assertIn("'INTERRUPTED_NOTIFIED'",turns)
-        self.assertIn("status NOT IN ('IGNORED','RUNNING')",last)
-        # The reply text in result never leaves the database: counts, and only result->>'status' for the newest turn.
-        self.assertEqual(turns.split('FROM (')[0].count('count(*)'),6)
-        self.assertEqual(last.split(' FROM ')[0],'SELECT message_id,'+health.TURN_OUTCOME+',extract(epoch')
-    def test_stuck_and_undelivered_are_exported(self):
-        rows=dict(self.rows(),turns=[(2,1,3,9,5,2)])
-        conv=health.agent_snapshot({},{},lambda c,s:rows)['conversation']
-        self.assertEqual({k:conv[k] for k in health.TURN_FIELDS},{'running':2,'stuck_running':1,'undelivered':3,'turns_24h':9,'verified_24h':5,'failed_24h':2})
-        self.assertNotIn('queued',conv)
-        fields=[s['metric']['labels']['field'] for s in health.timing_series('conversation',conv,{},'t')]
-        self.assertIn('stuck_running',fields);self.assertIn('undelivered',fields);self.assertNotIn('queued',fields)
+        self.assertEqual(health.agent_snapshot({},{},Mock(side_effect=RuntimeError())),{'recognizer':{},'recognizer_call':None})
+    def test_decommissioned_components_are_not_checked(self):
+        # R091: no conversations health, no native-API probes (oltp/olap) and no conversation timing.
+        import inspect
+        source=inspect.getsource(health)
+        for gone in ("'conversations'","'oltp'","'olap'",'native_api_status','conversation_loop','mw-partner-conversation','mw-conversation-wake'):
+            self.assertNotIn(gone,source)
+    def test_only_recognizer_queries_remain(self):
+        # R091: the Instagram conversation is decommissioned; no conversation table or event is read.
+        self.assertEqual(set(health.AGENT_QUERIES),{'recognizer','recognizer_call'})
+        self.assertNotIn('conversation',' '.join(health.AGENT_QUERIES.values()))
 
 
 class ExportTests(unittest.TestCase):
@@ -515,8 +435,8 @@ class ExportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             path=pathlib.Path(d)/'last-points.json'
             self.assertEqual(health.load_points(path),{})
-            health.save_points({'conversation_turn':'x'},path)
-            self.assertEqual(health.load_points(path),{'conversation_turn':'x'})
+            health.save_points({'recognizer_call':'x'},path)
+            self.assertEqual(health.load_points(path),{'recognizer_call':'x'})
             path.write_text('[]');self.assertEqual(health.load_points(path),{})
 
 
@@ -532,7 +452,6 @@ class CollectR089Tests(unittest.TestCase):
             if 'snapshots' in url:return (200,json.dumps({'items':[{'status':'READY','creationTimestamp':iso(72000)}]}))
             raise AssertionError('unexpected call '+url)
         units={'mw-receipt-recognition.service':{'ActiveState':'active','ActiveEnterTimestampMonotonic':'400000000'},
-               'mw-conversation-wake.path':{'ActiveState':'active'},'mw-partner-conversation.timer':{'LoadState':'loaded','ActiveState':'active'},
                'mw-audit-retention.service':dict(LoadState='loaded',Result='success',ExecMainStatus='0',ExecMainExitTimestampMonotonic='900000000')}
         extras={'ops_health':PwaOpsTests().snapshot(),'pg_stat':{'status':1,'queryid':'1','calls':5,'share':12.4}}
         out=health.collect_r089({'receipt_recognition_listen_host':'10.148.0.2','code_version':'abc'},'token',1000,NOW,{'polling':1},
@@ -547,9 +466,9 @@ class CollectR089Tests(unittest.TestCase):
         self.assertEqual(timing['webhook_local'][0],{'code_version_match':1})
         self.assertEqual(timing['pg_stat'][0],{'status':1,'top1_share_percent':12})
         self.assertEqual((timing['pwa_jobs'][0]['status'],timing['recognizer'][0]['restart_age_seconds']),(1,600))
-        self.assertEqual(timing['conversation'][0]['poll_age_seconds'],40)
-        self.assertIsNotNone(timing['conversation_turn'][1]);self.assertIsNotNone(timing['recognizer_call'][1])
-        self.assertEqual(set(out['points']),{'pg_stat','conversation_turn','recognizer_call'})
+        self.assertIsNotNone(timing['recognizer_call'][1])
+        self.assertNotIn('conversation',timing);self.assertNotIn('conversation_turn',timing)
+        self.assertEqual(set(out['points']),{'pg_stat','recognizer_call'})
         self.assertNotIn('local',out)
     def test_failing_sources_degrade_to_no_report(self):
         out=health.collect_r089({},'token',1000,NOW,{},{'last_completion':0},None,None,{},Mock(side_effect=RuntimeError()),

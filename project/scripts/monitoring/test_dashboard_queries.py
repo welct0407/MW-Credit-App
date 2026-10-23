@@ -287,20 +287,6 @@ class Counters(unittest.TestCase):
                 query('sum-by-label.jq', data, LABEL='warning')
 
 
-class TurnPoints(unittest.TestCase):
-    def test_points_split_by_provider(self):
-        t1, t2 = point(600, 0)['interval'], point(0, 0)['interval']
-        data = {'timeSeries': [
-            series([{'interval': t1, 'value': {'int64Value': '48'}}, {'interval': t2, 'value': {'int64Value': '90'}}], field='seconds'),
-            series([{'interval': t1, 'value': {'int64Value': '1'}}, {'interval': t2, 'value': {'int64Value': '2'}}], field='provider')]}
-        self.assertEqual([r['value'] for r in query('turn-points.jq', data, VALUE='seconds', KEY='provider', CODE='1')], [48])
-        self.assertEqual([r['value'] for r in query('turn-points.jq', data, VALUE='seconds', KEY='provider', CODE='2')], [90])
-        self.assertEqual(query('turn-points.jq', {}, VALUE='seconds', KEY='provider', CODE='1'), [])
-        for bad in FAILURES:
-            with self.assertRaises(ValueError):
-                query('turn-points.jq', bad, VALUE='seconds', KEY='provider', CODE='1')
-
-
 class CloudRunByService(unittest.TestCase):
     def data(self):
         def s(name, pts):
@@ -515,8 +501,8 @@ class GeneratedSelectors(unittest.TestCase):
         with self.assertRaises(ValueError):
             run(targets[0]['root_selector'], {'errors': [{'message': 'rate limited'}]})
 
-    def test_recognizer_and_conversation_show_provider_and_model(self):
-        for uid, pid, component in (('mw-pwa', 33, 'recognizer'), ('mw-agent', 12, 'recognizer'), ('mw-agent', 15, 'conversation')):
+    def test_recognizer_shows_provider_and_model(self):
+        for uid, pid, component in (('mw-pwa', 33, 'recognizer'), ('mw-agent', 12, 'recognizer')):
             p = self.panel(uid, pid)
             t = next(x for x in p['targets'] if x['columns'][0]['selector'] == 'Provider')
             self.assertIn('metric.labels.component = "' + component + '"', urllib.parse.unquote(t['url']))

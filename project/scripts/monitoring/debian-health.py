@@ -8,7 +8,6 @@ import json
 import os
 import re
 from pathlib import Path
-import statistics
 import subprocess
 import sys
 import time
@@ -33,40 +32,6 @@ def completion_epoch(service, monotonic_now, epoch_now):
 
 def run(args, timeout=15, env=None):
     return subprocess.run(args, capture_output=True, text=True, timeout=timeout, env=env)
-
-
-def native_api_status(config, scope, runner=None):
-    """Native machine API only; legacy metric labels remain alert-compatible."""
-    if scope not in ('oltp', 'olap'):
-        raise ValueError('Invalid native probe scope')
-    if 'conversation_api_enabled' not in config:
-        return 4  # Missing configuration is not an intentional pause.
-    if config['conversation_api_enabled'] is False:
-        return 3
-    if config['conversation_api_enabled'] is not True:
-        return 0
-    origin = 'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'
-    if (config.get('conversation_api_environment') != 'prod'
-            or config.get('database_name') != 'loan_manager_prod'
-            or config.get('conversation_api_origin') != origin
-            or config.get('conversation_api_audience') != origin):
-        return 0
-    expected = config.get('conversation_api_manifest_sha256')
-    if not isinstance(expected, str) or len(expected) != 64 or any(c not in '0123456789abcdef' for c in expected):
-        return 0
-    try:
-        p = (runner or run)([
-            '/opt/mw-integration-agent/.venv/bin/mw-integration-agent', 'native-api-probe',
-            '--scope', scope, '--config', CONFIG,
-            '--catalogue', '/etc/mw-integration-agent/service-catalogue.json'], 70)
-        if p.returncode != 0:
-            return 0
-        value = json.loads(p.stdout)
-        return 1 if (value.get('authenticated') is True and value.get('scope') == scope
-                     and value.get('targetVersion') == expected
-                     and type(value.get('count')) is int and 0 <= value['count'] <= 1) else 0
-    except Exception:
-        return 0
 
 
 HOSTING_ORIGINS = {'dev': 'https://dev-lm.mw-credit.com', 'prod': 'https://lm.mw-credit.com'}
@@ -250,7 +215,7 @@ def sql_uptime_series(snapshot, observed, resource):
 
 # R089 (design section A): new read-only checks. Every network call is bounded to 10 s; every value is a
 # count, an age in seconds, a state code or a percentage. No identifier, amount, text or token is exported,
-# except the configured model id of the recognizer and the conversation provider as a field label (MODEL_ID).
+# except the configured model id of the recognizer as a field label (MODEL_ID).
 NEW_CALL_SECONDS = 10
 PWA_API_ORIGINS = '/etc/mw-resource-monitoring/pwa-api-origins.json'
 PWA_API_COMPONENTS = ('pwa_api_reader_prod', 'pwa_api_command_prod', 'pwa_api_reader_dev', 'pwa_api_command_dev')
@@ -263,10 +228,8 @@ PROVIDER_CODES = {'gemini': 1, 'codex': 2, 'claude': 3}
 # lower-case id (as gemini-3.5-flash-lite) is exported; anything else, or an unreadable setting, is omitted.
 MODEL_ID = re.compile(r'[a-z0-9][a-z0-9._-]{0,63}')
 # Config keys per provider, as the integration agent reads them; codex has no model key (its CLI reads the
-# `model` of <codex_home>/config.toml). Conversation defaults mirror gemini_conversation.py and
-# claude_conversation.py DEFAULTS, used by the agent when the key is absent.
+# `model` of <codex_home>/config.toml).
 RECOGNIZER_MODEL_KEYS = {'gemini': ('gemini_model', None)}
-CONVERSATION_MODEL_KEYS = {'gemini': ('gemini_conversation_model', 'gemini-4-argon'), 'claude': ('claude_model', 'claude-opus-5-5')}
 
 
 def bounded_fetch(url, headers=None, timeout=NEW_CALL_SECONDS, limit=262144, clock=time.monotonic):
@@ -526,13 +489,6 @@ def pg_stat_fields(snapshot, previous, now):
     return fields, state
 
 
-# runtime.conversation_turns: RUNNING -> READY | FAILED | UNKNOWN_WRITE | INTERRUPTED (outcome held) -> QUEUED
-# (READY, reply notice reserved) or <status>_NOTIFIED. QUEUED and *_NOTIFIED are terminal; IGNORED is a
-# nonpartner. VERIFIED/CLARIFY/REFUSE are the model's answer in result->>'status', never the row status.
-# Only that status, row status and created_at (epoch) are read; the reply text in `result` is never selected.
-TURN_STATES = {'VERIFIED': 1, 'CLARIFY': 2, 'REFUSE': 2, 'FAILED': 0, 'UNKNOWN_WRITE': 0, 'INTERRUPTED': 0}
-TURN_FIELDS = ('running', 'stuck_running', 'undelivered', 'turns_24h', 'verified_24h', 'failed_24h')
-TURN_OUTCOME = "CASE WHEN result IS JSON OBJECT THEN result::jsonb->>'status' END"
 AGENT_QUERIES = {
     'recognizer': """WITH ops AS (
  SELECT o.service_name,
@@ -558,28 +514,11 @@ FROM ops""",
  FROM audit.operations o JOIN audit.events e ON e.operation_id=o.operation_id
  WHERE o.service_name='receipt_image_extraction' AND o.created_at>=now()-interval '24 hours' GROUP BY o.operation_id) x
 WHERE ended_at IS NOT NULL AND seconds IS NOT NULL AND ended_at>%s ORDER BY ended_at DESC LIMIT 1""",
-    'turns': """SELECT count(*) FILTER (WHERE status='RUNNING'),
- count(*) FILTER (WHERE status='RUNNING' AND created_at<extract(epoch FROM now())-900),
- count(*) FILTER (WHERE status IN ('READY','FAILED','UNKNOWN_WRITE','INTERRUPTED') AND created_at<extract(epoch FROM now())-300),
- count(*) FILTER (WHERE day AND status<>'IGNORED'),
- count(*) FILTER (WHERE (CASE WHEN day THEN """ + TURN_OUTCOME + """ END)='VERIFIED'),
- count(*) FILTER (WHERE day AND status IN ('FAILED','UNKNOWN_WRITE','INTERRUPTED','FAILED_NOTIFIED','UNKNOWN_WRITE_NOTIFIED','INTERRUPTED_NOTIFIED'))
-FROM (SELECT status,result,created_at,created_at>=extract(epoch FROM now())-86400 AS day FROM runtime.conversation_turns) t""",
-    'last_turn': """SELECT message_id,""" + TURN_OUTCOME + """,extract(epoch FROM now())-created_at FROM runtime.conversation_turns
-WHERE status NOT IN ('IGNORED','RUNNING') AND result IS NOT NULL ORDER BY created_at DESC LIMIT 1""",
-    'model_turns': """SELECT o.message_id, coalesce(o.plan->>'provider','codex'), min(e.occurred_at),
- max(e.occurred_at) FILTER (WHERE e.event_kind IN ('completed','failed','unknown')),
- (array_agg(e.payload ORDER BY e.operation_seq DESC) FILTER (WHERE e.event_kind='model_rounds'))[1]->>'rounds'
-FROM audit.operations o JOIN audit.events e ON e.operation_id=o.operation_id
-WHERE o.service_name='model_turn' AND o.created_at>=now()-interval '24 hours'
-GROUP BY o.operation_id,o.message_id,o.plan""",
-    'grounding': """SELECT count(*) FROM audit.events WHERE event_kind='ungrounded_amounts' AND occurred_at>=now()-interval '24 hours'""",
-    'last_send': """SELECT extract(epoch FROM now()-max(accepted_at)) FROM runtime.partner_notices WHERE stream='conversation'""",
 }
 
 
 def agent_reader(config, since):
-    """Run AGENT_QUERIES in one READ ONLY worker transaction on mw_agent (as conversation-timing.py connects)."""
+    """Run AGENT_QUERIES in one READ ONLY worker transaction on mw_agent."""
     from mw_integration_agent.state import transaction
     with transaction(config, readonly=True) as conn:
         conn.execute("SET LOCAL statement_timeout='8s'")
@@ -595,17 +534,17 @@ def as_count(value):
 
 
 def agent_snapshot(config, last_points, reader=agent_reader):
-    """Recognizer counts and the newest extraction, conversation loop counts and the newest model turn.
+    """Recognizer counts and the newest extraction.
 
-    Returns {'recognizer': {...}, 'recognizer_call': (end, {...}) or None, 'conversation': {...},
-    'conversation_turn': (end, {...}) or None}; an unreadable agent database yields empty sections.
+    Returns {'recognizer': {...}, 'recognizer_call': (end, {...}) or None}; an unreadable agent database yields
+    empty sections.
     """
     since = {'recognizer_call': parse_iso(last_points.get('recognizer_call'))}
+    out = {'recognizer': {}, 'recognizer_call': None}
     try:
         rows = reader(config, since)
     except Exception:
-        return {'recognizer': {}, 'recognizer_call': None, 'conversation': {}, 'conversation_turn': None}
-    out = {'recognizer': {}, 'recognizer_call': None, 'conversation': {}, 'conversation_turn': None}
+        return out
     if rows.get('recognizer'):
         values = rows['recognizer'][0]
         out['recognizer'] = dict(zip(('extractions_24h', 'valid_24h', 'timeouts_24h', 'unreadable_24h'), map(as_count, values)))
@@ -613,58 +552,7 @@ def agent_snapshot(config, last_points, reader=agent_reader):
         ended, seconds = rows['recognizer_call'][0]
         if isinstance(ended, dt.datetime) and seconds is not None and float(seconds) >= 0:
             out['recognizer_call'] = (ended, {'seconds': int(round(float(seconds)))})
-    conversation = {}
-    if rows.get('turns'):
-        conversation.update(zip(TURN_FIELDS, map(as_count, rows['turns'][0])))
-    turns = []
-    for message_id, provider, started, ended, rounds in rows.get('model_turns') or []:
-        seconds = (ended - started).total_seconds() if isinstance(ended, dt.datetime) and isinstance(started, dt.datetime) else None
-        try:
-            rounds = int(rounds) if rounds is not None else None
-        except ValueError:
-            rounds = None
-        turns.append({'message_id': message_id, 'provider': PROVIDER_CODES.get(provider), 'ended': ended, 'seconds': seconds, 'rounds': rounds})
-    timed = [t['seconds'] for t in turns if t['seconds'] is not None]
-    if timed:
-        conversation['median_turn_seconds'] = int(round(statistics.median(timed)))
-    counted = [t['rounds'] for t in turns if t['rounds'] is not None]
-    if counted:
-        conversation['median_rounds'] = int(round(statistics.median(counted)))
-    if rows.get('last_turn'):
-        message_id, outcome, age = rows['last_turn'][0]
-        conversation['last_turn_state'] = TURN_STATES.get(outcome, 4)
-        if age is not None:
-            conversation['last_turn_age_seconds'] = max(0, int(age))
-        match = [t for t in turns if t['message_id'] == message_id]
-        if match:
-            conversation['last_turn_rounds'] = match[-1]['rounds']
-            if match[-1]['seconds'] is not None:
-                conversation['last_turn_seconds'] = int(round(match[-1]['seconds']))
-    if rows.get('grounding'):
-        conversation['grounding_rejections_24h'] = as_count(rows['grounding'][0][0])
-    if rows.get('last_send') and rows['last_send'][0][0] is not None:
-        conversation['last_send_age_seconds'] = max(0, int(rows['last_send'][0][0]))
-    out['conversation'] = conversation
-    previous = parse_iso(last_points.get('conversation_turn'))
-    finished = [t for t in turns if isinstance(t['ended'], dt.datetime) and t['seconds'] is not None and (previous is None or t['ended'] > previous)]
-    if finished:
-        newest = max(finished, key=lambda t: t['ended'])
-        out['conversation_turn'] = (newest['ended'], {'seconds': int(round(newest['seconds'])), 'rounds': newest['rounds'],
-                                                      'provider': newest['provider']})
     return out
-
-
-def conversation_loop(config, polling_timing, poll_state, wake, timer, now, read=lambda path: path.read_text()):
-    """Loop fields from systemd: poll age (last mw-conversation-poll exit), wake path, worker timer, provider, model."""
-    provider = config.get('conversation_provider', 'codex')
-    fields = {'poll_state': poll_state,
-              'wake_path_active': None if wake is None else int(wake.get('ActiveState') == 'active'),
-              'timer_ok': None if timer is None else int(timer.get('LoadState') == 'loaded' and timer.get('ActiveState') == 'active'),
-              'provider': PROVIDER_CODES.get(provider)}
-    fields.update(model_field(config, provider, CONVERSATION_MODEL_KEYS, read))
-    if polling_timing.get('last_completion', 0) > 0:
-        fields['poll_age_seconds'] = max(0, int(now - polling_timing['last_completion']))
-    return fields
 
 
 def parse_iso(value):
@@ -753,7 +641,7 @@ def collect_r089(config, token, uptime, now, result, polling_timing, extras, rep
     """R089 additions, network checks in the same concurrent block as the Metabase probes (each bounded to 10 s).
 
     Returns {'metabase', 'health', 'timing': [(component, fields, end_time or None)], 'points'}.
-    `now` is epoch seconds; `result` holds this run's existing health codes (polling, conversations).
+    `now` is epoch seconds; `result` holds this run's existing health codes (polling).
     """
     props = props or properties
     origins = origins_loader()
@@ -766,14 +654,11 @@ def collect_r089(config, token, uptime, now, result, polling_timing, extras, rep
         agent = pool.submit(agent_snapshot, config, points, reader)
     health = {c: safely(f, 0) for c, f in api.items()}
     health['recognizer'] = safely(recognizer, 0)
-    agent = safely(agent, {'recognizer': {}, 'recognizer_call': None, 'conversation': {}, 'conversation_turn': None})
+    agent = safely(agent, {'recognizer': {}, 'recognizer_call': None})
     unit = lambda name: safely_call(lambda: props(name), None)
     timing = []
     recognizer_unit = unit('mw-receipt-recognition.service') or {}
     timing.append(('recognizer', recognizer_timing(config, recognizer_unit, uptime, agent['recognizer']), None))
-    loop = conversation_loop(config, polling_timing, result.get('polling'), unit('mw-conversation-wake.path'),
-                             unit('mw-partner-conversation.timer'), now)
-    timing.append(('conversation', dict(agent['conversation'], **loop), None))
     notify, jobs = pwa_ops_fields((extras or {}).get('ops_health'), now)
     timing.append(('pwa_notify', notify, None))
     timing.append(('pwa_jobs', jobs, None))
@@ -787,7 +672,7 @@ def collect_r089(config, token, uptime, now, result, polling_timing, extras, rep
     new_points = dict(points)
     if stat_state is not None:
         new_points['pg_stat'] = stat_state
-    for component in ('recognizer_call', 'conversation_turn'):
+    for component in ('recognizer_call',):
         if agent.get(component):
             ended, fields = agent[component]
             if now - ended.timestamp() <= 86400:
@@ -817,8 +702,6 @@ def main():
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=7)))
     def job(name, idle, duration):
         return timer_status(properties(name+'.service'), properties(name+'.timer'), uptime, now, idle, duration)
-    check('conversations', lambda: job('mw-partner-conversation', 180, 1260)
-          if config.get('partner_conversations_enabled') else 3)
     receipt_pipeline=receipt_snapshot(config,job)
     result['receipts']=receipt_pipeline['status']
     polling_timing = {'last_completion': 0, 'running': -1}
@@ -872,9 +755,6 @@ def main():
         login = run([config['codex_executable'], 'login', 'status'], env=env)
         return 1 if version.returncode == login.returncode == 0 else 0
     check('codex_ready', codex)
-    # Keep oltp/olap labels for the existing 12-instance rule; their meaning is native API.
-    for scope in ('oltp', 'olap'):
-        check(scope, lambda scope=scope: native_api_status(config, scope))
     for environment in ('dev', 'prod'):
         check('pwa_hosting_' + environment, lambda environment=environment: hosting_status(environment))
     from metabase_probes import collect
