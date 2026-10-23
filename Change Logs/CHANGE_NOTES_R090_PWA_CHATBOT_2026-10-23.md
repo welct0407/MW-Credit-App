@@ -155,7 +155,7 @@ Git baseline `0c4325c` (the work is on pull request #131). Promotion state: DEV 
 None.
 
 ## Remaining work
-- Tag `R090` on `297b7649` through the Release tag workflow after the push (pending).
+- Tag `R090` on `297b7649` created by the Release tag workflow (annotated tag object `299973dd`), with its GitHub Release.
 - Owner decision on the default chat model: `gemini-4-argon` timed out twice at 240 s on Google-side latency in one DEV window (and `gemini-3.8-flash` failed on 429s earlier); the choice stays with the owner.
 - The design B5 accuracy comparison across the three models, and the owner's real use of Chat on PROD.
 - Phase 3: decommission the Instagram Partner conversation after the owner's PROD test (design section 12), with its own note under `integration-agent/Change Logs/` and scoped owner authorization.
@@ -296,7 +296,7 @@ One: approve the nullable column `pwa_chat_messages.detached_at` in V105 (the on
 
 ### Continue here
 - Outcome/scope and affected components: R090 is Released to DEV and PROD (23 October 2026). Scope: the in-app chatbot batches 1, 2 and 2c (chat service `mw-credit-app-chat-prod` and the changed reader, command, notify and jobs services on one image, V104 to V106, Hosting), the monitoring work already live in Grafana (tile limits, previous dashboards retired, Cost page last-10 questions with agent migrations V9 and V10) and phase 0 (Instagram Partner conversation stopped on `vm-mw-credit-agent`, already live). The Instagram decommission (design section 12) is not part of it.
-- State and next action or actual blocker: applied and verified in PROD. Next: the `R090` tag on `297b7649` through the Release tag workflow after the push (pending).
+- State and next action or actual blocker: applied and verified in PROD. Tag `R090` created on `297b7649`; next: the R090 follow-ups in Development Changes.
 - Source/artifact/configuration pins; runner manifest link: source `297b76494f344e54dfb708becf5ea2fd63ca684e` (baseline R089 `99758c71`; PR #131 merged as `2dd187a8`); delivery tool `2ac1d983ae5f4a7d6b75023b04871f8a27c919b1` (runner test 91 of 91); freeze `e77d3de4`. The PROD image build, activation generations, release manifest `release-r090-prod.json` (sha256 `877de3e9…`) and connect preflight (sha256 `571d6e0b…`), the Hosting version and the receipt package are in the Environment inventory. The DEV-tested image was built from `bfa9bfc` and is code-identical to the source.
 - Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 23 October 2026, "Notification worked. Push to prod.", approving PROD promotion of R090 ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)) with its tested migrations (V104 to V106), backups, the standard temporary maintenance windows and the chat service. It did not cover forced notifications or jobs, financial writes or the Instagram decommission, and none happened. The owner had confirmed on DEV that the chat push arrived on the iPhone.
 - Previous deployed baseline and recovery: PROD at V103 with the R089 images and Hosting. Rollback: Hosting version `9893f0e61ef89c46` (release `1792694171685000`; the Chat item hides); the reader, command, notify and jobs services back to revisions `00022-59v`, `00026-qcb`, `00020-87c` and `00020-x2v` on the R089 image `api@sha256:2a59ff15…`; activation generation `1792694061898807`; the chat service has no mechanical rollback (`prevent_destroy`); SQL: restore from backup `prod-promotion-bf24dca0313845cbb0779bd3e3a8b2aa` (at V103) only if needed, as V104 to V106 are additive and immutable.
@@ -326,13 +326,13 @@ SQL: V104, V105 and V106 were the full pending set from V103, applied under the 
 - Outcome: applied and verified in PROD (smoke above); owner-accepted on DEV (the push arrived on the iPhone); PROD use by the owner follows.
 - Recovery reference: Continue here (baseline and rollback) and the Recovery section above; backup `prod-promotion-bf24dca0313845cbb0779bd3e3a8b2aa`, dump sha256 `80730086…88bd`.
 - Changed documents, if any: the Environment inventory (PROD rows, PROD chat row, schema row), Release Tracker, Development Changes, `database/README.md`, `scripts/database/R053_OPERATOR.md`, Solution Design, and links repointed for the pruning below.
-- Published evidence/tag: tag `R090` on `297b7649`: pending the Release tag workflow after the push; this note and the inventory carry the evidence.
+- Published evidence/tag: tag `R090` on `297b7649` (annotated tag `299973dd`, Release tag workflow, 23 October 2026); this note and the inventory carry the evidence.
 - Outstanding owner action, if any: choose the default chat model; later the Instagram decommission (design section 12) after the owner's PROD test.
 
 ### Closure pruning (release workflow, 23 October 2026)
 - Inbound links repointed first to the commit permalink of `2ac1d983` (the last commit where the target exists): `integration-agent/Change Logs/CHANGE_NOTES_RECOGNIZER_RESTART_2026-10-21.md`, `project/Documents/Development_Changes.md`, `project/Documents/Release_Tracker.md` and `project/Documents/Environment_Inventory.md`.
 - Change note deleted (R087 left the retention window of R090, R089 and R088): `Change Logs/CHANGE_NOTES_R087_SLIP_ACCOUNT_NUMBERS_2026-10-21.md`.
-- Development Changes: the R090 row is replaced by one R090 follow-up row (the Instagram decommission, the default-model decision, the B5 check and the pending tag); no other R090 section existed.
+- Development Changes: the R090 row is replaced by one R090 follow-up row (the Instagram decommission, the default-model decision, the B5 check); no other R090 section existed.
 - R090's own notes stay while R090 is in the window: this note, the design note, the phase 0 note, and the two R090 monitoring notes.
 - Design `project/outputs/r090-pwa-chatbot/DESIGN.md` is kept: the decommission checklist (section 12) still drives phase 3 and the tracker and Development Changes cite it.
 - Evidence deleted: none (see the `npm run check:docs` result).
