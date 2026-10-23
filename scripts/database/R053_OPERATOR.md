@@ -85,3 +85,7 @@ V105 replaces `pwa_notify_eligible_v1`, `pwa_notify_content_v1` and `pwa_notify_
 ## Chat-owner window (V106, R090 batch 2c)
 
 V106 adds the nullable column `pwa_chat_messages.detached_at`, replaces `pwa_chat_immutable_v1`, `pwa_chat_turn_begin_v1` and `pwa_chat_turn_complete_v1` in place and creates `pwa_chat_turn_presence_v1`; every object belongs to `mw_chat_owner_<env>`, so the window opens `prepare --owner mw_chat_owner_<env>` only (DEV adds the journal and change owners for the post-migrate reconciliation, as for V99), then `restore --state <record> --apply`. PROD: `--environment production`, a verified backup of baseline 105, the guarded grouped 105-to-106 migrate, `validate`, `restore`. No notify-owner or jobs-owner authority is needed.
+
+## PROD record (R090, 23 October 2026)
+
+The three-owner window of V105 and the chat-owner window of V106 were opened once for the grouped V104 to V106 PROD migration: `prepare` for the chat, notify and jobs owners (18:47:51Z), the guarded grouped migrate with the release manifest, `validate`, then `restore` (18:50:59Z). No default-privilege pause was needed: V105 and V106 revoke the agent role's grants from their own new objects. Lessons: use a unique plan file name per `terraform plan` run; the Cloud Run v2 API omits false booleans such as `cpuIdle`; dispatch `Database migrations` by hand when the delivery-tool head touches no database path. Detail and pins: [Environment inventory](../../project/Documents/Environment_Inventory.md).
