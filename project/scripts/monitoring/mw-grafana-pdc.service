@@ -5,8 +5,9 @@ After=network-online.target cloud-sql-auth-proxy.service
 Wants=network-online.target
 
 [Service]
-# Outbound SSH tunnel to Grafana Cloud only; no listening port. The token, cluster and hosted Grafana ID
-# come from the root-only environment file as GCLOUD_PDC_* variables, never from the command line.
+# Outbound SSH tunnel to Grafana Cloud only. The token, cluster and hosted Grafana ID come from the root-only
+# environment file as GCLOUD_PDC_* variables, never from the command line. Queries may reach localhost only
+# (the Cloud SQL proxy's password listener on 5432); metrics stay on loopback.
 User=mwpdc
 Group=mwpdc
 EnvironmentFile=/etc/mw-grafana-pdc/pdc.env
@@ -14,7 +15,7 @@ Environment=HOME=/var/lib/mw-grafana-pdc
 StateDirectory=mw-grafana-pdc
 StateDirectoryMode=0700
 WorkingDirectory=/var/lib/mw-grafana-pdc
-ExecStart=/opt/mw-grafana-pdc/pdc
+ExecStart=/opt/mw-grafana-pdc/pdc -use-gossh -permit-domains localhost -metrics-addr 127.0.0.1:8090
 Restart=always
 RestartSec=15
 NoNewPrivileges=yes

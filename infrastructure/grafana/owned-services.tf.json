@@ -119,6 +119,24 @@
             "http_headers"
           ]
         }
+      },
+      "mw_agent_questions": {
+        "uid": "mw-agent-questions",
+        "name": "MW \u00b7 Agent questions (mw_agent via PDC)",
+        "type": "grafana-postgresql-datasource",
+        "access_mode": "proxy",
+        "url": "localhost:5432",
+        "username": "mw_grafana_reader",
+        "is_default": false,
+        "basic_auth_enabled": false,
+        "json_data_encoded": "{\"connMaxLifetime\":14400,\"database\":\"mw_agent\",\"enableSecureSocksProxy\":true,\"maxIdleConns\":1,\"maxIdleConnsAuto\":false,\"maxOpenConns\":2,\"postgresVersion\":1800,\"sslmode\":\"disable\",\"timescaledb\":false}",
+        "lifecycle": {
+          "prevent_destroy": true,
+          "ignore_changes": [
+            "secure_json_data_encoded",
+            "http_headers"
+          ]
+        }
       }
     },
     "grafana_rule_group": {
