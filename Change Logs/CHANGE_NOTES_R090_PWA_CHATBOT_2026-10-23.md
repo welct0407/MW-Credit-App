@@ -95,7 +95,11 @@ DEV end to end (one pass after the DEV deploy, Chase or the orchestrator, synthe
 | Differential number grounding, Python against JavaScript, 1,500 replies (Chase) | Found a fullwidth-digit bypass; fixed; after the fix 0 mismatches |
 | Real PostgreSQL 18 `sql_query` run, 15 cases (Chase) | 15 pass: read role `INHERIT FALSE`/`SET TRUE`, `pwa_chat_*` denied `42501`, write through a function `25006`, 500 and 501 rows, 20 s timeout, size caps, guard blocks `set_config` and `pg_sleep`, `loan_payoff` works, pooled connection clean afterwards |
 | Echo UX pass at 1440, 1280x800, 1051/1050, Pixel 7, 375 and 320 px, English and Thai | Findings CHAT-NAV-1 (must) onward all fixed except CHAT-NAV-3 (accepted: the sidebar scrolls) |
-| Pull request `Development checks` | Not yet run: runs when a pull request is opened for this branch |
+| Pull request #131 `Development checks` on `36f2166` (runs 39951932480 and 39951932539; database rebuild run 39946919007) | Pass: e2e 3 shards, lint, check, terraform, test, lab, database rebuild (migrations, phase5, phase8, receiving), guards, GitGuardian |
+| DEV image build from `36f2166` via `cloudbuild-command.yaml` (Forge, 12:35:40Z, 23 October 2026) | Success, container smoke passed; digest and build id in the [Environment inventory](../project/Documents/Environment_Inventory.md) |
+| DEV V104 apply (Forge, 12:42:28Z) | Flyway 104 `pwa chat` installed (checksum 457782433, 11.4 s), post-migrate reconcile 0 violations; readback: chat IAM user memberships, read role (84 of 93 relations, no `pwa_chat_*`, no notify or jobs tables, EXECUTE on exactly 12), api role (EXECUTE on 8 `pwa_chat_*_v1`), chat tables owned by `mw_chat_owner_dev` only, 38 non-PUBLIC functions unchanged |
+| DEV service and Hosting smoke (Forge) | `/health` 200; `/api/chat/models` without a token 401 `sign_in_required`; CORS preflight from `dev-lm` 204; bundle and CSP on `dev-lm` and `web.app` contain the chat origin |
+| DEV anonymous probes (Chase, about 12:53Z to 12:55Z) | Revision ready; `/health` 200; no token 401 `sign_in_required`, invalid bearer 401 `session_invalid`; preflight from `dev-lm` 204 (origin `dev-lm` only; methods GET, POST, PATCH; headers Authorization, Content-Type, Accept, X-MW-Wake-Deadline), from `evil.example` 403; logs readable, no turns yet |
 | `terraform fmt`, `validate`, `terraform test` for `infrastructure/dev` and `infrastructure/production` (Forge) | Pass: dev 29 tests, prod 23 tests (after the `cpu_idle=false` change) |
 | Hosting and build unit tests (Forge) | Pass, 14 tests |
 | Live model check, three models (Forge, DEV project, `global`) | 200 for all three with function calling, SSE and `thinkingLevel` |
@@ -106,22 +110,23 @@ DEV end to end (one pass after the DEV deploy, Chase or the orchestrator, synthe
 | `node scripts/check-docs.mjs` (Dewey, final run on this tree) | Pass, 0 failures, 0 warnings |
 
 ## Not run
-- DEV end to end (the three example questions per model, the forced ungrounded reply, the re-POST, the Cost query): needs the DEV deploy, which has not happened.
-- The V104 apply on DEV and PROD, the operator role steps and the real-login readback: not done; the migration has only run on disposable rebuilds (database CI and Dewey's dictionary rebuild).
-- `terraform plan` or apply for the chat service on DEV or PROD: not run; `chat_authorized` stays off in PROD.
-- V104's non-superuser ownership branch (the Cloud SQL runner path): database CI runs as superuser, so only the DEV apply exercises it.
-- DEV end to end also covers a mid-turn client close, the forced ungrounded case and the monitoring rows; none run yet.
-- Local wide browser suite: not run, per the lean check routine; the pull request's run is the broad run.
-- Live PROD model or Cloud Run checks: none; PROD is untouched except by phase 0 on the agent host.
+- DEV end to end (Chase): not run. DEV has no non-interactive Partner sign-in, and minting a custom token for a real Partner on the shared Firebase project was rejected as not an established route. Not exercised on DEV: three models by three example questions (including the first real `gemini-3.5-flash` answer), a mid-turn disconnect (`cpu_idle=false`), the forced ungrounded retract (unit tests only), the `monitoring.pwa_chat_recent_questions_v1` readback and the cross-Partner 404 (covered by `Test-Chat.sql` and the handler unit tests). The owner's DEV review covers the first real run.
+- The V104 apply on PROD, its operator steps and the PROD Terraform apply: not done; `chat_authorized` stays off. DEV is done (see Checks), which also exercised V104's non-superuser ownership branch that database CI (superuser) cannot.
+- Local wide browser suite: not run, per the lean check routine; the pull request's run was the broad run.
+- Anything on PROD: untouched except by phase 0 on the agent host.
 
 ## Recovery
-Git baseline `0c4325c`; the batch is uncommitted, so `git restore` and removing the new untracked paths undo it before a push. Nothing of the app is deployed, so there is no service or schema to roll back. Phase 0 rollback: copy `/root/config.json.pre-r090-phase0b-20261023` (root 0600) to `/etc/mw-integration-agent/config.json` (0640 root:mwagent), `mw-integration-agent check`, restart `mw-instagram-webhook` and `mw-receipt-recognition`, `receiver-ready --wait 30`, `systemctl enable --now mw-partner-conversation.timer mw-conversation-wake.path`. After a later DEV deploy: V104 is additive and immutable, so recovery is a restore from the pre-apply backup, not a down-migration; the chat service is removed by setting `chat_image` back to null in the DEV Terraform.
+Git baseline `0c4325c` (the work is on pull request #131). Promotion state: DEV is deployed (image build, V104, chat service and Hosting, 12:35Z to 12:55Z, 23 October 2026); PROD is untouched. Pins are in the [Environment inventory](../project/Documents/Environment_Inventory.md).
+- Hosting (DEV): redeploy the previous version recorded as the DEV rollback in the inventory; the Chat item disappears with the old bundle.
+- Chat service (DEV): set `chat_image` back to null in the DEV activation file (its prior generation is in the inventory) and apply; the other four services are untouched.
+- V104 (DEV): additive and immutable, so there is no down-migration. Restore from the restore-verified pre-apply backup at V103 (path in the inventory) only if needed; otherwise leave the unused tables. The three chat roles stay (NOLOGIN).
+- Phase 0: copy `/root/config.json.pre-r090-phase0b-20261023` (root 0600) to `/etc/mw-integration-agent/config.json` (0640 root:mwagent), `mw-integration-agent check`, restart `mw-instagram-webhook` and `mw-receipt-recognition`, `receiver-ready --wait 30`, `systemctl enable --now mw-partner-conversation.timer mw-conversation-wake.path`.
+- Lessons, written into the [database README runbook](../database/README.md#chat-journal-v104-r090): the first revision failed startup because it was created before the database side existed; PostgreSQL 18 `GRANT SELECT ON ALL TABLES` fails on tables owned by another role, so grants use an explicit loop.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Add Chase's results to Checks, commit once and push; the pull request's `Development checks` run is the broad run.
-- DEV deploy, in this order: Terraform apply (creates the IAM database user), `owner-authority-cli.mjs role --owner mw_chat_owner_dev` (plan, then `--apply`), `CREATE ROLE mw_chat_api_dev` and `mw_chat_read_dev` (`NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`), `prepare --owner mw_chat_owner_dev --apply`, V104 through the guarded runner, restore, the grants (re-list the 38 non-PUBLIC `postgres` functions first and stop on drift), readback with a real login, then Hosting delivery with `VITE_CHAT_API_ORIGIN` in `.env.live-dev` (the eighth build setting). Details: [database README](../database/README.md#chat-journal-v104-r090).
-- Run the DEV end-to-end pass from the Test plan and record the inventory pins (revision, digest, Hosting version, Flyway row) in the Environment inventory.
+- Owner review on `dev-lm.mw-credit.com`: three questions per model; close the tab mid-answer and reopen after about a minute, the reply should be there. This is also the first real run of `gemini-3.5-flash`, the Cost query rows and the cross-Partner checks.
+- Optional future owner decision: a synthetic DEV Partner login so the end-to-end pass can be automated.
 - PROD only on the owner's production instruction, with a verified backup and `chat_authorized`; phase 3 decommission after the owner's PROD test (design section 12), with its own note under `integration-agent/Change Logs/`.
