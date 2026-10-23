@@ -6,8 +6,9 @@ Wants=network-online.target
 
 [Service]
 # Outbound SSH tunnel to Grafana Cloud only. The token, cluster and hosted Grafana ID come from the root-only
-# environment file as GCLOUD_PDC_* variables, never from the command line. Queries may reach localhost only
-# (the Cloud SQL proxy's password listener on 5432); metrics stay on loopback.
+# environment file as GCLOUD_PDC_* variables, never from the command line. Queries may reach 127.0.0.1 only
+# (the Cloud SQL proxy's IPv4 password listener on 5432; -permit-domains needs -use-gossh; another host is
+# refused with a SOCKS failure, checked 23 October 2026); metrics stay on loopback.
 User=mwpdc
 Group=mwpdc
 EnvironmentFile=/etc/mw-grafana-pdc/pdc.env
@@ -15,7 +16,7 @@ Environment=HOME=/var/lib/mw-grafana-pdc
 StateDirectory=mw-grafana-pdc
 StateDirectoryMode=0700
 WorkingDirectory=/var/lib/mw-grafana-pdc
-ExecStart=/opt/mw-grafana-pdc/pdc -use-gossh -permit-domains localhost -metrics-addr 127.0.0.1:8090
+ExecStart=/opt/mw-grafana-pdc/pdc -use-gossh -permit-domains 127.0.0.1 -metrics-addr 127.0.0.1:8090
 Restart=always
 RestartSec=15
 NoNewPrivileges=yes

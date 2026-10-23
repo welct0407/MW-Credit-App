@@ -125,11 +125,11 @@
         "name": "MW \u00b7 Agent questions (mw_agent via PDC)",
         "type": "grafana-postgresql-datasource",
         "access_mode": "proxy",
-        "url": "localhost:5432",
+        "url": "127.0.0.1:5432",
         "username": "mw_grafana_reader",
         "is_default": false,
         "basic_auth_enabled": false,
-        "json_data_encoded": "{\"connMaxLifetime\":14400,\"database\":\"mw_agent\",\"enableSecureSocksProxy\":true,\"maxIdleConns\":1,\"maxIdleConnsAuto\":false,\"maxOpenConns\":2,\"postgresVersion\":1800,\"sslmode\":\"disable\",\"timescaledb\":false}",
+        "json_data_encoded": "{\"connMaxLifetime\":300,\"database\":\"mw_agent\",\"enableSecureSocksProxy\":true,\"maxIdleConns\":1,\"maxIdleConnsAuto\":false,\"maxOpenConns\":2,\"postgresVersion\":1800,\"secureSocksProxyUsername\":\"b69f5334-ca2f-4ad7-bc8f-3a93fe9e74ba\",\"sslmode\":\"disable\",\"timescaledb\":false}",
         "lifecycle": {
           "prevent_destroy": true,
           "ignore_changes": [
