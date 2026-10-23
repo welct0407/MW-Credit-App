@@ -47,12 +47,14 @@ const DS = {
   publicStatus: {type: INFINITY, uid: 'cfz10a9eaokjkd'}, // mw-public-status, credential-free
   fx: {type: INFINITY, uid: 'efz19dcu6cwzka'},
   gcpStatus: {type: INFINITY, uid: 'mw-public-gcp-status'},
+  // R090: the agent database through Grafana PDC, login limited to monitoring.recent_questions_v1().
+  agentQuestions: {type: 'grafana-postgresql-datasource', uid: 'mw-agent-questions'},
   dashboard: {type: 'datasource', uid: '-- Dashboard --'},
   mixed: {type: 'mixed', uid: '-- Mixed --'}
 };
 const ALLOWED_DATASOURCE_UIDS = [
   'mw-gcp-monitoring', 'mw-azure-monitoring', 'mw-railway-monitoring', 'cfz10a9eaokjkd',
-  'efz19dcu6cwzka', 'mw-public-gcp-status', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
+  'efz19dcu6cwzka', 'mw-public-gcp-status', 'mw-agent-questions', '-- Dashboard --', '-- Mixed --', '-- Grafana --'
 ];
 const ALLOWED_URL_HOSTS = [
   'monitoring.googleapis.com', 'bigquery.googleapis.com', 'management.azure.com',

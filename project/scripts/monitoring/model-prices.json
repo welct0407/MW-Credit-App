@@ -1,0 +1,9 @@
+{
+  "currency": "SGD",
+  "unit": "per 1,000,000 tokens",
+  "source": "Unit prices as billed on billing account 0125EC-78CB0F-A74AAD (detailed billing export mw_cloud_billing, Vertex AI SKUs 'Global Text Input/Output/Input Caching', 1 to 22 October 2026): cost divided by usage. Thinking tokens bill as output. Refresh this file from the same query when Vertex prices change; Gemini 4 Argon already bills at the standard rate ($4/$20/$0.20).",
+  "models": {
+    "gemini-4-argon": {"input": 5.1125, "cached": 0.2556, "output": 25.5617},
+    "gemini-3.8-flash": {"input": 1.9172, "cached": 0.1917, "output": 9.5857}
+  }
+}

@@ -1784,12 +1784,230 @@
         "type": "text"
       },
       {
-        "collapsed": true,
+        "collapsed": false,
         "gridPos": {
           "h": 1,
           "w": 24,
           "x": 0,
           "y": 27
+        },
+        "id": 49,
+        "panels": [],
+        "title": "Partner chat · cost per question",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "mw-agent-questions"
+        },
+        "description": "The 10 latest answered Partner chat questions (Instagram conversation agent), newest first, read live from the agent database (monitoring.recent_questions_v1 through Grafana PDC; not stored in Cloud Monitoring). Input = uncached input tokens, Cached = cached input, Output and Thinking = generated tokens (thinking bills as output); every round of the turn, including tool calls, is included. Cost (SGD) = tokens at the billed Vertex AI unit prices (model-prices.json: Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output per million). No usage record = a Codex turn (subscription) or usage older than the 7-day audit retention. The footer sums the listed questions.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [],
+            "noValue": "No questions",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Asked"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "dateTimeAsLocal"
+                },
+                {
+                  "id": "custom.width",
+                  "value": 150
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Question"
+              },
+              "properties": [
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "type": "auto",
+                    "wrapText": true
+                  }
+                },
+                {
+                  "id": "custom.minWidth",
+                  "value": 300
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Model"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 150
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Input"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "short"
+                },
+                {
+                  "id": "custom.width",
+                  "value": 90
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Cached"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "short"
+                },
+                {
+                  "id": "custom.width",
+                  "value": 90
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Output"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "short"
+                },
+                {
+                  "id": "custom.width",
+                  "value": 90
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Thinking"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "short"
+                },
+                {
+                  "id": "custom.width",
+                  "value": 90
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Cost (SGD)"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "currencySGD"
+                },
+                {
+                  "id": "decimals",
+                  "value": 4
+                },
+                {
+                  "id": "custom.width",
+                  "value": 110
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 24,
+          "x": 0,
+          "y": 28
+        },
+        "id": 50,
+        "options": {
+          "cellHeight": "md",
+          "footer": {
+            "countRows": false,
+            "fields": [
+              "Cost (SGD)"
+            ],
+            "reducer": [
+              "sum"
+            ],
+            "show": true
+          },
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "grafana-postgresql-datasource",
+              "uid": "mw-agent-questions"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT q.asked_at AS \"Asked\", q.question AS \"Question\",\n  coalesce(q.model, 'No usage record') AS \"Model\",\n  q.input_tokens - coalesce(q.cached_tokens, 0) AS \"Input\", q.cached_tokens AS \"Cached\", q.output_tokens AS \"Output\",\n  q.thinking_tokens AS \"Thinking\",\n  round(((q.input_tokens - coalesce(q.cached_tokens, 0)) * p.input + coalesce(q.cached_tokens, 0) * p.cached\n    + (q.output_tokens + coalesce(q.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS \"Cost (SGD)\"\nFROM monitoring.recent_questions_v1(10) q\nLEFT JOIN (VALUES ('gemini-4-argon', 5.1125, 0.2556, 25.5617), ('gemini-3.8-flash', 1.9172, 0.1917, 9.5857)) AS p(model, input, cached, output) ON p.model = q.model\nORDER BY q.asked_at DESC",
+            "refId": "A"
+          }
+        ],
+        "title": "Partner chat · last 10 questions",
+        "transformations": [],
+        "type": "table"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 41
         },
         "id": 10,
         "panels": [
@@ -1827,7 +2045,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 28
+              "y": 42
             },
             "id": 102,
             "options": {
@@ -1968,7 +2186,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 28
+              "y": 42
             },
             "id": 103,
             "options": {
@@ -2103,7 +2321,7 @@
               "h": 7,
               "w": 8,
               "x": 0,
-              "y": 32
+              "y": 46
             },
             "id": 104,
             "options": {
@@ -2217,7 +2435,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 39
+              "y": 53
             },
             "id": 101,
             "options": {
@@ -2411,7 +2629,7 @@
               "h": 8,
               "w": 24,
               "x": 0,
-              "y": 48
+              "y": 62
             },
             "id": 110,
             "options": {
@@ -2481,7 +2699,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 28
+          "y": 42
         },
         "id": 20,
         "panels": [
@@ -2519,7 +2737,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 29
+              "y": 43
             },
             "id": 202,
             "options": {
@@ -2639,7 +2857,7 @@
               "h": 4,
               "w": 8,
               "x": 8,
-              "y": 29
+              "y": 43
             },
             "id": 203,
             "options": {
@@ -2759,7 +2977,7 @@
               "h": 4,
               "w": 8,
               "x": 16,
-              "y": 29
+              "y": 43
             },
             "id": 204,
             "options": {
@@ -2851,7 +3069,7 @@
               "h": 3,
               "w": 24,
               "x": 0,
-              "y": 33
+              "y": 47
             },
             "id": 205,
             "options": {
@@ -2925,7 +3143,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 36
+              "y": 50
             },
             "id": 207,
             "options": {
@@ -3078,7 +3296,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 36
+              "y": 50
             },
             "id": 206,
             "options": {
@@ -3237,7 +3455,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 47
+              "y": 61
             },
             "id": 201,
             "options": {
@@ -3344,7 +3562,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 29
+          "y": 43
         },
         "id": 30,
         "panels": [
@@ -3382,7 +3600,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 30
+              "y": 44
             },
             "id": 302,
             "options": {
@@ -3502,7 +3720,7 @@
               "h": 4,
               "w": 16,
               "x": 8,
-              "y": 30
+              "y": 44
             },
             "id": 301,
             "options": {
@@ -3573,7 +3791,7 @@
               "h": 5,
               "w": 24,
               "x": 0,
-              "y": 34
+              "y": 48
             },
             "id": 303,
             "options": {
@@ -3647,7 +3865,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 39
+              "y": 53
             },
             "id": 304,
             "options": {
@@ -3793,7 +4011,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 39
+              "y": 53
             },
             "id": 305,
             "options": {

@@ -518,14 +518,15 @@ class ConversationSession:
         return totals
 
     def record(self, epoch, failure=None):
-        """Rounds, attempts, per-turn token totals, per-round usage, round and tool timings and seeding on the
-        model_turn operation (no content). Written for failed turns too."""
+        """Rounds, attempts, per-turn token totals, per-round usage, round and tool timings, seeding and the turn's
+        message id on the model_turn operation (no content). Written for failed turns too."""
         from .audit import PARENT, event
         from .state import enabled, transaction
         operation = PARENT.get()
         if operation is None or not enabled(self.config):
             return
-        payload = {'provider': self.PROVIDER, 'model': self.limits()['model'], 'rounds': self.rounds,
+        # message_id ties the usage to its Partner question (R090 Cost page: the last questions and their cost).
+        payload = {'provider': self.PROVIDER, 'model': self.limits()['model'], 'message_id': self.current, 'rounds': self.rounds,
                    'attempts': self.attempts, 'epoch': epoch, **self.usage(), 'round_usage': self.usages,
                    'round_ms': self.round_ms, 'tool_ms': self.tool_ms,
                    'seeded_exchanges': self.seeded['exchanges'], 'seeded_chars': self.seeded['chars'],
