@@ -18,7 +18,7 @@ export function storeError(error){
 /** readRole: the membership lookup (Partners) runs under SET LOCAL ROLE readRole, then RESET ROLE before the RPCs: the
  * IAM user holds the read role WITH INHERIT FALSE, SET TRUE and inherits only mw_chat_api_<env> (EXECUTE).
  * afterCommit: the notification dispatch wake (createPostCommitWake), called after a completion that recorded a
- * chat reply event (batch 2, B3); log: service log for a reply event that could not be recorded.
+ * chat reply event (batch 2, B3; batch 2c: only for a stream whose device reported leaving); log: service log for a reply event that could not be recorded.
  * @param {{pool:any,guardConnection:(client:any)=>Promise<void>,resolveActor:(client:any,principal:any,capability:string)=>Promise<any>,issuer:string,readRole?:string,afterCommit?:(wake?:{deadline?:number})=>Promise<void>,log?:(record:object)=>void}} options */
 export function createChatStore({pool,guardConnection,resolveActor,issuer,readRole,afterCommit=async()=>{},log=()=>{}}){
  const asReader=readRole?`SET LOCAL ROLE "${readRole.replaceAll('"','""')}"`:null;
@@ -60,16 +60,23 @@ export function createChatStore({pool,guardConnection,resolveActor,issuer,readRo
    return {actor:a,value};
   }),
   /**
-   * Commits the turn. notify ({thread}) when the asking device is no longer attached: the reply event
-   * (pwa_notify_chat_reply_v1, V105) is recorded in the same transaction under a savepoint, so a failure (for example
-   * V105 not applied) is logged and never fails the turn; after COMMIT the dispatch wake runs (bounded, logged).
+   * The asking device's presence on its running turn (batch 2c, V106): 'hidden' (the PWA left: beacon) or 'visible'.
+   * Returns {state:'claimed',detached} | {state:'idle'} | {state:'completed'}; another Partner's message is not_found.
+   */
+  presence:(p,thread,id,state)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_turn_presence_v1($1::jsonb,$2::uuid,$3::uuid,$4::text) AS value',[a,thread,id,state])),
+  /**
+   * Commits the turn and returns {message, detached}: the reply row and whether the asking device had reported leaving
+   * (V106 reads detached_at of the locked user row in the completion's transaction). notify ({thread}, stream requests
+   * only): when detached, the reply event (pwa_notify_chat_reply_v1, V105) is recorded in the same transaction under a
+   * savepoint, so a failure is logged and never fails the turn; after COMMIT the dispatch wake runs (bounded, logged).
    */
   complete:async(p,messageId,assistant,history,toolCalls,notify=null)=>{
-   let notified=false;
-   const row=await run(p,async(c,a)=>{
-    const value=await one(c,'SELECT public.pwa_chat_turn_complete_v1($1::jsonb,$2::uuid,$3::jsonb,$4::jsonb,$5::jsonb) AS value',
+   let notified=false,detached=false;
+   const message=await run(p,async(c,a)=>{
+    const {detached:flag,...value}=await one(c,'SELECT public.pwa_chat_turn_complete_v1($1::jsonb,$2::uuid,$3::jsonb,$4::jsonb,$5::jsonb) AS value',
      [a,messageId,assistant,history===null?null:JSON.stringify(history),JSON.stringify(toolCalls)]);
-    if(notify){
+    detached=flag===true;
+    if(notify&&detached){
      await c.query('SAVEPOINT chat_reply_event');
      try{
       notified=(await c.query('SELECT public.pwa_notify_chat_reply_v1($1::jsonb,$2::uuid,$3::uuid,$4::text) AS value',[a,notify.thread,messageId,assistant.status==='ok'?'ok':'failed'])).rows[0].value===true;
@@ -82,7 +89,7 @@ export function createChatStore({pool,guardConnection,resolveActor,issuer,readRo
     return value;
    });
    if(notified){try{await afterCommit();}catch{/* the wake logs its own deferral; the scheduler tick recovers */}}
-   return row;
+   return {message,detached};
   },
  };
 }

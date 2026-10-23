@@ -49,13 +49,13 @@ test('the deferred wake ignores a short browser deadline and keeps the post-comm
 // R090 batch 2 (B1/B3): the chat service is a second post-commit caller: a detached turn's reply event commits with the
 // turn, then the same wake runs (OIDC POST with the deadline); a rejected wake never fails the committed turn.
 import {createChatStore} from '../../services/chat/store.mjs';
-test('chat completion wakes dispatch after COMMIT only when it recorded a reply event; wake failure keeps the result',async()=>{
+test('chat completion (a stream whose device left, V106) wakes dispatch after COMMIT only when it recorded a reply event; wake failure keeps the result',async()=>{
  for(const wakeStatus of [200,503]){
   const sql=[],calls=[];
-  const client={async query(text){sql.push(text);if(String(text).includes('pwa_notify_chat_reply_v1'))return {rows:[{value:true}]};return {rows:[{value:{id:'r'}}]};},release(){}};
+  const client={async query(text){sql.push(text);if(String(text).includes('pwa_notify_chat_reply_v1'))return {rows:[{value:true}]};return {rows:[{value:{id:'r',detached:true}}]};},release(){}};
   const afterCommit=createPostCommitWake(loadDispatchConfig(env,'dev'),{fetch:async(url,options)=>{calls.push({url,options,after:sql.at(-1)});return calls.length===1?{ok:true,text:async()=> 'a.b.c'}:{status:wakeStatus};}});
   const store=createChatStore({pool:{connect:async()=>client},guardConnection:async()=>{},issuer:'iss',resolveActor:async()=>({issuer:'iss'}),afterCommit});
-  assert.deepEqual(await store.complete({},'m',{status:'ok'},null,[],{thread:'t'}),{id:'r'});
+  assert.deepEqual(await store.complete({},'m',{status:'ok'},null,[],{thread:'t'}),{message:{id:'r'},detached:true});
   assert.equal(calls.length,2);assert.equal(calls[0].after,'COMMIT');assert.equal(calls[1].url,env.NOTIFICATION_DISPATCH_URL);assert.match(calls[1].options.headers['X-MW-Wake-Deadline'],/^\d{13}$/);
  }
 });

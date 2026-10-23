@@ -8,9 +8,11 @@
 "verification":
   "status": "documented"
   "source": "database/migrations/V104__pwa_chat.sql"
-  "coverage": "R090 definition (V104, 23 October 2026), reviewed from the migration source and applied to a disposable PostgreSQL\
-    \ 18 rebuild with stub roles and a stub \"Partners\" table; not captured from DEV or PROD, which have not received V104\
-    \ yet. Owner mw_chat_owner_<env>; the ACL shown is the rebuild. No rows."
+  "coverage": "R090 definition (V104 with V106 batch 2c changes applied: pwa_chat_messages.detached_at, the widened immutability\
+    \ rule, the replaced turn_begin and turn_complete, and pwa_chat_turn_presence_v1; 23 October 2026), reviewed from the\
+    \ migration source and applied to a disposable PostgreSQL 18 rebuild with stub roles and a stub \"Partners\" table; not\
+    \ captured from DEV or PROD (DEV has V104 and V105 only; V106 is pending). Owner mw_chat_owner_<env>; the ACL shown is\
+    \ the rebuild. No rows."
 "content":
   "definition":
     "schema": "public"
@@ -355,6 +357,24 @@
       "collation": null
       "acl": "{postgres=r/mw_chat_owner_prod}"
       "comment": null
+    "detached_at":
+      "schema": "public"
+      "relation": "pwa_chat_messages"
+      "name": "detached_at"
+      "ordinal": 19
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "When the asking device left the running turn (hidden beacon); user rows only, cleared on return and on re-claim"
   "constraints":
     "pwa_chat_messages_attempts_check":
       "schema": "public"
@@ -484,6 +504,24 @@
       "validated": true
       "column_numbers":
       - 18
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_messages_detached_check":
+      "schema": "public"
+      "relation": "pwa_chat_messages"
+      "name": "pwa_chat_messages_detached_check"
+      "kind": "c"
+      "definition": "CHECK (role = 'user'::text OR detached_at IS NULL)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      - 19
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "

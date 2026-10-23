@@ -6,6 +6,7 @@
 -- refused by UNIQUE (thread_id, seq), history conflicts, paging, the outcome read, per-Partner 404s, archive,
 -- thread_full (54000), the append-only triggers (55000), the capability boundary (no EXECUTE without
 -- mw_chat_api_dev; mw_chat_read_dev reads no chat table and calls no chat RPC) and the Cost page function.
+-- G covers V105 (chat reply event, job status); H covers V106 (turn presence, the completion's detached flag).
 \set ON_ERROR_STOP on
 BEGIN;
 DO $$ BEGIN
@@ -331,6 +332,90 @@ RESET SESSION AUTHORIZATION;
 DO $$ BEGIN
  IF has_function_privilege('mw_chat_api_dev','public.pwa_job_status_v1(integer)','EXECUTE') OR has_function_privilege('mw_notify_api_dev','public.pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)','EXECUTE')
   OR has_function_privilege('mw_chat_read_dev','public.pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)','EXECUTE') THEN RAISE EXCEPTION 'V105 routines reach the wrong capability'; END IF;
+END $$;
+
+-- H. V106 (R090 batch 2c): the asking device's presence on its running turn (hidden beacon), read by the completion.
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); b jsonb:=pg_temp.actor('b'); r jsonb; reply uuid; t1 uuid:='11111111-1111-4111-8111-111111111111'; t4 uuid:='44444444-4444-4444-8444-444444444444';
+ d1 uuid:='d1111111-1111-4111-8111-111111111111'; d2 uuid:='d2222222-2222-4222-8222-222222222222'; d3 uuid:='d3333333-3333-4333-8333-333333333333';
+ sql text:='SELECT public.pwa_chat_turn_presence_v1(%L::jsonb,%L::uuid,%L::uuid,%L::text)';
+BEGIN
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',t4,'model','gemini-4-argon'));
+ PERFORM pg_temp.expect(format(sql,a,t4,d1,'hidden'),'42501','not_found');
+ PERFORM public.pwa_chat_turn_begin_v1(a,t4,jsonb_build_object('id',d1,'text','Leave me'));
+ PERFORM pg_temp.expect(format(sql,a,t4,d1,'away'),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(sql,a,t4,d1,NULL),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(sql,b,t4,d1,'hidden'),'42501','not_found');
+ PERFORM pg_temp.expect(format(sql,a,t1,d1,'hidden'),'42501','not_found');
+ -- hidden and visible, each idempotent.
+ IF public.pwa_chat_turn_presence_v1(a,t4,d1,'hidden')<>'{"state":"claimed","detached":true}' OR public.pwa_chat_turn_presence_v1(a,t4,d1,'hidden')<>'{"state":"claimed","detached":true}'
+  OR public.pwa_chat_turn_presence_v1(a,t4,d1,'visible')<>'{"state":"claimed","detached":false}' OR public.pwa_chat_turn_presence_v1(a,t4,d1,'visible')<>'{"state":"claimed","detached":false}' THEN
+  RAISE EXCEPTION 'presence hidden/visible'; END IF;
+ IF public.pwa_chat_turn_presence_v1(a,t4,d1,'hidden')->>'detached'<>'true' THEN RAISE EXCEPTION 'hidden again'; END IF;
+ -- The completion reports the detached flag with the reply; a later beacon finds the reply and changes nothing.
+ r:=public.pwa_chat_turn_complete_v1(a,d1,pg_temp.assistant('ok'),pg_temp.history(0,0,1),'[]');
+ IF r->'detached'<>'true'::jsonb OR (r->>'seq')::int<>2 OR r->>'role'<>'assistant' THEN RAISE EXCEPTION 'detached completion %',r; END IF;
+ reply:=(r->>'id')::uuid;
+ IF public.pwa_chat_turn_presence_v1(a,t4,d1,'visible')<>'{"state":"completed"}' OR public.pwa_chat_turn_presence_v1(a,t4,d1,'hidden')<>'{"state":"completed"}' THEN RAISE EXCEPTION 'presence after the reply'; END IF;
+ IF public.pwa_chat_turn_presence_v1(a,t4,reply,'hidden')<>'{"state":"idle"}' THEN RAISE EXCEPTION 'presence on an assistant row'; END IF;
+ IF public.pwa_chat_message_v1(a,t4,d1)#>'{user,detached}' IS NOT NULL OR public.pwa_chat_message_v1(a,t4,d1)#>'{assistant,detached}' IS NOT NULL THEN RAISE EXCEPTION 'the outcome read exposes no presence'; END IF;
+ -- An attached turn completes with detached=false.
+ PERFORM public.pwa_chat_turn_begin_v1(a,t4,jsonb_build_object('id',d2,'text','Stay'));
+ r:=public.pwa_chat_turn_complete_v1(a,d2,pg_temp.assistant('failed','TURN_TIMEOUT'),NULL,'[]');
+ IF r->'detached'<>'false'::jsonb OR r->>'status'<>'failed' THEN RAISE EXCEPTION 'attached completion %',r; END IF;
+ -- A third turn left hidden (re-claimed below).
+ PERFORM public.pwa_chat_turn_begin_v1(a,t4,jsonb_build_object('id',d3,'text','Come back'));
+ IF public.pwa_chat_turn_presence_v1(a,t4,d3,'hidden')->>'detached'<>'true' THEN RAISE EXCEPTION 'hidden third turn'; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+CREATE TEMP TABLE v106_mark ON COMMIT DROP AS SELECT detached_at FROM public.pwa_chat_messages WHERE id='d3333333-3333-4333-8333-333333333333';
+GRANT SELECT ON v106_mark TO PUBLIC;
+DO $$ BEGIN
+ IF (SELECT string_agg(left(id::text,2)||':'||(detached_at IS NOT NULL)||':'||(claimed_at IS NOT NULL),',' ORDER BY seq) FROM public.pwa_chat_messages WHERE thread_id='44444444-4444-4444-8444-444444444444' AND role='user')
+  IS DISTINCT FROM 'd1:true:false,d2:false:false,d3:true:true' THEN RAISE EXCEPTION 'detached_at kept as evidence on the user rows'; END IF;
+ IF EXISTS(SELECT 1 FROM public.pwa_chat_messages WHERE role='assistant' AND detached_at IS NOT NULL) THEN RAISE EXCEPTION 'assistant rows carry no presence'; END IF;
+END $$;
+-- A repeated hidden beacon keeps the first mark.
+SET SESSION AUTHORIZATION v104_chat_api;
+SELECT public.pwa_chat_turn_presence_v1(pg_temp.actor('a'),'44444444-4444-4444-8444-444444444444','d3333333-3333-4333-8333-333333333333','hidden');
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT detached_at FROM public.pwa_chat_messages WHERE id='d3333333-3333-4333-8333-333333333333') IS DISTINCT FROM (SELECT detached_at FROM v106_mark) THEN RAISE EXCEPTION 'repeated hidden moved the mark'; END IF;
+END $$;
+-- A stale claim re-claimed by a re-POST starts attached.
+UPDATE public.pwa_chat_messages SET claimed_at=clock_timestamp()-interval '6 minutes' WHERE id='d3333333-3333-4333-8333-333333333333';
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$ BEGIN
+ IF public.pwa_chat_turn_begin_v1(pg_temp.actor('a'),'44444444-4444-4444-8444-444444444444','{"id":"d3333333-3333-4333-8333-333333333333","text":"Come back"}')->>'state'<>'claimed' THEN RAISE EXCEPTION 're-claim'; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT detached_at IS NOT NULL OR claimed_at IS NULL FROM public.pwa_chat_messages WHERE id='d3333333-3333-4333-8333-333333333333') THEN RAISE EXCEPTION 're-claim must reset detached_at'; END IF;
+END $$;
+-- An unclaimed user row without a reply answers idle and is not marked.
+UPDATE public.pwa_chat_messages SET claimed_at=NULL WHERE id='d3333333-3333-4333-8333-333333333333';
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$ BEGIN
+ IF public.pwa_chat_turn_presence_v1(pg_temp.actor('a'),'44444444-4444-4444-8444-444444444444','d3333333-3333-4333-8333-333333333333','hidden')<>'{"state":"idle"}' THEN RAISE EXCEPTION 'idle presence'; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT detached_at FROM public.pwa_chat_messages WHERE id='d3333333-3333-4333-8333-333333333333') IS NOT NULL THEN RAISE EXCEPTION 'idle presence changed the row'; END IF;
+END $$;
+-- The widened trigger still refuses every other change, and the CHECK keeps presence off assistant rows.
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_messages SET detached_at=now(),text='x' WHERE id='d1111111-1111-4111-8111-111111111111'$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_messages SET status='failed' WHERE id='d1111111-1111-4111-8111-111111111111'$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_messages SET detached_at=now() WHERE role='assistant'$q$,'55000');
+SELECT pg_temp.expect($q$DELETE FROM public.pwa_chat_messages WHERE id='d1111111-1111-4111-8111-111111111111'$q$,'55000');
+SELECT pg_temp.expect($q$INSERT INTO public.pwa_chat_messages(id,thread_id,seq,role,text,status,model,detached_at) VALUES(gen_random_uuid(),'44444444-4444-4444-8444-444444444444',99,'assistant','x','ok','gemini-4-argon',now())$q$,'23514');
+-- The capability boundary: only the API role calls presence.
+SET SESSION AUTHORIZATION v104_chat_other;
+SELECT pg_temp.expect(format('SELECT public.pwa_chat_turn_presence_v1(%L::jsonb,%L::uuid,%L::uuid,''hidden'')',pg_temp.actor('a'),'44444444-4444-4444-8444-444444444444','d1111111-1111-4111-8111-111111111111'),'42501');
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF has_function_privilege('mw_chat_read_dev','public.pwa_chat_turn_presence_v1(jsonb,uuid,uuid,text)','EXECUTE') OR has_function_privilege('mw_notify_api_dev','public.pwa_chat_turn_presence_v1(jsonb,uuid,uuid,text)','EXECUTE')
+  OR NOT has_function_privilege('mw_chat_api_dev','public.pwa_chat_turn_presence_v1(jsonb,uuid,uuid,text)','EXECUTE') THEN RAISE EXCEPTION 'V106 presence reaches the wrong capability'; END IF;
 END $$;
 SELECT 'Chat regression passed' AS result;
 ROLLBACK;

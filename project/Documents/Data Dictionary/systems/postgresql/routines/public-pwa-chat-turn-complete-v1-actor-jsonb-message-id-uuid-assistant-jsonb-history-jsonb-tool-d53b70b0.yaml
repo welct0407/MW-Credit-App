@@ -8,9 +8,11 @@
 "verification":
   "status": "documented"
   "source": "database/migrations/V104__pwa_chat.sql"
-  "coverage": "R090 definition (V104, 23 October 2026), reviewed from the migration source and applied to a disposable PostgreSQL\
-    \ 18 rebuild with stub roles and a stub \"Partners\" table; not captured from DEV or PROD, which have not received V104\
-    \ yet. Owner mw_chat_owner_<env>; the ACL shown is the rebuild. "
+  "coverage": "R090 definition (V104 with V106 batch 2c changes applied: pwa_chat_messages.detached_at, the widened immutability\
+    \ rule, the replaced turn_begin and turn_complete, and pwa_chat_turn_presence_v1; 23 October 2026), reviewed from the\
+    \ migration source and applied to a disposable PostgreSQL 18 rebuild with stub roles and a stub \"Partners\" table; not\
+    \ captured from DEV or PROD (DEV has V104 and V105 only; V106 is pending). Owner mw_chat_owner_<env>; the ACL shown is\
+    \ the rebuild. "
 "content":
   "definition":
     "schema": "public"
@@ -32,6 +34,7 @@
        SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads x ON x.id=m.thread_id WHERE m.id=message_id AND m.role='user' AND x.partner_id=partner;
        IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
        SELECT * INTO t FROM public.pwa_chat_threads x WHERE x.id=u.thread_id FOR UPDATE;
+       SELECT m.* INTO u FROM public.pwa_chat_messages m WHERE m.id=u.id FOR UPDATE;
        IF assistant IS NULL OR jsonb_typeof(assistant)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(assistant) key) IS DISTINCT FROM
          ARRAY['attempts','cachedTokens','errorCode','latencyMs','model','outputTokens','promptTokens','rounds','status','text','thinkingLevel','thoughtsTokens']::text[]
         OR assistant->>'status' NOT IN ('ok','failed') OR jsonb_typeof(assistant->'text')<>'string' OR jsonb_typeof(assistant->'model')<>'string'
@@ -78,7 +81,7 @@
        first_line:=left(btrim(split_part(btrim(u.text,E' \t\r\n'),E'\n',1),E' \t\r'),120);
        n:=CASE WHEN t.title='New chat' AND first_line<>'' AND first_line !~ '[[:cntrl:]]' THEN first_line ELSE t.title END;
        UPDATE public.pwa_chat_threads x SET message_count=x.message_count+1,last_message_at=clock_timestamp(),title=n WHERE x.id=t.id;
-       RETURN public.pwa_chat_message_json_v1(a);
+       RETURN public.pwa_chat_message_json_v1(a)||jsonb_build_object('detached',u.detached_at IS NOT NULL);
       END $function$
     "owner": "mw_chat_owner_prod"
     "language": "plpgsql"

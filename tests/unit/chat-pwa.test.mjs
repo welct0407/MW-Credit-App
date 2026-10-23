@@ -8,7 +8,7 @@ import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environmen
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
 const {createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
-const {failureText,failureAction,failureActionLabel,progressText,sourcesText,threadTitle,relativeTime}=await load('chat-text.ts');
+const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
 
 test('SSE parser reads events across chunk boundaries, CRLF, multi-line data and pings',()=>{
@@ -25,8 +25,8 @@ test('SSE parser drops an event cut off by the end of the body and dispatches ba
 });
 test('turn reducer: tool_round retract is silent, ungrounded and too_long show the check label until new text',()=>{
  let s=initialTurn();
- for(const [name,data] of [['accepted',{messageId:'m',seq:4,model:'x'}],['round',{n:1}],['tool',{callId:'a',name:'read_records',state:'running'}],['tool',{callId:'b',name:'sql_query',state:'running'}],['tool',{callId:'a',name:'read_records',state:'ok',ms:5,summary:'Loans'}]])s=applyTurnEvent(s,name,data);
- assert.equal(s.accepted,true);assert.equal(s.seq,4);assert.equal(s.round,1);assert.deepEqual(s.tools.map(t=>[t.callId,t.state,t.summary]),[['a','ok','Loans'],['b','running',undefined]]);
+ for(const [name,data] of [['accepted',{messageId:'m',seq:4,model:'gemini-a'}],['round',{n:1}],['tool',{callId:'a',name:'read_records',state:'running'}],['tool',{callId:'b',name:'sql_query',state:'running'}],['tool',{callId:'a',name:'read_records',state:'ok',ms:5,summary:'Loans'}]])s=applyTurnEvent(s,name,data);
+ assert.equal(s.accepted,true);assert.equal(s.seq,4);assert.equal(s.model,'gemini-a');assert.equal(initialTurn().model,null);assert.equal(s.round,1);assert.deepEqual(s.tools.map(t=>[t.callId,t.state,t.summary]),[['a','ok','Loans'],['b','running',undefined]]);
  s=applyTurnEvent(s,'delta',{text:'Let me check'});assert.equal(s.provisional,'Let me check');
  s=applyTurnEvent(s,'retract',{reason:'tool_round',attempt:0});assert.equal(s.provisional,'');assert.equal(s.checking,false);
  s=applyTurnEvent(s,'round',{n:2});assert.deepEqual(s.tools,[]);
@@ -92,6 +92,9 @@ test('wording: failure reasons, progress row, sources line and placeholder title
  assert.equal(sourcesText([{name:'sql_query',count:2},{name:'loan_payoff',count:1}],false),'Checked: database (2 queries), loan payoff');
  assert.equal(sourcesText([{name:'sql_query',count:2}],true),'ตรวจแล้ว: ฐานข้อมูล (2 คำสั่ง)');
  assert.equal(sourcesText([],false),'');
+ // The answering model closes the line under a reply; either part may be absent.
+ assert.equal(metaLine('Checked: database (2 queries)','Gemini 4 Argon'),'Checked: database (2 queries) · Gemini 4 Argon');
+ assert.equal(metaLine('','Gemini 4 Argon'),'Gemini 4 Argon');assert.equal(metaLine('ตรวจแล้ว: ผลรวม',null),'ตรวจแล้ว: ผลรวม');assert.equal(metaLine(),'');
  assert.equal(threadTitle('New chat',true),'แชทใหม่');assert.equal(threadTitle('Payoff A',true),'Payoff A');
  const now=Date.parse('2026-10-23T12:00:00Z');
  assert.equal(relativeTime('2026-10-23T11:55:00Z',false,now),'5 minutes ago');assert.equal(relativeTime('2026-10-22T12:00:00Z',false,now),'yesterday');

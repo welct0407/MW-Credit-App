@@ -5588,6 +5588,10 @@
           "pointer": "/content/columns/created_at"
         },
         {
+          "subject": "detached_at",
+          "pointer": "/content/columns/detached_at"
+        },
+        {
           "subject": "pwa_chat_messages_attempts_check",
           "pointer": "/content/constraints/pwa_chat_messages_attempts_check"
         },
@@ -5614,6 +5618,10 @@
         {
           "subject": "pwa_chat_messages_created_at_not_null",
           "pointer": "/content/constraints/pwa_chat_messages_created_at_not_null"
+        },
+        {
+          "subject": "pwa_chat_messages_detached_check",
+          "pointer": "/content/constraints/pwa_chat_messages_detached_check"
         },
         {
           "subject": "pwa_chat_messages_error_code_check",
@@ -10932,6 +10940,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_chat_turn_complete_v1(actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-turn-presence-v1-actor-jsonb-thread-uuid-message-uuid-state-text-965ea21e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_turn_presence_v1(actor jsonb, thread uuid, message uuid, state text)",
       "scope": "production",
       "status": "documented",
       "lookup": []

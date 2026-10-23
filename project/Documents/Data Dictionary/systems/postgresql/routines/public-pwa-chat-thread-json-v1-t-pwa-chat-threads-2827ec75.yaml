@@ -8,9 +8,11 @@
 "verification":
   "status": "documented"
   "source": "database/migrations/V104__pwa_chat.sql"
-  "coverage": "R090 definition (V104, 23 October 2026), reviewed from the migration source and applied to a disposable PostgreSQL\
-    \ 18 rebuild with stub roles and a stub \"Partners\" table; not captured from DEV or PROD, which have not received V104\
-    \ yet. Owner mw_chat_owner_<env>; the ACL shown is the rebuild. "
+  "coverage": "R090 definition (V104 with V106 batch 2c changes applied: pwa_chat_messages.detached_at, the widened immutability\
+    \ rule, the replaced turn_begin and turn_complete, and pwa_chat_turn_presence_v1; 23 October 2026), reviewed from the\
+    \ migration source and applied to a disposable PostgreSQL 18 rebuild with stub roles and a stub \"Partners\" table; not\
+    \ captured from DEV or PROD (DEV has V104 and V105 only; V106 is pending). Owner mw_chat_owner_<env>; the ACL shown is\
+    \ the rebuild. "
 "content":
   "definition":
     "schema": "public"

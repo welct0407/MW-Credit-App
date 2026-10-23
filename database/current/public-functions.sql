@@ -3297,7 +3297,7 @@ BEGIN
   IF TG_TABLE_NAME='pwa_chat_threads' THEN
    IF NEW.id=OLD.id AND NEW.partner_id=OLD.partner_id AND NEW.created_at=OLD.created_at THEN RETURN NEW; END IF;
   ELSIF TG_TABLE_NAME='pwa_chat_messages' THEN
-   IF OLD.role='user' AND (to_jsonb(NEW)-'claimed_at')=(to_jsonb(OLD)-'claimed_at') THEN RETURN NEW; END IF;
+   IF OLD.role='user' AND (to_jsonb(NEW)-'claimed_at'-'detached_at')=(to_jsonb(OLD)-'claimed_at'-'detached_at') THEN RETURN NEW; END IF;
   END IF;
  END IF;
  RAISE EXCEPTION '% on % is not allowed (append-only chat journal)',TG_OP,TG_TABLE_NAME USING ERRCODE='55000';
@@ -3580,7 +3580,7 @@ BEGIN
   IF FOUND THEN RETURN jsonb_build_object('state','completed','user',public.pwa_chat_message_json_v1(u),'assistant',public.pwa_chat_message_json_v1(a)); END IF;
   IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=t.id AND m.role='user' AND m.claimed_at>clock_timestamp()-interval '5 minutes') THEN
    RAISE EXCEPTION 'turn_in_progress' USING ERRCODE='55006'; END IF;
-  UPDATE public.pwa_chat_messages m SET claimed_at=clock_timestamp() WHERE m.id=u.id RETURNING * INTO u;
+  UPDATE public.pwa_chat_messages m SET claimed_at=clock_timestamp(),detached_at=NULL WHERE m.id=u.id RETURNING * INTO u;
  ELSE
   IF t.status<>'active' THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
   IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=t.id AND m.role='user' AND m.claimed_at>clock_timestamp()-interval '5 minutes') THEN
@@ -3625,6 +3625,7 @@ BEGIN
  SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads x ON x.id=m.thread_id WHERE m.id=message_id AND m.role='user' AND x.partner_id=partner;
  IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
  SELECT * INTO t FROM public.pwa_chat_threads x WHERE x.id=u.thread_id FOR UPDATE;
+ SELECT m.* INTO u FROM public.pwa_chat_messages m WHERE m.id=u.id FOR UPDATE;
  IF assistant IS NULL OR jsonb_typeof(assistant)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(assistant) key) IS DISTINCT FROM
    ARRAY['attempts','cachedTokens','errorCode','latencyMs','model','outputTokens','promptTokens','rounds','status','text','thinkingLevel','thoughtsTokens']::text[]
   OR assistant->>'status' NOT IN ('ok','failed') OR jsonb_typeof(assistant->'text')<>'string' OR jsonb_typeof(assistant->'model')<>'string'
@@ -3671,7 +3672,7 @@ BEGIN
  first_line:=left(btrim(split_part(btrim(u.text,E' \t\r\n'),E'\n',1),E' \t\r'),120);
  n:=CASE WHEN t.title='New chat' AND first_line<>'' AND first_line !~ '[[:cntrl:]]' THEN first_line ELSE t.title END;
  UPDATE public.pwa_chat_threads x SET message_count=x.message_count+1,last_message_at=clock_timestamp(),title=n WHERE x.id=t.id;
- RETURN public.pwa_chat_message_json_v1(a);
+ RETURN public.pwa_chat_message_json_v1(a)||jsonb_build_object('detached',u.detached_at IS NOT NULL);
 END $_$;
 
 
@@ -3680,6 +3681,41 @@ END $_$;
 --
 
 COMMENT ON FUNCTION public.pwa_chat_turn_complete_v1(actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_turn_presence_v1(jsonb, uuid, uuid, text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_turn_presence_v1(actor jsonb, thread uuid, message uuid, state text) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); u public.pwa_chat_messages;
+BEGIN
+ IF thread IS NULL OR message IS NULL OR state IS NULL OR state NOT IN ('hidden','visible') THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ -- The user row is locked like the completion locks it: whichever runs second sees the other's result.
+ SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads t ON t.id=m.thread_id
+ WHERE m.id=message AND m.thread_id=thread AND t.partner_id=partner FOR UPDATE OF m;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='42501'; END IF;
+ IF u.role<>'user' THEN RETURN jsonb_build_object('state','idle'); END IF;
+ IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=u.thread_id AND m.seq=u.seq+1 AND m.role='assistant') THEN
+  RETURN jsonb_build_object('state','completed'); END IF;
+ IF u.claimed_at IS NULL THEN RETURN jsonb_build_object('state','idle'); END IF;
+ IF state='hidden' AND u.detached_at IS NULL THEN
+  UPDATE public.pwa_chat_messages m SET detached_at=clock_timestamp() WHERE m.id=u.id RETURNING * INTO u;
+ ELSIF state='visible' AND u.detached_at IS NOT NULL THEN
+  UPDATE public.pwa_chat_messages m SET detached_at=NULL WHERE m.id=u.id RETURNING * INTO u;
+ END IF;
+ RETURN jsonb_build_object('state','claimed','detached',u.detached_at IS NOT NULL);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_chat_turn_presence_v1(actor jsonb, thread uuid, message uuid, state text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_turn_presence_v1(actor jsonb, thread uuid, message uuid, state text) IS 'mw-access:governance fixed chat boundary; explicit capability only';
 
 
 --

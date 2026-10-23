@@ -20,9 +20,10 @@ export class ChatAccessError extends Error{readonly fatal=true;constructor(){sup
 
 /** Design §3.4: chat requests carry X-MW-Wake-Deadline = now + 250 s. */
 export const WAKE_MS=250000;
-async function send(access:ChatAccess,path:string,{method='GET',body,signal,accept}:{method?:string;body?:unknown;signal?:AbortSignal;accept?:string}={}){
- if(access.awaitStartup)await access.awaitStartup();
- const token=await access.token();
+/** `token`: an ID token the caller already holds (the turn keeps the one it was sent with, batch 2c). */
+async function send(access:ChatAccess,path:string,{method='GET',body,signal,accept,token:held}:{method?:string;body?:unknown;signal?:AbortSignal;accept?:string;token?:string}={}){
+ let token=held;
+ if(token===undefined){if(access.awaitStartup)await access.awaitStartup();token=await access.token()}
  const headers:Record<string,string>={Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(Date.now()+WAKE_MS)};
  if(body!==undefined)headers['Content-Type']='application/json';
  if(accept)headers.Accept=accept;
@@ -69,15 +70,62 @@ export async function getThread(access:ChatAccess,id:string,signal?:AbortSignal)
 }
 export const updateThread=(access:ChatAccess,id:string,patch:{title?:string;model?:string;status?:'active'|'archived'})=>write<{item:ChatThread}>(access,threadPath(id),'PATCH',patch).then(value=>value.item);
 
+/** The presence of the asking device on one running turn (batch 2c, Archie D4). */
+export type TurnPresence={arm(token:string):void;stop():void};
+const keepaliveFetch=()=>typeof Request==='function'&&'keepalive' in Request.prototype;
+/**
+ * Reports the asking device leaving its running turn, so the service pushes the reply (Cloud Run never passes the
+ * client's close on). On visibilitychange to hidden or pagehide, synchronously and once per hide: the beacon form
+ * (text/plain {token, state:'hidden'}, no Authorization, so a CORS simple request without a preflight) as a
+ * keepalive fetch, or navigator.sendBeacon where keepalive is missing. On the way back (visible, pageshow) the JSON
+ * form clears the mark with a fresh ID token (the turn's token may have expired while away); it runs in the
+ * background while the outcome poll starts. Presence is best effort: its failures (a 401 included) are ignored and
+ * never reach access.authFailure; the poll reports access problems. Inactive until `arm` hands it the ID token the
+ * turn was sent with (getIdToken may not resolve once the page is hidden); stops with `signal` or `stop`. A lost
+ * beacon fails safe: no push, and the reply shows on return.
+ */
+export function turnPresence(access:ChatAccess,threadId:string,messageId:string,signal?:AbortSignal):TurnPresence{
+ const path=threadPath(threadId)+'/messages/'+encodeURIComponent(messageId)+'/presence';
+ let token:string|null=null,away=false,stopped=false;
+ const leave=()=>{
+  if(stopped||away||!token)return;
+  away=true;
+  const url=new URL(path,access.origin).href,body=JSON.stringify({token,state:'hidden'});
+  try{
+   if(keepaliveFetch()){void fetch(url,{method:'POST',keepalive:true,credentials:'omit',cache:'no-store',headers:{'Content-Type':'text/plain'},body}).catch(()=>{});return}
+  }catch{/* fall back to the beacon */}
+  try{navigator.sendBeacon?.(url,new Blob([body],{type:'text/plain'}))}catch{/* fail safe: no push */}
+ };
+ const back=()=>{
+  if(stopped||!away||document.visibilityState==='hidden'||!token)return;
+  away=false;
+  void (async()=>{
+   try{
+    const fresh=await access.token();
+    await fetch(new URL(path,access.origin).href,{method:'POST',body:JSON.stringify({state:'visible'}),cache:'no-store',credentials:'omit',redirect:'error',
+     headers:{Authorization:'Bearer '+fresh,'Content-Type':'application/json','X-MW-Wake-Deadline':String(Date.now()+WAKE_MS)}});
+   }catch{/* best effort: the poll shows the reply either way */}
+  })();
+ };
+ const visibility=()=>{if(document.visibilityState==='hidden')leave();else back()};
+ const stop=()=>{
+  if(stopped)return;stopped=true;
+  document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pagehide',leave);window.removeEventListener('pageshow',back);signal?.removeEventListener('abort',stop);
+ };
+ document.addEventListener('visibilitychange',visibility);window.addEventListener('pagehide',leave);window.addEventListener('pageshow',back);
+ signal?.addEventListener('abort',stop,{once:true});if(signal?.aborted)stop();
+ return {arm(value){if(!stopped)token=value},stop};
+}
+
 export type TurnResult={kind:'stream';complete:boolean;detached?:boolean}|{kind:'completed';user:ChatMessage;assistant:ChatMessage|null};
 /**
  * Sends one message and streams its events to `onEvent`. Returns `complete:false` when the body ended (or went
  * silent for `idleMs`; the service pings every 15 s) before `done`: the caller then polls the outcome. A re-POST
  * of a finished message answers JSON `{user, assistant}`. HTTP errors throw ChatHttpError; 401/403 ChatAccessError.
- * Batch 2 (B3, "app active"): the stream is aborted at once when the page is hidden or left (visibilitychange to
- * hidden, pagehide), so the service sees the device detach and pushes the reply; the result then has `detached`.
+ * The stream is aborted at once when the page is hidden or left (visibilitychange to hidden, pagehide); the result
+ * then has `detached`. `presence` (batch 2c) receives the ID token the turn is sent with, before the request.
  */
-export async function streamTurn(access:ChatAccess,threadId:string,body:{id:string;text:string;model?:string},onEvent:(name:string,data:unknown)=>void,{signal,idleMs=45000}:{signal?:AbortSignal;idleMs?:number}={}):Promise<TurnResult>{
+export async function streamTurn(access:ChatAccess,threadId:string,body:{id:string;text:string;model?:string},onEvent:(name:string,data:unknown)=>void,{signal,idleMs=45000,presence}:{signal?:AbortSignal;idleMs?:number;presence?:TurnPresence}={}):Promise<TurnResult>{
  const controller=new AbortController();let detached=false;
  const forward=()=>controller.abort(signal?.reason);signal?.addEventListener('abort',forward,{once:true});if(signal?.aborted)forward();
  const leave=()=>{if(detached||controller.signal.aborted)return;detached=true;controller.abort(new DOMException('Page hidden','AbortError'))};
@@ -87,8 +135,11 @@ export async function streamTurn(access:ChatAccess,threadId:string,body:{id:stri
  try{
   if(document.visibilityState==='hidden')leave();
   let response:Response;
-  try{response=await send(access,threadPath(threadId)+'/messages',{method:'POST',body,signal:controller.signal,accept:'text/event-stream'})}
-  catch(error){if(detached&&!signal?.aborted)return {kind:'stream',complete:false,detached:true};throw error}
+  try{
+   if(access.awaitStartup)await access.awaitStartup();
+   const token=await access.token();presence?.arm(token);
+   response=await send(access,threadPath(threadId)+'/messages',{method:'POST',body,signal:controller.signal,accept:'text/event-stream',token});
+  }catch(error){if(detached&&!signal?.aborted)return {kind:'stream',complete:false,detached:true};throw error}
   if(!response.ok)throw await failure(response);
   if(!/text\/event-stream/i.test(response.headers.get('Content-Type')??'')){
    const value=await response.json() as {user:ChatMessage;assistant:ChatMessage|null};

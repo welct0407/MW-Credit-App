@@ -4,7 +4,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {createChatHandler,BODY_LIMIT} from '../../services/chat/handler.mjs';
+import {readFileSync} from 'node:fs';
+import {createChatHandler,BODY_LIMIT,PRESENCE_LIMIT} from '../../services/chat/handler.mjs';
 import {createVertexTransport} from '../../services/chat/gemini.mjs';
 import {createChatTools} from '../../services/chat/tools.mjs';
 import {loadBusinessConfig} from '../../services/production/business-config.mjs';
@@ -19,7 +20,8 @@ const reply=text=>[chunk([{text:text.slice(0,3)}]),chunk([{text:text.slice(3)}],
 const sse=events=>new Response(events.map(e=>`data: ${JSON.stringify(e)}\n\n`).join(''),{status:200});
 const id=n=>`${String(n).padStart(8,'0')}-0000-4000-8000-000000000000`;
 
-/** In-memory store with the RPC semantics the handler relies on. */
+/** In-memory store with the RPC semantics the handler relies on (V106: presence marks the claimed user row; the
+ * completion reports detached and records the reply event only for a stream, as store.mjs does). */
 function memoryStore(){
  const threads=new Map(),messages=new Map(),log=[];let clock=Date.UTC(2026,9,23,3);
  const actor=p=>{const partnerId=PARTNERS[p.email];if(!partnerId)throw Error('access_denied');return {issuer:config.issuer,subject:p.subject,partnerId,loginEmail:p.email};};
@@ -46,15 +48,24 @@ function memoryStore(){
    if(existing){const answer=list.find(m=>m.seq===existing.seq+1);if(answer)return {actor:a,value:{state:'completed',user:msg(existing),assistant:msg(answer)}};}
    if(list.some(m=>m.claimed))throw Object.assign(Error('turn_in_progress'),{code:'55006'});
    if(model)t.model=model;
-   const u={id:mid,seq:list.length+1,role:'user',text,status:'ok',claimed:true};list.push(u);t.messageCount++;
+   log.push(['begin',mid]);
+   const u={id:mid,seq:list.length+1,role:'user',text,status:'ok',claimed:true,detached:false};list.push(u);t.messageCount++;
    return {actor:a,value:{state:'claimed',message:{id:mid,seq:u.seq,createdAt:'2026-10-23T03:00:00.000Z'},thread:{id:tid,model:t.model,title:t.title,messageCount:t.messageCount},partnerLanguage:'English',history:null,seed:[]}};},
+  async presence(p,tid,mid,state){
+   const a=actor(p);own(a,tid);log.push(['presence',mid,state]);
+   const list=messages.get(tid),u=list.find(m=>m.id===mid);if(!u)throw Object.assign(Error('not_found'),{code:'42501'});
+   if(u.role!=='user')return {state:'idle'};
+   if(list.some(m=>m.seq===u.seq+1))return {state:'completed'};
+   if(!u.claimed)return {state:'idle'};
+   u.detached=state==='hidden';return {state:'claimed',detached:u.detached};},
   async complete(p,mid,assistant,history,toolCalls,notify=null){
    const a=actor(p);log.push(['complete',mid,assistant,history,toolCalls,notify]);
    if(store.completeFail){const failure=store.completeFail;store.completeFail=null;throw failure;}
    const t=[...threads.values()].find(x=>messages.get(x.id).some(m=>m.id===mid));own(a,t.id);
    const list=messages.get(t.id),u=list.find(m=>m.id===mid);u.claimed=false;
    const row={id:id(900+list.length),seq:u.seq+1,role:'assistant',text:assistant.text,status:assistant.status,model:assistant.model};list.push(row);t.messageCount++;
-   return {...msg(row),usage:{promptTokens:assistant.promptTokens},tools:toolCalls.length?[{name:toolCalls[0].name,count:toolCalls.length}]:undefined,...(assistant.errorCode?{errorCode:assistant.errorCode}:{})};},
+   if(notify&&u.detached)log.push(['notify',notify.thread,mid,assistant.status==='ok'?'ok':'failed'],['wake',mid]);
+   return {message:{...msg(row),usage:{promptTokens:assistant.promptTokens},tools:toolCalls.length?[{name:toolCalls[0].name,count:toolCalls.length}]:undefined,...(assistant.errorCode?{errorCode:assistant.errorCode}:{})},detached:u.detached};},
  };
  return store;
 }
@@ -62,9 +73,11 @@ function memoryStore(){
 async function server({script=[],store=memoryStore(),pingMs=15000,delay=0}={}){
  const revocation=[];
  const verifyPrincipal=async(authorization,options)=>{revocation.push(options?.checkRevoked!==false);
-  const m=/^Bearer token-(\w+)$/.exec(authorization??'');if(!m)return {ok:false,status:401,code:'sign_in_required'};
-  if(m[1]==='expired')return {ok:false,status:401,code:'session_invalid'};
-  return {ok:true,subject:'sub-'+m[1],email:`${m[1]}@example.invalid`};};
+  // 'token-a' in the header; the beacon's body token is JWT-shaped ('jwt.a.sig').
+  const m=/^Bearer (?:token-(\w+)|jwt\.(\w+)\.sig)$/.exec(authorization??'');if(!m)return {ok:false,status:401,code:'sign_in_required'};
+  const who=m[1]??m[2];
+  if(who==='expired')return {ok:false,status:401,code:'session_invalid'};
+  return {ok:true,subject:'sub-'+who,email:`${who}@example.invalid`};};
  const transport=createVertexTransport({projectId:'clever-oasis-508610-n7',location:'global',getToken:async()=>'t',sleep:async()=>{},
   fetch:async()=>{await new Promise(r=>setTimeout(r,delay));const next=script.shift();if(!next)throw Error('script exhausted');return next instanceof Response?next:sse(next);}});
  const readProvider={catalogue:async()=>({manifestSha256:'m',resources:[]}),query:async()=>({rows:[{'Row ID':'C1','Amount Remaining':'1000.00'}]})};
@@ -74,7 +87,9 @@ async function server({script=[],store=memoryStore(),pingMs=15000,delay=0}={}){
  const srv=http.createServer(handler);await new Promise(r=>srv.listen(0,'127.0.0.1',r));
  const base=`http://127.0.0.1:${srv.address().port}`;
  const call=(path,{method='GET',token='a',body,headers={},raw,signal}={})=>fetch(base+path,{method,signal,headers:{...(token?{Authorization:'Bearer token-'+token}:{}),...(body!==undefined||raw!==undefined?{'Content-Type':'application/json'}:{}),...headers},body:raw??(body===undefined?undefined:JSON.stringify(body))});
- return {call,store,logs,revocation,close:()=>new Promise(r=>srv.close(r))};
+ /** The hidden beacon: text/plain JSON with the ID token, no Authorization (a CORS simple request). */
+ const beacon=(path,body,headers={})=>fetch(base+path,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8',...headers},body:typeof body==='string'?body:JSON.stringify(body)});
+ return {call,beacon,store,logs,revocation,close:()=>new Promise(r=>srv.close(r))};
 }
 /** Parses an SSE body into [name, data] pairs and counts ping comments. */
 async function events(response){
@@ -205,18 +220,80 @@ test('a commit that fails (not a late completion) stores a failed INTERNAL reply
  assert.equal(s.store.log.filter(x=>x[0]==='complete').length,before+1);
 });
 
-test('batch 2: a turn whose stream closed records the reply event; an attached stream and ?stream=0 never do',async t=>{
- const s=await server({delay:150,script:[reply('Hello'),reply('Gone'),reply('Plain')]});t.after(s.close);
+/** Waits (bounded) until the store log holds an entry. */
+async function until(store,predicate){
+ const deadline=Date.now()+5000;while(!store.log.some(predicate)&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));
+ assert.ok(store.log.some(predicate),'store log entry not reached');
+}
+
+test('batch 2c: only a stream whose device reported leaving records the reply event; attached and ?stream=0 never do',async t=>{
+ const s=await server({delay:150,script:[reply('Hello'),reply('Gone'),reply('Back'),reply('Plain')]});t.after(s.close);
  await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ const presence=mid=>`/api/chat/threads/${T1}/messages/${mid}/presence`;
+ // Attached: the stream runs to its end.
  await events(await s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:M1,text:'Hi'},headers:{Accept:'text/event-stream'}}));
- // The device leaves mid-turn (the PWA aborts on hidden or pagehide): the completion carries the thread to notify.
- const controller=new AbortController();
- const response=await s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:M2,text:'Again'},headers:{Accept:'text/event-stream'},signal:controller.signal});
- const reader=response.body.getReader();await reader.read();controller.abort();
- const deadline=Date.now()+5000;while(!s.store.log.some(x=>x[0]==='complete'&&x[1]===M2)&&Date.now()<deadline)await new Promise(r=>setTimeout(r,20));
- const plain=await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:id(15),text:'Plain'}});assert.equal(plain.status,200);
- const notify=Object.fromEntries(s.store.log.filter(x=>x[0]==='complete').map(x=>[x[1],x[5]]));
- assert.deepEqual(notify,{[M1]:null,[M2]:{thread:T1},[id(15)]:null});
+ // Left: the hidden beacon marks the turn; the stream is read to its end (Cloud Run never reports the client's close).
+ const left=s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:M2,text:'Again'},headers:{Accept:'text/event-stream'}});
+ await until(s.store,x=>x[0]==='begin'&&x[1]===M2);
+ assert.equal((await s.beacon(presence(M2),{token:'jwt.a.sig',state:'hidden'})).status,204);
+ const gone=await events(await left);assert.ok(gone.names.includes('message'));
+ assert.equal('detached' in gone.list.find(([n])=>n==='message')[1],false);
+ // Left and came back before the reply: visible clears the mark.
+ const back=s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:id(16),text:'Back'},headers:{Accept:'text/event-stream'}});
+ await until(s.store,x=>x[0]==='begin'&&x[1]===id(16));
+ assert.equal((await s.beacon(presence(id(16)),{token:'jwt.a.sig',state:'hidden'})).status,204);
+ assert.equal((await s.call(presence(id(16)),{method:'POST',body:{state:'visible'}})).status,204);
+ await events(await back);
+ // ?stream=0 never notifies, even when marked.
+ const plainTurn=s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:id(15),text:'Plain'}});
+ await until(s.store,x=>x[0]==='begin'&&x[1]===id(15));
+ assert.equal((await s.beacon(presence(id(15)),{token:'jwt.a.sig',state:'hidden'})).status,204);
+ assert.equal((await plainTurn).status,200);
+ const completes=s.store.log.filter(x=>x[0]==='complete');
+ assert.deepEqual(Object.fromEntries(completes.map(x=>[x[1],x[5]])),{[M1]:{thread:T1},[M2]:{thread:T1},[id(16)]:{thread:T1},[id(15)]:null});
+ // The reply event and then the wake, for the left stream only.
+ assert.deepEqual(s.store.log.filter(x=>x[0]==='notify'||x[0]==='wake'),[['notify',T1,M2,'ok'],['wake',M2]]);
+ assert.deepEqual(s.logs.filter(l=>l.event==='chat_turn_attachment').map(l=>[l.messageId,l.stream,l.detached]),[[M1,true,false],[M2,true,true],[id(16),true,false],[id(15),false,true]]);
+ // The connection-close rule is gone (it never fired behind Cloud Run).
+ assert.doesNotMatch(readFileSync(new URL('../../services/chat/handler.mjs',import.meta.url),'utf8'),/attached\s*\(|res\.on\('close'/);
+});
+
+test('batch 2c: presence accepts the JSON and the beacon form, validates, scopes per Partner and needs no preflight',async t=>{
+ const s=await server({delay:150,script:[reply('Hello')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ const path=`/api/chat/threads/${T1}/messages/${M1}/presence`;
+ const turn=s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:M1,text:'Hi'},headers:{Accept:'text/event-stream'}});
+ await until(s.store,x=>x[0]==='begin'&&x[1]===M1);
+ s.revocation.length=0;
+ // The beacon form: a simple request (no OPTIONS first), the CORS origin header, an empty 204.
+ let r=await s.beacon(path,{token:'jwt.a.sig',state:'hidden'},{Origin:ORIGIN});
+ assert.equal(r.status,204);assert.equal(r.headers.get('access-control-allow-origin'),ORIGIN);assert.equal(await r.text(),'');
+ r=await s.beacon(path,{state:'hidden',token:'jwt.a.sig'},{'Content-Type':'text/plain'});assert.equal(r.status,204);
+ // The JSON form with Authorization.
+ r=await s.call(path,{method:'POST',body:{state:'visible'},headers:{Origin:ORIGIN}});assert.equal(r.status,204);assert.equal(r.headers.get('access-control-allow-origin'),ORIGIN);
+ assert.deepEqual(s.revocation,[false,false,false]);
+ assert.deepEqual(s.store.log.filter(x=>x[0]==='presence').map(x=>x[2]),['hidden','hidden','visible']);
+ assert.deepEqual(s.logs.filter(l=>l.event==='chat_turn_presence').map(l=>[l.state,l.form,l.result,l.detached]),[['hidden','beacon','claimed',true],['hidden','beacon','claimed',true],['visible','json','claimed',false]]);
+ // Bad state, malformed or oversized bodies, mixed forms and other content types: 400 before any identity check.
+ for(const [body,headers] of [[{token:'jwt.a.sig',state:'away'}],[{token:'jwt.a.sig'}],[{token:'jwt.a.sig',state:'hidden',extra:1}],['{bad'],['[]'],
+  [{token:'not a token',state:'hidden'}],[{token:7,state:'hidden'}],[{token:'jwt.a.sig',state:'hidden'},{Authorization:'Bearer token-a'}],
+  [{token:'jwt.a.sig',state:'hidden'},{'Content-Type':'application/x-www-form-urlencoded'}],[{token:'jwt.'+'a'.repeat(PRESENCE_LIMIT)+'.sig',state:'hidden'}]])
+  assert.equal((await s.beacon(path,body,headers)).status,400,JSON.stringify([body,headers]));
+ for(const body of [{state:'away'},{state:'visible',token:'jwt.a.sig'},{}])assert.equal((await s.call(path,{method:'POST',body})).status,400,JSON.stringify(body));
+ assert.equal((await s.call(`/api/chat/threads/${T1}/messages/${M1}/presence?x=1`,{method:'POST',body:{state:'visible'}})).status,400);
+ // Identity: a bad token 401; another Partner, an unknown message or thread 404; GET is no route.
+ assert.equal((await s.beacon(path,{token:'jwt.expired.sig',state:'hidden'})).status,401);
+ assert.equal((await s.call(path,{method:'POST',token:null,body:{state:'visible'}})).status,401);
+ assert.equal((await s.beacon(path,{token:'jwt.b.sig',state:'hidden'})).status,404);
+ assert.equal((await s.call(`/api/chat/threads/${T1}/messages/${M2}/presence`,{method:'POST',body:{state:'hidden'}})).status,404);
+ assert.equal((await s.call(`/api/chat/threads/${id(98)}/messages/${M1}/presence`,{method:'POST',body:{state:'hidden'}})).status,404);
+ assert.equal((await s.call(path)).status,404);
+ // The JSON form's preflight is granted like any POST.
+ r=await s.call(path,{method:'OPTIONS',token:null,headers:{Origin:ORIGIN,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'authorization,content-type'}});assert.equal(r.status,204);
+ await events(await turn);
+ // After the reply the mark changes nothing.
+ r=await s.beacon(path,{token:'jwt.a.sig',state:'hidden'});assert.equal(r.status,204);
+ assert.equal(s.logs.filter(l=>l.event==='chat_turn_presence').at(-1).result,'completed');
 });
 
 test('batch 2: GET one thread returns the caller\'s own record; another Partner gets 404, a bad id 400',async t=>{

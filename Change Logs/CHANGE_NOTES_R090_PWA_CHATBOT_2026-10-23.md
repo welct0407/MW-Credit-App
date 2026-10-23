@@ -30,6 +30,12 @@ Implements the owner-approved design [`project/outputs/r090-pwa-chatbot/DESIGN.m
   - **Terraform (Forge):** `chat_dispatch_enabled` and `jobs_dispatch_enabled` (default off) in the workers module; command `cpu_idle=false` in DEV and PROD; the Claude changes reverted.
   - **DEV jobs (Forge, live, 23 October 2026):** DEV jobs had never been enabled; enabled at 13:39Z with the three schedulers, charges caught up for 22 and 23 October through `generate_due_charges` as `postgres`; first scheduled run 24 October 00:05 Bangkok (readback pending). Detail and pins: [Environment inventory](../project/Documents/Environment_Inventory.md). PROD command wake is live.
   - **Records (Dewey):** Data Dictionary: new routine records `pwa_notify_chat_reply_v1`, `pwa_job_status_v1` and `pwa_chat_thread_v1`; the three replaced notify routines and the `pwa_notification_events` constraints updated; `pwa_chat_threads` and `pwa_chat_messages` ACLs; 438 documents, 0 errors. All `documented` from V105 and a disposable PostgreSQL 18 rebuild with stub prerequisites, not captured. The agent digest stays unchanged (`public.pwa_` functions are excluded) and its check passes.
+- **Batch 2 on DEV (Forge, 23 October 2026).** Image build, V105 (backup at V104 first, restore-verified with 37 table fingerprints; reconcile 0), Terraform (plan 2 add, 4 change, 0 destroy) and Hosting were applied between about 15:02Z and 15:18Z; the reader stayed on its earlier image. Pins, revisions, checksum and rollback points: [Environment inventory](../project/Documents/Environment_Inventory.md). The owner's retest at 15:20Z to 15:27Z: `gemini-4-argon` ok in 41.9 s, `gemini-3.8-flash` failed `MODEL_UNAVAILABLE` after 7 Vertex 429 attempts over 219.6 s, `gemini-3.5-flash` ok in 65.8 s, and no push arrived. Cause (Forge): Cloud Run never propagated the client abort to the container on the HTTP/1.1 SSE path, so the server-side `res` close rule never fired and no `chat.reply` event was recorded; eligibility was fine (one Apple subscription, pinned device matches, preference on).
+- **Batch 2c (owner decisions of 23 October 2026: show the answering model at the end of each answer; approve the new nullable column `pwa_chat_messages.detached_at`, the only new column of R090).** Design: "Batch 2c" (Archie) below, built as V106 because V105 is applied on DEV and immutable.
+  - **V106** (`database/migrations/V106__chat_turn_presence.sql`): the column with `CHECK (role='user' OR detached_at IS NULL)`; the immutability trigger widened to `claimed_at` and `detached_at`; `turn_begin` resets it on a (re-)claim; `turn_complete` locks the thread, then the user row, and returns `detached`; new `pwa_chat_turn_presence_v1(actor, thread, message, state)` (chat owner, `EXECUTE` for `mw_chat_api` only, so the api role holds 11 routines). Window: chat owner only ([database README](../database/README.md#chat-turn-presence-v106-r090-batch-2c)).
+  - **Service and PWA (Byte):** route `POST /api/chat/threads/:id/messages/:messageId/presence` (JSON with `Authorization`, or a `text/plain` beacon body `{token,state}` without preflight; the token is verified like the header, `checkRevoked` false, never logged); the server `attached()` rule is removed; the client sends a keepalive request (or `sendBeacon`) on hidden and `pagehide`, and on visible clears the flag and polls; logs `chat_turn_attachment` (database flag) and `chat_turn_presence`. Model label: appended to the sources line ("Checked: … · Gemini 4 Argon"), its own line under a failed reply, provisional "checking figures · <model>", the raw id for a retired model.
+  - **Deviations from the design:** presence takes the thread id too; a hide before the claim commits answers 404 and sends no push; turns resumed after a reload send no presence. Known and accepted: a rare late hidden-after-visible beacon can give one push over an open app.
+  - **Records (Dewey):** Data Dictionary refreshed from V104 to V106 on a disposable PostgreSQL 18 rebuild (the `pwa_chat_messages` column and check, the presence routine, the changed `turn_begin`, `turn_complete` and immutability routines; 439 documents, 0 errors); not a capture.
 
 ## Design resolutions (Archie)
 
@@ -114,8 +120,12 @@ DEV end to end (one pass after the DEV deploy, Chase or the orchestrator, synthe
 | Batch 2 (Byte, uncommitted tree on `36f2166`): typecheck, lint, unit, database CI, Playwright | Typecheck 0; lint 0 errors; `node --test` on `chat-*`, `notification-*`, `postcommit-order`, `worker-*` 132 tests, 131 pass, 1 skip; lab `Test-Chat`, `Test-AccessMatrix`, `Test-NotifyContent` pass; `public-functions.sql` regenerated; schema digest check 0; `mw-db-ci` migrations and phase8 exit 0; `chat.spec.ts` 24 passed |
 | Batch 2 Terraform (Forge) | Pass: workers module 18, dev 32, prod 25 |
 | Batch 2 review (Chase) | No blockers; 1 should-fix (cold-start wake budget) and notes fixed by Byte; re-check verified all four fixes and the Terraform diff (`worker-runtime`, `notification-wakeup`, `chat-handler`, `chat-config` 39 pass); its one note (a failed thread load after a notification tap stayed silent) fixed: `chat-pwa` unit 10/10, `chat.spec.ts` 26 passed, typecheck 0, lint 0 errors |
+| Batch 2 DEV deploy (Forge, 15:02Z to 15:18Z, 23 October 2026) | Image build and container smoke ok; V105 Flyway installed (checksum 1485196061, 5.1 s), reconcile 0; Terraform plan 2 add, 4 change, 0 destroy applied; Hosting delivered; pins in the inventory |
+| Owner retest of the three models on DEV after batch 2 (15:20Z to 15:27Z) | Two answers ok (41.9 s and 65.8 s); one `MODEL_UNAVAILABLE` after 7 Vertex 429 attempts over 219.6 s; no push (the cause is batch 2c) |
+| Batch 2c (Byte, uncommitted tree): typecheck, lint, unit, lab, database CI, Playwright | Typecheck pass; lint 0 errors; unit 145 pass; lab Flyway to 106 plus `Test-Chat` and `Test-AccessMatrix` pass; schema digest rebuilt (version number only); `mw-db-ci` migrations and phase8 exit 0; `chat.spec.ts` 28 |
+| Batch 2c review (Chase) | No blockers; 1 should-fix (a visible presence call with a stale token shows the wrong expired card) fixed by Byte (fresh token for the visible call, failures ignored; new e2e "a failed visible presence (expired token, 401) is ignored"): typecheck pass, lint 0 errors, unit 145 pass, `chat.spec.ts` 30 passed |
 | Batch 2 accuracy check (design B5) and DEV end to end after the batch 2 deploy | Placeholder: after the DEV deploy |
-| `python3 project/scripts/dictionary/dictionary.py validate` (Dewey, after the batch 2 records) | Pass, 438 documents, 0 errors |
+| `python3 project/scripts/dictionary/dictionary.py validate` (Dewey, after the batch 2c records) | Pass, 439 documents, 0 errors |
 | `python3 integration-agent/scripts/build-schema-digest.py --check` (Dewey) | Pass, digest unchanged |
 | `PYTHONPATH=src python3 -m unittest discover -s tests -p test_schema_digest.py` in `integration-agent/` (Dewey) | Pass, 8 tests |
 | `node scripts/check-docs.mjs` (Dewey, final run on this tree) | Pass, 0 failures, 0 warnings |
@@ -123,7 +133,7 @@ DEV end to end (one pass after the DEV deploy, Chase or the orchestrator, synthe
 ## Not run
 - DEV end to end (Chase): not run. DEV has no non-interactive Partner sign-in, and minting a custom token for a real Partner on the shared Firebase project was rejected as not an established route. Not exercised on DEV: three models by three example questions (including the first real `gemini-3.5-flash` answer), a mid-turn disconnect (`cpu_idle=false`), the forced ungrounded retract (unit tests only), the `monitoring.pwa_chat_recent_questions_v1` readback and the cross-Partner 404 (covered by `Test-Chat.sql` and the handler unit tests). The owner's DEV review covers the first real run.
 - The V104 apply on PROD, its operator steps and the PROD Terraform apply: not done; `chat_authorized` stays off. DEV is done (see Checks), which also exercised V104's non-superuser ownership branch that database CI (superuser) cannot.
-- Batch 2 on DEV and PROD: V105, the Terraform changes, the worker images and the PWA are not deployed or applied anywhere; V105 has run only on database CI and a disposable rebuild. The B5 accuracy comparison, an actual chat push on a device, the first scheduled DEV daily-charge run (24 October 00:05 Bangkok) and the `cpu_idle=false` cost on the command service are unverified.
+- Batch 2 on PROD: nothing applied. Batch 2c on DEV and PROD: V106, the service and the PWA are not deployed; V106 has run only on database CI and a disposable rebuild. Unverified: a real chat push on a device (the first DEV test failed; batch 2c is the fix), the B5 accuracy comparison, the first scheduled DEV daily-charge run (24 October 00:05 Bangkok) and the `cpu_idle=false` cost on the command service.
 - Local wide browser suite: not run, per the lean check routine; the pull request's run was the broad run.
 - Anything on PROD: untouched except by phase 0 on the agent host.
 
@@ -133,7 +143,8 @@ Git baseline `0c4325c` (the work is on pull request #131). Promotion state: DEV 
 - Chat service (DEV): set `chat_image` back to null in the DEV activation file (its prior generation is in the inventory) and apply; the other four services are untouched.
 - V104 (DEV): additive and immutable, so there is no down-migration. Restore from the restore-verified pre-apply backup at V103 (path in the inventory) only if needed; otherwise leave the unused tables. The three chat roles stay (NOLOGIN).
 - Phase 0: copy `/root/config.json.pre-r090-phase0b-20261023` (root 0600) to `/etc/mw-integration-agent/config.json` (0640 root:mwagent), `mw-integration-agent check`, restart `mw-instagram-webhook` and `mw-receipt-recognition`, `receiver-ready --wait 30`, `systemctl enable --now mw-partner-conversation.timer mw-conversation-wake.path`.
-- Batch 2 (not yet deployed): Git revert of the batch commit before any deploy. After a DEV deploy: V105 is additive and immutable (restore from a pre-apply backup only if needed); turn off `chat_dispatch_enabled` and `jobs_dispatch_enabled`, and set the command service back to `cpu_idle=true`, through the activation and Terraform; Hosting and images roll back to the recorded previous versions. DEV jobs enabled on 23 October 2026 can be paused again by disabling the DEV schedulers.
+- Batch 2c (not yet deployed): Git revert before any deploy. After a DEV deploy: V106 is additive and immutable (restore from a pre-apply backup at V105 only if needed; the nullable column can stay unused); roll the chat service and Hosting back to the recorded batch 2 versions.
+- Batch 2 (deployed to DEV): V105 is additive and immutable (restore from a pre-apply backup only if needed); turn off `chat_dispatch_enabled` and `jobs_dispatch_enabled`, and set the command service back to `cpu_idle=true`, through the activation and Terraform; Hosting and images roll back to the recorded previous versions. DEV jobs enabled on 23 October 2026 can be paused again by disabling the DEV schedulers.
 - Lessons, written into the [database README runbook](../database/README.md#chat-journal-v104-r090): the first revision failed startup because it was created before the database side existed; PostgreSQL 18 `GRANT SELECT ON ALL TABLES` fails on tables owned by another role, so grants use an explicit loop.
 
 ## Open questions
@@ -141,7 +152,7 @@ None.
 
 ## Remaining work
 - Owner review on `dev-lm.mw-credit.com`: three questions per model; close the tab mid-answer and reopen after about a minute, the reply should be there. This is also the first real run of `gemini-3.5-flash`, the Cost query rows and the cross-Partner checks.
-- Batch 2: push once with the final check numbers, DEV deploy (V105 with the three-owner window, Terraform, images, Hosting), then the B5 accuracy check with the owner's three questions per model, a chat push on the owner's device, and the 24 October 00:05 daily-charge readback.
+- Batch 2c: push, DEV deploy (V106 with the chat-owner window, image, Hosting), then the owner re-tests the push after switching away. Batch 2: the B5 accuracy check with the owner's three questions per model, a chat push on the owner's device, and the 24 October 00:05 daily-charge readback.
 - Optional future owner decision: a synthetic DEV Partner login so the end-to-end pass can be automated.
 - PROD only on the owner's production instruction, with a verified backup and `chat_authorized`; phase 3 decommission after the owner's PROD test (design section 12), with its own note under `integration-agent/Change Logs/`.
 
@@ -225,3 +236,52 @@ None for the design. Two operator facts to confirm before the apply (not decisio
 ## Batch 2b: Claude Opus 5.5 (Archie) — withdrawn by the owner, 23 October 2026
 
 Withdrawn: the owner dropped Claude as a chat provider on 23 October 2026 and keeps the Gemini family of the design. Forge's live check found zero Vertex quota for base model `anthropic-claude-opus` in the project (R084's quota request remains rejected), so `claude-opus-5-5` could not have answered. Nothing was implemented: no dependency, code, configuration or migration change came from this section, and the model-id regex, V105 and `CHAT_MODELS_JSON` stay Gemini-only. The executable detail was removed before any commit; if the owner revisits Claude after obtaining quota, the design is redone from the R084 provider (`integration-agent/src/mw_integration_agent/claude_conversation.py`) and the Claude API reference (official Vertex SDK, provider abstraction in the engine, a new epoch on any provider switch).
+
+## Batch 2c: detach detection (Archie)
+
+DEV finding (Forge, 23 October): the owner asked on the iPhone, switched away and got no push. The PWA aborted the SSE fetch, but Cloud Run's HTTP/1.1 front end never propagated the close to the container; the POST ran to its end as a 200, so the handler's `attached()` check (B3) stayed true and no `chat.reply` event was recorded. Eligibility, subscription and preference were correct. The server-side "stream gone" rule is therefore unusable on this platform and is replaced.
+
+### D1. Decision: the client reports leaving (hidden beacon), stored in the database
+
+Why this and not the alternatives: (b) "a poll while still claimed counts as detached" cannot fire, because iOS suspends the hidden page and the PWA polls only when visible again. (c) "always record, suppress in the service worker" is forbidden on iOS (every push must show). A visible-ACK design (server waits after commit for the client's acknowledgement of the `message` event) fails in the wrong direction: a stream Cloud Run drops while the app is in front leaves no ACK and produces a push over the open app, and it adds a wait to every turn. The hidden beacon fails safe (a lost beacon means no push, and the reply shows on return), needs no post-commit wait, and the client knows exactly when it leaves. Two Cloud Run instances mean the signal must be in the database, read inside the completion transaction.
+
+### D2. Storage: one new nullable column (owner approval required)
+
+`pwa_chat_messages.detached_at timestamptz` on user rows (`CHECK (role='user' OR detached_at IS NULL)`), in V105 (unapplied). The V104 immutability trigger, which lets a user row change only `claimed_at`, widens to `claimed_at` and `detached_at`. No other table or column. The design's existing columns cannot carry it: `claimed_at` drives the 5-minute re-claim rule, and a marker row in `pwa_chat_tool_calls` would surface as a tool in the reply's sources line. The owner's batch 2 approval (a) excluded new columns, so this one needs an explicit yes before V105 is written; without it there is no reliable detach signal on iOS and the chat push cannot ship.
+
+### D3. Functions and route
+
+- `pwa_chat_turn_presence_v1(actor jsonb, message uuid, state text)` (chat owner, `SECURITY DEFINER`, `EXECUTE` for `mw_chat_api_{env}`): `state IN ('hidden','visible')` else `invalid_request`; resolves the actor; locks the user row `FOR UPDATE`; if the row is not the actor's (`42501`), is not a user row, has no `claimed_at`, or an assistant row already follows it, returns `{state:'idle'|'completed'}` and changes nothing; otherwise sets `detached_at = clock_timestamp()` for `hidden` or `NULL` for `visible` and returns `{state:'claimed', detached: <bool>}`. Idempotent. `pwa_chat_turn_begin_v1` resets `detached_at` to NULL on a (re-)claim.
+- `pwa_chat_turn_complete_v1` reads `detached_at` of the locked user row in its transaction and returns `detached boolean` in its result. The service calls `pwa_notify_chat_reply_v1` in the same transaction when `detached` is true and the request was a stream (`?stream=0` never notifies), then `afterCommit()` fires the dispatch wake (B1). The handler's `res.on('close')`/`attached()` logic is removed.
+- Route `POST /api/chat/threads/:id/messages/:messageId/presence`, 204 on success, 400 `invalid_request` on a bad state or body, 404 for another Partner's ids. Two request forms, both accepted: (1) ordinary JSON with `Authorization: Bearer` (used for `visible`); (2) the beacon form for `hidden`: `Content-Type: text/plain`, body `{"token":"<Firebase ID token>","state":"hidden"}`, no `Authorization` header, so the request is a CORS "simple request" with no preflight (a preflighted `keepalive` request is unreliable on Safari). The handler verifies the body token exactly as the header token, with `checkRevoked:false` (a presence mark is a read-class side effect, as for GET). The response needs the usual `Access-Control-Allow-Origin`; its content is never read.
+
+### D4. Client (`chat-client.ts`, `ChatWorkspace.tsx`)
+
+- Keep the Firebase ID token used for the running turn in the client's memory (it stays valid for the turn; `getIdToken()` is async and may not resolve once the page is hidden).
+- On `document.visibilitychange → hidden` and on `pagehide`, synchronously: abort the SSE fetch (as today) and send the beacon form with `fetch(url, {method:'POST', keepalive:true, credentials:'omit', headers:{'Content-Type':'text/plain'}, body})`; if `keepalive` is unsupported, `navigator.sendBeacon(url, new Blob([body], {type:'text/plain'}))`. Fire and forget; one beacon per hide, only while a turn of this thread is in flight.
+- On `visible`/`pageshow` with a turn in flight: send `{state:'visible'}` (JSON form, awaited but not blocking the UI), then start the outcome poll immediately (3 s cadence, 5-minute bound, as today).
+- The in-app header refresh and thread switching do not send presence; only the page's visibility does.
+
+### D5. Races
+
+| Case | Outcome |
+| --- | --- |
+| Reply committed, then the app is hidden an instant later | The beacon finds the assistant row and is a no-op; no push; the reply is shown on return by the poll (the client already received `message` before hiding). |
+| App hidden, beacon lost (radio off, page killed before the request left) | No push (fail safe); the poll shows the reply on return. |
+| App returns before the reply commits | `visible` clears `detached_at`; completion sees `detached=false`, no push; the poll shows the reply. |
+| `visible` arrives after the commit recorded the event | One push while the app is in front (rare: return within the dispatch window); the tap opens the thread already shown. |
+| Two devices | Presence is per turn and comes from the asking device; every enabled subscription of the Partner receives the push when it is recorded (as in B3). |
+| Stale claim re-claimed by a re-POST | `turn_begin` resets `detached_at`; the new turn starts attached. |
+| Concurrent beacon and completion | Both lock the user row: whichever runs second sees the other's state; a beacon after the assistant row exists is a no-op. |
+
+### D6. Tests
+
+- `Test-Chat.sql`: `presence 'hidden'` sets `detached_at`, `'visible'` clears it, both idempotent; `'idle'` on an unclaimed row and `'completed'` after the assistant row; `42501` for another Partner; `turn_complete` returns `detached`; `turn_begin` re-claim resets it; the trigger rejects any other user-row update and any assistant-row update (regression); CHECK refuses `detached_at` on an assistant row.
+- `tests/unit/chat-handler.test.mjs`: both request forms accepted (header JSON, `text/plain` token body), 204; bad state and malformed body 400; other Partner 404; the `text/plain` form has no preflight and still carries the CORS origin header; completion with `detached=true` calls the notify RPC in the same transaction and then the wake; `detached=false` and `?stream=0` call neither; `attached()` is gone.
+- `tests/e2e/chat.spec.ts` (stubbed origin): hidden → SSE aborted and a `text/plain` presence POST with `state:'hidden'` observed; visible → JSON presence `state:'visible'` then the outcome poll; a `message` received before hiding is not re-rendered.
+- DEV, owner's iPhone, three runs: ask and switch away → push arrives; ask and stay → no push; ask, switch away, return before the reply → no push and the reply appears. Forge reads `detached_at`, the `chat.reply` event and the delivery row after each run.
+
+### D7. Owner decision needed
+
+One: approve the nullable column `pwa_chat_messages.detached_at` in V105 (the only new column of R090). Everything else in this section is implementation detail within the approved chat-push scope.
+

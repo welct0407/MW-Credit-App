@@ -3,8 +3,8 @@
 
 export type ChatTool={callId:string;name:string;state:'running'|'ok'|'error';summary?:string;ms?:number};
 export type ChatMessage={id:string;seq?:number;role:'user'|'assistant';text:string;status:'ok'|'failed'|'pending';model?:string;createdAt?:string;usage?:Record<string,number>;tools?:{name:string;count:number}[];errorCode?:string};
-export type TurnState={accepted:boolean;seq:number|null;round:number;tools:ChatTool[];provisional:string;checking:boolean;message:ChatMessage|null;error:string|null;done:boolean};
-export const initialTurn=():TurnState=>({accepted:false,seq:null,round:0,tools:[],provisional:'',checking:false,message:null,error:null,done:false});
+export type TurnState={accepted:boolean;seq:number|null;model:string|null;round:number;tools:ChatTool[];provisional:string;checking:boolean;message:ChatMessage|null;error:string|null;done:boolean};
+export const initialTurn=():TurnState=>({accepted:false,seq:null,model:null,round:0,tools:[],provisional:'',checking:false,message:null,error:null,done:false});
 
 /**
  * Server-Sent Events parser for a fetch body (EventSource cannot send the ID token). Lines end in LF, CRLF or CR;
@@ -42,7 +42,7 @@ export function createSseParser(onEvent:(name:string,data:unknown)=>void){
 export function applyTurnEvent(state:TurnState,name:string,data:unknown):TurnState{
  const value=(data&&typeof data==='object'?data:{}) as Record<string,unknown>;
  switch(name){
-  case 'accepted':return {...state,accepted:true,seq:typeof value.seq==='number'?value.seq:state.seq};
+  case 'accepted':return {...state,accepted:true,seq:typeof value.seq==='number'?value.seq:state.seq,model:typeof value.model==='string'?value.model:state.model};
   case 'round':return {...state,round:typeof value.n==='number'?value.n:state.round+1,tools:[]};
   case 'tool':{
    if(typeof value.callId!=='string'||typeof value.name!=='string')return state;

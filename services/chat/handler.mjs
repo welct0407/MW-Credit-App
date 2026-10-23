@@ -2,7 +2,9 @@
  * token (revocation checked on POST and PATCH), the environment's two web origins, a Partner with 'read' in the
  * capability policy, and per-Partner scoping (another Partner's id answers 404). A turn is one request: POST a
  * message, then Server-Sent Events until done; a dropped connection does not abort the turn, which is journaled
- * and read back with GET .../messages/:messageId. */
+ * and read back with GET .../messages/:messageId. Batch 2c: the PWA reports leaving a running turn with
+ * POST .../messages/:messageId/presence (a text/plain beacon carrying the ID token, or JSON with Authorization); the
+ * completion reads that mark in its transaction and a stream whose device left records the chat reply push. */
 import {beginRequest} from '../lib/http-boundary.mjs';
 import {UUID_V4} from '../lib/ids.mjs';
 import {availableModel} from './config.mjs';
@@ -11,9 +13,13 @@ import {runTurn,failureText} from './engine.mjs';
 
 export const BODY_LIMIT=65536;
 export const PING_MS=15000;
+/** The presence body: {state} or the beacon's {token, state}; a Firebase ID token is about 1 KB. */
+export const PRESENCE_LIMIT=16384;
 const THREAD=/^\/api\/chat\/threads\/([0-9a-f-]{36})$/;
 const MESSAGES=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/messages$/;
 const MESSAGE=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/messages\/([0-9a-f-]{36})$/;
+const PRESENCE=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/messages\/([0-9a-f-]{36})\/presence$/;
+const JSON_TYPE=/^application\/json(?:;|$)/i,TEXT_TYPE=/^text\/plain(?:;|$)/i;
 const plain=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 /** Well-formed text without C0 controls other than newline and tab, 1..max characters. */
 export const validText=(v,max)=>typeof v==='string'&&v.isWellFormed()&&!/[\u0000-\u0008\u000b-\u001f]/.test(v)&&[...v].length>=1&&[...v].length<=max;
@@ -39,20 +45,24 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
  const chat=config.chat;
  if(!chat||!Array.isArray(config.origins)||config.origins.length<1)throw Error('Invalid chat handler configuration');
  const models=()=>({version:1,default:chat.default,models:chat.models.map(m=>({id:m.id,label:m.label,available:m.available,...(m.reason?{reason:m.reason}:{})}))});
- async function readBody(req){
-  if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']??''))throw invalid();
-  if(Number(req.headers['content-length']??0)>BODY_LIMIT)throw invalid('body_too_large');
+ /** A JSON body (type: the accepted Content-Type; the presence beacon sends JSON text as text/plain). */
+ async function readBody(req,{type=JSON_TYPE,limit=BODY_LIMIT}={}){
+  if(!type.test(req.headers['content-type']??''))throw invalid();
+  if(Number(req.headers['content-length']??0)>limit)throw invalid('body_too_large');
   req.setTimeout?.(10000,()=>req.destroy());
   const chunks=[];let size=0;
-  try{for await(const chunk of req){size+=chunk.length;if(size>BODY_LIMIT)throw invalid('body_too_large');chunks.push(chunk);}}
+  try{for await(const chunk of req){size+=chunk.length;if(size>limit)throw invalid('body_too_large');chunks.push(chunk);}}
   finally{req.setTimeout?.(0);}
   try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)));}catch{throw invalid();}
  }
  const modelOrFail=id=>{if(typeof id!=='string'||!availableModel(chat,id))throw new RequestError(400,'model_unavailable');return id;};
 
- /** One turn after the claim: runs the engine, journals the outcome, streams events through emit. */
- /** attached(): whether the asking device still holds the stream (batch 2, B3); a detached turn records a reply event. */
- async function turn({principal,actor,thread,claim,text,emit,attached=()=>true}){
+ /**
+  * One turn after the claim: runs the engine, journals the outcome, streams events through emit. stream: the request
+  * was a stream, so a completion whose device reported leaving (detached in the database, batch 2c) records the chat
+  * reply push; ?stream=0 never does.
+  */
+ async function turn({principal,actor,thread,claim,text,emit,stream=false}){
   const started=now();
   const model=claim.thread.model,messageId=claim.message.id;
   let outcome;
@@ -67,13 +77,15 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   log({event:'chat_turn',thread,messageId,model,ok:outcome.ok,code:outcome.ok?'ok':outcome.code,detail:outcome.ok?undefined:outcome.detail,rounds:outcome.rounds,attempts:outcome.attempts,
    epoch:outcome.epoch,tools:outcome.toolCalls.length,...outcome.usage,latencyMs:assistant.latencyMs});
   try{
-   const row=await store.complete(principal,messageId,assistant,outcome.ok?outcome.history:null,outcome.toolCalls,attached()?null:{thread});
+   const {message:row,detached}=await store.complete(principal,messageId,assistant,outcome.ok?outcome.history:null,outcome.toolCalls,stream?{thread}:null);
+   // Diagnostics for the reply push: whether the asking device had reported leaving when the reply committed.
+   log({event:'chat_turn_attachment',thread,messageId,stream,detached});
    if(outcome.ok)emit('message',row);
    else emit('error',{code:outcome.code});
   }catch(error){
    // A late completion after a re-claim fails on UNIQUE (thread_id, seq); identity loss fails the commit too.
    log({event:'chat_turn_complete_failed',thread,messageId,sqlstate:typeof error?.code==='string'?error.code:undefined,code:error?.message==='access_denied'?'access_denied':'INTERNAL'});
-   await release({principal,thread,claim,started,usage:assistant,cause:error,attached});
+   await release({principal,thread,claim,started,usage:assistant,cause:error,stream});
    emit('error',{code:'INTERNAL'});
   }
  }
@@ -82,14 +94,14 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   * holding the thread for 5 minutes: try once to store a failed reply (INTERNAL) with no history and no tool rows.
   * Not after a late completion (23505: another claim owns the turn) or a lost identity (42501 / access_denied).
   */
- /** @param {{principal:any,thread:string,claim:any,started:number,usage?:Record<string,any>,cause:any,attached?:()=>boolean}} input */
- async function release({principal,thread,claim,started,usage={},cause,attached=()=>true}){
+ /** @param {{principal:any,thread:string,claim:any,started:number,usage?:Record<string,any>,cause:any,stream?:boolean}} input */
+ async function release({principal,thread,claim,started,usage={},cause,stream=false}){
   if(cause?.code==='23505'||cause?.code==='42501'||cause?.message==='access_denied')return false;
   const messageId=claim.message.id;
   const failed={status:'failed',text:failureText(claim.partnerLanguage),model:claim.thread.model,thinkingLevel:chat.thinkingLevel,
    rounds:usage.rounds??0,attempts:usage.attempts??0,promptTokens:usage.promptTokens??0,outputTokens:usage.outputTokens??0,thoughtsTokens:usage.thoughtsTokens??0,cachedTokens:usage.cachedTokens??0,
    latencyMs:Math.max(0,Math.round(now()-started)),errorCode:'INTERNAL'};
-  try{await store.complete(principal,messageId,failed,null,[],attached()?null:{thread});log({event:'chat_turn_released',thread,messageId});return true;}
+  try{const {detached}=await store.complete(principal,messageId,failed,null,[],stream?{thread}:null);log({event:'chat_turn_released',thread,messageId,detached});return true;}
   catch(error){log({event:'chat_turn_release_failed',thread,messageId,sqlstate:typeof error?.code==='string'?error.code:undefined});return false;}
  }
 
@@ -102,14 +114,35 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   const reply=(status,value)=>{code=status<400?'ok':value?.error??'unavailable';if(!res.headersSent)res.statusCode=status;res.end(JSON.stringify(value));};
   if(boundary.originDenied)return reply(403,{error:'access_denied'});
   const path=url.pathname;
-  route=path==='/api/chat/models'?'models':path==='/api/chat/threads'?'threads':THREAD.test(path)?'thread':MESSAGES.test(path)?'messages':MESSAGE.test(path)?'message':'unknown';
+  route=path==='/api/chat/models'?'models':path==='/api/chat/threads'?'threads':THREAD.test(path)?'thread':MESSAGES.test(path)?'messages':MESSAGE.test(path)?'message':PRESENCE.test(path)?'presence':'unknown';
   if(route==='unknown')return reply(404,{error:'not_found'});
   if(req.method==='OPTIONS')return boundary.preflight()?reply(204,{}):reply(403,{error:'access_denied'});
-  const allowed={models:['GET'],threads:['GET','POST'],thread:['GET','PATCH'],messages:['GET','POST'],message:['GET']}[route];
+  const allowed={models:['GET'],threads:['GET','POST'],thread:['GET','PATCH'],messages:['GET','POST'],message:['GET'],presence:['POST']}[route];
   if(!allowed.includes(req.method))return reply(404,{error:'not_found'});
-  // R078: reads skip the revocation round trip; POST and PATCH keep it.
+  // Batch 2c presence: the body comes first, because the hidden beacon carries the ID token in it. The beacon form
+  // (text/plain {token, state}, no Authorization) is a CORS simple request: no preflight, which Safari does not
+  // reliably send for a keepalive request; the token is verified exactly as the header token.
+  let authorization=req.headers.authorization,presence=null;
+  if(route==='presence'){
+   try{
+    query(url,[]);
+    const beacon=TEXT_TYPE.test(req.headers['content-type']??'');
+    const body=await readBody(req,{type:beacon?TEXT_TYPE:JSON_TYPE,limit:PRESENCE_LIMIT});
+    const keys=plain(body)?Object.keys(body).sort().join():'';
+    if(keys!==(beacon?'state,token':'state')||!['hidden','visible'].includes(body.state))throw invalid();
+    if(beacon){
+     if(authorization!==undefined||typeof body.token!=='string'||!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(body.token)||body.token.length>8192)throw invalid();
+     authorization=`Bearer ${body.token}`;
+    }
+    presence={state:body.state,form:beacon?'beacon':'json'};
+   }catch(error){
+    if(error instanceof RequestError)return reply(error.status,{error:error.error,...(error.detail?{detail:error.detail}:{})});
+    return reply(400,{error:'invalid_request'});
+   }
+  }
+  // R078: reads skip the revocation round trip; POST and PATCH keep it. A presence mark is a read-class side effect.
   let principal;
-  try{principal=req.method==='GET'?await verifyPrincipal(req.headers.authorization,{checkRevoked:false}):await verifyPrincipal(req.headers.authorization);}
+  try{principal=req.method==='GET'||route==='presence'?await verifyPrincipal(authorization,{checkRevoked:false}):await verifyPrincipal(authorization);}
   catch{return reply(401,{error:'unauthorized',code:'session_invalid'});}
   if(!principal?.ok){
    const status=[401,403,503].includes(principal?.status)?principal.status:401;
@@ -168,6 +201,12 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
     const items=rows.slice(0,limit).toReversed();
     return reply(200,{items,nextCursor:rows.length>limit?String(items[0].seq):null});
    }
+   if(route==='presence'){
+    const [,thread,id]=PRESENCE.exec(path);if(!UUID_V4.test(thread)||!UUID_V4.test(id))throw invalid();
+    const value=await store.presence(principal,thread,id,presence.state);
+    log({event:'chat_turn_presence',thread,messageId:id,state:presence.state,form:presence.form,result:value?.state,detached:value?.detached});
+    code='ok';if(!res.headersSent)res.statusCode=204;res.removeHeader('Content-Type');return res.end();
+   }
    if(route==='message'){
     query(url,[]);
     const [,thread,id]=MESSAGE.exec(path);if(!UUID_V4.test(thread)||!UUID_V4.test(id))throw invalid();
@@ -185,16 +224,14 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
    const stream=q.stream!=='0'&&/text\/event-stream/i.test(req.headers.accept??'');
    if(!stream){
     let failure=null;
-    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit:(name,data)=>{if(name==='error')failure=data.code;}});
+    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit:(name,data)=>{if(name==='error')failure=data.code;},stream:false});
     const outcome=await store.message(principal,thread,body.id);
     if(failure)code=failure;
     return reply(200,outcome);
    }
-   // Server-Sent Events: the turn runs to completion even when the client goes away.
-   // Batch 2 (B3): the stream counts as detached once the response closes before it ended (the PWA aborts on hidden or
-   // pagehide). Only the response's 'close' is watched: the request's 'close' also fires once its body has been read.
-   let closed=false;res.on('close',()=>{closed=true;});
-   const attached=()=>!closed&&!res.destroyed&&!res.writableEnded;
+   // Server-Sent Events: the turn runs to completion even when the client goes away. Whether the device left is not
+   // read from the connection (Cloud Run's front end does not pass the client's close on): the PWA's presence beacon
+   // marks the turn in the database (batch 2c).
    res.statusCode=200;
    res.setHeader('Content-Type','text/event-stream; charset=utf-8');
    res.setHeader('Cache-Control','no-store');
@@ -205,10 +242,10 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
    const ping=setInterval(()=>write(': ping\n\n'),pingMs);
    try{
     emit('accepted',{messageId:claim.message.id,seq:claim.message.seq,model:claim.thread.model});
-    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit,attached});
+    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit,stream:true});
    }catch(error){
     log({event:'chat_turn_failed',thread,messageId:claim.message.id,reason:error?.name});
-    await release({principal,thread,claim,started:now(),cause:error,attached});
+    await release({principal,thread,claim,started:now(),cause:error,stream:true});
     emit('error',{code:'INTERNAL'});
    }finally{
     clearInterval(ping);

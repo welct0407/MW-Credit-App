@@ -56,6 +56,8 @@ export function sourcesText(tools:{name:string;count:number}[]|undefined,thai:bo
  const parts=tools.map(({name,count})=>{const label=toolLabel(name,thai),unit=TOOLS[name]?.unit;return count>1?label+' ('+count+(unit?' '+pick(unit,thai):'')+')':label});
  return (thai?'ตรวจแล้ว: ':'Checked: ')+parts.join(', ');
 }
+/** The line under an assistant reply: the sources and the answering model, e.g. "Checked: database (2 queries) · Gemini 4 Argon". */
+export const metaLine=(...parts:(string|null|undefined)[])=>parts.filter(part=>!!part).join(' · ');
 /** The service stores the literal "New chat" until the first message names the thread (Archie resolution 12). */
 export const threadTitle=(title:string|undefined,thai:boolean)=>!title||title==='New chat'?(thai?'แชทใหม่':'New chat'):title;
 /** Short relative time for the thread list ("5 minutes ago", "yesterday"); null past a week (the caller shows the date). */

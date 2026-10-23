@@ -7,7 +7,7 @@ import {ChatThreads} from './ChatThreads';
 import {ChatMessageView,ProvisionalMessage} from './ChatMessage';
 import {ChatComposer} from './ChatComposer';
 import {applyTurnEvent,initialTurn,type ChatMessage,type TurnState} from './chat-protocol';
-import {ChatAccessError,ChatHttpError,createThread,getThread,listMessages,listModels,listThreads,streamTurn,updateThread,waitForOutcome,whenVisible,type ChatAccess,type ChatModels,type ChatThread,type Page} from './chat-client';
+import {ChatAccessError,ChatHttpError,createThread,getThread,listMessages,listModels,listThreads,streamTurn,turnPresence,updateThread,waitForOutcome,whenVisible,type ChatAccess,type ChatModels,type ChatThread,type Page} from './chat-client';
 import {EXAMPLES,failureText,progressText,threadTitle,type FailureAction} from './chat-text';
 
 // R090 chat screen (design §6.2): thread list (left pane on desktop, a sheet on phones), the conversation and the
@@ -153,7 +153,8 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
   // Unchecked streamed text is not shown while waiting for the stored reply.
   setTurn({threadId:target.id,messageId,phase:'polling',state:{...state,provisional:'',checking:false}});
   try{
-   // Batch 2 (B3): the poll starts only while the app is in the foreground (first read at once, then every 3 s).
+   // Batch 2 (B3): the poll starts only while the app is in the foreground (first read at once, then every 3 s);
+   // a turn sent from this page also reports its return (turnPresence, batch 2c) at the same moment.
    await whenVisible(controller.signal);
    if(controller.signal.aborted)return;
    const outcome=await waitForOutcome(accessRef.current,target.id,messageId,controller.signal);
@@ -198,25 +199,29 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
    if(name==='accepted'&&state.seq!==null){const seq=state.seq;setItems(previous=>previous.map(item=>item.id===messageId?{...item,seq}:item))}
    if(name==='delta')scrollToEnd(false);
   };
+  // Batch 2c: while this turn runs (stream, then the outcome poll), hiding the app marks it so the reply is pushed.
+  const presence=turnPresence(accessRef.current,thread.id,messageId,controller.signal);
   try{
-   const result=await streamTurn(accessRef.current,thread.id,{id:messageId,text},update,{signal:controller.signal});
-   if(controller.signal.aborted)return;
-   if(result.kind==='completed'){finish(messageId,result.user,result.assistant);return}
-   if(state.message){finish(messageId,null,state.message);return}
-   if(state.error){fail(messageId,state.error,false);return}
-  }catch(error){
-   if(controller.signal.aborted)return;
-   if(error instanceof ChatAccessError){turnAbort.current=null;setTurn(null);return}
-   if(error instanceof ChatHttpError){
-    if(error.status===409){
-     // Another device or tab is mid-turn in this thread: show it and wait for that reply instead.
-     setItems(previous=>previous.filter(item=>item.id!==messageId));setDrafts(previous=>({...previous,[thread.id]:text}));
-     turnAbort.current=null;setTurn(null);setNotice(failureText('turn_in_progress',thai));void loadMessages(thread,null);return;
+   try{
+    const result=await streamTurn(accessRef.current,thread.id,{id:messageId,text},update,{signal:controller.signal,presence});
+    if(controller.signal.aborted)return;
+    if(result.kind==='completed'){finish(messageId,result.user,result.assistant);return}
+    if(state.message){finish(messageId,null,state.message);return}
+    if(state.error){fail(messageId,state.error,false);return}
+   }catch(error){
+    if(controller.signal.aborted)return;
+    if(error instanceof ChatAccessError){turnAbort.current=null;setTurn(null);return}
+    if(error instanceof ChatHttpError){
+     if(error.status===409){
+      // Another device or tab is mid-turn in this thread: show it and wait for that reply instead.
+      setItems(previous=>previous.filter(item=>item.id!==messageId));setDrafts(previous=>({...previous,[thread.id]:text}));
+      turnAbort.current=null;setTurn(null);setNotice(failureText('turn_in_progress',thai));void loadMessages(thread,null);return;
+     }
+     fail(messageId,codeOf(error),true);return;
     }
-    fail(messageId,codeOf(error),true);return;
    }
-  }
-  await follow(thread,messageId,state,controller);
+   await follow(thread,messageId,state,controller);
+  }finally{presence.stop()}
  }
  function retry(failure:Item,index:number){
   const user=failure.retryOf?items.find(item=>item.id===failure.retryOf):items.slice(0,index).reverse().find(item=>item.role==='user');
@@ -259,6 +264,8 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
  // A thread opened from a notification before the list arrived has no model yet (''): show the default meanwhile.
  const currentModel=thread?.model||newModel||defaultModel(models);
  const modelOptions=models?.models??[];
+ // The answering model under each reply: its label, or the raw id for a model no longer listed.
+ const modelLabel=(id:string)=>modelOptions.find(model=>model.id===id)?.label??id;
  const readOnly=thread?.status==='archived';
  const activeTurn=turn&&(turn.threadId===thread?.id||(!thread&&turn.threadId===''))?turn:null;
  const progress=!activeTurn?'':activeTurn.phase==='polling'?t('Waiting for the reply…','กำลังรอคำตอบ…'):activeTurn.state.checking?t('Checking the figures again…','กำลังตรวจตัวเลขอีกครั้ง…'):!activeTurn.state.accepted?t('Sending…','กำลังส่ง…'):activeTurn.state.round===0?t('Preparing a reply…','กำลังเตรียมคำตอบ…'):progressText(activeTurn.state.round,activeTurn.state.tools,thai);
@@ -300,13 +307,13 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
      // A turn the service gave up on (stale claim, no reply) shows as not received, with Retry.
      const orphan=item.role==='user'&&item.status==='failed'&&!item.local&&next?.role!=='assistant';
      return <React.Fragment key={item.id}>
-      <ChatMessageView item={item} thai={thai} actionDisabled={actionDisabled} onAction={item.role==='assistant'&&(item.status==='failed'||item.failure)?action=>act(item,index,action):undefined}/>
+      <ChatMessageView item={item} thai={thai} modelLabel={modelLabel} actionDisabled={actionDisabled} onAction={item.role==='assistant'&&(item.status==='failed'||item.failure)?action=>act(item,index,action):undefined}/>
       {orphan&&<ChatMessageView item={{id:'lost:'+item.id,role:'assistant',text:'',status:'failed',failure:'lost'}} thai={thai} actionDisabled={actionDisabled} onAction={action=>act({id:'lost:'+item.id,role:'assistant',text:'',status:'failed',retryOf:item.id},index,action)}/>}
      </React.Fragment>;
     })}
     {activeTurn&&<div className="chat-turn">
      {(!activeTurn.state.provisional||activeTurn.state.checking)&&<p className="chat-progress" role="status"><span className="collection-spinner" aria-hidden="true"/>{progress}</p>}
-     {activeTurn.state.provisional&&<ProvisionalMessage text={activeTurn.state.provisional} thai={thai}/>}
+     {activeTurn.state.provisional&&<ProvisionalMessage text={activeTurn.state.provisional} thai={thai} model={(activeTurn.state.model??currentModel)?modelLabel(activeTurn.state.model??currentModel??''):null}/>}
     </div>}
     <div ref={endRef} className="chat-end"/>
    </section>

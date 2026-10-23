@@ -5,7 +5,8 @@ import {chooseLanguage as chooseLiveLanguage} from './live-controls';
 
 // R090 in-app chat (design §6, §10): the live-dev bundle with a stubbed chat origin. Reads, thread writes and outcome
 // polls go through context.route; the streamed turn POST is served in the page by a fetch shim the test feeds event by
-// event, so the provisional, retract and dropped-stream states are deterministic. Screenshots for review land in
+// event, so the provisional, retract and dropped-stream states are deterministic; the shim also records the turn's
+// presence POSTs and outcome polls in order (__chatLog). Screenshots for review land in
 // test-results/r090-chat (CHAT_CAPTURE_ROOT overrides).
 const host='dev-lm.mw-credit.com',readHost='mw-credit-app-read-dev-test.run.app',commandHost='mw-credit-app-command-dev-test.run.app',chatHost='mw-credit-app-chat-dev-test.run.app',chatOrigin='https://'+chatHost;
 const uid='synthetic-chat-owner',shots=process.env.CHAT_CAPTURE_ROOT??'test-results/r090-chat';
@@ -33,12 +34,17 @@ const seeded=()=>({
   {id:'aaaaaaaa-0000-4000-8000-000000000002',seq:1,role:'assistant',text:reply,status:'ok',model:'gemini-a',createdAt:iso(9),tools:[{name:'read_records',count:2},{name:'loan_payoff',count:1}]},
   {id:'aaaaaaaa-0000-4000-8000-000000000003',seq:2,role:'user',text:'And every loan that is overdue by more than 90 days, with the total?',status:'ok',createdAt:iso(6)},
   {id:'aaaaaaaa-0000-4000-8000-000000000004',seq:3,role:'assistant',text:'I could not complete this request. Check the app before asking again.',status:'failed',errorCode:'TURN_TIMEOUT',model:'gemini-a',createdAt:iso(5)},
- ],[T2]:[{id:'bbbbbbbb-0000-4000-8000-000000000001',seq:0,role:'user',text:'Profit this month',status:'ok'},{id:'bbbbbbbb-0000-4000-8000-000000000002',seq:1,role:'assistant',text:'Profit this month is **8,200** baht.',status:'ok',tools:[{name:'sql_query',count:1}]}],[T3]:[]} as Record<string,any[]>,
+ ],[T2]:[{id:'bbbbbbbb-0000-4000-8000-000000000001',seq:0,role:'user',text:'Profit this month',status:'ok'},{id:'bbbbbbbb-0000-4000-8000-000000000002',seq:1,role:'assistant',text:'Profit this month is **8,200** baht.',status:'ok',model:'gemini-0-retired',tools:[{name:'sql_query',count:1}]}],[T3]:[]} as Record<string,any[]>,
 });
-type Stub={threads:any[];messages:Record<string,any[]>;creates:any[];patches:any[];polls:string[];outcomes:any[];denied:boolean;patchStatus:number|null};
+type Stub={threads:any[];messages:Record<string,any[]>;creates:any[];patches:any[];polls:string[];outcomes:any[];presence:string[];presenceStatus:number|null;denied:boolean;patchStatus:number|null};
 const ev=(name:string,data:unknown)=>`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`;
 async function feed(page:Page,...chunks:string[]){for(const chunk of chunks)await page.evaluate(text=>(window as any).__chatStreams.at(-1).push(text),chunk)}
 const streams=(page:Page)=>page.evaluate(()=>(window as any).__chatStreams.map((entry:any)=>({url:entry.url,body:entry.body,headers:entry.headers})));
+const chatLog=(page:Page)=>page.evaluate(()=>(window as any).__chatLog as any[]);
+const hide=(page:Page,event:'visibilitychange'|'pagehide'='visibilitychange')=>page.evaluate(name=>{
+ Object.defineProperty(document,'visibilityState',{configurable:true,get:()=>'hidden'});
+ if(name==='pagehide')window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));else document.dispatchEvent(new Event('visibilitychange'))},event);
+const show=(page:Page)=>page.evaluate(()=>{delete (document as any).visibilityState;document.dispatchEvent(new Event('visibilitychange'))});
 
 async function launch({seed=false,denied=false,width,path='',target,configure}:{seed?:boolean;denied?:boolean;width?:number;path?:string;target?:{kind:string;id:string};configure?:(context:BrowserContext)=>Promise<void>}={}){
  const device=mobile?devices['Pixel 7']:devices['Desktop Chrome'];
@@ -47,11 +53,18 @@ async function launch({seed=false,denied=false,width,path='',target,configure}:{
  const page=await context.newPage();page.on('pageerror',error=>console.log('chat synthetic pageerror: '+error.message));
  const now=Math.floor(Date.now()/1000),token=[{alg:'none',typ:'JWT'},{sub:uid,user_id:uid,aud:'clever-oasis-508610-n7',iss:'https://securetoken.google.com/clever-oasis-508610-n7',iat:now,exp:now+3600,auth_time:now,email:'synthetic@example.test',email_verified:true,firebase:{sign_in_provider:'custom'}}].map(part=>Buffer.from(JSON.stringify(part)).toString('base64url')).join('.')+'.synthetic';
  const data=seed?seeded():{threads:[],messages:{}};
- const s:Stub={...data,creates:[],patches:[],polls:[],outcomes:[],denied,patchStatus:null};
+ const s:Stub={...data,creates:[],patches:[],polls:[],outcomes:[],presence:[],presenceStatus:null,denied,patchStatus:null};
  await context.addInitScript(({chat})=>{
-  const original=window.fetch.bind(window),encoder=new TextEncoder();(window as any).__chatStreams=[];
+  const original=window.fetch.bind(window),encoder=new TextEncoder();(window as any).__chatStreams=[];(window as any).__chatLog=[];
   window.fetch=(input:RequestInfo|URL,init?:RequestInit)=>{
    const url=typeof input==='string'?input:input instanceof URL?input.href:input.url,headers=(init?.headers??{}) as Record<string,string>;
+   // Batch 2c: the presence POSTs as sent (form, keepalive, credentials, keys) and the outcome polls, in order.
+   if(url.startsWith(chat+'/api/chat/threads/')){
+    const path=new URL(url).pathname;
+    if(/\/presence$/.test(path)&&init?.method==='POST'){const body=JSON.parse(String(init.body));
+     (window as any).__chatLog.push({kind:'presence',state:body.state,keys:Object.keys(body).sort(),keepalive:init.keepalive===true,credentials:init.credentials,contentType:headers['Content-Type'],authorization:'Authorization' in headers,wake:'X-MW-Wake-Deadline' in headers})}
+    else if(/\/messages\/[^/]+$/.test(path)&&(init?.method??'GET')==='GET')(window as any).__chatLog.push({kind:'poll'});
+   }
    if(url.startsWith(chat+'/api/chat/threads/')&&/\/messages$/.test(new URL(url).pathname)&&init?.method==='POST'&&headers.Accept==='text/event-stream'){
     let controller!:ReadableStreamDefaultController<Uint8Array>;const stream=new ReadableStream<Uint8Array>({start(c){controller=c}});
     const entry={url,body:JSON.parse(String(init.body)),headers:{...headers,Authorization:headers.Authorization?.replace(/^(Bearer) .+$/,'$1 <token>')},push:(text:string)=>controller.enqueue(encoder.encode(text)),close:()=>controller.close(),fail:()=>controller.error(new TypeError('network error'))};
@@ -97,6 +110,7 @@ async function chatRoute(route:any,s:Stub){
  if(match&&method==='PATCH'){const body=request.postDataJSON();s.patches.push({id:match[1],body});if(s.patchStatus)return route.fulfill({status:s.patchStatus,json:{error:'unavailable'}});const thread=s.threads.find(row=>row.id===match![1]);Object.assign(thread,body);return route.fulfill({json:{item:thread}})}
  match=/^\/api\/chat\/threads\/([^/]+)\/messages$/.exec(path);
  if(match&&method==='GET')return route.fulfill({json:{items:s.messages[match[1]]??[],nextCursor:null}});
+ if(/^\/api\/chat\/threads\/[^/]+\/messages\/[^/]+\/presence$/.test(path)&&method==='POST'){s.presence.push(request.postData()??'');return s.presenceStatus?route.fulfill({status:s.presenceStatus,json:{error:'unauthorized',code:'session_invalid'}}):route.fulfill({status:204,body:''})}
  match=/^\/api\/chat\/threads\/([^/]+)\/messages\/([^/]+)$/.exec(path);
  if(match&&method==='GET'){s.polls.push(match[2]);const next=s.outcomes.shift();return next?route.fulfill({json:next}):route.fulfill({status:404,json:{error:'not_found'}})}
  return route.fulfill({status:404,json:{error:'not_found'}});
@@ -163,7 +177,7 @@ test('new thread: round, tool, delta and message render in order; provisional te
   await feed(page,ev('round',{n:1}),ev('tool',{callId:'c1',name:'read_records',state:'running'}));await expect(progress).toHaveText('Round 1 · checking records…');
   await feed(page,ev('tool',{callId:'c1',name:'read_records',state:'ok',ms:12,summary:'Charges'}),ev('tool',{callId:'c2',name:'sql_query',state:'running'}));await expect(progress).toHaveText('Round 1 · checking charges, database…');
   // A text round that ends in a tool call is retracted silently.
-  await feed(page,ev('delta',{text:'Let me look'}));await expect(provisional).toContainText('Let me look');await expect(provisional.locator('.chat-provisional-label')).toHaveText('checking figures');
+  await feed(page,ev('delta',{text:'Let me look'}));await expect(provisional).toContainText('Let me look');await expect(provisional.locator('.chat-provisional-label')).toHaveText('checking figures · Gemini A');
   await feed(page,ev('retract',{reason:'tool_round',attempt:0}));await expect(provisional).toHaveCount(0);await expect(page.getByText('Checking the figures again…')).toHaveCount(0);
   await feed(page,ev('round',{n:2}),ev('delta',{text:'Due today: **1,500**'}),ev('delta',{text:' baht'}));
   await expect(provisional.locator('strong')).toHaveText('1,500');await expect(provisional).toContainText('Due today: 1,500 baht');
@@ -175,7 +189,7 @@ test('new thread: round, tool, delta and message render in order; provisional te
   await feed(page,ev('message',{id:'cccccccc-0000-4000-8000-000000000001',seq:1,role:'assistant',text,status:'ok',model:'gemini-a',tools:[{name:'read_records',count:1},{name:'sql_query',count:2}]}),ev('done',{}));
   const committed=page.locator('.chat-assistant:not(.chat-provisional)');
   await expect(provisional).toHaveCount(0);await expect(committed).toHaveCount(1);await expect(committed.locator('strong')).toHaveText('1,000');await expect(committed.locator('th')).toHaveText(['Borrower','Due']);
-  await expect(committed.locator('.chat-sources')).toHaveText('Checked: records, database (2 queries)');
+  await expect(committed.locator('.chat-sources')).toHaveText('Checked: records, database (2 queries) · Gemini A');
   // CHAT-NAV-2: phones keep the header to "Chat" and show the thread title in the Threads button.
   if(mobile){await expect(page.locator('.live-brand h1')).toHaveText('Chat');await expect(page.locator('.chat-threads-current')).toHaveText('What is due today?')}
   else await expect(page.locator('.live-brand h1')).toHaveText('Chat · What is due today?');
@@ -190,6 +204,8 @@ test('model switch PATCHes the thread, updates the badge and reverts on failure'
   await openChat(page);
   const picker=page.getByRole('combobox',{name:'Model',exact:true});
   await expect(picker).toHaveValue('gemini-a');await expect(page.locator('.chat-assistant strong').first()).toHaveText('Somchai');
+  await expect(page.locator('.chat-assistant').first().locator('.chat-sources')).toHaveText('Checked: records (2 reads), loan payoff · Gemini A');
+  await expect(page.locator('.chat-failed .chat-model-line')).toHaveText('Gemini A');
   await expect(picker.locator('option[value="gemini-c"]')).toHaveJSProperty('disabled',true);await expect(picker.locator('option[value="gemini-c"]')).toHaveText('Gemini C — pending live check');
   await picker.selectOption('gemini-b');
   await expect.poll(()=>s.patches).toEqual([{id:T1,body:{model:'gemini-b'}}]);
@@ -252,23 +268,73 @@ test('failed replies offer the action that fits: Edit question, Choose model, Re
  }finally{await context.close()}
 });
 
-test('batch 2: hiding the app aborts the stream; the outcome is polled only once the app is visible again',async()=>{
+test('batch 2c: hiding aborts the stream and sends one text/plain beacon; visible sends JSON presence, then polls',async()=>{
  const {context,page,s}=await launch({seed:true});
  try{
   await openChat(page);await expect(page.locator('.chat-assistant').first()).toContainText('12,450');
   await composer(page).fill('Payoff for Somchai next week?');await page.getByRole('button',{name:'Send',exact:true}).click();
   await expect.poll(async()=>(await streams(page)).length).toBe(1);const [post]=await streams(page);
   await feed(page,ev('accepted',{messageId:post.body.id,seq:4,model:'gemini-a'}),ev('round',{n:1}));
-  await page.evaluate(()=>{(window as any).__aborted=false;const entry=(window as any).__chatStreams.at(-1);const push=entry.push;entry.push=(t:string)=>{try{push(t)}catch{(window as any).__aborted=true}};
-   Object.defineProperty(document,'visibilityState',{configurable:true,get:()=>'hidden'});document.dispatchEvent(new Event('visibilitychange'))});
+  await page.evaluate(()=>{(window as any).__aborted=false;const entry=(window as any).__chatStreams.at(-1);const push=entry.push;entry.push=(t:string)=>{try{push(t)}catch{(window as any).__aborted=true}}});
+  await hide(page);await hide(page,'pagehide');
   // Aborted at once: the next server event cannot be delivered, and nothing is polled while hidden.
   await expect.poll(()=>page.evaluate(()=>{const entry=(window as any).__chatStreams.at(-1);try{entry.push(': ping\n\n')}catch{return true}return (window as any).__aborted})).toBe(true);
   await expect(page.locator('.chat-progress')).toHaveText('Waiting for the reply…');
-  await page.waitForTimeout(1500);expect(s.polls).toEqual([]);
+  // One beacon for the hide (visibilitychange and pagehide): text/plain with the ID token, keepalive, no Authorization,
+  // no custom header (a CORS simple request, no preflight).
+  const beacon={kind:'presence',state:'hidden',keys:['state','token'],keepalive:true,credentials:'omit',contentType:'text/plain',authorization:false,wake:false};
+  await expect.poll(()=>chatLog(page)).toEqual([beacon]);
+  await page.waitForTimeout(1500);expect(s.polls).toEqual([]);expect(await chatLog(page)).toEqual([beacon]);
+  expect(s.presence.map(body=>JSON.parse(body))).toEqual([{token:expect.stringMatching(/^[\w-]+\.[\w-]+\.[\w-]+$/),state:'hidden'}]);
   const user={id:post.body.id,seq:4,role:'user',text:'Payoff for Somchai next week?',status:'ok'};
   s.outcomes.push({user,assistant:{id:'eeeeeeee-0000-4000-8000-000000000001',seq:5,role:'assistant',text:'Next week it is **12,520** baht.',status:'ok',tools:[{name:'loan_payoff',count:1}]}});
-  await page.evaluate(()=>{delete (document as any).visibilityState;document.dispatchEvent(new Event('visibilitychange'))});
+  // Back: the JSON form clears the mark, then the outcome poll starts at once.
+  await show(page);
   await expect(page.locator('.chat-assistant:not(.chat-provisional)').last()).toContainText('Next week it is 12,520 baht.');expect(s.polls).toEqual([post.body.id]);
+  expect(await chatLog(page)).toEqual([beacon,{kind:'presence',state:'visible',keys:['state'],keepalive:false,credentials:'omit',contentType:'application/json',authorization:true,wake:true},{kind:'poll'}]);
+  // The turn is over: a later hide sends nothing.
+  await hide(page);await page.waitForTimeout(300);expect((await chatLog(page)).length).toBe(3);await show(page);
+ }finally{await context.close()}
+});
+
+test('batch 2c: a failed visible presence (expired token, 401) is ignored: no signed-out card, the poll still shows the reply',async()=>{
+ const {context,page,s}=await launch({seed:true});
+ try{
+  await openChat(page);await expect(page.locator('.chat-assistant').first()).toContainText('12,450');
+  await composer(page).fill('Payoff for Somchai in a month?');await page.getByRole('button',{name:'Send',exact:true}).click();
+  await expect.poll(async()=>(await streams(page)).length).toBe(1);const [post]=await streams(page);
+  await feed(page,ev('accepted',{messageId:post.body.id,seq:4,model:'gemini-a'}),ev('round',{n:1}));
+  await hide(page);await expect.poll(()=>chatLog(page)).toHaveLength(1);
+  s.presenceStatus=401;
+  s.outcomes.push({user:{id:post.body.id,seq:4,role:'user',text:'Payoff for Somchai in a month?',status:'ok'},assistant:{id:'cccccccc-0000-4000-8000-000000000001',seq:5,role:'assistant',text:'In a month it is **12,900** baht.',status:'ok'}});
+  await show(page);
+  await expect(page.locator('.chat-assistant:not(.chat-provisional)').last()).toContainText('In a month it is 12,900 baht.');
+  await expect.poll(()=>s.presence.length).toBe(2);expect(JSON.parse(s.presence[1])).toEqual({state:'visible'});expect(s.polls).toEqual([post.body.id]);
+  await page.waitForTimeout(500);
+  await expect(page.getByRole('heading',{name:'Please sign in again',exact:true})).toHaveCount(0);
+  await expect(page.locator('main[data-workspace="chat"] .chat-workspace')).toBeVisible();await expect(composer(page)).toBeEnabled();
+ }finally{await context.close()}
+});
+
+test('batch 2c: a reply received before hiding is shown once and not polled; a finished turn sends no visible presence',async()=>{
+ const {context,page,s}=await launch({seed:true});
+ try{
+  await openChat(page);await expect(page.locator('.chat-assistant').first()).toContainText('12,450');
+  await composer(page).fill('Payoff for Somchai on Friday?');await page.getByRole('button',{name:'Send',exact:true}).click();
+  await expect.poll(async()=>(await streams(page)).length).toBe(1);const [post]=await streams(page);
+  await feed(page,ev('accepted',{messageId:post.body.id,seq:4,model:'gemini-a'}),ev('round',{n:1}),ev('delta',{text:'On Friday'}));
+  await expect(page.locator('.chat-provisional')).toContainText('On Friday');
+  // The committed reply arrives (it clears the provisional text), then the app is hidden before `done`: the stream is
+  // aborted and the beacon may go out (the service finds the reply and changes nothing).
+  await feed(page,ev('message',{id:'ffffffff-0000-4000-8000-000000000001',seq:5,role:'assistant',text:'On Friday it is **12,480** baht.',status:'ok',model:'gemini-a'}));
+  await expect(page.locator('.chat-provisional')).toHaveCount(0);
+  await hide(page);
+  await expect(page.locator('.chat-assistant:not(.chat-provisional)').last()).toContainText('On Friday it is 12,480 baht.');
+  await show(page);await page.waitForTimeout(1500);
+  expect(s.polls).toEqual([]);
+  expect((await chatLog(page)).map((entry:any)=>entry.kind+':'+entry.state)).toEqual(['presence:hidden']);
+  await expect(page.locator('.chat-assistant',{hasText:'On Friday it is 12,480 baht.'})).toHaveCount(1);
+  await expect(composer(page)).toBeEnabled();
  }finally{await context.close()}
 });
 
@@ -279,6 +345,8 @@ test('batch 2: a chat-reply notification opens its thread (cold start with ?noti
   try{
    await expect(page.locator('main[data-workspace="chat"] .chat-workspace')).toBeVisible({timeout:10000});
    await expect(page.locator('.chat-assistant').last()).toContainText('Profit this month is 8,200 baht.');
+   // A retired model is named by its id.
+   await expect(page.locator('.chat-assistant').last().locator('.chat-sources')).toHaveText('Checked: database · gemini-0-retired');
    await openThreads(page);await expect(page.locator('.chat-thread.current .chat-thread-title')).toHaveText('Profit this month');
   }finally{await context.close()}
  }finally{fixture.setBuildRoot(join(root,'chat'))}

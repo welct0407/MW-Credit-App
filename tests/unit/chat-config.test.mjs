@@ -117,32 +117,43 @@ test('read role is SET, never inherited: the membership lookup and native reads 
  assert.deepEqual(sql,['guard','SET LOCAL ROLE "mw_chat_read_dev"']);
 });
 
-test('store: a detached completion records the reply event under a savepoint, then wakes dispatch; a failure only logs',async()=>{
+test('store: a detached stream completion records the reply event under a savepoint, then wakes dispatch; a failure only logs',async()=>{
  const {createChatStore}=await import('../../services/chat/store.mjs');
  const assistant={status:'ok',text:'Hi'};
- const setup=({notifyResult=true,notifyError=null}={})=>{
+ const setup=({notifyResult=true,notifyError=null,detached=true}={})=>{
   const sql=[],logs=[],wakes=[];
   const client={async query(text){const q=typeof text==='string'?text:text.text;sql.push(q);
    if(q.includes('pwa_notify_chat_reply_v1')){if(notifyError)throw notifyError;return {rows:[{value:notifyResult}]};}
-   if(q.includes('pwa_chat_turn_complete_v1'))return {rows:[{value:{id:'r',role:'assistant'}}]};
+   // V106: the completion returns the reply row plus the user row's detached flag.
+   if(q.includes('pwa_chat_turn_complete_v1'))return {rows:[{value:{id:'r',role:'assistant',...(detached==='absent'?{}:{detached})}}]};
+   if(q.includes('pwa_chat_turn_presence_v1'))return {rows:[{value:{state:'claimed',detached:true}}]};
    return {rows:[{value:null}]};},release(){}};
   const store=createChatStore({pool:{connect:async()=>client},guardConnection:async()=>{},issuer:'iss',readRole:'mw_chat_read_dev',
    resolveActor:async()=>({issuer:'iss',subject:'s',partnerId:'P',loginEmail:'p@example.invalid'}),afterCommit:async()=>{wakes.push(sql.at(-1));},log:r=>logs.push(r)});
   return {sql,logs,wakes,store};
  };
- // Attached (notify null): no event, no wake.
- let t=setup();assert.deepEqual(await t.store.complete({},'m1',assistant,null,[]),{id:'r',role:'assistant'});
+ const row={id:'r',role:'assistant'};
+ // ?stream=0 (notify null): no event, no wake, even when detached; the flag is reported and stripped from the row.
+ let t=setup();assert.deepEqual(await t.store.complete({},'m1',assistant,null,[]),{message:row,detached:true});
  assert.equal(t.sql.some(q=>q.includes('pwa_notify_chat_reply_v1')),false);assert.deepEqual(t.wakes,[]);
- // Detached: the event inside the completion transaction, the wake after COMMIT.
+ // A stream whose device stayed: no event, no wake.
+ t=setup({detached:false});assert.deepEqual(await t.store.complete({},'m1',assistant,null,[],{thread:'T1'}),{message:row,detached:false});
+ assert.equal(t.sql.some(q=>q.includes('pwa_notify_chat_reply_v1')),false);assert.deepEqual(t.wakes,[]);
+ // Before V106 (no flag): treated as attached.
+ t=setup({detached:'absent'});assert.deepEqual(await t.store.complete({},'m1',assistant,null,[],{thread:'T1'}),{message:row,detached:false});assert.deepEqual(t.wakes,[]);
+ // A stream whose device left: the event inside the completion transaction, the wake after COMMIT.
  t=setup();await t.store.complete({},'m1',{status:'failed',text:'x'},null,[],{thread:'T1'});
  const at=t.sql.findIndex(q=>q.includes('pwa_notify_chat_reply_v1'));
  assert.deepEqual(t.sql.slice(at-2,at+3).map(q=>q.split('(')[0].trim()),['SELECT public.pwa_chat_turn_complete_v1','SAVEPOINT chat_reply_event','SELECT public.pwa_notify_chat_reply_v1','RELEASE SAVEPOINT chat_reply_event','COMMIT']);
  assert.deepEqual(t.wakes,['COMMIT']);
  // A repeated message (false) records nothing new and wakes nobody.
  t=setup({notifyResult:false});await t.store.complete({},'m1',assistant,null,[],{thread:'T1'});assert.deepEqual(t.wakes,[]);
- // V105 missing: rolled back to the savepoint, logged, the turn still commits.
+ // The event routine failing: rolled back to the savepoint, logged, the turn still commits.
  t=setup({notifyError:Object.assign(Error('function does not exist'),{code:'42883'})});
- assert.deepEqual(await t.store.complete({},'m1',assistant,null,[],{thread:'T1'}),{id:'r',role:'assistant'});
+ assert.deepEqual(await t.store.complete({},'m1',assistant,null,[],{thread:'T1'}),{message:row,detached:true});
  assert.ok(t.sql.includes('ROLLBACK TO SAVEPOINT chat_reply_event')&&t.sql.at(-1)==='COMMIT');assert.deepEqual(t.wakes,[]);
  assert.deepEqual(t.logs,[{event:'chat_reply_event_failed',thread:'T1',messageId:'m1',sqlstate:'42883'}]);
+ // Presence: one write transaction calling the V106 RPC with the thread, message and state.
+ t=setup();assert.deepEqual(await t.store.presence({},'T1','m1','hidden'),{state:'claimed',detached:true});
+ assert.deepEqual([t.sql[0],t.sql.find(q=>q.includes('presence')),t.sql.at(-1)],['BEGIN','SELECT public.pwa_chat_turn_presence_v1($1::jsonb,$2::uuid,$3::uuid,$4::text) AS value','COMMIT']);
 });

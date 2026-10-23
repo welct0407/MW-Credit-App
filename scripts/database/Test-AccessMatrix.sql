@@ -127,6 +127,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_chat_api_dev','pwa_chat_threads_v1(jsonb,text,timestamp with time zone,integer)'),
   ('mw_chat_api_dev','pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)'),
   ('mw_chat_api_dev','pwa_chat_turn_complete_v1(jsonb,uuid,jsonb,jsonb,jsonb)'),
+  ('mw_chat_api_dev','pwa_chat_turn_presence_v1(jsonb,uuid,uuid,text)'),
   ('mw_chat_owner_dev','pwa_chat_actor_v1(jsonb)'),
   ('mw_chat_owner_dev','pwa_chat_immutable_v1()'),
   ('mw_chat_owner_dev','pwa_chat_iso_v1(timestamp with time zone)'),
@@ -141,6 +142,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_chat_owner_dev','pwa_chat_threads_v1(jsonb,text,timestamp with time zone,integer)'),
   ('mw_chat_owner_dev','pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)'),
   ('mw_chat_owner_dev','pwa_chat_turn_complete_v1(jsonb,uuid,jsonb,jsonb,jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_turn_presence_v1(jsonb,uuid,uuid,text)'),
   ('mw_changes_owner_dev','pwa_track_row_change()'),
   ('mw_jobs_dev','pwa_job_run_v1(text,date,text)'),
   ('mw_jobs_owner_dev','pwa_job_run_v1(text,date,text)'),
@@ -268,8 +270,8 @@ DO $$ BEGIN
    IS DISTINCT FROM ARRAY['id','partner_id','status','title'] OR has_table_privilege('mw_notify_owner_dev','public.pwa_chat_threads','SELECT')
    OR EXISTS(SELECT 1 FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_chat_threads'::regclass AND x.grantee<>'mw_notify_owner_dev'::regrole) THEN
   RAISE EXCEPTION 'pwa_chat_threads column grants must be the notify owner''s four columns only'; END IF;
- IF (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_api_dev')<>10 OR (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_read_dev')<>1 THEN
-  RAISE EXCEPTION 'chat API role must execute 10 routines and the SQL-tool role 1 from the migration chain'; END IF;
+ IF (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_api_dev')<>11 OR (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_read_dev')<>1 THEN
+  RAISE EXCEPTION 'chat API role must execute 11 routines and the SQL-tool role 1 from the migration chain'; END IF;
  IF (SELECT array_agg(a.attname::text ORDER BY a.attname) FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_chat_messages'::regclass AND x.grantee='mw_notify_owner_dev'::regrole AND x.privilege_type='SELECT')
    IS DISTINCT FROM ARRAY['id','thread_id'] OR has_table_privilege('mw_notify_owner_dev','public.pwa_chat_messages','SELECT') THEN
   RAISE EXCEPTION 'the notify owner must read exactly pwa_chat_messages (id, thread_id) by column grant'; END IF;
