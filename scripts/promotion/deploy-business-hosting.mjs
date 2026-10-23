@@ -842,7 +842,7 @@ export async function r090HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  }
  return validatedHostingArtifact(m,recovery,{release:L,chatOrigin:R090_CHAT_ORIGIN});
 }
-/** Live: as R089 for the four services, plus command cpu_idle false, the jobs dispatch wake, the chat and jobs callers on
+/** Live: as R089 for the four services, plus command cpu_idle false (absent or false; the API omits false), the jobs dispatch wake, the chat and jobs callers on
  * notify, and the chat service (identity, image, revision, 300 s timeout, cpu_idle false, dispatch wake, three Gemini
  * models with maxRounds 16). */
 export async function verifyR090LivePackage(m,options={}){
@@ -851,14 +851,15 @@ export async function verifyR090LivePackage(m,options={}){
  const get=async role=>{const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');return r.json();};
  const envOf=s=>Object.fromEntries((s.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value]));
  const dispatch=env=>Object.entries(R090_DISPATCH).every(([name,value])=>env[name]===value);
- const command=await get('command');requireValue(command.template?.containers?.[0]?.resources?.cpuIdle===false,L+' live command cpu_idle must be false');
+ // The v2 API omits a false boolean (proto3 JSON): an absent cpuIdle is false; only an explicit true is refused.
+ const command=await get('command');requireValue(command.template?.containers?.[0]?.resources?.cpuIdle!==true,L+' live command cpu_idle must be false');
  requireValue(dispatch(envOf(await get('jobs'))),L+' live jobs dispatch wake drift');
  let subjects;try{subjects=JSON.parse(envOf(await get('notify')).WORKER_CALLER_SUBJECTS_JSON);}catch{subjects=null;}
  requireValue(plainObject(subjects)&&[`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`,`mw-credit-app-jobs-prod@${project}.iam.gserviceaccount.com`].every(email=>/^[0-9]{10,30}$/.test(subjects[email]??'')),L+' live notify callers must include chat and jobs');
  const s=await get('chat'),env=envOf(s),expected=m.applied.services.chat;
  requireValue(s.name===`projects/${project}/locations/asia-southeast1/services/mw-credit-app-chat-prod`&&s.template?.serviceAccount===`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`&&s.template.containers?.[0]?.image===expected.image&&s.latestReadyRevision?.endsWith('/'+expected.revision)&&s.terminalCondition?.state==='CONDITION_SUCCEEDED'&&s.trafficStatuses?.length===1&&s.trafficStatuses[0].percent===100&&s.trafficStatuses[0].revision===expected.revision,L+' live chat revision/identity drift');
  requireValue(env.DB_NAME==='loan_manager_prod'&&env.INSTANCE_CONNECTION_NAME===m.target.connectionName&&env.DB_USER===`mw-credit-app-chat-prod@${project}.iam`,L+' live chat database binding drift');
- requireValue(s.template.timeout==='300s'&&s.template.containers[0].resources?.cpuIdle===false,L+' live chat timeout 300s and cpu_idle false required');
+ requireValue(s.template.timeout==='300s'&&s.template.containers[0].resources?.cpuIdle!==true,L+' live chat timeout 300s and cpu_idle false required');
  requireValue(dispatch(env),L+' live chat dispatch wake drift');
  let models;try{models=JSON.parse(env.CHAT_MODELS_JSON);}catch{models=null;}
  requireValue(plainObject(models)&&models.maxRounds===16&&Array.isArray(models.models)&&models.models.length===3&&models.models.every(x=>/^gemini-[0-9]+(?:\.[0-9]+)?-[a-z0-9-]+$/.test(x?.id??'')),L+' live chat models must be three Gemini models with maxRounds 16');

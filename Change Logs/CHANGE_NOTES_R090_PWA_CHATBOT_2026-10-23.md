@@ -135,13 +135,14 @@ DEV end to end (one pass after the DEV deploy, Chase or the orchestrator, synthe
 
 ## Not run
 - DEV end to end (Chase): not run. DEV has no non-interactive Partner sign-in, and minting a custom token for a real Partner on the shared Firebase project was rejected as not an established route. Not exercised on DEV: three models by three example questions (including the first real `gemini-3.5-flash` answer), a mid-turn disconnect (`cpu_idle=false`), the forced ungrounded retract (unit tests only), the `monitoring.pwa_chat_recent_questions_v1` readback and the cross-Partner 404 (covered by `Test-Chat.sql` and the handler unit tests). The owner's DEV review covers the first real run.
-- The V104 apply on PROD, its operator steps and the PROD Terraform apply: not done; `chat_authorized` stays off. DEV is done (see Checks), which also exercised V104's non-superuser ownership branch that database CI (superuser) cannot.
-- Batch 2 and 2c on PROD: nothing applied. Unverified: the B5 accuracy comparison across the three models after the prompt rule (one `gemini-3.5-flash` answer checked), a push to a second device, and the `cpu_idle=false` cost on the command service.
+- PROD end to end with a real Partner sign-in and a real chat answer or push: not run (no forced notification or job, per the owner's scope); the PROD smoke covered the artifact, the chat origin, `/health`, the unauthenticated 401 and the preflight. The DEV apply exercised V104's non-superuser ownership branch that database CI (superuser) cannot; PROD ran it in the promotion.
+- Unverified: the B5 accuracy comparison across the three models after the prompt rule (one `gemini-3.5-flash` answer checked), a push to a second device, and the `cpu_idle=false` cost on the command service.
 - Local wide browser suite: not run, per the lean check routine; the pull request's run was the broad run.
-- Anything on PROD: untouched except by phase 0 on the agent host.
+- A local wide browser suite or repeated CI for the promotion: not run; the package reused PR #131's evidence.
 
 ## Recovery
-Git baseline `0c4325c` (the work is on pull request #131). Promotion state: DEV is deployed (image build, V104, chat service and Hosting, 12:35Z to 12:55Z, 23 October 2026); PROD is untouched. Pins are in the [Environment inventory](../project/Documents/Environment_Inventory.md).
+Git baseline `0c4325c` (the work is on pull request #131). Promotion state: DEV and PROD are deployed (23 October 2026; the PROD rollback points are in the promotion record and the inventory). Pins are in the [Environment inventory](../project/Documents/Environment_Inventory.md).
+- PROD (R090 promotion): Hosting back to the previous version (the Chat item hides); the four existing services back to their R089 revisions on the R089 image; the chat service has no mechanical rollback (`prevent_destroy`), so it stays idle and unreachable from the PWA; V104 to V106 are additive and immutable, so SQL recovery is a restore from the verified backup at V103 only if needed. Exact values: the promotion record below.
 - Hosting (DEV): redeploy the previous version recorded as the DEV rollback in the inventory; the Chat item disappears with the old bundle.
 - Chat service (DEV): set `chat_image` back to null in the DEV activation file (its prior generation is in the inventory) and apply; the other four services are untouched.
 - V104 (DEV): additive and immutable, so there is no down-migration. Restore from the restore-verified pre-apply backup at V103 (path in the inventory) only if needed; otherwise leave the unused tables. The three chat roles stay (NOLOGIN).
@@ -154,11 +155,11 @@ Git baseline `0c4325c` (the work is on pull request #131). Promotion state: DEV 
 None.
 
 ## Remaining work
-- Owner review on `dev-lm.mw-credit.com`: three questions per model; close the tab mid-answer and reopen after about a minute, the reply should be there. This is also the first real run of `gemini-3.5-flash`, the Cost query rows and the cross-Partner checks.
-- Owner decision on the default chat model: `gemini-4-argon` timed out twice at 240 s on Google-side latency in the 16:30Z window (and `gemini-3.8-flash` failed on 429s earlier); the choice stays with the owner.
-- Batch 2: the B5 accuracy check with the owner's three questions per model, a chat push on the owner's device, and the 24 October 00:05 daily-charge readback.
+- Tag `R090` on `297b7649` created by the Release tag workflow (annotated tag object `299973dd`), with its GitHub Release.
+- Owner decision on the default chat model: `gemini-4-argon` timed out twice at 240 s on Google-side latency in one DEV window (and `gemini-3.8-flash` failed on 429s earlier); the choice stays with the owner.
+- The design B5 accuracy comparison across the three models, and the owner's real use of Chat on PROD.
+- Phase 3: decommission the Instagram Partner conversation after the owner's PROD test (design section 12), with its own note under `integration-agent/Change Logs/` and scoped owner authorization.
 - Optional future owner decision: a synthetic DEV Partner login so the end-to-end pass can be automated.
-- PROD only on the owner's production instruction, with a verified backup and `chat_authorized`; phase 3 decommission after the owner's PROD test (design section 12), with its own note under `integration-agent/Change Logs/`.
 
 ## Batch 2 design (Archie)
 
@@ -291,33 +292,47 @@ One: approve the nullable column `pwa_chat_messages.detached_at` in V105 (the on
 
 ## Promotion record
 
-[Template](../project/scripts/releases/templates/promotion-checklist.md), revision 14 October 2026. Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md).
+[Template](../project/scripts/releases/templates/promotion-checklist.md), revision 14 October 2026. Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md). Deployment pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md).
 
 ### Continue here
-- Outcome/scope and affected components: R090 to PROD. Scope: the monitoring work already live in Grafana (tile limits, previous dashboards retired, Cost page last-10 questions with agent migrations V9 and V10); the in-app chatbot batches 1, 2 and 2c (chat service `mw-credit-app-chat-prod`, V104 to V106, the notify and jobs worker changes, command `cpu_idle=false`, PWA Chat screen with the push and model label, Hosting). Phase 0 (Instagram Partner conversation stopped on `vm-mw-credit-agent`) is already done and live; the decommission (design section 12) is not part of this promotion.
-- State and next action or actual blocker: frozen and prepared; Forge's PROD steps are pending. Placeholder: Forge records each step below.
-- Source/artifact/configuration pins; runner manifest link: source `297b7649` (runtime, SQL and infrastructure identical to the DEV-tested `bfa9bfc`; adds the R090 promotion tooling) on `claude/pensive-archimedes-2f98cw` (PR welct0407/MW-Credit-App#131); the DEV-tested image was built from `bfa9bfc` (DEV image digest in the [Environment inventory](../project/Documents/Environment_Inventory.md)) and is code-identical to the source commit. Placeholder: the PROD candidate image digest, SQL manifest and hashes (V104, V105, V106), activation file generation and Hosting build, from Forge.
-- Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 23 October 2026, "Notification worked. Push to prod.", approving PROD promotion of R090 ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)): tested schema migrations in the scope, backups and the standard temporary maintenance windows; not unrelated financial corrections, forced notifications or the Instagram decommission. `chat_authorized` is part of this scope (the chat service in PROD).
-- Previous deployed baseline and recovery: PROD stays at V103 with the R089 images and Hosting recorded in the Environment inventory; recovery follows the Recovery section above (restore the recorded previous Hosting version and images, set the chat service off through `chat_authorized`, V104 to V106 are additive and immutable so SQL recovery is a restore from the verified pre-apply backup only if needed).
-- Scope freeze/next-number handoff: R090 Frozen 2026-10-23T18:26Z (prepared; effective when the tracker update is published) in the [tracker](../project/Documents/Release_Tracker.md#releases-requiring-action); R091 opened and the counter advanced to R092 in the same update. `scripts/build-live-dev.mjs` reads the Open row (now R091).
-- Checks: PR #131 `Development checks` passed on `36f2166` (runs cited in Checks above); later batches were checked as listed in Checks and deployed and verified on DEV (batch 2 at 15:02Z to 15:18Z, batch 2c at 16:11Z to 16:23Z, 23 October 2026). Owner test on DEV, 23 October 2026: the chat push arrived on the iPhone (web push accepted by Apple about 1.5 s after commit on all three turns). Real gaps: no PROD test exists yet; `gemini-4-argon` timed out twice in one window on Google-side latency (the owner's default-model decision is open); the B5 accuracy comparison across all three models is open. Placeholder: the CI run on `88426e2` once pushed.
+- Outcome/scope and affected components: R090 is Released to DEV and PROD (23 October 2026). Scope: the in-app chatbot batches 1, 2 and 2c (chat service `mw-credit-app-chat-prod` and the changed reader, command, notify and jobs services on one image, V104 to V106, Hosting), the monitoring work already live in Grafana (tile limits, previous dashboards retired, Cost page last-10 questions with agent migrations V9 and V10) and phase 0 (Instagram Partner conversation stopped on `vm-mw-credit-agent`, already live). The Instagram decommission (design section 12) is not part of it.
+- State and next action or actual blocker: applied and verified in PROD. Tag `R090` created on `297b7649`; next: the R090 follow-ups in Development Changes.
+- Source/artifact/configuration pins; runner manifest link: source `297b76494f344e54dfb708becf5ea2fd63ca684e` (baseline R089 `99758c71`; PR #131 merged as `2dd187a8`); delivery tool `2ac1d983ae5f4a7d6b75023b04871f8a27c919b1` (runner test 91 of 91); freeze `e77d3de4`. The PROD image build, activation generations, release manifest `release-r090-prod.json` (sha256 `877de3e9…`) and connect preflight (sha256 `571d6e0b…`), the Hosting version and the receipt package are in the Environment inventory. The DEV-tested image was built from `bfa9bfc` and is code-identical to the source.
+- Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 23 October 2026, "Notification worked. Push to prod.", approving PROD promotion of R090 ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)) with its tested migrations (V104 to V106), backups, the standard temporary maintenance windows and the chat service. It did not cover forced notifications or jobs, financial writes or the Instagram decommission, and none happened. The owner had confirmed on DEV that the chat push arrived on the iPhone.
+- Previous deployed baseline and recovery: PROD at V103 with the R089 images and Hosting. Rollback: Hosting version `9893f0e61ef89c46` (release `1792694171685000`; the Chat item hides); the reader, command, notify and jobs services back to revisions `00022-59v`, `00026-qcb`, `00020-87c` and `00020-x2v` on the R089 image `api@sha256:2a59ff15…`; activation generation `1792694061898807`; the chat service has no mechanical rollback (`prevent_destroy`); SQL: restore from backup `prod-promotion-bf24dca0313845cbb0779bd3e3a8b2aa` (at V103) only if needed, as V104 to V106 are additive and immutable.
+- Scope freeze/next-number handoff: R090 Frozen 2026-10-23T18:26Z (commit `e77d3de4`), R091 opened and the counter advanced to R092 in the same update; R090 is now Released in the [tracker](../project/Documents/Release_Tracker.md).
+- Checks: CI evidence for the package: `check` run 40005127669, `e2e` 39983180470, `terraform` 39971954404, database rebuild 40005122104, `guards` 40009381139; PR #131 `Development checks` passed on `36f2166` (earlier in this note); runner test 91 of 91 on the delivery tool. Real gaps: see Deviations and Not run.
 
 ### Promotion
 | Step | Completion evidence |
 | --- | --- |
-| Scope, target, authority and usable recovery confirmed | Placeholder: Forge (project, instance, database, services and storage prefix verified) |
-| Required affected checks passed or explicit owner deferral recorded | Placeholder: CI result on the freeze commit (package source `297b7649`) |
-| Tested package captured; tracker freeze/handoff published | Placeholder: PROD candidate pins; tracker update published with the freeze push |
-| Changed components deployed in dependency order | Placeholder: verified PROD backup; owner windows (notify, jobs, chat); V104, V105, V106 guarded runner; roles and grants as in the [database README](../database/README.md#chat-journal-v104-r090); Terraform for the chat service and workers; images; Hosting with `VITE_CHAT_API_ORIGIN` |
-| Version/environment and affected PROD smoke verified once | Placeholder: Forge and Chase |
-| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Placeholder: Environment inventory pins; release tag `R090` through the Release tag workflow |
+| Scope, target, authority and usable recovery confirmed | Owner instruction recorded once above; project, instance, database, services and storage prefix verified by Forge before each live step; previous revisions, Hosting version and activation generation captured as the rollback |
+| Required affected checks passed or explicit owner deferral recorded | CI runs above; runner test 91 of 91; no deferral |
+| Tested package captured; tracker freeze/handoff published | PROD image `mw-credit-app-prod/api` built from `297b7649` (Cloud Build `2a70ab0b-d117-4104-9bb8-414758e32235`, 18:40:48Z, tag `keep-r090`); freeze `e77d3de4` |
+| Changed components deployed in dependency order | Backup at V103 with restore verified (33 table fingerprints); chat roles 18:47:28Z and 18:47:34Z; owner window chat, notify, jobs 18:47:51Z to 18:50:59Z, no default-privilege pause; migration check 18:48:22Z to 18:48:54Z, V104 to V106 applied as one group 18:49:01Z to 18:50:46Z (checksums 457782433, 1485196061, 577014876), readback at 19:04:47Z 106 rows; activation applied, Terraform 18:52:24Z to 18:53:18Z (10 add, 4 change, 0 destroy); grants 18:53:59Z to 18:54:02Z (84 relations, 13 read functions, CONNECT, memberships); chat revision recovered by untaint, `gcloud run services update` (18:54:55Z to 18:55:17Z) and a client-only apply (18:55:55Z to 18:56:13Z); Hosting 19:14:02Z to 19:14:51Z |
+| Version/environment and affected PROD smoke verified once | Smoke passed: the R090 marker on `lm.mw-credit.com`, the chat origin in the bundle, config and CSP, five services at 100%, chat `/health` 200, 401 without a token, preflight 204; no notification or job forced |
+| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Environment inventory, tracker, Development Changes, database README, `R053_OPERATOR.md` and Solution Design updated in the closure commit; tag `R090` on `297b7649`: pending (Release tag workflow after the push) |
 
-SQL: V104, V105 and V106 are the full pending set from V103; the manifest, hashes and backup reference are placeholders for Forge. Infrastructure: the reviewed plan and actual apply/readback are placeholders. Notification and jobs: chat pushes go only to the asking Partner's own subscriptions; PROD schedulers and delivery settings change only as the plan states. No forced notification, financial write or Instagram decommission is part of this promotion.
+SQL: V104, V105 and V106 were the full pending set from V103, applied under the release manifest by the guarded runner. Infrastructure: the reviewed plan text `prod-plan-r090.txt` (sha256 `e853ac9c…`, 10 add, 4 change, 0 destroy, 17 actions) with the actual apply and readback. Notification and jobs: chat pushes go only to the asking Partner's own subscriptions; PROD schedulers and delivery settings changed only as the plan states, and nothing was forced.
+
+### Deviations and limitations
+1. Plan evidence: the applied binary plan (sha256 `5051e72c…`) was overwritten at the same path by the untaint and client-only plans; by the orchestrator's decision the reviewed plan text above is the package's plan evidence.
+2. The runner rejected the live state because the Cloud Run v2 API omits a false `cpuIdle`; fixed in the delivery tool `2ac1d983` (runner test 91 of 91).
+3. The `guards` job needed one manual `Database migrations` dispatch on the tool head (run 40009381139), because the delivery-tool commit touched no database path.
+4. The first PROD chat revision failed startup (the database side did not exist yet) and was recovered as listed under the deployment step.
+5. Limitations: the chat service has no mechanical rollback; no PROD end-to-end chat answer or push was exercised (the owner's own use follows); the default chat model and the B5 comparison are open.
 
 ### Close
-- Outcome: Placeholder
-- Recovery reference: Recovery section above; backup reference placeholder
-- Changed documents, if any: Placeholder
-- Published evidence/tag: Placeholder
+- Outcome: applied and verified in PROD (smoke above); owner-accepted on DEV (the push arrived on the iPhone); PROD use by the owner follows.
+- Recovery reference: Continue here (baseline and rollback) and the Recovery section above; backup `prod-promotion-bf24dca0313845cbb0779bd3e3a8b2aa`, dump sha256 `80730086…88bd`.
+- Changed documents, if any: the Environment inventory (PROD rows, PROD chat row, schema row), Release Tracker, Development Changes, `database/README.md`, `scripts/database/R053_OPERATOR.md`, Solution Design, and links repointed for the pruning below.
+- Published evidence/tag: tag `R090` on `297b7649` (annotated tag `299973dd`, Release tag workflow, 23 October 2026); this note and the inventory carry the evidence.
 - Outstanding owner action, if any: choose the default chat model; later the Instagram decommission (design section 12) after the owner's PROD test.
 
+### Closure pruning (release workflow, 23 October 2026)
+- Inbound links repointed first to the commit permalink of `2ac1d983` (the last commit where the target exists): `integration-agent/Change Logs/CHANGE_NOTES_RECOGNIZER_RESTART_2026-10-21.md`, `project/Documents/Development_Changes.md`, `project/Documents/Release_Tracker.md` and `project/Documents/Environment_Inventory.md`.
+- Change note deleted (R087 left the retention window of R090, R089 and R088): `Change Logs/CHANGE_NOTES_R087_SLIP_ACCOUNT_NUMBERS_2026-10-21.md`.
+- Development Changes: the R090 row is replaced by one R090 follow-up row (the Instagram decommission, the default-model decision, the B5 check); no other R090 section existed.
+- R090's own notes stay while R090 is in the window: this note, the design note, the phase 0 note, and the two R090 monitoring notes.
+- Design `project/outputs/r090-pwa-chatbot/DESIGN.md` is kept: the decommission checklist (section 12) still drives phase 3 and the tracker and Development Changes cite it.
+- Evidence deleted: none (see the `npm run check:docs` result).

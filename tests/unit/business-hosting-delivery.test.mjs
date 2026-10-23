@@ -1699,11 +1699,14 @@ test('R090 operator audience and live verification re-read CI, Cloud Build, the 
   if(role==='chat')env.push(...(edit.chatDispatch??dispatch),{name:'CHAT_MODELS_JSON',value:JSON.stringify(edit.models??models)});
   const vpc=role==='command'?{egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]}:undefined;
   const timeout=role==='chat'?edit.chatTimeout??'300s':R077_SERVICE_TIMEOUTS[role];
-  const cpuIdle=role==='command'?edit.commandCpuIdle??false:role==='chat'?edit.chatCpuIdle??false:true;
+  // The live v2 API omits false booleans: command and chat carry no cpuIdle key unless an edit sets one ('absent' by default).
+  const cpuIdle=role==='command'?edit.commandCpuIdle??'absent':role==='chat'?edit.chatCpuIdle??'absent':true;
   const revision=edit.revision?.[role]??m.applied.services[role].revision;
-  return {name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision}],template:{serviceAccount:edit.account?.[role]??`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,timeout,...(vpc?{vpcAccess:vpc}:{}),containers:[{image:edit.image?.[role]??image,env,resources:{limits:{cpu:'1'},cpuIdle}}]}};};
+  return {name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision}],template:{serviceAccount:edit.account?.[role]??`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,timeout,...(vpc?{vpcAccess:vpc}:{}),containers:[{image:edit.image?.[role]??image,env,resources:{limits:{cpu:'1'},...(cpuIdle==='absent'?{}:{cpuIdle}),startupCpuBoost:true}}]}};};
  const make=(edit={},digest='e')=>async url=>({ok:true,json:async()=>url.includes('cloudbuild')?{status:'SUCCESS',results:{images:[{name:`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:build-1`,digest:'sha256:'+digest.repeat(64)}]},source:{storageSource:m.build.storageSource}}:service(url.split('/services/mw-credit-app-')[1].replace('-prod',''),edit)});
  const live=r074Readback(m);await verifyR090LivePackage(m,{token:'t',request:make(),readGithub:live.readGithub,git});assert.equal(live.calls.length,10);
+ // cpuIdle absent (as the live API returns it) and an explicit false both pass; an explicit true is refused below.
+ await verifyR090LivePackage(m,{token:'t',request:make({commandCpuIdle:false,chatCpuIdle:false}),readGithub:r074Readback(m).readGithub,git});
  const strip=name=>dispatch.filter(x=>x.name!==name);
  for(const [edit,pattern,digest='e'] of [[{},/build digest/,'f'],[{commandCpuIdle:true},/R090 live command cpu_idle must be false/],[{jobsDispatch:strip('NOTIFICATION_DISPATCH_URL')},/R090 live jobs dispatch wake drift/],
   [{subjects:{'mw-credit-app-jobs-prod@clever-oasis-508610-n7.iam.gserviceaccount.com':'114454898477847610025'}},/R090 live notify callers must include chat and jobs/],
