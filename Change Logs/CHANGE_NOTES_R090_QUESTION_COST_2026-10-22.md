@@ -23,6 +23,7 @@ Owner request: a Cost page section listing the 10 latest questions put to the Pa
 | Datasource health | First "network unreachable" for `localhost:5432` and `127.0.0.1:5432`: the datasource had no PDC network. The owner selected `pdc-olivecrab1199-default` in the datasource UI (network ID `b69f5334-ca2f-4ad7-bc8f-3a93fe9e74ba` in `secureSocksProxyUsername`); then "Database Connection OK" |
 | Host limit | With `-permit-domains 127.0.0.1`: `127.0.0.1:5432` OK; a test URL `169.254.169.254:80` refused ("general SOCKS server failure"), datasource restored to `127.0.0.1:5432` and OK again |
 | Panel 50 query through `/api/ds/query` (30 days) | HTTP 200: 10 rows; the 9 since 21 October priced S$0.16 to S$0.51 each (17:35Z today S$0.4894); the 14 October question "No usage record" |
+| Owner report, 23 October 2026: the Cost column read "4 currencySGD" (no such Grafana unit; the narrow column cut the value). Unit changed to the page's `prefix:S$`, 2 decimals (e.g. S$0.49), footer the same; `test_build_dashboards.cjs` pins it | Builder tests pass; applied as below |
 | Re-plan from a clean export of `ccf321f` (URL, network ID and connection lifetime written into Terraform as the UI stored them) | No changes |
 
 ## Not run

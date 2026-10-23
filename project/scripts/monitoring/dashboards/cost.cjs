@@ -229,7 +229,7 @@ function questions() {
       byName('Question', {'custom.cellOptions': {type: 'auto', wrapText: true}, 'custom.minWidth': 300}),
       byName('Model', {'custom.width': 150}),
       ...['Input', 'Cached', 'Output', 'Thinking'].map(name => byName(name, {unit: 'short', 'custom.width': 90})),
-      byName('Cost (SGD)', {unit: 'currencySGD', decimals: 4, 'custom.width': 110})],
+      byName('Cost (SGD)', {unit: 'prefix:S$', decimals: 2, 'custom.width': 110})],
     options: {cellHeight: 'md', footer: {show: true, reducer: ['sum'], fields: ['Cost (SGD)'], countRows: false}}});
   return [L.row({id: 49, title: 'Partner chat · cost per question', gridPos: pos(0, QUESTIONS_Y, 24, 1)}), panel];
 }

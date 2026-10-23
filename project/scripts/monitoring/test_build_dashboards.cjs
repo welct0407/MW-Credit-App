@@ -401,6 +401,9 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
   }
 }
 assert.ok(classified >= 75, 'stat fields classified: ' + classified);
+// R090: the per-question cost uses the page's SGD unit (Grafana has no 'currencySGD'; it printed the unit name).
+const costUnit = panelOf('mw-cost', 50).fieldConfig.overrides.find(o => o.matcher.options === 'Cost (SGD)').properties;
+assert.deepEqual([costUnit.find(x => x.id === 'unit').value, costUnit.find(x => x.id === 'decimals').value], ['prefix:S$', 2]);
 // R090 owner limits on the formerly neutral tiles.
 const limitOf = (uid, id, name) => panelOf(uid, id).fieldConfig.overrides.find(o => o.matcher.options === name).properties.find(x => x.id === 'thresholds').value.steps[1].value;
 for (const [uid, id, name, value] of [['mw-now', 5, 'Last turn age', 604800], ['mw-agent', 5, 'Last send', 604800], ['mw-pwa', 22, 'Last notification', 172800],
