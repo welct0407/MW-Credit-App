@@ -7,7 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {hashEntries,evidenceName,variantOf,loadStages} from '../../scripts/ci/reuse-evidence.mjs';
 import {migrationHead} from '../migration-head.mjs';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage,r080HostingPlan,validateR080Source,validateR080Sql,verifyR080LivePackage,r081HostingPlan,validateR081Source,validateR081Sql,verifyR081LivePackage,validateR089Source,validateR089Sql,r089HostingPlan,verifyR089LivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage,r080HostingPlan,validateR080Source,validateR080Sql,verifyR080LivePackage,r081HostingPlan,validateR081Source,validateR081Sql,verifyR081LivePackage,validateR089Source,validateR089Sql,r089HostingPlan,verifyR089LivePackage,validateR090Source,validateR090Sql,r090HostingPlan,verifyR090LivePackage,R090_CHAT_ORIGIN,R090_PLAN_ACTIONS,R090_DISPATCH} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -1578,4 +1578,138 @@ test('R089 operator audience and live verification re-read CI, Cloud Build, the 
  for(const [edit,pattern,digest='e'] of [[{},/build digest/,'f'],[{activation:'disabled'},/R089 live command recognizer setting drift/],[{url:'http://10.148.0.3:8790/v1/receipt-recognition'},/R089 live command recognizer setting drift/],
   [{timeouts:{command:'15s'}},/R089 live command request timeout must be 55s/],[{timeouts:{read:'55s'}},/R089 live read request timeout must be 15s/],[{timeouts:{notify:'15s'}},/R089 live notify request timeout must be 120s/],[{timeouts:{jobs:'55s'}},/R089 live jobs request timeout must be 120s/]])
   await assert.rejects(verifyR089LivePackage(m,{token:'t',request:make(edit,digest),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
+});
+
+// R090 (in-app chat): the SQL kind after V104 to V106 (PROD 103 to 106) with the new chat service. The source descends
+// from the R089 release and adds exactly V104, V105 and V106 at their reviewed bytes (the real repository files); the
+// plan adds the chat identity, service and notify invokers (10) and changes the four services (4); the artifact carries
+// the R090 marker and the chat origin; the live readback covers five services.
+const r089Release='99758c71b62d904018900438d4082b1a923e53fa';
+const r090Migrations=['V104__pwa_chat.sql','V105__chat_reply_notification_and_job_status.sql','V106__chat_turn_presence.sql'];
+const r090Files={'V102__monitoring_ops_health.sql':'-- v102','V103__notification_history_content.sql':'-- v103',
+ ...Object.fromEntries(await Promise.all(r090Migrations.map(async name=>[name,await readFile(new URL('../../database/migrations/'+name,import.meta.url),'utf8')])))};
+const r090Marker=(m,extra={})=>JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release:'R090',...extra});
+const r090Added=r090Migrations.map(name=>'database/migrations/'+name).join('\n');
+function r090Git({source,tool=source,changed={},delivery='',dirty='',untracked='',migration=r090Added,releaseDatabase='',ancestors={},files=r090Files}={}){
+ return (_root,args)=>{
+  if(args[0]==='rev-parse')return args[1]==='HEAD'?tool:args[1];
+  if(args[0]==='merge-base')return Object.hasOwn(ancestors,args[1])?ancestors[args[1]]:args[1];
+  if(args[0]==='ls-files')return untracked;
+  if(args[0]==='ls-tree')return Object.keys(files).map(name=>'database/migrations/'+name).join('\n');
+  if(args[0]==='show')return files[path.posix.basename(args[1].split(':')[1])];
+  if(args[0]==='diff'){
+   if(args[2]===r089Release&&args[3]===source)return nulNames(args,migration);
+   if(args[2]===source&&args[3]===tool&&!args.includes('--'))return nulNames(args,delivery);
+   if(args[2]===source&&args[3]===sqlRelease)return releaseDatabase;
+   if(args[3]===source)return nulNames(args,changed[args[2]]??'');
+   return nulNames(args,dirty);
+  }
+  throw Error('Unexpected synthetic Git command '+args);
+ };
+}
+async function r090Package(t){
+ const p=await r078Package(t),m=p.m,hash=value=>createHash('sha256').update(value).digest('hex');
+ const manifest={environment:'development',commit:sqlRelease,validationReference:'synthetic',productionTransaction:{baselineVersion:103,targetVersion:106,group:true,mixed:false,executeInTransaction:true,callbacks:[]},migrations:Object.entries(r090Files).map(([name,value])=>({name,sha256:hash(value)}))};
+ const releasePath=path.join(p.root,'release-r090.json'),bytes=JSON.stringify(manifest);await writeFile(releasePath,bytes);
+ Object.assign(m,{schemaVersion:26,release:'R090',sourceBaseline:r089Release,
+  sql:{baselineVersion:103,targetVersion:106,migrations:manifest.migrations.slice(-3),release:{path:releasePath,sha256:hash(bytes),commit:sqlRelease},
+   applied:{environment:'production',database:'loan_manager_prod',instance:'mw-credit-pg-20261017',releaseCommit:sqlRelease,baselineVersion:103,targetVersion:106,migrationsExecuted:3,startedAt:'2026-10-23T12:00:00Z',finishedAt:'2026-10-23T12:00:20Z',backup:{dumpSha256:'a'.repeat(64),restorePassed:true,reference:'prod-promotion-'+'c'.repeat(32)}},
+   verified:{database:'loan_manager_prod',latestVersion:'106',historyRows:106,allSuccessful:true,verifiedAt:'2026-10-23T12:02:00Z'}}});
+ m.plan.counts={add:10,change:4,destroy:0};m.plan.actions=[...R090_PLAN_ACTIONS];
+ m.applied.sqlVersion=106;m.applied.appliedAt='2026-10-23T12:10:00Z';m.applied.services.chat={revision:'mw-credit-app-chat-prod-00001-abc',image:m.build.image,ready:true,trafficPercent:100};
+ const config={...JSON.parse(await readFile(path.join(m.artifactRoot,'production-public-config.json'),'utf8')),chatOrigin:R090_CHAT_ORIGIN};
+ await setArtifact(m,'production-public-config.json',JSON.stringify(config));
+ await setArtifact(m,'build-version.json',r090Marker(m));
+ await setArtifact(m,'assets/test.js',JSON.stringify(config)+'\nconst release="R090";');
+ return p;
+}
+test('R090 package validates and rejects SQL, pinned bytes, plan, five-service readback, kind and artifact tampering',async t=>{
+ const {m,source,tool,root}=await r090Package(t),git=r090Git({source,tool});
+ const plan=await r090HostingPlan(m,{git});assert.equal(plan.site,site);assert.equal(plan.rollback.hostingVersion,m.rollback.hostingVersion);
+ assert.equal(R090_PLAN_ACTIONS.length,17);assert.equal(R090_PLAN_ACTIONS.filter(x=>!/\.(image|cpuIdle|callerSubjects|dispatchWake)$/.test(x)).length,10);
+ for(const [mutate,pattern] of [
+  [x=>x.sql.targetVersion=105,/R090 exact V103 to V106/],[x=>x.sql.baselineVersion=104,/R090 exact V103 to V106/],[x=>x.sql.migrations.pop(),/R090 exact V103 to V106/],[x=>x.sql.migrations.reverse(),/R090 exact V103 to V106/],[x=>x.sql.migrations.push({name:'V107__x.sql',sha256:'0'.repeat(64)}),/R090 exact V103 to V106/],
+  [x=>x.sql.migrations[2].sha256='0'.repeat(64),/R090 migration source hash/],[x=>x.sql.release.sha256='0'.repeat(64),/R090 SQL release changed/],[x=>x.sql.release.commit='7'.repeat(40),/R090 tested SQL release/],
+  [x=>x.sql.applied.migrationsExecuted=1,/R090 actual SQL apply/],[x=>x.sql.applied.targetVersion=105,/R090 actual SQL apply/],[x=>x.sql.applied.baselineVersion=102,/R090 actual SQL apply/],[x=>x.sql.applied.backup.restorePassed=false,/R090 actual SQL apply/],[x=>x.sql.applied.database='loan_manager_dev',/R090 actual SQL apply/],
+  [x=>x.sql.verified.latestVersion='105',/R090 read-only V106 readback/],[x=>x.sql.verified.historyRows=105,/R090 read-only V106 readback/],[x=>delete x.sql.verified,/R090 read-only V106 readback/],
+  [x=>x.applied.sqlVersion=105,/R090 applied source/],[x=>x.applied.appliedAt='2026-10-23T11:00:00Z',/R090 applied source/],[x=>x.applied.planSha256='0'.repeat(64),/R090 applied source/],
+  [x=>x.plan.counts={add:0,change:4,destroy:0},/R090 reviewed chat and four-service plan/],[x=>x.plan.counts.add=11,/R090 reviewed/],[x=>x.plan.counts.destroy=1,/R090 reviewed/],[x=>x.plan.actions=['read.image','command.image','notify.image','jobs.image'],/R090 reviewed/],
+  [x=>x.plan.actions.pop(),/R090 reviewed/],[x=>x.plan.actions.push('command.timeout'),/R090 reviewed/],[x=>x.plan.actions.reverse(),/R090 reviewed/],
+  [x=>x.recognition.activation='disabled',/R090 unchanged enabled receipt recognition/],
+  [x=>x.rollback.services.read.image=x.build.image,/recovery pin/],[x=>x.rollback.services.chat={revision:'mw-credit-app-chat-prod-00001-abc',image:x.rollback.services.read.image},/R090 recovery pins exactly the four/],
+  [x=>delete x.applied.services.chat,/R090 applied readback must name the five services/],[x=>x.applied.services.chat.ready=false,/R090 ready service/],[x=>x.applied.services.chat.image=x.rollback.services.read.image,/R090 ready service/],[x=>x.applied.services.chat.revision='mw-credit-app-read-prod-00001-abc',/R090 ready service/],[x=>x.applied.services.chat.trafficPercent=50,/R090 ready service/],
+  [x=>x.applied.services.notify.revision=x.rollback.services.notify.revision,/R090 ready service/],[x=>x.applied.services.jobs.ready=false,/R090 ready service/],
+  [x=>{x.applicationCi.ci.jobs.check.headSha='0'.repeat(40)},/R090 ci check: cited run receipt/],[x=>{delete x.applicationCi.database.jobs.guards},/R090 database CI jobs must be exactly/],
+  [x=>x.build.sourceCommit='4'.repeat(40),/R090 PROD image provenance/],[x=>x.target.database='loan_manager_dev',/target/],[x=>x.frontend.files[0].sha256='d'.repeat(64),/artifact/],
+  [x=>x.release='R089',/package kind/],[x=>x.schemaVersion=25,/package kind/],[x=>x.scope='frontend-only',/package kind/],[x=>x.environment='dev',/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(r090HostingPlan(candidate,{git}),pattern,String(mutate));}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(r090HostingPlan(prepared,{git}),/R090 runtime apply\/readback/);assert.equal((await r090HostingPlan(prepared,{git,requireApplied:false})).site,site);
+ // R090 refuses the other kinds' packages, and they refuse R090's.
+ await assert.rejects(r089HostingPlan(m,{git}),/wrong R089 package kind/);await assert.rejects(r081HostingPlan(m,{git}),/wrong R081 package kind/);await assert.rejects(hostingOnlyPlan(m,{git}),/wrong R090 package kind/);
+ await assert.rejects(r090HostingPlan({...structuredClone(m),schemaVersion:25,release:'R089'},{git}),/wrong R090 package kind/);await assert.rejects(r090HostingPlan({...structuredClone(m),schemaVersion:26,release:'R089'},{git}),/wrong R090 package kind/);await assert.rejects(r089HostingPlan({...structuredClone(m),release:'R089'},{git}),/wrong R089 package kind/);
+ // Bytes that differ from the reviewed V106 are refused even when the package hashes them consistently.
+ const altered={...r090Files,'V106__chat_turn_presence.sql':r090Files['V106__chat_turn_presence.sql']+'\n-- edited'},hash=value=>createHash('sha256').update(value).digest('hex');
+ const manifest=JSON.parse(await readFile(m.sql.release.path,'utf8'));manifest.migrations=Object.entries(altered).map(([name,value])=>({name,sha256:hash(value)}));const alteredPath=path.join(root,'altered-r090.json'),alteredBytes=JSON.stringify(manifest);await writeFile(alteredPath,alteredBytes);
+ await assert.rejects(r090HostingPlan({...structuredClone(m),sql:{...structuredClone(m.sql),migrations:manifest.migrations.slice(-3),release:{path:alteredPath,sha256:hash(alteredBytes),commit:sqlRelease}}},{git:r090Git({source,tool,files:altered})}),/R090 migration is not the reviewed V106__chat_turn_presence.sql/);
+ const grouped=JSON.parse(await readFile(m.sql.release.path,'utf8'));grouped.productionTransaction.baselineVersion=104;const groupedPath=path.join(root,'target-r090.json'),groupedBytes=JSON.stringify(grouped);await writeFile(groupedPath,groupedBytes);
+ await assert.rejects(r090HostingPlan({...structuredClone(m),sql:{...structuredClone(m.sql),release:{path:groupedPath,sha256:hash(groupedBytes),commit:sqlRelease}}},{git}),/R090 grouped V103 to V106 transaction/);
+ await assert.rejects(r090HostingPlan(m,{git:r090Git({source,tool,releaseDatabase:'database/migrations/V106__chat_turn_presence.sql'})}),/R090 SQL release must be the pinned source migrations/);
+ assert.equal((await validateR090Sql(m,git)),undefined);
+});
+test('R090 artifact must carry the R090 release and the PROD chat origin in its config, bundle and CSP',async t=>{
+ const {m,source,tool}=await r090Package(t),git=r090Git({source,tool});
+ const config=JSON.parse(await readFile(path.join(m.artifactRoot,'production-public-config.json'),'utf8')),bundle=await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8');
+ for(const marker of [r090Marker(m,{release:'R089'}),JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry})]){const x=structuredClone(m);await setArtifact(x,'build-version.json',marker);await assert.rejects(r090HostingPlan(x,{git}),/R090 artifact release mismatch|marker\/mode mismatch/);}
+ await setArtifact(m,'build-version.json',r090Marker(m));
+ {const x=structuredClone(m);await setArtifact(x,'assets/test.js',bundle.replace('"R090"','"R089"'));await assert.rejects(r090HostingPlan(x,{git}),/R090 artifact release mismatch/);}
+ await setArtifact(m,'assets/test.js',bundle);
+ const other='https://mw-credit-app-chat-dev-pvrgvyg3oq-as.a.run.app';
+ for(const edit of [c=>{delete c.chatOrigin},c=>{c.chatOrigin=other}]){const x=structuredClone(m),c=structuredClone(config);edit(c);await setArtifact(x,'production-public-config.json',JSON.stringify(c));await assert.rejects(r090HostingPlan(x,{git}),/R090 chat origin missing from the public config or the compiled bundle/);}
+ await setArtifact(m,'production-public-config.json',JSON.stringify(config));
+ {const x=structuredClone(m);await setArtifact(x,'assets/test.js',bundle.replaceAll(R090_CHAT_ORIGIN,other));await assert.rejects(r090HostingPlan(x,{git}),/R090 chat origin missing from the public config or the compiled bundle/);}
+ await setArtifact(m,'assets/test.js',bundle);
+ assert.equal((await r090HostingPlan(m,{git})).headers[0].headers['Content-Security-Policy'].includes(R090_CHAT_ORIGIN),true);
+});
+test('R090 source descends from the R089 release and adds exactly V104 to V106; the delivery commit may add the README, SQL tooling and connect preflight',async t=>{
+ const {m,source,tool,ci}=await r090Package(t);
+ const toolFiles='scripts/promotion/deploy-business-hosting.mjs\ntests/unit/business-hosting-delivery.test.mjs\nscripts/database/Backup-ProductionPromotion.py\nscripts/database/R053_OPERATOR.md\nscripts/database/connect_preflight.py\nscripts/database/test_connect_preflight.py\nscripts/promotion/README.md\nproject/Documents/Release_Tracker.md\nChange Logs/CHANGE_NOTES_R090_PWA_CHATBOT_2026-10-23.md';
+ assert.doesNotThrow(()=>validateR090Source(m,r090Git({source,tool,delivery:toolFiles})));
+ for(const file of ['services/chat/handler.mjs','apps/pwa/src/chat/ChatWorkspace.tsx','database/migrations/V107__x.sql','database/migrations/V106__chat_turn_presence.sql','infrastructure/production/chat-service.tf','scripts/hosting-headers.mjs','scripts/database/Test-Chat.sql'])assert.throws(()=>validateR090Source(m,r090Git({source,tool,delivery:file})),/R090 unverified delivery/);
+ assert.throws(()=>validateR090Source({...m,deliveryToolChecks:{command:'npm test',exitCode:0}},r090Git({source,tool,delivery:toolFiles})),/R090 unverified delivery/);
+ const [v104,v105,v106]=r090Migrations.map(name=>'database/migrations/'+name);
+ for(const migration of ['',v104+'\n'+v105,v105+'\n'+v106,'database/migrations/V103__notification_history_content.sql\n'+r090Added,r090Added+'\ndatabase/migrations/V107__x.sql'])assert.throws(()=>validateR090Source(m,r090Git({source,tool,migration})),/R090 carries exactly the separately applied V106/);
+ for(const sourceBaseline of ['0a93c0abc32c9ae120ce727ea39181c0ab06d649','b36dce97224b803a364efba90bcbce1c68caeea7'])assert.throws(()=>validateR090Source({...m,sourceBaseline},r090Git({source,tool})),/R090 source\/baseline/);
+ assert.throws(()=>validateR090Source(m,r090Git({source,tool,ancestors:{[r089Release]:'0a93c0abc32c9ae120ce727ea39181c0ab06d649'}})),/R090 source must descend from the R089 release/);
+ assert.throws(()=>validateR090Source(m,r090Git({source,tool,dirty:'services/chat/store.mjs'})),/R090 working input/);
+ assert.throws(()=>validateR090Source(m,r090Git({source,tool,untracked:'services/chat/new.mjs'})),/R090 untracked/);
+ assert.throws(()=>validateR089Source({...m,sourceBaseline:'0a93c0abc32c9ae120ce727ea39181c0ab06d649'},r090Git({source,tool})),/R089/);
+ await assert.rejects(r090HostingPlan(m,{git:r090Git({source,tool,changed:{[ci]:'services/chat/handler.mjs'}})}),/R090 ci check: run is not input-equivalent/);
+ m.applicationCi=r074Ci(tool);assert.equal((await r090HostingPlan(m,{git:r090Git({source,tool,delivery:toolFiles})})).site,site);
+});
+test('R090 operator audience and live verification re-read CI, Cloud Build, the four services and the chat service',async t=>{
+ const {m,source,tool,image}=await r090Package(t),git=r090Git({source,tool}),project='clever-oasis-508610-n7';
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
+ const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
+ assert.equal((await operator('R090')).operator,email);await assert.rejects(operator('R090','https://lm.mw-credit.com/promotion/r089'),/impersonation proof/);await assert.rejects(operator('R091'),/unsupported operator release/);
+ const models={version:1,location:'global',default:'gemini-4-argon',thinkingLevel:'MEDIUM',maxRounds:16,models:[{id:'gemini-4-argon',label:'A',available:true},{id:'gemini-3.8-flash',label:'B',available:true},{id:'gemini-3.5-flash',label:'C',available:true}]};
+ const dispatch=Object.entries(R090_DISPATCH).map(([name,value])=>({name,value}));
+ const service=(role,edit={})=>{const env=[{name:'DB_NAME',value:'loan_manager_prod'},{name:'INSTANCE_CONNECTION_NAME',value:m.target.connectionName},{name:'DB_USER',value:`mw-credit-app-${role}-prod@${project}.iam`}];
+  if(role==='command')env.push({name:'PWA_NOTIFICATIONS',value:'enabled'},{name:'PROD_RECEIPTS',value:'enabled'},{name:'PROD_RECEIPT_RECOGNITION',value:'enabled'},{name:'PROD_RECEIPT_RECOGNITION_URL',value:R075_RECOGNIZER_URL});
+  if(role==='notify')env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify(edit.subjects??{[`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`]:'114454898477847610024',[`mw-credit-app-jobs-prod@${project}.iam.gserviceaccount.com`]:'114454898477847610025','mw-credit-app-command-prod@x':'114454898477847610026'})});
+  if(role==='jobs')env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})},...(edit.jobsDispatch??dispatch));
+  if(role==='chat')env.push(...(edit.chatDispatch??dispatch),{name:'CHAT_MODELS_JSON',value:JSON.stringify(edit.models??models)});
+  const vpc=role==='command'?{egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]}:undefined;
+  const timeout=role==='chat'?edit.chatTimeout??'300s':R077_SERVICE_TIMEOUTS[role];
+  const cpuIdle=role==='command'?edit.commandCpuIdle??false:role==='chat'?edit.chatCpuIdle??false:true;
+  const revision=edit.revision?.[role]??m.applied.services[role].revision;
+  return {name:`projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,latestReadyRevision:'x/'+revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision}],template:{serviceAccount:edit.account?.[role]??`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,timeout,...(vpc?{vpcAccess:vpc}:{}),containers:[{image:edit.image?.[role]??image,env,resources:{limits:{cpu:'1'},cpuIdle}}]}};};
+ const make=(edit={},digest='e')=>async url=>({ok:true,json:async()=>url.includes('cloudbuild')?{status:'SUCCESS',results:{images:[{name:`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:build-1`,digest:'sha256:'+digest.repeat(64)}]},source:{storageSource:m.build.storageSource}}:service(url.split('/services/mw-credit-app-')[1].replace('-prod',''),edit)});
+ const live=r074Readback(m);await verifyR090LivePackage(m,{token:'t',request:make(),readGithub:live.readGithub,git});assert.equal(live.calls.length,10);
+ const strip=name=>dispatch.filter(x=>x.name!==name);
+ for(const [edit,pattern,digest='e'] of [[{},/build digest/,'f'],[{commandCpuIdle:true},/R090 live command cpu_idle must be false/],[{jobsDispatch:strip('NOTIFICATION_DISPATCH_URL')},/R090 live jobs dispatch wake drift/],
+  [{subjects:{'mw-credit-app-jobs-prod@clever-oasis-508610-n7.iam.gserviceaccount.com':'114454898477847610025'}},/R090 live notify callers must include chat and jobs/],
+  [{account:{chat:'mw-credit-app-read-prod@clever-oasis-508610-n7.iam.gserviceaccount.com'}},/R090 live chat revision\/identity drift/],[{image:{chat:'other'}},/R090 live chat revision\/identity drift/],[{revision:{chat:'mw-credit-app-chat-prod-00002-def'}},/R090 live chat revision\/identity drift/],
+  [{chatTimeout:'120s'},/R090 live chat timeout 300s and cpu_idle false/],[{chatCpuIdle:true},/R090 live chat timeout 300s and cpu_idle false/],[{chatDispatch:strip('NOTIFICATION_DISPATCH_ENABLED')},/R090 live chat dispatch wake drift/],
+  [{models:{...models,maxRounds:12}},/R090 live chat models must be three Gemini models with maxRounds 16/],[{models:{...models,models:models.models.slice(0,2)}},/R090 live chat models/],[{models:{...models,models:[...models.models.slice(0,2),{id:'claude-x',label:'X',available:true}]}},/R090 live chat models/],
+  [{chatTimeout:undefined,image:{read:'other'}},/live service revision\/identity drift/]])
+  await assert.rejects(verifyR090LivePackage(m,{token:'t',request:make(edit,digest),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
 });

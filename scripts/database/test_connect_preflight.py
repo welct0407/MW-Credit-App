@@ -60,6 +60,23 @@ class Evaluate(unittest.TestCase):
         self.assertTrue(cp.configured(REPO, 'mw-credit-app-jobs-prod@clever-oasis-508610-n7.iam'))
         self.assertFalse(cp.configured(REPO, 'mw-credit-app-other-prod@clever-oasis-508610-n7.iam'))
         self.assertFalse(cp.configured(REPO, 'mw-credit-app-read-dev@clever-oasis-508610-n7.iam'))
+        # R090: the chat IAM database user is derived from the chat service account in chat-service.tf.
+        self.assertEqual(cp.CONFIGURED_CONSUMERS['mw-credit-app-chat-prod@clever-oasis-508610-n7.iam'], 'infrastructure/production/chat-service.tf')
+        self.assertTrue(cp.configured(REPO, 'mw-credit-app-chat-prod@clever-oasis-508610-n7.iam'))
+        self.assertFalse(cp.configured(REPO, 'mw-credit-app-chat-dev@clever-oasis-508610-n7.iam'))
+        self.assertTrue(cp.DEV_NAME.search('mw-credit-app-chat-dev@clever-oasis-508610-n7.iam'))
+
+    def test_derived_source_needs_the_account_and_the_derivation(self):
+        import tempfile
+        role = 'mw-credit-app-chat-prod@clever-oasis-508610-n7.iam'
+        good = 'resource "google_service_account" "chat" {\n  account_id   = "mw-credit-app-chat-prod"\n}\nname = trimsuffix(google_service_account.chat[0].email, ".gserviceaccount.com")\n'
+        for text, expected in [(good, True), (good.replace('mw-credit-app-chat-prod', 'mw-credit-app-chat-dev'), False),
+                               (good.replace('trimsuffix(', 'lower('), False), (good.replace('account_id', 'display_name'), False)]:
+            with tempfile.TemporaryDirectory() as root:
+                path = Path(root) / 'infrastructure/production/chat-service.tf'
+                path.parent.mkdir(parents=True)
+                path.write_text(text, encoding='utf-8')
+                self.assertIs(cp.configured(Path(root), role), expected, text)
         self.assertTrue(cp.DEV_NAME.search('mw-credit-app-read-dev@x') and cp.DEV_NAME.search('mw_ledger_owner_dev'))
         self.assertFalse(cp.DEV_NAME.search('mw_app_prod') or cp.DEV_NAME.search('codex-cloud-read@x') or cp.DEV_NAME.search('mw_devices'))
 
