@@ -3252,6 +3252,413 @@ $_$;
 
 
 --
+-- Name: pwa_chat_actor_v1(jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_actor_v1(actor jsonb) RETURNS text
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE suffix text; partner text; matches bigint;
+BEGIN
+ IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ suffix:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;
+ IF current_user<>'mw_chat_owner_'||suffix OR NOT pg_has_role(session_user,'mw_chat_api_'||suffix,'USAGE') OR pg_has_role(session_user,'mw_chat_owner_'||suffix,'MEMBER') THEN
+  RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ IF actor IS NULL OR jsonb_typeof(actor)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(actor) key) IS DISTINCT FROM ARRAY['issuer','loginEmail','partnerId','subject']::text[]
+  OR EXISTS(SELECT 1 FROM jsonb_each(actor) e WHERE jsonb_typeof(e.value)<>'string')
+  OR actor->>'issuer'<>'https://securetoken.google.com/clever-oasis-508610-n7'
+  OR coalesce(length(actor->>'subject'),0) NOT BETWEEN 1 AND 128 OR coalesce(length(actor->>'partnerId'),0) NOT BETWEEN 1 AND 256
+  OR coalesce(length(actor->>'loginEmail'),0) NOT BETWEEN 1 AND 320 OR actor->>'loginEmail'<>lower(btrim(actor->>'loginEmail')) THEN
+  RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ SELECT count(*),min("Row ID") INTO matches,partner FROM public."Partners" WHERE lower(btrim("Login Email"))=actor->>'loginEmail';
+ IF matches<>1 OR partner IS DISTINCT FROM actor->>'partnerId' THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+ RETURN partner;
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_chat_actor_v1(actor jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_actor_v1(actor jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_immutable_v1(); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_immutable_v1() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+BEGIN
+ IF TG_OP='UPDATE' THEN
+  IF TG_TABLE_NAME='pwa_chat_threads' THEN
+   IF NEW.id=OLD.id AND NEW.partner_id=OLD.partner_id AND NEW.created_at=OLD.created_at THEN RETURN NEW; END IF;
+  ELSIF TG_TABLE_NAME='pwa_chat_messages' THEN
+   IF OLD.role='user' AND (to_jsonb(NEW)-'claimed_at')=(to_jsonb(OLD)-'claimed_at') THEN RETURN NEW; END IF;
+  END IF;
+ END IF;
+ RAISE EXCEPTION '% on % is not allowed (append-only chat journal)',TG_OP,TG_TABLE_NAME USING ERRCODE='55000';
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_chat_immutable_v1(); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_immutable_v1() IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_iso_v1(timestamp with time zone); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_iso_v1(t timestamp with time zone) RETURNS text
+    LANGUAGE sql IMMUTABLE STRICT
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$ SELECT to_char(t AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') $$;
+
+
+--
+-- Name: FUNCTION pwa_chat_iso_v1(t timestamp with time zone); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_iso_v1(t timestamp with time zone) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_message_json_v1(public.pwa_chat_messages); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_message_json_v1(m public.pwa_chat_messages) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+ SELECT jsonb_strip_nulls(jsonb_build_object('id',m.id,'seq',m.seq,'role',m.role,'text',m.text,
+  'status',CASE WHEN m.role='user' AND m.claimed_at IS NOT NULL THEN CASE WHEN m.claimed_at>clock_timestamp()-interval '5 minutes' THEN 'pending' ELSE 'failed' END ELSE m.status END,
+  'model',m.model,'createdAt',public.pwa_chat_iso_v1(m.created_at),
+  'usage',CASE WHEN m.role='assistant' THEN jsonb_build_object('promptTokens',coalesce(m.prompt_tokens,0),'outputTokens',coalesce(m.output_tokens,0),
+   'thoughtsTokens',coalesce(m.thoughts_tokens,0),'cachedTokens',coalesce(m.cached_tokens,0),'rounds',coalesce(m.rounds,0),'latencyMs',coalesce(m.latency_ms,0)) END,
+  'tools',CASE WHEN m.role='assistant' THEN (SELECT jsonb_agg(jsonb_build_object('name',x.name,'count',x.n) ORDER BY x.first_round,x.name)
+   FROM (SELECT c.name,count(*) AS n,min(c.round) AS first_round FROM public.pwa_chat_tool_calls c WHERE c.message_id=m.id GROUP BY c.name) x) END,
+  'errorCode',m.error_code))
+$$;
+
+
+--
+-- Name: FUNCTION pwa_chat_message_json_v1(m public.pwa_chat_messages); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_message_json_v1(m public.pwa_chat_messages) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_message_v1(jsonb, uuid, uuid); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_message_v1(actor jsonb, thread uuid, message uuid) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); u public.pwa_chat_messages; a public.pwa_chat_messages;
+BEGIN
+ SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads t ON t.id=m.thread_id
+ WHERE m.id=message AND m.thread_id=thread AND m.role='user' AND t.partner_id=partner;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ SELECT * INTO a FROM public.pwa_chat_messages m WHERE m.thread_id=u.thread_id AND m.seq=u.seq+1 AND m.role='assistant';
+ RETURN jsonb_build_object('user',public.pwa_chat_message_json_v1(u),'assistant',CASE WHEN a.id IS NULL THEN 'null'::jsonb ELSE public.pwa_chat_message_json_v1(a) END);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_chat_message_v1(actor jsonb, thread uuid, message uuid); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_message_v1(actor jsonb, thread uuid, message uuid) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_messages_v1(jsonb, uuid, integer, integer); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_messages_v1(actor jsonb, thread uuid, before integer, lim integer) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor);
+BEGIN
+ IF lim IS NULL OR lim NOT BETWEEN 1 AND 50 OR (before IS NOT NULL AND before<1) THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner) THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ RETURN coalesce((SELECT jsonb_agg(public.pwa_chat_message_json_v1(x.m) ORDER BY (x.m).seq DESC)
+  FROM (SELECT m FROM public.pwa_chat_messages m WHERE m.thread_id=thread AND (before IS NULL OR m.seq<before) ORDER BY m.seq DESC LIMIT lim+1) x),'[]'::jsonb);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_chat_messages_v1(actor jsonb, thread uuid, before integer, lim integer); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_messages_v1(actor jsonb, thread uuid, before integer, lim integer) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_models_default_v1(jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_models_default_v1(actor jsonb) RETURNS text
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor);
+BEGIN
+ RETURN (SELECT t.model FROM public.pwa_chat_threads t WHERE t.partner_id=partner ORDER BY t.updated_at DESC,t.id DESC LIMIT 1);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_chat_models_default_v1(actor jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_models_default_v1(actor jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_thread_create_v1(jsonb, jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_thread_create_v1(actor jsonb, thread jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); row_value public.pwa_chat_threads; thread_id uuid; title_value text;
+BEGIN
+ IF thread IS NULL OR jsonb_typeof(thread)<>'object' OR EXISTS(SELECT 1 FROM jsonb_object_keys(thread) k WHERE k NOT IN ('id','model','title'))
+  OR jsonb_typeof(thread->'id') IS DISTINCT FROM 'string' OR thread->>'id' !~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+  OR jsonb_typeof(thread->'model') IS DISTINCT FROM 'string' OR thread->>'model' !~ '^gemini-[0-9]+(\.[0-9]+)?-[a-z0-9-]+$' OR length(thread->>'model')>64
+  OR (thread ? 'title' AND jsonb_typeof(thread->'title')<>'null' AND (jsonb_typeof(thread->'title')<>'string' OR length(thread->>'title') NOT BETWEEN 1 AND 120 OR thread->>'title'<>btrim(thread->>'title') OR thread->>'title' ~ '[[:cntrl:]]')) THEN
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ thread_id:=(thread->>'id')::uuid;title_value:=coalesce(nullif(thread->>'title',''),'New chat');
+ INSERT INTO public.pwa_chat_threads(id,partner_id,title,model) VALUES(thread_id,partner,title_value,thread->>'model') ON CONFLICT (id) DO NOTHING RETURNING * INTO row_value;
+ IF FOUND THEN RETURN jsonb_build_object('created',true,'item',public.pwa_chat_thread_json_v1(row_value)); END IF;
+ SELECT * INTO row_value FROM public.pwa_chat_threads t WHERE t.id=thread_id;
+ IF row_value.partner_id IS DISTINCT FROM partner THEN RAISE EXCEPTION 'not_found' USING ERRCODE='42501'; END IF;
+ RETURN jsonb_build_object('created',false,'item',public.pwa_chat_thread_json_v1(row_value));
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_thread_create_v1(actor jsonb, thread jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_thread_create_v1(actor jsonb, thread jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_thread_json_v1(public.pwa_chat_threads); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_thread_json_v1(t public.pwa_chat_threads) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+ SELECT jsonb_build_object('id',t.id,'title',t.title,'model',t.model,'status',t.status,'createdAt',public.pwa_chat_iso_v1(t.created_at),
+  'lastMessageAt',public.pwa_chat_iso_v1(t.last_message_at),'messageCount',t.message_count)
+$$;
+
+
+--
+-- Name: FUNCTION pwa_chat_thread_json_v1(t public.pwa_chat_threads); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_thread_json_v1(t public.pwa_chat_threads) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_thread_update_v1(jsonb, uuid, jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_thread_update_v1(actor jsonb, id uuid, patch jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); row_value public.pwa_chat_threads;
+BEGIN
+ IF patch IS NULL OR jsonb_typeof(patch)<>'object' OR NOT EXISTS(SELECT 1 FROM jsonb_object_keys(patch)) OR EXISTS(SELECT 1 FROM jsonb_object_keys(patch) k WHERE k NOT IN ('title','model','status'))
+  OR (patch ? 'title' AND (jsonb_typeof(patch->'title')<>'string' OR length(patch->>'title') NOT BETWEEN 1 AND 120 OR patch->>'title'<>btrim(patch->>'title') OR patch->>'title' ~ '[[:cntrl:]]'))
+  OR (patch ? 'model' AND (jsonb_typeof(patch->'model')<>'string' OR patch->>'model' !~ '^gemini-[0-9]+(\.[0-9]+)?-[a-z0-9-]+$' OR length(patch->>'model')>64))
+  OR (patch ? 'status' AND (jsonb_typeof(patch->'status')<>'string' OR patch->>'status' NOT IN ('active','archived'))) THEN
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ UPDATE public.pwa_chat_threads t SET title=coalesce(patch->>'title',t.title),model=coalesce(patch->>'model',t.model),status=coalesce(patch->>'status',t.status),updated_at=clock_timestamp()
+ WHERE t.id=$2 AND t.partner_id=partner RETURNING * INTO row_value;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ RETURN public.pwa_chat_thread_json_v1(row_value);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_thread_update_v1(actor jsonb, id uuid, patch jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_thread_update_v1(actor jsonb, id uuid, patch jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_threads_v1(jsonb, text, timestamp with time zone, integer); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_threads_v1(actor jsonb, status text, before timestamp with time zone, lim integer) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor);
+BEGIN
+ IF status IS NULL OR status NOT IN ('active','archived') OR lim IS NULL OR lim NOT BETWEEN 1 AND 50 OR (before IS NOT NULL AND NOT isfinite(before)) THEN
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ RETURN coalesce((SELECT jsonb_agg(public.pwa_chat_thread_json_v1(x.t)||jsonb_build_object('sortAt',to_char(x.sort_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"')) ORDER BY x.sort_at DESC,(x.t).id DESC)
+  FROM (SELECT t,coalesce(t.last_message_at,t.created_at) AS sort_at FROM public.pwa_chat_threads t
+   WHERE t.partner_id=partner AND t.status=$2 AND (before IS NULL OR coalesce(t.last_message_at,t.created_at)<before)
+   ORDER BY coalesce(t.last_message_at,t.created_at) DESC,t.id DESC LIMIT lim+1) x),'[]'::jsonb);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_threads_v1(actor jsonb, status text, before timestamp with time zone, lim integer); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_threads_v1(actor jsonb, status text, before timestamp with time zone, lim integer) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_turn_begin_v1(jsonb, uuid, jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_turn_begin_v1(actor jsonb, thread uuid, message jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); t public.pwa_chat_threads; u public.pwa_chat_messages; a public.pwa_chat_messages;
+ message_id uuid; next_seq integer; top_epoch integer; history_rows jsonb; seed jsonb; partner_language text;
+BEGIN
+ IF message IS NULL OR jsonb_typeof(message)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(message) key) IS DISTINCT FROM ARRAY['id','text']::text[]
+  OR jsonb_typeof(message->'id')<>'string' OR message->>'id' !~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+  OR jsonb_typeof(message->'text')<>'string' OR length(message->>'text') NOT BETWEEN 1 AND 4000 OR octet_length(message->>'text')>16384 THEN
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ message_id:=(message->>'id')::uuid;
+ SELECT * INTO t FROM public.pwa_chat_threads x WHERE x.id=thread AND x.partner_id=partner FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ SELECT * INTO u FROM public.pwa_chat_messages m WHERE m.id=message_id;
+ IF FOUND THEN
+  IF u.thread_id<>t.id OR u.role<>'user' THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+  IF u.text<>message->>'text' THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  SELECT * INTO a FROM public.pwa_chat_messages m WHERE m.thread_id=t.id AND m.seq=u.seq+1 AND m.role='assistant';
+  IF FOUND THEN RETURN jsonb_build_object('state','completed','user',public.pwa_chat_message_json_v1(u),'assistant',public.pwa_chat_message_json_v1(a)); END IF;
+  IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=t.id AND m.role='user' AND m.claimed_at>clock_timestamp()-interval '5 minutes') THEN
+   RAISE EXCEPTION 'turn_in_progress' USING ERRCODE='55006'; END IF;
+  UPDATE public.pwa_chat_messages m SET claimed_at=clock_timestamp() WHERE m.id=u.id RETURNING * INTO u;
+ ELSE
+  IF t.status<>'active' THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=t.id AND m.role='user' AND m.claimed_at>clock_timestamp()-interval '5 minutes') THEN
+   RAISE EXCEPTION 'turn_in_progress' USING ERRCODE='55006'; END IF;
+  IF t.message_count+2>2000 THEN RAISE EXCEPTION 'thread_full' USING ERRCODE='54000'; END IF;
+  SELECT coalesce(max(CASE WHEN m.role='user' THEN m.seq+1 ELSE m.seq END),0)+1 INTO next_seq FROM public.pwa_chat_messages m WHERE m.thread_id=t.id;
+  INSERT INTO public.pwa_chat_messages(id,thread_id,seq,role,text,status,claimed_at) VALUES(message_id,t.id,next_seq,'user',message->>'text','ok',clock_timestamp()) RETURNING * INTO u;
+  UPDATE public.pwa_chat_threads x SET message_count=x.message_count+1 WHERE x.id=t.id RETURNING * INTO t;
+ END IF;
+ SELECT max(h.epoch) INTO top_epoch FROM public.pwa_chat_history h WHERE h.thread_id=t.id;
+ SELECT jsonb_agg(jsonb_build_object('seq',h.seq,'role',h.role,'content',h.content,'prompt_sha256',h.prompt_sha256,'input_tokens',h.input_tokens) ORDER BY h.seq)
+  INTO history_rows FROM public.pwa_chat_history h WHERE h.thread_id=t.id AND h.epoch=top_epoch;
+ SELECT coalesce(jsonb_agg(x.e ORDER BY x.seq),'[]'::jsonb) INTO seed FROM (
+  SELECT q.seq,jsonb_build_object('userText',q.text,'userAt',public.pwa_chat_iso_v1(q.created_at),'assistantText',r.text,'assistantStatus',r.status,'assistantAt',public.pwa_chat_iso_v1(r.created_at)) AS e
+  FROM public.pwa_chat_messages q JOIN public.pwa_chat_messages r ON r.thread_id=q.thread_id AND r.seq=q.seq+1 AND r.role='assistant'
+  WHERE q.thread_id=t.id AND q.role='user' AND q.id<>u.id ORDER BY q.seq DESC LIMIT 200) x;
+ SELECT p."Language Preference" INTO partner_language FROM public."Partners" p WHERE p."Row ID"=partner;
+ RETURN jsonb_build_object('state','claimed','message',jsonb_build_object('id',u.id,'seq',u.seq,'createdAt',public.pwa_chat_iso_v1(u.created_at)),
+  'thread',jsonb_build_object('id',t.id,'model',t.model,'title',t.title,'messageCount',t.message_count),'partnerLanguage',partner_language,
+  'history',CASE WHEN history_rows IS NULL THEN 'null'::jsonb ELSE jsonb_build_object('epoch',top_epoch,'rows',history_rows) END,'seed',seed);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_turn_begin_v1(actor jsonb, thread uuid, message jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_turn_begin_v1(actor jsonb, thread uuid, message jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_turn_complete_v1(jsonb, uuid, jsonb, jsonb, jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_turn_complete_v1(actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); t public.pwa_chat_threads; u public.pwa_chat_messages; a public.pwa_chat_messages;
+ top_epoch integer; top_seq integer; item jsonb; offset_value integer:=0; total integer; first_line text; n text;
+BEGIN
+ SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads x ON x.id=m.thread_id WHERE m.id=message_id AND m.role='user' AND x.partner_id=partner;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ SELECT * INTO t FROM public.pwa_chat_threads x WHERE x.id=u.thread_id FOR UPDATE;
+ IF assistant IS NULL OR jsonb_typeof(assistant)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(assistant) key) IS DISTINCT FROM
+   ARRAY['attempts','cachedTokens','errorCode','latencyMs','model','outputTokens','promptTokens','rounds','status','text','thinkingLevel','thoughtsTokens']::text[]
+  OR assistant->>'status' NOT IN ('ok','failed') OR jsonb_typeof(assistant->'text')<>'string' OR jsonb_typeof(assistant->'model')<>'string'
+  OR ((assistant->>'status')='ok')<>(jsonb_typeof(assistant->'errorCode')='null')
+  OR EXISTS(SELECT 1 FROM unnest(ARRAY['attempts','cachedTokens','latencyMs','outputTokens','promptTokens','rounds','thoughtsTokens']) k
+   WHERE jsonb_typeof(assistant->k)<>'number' OR (assistant->>k)::numeric<0 OR (assistant->>k)::numeric<>trunc((assistant->>k)::numeric) OR (assistant->>k)::numeric>2147483647)
+  OR (assistant->>'status'='ok' AND history IS NULL) OR (assistant->>'status'='failed' AND history IS NOT NULL AND jsonb_typeof(history)<>'null')
+  OR tool_calls IS NULL OR jsonb_typeof(tool_calls)<>'array' OR jsonb_array_length(tool_calls)>1000 THEN
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ INSERT INTO public.pwa_chat_messages(id,thread_id,seq,role,text,status,model,thinking_level,rounds,attempts,prompt_tokens,output_tokens,thoughts_tokens,cached_tokens,latency_ms,error_code)
+ VALUES(gen_random_uuid(),u.thread_id,u.seq+1,'assistant',assistant->>'text',assistant->>'status',assistant->>'model',assistant->>'thinkingLevel',
+  least((assistant->>'rounds')::integer,32767),least((assistant->>'attempts')::integer,32767),(assistant->>'promptTokens')::integer,(assistant->>'outputTokens')::integer,
+  (assistant->>'thoughtsTokens')::integer,(assistant->>'cachedTokens')::integer,(assistant->>'latencyMs')::integer,assistant->>'errorCode') RETURNING * INTO a;
+ IF assistant->>'status'='ok' THEN
+  IF jsonb_typeof(history)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(history) key) IS DISTINCT FROM ARRAY['epoch','inputTokens','messages','promptSha256','seq']::text[]
+   OR jsonb_typeof(history->'epoch')<>'number' OR jsonb_typeof(history->'seq')<>'number' OR jsonb_typeof(history->'messages')<>'array' OR jsonb_array_length(history->'messages')<1
+   OR coalesce(history->>'promptSha256','') !~ '^[0-9a-f]{64}$' OR jsonb_typeof(history->'inputTokens') NOT IN ('number','null') THEN
+   RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  SELECT max(h.epoch) INTO top_epoch FROM public.pwa_chat_history h WHERE h.thread_id=u.thread_id;
+  SELECT max(h.seq) INTO top_seq FROM public.pwa_chat_history h WHERE h.thread_id=u.thread_id AND h.epoch=top_epoch;
+  IF NOT ((top_epoch IS NULL AND (history->>'epoch')::integer=0 AND (history->>'seq')::integer=0)
+   OR ((history->>'epoch')::integer=top_epoch AND (history->>'seq')::integer=top_seq+1)
+   OR ((history->>'epoch')::integer=top_epoch+1 AND (history->>'seq')::integer=0)) THEN
+   RAISE EXCEPTION 'history_conflict' USING ERRCODE='40001'; END IF;
+  total:=jsonb_array_length(history->'messages');
+  FOR item IN SELECT value FROM jsonb_array_elements(history->'messages') LOOP
+   IF jsonb_typeof(item)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(item) key) IS DISTINCT FROM ARRAY['content','role']::text[]
+    OR item->>'role' NOT IN ('user','model') OR jsonb_typeof(item->'content')<>'string' THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+   INSERT INTO public.pwa_chat_history(thread_id,epoch,seq,message_id,role,content,prompt_sha256,input_tokens)
+   VALUES(u.thread_id,(history->>'epoch')::integer,(history->>'seq')::integer+offset_value,u.id,item->>'role',item->>'content',history->>'promptSha256',
+    CASE WHEN offset_value=total-1 THEN (history->>'inputTokens')::integer END);
+   offset_value:=offset_value+1;
+  END LOOP;
+ END IF;
+ FOR item IN SELECT value FROM jsonb_array_elements(tool_calls) LOOP
+  IF jsonb_typeof(item)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(item) key) IS DISTINCT FROM ARRAY['arguments','callId','error','ms','name','result','round']::text[]
+   OR jsonb_typeof(item->'callId')<>'string' OR jsonb_typeof(item->'name')<>'string' OR jsonb_typeof(item->'arguments')<>'string' OR jsonb_typeof(item->'round')<>'number'
+   OR jsonb_typeof(item->'result') NOT IN ('string','null') OR jsonb_typeof(item->'error') NOT IN ('string','null') OR jsonb_typeof(item->'ms') NOT IN ('number','null') THEN
+   RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+  INSERT INTO public.pwa_chat_tool_calls(message_id,call_id,round,name,arguments,result,error,ms)
+  VALUES(a.id,item->>'callId',(item->>'round')::smallint,item->>'name',item->>'arguments',item->>'result',item->>'error',(item->>'ms')::integer);
+ END LOOP;
+ UPDATE public.pwa_chat_messages m SET claimed_at=NULL WHERE m.id=u.id AND m.claimed_at IS NOT NULL;
+ first_line:=left(btrim(split_part(btrim(u.text,E' \t\r\n'),E'\n',1),E' \t\r'),120);
+ n:=CASE WHEN t.title='New chat' AND first_line<>'' AND first_line !~ '[[:cntrl:]]' THEN first_line ELSE t.title END;
+ UPDATE public.pwa_chat_threads x SET message_count=x.message_count+1,last_message_at=clock_timestamp(),title=n WHERE x.id=t.id;
+ RETURN public.pwa_chat_message_json_v1(a);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_turn_complete_v1(actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_turn_complete_v1(actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
 -- Name: pwa_claim_notifications_v1(integer, integer); Type: FUNCTION
 --
 

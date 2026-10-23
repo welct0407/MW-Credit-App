@@ -66,7 +66,7 @@ export async function collectTroubleshooting(context:TroubleshootingContext,crea
   session:signedIn?{...codes,accountHash:await accountHash(uid),hasCommandAccess:context.hasCommandAccess}:codes,
   events:clientEvents(),
   ...(signedIn?{offline:repository?await section(()=>offline(repository,context.preparation)):{unavailable:'no offline repository'},pending:pending as never}:{signedOutStorage:await section(()=>signedOutStorage(names))}),
- },{createdAt,secrets:[uid,repository?.scopeName,...names,import.meta.env.VITE_API_ORIGIN,import.meta.env.VITE_COMMAND_API_ORIGIN,import.meta.env.VITE_FIREBASE_API_KEY,import.meta.env.VITE_FIREBASE_APP_ID]});
+ },{createdAt,secrets:[uid,repository?.scopeName,...names,import.meta.env.VITE_API_ORIGIN,import.meta.env.VITE_COMMAND_API_ORIGIN,import.meta.env.VITE_CHAT_API_ORIGIN,import.meta.env.VITE_FIREBASE_API_KEY,import.meta.env.VITE_FIREBASE_APP_ID]});
  return {payload,failedSaves};
 }
 /** The encrypted .txt (text/plain: Chromium Web Share rejects .json). Throws when it cannot be made; there is no plaintext fallback. */

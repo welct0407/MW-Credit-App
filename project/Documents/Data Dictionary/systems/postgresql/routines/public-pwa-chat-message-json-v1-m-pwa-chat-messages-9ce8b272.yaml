@@ -1,0 +1,49 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_chat_message_json_v1(m pwa_chat_messages)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V104__pwa_chat.sql"
+  "coverage": "R090 definition (V104, 23 October 2026), reviewed from the migration source and applied to a disposable PostgreSQL\
+    \ 18 rebuild with stub roles and a stub \"Partners\" table; not captured from DEV or PROD, which have not received V104\
+    \ yet. Owner mw_chat_owner_<env>; the ACL shown is the rebuild. "
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_chat_message_json_v1"
+    "arguments": "m pwa_chat_messages"
+    "kind": "f"
+    "arguments_with_defaults": "m pwa_chat_messages"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_chat_message_json_v1(m pwa_chat_messages)
+       RETURNS jsonb
+       LANGUAGE sql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+       SELECT jsonb_strip_nulls(jsonb_build_object('id',m.id,'seq',m.seq,'role',m.role,'text',m.text,
+        'status',CASE WHEN m.role='user' AND m.claimed_at IS NOT NULL THEN CASE WHEN m.claimed_at>clock_timestamp()-interval '5 minutes' THEN 'pending' ELSE 'failed' END ELSE m.status END,
+        'model',m.model,'createdAt',public.pwa_chat_iso_v1(m.created_at),
+        'usage',CASE WHEN m.role='assistant' THEN jsonb_build_object('promptTokens',coalesce(m.prompt_tokens,0),'outputTokens',coalesce(m.output_tokens,0),
+         'thoughtsTokens',coalesce(m.thoughts_tokens,0),'cachedTokens',coalesce(m.cached_tokens,0),'rounds',coalesce(m.rounds,0),'latencyMs',coalesce(m.latency_ms,0)) END,
+        'tools',CASE WHEN m.role='assistant' THEN (SELECT jsonb_agg(jsonb_build_object('name',x.name,'count',x.n) ORDER BY x.first_round,x.name)
+         FROM (SELECT c.name,count(*) AS n,min(c.round) AS first_round FROM public.pwa_chat_tool_calls c WHERE c.message_id=m.id GROUP BY c.name) x) END,
+        'errorCode',m.error_code))
+      $function$
+    "owner": "mw_chat_owner_prod"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_chat_owner_prod=X/mw_chat_owner_prod}"
+    "comment": "mw-access:governance fixed chat boundary; explicit capability only"
+    "extension": null

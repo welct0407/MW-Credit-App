@@ -2,10 +2,10 @@
 // DEV applies them with scripts/deploy-hosting.mjs; PROD takes them at its next promotion
 // through scripts/promotion/deploy-business-hosting.mjs. firebase.json mirrors the DEV rules.
 const ORIGINS=Object.freeze({
- 'live-dev':['https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app'],
- 'live-prod':['https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app'],
+ 'live-dev':['https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-chat-dev-pvrgvyg3oq-as.a.run.app'],
+ 'live-prod':['https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-chat-prod-pvrgvyg3oq-as.a.run.app'],
 });
-/** Content-Security-Policy: Firebase popup sign-in (gapi + auth iframe), Firebase Auth REST and the two API origins. */
+/** Content-Security-Policy: Firebase popup sign-in (gapi + auth iframe), Firebase Auth REST and the three API origins (reader, command, R090 chat). */
 export function contentSecurityPolicy(mode){
  const api=ORIGINS[mode==='synthetic'?'live-dev':mode];
  if(!api)throw Error('Unknown hosting mode');

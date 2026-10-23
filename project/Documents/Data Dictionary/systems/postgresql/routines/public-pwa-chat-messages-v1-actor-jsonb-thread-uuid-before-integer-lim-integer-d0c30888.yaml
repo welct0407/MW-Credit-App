@@ -1,0 +1,47 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_chat_messages_v1(actor jsonb, thread uuid, before integer, lim integer)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V104__pwa_chat.sql"
+  "coverage": "R090 definition (V104, 23 October 2026), reviewed from the migration source and applied to a disposable PostgreSQL\
+    \ 18 rebuild with stub roles and a stub \"Partners\" table; not captured from DEV or PROD, which have not received V104\
+    \ yet. Owner mw_chat_owner_<env>; the ACL shown is the rebuild. "
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_chat_messages_v1"
+    "arguments": "actor jsonb, thread uuid, before integer, lim integer"
+    "kind": "f"
+    "arguments_with_defaults": "actor jsonb, thread uuid, before integer, lim integer"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_chat_messages_v1(actor jsonb, thread uuid, before integer, lim integer)
+       RETURNS jsonb
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE partner text:=public.pwa_chat_actor_v1(actor);
+      BEGIN
+       IF lim IS NULL OR lim NOT BETWEEN 1 AND 50 OR (before IS NOT NULL AND before<1) THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+       IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner) THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+       RETURN coalesce((SELECT jsonb_agg(public.pwa_chat_message_json_v1(x.m) ORDER BY (x.m).seq DESC)
+        FROM (SELECT m FROM public.pwa_chat_messages m WHERE m.thread_id=thread AND (before IS NULL OR m.seq<before) ORDER BY m.seq DESC LIMIT lim+1) x),'[]'::jsonb);
+      END $function$
+    "owner": "mw_chat_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_chat_owner_prod=X/mw_chat_owner_prod,mw_chat_api_prod=X/mw_chat_owner_prod}"
+    "comment": "mw-access:governance fixed chat boundary; explicit capability only"
+    "extension": null

@@ -1,3 +1,4 @@
+@import "./chat/chat.css";
 .live-shell { --section-heading-fill: #e6e6e6; --group-heading-fill: #f0f0f0; }
 /* Field summaries inherit this hierarchy; specialized detail views keep their own sizes. */
 :where(.live-shell) dt{font-size:var(--text-meta,14px);font-weight:400;color:#565656;line-height:1.5}
@@ -663,3 +664,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .selected-payment{min-width:0;max-width:100%}.selected-payment input:not([type=checkbox]):not([type=radio]),.selected-payment select,.selected-payment textarea{max-width:100%;min-width:0;box-sizing:border-box}
 .selected-payment .field-help,.selected-payment .field-summary,.selected-payment .payment-allocation-row>*{min-width:0;overflow-wrap:anywhere}
 html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-behavior-x:none}
+/* CHAT-NAV-1 (R090): five bottom items must fit 320-430 px in English and Thai without wrapping or overlap. */
+@media(max-width:1050px){.live-bottom-nav button{min-width:0}.live-bottom-nav .live-nav-label{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@media(max-width:430px){.live-bottom-nav button{padding:6px 2px;font-size:12px}}
+@media(max-width:360px){.live-bottom-nav button{padding:6px 1px;font-size:11px}}

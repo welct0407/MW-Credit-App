@@ -2,16 +2,16 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 import {hostingHeaders} from '../../scripts/hosting-headers.mjs';
 // APP-SEC-01: clickjacking and script-injection headers; APP-PERF-01: immutable hashed assets.
 const rule=(rules,glob)=>rules.find(r=>r.glob===glob)?.headers;
-test('DEV Hosting headers: CSP with frame-ancestors none, both DEV API origins, X-Frame-Options DENY',()=>{
+test('DEV Hosting headers: CSP with frame-ancestors none, the three DEV API origins, X-Frame-Options DENY',()=>{
  const all=rule(hostingHeaders('live-dev'),'**'),csp=all['Content-Security-Policy'];
  assert.match(csp,/frame-ancestors 'none'/);assert.equal(all['X-Frame-Options'],'DENY');assert.equal(all['Cache-Control'],'no-store');
- for(const origin of ['https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app','https://identitytoolkit.googleapis.com','https://securetoken.googleapis.com'])assert.ok(csp.includes(origin),origin);
+ for(const origin of ['https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-chat-dev-pvrgvyg3oq-as.a.run.app','https://identitytoolkit.googleapis.com','https://securetoken.googleapis.com'])assert.ok(csp.includes(origin),origin);
  assert.match(csp,/script-src 'self' https:\/\/apis\.google\.com;/);assert.match(csp,/frame-src https:\/\/clever-oasis-508610-n7\.firebaseapp\.com https:\/\/accounts\.google\.com/);
  assert.doesNotMatch(csp,/-prod-|unsafe-eval|script-src[^;]*unsafe-inline/);
 });
 test('PROD Hosting headers carry the PROD origins and no DEV origin',()=>{
  const csp=rule(hostingHeaders('live-prod'),'**')['Content-Security-Policy'];
- assert.ok(csp.includes('https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app')&&csp.includes('https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app'));
+ assert.ok(csp.includes('https://mw-credit-app-read-prod-pvrgvyg3oq-as.a.run.app')&&csp.includes('https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app')&&csp.includes('https://mw-credit-app-chat-prod-pvrgvyg3oq-as.a.run.app'));
  assert.doesNotMatch(csp,/-dev-/);assert.equal(rule(hostingHeaders('live-prod'),'**')['X-Frame-Options'],'DENY');
 });
 test('hashed assets are immutable; entry points stay no-store and come after the asset rule',()=>{

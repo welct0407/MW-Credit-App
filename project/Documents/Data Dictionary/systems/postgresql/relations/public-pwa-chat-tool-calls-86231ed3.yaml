@@ -1,0 +1,522 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.pwa_chat_tool_calls"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V104__pwa_chat.sql"
+  "coverage": "R090 definition (V104, 23 October 2026), reviewed from the migration source and applied to a disposable PostgreSQL\
+    \ 18 rebuild with stub roles and a stub \"Partners\" table; not captured from DEV or PROD, which have not received V104\
+    \ yet. Owner mw_chat_owner_<env>; the ACL shown is the rebuild. No rows."
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_chat_tool_calls"
+    "kind": "r"
+    "owner": "mw_chat_owner_prod"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{mw_chat_owner_prod=arwdDxtm/mw_chat_owner_prod}"
+    "comment": "mw-access:governance partner chat tool-call journal; append-only, fixed chat RPCs only"
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "message_id":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "message_id"
+      "ordinal": 1
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "call_id":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "call_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "round":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "round"
+      "ordinal": 3
+      "data_type": "smallint"
+      "type_schema": "pg_catalog"
+      "type_name": "int2"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "name":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "name"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "arguments":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "arguments"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "result":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "result"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "error":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "error"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "ms":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "ms"
+      "ordinal": 8
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "created_at":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "created_at"
+      "ordinal": 9
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "transaction_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints":
+    "pwa_chat_tool_calls_arguments_check":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_arguments_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(arguments) <= 16384)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_arguments_not_null":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_arguments_not_null"
+      "kind": "n"
+      "definition": "NOT NULL arguments"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_call_id_check":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_call_id_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(call_id) >= 1 AND octet_length(call_id) <= 256)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_call_id_not_null":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_call_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL call_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_created_at_not_null":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_created_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL created_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_error_check":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_error_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(error) <= 4096)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_message_id_fkey":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_message_id_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (message_id) REFERENCES pwa_chat_messages(id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "pwa_chat_messages"
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "pwa_chat_tool_calls_message_id_not_null":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_message_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL message_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_ms_check":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_ms_check"
+      "kind": "c"
+      "definition": "CHECK (ms >= 0)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_name_check":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_name_check"
+      "kind": "c"
+      "definition": "CHECK (length(name) >= 1 AND length(name) <= 200)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_name_not_null":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_name_not_null"
+      "kind": "n"
+      "definition": "NOT NULL name"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_pkey":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (message_id, call_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_result_check":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_result_check"
+      "kind": "c"
+      "definition": "CHECK (octet_length(result) <= 262144)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_round_check":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_round_check"
+      "kind": "c"
+      "definition": "CHECK (round >= 1)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "pwa_chat_tool_calls_round_not_null":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_round_not_null"
+      "kind": "n"
+      "definition": "NOT NULL round"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "pwa_chat_tool_calls_pkey":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_pkey"
+      "definition": "CREATE UNIQUE INDEX pwa_chat_tool_calls_pkey ON public.pwa_chat_tool_calls USING btree (message_id, call_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_16686":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "RI_ConstraintTrigger_c_16686"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16686\" AFTER INSERT ON pwa_chat_tool_calls FROM pwa_chat_messages\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16687":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "RI_ConstraintTrigger_c_16687"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16687\" AFTER UPDATE ON pwa_chat_tool_calls FROM pwa_chat_messages\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "pwa_chat_tool_calls_guard":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_guard"
+      "definition": "CREATE TRIGGER pwa_chat_tool_calls_guard BEFORE DELETE OR UPDATE ON pwa_chat_tool_calls FOR EACH ROW\
+        \ EXECUTE FUNCTION pwa_chat_immutable_v1()"
+      "enabled": "O"
+      "internal": false
+      "routine": "pwa_chat_immutable_v1()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "pwa_chat_tool_calls_truncate":
+      "schema": "public"
+      "relation": "pwa_chat_tool_calls"
+      "name": "pwa_chat_tool_calls_truncate"
+      "definition": "CREATE TRIGGER pwa_chat_tool_calls_truncate BEFORE TRUNCATE ON pwa_chat_tool_calls FOR EACH STATEMENT\
+        \ EXECUTE FUNCTION pwa_chat_immutable_v1()"
+      "enabled": "O"
+      "internal": false
+      "routine": "pwa_chat_immutable_v1()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

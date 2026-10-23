@@ -14,7 +14,7 @@ BEGIN
  END IF;
 END $$;
 DO $$ BEGIN
- IF (SELECT count(*) FROM pg_roles WHERE rolname LIKE 'mw-credit-app-%-dev@clever-oasis-508610-n7.iam')<>4 THEN
+ IF (SELECT count(*) FROM pg_roles WHERE rolname LIKE 'mw-credit-app-%-dev@clever-oasis-508610-n7.iam')<>5 THEN
   RAISE EXCEPTION 'Access matrix needs Test-IamRolePrerequisites.sql before migrations';
  END IF;
 END $$;
@@ -33,6 +33,10 @@ INSERT INTO am_expected_tables VALUES
   ('mw_app_dev_journal_owner','public.r008_cash_account_cutover','INSERT'),
   ('mw_business_audit_owner','agent_audit.commits','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_changes_owner_dev','public.pwa_row_changes','DELETE,INSERT,SELECT'),
+  ('mw_chat_owner_dev','public.pwa_chat_history','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
+  ('mw_chat_owner_dev','public.pwa_chat_messages','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
+  ('mw_chat_owner_dev','public.pwa_chat_threads','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
+  ('mw_chat_owner_dev','public.pwa_chat_tool_calls','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_app_dev','public.pwa_row_changes','SELECT'),
   ('mw_business_audit_owner','agent_audit.exports','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_business_audit_owner','agent_audit.row_changes','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
@@ -112,6 +116,27 @@ INSERT INTO am_expected_routines VALUES
   ('mw_business_audit_owner','agent_audit.capture_change()'),
   ('mw_business_audit_owner','agent_audit.reject_rewrite()'),
   ('mw_changes_owner_dev','pwa_row_changes_prune_v1()'),
+  ('mw_chat_api_dev','pwa_chat_message_v1(jsonb,uuid,uuid)'),
+  ('mw_chat_api_dev','pwa_chat_messages_v1(jsonb,uuid,integer,integer)'),
+  ('mw_chat_api_dev','pwa_chat_models_default_v1(jsonb)'),
+  ('mw_chat_api_dev','pwa_chat_thread_create_v1(jsonb,jsonb)'),
+  ('mw_chat_api_dev','pwa_chat_thread_update_v1(jsonb,uuid,jsonb)'),
+  ('mw_chat_api_dev','pwa_chat_threads_v1(jsonb,text,timestamp with time zone,integer)'),
+  ('mw_chat_api_dev','pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)'),
+  ('mw_chat_api_dev','pwa_chat_turn_complete_v1(jsonb,uuid,jsonb,jsonb,jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_actor_v1(jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_immutable_v1()'),
+  ('mw_chat_owner_dev','pwa_chat_iso_v1(timestamp with time zone)'),
+  ('mw_chat_owner_dev','pwa_chat_message_json_v1(pwa_chat_messages)'),
+  ('mw_chat_owner_dev','pwa_chat_message_v1(jsonb,uuid,uuid)'),
+  ('mw_chat_owner_dev','pwa_chat_messages_v1(jsonb,uuid,integer,integer)'),
+  ('mw_chat_owner_dev','pwa_chat_models_default_v1(jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_thread_create_v1(jsonb,jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_thread_json_v1(pwa_chat_threads)'),
+  ('mw_chat_owner_dev','pwa_chat_thread_update_v1(jsonb,uuid,jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_threads_v1(jsonb,text,timestamp with time zone,integer)'),
+  ('mw_chat_owner_dev','pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_turn_complete_v1(jsonb,uuid,jsonb,jsonb,jsonb)'),
   ('mw_changes_owner_dev','pwa_track_row_change()'),
   ('mw_jobs_dev','pwa_job_run_v1(text,date,text)'),
   ('mw_jobs_owner_dev','pwa_job_run_v1(text,date,text)'),
@@ -166,6 +191,8 @@ SELECT pg_temp.am_diff('routine grants',
 CREATE TEMP TABLE am_expected_members(member text, granted text, inherit_option boolean, set_option boolean) ON COMMIT DROP;
 INSERT INTO am_expected_members VALUES
   ('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','mw_app_dev',true,false),
+  ('mw-credit-app-chat-dev@clever-oasis-508610-n7.iam','mw_chat_api_dev',true,false),
+  ('mw-credit-app-chat-dev@clever-oasis-508610-n7.iam','mw_chat_read_dev',false,true),
   ('mw_app_dev_journal_owner','mw_app_dev',true,true),
   ('postgres','mw_business_audit_owner',true,true);
 CREATE TEMP VIEW am_actual_members AS
@@ -216,6 +243,20 @@ DO $$ BEGIN
   OR has_column_privilege('mw_notify_owner_dev','public."Payments"','Notes','SELECT') OR has_column_privilege('mw_notify_owner_dev','public."Borrowers"','Borrower Note','SELECT') THEN RAISE EXCEPTION 'notify owner source column grants differ'; END IF;
  -- V103 (R089): the history content RPC is the notify owner's pinned definer over the same column grants (no new grant).
  IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_history_content_v1(jsonb,uuid[])'::regprocedure) THEN RAISE EXCEPTION 'pwa_notify_history_content_v1 must be the notify owner''s pinned definer'; END IF;
+ -- V104 (R090): the chat owner owns the four tables and every pwa_chat_* routine and is NOLOGIN with no membership;
+ -- the API role executes the eight RPCs and reads no table; the SQL-tool role (operator grants outside Git) holds
+ -- nothing on a chat table or RPC; the PROD default-privilege role gets no chat EXECUTE; the definer reads its columns.
+ IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname IN ('mw_chat_owner_dev','mw_chat_api_dev','mw_chat_read_dev') AND (rolcanlogin OR rolsuper OR rolbypassrls))
+  OR EXISTS(SELECT 1 FROM pg_auth_members WHERE member='mw_chat_owner_dev'::regrole OR roleid='mw_chat_owner_dev'::regrole) THEN RAISE EXCEPTION 'chat owner must be closed, holding and granting no membership'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_chat_api_dev','mw_chat_read_dev','mw-credit-app-chat-dev@clever-oasis-508610-n7.iam']) r
+   CROSS JOIN unnest(ARRAY['public.pwa_chat_threads','public.pwa_chat_messages','public.pwa_chat_history','public.pwa_chat_tool_calls']) t
+   CROSS JOIN unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,t,p)) THEN RAISE EXCEPTION 'no direct chat table privilege outside the chat owner'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.proname LIKE 'pwa\_chat\_%' AND (has_function_privilege('mw_chat_read_dev',p.oid,'EXECUTE')
+   OR (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_integration_agent') AND has_function_privilege('mw_integration_agent',p.oid,'EXECUTE')))) THEN RAISE EXCEPTION 'the SQL-tool and agent roles must not execute a chat routine'; END IF;
+ IF NOT has_function_privilege('mw-credit-app-chat-dev@clever-oasis-508610-n7.iam','public.pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)','EXECUTE')
+  OR has_function_privilege('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','public.pwa_chat_turn_begin_v1(jsonb,uuid,jsonb)','EXECUTE') THEN RAISE EXCEPTION 'only the chat user executes the chat RPCs'; END IF;
+ IF NOT has_column_privilege('postgres','public.pwa_chat_messages','text','SELECT') OR EXISTS(SELECT 1 FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) x WHERE c.oid='public.pwa_chat_messages'::regclass AND x.grantee='postgres'::regrole) THEN
+  RAISE EXCEPTION 'the Cost page definer reads its chat columns by column grant only'; END IF;
 END $$;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;

@@ -34,7 +34,8 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   // notify/jobs-owned tables (V88) and the journal-owned V89 functions, so the migrate window must hold the
   // same three owners as R053's prepare-agent in addition to the ledger owner (R053_OPERATOR.md steps 3-4).
   // V97 (R078) adds the change-log owner to the same window: its two definers are re-owned by the migration.
-  const R053_OWNERS=['mw_notify_owner_dev','mw_jobs_owner_dev','mw_app_dev_journal_owner','mw_changes_owner_dev'];
+  // V104 (R090) adds the chat owner: its four tables and thirteen routines are re-owned by the migration.
+  const R053_OWNERS=['mw_notify_owner_dev','mw_jobs_owner_dev','mw_app_dev_journal_owner','mw_changes_owner_dev','mw_chat_owner_dev'];
   for(const owner of R053_OWNERS){await admin.query(`GRANT ${owner} TO postgres WITH ADMIN TRUE, INHERIT FALSE, SET FALSE`);await operator.query(`GRANT ${owner} TO postgres WITH ADMIN FALSE, INHERIT FALSE, SET FALSE GRANTED BY postgres`);}
   const WINDOW=[LEDGER,...R053_OWNERS];
 

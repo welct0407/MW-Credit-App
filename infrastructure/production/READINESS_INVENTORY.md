@@ -46,6 +46,12 @@ Verified nonsecret foundation inputs were reconstructed under `C:/Users/ideaadmi
 
 Inactive business infrastructure/runtime/secret-reference/receipt-IAM definitions passed eight Terraform mock plans plus fmt/validate. All business gates default false; refreshed plan `c3fd88cfadaa6a60c984e0731e11d2d6edeca4c690d36c01191f8fbccee516af` has zero resource actions. Actual native receipt root is `appsheet/data/LoanManager_975338008_26_08_07/manual_receipts/prod/`; proposed command GET also covers `receipts/prod/`, CREATE only native `pwa/`, with no list/update/delete/reader grant. Runtime image, numeric capability/catalog secret versions and reviewed evidence pins remain prerequisites alongside SQL role isolation and promotion authority. No SQL users/grants, secrets, receipt permissions or business runtime were applied. `cloudbuild-business.yaml` is prepared; local extracted smoke passed, actual pinned-source container build remains pending.
 
+## Prepared gates not yet applied
+
+| Gate | Default | Proposes when enabled | Prerequisites |
+| --- | --- | --- | --- |
+| `chat_authorized` (R090, `chat-service.tf`) | `false` | `mw-credit-app-chat-prod` identity, Cloud SQL client/instance user, Vertex AI user, auth-status role, IAM DB user, capability-policy accessor, Cloud Run `mw-credit-app-chat-prod` (`services/chat/server.mjs`, 300 s, max 2) | Foundation, runtime and business gates; tested `business_image`; V104 applied with a verified backup; operator grants `mw_chat_api_prod`/`mw_chat_read_prod`; owner promotion instruction |
+
 ## Applied plan evidence
 
 | Stage | Reviewed SHA256 / outcome |

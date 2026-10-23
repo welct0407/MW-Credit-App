@@ -6,8 +6,13 @@ CREATE ROLE "mw-credit-app-command-dev@clever-oasis-508610-n7.iam" LOGIN;
 CREATE ROLE "mw-credit-app-read-dev@clever-oasis-508610-n7.iam" LOGIN;
 CREATE ROLE "mw-credit-app-notify-dev@clever-oasis-508610-n7.iam" LOGIN;
 CREATE ROLE "mw-credit-app-jobs-dev@clever-oasis-508610-n7.iam" LOGIN;
+CREATE ROLE "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam" LOGIN;
 -- Operator-provisioned DEV capability membership (application-role-cli.mjs).
 GRANT mw_app_dev TO "mw-credit-app-command-dev@clever-oasis-508610-n7.iam" WITH INHERIT TRUE, SET FALSE;
+-- R090 (V104): the chat user inherits the API capability (RPC EXECUTE) and may only SET the read role, which the
+-- service SETs inside its read-only transactions (native reads, membership lookup, sql_query); operator grants.
+GRANT mw_chat_api_dev TO "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam" WITH INHERIT TRUE, SET FALSE;
+GRANT mw_chat_read_dev TO "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam" WITH INHERIT FALSE, SET TRUE;
 -- ALL-ARCH-03 (V95): the integration agent's IAM database user (Terraform google_sql_user on the Debian
 -- host). NOINHERIT; its SET-only task-role memberships are operator steps and are granted only inside
 -- the rolled-back Test-LedgerAccess.sql sections. Conditional: other fixtures may create it first.

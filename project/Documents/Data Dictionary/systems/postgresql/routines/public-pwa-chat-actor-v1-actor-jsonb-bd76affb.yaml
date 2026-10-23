@@ -1,0 +1,55 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_chat_actor_v1(actor jsonb)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V104__pwa_chat.sql"
+  "coverage": "R090 definition (V104, 23 October 2026), reviewed from the migration source and applied to a disposable PostgreSQL\
+    \ 18 rebuild with stub roles and a stub \"Partners\" table; not captured from DEV or PROD, which have not received V104\
+    \ yet. Owner mw_chat_owner_<env>; the ACL shown is the rebuild. "
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_chat_actor_v1"
+    "arguments": "actor jsonb"
+    "kind": "f"
+    "arguments_with_defaults": "actor jsonb"
+    "result": "text"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_chat_actor_v1(actor jsonb)
+       RETURNS text
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE suffix text; partner text; matches bigint;
+      BEGIN
+       IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       suffix:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;
+       IF current_user<>'mw_chat_owner_'||suffix OR NOT pg_has_role(session_user,'mw_chat_api_'||suffix,'USAGE') OR pg_has_role(session_user,'mw_chat_owner_'||suffix,'MEMBER') THEN
+        RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       IF actor IS NULL OR jsonb_typeof(actor)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(actor) key) IS DISTINCT FROM ARRAY['issuer','loginEmail','partnerId','subject']::text[]
+        OR EXISTS(SELECT 1 FROM jsonb_each(actor) e WHERE jsonb_typeof(e.value)<>'string')
+        OR actor->>'issuer'<>'https://securetoken.google.com/clever-oasis-508610-n7'
+        OR coalesce(length(actor->>'subject'),0) NOT BETWEEN 1 AND 128 OR coalesce(length(actor->>'partnerId'),0) NOT BETWEEN 1 AND 256
+        OR coalesce(length(actor->>'loginEmail'),0) NOT BETWEEN 1 AND 320 OR actor->>'loginEmail'<>lower(btrim(actor->>'loginEmail')) THEN
+        RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       SELECT count(*),min("Row ID") INTO matches,partner FROM public."Partners" WHERE lower(btrim("Login Email"))=actor->>'loginEmail';
+       IF matches<>1 OR partner IS DISTINCT FROM actor->>'partnerId' THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       RETURN partner;
+      END $function$
+    "owner": "mw_chat_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_chat_owner_prod=X/mw_chat_owner_prod}"
+    "comment": "mw-access:governance fixed chat boundary; explicit capability only"
+    "extension": null
