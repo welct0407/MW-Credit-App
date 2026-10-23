@@ -25,7 +25,7 @@ Owner request (R090): a Cost page section listing the 10 latest Partner conversa
 | `monitoring.recent_questions_v1(10)` as `mw_grafana_reader` after V10 | 10 rows: 9 since 21 October with their own usage (`gemini-4-argon`), the 14 October question without usage; a table read is denied |
 
 ## Not run
-- The Grafana side (PDC agent, datasource, dashboard): recorded in the root R090 change note when it runs.
+- Nothing on the agent side; the Grafana side (PDC agent, datasource, dashboard, live query) is recorded in the root `CHANGE_NOTES_R090_QUESTION_COST_2026-10-22.md`.
 
 ## Recovery
 `deploy-runtime.py rollback --commit fbc6b18…` restores `a7d7773` from `runtime-20261022T194628199784Z`, and `rollback --commit a7d7773…` restores `d444d67` from `runtime-20261022T194234972446Z`. V9 and V10 stay applied (immutable); the old package ignores them. To remove access: `DROP USER`-equivalent `gcloud sql users delete mw_grafana_reader`, then `REVOKE EXECUTE` from `mw_agent_dashboard` if needed. The Cloud SQL backup `1792697990273` predates both migrations.
