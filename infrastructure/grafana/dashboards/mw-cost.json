@@ -1949,11 +1949,11 @@
               "properties": [
                 {
                   "id": "unit",
-                  "value": "currencySGD"
+                  "value": "prefix:S$"
                 },
                 {
                   "id": "decimals",
-                  "value": 4
+                  "value": 2
                 },
                 {
                   "id": "custom.width",
