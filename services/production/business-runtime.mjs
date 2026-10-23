@@ -10,6 +10,8 @@ import {createRecognizerClient} from '../receipts/recognizer-client.mjs';
 import {notificationHandler} from '../notifications/handler.mjs';
 import {createNotificationStore} from '../notifications/store.mjs';
 import {createConnectionGuard} from '../lib/connection-guard.mjs';
+import {createChatConnectionGuard} from '../chat/guard.mjs';
+import {createChatServiceHandler} from '../chat/service.mjs';
 import { loadBusinessConfig } from './business-config.mjs';
 import { createBusinessPrincipalVerifier } from './business-principal.mjs';
 import { createBusinessMembership } from './business-policy.mjs';
@@ -38,13 +40,19 @@ export async function createProductionBusinessRuntime(env,dependencies) {
   const {initializeApp,applicationDefault,getAuth,createPool,completionLogger}=dependencies;
   const auth=getAuth(initializeApp({credential:applicationDefault(),projectId:config.projectId},`${config.environment==='prod'?'production':'dev'}-business-${config.serviceRole}`));
   const verifyPrincipal=createBusinessPrincipalVerifier((token,revoked)=>auth.verifyIdToken(token,revoked));
-  const membership=createBusinessMembership(config),guardConnection=createConnectionGuard(config);
+  const membership=createBusinessMembership(config),guardConnection=config.serviceRole==='chat'?createChatConnectionGuard(config):createConnectionGuard(config);
   const pool=await createPool(config);
   try {
     const client=await pool.connect();let healthy=false;
     try{await guardConnection(client);healthy=true;}finally{client.release(!healthy);}
     let handler;
-    if(config.serviceRole==='reader') {
+    if(config.serviceRole==='chat') {
+      // R090: the chat service never installs the command, notification or agent handlers.
+      const transport=await dependencies.createVertexTransport(config);
+      // Batch 2 (B1): the chat reply push uses the command service's post-commit dispatch wake (three env keys, validated here).
+      const afterCommit=createPostCommitWake(loadDispatchConfig(env,config.environment),{log:completionLogger});
+      handler=createChatServiceHandler({config,verifyPrincipal,membership,pool,guardConnection,transport,completionLogger,log:dependencies.log,afterCommit});
+    } else if(config.serviceRole==='reader') {
       const store=createBorrowerReadStore({pool,config,source:config.environment,guardConnection,emailAllowed:membership.emailAllowed,resolveMember:membership.resolveMember});
       handler=createReadHandler({config,verifyPrincipal,store,completionLogger});
     } else {

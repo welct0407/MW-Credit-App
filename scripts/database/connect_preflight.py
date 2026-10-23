@@ -17,7 +17,9 @@ Facts and rules (each field is derived only from what this run observed):
   Cloud SQL platform roles (cloudsql*), which are listed separately as platformRoles.
 - configuredConsumersVerified: every retained role is a configured PROD consumer
   in CONFIGURED_CONSUMERS and the named repository source file contains that exact
-  name (checked in this run); any unmatched role refuses.
+  name, its ${each.key} template or (for an IAM database user Terraform derives from a
+  service account) the account id and the derivation (checked in this run); any
+  unmatched role refuses.
 - devPrincipalRoles: roles whose name marks the DEV environment (DEV_NAME).
   devInheritedConnectDenied: has_database_privilege(..., 'CONNECT') is false for each
   of them (it counts direct, inherited and PUBLIC grants).
@@ -57,6 +59,7 @@ CONFIGURED_CONSUMERS = {
     'mw-credit-app-command-prod@clever-oasis-508610-n7.iam': 'infrastructure/production/ssd-move.tf',
     'mw-credit-app-notify-prod@clever-oasis-508610-n7.iam': 'infrastructure/production/ssd-move.tf',
     'mw-credit-app-jobs-prod@clever-oasis-508610-n7.iam': 'infrastructure/production/ssd-move.tf',
+    'mw-credit-app-chat-prod@clever-oasis-508610-n7.iam': 'infrastructure/production/chat-service.tf',
     'mw_app_prod': 'database/migrations/V87__database_bound_application_roles.sql',
     'mw_app_prod_journal_owner': 'database/migrations/V87__database_bound_application_roles.sql',
     'mw-integration-agent@clever-oasis-508610-n7.iam': 'database/migrations/V95__agent_role_session_pair.sql',
@@ -69,6 +72,8 @@ CONFIGURED_CONSUMERS = {
 }
 # Templated sources: the file holds the name with ${each.key} for these roles.
 TEMPLATED = {'infrastructure/production/ssd-move.tf': ('mw-credit-app-${each.key}-prod@', ('read', 'command', 'notify', 'jobs'))}
+# Derived sources: the IAM database user is the service account's email without ".gserviceaccount.com" (R090 chat).
+DERIVED = {'infrastructure/production/chat-service.tf': ('mw-credit-app-chat-prod', 'trimsuffix(google_service_account.chat[0].email, ".gserviceaccount.com")')}
 # Minute Cloud Scheduler tick (infrastructure/modules/workers, asserted in tests/containment.tftest.hcl).
 EXPECTED_CONNECTED = ('mw-credit-app-notify-prod@clever-oasis-508610-n7.iam',)
 
@@ -89,6 +94,11 @@ def configured(repo, role):
         prefix, keys = template
         key = role.split('mw-credit-app-', 1)[-1].split('-prod@', 1)[0]
         return prefix in text and key in keys and role == f'mw-credit-app-{key}-prod@{PROJECT}.iam'
+    derived = DERIVED.get(source)
+    if derived:
+        account, expression = derived
+        return (role == f'{account}@{PROJECT}.iam' and expression in text
+                and re.search(r'account_id\s*=\s*"' + re.escape(account) + '"', text) is not None)
     return False
 
 

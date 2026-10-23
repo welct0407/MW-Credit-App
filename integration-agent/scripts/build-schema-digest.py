@@ -29,6 +29,8 @@ ROUTINE_KINDS = {'f': 'function', 'p': 'procedure', 'a': 'aggregate', 'w': 'wind
 SCHEMAS = ('public', 'agent_audit')
 TRIGGER_RESULTS = ('trigger', 'event_trigger')
 COMMENT_LIMIT = 200
+# R090: the in-app chat journal (V104) is closed to every SQL role of the agent and of the chat service; it stays out of the digest.
+EXCLUDED_RELATION_PREFIXES = ('pwa_chat_',)
 
 
 class YamlSubsetError(ValueError):
@@ -227,6 +229,8 @@ def relation_entry(document):
     content = document['content']
     definition = content['definition']
     if definition['schema'] not in SCHEMAS:
+        return None
+    if definition['schema'] == 'public' and definition['name'].startswith(EXCLUDED_RELATION_PREFIXES):
         return None
     columns = sorted((content.get('columns') or {}).values(), key=lambda c: c['ordinal'])
     entry = {'relation': qualified(definition['schema'], definition['name']),

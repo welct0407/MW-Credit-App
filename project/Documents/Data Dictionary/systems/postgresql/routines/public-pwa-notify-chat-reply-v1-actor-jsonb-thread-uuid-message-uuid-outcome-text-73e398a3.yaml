@@ -1,0 +1,64 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_notify_chat_reply_v1(actor jsonb, thread uuid, message uuid, outcome text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V105__chat_reply_notification_and_job_status.sql"
+  "coverage": "R090 batch 2 definition (V105, 23 October 2026), reviewed from the migration source and applied to a disposable\
+    \ PostgreSQL 18 rebuild with stub roles and stub prerequisite objects; not captured from DEV or PROD, which have not received\
+    \ V105 yet. Owner mw_notify_owner_<env> / mw_jobs_owner_<env>; the ACL shown is the rebuild. "
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_notify_chat_reply_v1"
+    "arguments": "actor jsonb, thread uuid, message uuid, outcome text"
+    "kind": "f"
+    "arguments_with_defaults": "actor jsonb, thread uuid, message uuid, outcome text"
+    "result": "boolean"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_notify_chat_reply_v1(actor jsonb, thread uuid, message uuid, outcome text)
+       RETURNS boolean
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE suffix text; partner text; matches bigint; inserted boolean;
+      BEGIN
+       IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       suffix:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;
+       IF current_user<>'mw_notify_owner_'||suffix OR NOT pg_has_role(session_user,'mw_chat_api_'||suffix,'USAGE') OR pg_has_role(session_user,'mw_notify_owner_'||suffix,'MEMBER') THEN
+        RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       IF actor IS NULL OR jsonb_typeof(actor)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(actor) key) IS DISTINCT FROM ARRAY['issuer','loginEmail','partnerId','subject']::text[]
+        OR EXISTS(SELECT 1 FROM jsonb_each(actor) e WHERE jsonb_typeof(e.value)<>'string')
+        OR actor->>'issuer'<>'https://securetoken.google.com/clever-oasis-508610-n7'
+        OR coalesce(length(actor->>'subject'),0) NOT BETWEEN 1 AND 128 OR coalesce(length(actor->>'partnerId'),0) NOT BETWEEN 1 AND 256
+        OR coalesce(length(actor->>'loginEmail'),0) NOT BETWEEN 1 AND 320 OR actor->>'loginEmail'<>lower(btrim(actor->>'loginEmail')) THEN
+        RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       SELECT count(*),min("Row ID") INTO matches,partner FROM public."Partners" WHERE lower(btrim("Login Email"))=actor->>'loginEmail';
+       IF matches<>1 OR partner IS DISTINCT FROM actor->>'partnerId' THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       IF thread IS NULL OR message IS NULL OR outcome IS NULL OR outcome NOT IN ('ok','failed') THEN RAISE EXCEPTION 'invalid_request'; END IF;
+       IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner) THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.id=message AND m.thread_id=thread) THEN RAISE EXCEPTION 'access_denied' USING ERRCODE='42501'; END IF;
+       INSERT INTO public.pwa_notification_events(dedupe_key,event_type,source_kind,source_id,source_version,actor_partner_id,actor_login_email)
+       VALUES('chat.reply:'||message::text,'chat.reply','chat',thread::text,outcome||':'||message::text,partner,actor->>'loginEmail')
+       ON CONFLICT(dedupe_key) DO NOTHING;
+       inserted:=FOUND;
+       IF inserted THEN PERFORM pg_catalog.pg_notify('mw_pwa_notifications_v1',''); END IF;
+       RETURN inserted;
+      END $function$
+    "owner": "mw_notify_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_notify_owner_prod=X/mw_notify_owner_prod,mw_chat_api_prod=X/mw_notify_owner_prod}"
+    "comment": "mw-access:governance fixed notification boundary; explicit capability only"
+    "extension": null

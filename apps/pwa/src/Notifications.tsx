@@ -12,7 +12,7 @@ type HistoryItem={eventId:string;type:string;state:string;occurredAt?:string;tit
 // V86 delivery states (history shows one per event); any other value is shown raw.
 const STATE:Record<string,[string,string]>={sent:['Sent','ส่งแล้ว'],pending:['Sending','กำลังส่ง'],leased:['Sending','กำลังส่ง'],retry:['Sending','กำลังส่ง'],uncertain:['Not confirmed','ไม่ยืนยันผล'],dead:['Failed','ส่งไม่สำเร็จ'],cancelled:['Not sent','ไม่ได้ส่ง']};
 /** Notification history may be cached; device registration and access checks stay online. */
-export function Notifications({access,thai,onTarget,visible=true,openRequest=null}:{access:Access;thai:boolean;visible?:boolean;openRequest?:{eventId:string;nonce:number}|null;onTarget:(target:{kind:'loan'|'payment';id:string})=>void}){
+export function Notifications({access,thai,onTarget,visible=true,openRequest=null}:{access:Access;thai:boolean;visible?:boolean;openRequest?:{eventId:string;nonce:number}|null;onTarget:(target:{kind:'loan'|'payment'|'chat';id:string})=>void}){
  const mounted=useRef(true);useEffect(()=>{mounted.current=true;return()=>{mounted.current=false}},[]);
  const [message,setMessage]=useState(''),[items,setItems]=useState<HistoryItem[]>([]),[busy,setBusy]=useState(false);
  useAppUpdateBlock(busy);

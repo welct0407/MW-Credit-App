@@ -169,5 +169,7 @@ END $$;
 \ir Test-NotifyContent.sql
 -- V102 (R089): the monitoring ops-health RPC (counts and ages only, definer column reads, collector-only access).
 \ir Test-MonitoringOpsHealth.sql
+-- V104 (R090): the in-app chat tables and RPCs under the real roles (claims, completion, append-only, capability).
+\ir Test-Chat.sql
 -- Last: the migration-owned grant matrix (DB-CI-05 / DB-ACCESS-02).
 \ir Test-AccessMatrix.sql

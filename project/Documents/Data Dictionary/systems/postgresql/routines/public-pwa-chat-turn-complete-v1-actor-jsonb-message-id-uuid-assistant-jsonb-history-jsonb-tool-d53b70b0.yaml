@@ -1,0 +1,97 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_chat_turn_complete_v1(actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V104__pwa_chat.sql"
+  "coverage": "R090 definition (V104 with V106 batch 2c changes applied: pwa_chat_messages.detached_at, the widened immutability\
+    \ rule, the replaced turn_begin and turn_complete, and pwa_chat_turn_presence_v1; 23 October 2026), reviewed from the\
+    \ migration source and applied to a disposable PostgreSQL 18 rebuild with stub roles and a stub \"Partners\" table; not\
+    \ captured from DEV or PROD (DEV has V104 and V105 only; V106 is pending). Owner mw_chat_owner_<env>; the ACL shown is\
+    \ the rebuild. "
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_chat_turn_complete_v1"
+    "arguments": "actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb"
+    "kind": "f"
+    "arguments_with_defaults": "actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_chat_turn_complete_v1(actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb)
+       RETURNS jsonb
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE partner text:=public.pwa_chat_actor_v1(actor); t public.pwa_chat_threads; u public.pwa_chat_messages; a public.pwa_chat_messages;
+       top_epoch integer; top_seq integer; item jsonb; offset_value integer:=0; total integer; first_line text; n text;
+      BEGIN
+       SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads x ON x.id=m.thread_id WHERE m.id=message_id AND m.role='user' AND x.partner_id=partner;
+       IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+       SELECT * INTO t FROM public.pwa_chat_threads x WHERE x.id=u.thread_id FOR UPDATE;
+       SELECT m.* INTO u FROM public.pwa_chat_messages m WHERE m.id=u.id FOR UPDATE;
+       IF assistant IS NULL OR jsonb_typeof(assistant)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(assistant) key) IS DISTINCT FROM
+         ARRAY['attempts','cachedTokens','errorCode','latencyMs','model','outputTokens','promptTokens','rounds','status','text','thinkingLevel','thoughtsTokens']::text[]
+        OR assistant->>'status' NOT IN ('ok','failed') OR jsonb_typeof(assistant->'text')<>'string' OR jsonb_typeof(assistant->'model')<>'string'
+        OR ((assistant->>'status')='ok')<>(jsonb_typeof(assistant->'errorCode')='null')
+        OR EXISTS(SELECT 1 FROM unnest(ARRAY['attempts','cachedTokens','latencyMs','outputTokens','promptTokens','rounds','thoughtsTokens']) k
+         WHERE jsonb_typeof(assistant->k)<>'number' OR (assistant->>k)::numeric<0 OR (assistant->>k)::numeric<>trunc((assistant->>k)::numeric) OR (assistant->>k)::numeric>2147483647)
+        OR (assistant->>'status'='ok' AND history IS NULL) OR (assistant->>'status'='failed' AND history IS NOT NULL AND jsonb_typeof(history)<>'null')
+        OR tool_calls IS NULL OR jsonb_typeof(tool_calls)<>'array' OR jsonb_array_length(tool_calls)>1000 THEN
+        RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+       INSERT INTO public.pwa_chat_messages(id,thread_id,seq,role,text,status,model,thinking_level,rounds,attempts,prompt_tokens,output_tokens,thoughts_tokens,cached_tokens,latency_ms,error_code)
+       VALUES(gen_random_uuid(),u.thread_id,u.seq+1,'assistant',assistant->>'text',assistant->>'status',assistant->>'model',assistant->>'thinkingLevel',
+        least((assistant->>'rounds')::integer,32767),least((assistant->>'attempts')::integer,32767),(assistant->>'promptTokens')::integer,(assistant->>'outputTokens')::integer,
+        (assistant->>'thoughtsTokens')::integer,(assistant->>'cachedTokens')::integer,(assistant->>'latencyMs')::integer,assistant->>'errorCode') RETURNING * INTO a;
+       IF assistant->>'status'='ok' THEN
+        IF jsonb_typeof(history)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(history) key) IS DISTINCT FROM ARRAY['epoch','inputTokens','messages','promptSha256','seq']::text[]
+         OR jsonb_typeof(history->'epoch')<>'number' OR jsonb_typeof(history->'seq')<>'number' OR jsonb_typeof(history->'messages')<>'array' OR jsonb_array_length(history->'messages')<1
+         OR coalesce(history->>'promptSha256','') !~ '^[0-9a-f]{64}$' OR jsonb_typeof(history->'inputTokens') NOT IN ('number','null') THEN
+         RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+        SELECT max(h.epoch) INTO top_epoch FROM public.pwa_chat_history h WHERE h.thread_id=u.thread_id;
+        SELECT max(h.seq) INTO top_seq FROM public.pwa_chat_history h WHERE h.thread_id=u.thread_id AND h.epoch=top_epoch;
+        IF NOT ((top_epoch IS NULL AND (history->>'epoch')::integer=0 AND (history->>'seq')::integer=0)
+         OR ((history->>'epoch')::integer=top_epoch AND (history->>'seq')::integer=top_seq+1)
+         OR ((history->>'epoch')::integer=top_epoch+1 AND (history->>'seq')::integer=0)) THEN
+         RAISE EXCEPTION 'history_conflict' USING ERRCODE='40001'; END IF;
+        total:=jsonb_array_length(history->'messages');
+        FOR item IN SELECT value FROM jsonb_array_elements(history->'messages') LOOP
+         IF jsonb_typeof(item)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(item) key) IS DISTINCT FROM ARRAY['content','role']::text[]
+          OR item->>'role' NOT IN ('user','model') OR jsonb_typeof(item->'content')<>'string' THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+         INSERT INTO public.pwa_chat_history(thread_id,epoch,seq,message_id,role,content,prompt_sha256,input_tokens)
+         VALUES(u.thread_id,(history->>'epoch')::integer,(history->>'seq')::integer+offset_value,u.id,item->>'role',item->>'content',history->>'promptSha256',
+          CASE WHEN offset_value=total-1 THEN (history->>'inputTokens')::integer END);
+         offset_value:=offset_value+1;
+        END LOOP;
+       END IF;
+       FOR item IN SELECT value FROM jsonb_array_elements(tool_calls) LOOP
+        IF jsonb_typeof(item)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(item) key) IS DISTINCT FROM ARRAY['arguments','callId','error','ms','name','result','round']::text[]
+         OR jsonb_typeof(item->'callId')<>'string' OR jsonb_typeof(item->'name')<>'string' OR jsonb_typeof(item->'arguments')<>'string' OR jsonb_typeof(item->'round')<>'number'
+         OR jsonb_typeof(item->'result') NOT IN ('string','null') OR jsonb_typeof(item->'error') NOT IN ('string','null') OR jsonb_typeof(item->'ms') NOT IN ('number','null') THEN
+         RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+        INSERT INTO public.pwa_chat_tool_calls(message_id,call_id,round,name,arguments,result,error,ms)
+        VALUES(a.id,item->>'callId',(item->>'round')::smallint,item->>'name',item->>'arguments',item->>'result',item->>'error',(item->>'ms')::integer);
+       END LOOP;
+       UPDATE public.pwa_chat_messages m SET claimed_at=NULL WHERE m.id=u.id AND m.claimed_at IS NOT NULL;
+       first_line:=left(btrim(split_part(btrim(u.text,E' \t\r\n'),E'\n',1),E' \t\r'),120);
+       n:=CASE WHEN t.title='New chat' AND first_line<>'' AND first_line !~ '[[:cntrl:]]' THEN first_line ELSE t.title END;
+       UPDATE public.pwa_chat_threads x SET message_count=x.message_count+1,last_message_at=clock_timestamp(),title=n WHERE x.id=t.id;
+       RETURN public.pwa_chat_message_json_v1(a)||jsonb_build_object('detached',u.detached_at IS NOT NULL);
+      END $function$
+    "owner": "mw_chat_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_chat_owner_prod=X/mw_chat_owner_prod,mw_chat_api_prod=X/mw_chat_owner_prod}"
+    "comment": "mw-access:governance fixed chat boundary; explicit capability only"
+    "extension": null

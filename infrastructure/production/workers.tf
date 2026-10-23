@@ -15,6 +15,8 @@ variable "workers" {
     jobs_schedule_enabled            = optional(bool, false)
     command_notification_enabled     = optional(bool, false)
     command_dispatch_enabled         = optional(bool, false)
+    chat_dispatch_enabled            = optional(bool, false)
+    jobs_dispatch_enabled            = optional(bool, false)
     web_push_public_key              = optional(string)
   })
   default = {}
@@ -32,6 +34,9 @@ module "workers" {
   registered_creators              = var.workers.registered_creators
   notification_enabled             = var.workers.notification_enabled
   command_dispatch_enabled         = var.workers.command_dispatch_enabled
+  chat_dispatch_enabled            = var.workers.chat_dispatch_enabled
+  jobs_dispatch_enabled            = var.workers.jobs_dispatch_enabled
+  chat_caller                      = var.chat_authorized ? { email = google_service_account.chat[0].email, unique_id = google_service_account.chat[0].unique_id } : null
   jobs_enabled                     = var.workers.jobs_enabled
   notification_schedule_enabled    = var.workers.notification_schedule_enabled
   jobs_schedule_enabled            = var.workers.jobs_schedule_enabled

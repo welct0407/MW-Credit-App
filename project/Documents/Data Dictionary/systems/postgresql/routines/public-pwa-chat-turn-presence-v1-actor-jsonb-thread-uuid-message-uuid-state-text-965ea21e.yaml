@@ -1,0 +1,60 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_chat_turn_presence_v1(actor jsonb, thread uuid, message uuid, state text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V104__pwa_chat.sql"
+  "coverage": "R090 definition (V104 with V106 batch 2c changes applied: pwa_chat_messages.detached_at, the widened immutability\
+    \ rule, the replaced turn_begin and turn_complete, and pwa_chat_turn_presence_v1; 23 October 2026), reviewed from the\
+    \ migration source and applied to a disposable PostgreSQL 18 rebuild with stub roles and a stub \"Partners\" table; not\
+    \ captured from DEV or PROD (DEV has V104 and V105 only; V106 is pending). Owner mw_chat_owner_<env>; the ACL shown is\
+    \ the rebuild. "
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_chat_turn_presence_v1"
+    "arguments": "actor jsonb, thread uuid, message uuid, state text"
+    "kind": "f"
+    "arguments_with_defaults": "actor jsonb, thread uuid, message uuid, state text"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_chat_turn_presence_v1(actor jsonb, thread uuid, message uuid, state text)
+       RETURNS jsonb
+       LANGUAGE plpgsql
+       SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE partner text:=public.pwa_chat_actor_v1(actor); u public.pwa_chat_messages;
+      BEGIN
+       IF thread IS NULL OR message IS NULL OR state IS NULL OR state NOT IN ('hidden','visible') THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+       -- The user row is locked like the completion locks it: whichever runs second sees the other's result.
+       SELECT m.* INTO u FROM public.pwa_chat_messages m JOIN public.pwa_chat_threads t ON t.id=m.thread_id
+       WHERE m.id=message AND m.thread_id=thread AND t.partner_id=partner FOR UPDATE OF m;
+       IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='42501'; END IF;
+       IF u.role<>'user' THEN RETURN jsonb_build_object('state','idle'); END IF;
+       IF EXISTS(SELECT 1 FROM public.pwa_chat_messages m WHERE m.thread_id=u.thread_id AND m.seq=u.seq+1 AND m.role='assistant') THEN
+        RETURN jsonb_build_object('state','completed'); END IF;
+       IF u.claimed_at IS NULL THEN RETURN jsonb_build_object('state','idle'); END IF;
+       IF state='hidden' AND u.detached_at IS NULL THEN
+        UPDATE public.pwa_chat_messages m SET detached_at=clock_timestamp() WHERE m.id=u.id RETURNING * INTO u;
+       ELSIF state='visible' AND u.detached_at IS NOT NULL THEN
+        UPDATE public.pwa_chat_messages m SET detached_at=NULL WHERE m.id=u.id RETURNING * INTO u;
+       END IF;
+       RETURN jsonb_build_object('state','claimed','detached',u.detached_at IS NOT NULL);
+      END $function$
+    "owner": "mw_chat_owner_prod"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_chat_owner_prod=X/mw_chat_owner_prod,mw_chat_api_prod=X/mw_chat_owner_prod}"
+    "comment": "mw-access:governance fixed chat boundary; explicit capability only"
+    "extension": null

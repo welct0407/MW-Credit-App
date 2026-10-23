@@ -1,0 +1,304 @@
+{
+ "question": "Q1",
+ "request": "How much is due for Borrower A and Borrower B combined, as both accounts are to be paid by Borrower A. And what is the growth rate (average baht per day) if it remains unpaid?",
+ "source": "R088 argon/flash comparison of 21 Oct 2026 (synthetic runs), anonymised: borrower names, ids and file names are synthetic labels and every amount is the original × 3 (sums, rate × days and products stay exact; percentages are ratios and stay the same). Dates and counts are kept. Observations are synthetic rows shaped like the views and SQL results, holding the per-loan and per-charge source values, not the replies' derived totals.",
+ "observations": {
+  "observation-1": {
+   "columns": [
+    "borrower_id",
+    "borrower_name",
+    "borrower_label",
+    "active_loans",
+    "outstanding_principal"
+   ],
+   "rows": [
+    {
+     "borrower_id": "B-A",
+     "borrower_name": "Borrower A",
+     "borrower_label": "Borrower A (ผู้กู้ ก)",
+     "active_loans": 4,
+     "outstanding_principal": "34500.00"
+    },
+    {
+     "borrower_id": "B-B",
+     "borrower_name": "Borrower B",
+     "borrower_label": "Borrower B (ผู้กู้ ข)",
+     "active_loans": 1,
+     "outstanding_principal": "15000.00"
+    }
+   ],
+   "row_count": 2,
+   "complete": true
+  },
+  "observation-2": {
+   "columns": [
+    "borrower_id",
+    "loan_id",
+    "loan_date",
+    "loan_type",
+    "loan_status",
+    "original_principal",
+    "principal_received",
+    "interest_received",
+    "outstanding_principal",
+    "daily_interest",
+    "defaulted",
+    "default_loss"
+   ],
+   "rows": [
+    {
+     "borrower_id": "B-A",
+     "loan_id": "L-A-0901",
+     "loan_date": "2026-09-01",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "9000.00",
+     "principal_received": "0.00",
+     "interest_received": "18000.00",
+     "outstanding_principal": "9000.00",
+     "daily_interest": "900.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-A",
+     "loan_id": "L-A-0903",
+     "loan_date": "2026-09-03",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "3000.00",
+     "principal_received": "0.00",
+     "interest_received": "6000.00",
+     "outstanding_principal": "3000.00",
+     "daily_interest": "300.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-A",
+     "loan_id": "L-A-0918",
+     "loan_date": "2026-09-18",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "10500.00",
+     "principal_received": "0.00",
+     "interest_received": "21000.00",
+     "outstanding_principal": "10500.00",
+     "daily_interest": "1050.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-A",
+     "loan_id": "L-A-0920",
+     "loan_date": "2026-09-20",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "12000.00",
+     "principal_received": "0.00",
+     "interest_received": "24000.00",
+     "outstanding_principal": "12000.00",
+     "daily_interest": "1200.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    },
+    {
+     "borrower_id": "B-B",
+     "loan_id": "L-B-0924",
+     "loan_date": "2026-09-24",
+     "loan_type": "ดอกเบี้ยรายวัน",
+     "loan_status": "ยังไม่ปิดยอด",
+     "original_principal": "15000.00",
+     "principal_received": "0.00",
+     "interest_received": "30000.00",
+     "outstanding_principal": "15000.00",
+     "daily_interest": "1500.00",
+     "defaulted": false,
+     "default_loss": "0.00"
+    }
+   ],
+   "row_count": 5,
+   "complete": true
+  },
+  "observation-3": {
+   "columns": [
+    "Ref Borrower",
+    "Overdue Principal",
+    "Overdue Interest",
+    "Overdue Amount",
+    "Overdue Charge Count",
+    "Oldest Overdue Date"
+   ],
+   "rows": [
+    {
+     "Ref Borrower": "B-A",
+     "Overdue Principal": "0.00",
+     "Overdue Interest": "33450.00",
+     "Overdue Amount": "33450.00",
+     "Overdue Charge Count": 24,
+     "Oldest Overdue Date": "2026-10-08"
+    },
+    {
+     "Ref Borrower": "B-B",
+     "Overdue Principal": "0.00",
+     "Overdue Interest": "10500.00",
+     "Overdue Amount": "10500.00",
+     "Overdue Charge Count": 3,
+     "Oldest Overdue Date": "2026-10-08"
+    }
+   ],
+   "row_count": 2,
+   "complete": true
+  },
+  "observation-4": {
+   "columns": [
+    "borrower_id",
+    "loan_id",
+    "overdue",
+    "due_today",
+    "due_now",
+    "last_charge_date"
+   ],
+   "rows": [
+    {
+     "borrower_id": "B-A",
+     "loan_id": "L-A-0901",
+     "overdue": "7350.00",
+     "due_today": "2700.00",
+     "due_now": "10050.00",
+     "last_charge_date": "2026-10-21"
+    },
+    {
+     "borrower_id": "B-A",
+     "loan_id": "L-A-0903",
+     "overdue": "2700.00",
+     "due_today": "600.00",
+     "due_now": "3300.00",
+     "last_charge_date": "2026-10-21"
+    },
+    {
+     "borrower_id": "B-A",
+     "loan_id": "L-A-0918",
+     "overdue": "10350.00",
+     "due_today": "1050.00",
+     "due_now": "11400.00",
+     "last_charge_date": "2026-10-21"
+    },
+    {
+     "borrower_id": "B-A",
+     "loan_id": "L-A-0920",
+     "overdue": "13050.00",
+     "due_today": "0.00",
+     "due_now": "13050.00",
+     "last_charge_date": "2026-10-20"
+    },
+    {
+     "borrower_id": "B-B",
+     "loan_id": "L-B-0924",
+     "overdue": "10500.00",
+     "due_today": "4500.00",
+     "due_now": "15000.00",
+     "last_charge_date": "2026-10-21"
+    }
+   ],
+   "row_count": 5,
+   "complete": true
+  },
+  "observation-5": {
+   "loan_id": "L-A-0901",
+   "eligible": true,
+   "complete": true,
+   "calculation": {
+    "amount": "19050",
+    "planHash": "a7445888d76e57bed4e6f4c7fe93b63febe1edd079ddfbe59b9f939a058aa4f1",
+    "sourceVersion": "ee14c5be1f8597adf892aca34d0e696c5acd32976df480b7a054f249319540d3",
+    "businessDate": "2026-10-21",
+    "targetChargeId": "cg8:8:L-A-0901:2026-10-21",
+    "targetLoanId": "L-A-0901",
+    "mutation": null,
+    "borrowerId": "B-A",
+    "allocations": []
+   }
+  },
+  "observation-6": {
+   "loan_id": "L-A-0903",
+   "eligible": true,
+   "complete": true,
+   "calculation": {
+    "amount": "6300",
+    "planHash": "a7445888d76e57bed4e6f4c7fe93b63febe1edd079ddfbe59b9f939a058aa4f1",
+    "sourceVersion": "ee14c5be1f8597adf892aca34d0e696c5acd32976df480b7a054f249319540d3",
+    "businessDate": "2026-10-21",
+    "targetChargeId": "cg8:8:L-A-0903:2026-10-21",
+    "targetLoanId": "L-A-0903",
+    "mutation": null,
+    "borrowerId": "B-A",
+    "allocations": []
+   }
+  },
+  "observation-7": {
+   "loan_id": "L-A-0918",
+   "eligible": true,
+   "complete": true,
+   "calculation": {
+    "amount": "21900",
+    "planHash": "a7445888d76e57bed4e6f4c7fe93b63febe1edd079ddfbe59b9f939a058aa4f1",
+    "sourceVersion": "ee14c5be1f8597adf892aca34d0e696c5acd32976df480b7a054f249319540d3",
+    "businessDate": "2026-10-21",
+    "targetChargeId": "cg8:8:L-A-0918:2026-10-21",
+    "targetLoanId": "L-A-0918",
+    "mutation": null,
+    "borrowerId": "B-A",
+    "allocations": []
+   }
+  },
+  "observation-8": {
+   "loan_id": "L-A-0920",
+   "eligible": true,
+   "complete": true,
+   "calculation": {
+    "amount": "26250",
+    "planHash": "a7445888d76e57bed4e6f4c7fe93b63febe1edd079ddfbe59b9f939a058aa4f1",
+    "sourceVersion": "ee14c5be1f8597adf892aca34d0e696c5acd32976df480b7a054f249319540d3",
+    "businessDate": "2026-10-21",
+    "targetChargeId": "cg8:8:L-A-0920:2026-10-20",
+    "targetLoanId": "L-A-0920",
+    "mutation": null,
+    "borrowerId": "B-A",
+    "allocations": []
+   }
+  },
+  "observation-9": {
+   "loan_id": "L-B-0924",
+   "eligible": true,
+   "complete": true,
+   "calculation": {
+    "amount": "30000",
+    "planHash": "a7445888d76e57bed4e6f4c7fe93b63febe1edd079ddfbe59b9f939a058aa4f1",
+    "sourceVersion": "ee14c5be1f8597adf892aca34d0e696c5acd32976df480b7a054f249319540d3",
+    "businessDate": "2026-10-21",
+    "targetChargeId": "cg8:8:L-B-0924:2026-10-21",
+    "targetLoanId": "L-B-0924",
+    "mutation": null,
+    "borrowerId": "B-B",
+    "allocations": []
+   }
+  }
+ },
+ "replies": {
+  "argon": {
+   "text": "Due now (unpaid charges): ฿52,800 (Borrower A ฿37,800 Borrower B ฿15,000)\nPayoff if closed today: ฿103,500 (Borrower A ฿73,500 Borrower B ฿30,000)\nDaily interest growth if unpaid: ฿4,950/day (Borrower A ฿3,450/day, Borrower B ฿1,500/day)\n\nCombined payoff breakdown:\n• Outstanding principal: ฿49,500\n• Unpaid charge interest: ฿52,800 (overdue ฿43,950 due today 21-Oct-2026 ฿8,850)\n• Interest since last charge (20-Oct-2026): ฿1,200/day × 1 day = ฿1,200\n• Total: ฿103,500\n\nBy open Daily Interest loan (start date, principal):\n• Borrower A (01-Sep-2026, ฿9,000): due now ฿10,050 payoff ฿19,050 ฿900/day\n• Borrower A (03-Sep-2026, ฿3,000): due now ฿3,300 payoff ฿6,300 ฿300/day\n• Borrower A (18-Sep-2026, ฿10,500): due now ฿11,400 payoff ฿21,900 ฿1,050/day\n• Borrower A (20-Sep-2026, ฿12,000): due now ฿13,050 payoff ฿26,250 ฿1,200/day\n• Borrower B (24-Sep-2026, ฿15,000): due now ฿15,000 payoff ฿30,000 ฿1,500/day\n\nFor charge dates breakdown, send \"Borrower A Borrower B charges\" as a new message (not a reply). Replies are not read.\nAs of 21-Oct-2026 22:44 Bangkok, live data",
+   "expected": {
+    "ok": true,
+    "ungrounded": []
+   }
+  },
+  "flash": {
+   "text": "Due now combined: ฿52,800\n• Borrower A: ฿37,800 (overdue ฿33,450 due today ฿4,350)\n• Borrower B: ฿15,000 (overdue ฿10,500 due today ฿4,500)\n\nPayoff if closed today: ฿103,500 combined\n• Outstanding principal: ฿49,500 (Borrower A ฿34,500 Borrower B ฿15,000)\n• Unpaid charges: ฿52,800 (Borrower A ฿37,800 Borrower B ฿15,000)\n• Interest since last charge: ฿1,200 (Borrower A 20-Sep-2026 ฿12,000: ฿1,200/day × 1 day = ฿1,200)\n\nGrowth rate if unpaid: ฿4,950/day combined\n• Borrower A: ฿3,450/day across 4 loans (฿900 ฿300 ฿1,050 ฿1,200/day)\n• Borrower B: ฿1,500/day (Borrower B 24-Sep-2026 ฿15,000: ฿1,500/day)\n\nAs of 21-Oct-2026 22:45 Bangkok, live data",
+   "expected": {
+    "ok": true,
+    "ungrounded": []
+   }
+  }
+ }
+}

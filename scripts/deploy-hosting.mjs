@@ -30,6 +30,8 @@ if(mode==='live-dev'){
  const jsFiles=Object.keys(files).filter(name=>/^\/assets\/.*\.js$/.test(name));
  const compiled=(await Promise.all(jsFiles.map(name=>readFile(path.join(root,name.slice(1)),'utf8')))).join('\n');
  const required=['clever-oasis-508610-n7','clever-oasis-508610-n7.firebaseapp.com','https://mw-credit-app-read-dev-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-dev-pvrgvyg3oq-as.a.run.app'];
+ // R090: the chat origin is optional (Chat is hidden without it; rollback is one build variable), but only the DEV one may appear.
+ if([...compiled.matchAll(/https:\/\/mw-credit-app-chat-[a-z0-9.-]+/g)].some(([origin])=>origin!=='https://mw-credit-app-chat-dev-pvrgvyg3oq-as.a.run.app'))throw new Error('Live DEV bundle names a chat origin other than the DEV chat service');
  if(required.some(value=>!compiled.includes(value))||!/AIza[0-9A-Za-z_-]{30,}/.test(compiled)||!/1:737787224638:web:[0-9a-f]+/.test(compiled))throw new Error('Live DEV public-client configuration missing or wrong service origins; load established build inputs before Hosting');
 }
 // Latest-build startup gate must refer to this exact public entry/worker pair.

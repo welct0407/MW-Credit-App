@@ -40,3 +40,16 @@ test('unknown fields, raw expression resource names and revoked actors cannot qu
   assert.equal(denied.calls.some(call=>call.sql?.startsWith('SELECT t.')),false);
   assert.equal(denied.calls.at(-2).sql,'ROLLBACK');
 });
+
+test('R090: the default actor check is unchanged; an injected resolveActor replaces it',async()=>{
+  const {provider,calls,context,input}=fixture();
+  await provider.query(context,input);
+  assert.ok(calls.some(call=>call.sql?.includes('AS reviewer')),'default resolveConversationActor queried Partners');
+  const injected=[];
+  const client={async query(sql){injected.push(sql);return {rows:sql.startsWith('SELECT t.')?[{'Row ID':'r1',Amount:'1.00'}]:[]};},release(){}};
+  const custom=createConversationReadProvider({pool:{async connect(){return client;}},guardConnection:async()=>{},policy:null,
+    catalogue:{version:1,resources:[]},resources:{oltp:{'Cash Statement Context':{relation:'Cash Statement Context',key:'Row ID',actorColumn:'Ref Partner',fields:{'Row ID':{column:'Row ID',type:'text'},Amount:{column:'Amount',type:'numeric'}}}}},
+    resolveActor:async(_client,policy,workload,partnerId)=>{assert.equal(policy,null);assert.deepEqual(workload,context.workload);return {issuer:'x',subject:'y',partnerId,loginEmail:'p@example.invalid'};}});
+  assert.deepEqual((await custom.query(context,input)).rows,[{'Row ID':'r1',Amount:'1.00'}]);
+  assert.equal(injected.some(sql=>sql.includes('AS reviewer')),false);
+});

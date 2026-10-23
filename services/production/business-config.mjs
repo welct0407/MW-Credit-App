@@ -4,6 +4,7 @@ import {DEV_RECEIPT_MAPPING,PROD_RECEIPT_MAPPING} from '../receipts/dev-receipt-
 import {recognizerUrl} from '../receipts/recognizer-client.mjs';
 import {PROJECT_ID,PROJECT_NUMBER,INSTANCE_CONNECTION_NAME,isSharedInstanceConnection} from '../lib/identity.mjs';
 import { parseBusinessPolicy } from './business-policy.mjs';
+import {parseChatModels} from '../chat/config.mjs';
 export const BUSINESS_PROJECT=PROJECT_ID;
 export const BUSINESS_INSTANCE=INSTANCE_CONNECTION_NAME;
 /**
@@ -17,6 +18,13 @@ const PROFILES=Object.freeze({
 const AMBIENT=['DATABASE_URL','PGHOST','PGHOSTADDR','PGDATABASE','PGPORT','PGUSER','PGPASSWORD','PGSERVICE','PGSERVICEFILE','PGPASSFILE','FIREBASE_AUTH_EMULATOR_HOST','FIREBASE_AUTH_TENANT_ID','STORAGE_EMULATOR_HOST','COMMAND_MODE','COMMAND_FIXTURE_JSON','OWNER_FIREBASE_UID','ALLOWED_WEB_ORIGIN'];
 const DEV_RECEIPT_KEYS=['RECEIPT_BUCKET','RECEIPT_SQL_PREFIX','RECEIPT_OBJECT_PREFIX','RECEIPT_COMPATIBILITY_EVIDENCE','RECEIPT_NATIVE_CATALOG_JSON'];
 /**
+ * R090: the chat service holds no receipt, notification, push or agent API configuration (fail closed), except the
+ * three post-commit dispatch wake keys (batch 2, B1), which loadDispatchConfig validates and pins to the notify service.
+ */
+const CHAT_DISPATCH_KEYS=new Set(['NOTIFICATION_DISPATCH_ENABLED','NOTIFICATION_DISPATCH_URL','NOTIFICATION_DISPATCH_AUDIENCE']);
+const chatForbidden=(key,prefix)=>!CHAT_DISPATCH_KEYS.has(key)&&(key.startsWith(prefix+'RECEIPT')||/^(?:RECEIPT_|AGENT_|NOTIFICATION_|WEB_PUSH_)/.test(key)||key==='PWA_NOTIFICATIONS');
+const DB_USER_NAMES=Object.freeze({reader:'read',command:'command',chat:'chat'});
+/**
  * Nothing becomes active through omission, a browser URL, or a foundation mode change.
  * @param {Record<string,string|undefined>} env
  */
@@ -25,14 +33,17 @@ export function loadBusinessConfig(env) {
   const environment=env.APP_ENV,profile=PROFILES[environment==='dev'?'dev':'prod'];
   const fail=()=>{throw Error(`Invalid ${profile.label} business candidate configuration`);};
   const prefixed=name=>env[profile.prefix+name];
-  if(env.BUSINESS_ACTIVATION!=='approved-candidate'||!['dev','prod'].includes(environment)||env.BUSINESS_MODE!=='business-candidate'||!['reader','command'].includes(env.FOUNDATION_ROLE)
+  if(env.BUSINESS_ACTIVATION!=='approved-candidate'||!['dev','prod'].includes(environment)||env.BUSINESS_MODE!=='business-candidate'||!['reader','command','chat'].includes(env.FOUNDATION_ROLE)
     ||env.APPLICATION_PROJECT_ID!==PROJECT_ID||env.APPLICATION_PROJECT_NUMBER!==PROJECT_NUMBER||env.FIREBASE_PROJECT_ID!==PROJECT_ID||env.AUTH_MODE!=='firebase'
     ||env.DB_NAME!==`loan_manager_${environment}`||!isSharedInstanceConnection(env.INSTANCE_CONNECTION_NAME)||env.DATA_PROJECT_ID!==PROJECT_ID)fail();
-  const serviceRole=env.FOUNDATION_ROLE,dbUser=`mw-credit-app-${serviceRole==='reader'?'read':'command'}-${environment}@${PROJECT_ID}.iam`;
+  const serviceRole=env.FOUNDATION_ROLE,dbUser=`mw-credit-app-${DB_USER_NAMES[serviceRole]}-${environment}@${PROJECT_ID}.iam`;
   if(env.DB_USER!==dbUser||env.RUNTIME_SERVICE_ACCOUNT!==dbUser+'.gserviceaccount.com')fail();
   // Ambient credentials, retired DEV owner/fixture modes and the other environment's names are refused.
   if(AMBIENT.some(k=>env[k]!==undefined)||Object.keys(env).some(k=>k.startsWith(profile.foreign)&&env[k]!==undefined))fail();
   if(environment==='prod'&&env.RECEIPT_NATIVE_CATALOG_JSON!==undefined)fail();
+  if(serviceRole==='chat'&&Object.keys(env).some(k=>env[k]!==undefined&&chatForbidden(k,profile.prefix)))fail();
+  // CHAT_MODELS_JSON is parsed only for the chat role; the reader and command services ignore it.
+  const chat=serviceRole==='chat'?parseChatModels(env.CHAT_MODELS_JSON):null;
   if(env.PWA_NOTIFICATIONS!==undefined&&!['disabled','enabled'].includes(env.PWA_NOTIFICATIONS)||env.WEB_PUSH_PRIVATE_KEY!==undefined||env.WEB_PUSH_VAPID_JSON!==undefined)fail();
   if(env.PWA_NOTIFICATIONS==='enabled'&&(!/^[A-Za-z0-9_-]{87}$/.test(env.WEB_PUSH_PUBLIC_KEY??'')||env.FOUNDATION_ROLE!=='command'))fail();
   const site=env.HOSTING_SITE_ID;
@@ -72,7 +83,7 @@ export function loadBusinessConfig(env) {
   if(prefixed('SQL_APPLICATION_ROLE')!==applicationRole||prefixed('SQL_JOURNAL_OWNER_ROLE')!==journalOwnerRole)fail();
   let registeredCreators;try{registeredCreators=JSON.parse(prefixed('SQL_REGISTERED_CREATORS'));}catch{fail();}
   if(!Array.isArray(registeredCreators)||!registeredCreators.length||registeredCreators.length>50||new Set(registeredCreators).size!==registeredCreators.length||registeredCreators.some(v=>typeof v!=='string'||!v||v.length>63||/[\u0000-\u001f]/.test(v)))fail();
-  return Object.freeze({receiptCatalog,receiptCompatibility,nativeReceiptDescriptors,receiptRecognition,notificationsEnabled:env.PWA_NOTIFICATIONS==='enabled',pushPublicKey:env.WEB_PUSH_PUBLIC_KEY,environment,mode:'business-candidate',serviceRole,projectId:PROJECT_ID,issuer:`https://securetoken.google.com/${PROJECT_ID}`,database:env.DB_NAME,instance:env.INSTANCE_CONNECTION_NAME,dbUser,origins:Object.freeze(origins),canonicalOrigin:profile.canonicalOrigin,hostingSite:site,policy,registeredCreators:Object.freeze(registeredCreators),applicationRole,journalOwnerRole});
+  return Object.freeze({chat,receiptCatalog,receiptCompatibility,nativeReceiptDescriptors,receiptRecognition,notificationsEnabled:env.PWA_NOTIFICATIONS==='enabled',pushPublicKey:env.WEB_PUSH_PUBLIC_KEY,environment,mode:'business-candidate',serviceRole,projectId:PROJECT_ID,issuer:`https://securetoken.google.com/${PROJECT_ID}`,database:env.DB_NAME,instance:env.INSTANCE_CONNECTION_NAME,dbUser,origins:Object.freeze(origins),canonicalOrigin:profile.canonicalOrigin,hostingSite:site,policy,registeredCreators:Object.freeze(registeredCreators),applicationRole,journalOwnerRole});
 }
 /** Retained name for existing build smoke checks and promotion tooling. */
 export const loadProductionBusinessConfig=loadBusinessConfig;

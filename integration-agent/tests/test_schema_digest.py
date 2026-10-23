@@ -43,7 +43,10 @@ class SchemaDigestTests(unittest.TestCase):
             definition = document['content']['definition']
             name = self.module.qualified(definition['schema'], definition['name'])
             with self.subTest(relation=name):
-                if definition['schema'] in ('public', 'agent_audit'):
+                if definition['schema'] == 'public' and definition['name'].startswith('pwa_chat_'):
+                    # R090: the in-app chat journal is closed to the agent's SQL role and stays out of the digest.
+                    self.assertNotIn(name, relations)
+                elif definition['schema'] in ('public', 'agent_audit'):
                     expected.add(name)
                     self.assertEqual(sorted(relations[name]), sorted(document['content']['columns']))
                 else:

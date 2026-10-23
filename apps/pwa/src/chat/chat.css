@@ -1,0 +1,110 @@
+/* R090 chat screen (design §6.2). Phones (≤1050 px): one column, the thread list is a sheet between the header and
+   the bottom bar, the composer sticks above the bar. Desktop (≥1051 px): a 280 px thread pane beside the
+   conversation; from 1200 px the workspace has a fixed height and the message list scrolls on its own. */
+.chat-workspace{display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
+.chat-conversation{display:flex;flex-direction:column;min-width:0}
+.chat-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.chat-toolbar{display:flex;align-items:center;gap:8px;padding:0 0 8px;border-bottom:1px solid #e1e4e8;background:#f7f7f7}
+.chat-threads-toggle{display:inline-flex;align-items:center;gap:6px;flex:1 1 50%;min-width:0;max-width:60%;min-height:44px}
+.chat-threads-current{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-threads-caret{flex:0 0 auto;width:18px;height:18px}
+.chat-new{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
+.chat-model{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:1 1 40%;min-width:0;font-size:var(--text-meta,14px);color:#565656}
+.chat-model select{min-width:0;max-width:100%;min-height:44px;font:inherit;font-size:16px;color:#202124}
+.chat-notice{margin:8px 0;color:#8e1b1b;overflow-wrap:anywhere}
+.chat-notice .text-action{min-height:44px}
+
+.chat-messages{display:flex;flex-direction:column;gap:10px;flex:1 0 auto;padding:12px 0;min-width:0}
+.chat-earlier{align-self:center;min-height:44px}
+.chat-loading{color:#565656}
+.chat-message{max-width:100%;min-width:0;padding:10px 12px;border-radius:12px;line-height:1.5;font-size:var(--text-body,16px);color:#202124;overflow-wrap:anywhere}
+.chat-message p{margin:0 0 6px}
+.chat-message>:last-child{margin-bottom:0}
+.chat-message ul{margin:0 0 6px;padding-left:22px}
+.chat-message li{margin:2px 0}
+.chat-user{align-self:flex-end;max-width:min(85%,640px);background:#eef1f4;border-radius:12px 12px 2px 12px}
+.chat-user p{white-space:pre-wrap}
+.chat-user[data-status=failed]{opacity:.75}
+.chat-assistant{align-self:flex-start;max-width:min(100%,760px);background:#fff;border:1px solid #d6dade;border-radius:12px 12px 12px 2px}
+.chat-provisional{border-style:dashed;background:#fafafa;color:#3c4043}
+.chat-provisional-label{font-size:var(--text-meta,14px);font-style:italic;color:#5f6368}
+.chat-message .chat-sources{margin-top:8px;font-size:var(--text-meta,14px);color:#565656}
+.chat-failed{border-color:#c62828;background:#fff6f6}
+.chat-failure-reason{display:flex;gap:6px;align-items:flex-start;color:#8e1b1b}
+.chat-failed-icon{flex:0 0 auto;width:20px;height:20px;margin-top:2px}
+.chat-retry{margin-top:6px;min-height:44px}
+.chat-table-scroll{max-width:100%;overflow-x:auto;margin:0 0 6px;overscroll-behavior-x:contain}
+.chat-table-scroll table{border-collapse:collapse;font-size:var(--text-meta,14px)}
+.chat-table-scroll th,.chat-table-scroll td{padding:4px 10px 4px 0;border-bottom:1px solid #e1e4e8;text-align:left;vertical-align:top}
+.chat-table-scroll th{font-weight:600;color:#3c4043}
+.chat-turn{display:flex;flex-direction:column;gap:8px}
+.chat-progress{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--text-meta,14px);color:#565656}
+.chat-welcome{padding:8px 0;color:#3c4043}
+.chat-welcome>p{margin:0 0 10px}
+.chat-examples{display:flex;flex-wrap:wrap;gap:8px}
+.chat-examples button{min-height:44px;white-space:normal;text-align:left;overflow-wrap:anywhere}
+.chat-end{height:0}
+
+.chat-composer{position:sticky;bottom:0;z-index:4;margin:0;padding:8px 0;background:#f7f7f7;border-top:1px solid #ccc}
+.chat-composer-note{margin:0 0 6px;font-size:var(--text-meta,14px);color:#565656}
+.chat-composer-row{display:flex;align-items:flex-end;gap:8px}
+.chat-composer textarea{flex:1;min-width:0;min-height:44px;max-height:160px;box-sizing:border-box;padding:10px;border:1px solid #888;border-radius:8px;resize:none;font:inherit;font-size:16px;line-height:1.4;color:#202124;background:#fff}
+.chat-composer textarea:disabled{background:#f2f2f2;color:#595959}
+.chat-send{display:inline-flex;align-items:center;justify-content:center;flex:0 0 48px;height:44px;border:1px solid #713c00;border-radius:8px;background:#713c00;color:#fff}
+.chat-send:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959}
+.chat-composer-count{margin:4px 0 0;text-align:right;font-size:var(--text-meta,14px);color:#565656}
+.chat-composer-count.over{color:#c62828;font-weight:600}
+.chat-archived-actions{margin:0 0 8px}
+.chat-archived-actions button{min-height:44px}
+
+.chat-threads{min-width:0}
+.chat-threads-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.chat-threads-head h2{flex:1;min-width:0;margin:0;font-size:var(--text-subsection,18px)}
+.chat-archived-toggle{min-height:44px}
+.chat-archived-toggle[aria-pressed=true]{font-weight:700;box-shadow:inset 0 -3px currentColor}
+.chat-threads-close{width:44px;height:44px}
+.chat-new-in-list{width:100%;margin:0 0 8px}
+.chat-thread-list{list-style:none;margin:0;padding:0}
+.chat-thread{position:relative;display:flex;align-items:stretch;border-bottom:1px solid #e1e4e8}
+.chat-thread.current{background:var(--surface-selected,#f1f1f1)}
+.chat-thread-open{display:flex;flex:1;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;min-height:52px;padding:8px;border:0;background:transparent;color:inherit;font:inherit;text-align:left}
+.chat-thread-title{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.chat-thread-meta{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:var(--text-meta,14px);color:#565656}
+.chat-model-badge{padding:0 6px;border:1px solid #9aa0a6;border-radius:10px}
+.chat-thread-more{flex:0 0 44px;min-height:44px;border:0;background:transparent;color:inherit}
+.chat-thread-menu{position:absolute;right:4px;top:46px;z-index:6;display:flex;flex-direction:column;min-width:160px;background:#fff;border:1px solid #999;border-radius:6px;box-shadow:0 4px 12px #0003}
+.chat-thread-menu button{min-height:44px;padding:8px 12px;border:0;background:transparent;text-align:left;font:inherit;color:inherit}
+.chat-thread-menu button:hover,.chat-thread-menu button:focus-visible{background:var(--surface-selected,#f1f1f1)}
+.chat-thread-rename{display:flex;flex-wrap:wrap;gap:6px;width:100%;padding:8px}
+.chat-thread-rename input{flex:1 1 160px;min-width:0;min-height:44px;font-size:16px}
+.chat-thread-rename button{min-height:44px}
+.chat-threads-empty,.chat-threads-loading{color:#565656}
+.chat-threads-more{width:100%;min-height:44px;margin-top:8px}
+.chat-threads-error{color:#8e1b1b}
+
+@media(max-width:1050px){
+ .live-shell:has(.live-bottom-nav) main[data-workspace=chat]{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+ .chat-conversation{min-height:calc(100dvh - var(--live-header-height,56px) - 12px - 64px - env(safe-area-inset-bottom))}
+ .chat-toolbar{position:sticky;top:var(--live-header-height,56px);z-index:5;padding-top:4px}
+ .chat-model>span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+ .chat-new-in-toolbar{display:none}
+ .chat-composer{bottom:calc(64px + env(safe-area-inset-bottom));margin:0 -12px;padding:8px 12px}
+ .chat-pane{display:none}
+ .chat-workspace[data-sheet=open] .chat-pane{display:block;position:fixed;left:0;right:0;top:var(--live-header-height,56px);bottom:calc(64px + env(safe-area-inset-bottom));z-index:39;overflow-y:auto;overscroll-behavior:contain;padding:12px max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left));background:#fff;border-top:1px solid #ccc}
+}
+@media(min-width:768px) and (max-width:1050px){
+ .chat-composer{margin:0 -16px;padding:8px 16px}
+}
+@media(min-width:1051px){
+ .chat-workspace{grid-template-columns:280px minmax(0,1fr);gap:16px}
+ .chat-pane{min-width:0;padding-right:12px;border-right:1px solid #ddd}
+ .chat-threads-toggle,.chat-threads-close,.chat-new-in-list{display:none}
+ .chat-conversation{min-height:calc(100dvh - var(--live-header-height,60px) - 40px)}
+}
+@media(min-width:1200px){
+ .live-shell main[data-workspace=chat]>.chat-workspace{flex:1;min-height:0;grid-template-rows:minmax(0,1fr)}
+ .chat-pane{overflow-y:auto;min-height:0}
+ .chat-conversation{min-height:0}
+ .chat-messages{flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:4px}
+ .chat-composer{position:static}
+}

@@ -84,6 +84,29 @@ variable "command_dispatch_enabled" {
   type    = bool
   default = false
 }
+variable "chat_dispatch_enabled" {
+  description = "R090 batch 2: the chat service may wake the notify worker after a committed chat reply notification."
+  type        = bool
+  default     = false
+}
+variable "jobs_dispatch_enabled" {
+  description = "R090 batch 2: the jobs worker may wake the notify worker after committing a notification event."
+  type        = bool
+  default     = false
+}
+variable "chat_caller" {
+  description = "Chat runtime identity pinned as a notify caller (email and unique id); passed by the stack that owns it."
+  type = object({
+    email     = string
+    unique_id = string
+  })
+  default  = null
+  nullable = true
+  validation {
+    condition     = var.chat_caller == null ? true : can(regex("^mw-credit-app-chat-(dev|prod)@clever-oasis-508610-n7[.]iam[.]gserviceaccount[.]com$", var.chat_caller.email))
+    error_message = "Only a chat runtime identity may be a notify caller (the notify worker also checks the numeric unique id)."
+  }
+}
 variable "jobs_enabled" {
   type    = bool
   default = false
@@ -119,10 +142,14 @@ data "google_service_account" "command" {
   account_id = "mw-credit-app-command-${var.environment}@${local.project}.iam.gserviceaccount.com"
 }
 locals {
+  chat_dispatch = var.enabled && var.image != null && var.chat_dispatch_enabled && var.chat_caller != null
+  jobs_dispatch = var.enabled && var.image != null && var.jobs_dispatch_enabled
   caller_subjects = var.enabled ? {
     for role in local.roles : role => merge(
       { (google_service_account.scheduler[0].email) = google_service_account.scheduler[0].unique_id },
-      role == "notify" && length(data.google_service_account.command) == 1 ? { (data.google_service_account.command[0].email) = data.google_service_account.command[0].unique_id } : {}
+      role == "notify" && length(data.google_service_account.command) == 1 ? { (data.google_service_account.command[0].email) = data.google_service_account.command[0].unique_id } : {},
+      role == "notify" && local.chat_dispatch ? { (var.chat_caller.email) = var.chat_caller.unique_id } : {},
+      role == "notify" && local.jobs_dispatch ? { (google_service_account.worker["jobs"].email) = google_service_account.worker["jobs"].unique_id } : {}
     )
   } : {}
 }
@@ -222,19 +249,23 @@ resource "google_cloud_run_v2_service" "worker" {
       }
       dynamic "env" {
         for_each = merge({
-          APP_ENV                      = var.environment
-          WORKER_ROLE                  = each.key
-          WORKER_ACTIVATION            = (each.key == "notify" ? var.notification_enabled : var.jobs_enabled) ? "enabled" : "disabled"
-          APPLICATION_PROJECT_ID       = local.project
-          INSTANCE_CONNECTION_NAME     = "${local.project}:${local.region}:${local.sql_instance}"
-          DB_NAME                      = "loan_manager_${var.environment}"
-          DB_USER                      = google_sql_user.worker_ssd[each.key].name
-          RUNTIME_SERVICE_ACCOUNT      = google_service_account.worker[each.key].email
-          WORKER_AUDIENCE              = local.audiences[each.key]
-          SCHEDULER_SERVICE_ACCOUNT    = google_service_account.scheduler[0].email
-          SQL_REGISTERED_CREATORS_JSON = jsonencode(var.registered_creators)
-          WORKER_CALLER_SUBJECTS_JSON  = jsonencode(local.caller_subjects[each.key])
-        }, each.key == "notify" ? { WEB_PUSH_SUBJECT = var.push_subject } : {})
+          APP_ENV                                      = var.environment
+          WORKER_ROLE                                  = each.key
+          WORKER_ACTIVATION                            = (each.key == "notify" ? var.notification_enabled : var.jobs_enabled) ? "enabled" : "disabled"
+          APPLICATION_PROJECT_ID                       = local.project
+          INSTANCE_CONNECTION_NAME                     = "${local.project}:${local.region}:${local.sql_instance}"
+          DB_NAME                                      = "loan_manager_${var.environment}"
+          DB_USER                                      = google_sql_user.worker_ssd[each.key].name
+          RUNTIME_SERVICE_ACCOUNT                      = google_service_account.worker[each.key].email
+          WORKER_AUDIENCE                              = local.audiences[each.key]
+          SCHEDULER_SERVICE_ACCOUNT                    = google_service_account.scheduler[0].email
+          SQL_REGISTERED_CREATORS_JSON                 = jsonencode(var.registered_creators)
+          WORKER_CALLER_SUBJECTS_JSON                  = jsonencode(local.caller_subjects[each.key])
+          }, each.key == "notify" ? { WEB_PUSH_SUBJECT = var.push_subject } : {}, each.key == "jobs" && local.jobs_dispatch ? {
+          NOTIFICATION_DISPATCH_ENABLED                = "true"
+          NOTIFICATION_DISPATCH_URL                    = "${local.audiences["notify"]}/internal/dispatch"
+          NOTIFICATION_DISPATCH_AUDIENCE               = local.audiences["notify"]
+        } : {})
         content {
           name  = env.key
           value = env.value
@@ -284,6 +315,36 @@ resource "google_cloud_run_v2_service_iam_member" "command_dispatch" {
   role     = "roles/run.invoker"
   member   = "serviceAccount:mw-credit-app-command-${var.environment}@${local.project}.iam.gserviceaccount.com"
 }
+# R090 batch 2: the chat runtime wakes notify after committing a chat reply notification (default off).
+resource "google_cloud_run_v2_service_iam_member" "chat_dispatch" {
+  count    = var.enabled && var.image != null && var.chat_dispatch_enabled ? 1 : 0
+  project  = local.project
+  location = local.region
+  name     = google_cloud_run_v2_service.worker["notify"].name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:mw-credit-app-chat-${var.environment}@${local.project}.iam.gserviceaccount.com"
+  lifecycle {
+    precondition {
+      condition     = var.notification_enabled && var.chat_caller != null && try(var.chat_caller.email, "") == "mw-credit-app-chat-${var.environment}@${local.project}.iam.gserviceaccount.com"
+      error_message = "Chat dispatch requires the enabled notify worker and this environment's chat identity as the pinned caller."
+    }
+  }
+}
+# R090 batch 2: the jobs worker wakes notify after committing a notification event (default off).
+resource "google_cloud_run_v2_service_iam_member" "jobs_dispatch" {
+  count    = var.enabled && var.image != null && var.jobs_dispatch_enabled ? 1 : 0
+  project  = local.project
+  location = local.region
+  name     = google_cloud_run_v2_service.worker["notify"].name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.worker["jobs"].email}"
+  lifecycle {
+    precondition {
+      condition     = var.notification_enabled && var.jobs_enabled
+      error_message = "Jobs dispatch requires the enabled notify and jobs workers."
+    }
+  }
+}
 resource "google_cloud_scheduler_job" "tick" {
   for_each         = local.schedules
   project          = local.project
@@ -319,3 +380,4 @@ resource "google_cloud_scheduler_job" "tick" {
 output "identities" { value = { for role, sa in google_service_account.worker : role => { service_account = sa.email, sql_user = google_sql_user.worker_ssd[role].name, audience = local.audiences[role] } } }
 
 
+output "notify_callers" { value = try(sort(keys(local.caller_subjects["notify"])), []) }

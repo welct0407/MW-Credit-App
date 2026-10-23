@@ -34,7 +34,9 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
   // notify/jobs-owned tables (V88) and the journal-owned V89 functions, so the migrate window must hold the
   // same three owners as R053's prepare-agent in addition to the ledger owner (R053_OPERATOR.md steps 3-4).
   // V97 (R078) adds the change-log owner to the same window: its two definers are re-owned by the migration.
-  const R053_OWNERS=['mw_notify_owner_dev','mw_jobs_owner_dev','mw_app_dev_journal_owner','mw_changes_owner_dev'];
+  // V104 (R090) adds the chat owner: its four tables and thirteen routines are re-owned by the migration.
+  // V105 (R090 batch 2) needs the same notify, jobs and chat owners: two routines re-owned, two replaced, one column grant.
+  const R053_OWNERS=['mw_notify_owner_dev','mw_jobs_owner_dev','mw_app_dev_journal_owner','mw_changes_owner_dev','mw_chat_owner_dev'];
   for(const owner of R053_OWNERS){await admin.query(`GRANT ${owner} TO postgres WITH ADMIN TRUE, INHERIT FALSE, SET FALSE`);await operator.query(`GRANT ${owner} TO postgres WITH ADMIN FALSE, INHERIT FALSE, SET FALSE GRANTED BY postgres`);}
   const WINDOW=[LEDGER,...R053_OWNERS];
 
@@ -73,6 +75,13 @@ test('nonsuperuser postgres: closed ledger owner, V93 refused closed, applied wi
    // V100 (R081): replaced in place by the non-superuser runner (English name), owner and ACL kept; the owner reads "Description" by column grant.
    assert.match((await operator.query("SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure('public.pwa_notify_content_v1(uuid,bigint)')")).rows[0].prosrc,/b\."Description"/);
    assert.deepEqual((await operator.query(`SELECT has_column_privilege('mw_notify_owner_dev','public."Borrowers"','Description','SELECT') c,has_table_privilege('mw_notify_owner_dev','public."Borrowers"','SELECT') t,has_function_privilege('mw_notify_dispatch_dev','public.pwa_notify_content_v1(uuid,bigint)','EXECUTE') d`)).rows[0],{c:true,t:false,d:true});
+   // V105 (R090 batch 2): applied by the non-superuser runner in the same window: the reply event and the job status are
+   // re-owned definers, eligibility/content replaced in place, and the notify owner reads four thread columns.
+   assert.deepEqual((await operator.query(`SELECT pg_get_userbyid(r.proowner) reply,pg_get_userbyid(j.proowner) jobs,r.prosecdef AND j.prosecdef definers,
+     has_column_privilege('mw_notify_owner_dev','public.pwa_chat_threads','title','SELECT') title,has_table_privilege('mw_notify_owner_dev','public.pwa_chat_threads','SELECT') whole,
+     (SELECT prosrc LIKE '%chat.reply%' FROM pg_proc WHERE oid=to_regprocedure('public.pwa_notify_eligible_v1(uuid,uuid)')) eligible
+     FROM pg_proc r,pg_proc j WHERE r.oid=to_regprocedure('public.pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)') AND j.oid=to_regprocedure('public.pwa_job_status_v1(integer)')`)).rows[0],
+    {reply:'mw_notify_owner_dev',jobs:'mw_jobs_owner_dev',definers:true,title:true,whole:false,eligible:true});
    // pg_stat_statements: the non-superuser runner cannot create the untrusted extension; V93 reports a NOTICE and continues.
    if((await admin.query("SELECT 1 FROM pg_available_extensions WHERE name='pg_stat_statements'")).rowCount)assert.equal((await admin.query("SELECT 1 FROM pg_extension WHERE extname='pg_stat_statements'")).rowCount,0,'extension creation skipped under the nonsuperuser operator');
    // 5. Post-migrate reconciliation while authority is still open (the Invoke-Flyway hook order): zero violations, SELECT-only ledger.

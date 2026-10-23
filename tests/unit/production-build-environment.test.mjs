@@ -18,16 +18,24 @@ test('production build contract rejects DEV/foreign endpoints, fixtures and conf
  for(const change of [{readerOrigin:config.readerOrigin.replace('-prod-','-dev-')},{commandOrigin:config.commandOrigin+'/'},{canonicalOrigin:'https://dev-lm.mw-credit.com'},{ownerUid:'secret'},{reportingUrl:'https://www.appsheet.com/start/9f3422be-bc87-4a5a-a42a-67528ee80393'}])assert.throws(()=>productionBuildEnvironment({...config,...change}));
  assert.throws(()=>liveConfiguration({...env,VITE_COMMAND_FIXTURE_BORROWER_ID:'synthetic'}));assert.throws(()=>liveConfiguration({...env,VITE_FIREBASE_AUTH_TENANT_ID:'tenant'}));
 });
+test('production build carries the optional PROD chat origin as VITE_CHAT_API_ORIGIN, like the command origin',()=>{
+ assert.equal(productionBuildEnvironment(config).VITE_CHAT_API_ORIGIN,undefined);
+ const chatOrigin='https://mw-credit-app-chat-prod-pvrgvyg3oq-as.a.run.app',env=productionBuildEnvironment({...config,chatOrigin});
+ assert.equal(env.VITE_CHAT_API_ORIGIN,chatOrigin);assert.equal(env.VITE_COMMAND_API_ORIGIN,config.commandOrigin);assert.equal(liveConfiguration(env).environment,'prod');
+ for(const bad of [chatOrigin.replace('-prod-','-dev-'),chatOrigin+'/','http://mw-credit-app-chat-prod-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-command-prod-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-chat-prod-x.run.app.example.com','',null])assert.throws(()=>productionBuildEnvironment({...config,chatOrigin:bad}),String(bad));
+});
 test('production candidate uses separate marker, canonical worker and storage binding; local scratch cleaned',async()=>{
  const root=await mkdtemp(join(tmpdir(),'mw-production-candidate-'));
- const ambientKeys=['VITE_API_ORIGIN','VITE_COMMAND_API_ORIGIN','VITE_COMMAND_FIXTURE_BORROWER_ID','VITE_FIREBASE_AUTH_TENANT_ID'];
+ const ambientKeys=['VITE_API_ORIGIN','VITE_COMMAND_API_ORIGIN','VITE_CHAT_API_ORIGIN','VITE_COMMAND_FIXTURE_BORROWER_ID','VITE_FIREBASE_AUTH_TENANT_ID'];
  const prior=Object.fromEntries([...ambientKeys,'MW_RELEASE_NUMBER'].map(key=>[key,process.env[key]]));
  for(const key of ambientKeys)process.env[key]='forbidden-ambient-dev-sentinel';
  // R075: an ambient release number never reaches the bundle; the explicit input does, and the ambient value is restored.
  process.env.MW_RELEASE_NUMBER='R111';
  try{
-  const legacyConfig=Object.freeze({...config,reportingUrl:'https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb'});
-  assert.deepEqual(productionBuildEnvironment(legacyConfig),productionBuildEnvironment(config));
+  // R090: the candidate is built with the optional PROD chat origin, so the bundle check covers it.
+  const built=Object.freeze({...config,chatOrigin:'https://mw-credit-app-chat-prod-pvrgvyg3oq-as.a.run.app'});
+  const legacyConfig=Object.freeze({...built,reportingUrl:'https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb'});
+  assert.deepEqual(productionBuildEnvironment(legacyConfig),productionBuildEnvironment(built));
   for(const releaseNumber of [undefined,'','dev','R75','r075','R0750',' R075',75])await assert.rejects(buildProductionBusinessCandidate({publicConfig:legacyConfig,outDir:root,releaseNumber}),/Release number like R075 required/);
   assert.equal(process.env.MW_RELEASE_NUMBER,'R111');assert.deepEqual(await readdir(root),[]);
   const marker=await buildProductionBusinessCandidate({publicConfig:legacyConfig,outDir:root,releaseNumber:'R999'});assert.equal(marker.mode,'live-prod');assert.equal(marker.release,'R999');assert.equal(process.env.MW_RELEASE_NUMBER,'R111');assert.equal(marker.offlineNamespace,'mw-credit-prod-owner');assert.equal(legacyConfig.reportingUrl,'https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb');
@@ -35,19 +43,19 @@ test('production candidate uses separate marker, canonical worker and storage bi
   // PROD pink in the installed title bar, offline page and tab icon (owner request, R072).
   assert.equal(JSON.parse(await readFile(join(root,'manifest.webmanifest'),'utf8')).theme_color,'#d81b60');const offline=await readFile(join(root,'offline.html'),'utf8');assert.match(offline,/<meta name="theme-color" content="#d81b60">/);assert.match(offline,/header\{background:#d81b60;color:#fff;/);assert.doesNotMatch(offline,/#e8710a/);assert.match(offline,/<title>MW Credit · Offline<\/title>/);assert.match(offline,/<header>MW Credit<\/header>/);assert.doesNotMatch(offline,/DEV/);
   assert.match(await readFile(join(root,'index.html'),'utf8'),/<link rel="icon" type="image\/png" href="\/icons\/icon-192\.png">/);assert.deepEqual(await readFile(join(root,'icons/icon-192.png')),await readFile('apps/pwa/pwa/icons-prod/icon-192.png'));
-  assert.deepEqual(JSON.parse(await readFile(join(root,'production-public-config.json'),'utf8')),config);
+  assert.deepEqual(JSON.parse(await readFile(join(root,'production-public-config.json'),'utf8')),built);
   // Inspect the actual emitted executable config, not its separate JSON sidecar.
   const sidecar=JSON.parse(await readFile(join(root,'build-version.json'),'utf8')),entry=sidecar.entry;
   assert.deepEqual(Object.keys(sidecar),['schemaVersion','version','entry','release']);assert.equal(sidecar.schemaVersion,1);assert.equal(sidecar.release,'R999');assert.match(sidecar.version,/^[a-f0-9]{24}$/);assert.equal(installedClientAccepts(sidecar),true,'installed clients accept the PROD marker');
   const javascript=await readFile(join(root,entry.slice(1)),'utf8');
-  for(const value of [config.readerOrigin,config.commandOrigin,config.firebase.apiKey,config.firebase.appId])assert.ok(javascript.includes(value),`emitted JS missing ${value}`);
+  for(const value of [built.readerOrigin,built.commandOrigin,built.chatOrigin,built.firebase.apiKey,built.firebase.appId])assert.ok(javascript.includes(value),`emitted JS missing ${value}`);
   // R072 About: the vite.config.ts commit define survives the candidate's own define (Vite merges both).
   let commit='unknown';try{commit=execFileSync('git',['rev-parse','--short=7','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim()||'unknown'}catch{}
   assert.ok(javascript.includes("'R999'")||javascript.includes('"R999"'),'emitted JS carries the release number');assert.equal(javascript.includes('R111'),false);assert.equal(javascript.includes('__RELEASE_NUMBER__'),false);assert.ok(javascript.includes(JSON.stringify(commit))||javascript.includes("'"+commit+"'"),'emitted JS carries the source commit '+commit);
   assert.equal(javascript.includes('forbidden-ambient-dev-sentinel'),false);
   assert.equal(javascript.includes('www.appsheet.com'),false);
   assert.equal(javascript.includes('live-reporting-link'),false);
-  assert.equal(/https:\/\/mw-credit-app-(?:read|command)-dev-[^"'\s]+/.test(javascript),false);
+  assert.equal(/https:\/\/mw-credit-app-(?:read|command|chat)-dev-[^"'\s]+/.test(javascript),false);
   const objects=[],functions=new Map(),constants=new Map();let configurationFunction;
   function visit(node){
    // Constant strings the configuration closes over (for example the shared Firebase project id).
@@ -68,8 +76,8 @@ test('production candidate uses separate marker, canonical worker and storage bi
   function collect(name){if(closure.has(name))return;if(constants.has(name)){const text=constants.get(name);closure.set(name,'const '+text+';');const refs=n=>{if(ts.isIdentifier(n))collect(n.text);ts.forEachChild(n,refs);};refs(ts.createSourceFile('c.js','const '+text,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS));return;}if(!functions.has(name))return;const fn=functions.get(name);closure.set(name,fn.getText());function calls(n){if(ts.isCallExpression(n)&&ts.isIdentifier(n.expression))collect(n.expression.text);else if(ts.isIdentifier(n)&&constants.has(n.text))collect(n.text);ts.forEachChild(n,calls);}calls(fn);}
   collect(configurationFunction);
   const emitted=objects[0],compiled=runInNewContext([...closure.values()].join('\n')+`;${configurationFunction}(input)`,{URL,input:emitted},{timeout:1000});
-  assert.deepEqual(JSON.parse(JSON.stringify(compiled)),liveConfiguration(productionBuildEnvironment(config)));
-  assert.equal(emitted.VITE_COMMAND_MODE,'production-business');assert.equal(emitted.VITE_COMMAND_API_ORIGIN,config.commandOrigin);
+  assert.deepEqual(JSON.parse(JSON.stringify(compiled)),liveConfiguration(productionBuildEnvironment(built)));assert.equal(compiled.chatOrigin,built.chatOrigin);
+  assert.equal(emitted.VITE_COMMAND_MODE,'production-business');assert.equal(emitted.VITE_COMMAND_API_ORIGIN,config.commandOrigin);assert.equal(emitted.VITE_CHAT_API_ORIGIN,built.chatOrigin);
   for(const key of ['VITE_COMMAND_FIXTURE_BORROWER_ID','VITE_FIREBASE_AUTH_TENANT_ID'])assert.equal(emitted[key],undefined);
  }finally{
   for(const key of [...ambientKeys,'MW_RELEASE_NUMBER']){if(prior[key]===undefined)delete process.env[key];else process.env[key]=prior[key];}

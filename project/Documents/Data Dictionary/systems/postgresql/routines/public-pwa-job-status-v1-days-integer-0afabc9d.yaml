@@ -1,0 +1,48 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_job_status_v1(days integer)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "database/migrations/V105__chat_reply_notification_and_job_status.sql"
+  "coverage": "R090 batch 2 definition (V105, 23 October 2026), reviewed from the migration source and applied to a disposable\
+    \ PostgreSQL 18 rebuild with stub roles and stub prerequisite objects; not captured from DEV or PROD, which have not received\
+    \ V105 yet. Owner mw_notify_owner_<env> / mw_jobs_owner_<env>; the ACL shown is the rebuild. "
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_job_status_v1"
+    "arguments": "days integer"
+    "kind": "f"
+    "arguments_with_defaults": "days integer"
+    "result": "TABLE(job_name text, business_date date, scope_key text, state text, started_at timestamp with time zone, completed_at\
+      \ timestamp with time zone, result_count bigint)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_job_status_v1(days integer)
+       RETURNS TABLE(job_name text, business_date date, scope_key text, state text, started_at timestamp with time zone, completed_at timestamp with time zone, result_count bigint)
+       LANGUAGE plpgsql
+       STABLE SECURITY DEFINER
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       IF days IS NULL OR days NOT BETWEEN 1 AND 90 THEN RAISE EXCEPTION 'invalid_request'; END IF;
+       RETURN QUERY SELECT j.job_name,j.business_date,j.scope_key,j.state,j.started_at,j.completed_at,j.result_count
+       FROM public.pwa_job_runs j
+       WHERE j.business_date>=(clock_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-days
+       ORDER BY j.business_date DESC,j.job_name,j.scope_key LIMIT 500;
+      END $function$
+    "owner": "mw_jobs_owner_prod"
+    "language": "plpgsql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": true
+    "leakproof": false
+    "parallel": "u"
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{mw_jobs_owner_prod=X/mw_jobs_owner_prod,mw_chat_read_prod=X/mw_jobs_owner_prod}"
+    "comment": "mw-access:governance read-only job status for the chat SQL tool"
+    "extension": null

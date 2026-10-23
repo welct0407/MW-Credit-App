@@ -53,6 +53,7 @@ const paths = {
  waiting:'M3 4h13M3 8h9M3 12h6M3 16h6M22 16a6 6 0 1 1-12 0 6 6 0 0 1 12 0M16 12v4l2 1',
  'panel-open':'M3 3h18v18H3zM8 3v18m4-13 4 4-4 4',
  'panel-close':'M3 3h18v18H3zM8 3v18m8-13-4 4 4 4',
+ chat:'M4 4h16v12H10l-6 5zM8 9h8M8 12h5',send:'M3 11 21 3l-8 18-2-8zM11 13l10-10',more:'M5 12h.01M12 12h.01M19 12h.01',
  menu:'M3 5h18M3 12h18M3 19h18',search:'M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0m-2 5 7 7',
 } as const;
 export type IconName = keyof typeof paths;

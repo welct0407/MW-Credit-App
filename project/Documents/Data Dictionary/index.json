@@ -5392,6 +5392,538 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/public-pwa-chat-history-85fe4bac.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_chat_history",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "thread_id",
+          "pointer": "/content/columns/thread_id"
+        },
+        {
+          "subject": "epoch",
+          "pointer": "/content/columns/epoch"
+        },
+        {
+          "subject": "seq",
+          "pointer": "/content/columns/seq"
+        },
+        {
+          "subject": "message_id",
+          "pointer": "/content/columns/message_id"
+        },
+        {
+          "subject": "role",
+          "pointer": "/content/columns/role"
+        },
+        {
+          "subject": "content",
+          "pointer": "/content/columns/content"
+        },
+        {
+          "subject": "prompt_sha256",
+          "pointer": "/content/columns/prompt_sha256"
+        },
+        {
+          "subject": "input_tokens",
+          "pointer": "/content/columns/input_tokens"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "pwa_chat_history_content_check",
+          "pointer": "/content/constraints/pwa_chat_history_content_check"
+        },
+        {
+          "subject": "pwa_chat_history_content_not_null",
+          "pointer": "/content/constraints/pwa_chat_history_content_not_null"
+        },
+        {
+          "subject": "pwa_chat_history_created_at_not_null",
+          "pointer": "/content/constraints/pwa_chat_history_created_at_not_null"
+        },
+        {
+          "subject": "pwa_chat_history_epoch_check",
+          "pointer": "/content/constraints/pwa_chat_history_epoch_check"
+        },
+        {
+          "subject": "pwa_chat_history_epoch_not_null",
+          "pointer": "/content/constraints/pwa_chat_history_epoch_not_null"
+        },
+        {
+          "subject": "pwa_chat_history_input_tokens_check",
+          "pointer": "/content/constraints/pwa_chat_history_input_tokens_check"
+        },
+        {
+          "subject": "pwa_chat_history_message_id_fkey",
+          "pointer": "/content/constraints/pwa_chat_history_message_id_fkey"
+        },
+        {
+          "subject": "pwa_chat_history_message_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_history_message_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_history_pkey",
+          "pointer": "/content/constraints/pwa_chat_history_pkey"
+        },
+        {
+          "subject": "pwa_chat_history_prompt_sha256_check",
+          "pointer": "/content/constraints/pwa_chat_history_prompt_sha256_check"
+        },
+        {
+          "subject": "pwa_chat_history_prompt_sha256_not_null",
+          "pointer": "/content/constraints/pwa_chat_history_prompt_sha256_not_null"
+        },
+        {
+          "subject": "pwa_chat_history_role_check",
+          "pointer": "/content/constraints/pwa_chat_history_role_check"
+        },
+        {
+          "subject": "pwa_chat_history_role_not_null",
+          "pointer": "/content/constraints/pwa_chat_history_role_not_null"
+        },
+        {
+          "subject": "pwa_chat_history_seq_check",
+          "pointer": "/content/constraints/pwa_chat_history_seq_check"
+        },
+        {
+          "subject": "pwa_chat_history_seq_not_null",
+          "pointer": "/content/constraints/pwa_chat_history_seq_not_null"
+        },
+        {
+          "subject": "pwa_chat_history_thread_id_fkey",
+          "pointer": "/content/constraints/pwa_chat_history_thread_id_fkey"
+        },
+        {
+          "subject": "pwa_chat_history_thread_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_history_thread_id_not_null"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-chat-messages-369af7f8.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_chat_messages",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "id",
+          "pointer": "/content/columns/id"
+        },
+        {
+          "subject": "thread_id",
+          "pointer": "/content/columns/thread_id"
+        },
+        {
+          "subject": "seq",
+          "pointer": "/content/columns/seq"
+        },
+        {
+          "subject": "role",
+          "pointer": "/content/columns/role"
+        },
+        {
+          "subject": "text",
+          "pointer": "/content/columns/text"
+        },
+        {
+          "subject": "status",
+          "pointer": "/content/columns/status"
+        },
+        {
+          "subject": "model",
+          "pointer": "/content/columns/model"
+        },
+        {
+          "subject": "thinking_level",
+          "pointer": "/content/columns/thinking_level"
+        },
+        {
+          "subject": "rounds",
+          "pointer": "/content/columns/rounds"
+        },
+        {
+          "subject": "attempts",
+          "pointer": "/content/columns/attempts"
+        },
+        {
+          "subject": "prompt_tokens",
+          "pointer": "/content/columns/prompt_tokens"
+        },
+        {
+          "subject": "output_tokens",
+          "pointer": "/content/columns/output_tokens"
+        },
+        {
+          "subject": "thoughts_tokens",
+          "pointer": "/content/columns/thoughts_tokens"
+        },
+        {
+          "subject": "cached_tokens",
+          "pointer": "/content/columns/cached_tokens"
+        },
+        {
+          "subject": "latency_ms",
+          "pointer": "/content/columns/latency_ms"
+        },
+        {
+          "subject": "error_code",
+          "pointer": "/content/columns/error_code"
+        },
+        {
+          "subject": "claimed_at",
+          "pointer": "/content/columns/claimed_at"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "detached_at",
+          "pointer": "/content/columns/detached_at"
+        },
+        {
+          "subject": "pwa_chat_messages_attempts_check",
+          "pointer": "/content/constraints/pwa_chat_messages_attempts_check"
+        },
+        {
+          "subject": "pwa_chat_messages_cached_tokens_check",
+          "pointer": "/content/constraints/pwa_chat_messages_cached_tokens_check"
+        },
+        {
+          "subject": "pwa_chat_messages_check",
+          "pointer": "/content/constraints/pwa_chat_messages_check"
+        },
+        {
+          "subject": "pwa_chat_messages_check1",
+          "pointer": "/content/constraints/pwa_chat_messages_check1"
+        },
+        {
+          "subject": "pwa_chat_messages_check2",
+          "pointer": "/content/constraints/pwa_chat_messages_check2"
+        },
+        {
+          "subject": "pwa_chat_messages_check3",
+          "pointer": "/content/constraints/pwa_chat_messages_check3"
+        },
+        {
+          "subject": "pwa_chat_messages_created_at_not_null",
+          "pointer": "/content/constraints/pwa_chat_messages_created_at_not_null"
+        },
+        {
+          "subject": "pwa_chat_messages_detached_check",
+          "pointer": "/content/constraints/pwa_chat_messages_detached_check"
+        },
+        {
+          "subject": "pwa_chat_messages_error_code_check",
+          "pointer": "/content/constraints/pwa_chat_messages_error_code_check"
+        },
+        {
+          "subject": "pwa_chat_messages_id_check",
+          "pointer": "/content/constraints/pwa_chat_messages_id_check"
+        },
+        {
+          "subject": "pwa_chat_messages_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_messages_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_messages_latency_ms_check",
+          "pointer": "/content/constraints/pwa_chat_messages_latency_ms_check"
+        },
+        {
+          "subject": "pwa_chat_messages_output_tokens_check",
+          "pointer": "/content/constraints/pwa_chat_messages_output_tokens_check"
+        },
+        {
+          "subject": "pwa_chat_messages_pkey",
+          "pointer": "/content/constraints/pwa_chat_messages_pkey"
+        },
+        {
+          "subject": "pwa_chat_messages_prompt_tokens_check",
+          "pointer": "/content/constraints/pwa_chat_messages_prompt_tokens_check"
+        },
+        {
+          "subject": "pwa_chat_messages_role_check",
+          "pointer": "/content/constraints/pwa_chat_messages_role_check"
+        },
+        {
+          "subject": "pwa_chat_messages_role_not_null",
+          "pointer": "/content/constraints/pwa_chat_messages_role_not_null"
+        },
+        {
+          "subject": "pwa_chat_messages_rounds_check",
+          "pointer": "/content/constraints/pwa_chat_messages_rounds_check"
+        },
+        {
+          "subject": "pwa_chat_messages_seq_check",
+          "pointer": "/content/constraints/pwa_chat_messages_seq_check"
+        },
+        {
+          "subject": "pwa_chat_messages_seq_not_null",
+          "pointer": "/content/constraints/pwa_chat_messages_seq_not_null"
+        },
+        {
+          "subject": "pwa_chat_messages_status_check",
+          "pointer": "/content/constraints/pwa_chat_messages_status_check"
+        },
+        {
+          "subject": "pwa_chat_messages_status_not_null",
+          "pointer": "/content/constraints/pwa_chat_messages_status_not_null"
+        },
+        {
+          "subject": "pwa_chat_messages_text_check",
+          "pointer": "/content/constraints/pwa_chat_messages_text_check"
+        },
+        {
+          "subject": "pwa_chat_messages_text_not_null",
+          "pointer": "/content/constraints/pwa_chat_messages_text_not_null"
+        },
+        {
+          "subject": "pwa_chat_messages_thinking_level_check",
+          "pointer": "/content/constraints/pwa_chat_messages_thinking_level_check"
+        },
+        {
+          "subject": "pwa_chat_messages_thoughts_tokens_check",
+          "pointer": "/content/constraints/pwa_chat_messages_thoughts_tokens_check"
+        },
+        {
+          "subject": "pwa_chat_messages_thread_id_fkey",
+          "pointer": "/content/constraints/pwa_chat_messages_thread_id_fkey"
+        },
+        {
+          "subject": "pwa_chat_messages_thread_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_messages_thread_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_messages_thread_id_seq_key",
+          "pointer": "/content/constraints/pwa_chat_messages_thread_id_seq_key"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-chat-threads-1add5eb1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_chat_threads",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "id",
+          "pointer": "/content/columns/id"
+        },
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "title",
+          "pointer": "/content/columns/title"
+        },
+        {
+          "subject": "model",
+          "pointer": "/content/columns/model"
+        },
+        {
+          "subject": "status",
+          "pointer": "/content/columns/status"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "updated_at",
+          "pointer": "/content/columns/updated_at"
+        },
+        {
+          "subject": "last_message_at",
+          "pointer": "/content/columns/last_message_at"
+        },
+        {
+          "subject": "message_count",
+          "pointer": "/content/columns/message_count"
+        },
+        {
+          "subject": "pwa_chat_threads_created_at_not_null",
+          "pointer": "/content/constraints/pwa_chat_threads_created_at_not_null"
+        },
+        {
+          "subject": "pwa_chat_threads_id_check",
+          "pointer": "/content/constraints/pwa_chat_threads_id_check"
+        },
+        {
+          "subject": "pwa_chat_threads_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_threads_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_threads_message_count_check",
+          "pointer": "/content/constraints/pwa_chat_threads_message_count_check"
+        },
+        {
+          "subject": "pwa_chat_threads_message_count_not_null",
+          "pointer": "/content/constraints/pwa_chat_threads_message_count_not_null"
+        },
+        {
+          "subject": "pwa_chat_threads_model_check",
+          "pointer": "/content/constraints/pwa_chat_threads_model_check"
+        },
+        {
+          "subject": "pwa_chat_threads_model_not_null",
+          "pointer": "/content/constraints/pwa_chat_threads_model_not_null"
+        },
+        {
+          "subject": "pwa_chat_threads_partner_id_check",
+          "pointer": "/content/constraints/pwa_chat_threads_partner_id_check"
+        },
+        {
+          "subject": "pwa_chat_threads_partner_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_threads_partner_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_threads_pkey",
+          "pointer": "/content/constraints/pwa_chat_threads_pkey"
+        },
+        {
+          "subject": "pwa_chat_threads_status_check",
+          "pointer": "/content/constraints/pwa_chat_threads_status_check"
+        },
+        {
+          "subject": "pwa_chat_threads_status_not_null",
+          "pointer": "/content/constraints/pwa_chat_threads_status_not_null"
+        },
+        {
+          "subject": "pwa_chat_threads_title_check",
+          "pointer": "/content/constraints/pwa_chat_threads_title_check"
+        },
+        {
+          "subject": "pwa_chat_threads_title_not_null",
+          "pointer": "/content/constraints/pwa_chat_threads_title_not_null"
+        },
+        {
+          "subject": "pwa_chat_threads_updated_at_not_null",
+          "pointer": "/content/constraints/pwa_chat_threads_updated_at_not_null"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-chat-tool-calls-86231ed3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_chat_tool_calls",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "message_id",
+          "pointer": "/content/columns/message_id"
+        },
+        {
+          "subject": "call_id",
+          "pointer": "/content/columns/call_id"
+        },
+        {
+          "subject": "round",
+          "pointer": "/content/columns/round"
+        },
+        {
+          "subject": "name",
+          "pointer": "/content/columns/name"
+        },
+        {
+          "subject": "arguments",
+          "pointer": "/content/columns/arguments"
+        },
+        {
+          "subject": "result",
+          "pointer": "/content/columns/result"
+        },
+        {
+          "subject": "error",
+          "pointer": "/content/columns/error"
+        },
+        {
+          "subject": "ms",
+          "pointer": "/content/columns/ms"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_arguments_check",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_arguments_check"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_arguments_not_null",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_arguments_not_null"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_call_id_check",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_call_id_check"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_call_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_call_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_created_at_not_null",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_created_at_not_null"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_error_check",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_error_check"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_message_id_fkey",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_message_id_fkey"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_message_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_message_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_ms_check",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_ms_check"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_name_check",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_name_check"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_name_not_null",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_name_not_null"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_pkey",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_pkey"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_result_check",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_result_check"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_round_check",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_round_check"
+        },
+        {
+          "subject": "pwa_chat_tool_calls_round_not_null",
+          "pointer": "/content/constraints/pwa_chat_tool_calls_round_not_null"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/public-pwa-job-runs-f74e2a04.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -10273,6 +10805,156 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-chat-actor-v1-actor-jsonb-bd76affb.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_actor_v1(actor jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-immutable-v1-a561493e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_immutable_v1()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-iso-v1-t-timestamp-with-time-zone-d0cfb7ab.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_iso_v1(t timestamp with time zone)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-message-json-v1-m-pwa-chat-messages-9ce8b272.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_message_json_v1(m pwa_chat_messages)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-message-v1-actor-jsonb-thread-uuid-message-uuid-13acdfd5.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_message_v1(actor jsonb, thread uuid, message uuid)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-messages-v1-actor-jsonb-thread-uuid-before-integer-lim-integer-d0c30888.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_messages_v1(actor jsonb, thread uuid, before integer, lim integer)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-models-default-v1-actor-jsonb-25675781.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_models_default_v1(actor jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-thread-create-v1-actor-jsonb-thread-jsonb-f5918c1c.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_thread_create_v1(actor jsonb, thread jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-thread-json-v1-t-pwa-chat-threads-2827ec75.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_thread_json_v1(t pwa_chat_threads)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-thread-update-v1-actor-jsonb-id-uuid-patch-jsonb-232af8a2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_thread_update_v1(actor jsonb, id uuid, patch jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-thread-v1-actor-jsonb-id-uuid-fb895d5e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_thread_v1(actor jsonb, id uuid)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-threads-v1-actor-jsonb-status-text-before-timestamp-with-time-zone-lim-integer-0b8044df.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_threads_v1(actor jsonb, status text, before timestamp with time zone, lim integer)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-turn-begin-v1-actor-jsonb-thread-uuid-message-jsonb-18a48fc3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_turn_begin_v1(actor jsonb, thread uuid, message jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-turn-complete-v1-actor-jsonb-message-id-uuid-assistant-jsonb-history-jsonb-tool-d53b70b0.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_turn_complete_v1(actor jsonb, message_id uuid, assistant jsonb, history jsonb, tool_calls jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-turn-presence-v1-actor-jsonb-thread-uuid-message-uuid-state-text-965ea21e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_turn_presence_v1(actor jsonb, thread uuid, message uuid, state text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-claim-notifications-v1-p-limit-integer-p-seconds-integer-b6d1b868.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -10318,6 +11000,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_job_run_v1(job text, business_date date, scope text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-job-status-v1-days-integer-0afabc9d.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_job_status_v1(days integer)",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -10398,6 +11090,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_notify_candidates_v1(batch_limit integer)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-notify-chat-reply-v1-actor-jsonb-thread-uuid-message-uuid-outcome-text-73e398a3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_chat_reply_v1(actor jsonb, thread uuid, message uuid, outcome text)",
       "scope": "production",
       "status": "documented",
       "lookup": []

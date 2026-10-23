@@ -10,8 +10,10 @@ import {statementTimeoutSql, lockTimeoutSql} from '../lib/budget.mjs';
 const quote = name => '"' + name.replaceAll('"', '""') + '"';
 const fail = () => { throw Error('unsupported_native_capability'); };
 
-/** Definitions are maintained source, never caller-supplied SQL or schema exports. */
-export function createConversationReadProvider({pool, guardConnection, policy, catalogue, resources}) {
+/** Definitions are maintained source, never caller-supplied SQL or schema exports.
+ * resolveActor (optional, R090) replaces the agent-policy actor check for an in-process caller that resolved its
+ * own actor (the PWA chat service); the default keeps the agent route unchanged. */
+export function createConversationReadProvider({pool, guardConnection, policy, catalogue, resources, resolveActor = resolveConversationActor}) {
   const manifestSha256 = createHash('sha256').update(JSON.stringify(catalogue)).digest('hex');
   async function read(context, input, operation) {
     let client, quarantine = false;
@@ -24,7 +26,7 @@ export function createConversationReadProvider({pool, guardConnection, policy, c
       // Small reviewed reads: JIT compilation (seconds on a cold host) costs more than the query itself.
       await client.query('SET LOCAL jit=off');
       await guardConnection(client);
-      const actor = await resolveConversationActor(client, policy, context.workload, input.actorPartnerId);
+      const actor = await resolveActor(client, policy, context.workload, input.actorPartnerId);
       if (context.signal?.aborted) throw Error('request_aborted');
       const result = await operation(client, actor);
       await client.query('COMMIT');

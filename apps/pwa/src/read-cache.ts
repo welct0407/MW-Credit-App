@@ -1,12 +1,13 @@
 import {beginRequest} from './request-activity';
 import {recordClientEvent} from './client-events';
 import {readOfflineDataset,isOfflineDatasetCursor,refreshOfflineDataset,routeDomain,receiptMediaCandidates} from './offline-dataset';
-import {commandOriginAllowed} from './environment';
+import {commandOriginAllowed,chatOriginAllowed} from './environment';
 import {deferWhileInteracting,cancelDeferred,type HoldScope} from './interaction-hold';
 import type {OwnerOfflineRepository,CachedResponse} from './owner-offline';
 
 type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;awaitStartup?:()=>Promise<void>;token:()=>Promise<string>;authFailure:(status:number)=>void};
-type Options<T>={origin?:string;signal?:AbortSignal;onCached?:(data:T)=>void;policy?:'cache-first'|'network-only'};
+/** wakeMs: the X-MW-Wake-Deadline offset (15 s by default; the chat service expects 250 s, design R090 §3.4). */
+type Options<T>={origin?:string;signal?:AbortSignal;onCached?:(data:T)=>void;policy?:'cache-first'|'network-only';wakeMs?:number};
 /** Subscribe only mounted read-only views. The caller owns edit/generation guards;
  * this reads the committed bundle without a network request or loading state. */
 /** hold (UX-REFRESH-06): a list's update waits while that list is touched or scrolled (interaction-hold.ts).
@@ -44,6 +45,8 @@ function failure(key:string,value:boolean){const before=failures.has(key);if(val
 function allowed(access:Access,url:URL,format:'json'|'blob'){
  const repository=access.offline;if(!repository||url.username||url.password||url.hash)return false;
  if(repository.environment==='synthetic'){if(url.origin!==location.origin)return false}
+ // R090: the thread list, a thread's messages and the model list show offline, read-only; turns and polling stay network-only.
+ else if(chatOriginAllowed(url.origin,repository.environment))return format==='json'&&/^\/api\/chat\/(?:models|threads(?:\/[^/]+\/messages)?)$/.test(url.pathname);
  else if(!commandOriginAllowed(url.origin,repository.environment)&&!(url.protocol==='https:'&&new RegExp('^mw-credit-app-read-'+repository.environment+'-[a-z0-9-]+(?:\\.[a-z0-9-]+)?\\.run\\.app$').test(url.hostname)))return false;
  if(format==='blob')return /^\/api\/(?:payment-records\/[^/]+\/receipt|payment-commands\/[^/]+\/receipts\/[^/]+)$/.test(url.pathname);
  if(/\/(?:close-preview|correction-preview|close-preparation|draft|auto-assign|select-all)(?:\/|$)/.test(url.pathname))return false;
@@ -117,7 +120,7 @@ async function read<T>(access:Access,path:string,options:Options<T>,format:'json
   for(let attempt=0;;attempt++){
    if(attempt>0){const pause=Math.min(100*attempt,1000);if(Date.now()+pause>=deadline)throw Error('Read changed during refresh');await new Promise(resolve=>setTimeout(resolve,pause))}
    requireCurrent();const token=await access.token();requireCurrent();
-   const response=await fetch(url.href,{method:'GET',headers:{Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(Date.now()+15000)},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
+   const response=await fetch(url.href,{method:'GET',headers:{Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(Date.now()+(options.wakeMs??15000))},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
    requireCurrent();
    if(response.status===401||response.status===403){denied=true;settled=true;failure(scopeKey,false);access.authFailure(response.status);throw Error('Read authorization denied')}
    const data=await (format==='blob'&&response.ok?response.blob():response.json()) as T;requireCurrent();
