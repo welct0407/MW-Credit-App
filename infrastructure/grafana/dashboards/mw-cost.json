@@ -1793,7 +1793,7 @@
         },
         "id": 49,
         "panels": [],
-        "title": "In-app chat · cost per question",
+        "title": "In-app chat · usage and cost",
         "type": "row"
       },
       {
@@ -1801,7 +1801,426 @@
           "type": "grafana-postgresql-datasource",
           "uid": "mw-agent-questions"
         },
-        "description": "The 10 latest in-app chat questions (Chat in the PWA), newest first, read live from loan_manager_prod (monitoring.pwa_chat_recent_questions_v1 through Grafana PDC; not stored in Cloud Monitoring). Input = uncached input tokens, Cached = cached input, Output and Thinking = generated tokens (thinking bills as output); every round of the turn, including tool calls, is included. Cost (SGD) = tokens at the billed Vertex AI unit prices in model-prices.json (per million tokens: Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output; Gemini 3.8 Flash S$1.92, S$0.19, S$9.59; Gemini 3.5 Flash S$1.91, S$0.19, S$11.50). No answer (pending, unanswered or failed) = a question without a completed reply. The footer sums the listed questions.",
+        "description": "The selected range (month to date by default): chat turns (Turns = answered and failed, as on Now and PWA & APIs; a question that got no reply is not counted), failed turns (orange above 0) and the estimated cost, in total and per turn, from monitoring.pwa_chat_usage_v1, read live from loan_manager_prod through Grafana PDC (not stored in Cloud Monitoring). Cost = input, cached input and output + thinking tokens (thinking bills as output; every round of a turn, tool calls included) at the billed Vertex AI unit prices in model-prices.json, SGD per million tokens: gemini-4-argon S$5.11 input, S$0.26 cached, S$25.56 output; gemini-3.8-flash S$1.92 input, S$0.19 cached, S$9.59 output; gemini-3.5-flash S$1.91 input, S$0.19 cached, S$11.50 output. A model without a price shows No price. An estimate: the billed truth is the Vertex AI line of GCP by service · net.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "text",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [],
+            "noValue": "No report",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Turns"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Failed"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 1
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Est. cost"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "unit",
+                  "value": "prefix:S$"
+                },
+                {
+                  "id": "decimals",
+                  "value": 2
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "No price"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Per turn"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "unit",
+                  "value": "prefix:S$"
+                },
+                {
+                  "id": "decimals",
+                  "value": 4
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 28
+        },
+        "id": 51,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 32
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "grafana-postgresql-datasource",
+              "uid": "mw-agent-questions"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT coalesce(sum(u.turns), 0) AS \"Turns\", coalesce(sum(u.failed), 0) AS \"Failed\",\n  CASE WHEN bool_or(p.model IS NULL) THEN NULL ELSE coalesce(round(sum(((u.input_tokens - coalesce(u.cached_tokens, 0)) * p.input + coalesce(u.cached_tokens, 0) * p.cached\n    + (u.output_tokens + coalesce(u.thinking_tokens, 0)) * p.output) / 1000000.0), 2), 0) END AS \"Est. cost\",\n  CASE WHEN bool_or(p.model IS NULL) OR coalesce(sum(u.turns), 0) = 0 THEN NULL\n    ELSE round(sum(((u.input_tokens - coalesce(u.cached_tokens, 0)) * p.input + coalesce(u.cached_tokens, 0) * p.cached\n    + (u.output_tokens + coalesce(u.thinking_tokens, 0)) * p.output) / 1000000.0) / sum(u.turns), 4) END AS \"Per turn\"\nFROM monitoring.pwa_chat_usage_v1($__timeFrom()) u\nLEFT JOIN (VALUES ('gemini-4-argon', 5.1125, 0.2556, 25.5617), ('gemini-3.8-flash', 1.9172, 0.1917, 9.5857), ('gemini-3.5-flash', 1.9132, 0.1913, 11.5)) AS p(model, input, cached, output) ON p.model = u.model",
+            "refId": "A"
+          }
+        ],
+        "title": "In-app chat · this month",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {
+                "names": [
+                  "Turns",
+                  "Failed",
+                  "Est. cost",
+                  "Per turn"
+                ]
+              }
+            }
+          }
+        ],
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "mw-agent-questions"
+        },
+        "description": "One row per model over the selected range (month to date by default) from monitoring.pwa_chat_usage_v1, read live from loan_manager_prod through Grafana PDC (not stored in Cloud Monitoring): turns, failed turns (orange above 0), Input = uncached input tokens, Cached = cached input, Output + thinking = generated tokens, and the estimated cost. Cost = input, cached input and output + thinking tokens (thinking bills as output; every round of a turn, tool calls included) at the billed Vertex AI unit prices in model-prices.json, SGD per million tokens: gemini-4-argon S$5.11 input, S$0.26 cached, S$25.56 output; gemini-3.8-flash S$1.92 input, S$0.19 cached, S$9.59 output; gemini-3.5-flash S$1.91 input, S$0.19 cached, S$11.50 output. The footer sums the cost.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [],
+            "noValue": "No turns",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Model"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 140
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Turns"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 60
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Failed"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 60
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Input"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "short"
+                },
+                {
+                  "id": "custom.width",
+                  "value": 80
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Cached"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "short"
+                },
+                {
+                  "id": "custom.width",
+                  "value": 80
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Output + thinking"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "short"
+                },
+                {
+                  "id": "custom.width",
+                  "value": 130
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Cost (SGD)"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "prefix:S$"
+                },
+                {
+                  "id": "decimals",
+                  "value": 2
+                },
+                {
+                  "id": "custom.width",
+                  "value": 100
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 16,
+          "x": 8,
+          "y": 28
+        },
+        "id": 52,
+        "options": {
+          "cellHeight": "md",
+          "footer": {
+            "countRows": false,
+            "fields": [
+              "Cost (SGD)"
+            ],
+            "reducer": [
+              "sum"
+            ],
+            "show": true
+          },
+          "showHeader": true
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "grafana-postgresql-datasource",
+              "uid": "mw-agent-questions"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT u.model AS \"Model\", u.turns AS \"Turns\", u.failed AS \"Failed\",\n  u.input_tokens - coalesce(u.cached_tokens, 0) AS \"Input\", u.cached_tokens AS \"Cached\",\n  u.output_tokens + coalesce(u.thinking_tokens, 0) AS \"Output + thinking\",\n  round(((u.input_tokens - coalesce(u.cached_tokens, 0)) * p.input + coalesce(u.cached_tokens, 0) * p.cached\n    + (u.output_tokens + coalesce(u.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS \"Cost (SGD)\"\nFROM monitoring.pwa_chat_usage_v1($__timeFrom()) u\nLEFT JOIN (VALUES ('gemini-4-argon', 5.1125, 0.2556, 25.5617), ('gemini-3.8-flash', 1.9172, 0.1917, 9.5857), ('gemini-3.5-flash', 1.9132, 0.1913, 11.5)) AS p(model, input, cached, output) ON p.model = u.model\nORDER BY u.turns DESC, u.model",
+            "refId": "A"
+          }
+        ],
+        "title": "In-app chat · by model",
+        "transformations": [],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "mw-agent-questions"
+        },
+        "description": "The 10 latest in-app chat questions (Chat in the PWA), newest first, from monitoring.pwa_chat_recent_turns_v1, read live from loan_manager_prod through Grafana PDC (not stored in Cloud Monitoring). Outcome = Answered, the error the asker saw (orange), No reply (the claim expired without one) or Pending; Rounds = model rounds; Time = the turn's duration; Input = uncached input tokens; Output = generated tokens including thinking. Cost = input, cached input and output + thinking tokens (thinking bills as output; every round of a turn, tool calls included) at the billed Vertex AI unit prices in model-prices.json, SGD per million tokens: gemini-4-argon S$5.11 input, S$0.26 cached, S$25.56 output; gemini-3.8-flash S$1.92 input, S$0.19 cached, S$9.59 output; gemini-3.5-flash S$1.91 input, S$0.19 cached, S$11.50 output. The footer sums the listed questions.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1861,7 +2280,7 @@
                 },
                 {
                   "id": "custom.minWidth",
-                  "value": 300
+                  "value": 220
                 }
               ]
             },
@@ -1873,7 +2292,173 @@
               "properties": [
                 {
                   "id": "custom.width",
-                  "value": 150
+                  "value": 120
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Outcome"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 110
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "GROUNDING_EXCEEDED": {
+                          "color": "#A65200",
+                          "index": 4,
+                          "text": "Grounding rejected"
+                        },
+                        "INTERNAL": {
+                          "color": "#A65200",
+                          "index": 7,
+                          "text": "Internal error"
+                        },
+                        "MODEL_TIMEOUT": {
+                          "color": "#A65200",
+                          "index": 2,
+                          "text": "Model timeout"
+                        },
+                        "MODEL_UNAVAILABLE": {
+                          "color": "#A65200",
+                          "index": 1,
+                          "text": "Model unavailable"
+                        },
+                        "PROMPT_BLOCKED": {
+                          "color": "#A65200",
+                          "index": 6,
+                          "text": "Prompt blocked"
+                        },
+                        "TOOL_ROUNDS_EXCEEDED": {
+                          "color": "#A65200",
+                          "index": 3,
+                          "text": "Too many rounds"
+                        },
+                        "TURN_TIMEOUT": {
+                          "color": "#A65200",
+                          "index": 5,
+                          "text": "Turn timeout"
+                        },
+                        "ok": {
+                          "color": "transparent",
+                          "index": 0,
+                          "text": "Answered"
+                        },
+                        "pending": {
+                          "color": "transparent",
+                          "index": 8,
+                          "text": "Pending"
+                        },
+                        "unanswered": {
+                          "color": "#A65200",
+                          "index": 9,
+                          "text": "No reply"
+                        }
+                      },
+                      "type": "value"
+                    }
+                  ]
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "mode": "basic",
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Rounds"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 60
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Time"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "s"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "custom.width",
+                  "value": 70
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "—"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
                 }
               ]
             },
@@ -1889,23 +2474,7 @@
                 },
                 {
                   "id": "custom.width",
-                  "value": 90
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Cached"
-              },
-              "properties": [
-                {
-                  "id": "unit",
-                  "value": "short"
-                },
-                {
-                  "id": "custom.width",
-                  "value": 90
+                  "value": 80
                 }
               ]
             },
@@ -1921,23 +2490,7 @@
                 },
                 {
                   "id": "custom.width",
-                  "value": 90
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Thinking"
-              },
-              "properties": [
-                {
-                  "id": "unit",
-                  "value": "short"
-                },
-                {
-                  "id": "custom.width",
-                  "value": 90
+                  "value": 80
                 }
               ]
             },
@@ -1957,17 +2510,17 @@
                 },
                 {
                   "id": "custom.width",
-                  "value": 110
+                  "value": 100
                 }
               ]
             }
           ]
         },
         "gridPos": {
-          "h": 13,
+          "h": 15,
           "w": 24,
           "x": 0,
-          "y": 28
+          "y": 36
         },
         "id": 50,
         "options": {
@@ -1993,7 +2546,7 @@
             "editorMode": "code",
             "format": "table",
             "rawQuery": true,
-            "rawSql": "SELECT q.asked_at AS \"Asked\", q.question AS \"Question\",\n  coalesce(q.model, 'No answer (' || q.status || ')') AS \"Model\",\n  q.input_tokens - coalesce(q.cached_tokens, 0) AS \"Input\", q.cached_tokens AS \"Cached\", q.output_tokens AS \"Output\",\n  q.thinking_tokens AS \"Thinking\",\n  round(((q.input_tokens - coalesce(q.cached_tokens, 0)) * p.input + coalesce(q.cached_tokens, 0) * p.cached\n    + (q.output_tokens + coalesce(q.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS \"Cost (SGD)\"\nFROM monitoring.pwa_chat_recent_questions_v1(10) q\nLEFT JOIN (VALUES ('gemini-4-argon', 5.1125, 0.2556, 25.5617), ('gemini-3.8-flash', 1.9172, 0.1917, 9.5857), ('gemini-3.5-flash', 1.9132, 0.1913, 11.5)) AS p(model, input, cached, output) ON p.model = q.model\nORDER BY q.asked_at DESC",
+            "rawSql": "SELECT q.asked_at AS \"Asked\", q.question AS \"Question\", q.model AS \"Model\",\n  CASE WHEN q.status = 'failed' THEN q.error_code ELSE q.status END AS \"Outcome\",\n  q.rounds AS \"Rounds\", q.latency_ms / 1000.0 AS \"Time\",\n  q.input_tokens - coalesce(q.cached_tokens, 0) AS \"Input\", q.output_tokens + coalesce(q.thinking_tokens, 0) AS \"Output\",\n  round(((q.input_tokens - coalesce(q.cached_tokens, 0)) * p.input + coalesce(q.cached_tokens, 0) * p.cached\n    + (q.output_tokens + coalesce(q.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS \"Cost (SGD)\"\nFROM monitoring.pwa_chat_recent_turns_v1(10) q\nLEFT JOIN (VALUES ('gemini-4-argon', 5.1125, 0.2556, 25.5617), ('gemini-3.8-flash', 1.9172, 0.1917, 9.5857), ('gemini-3.5-flash', 1.9132, 0.1913, 11.5)) AS p(model, input, cached, output) ON p.model = q.model\nORDER BY q.asked_at DESC",
             "refId": "A"
           }
         ],
@@ -2007,7 +2560,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 41
+          "y": 51
         },
         "id": 10,
         "panels": [
@@ -2045,7 +2598,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 42
+              "y": 52
             },
             "id": 102,
             "options": {
@@ -2186,7 +2739,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 42
+              "y": 52
             },
             "id": 103,
             "options": {
@@ -2321,7 +2874,7 @@
               "h": 7,
               "w": 8,
               "x": 0,
-              "y": 46
+              "y": 56
             },
             "id": 104,
             "options": {
@@ -2435,7 +2988,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 53
+              "y": 63
             },
             "id": 101,
             "options": {
@@ -2629,7 +3182,7 @@
               "h": 8,
               "w": 24,
               "x": 0,
-              "y": 62
+              "y": 72
             },
             "id": 110,
             "options": {
@@ -2699,7 +3252,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 42
+          "y": 52
         },
         "id": 20,
         "panels": [
@@ -2737,7 +3290,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 43
+              "y": 53
             },
             "id": 202,
             "options": {
@@ -2857,7 +3410,7 @@
               "h": 4,
               "w": 8,
               "x": 8,
-              "y": 43
+              "y": 53
             },
             "id": 203,
             "options": {
@@ -2977,7 +3530,7 @@
               "h": 4,
               "w": 8,
               "x": 16,
-              "y": 43
+              "y": 53
             },
             "id": 204,
             "options": {
@@ -3069,7 +3622,7 @@
               "h": 3,
               "w": 24,
               "x": 0,
-              "y": 47
+              "y": 57
             },
             "id": 205,
             "options": {
@@ -3143,7 +3696,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 50
+              "y": 60
             },
             "id": 207,
             "options": {
@@ -3296,7 +3849,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 50
+              "y": 60
             },
             "id": 206,
             "options": {
@@ -3455,7 +4008,7 @@
               "h": 9,
               "w": 24,
               "x": 0,
-              "y": 61
+              "y": 71
             },
             "id": 201,
             "options": {
@@ -3562,7 +4115,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 43
+          "y": 53
         },
         "id": 30,
         "panels": [
@@ -3600,7 +4153,7 @@
               "h": 4,
               "w": 8,
               "x": 0,
-              "y": 44
+              "y": 54
             },
             "id": 302,
             "options": {
@@ -3720,7 +4273,7 @@
               "h": 4,
               "w": 16,
               "x": 8,
-              "y": 44
+              "y": 54
             },
             "id": 301,
             "options": {
@@ -3791,7 +4344,7 @@
               "h": 5,
               "w": 24,
               "x": 0,
-              "y": 48
+              "y": 58
             },
             "id": 303,
             "options": {
@@ -3865,7 +4418,7 @@
               "h": 11,
               "w": 8,
               "x": 0,
-              "y": 53
+              "y": 63
             },
             "id": 304,
             "options": {
@@ -4011,7 +4564,7 @@
               "h": 11,
               "w": 16,
               "x": 8,
-              "y": 53
+              "y": 63
             },
             "id": 305,
             "options": {

@@ -51,7 +51,7 @@ function cloudSql() {
           columns: [col('Fact', 'Fact', 'string'), col('Value', 'Value', 'string')]}],
       transformations: [{id: 'merge', options: {}}],
       overrides: [byName('Fact', {'custom.width': 140})]}),
-    L.timeseries({id: 7, title: 'Connections by DB', gridPos: pos(16, 14, 8, 11),
+    L.timeseries({id: 7, title: 'Connections by DB', gridPos: pos(16, 14, 8, RUN_H),
       description: 'Cloud SQL num_backends per database (metric label ' + L.NUM_BACKENDS_DATABASE_LABEL + '); explains who holds connections. No threshold.',
       targets: [db('A', 'loan_manager_prod'), db('B', 'mw_agent'), db('C', 'loan_manager_dev')],
       defaults: {min: 0}}),
@@ -65,9 +65,13 @@ function cloudSql() {
   ];
 }
 
-const RUN_SERVICES = ['read', 'command', 'notify', 'jobs'].flatMap(s => ['prod', 'dev'].map(e => 'mw-credit-app-' + s + '-' + e));
-// From infrastructure/production/runtime.tf, infrastructure/dev/*-service.tf and modules/workers.
-const MAX_INSTANCES = {'read-prod': 1, 'command-prod': 2, 'notify-prod': 1, 'jobs-prod': 1, 'read-dev': 2, 'command-dev': 2, 'notify-dev': 1, 'jobs-dev': 1};
+const RUN_SERVICES = ['read', 'command', 'notify', 'jobs', 'chat'].flatMap(s => ['prod', 'dev'].map(e => 'mw-credit-app-' + s + '-' + e));
+// From infrastructure/production/runtime.tf, infrastructure/{production,dev}/chat-service.tf, infrastructure/dev/*-service.tf
+// and modules/workers.
+const MAX_INSTANCES = {'read-prod': 1, 'command-prod': 2, 'notify-prod': 1, 'jobs-prod': 1, 'chat-prod': 2,
+  'read-dev': 2, 'command-dev': 2, 'notify-dev': 1, 'jobs-dev': 1, 'chat-dev': 2};
+// R093: ten rows at the md row height need 14 grid rows (layout model); everything below moves down with it.
+const RUN_H = 14, BELOW = 14 + RUN_H;
 function cloudRun() {
   const filter = metric => 'metric.type = "' + metric + '" AND resource.type = "cloud_run_revision" AND resource.labels.service_name = one_of(' +
     RUN_SERVICES.map(s => '"' + s + '"').join(',') + ')';
@@ -78,8 +82,8 @@ function cloudRun() {
   // would be too dim as coloured text on the dark theme.
   const util = {unit: 'percentunit', decimals: 0, 'custom.cellOptions': {type: 'color-background', mode: 'basic'},
     thresholds: steps([null, COLOR.ok], [0.8, COLOR.degraded]), mappings: [L.nullMap('—')]};
-  return L.table({id: 9, title: 'Cloud Run · eight services', gridPos: pos(0, 14, 16, 11),
-    description: 'Cloud Monitoring per service of mw-credit-app-<service>-<env>: newest instance count against Max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range.',
+  return L.table({id: 9, title: 'Cloud Run · ten services', gridPos: pos(0, 14, 16, RUN_H),
+    description: 'Cloud Monitoring per service of mw-credit-app-<service>-<env>: newest instance count against Max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range. The chat service keeps its CPU allocated between requests (cpu_idle=false), so its billable time counts the instance lifetime, not request time only.',
     datasource: DS.gcp,
     targets: [
       L.inlineTarget('A', DS.gcp, Object.entries(MAX_INSTANCES).map(([Service, max]) => ({Service, Max: max})), '.[]',
@@ -106,13 +110,13 @@ function debian() {
   uptime.fieldConfig.defaults.color = {mode: 'fixed', fixedColor: COLOR.text};
   // One value: the title names it (no "Uptime" under it), at the one-value tile size.
   uptime.options = {...uptime.options, ...L.SINGLE_VALUE};
-  const disk = L.lift(L.PERF, 24, {id: 13, gridPos: pos(18, 25, 6, 7), title: 'Debian VM disk'});
+  const disk = L.lift(L.PERF, 24, {id: 13, gridPos: pos(18, BELOW, 6, 7), title: 'Debian VM disk'});
   disk.description = (disk.description || '').trim() + ' Snapshot age: Backups and recovery points on Now.';
   disk.fieldConfig.defaults.decimals = 1; // FINAL3-3: no repeated axis labels ("4 MB/s" twice).
   return [
-    L.lift(L.PERF, 21, {id: 10, gridPos: pos(0, 25, 6, 7), title: 'Debian VM CPU'}),
-    liftWithLine(22, 11, pos(6, 25, 6, 7), 'Debian VM memory', 85),
-    L.lift(L.PERF, 23, {id: 12, gridPos: pos(12, 25, 6, 7), title: 'Debian VM network'}),
+    L.lift(L.PERF, 21, {id: 10, gridPos: pos(0, BELOW, 6, 7), title: 'Debian VM CPU'}),
+    liftWithLine(22, 11, pos(6, BELOW, 6, 7), 'Debian VM memory', 85),
+    L.lift(L.PERF, 23, {id: 12, gridPos: pos(12, BELOW, 6, 7), title: 'Debian VM network'}),
     disk, uptime
   ];
 }
@@ -157,14 +161,14 @@ function metabase() {
     const t = L.liftTarget(L.PERF, id);
     return {...t, refId: String.fromCharCode(65 + i), root_selector: '(' + t.root_selector + ') | .details |= ' + ONE_LINE};
   });
-  const mem = railwayChart(42, {id: 15, gridPos: pos(8, 32, 8, 10), title: 'Metabase RAM'}, 'MEMORY_USAGE_GB', 'MEMORY_LIMIT_GB');
+  const mem = railwayChart(42, {id: 15, gridPos: pos(8, BELOW + 7, 8, 10), title: 'Metabase RAM'}, 'MEMORY_USAGE_GB', 'MEMORY_LIMIT_GB');
   mem.description = (mem.description || '').trim() + ' The alert fires at 90 % of the limit.';
   return [
-    railwayChart(41, {id: 14, gridPos: pos(0, 32, 8, 10), title: 'Metabase CPU'}, 'CPU_USAGE', 'CPU_LIMIT'),
+    railwayChart(41, {id: 14, gridPos: pos(0, BELOW + 7, 8, 10), title: 'Metabase CPU'}, 'CPU_USAGE', 'CPU_LIMIT'),
     mem,
-    L.lift(L.PERF, 43, {id: 16, gridPos: pos(16, 32, 8, 10), title: 'Postgres volume'}),
+    L.lift(L.PERF, 43, {id: 16, gridPos: pos(16, BELOW + 7, 8, 10), title: 'Postgres volume'}),
     // FINAL2-4: full width, so each probe's one-line details are not cut.
-    L.table({id: 17, title: 'Metabase probes', gridPos: pos(0, 42, 24, 10),
+    L.table({id: 17, title: 'Metabase probes', gridPos: pos(0, BELOW + 17, 24, 10),
       description: 'Today\'s Metabase probe, backup and PITR selectors (Debian collector about every 2 minutes, and the Railway API), one row each: Platform = /livez on reports.mw-credit.com; App DB = /readyz including the application database; Reporting DB = an uncached saved SELECT 1 through source 2; Charts = charts.mw-credit.com shell and protected API; Daily and Weekly backup = the newest scheduled Railway volume snapshot (Degraded past 30 h or 8 days, a listed snapshot is not a tested restore); PITR archive = pgBackRest coverage and WAL archive lag. Details shows the state, HTTP code and probe duration, the archive lag or the snapshot age. Degraded = slower than 5 s.',
       datasource: DS.mixed, targets: probes,
       transformations: [{id: 'merge', options: {}}, {id: 'organize', options: {indexByName: {Status: 0, Details: 1}}}],
@@ -175,8 +179,9 @@ function metabase() {
 
 const VM_TITLES = {13: 'Network transfer'}; // FINAL2-2: titles that fit one line on a phone.
 function azure() {
-  return L.row({id: 20, title: 'Azure VM-01 · on-demand operator host (no 24x7 expectation, no alert)', gridPos: pos(0, 52, 24, 1), collapsed: true,
-    panels: [[11, 21, 0, 53], [12, 22, 12, 53], [13, 23, 0, 60], [14, 24, 12, 60]].map(([old, id, x, y]) =>
+  const y0 = BELOW + 27;
+  return L.row({id: 20, title: 'Azure VM-01 · on-demand operator host (no 24x7 expectation, no alert)', gridPos: pos(0, y0, 24, 1), collapsed: true,
+    panels: [[11, 21, 0, y0 + 1], [12, 22, 12, y0 + 1], [13, 23, 0, y0 + 8], [14, 24, 12, y0 + 8]].map(([old, id, x, y]) =>
       L.lift(L.PERF, old, {id, gridPos: pos(x, y, 12, 7), title: 'VM-01 · ' + (VM_TITLES[old] || L.findPanel(L.PERF, old).title)}))});
 }
 

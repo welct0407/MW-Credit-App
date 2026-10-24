@@ -218,7 +218,8 @@ def sql_uptime_series(snapshot, observed, resource):
 # except the configured model id of the recognizer as a field label (MODEL_ID).
 NEW_CALL_SECONDS = 10
 PWA_API_ORIGINS = '/etc/mw-resource-monitoring/pwa-api-origins.json'
-PWA_API_COMPONENTS = ('pwa_api_reader_prod', 'pwa_api_command_prod', 'pwa_api_reader_dev', 'pwa_api_command_dev')
+PWA_API_COMPONENTS = ('pwa_api_reader_prod', 'pwa_api_command_prod', 'pwa_api_reader_dev', 'pwa_api_command_dev',
+                      'pwa_api_chat_prod', 'pwa_api_chat_dev')
 STATE_FILE = '/var/lib/mw-resource-monitoring/last-points.json'
 SQL_INSTANCE = 'mw-credit-pg-20261017'
 DAILY_CHARGES_OVERDUE = 90000
@@ -257,7 +258,8 @@ def bounded_fetch(url, headers=None, timeout=NEW_CALL_SECONDS, limit=262144, clo
 
 
 def load_origins(path=PWA_API_ORIGINS):
-    """The four Cloud Run origins (copied from the Terraform outputs); None when missing or unreadable."""
+    """The six Cloud Run origins (reader, command, chat per environment, copied from the services' deterministic
+    URLs); None when missing or unreadable."""
     try:
         value = json.loads(Path(path).read_text())
     except Exception:
@@ -272,7 +274,7 @@ def pwa_api_status(component, origins, fetcher=bounded_fetch):
     if origins is None:
         return 4
     _, _, service, environment = component.split('_')
-    service = 'read' if service == 'reader' else service
+    service = {'reader': 'read', 'command': 'command', 'chat': 'chat'}[service]
     origin = origins.get(component)
     if not isinstance(origin, str) or not re.fullmatch(
             r'https://mw-credit-app-' + service + '-' + environment + r'-[0-9]+\.asia-southeast1\.run\.app', origin):
@@ -645,7 +647,8 @@ def collect_r089(config, token, uptime, now, result, polling_timing, extras, rep
     """
     props = props or properties
     origins = origins_loader()
-    with ThreadPoolExecutor(max_workers=10) as pool:
+    # One worker per concurrent check (11 since R093 added the two chat probes), so no bounded probe waits for another.
+    with ThreadPoolExecutor(max_workers=11) as pool:
         metabase = pool.submit(metabase_collect)
         api = {c: pool.submit(pwa_api_status, c, origins, fetcher) for c in PWA_API_COMPONENTS}
         recognizer = pool.submit(recognizer_health, config, fetcher)

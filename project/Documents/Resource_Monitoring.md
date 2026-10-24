@@ -86,8 +86,8 @@ Twelve further rules form group **PWA 2m** in folder **MW Resource Monitoring Al
 | Rule | Fires when | Pending | No data |
 |---|---|---|---|
 | MW \| PWA Hosting PROD unreachable | `pwa_hosting_prod` fresh and 0 | 4 min | KeepLast |
-| MW \| PWA API health failed | One instance each for `pwa_api_reader_prod` and `pwa_api_command_prod`: fresh and 0 | 4 min | KeepLast |
-| MW \| Cloud Run 5xx | Reader plus command PROD 5xx responses summed over 10 min at or above 5 | 10 min | OK (idle is normal) |
+| MW \| PWA API health failed | One instance each for `pwa_api_reader_prod`, `pwa_api_command_prod` and `pwa_api_chat_prod` (chat since R093): fresh and 0 | 4 min | KeepLast |
+| MW \| Cloud Run 5xx | Reader, command and chat (since R093) PROD 5xx responses summed over 10 min at or above 5 | 10 min | OK (idle is normal) |
 | MW \| Notification scheduler failing | Non-ok `mw-credit-app-prod-notifications` attempts (log metric `mw_scheduler_attempts_prod`) summed over 10 min at or above 3 | 10 min | KeepLast |
 | MW \| Scheduled job overdue | `daily_charges_age_seconds` above 90 000 or `recent_analytics_age_seconds` above 4 500 (ages only; jobs have no failed state since V94) | 10 min | KeepLast |
 | MW \| Push delivery backlog | `oldest_pending_seconds` above 900 only; `failed_24h` colours the panel and does not page (expired subscriptions are normal churn) | 10 min | KeepLast |

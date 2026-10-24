@@ -1265,7 +1265,7 @@
           ]
         },
         "gridPos": {
-          "h": 11,
+          "h": 14,
           "w": 8,
           "x": 16,
           "y": 14
@@ -1554,7 +1554,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Cloud Monitoring per service of mw-credit-app-<service>-<env>: newest instance count against Max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range.",
+        "description": "Cloud Monitoring per service of mw-credit-app-<service>-<env>: newest instance count against Max instances (Terraform), CPU and memory utilisation p95 over the newest 15 minutes (orange above 80 %) and billable instance time over the range. The chat service keeps its CPU allocated between requests (cpu_idle=false), so its billable time counts the instance lifetime, not request time only.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1810,7 +1810,7 @@
           ]
         },
         "gridPos": {
-          "h": 11,
+          "h": 14,
           "w": 16,
           "x": 0,
           "y": 14
@@ -1834,7 +1834,7 @@
                 "type": "number"
               }
             ],
-            "data": "[{\"Service\":\"read-prod\",\"Max\":1},{\"Service\":\"command-prod\",\"Max\":2},{\"Service\":\"notify-prod\",\"Max\":1},{\"Service\":\"jobs-prod\",\"Max\":1},{\"Service\":\"read-dev\",\"Max\":2},{\"Service\":\"command-dev\",\"Max\":2},{\"Service\":\"notify-dev\",\"Max\":1},{\"Service\":\"jobs-dev\",\"Max\":1}]",
+            "data": "[{\"Service\":\"read-prod\",\"Max\":1},{\"Service\":\"command-prod\",\"Max\":2},{\"Service\":\"notify-prod\",\"Max\":1},{\"Service\":\"jobs-prod\",\"Max\":1},{\"Service\":\"chat-prod\",\"Max\":2},{\"Service\":\"read-dev\",\"Max\":2},{\"Service\":\"command-dev\",\"Max\":2},{\"Service\":\"notify-dev\",\"Max\":1},{\"Service\":\"jobs-dev\",\"Max\":1},{\"Service\":\"chat-dev\",\"Max\":2}]",
             "datasource": {
               "type": "yesoreyeram-infinity-datasource",
               "uid": "mw-gcp-monitoring"
@@ -1873,7 +1873,7 @@
             "root_selector": "# One row per Cloud Run service from a Cloud Monitoring response aggregated by\n# resource.label.service_name: last \"last\" keeps the newest aligned point,\n# \"sum\" adds every point in the range. Services without data are absent, so the\n# table shows no value for them rather than a zero.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Cloud Run response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {service: (.resource.labels.service_name // .metric.labels.service_name),\n    points: [.points[]? | {t: .interval.endTime,\n      v: (try ((.value.doubleValue // .value.int64Value) | tonumber) catch null)} | select(.v != null)]} |\n    select(.service != null and (.points | length) > 0)] |\n  group_by(.service)[] |\n  {Service: (.[0].service | sub(\"^mw-credit-app-\"; \"\")),\n   \"Instances\": (if \"last\" == \"sum\" then ([.[].points[].v] | add)\n     else ([.[].points[]] | sort_by(.t) | last | .v) end)}\nend\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22%2C%22mw-credit-app-chat-prod%22%2C%22mw-credit-app-chat-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -1901,7 +1901,7 @@
             "root_selector": "# One row per Cloud Run service from a Cloud Monitoring response aggregated by\n# resource.label.service_name: last \"last\" keeps the newest aligned point,\n# \"sum\" adds every point in the range. Services without data are absent, so the\n# table shows no value for them rather than a zero.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Cloud Run response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {service: (.resource.labels.service_name // .metric.labels.service_name),\n    points: [.points[]? | {t: .interval.endTime,\n      v: (try ((.value.doubleValue // .value.int64Value) | tonumber) catch null)} | select(.v != null)]} |\n    select(.service != null and (.points | length) > 0)] |\n  group_by(.service)[] |\n  {Service: (.[0].service | sub(\"^mw-credit-app-\"; \"\")),\n   \"CPU p95\": (if \"last\" == \"sum\" then ([.[].points[].v] | add)\n     else ([.[].points[]] | sort_by(.t) | last | .v) end)}\nend\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fcpu%2Futilizations%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=900s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fcpu%2Futilizations%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22%2C%22mw-credit-app-chat-prod%22%2C%22mw-credit-app-chat-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=900s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -1929,7 +1929,7 @@
             "root_selector": "# One row per Cloud Run service from a Cloud Monitoring response aggregated by\n# resource.label.service_name: last \"last\" keeps the newest aligned point,\n# \"sum\" adds every point in the range. Services without data are absent, so the\n# table shows no value for them rather than a zero.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Cloud Run response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {service: (.resource.labels.service_name // .metric.labels.service_name),\n    points: [.points[]? | {t: .interval.endTime,\n      v: (try ((.value.doubleValue // .value.int64Value) | tonumber) catch null)} | select(.v != null)]} |\n    select(.service != null and (.points | length) > 0)] |\n  group_by(.service)[] |\n  {Service: (.[0].service | sub(\"^mw-credit-app-\"; \"\")),\n   \"Memory p95\": (if \"last\" == \"sum\" then ([.[].points[].v] | add)\n     else ([.[].points[]] | sort_by(.t) | last | .v) end)}\nend\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fmemory%2Futilizations%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=900s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fmemory%2Futilizations%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22%2C%22mw-credit-app-chat-prod%22%2C%22mw-credit-app-chat-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=900s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -1957,13 +1957,13 @@
             "root_selector": "# One row per Cloud Run service from a Cloud Monitoring response aggregated by\n# resource.label.service_name: sum \"last\" keeps the newest aligned point,\n# \"sum\" adds every point in the range. Services without data are absent, so the\n# table shows no value for them rather than a zero.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Cloud Run response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {service: (.resource.labels.service_name // .metric.labels.service_name),\n    points: [.points[]? | {t: .interval.endTime,\n      v: (try ((.value.doubleValue // .value.int64Value) | tonumber) catch null)} | select(.v != null)]} |\n    select(.service != null and (.points | length) > 0)] |\n  group_by(.service)[] |\n  {Service: (.[0].service | sub(\"^mw-credit-app-\"; \"\")),\n   \"Billable time\": (if \"sum\" == \"sum\" then ([.[].points[].v] | add)\n     else ([.[].points[]] | sort_by(.t) | last | .v) end)}\nend\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fbillable_instance_time%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=3600s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fbillable_instance_time%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20one_of(%22mw-credit-app-read-prod%22%2C%22mw-credit-app-read-dev%22%2C%22mw-credit-app-command-prod%22%2C%22mw-credit-app-command-dev%22%2C%22mw-credit-app-notify-prod%22%2C%22mw-credit-app-notify-dev%22%2C%22mw-credit-app-jobs-prod%22%2C%22mw-credit-app-jobs-dev%22%2C%22mw-credit-app-chat-prod%22%2C%22mw-credit-app-chat-dev%22)&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=3600s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&aggregation.groupByFields=resource.labels.service_name&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
           }
         ],
-        "title": "Cloud Run · eight services",
+        "title": "Cloud Run · ten services",
         "transformations": [
           {
             "id": "joinByField",
@@ -2058,7 +2058,7 @@
           "h": 7,
           "w": 6,
           "x": 0,
-          "y": 25
+          "y": 28
         },
         "id": 10,
         "options": {
@@ -2189,7 +2189,7 @@
           "h": 7,
           "w": 6,
           "x": 6,
-          "y": 25
+          "y": 28
         },
         "id": 11,
         "options": {
@@ -2343,7 +2343,7 @@
           "h": 7,
           "w": 6,
           "x": 12,
-          "y": 25
+          "y": 28
         },
         "id": 12,
         "options": {
@@ -2525,7 +2525,7 @@
           "h": 7,
           "w": 6,
           "x": 18,
-          "y": 25
+          "y": 28
         },
         "id": 13,
         "options": {
@@ -2817,7 +2817,7 @@
           "h": 10,
           "w": 8,
           "x": 0,
-          "y": 32
+          "y": 35
         },
         "id": 14,
         "options": {
@@ -2998,7 +2998,7 @@
           "h": 10,
           "w": 8,
           "x": 8,
-          "y": 32
+          "y": 35
         },
         "id": 15,
         "options": {
@@ -3145,7 +3145,7 @@
           "h": 10,
           "w": 8,
           "x": 16,
-          "y": 32
+          "y": 35
         },
         "id": 16,
         "options": {
@@ -3336,7 +3336,7 @@
           "h": 10,
           "w": 24,
           "x": 0,
-          "y": 42
+          "y": 45
         },
         "id": 17,
         "options": {
@@ -3571,7 +3571,7 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 52
+          "y": 55
         },
         "id": 20,
         "panels": [
@@ -3645,7 +3645,7 @@
               "h": 7,
               "w": 12,
               "x": 0,
-              "y": 53
+              "y": 56
             },
             "id": 21,
             "options": {
@@ -3775,7 +3775,7 @@
               "h": 7,
               "w": 12,
               "x": 12,
-              "y": 53
+              "y": 56
             },
             "id": 22,
             "options": {
@@ -3929,7 +3929,7 @@
               "h": 7,
               "w": 12,
               "x": 0,
-              "y": 60
+              "y": 63
             },
             "id": 23,
             "options": {
@@ -4112,7 +4112,7 @@
               "h": 7,
               "w": 12,
               "x": 12,
-              "y": 60
+              "y": 63
             },
             "id": 24,
             "options": {

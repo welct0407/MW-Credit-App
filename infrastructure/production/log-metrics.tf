@@ -1,11 +1,13 @@
 # R089 Grafana revamp: log-based metrics for the PROD reader and command
 # services (design section New telemetry C). Logging metrics are project-wide
 # and DEV and PROD share one project, so each stack owns its own
-# environment-suffixed names and matches only its own services.
+# environment-suffixed names and matches only its own services. R093 adds the
+# chat service turn metrics.
 locals {
   log_metric_env      = "prod"
   log_metric_services = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=~\"^mw-credit-app-(read|command)-prod$\""
   log_metric_command  = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-credit-app-command-prod\""
+  log_metric_chat     = "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-credit-app-chat-prod\" AND jsonPayload.event=\"chat_turn\""
 }
 
 # Reads the existing read_request/command_request completion records (jsonPayload.code).
@@ -98,5 +100,74 @@ resource "google_logging_metric" "scheduler_attempts" {
   label_extractors = {
     status      = "EXTRACT(jsonPayload.status)"
     http_status = "EXTRACT(httpRequest.status)"
+  }
+}
+
+# R093: the chat service's chat_turn completion record (one per turn; code is "ok"
+# or the failure code, model the answering model). Counts and distributions only.
+resource "google_logging_metric" "chat_turns" {
+  count       = var.chat_authorized ? 1 : 0
+  project     = var.application_project_id
+  name        = "mw_chat_turns_${local.log_metric_env}"
+  description = "R093: PROD chat turns by result code and model (counts only)."
+  filter      = local.log_metric_chat
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+    unit        = "1"
+    labels {
+      key        = "code"
+      value_type = "STRING"
+    }
+    labels {
+      key        = "model"
+      value_type = "STRING"
+    }
+  }
+  label_extractors = {
+    code  = "EXTRACT(jsonPayload.code)"
+    model = "EXTRACT(jsonPayload.model)"
+  }
+}
+
+resource "google_logging_metric" "chat_turn_latency" {
+  count           = var.chat_authorized ? 1 : 0
+  project         = var.application_project_id
+  name            = "mw_chat_turn_latency_${local.log_metric_env}"
+  description     = "R093: PROD chat turn latency in milliseconds (jsonPayload.latencyMs)."
+  filter          = local.log_metric_chat
+  value_extractor = "EXTRACT(jsonPayload.latencyMs)"
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "DISTRIBUTION"
+    unit        = "ms"
+  }
+  bucket_options {
+    exponential_buckets {
+      num_finite_buckets = 20
+      growth_factor      = 1.5
+      scale              = 1000
+    }
+  }
+}
+
+resource "google_logging_metric" "chat_turn_rounds" {
+  count           = var.chat_authorized ? 1 : 0
+  project         = var.application_project_id
+  name            = "mw_chat_turn_rounds_${local.log_metric_env}"
+  description     = "R093: PROD model rounds per chat turn (jsonPayload.rounds)."
+  filter          = local.log_metric_chat
+  value_extractor = "EXTRACT(jsonPayload.rounds)"
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "DISTRIBUTION"
+    unit        = "1"
+  }
+  bucket_options {
+    linear_buckets {
+      num_finite_buckets = 17
+      width              = 1
+      offset             = 0
+    }
   }
 }

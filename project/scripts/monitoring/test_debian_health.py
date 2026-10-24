@@ -186,7 +186,9 @@ NOW=1_800_000_000.0
 ORIGINS={'pwa_api_reader_prod':'https://mw-credit-app-read-prod-737787224638.asia-southeast1.run.app',
          'pwa_api_command_prod':'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app',
          'pwa_api_reader_dev':'https://mw-credit-app-read-dev-737787224638.asia-southeast1.run.app',
-         'pwa_api_command_dev':'https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app'}
+         'pwa_api_command_dev':'https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app',
+         'pwa_api_chat_prod':'https://mw-credit-app-chat-prod-737787224638.asia-southeast1.run.app',
+         'pwa_api_chat_dev':'https://mw-credit-app-chat-dev-737787224638.asia-southeast1.run.app'}
 
 
 def iso(seconds_ago):
@@ -210,6 +212,24 @@ class PwaApiHealthTests(unittest.TestCase):
                           else health.pwa_api_status('pwa_api_command_prod',origins,fetcher),(4,))
             fetcher.assert_not_called()
         with self.assertRaises(ValueError):health.pwa_api_status('pwa_api_other_prod',ORIGINS,Mock())
+    def test_six_components_including_chat(self):
+        # R093: reader, command and chat per environment; chat origins must name the chat service of the same environment.
+        self.assertEqual(sorted(health.PWA_API_COMPONENTS),sorted(ORIGINS))
+        self.assertEqual(len(health.PWA_API_COMPONENTS),6)
+        fetcher=Mock(return_value=(200,''))
+        self.assertEqual(health.pwa_api_status('pwa_api_chat_prod',ORIGINS,fetcher),1)
+        fetcher.assert_called_once_with(ORIGINS['pwa_api_chat_prod']+'/health')
+        for wrong in (ORIGINS['pwa_api_chat_dev'],ORIGINS['pwa_api_reader_prod'],ORIGINS['pwa_api_command_prod'],
+                      'https://mw-credit-app-chat-prod-pvrgvyg3oq-as.a.run.app','https://mw-credit-app-chat-prod-737787224638.asia-southeast1.run.app/x',
+                      'http://mw-credit-app-chat-prod-737787224638.asia-southeast1.run.app',None,7):
+            fetcher=Mock()
+            self.assertEqual(health.pwa_api_status('pwa_api_chat_prod',dict(ORIGINS,pwa_api_chat_prod=wrong),fetcher),4)
+            fetcher.assert_not_called()
+        origins=dict(ORIGINS);del origins['pwa_api_chat_dev']
+        fetcher=Mock()
+        self.assertEqual(health.pwa_api_status('pwa_api_chat_dev',origins,fetcher),4)
+        fetcher.assert_not_called()
+        self.assertEqual(health.pwa_api_status('pwa_api_reader_dev',origins,Mock(return_value=(200,''))),1)
     def test_origins_file(self):
         import tempfile,json
         with tempfile.TemporaryDirectory() as d:
@@ -458,7 +478,7 @@ class CollectR089Tests(unittest.TestCase):
             {'last_completion':int(NOW)-40},extras,'abc',{},lambda:{'metabase_platform':{'status':1}},fetcher=fetcher,
             props=lambda name:units[name],origins_loader=lambda:ORIGINS,reader=lambda c,s:AgentSnapshotTests().rows())
         self.assertEqual(out['metabase'],{'metabase_platform':{'status':1}})
-        self.assertEqual(out['health'],{'pwa_api_reader_prod':1,'pwa_api_command_prod':1,'pwa_api_reader_dev':0,'pwa_api_command_dev':0,'recognizer':1})
+        self.assertEqual(out['health'],{'pwa_api_reader_prod':1,'pwa_api_command_prod':1,'pwa_api_reader_dev':0,'pwa_api_command_dev':0,'pwa_api_chat_prod':1,'pwa_api_chat_dev':0,'recognizer':1})
         timing={c:(f,t) for c,f,t in out['timing']}
         self.assertEqual(timing['cloud_sql_backup'][0],{'status':1,'age_seconds':25200,'type':1,'log_retention_days':7})
         self.assertEqual(timing['debian_snapshot'][0],{'age_seconds':72000})
@@ -474,7 +494,7 @@ class CollectR089Tests(unittest.TestCase):
         out=health.collect_r089({},'token',1000,NOW,{},{'last_completion':0},None,None,{},Mock(side_effect=RuntimeError()),
             fetcher=Mock(side_effect=TimeoutError()),props=Mock(side_effect=RuntimeError()),origins_loader=lambda:None,reader=Mock(side_effect=RuntimeError()))
         self.assertEqual(out['metabase'],{})
-        self.assertEqual(out['health'],{'pwa_api_reader_prod':4,'pwa_api_command_prod':4,'pwa_api_reader_dev':4,'pwa_api_command_dev':4,'recognizer':4})
+        self.assertEqual(out['health'],{'pwa_api_reader_prod':4,'pwa_api_command_prod':4,'pwa_api_reader_dev':4,'pwa_api_command_dev':4,'pwa_api_chat_prod':4,'pwa_api_chat_dev':4,'recognizer':4})
         timing={c:f for c,f,_ in out['timing']}
         self.assertEqual((timing['pwa_jobs'],timing['pwa_notify'],timing['cloud_sql_backup'],timing['debian_snapshot']),({'status':4},{},{},{'error':'TimeoutError'}))
         self.assertNotIn('conversation_turn',timing)

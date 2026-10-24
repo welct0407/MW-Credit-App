@@ -47,8 +47,9 @@ const DS = {
   publicStatus: {type: INFINITY, uid: 'cfz10a9eaokjkd'}, // mw-public-status, credential-free
   fx: {type: INFINITY, uid: 'efz19dcu6cwzka'},
   gcpStatus: {type: INFINITY, uid: 'mw-public-gcp-status'},
-  // R091: loan_manager_prod through Grafana PDC, login limited to monitoring.pwa_chat_recent_questions_v1() (V104).
-  // The uid is the one the R090 datasource was created with, so the live datasource and its password are kept.
+  // R091: loan_manager_prod through Grafana PDC, login limited to the monitoring.pwa_chat_*_v1 read functions (V104;
+  // R093 V108: pwa_chat_recent_turns_v1 and pwa_chat_usage_v1). The uid is the one the R090 datasource was created
+  // with, so the live datasource and its password are kept.
   chatQuestions: {type: 'grafana-postgresql-datasource', uid: 'mw-agent-questions'},
   dashboard: {type: 'datasource', uid: '-- Dashboard --'},
   mixed: {type: 'mixed', uid: '-- Mixed --'}
@@ -124,26 +125,37 @@ function codedMappings(nullText = '—') {
 }
 const POLICY = {
   // A name used for two metrics is qualified by its panel title ("Provider status › Railway" vs the Cost tile Railway).
-  state: ['Service', 'Reader', 'Command', 'Chat data · live', 'Chat data · reports', 'Hosting', 'Provider status › Railway',
-    'Providers · status › Railway', 'Google Cloud',
-    'Last turn', 'Poll state', 'Wake path', 'Worker timer', 'Code version', '1 · Scan · last run', 'Group scan · last run'],
-  problem: ['Undelivered', 'Stuck', 'Failed · 24 h', 'Failed', 'Timed out', 'Unreadable', 'Grounding rejections', 'Open ingress reviews', '503 · session check unavailable',
+  // R093: the in-app chat (API health field Chat; Now 5, PWA 43 and Cost 51 tiles).
+  state: ['Service', 'Reader', 'Command', 'Chat', 'Hosting', 'Provider status › Railway',
+    'Providers · status › Railway', 'Google Cloud', 'Code version', '1 · Scan · last run', 'Group scan · last run'],
+  problem: ['Failed · 24 h', 'Failed', 'Timed out', 'Unreadable', 'Open ingress reviews', '503 · session check unavailable',
     '503 · body timeout', '5xx · all services', '3 · Validate · holds', 'Validation holds', '4 · Review · overdue', '5 · Post · unconfirmed',
     'Posting unconfirmed', '6 · Notify · failed', 'Notify failures'],
-  work: ['Sent · 24 h', 'Turns', 'Verified', 'Median turn', 'Median rounds', 'Extractions', 'Valid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
-  limit: ['Pending', '401 · session invalid'],
-  age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Poll age', 'Last turn age', 'Last send', 'Last notification'],
+  work: ['Sent · 24 h', 'Turns', 'Turns · 24 h', 'Extractions', 'Valid', '2 · Extract · waiting', 'Extraction waiting', 'Reviews waiting'],
+  limit: ['Pending', '401 · session invalid', 'Median turn', 'Median rounds'],
+  age: ['Daily charges', 'Recent analytics', 'Notify job · last run', 'Oldest pending', 'Last notification'],
   // Lifted Cost detail tiles without a named field are classed by their title.
   money: ['This month', 'Azure', 'GCP', 'Railway', 'Azure + GCP', 'UsageUSD', 'Azure · selected-range cost', 'GCP · before credits (SGD)',
-    'GCP · credits (SGD)', 'GCP · net cost (SGD)'],
-  info: ['Provider', 'Running for', 'Uptime', 'GCP budget']
+    'GCP · credits (SGD)', 'GCP · net cost (SGD)', 'Est. cost', 'Per turn'],
+  info: ['Provider', 'Running for', 'Uptime', 'GCP budget', 'Last turn']
 };
 /* R090 owner decision: limits for tiles without an alert value (recommended by the team, set on 22 October
- * 2026). Partner chat is irregular (about one turn a day), so a week without a turn or a reply is the signal;
- * a push goes out on most days, so two days without one is unusual; a sign-out (401) is normal, ten in the
- * selected range (24 h by default) is not; a push is normally delivered within the minute, so five waiting
- * is a backlog (Oldest pending keeps the 900 s alert value). */
-const LIMITS = {lastNotification: 172800, sessionInvalid: 10, pushPending: 5};
+ * 2026). A push goes out on most days, so two days without one is unusual; a sign-out (401) is normal, ten in
+ * the selected range (24 h by default) is not; a push is normally delivered within the minute, so five waiting
+ * is a backlog (Oldest pending keeps the 900 s alert value).
+ * R093 owner decision (24 October 2026): the in-app chat's medians are coloured. R092 aims at about 2 rounds and
+ * 15-20 s a turn, so a median from 4 rounds or from 30 s is orange; a median turn from 120 s (one model request's
+ * timeout, requestTimeoutSeconds) is red. Two people chat irregularly, so the last turn carries no colour. */
+const LIMITS = {lastNotification: 172800, sessionInvalid: 10, pushPending: 5, chatRounds: 4, chatTurnSeconds: 30};
+const CHAT_TURN_RED_SECONDS = 120;
+// R093: the in-app chat's log-based metrics (infrastructure/<env>/log-metrics.tf, from the chat_turn log event).
+const CHAT_METRICS = {turns: 'mw_chat_turns_', latency: 'mw_chat_turn_latency_', rounds: 'mw_chat_turn_rounds_'};
+function chatFilter(metric, env, suffix = '') {
+  return 'metric.type = "' + LOG_METRIC + CHAT_METRICS[metric] + env + '"' + suffix;
+}
+// Turn result codes of services/chat (pwa_chat_messages.error_code) in words; ok is an answered turn.
+const CHAT_OUTCOMES = {ok: 'Answered', MODEL_UNAVAILABLE: 'Model unavailable', MODEL_TIMEOUT: 'Model timeout', TOOL_ROUNDS_EXCEEDED: 'Too many rounds',
+  GROUNDING_EXCEEDED: 'Grounding rejected', TURN_TIMEOUT: 'Turn timeout', PROMPT_BLOCKED: 'Prompt blocked', INTERNAL: 'Internal error'};
 function nullMap(text) {
   return {type: 'special', options: {match: 'null', result: {text, color: COLOR.unknown, index: 0}}};
 }
@@ -536,6 +548,43 @@ function namedFields(names) {
   return '/^(' + names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')$/';
 }
 
+/* R093: the in-app chat's turn tile (Now 5 for PROD over a fixed 24 h, PWA 43 for ${env} over the range). Fields by
+ * kind, in order: turns (all result codes, work), failed (code not ok, problem: orange above 0), rounds and turn
+ * (medians of the merged distributions, distribution-median.jq; limit colours from LIMITS, the turn red from 120 s)
+ * and last (age of the newest turn, info: no colour). No turn in the range: counts show None (green for Failed),
+ * the medians a grey None, the last turn a grey "None · 24 h"; nothing is shown as a healthy zero. */
+const CHAT_FIELD = {
+  turns: {unit: 'none', decimals: 0, color: NEUTRAL, empty: ['None', COLOR.info]},
+  failed: {unit: 'none', decimals: 0, ...problemColor('orange'), empty: ['None', COLOR.ok]},
+  rounds: {unit: 'none', decimals: 0, color: {mode: 'thresholds'}, thresholds: steps([null, COLOR.ok], [LIMITS.chatRounds, COLOR.degraded]), empty: ['None', COLOR.unknown]},
+  turn: {unit: 's', decimals: 1, color: {mode: 'thresholds'},
+    thresholds: steps([null, COLOR.ok], [LIMITS.chatTurnSeconds, COLOR.degraded], [CHAT_TURN_RED_SECONDS, COLOR.down]), empty: ['None', COLOR.unknown]},
+  last: {unit: AGE.unit, decimals: AGE.decimals, color: NEUTRAL, empty: ['None · 24 h', COLOR.unknown]}
+};
+function chatTarget(refId, env, kind, name) {
+  const counts = suffix => monitoringUrl(chatFilter('turns', env, suffix), {aligner: 'ALIGN_SUM', reducer: 'REDUCE_SUM', period: CHART_PERIOD});
+  const merged = metric => monitoringUrl(chatFilter(metric, env), {aligner: 'ALIGN_DELTA', reducer: 'REDUCE_SUM', period: CHART_PERIOD});
+  const [url, selector] = {
+    turns: [counts(''), jq('sum-points.jq')],
+    failed: [counts(' AND metric.labels.code != "ok"'), jq('sum-points.jq')],
+    rounds: [merged('rounds'), jq('distribution-median.jq', {LABEL: name, SCALE: '1', MODE: 'lower'})],
+    turn: [merged('latency'), jq('distribution-median.jq', {LABEL: name, SCALE: '1000', MODE: 'interpolate'})],
+    last: [monitoringUrl(chatFilter('turns', env)), jq('last-count-age.jq', {LABEL: name})]
+  }[kind];
+  // sum-points.jq names its value "value"; the median and age selectors name it after the field.
+  return target(refId, DS.gcp, url, selector, [col(kind === 'turns' || kind === 'failed' ? 'value' : name, name)]);
+}
+function chatStat({id, title, description, gridPos, env, fields, timeFrom}) {
+  return stat({id, title, description, gridPos, timeFrom, hideTimeOverride: Boolean(timeFrom),
+    targets: fields.map(([kind, name], i) => chatTarget(String.fromCharCode(65 + i), env, kind, name)),
+    defaults: {color: NEUTRAL, mappings: [], noValue: 'None'},
+    overrides: fields.map(([kind, name]) => {
+      const {empty: [text, color], ...config} = CHAT_FIELD[kind];
+      return byName(name, {...config, noValue: text, mappings: [{type: 'special', options: {match: 'null', result: {text, color, index: 0}}}]});
+    }),
+    options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}}});
+}
+
 // Owner decision (R089 follow-up): Railway (hosts Metabase and the reports) replaces OpenAI, which is no longer required.
 const STATUS_MAP = [[0, 'Outage', COLOR.down], [1, 'No incident', COLOR.ok], [2, 'Incident open', COLOR.degraded], [3, 'Maintenance', COLOR.degraded], [4, 'Feed unreadable', COLOR.unknown]];
 function providerStatus({id, gridPos, title = 'Provider status'}) {
@@ -560,5 +609,5 @@ module.exports = {
   numericSelector, pos, linkBar, dashboard, stateTimeline, stat, statOptions, byName, byRef, AGE, timeseries,
   timeseriesDefaults, dashedLine, table, row, text, sortKeys, serialize, healthRow, workerRow, probeRow, webhookRow, sqlUpRow,
   schedulerFilter, schedulerSelector, schedulerRow, providerStatus, NEUTRAL, problemColor, ageColor, codedMappings, POLICY, LIMITS, providerModelTarget, modelTile, namedFields, SINGLE_VALUE, STAT_TEXT, TEXT_TILE,
-  LOOKBACKS, SCHEDULER_HOLD, readable
+  LOOKBACKS, SCHEDULER_HOLD, readable, CHAT_TURN_RED_SECONDS, CHAT_METRICS, CHAT_OUTCOMES, CHAT_FIELD, chatFilter, chatTarget, chatStat
 };

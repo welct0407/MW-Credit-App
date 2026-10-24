@@ -10,6 +10,7 @@ function services() {
       L.healthRow('Hosting', 'pwa_hosting_prod'),
       L.healthRow('Reader API', 'pwa_api_reader_prod'),
       L.healthRow('Command API', 'pwa_api_command_prod'),
+      L.healthRow('Chat API', 'pwa_api_chat_prod'),
       L.schedulerRow('Notify worker', 'prod', 'notifications'),
       L.workerRow('Jobs worker', 'pwa_jobs', 'status'),
       L.sqlUpRow('Cloud SQL'),
@@ -21,7 +22,7 @@ function services() {
 
 function alerts() {
   return {id: 2, type: 'alertlist', title: 'Firing alerts', gridPos: pos(16, 0, 8, 5),
-    description: 'Grafana alert rules in folder MW Resource Monitoring Alerts. Empty list = nothing firing. Paused rules (PWA 2m during observation) are not listed.',
+    description: 'Grafana alert rules in folder MW Resource Monitoring Alerts that are firing, pending, in error or without data. Empty list = nothing firing.',
     options: {alertInstanceLabelFilter: '', alertName: '', dashboardAlerts: false, folder: {uid: L.ALERT_FOLDER_UID, title: 'MW Resource Monitoring Alerts'},
       groupBy: [], groupMode: 'default', maxItems: 20, showInactiveAlerts: false, showInstances: false, sortOrder: 3,
       stateFilter: {error: true, firing: true, noData: true, normal: false, pending: true}, viewMode: 'list'}};
@@ -94,8 +95,8 @@ function payments() {
 }
 
 function push() {
-  // R091: Push spans the slot of the retired Partner chat tile (5).
-  return L.stat({id: 6, title: 'Push', gridPos: pos(8, 12, 16, 8),
+  // R093: back to its R089 size; the in-app chat tile (5) takes the right third.
+  return L.stat({id: 6, title: 'Push', gridPos: pos(8, 12, 8, 8),
     description: 'Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries (orange from 5), oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.',
     targets: [target('A', DS.gcp, monitoringUrl(customFilter('worker_timing', {component: 'pwa_notify'})),
       jq('ops-health.jq', {FIELDS: [{key: 'pending', label: 'Pending'}, {key: 'oldest_pending_seconds', label: 'Oldest pending'},
@@ -104,6 +105,14 @@ function push() {
     defaults: {color: {mode: 'fixed', fixedColor: COLOR.info}, mappings: [L.nullMap('No report')]},
     overrides: [byName('Pending', L.ageColor(L.LIMITS.pushPending)), byName('Oldest pending', {unit: AGE.unit, decimals: AGE.decimals, ...L.ageColor(900)}),
       byName('Failed · 24 h', L.problemColor('orange'))]});
+}
+
+// R093 (owner Option A): the in-app chat over the last 24 hours, whatever the picker (as the pipeline stat fixes 3 h).
+function chat() {
+  return L.chatStat({id: 5, title: 'Chat', gridPos: pos(16, 12, 8, 8), env: 'prod', timeFrom: '24h',
+    description: 'In-app chat in PROD over the last 24 hours, from the log-based metrics of the chat service\'s chat_turn log (no question text): turns (all outcomes), failed turns (orange above 0; the asker sees the failure in the app), the median turn time (orange from ' +
+      L.LIMITS.chatTurnSeconds + ' s, red from ' + L.CHAT_TURN_RED_SECONDS + ' s) and the time since the last turn (no colour: two people chat irregularly). Detail on PWA & APIs and Cost.',
+    fields: [['turns', 'Turns · 24 h'], ['failed', 'Failed · 24 h'], ['turn', 'Median turn'], ['last', 'Last turn']]});
 }
 
 // Notifications: newest scheduler bucket of the Now 1-D query, as an age; a failed bucket maps to Failed.
@@ -213,7 +222,7 @@ function backups() {
 function build() {
   return L.dashboard({uid: 'mw-now', description: 'Is MW Credit working right now? PROD only; the page the alert runbook opens first.',
     time: {from: 'now-3h', to: 'now'}, refresh: '1m',
-    panels: [services(), alerts(), freshness(), payments(), push(), jobs(), capacitySql(), capacityHosts(), edge(),
+    panels: [services(), alerts(), freshness(), payments(), push(), chat(), jobs(), capacitySql(), capacityHosts(), edge(),
       L.providerStatus({id: 17, gridPos: pos(16, 20, 8, 9)}), backups()]});
 }
 module.exports = {build, stagesStat, scanSelector};

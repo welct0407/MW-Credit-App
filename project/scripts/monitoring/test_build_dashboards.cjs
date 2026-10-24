@@ -80,8 +80,9 @@ for (const uid of L.DASHBOARD_UIDS) {
       // TIMELINE-GAP: no word for null, so no data is an empty gap, not "Unknown".
       assert.ok(p.fieldConfig.defaults.mappings.every(m => m.type !== 'special'), uid + ' panel ' + p.id + ' no null mapping');
     }
-    // Capacity gauges (bars against a limit); PWA 30 Recognitions is a bar list of counts without a limit.
-    if (p.type === 'bargauge' && !(uid === 'mw-pwa' && p.id === 30)) {
+    // Capacity gauges (bars against a limit); PWA 30 Recognitions and the R093 chat bars (41 outcomes, 44 models)
+    // are bar lists of counts without a limit.
+    if (p.type === 'bargauge' && !(uid === 'mw-pwa' && [30, 41, 44].includes(p.id))) {
       assert.equal(p.options.displayMode, 'lcd');
       assert.equal(p.options.valueMode, 'text');
       for (const t of p.targets) assert.ok(p.fieldConfig.overrides.some(o => o.matcher.options === t.refId && o.properties.some(x => x.id === 'max')), uid + ' gauge ' + p.id + ' max per field');
@@ -171,7 +172,8 @@ assert.deepEqual(top.map(p => [p.id, p.gridPos.w]), [[1, 6], [2, 6], [3, 6], [4,
 const nowText = JSON.stringify(built['mw-now']);
 assert.ok(!/-dev\b|_dev\b|loan_manager_dev/.test(nowText), 'mw-now is PROD only');
 const pwaUrls = allPanels(built['mw-pwa'].spec).flatMap(e => (e.panel.targets || []).map(t => decodeURIComponent(t.url || '')));
-assert.ok(pwaUrls.filter(u => /mw-credit-app-(read|command|notify|jobs)-/.test(u)).every(u => /-\$\{env\}/.test(u)), 'mw-pwa Cloud Run filters follow ${env}');
+assert.ok(pwaUrls.filter(u => /mw-credit-app-(read|command|notify|jobs|chat)-/.test(u)).every(u => /-\$\{env\}/.test(u)), 'mw-pwa Cloud Run filters follow ${env}');
+assert.ok(pwaUrls.filter(u => /mw_chat_/.test(u)).every(u => /mw_chat_[a-z_]+_\$\{env\}"/.test(u)), 'mw-pwa chat metrics follow ${env}');
 assert.deepEqual(built['mw-pwa'].spec.templating.list.map(v => v.name), ['env', 'lookback_from', 'lookback_hour', 'lookback_day']);
 // Webhook rows read the Singapore checker only.
 for (const uid of ['mw-now', 'mw-agent']) {
@@ -280,7 +282,8 @@ for (const uid of L.DASHBOARD_UIDS) {
 const holds = panelOf0('mw-pwa', 20).targets.map(t => [decodeURIComponent(t.url).match(/job_id = "mw-credit-app-\$\{env\}-([a-z-]+)"/)[1], t.url.match(/lookback_(\w+)/)[1]]);
 assert.deepEqual(holds, [['notifications', 'from'], ['daily-charges', 'day'], ['recent-analytics', 'hour']]);
 // R091: three conversation lanes retired (Now Conversation, Agent Partner conversation and Conversation poll).
-assert.ok(clippedRows >= 29, 'state-timeline rows clipped: ' + clippedRows);
+// R093: the Now Chat API lane.
+assert.ok(clippedRows >= 30, 'state-timeline rows clipped: ' + clippedRows);
 // R089 follow-up: one-value stats show the value only (the title names it) at the one-value size; Recognitions
 // names each outcome (rows to fields) instead of "Count"; provider tiles show provider and model as text.
 const panelOf = (uid, id) => allPanels(built[uid].spec).map(e => e.panel).find(p => p.id === id);
@@ -315,7 +318,9 @@ for (const [uid, id] of [['mw-pwa', 32], ['mw-agent', 6]]) {
 // tables md rows; and the layout model finds no truncation at 1440 px (docked menu) or on a 390 px phone.
 const M = require('./layout-model.cjs');
 const MODEL = {'mw-pwa:30': {names: ['Clean', 'Slip not confirmed', 'Amount unreadable', 'Reference unreadable']}};
-const TABLE_ROWS = {'mw-now:3': 4, 'mw-now:19': 6, 'mw-infra:5': 1, 'mw-infra:6': 4, 'mw-infra:8': 1, 'mw-infra:9': 8, 'mw-infra:17': 7, 'mw-cost:7': 11};
+// R093: ten Cloud Run services; Cost 50 ten questions and 52 three models, each with a footer row.
+const TABLE_ROWS = {'mw-now:3': 4, 'mw-now:19': 6, 'mw-infra:5': 1, 'mw-infra:6': 4, 'mw-infra:8': 1, 'mw-infra:9': 10, 'mw-infra:17': 7, 'mw-cost:7': 11,
+  'mw-cost:50': 11, 'mw-cost:52': 4};
 let modelled = 0;
 for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
   const key = uid + ':' + p.id;
@@ -332,7 +337,7 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
       : p.type === 'table' && TABLE_ROWS[key] ? M.checkTable(p, screen, TABLE_ROWS[key]) : p.type === 'state-timeline' ? M.checkTimeline(p, screen) : [])
       .concat(M.checkTitle(p, screen))
       // FINAL3-2: built tables' columns fit (lifted provider detail tables in collapsed Cost rows scroll; the
-      // eight-service Cloud Run table scrolls sideways on a phone, its six columns cannot share 342 px).
+      // ten-service Cloud Run table scrolls sideways on a phone, its six columns cannot share 342 px).
       .concat(p.type === 'table' && !p.pluginVersion && !(key === 'mw-infra:9' && screen === 'phone') ? M.checkTableColumns(p, screen) : []);
     assert.deepEqual(errors, [], key + ' (' + p.title + ') fits at ' + screen);
     modelled++;
@@ -419,17 +424,117 @@ for (const [uid, id] of [['mw-now', 4], ['mw-agent', 1]]) {
 }
 const stage = (uid, id, ref) => panelOf(uid, id).targets.find(t => t.refId === ref).root_selector;
 assert.equal(stage('mw-now', 4, 'B'), stage('mw-agent', 1, 'B').replace('Extraction waiting', '2 · Extract · waiting'), 'Extract waiting: the same stalled rule');
-// R091: the native-API probes (oltp, olap) of the Instagram conversation are retired; API health is reader and command.
+// R091: the native-API probes (oltp, olap) of the Instagram conversation are retired; R093: API health is reader,
+// command and chat.
 const api = panelOf('mw-pwa', 2);
-assert.deepEqual(api.targets.map(t => decodeURIComponent(t.url).match(/component = "([^"]+)"/)[1]), ['pwa_api_reader_${env}', 'pwa_api_command_${env}']);
-assert.deepEqual(api.fieldConfig.overrides.map(o => o.properties[0].value), ['Reader', 'Command']);
+assert.deepEqual(api.targets.map(t => decodeURIComponent(t.url).match(/component = "([^"]+)"/)[1]), ['pwa_api_reader_${env}', 'pwa_api_command_${env}', 'pwa_api_chat_${env}']);
+assert.deepEqual(api.fieldConfig.overrides.map(o => o.properties[0].value), ['Reader', 'Command', 'Chat']);
 // R091: no dashboard reads a retired Instagram conversation series or the agent database.
 for (const uid of L.DASHBOARD_UIDS) {
   const text = JSON.stringify(built[uid].spec);
   for (const gone of ['component%20%3D%20%22conversation%22', 'component%20%3D%20%22conversations%22', 'component%20%3D%20%22oltp%22', 'component%20%3D%20%22olap%22', 'recent_questions_v1('])
     assert.ok(!text.includes(gone) || (gone === 'recent_questions_v1(' && text.includes('pwa_chat_recent_questions_v1(')), uid + ' still reads ' + gone);
 }
-assert.ok(JSON.stringify(panelOf('mw-cost', 50).targets).includes('FROM monitoring.pwa_chat_recent_questions_v1(10) q'), 'Cost 50 reads the in-app chat');
+assert.ok(JSON.stringify(panelOf('mw-cost', 50).targets).includes('FROM monitoring.pwa_chat_recent_turns_v1(10) q'), 'Cost 50 reads the in-app chat turns (V108)');
+// R093 (owner Option A): the in-app chat on Now, PWA & APIs, Infrastructure and Cost.
+// Now: ten PROD lanes with Chat API after Command API; Push back to its R089 size; the Chat tile over a fixed 24 h.
+const nowLanes = panelOf('mw-now', 1).targets.map(t => t.columns[1].text);
+assert.deepEqual(nowLanes, ['Hosting', 'Reader API', 'Command API', 'Chat API', 'Notify worker', 'Jobs worker', 'Cloud SQL', 'Recognizer', 'Receipt cycle', 'Metabase']);
+assert.ok(decodeURIComponent(panelOf('mw-now', 1).targets[3].url).includes('metric.labels.component = "pwa_api_chat_prod"'), 'Chat API lane reads the collector probe');
+assert.deepEqual(panelOf('mw-now', 6).gridPos, {x: 8, y: 12, w: 8, h: 8}, 'Push back to 8 columns');
+const nowChat = panelOf('mw-now', 5);
+assert.deepEqual([nowChat.title, nowChat.type, nowChat.gridPos, nowChat.timeFrom, nowChat.hideTimeOverride], ['Chat', 'stat', {x: 16, y: 12, w: 8, h: 8}, '24h', true]);
+assert.deepEqual(nowChat.targets.map(t => t.columns[0].text), ['Turns · 24 h', 'Failed · 24 h', 'Median turn', 'Last turn']);
+const urlOf = (p, ref) => decodeURIComponent(p.targets.find(t => t.refId === ref).url);
+assert.ok(urlOf(nowChat, 'A').includes('metric.type = "logging.googleapis.com/user/mw_chat_turns_prod"') && !urlOf(nowChat, 'A').includes('code'), 'Turns: every code');
+assert.ok(urlOf(nowChat, 'B').includes('metric.labels.code != "ok"'), 'Failed: code not ok');
+assert.ok(urlOf(nowChat, 'C').includes('mw_chat_turn_latency_prod') && urlOf(nowChat, 'C').includes('perSeriesAligner=ALIGN_DELTA') && urlOf(nowChat, 'C').includes('crossSeriesReducer=REDUCE_SUM'), 'Median turn from merged distributions');
+assert.ok(!urlOf(nowChat, 'D').includes('aggregation'), 'Last turn reads raw points');
+assert.equal(nowChat.targets[2].root_selector, L.jq('distribution-median.jq', {LABEL: 'Median turn', SCALE: '1000', MODE: 'interpolate'}));
+assert.equal(nowChat.targets[3].root_selector, L.jq('last-count-age.jq', {LABEL: 'Last turn'}));
+// Owner colours: Median turn green below 30 s, orange from 30 s, red from 120 s; Median rounds orange from 4; the last turn
+// neutral with a grey "None · 24 h"; Failed orange above 0.
+const fieldProps = (p, name) => Object.fromEntries(p.fieldConfig.overrides.filter(o => o.matcher.options === name).flatMap(o => o.properties.map(x => [x.id, x.value])));
+const turnSteps = [{color: L.COLOR.ok, value: null}, {color: L.COLOR.degraded, value: L.LIMITS.chatTurnSeconds}, {color: L.COLOR.down, value: L.CHAT_TURN_RED_SECONDS}];
+assert.deepEqual([L.LIMITS.chatRounds, L.LIMITS.chatTurnSeconds, L.CHAT_TURN_RED_SECONDS], [4, 30, 120]);
+const pwaChatTile = panelOf('mw-pwa', 43);
+for (const p of [nowChat, pwaChatTile]) {
+  assert.deepEqual(fieldProps(p, 'Median turn').thresholds.steps, turnSteps, p.title + ' Median turn thresholds = LIMITS');
+  assert.equal(fieldProps(p, 'Median turn').unit, 's');
+}
+assert.deepEqual(fieldProps(pwaChatTile, 'Median rounds').thresholds.steps, [{color: L.COLOR.ok, value: null}, {color: L.COLOR.degraded, value: L.LIMITS.chatRounds}], 'Median rounds thresholds = LIMITS');
+assert.equal(pwaChatTile.targets[2].root_selector, L.jq('distribution-median.jq', {LABEL: 'Median rounds', SCALE: '1', MODE: 'lower'}));
+assert.deepEqual(fieldProps(nowChat, 'Last turn').color, L.NEUTRAL, 'Last turn neutral');
+assert.equal(fieldProps(nowChat, 'Last turn').mappings[0].options.result.text, 'None · 24 h');
+assert.equal(fieldProps(nowChat, 'Last turn').mappings[0].options.result.color, L.COLOR.unknown);
+for (const [p, name] of [[nowChat, 'Failed · 24 h'], [pwaChatTile, 'Failed']]) assert.deepEqual(fieldProps(p, name).thresholds, L.problemColor('orange').thresholds, p.title + ' ' + name + ' orange above 0');
+// PWA & APIs: five service rows (chat 14: ids 141-143, 300 s request timeout, max 2), the chat turns row 40 (41-44)
+// after Workers, the 5xx field across the five services, everything per ${env} (DEV too).
+const {SERVICES} = require('./dashboards/pwa.cjs');
+assert.equal(SERVICES.length, 5);
+assert.deepEqual(SERVICES.at(-1), {key: 'chat', label: 'chat', timeoutMs: 300000, maxInstances: 2, note: SERVICES.at(-1).note});
+const pwaPanels = built['mw-pwa'].spec.panels;
+assert.deepEqual(pwaPanels.filter(p => p.type === 'row').map(p => [p.id, p.title]), [[10, 'Service · read'], [11, 'Service · command'], [12, 'Service · notify'],
+  [13, 'Service · jobs'], [14, 'Service · chat'], [19, 'Workers'], [40, 'In-app chat · turns'], [29, 'Receipt recognition route · command service to Debian recognizer']]);
+assert.deepEqual([141, 142, 143].map(id => panelOf('mw-pwa', id).title), ['Requests / 5 min · chat', 'p95 latency (ms) · chat', 'chat · instances, CPU, RAM']);
+assert.ok(decodeURIComponent(panelOf('mw-pwa', 141).targets[0].url).includes('service_name = "mw-credit-app-chat-${env}"'));
+assert.equal(panelOf('mw-pwa', 142).fieldConfig.defaults.thresholds.steps[1].value, 300000, 'chat request timeout line');
+assert.deepEqual([41, 42, 43, 44].map(id => panelOf('mw-pwa', id).title), ['Chat turns · outcomes', 'Chat turn time', 'Chat turns · ${env}', 'Chat turns · by model']);
+const fivexx = decodeURIComponent(panelOf('mw-pwa', 3).targets.find(t => t.refId === 'D').url);
+assert.ok(/monitoring\.regex\.full_match\("mw-credit-app-\([a-z|]*\bchat\b[a-z|]*\)-\$\{env\}"\)/.test(fivexx), '5xx across the five services, chat included');
+assert.ok(panelOf('mw-pwa', 3).description.includes('five ${env} services'));
+const outcomes = panelOf('mw-pwa', 41);
+assert.deepEqual(Object.fromEntries(outcomes.fieldConfig.overrides.map(o => [o.matcher.options, o.properties[0].value])), L.CHAT_OUTCOMES, 'outcomes named in words');
+assert.ok(decodeURIComponent(outcomes.targets[0].url).includes('mw_chat_turns_${env}') && outcomes.targets[0].root_selector === L.jq('sum-by-label.jq', {LABEL: 'code'}));
+assert.equal(panelOf('mw-pwa', 44).targets[0].root_selector, L.jq('sum-by-label.jq', {LABEL: 'model'}));
+const turnTime = panelOf('mw-pwa', 42);
+assert.deepEqual(turnTime.fieldConfig.defaults.thresholds.steps, [{color: 'transparent', value: null}, {color: L.COLOR.unknown, value: 20000},
+  {color: L.COLOR.degraded, value: L.LIMITS.chatTurnSeconds * 1000}, {color: 'red', value: 240000}], 'grey 20 s aim, orange 30 s limit (tile 43), red 240 s turn timeout');
+assert.equal(panelOf('mw-pwa', 44).gridPos.h, 6, 'by-model bars 6 rows');
+assert.deepEqual([turnTime.fieldConfig.defaults.custom.drawStyle, turnTime.fieldConfig.defaults.custom.thresholdsStyle.mode, turnTime.fieldConfig.defaults.unit], ['points', 'dashed', 'ms']);
+assert.ok(decodeURIComponent(turnTime.targets[0].url).includes('crossSeriesReducer=REDUCE_PERCENTILE_50'));
+// Infrastructure: the Cloud Run table lists the ten services with chat-prod and chat-dev (max 2 each).
+const run = panelOf('mw-infra', 9);
+assert.equal(run.title, 'Cloud Run · ten services');
+const maxRows = JSON.parse(run.targets[0].data);
+assert.equal(maxRows.length, 10);
+assert.deepEqual(maxRows.filter(r => r.Service.startsWith('chat-')), [{Service: 'chat-prod', Max: 2}, {Service: 'chat-dev', Max: 2}]);
+assert.ok(decodeURIComponent(run.targets[1].url).includes('"mw-credit-app-chat-prod","mw-credit-app-chat-dev"'));
+// Cost: the month tile and the by-model table read pwa_chat_usage_v1 from the range start; the last 10 read
+// pwa_chat_recent_turns_v1; one price table from model-prices.json in all three; the price text from the file.
+const sqlOf = id => panelOf('mw-cost', id).targets[0].rawSql;
+for (const id of [51, 52]) assert.ok(sqlOf(id).includes('FROM monitoring.pwa_chat_usage_v1($__timeFrom()) u'), 'Cost ' + id + ' reads the month usage');
+const prices = require('./model-prices.json');
+const priceTable = '(VALUES ' + Object.entries(prices.models).map(([m, p]) => "('" + m + "', " + p.input + ', ' + p.cached + ', ' + p.output + ')').join(', ') + ') AS p(model, input, cached, output)';
+for (const id of [50, 51, 52]) {
+  assert.equal(panelOf('mw-cost', id).targets[0].datasource.uid, 'mw-agent-questions');
+  assert.ok(sqlOf(id).includes(priceTable), 'Cost ' + id + ' prices from model-prices.json');
+  for (const [m, p] of Object.entries(prices.models)) assert.ok(panelOf('mw-cost', id).description.includes(m + ' S$' + p.input.toFixed(2)), 'Cost ' + id + ' price text from the file');
+}
+assert.deepEqual(panelOf('mw-cost', 51).transformations[0].options.include.names, ['Turns', 'Failed', 'Est. cost', 'Per turn']);
+assert.ok(!/"Questions"|Per question/.test(L.serialize(built['mw-cost'])), 'Cost counts turns, as Now and PWA');
+assert.equal(built['mw-cost'].spec.panels.find(p => p.id === 49).title, 'In-app chat · usage and cost');
+assert.deepEqual([51, 52, 50].map(id => panelOf('mw-cost', id).gridPos), [{x: 0, y: 28, w: 8, h: 8}, {x: 8, y: 28, w: 16, h: 8}, {x: 0, y: 36, w: 24, h: 15}]);
+assert.ok(/CASE WHEN q\.status = 'failed' THEN q\.error_code ELSE q\.status END AS "Outcome"/.test(sqlOf(50)), 'a failed turn shows its error code');
+// SQL tables have no query column list, so their fixed widths are summed here against the desktop panel.
+for (const id of [50, 52]) {
+  const p = panelOf('mw-cost', id);
+  const widths = p.fieldConfig.overrides.flatMap(o => o.properties.filter(x => x.id === 'custom.width' || x.id === 'custom.minWidth').map(x => x.value));
+  assert.ok(widths.reduce((a, b) => a + b, 0) <= M.contentBox(p.gridPos, 'desktop').width, 'Cost ' + id + ' columns fit at 1440 px');
+}
+// Housekeeping: no colour class names a retired stat (every POLICY name is shown by some stat), and no retired
+// Partner-conversation or paused-rule text is left in the builder or the dashboards.
+const shown = new Set();
+for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid].spec)) {
+  if (p.type !== 'stat') continue;
+  const filter = (p.transformations || []).filter(t => t.id === 'filterFieldsByName').pop();
+  let names = (filter ? filter.options.include.names : (p.targets || []).flatMap(t => (t.columns || []).filter(c => !/^timestamp/.test(c.type)).map(c => c.text))).filter(n => n !== 'Time' && n !== 'Category');
+  if (!names.length) names = [p.title];
+  for (const n of names) { shown.add(n); shown.add(p.title + ' › ' + n); }
+}
+for (const [cls, names] of Object.entries(L.POLICY)) for (const n of names) assert.ok(shown.has(n), 'POLICY ' + cls + ' "' + n + '" is shown by a stat');
+const sources = ['lib.cjs', 'now.cjs', 'pwa.cjs', 'agent.cjs', 'infra.cjs', 'cost.cjs'].map(f => fs.readFileSync(require.resolve('./dashboards/' + f), 'utf8'));
+for (const text of [...sources, ...L.DASHBOARD_UIDS.map(u => L.serialize(built[u]))]) assert.ok(!/Partner chat|Paused rules/i.test(text), 'no retired Partner chat or paused-rule text');
 // FINAL4-2: every fill that carries white text (stat backgrounds, coloured table cells, timeline lanes) gives at
 // least 4.5:1 against Grafana's white in both themes (named colours resolve per theme).
 const THEME_HEX = {'dark-red': ['#C4162A', '#AD0317'], 'dark-blue': ['#1F60C4', '#1250B0'], 'dark-green': ['#37872D', '#19730E'],

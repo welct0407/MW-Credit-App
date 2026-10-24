@@ -193,4 +193,17 @@ run "chat_dispatch_requires_notify_worker" {
   expect_failures = [google_cloud_run_v2_service.chat_api]
 }
 
-
+run "chat_turn_metrics" {
+  command = plan
+  plan_options { target = [google_logging_metric.chat_turns, google_logging_metric.chat_turn_latency, google_logging_metric.chat_turn_rounds] }
+  assert {
+    condition = (google_logging_metric.chat_turns.name == "mw_chat_turns_dev" && google_logging_metric.chat_turn_latency.name == "mw_chat_turn_latency_dev" && google_logging_metric.chat_turn_rounds.name == "mw_chat_turn_rounds_dev"
+      && alltrue([for m in [google_logging_metric.chat_turns, google_logging_metric.chat_turn_latency, google_logging_metric.chat_turn_rounds] : m.project == "clever-oasis-508610-n7" && m.filter == "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-credit-app-chat-dev\" AND jsonPayload.event=\"chat_turn\"" && m.metric_descriptor[0].metric_kind == "DELTA"])
+      && google_logging_metric.chat_turns.metric_descriptor[0].value_type == "INT64" && google_logging_metric.chat_turns.label_extractors["code"] == "EXTRACT(jsonPayload.code)" && google_logging_metric.chat_turns.label_extractors["model"] == "EXTRACT(jsonPayload.model)" && length(google_logging_metric.chat_turns.label_extractors) == 2
+      && google_logging_metric.chat_turn_latency.metric_descriptor[0].value_type == "DISTRIBUTION" && google_logging_metric.chat_turn_latency.metric_descriptor[0].unit == "ms" && google_logging_metric.chat_turn_latency.value_extractor == "EXTRACT(jsonPayload.latencyMs)"
+      && google_logging_metric.chat_turn_latency.bucket_options[0].exponential_buckets[0].num_finite_buckets == 20 && google_logging_metric.chat_turn_latency.bucket_options[0].exponential_buckets[0].growth_factor == 1.5 && google_logging_metric.chat_turn_latency.bucket_options[0].exponential_buckets[0].scale == 1000
+      && google_logging_metric.chat_turn_rounds.value_extractor == "EXTRACT(jsonPayload.rounds)" && google_logging_metric.chat_turn_rounds.bucket_options[0].linear_buckets[0].num_finite_buckets == 17
+    && google_logging_metric.chat_turn_rounds.bucket_options[0].linear_buckets[0].width == 1 && google_logging_metric.chat_turn_rounds.bucket_options[0].linear_buckets[0].offset == 0)
+    error_message = "R093: the three DEV chat turn metrics read only mw-credit-app-chat-dev chat_turn records with the agreed labels, extractors and buckets."
+  }
+}
