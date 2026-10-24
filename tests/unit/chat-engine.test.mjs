@@ -223,7 +223,7 @@ test('signatures replay verbatim in the next round',async()=>{
  assert.deepEqual(requests[1].contents[1],{role:'model',parts:[{functionCall:readCall('a','L1'),thoughtSignature:'sig-1'}]});
 });
 
-test('batch 2 (B4): the QUERY DISCIPLINE block follows FAST PATHS verbatim, with the pronoun rule in REPLY FORMAT',()=>{
+test('batch 2 (B4), R092: the QUERY DISCIPLINE block follows FAST PATHS verbatim, with the borrower-name rule in REPLY FORMAT',()=>{
  const block=`QUERY DISCIPLINE (every round re-sends the whole conversation; rounds, not rows, cost time and tokens)
 • Plan the turn before the first call: list every fact the answer needs, then fetch them in at most two
   rounds. Round 1 resolves the borrower(s) in reporting_borrower_directory_v1. Round 2 fetches everything
@@ -232,6 +232,13 @@ test('batch 2 (B4): the QUERY DISCIPLINE block follows FAST PATHS verbatim, with
 • One query per relation per turn, naming every column you may need from it. Never fetch one column of
   a row and another column of the same row in a later round; never SELECT * from a wide view.
 • Join or UNION in SQL instead of several small statements; aggregate in SQL.
+• Borrower names: select both "Borrower Name" (Thai) and "Description" (English; borrower_name in
+  reporting_borrower_directory_v1 is the English name) in the query that fetches borrowers, so the reply
+  can pick one without another round.
+• Aggregate first: totals (due today, overdue, portfolio) come from sum/count/group by in the first
+  query, never from charge rows. Fetch individual charges only when the answer lists them, and only what
+  the reply shows: ORDER BY … LIMIT 10 plus, in the same statement, the count and total of the rest
+  ("5 others: ฿5,870"). A result over 100 rows or 32 KB is refused: summarise, do not page.
 • A later round is justified only by a fact you could not know earlier (an unexpected value, a missing
   row, an error). If you reach round 4 after the borrower is resolved, stop fetching: answer with what
   you have and say what is unverified.
@@ -240,6 +247,9 @@ test('batch 2 (B4): the QUERY DISCIPLINE block follows FAST PATHS verbatim, with
   never probe other tables to explain a permission error.`;
  const at=ASSISTANT_INSTRUCTIONS.indexOf(block);
  assert.ok(at>ASSISTANT_INSTRUCTIONS.indexOf('FAST PATHS')&&at<ASSISTANT_INSTRUCTIONS.indexOf('You are the MW partner operations assistant'));
- const identify=ASSISTANT_INSTRUCTIONS.indexOf('Identify loans by borrower name'),pronoun=ASSISTANT_INSTRUCTIONS.indexOf("Refer to a borrower by name; use she/he/her/his only when the Partner's current message used that pronoun for them.");
- assert.ok(identify>ASSISTANT_INSTRUCTIONS.indexOf('REPLY FORMAT')&&pronoun>identify);
+ const identify=ASSISTANT_INSTRUCTIONS.indexOf('Identify loans by borrower name'),names=ASSISTANT_INSTRUCTIONS.indexOf('Borrower names follow the reply language: English reply = English name ("Description"), Thai name when it is blank; '
+  +'Thai reply = Thai name ("Borrower Name"), English name when it is blank. Show one name per borrower. '
+  +"Use she/he/her/his only when the Partner's current message used that pronoun for them.\n");
+ assert.ok(identify>ASSISTANT_INSTRUCTIONS.indexOf('REPLY FORMAT')&&names>identify);
+ assert.equal(ASSISTANT_INSTRUCTIONS.includes('Refer to a borrower by name'),false);
 });

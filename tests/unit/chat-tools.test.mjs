@@ -33,6 +33,11 @@ test('declarations are the agent schemas in the Vertex subset',()=>{
  assert.equal(rr.type,'OBJECT');assert.deepEqual(rr.properties.keys,{type:'ARRAY',items:{type:'STRING'}});assert.deepEqual(rr.properties.limit,{type:'INTEGER',minimum:1,maximum:100});
  assert.equal(JSON.stringify(d).includes('additionalProperties'),false);
  assert.equal(JSON.stringify(TOOLS).includes('api_action'),false);
+ const sql=TOOLS.find(t=>t.name==='sql_query').description;
+ assert.ok(sql.endsWith('Quote mixed-case identifiers exactly ("Loans"."Row ID"). Small results only: at most 100 rows and 32 KB, '
+  +'distinct column names; a larger result is refused, so aggregate in SQL (sum, count, group by) and LIMIT the rows you will list '
+  +'instead of paging. Use the schema digest in the system prompt.'));
+ assert.equal(/500 rows|256 KB|LIMIT\/OFFSET/.test(sql),false);
 });
 
 test('data_catalogue answers unwrapped: the app list and a table without write fields',async()=>{
