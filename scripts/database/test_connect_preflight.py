@@ -66,6 +66,30 @@ class Evaluate(unittest.TestCase):
         self.assertFalse(cp.configured(REPO, 'mw-credit-app-chat-dev@clever-oasis-508610-n7.iam'))
         self.assertTrue(cp.DEV_NAME.search('mw-credit-app-chat-dev@clever-oasis-508610-n7.iam'))
 
+    def test_grafana_roles_are_configured_but_not_expected_connected(self):
+        # R091: the Grafana roles hold CONNECT on loan_manager_prod; their sources name them literally.
+        grafana = {'mw_agent_dashboard': 'database/migrations/V104__pwa_chat.sql', 'mw_grafana_reader': 'infrastructure/grafana/owned-services.tf.json'}
+        for role, source in grafana.items():
+            with self.subTest(role=role):
+                self.assertEqual(cp.CONFIGURED_CONSUMERS[role], source)
+                self.assertIn(role, (REPO / source).read_text(encoding='utf-8'))
+                self.assertTrue(cp.configured(REPO, role))
+                self.assertNotIn(role, cp.EXPECTED_CONNECTED)
+        # Holding CONNECT with no live session passes (Grafana connects on demand); a session is recorded when seen.
+        p = cp.evaluate(facts(sessions={'mw-credit-app-notify-prod@clever-oasis-508610-n7.iam': 1}), REPO, NOW, 95)
+        self.assertTrue(set(grafana) <= set(p['retainedConsumerRoles']))
+        self.assertEqual(p['evidence']['observedConsumerSessions'], ['mw-credit-app-notify-prod@clever-oasis-508610-n7.iam'])
+        p = cp.evaluate(facts(sessions={'mw-credit-app-notify-prod@clever-oasis-508610-n7.iam': 1, 'mw_grafana_reader': 1}), REPO, NOW, 95)
+        self.assertIn('mw_grafana_reader', p['evidence']['observedConsumerSessions'])
+        # A source that no longer names the role refuses.
+        import tempfile
+        with tempfile.TemporaryDirectory() as root:
+            for role, source in grafana.items():
+                path = Path(root) / source
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('-- no role here\n', encoding='utf-8')
+                self.assertFalse(cp.configured(Path(root), role), role)
+
     def test_derived_source_needs_the_account_and_the_derivation(self):
         import tempfile
         role = 'mw-credit-app-chat-prod@clever-oasis-508610-n7.iam'
