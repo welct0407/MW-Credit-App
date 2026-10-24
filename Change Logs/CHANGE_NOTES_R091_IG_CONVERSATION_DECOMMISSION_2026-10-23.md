@@ -108,10 +108,10 @@ No further owner decision is open; everything else is within the "decommission i
 | Monitoring deploy checks (Forge, live) | Collector first run success with 17 components healthy and no conversation series; Grafana apply 0 add, 7 change, 0 destroy; panel readback in the Environment inventory row |
 | `python3 project/scripts/dictionary/dictionary.py validate` (Dewey) | Pass, 438 documents, 0 errors |
 | `node scripts/check-docs.mjs` (Dewey, final run on this tree) | Pass, 0 failures, 0 warnings |
-| Pull request `Development checks` for the code part | Placeholder: runs after the push |
+| Pull request `Development checks` for the package | Pass: `check` run 40061474476 and `guards` 40061473597 on the package head, with e2e, terraform and database rebuild results reused from runs 39983180470, 40055584262 and 40055568333 (see the promotion record) |
 
 ## Not run
-- PROD command image, PROD apply 1 and PROD V107: not run; they belong to the R091 promotion. The follow-up pull request's destruction of the policy secrets and the DEV identity: not run. A full-suite CI run after the live steps: not run.
+- The destruction of the policy secrets and the DEV test identity (the Terraform removal): not run yet. A full-suite CI run after the live steps: not run. PROD V107, apply 1 and the Hosting re-release were run in the promotion (see the promotion record).
 - PROD effects so far: the monitoring part, the VM deploy, agent migration V11 on `mw_agent` and the R085 grant revoke on `loan_manager_prod` (all recorded above).
 
 ## Recovery
@@ -121,7 +121,7 @@ Per step in E7. Git baseline: the R090 closure merge (PR #132). After agent migr
 None (E8 decided 23 October 2026). Follow-up recorded by the owner's decision: `mw_integration_agent` keeps SELECT on the notification, push and jobs tables; revisit when the agent's reads are reviewed.
 
 ## Remaining work
-- Done (24 October): DEV apply 1 and V107, the VM deploy with the verified backup, V11, and the grant revoke. Left: PROD command image, PROD apply 1 (activation `enabled=false`) and PROD V107 with the journal-owner window, as the R091 promotion (see the promotion record below); then the follow-up pull request that destroys the policy secrets and the DEV identity.
+- Done: DEV apply 1 and V107, the VM deploy with the verified backup, V11, the grant revoke, and the PROD promotion (image, apply 1, V107, Hosting) on 24 October 2026. Left: the Terraform removal that destroys the policy secrets and the DEV identity (owner-approved), and the `R091` tag on `db7789e3` (Release tag workflow).
 - Follow-up in R092: the three inert dead configuration keys on the host.
 - Follow-up pull request (apply 2): apply the saved removal patch (the two `agent-conversation-policy.tf` files, their tests and the command-service plumbing) only after steps 2 to 8 succeed; the plan must show exactly the two secret containers with their versions, their two accessor bindings, the DEV service account `mw-credit-app-agent-test-dev` and its OIDC-creator binding destroyed, nothing else; then confirm the secrets are gone. `prevent_destroy` stays in the files until that pull request, so lift it there.
 - Byte, in progress: remove a stale `Test-CI.ps1` call and add a V11 self-check for the `mw_agent_dashboard` CONNECT revoke; add their results to Checks when done.
@@ -132,30 +132,40 @@ None (E8 decided 23 October 2026). Follow-up recorded by the owner's decision: `
 [Template](../project/scripts/releases/templates/promotion-checklist.md), revision 14 October 2026. Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md). Deployment pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md).
 
 ### Continue here
-- Outcome/scope and affected components: R091 to PROD: the Instagram Partner conversation decommission. It is a runtime and SQL release (the command image without the agent conversation route, the activation with the agent conversation API off, V107 which drops `pwa_submit_agent_operation_v1`), plus an R091 Hosting re-release of the unchanged app so the About release marker reads R091. The monitoring part, the VM deploy with catalogue revision 32, agent migration V11 and the R085 grant revoke are already live (see Changes).
-- State and next action or actual blocker: frozen and prepared. Placeholder: Forge records the PROD steps below (image, apply 1, V107, Hosting).
-- Source/artifact/configuration pins; runner manifest link: source `db7789e3` (code identical to `1d673a90`, the commit the DEV steps and the VM deploy ran from; records only on top). The delivery-tool commit (runner and freeze records) follows after Chase's review. Placeholder: the PROD candidate image digest, SQL manifest and hash for V107, the activation generation and the Hosting build, from Forge.
-- Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 23 October 2026, "decommission ig conversation" (scoped authorization for phase 3 of the R090 design), with the decisions to destroy the policy secrets and the DEV test identity now and to delete the agent-database conversation journal. It approves the requested scope, including the V107 migration, backups and the standard temporary maintenance windows ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)); it does not cover unrelated financial corrections or forced notifications.
-- Previous deployed baseline and recovery: PROD at V106 with the R090 images and Hosting recorded in the Environment inventory. Recovery: the previous command revision and image and the previous activation generation; Hosting back to the R090 version; V107 is a function drop, so recovery is a restore from the promotion backup or a forward re-create from the V90 body; after V11 a package rollback needs the verified `mw_agent` backup restored first (see Recovery above).
-- Scope freeze/next-number handoff: R091 Frozen 2026-10-24T03:40Z (prepared; effective when the tracker update is published) in the [tracker](../project/Documents/Release_Tracker.md#releases-requiring-action); R092 opened and the counter advanced to R093 in the same update.
-- Checks: see Checks above (unit, lab, database CI and Terraform results by Byte and Forge). Placeholder: the pull request `Development checks` run on the package head.
+- Outcome/scope and affected components: R091 is Released to PROD (24 October 2026): the Instagram Partner conversation decommission, as a runtime and SQL release (the command image without the agent conversation route, the activation with the agent conversation API off, V107 which drops `pwa_submit_agent_operation_v1`) plus an R091 Hosting re-release of the unchanged app for the About marker. Already live before the promotion and recorded in Changes: the monitoring part, the VM deploy with catalogue revision 32, agent migration V11 and the R085 grant revoke.
+- State and next action or actual blocker: applied and verified in PROD. Tag `R091` created on `db7789e3`; next: the Terraform removal follow-up below.
+- Source/artifact/configuration pins; runner manifest link: source `db7789e35b54878d286ccb27f8291119c690df17` (code identical to `1d673a90`; records only on top), baseline R090 `297b7649`; delivery tool `304ed4a3` (`business-hosting-delivery` tests 95 of 95). Image, activation generations, the plan (`production-r091-promotion.tfplan`), the V107 release file and preflight, the Hosting version and the package hashes are in the Environment inventory.
+- Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 23 October 2026, "decommission ig conversation" (scoped authorization for phase 3 of the R090 design), with the decisions to destroy the policy secrets and the DEV test identity and to delete the agent-database conversation journal; it covers V107, backups and the standard temporary maintenance windows ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)). No forced notification, job or financial write was part of it.
+- Previous deployed baseline and recovery: PROD at V106 with the R090 images and Hosting. Rollback: Hosting back to the R090 version; the reader, command, notify, jobs and chat services back to their R090 revisions on the R090 image; activation back to the previous generation (all in the inventory); V107 by a restore from the promotion backup at V106 or a forward re-create from the V90 body; after V11 a package rollback needs the verified `mw_agent` backup restored first.
+- Scope freeze/next-number handoff: R091 Frozen 2026-10-24T03:40Z in the [tracker](../project/Documents/Release_Tracker.md); R092 opened and the counter advanced to R093 in the same update; R091 is now Released there.
+- Checks: CI for the package: `check` run 40061474476, `guards` 40061473597, `e2e` evidence from run 39983180470, `terraform` evidence from run 40055584262, database rebuild evidence from run 40055568333; delivery tool tests 95 of 95; earlier unit, lab and Terraform results in Checks above. Real gaps: see Deviations and Not run.
 
 ### Promotion
 | Step | Completion evidence |
 | --- | --- |
-| Scope, target, authority and usable recovery confirmed | Placeholder: Forge (project, instance, database, services verified; previous revision, Hosting version and activation generation captured) |
-| Required affected checks passed or explicit owner deferral recorded | Placeholder: CI result on the package head |
-| Tested package captured; tracker freeze/handoff published | Placeholder: PROD candidate pins; tracker update published with the freeze push |
-| Changed components deployed in dependency order | Placeholder: verified PROD backup; PROD command image and apply 1 (activation `enabled=false`); V107 with the journal-owner window; Hosting with the R091 marker |
-| Version/environment and affected PROD smoke verified once | Placeholder: Forge and Chase |
-| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Placeholder: inventory pins; release tag `R091` through the Release tag workflow |
+| Scope, target, authority and usable recovery confirmed | Owner instruction recorded once above; PROD targets verified by Forge; previous revisions, Hosting version and activation generation captured as the rollback |
+| Required affected checks passed or explicit owner deferral recorded | CI runs above; delivery tool tests 95 of 95; no deferral |
+| Tested package captured; tracker freeze/handoff published | PROD image built from `db7789e3` (Cloud Build `7b7dd18f-2be4-4080-8c62-aab6973845ed`, tag `keep-r091`); freeze published with R092 opened |
+| Changed components deployed in dependency order | Verified PROD backup at V106 (`prod-promotion-7c87487958284aeeb7eeef1427049248`, restore passed); apply 1 (plan 0 add, 5 change, 0 destroy, applied 03:50:44Z to 03:51:21Z; reader, command, notify, jobs and chat revisions on the new image, no `AGENT_CONVERSATION_*` environment); V107 (check 04:05:31Z to 04:06:04Z, journal-owner window 04:06:17Z to 04:07:49Z, applied 04:06:23Z to 04:07:44Z, checksum 2074583382, readback 107 rows, function gone); Hosting 04:18:31Z to 04:19:16Z |
+| Version/environment and affected PROD smoke verified once | R091 marker on the live app, chat origin in bundle, config and CSP, five services at 100%, chat `/health` 200 and 401 without a token, collector 14 runs 17 of 17 |
+| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Inventory, tracker, Development Changes, database README and `R053_OPERATOR.md` updated; tag `R091` on `db7789e3` (annotated tag `8785b61a`, Release tag workflow, 24 October 2026) |
 
-SQL: V107 is the only pending migration on PROD from V106; manifest, hash and backup reference are placeholders for Forge. Infrastructure: the reviewed PROD plan (0 add, 1 change, 0 destroy, only the three `AGENT_CONVERSATION_*` entries leave the command service) and its actual apply and readback are placeholders. The destruction of the policy secrets and the DEV identity is a separate follow-up pull request, not part of this promotion. No forced notification, job or financial write is part of it.
+SQL: V107 was the only pending migration from V106, applied under the release file by the guarded runner. Infrastructure: the reviewed plan above with its actual apply and readback. Notification and jobs: unchanged; nothing forced.
+
+### Deviations and limitations
+1. The connect preflight did not know the Grafana roles, so the first V107 window (03:53:45Z to 03:54:52Z) opened and was restored without a migration; fixed in `acdd11f7` (PR #135) and rerun.
+2. The runner allowlist refused two `integration-agent` Markdown files from an unrelated `main` commit (`20784483`); fixed in the delivery tool `304ed4a3` (PR #136).
+3. Limitations: the policy secrets and the DEV test identity are not yet destroyed (a Terraform removal in the next change); three inert dead keys remain on the VM (R092); `mw_integration_agent` keeps SELECT on the notification, push and jobs tables (a follow-up).
 
 ### Close
-- Outcome: Placeholder
-- Recovery reference: Recovery section above; backup reference placeholder
-- Changed documents, if any: Placeholder
-- Published evidence/tag: Placeholder
-- Outstanding owner action, if any: none known; the follow-up pull request for the secrets and the DEV identity, and the three dead configuration keys in R092.
+- Outcome: applied and verified in PROD; the policy-secret destruction is the one open owner-approved step.
+- Recovery reference: Continue here (baseline and rollback) and the Recovery section above; the promotion backup and the `mw_agent` backup named in Changes.
+- Changed documents, if any: Environment inventory (PROD rows), Release Tracker, Development Changes, and the pruning below.
+- Published evidence/tag: tag `R091` on `db7789e3` (annotated tag `8785b61a`, Release tag workflow, 24 October 2026).
+- Outstanding owner action, if any: none; the Terraform removal and its secret and identity destruction are already approved.
 
+### Closure pruning (release workflow, 24 October 2026)
+- Inbound links repointed first to the commit permalink of `b44f2c39` (the last commit where the target exists): `project/Documents/Development_Changes.md` and `project/Documents/Release_Tracker.md` (the R088 record link).
+- Change note deleted (R088 left the retention window of R091, R090 and R089): `Change Logs/CHANGE_NOTES_R088_NUMBER_GROUNDING_2026-10-21.md`.
+- Development Changes: the R091 row is replaced by one R091 follow-up row; no other R091 section existed.
+- Evidence deleted: none (see the `npm run check:docs` result).
