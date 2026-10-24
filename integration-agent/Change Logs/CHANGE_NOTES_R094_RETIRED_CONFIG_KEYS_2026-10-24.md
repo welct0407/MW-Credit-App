@@ -17,7 +17,7 @@ R091 left three inert keys of the retired Instagram Partner conversation in the 
 
 ## Not run
 - The agent PostgreSQL lab (`tests/lab/setup.sh`): this change touches no agent migration or state code.
-- The VM deploy (`deploy-runtime.py` dry-run, freeze, install and activate on `vm-mw-credit-agent`) and its readback. These are for the orchestrator.
+- The VM deploy ran after this note was written; see Deploy record.
 
 ## Recovery
 The freeze copy from `deploy-runtime.py` (a dated 0700 directory under `/var/lib/mw-integration-agent/rollback/`) holds the configuration with the three keys and the previous code. Rolling back to it restores both. In Git, revert this batch's commit.
@@ -26,4 +26,14 @@ The freeze copy from `deploy-runtime.py` (a dated 0700 directory under `/var/lib
 None.
 
 ## Remaining work
-The VM deploy and its readback, for the orchestrator: configuration 81 keys instead of 84, catalogue revision 32 with 16 services.
+The VM deploy and its readback (done, see Deploy record): done: configuration 80 keys instead of 83, catalogue revision 32 with 16 services.
+
+## Deploy record
+VM `vm-mw-credit-agent`, 24 October 2026 (UTC), by `deploy-runtime.py`; pins are in the [Environment inventory](../../project/Documents/Environment_Inventory.md).
+| Step | Evidence |
+| --- | --- |
+| Checkout | `1d673a90` to `2032bc3d` |
+| Freeze | 10:57:51Z, rollback directory `runtime-20261024T105751879717Z` (metadata sha256 `86e71c76…ef01`; its configuration has 83 keys) |
+| Install and activate | install 10:57:52Z to 10:57:57Z; activate 10:58:09Z to 10:58:13Z, probe `618c6759-b835-43a9-81d1-4f94eb0c7987` |
+| Readback | configuration 80 keys, none of the three retired keys; `code_version` `2032bc3d`; catalogue revision 32 with 16 services; `/ready` true; `check` ok |
+Deviation: the deploy engine needed an `mw_agent` operator connection file that was absent on the VM; a temporary root-only file was created (password on stdin, never printed) and deleted afterwards. Observed, not caused by R094: `mw-receipt-summary` failed once at 11:06:42Z with `IndeterminateDatatype` (exit 2; the same failure once on 23 October at 11:46Z on the old package), clean since 11:07:40Z; a stale `integration-agent/build/` directory on the VM probably makes `pip` copy the 16 removed conversation modules back. Both are R095 candidates, the owner's call.
