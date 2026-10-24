@@ -209,7 +209,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
         // R075: no request body; the archived receipt is read server-side. Always 200 unless the ids are
         // malformed or the receipt is unknown; recognition is optional and never writes.
         if(req.headers['content-length']&&req.headers['content-length']!=='0'||req.headers['transfer-encoding'])return reject(400,'invalid_request');
-        result=await store.recognize(principal,{requestId:target.requestId,receiptId:target.receiptId});
+        result=await store.recognize(principal,{requestId:target.requestId,receiptId:target.receiptId,borrowerId:req.headers['x-borrower-id']});
         if(result.ok&&result.recognition){warning=recognitionWarning(result.recognition);return send(200,{ok:true,...result.recognition});}
       } else if (target.operation === 'command_status') result = await store.status(principal, target.requestId);
       else return reject(404, 'not_found');

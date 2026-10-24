@@ -9,7 +9,7 @@ from .instagram import Instagram
 from .receipt_image import download,extract
 from .receipt_journal import ReceiptJournal
 from .receipt_master import masters
-from .receipt_identity import receipt_borrower
+from .receipt_identity import PayerHeld,provenance as job_provenance,receipt_context,resolve_payer
 from .payment_match import check as check_existing_payment
 from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,validate_receipt,username
 from .statement_delivery import resolve_recipient
@@ -150,7 +150,9 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
         journal.mark(job['id'],'REVIEW','RECEIPT_RETRY_LIMIT');return
     journal.retry(job['id'],attempt,'RECEIPT_PROCESSING_STARTED',terminal=False)
     try:
-        borrower=receipt_borrower(config,job,journal,master,identity_reader)
+        # R095: the sender context is resolved before extraction; C4/C5 have no borrower until the payer name.
+        context=receipt_context(config,job,journal,master,identity_reader)
+        borrower=context['borrower']
         if job['image'] is None:
             data,digest=fetch(job['url'])
             journal.image(job['id'],data,digest)
@@ -160,10 +162,23 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
         saved=json.loads(job.get('result') or '{}')
         value=saved.get('extraction') or extractor(config,job['image'])
         if archive:archive.classify(job['id'],value)
-        provenance={k:v for k,v in json.loads(job.get('result') or '{}').items() if k=='forwarded_borrower_id'}
-        with journal.db:
-            journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value,'borrower':borrower,**provenance}),job['id']))
+        provenance=job_provenance(job)
+        def save(**extra):
+            with journal.db:
+                journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value,'borrower':borrower,**provenance,**extra}),job['id']))
+        save()
         receipt=validate_receipt(value,master['accounts'])
+        try:
+            from .review_proposal import facts as proposal_facts
+            borrower,payer_lines,step=resolve_payer(context,value,receipt,master,facts=lambda borrower_id:proposal_facts(config,borrower_id),
+                                                    hints=provenance.get('hint_texts'))
+        except PayerHeld as held:
+            # Weak context only: the hold names the candidates the reviewer can choose from in the app.
+            save(payer_candidates=held.candidates);raise
+        if context['borrower'] is None:
+            provenance.update(payer_borrower_id=borrower['id'],payer_step=step);save()
+        # The payer-lines change the posting command carries (guarded by the value read here), or None.
+        receipt['payer_lines']=payer_lines
         # The fresh reference check distinguishes posted matches from conflicting/error rows.
         check_existing_payment(config,receipt,borrower)
         journal.accept(job,{'receipt':receipt,'borrower':borrower,**provenance},[])

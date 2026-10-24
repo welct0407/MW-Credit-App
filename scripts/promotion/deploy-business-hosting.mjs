@@ -724,6 +724,9 @@ const r077Release='683cfceed724778151e1e305adaea50b9ab20c94',r079Release='823e9e
 const r089Release='99758c71b62d904018900438d4082b1a923e53fa';
 // The R090 package source (frozen 2026-10-23), the live PROD runtime source before R091.
 const r090Release='297b76494f344e54dfb708becf5ea2fd63ca684e';
+// R095 baseline: e3d5bc2, the PR #146 merge on main that carries V110 (applied to DEV and PROD separately on
+// 24 October 2026, after the R094 release 2032bc3), so the R095 SQL step is V111 only.
+const r095Baseline='e3d5bc2a0c013f6a2c73eb66a1b90ea64a34a41d';
 const sqlRuntimeReleases={
  R078:{schemaVersion:20,baseline:r077Release,baselineLabel:'R077',migrations:['V97__pwa_row_changes.sql'],sqlBaseline:96,sqlTarget:97,
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py']},
@@ -739,6 +742,9 @@ const sqlRuntimeReleases={
  R091:{schemaVersion:27,baseline:r090Release,baselineLabel:'R090',migrations:['V107__drop_agent_native_operation.sql'],sqlBaseline:106,sqlTarget:107,
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py'],
   hashes:{'V107__drop_agent_native_operation.sql':'06aae62b3273662b6de6bd63bbbd5816ca58ea08e04f05184c67038b6e54aec8'}},
+ R095:{schemaVersion:28,baseline:r095Baseline,baselineLabel:'V110 (PR #146)',migrations:['V111__payer_name.sql'],sqlBaseline:110,sqlTarget:111,
+  delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py','scripts/database/Backfill-PayerNames.py','scripts/database/test_backfill_payer_names.py'],
+  hashes:{'V111__payer_name.sql':'657d4660771d1636f227a3353504a1674ace738770be172960fc03d57484c03a'}},
 };
 const sqlRuntimeDeliveryAllowed=L=>file=>runtimeDeliveryAllowed(file)||sqlRuntimeReleases[L].delivery.includes(file);
 function validateSqlRuntimeSource(m,git,L){
@@ -756,7 +762,7 @@ function validateSqlRuntimeSource(m,git,L){
 async function validateSqlRuntimeSql(m,git,L){
  const rule=sqlRuntimeReleases[L];
  await validatePromotionSql(m,git,{label:L,baseline:rule.sqlBaseline,target:rule.sqlTarget,migrations:rule.migrations});
- // R090 and R091 also pin each migration's reviewed bytes (DEV-applied V104 to V106; V107).
+ // R090, R091 and R095 also pin each migration's reviewed bytes (DEV-applied V104 to V106; V107; V111).
  if(rule.hashes)for(const pin of m.sql.migrations)requireValue(pin.sha256===rule.hashes[pin.name],L+' migration is not the reviewed '+pin.name);
 }
 async function sqlRuntimeHostingPlan(m,{requireApplied,git},L){
@@ -831,9 +837,12 @@ export async function validateR090Sql(m,git=sourceGit){return validateSqlRuntime
 // shape and recovery pins (`recoveryRoles`; a service in `newRoles` has no recovery revision to differ from). The order:
 // R090 applies the SQL first and the images on the target version; R091 (`imageFirst`) rolls out the images on the
 // baseline version first and applies V107 after them, since V107 drops the function the R090 command image still calls.
+// R095 changes two images only (`changedRoles`: command and chat); recovery pins all five services and the other three
+// must read back exactly on their pinned image and revision.
 const chatRuntimeKinds={
  R090:{counts:{add:10,change:4,destroy:0},actions:()=>R090_PLAN_ACTIONS,planLabel:'reviewed chat and four-service plan required',recoveryRoles:runtimeRoles,recoveryLabel:'recovery pins exactly the four existing services',newRoles:['chat'],imageFirst:false},
  R091:{counts:{add:0,change:5,destroy:0},actions:()=>R091_PLAN_ACTIONS,planLabel:'reviewed five-service plan required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],imageFirst:true},
+ R095:{counts:{add:0,change:2,destroy:0},actions:()=>R095_PLAN_ACTIONS,planLabel:'reviewed command and chat image plan required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['command','chat'],imageFirst:false},
 };
 async function chatRuntimeHostingPlan(m,{requireApplied,git},L){
  const rule=sqlRuntimeReleases[L],kind=chatRuntimeKinds[L],roles=[...runtimeRoles,'chat'];
@@ -853,7 +862,11 @@ async function chatRuntimeHostingPlan(m,{requireApplied,git},L){
  if(m.status==='applied'){
   requireValue(m.applied?.sourceCommit===m.sourceCommit&&m.applied.planSha256===m.plan.sha256&&m.applied.database==='loan_manager_prod'&&zulu(m.applied.appliedAt)&&(kind.imageFirst?m.applied.sqlVersion===rule.sqlBaseline&&Date.parse(m.applied.appliedAt)<=Date.parse(m.sql.applied.startedAt):m.applied.sqlVersion===rule.sqlTarget&&Date.parse(m.applied.appliedAt)>=Date.parse(m.sql.applied.finishedAt)),L+' applied source/plan/database mismatch');
   requireValue(plainObject(m.applied.services)&&exact(Object.keys(m.applied.services).sort(),[...roles].sort()),L+' applied readback must name the five services');
-  for(const role of roles){const s=m.applied.services[role];requireValue(s?.image===m.build.image&&s.ready===true&&s.trafficPercent===100&&revisionOf(role).test(s.revision??'')&&(kind.newRoles.includes(role)||s.revision!==recovery.services[role].revision),L+' ready service readback required');}
+  for(const role of roles){
+   const s=m.applied.services[role];
+   if(kind.changedRoles&&!kind.changedRoles.includes(role)){requireValue(s?.image===recovery.services[role].image&&s.revision===recovery.services[role].revision&&s.ready===true&&s.trafficPercent===100,L+' unchanged '+role+' must read back on its pinned image and revision');continue;}
+   requireValue(s?.image===m.build.image&&s.ready===true&&s.trafficPercent===100&&revisionOf(role).test(s.revision??'')&&(kind.newRoles.includes(role)||s.revision!==recovery.services[role].revision),L+' ready service readback required');
+  }
  }
  return validatedHostingArtifact(m,recovery,{release:L,chatOrigin:R090_CHAT_ORIGIN});
 }
@@ -903,6 +916,18 @@ export async function verifyR091LivePackage(m,options={}){
  for(const [role,s] of Object.entries(live))requireValue((s.template?.containers??[]).every(c=>(c.env??[]).every(x=>!String(x?.name??'').startsWith('AGENT_CONVERSATION_'))),L+' live '+role+' must carry no AGENT_CONVERSATION_* env');
 }
 
+// R095 (payer name matching): V111 (PROD 110 to 111, payer lines in "Communication Name", commands schema 8; V110 was
+// applied separately) and the one-time payer backfill, then new command and chat images only (reader, notify and jobs stay
+// on their pinned R094-era revisions). The source descends from e3d5bc2 (PR #146, V110) and adds exactly V111, pinned to
+// its reviewed SHA-256. Plan {add:0, change:2, destroy:0}; SQL first, images after (applied.sqlVersion 111). Live
+// readback as R090 (chat-era checks). The artifact carries the R095 marker and the R090 chat origin.
+export const R095_PLAN_ACTIONS=Object.freeze(['command.image','chat.image']);
+export function validateR095Source(m,git=sourceGit){return validateSqlRuntimeSource(m,git,'R095');}
+export async function validateR095Sql(m,git=sourceGit){return validateSqlRuntimeSql(m,git,'R095');}
+export async function r095HostingPlan(m,{requireApplied=true,git=sourceGit}={}){return chatRuntimeHostingPlan(m,{requireApplied,git},'R095');}
+/** Live: as R090 (the five services read back against the applied pins, chat-era checks). */
+export async function verifyR095LivePackage(m,options={}){await verifyChatRuntimeLive(m,options,'R095');}
+
 /** Verify the supplied token itself and a signed, audience-bound impersonation proof. */
 export async function verifyAppOnlyOperator({token,impersonationToken=token,release='R059',request=fetch,verifyIdToken=async(idToken,audience)=>(await new OAuth2Client().verifyIdToken({idToken,audience})).getPayload()}){
  requireValue(typeof token==='string'&&token.length>0,'operator token required');
@@ -910,7 +935,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }
@@ -997,8 +1022,9 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
  const r089=inputs.schemaVersion===25&&inputs.release==='R089';
  const r090=inputs.schemaVersion===26&&inputs.release==='R090';
  const r091=inputs.schemaVersion===27&&inputs.release==='R091';
- const current=r091||r090||r089||r081||r080||r079||r078||r077||r076||r075||r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
- const plan=r091?await r091HostingPlan(inputs,{requireApplied:!!options['--apply']}):r090?await r090HostingPlan(inputs,{requireApplied:!!options['--apply']}):r089?await r089HostingPlan(inputs,{requireApplied:!!options['--apply']}):r081?await r081HostingPlan(inputs,{requireApplied:!!options['--apply']}):r080?await r080HostingPlan(inputs,{requireApplied:!!options['--apply']}):r079?await r079HostingPlan(inputs,{requireApplied:!!options['--apply']}):r078?await r078HostingPlan(inputs,{requireApplied:!!options['--apply']}):r077?await r077HostingPlan(inputs,{requireApplied:!!options['--apply']}):r076?await r076HostingPlan(inputs,{requireApplied:!!options['--apply']}):r075?await r075HostingPlan(inputs,{requireApplied:!!options['--apply']}):r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
+ const r095=inputs.schemaVersion===28&&inputs.release==='R095';
+ const current=r095||r091||r090||r089||r081||r080||r079||r078||r077||r076||r075||r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
+ const plan=r095?await r095HostingPlan(inputs,{requireApplied:!!options['--apply']}):r091?await r091HostingPlan(inputs,{requireApplied:!!options['--apply']}):r090?await r090HostingPlan(inputs,{requireApplied:!!options['--apply']}):r089?await r089HostingPlan(inputs,{requireApplied:!!options['--apply']}):r081?await r081HostingPlan(inputs,{requireApplied:!!options['--apply']}):r080?await r080HostingPlan(inputs,{requireApplied:!!options['--apply']}):r079?await r079HostingPlan(inputs,{requireApplied:!!options['--apply']}):r078?await r078HostingPlan(inputs,{requireApplied:!!options['--apply']}):r077?await r077HostingPlan(inputs,{requireApplied:!!options['--apply']}):r076?await r076HostingPlan(inputs,{requireApplied:!!options['--apply']}):r075?await r075HostingPlan(inputs,{requireApplied:!!options['--apply']}):r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
  if(options['--check'])console.log(JSON.stringify({dryRun:true,site:plan.site,fileCount:Object.keys(plan.files).length,sourceCommit:plan.sourceCommit,publicVersion:plan.publicVersion}));
  else{
   if(!options['--approval-reference']||!options['--output']||!path.isAbsolute(options['--output']))throw Error('Owner approval and absolute private output required');
@@ -1014,7 +1040,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
   try{await lstat(output);throw Error('Hosting receipt already exists');}catch(error){if(error.code!=='ENOENT')throw error;}
   const token=process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
   delete process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
-  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r091?{release:'R091'}:r090?{release:'R090'}:r089?{release:'R089'}:r081?{release:'R081'}:r080?{release:'R080'}:r079?{release:'R079'}:r078?{release:'R078'}:r077?{release:'R077'}:r076?{release:'R076'}:r075?{release:'R075'}:r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r091)await verifyR091LivePackage(inputs,{token});else if(r090)await verifyR090LivePackage(inputs,{token});else if(r089)await verifyR089LivePackage(inputs,{token});else if(r081)await verifyR081LivePackage(inputs,{token});else if(r080)await verifyR080LivePackage(inputs,{token});else if(r079)await verifyR079LivePackage(inputs,{token});else if(r078)await verifyR078LivePackage(inputs,{token});else if(r077)await verifyR077LivePackage(inputs,{token});else if(r076)await verifyR076LivePackage(inputs,{token});else if(r075)await verifyR075LivePackage(inputs,{token});else if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
+  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r095?{release:'R095'}:r091?{release:'R091'}:r090?{release:'R090'}:r089?{release:'R089'}:r081?{release:'R081'}:r080?{release:'R080'}:r079?{release:'R079'}:r078?{release:'R078'}:r077?{release:'R077'}:r076?{release:'R076'}:r075?{release:'R075'}:r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r095)await verifyR095LivePackage(inputs,{token});else if(r091)await verifyR091LivePackage(inputs,{token});else if(r090)await verifyR090LivePackage(inputs,{token});else if(r089)await verifyR089LivePackage(inputs,{token});else if(r081)await verifyR081LivePackage(inputs,{token});else if(r080)await verifyR080LivePackage(inputs,{token});else if(r079)await verifyR079LivePackage(inputs,{token});else if(r078)await verifyR078LivePackage(inputs,{token});else if(r077)await verifyR077LivePackage(inputs,{token});else if(r076)await verifyR076LivePackage(inputs,{token});else if(r075)await verifyR075LivePackage(inputs,{token});else if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
   const request=async(url,method,body,raw=false)=>{if(!['firebasehosting.googleapis.com','upload-firebasehosting.googleapis.com'].includes(new URL(url).hostname))throw Error('Unexpected Hosting API host');const response=await fetch(url,{method,redirect:'error',headers:{Authorization:'Bearer '+token,'x-goog-user-project':'clever-oasis-508610-n7','Content-Type':raw?'application/octet-stream':'application/json'},...(method==='GET'?{}:{body:raw?body:JSON.stringify(body)})});if(!response.ok)throw Error('Hosting API failed with status '+response.status);const text=await response.text();return text?JSON.parse(text):{};};
   const packageSha256=current?sha(await readFile(options['--inputs'])):undefined;
   if(current){await writeFile(output,JSON.stringify({schemaVersion:1,status:'pending-reconciliation',sourceCommit:plan.sourceCommit,packageSha256,site:plan.site,approvalReference:options['--approval-reference'],instruction:'Do not retry. Reconcile the live Hosting release before recovery.'},null,2),{flag:'wx'});persistReceipt();}

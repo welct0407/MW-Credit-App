@@ -41,6 +41,13 @@ def isolated(failures,stage,on_error=None):
         if on_error:on_error()
 
 
+def has_attachment(event):
+    raw=event.get('attachments')
+    try:value=json.loads(raw) if isinstance(raw,str) else raw
+    except ValueError:return False
+    return isinstance(value,list) and len(value)>0
+
+
 def automatic_payment(config,job,proposal):
     return (config.get('receipt_auto_payment_enabled') is True and proposal['action']=='Lump Sum'
             and job['created_at']>=cutoff_ts(config,'receipt_auto_payment_cutoff'))
@@ -137,6 +144,9 @@ class Run:
         for event in events:
             with isolated(self.failures,'reply'):
                 event=dict(event)
+                # R095: the partner DM is also the forwarding channel. A message without text that carries an attachment
+                # is receipt intake (its own receipt job), never a review decision or a hold-reply acknowledgement.
+                if not str(event.get('text') or '').strip() and has_attachment(event):continue
                 from .review_resend import is_command,queue
                 if is_command(event):
                     if db.execute('SELECT 1 FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone():continue

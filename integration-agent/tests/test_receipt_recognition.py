@@ -23,7 +23,8 @@ from mw_integration_agent.receipt_image import SCHEMA, RecognitionUnavailable
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULT = {'is_payment_receipt': True, 'transfer_successful': True, 'date': '2026-10-18', 'time': '10:15:00',
-          'amount': '1500.00', 'currency': 'THB', 'reference': 'SYN123456', 'account_numbers': ['xxx-x-x4321-x']}
+          'amount': '1500.00', 'currency': 'THB', 'reference': 'SYN123456', 'payer_name': 'MR. SYNTHETIC P***',
+          'account_numbers': ['xxx-x-x4321-x']}
 GEMINI = {'gemini_project': 'clever-oasis-508610-n7', 'gemini_location': 'asia-southeast1', 'gemini_model': 'gemini-2.0-flash-001'}
 DEV = {'email': 'mw-credit-command-dev@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '111111111111111111111'}
 PROD = {'email': 'mw-credit-command-prod@clever-oasis-508610-n7.iam.gserviceaccount.com', 'subject': '222222222222222222222'}
@@ -174,6 +175,17 @@ class ProviderTests(unittest.TestCase):
                 receipt_image.checked(bad)
             self.assertEqual(str(caught.exception), 'RECEIPT_EXTRACTION_UNAVAILABLE')
         self.assertEqual(receipt_image.checked(dict(RESULT)), RESULT)
+
+    def test_r095_payer_name_is_a_required_string_of_the_sender_only(self):
+        without = {k: v for k, v in RESULT.items() if k != 'payer_name'}
+        for bad in (without, {**RESULT, 'payer_name': None}, {**RESULT, 'payer_name': ['x']}):
+            with self.subTest(bad=bad), self.assertRaises(RecognitionUnavailable):
+                receipt_image.checked(bad)
+        self.assertEqual(receipt_image.checked({**RESULT, 'payer_name': ''})['payer_name'], '')
+        self.assertIn('payer_name', SCHEMA['required'])
+        prompt = ' '.join(receipt_image.PROMPT.split())
+        self.assertIn('payer_name is the SENDER (payer, from-account holder) name exactly as printed, title included', prompt)
+        self.assertIn('never the recipient name; empty when no sender name is printed or it is unreadable.', prompt)
 
     def test_prompt_asks_for_every_printed_account_number(self):
         # R087: sender and recipient numbers alike; the host keeps the one active cash account that fits.

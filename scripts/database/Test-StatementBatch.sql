@@ -172,6 +172,8 @@ END $$;
 \ir Test-MonitoringOpsHealth.sql
 -- V104 (R090): the in-app chat tables and RPCs under the real roles (claims, completion, append-only, capability).
 \ir Test-Chat.sql
+-- V111 (R095): the payer name fill of both payment commands under the DEV command user (rolled back).
+\ir Test-PayerName.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).
 \ir Test-DevTestPartner.sql
 -- Last: the migration-owned grant matrix (DB-CI-05 / DB-ACCESS-02).

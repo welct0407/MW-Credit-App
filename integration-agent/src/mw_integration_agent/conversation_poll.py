@@ -14,7 +14,8 @@ from .receipt_master import masters
 from .receipt_run import controls
 
 
-MESSAGE_FIELDS='id,created_time,from,attachments'
+# R095: `message` (text) carries the forwarder's nickname hint that follows a slip in the same read.
+MESSAGE_FIELDS='id,created_time,from,message,attachments'
 MAX_HISTORY_PAGES=10
 
 
@@ -123,22 +124,35 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
     allowed.discard(str(config['instagram_account_id']))
     if not allowed:return 0,0,False
     cid=conversation['id']
+    # R095: from payer_name_cutoff a group with two or more enabled borrowers carries them as evidence, so the
+    # payer name decides who paid (receipt_identity). Message time gates it, like the forwarding cutoff.
+    payer_cutoff=cutoff_ts(config,'payer_name_cutoff') if config.get('payer_name_cutoff') else None
+    group_ids=None
+    if payer_cutoff is not None:
+        from .receipt_identity import group_borrowers
+        members=group_borrowers(master,[p for p in participants if str(p.get('id',''))!=str(config['instagram_account_id'])])
+        if len(members)>=2:group_ids=sorted(b['id'] for b in members)
     prior=db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(cid,)).fetchone()
     since=cutoff if day else max(cutoff,(prior[0]-300) if prior else cutoff)
     found=history_since(api,config,conversation,since,now)
     added=images=0
     # Cursor and job reservations commit together. A failed read never advances this cursor.
     with db:
-        for message,ts in reversed(found):
+        ordered=list(reversed(found))
+        for position,(message,ts) in enumerate(ordered):
             sender=str(message.get('from',{}).get('id',''))
             attachments=message.get('attachments',{})
             if attachments.get('paging',{}).get('next'):raise ConfigurationError('POLL_ATTACHMENTS_INCOMPLETE')
             items=attachments.get('data',[])
             valid=sender in allowed
-            forwarded=False
+            forwarded=candidates=False
             forwarding_evidence=None
+            payer_time=payer_cutoff is not None and ts>=payer_cutoff
+            if valid and payer_time and group_ids:
+                # C4': a borrower sends in a multi-borrower group; compared with the sender's name, never filled.
+                forwarding_evidence=json.dumps({'candidate_borrower_ids':group_ids})
             if not valid and config.get('receipt_forwarding_enabled') is True:
-                from .receipt_identity import forwarded_borrower
+                from .receipt_identity import forwarded_borrower,forwarded_candidates
                 from .receipt_rules import ReceiptInvalid
                 forward_cutoff=cutoff_ts(config,'receipt_forwarding_cutoff')
                 if ts>=forward_cutoff:
@@ -146,9 +160,24 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
                         matched=forwarded_borrower(config,master,participants,sender)
                         forwarding_evidence=json.dumps({'forwarded_borrower_id':matched['id']})
                         valid=forwarded=True
-                    except ReceiptInvalid:pass
+                    except ReceiptInvalid:
+                        # C4: the forwarder in a group (4+ persons) with two or more enabled borrowers.
+                        if payer_time:
+                            try:
+                                found=forwarded_candidates(config,master,participants,sender)
+                                forwarding_evidence=json.dumps({'candidate_borrower_ids':sorted(b['id'] for b in found)})
+                                valid=candidates=True
+                            except ReceiptInvalid:pass
+            if candidates:
+                # R095 hint: the forwarder's immediately next message of this same read, a text within 60 s (next_hint).
+                from .receipt_identity import hint_texts,next_hint
+                read=[(str(m.get('from',{}).get('id','')),t,m.get('message'),m.get('reply_to'),bool(m.get('attachments',{}).get('data')))
+                      for m,t in ordered]
+                texts=hint_texts(next_hint(read,position))
+                if texts:forwarding_evidence=json.dumps({**json.loads(forwarding_evidence),'hint_texts':texts},ensure_ascii=False)
+            outcome='FORWARDED' if forwarded else 'CANDIDATES' if candidates else ('BORROWER' if valid else 'IGNORED')
             inserted=db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',
-               (message['id'],cid,ts,now,'FORWARDED' if forwarded else ('BORROWER' if valid else 'IGNORED'))).rowcount
+               (message['id'],cid,ts,now,outcome)).rowcount
             if not inserted:continue
             added+=1
             if not valid:continue

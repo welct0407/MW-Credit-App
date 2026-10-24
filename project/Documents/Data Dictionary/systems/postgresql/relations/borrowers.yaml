@@ -148,7 +148,7 @@
       "default_expression": null
       "collation": "\"default\""
       "acl": null
-      "comment": null
+      "comment": "Payer names on slips, one per line (max 5): line 1 the borrower, later lines people who pay for them; ? is one unknown letter. Learned from posted slips; editable."
     "Instagram Username":
       "schema": "public"
       "relation": "Borrowers"

@@ -12,6 +12,23 @@ test('receipt identity is deterministic, environment bound, native schema7 and r
  assert.equal(JSON.parse(agentIdentity(command,actor).canonicalJson).receipt,null);assert.throws(()=>canonicalCommand(command));
  for(const patch of [{requestId:receiptRequestId('dev','other')},{amountReceived:'100.5'},{transferTime:'24:00'},{paymentDate:'2026-02-30'},{extra:true},{archiveEvidence:{...command.archiveEvidence,objectKey:command.archiveEvidence.objectKey.replace('/dev/','/prod/')}},{archiveEvidence:{...command.archiveEvidence,generation:1234}}])assert.throws(()=>canonicalAgentCommand({...command,...patch}));
 });
+test('R095 schemaVersion 8 adds payerLines {before,after} after bankReference; 7 stays accepted and refuses it',()=>{
+ const change={after:'นาย สมชาย ใจดี\nน.ส. สมฤดี เ',before:'นาย สมชาย ใจดี'};
+ const v8={...command,schemaVersion:8,payerLines:change};
+ const canonical=canonicalAgentCommand(v8);
+ assert.deepEqual(Object.keys(canonical),['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','payerLines','proposalSha256','archiveEvidence']);
+ assert.deepEqual(Object.keys(canonical.payerLines),['before','after'],'canonical key order');
+ assert.match(agentIdentity(v8,actor).canonicalJson,/"payerLines":\{"before":"นาย สมชาย ใจดี","after":"นาย สมชาย ใจดี\\nน.ส. สมฤดี เ"\},"proposalSha256"/);
+ assert.equal(canonicalAgentCommand({...v8,payerLines:null}).payerLines,null);
+ assert.equal(canonicalAgentCommand({...v8,payerLines:{before:null,after:'MR. SOMCHAI J***'}}).payerLines.before,null);
+ assert.notEqual(agentIdentity(v8,actor).payloadSha256,agentIdentity({...v8,payerLines:{...change,after:'Other Name'}},actor).payloadSha256);
+ assert.equal('payerLines' in canonicalAgentCommand(command),false);
+ assert.throws(()=>canonicalAgentCommand({...command,payerLines:null}));
+ for(const payerLines of ['x',{after:'a b c'},{before:null,after:''},{before:'a b c',after:'a b c'},{before:null,after:'a\n\nb'},{before:null,after:' padded'},{before:null,after:Array(6).fill('ก กกก').join('\n')},undefined])
+  assert.throws(()=>canonicalAgentCommand({...v8,payerLines}),JSON.stringify(payerLines));
+ const {payerLines:_,...missing}=v8;assert.throws(()=>canonicalAgentCommand(missing));
+ assert.throws(()=>canonicalAgentCommand({...v8,schemaVersion:9}));
+});
 test('machine receipt policy stays off by default and pins environment/audience/private numeric version',()=>{
  assert.equal(loadAgentReceiptPolicy({},'dev'),null);
  assert.throws(()=>loadAgentReceiptPolicy({AGENT_RECEIPT_API_ENABLED:'true'},'dev'));

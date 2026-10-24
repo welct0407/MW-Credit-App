@@ -9,6 +9,7 @@ from decimal import Decimal, InvalidOperation
 from .business_time import BANGKOK
 from .config import ConfigurationError
 from .graph_email import valid_email
+from .payer_name import display
 
 __all__ = ['BANGKOK', 'ReceiptInvalid', 'username', 'borrower_for', 'account_pattern', 'match_account',
            'validate_receipt', 'recipients', 'summary']
@@ -105,7 +106,9 @@ def validate_receipt(value, accounts, today=None):
     return {'date':receipt_date.isoformat(),'time':clock,'timestamp':receipt_timestamp,
             'payment_fields':{'Payment Date':receipt_date.isoformat(),'Created At':receipt_date.isoformat()+' '+clock},
             'amount':f'{amount:.2f}',
-            'reference':reference,'account_id':account['id'],'account_label':account['label']}
+            'reference':reference,'account_id':account['id'],'account_label':account['label'],
+            # R095: the slip payer name as printed ('' when absent); a proposal fact, never a financial one.
+            'payer_name':display(value.get('payer_name'))}
 
 
 def recipients(partners):

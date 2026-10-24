@@ -1,4 +1,5 @@
 import {createHash} from 'node:crypto';
+import {validPayerLines} from '../receipts/payer-name.mjs';
 const fail=()=>{throw Error('invalid_receipt_command');};
 const exact=(value,keys)=>{if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!==[...keys].sort().join(','))fail();};
 const text=(value,max=256)=>{if(typeof value!=='string'||!value.isWellFormed()||!value.trim()||value!==value.trim()||Buffer.byteLength(value)>max||/[\0\r\n]/.test(value))fail();return value;};
@@ -10,8 +11,11 @@ export function receiptRequestId(environment,reviewId){
  const hex=bytes.toString('hex');return`${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
 }
 export function canonicalAgentCommand(input){
- exact(input,['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','proposalSha256','archiveEvidence']);
- if(input.schemaVersion!==7||input.requestId!==receiptRequestId(input.environment,input.reviewId)||!['automatic','reviewed'].includes(input.mode))fail();
+ // R095 schemaVersion 8 = 7 plus payerLines (null or {before, after}: the payer-lines change, written only while the
+ // borrower's column still equals `before`). 7 stays accepted until the agent sends 8 on both environments.
+ const v8=input?.schemaVersion===8;
+ exact(input,['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference',...(v8?['payerLines']:[]),'proposalSha256','archiveEvidence']);
+ if(![7,8].includes(input.schemaVersion)||(v8&&!validPayerLines(input.payerLines))||input.requestId!==receiptRequestId(input.environment,input.reviewId)||!['automatic','reviewed'].includes(input.mode))fail();
  const borrowerId=text(input.borrowerId),cashAccountId=text(input.cashAccountId);
  if(typeof input.amountReceived!=='string'||!/^[1-9][0-9]{0,16}$/.test(input.amountReceived)||BigInt(input.amountReceived)>92233720368547758n)fail();
  if(typeof input.paymentDate!=='string'||input.paymentDate<'0001-01-01'||!/^\d{4}-\d{2}-\d{2}$/.test(input.paymentDate)||!Number.isFinite(Date.parse(input.paymentDate+'T00:00:00Z'))||new Date(input.paymentDate+'T00:00:00Z').toISOString().slice(0,10)!==input.paymentDate||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(input.transferTime))fail();
@@ -21,7 +25,7 @@ export function canonicalAgentCommand(input){
  if(typeof a.capturedAt!=='string'||!/^[1-9][0-9]{0,11}(?:\.[0-9]{0,8}[1-9])?$/.test(a.capturedAt)||!Number.isFinite(new Date(Number(a.capturedAt)*1000).getTime()))fail();
  const extension={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[a.mimeType];
  if(!extension||a.objectKey!==`receipts/${input.environment}/${new Date(Number(a.capturedAt)*1000).toISOString().slice(0,10).replaceAll('-','/')}/${a.receiptId}/${a.rawSha256}.${extension}`)fail();
- return {schemaVersion:7,requestId:input.requestId,environment:input.environment,reviewId:input.reviewId,mode:input.mode,borrowerId,cashAccountId,amountReceived:input.amountReceived,paymentDate:input.paymentDate,transferTime:input.transferTime,bankReference:input.bankReference,proposalSha256:input.proposalSha256,archiveEvidence:{receiptId:a.receiptId,objectKey:a.objectKey,generation:a.generation,rawSha256:a.rawSha256,mimeType:a.mimeType,sizeBytes:a.sizeBytes,capturedAt:a.capturedAt}};
+ return {schemaVersion:input.schemaVersion,requestId:input.requestId,environment:input.environment,reviewId:input.reviewId,mode:input.mode,borrowerId,cashAccountId,amountReceived:input.amountReceived,paymentDate:input.paymentDate,transferTime:input.transferTime,bankReference:input.bankReference,...(v8?{payerLines:input.payerLines===null?null:{before:input.payerLines.before,after:input.payerLines.after}}:{}),proposalSha256:input.proposalSha256,archiveEvidence:{receiptId:a.receiptId,objectKey:a.objectKey,generation:a.generation,rawSha256:a.rawSha256,mimeType:a.mimeType,sizeBytes:a.sizeBytes,capturedAt:a.capturedAt}};
 }
 export function agentIdentity(input,actor){
  const command=canonicalAgentCommand(input);

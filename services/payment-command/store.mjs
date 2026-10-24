@@ -351,7 +351,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     },
     // R075: slip recognition for an uploaded receipt. It never writes; the partner's confirm stays the
     // only financial write. No pool client is held while the receipt is read or the recognizer runs.
-    async recognize(principal,{requestId,receiptId}) {
+    async recognize(principal,{requestId,receiptId,borrowerId}) {
       if (!uuid.test(requestId||'') || !uuid.test(receiptId||'')) return failure(400,'invalid_request');
       requestId=requestId.toLowerCase();receiptId=receiptId.toLowerCase();
       const authorized=await run(principal,async(_client,actor)=>({ok:true,value:{actor}}),true,'receipt.read');
@@ -379,7 +379,10 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         const businessDate=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;
         const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Number" AS number,a."Alternative Account Number" AS alternative,(a."Active" IS TRUE AND h."Active" IS TRUE) AS active FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder"`)).rows;
         const referenceExists=async reference=>(await client.query(`SELECT EXISTS(SELECT 1 FROM public."Payments" WHERE upper(regexp_replace(coalesce("Bank Reference",''),'[[:space:]-]','','g'))=$1) AS found`,[reference])).rows[0].found===true;
-        const value=await evaluateSlip(cached.result,{businessDate,accounts,referenceExists});
+        // R095: the form's borrower (X-Borrower-ID) gives its payer lines; an unknown or unreadable id gives none.
+        const named=typeof borrowerId==='string'&&borrowerId!==''&&Buffer.byteLength(borrowerId)<=256&&(ownerTesting||borrowerId===fixture?.borrowerId);
+        const row=named?(await client.query('SELECT "Communication Name" AS payer FROM public."Borrowers" WHERE "Row ID"=$1',[borrowerId])).rows[0]:undefined;
+        const value=await evaluateSlip(cached.result,{businessDate,accounts,referenceExists,storedPayerName:row?.payer??null,payerBorrowerKnown:!!row});
         return {ok:true,value:{recognition:{...value,provider:cached.provider,model:cached.model}}};
       },true,'receipt.read');
     },
