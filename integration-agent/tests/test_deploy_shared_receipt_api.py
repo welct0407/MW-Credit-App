@@ -181,6 +181,10 @@ class Host:
             self.events.append('daemon-reload')
         elif args[1:4] == ('-m', 'pip', 'install') and '--no-deps' in args and args[-1] == str(self.repo):
             import shutil
+            # Like pip: a build/lib left in the checkout is reused and its modules reach the installed package.
+            self.build_at_pip = (self.repo / 'build').exists() or any((self.repo / 'src').glob('*.egg-info'))
+            if (self.repo / 'build/lib/mw_integration_agent').is_dir():
+                shutil.copytree(self.repo / 'build/lib/mw_integration_agent', self.site, dirs_exist_ok=True)
             shutil.copytree(self.repo / 'src/mw_integration_agent', self.site, dirs_exist_ok=True)  # pip leaves stale modules
             self.events.append('pip')
         else:
@@ -344,6 +348,22 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual((metadata['oauth_backup_created'], token.stat().st_mode & 0o777), (True, 0o600))
         self.host.chown.assert_any_call(token, user='mwagent', group='mwagent')
         self.assertEqual(metadata['phase'], 'installed')
+
+    def test_install_starts_from_a_clean_build_directory(self):
+        # R095: a stale build/ (and egg-info) from an earlier pip run is removed before pip, so no module that left
+        # the source is installed again and nothing needs removing afterwards.
+        self.assertEqual(self.host.phase('freeze')[0], 0)
+        (self.host.site / 'appsheet.py').unlink()
+        dead = self.host.repo / 'build/lib/mw_integration_agent/dead.py'
+        dead.parent.mkdir(parents=True); dead.write_text('STALE = True\n')
+        (self.host.repo / 'src/mw_integration_agent.egg-info').mkdir(); (self.host.repo / 'src/mw_integration_agent.egg-info/PKG-INFO').write_text('x')
+        self.assertEqual(self.host.phase('install')[0], 0)
+        self.assertIn('pip', self.host.events)
+        self.assertFalse(self.host.build_at_pip, 'build/ and egg-info are gone before pip runs')
+        self.assertFalse((self.host.repo / 'build').exists())
+        self.assertFalse((self.host.site / 'dead.py').exists())
+        self.assertEqual(self.host.metadata()['removed_files'], [])
+        self.assertEqual(deploy.compare_tree(self.host.repo / 'src/mw_integration_agent', self.host.site), ([], [], []))
 
     def test_install_refuses_empty_source_before_pip(self):
         self.assertEqual(self.host.phase('freeze')[0], 0)

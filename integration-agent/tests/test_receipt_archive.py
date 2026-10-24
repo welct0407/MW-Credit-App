@@ -209,7 +209,19 @@ class ProjectorSignInTests(unittest.TestCase):
             conn = self.Conn()
             kwargs = self.project(self.config(secrets, database_auth='iam'), conn)
         self.assertEqual((kwargs['port'], kwargs['user'], kwargs['password']), (5432, 'mw_receipt_projector', 'synthetic'))
-        self.assertTrue(conn.statements[0][0].startswith('SELECT public.attach_payment_receipt_evidence'))
+        from mw_integration_agent import receipt_projection
+        self.assertEqual(conn.statements[0][0], receipt_projection.ATTACH_SQL)
+
+    def test_attachment_casts_follow_the_function_signature(self):
+        # R095 hardening: every parameter is cast, to exactly the committed signature of the business function.
+        import re
+        from mw_integration_agent import receipt_projection
+        casts = re.findall(r'%s::(\w+)', receipt_projection.ATTACH_SQL)
+        functions = (Path(__file__).resolve().parents[2] / 'database/current/public-functions.sql').read_text(encoding='utf-8')
+        signature = re.search(r'-- Name: attach_payment_receipt_evidence\(([^)]*)\); Type: FUNCTION', functions).group(1)
+        names = {'timestamp with time zone': 'timestamptz'}
+        self.assertEqual(casts, [names.get(t.strip(), t.strip()) for t in signature.split(',')])
+        self.assertEqual(receipt_projection.ATTACH_SQL.count('%s'), 7)
 
     def test_iam_sets_role_first_outside_a_transaction_and_reads_no_password(self):
         from mw_integration_agent import receipt_projection

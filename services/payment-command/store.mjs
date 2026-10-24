@@ -38,6 +38,8 @@ const borrowerOptionLimit = 1000;
 // R075: one recognizer call per uploaded slip for a form session; rules are never cached.
 const RECOGNITION_TTL_MS = 15 * 60 * 1000, RECOGNITION_CACHE_LIMIT = 64;
 /** Retryable busy failures: lock codes, or the SQL try-lock RAISE texts (every current form grepped from database/migrations). */
+// R095: the Partner roles that may record settlements (profit payouts).
+export const SETTLEMENT_ROLES=Object.freeze(['A','B']);
 export const commandBusy = error => ['55P03','40P01','57014'].includes(error?.code) || (error?.code === 'P0001' && /\b(?:is|are) busy; (?:sync and )?(?:retry|request)\b/.test(error?.message ?? ''));
 
 /** DISPOSABLE candidate only. No ambient connection/config, service launcher or live permission. */
@@ -123,6 +125,9 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       if(!ownerTesting)return failure(403,'access_denied');
       let command;try{command=canonicalOperation(input)}catch{return failure(400,'invalid_request')}
       return run(principal,async(client,actor,markAttempted)=>{
+        // R095: settlements are the two Partners' (roles A and B) profit payouts. Any other Partner role (the DEV test
+        // account's "Test") may not create, update, complete, reverse, cancel or settle-all one; nothing is attempted.
+        if(command.operation.startsWith('settlement.')&&!SETTLEMENT_ROLES.includes((await client.query('SELECT "Partner Role" AS role FROM public."Partners" WHERE "Row ID"=$1',[actor.partnerId])).rows[0]?.role))return failure(403,'access_denied');
         let receipt=null;const existing=(await client.query('SELECT canonical_json FROM public.pwa_payment_commands WHERE request_id=$1 AND actor_issuer=$2 AND actor_subject=$3',[command.requestId,actor.issuer,actor.subject])).rows[0];
         if(existing){const stored=JSON.parse(existing.canonical_json);if(stored.contractVersion!==2||(stored.receipt?.receiptId??null)!==command.receiptId)return failure(409,'command_conflict');receipt=stored.receipt;}
         else if(command.receiptId){if(typeof resolveReceipt!=='function')return failure(422,'receipt_unsupported');let bound;try{bound=await resolveReceipt({receiptId:command.receiptId,requestId:command.requestId,actor})}catch{return failure(503,'receipt_unavailable')}try{if(!bound||Object.keys(bound).sort().join(',')!=='actor,descriptor,requestId'||bound.requestId!==command.requestId||JSON.stringify(canonicalActor(bound.actor))!==JSON.stringify(actor))return failure(422,'receipt_unavailable');receipt=canonicalReceipt(bound.descriptor);if(receipt?.receiptId!==command.receiptId)return failure(422,'receipt_unavailable')}catch{return failure(422,'receipt_unavailable')}}

@@ -25,6 +25,12 @@ NOTICE_CAP=6  # bounded transport work per notify pass; failures keep the 300 s 
 SAME_OUTCOME='FACTS_CHANGED_SAME_OUTCOME'
 LOAN_CLOSE='LOAN_CLOSE_REQUIRED'
 
+# R095 (Cloud SQL log, both receipt-cycle failures): "could not determine data type of parameter $2" for a None note,
+# because "? IS NULL" gives the server no type to infer. Both note parameters are cast to text (detail's type), in the
+# form both state backends accept (SQLite and PostgreSQL through the adapter's ? to %s rewrite).
+SETTLE_REVIEW_SQL = ("UPDATE partner_reviews SET state=?,detail=CASE WHEN CAST(? AS TEXT) IS NULL THEN detail ELSE CAST(? AS TEXT) END "
+                     "WHERE id=?")
+
 
 @contextmanager
 def isolated(failures,stage,on_error=None):
@@ -282,7 +288,7 @@ class Run:
                 state='POSTED' if verified else 'MANUAL_REQUIRED' if api_result and api_result.get('originalOutcome',{}).get('status')=='rejected' else 'UNKNOWN'
                 # The row can no longer return to APPROVED, so the facts note may join the policy marker.
                 note=outcome and marker+outcome
-                with db:db.execute("UPDATE partner_reviews SET state=?,detail=CASE WHEN ? IS NULL THEN detail ELSE ? END WHERE id=?",(state,note,note,review['id']))
+                with db:db.execute(SETTLE_REVIEW_SQL,(state,note,note,review['id']))
 
     def notify(self):
         changed={i for i,s in ((r['id'],r['state']) for r in self.db.execute('SELECT id,state FROM partner_reviews')) if self.states.get(i)!=s}

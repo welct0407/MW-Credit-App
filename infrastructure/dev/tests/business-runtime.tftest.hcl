@@ -120,3 +120,15 @@ run "command_keeps_cpu_for_post_commit_wake" {
     error_message = "The DEV command service keeps CPU allocated (post-commit wake); the reader stays request-based."
   }
 }
+
+# R095 Part B: the Claude test-session secret is a DEV container only (no version, no runtime accessor).
+run "claude_test_session_container_only" {
+  command = plan
+  plan_options { target = [google_secret_manager_secret.claude_test_session] }
+  assert {
+    condition = (google_secret_manager_secret.claude_test_session.secret_id == "mw-credit-app-dev-claude-test-session"
+      && google_secret_manager_secret.claude_test_session.labels == tomap({ application = "mw-credit-app", environment = "dev", purpose = "claude-test" })
+    && length(google_secret_manager_secret.claude_test_session.replication[0].auto) == 1)
+    error_message = "The DEV Claude test-session secret is the labelled, auto-replicated container mw-credit-app-dev-claude-test-session."
+  }
+}
