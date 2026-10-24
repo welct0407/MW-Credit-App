@@ -69,6 +69,10 @@ CONFIGURED_CONSUMERS = {
     'mw_agent_relay': 'database/migrations/V93__review_wave4_hygiene.sql',
     'metabase_borrower_reader': 'database/migrations/V47__partner_reporting.sql',
     'mw_chart_reader': 'project/Documents/Data Dictionary/systems/postgresql/settings/mw-chart-reader.yaml',
+    # Grafana roles (CONNECT on loan_manager_prod since R091 step 1); Grafana connects on demand, so neither is in
+    # EXPECTED_CONNECTED.
+    'mw_agent_dashboard': 'database/migrations/V104__pwa_chat.sql',
+    'mw_grafana_reader': 'infrastructure/grafana/owned-services.tf.json',
 }
 # Templated sources: the file holds the name with ${each.key} for these roles.
 TEMPLATED = {'infrastructure/production/ssd-move.tf': ('mw-credit-app-${each.key}-prod@', ('read', 'command', 'notify', 'jobs'))}

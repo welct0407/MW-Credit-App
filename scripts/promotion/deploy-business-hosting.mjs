@@ -734,7 +734,7 @@ const sqlRuntimeReleases={
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py'],
   hashes:{'V104__pwa_chat.sql':'bb0ec215f8ec8bb127d0a3c94855753d95dd0bb27fd5178e592bab2b72f64e40','V105__chat_reply_notification_and_job_status.sql':'795515c66d902152838b0aba53194e4239c701f50a1646c34626c45b94bbe32d','V106__chat_turn_presence.sql':'92fd4c5dd228852588da1ba861793753ef4090bb2f968517bfdd25ceded62a6d'}},
  R091:{schemaVersion:27,baseline:r090Release,baselineLabel:'R090',migrations:['V107__drop_agent_native_operation.sql'],sqlBaseline:106,sqlTarget:107,
-  delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md'],
+  delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py'],
   hashes:{'V107__drop_agent_native_operation.sql':'06aae62b3273662b6de6bd63bbbd5816ca58ea08e04f05184c67038b6e54aec8'}},
 };
 const sqlRuntimeDeliveryAllowed=L=>file=>runtimeDeliveryAllowed(file)||sqlRuntimeReleases[L].delivery.includes(file);
