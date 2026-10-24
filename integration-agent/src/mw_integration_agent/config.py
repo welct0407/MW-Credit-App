@@ -33,14 +33,16 @@ IAM_USER = r'[a-z][a-z0-9-]*@clever-oasis-508610-n7\.iam'
 # R091 (owner instruction of 23 October 2026): the Instagram Partner conversation, its native command
 # API, reviewer DML and the conversation providers are retired. A configuration that still carries one
 # of their keys is refused (fail closed), so the live file is cleaned deliberately (deploy-runtime.py
-# R091 activation); the receipt providers keep codex_executable, codex_home, gemini_project and
-# gemini_location, and every conversation_poll_* key stays.
+# activation drops every retired key; R094 added the three inert keys R091 left); the receipt providers keep
+# codex_executable, codex_home, gemini_project and gemini_location, and every conversation_poll_* key stays.
 RETIRED_KEYS = frozenset({
     'partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled', 'reviewer_delete_enabled',
     'native_delete_enabled', 'conversation_provider', 'conversation_sql_read_enabled', 'conversation_grounding',
     'conversation_timeout_seconds', 'partner_conversation_cutoff', 'reviewer_dml_cutoff', 'conversation_api_enabled',
     'conversation_api_environment', 'conversation_api_origin', 'conversation_api_audience',
-    'conversation_api_manifest_sha256', 'conversation_api_probe_partner_id'})
+    'conversation_api_manifest_sha256', 'conversation_api_probe_partner_id',
+    # R094: the three inert keys R091 left on the VM (the retired conversation's schema pin and its backup path).
+    'conversation_schema_file', 'conversation_schema_sha256', 'partner_conversation_backup'})
 # gemini_conversation_* and claude_* (the two providers' settings) and database_dml_* (the reviewer DML sign-in).
 RETIRED_PREFIXES = ('gemini_conversation_', 'claude_', 'database_dml_')
 # R091 catalogue revision 32: the services the conversation and its native API needed.

@@ -283,5 +283,39 @@ DO $$ BEGIN
  IF EXISTS(SELECT 1 FROM pg_proc WHERE proname='pwa_submit_agent_operation_v1') THEN RAISE EXCEPTION 'V107: pwa_submit_agent_operation_v1 must not exist'; END IF;
  IF to_regprocedure('public.pwa_submit_operation_v2(text)') IS NULL OR to_regclass('public.pwa_payment_commands') IS NULL THEN RAISE EXCEPTION 'V107 must leave the command submit route and its journal'; END IF;
 END $$;
+-- V109 (R094): the agent's SELECT on the notification, push and jobs tables is revoked by their owners. The disposable
+-- chain never grants it (the tables predate the CI default-privilege fixture), so the PROD state is seeded here: the
+-- role (when absent) and SELECT granted by each owner, as the pre-R085 public default left it after the owner change,
+-- plus the same grant on pwa_row_changes, which V109 must keep. V109 then runs again (it is re-runnable) and must
+-- leave exactly the five revoked and everything else, default privileges included, unchanged.
+DO $$ BEGIN
+ IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_integration_agent') THEN CREATE ROLE mw_integration_agent NOLOGIN NOINHERIT; END IF;
+END $$;
+CREATE TEMP TABLE am_v109_defaults ON COMMIT DROP AS SELECT defaclrole,defaclnamespace,defaclobjtype,defaclacl::text AS acl FROM pg_default_acl;
+SET LOCAL ROLE mw_notify_owner_dev;
+GRANT SELECT ON public.pwa_notification_events,public.pwa_notification_preferences,public.pwa_notification_deliveries,public.pwa_push_subscriptions TO mw_integration_agent;
+RESET ROLE;
+SET LOCAL ROLE mw_jobs_owner_dev;
+GRANT SELECT ON public.pwa_job_runs TO mw_integration_agent;
+RESET ROLE;
+DO $$
+DECLARE owner text:=(SELECT pg_get_userbyid(relowner) FROM pg_class WHERE oid='public.pwa_row_changes'::regclass);
+BEGIN
+ EXECUTE format('SET LOCAL ROLE %I',owner);
+ GRANT SELECT ON public.pwa_row_changes TO mw_integration_agent;
+ RESET ROLE;
+ IF NOT (has_table_privilege('mw_integration_agent','public.pwa_notification_events','SELECT') AND has_table_privilege('mw_integration_agent','public.pwa_job_runs','SELECT')) THEN
+  RAISE EXCEPTION 'V109 fixture: the seeded owner grants are missing'; END IF;
+END $$;
+\ir ../../database/migrations/V109__revoke_agent_select_pwa_state.sql
+DO $$ BEGIN
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['pwa_notification_events','pwa_notification_preferences','pwa_notification_deliveries','pwa_push_subscriptions','pwa_job_runs']) n
+   WHERE has_table_privilege('mw_integration_agent',format('public.%I',n),'SELECT') OR has_any_column_privilege('mw_integration_agent',format('public.%I',n),'SELECT')) THEN
+  RAISE EXCEPTION 'V109: mw_integration_agent must not read the notification, push and jobs tables'; END IF;
+ IF NOT has_table_privilege('mw_integration_agent','public.pwa_row_changes','SELECT') THEN RAISE EXCEPTION 'V109 must not touch pwa_row_changes'; END IF;
+ IF EXISTS(SELECT defaclrole,defaclnamespace,defaclobjtype,defaclacl::text FROM pg_default_acl EXCEPT SELECT * FROM am_v109_defaults)
+  OR EXISTS(SELECT * FROM am_v109_defaults EXCEPT SELECT defaclrole,defaclnamespace,defaclobjtype,defaclacl::text FROM pg_default_acl) THEN
+  RAISE EXCEPTION 'V109 must not change default privileges'; END IF;
+END $$;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;
