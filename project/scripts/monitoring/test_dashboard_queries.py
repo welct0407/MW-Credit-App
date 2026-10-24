@@ -287,6 +287,63 @@ class Counters(unittest.TestCase):
                 query('sum-by-label.jq', data, LABEL='warning')
 
 
+def dist(counts, layout, mean=None):
+    """One aligned DELTA distribution point; bucketCounts as Cloud Monitoring sends them (int64 strings, trailing zeros cut)."""
+    value = {'count': str(sum(counts)), 'bucketOptions': layout, 'bucketCounts': [str(c) for c in counts]}
+    if mean is not None:
+        value['mean'] = mean
+    return {'interval': {'endTime': stamp(0)}, 'value': {'distributionValue': value}}
+
+
+LATENCY = {'exponentialBuckets': {'numFiniteBuckets': 20, 'growthFactor': 1.5, 'scale': 1000}}
+ROUNDS = {'linearBuckets': {'numFiniteBuckets': 17, 'width': 1, 'offset': 0}}
+
+
+class ChatSelectors(unittest.TestCase):
+    """R093: the in-app chat's median turn time and rounds (merged log-based distributions) and last turn age."""
+    def median(self, data, mode='interpolate', scale='1000', label='Median turn'):
+        return query('distribution-median.jq', data, LABEL=label, MODE=mode, SCALE=scale)
+
+    def test_median_merges_every_point_and_interpolates_in_the_middle_bucket(self):
+        # Three turns over two points (and two revisions): 9 s and 12 s in one point, 40 s in another. Buckets
+        # [7.59, 11.39) s, [11.39, 17.09) s, [38.4, 57.7) s; the middle rank 1.5 falls halfway into the second.
+        data = {'timeSeries': [series([dist([0, 0, 0, 0, 0, 0, 1, 1], LATENCY, 10500)]), series([dist([0] * 10 + [1], LATENCY, 40000)])]}
+        self.assertAlmostEqual(self.median(data)[0]['Median turn'], (1000 * 1.5 ** 6 + 1000 * 1.5 ** 7) / 2 / 1000)
+
+    def test_one_turn_is_its_exact_time_and_none_is_null(self):
+        self.assertEqual(self.median({'timeSeries': [series([dist([0] * 7 + [1], LATENCY, 12345)])]}), [{'Median turn': 12.345}])
+        self.assertEqual(self.median({}), [{'Median turn': None}])
+        self.assertEqual(self.median({'timeSeries': [series([dist([], LATENCY)])]}), [{'Median turn': None}])
+
+    def test_overflow_and_underflow_buckets(self):
+        # Every turn past the last finite bucket: the median is that bucket's lower bound, never infinite.
+        self.assertAlmostEqual(self.median({'timeSeries': [series([dist([0] * 21 + [2], LATENCY)])]})[0]['Median turn'], 1.5 ** 20)
+        # Under one second: inside [0, 1 s).
+        self.assertAlmostEqual(self.median({'timeSeries': [series([dist([2], LATENCY)])]})[0]['Median turn'], 0.5)
+
+    def test_rounds_take_the_whole_number_of_the_middle_turn(self):
+        rounds = {'timeSeries': [series([dist([0, 0, 0, 2, 0, 1], ROUNDS)])]}  # rounds 2, 2 and 4
+        self.assertEqual(self.median(rounds, mode='lower', scale='1', label='Median rounds'), [{'Median rounds': 2}])
+        self.assertEqual(self.median({'timeSeries': [series([dist([0, 0, 0, 0, 0, 3], ROUNDS)])]}, mode='lower', scale='1', label='Median rounds'), [{'Median rounds': 4}])
+
+    def test_failures_fail_visibly(self):
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                self.median(data)
+        mixed = {'timeSeries': [series([dist([1], LATENCY)]), series([dist([1], ROUNDS)])]}
+        with self.assertRaises(ValueError):
+            self.median(mixed)
+
+    def test_last_turn_age_ignores_zero_points(self):
+        rows = query('last-count-age.jq', {'timeSeries': [series([point(4000, 1), point(60, 0)], code='ok'), series([point(900, 2)], code='INTERNAL')]}, LABEL='Last turn')
+        self.assertTrue(899 <= rows[0]['Last turn'] <= 902)
+        self.assertEqual(query('last-count-age.jq', {'timeSeries': [series([point(60, 0)])]}, LABEL='Last turn'), [{'Last turn': None}])
+        self.assertEqual(query('last-count-age.jq', {}, LABEL='Last turn'), [{'Last turn': None}])
+        for data in FAILURES:
+            with self.assertRaises(ValueError):
+                query('last-count-age.jq', data, LABEL='Last turn')
+
+
 class CloudRunByService(unittest.TestCase):
     def data(self):
         def s(name, pts):
@@ -509,6 +566,26 @@ class GeneratedSelectors(unittest.TestCase):
             self.assertEqual(run(t['root_selector'], ProviderModel.data(1, 'gemini-3.5-flash-lite')), [{'Provider': 'Gemini · gemini-3.5-flash-lite'}])
             self.assertRegex('Provider', p['options']['reduceOptions']['fields'].strip('/'))
 
+    def test_chat_tiles_read_the_merged_distributions(self):
+        latency = {'timeSeries': [series([dist([0] * 7 + [1], LATENCY, 12000)]), series([dist([0] * 7 + [1], LATENCY, 13000)])]}
+        for uid, pid, ref in (('mw-now', 5, 'C'), ('mw-pwa', 43, 'D')):
+            sel = self.rows(uid, pid)[ref]['root_selector']
+            # Two turns (two revisions) in [11.39, 17.09) s: the middle rank is halfway into that bucket.
+            self.assertAlmostEqual(run(sel, latency)[0]['Median turn'], (1.5 ** 6 + 1.5 ** 7) / 2)
+        rounds = self.rows('mw-pwa', 43)['C']['root_selector']
+        self.assertEqual(run(rounds, {'timeSeries': [series([dist([0, 0, 0, 1], ROUNDS)])]}), [{'Median rounds': 2}])
+        last = self.rows('mw-now', 5)['D']['root_selector']
+        self.assertEqual(run(last, {}), [{'Last turn': None}])
+        failed = self.rows('mw-now', 5)['B']['root_selector']
+        self.assertEqual(run(failed, {'timeSeries': [series([point(0, 1), point(300, 2)], code='TURN_TIMEOUT')]}), [{'value': 3}])
+        self.assertEqual(run(failed, {}), [])
+
+    def test_chat_outcomes_and_models_come_from_the_labels(self):
+        data = {'timeSeries': [series([point(0, 3)], code='ok', model='gemini-4-argon'), series([point(0, 1)], code='TURN_TIMEOUT', model='gemini-4-argon'),
+                               series([point(0, 2)], code='ok', model='gemini-3.8-flash')]}
+        self.assertEqual(run(self.panel('mw-pwa', 41)['targets'][0]['root_selector'], data), [{'Outcome': 'ok', 'Count': 5}, {'Outcome': 'TURN_TIMEOUT', 'Count': 1}])
+        self.assertEqual(run(self.panel('mw-pwa', 44)['targets'][0]['root_selector'], data), [{'Outcome': 'gemini-4-argon', 'Count': 4}, {'Outcome': 'gemini-3.8-flash', 'Count': 2}])
+
     def test_notifications_age_from_scheduler_buckets(self):
         sel = self.panel('mw-now', 7)['targets'][1]['root_selector']
         self.assertEqual(run(sel, {}), [{'Notifications': None}])
@@ -628,6 +705,10 @@ class GeneratedSelectors(unittest.TestCase):
     def rows(self, uid, pid):
         return {t['refId']: t for t in self.panel(uid, pid)['targets']}
 
+    def lanes(self, uid, pid):
+        """Timeline rows by lane name (R093 inserted Chat API, so the query letters moved)."""
+        return {t['columns'][1]['text']: t for t in self.panel(uid, pid)['targets']}
+
     def at(self, sel, start, data):
         """Run a row selector with ${__from} = start (epoch s); times back as epoch s."""
         out = run(sel.replace('${__from}', str(start * 1000)), data)
@@ -648,7 +729,7 @@ class GeneratedSelectors(unittest.TestCase):
         self.assertEqual(ev[:2], [(start, 2), (start + 20, 1)])
         self.assert_starts_at(ev, start)
         # Aligned Cloud SQL row: the 300 s bucket ending 4 min after the start would otherwise start the row late.
-        sql = self.at(rows['F']['root_selector'], start, {'timeSeries': [series([p(start - 60, True, 'boolValue'), p(start + 240, True, 'boolValue')])]})
+        sql = self.at(self.lanes('mw-now', 1)['Cloud SQL']['root_selector'], start, {'timeSeries': [series([p(start - 60, True, 'boolValue'), p(start + 240, True, 'boolValue')])]})
         self.assertEqual(sql[:2], [(start, 1), (start + 240, 1)])
         self.assert_starts_at(sql, start)
         # Stale carried state becomes null, never a stretched old state; nothing before the start is null too.
@@ -670,7 +751,7 @@ class GeneratedSelectors(unittest.TestCase):
             run(rows['A']['root_selector'].replace('${__from}', str(start * 1000)), {'nextPageToken': 'x'})
 
     def test_notify_worker_bucket_straddling_the_start_aligns(self):
-        sel = self.rows('mw-now', 1)['D']['root_selector']
+        sel = self.lanes('mw-now', 1)['Notify worker']['root_selector']
         start = int(time.time()) - 3 * 3600
         def bucket(end, status=''):
             return series([{'interval': {'endTime': dt.datetime.fromtimestamp(end, dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')},

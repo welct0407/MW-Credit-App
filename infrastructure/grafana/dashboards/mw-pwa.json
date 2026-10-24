@@ -18,7 +18,7 @@
         }
       ]
     },
-    "description": "PWA runtime by environment: hosting, API health, Cloud Run services, workers and the receipt recognition route. DEV is a switch, never aggregated with PROD.",
+    "description": "PWA runtime by environment: hosting, API health, Cloud Run services, workers, the in-app chat and the receipt recognition route. DEV is a switch, never aggregated with PROD.",
     "editable": false,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 1,
@@ -202,7 +202,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Reader and command: Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s). Grey after 6 minutes without a report.",
+        "description": "Reader, command and chat: Debian collector GET /health on the ${env} reader, command and chat services (no credentials, 10 s). Grey after 6 minutes without a report.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -288,6 +288,18 @@
                 {
                   "id": "displayName",
                   "value": "Command"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Chat"
                 }
               ]
             }
@@ -377,6 +389,34 @@
             "url_options": {
               "method": "GET"
             }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Chat",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# the freshness bound ends in null at (sample + bound), so no state stretches across\n# missing telemetry; a newest sample older than the bound also ends in null at\n# (sample + bound), with a second null at now so Unknown reaches the right edge.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 then [{time: (now | floor | todateiso8601), value: null}]\n   elif now - ($runs | last | .t) > 360\n   then [{time: ($runs | last | .t + 360 | todateiso8601), value: null}, {time: (now | floor | todateiso8601), value: null}]\n   else [] end) |\n  .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_api_chat_${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
           }
         ],
         "title": "API health",
@@ -387,7 +427,7 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services' structured request log, no user identity) and Cloud Run 5xx responses across the four ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs, normal) turns orange from 10 in the range.",
+        "description": "Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services' structured request log, no user identity) and Cloud Run 5xx responses across the five ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs, normal) turns orange from 10 in the range.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -660,7 +700,7 @@
             "root_selector": "# Total of every aligned point in the range (log-based counters, request counts).\n# No series at all gives no row, so the panel shows its noValue text rather than\n# a healthy zero; provider errors and truncation fail visibly.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Counter response truncated; shorten the time range\")\nelse\n  [.timeSeries[]?.points[]? | (try ((.value.int64Value // .value.doubleValue) | tonumber) catch null) |\n    select(. != null)] as $values |\n  if ($values | length) == 0 then empty else {value: ($values | add)} end\nend\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20monitoring.regex.full_match(%22mw-credit-app-(read%7Ccommand%7Cnotify%7Cjobs)-${env}%22)%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20monitoring.regex.full_match(%22mw-credit-app-(read%7Ccommand%7Cnotify%7Cjobs%7Cchat)-${env}%22)%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -3365,6 +3405,678 @@
           "x": 0,
           "y": 36
         },
+        "id": 14,
+        "panels": [],
+        "title": "Service · chat",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Cloud Run request_count for mw-credit-app-chat-${env}, summed across revisions per 5 minutes; 4xx (client or sign-in rejection) and 5xx (server failure) are subsets of All. No threshold.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 4,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "min": 0,
+            "noValue": "No requests",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "All"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "dark-blue",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "fill": "solid"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "#A65200",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "dash": [
+                      10,
+                      10
+                    ],
+                    "fill": "dash"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "red",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "dash": [
+                      0,
+                      10
+                    ],
+                    "fill": "dot"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "All"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "4xx"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "5xx"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 37
+        },
+        "id": 141,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "All",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-chat-${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "4xx",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-chat-${env}%22%20AND%20metric.labels.response_code_class%20%3D%20%224xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "5xx",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-chat-${env}%22%20AND%20metric.labels.response_code_class%20%3D%20%225xx%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Requests / 5 min · chat",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Cloud Run request_latencies, distributions merged per 5 minutes then the 95th percentile across revisions; the red dashed line is the request timeout (300 s). Logarithmic axis. A streamed chat turn is one request, so this is the turn time per 5 minutes.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 4,
+              "scaleDistribution": {
+                "log": 10,
+                "type": "log"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "min": 10,
+            "noValue": "No requests",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 300000
+                }
+              ]
+            },
+            "unit": "ms"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 8,
+          "x": 8,
+          "y": 37
+        },
+        "id": 142,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "p95",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Frequest_latencies%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-chat-${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "p95 latency (ms) · chat",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Cloud Run instance_count (max per 5 minutes, left axis; grey dashed line = PROD max instances 2) and container CPU and memory utilisation p95 (right axis).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 4,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "min": 0,
+            "noValue": "No instances",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "#6E7079",
+                  "value": 2
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "CPU p95"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percentunit"
+                },
+                {
+                  "id": "max",
+                  "value": 1
+                },
+                {
+                  "id": "custom.axisPlacement",
+                  "value": "right"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Memory p95"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percentunit"
+                },
+                {
+                  "id": "max",
+                  "value": 1
+                },
+                {
+                  "id": "custom.axisPlacement",
+                  "value": "right"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Instances"
+              },
+              "properties": [
+                {
+                  "id": "custom.drawStyle",
+                  "value": "line"
+                },
+                {
+                  "id": "custom.lineInterpolation",
+                  "value": "stepAfter"
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "purple",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "A"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Instances"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "B"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "CPU p95"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byFrameRefID",
+                "options": "C"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Memory p95"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 8,
+          "x": 16,
+          "y": 37
+        },
+        "id": 143,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Instances",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Finstance_count%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-chat-${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_MAX&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "CPU p95",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fcpu%2Futilizations%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-chat-${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Memory p95",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22run.googleapis.com%2Fcontainer%2Fmemory%2Futilizations%22%20AND%20resource.type%20%3D%20%22cloud_run_revision%22%20AND%20resource.labels.service_name%20%3D%20%22mw-credit-app-chat-${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=300s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_95&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "chat · instances, CPU, RAM",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 43
+        },
         "id": 19,
         "panels": [],
         "title": "Workers",
@@ -3481,7 +4193,7 @@
           "h": 8,
           "w": 8,
           "x": 0,
-          "y": 37
+          "y": 44
         },
         "id": 20,
         "options": {
@@ -3733,7 +4445,7 @@
           "h": 8,
           "w": 8,
           "x": 8,
-          "y": 37
+          "y": 44
         },
         "id": 21,
         "options": {
@@ -3950,7 +4662,7 @@
           "h": 8,
           "w": 8,
           "x": 16,
-          "y": 37
+          "y": 44
         },
         "id": 22,
         "options": {
@@ -4036,7 +4748,855 @@
           "h": 1,
           "w": 24,
           "x": 0,
-          "y": 45
+          "y": 52
+        },
+        "id": 40,
+        "panels": [],
+        "title": "In-app chat · turns",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Log-based mw_chat_turns_${env}: chat turns over the selected range, one bar per result (Answered, or the error the asker saw: model unavailable or timed out, too many tool rounds, grounding rejected, turn timeout, prompt blocked, internal error). Counts only, neutral; the failures are coloured on the tile beside.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "text",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "min": 0,
+            "noValue": "No turns",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "ok"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Answered"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "MODEL_UNAVAILABLE"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Model unavailable"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "MODEL_TIMEOUT"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Model timeout"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "TOOL_ROUNDS_EXCEEDED"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Too many rounds"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "GROUNDING_EXCEEDED"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Grounding rejected"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "TURN_TIMEOUT"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Turn timeout"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "PROMPT_BLOCKED"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Prompt blocked"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "INTERNAL"
+              },
+              "properties": [
+                {
+                  "id": "displayName",
+                  "value": "Internal error"
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 14,
+          "w": 8,
+          "x": 0,
+          "y": 53
+        },
+        "id": 41,
+        "options": {
+          "displayMode": "basic",
+          "legend": {
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "left",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "text": {
+            "titleSize": 16,
+            "valueSize": 22
+          },
+          "valueMode": "text"
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Outcome",
+                "text": "Outcome",
+                "type": "string"
+              },
+              {
+                "selector": "Count",
+                "text": "Count",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Counts per value of one metric label (log-based counters), summed over every\n# aligned point in the range. The label values come from the data, not a fixed\n# list. No series at all gives no rows (the panel shows its noValue text).\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Counter response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {label: (.metric.labels.code // \"unlabelled\"),\n    n: ([.points[]? | (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0)] | add // 0)}] |\n  group_by(.label) | map({Outcome: .[0].label, Count: (map(.n) | add)}) | sort_by(-.Count, .Outcome) | .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_chat_turns_${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Chat turns · outcomes",
+        "transformations": [
+          {
+            "id": "rowsToFields",
+            "options": {
+              "mappings": [
+                {
+                  "fieldName": "Outcome",
+                  "handlerKey": "field.name"
+                },
+                {
+                  "fieldName": "Count",
+                  "handlerKey": "field.value"
+                }
+              ]
+            }
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Log-based distribution mw_chat_turn_latency_${env} (the chat_turn log's latencyMs, the whole turn): the median per point; with a few turns a day a point is one turn. Dashed lines: grey = the R092 aim of 20 s, orange = the owner limit of 30 s (as tile 43; the tile turns red from 120 s), red = the 240 s turn timeout. Logarithmic axis, 1 s to 300 s.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "points",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 6,
+              "scaleDistribution": {
+                "log": 10,
+                "type": "log"
+              },
+              "showPoints": "always",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "dashed"
+              }
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "max": 300000,
+            "min": 1000,
+            "noValue": "No turns",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "transparent",
+                  "value": null
+                },
+                {
+                  "color": "#6E7079",
+                  "value": 20000
+                },
+                {
+                  "color": "#A65200",
+                  "value": 30000
+                },
+                {
+                  "color": "red",
+                  "value": 240000
+                }
+              ]
+            },
+            "unit": "ms"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Median turn"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 14,
+          "w": 8,
+          "x": 8,
+          "y": 53
+        },
+        "id": 42,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "time",
+                "text": "Time",
+                "type": "timestamp"
+              },
+              {
+                "selector": "value",
+                "text": "Median turn",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "timeseries",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "if .nextPageToken then error(\"Metric response truncated; shorten the time range\") else [.timeSeries[]? | .points[]? | {time:.interval.endTime, value:((.value.doubleValue // .value.int64Value) | tonumber)}] | sort_by(.time) | .[] end",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_chat_turn_latency_${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_PERCENTILE_50&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Chat turn time",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Over the selected range, from the log-based metrics mw_chat_turns_${env}, mw_chat_turn_rounds_${env} and mw_chat_turn_latency_${env}: turns, failed turns (orange above 0), the median model rounds per turn (orange from 4) and the median turn time (orange from 30 s, red from 120 s). None = no turn in the range.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "transparent",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "mappings": [],
+            "noValue": "None",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Turns"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "none"
+                },
+                {
+                  "id": "decimals",
+                  "value": 0
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "transparent",
+                    "mode": "fixed"
+                  }
+                },
+                {
+                  "id": "noValue",
+                  "value": "None"
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "transparent",
+                          "index": 0,
+                          "text": "None"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Failed"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "none"
+                },
+                {
+                  "id": "decimals",
+                  "value": 0
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "noValue",
+                  "value": "None"
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#2E7D32",
+                          "index": 0,
+                          "text": "None"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Median rounds"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "none"
+                },
+                {
+                  "id": "decimals",
+                  "value": 0
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 4
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "noValue",
+                  "value": "None"
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "None"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Median turn"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "s"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "thresholds"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#2E7D32",
+                        "value": null
+                      },
+                      {
+                        "color": "#A65200",
+                        "value": 30
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 120
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "noValue",
+                  "value": "None"
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "#6E7079",
+                          "index": 0,
+                          "text": "None"
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 53
+        },
+        "id": 43,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {
+            "titleSize": 16,
+            "valueSize": 32
+          },
+          "textMode": "value_and_name",
+          "wideLayout": true
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "value",
+                "text": "Turns",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Total of every aligned point in the range (log-based counters, request counts).\n# No series at all gives no row, so the panel shows its noValue text rather than\n# a healthy zero; provider errors and truncation fail visibly.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Counter response truncated; shorten the time range\")\nelse\n  [.timeSeries[]?.points[]? | (try ((.value.int64Value // .value.doubleValue) | tonumber) catch null) |\n    select(. != null)] as $values |\n  if ($values | length) == 0 then empty else {value: ($values | add)} end\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_chat_turns_${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "value",
+                "text": "Failed",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "B",
+            "root_selector": "# Total of every aligned point in the range (log-based counters, request counts).\n# No series at all gives no row, so the panel shows its noValue text rather than\n# a healthy zero; provider errors and truncation fail visibly.\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Counter response truncated; shorten the time range\")\nelse\n  [.timeSeries[]?.points[]? | (try ((.value.int64Value // .value.doubleValue) | tonumber) catch null) |\n    select(. != null)] as $values |\n  if ($values | length) == 0 then empty else {value: ($values | add)} end\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_chat_turns_${env}%22%20AND%20metric.labels.code%20!%3D%20%22ok%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_SUM&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Median rounds",
+                "text": "Median rounds",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "C",
+            "root_selector": "# Median of a log-based distribution metric over the whole range (R093, the in-app chat's turn time and rounds):\n# the bucket counts of every aligned point are merged (the series share one bucket layout), then the median is\n# read from the merged buckets: MODE \"interpolate\" interpolates linearly inside the bucket that holds the middle\n# rank, as Cloud Monitoring's percentile reducers do (a single value is its exact mean); MODE \"lower\" takes that\n# bucket's lower bound, exact for whole numbers in unit-wide linear buckets (model rounds). The value is divided\n# by SCALE (milliseconds to seconds). No turn at all gives the field null (the panel shows its grey None, never a\n# healthy zero); provider errors, truncation and mixed bucket layouts fail visibly.\ndef n: (. // 0) | tonumber;\n# [lower, upper] of bucket $i ($k finite buckets; 0 is the underflow, $k + 1 the overflow bucket with no upper bound).\ndef bounds($o; $i; $k):\n  if $o.exponentialBuckets then ($o.exponentialBuckets.scale | n) as $s | ($o.exponentialBuckets.growthFactor | n) as $g |\n    [(if $i == 0 then 0 else $s * pow($g; $i - 1) end), (if $i > $k then null else $s * pow($g; $i) end)]\n  elif $o.linearBuckets then ($o.linearBuckets.offset | n) as $a | ($o.linearBuckets.width | n) as $w |\n    [(if $i == 0 then $a else $a + $w * ($i - 1) end), (if $i > $k then null else $a + $w * $i end)]\n  elif $o.explicitBuckets then ($o.explicitBuckets.bounds | map(n)) as $b |\n    [(if $i == 0 then $b[0] else $b[$i - 1] end), (if $i >= ($b | length) then null else $b[$i] end)]\n  else error(\"Unknown distribution bucket layout\") end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Distribution response truncated; shorten the time range\")\nelse\n  [.timeSeries[]?.points[]?.value.distributionValue | select(. != null and ((.count | n) > 0))] as $d |\n  if ($d | length) == 0 then {\"Median rounds\": null}\n  else\n    $d[0].bucketOptions as $o |\n    if any($d[]; .bucketOptions != $o) then error(\"Distribution bucket layouts differ\")\n    else\n      ($o.exponentialBuckets.numFiniteBuckets // $o.linearBuckets.numFiniteBuckets // (($o.explicitBuckets.bounds // [0]) | length - 1) | n) as $k |\n      ($d | map(.count | n) | add) as $count |\n      ([$d[] | (.bucketCounts // []) | to_entries[] | {i: .key, c: (.value | n)}] | group_by(.i) | map({i: .[0].i, c: (map(.c) | add)})) as $buckets |\n      (0.5 * $count) as $rank |\n      (if $count == 1 and \"lower\" == \"interpolate\" then ($d | map((.mean // 0) * (.count | n)) | add)\n       else\n         first(foreach $buckets[] as $x ({cum: 0, before: 0}; {cum: (.cum + $x.c), before: .cum};\n           if $x.c > 0 and .cum >= $rank then {i: $x.i, c: $x.c, before} else empty end)) as $hit |\n         bounds($o; $hit.i; $k) as [$lo, $hi] |\n         if \"lower\" == \"lower\" or $hi == null then $lo else $lo + ($hi - $lo) * (($rank - $hit.before) / $hit.c) end\n       end) as $value |\n      {\"Median rounds\": ($value / 1)}\n    end\n  end\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_chat_turn_rounds_${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          },
+          {
+            "columns": [
+              {
+                "selector": "Median turn",
+                "text": "Median turn",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "D",
+            "root_selector": "# Median of a log-based distribution metric over the whole range (R093, the in-app chat's turn time and rounds):\n# the bucket counts of every aligned point are merged (the series share one bucket layout), then the median is\n# read from the merged buckets: MODE \"interpolate\" interpolates linearly inside the bucket that holds the middle\n# rank, as Cloud Monitoring's percentile reducers do (a single value is its exact mean); MODE \"lower\" takes that\n# bucket's lower bound, exact for whole numbers in unit-wide linear buckets (model rounds). The value is divided\n# by SCALE (milliseconds to seconds). No turn at all gives the field null (the panel shows its grey None, never a\n# healthy zero); provider errors, truncation and mixed bucket layouts fail visibly.\ndef n: (. // 0) | tonumber;\n# [lower, upper] of bucket $i ($k finite buckets; 0 is the underflow, $k + 1 the overflow bucket with no upper bound).\ndef bounds($o; $i; $k):\n  if $o.exponentialBuckets then ($o.exponentialBuckets.scale | n) as $s | ($o.exponentialBuckets.growthFactor | n) as $g |\n    [(if $i == 0 then 0 else $s * pow($g; $i - 1) end), (if $i > $k then null else $s * pow($g; $i) end)]\n  elif $o.linearBuckets then ($o.linearBuckets.offset | n) as $a | ($o.linearBuckets.width | n) as $w |\n    [(if $i == 0 then $a else $a + $w * ($i - 1) end), (if $i > $k then null else $a + $w * $i end)]\n  elif $o.explicitBuckets then ($o.explicitBuckets.bounds | map(n)) as $b |\n    [(if $i == 0 then $b[0] else $b[$i - 1] end), (if $i >= ($b | length) then null else $b[$i] end)]\n  else error(\"Unknown distribution bucket layout\") end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Distribution response truncated; shorten the time range\")\nelse\n  [.timeSeries[]?.points[]?.value.distributionValue | select(. != null and ((.count | n) > 0))] as $d |\n  if ($d | length) == 0 then {\"Median turn\": null}\n  else\n    $d[0].bucketOptions as $o |\n    if any($d[]; .bucketOptions != $o) then error(\"Distribution bucket layouts differ\")\n    else\n      ($o.exponentialBuckets.numFiniteBuckets // $o.linearBuckets.numFiniteBuckets // (($o.explicitBuckets.bounds // [0]) | length - 1) | n) as $k |\n      ($d | map(.count | n) | add) as $count |\n      ([$d[] | (.bucketCounts // []) | to_entries[] | {i: .key, c: (.value | n)}] | group_by(.i) | map({i: .[0].i, c: (map(.c) | add)})) as $buckets |\n      (0.5 * $count) as $rank |\n      (if $count == 1 and \"interpolate\" == \"interpolate\" then ($d | map((.mean // 0) * (.count | n)) | add)\n       else\n         first(foreach $buckets[] as $x ({cum: 0, before: 0}; {cum: (.cum + $x.c), before: .cum};\n           if $x.c > 0 and .cum >= $rank then {i: $x.i, c: $x.c, before} else empty end)) as $hit |\n         bounds($o; $hit.i; $k) as [$lo, $hi] |\n         if \"interpolate\" == \"lower\" or $hi == null then $lo else $lo + ($hi - $lo) * (($rank - $hit.before) / $hit.c) end\n       end) as $value |\n      {\"Median turn\": ($value / 1000)}\n    end\n  end\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_chat_turn_latency_${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Chat turns · ${env}",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "mw-gcp-monitoring"
+        },
+        "description": "Log-based mw_chat_turns_${env} by the model of each turn (the Partner chooses it per thread; the default is in Terraform chat_models), over the selected range. Neutral counts.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "text",
+              "mode": "fixed"
+            },
+            "decimals": 0,
+            "displayName": "${__field.name}",
+            "min": 0,
+            "noValue": "No turns",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "#2E7D32",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 8,
+          "x": 16,
+          "y": 61
+        },
+        "id": 44,
+        "options": {
+          "displayMode": "basic",
+          "legend": {
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "left",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "text": {
+            "titleSize": 16,
+            "valueSize": 22
+          },
+          "valueMode": "text"
+        },
+        "targets": [
+          {
+            "columns": [
+              {
+                "selector": "Outcome",
+                "text": "Model",
+                "type": "string"
+              },
+              {
+                "selector": "Count",
+                "text": "Count",
+                "type": "number"
+              }
+            ],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "mw-gcp-monitoring"
+            },
+            "format": "table",
+            "parser": "jq-backend",
+            "refId": "A",
+            "root_selector": "# Counts per value of one metric label (log-based counters), summed over every\n# aligned point in the range. The label values come from the data, not a fixed\n# list. No series at all gives no rows (the panel shows its noValue text).\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Counter response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | {label: (.metric.labels.model // \"unlabelled\"),\n    n: ([.points[]? | (try ((.value.int64Value // .value.doubleValue // 0) | tonumber) catch 0)] | add // 0)}] |\n  group_by(.label) | map({Outcome: .[0].label, Count: (map(.n) | add)}) | sort_by(-.Count, .Outcome) | .[]\nend\n",
+            "source": "url",
+            "type": "json",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22logging.googleapis.com%2Fuser%2Fmw_chat_turns_${env}%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&aggregation.alignmentPeriod=$__customInterval(2d,300s,14d,3600s,86400s)&aggregation.perSeriesAligner=ALIGN_SUM&pageSize=100000",
+            "url_options": {
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "Chat turns · by model",
+        "transformations": [
+          {
+            "id": "rowsToFields",
+            "options": {
+              "mappings": [
+                {
+                  "fieldName": "Model",
+                  "handlerKey": "field.name"
+                },
+                {
+                  "fieldName": "Count",
+                  "handlerKey": "field.value"
+                }
+              ]
+            }
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 67
         },
         "id": 29,
         "panels": [],
@@ -4173,7 +5733,7 @@
           "h": 9,
           "w": 8,
           "x": 0,
-          "y": 46
+          "y": 68
         },
         "id": 30,
         "options": {
@@ -4316,7 +5876,7 @@
           "h": 9,
           "w": 8,
           "x": 8,
-          "y": 46
+          "y": 68
         },
         "id": 31,
         "options": {
@@ -4440,7 +6000,7 @@
           "h": 4,
           "w": 8,
           "x": 16,
-          "y": 46
+          "y": 68
         },
         "id": 32,
         "links": [
@@ -4549,7 +6109,7 @@
           "h": 5,
           "w": 8,
           "x": 16,
-          "y": 50
+          "y": 72
         },
         "id": 33,
         "options": {

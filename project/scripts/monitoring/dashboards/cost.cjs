@@ -202,37 +202,102 @@ function neutralMoney(panel) {
   return panel;
 }
 
-/* R090 (owner, 22 October 2026), R091: the latest 10 in-app chat questions and what each cost. The text and token
- * counts come straight from loan_manager_prod (monitoring.pwa_chat_recent_questions_v1, V104) through Grafana PDC;
- * nothing is copied to Cloud Monitoring. Cost = uncached input, cached input and output plus thinking tokens at the
- * billed unit prices in model-prices.json (SGD per million tokens). */
+/* R090 (owner, 22 October 2026), R091, R093 (owner Option A): the in-app chat's usage and cost. Text and token counts
+ * come straight from loan_manager_prod through Grafana PDC (monitoring.pwa_chat_recent_turns_v1 and
+ * monitoring.pwa_chat_usage_v1, V108); nothing is copied to Cloud Monitoring. Cost = uncached input, cached input
+ * and output plus thinking tokens at the billed unit prices in model-prices.json (SGD per million tokens), the one
+ * price rule of every chat panel below (priced(), so the panels cannot drift apart). */
 const PRICES = require('../model-prices.json');
-function questionsSql() {
-  const values = Object.entries(PRICES.models).map(([model, p]) => "('" + model + "', " + p.input + ', ' + p.cached + ', ' + p.output + ')').join(', ');
-  return ['SELECT q.asked_at AS "Asked", q.question AS "Question",',
-    "  coalesce(q.model, 'No answer (' || q.status || ')') AS \"Model\",",
-    '  q.input_tokens - coalesce(q.cached_tokens, 0) AS "Input", q.cached_tokens AS "Cached", q.output_tokens AS "Output",',
-    '  q.thinking_tokens AS "Thinking",',
-    '  round(((q.input_tokens - coalesce(q.cached_tokens, 0)) * p.input + coalesce(q.cached_tokens, 0) * p.cached',
-    '    + (q.output_tokens + coalesce(q.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS "Cost (SGD)"',
-    'FROM monitoring.pwa_chat_recent_questions_v1(10) q',
-    'LEFT JOIN (VALUES ' + values + ') AS p(model, input, cached, output) ON p.model = q.model',
+const PRICE_TABLE = '(VALUES ' + Object.entries(PRICES.models).map(([model, p]) => "('" + model + "', " + p.input + ', ' + p.cached + ', ' + p.output + ')').join(', ') +
+  ') AS p(model, input, cached, output)';
+// SQL cost in SGD of a row with input_tokens (cached part included), cached_tokens, output_tokens and thinking_tokens.
+function priced(q) {
+  return '((' + q + '.input_tokens - coalesce(' + q + '.cached_tokens, 0)) * p.input + coalesce(' + q + '.cached_tokens, 0) * p.cached\n' +
+    '    + (' + q + '.output_tokens + coalesce(' + q + '.thinking_tokens, 0)) * p.output) / 1000000.0';
+}
+const PRICE_TEXT = Object.entries(PRICES.models).map(([model, p]) => model + ' S$' + p.input.toFixed(2) + ' input, S$' + p.cached.toFixed(2) + ' cached, S$' + p.output.toFixed(2) + ' output').join('; ');
+const sqlTarget = rawSql => ({refId: 'A', datasource: L.DS.chatQuestions, editorMode: 'code', format: 'table', rawQuery: true, rawSql});
+// Month to date: the picker's start (now/M, Asia/Bangkok) as the function's p_since.
+const USAGE = 'monitoring.pwa_chat_usage_v1($__timeFrom()) u';
+
+function turnsSql() {
+  return ['SELECT q.asked_at AS "Asked", q.question AS "Question", q.model AS "Model",',
+    "  CASE WHEN q.status = 'failed' THEN q.error_code ELSE q.status END AS \"Outcome\",",
+    '  q.rounds AS "Rounds", q.latency_ms / 1000.0 AS "Time",',
+    '  q.input_tokens - coalesce(q.cached_tokens, 0) AS "Input", q.output_tokens + coalesce(q.thinking_tokens, 0) AS "Output",',
+    '  round(' + priced('q') + ', 4) AS "Cost (SGD)"',
+    'FROM monitoring.pwa_chat_recent_turns_v1(10) q',
+    'LEFT JOIN ' + PRICE_TABLE + ' ON p.model = q.model',
     'ORDER BY q.asked_at DESC'].join('\n');
 }
-const QUESTIONS_Y = 27;
+function usageSql() {
+  // An unpriced model makes the estimate unknown (null, "No price"), never an understated total.
+  return ['SELECT coalesce(sum(u.turns), 0) AS "Turns", coalesce(sum(u.failed), 0) AS "Failed",',
+    '  CASE WHEN bool_or(p.model IS NULL) THEN NULL ELSE coalesce(round(sum(' + priced('u') + '), 2), 0) END AS "Est. cost",',
+    '  CASE WHEN bool_or(p.model IS NULL) OR coalesce(sum(u.turns), 0) = 0 THEN NULL',
+    '    ELSE round(sum(' + priced('u') + ') / sum(u.turns), 4) END AS "Per turn"',
+    'FROM ' + USAGE,
+    'LEFT JOIN ' + PRICE_TABLE + ' ON p.model = u.model'].join('\n');
+}
+function byModelSql() {
+  return ['SELECT u.model AS "Model", u.turns AS "Turns", u.failed AS "Failed",',
+    '  u.input_tokens - coalesce(u.cached_tokens, 0) AS "Input", u.cached_tokens AS "Cached",',
+    '  u.output_tokens + coalesce(u.thinking_tokens, 0) AS "Output + thinking",',
+    '  round(' + priced('u') + ', 4) AS "Cost (SGD)"',
+    'FROM ' + USAGE,
+    'LEFT JOIN ' + PRICE_TABLE + ' ON p.model = u.model',
+    'ORDER BY u.turns DESC, u.model'].join('\n');
+}
+const CHAT_Y = 27;
+const USAGE_H = 8, TURNS_H = 15;
+const SOURCE = 'read live from loan_manager_prod through Grafana PDC (not stored in Cloud Monitoring)';
+const COST_RULE = 'Cost = input, cached input and output + thinking tokens (thinking bills as output; every round of a turn, tool calls included) at the billed Vertex AI unit prices in model-prices.json, SGD per million tokens: ' + PRICE_TEXT + '.';
+function month() {
+  const names = ['Turns', 'Failed', 'Est. cost', 'Per turn'];
+  const panel = L.stat({id: 51, title: 'In-app chat · this month', gridPos: pos(0, CHAT_Y + 1, 8, USAGE_H),
+    description: 'The selected range (month to date by default): chat turns (Turns = answered and failed, as on Now and PWA & APIs; a question that got no reply is not counted), failed turns (orange above 0) and the estimated cost, in total and per turn, from monitoring.pwa_chat_usage_v1, ' + SOURCE + '. ' + COST_RULE + ' A model without a price shows No price. An estimate: the billed truth is the Vertex AI line of GCP by service · net.',
+    targets: [sqlTarget(usageSql())],
+    transformations: [{id: 'filterFieldsByName', options: {include: {names}}}],
+    defaults: {color: L.NEUTRAL, noValue: 'No report', mappings: []},
+    overrides: [byName('Turns', {color: L.NEUTRAL}), byName('Failed', L.problemColor('orange')),
+      byName('Est. cost', {color: L.NEUTRAL, unit: 'prefix:S$', decimals: 2, mappings: [L.nullMap('No price')]}),
+      byName('Per turn', {color: L.NEUTRAL, unit: 'prefix:S$', decimals: 4, mappings: [L.nullMap('—')]})],
+    options: {reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}}});
+  return panel;
+}
+function byModel() {
+  return L.table({id: 52, title: 'In-app chat · by model', gridPos: pos(8, CHAT_Y + 1, 16, USAGE_H),
+    description: 'One row per model over the selected range (month to date by default) from monitoring.pwa_chat_usage_v1, ' + SOURCE + ': turns, failed turns (orange above 0), Input = uncached input tokens, Cached = cached input, Output + thinking = generated tokens, and the estimated cost. ' + COST_RULE + ' The footer sums the cost.',
+    targets: [sqlTarget(byModelSql())],
+    defaults: {noValue: 'No turns', decimals: 0, unit: 'none', custom: {align: 'auto', cellOptions: {type: 'auto'}, inspect: false}},
+    overrides: [byName('Model', {'custom.width': 140}), byName('Turns', {'custom.width': 60}),
+      byName('Failed', {'custom.width': 60, ...L.problemColor('orange'), 'custom.cellOptions': {type: 'color-background', mode: 'basic'}}),
+      ...['Input', 'Cached'].map(name => byName(name, {unit: 'short', 'custom.width': 80})),
+      byName('Output + thinking', {unit: 'short', 'custom.width': 130}),
+      byName('Cost (SGD)', {unit: 'prefix:S$', decimals: 2, 'custom.width': 100})],
+    options: {cellHeight: 'md', footer: {show: true, reducer: ['sum'], fields: ['Cost (SGD)'], countRows: false}}});
+}
+// Outcome cell: Answered and a pending turn neutral, any failure (an error code or no reply) on the Degraded fill.
+const OUTCOME_TEXT = {...L.CHAT_OUTCOMES, ok: 'Answered', pending: 'Pending', unanswered: 'No reply'};
 function questions() {
-  const panel = L.table({id: 50, title: 'In-app chat · last 10 questions', gridPos: pos(0, QUESTIONS_Y + 1, 24, 13),
-    description: 'The 10 latest in-app chat questions (Chat in the PWA), newest first, read live from loan_manager_prod (monitoring.pwa_chat_recent_questions_v1 through Grafana PDC; not stored in Cloud Monitoring). Input = uncached input tokens, Cached = cached input, Output and Thinking = generated tokens (thinking bills as output); every round of the turn, including tool calls, is included. Cost (SGD) = tokens at the billed Vertex AI unit prices in model-prices.json (per million tokens: Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output; Gemini 3.8 Flash S$1.92, S$0.19, S$9.59; Gemini 3.5 Flash S$1.91, S$0.19, S$11.50). No answer (pending, unanswered or failed) = a question without a completed reply. The footer sums the listed questions.',
-    targets: [{refId: 'A', datasource: L.DS.chatQuestions, editorMode: 'code', format: 'table', rawQuery: true, rawSql: questionsSql()}],
+  const outcome = Object.entries(OUTCOME_TEXT).map(([code, text]) => [code, text, code === 'ok' || code === 'pending' ? COLOR.info : COLOR.degraded]);
+  const panel = L.table({id: 50, title: 'In-app chat · last 10 questions', gridPos: pos(0, CHAT_Y + 1 + USAGE_H, 24, TURNS_H),
+    description: 'The 10 latest in-app chat questions (Chat in the PWA), newest first, from monitoring.pwa_chat_recent_turns_v1, ' + SOURCE + '. Outcome = Answered, the error the asker saw (orange), No reply (the claim expired without one) or Pending; Rounds = model rounds; Time = the turn\'s duration; Input = uncached input tokens; Output = generated tokens including thinking. ' + COST_RULE + ' The footer sums the listed questions.',
+    targets: [sqlTarget(turnsSql())],
     defaults: {noValue: 'No questions', decimals: 0, unit: 'none', custom: {align: 'auto', cellOptions: {type: 'auto'}, inspect: false}},
     overrides: [byName('Asked', {unit: 'dateTimeAsLocal', 'custom.width': 150}),
-      byName('Question', {'custom.cellOptions': {type: 'auto', wrapText: true}, 'custom.minWidth': 300}),
-      byName('Model', {'custom.width': 150}),
-      ...['Input', 'Cached', 'Output', 'Thinking'].map(name => byName(name, {unit: 'short', 'custom.width': 90})),
-      byName('Cost (SGD)', {unit: 'prefix:S$', decimals: 2, 'custom.width': 110})],
+      byName('Question', {'custom.cellOptions': {type: 'auto', wrapText: true}, 'custom.minWidth': 220}),
+      byName('Model', {'custom.width': 120, mappings: [L.nullMap('—')]}),
+      byName('Outcome', {'custom.width': 110, mappings: valueMap(outcome), 'custom.cellOptions': {type: 'color-background', mode: 'basic'},
+        color: {mode: 'fixed', fixedColor: COLOR.info}}),
+      byName('Rounds', {'custom.width': 60, mappings: [L.nullMap('—')]}),
+      byName('Time', {unit: 's', decimals: 1, 'custom.width': 70, mappings: [L.nullMap('—')]}),
+      ...['Input', 'Output'].map(name => byName(name, {unit: 'short', 'custom.width': 80})),
+      byName('Cost (SGD)', {unit: 'prefix:S$', decimals: 2, 'custom.width': 100})],
     options: {cellHeight: 'md', footer: {show: true, reducer: ['sum'], fields: ['Cost (SGD)'], countRows: false}}});
-  return [L.row({id: 49, title: 'In-app chat · cost per question', gridPos: pos(0, QUESTIONS_Y, 24, 1)}), panel];
+  return [L.row({id: 49, title: 'In-app chat · usage and cost', gridPos: pos(0, CHAT_Y, 24, 1)}), month(), byModel(), panel];
 }
+const PROVIDERS_Y = CHAT_Y + 1 + USAGE_H + TURNS_H;
 
 function build() {
   return L.dashboard({uid: 'mw-cost', description: 'Cloud spending month to date in SGD with every provider detail in collapsed rows.',
@@ -240,8 +305,8 @@ function build() {
     timepicker: {refresh_intervals: ['1h', '2h', '1d']},
     panels: [total(), platform(5, 2, 6, 'Azure'), platform(6, 3, 12, 'GCP'), platform(7, 4, 18, 'Railway'), lastMonth(), budgetTile(), dailyCost(), byService(),
       rules(), ...questions(),
-      providerRow(10, L.findPanel(COST, 306).title, 41, 306, [102, 103, 104, 101, 110]),
-      providerRow(20, L.findPanel(COST, 307).title, 42, 307, [202, 203, 204, 205, 207, 206, 201]),
-      providerRow(30, L.findPanel(COST, 308).title, 43, 308, [302, 301, 303, 304, 305])].map(neutralMoney)});
+      providerRow(10, L.findPanel(COST, 306).title, PROVIDERS_Y, 306, [102, 103, 104, 101, 110]),
+      providerRow(20, L.findPanel(COST, 307).title, PROVIDERS_Y + 1, 307, [202, 203, 204, 205, 207, 206, 201]),
+      providerRow(30, L.findPanel(COST, 308).title, PROVIDERS_Y + 2, 308, [302, 301, 303, 304, 305])].map(neutralMoney)});
 }
 module.exports = {build, HOST};

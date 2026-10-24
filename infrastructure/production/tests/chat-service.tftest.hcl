@@ -27,6 +27,10 @@ run "chat_default_off" {
     condition     = length(google_service_account.chat) == 0 && length(google_project_iam_member.chat) == 0 && length(google_project_iam_member.chat_auth) == 0 && length(google_sql_user.chat) == 0 && length(google_secret_manager_secret_iam_member.chat_policy) == 0 && length(google_cloud_run_v2_service.chat) == 0
     error_message = "Without chat_authorized the PROD business runtime proposes no chat identity, grant or service."
   }
+  assert {
+    condition     = length(google_logging_metric.chat_turns) == 0 && length(google_logging_metric.chat_turn_latency) == 0 && length(google_logging_metric.chat_turn_rounds) == 0 && length(google_logging_metric.api_result_codes) == 1
+    error_message = "R093: without chat_authorized there are no chat turn metrics; the R089 runtime metrics stay."
+  }
 }
 
 run "chat_requires_business_runtime" {
@@ -98,6 +102,16 @@ run "chat_authorized_exact_prod_service" {
   assert {
     condition     = alltrue([for role, service in google_cloud_run_v2_service.foundation : one(service.template[0].containers[0].args) == "services/production/business-server.mjs" && service.template[0].timeout == (role == "command" ? "55s" : "15s")])
     error_message = "Enabling chat leaves the reader and command definitions unchanged."
+  }
+  assert {
+    condition = (google_logging_metric.chat_turns[0].name == "mw_chat_turns_prod" && google_logging_metric.chat_turn_latency[0].name == "mw_chat_turn_latency_prod" && google_logging_metric.chat_turn_rounds[0].name == "mw_chat_turn_rounds_prod"
+      && alltrue([for m in [google_logging_metric.chat_turns[0], google_logging_metric.chat_turn_latency[0], google_logging_metric.chat_turn_rounds[0]] : m.project == "clever-oasis-508610-n7" && m.filter == "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-credit-app-chat-prod\" AND jsonPayload.event=\"chat_turn\"" && m.metric_descriptor[0].metric_kind == "DELTA"])
+      && google_logging_metric.chat_turns[0].metric_descriptor[0].value_type == "INT64" && google_logging_metric.chat_turns[0].label_extractors["code"] == "EXTRACT(jsonPayload.code)" && google_logging_metric.chat_turns[0].label_extractors["model"] == "EXTRACT(jsonPayload.model)" && length(google_logging_metric.chat_turns[0].label_extractors) == 2
+      && google_logging_metric.chat_turn_latency[0].metric_descriptor[0].value_type == "DISTRIBUTION" && google_logging_metric.chat_turn_latency[0].metric_descriptor[0].unit == "ms" && google_logging_metric.chat_turn_latency[0].value_extractor == "EXTRACT(jsonPayload.latencyMs)"
+      && google_logging_metric.chat_turn_latency[0].bucket_options[0].exponential_buckets[0].num_finite_buckets == 20 && google_logging_metric.chat_turn_latency[0].bucket_options[0].exponential_buckets[0].growth_factor == 1.5 && google_logging_metric.chat_turn_latency[0].bucket_options[0].exponential_buckets[0].scale == 1000
+      && google_logging_metric.chat_turn_rounds[0].value_extractor == "EXTRACT(jsonPayload.rounds)" && google_logging_metric.chat_turn_rounds[0].bucket_options[0].linear_buckets[0].num_finite_buckets == 17
+    && google_logging_metric.chat_turn_rounds[0].bucket_options[0].linear_buckets[0].width == 1 && google_logging_metric.chat_turn_rounds[0].bucket_options[0].linear_buckets[0].offset == 0)
+    error_message = "R093: the three PROD chat turn metrics read only mw-credit-app-chat-prod chat_turn records with the agreed labels, extractors and buckets."
   }
 }
 

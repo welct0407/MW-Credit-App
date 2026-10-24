@@ -222,7 +222,7 @@ Indexes: `(partner_id, status, last_message_at DESC)` on threads; `(thread_id, s
 
 ### 5.4 Cost and monitoring
 
-`monitoring.pwa_chat_recent_questions_v1(n int)` (owner `postgres`, `EXECUTE` for the Grafana reader) returns the last n questions with model and the four token counts, the shape the Cost page's panel 50 reads from the agent database today; the Cost page switches to it in phase 3. `project/scripts/monitoring/model-prices.json` gains `gemini-3.5-flash` from the billing export once it has usage.
+`monitoring.pwa_chat_recent_questions_v1(n int)` (owner `postgres`, `EXECUTE` for the Grafana reader) returns the last n questions with model and the four token counts, the shape the Cost page's panel 50 reads from the agent database today; the Cost page switched to it in R091. R093 (V108) adds `monitoring.pwa_chat_recent_turns_v1` and `monitoring.pwa_chat_usage_v1` (outcome, rounds, turn time, per-model month usage) for the Cost page, and the chat service's `chat_turn` log feeds log-based metrics for the Now, PWA & APIs and Infrastructure dashboards; see the R093 change note. `project/scripts/monitoring/model-prices.json` gains `gemini-3.5-flash` from the billing export once it has usage.
 
 ## 6. PWA
 

@@ -7,7 +7,10 @@ const SERVICES = [
   {key: 'read', label: 'reader', timeoutMs: 15000, maxInstances: 1},
   {key: 'command', label: 'command', timeoutMs: 55000, maxInstances: 2},
   {key: 'notify', label: 'notify', timeoutMs: 120000, maxInstances: 1},
-  {key: 'jobs', label: 'jobs', timeoutMs: 120000, maxInstances: 1}
+  {key: 'jobs', label: 'jobs', timeoutMs: 120000, maxInstances: 1},
+  // R093: the in-app chat streams a turn in one request, so its request latency is the turn's duration (the turn
+  // itself times out at 240 s, the request at 300 s); max 2 instances in PROD and DEV.
+  {key: 'chat', label: 'chat', timeoutMs: 300000, maxInstances: 2, note: ' A streamed chat turn is one request, so this is the turn time per 5 minutes.'}
 ];
 const run = (metric, service, suffix = '') => 'metric.type = "' + metric + '" AND resource.type = "cloud_run_revision" AND resource.labels.service_name = "mw-credit-app-' + service + '-${env}"' + suffix;
 const ts = (refId, url, name, selector = L.numericSelector()) => target(refId, DS.gcp, url, selector, [col('time', 'Time', 'timestamp'), col('value', name)], {format: 'timeseries'});
@@ -26,20 +29,20 @@ function apiHealth() {
   const q = (refId, name, component) => target(refId, DS.gcp, monitoringUrl(customFilter('health', {component})), L.stateSelector(1),
     [col('time', 'Time', 'timestamp'), col('value', name)], {format: 'timeseries'});
   return L.stat({id: 2, title: 'API health', gridPos: pos(8, 0, 8, TOP),
-    description: 'Reader and command: Debian collector GET /health on the ${env} reader and command services (no credentials, 10 s). Grey after 6 minutes without a report.',
-    targets: [q('A', 'Reader', 'pwa_api_reader_${env}'), q('B', 'Command', 'pwa_api_command_${env}')],
+    description: 'Reader, command and chat: Debian collector GET /health on the ${env} reader, command and chat services (no credentials, 10 s). Grey after 6 minutes without a report.',
+    targets: [q('A', 'Reader', 'pwa_api_reader_${env}'), q('B', 'Command', 'pwa_api_command_${env}'), q('C', 'Chat', 'pwa_api_chat_${env}')],
     defaults: {mappings: L.stateMappings(L.STATE_TEXT, 'No report'), color: {mode: 'fixed', fixedColor: COLOR.unknown}},
-    overrides: ['A', 'B'].map((r, i) => byRef(r, {displayName: ['Reader', 'Command'][i]})),
+    overrides: ['A', 'B', 'C'].map((r, i) => byRef(r, {displayName: ['Reader', 'Command', 'Chat'][i]})),
     options: {reduceOptions: {calcs: ['last'], fields: '', values: false}}});
 }
 
 function errors() {
   const code = (refId, name, value) => target(refId, DS.gcp, monitoringUrl('metric.type = "' + L.LOG_METRIC + 'mw_api_result_codes_${env}" AND metric.labels.code = "' + value + '"',
     {aligner: 'ALIGN_SUM', period: CHART_PERIOD}), jq('sum-points.jq'), [col('value', name)]);
-  const fivexx = target('D', DS.gcp, monitoringUrl('metric.type = "run.googleapis.com/request_count" AND resource.type = "cloud_run_revision" AND resource.labels.service_name = monitoring.regex.full_match("mw-credit-app-(read|command|notify|jobs)-${env}") AND metric.labels.response_code_class = "5xx"',
+  const fivexx = target('D', DS.gcp, monitoringUrl('metric.type = "run.googleapis.com/request_count" AND resource.type = "cloud_run_revision" AND resource.labels.service_name = monitoring.regex.full_match("mw-credit-app-(read|command|notify|jobs|chat)-${env}") AND metric.labels.response_code_class = "5xx"',
     {aligner: 'ALIGN_SUM', reducer: 'REDUCE_SUM', period: CHART_PERIOD}), jq('sum-points.jq'), [col('value', '5xx · all services')]);
   return L.stat({id: 3, title: 'Sign-in and request errors', gridPos: pos(16, 0, 8, TOP),
-    description: 'Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services\' structured request log, no user identity) and Cloud Run 5xx responses across the four ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs, normal) turns orange from 10 in the range.',
+    description: 'Counts over the selected range: log-based mw_api_result_codes_${env} by result code (from the services\' structured request log, no user identity) and Cloud Run 5xx responses across the five ${env} services. The 503 and 5xx counts turn orange above 0; 401 session invalid (sign-outs, normal) turns orange from 10 in the range.',
     // READ-1: names with spaces so they wrap on a phone (the codes are in the description).
     targets: [code('A', '401 · session invalid', 'session_invalid'), code('B', '503 · session check unavailable', 'session_check_unavailable'),
       code('C', '503 · body timeout', 'body_timeout'), fivexx],
@@ -64,7 +67,7 @@ function serviceRow(s, index) {
       ({matcher: {id: 'byName', options: name}, properties: [{id: 'color', value: {fixedColor: color, mode: 'fixed'}},
         {id: 'custom.lineStyle', value: fill === 'solid' ? {fill: 'solid'} : {dash: fill === 'dash' ? [10, 10] : [0, 10], fill}}]}))});
   const latency = L.timeseries({id: id + 2, title: 'p95 latency (ms) · ' + s.label, gridPos: pos(8, y + 1, 8, 6),
-    description: 'Cloud Run request_latencies, distributions merged per 5 minutes then the 95th percentile across revisions; the red dashed line is the request timeout (' + s.timeoutMs / 1000 + ' s). Logarithmic axis.',
+    description: 'Cloud Run request_latencies, distributions merged per 5 minutes then the 95th percentile across revisions; the red dashed line is the request timeout (' + s.timeoutMs / 1000 + ' s). Logarithmic axis.' + (s.note || ''),
     targets: [ts('A', monitoringUrl(run('run.googleapis.com/request_latencies', s.key), {aligner: 'ALIGN_SUM', reducer: 'REDUCE_PERCENTILE_95', period: '300s'}), 'p95')],
     defaults: {unit: 'ms', min: 10, noValue: 'No requests', ...L.dashedLine(s.timeoutMs), custom: {scaleDistribution: {type: 'log', log: 10}, thresholdsStyle: {mode: 'dashed'}}}});
   const instances = L.timeseries({id: id + 3, title: s.label + ' · instances, CPU, RAM', gridPos: pos(16, y + 1, 8, 6),
@@ -114,8 +117,46 @@ function workers() {
 }
 
 const WORKERS = 8;
-function recognition() {
+/* R093 (owner Option A): the in-app chat's business outcome for ${env} (DEV too), from the log-based metrics of
+ * the chat service's chat_turn log (infrastructure/<env>/log-metrics.tf): outcomes in words, turn time per point,
+ * the range's counts and medians (coloured by the owner limits) and the turns per model. No question text. */
+// R093 review: 14 rows, so the by-model bars (44) get 6 under the 8-row tile.
+const CHAT = 14;
+function chatTurns() {
   const y = TOP + SERVICES.length * 7 + 1 + WORKERS;
+  const header = L.row({id: 40, title: 'In-app chat · turns', gridPos: pos(0, y, 24, 1)});
+  const bars = (id, title, gridPos, label, column, description, names = {}) => ({id, type: 'bargauge', title, gridPos, description, datasource: DS.gcp,
+    targets: [target('A', DS.gcp, monitoringUrl(L.chatFilter('turns', '${env}'), {aligner: 'ALIGN_SUM', period: CHART_PERIOD}),
+      jq('sum-by-label.jq', {LABEL: label}), [col('Outcome', column, 'string'), col('Count', 'Count')])],
+    // One value per label value, named by it (rows to fields), not one "Count" per row.
+    transformations: [{id: 'rowsToFields', options: {mappings: [{fieldName: column, handlerKey: 'field.name'}, {fieldName: 'Count', handlerKey: 'field.value'}]}}],
+    fieldConfig: {defaults: {color: {mode: 'fixed', fixedColor: COLOR.text}, decimals: 0, displayName: '${__field.name}', min: 0, noValue: 'No turns',
+      thresholds: steps([null, COLOR.ok]), unit: 'none'},
+      overrides: Object.entries(names).map(([code, name]) => byName(code, {displayName: name}))},
+    options: {displayMode: 'basic', legend: {showLegend: false}, maxVizHeight: 300, minVizHeight: 16, minVizWidth: 8, namePlacement: 'left',
+      orientation: 'horizontal', reduceOptions: {calcs: ['lastNotNull'], fields: '', values: false}, showUnfilled: true, sizing: 'auto',
+      text: {titleSize: 16, valueSize: 22}, valueMode: 'text'}});
+  const outcomes = bars(41, 'Chat turns · outcomes', pos(0, y + 1, 8, CHAT), 'code', 'Outcome',
+    'Log-based mw_chat_turns_${env}: chat turns over the selected range, one bar per result (Answered, or the error the asker saw: model unavailable or timed out, too many tool rounds, grounding rejected, turn timeout, prompt blocked, internal error). Counts only, neutral; the failures are coloured on the tile beside.',
+    L.CHAT_OUTCOMES);
+  const time = L.timeseries({id: 42, title: 'Chat turn time', gridPos: pos(8, y + 1, 8, CHAT),
+    description: 'Log-based distribution mw_chat_turn_latency_${env} (the chat_turn log\'s latencyMs, the whole turn): the median per point; with a few turns a day a point is one turn. Dashed lines: grey = the R092 aim of 20 s, orange = the owner limit of ' + L.LIMITS.chatTurnSeconds + ' s (as tile 43; the tile turns red from ' + L.CHAT_TURN_RED_SECONDS + ' s), red = the 240 s turn timeout. Logarithmic axis, 1 s to 300 s.',
+    targets: [ts('A', monitoringUrl(L.chatFilter('latency', '${env}'), {aligner: 'ALIGN_DELTA', reducer: 'REDUCE_PERCENTILE_50', period: CHART_PERIOD}), 'Median turn')],
+    defaults: {unit: 'ms', min: 1000, max: 300000, noValue: 'No turns', custom: {drawStyle: 'points', pointSize: 6, showPoints: 'always', scaleDistribution: {type: 'log', log: 10},
+      thresholdsStyle: {mode: 'dashed'}}, thresholds: steps([null, 'transparent'], [20000, COLOR.unknown], [L.LIMITS.chatTurnSeconds * 1000, COLOR.degraded], [240000, 'red'])},
+    // Neutral points (theme text): the colour is in the two reference lines.
+    overrides: [byName('Median turn', {color: {fixedColor: COLOR.text, mode: 'fixed'}})]});
+  const tile = L.chatStat({id: 43, title: 'Chat turns · ${env}', gridPos: pos(16, y + 1, 8, 8), env: '${env}',
+    description: 'Over the selected range, from the log-based metrics mw_chat_turns_${env}, mw_chat_turn_rounds_${env} and mw_chat_turn_latency_${env}: turns, failed turns (orange above 0), the median model rounds per turn (orange from ' +
+      L.LIMITS.chatRounds + ') and the median turn time (orange from ' + L.LIMITS.chatTurnSeconds + ' s, red from ' + L.CHAT_TURN_RED_SECONDS + ' s). None = no turn in the range.',
+    fields: [['turns', 'Turns'], ['failed', 'Failed'], ['rounds', 'Median rounds'], ['turn', 'Median turn']]});
+  const models = bars(44, 'Chat turns · by model', pos(16, y + 9, 8, CHAT - 8), 'model', 'Model',
+    'Log-based mw_chat_turns_${env} by the model of each turn (the Partner chooses it per thread; the default is in Terraform chat_models), over the selected range. Neutral counts.');
+  return [header, outcomes, time, tile, models];
+}
+
+function recognition() {
+  const y = TOP + SERVICES.length * 7 + 1 + WORKERS + 1 + CHAT;
   const header = L.row({id: 29, title: 'Receipt recognition route · command service to Debian recognizer', gridPos: pos(0, y, 24, 1)});
   // READ-1: one bar per outcome (up to eight, named in words), so every outcome fits at the larger text.
   const outcomes = {id: 30, type: 'bargauge', title: 'Recognitions', gridPos: pos(0, y + 1, 8, RECOGNITION),
@@ -158,11 +199,11 @@ const ENV_LINKS = ['prod', 'dev'].map(env => ({asDropdown: false, icon: 'bolt', 
   title: env.toUpperCase(), tooltip: 'Show ' + env.toUpperCase() + ' (now showing ${env})', type: 'link', url: '/d/mw-pwa?var-env=' + env}));
 
 function build() {
-  return L.dashboard({uid: 'mw-pwa', description: 'PWA runtime by environment: hosting, API health, Cloud Run services, workers and the receipt recognition route. DEV is a switch, never aggregated with PROD.',
+  return L.dashboard({uid: 'mw-pwa', description: 'PWA runtime by environment: hosting, API health, Cloud Run services, workers, the in-app chat and the receipt recognition route. DEV is a switch, never aggregated with PROD.',
     time: {from: 'now-24h', to: 'now-2m'}, refresh: '2m',
     links: ENV_LINKS,
     templating: [{current: {text: 'prod', value: 'prod'}, hide: 2, includeAll: false, label: 'Environment', multi: false, name: 'env',
       options: [{selected: true, text: 'prod', value: 'prod'}, {selected: false, text: 'dev', value: 'dev'}], query: 'prod,dev', skipUrlSync: false, type: 'custom'}],
-    panels: [hosting(), apiHealth(), errors(), ...SERVICES.flatMap(serviceRow), ...workers(), ...recognition()]});
+    panels: [hosting(), apiHealth(), errors(), ...SERVICES.flatMap(serviceRow), ...workers(), ...chatTurns(), ...recognition()]});
 }
 module.exports = {build, SERVICES};

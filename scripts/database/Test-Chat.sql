@@ -6,7 +6,8 @@
 -- refused by UNIQUE (thread_id, seq), history conflicts, paging, the outcome read, per-Partner 404s, archive,
 -- thread_full (54000), the append-only triggers (55000), the capability boundary (no EXECUTE without
 -- mw_chat_api_dev; mw_chat_read_dev reads no chat table and calls no chat RPC) and the Cost page function.
--- G covers V105 (chat reply event, job status); H covers V106 (turn presence, the completion's detached flag).
+-- G covers V105 (chat reply event, job status); H covers V106 (turn presence, the completion's detached flag); I covers
+-- V108 (the Cost page's turn and usage reads).
 \set ON_ERROR_STOP on
 BEGIN;
 DO $$ BEGIN
@@ -417,5 +418,70 @@ DO $$ BEGIN
  IF has_function_privilege('mw_chat_read_dev','public.pwa_chat_turn_presence_v1(jsonb,uuid,uuid,text)','EXECUTE') OR has_function_privilege('mw_notify_api_dev','public.pwa_chat_turn_presence_v1(jsonb,uuid,uuid,text)','EXECUTE')
   OR NOT has_function_privilege('mw_chat_api_dev','public.pwa_chat_turn_presence_v1(jsonb,uuid,uuid,text)','EXECUTE') THEN RAISE EXCEPTION 'V106 presence reaches the wrong capability'; END IF;
 END $$;
+-- I. V108 (R093): the Cost page's turn and usage reads. A thread on its own model (gemini-3.5-flash) holds an
+-- answered turn with tool calls, a failed turn whose asker had left (detached), a pending claim and one more answered
+-- turn, so the per-model usage and its medians are exact.
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); t5 uuid:='55555555-5555-4555-8555-555555555555';
+ e1 uuid:='e1111111-1111-4111-8111-111111111111'; e2 uuid:='e2222222-2222-4222-8222-222222222222';
+ e3 uuid:='e3333333-3333-4333-8333-333333333333'; e4 uuid:='e4444444-4444-4444-8444-444444444444';
+ reply jsonb:=jsonb_set(pg_temp.assistant('ok'),'{model}','"gemini-3.5-flash"');
+BEGIN
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',t5,'model','gemini-3.5-flash'));
+ PERFORM public.pwa_chat_turn_begin_v1(a,t5,jsonb_build_object('id',e1,'text','V108 answered'));
+ PERFORM public.pwa_chat_turn_complete_v1(a,e1,reply||'{"rounds":1,"latencyMs":2000}',pg_temp.history(0,0,1),
+  '[{"callId":"v1","round":1,"name":"sql_query","arguments":"{}","result":"{}","error":null,"ms":40},{"callId":"v2","round":1,"name":"loan_payoff","arguments":"{}","result":"{}","error":null,"ms":60}]');
+ PERFORM public.pwa_chat_turn_begin_v1(a,t5,jsonb_build_object('id',e2,'text','V108 failed'));
+ PERFORM public.pwa_chat_turn_presence_v1(a,t5,e2,'hidden');
+ PERFORM public.pwa_chat_turn_complete_v1(a,e2,jsonb_set(pg_temp.assistant('failed','MODEL_TIMEOUT'),'{model}','"gemini-3.5-flash"')||'{"rounds":5,"latencyMs":30000}',NULL,'[]');
+ PERFORM public.pwa_chat_turn_begin_v1(a,t5,jsonb_build_object('id',e3,'text','V108 third'));
+ PERFORM public.pwa_chat_turn_complete_v1(a,e3,reply||'{"rounds":2,"latencyMs":9000}',pg_temp.history(0,1,1),'[]');
+ PERFORM public.pwa_chat_turn_begin_v1(a,t5,jsonb_build_object('id',e4,'text','V108 pending'));
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$
+DECLARE r record; seen jsonb;
+BEGIN
+ SELECT jsonb_object_agg(question,to_jsonb(q)-'asked_at'-'question') INTO seen FROM monitoring.pwa_chat_recent_turns_v1(50) q WHERE question LIKE 'V108 %';
+ IF seen->'V108 answered' IS DISTINCT FROM '{"status":"ok","error_code":null,"provider":"gemini","model":"gemini-3.5-flash","rounds":1,"attempts":3,"latency_ms":2000,
+   "tool_calls":2,"tool_ms":100,"detached":false,"input_tokens":1200,"cached_tokens":600,"output_tokens":80,"thinking_tokens":40}'::jsonb
+  OR seen->'V108 failed' IS DISTINCT FROM '{"status":"failed","error_code":"MODEL_TIMEOUT","provider":"gemini","model":"gemini-3.5-flash","rounds":5,"attempts":3,"latency_ms":30000,
+   "tool_calls":0,"tool_ms":0,"detached":true,"input_tokens":1200,"cached_tokens":600,"output_tokens":80,"thinking_tokens":40}'::jsonb
+  OR seen->'V108 pending' IS DISTINCT FROM '{"status":"pending","error_code":null,"provider":"gemini","model":null,"rounds":null,"attempts":null,"latency_ms":null,
+   "tool_calls":null,"tool_ms":null,"detached":false,"input_tokens":null,"cached_tokens":null,"output_tokens":null,"thinking_tokens":null}'::jsonb
+  OR seen->'V108 third'->>'latency_ms'<>'9000' THEN RAISE EXCEPTION 'V108 recent turns %',seen; END IF;
+ -- The 1..50 clamp, as pwa_chat_recent_questions_v1.
+ IF (SELECT count(*) FROM monitoring.pwa_chat_recent_turns_v1(0))<>1 OR (SELECT count(*) FROM monitoring.pwa_chat_recent_turns_v1(NULL))<>least(10,(SELECT count(*) FROM public.pwa_chat_messages WHERE role='user'))
+  OR (SELECT count(*) FROM monitoring.pwa_chat_recent_turns_v1(1000))<>least(50,(SELECT count(*) FROM public.pwa_chat_messages WHERE role='user')) THEN
+  RAISE EXCEPTION 'V108 recent turns order or limit'; END IF;
+ SELECT * INTO STRICT r FROM monitoring.pwa_chat_usage_v1(NULL) WHERE model='gemini-3.5-flash';
+ IF r.provider<>'gemini' OR r.turns<>3 OR r.failed<>1 OR r.input_tokens<>3600 OR r.cached_tokens<>1800 OR r.output_tokens<>240 OR r.thinking_tokens<>120
+  OR r.median_latency_ms<>9000 OR r.median_rounds<>2 THEN RAISE EXCEPTION 'V108 usage %',to_jsonb(r); END IF;
+ IF (SELECT sum(u.turns) FROM monitoring.pwa_chat_usage_v1(NULL) u)<>(SELECT count(*) FROM public.pwa_chat_messages WHERE role='assistant')
+  OR EXISTS(SELECT 1 FROM monitoring.pwa_chat_usage_v1(clock_timestamp()+interval '1 day')) THEN RAISE EXCEPTION 'V108 usage window'; END IF;
+ -- The Grafana reader's role executes both; the API, SQL-tool and PUBLIC roles execute neither.
+ IF NOT has_function_privilege('mw_agent_dashboard','monitoring.pwa_chat_recent_turns_v1(integer)','EXECUTE') OR NOT has_function_privilege('mw_agent_dashboard','monitoring.pwa_chat_usage_v1(timestamptz)','EXECUTE')
+  OR has_function_privilege('mw_chat_api_dev','monitoring.pwa_chat_recent_turns_v1(integer)','EXECUTE') OR has_function_privilege('mw_chat_api_dev','monitoring.pwa_chat_usage_v1(timestamptz)','EXECUTE')
+  OR has_function_privilege('mw_chat_read_dev','monitoring.pwa_chat_recent_turns_v1(integer)','EXECUTE') OR has_function_privilege('mw_chat_read_dev','monitoring.pwa_chat_usage_v1(timestamptz)','EXECUTE')
+  OR has_function_privilege('public','monitoring.pwa_chat_recent_turns_v1(integer)','EXECUTE') OR has_function_privilege('public','monitoring.pwa_chat_usage_v1(timestamptz)','EXECUTE') THEN
+  RAISE EXCEPTION 'V108 functions reach the wrong roles'; END IF;
+ -- The definer reads its extra columns by column grant (a superuser in CI reads anyway, so the ACL is checked), never the tables.
+ IF (SELECT array_agg(format('%s.%s',a.attrelid::regclass,a.attname) ORDER BY format('%s.%s',a.attrelid::regclass,a.attname)) FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x
+   WHERE a.attrelid IN ('public.pwa_chat_messages'::regclass,'public.pwa_chat_tool_calls'::regclass) AND x.grantee='postgres'::regrole AND x.privilege_type='SELECT'
+    AND a.attname IN ('error_code','latency_ms','attempts','detached_at','message_id','ms','error'))
+   IS DISTINCT FROM ARRAY['pwa_chat_messages.attempts','pwa_chat_messages.detached_at','pwa_chat_messages.error_code','pwa_chat_messages.latency_ms',
+    'pwa_chat_tool_calls.error','pwa_chat_tool_calls.message_id','pwa_chat_tool_calls.ms']
+  OR EXISTS(SELECT 1 FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) x WHERE c.oid IN ('public.pwa_chat_messages'::regclass,'public.pwa_chat_tool_calls'::regclass) AND x.grantee='postgres'::regrole) THEN
+  RAISE EXCEPTION 'V108 definer column grants'; END IF;
+END $$;
+-- As the dashboard role: both functions answer; the chat tables stay unreadable.
+SET LOCAL ROLE mw_agent_dashboard;
+DO $$ BEGIN
+ IF (SELECT count(*) FROM monitoring.pwa_chat_recent_turns_v1(3))<>3 OR NOT EXISTS(SELECT 1 FROM monitoring.pwa_chat_usage_v1(NULL)) THEN RAISE EXCEPTION 'dashboard role reads'; END IF;
+END $$;
+SELECT pg_temp.expect('SELECT count(*) FROM public.pwa_chat_messages','42501');
+SELECT pg_temp.expect('SELECT count(*) FROM public.pwa_chat_tool_calls','42501');
+RESET ROLE;
 SELECT 'Chat regression passed' AS result;
 ROLLBACK;
