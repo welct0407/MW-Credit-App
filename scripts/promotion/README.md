@@ -23,6 +23,18 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R091 runtime, SQL and frontend promotion with V107
+
+`schemaVersion: 27`, `release: R091`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R090's kind (shared code path) for the Instagram conversation decommission, with V107 and one new image on the five services.
+
+- **Source.** The source must descend from the R090 package `297b764` (tag `R090`) and add exactly `database/migrations/V107__drop_agent_native_operation.sql` (R074's strict name form). A later delivery-tool commit may carry only the runner, its unit test, this README, `scripts/database/Backup-ProductionPromotion.py`, `scripts/database/R053_OPERATOR.md` and documents (`project/Documents/`, root `Change Logs/`), with the runner's unit test recorded as `deliveryToolChecks`; `database/README.md` and `integration-agent/` belong in the source, not the tool commit.
+- **SQL.** Baseline 106, target 107, one migration in the grouped transaction: its hash is checked against the source bytes and against the reviewed SHA-256 `06aae62b…6b54aec8` (the bytes applied on DEV); the tested grouped 106-to-107 release manifest (complete); `sql.applied` with the `prod-promotion-…` backup taken at 106 (dump SHA256, passed restore); `sql.verified`, a read-only readback of 107 successful history rows. Owner window: `mw_app_prod_journal_owner` only ([R053_OPERATOR.md](../database/R053_OPERATOR.md#journal-owner-window-v107-r091)).
+- **Order.** The images go first, on 106, and V107 after them, because V107 drops `pwa_submit_agent_operation_v1`, which the R090 command image still calls: `applied.sqlVersion` is 106 and `applied.appliedAt` is no later than `sql.applied.startedAt`. Hosting is the last step.
+- **Plan.** `{add:0, change:5, destroy:0}` with exactly these actions, in this order: `read.image`, `command.image`, `command.conversationEnvRemoved` (the `AGENT_CONVERSATION_*` env leaves command), `notify.image`, `jobs.image`, `chat.image`. The enabled recognizer wiring and the R077 timeouts stay. `rollback.services` pins all five live R090 services, chat included, on the R090 image; `applied.services` holds the five services on the build image at 100% traffic, each on a new revision.
+- **Live readback.** As R090 (the four services as R089, command `cpuIdle` not true, the jobs dispatch wake, the chat and jobs callers on notify, the chat service with timeout `300s`, three Gemini models and `maxRounds` 16), plus no env name starting `AGENT_CONVERSATION_` on any of the five services.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R091"`; `chatOrigin` stays the R090 PROD chat origin in the public config, the compiled bundle and the Hosting CSP `connect-src`. The audience is `https://lm.mw-credit.com/promotion/r091`. R091 refuses the other kinds' packages, and they refuse R091's.
+- **Not covered.** The integration agent (deploy freeze, agent V11), the policy secrets and the DEV identity (the follow-up pull request), and the three inert VM keys (R092).
+
 ## R090 chat service, runtime, SQL and frontend promotion after V106
 
 `schemaVersion: 26`, `release: R090`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R089's SQL kind (shared code path) after V104 to V106, plus the new PROD chat service `mw-credit-app-chat-prod` (in-app chat).
