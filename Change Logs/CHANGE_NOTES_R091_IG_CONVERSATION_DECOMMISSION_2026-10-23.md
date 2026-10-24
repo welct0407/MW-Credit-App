@@ -133,7 +133,7 @@ None (E8 decided 23 October 2026). Follow-up recorded by the owner's decision: `
 
 ### Continue here
 - Outcome/scope and affected components: R091 is Released to PROD (24 October 2026): the Instagram Partner conversation decommission, as a runtime and SQL release (the command image without the agent conversation route, the activation with the agent conversation API off, V107 which drops `pwa_submit_agent_operation_v1`) plus an R091 Hosting re-release of the unchanged app for the About marker. Already live before the promotion and recorded in Changes: the monitoring part, the VM deploy with catalogue revision 32, agent migration V11 and the R085 grant revoke.
-- State and next action or actual blocker: applied and verified in PROD. Next: the `R091` tag on `db7789e3` through the Release tag workflow (pending), and the Terraform removal follow-up below.
+- State and next action or actual blocker: applied and verified in PROD. Tag `R091` created on `db7789e3`; next: the Terraform removal follow-up below.
 - Source/artifact/configuration pins; runner manifest link: source `db7789e35b54878d286ccb27f8291119c690df17` (code identical to `1d673a90`; records only on top), baseline R090 `297b7649`; delivery tool `304ed4a3` (`business-hosting-delivery` tests 95 of 95). Image, activation generations, the plan (`production-r091-promotion.tfplan`), the V107 release file and preflight, the Hosting version and the package hashes are in the Environment inventory.
 - Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 23 October 2026, "decommission ig conversation" (scoped authorization for phase 3 of the R090 design), with the decisions to destroy the policy secrets and the DEV test identity and to delete the agent-database conversation journal; it covers V107, backups and the standard temporary maintenance windows ([Release workflow](../project/Documents/Rules/Release_Workflow.md#promotion)). No forced notification, job or financial write was part of it.
 - Previous deployed baseline and recovery: PROD at V106 with the R090 images and Hosting. Rollback: Hosting back to the R090 version; the reader, command, notify, jobs and chat services back to their R090 revisions on the R090 image; activation back to the previous generation (all in the inventory); V107 by a restore from the promotion backup at V106 or a forward re-create from the V90 body; after V11 a package rollback needs the verified `mw_agent` backup restored first.
@@ -148,7 +148,7 @@ None (E8 decided 23 October 2026). Follow-up recorded by the owner's decision: `
 | Tested package captured; tracker freeze/handoff published | PROD image built from `db7789e3` (Cloud Build `7b7dd18f-2be4-4080-8c62-aab6973845ed`, tag `keep-r091`); freeze published with R092 opened |
 | Changed components deployed in dependency order | Verified PROD backup at V106 (`prod-promotion-7c87487958284aeeb7eeef1427049248`, restore passed); apply 1 (plan 0 add, 5 change, 0 destroy, applied 03:50:44Z to 03:51:21Z; reader, command, notify, jobs and chat revisions on the new image, no `AGENT_CONVERSATION_*` environment); V107 (check 04:05:31Z to 04:06:04Z, journal-owner window 04:06:17Z to 04:07:49Z, applied 04:06:23Z to 04:07:44Z, checksum 2074583382, readback 107 rows, function gone); Hosting 04:18:31Z to 04:19:16Z |
 | Version/environment and affected PROD smoke verified once | R091 marker on the live app, chat origin in bundle, config and CSP, five services at 100%, chat `/health` 200 and 401 without a token, collector 14 runs 17 of 17 |
-| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Inventory, tracker, Development Changes, database README and `R053_OPERATOR.md` updated; tag `R091` on `db7789e3`: pending (Release tag workflow) |
+| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Inventory, tracker, Development Changes, database README and `R053_OPERATOR.md` updated; tag `R091` on `db7789e3` (annotated tag `8785b61a`, Release tag workflow, 24 October 2026) |
 
 SQL: V107 was the only pending migration from V106, applied under the release file by the guarded runner. Infrastructure: the reviewed plan above with its actual apply and readback. Notification and jobs: unchanged; nothing forced.
 
@@ -161,7 +161,7 @@ SQL: V107 was the only pending migration from V106, applied under the release fi
 - Outcome: applied and verified in PROD; the policy-secret destruction is the one open owner-approved step.
 - Recovery reference: Continue here (baseline and rollback) and the Recovery section above; the promotion backup and the `mw_agent` backup named in Changes.
 - Changed documents, if any: Environment inventory (PROD rows), Release Tracker, Development Changes, and the pruning below.
-- Published evidence/tag: tag `R091` on `db7789e3`: pending the Release tag workflow.
+- Published evidence/tag: tag `R091` on `db7789e3` (annotated tag `8785b61a`, Release tag workflow, 24 October 2026).
 - Outstanding owner action, if any: none; the Terraform removal and its secret and identity destruction are already approved.
 
 ### Closure pruning (release workflow, 24 October 2026)
