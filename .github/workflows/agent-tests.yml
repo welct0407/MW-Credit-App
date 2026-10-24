@@ -11,10 +11,10 @@ name: Agent tests
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml', 'scripts/ci/**', 'project/Documents/Data Dictionary/systems/postgresql/**', '!**/*.md']
+    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', 'tests/fixtures/payer-name-cases.json', '.github/workflows/agent-tests.yml', 'scripts/ci/**', 'project/Documents/Data Dictionary/systems/postgresql/**', '!**/*.md']
   push:
     branches: [main]
-    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', '.github/workflows/agent-tests.yml', 'scripts/ci/**', 'project/Documents/Data Dictionary/systems/postgresql/**', '!**/*.md']
+    paths: ['integration-agent/**', 'database/migrations/**', 'scripts/database/Test-AppRolePrerequisites.sql', 'tests/fixtures/payer-name-cases.json', '.github/workflows/agent-tests.yml', 'scripts/ci/**', 'project/Documents/Data Dictionary/systems/postgresql/**', '!**/*.md']
   workflow_dispatch:
 
 permissions:

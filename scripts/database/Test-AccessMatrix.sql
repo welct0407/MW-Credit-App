@@ -344,5 +344,16 @@ CREATE TABLE public.v110_probe(id integer);
 DO $$ BEGIN
  IF has_table_privilege('mw_integration_agent','public.v110_probe','SELECT') THEN RAISE EXCEPTION 'V110: a new public table must not reach the agent by default'; END IF;
 END $$;
+-- V111 (R095): the agent reads the borrower payer name ("Communication Name") through its kept whole-table SELECT and
+-- writes nothing; the two command functions keep their journal owner and no PUBLIC EXECUTE.
+DO $$ BEGIN
+ IF NOT has_column_privilege('mw_integration_agent','public."Borrowers"','Communication Name','SELECT') THEN RAISE EXCEPTION 'V111: the agent must read the payer name'; END IF;
+ IF has_table_privilege('mw_integration_agent','public."Borrowers"','INSERT,UPDATE,DELETE,TRUNCATE')
+  OR has_any_column_privilege('mw_integration_agent','public."Borrowers"','INSERT,UPDATE') THEN RAISE EXCEPTION 'V111: the agent must not write borrowers'; END IF;
+ IF (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='public.pwa_submit_agent_receipt_v1(text)'::regprocedure)<>'mw_app_dev_journal_owner'
+  OR (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid='public.pwa_submit_selected_charges_v1(text)'::regprocedure)<>'mw_app_dev_journal_owner'
+  OR has_function_privilege('public','public.pwa_submit_agent_receipt_v1(text)','EXECUTE') OR has_function_privilege('public','public.pwa_submit_selected_charges_v1(text)','EXECUTE') THEN
+  RAISE EXCEPTION 'V111 changed a command function owner or PUBLIC access'; END IF;
+END $$;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;

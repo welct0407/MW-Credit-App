@@ -3,6 +3,7 @@
 // match_account, validate_receipt field rules), except that each field is judged on its own: a field
 // whose rule fails is null with a warning, and nothing here writes or blocks a payment.
 // The recognizer result is untrusted model output; only its validated shape reaches this module.
+import { best, display, joined, learn, lines, readable } from './payer-name.mjs';
 
 const THAI_DIGITS = '๐๑๒๓๔๕๖๗๘๙';
 
@@ -76,11 +77,24 @@ export function slipFields(result, businessDate) {
 }
 
 /**
- * Suggestion for the receiving form. `accounts` are this environment's Cash Accounts
- * ({id,label,number,alternative,active}); `referenceExists(reference)` reads Payments.
- * @returns {Promise<{status:'recognized'|'unrecognized',reason?:string,suggestion:any,warnings:{code:string,date?:string}[]}>}
+ * R095 payer block (revision 2, information only): the slip payer name as printed (null unless readable), the
+ * borrower's payer lines, whether the slip is already listed (match or near), the column value read (`before`) and
+ * the new value a posted payment would store (`after`, payer_name.learn; null when nothing changes or no borrower).
  */
-export async function evaluateSlip(result, { businessDate, accounts, referenceExists }) {
+export function payerFacts(slipName, storedName, known = true) {
+  const slip = display(slipName), slipValue = slip && readable(slip) ? slip : null;
+  const before = typeof storedName === 'string' ? storedName : null, current = lines(before);
+  const after = slipValue && known ? learn(current, slipValue) : null;
+  return { slipName: slipValue, lines: current, listed: !!slipValue && best(current, slipValue) !== null, before, after: after ? joined(after) : null };
+}
+
+/**
+ * Suggestion for the receiving form. `accounts` are this environment's Cash Accounts
+ * ({id,label,number,alternative,active}); `referenceExists(reference)` reads Payments; `storedPayerName` is the
+ * form's borrower's "Communication Name" (R095; null when empty) and `payerBorrowerKnown` whether a borrower was named.
+ * @returns {Promise<{status:'recognized'|'unrecognized',reason?:string,suggestion:any,payer?:{slipName:string|null,lines:string[],listed:boolean,before:string|null,after:string|null},warnings:{code:string,date?:string}[]}>}
+ */
+export async function evaluateSlip(result, { businessDate, accounts, referenceExists, storedPayerName = null, payerBorrowerKnown = false }) {
   const fields = slipFields(result, businessDate);
   if (!fields.confirmed) return { status: 'unrecognized', reason: 'slip_not_confirmed', suggestion: null, warnings: fields.warnings.map(code => ({ code })) };
   const warnings = [...fields.warnings];
@@ -96,10 +110,13 @@ export async function evaluateSlip(result, { businessDate, accounts, referenceEx
     else warnings.push(matched.length ? 'account_ambiguous' : 'account_unmatched');
   }
   if (fields.bankReference && await referenceExists(fields.bankReference)) warnings.push('reference_exists');
+  // R095 revision 2: the payer name is information only (no warning); a posted payment may add it as a payer line.
+  const payer = payerFacts(result.payer_name, storedPayerName, payerBorrowerKnown);
   const order = ['slip_not_confirmed', 'amount_unreadable', 'amount_fractional', 'non_thb', 'account_unmatched', 'account_ambiguous', 'reference_unreadable', 'reference_exists', 'date_outside_window', 'time_unreadable'];
   return {
     status: 'recognized',
     suggestion: { amountReceived: fields.amountReceived, cashAccountId, bankReference: fields.bankReference, paymentDate: fields.paymentDate, transferTime: fields.transferTime, paymentMethod: 'Bank Transfer' },
+    payer,
     // A readable slip date outside the window is named so the form can say which date was not used.
     warnings: order.filter(code => warnings.includes(code)).map(code => code === 'date_outside_window' && fields.slipDay ? { code, date: fields.slipDay } : { code }),
   };

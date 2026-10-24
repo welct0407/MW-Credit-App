@@ -24,6 +24,7 @@ class ReceiptMasterTests(unittest.TestCase):
             self.assertIn(table, sql)
         self.assertIn('"AI Reviewer" IS TRUE', sql)
         self.assertNotIn('Login Email', sql)  # partner logins stay out of the receipt master
+        self.assertIn('"Communication Name" payer', sql)  # R095: the borrower's payer name
 
     def test_inside_a_job_the_read_is_summarised_not_audited(self):
         """The audited wrapper (READ operation + events) is bypassed; the job collects digest and row counts."""

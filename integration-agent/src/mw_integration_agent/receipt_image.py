@@ -21,7 +21,7 @@ from .audit import audited
 
 SCHEMA = {'type':'object','additionalProperties':False,'properties':{
     'is_payment_receipt':{'type':'boolean'},'transfer_successful':{'type':'boolean'},
-    **{k:{'type':'string'} for k in ('date','time','amount','currency','reference')},
+    **{k:{'type':'string'} for k in ('date','time','amount','currency','reference','payer_name')},
     'account_numbers':{'type':'array','items':{'type':'string'}}}}
 SCHEMA['required'] = list(SCHEMA['properties'])
 PROMPT = '''Classify and extract ONLY visible facts from this image into the JSON schema.
@@ -42,6 +42,9 @@ Return the bank transaction reference exactly as visible (not a phone/account/da
 account_numbers lists every bank account or PromptPay number printed on the slip, sender and recipient
 alike, each once, in printed order; never a transaction reference.
 Preserve every masked digit as x. Never guess omitted/hidden digits or complete a truncated number.
+payer_name is the SENDER (payer, from-account holder) name exactly as printed, title included
+(for example นาย, นางสาว, MR.), in the printed script and case; keep every masked or hidden character as x;
+never the recipient name; empty when no sender name is printed or it is unreadable.
 An unfamiliar bank name is fine. Empty strings/array for unreadable fields. Output JSON only.'''
 
 

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 // Pure candidate contract only. These functions authenticate nobody and persist nothing.
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
+import { validPayerLines } from '../receipts/payer-name.mjs';
 const digest = value => createHash('sha256').update(value, 'utf8').digest('hex');
 function fail(code = 'invalid_contract') { throw new Error(code); }
 function exact(value, keys) {
@@ -42,7 +43,7 @@ export function canonicalAllocationPlan(amountReceived, input) {
   allocations.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId,'utf8'),Buffer.from(b.chargeId,'utf8')));
   return freeze(allocations);
 }
-/** R075 v7 slip fields: printed bank reference (spaces/dashes removed, upper case) or null. */
+/** R075 v7 slip fields (also v8): printed bank reference (spaces/dashes removed, upper case) or null. */
 function bankReference(value) {
   if (value === null) return null;
   if (typeof value !== 'string' || value.length > 400) fail();
@@ -57,9 +58,10 @@ function transferTime(value) {
   return value.slice(0, 5);
 }
 export function canonicalCommand(input) {
-  if(input?.schemaVersion===6||input?.schemaVersion===7){
-    const v7=input.schemaVersion===7;
-    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId',...(v7?['bankReference','transferTime']:[])]);
+  if(input?.schemaVersion===6||input?.schemaVersion===7||input?.schemaVersion===8){
+    // R095 v8 = v7 plus payerLines (null or the payer-lines change {before, after}, Bank Transfer only).
+    const v7=input.schemaVersion>=7,v8=input.schemaVersion===8;
+    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId',...(v7?['bankReference','transferTime']:[]),...(v8?['payerLines']:[])]);
     const allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);
     if(!['Bank Transfer','Cash','Net-off at Disbursement'].includes(input.paymentMethod) || !(input.notes===null || (typeof input.notes==='string'&&input.notes.isWellFormed()&&!input.notes.includes('\0')&&Buffer.byteLength(input.notes,'utf8')<=65536)))fail();
     const command={schemaVersion:input.schemaVersion,requestId:requestId(input.requestId),borrowerId:id(input.borrowerId),allocations,cashAccountId:id(input.cashAccountId),paymentDate:date(input.paymentDate),amountReceived:input.amountReceived,paymentMethod:input.paymentMethod,notes:input.notes===''?null:input.notes,receiptId:input.receiptId===null?null:requestId(input.receiptId)};
@@ -68,6 +70,10 @@ export function canonicalCommand(input) {
       const reference=bankReference(input.bankReference),time=transferTime(input.transferTime);
       if(input.paymentMethod!=='Bank Transfer'&&(reference!==null||time!==null))fail();
       Object.assign(command,{bankReference:reference,transferTime:time});
+      if(v8){
+        if(!validPayerLines(input.payerLines)||(input.paymentMethod!=='Bank Transfer'&&input.payerLines!==null))fail();
+        command.payerLines=input.payerLines===null?null:{before:input.payerLines.before,after:input.payerLines.after};
+      }
     }
     return freeze(command);
   }

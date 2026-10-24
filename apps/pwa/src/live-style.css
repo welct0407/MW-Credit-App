@@ -668,3 +668,5 @@ html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-beha
 @media(max-width:1050px){.live-bottom-nav button{min-width:0}.live-bottom-nav .live-nav-label{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 @media(max-width:430px){.live-bottom-nav button{padding:6px 2px;font-size:12px}}
 @media(max-width:360px){.live-bottom-nav button{padding:6px 1px;font-size:11px}}
+/* R095: payer lines on the borrower record, wrapped and never truncated; the borrower's own line marked muted. */
+.borrower-record .payer-lines{white-space:pre-line}

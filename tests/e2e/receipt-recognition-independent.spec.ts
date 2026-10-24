@@ -108,3 +108,44 @@ test('R075 unavailable recognition leaves the form manual and a manual payment s
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
  expect(state.posted[0]).toMatchObject({schemaVersion:7,paymentDate:'2026-10-08',amountReceived:'110',bankReference:null,transferTime:null});
 });
+
+test('R095 a new payer for a borrower with payer lines is information only and posts schema 8 with payerLines',async({page})=>{
+ const headers:any[]=[];
+ const after='Somsak Jaidee\nMR. SOMCHAI J***';
+ const state=await mockApi(page,r=>{headers.push(r.request().headers());return recognized({payer:{slipName:'MR. SOMCHAI J***',lines:['Somsak Jaidee'],listed:false,before:'Somsak Jaidee',after}})(r)});
+ await openForm(page);await attach(page);
+ await expect(page.locator('p.field-summary').filter({hasText:'Payer on slip'})).toHaveText('Payer on slip: MR. SOMCHAI J***');
+ await expect(page.locator('p.field-help[role=status]').filter({hasText:'payer'})).toHaveText('Will be added as another payer for this borrower.');
+ await expect(page.locator('.recognition-note').filter({hasText:/payer/i})).toHaveCount(0);
+ expect(headers[0]['x-borrower-id']).toBe(borrower.id);
+ await page.getByRole('button',{name:'Review payment',exact:true}).click();
+ await expect(page.locator('.selected-payment p.field-summary').filter({hasText:'Payer added'})).toHaveText('Payer added: MR. SOMCHAI J***');
+ await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
+ expect(state.posted[0]).toMatchObject({schemaVersion:8,payerLines:{before:'Somsak Jaidee',after},bankReference:'SYNREF123456',paymentMethod:'Bank Transfer'});
+});
+
+test('R095 a first payer name says it will be saved (EN and Thai) and posts schema 8',async({page})=>{
+ const state=await mockApi(page,recognized({payer:{slipName:'นาย สมชาย ใจดี',lines:[],listed:false,before:null,after:'นาย สมชาย ใจดี'}}));
+ await openForm(page);await attach(page);
+ await expect(page.locator('p.field-help[role=status]').filter({hasText:'payer name'})).toHaveText("Will be saved as this borrower's payer name.");
+ await chooseLanguagePreservingForm(page,'ไทย');
+ await expect(page.locator('p.field-summary').filter({hasText:'ผู้โอนในสลิป'})).toHaveText('ผู้โอนในสลิป: นาย สมชาย ใจดี');
+ await expect(page.locator('p.field-help[role=status]').filter({hasText:'จะบันทึกเป็นชื่อผู้โอน'})).toHaveText('จะบันทึกเป็นชื่อผู้โอนของผู้กู้รายนี้');
+ await chooseLanguagePreservingForm(page,'EN');
+ await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
+ expect(state.posted[0]).toMatchObject({schemaVersion:8,payerLines:{before:null,after:'นาย สมชาย ใจดี'}});
+});
+
+test('R095 an already listed payer or no payer read adds nothing and keeps schema 7',async({page})=>{
+ for(const payer of [{slipName:'MR. SOMCHAI J***',lines:['Somchai Jaidee'],listed:true,before:'Somchai Jaidee',after:null},{slipName:null,lines:['Somsak Jaidee'],listed:false,before:'Somsak Jaidee',after:null}]){
+  await page.unrouteAll({behavior:'ignoreErrors'});
+  const state=await mockApi(page,recognized({payer}));
+  await openForm(page);await attach(page);
+  await expect(amountBox(page)).toHaveValue('110');
+  await expect(page.getByText(/Payer on slip/)).toHaveCount(payer.slipName?1:0);
+  await expect(page.getByText(/Will be (added|saved)/)).toHaveCount(0);
+  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.getByText(/Payer added/)).toHaveCount(0);
+  await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
+  expect(state.posted[0].schemaVersion).toBe(7);expect('payerLines' in state.posted[0]).toBe(false);
+ }
+});

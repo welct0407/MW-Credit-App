@@ -197,7 +197,9 @@ def validate_config(config: dict[str, Any]) -> None:
         aware_cutoff(config, 'conversation_poll_cutoff')
     if type(config.get('receipt_summary_enabled', False)) is not bool:
         raise ConfigurationError('receipt_summary_enabled must be boolean')
-    for notice_cutoff in ('partner_notice_cutoff','receipt_hold_notice_cutoff','receipt_hold_reply_cutoff','review_resend_cutoff'):
+    # R095 payer_name_cutoff: jobs created from it on compare and resolve the slip payer name (receipt_identity).
+    for notice_cutoff in ('partner_notice_cutoff','receipt_hold_notice_cutoff','receipt_hold_reply_cutoff','review_resend_cutoff',
+                          'payer_name_cutoff'):
         if config.get(notice_cutoff):
             aware_cutoff(config, notice_cutoff)
     if config.get('receipt_summary_enabled'):

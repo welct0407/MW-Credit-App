@@ -47,6 +47,21 @@ def facts(config,borrower_id):
     return result
 
 
+def due_charges(current,day):
+    """Charges owed on `day`: charge date not after it and something left to pay."""
+    return [c for c in current['charges'] if c['date']<=day and Decimal(c['principal'])+Decimal(c['interest'])>0]
+
+
+def fits(receipt,borrower,current):
+    """The receipt amount exactly equals one due charge's total or interest, all due charges, or this borrower's
+    Loan Close payoff (R095 weak-context narrowing)."""
+    amount=Decimal(receipt['amount']);due=due_charges(current,receipt['date'])
+    if any(Decimal(c['principal'])+Decimal(c['interest'])==amount or Decimal(c['interest'])==amount for c in due):return True
+    if due and sum((Decimal(c['principal'])+Decimal(c['interest']) for c in due),Decimal(0))==amount:return True
+    try:return plan(receipt,borrower,current)['action']=='Loan Close'
+    except (ReceiptInvalid,KeyError,InvalidOperation,ValueError):return False
+
+
 def unlabelled(current):
     """Balance facts without display labels; a label-only change is not a facts change."""
     try:return {**current,'loans':[{k:v for k,v in loan.items() if k!='loan_key'} for loan in current['loans']]}
