@@ -652,6 +652,12 @@ def main():
         schema_preflight(json.loads((PRIVATE / 'config.json').read_text()), args.state_connection_file)
         source = pyfiles(REPO / 'src/mw_integration_agent')
         require(source, 'Empty source tree')
+        # R095: a build/ left in the checkout by an earlier pip run is reused by the next one, which copies its
+        # modules (some no longer in source) into the installed package; the build starts clean instead.
+        shutil.rmtree(REPO / 'build', ignore_errors=True)
+        for info in (REPO / 'src').glob('*.egg-info'):
+            shutil.rmtree(info, ignore_errors=True)
+        require(not (REPO / 'build').exists() and not any((REPO / 'src').glob('*.egg-info')), 'Stale build directory in the checkout')
         run(PYTHON, '-m', 'pip', 'install', '--no-deps', '--no-build-isolation', str(REPO))
         package = installed()
         # Modules no longer in source would survive pip; they stay in backup/package for rollback.

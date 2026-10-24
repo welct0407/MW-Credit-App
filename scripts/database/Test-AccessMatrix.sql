@@ -317,5 +317,32 @@ DO $$ BEGIN
   OR EXISTS(SELECT * FROM am_v109_defaults EXCEPT SELECT defaclrole,defaclnamespace,defaclobjtype,defaclacl::text FROM pg_default_acl) THEN
   RAISE EXCEPTION 'V109 must not change default privileges'; END IF;
 END $$;
+-- V110 (R095): the agent's SELECT on pwa_row_changes (still seeded above) and postgres's public SELECT ON TABLES default
+-- for it go; the public EXECUTE default, other roles' defaults and the cash statement's reads stay. Seeded as PROD has
+-- them after R091, then V110 runs again (re-runnable).
+GRANT SELECT ON public."Partners",public."Cash Accounts",public."Borrowers",public.cash_statement_account_effects,public.r008_cash_account_cutover TO mw_integration_agent;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO mw_integration_agent;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT EXECUTE ON ROUTINES TO mw_integration_agent;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO mw_app_dev;
+\ir ../../database/migrations/V110__revoke_agent_default_select.sql
+DO $$
+DECLARE agent_defaults text;
+BEGIN
+ IF has_table_privilege('mw_integration_agent','public.pwa_row_changes','SELECT') THEN RAISE EXCEPTION 'V110: the agent must not read pwa_row_changes'; END IF;
+ SELECT string_agg(d.defaclobjtype::text||':'||a.privilege_type,',' ORDER BY d.defaclobjtype,a.privilege_type) INTO agent_defaults
+ FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a
+ WHERE d.defaclrole='postgres'::regrole AND d.defaclnamespace='public'::regnamespace AND a.grantee='mw_integration_agent'::regrole;
+ IF agent_defaults IS DISTINCT FROM 'f:EXECUTE' THEN RAISE EXCEPTION 'V110: the agent''s public defaults must be the EXECUTE one only, got %',agent_defaults; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a WHERE d.defaclrole='postgres'::regrole
+   AND d.defaclnamespace='public'::regnamespace AND d.defaclobjtype='r' AND a.grantee='mw_app_dev'::regrole AND a.privilege_type='SELECT') THEN
+  RAISE EXCEPTION 'V110 must keep other roles'' table defaults'; END IF;
+ IF EXISTS(SELECT 1 FROM unnest(ARRAY['public."Partners"','public."Cash Accounts"','public."Borrowers"','public.cash_statement_account_effects','public.r008_cash_account_cutover']) r
+   WHERE NOT has_table_privilege('mw_integration_agent',r::regclass,'SELECT')) THEN RAISE EXCEPTION 'V110 must keep the cash statement''s reads'; END IF;
+END $$;
+-- A table postgres creates now is not readable by the agent.
+CREATE TABLE public.v110_probe(id integer);
+DO $$ BEGIN
+ IF has_table_privilege('mw_integration_agent','public.v110_probe','SELECT') THEN RAISE EXCEPTION 'V110: a new public table must not reach the agent by default'; END IF;
+END $$;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;

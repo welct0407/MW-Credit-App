@@ -11,10 +11,11 @@ FIXTURE = Path(__file__).with_name('Test-ProdDefaultPrivileges.sql')
 
 class MigrationPlan(unittest.TestCase):
     def test_full_chain_replays_the_recorded_prod_history_then_removes_the_fixture(self):
-        self.assertEqual(mc.migration_plan(110), [(101, 'apply'), (102, 'pause'), (103, 'resume'), (None, 'remove')])
+        self.assertEqual(mc.migration_plan(110), [(101, 'apply'), (102, 'pause'), (103, 'resume'), (107, 'r091'), (None, 'remove')])
 
     def test_pre_migration_fixture_runs_before_the_prod_defaults(self):
         self.assertEqual(mc.migration_plan(103, 69), [(69, 'pre'), (101, 'apply'), (102, 'pause'), (103, 'resume'), (None, 'remove')])
+        self.assertEqual(mc.migration_plan(107, 69)[-2:], [(107, 'r091'), (None, 'remove')])
         self.assertEqual(mc.migration_plan(103, 101)[:2], [(101, 'pre'), (101, 'apply')])
 
     def test_a_chain_older_than_the_prod_defaults_has_no_replay(self):

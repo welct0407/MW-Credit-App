@@ -6,8 +6,11 @@
 --   mw_business_audit_owner: the same three, all schemas).
 -- * pause / resume (around V103): the owner-approved pause of the public routines default in the R089 PROD
 --   promotion of 22 October 2026 (Environment Inventory, PROD row), which V103's ACL self-check needed.
+-- * r091 (PROD at V107): R091's operator revoke of 24 October 2026 (Environment Inventory, R091 row): the R085
+--   defaults go except postgres's public SELECT ON TABLES default (the pre-R085 one, revoked by V110 in R095) and the
+--   public EXECUTE ON ROUTINES default (as recorded by Archie for R095).
 -- * remove (after the migrations): drops the fixture so later test SQL sees the usual synthetic roles.
--- Run as postgres with -v step=apply|pause|resume|remove. A schema the chain has not created yet (monitoring is
+-- Run as postgres with -v step=apply|pause|resume|r091|remove. A schema the chain has not created yet (monitoring is
 -- conditional in V93) is skipped, as an ALTER DEFAULT PRIVILEGES IN SCHEMA needs the schema.
 \set ON_ERROR_STOP on
 SELECT set_config('mw.default_privileges_step', :'step', false);
@@ -15,7 +18,7 @@ DO $defaults$
 DECLARE step text:=current_setting('mw.default_privileges_step'); s text; verb text;
 BEGIN
  IF current_database()<>'loan_manager_dev' OR current_user<>'postgres' THEN RAISE EXCEPTION 'Disposable test cluster only'; END IF;
- IF step NOT IN ('apply','pause','resume','remove') THEN RAISE EXCEPTION 'Unknown step %', step; END IF;
+ IF step NOT IN ('apply','pause','resume','r091','remove') THEN RAISE EXCEPTION 'Unknown step %', step; END IF;
  IF step='apply' THEN
   IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_integration_agent') THEN RAISE EXCEPTION 'mw_integration_agent already exists'; END IF;
   CREATE ROLE mw_integration_agent NOLOGIN NOINHERIT;
@@ -28,6 +31,16 @@ BEGIN
   ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON ROUTINES FROM mw_integration_agent;
  ELSIF step='resume' THEN
   ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT EXECUTE ON ROUTINES TO mw_integration_agent;
+ ELSIF step='r091' THEN
+  ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE SELECT ON SEQUENCES FROM mw_integration_agent;
+  FOR s IN SELECT n FROM unnest(ARRAY['agent_audit','assessment_lab','monitoring']) n WHERE to_regnamespace(n) IS NOT NULL LOOP
+   EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I REVOKE SELECT ON TABLES FROM mw_integration_agent',s);
+   EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I REVOKE SELECT ON SEQUENCES FROM mw_integration_agent',s);
+   IF s<>'monitoring' THEN EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I REVOKE EXECUTE ON ROUTINES FROM mw_integration_agent',s); END IF;
+  END LOOP;
+  ALTER DEFAULT PRIVILEGES FOR ROLE mw_business_audit_owner REVOKE SELECT ON TABLES FROM mw_integration_agent;
+  ALTER DEFAULT PRIVILEGES FOR ROLE mw_business_audit_owner REVOKE SELECT ON SEQUENCES FROM mw_integration_agent;
+  ALTER DEFAULT PRIVILEGES FOR ROLE mw_business_audit_owner REVOKE EXECUTE ON ROUTINES FROM mw_integration_agent;
  ELSE
   verb:=CASE step WHEN 'apply' THEN 'GRANT %s TO' ELSE 'REVOKE %s FROM' END;
   FOR s IN SELECT n FROM unnest(ARRAY['public','agent_audit','assessment_lab','monitoring']) n WHERE to_regnamespace(n) IS NOT NULL LOOP

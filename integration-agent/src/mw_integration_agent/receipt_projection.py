@@ -51,6 +51,13 @@ def open_projector(config, mode, target):
     return connection
 
 
+# R095 hardening: every parameter carries the type of public.attach_payment_receipt_evidence(text, text, text,
+# timestamptz, jsonb, uuid, text) (V49, kept through V95), so the call never depends on the server inferring an
+# untyped parameter. (The receipt cycle's 42P18 failures were the review settlement UPDATE, review_cycle.py.)
+ATTACH_SQL = ('SELECT public.attach_payment_receipt_evidence(%s::text,%s::text,%s::text,%s::timestamptz,%s::jsonb,'
+              '%s::uuid,%s::text)')
+
+
 def project(config, link, asset):
     from psycopg.types.json import Jsonb
     mode, target = login(config)
@@ -60,7 +67,7 @@ def project(config, link, asset):
         audit.event(central, operation, 'dispatch_started', route='postgres', state='DISPATCHING')
     try:
         with open_projector(config, mode, target) as connection:
-            result=connection.execute('SELECT public.attach_payment_receipt_evidence(%s,%s,%s,%s,%s,%s,%s)',
+            result=connection.execute(ATTACH_SQL,
                 (link['payment_id'],asset['receipt_id'],asset['object_key'],
                  datetime.fromtimestamp(json.loads(asset['source'])['captured_at'],UTC),
                  Jsonb(json.loads(link['verification'])),uuid.UUID(link['link_id']),config.get('code_version','unknown'))).fetchone()[0]

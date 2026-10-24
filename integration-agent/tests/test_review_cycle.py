@@ -706,3 +706,17 @@ class CycleTests(unittest.TestCase):
         first=self.j.db.execute("SELECT status,attempts,retry_after FROM receipt_jobs WHERE id='first'").fetchone()
         self.assertEqual((first['status'],first['attempts']),('PENDING',0))
         self.assertGreater(first['retry_after'],0)
+
+
+class SettleReviewStatementTests(unittest.TestCase):
+    def test_sqlite_keeps_detail_without_a_note_and_replaces_it_with_one(self):
+        # R095: the cast form (for PostgreSQL's 42P18) still runs on the SQLite backend, with the same meaning.
+        import sqlite3
+        from mw_integration_agent.review_cycle import SETTLE_REVIEW_SQL
+        db = sqlite3.connect(':memory:')
+        db.execute("CREATE TABLE partner_reviews(id TEXT PRIMARY KEY, state TEXT, detail TEXT NOT NULL DEFAULT '')")
+        for note, detail in ((None, 'kept'), ('policy: note', 'policy: note')):
+            with self.subTest(note=note):
+                db.execute("INSERT OR REPLACE INTO partner_reviews VALUES ('r','POSTING','kept')")
+                db.execute(SETTLE_REVIEW_SQL, ('UNKNOWN', note, note, 'r'))
+                self.assertEqual(db.execute("SELECT state,detail FROM partner_reviews WHERE id='r'").fetchone(), ('UNKNOWN', detail))

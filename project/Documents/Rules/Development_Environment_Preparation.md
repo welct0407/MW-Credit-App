@@ -1,6 +1,6 @@
 # PWA DEV preparation
 
-Use only for initial setup, changed environment/recipient routing or a requested [refresh](Development_Refresh_Runbook.md). Ordinary feature work reuses verified setup.
+Use only for initial setup, changed environment/recipient routing or a requested [refresh](Development_Refresh_Runbook.md). Ordinary feature work reuses verified setup. A refresh also restores the DEV test Partner for Claude Code (runbook step 7a).
 
 1. Confirm the actual DEV project/service/database/storage prefix and intended identity from the affected inventory/configuration. DEV and PROD share a SQL instance and authentication project; those shared identities alone do not establish isolation.
 2. Preserve existing source/configuration and a recovery point for assets being changed. Pause only affected DEV writers/jobs while copied data or changed routes are unverified; preserve production operation.

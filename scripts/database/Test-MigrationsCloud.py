@@ -22,7 +22,8 @@ FLYWAY=SETUP/('flyway-'+json.loads((REPO/'database/toolchain.json').read_text())
 PWSH=SETUP/'powershell-7.5.4/pwsh' if (SETUP/'powershell-7.5.4/pwsh').exists() else Path(shutil.which('pwsh') or 'pwsh')
 # PROD default privileges (Test-ProdDefaultPrivileges.sql) replayed after the version where each changed in PROD,
 # so migration self-checks see PROD-like defaults (R089: V103 passed here and failed in PROD). Recorded history only.
-PROD_DEFAULTS=((101,'apply'),(102,'pause'),(103,'resume'))
+# R095: (107,'r091') replays R091's revoke, so V110 meets PROD's remaining public SELECT ON TABLES default.
+PROD_DEFAULTS=((101,'apply'),(102,'pause'),(103,'resume'),(107,'r091'))
 
 def migration_plan(latest,pre_target=None):
  """(target version, step) pairs: migrate to the target, then run the step; a final None target migrates the rest."""

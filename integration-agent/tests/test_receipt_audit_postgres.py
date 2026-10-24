@@ -55,6 +55,53 @@ class ReceiptRelayPostgres(unittest.TestCase):
                 VALUES (%s,'public','Payments','UPDATE',%s::jsonb,%s::jsonb,%s::jsonb)''',
                 (self.op,'{"Row ID":"synthetic-payment"}',json.dumps(dict.fromkeys(ra.FIELDS)),json.dumps(self.value['after'])))
 
+    def test_review_settlement_update_with_and_without_a_note_prepares_and_runs(self):
+        # R095 root cause (Cloud SQL log, both receipt-cycle failures): "could not determine data type of parameter $2"
+        # on the review settlement UPDATE when the note is None. The adapter's exact statement, as the worker, with no
+        # note keeps the detail and with a note replaces it, prepared by the server and sent unprepared.
+        from mw_integration_agent import review_cycle
+        sql = state.dialect(review_cycle.SETTLE_REVIEW_SQL, state.TABLES['receipt-processing.db'])
+        self.assertIn('runtime.partner_reviews', sql)
+        with psycopg.connect(**dict(self.base, user='mw_agent_worker'), dbname='mw_agent') as c:
+            for prepare in (True, False):
+                for note, detail in ((None, 'kept detail'), ('policy: synthetic note', 'policy: synthetic note')):
+                    with self.subTest(prepare=prepare, note=note), c.transaction(force_rollback=True):
+                        review = audit.digest(str(uuid.uuid4()))
+                        c.execute("""INSERT INTO runtime.partner_reviews(id,job_id,proposal,state,created_at,expires_at,payment_id,detail)
+                            VALUES (%s,%s,'{}','POSTING',1,2,'synthetic-payment','kept detail')""", (review, audit.digest(str(uuid.uuid4()))))
+                        try:
+                            done = c.execute(sql, ('UNKNOWN', note, note, review), prepare=prepare).rowcount
+                        except psycopg.errors.IndeterminateDatatype as exc:
+                            self.fail('parameter type not determined: ' + str(exc))
+                        self.assertEqual(done, 1)
+                        self.assertEqual(c.execute('SELECT state,detail FROM runtime.partner_reviews WHERE id=%s', (review,)).fetchone(), ('UNKNOWN', detail))
+
+    def test_attachment_call_with_no_object_key_and_empty_verification_prepares_and_runs(self):
+        # R095 hardening (the 42P18 failures were the review settlement UPDATE, tested above): the projector's exact,
+        # fully cast statement, with the values a receipt can carry (no object key, verification {}), is prepared by
+        # the server (and sent unprepared) and runs as the dedicated projector into the function's own checks: no key is
+        # "Invalid receipt object key", a well-formed key of an unknown payment "Receipt payment missing" (both P0001),
+        # never a parameter type error. The projector login is operator-provisioned, so the test creates it in a
+        # transaction that is rolled back.
+        from psycopg.types.json import Jsonb
+        from mw_integration_agent import receipt_projection
+        receipt, at = self.asset['receipt_id'], receipt_projection.datetime.fromtimestamp(1790481600, receipt_projection.UTC)
+        key = 'receipts/prod/2026/09/27/' + receipt + '/' + 'a' * 64 + '.png'
+        with psycopg.connect(**self.base, dbname='loan_manager_prod') as c:
+            for object_key, message in ((None, 'Invalid receipt object key'), (key, 'Receipt payment missing')):
+                for prepare in (True, False):
+                    with self.subTest(object_key=object_key, prepare=prepare), c.transaction(force_rollback=True):
+                        c.execute("DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_receipt_projector') THEN "
+                                  "CREATE ROLE mw_receipt_projector LOGIN; END IF; END $$")
+                        c.execute('GRANT USAGE ON SCHEMA public TO mw_receipt_projector')
+                        c.execute('GRANT EXECUTE ON FUNCTION public.attach_payment_receipt_evidence(text,text,text,timestamptz,jsonb,uuid,text) TO mw_receipt_projector')
+                        c.execute('SET LOCAL SESSION AUTHORIZATION mw_receipt_projector')
+                        c.execute('SET LOCAL ROLE mw_receipt_projector')
+                        values = ('synthetic-payment', receipt, object_key, at, Jsonb({}), uuid.UUID(self.link['link_id']), 'synthetic-r095')
+                        with self.assertRaises(psycopg.errors.RaiseException) as raised:
+                            c.execute(receipt_projection.ATTACH_SQL, values, prepare=prepare)
+                        self.assertEqual(raised.exception.diag.message_primary, message)
+
     def test_receipt_intent_export_retry_and_missing_intent_denial(self):
         self.marker()
         with self.assertRaisesRegex(ConfigurationError,'OUTBOX_INTENT_MISMATCH'):
