@@ -21,7 +21,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{mw_notify_owner_prod=arwdDxtm/mw_notify_owner_prod,mw_integration_agent=r/mw_notify_owner_prod}"
+    "acl": "{mw_notify_owner_prod=arwdDxtm/mw_notify_owner_prod}"
     "comment": "mw-access:governance notification fenced delivery state"
     "view_definition": null
     "partition_key": null
