@@ -126,6 +126,7 @@ test('R095 a new payer for a borrower with payer lines is information only and p
 
 test('R095 a first payer name says it will be saved (EN and Thai) and posts schema 8',async({page})=>{
  const state=await mockApi(page,recognized({payer:{slipName:'นาย สมชาย ใจดี',lines:[],listed:false,before:null,after:'นาย สมชาย ใจดี'}}));
+ await routeSyntheticPreferences(page);
  await openForm(page);await attach(page);
  await expect(page.locator('p.field-help[role=status]').filter({hasText:'payer name'})).toHaveText("Will be saved as this borrower's payer name.");
  await chooseLanguagePreservingForm(page,'ไทย');

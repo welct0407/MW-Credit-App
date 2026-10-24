@@ -1,7 +1,11 @@
 """R095 payer name backfill: reference rules, classification, collisions, decisions and the emitted SQL (synthetic data)."""
 import hashlib
 import importlib.util
+import argparse
+import contextlib
 import json
+import os
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -185,6 +189,83 @@ class SqlTests(unittest.TestCase):
     def test_private_dir_must_be_outside_the_repository(self):
         with self.assertRaises(ValueError):
             backfill.private_dir(str(backfill.REPO / 'tmp'))
+
+
+
+@unittest.skipUnless(os.environ.get('MW_PAYER_LAB_DSN'), 'disposable V111 PostgreSQL database (loan_manager_dev) required')
+class ExecuteLabTests(unittest.TestCase):
+    """--execute and --verify against a disposable V111 cluster (MW_PAYER_LAB_DSN, database loan_manager_dev, as
+    postgres): synthetic borrowers only; the injected factories replace the tunnel and Secret Manager route."""
+
+    IDS = ['PNLAB-1', 'PNLAB-2', 'PNLAB-3']
+
+    def connect(self, autocommit):
+        import sys
+        sys.path.insert(0, '/workspace/.setup/python-deps')
+        import psycopg
+        return psycopg.connect(os.environ['MW_PAYER_LAB_DSN'], autocommit=autocommit)
+
+    def setUp(self):
+        with self.connect(True) as c:
+            self.assertEqual(c.execute('SELECT current_database()').fetchone()[0], 'loan_manager_dev')
+            c.execute('DELETE FROM public."Borrowers" WHERE "Row ID"=ANY(%s)', (self.IDS,))
+            for n, bid in enumerate(self.IDS):
+                c.execute('INSERT INTO public."Borrowers"("Row ID","Borrower Name","Communication Name") VALUES (%s,%s,NULL)', (bid, f'SYNTHETIC LAB {n}'))
+        self.addCleanup(self.cleanup)
+        self.dir = Path(tempfile.mkdtemp(prefix='payer-lab-'))
+        borrowers = [{'id': 'PNLAB-1', 'nameTh': 'ทดสอบหนึ่ง', 'nameEn': 'Mali', 'status': 'CONSISTENT', 'lines': ['นาย สมชาย ใจดี'], 'collisions': []},
+                     {'id': 'PNLAB-2', 'nameTh': 'ทดสอบสอง', 'nameEn': 'Dara', 'status': 'CONFLICT', 'lines': ['Alice Aaa', 'Bob Bbb'], 'collisions': []},
+                     {'id': 'PNLAB-3', 'nameTh': 'ทดสอบสาม', 'nameEn': 'Fon', 'status': 'FEWER', 'lines': ["O'Brien Ccc"], 'collisions': []}]
+        plan = json.dumps({'kind': 'payer-name-backfill-plan', 'environment': 'dev', 'database': 'loan_manager_dev', 'borrowers': borrowers})
+        (self.dir / 'plan.json').write_text(plan)
+        decisions = {'schemaVersion': 1, 'planSha256': hashlib.sha256(plan.encode()).hexdigest(), 'decisions': {},
+                     'byName': {'Dara': {'action': 'set', 'lines': [{'planLine': 1}, 'น.ส. สมฤดี ก']}}}
+        (self.dir / 'decisions.json').write_text(json.dumps(decisions, ensure_ascii=False))
+
+    def cleanup(self):
+        with self.connect(True) as c:
+            c.execute('DELETE FROM public."Borrowers" WHERE "Row ID"=ANY(%s)', (self.IDS,))
+
+    def args(self, **flags):
+        base = dict(env='dev', plan=str(self.dir / 'plan.json'), decisions=str(self.dir / 'decisions.json'), private_dir=str(self.dir / 'out'),
+                    dry_run=False, execute=False, verify=False, approval_reference=None)
+        return argparse.Namespace(**{**base, **flags})
+
+    def run_apply(self, before_admin=None, **flags):
+        def admin():
+            if before_admin:
+                before_admin()
+            return contextlib.closing(self.connect(False))
+        return backfill.apply(self.args(**flags), reader=lambda: contextlib.closing(self.connect(True)), admin=admin)
+
+    def receipts(self):
+        return [json.loads(f.read_text()) for f in sorted((self.dir / 'out').glob('*-receipt.json'))]
+
+    def test_execute_writes_the_decided_lines_once_and_records_before_and_after_counts(self):
+        with self.assertRaises(ValueError):
+            self.run_apply(execute=True)
+        self.assertEqual(self.run_apply(dry_run=True)['expected'], 3)
+        result = self.run_apply(execute=True, approval_reference='synthetic owner approval')
+        self.assertEqual(result['notices'], ['payer backfill: decided 3, locked 3, expected 3, actual 3'])
+        self.assertEqual(result['after'], {'decided': 3, 'written': 3, 'empty': 0, 'other': 0, 'missing': 0})
+        receipt = self.receipts()[-1]
+        self.assertEqual((receipt['status'], receipt['identity'], receipt['before']['expected'], receipt['after']['written']), ('applied', 'postgres', 3, 3))
+        with self.connect(True) as c:
+            self.assertEqual(c.execute('SELECT "Communication Name" FROM public."Borrowers" WHERE "Row ID"=%s', ('PNLAB-2',)).fetchone()[0], 'Alice Aaa\nน.ส. สมฤดี ก')
+        self.assertEqual(self.run_apply(verify=True)['written'], 3)
+        # A second run finds nothing empty: it writes nothing and the assertions hold (expected 0, actual 0).
+        self.assertEqual(self.run_apply(execute=True, approval_reference='synthetic owner approval')['notices'], ['payer backfill: decided 3, locked 3, expected 0, actual 0'])
+
+    def test_drift_between_the_count_and_the_run_rolls_everything_back(self):
+        def drift():
+            with self.connect(True) as c:
+                c.execute('UPDATE public."Borrowers" SET "Communication Name"=%s WHERE "Row ID"=%s', ('Filled Meanwhile', 'PNLAB-3'))
+        with self.assertRaises(SystemExit) as stop:
+            self.run_apply(before_admin=drift, execute=True, approval_reference='synthetic owner approval')
+        self.assertIn('2 rows would change, 3 expected; rolled back', str(stop.exception))
+        receipt = self.receipts()[-1]
+        self.assertEqual((receipt['status'], receipt['before']['expected']), ('rolled-back', 3))
+        self.assertEqual(self.run_apply(verify=True), {'mode': 'verify', 'environment': 'dev', 'flywayVersion': 111, 'decided': 3, 'written': 0, 'empty': 2, 'other': 1, 'missing': 0})
 
 
 if __name__ == '__main__':

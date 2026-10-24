@@ -10,20 +10,28 @@
          Writes the private plan JSON, a Markdown report and a decisions template to --private-dir (outside Git);
          stdout carries counts only. --cache-only re-plans from saved recognitions (no download, no model call).
   apply  Takes the plan and the owner's decisions (lines per borrower id or nickname; they override the plan;
-         CONSISTENT and FEWER rows without a collision apply by default). Refuses unless the database has V111
-         (flyway >= 111). Emits one private SQL transaction for the guarded admin runner: row-locked, writes the
-         joined lines only where the column is still empty (the commands' guard with before = NULL), aborts on any
-         drift and reports expected and actual counts (RAISE NOTICE). No sanctioned write identity exists in this
-         session for a direct write, so this script never writes. --dry-run prints the counts only.
+         CONSISTENT and FEWER rows without a collision apply by default; the decisions are bound to the plan's SHA-256).
+         Refuses unless the database has V111 (flyway >= 111). One transaction: database and V111 guards, row locks,
+         the joined lines written only where the column is still empty (the commands' guard with before = NULL), and
+         the locked/expected/actual assertions, so any drift aborts it and nothing is written.
+           --dry-run  counts only (read identity).
+           (default)  writes the transaction to a private SQL file for review; no write.
+           --execute  runs it as postgres over the migration route of Invoke-CloudFlyway.py (the tunnel and the admin
+                      credential from Secret Manager, in memory only, the session verified against the fixed target);
+                      needs --approval-reference; writes a private receipt with before and after counts (first as
+                      pending-reconciliation, so an interrupted run is reconciled with --verify, never retried blindly).
+           --verify   read-only readback counts (written, still empty, other, missing).
 
   python3 scripts/database/Backfill-PayerNames.py plan  --env dev|prod --private-dir DIR [--include-stored]
           [--native-catalog FILE] [--limit-borrowers N] [--gemini-model ID] [--cache-only]
-  python3 scripts/database/Backfill-PayerNames.py apply --env dev|prod --plan FILE --decisions FILE --private-dir DIR [--dry-run]
+  python3 scripts/database/Backfill-PayerNames.py apply --env dev|prod --plan FILE --decisions FILE --private-dir DIR
+          [--dry-run | --verify | --execute --approval-reference TEXT]
 
 Route: scripts/database/cloud-db-tunnel.sh, read identity codex-cloud-read (impersonated login token, read-only
 session). AppSheet-era references resolve only through a reviewed native catalog file (never a guessed key).
 """
 import argparse
+import contextlib
 import hashlib
 import json
 import os
@@ -303,15 +311,13 @@ def literal(text):
     return "'" + text.replace("'", "''") + "'"
 
 
-def apply_sql(env, values, expected):
-    """One transaction for the guarded admin runner: V111 present, row locks, write the joined lines only where the
-    column is still empty (the commands' guard with before = NULL), counts; any drift aborts."""
+def transaction_sql(env, values, expected):
+    """The statements of the one backfill transaction (between BEGIN and COMMIT): database and V111 guards, row locks,
+    the joined lines written only where the column is still empty (the commands' guard with before = NULL), and the
+    locked/expected/actual assertions; any drift raises, so nothing is written."""
     database = ENVIRONMENTS[env]['database']
     rows = ',\n'.join(f"({literal(b)},{literal(joined(v))})" for b, v in sorted(values.items()))
-    return f"""-- R095 payer lines backfill ({env}); {len(values)} decided borrowers, {expected} still empty when emitted.
-\\set ON_ERROR_STOP on
-BEGIN;
-SET LOCAL standard_conforming_strings=on;SET LOCAL lock_timeout='3s';SET LOCAL statement_timeout='60s';
+    return f"""SET LOCAL standard_conforming_strings=on;SET LOCAL lock_timeout='3s';SET LOCAL statement_timeout='60s';
 DO $guard$ BEGIN
  IF current_database()<>'{database}' THEN RAISE EXCEPTION 'payer backfill: wrong database %',current_database(); END IF;
  IF coalesce((SELECT max(version::int) FROM public.flyway_schema_history WHERE success AND version ~ '^[0-9]+$'),0)<{V111} THEN
@@ -332,8 +338,46 @@ BEGIN
  IF actual<>{expected} THEN RAISE EXCEPTION 'payer backfill: % rows would change, % expected; rolled back',actual,{expected}; END IF;
  RAISE NOTICE 'payer backfill: decided %, locked %, expected %, actual %',{len(values)},locked,{expected},actual;
 END $fill$;
-COMMIT;
 """
+
+
+def apply_sql(env, values, expected):
+    """The same transaction as a psql script for review or the admin runner; --execute runs the identical statements."""
+    return (f"-- R095 payer lines backfill ({env}); {len(values)} decided borrowers, {expected} still empty when emitted.\n"
+            "\\set ON_ERROR_STOP on\nBEGIN;\n" + transaction_sql(env, values, expected) + "COMMIT;\n")
+
+
+SELECT_PAYERS = 'SELECT "Row ID","Communication Name" FROM public."Borrowers" WHERE "Row ID"=ANY(%s)'
+
+
+def run_transaction(connection, env, values, expected):
+    """Run the transaction on an admin connection (autocommit off) and return its RAISE NOTICE count lines; a guard
+    raises and the transaction is rolled back (nothing written)."""
+    notices = []
+    connection.add_notice_handler(lambda diag: notices.append(diag.message_primary))
+    try:
+        connection.execute(transaction_sql(env, values, expected))
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    return [n for n in notices if n and n.startswith('payer backfill:')]
+
+
+def readback(connection, values):
+    """Counts only: decided rows whose payer column now equals the decided lines, still empty, other, or missing."""
+    rows = dict(connection.execute(SELECT_PAYERS, (list(values),)).fetchall())
+    result = {'decided': len(values), 'written': 0, 'empty': 0, 'other': 0, 'missing': 0}
+    for bid, v in values.items():
+        if bid not in rows:
+            result['missing'] += 1
+        elif rows[bid] == joined(v):
+            result['written'] += 1
+        elif (rows[bid] or '') == '':
+            result['empty'] += 1
+        else:
+            result['other'] += 1
+    return result
 
 
 # ---------------------------------------------------------------- private files and IO
@@ -388,6 +432,46 @@ def connect(env):
         connection.close()
         raise ValueError('Connected database differs from the verified target')
     return connection
+
+
+ADMIN_USER = 'postgres'
+ADMIN_SECRET = 'mw-credit-ops-cloudsql-postgres-admin'
+
+
+@contextlib.contextmanager
+def admin_connection(env):
+    """The migration route of Invoke-CloudFlyway.py: its tunnel, and the postgres admin credential read from Secret
+    Manager into memory only (never printed); the session is verified against the fixed target before use."""
+    import importlib.util
+    sys.path.insert(0, '/workspace/.setup/python-deps')
+    import psycopg
+    spec = importlib.util.spec_from_file_location('invoke_cloud_flyway', REPO / 'scripts/database/Invoke-CloudFlyway.py')
+    flyway = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(flyway)
+    if (flyway.ADMIN_USER, flyway.ADMIN_SECRET, flyway.PROJECT, flyway.INSTANCE) != (ADMIN_USER, ADMIN_SECRET, PROJECT, INSTANCE):
+        raise ValueError('Admin route differs from the migration runner')
+    if any(os.environ.get(k) for k in ('PGHOST', 'PGHOSTADDR', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD', 'PGSERVICE', 'DATABASE_URL')):
+        raise ValueError('Remove ambient database routing overrides')
+    rules = ENVIRONMENTS[env]
+    target = json.loads((REPO / 'database/environments.json').read_text())[rules['target']]
+    if (target['instance'], target['host'], target['database']) != (INSTANCE, HOST, rules['database']):
+        raise ValueError('Wrong fixed environment tuple')
+    with flyway.tunnel(REPO, os.environ) as port:
+        password = flyway.secret_output(['gcloud', 'secrets', 'versions', 'access', 'latest', '--secret=' + ADMIN_SECRET, '--project=' + PROJECT])
+        try:
+            connection = psycopg.connect(host='127.0.0.1', port=int(port), dbname=rules['database'], user=ADMIN_USER, password=password,
+                                         sslmode='disable', connect_timeout=10, autocommit=False, application_name='mw-payer-backfill-apply')
+        finally:
+            del password
+        try:
+            database, user, system, read_only = connection.execute(
+                "SELECT current_database(),session_user,(SELECT system_identifier FROM pg_control_system()),current_setting('transaction_read_only')").fetchone()
+            connection.rollback()
+            if (database, user, int(system), read_only) != (rules['database'], ADMIN_USER, SYSTEM_IDENTIFIER, 'off'):
+                raise ValueError('Connected database differs from the verified target')
+            yield connection
+        finally:
+            connection.close()
 
 
 def flyway_version(connection):
@@ -547,32 +631,62 @@ def plan(args):
             **counts(entries), 'privateFiles': 3}
 
 
-def apply(args):
-    plan_path = private_file(args.plan)
-    raw = plan_path.read_bytes()
+def load_decided(args):
+    """(plan SHA-256, decisions SHA-256, borrower id -> lines): the decisions must be bound to this exact plan."""
+    raw = private_file(args.plan).read_bytes()
     document = json.loads(raw)
     if document.get('kind') != 'payer-name-backfill-plan' or document.get('environment') != args.env or document.get('database') != ENVIRONMENTS[args.env]['database']:
         raise ValueError('Plan does not belong to this environment')
-    values = decide(document, sha(raw), json.loads(private_file(args.decisions).read_text()))
-    connection = connect(args.env)
-    try:
+    decisions = private_file(args.decisions).read_bytes()
+    return sha(raw), sha(decisions), decide(document, sha(raw), json.loads(decisions))
+
+
+def apply(args, reader=None, admin=None):
+    """--dry-run counts, the emitted SQL (default), --execute (the guarded run) or --verify (read-only readback counts).
+    reader/admin are connection context factories (tests pass a disposable cluster); by default the read identity and
+    the admin route of the migration runner."""
+    plan_sha, decisions_sha, values = load_decided(args)
+    reader = reader or (lambda: contextlib.closing(connect(args.env)))
+    with reader() as connection:
         version = flyway_version(connection)
+        if args.verify:
+            return {'mode': 'verify', 'environment': args.env, 'flywayVersion': version, **readback(connection, values)}
         if version < V111:
             raise SystemExit(json.dumps({'mode': 'apply', 'refused': 'V111 not applied', 'flywayVersion': version}))
-        current = dict(connection.execute('''SELECT "Row ID","Communication Name" FROM public."Borrowers" WHERE "Row ID"=ANY(%s)''', (list(values),)).fetchall())
-    finally:
-        connection.close()
+        current = dict(connection.execute(SELECT_PAYERS, (list(values),)).fetchall())
     missing = [b for b in values if b not in current]
     expected = sum(1 for b in values if b in current and (current[b] or '') == '')
-    summary = {'mode': 'apply', 'dryRun': bool(args.dry_run), 'environment': args.env, 'flywayVersion': version, 'decided': len(values),
-               'expected': expected, 'alreadyFilled': len(values) - expected - len(missing), 'missingBorrowers': len(missing)}
+    present = {b: v for b, v in values.items() if b in current}
+    summary = {'mode': 'apply', 'dryRun': bool(args.dry_run), 'execute': bool(args.execute), 'environment': args.env, 'flywayVersion': version,
+               'decided': len(values), 'expected': expected, 'alreadyFilled': len(values) - expected - len(missing), 'missingBorrowers': len(missing)}
     if args.dry_run:
         return summary
+    if args.execute and not (args.approval_reference or '').strip():
+        raise ValueError('--execute needs the owner approval reference')
     out = private_dir(args.private_dir, create=True)
-    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    write_private(out / f'payer-apply-{args.env}-{stamp}.sql', apply_sql(args.env, {b: v for b, v in values.items() if b in current}, expected))
-    write_private(out / f'payer-apply-{args.env}-{stamp}.json', json.dumps({**summary, 'planSha256': sha(raw)}, indent=1))
-    return {**summary, 'sqlEmitted': True, 'writes': 0}
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
+    write_private(out / f'payer-apply-{args.env}-{stamp}.sql', apply_sql(args.env, present, expected))
+    if not args.execute:
+        write_private(out / f'payer-apply-{args.env}-{stamp}.json', json.dumps({**summary, 'planSha256': plan_sha}, indent=1))
+        return {**summary, 'sqlEmitted': True, 'writes': 0}
+    receipt = out / f'payer-apply-{args.env}-{stamp}-receipt.json'
+    base = {'schemaVersion': 1, 'kind': 'payer-name-backfill-receipt', 'environment': args.env, 'database': ENVIRONMENTS[args.env]['database'],
+            'planSha256': plan_sha, 'decisionsSha256': decisions_sha, 'approvalReference': args.approval_reference.strip(), 'identity': ADMIN_USER,
+            'startedAt': stamp, 'before': {k: summary[k] for k in ('flywayVersion', 'decided', 'expected', 'alreadyFilled', 'missingBorrowers')}}
+    # Written before the run: an interrupted run leaves a receipt that says to reconcile with --verify, not to retry.
+    write_private(receipt, json.dumps({**base, 'status': 'pending-reconciliation', 'instruction': 'Do not retry. Run apply --verify first.'}, indent=1))
+    admin = admin or (lambda: admin_connection(args.env))
+    with admin() as connection:
+        try:
+            notices = run_transaction(connection, args.env, present, expected)
+        except Exception as error:  # noqa: BLE001  (recorded, then the run stops with nothing written)
+            status = {'status': 'rolled-back', 'error': type(error).__name__, 'detail': str(error).split('\n')[0][:200]}
+            receipt.write_text(json.dumps({**base, **status}, indent=1))
+            raise SystemExit(json.dumps({**summary, **status, 'writes': 0})) from None
+        after = readback(connection, values)
+        connection.rollback()
+    receipt.write_text(json.dumps({**base, 'status': 'applied', 'notices': notices, 'after': after}, indent=1))
+    return {**summary, 'status': 'applied', 'notices': notices, 'after': after}
 
 
 def main(argv=None):
@@ -591,7 +705,11 @@ def main(argv=None):
     a.add_argument('--plan', required=True)
     a.add_argument('--decisions', required=True)
     a.add_argument('--private-dir', required=True)
-    a.add_argument('--dry-run', action='store_true')
+    how = a.add_mutually_exclusive_group()
+    how.add_argument('--dry-run', action='store_true', help='counts only')
+    how.add_argument('--execute', action='store_true', help='run the transaction as postgres over the migration route')
+    how.add_argument('--verify', action='store_true', help='read-only readback counts')
+    a.add_argument('--approval-reference', help='the owner approval (required with --execute)')
     args = parser.parse_args(argv)
     print(json.dumps(plan(args) if args.mode == 'plan' else apply(args)))
 
