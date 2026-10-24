@@ -89,3 +89,8 @@ V106 adds the nullable column `pwa_chat_messages.detached_at`, replaces `pwa_cha
 ## PROD record (R090, 23 October 2026)
 
 The three-owner window of V105 and the chat-owner window of V106 were opened once for the grouped V104 to V106 PROD migration: `prepare` for the chat, notify and jobs owners (18:47:51Z), the guarded grouped migrate with the release manifest, `validate`, then `restore` (18:50:59Z). No default-privilege pause was needed: V105 and V106 revoke the agent role's grants from their own new objects. Lessons: use a unique plan file name per `terraform plan` run; the Cloud Run v2 API omits false booleans such as `cpuIdle`; dispatch `Database migrations` by hand when the delivery-tool head touches no database path. Detail and pins: [Environment inventory](../../project/Documents/Environment_Inventory.md).
+
+## Journal-owner window (V107, R091)
+
+V107 drops `pwa_submit_agent_operation_v1`, owned by `mw_app_<env>_journal_owner`. DEV, 24 October 2026: the window must open the journal owner plus the notify, jobs, changes and chat owners, because the DEV post-migrate reconcile reads their tables (the first run with the journal owner alone failed with permission denied on `pwa_notification_deliveries`; the fix was a second window and a rerun of only `application-role-cli` post-migrate, then `restore` of every window). PROD: the journal owner only, with no post-migrate hook; apply after the image without `nativeOperation()` runs in that environment.
+
