@@ -208,7 +208,10 @@ export async function verifySettingsLivePackage(m,{token,request=fetch,readGithu
 // R063: one image for reader/command/notify/jobs, V92 unchanged, frontend with CSP headers.
 const runtimeBaseline='2f63e3d1f907549cf1ccbd6cd4feb5f73310b6e1';
 const runtimeRoles=['read','command','notify','jobs'];
-const runtimeDeliveryAllowed=file=>deliveryFiles.includes(file)||/^project\/Documents\//.test(file)||/^Change Logs\//.test(file);
+// Documents a delivery-tool commit may carry: project/Documents/**, root Change Logs/** and (R091) the integration agent's
+// Markdown documents under integration-agent/docs/** and integration-agent/Change Logs/** (`*.md` only, never runtime inputs).
+const agentDocument=/^integration-agent\/(?:docs|Change Logs)\/(?:[^/]+\/)*[^/]+\.md$/;
+const runtimeDeliveryAllowed=file=>deliveryFiles.includes(file)||/^project\/Documents\//.test(file)||/^Change Logs\//.test(file)||agentDocument.test(file);
 const runtimeInputs=['apps','packages','contracts','services','database','public','index.html','vite.config.ts','package.json','package-lock.json','.dockerignore','.gcloudignore','Dockerfile','cloudbuild-command.yaml','cloudbuild-business.yaml','scripts/hosting-headers.mjs','scripts/production','infrastructure/production','infrastructure/modules'];
 // Each reused CI run must be input-equivalent to the pinned source for what it proves.
 const runtimeCiKinds={
