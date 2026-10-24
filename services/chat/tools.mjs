@@ -6,6 +6,7 @@ import {codePointCompare} from '../lib/offline-dataset-digest.mjs';
 import {ToolError} from './errors.mjs';
 import {Dec} from './grounding.mjs';
 import {bangkokIso} from './prompt.mjs';
+import {RESULT_LIMIT,ROW_CAP} from './sql-guard.mjs';
 
 export const TOOL_WORKERS=4;
 const HIDDEN=new Set(['_RowNumber']);
@@ -26,8 +27,9 @@ export const TOOLS=Object.freeze([
  spec('sql_query','Read-only SQL over the MW Credit business database (PostgreSQL 18, schema public, '
   +'Asia/Bangkok, read-only transaction). Exactly one SELECT or WITH statement; no semicolon, comments, '
   +'dollar quoting, E strings, row locks, writes or side-effect functions; at most 8000 characters; 20 s limit. Quote mixed-case '
-  +'identifiers exactly ("Loans"."Row ID"). Returns at most 500 rows with distinct column names; aggregate in '
-  +'SQL instead of paging through rows; at most 256 KB per result. Use the schema digest in the system prompt.',{sql:STR}),
+  +`identifiers exactly ("Loans"."Row ID"). Small results only: at most ${ROW_CAP} rows and ${RESULT_LIMIT>>10} KB, `
+  +'distinct column names; a larger result is refused, so aggregate in SQL (sum, count, group by) and LIMIT the '
+  +'rows you will list instead of paging. Use the schema digest in the system prompt.',{sql:STR}),
  spec('loan_payoff',"Cross-check of today's payoff (Bangkok) for one open Daily Interest loan from the system's own "
   +'loan close calculation, by exact loan Row ID; report the charge-balance payoff of the business rules. '
   +'Returns eligible=false with the reason for any other loan.',{loan_id:STR}),

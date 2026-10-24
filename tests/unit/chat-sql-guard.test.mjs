@@ -4,7 +4,7 @@
 // assertion), caps, JSON-safe values, bounded server errors and loan_payoff. No database.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {guard,prepare,DENY_WORDS,BYTES,RESULT_LIMIT,TOO_LARGE,CELL_LIMIT,CURSOR} from '../../services/chat/sql-guard.mjs';
+import {guard,prepare,DENY_WORDS,BYTES,RESULT_LIMIT,TOO_LARGE,CELL_LIMIT,CURSOR,ROW_CAP,MAX_SQL,STATEMENT_TIMEOUT} from '../../services/chat/sql-guard.mjs';
 import {createSqlTool,PLAIN_TYPES} from '../../services/chat/sql-tool.mjs';
 
 const ACCEPTED=[
@@ -90,7 +90,7 @@ test('prepared statement wraps the query under a server-side byte bound',()=>{
  const statement=prepare('SELECT 1 AS n');
  assert.ok(statement.includes('FROM (\nSELECT 1 AS n\n) AS q'));
  assert.ok(statement.includes(`sum(pg_column_size(q.*)) OVER (ROWS UNBOUNDED PRECEDING) AS "${BYTES}"`));
- assert.ok(statement.includes(`> ${RESULT_LIMIT}`));
+ assert.ok(statement.includes(`> ${RESULT_LIMIT}`));assert.ok(statement.includes('> 32768 '));
  assert.ok(statement.includes(`'${TOO_LARGE} ' || r."${BYTES}"`));
  assert.throws(()=>prepare('SELECT pg_sleep(1)'),/SQL_FUNCTION_NOT_ALLOWED/);
 });
@@ -105,7 +105,7 @@ test('session is read-only, guarded, switched to the read role, asserted, cursor
   'SELECT session_user::text AS session, current_user::text AS role, current_database()::text AS database']);
  assert.equal(client.guarded,1);
  assert.equal(statements[9],`DECLARE ${CURSOR} NO SCROLL CURSOR FOR ${prepare('SELECT 1 AS n')}`);
- assert.equal(statements[10],`FETCH 501 FROM ${CURSOR}`);assert.equal(client.fetched,501);
+ assert.equal(statements[10],`FETCH 101 FROM ${CURSOR}`);assert.equal(client.fetched,101);
  assert.equal(client.statements[10].rowMode,'array');
  assert.equal(statements.at(-1),'ROLLBACK');assert.equal(client.released,false);
 });
@@ -121,12 +121,18 @@ test('identity mismatch stops before the query',async()=>{
  assert.throws(()=>createSqlTool({pool:{},guardConnection:async()=>{},...TARGET,readRole:'mw_integration_agent'}),/Invalid SQL tool target/);
 });
 
+test('R092 small-result limits: 100 rows, 32 KB result and cell; SQL length and timeout unchanged',()=>{
+ assert.deepEqual([ROW_CAP,RESULT_LIMIT,CELL_LIMIT,MAX_SQL,STATEMENT_TIMEOUT],[100,32768,32768,8000,'20s']);
+});
+
 test('row cap, cell cap and size limit',async()=>{
- await assert.rejects(tool(connection({rows:Array.from({length:600},(_,i)=>[i])})).query('SELECT 1'),/^ToolError: SQL_ROW_CAP_NARROW_QUERY/);
- assert.equal((await tool(connection({rows:Array.from({length:500},(_,i)=>[i])})).query('SELECT 1')).row_count,500);
- await assert.rejects(tool(connection({columns:['big'],rows:[['x'.repeat(CELL_LIMIT+1)]]})).query('SELECT 1'),/SQL_RESULT_TOO_LARGE: a value/);
- await assert.rejects(tool(connection({columns:['doc'],rows:[[{k:'x'.repeat(CELL_LIMIT)}]]})).query('SELECT 1'),/SQL_RESULT_TOO_LARGE: a value/);
- await assert.rejects(tool(connection({columns:['x'],rows:Array.from({length:300},()=>['x'.repeat(1000)])})).query('SELECT 1'),/SQL_RESULT_TOO_LARGE: select/);
+ await assert.rejects(tool(connection({rows:Array.from({length:101},(_,i)=>[i])})).query('SELECT 1'),
+  /^ToolError: SQL_ROW_CAP_NARROW_QUERY: more than 100 rows; aggregate in SQL \(sum, count, group by\) or LIMIT the rows you will list$/);
+ assert.equal((await tool(connection({rows:Array.from({length:100},(_,i)=>[i])})).query('SELECT 1')).row_count,100);
+ await assert.rejects(tool(connection({columns:['big'],rows:[['x'.repeat(CELL_LIMIT+1)]]})).query('SELECT 1'),/SQL_RESULT_TOO_LARGE: over 32 KB/);
+ await assert.rejects(tool(connection({columns:['doc'],rows:[[{k:'x'.repeat(CELL_LIMIT)}]]})).query('SELECT 1'),/SQL_RESULT_TOO_LARGE: over 32 KB/);
+ await assert.rejects(tool(connection({columns:['x'],rows:Array.from({length:50},()=>['x'.repeat(1000)])})).query('SELECT 1'),
+  /^ToolError: SQL_RESULT_TOO_LARGE: over 32 KB; summarise in SQL instead \(aggregate, fewer columns, LIMIT\)$/);
  await assert.rejects(tool(connection({columns:['?column?','?column?'],rows:[[1,2]]})).query('SELECT 1'),/SQL_DUPLICATE_COLUMN_NAMES/);
 });
 
@@ -147,7 +153,7 @@ test('server errors are bounded messages',async()=>{
  await assert.rejects(tool(connection({error:Object.assign(Error('canceling statement due to statement timeout'),{code:'57014'})})).query('SELECT 1'),/^ToolError: SQL_STATEMENT_TIMEOUT/);
  await assert.rejects(tool(connection({error:Object.assign(Error('column "x" does not exist'),{code:'42703'})})).query('SELECT 1'),/^ToolError: SQL_ERROR 42703: column "x" does not exist/);
  await assert.rejects(tool(connection({error:Object.assign(Error('permission denied for table pwa_chat_messages'),{code:'42501'})})).query('SELECT 1'),/SQL_ERROR 42501/);
- await assert.rejects(tool(connection({error:Object.assign(Error('invalid input syntax for type integer: "SQL_RESULT_TOO_LARGE 300000"'),{code:'22P02'})})).query('SELECT 1'),/SQL_RESULT_TOO_LARGE: select fewer/);
+ await assert.rejects(tool(connection({error:Object.assign(Error('invalid input syntax for type integer: "SQL_RESULT_TOO_LARGE 300000"'),{code:'22P02'})})).query('SELECT 1'),/^ToolError: SQL_RESULT_TOO_LARGE: over 32 KB; summarise in SQL instead/);
  await assert.rejects(tool(connection({error:Object.assign(Error('server closed the connection'),{code:'08006'})})).query('SELECT 1'),e=>e.name!=='ToolError');
 });
 

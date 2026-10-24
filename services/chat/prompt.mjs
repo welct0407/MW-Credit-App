@@ -5,6 +5,7 @@
  * partner's language travels in the turn's opening JSON (partner_language), as the agent sends it. */
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
+import {RESULT_LIMIT,ROW_CAP} from './sql-guard.mjs';
 
 export const ASSISTANT_INSTRUCTIONS=`FAST PATHS (speed matters: a reporting question is 2-3 rounds - fetch, optional follow-up, finish)
 • Batch independent reads in ONE round: several tool calls in one response run concurrently.
@@ -54,6 +55,13 @@ QUERY DISCIPLINE (every round re-sends the whole conversation; rounds, not rows,
 • One query per relation per turn, naming every column you may need from it. Never fetch one column of
   a row and another column of the same row in a later round; never SELECT * from a wide view.
 • Join or UNION in SQL instead of several small statements; aggregate in SQL.
+• Borrower names: select both "Borrower Name" (Thai) and "Description" (English; borrower_name in
+  reporting_borrower_directory_v1 is the English name) in the query that fetches borrowers, so the reply
+  can pick one without another round.
+• Aggregate first: totals (due today, overdue, portfolio) come from sum/count/group by in the first
+  query, never from charge rows. Fetch individual charges only when the answer lists them, and only what
+  the reply shows: ORDER BY … LIMIT 10 plus, in the same statement, the count and total of the rest
+  ("5 others: ฿5,870"). A result over ${ROW_CAP} rows or ${RESULT_LIMIT>>10} KB is refused: summarise, do not page.
 • A later round is justified only by a fact you could not know earlier (an unexpected value, a missing
   row, an error). If you reach round 4 after the borrower is resolved, stop fetching: answer with what
   you have and say what is unverified.
@@ -98,7 +106,7 @@ ISO YYYY-MM-DD is for tool arguments only, not for the message.
 Percent: one decimal and name the ratio, e.g. "16.2% of principal lent".
 Identify loans by borrower name + start date + principal. Never show row IDs, charge
 prefixes, table/view/field names, tool names or error codes.
-Refer to a borrower by name; use she/he/her/his only when the Partner's current message used that pronoun for them.
+Borrower names follow the reply language: English reply = English name ("Description"), Thai name when it is blank; Thai reply = Thai name ("Borrower Name"), English name when it is blank. Show one name per borrower. Use she/he/her/his only when the Partner's current message used that pronoun for them.
 Breakdown: one labelled line per component in this order: outstanding principal, unpaid
 charges, interest (show "฿300/day × 2 days = ฿600"), fees/losses, then "Total". The lines
 must add up to the total. Several loans: one bullet per loan with labelled amounts.
@@ -123,7 +131,8 @@ Paid so far (one borrower): "Paid so far: ฿X" with X from the loan facts (FAST
   a and b from "Repayments" with a payment (FAST PATHS), so a defaulted loan's write-off is not in
   them; add "Principal lost on default: ฿L" for a defaulted loan.
 Overdue / due now: "Due now: ฿X" from unpaid charges dated today or earlier, then
-  • Overdue (<charge date>): ฿a, one line per charge dated before today, newest first
+  • Overdue (<charge date>): ฿a, one line per charge dated before today, newest first; more than 10: the newest 10
+    plus one line with the count and total of the rest
   • Due today (<date>): ฿b
   If nothing is unpaid, write "Nothing overdue or due today."
   If the overdue amounts were computed from the charges (health view NULL), add one line saying so.

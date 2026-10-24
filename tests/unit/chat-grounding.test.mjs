@@ -126,6 +126,23 @@ test('request numbers ground',()=>{
  assert.deepEqual(verdict('After ฿70,000 paid').rules,{sum:1});
 });
 
+test('R092 aggregate-first: a total, the listed lines and the rest ground',()=>{
+ // Ten listed charges (13,800 in all) from a LIMIT 10 query plus the aggregate of the whole set: 230 charges, 45,200.
+ const listed=Array.from({length:10},(_,i)=>({charge_date:`2026-10-${String(10+i).padStart(2,'0')}`,amount_remaining:`${1200+i*40}.00`}));
+ const lines=listed.map(r=>`- ${r.charge_date.slice(8)}-Oct-2026: ฿${Number(r.amount_remaining).toLocaleString('en-US')}`).join('\n');
+ assert.equal(listed.reduce((a,r)=>a+Number(r.amount_remaining),0),13800);
+ const withRest=obs(rows({due_total:'45200.00',charge_count:230,rest_total:'31400.00'}),rows(...listed));
+ const reply=`**Due now: ฿45,200**\n${lines}\n- 220 others: ฿31,400`;
+ assert.deepEqual(verdict(reply,withRest).ungrounded??[],[]);
+ assert.equal(verdict(reply,withRest).ok,true);
+ // Without rest_total the rest is the total minus the listed lines (rule 6: observed amount minus a derived total).
+ const withoutRest=obs(rows({due_total:'45200.00',charge_count:230}),rows(...listed));
+ assert.equal(verdict(reply,withoutRest).ok,true);
+ // A wrong rest or a wrong total is still refused.
+ assert.deepEqual(verdict(reply.replace('฿31,400','฿31,500'),withRest).ungrounded,['฿31,500']);
+ assert.deepEqual(verdict(reply.replace('฿45,200','฿45,300'),withoutRest).ungrounded.includes('฿45,300'),true);
+});
+
 test('seeded transcript amounts never ground',()=>{
  assert.equal(check('Payoff ฿61,370',obs(rows({loan_id:'L4',payoff:'61370.00'})),'').ok,true);
  assert.deepEqual(check('Payoff ฿61,370',LOANS,'and the 20-Sep loan?').ungrounded,['฿61,370']);

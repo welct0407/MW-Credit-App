@@ -1,15 +1,16 @@
-/** sql_query write/side-effect guard: a rule-for-rule port of integration-agent conversation_sql.py (tokenize,
- * guard, prepare). The model writes one SELECT/WITH statement; anything else is rejected before a connection is
- * opened: one statement, no comments, dollar quoting or escape strings, ASCII outside quotes, balanced
+/** sql_query write/side-effect guard (tokenize, guard, prepare), first ported from integration-agent
+ * conversation_sql.py; that conversation is decommissioned (R091), so the limits below are R092's own (small
+ * results: aggregate in SQL instead of paging). The model writes one SELECT/WITH statement; anything else is
+ * rejected before a connection is opened: one statement, no comments, dollar quoting or escape strings, ASCII outside quotes, balanced
  * parentheses, no write/DDL/session/transaction keyword, no row locks and no function with a side effect or one
  * that runs query text. The server enforces the rest (sql-tool.mjs: role, READ ONLY transaction always rolled
  * back, timeouts, server-side cursor and byte bound). Read access is not narrowed (owner decision R085). */
 import {ToolError} from './errors.mjs';
 
 export const MAX_SQL=8000;
-export const ROW_CAP=500;
-export const RESULT_LIMIT=262144;
-export const CELL_LIMIT=262144;
+export const ROW_CAP=100;
+export const RESULT_LIMIT=32768;
+export const CELL_LIMIT=32768;
 export const STATEMENT_TIMEOUT='20s';
 export const CURSOR='mw_conversation_sql';
 export const BYTES='__mw_row_bytes';

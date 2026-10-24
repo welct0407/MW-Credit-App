@@ -1,5 +1,6 @@
-/** sql_query and loan_payoff: port of conversation_sql.py run/query/payoff on the chat pool (design §4.1, Archie
- * resolution 11). Each call is one READ ONLY repeatable-read transaction, always rolled back: the connection
+/** sql_query and loan_payoff on the chat pool (design §4.1, Archie resolution 11), first ported from integration-agent
+ * conversation_sql.py run/query/payoff; that conversation is decommissioned (R091), so the row, result and cell
+ * limits (sql-guard.mjs) and their messages are R092's own. Each call is one READ ONLY repeatable-read transaction, always rolled back: the connection
  * guard first (the IAM login), then SET LOCAL ROLE mw_chat_read_<env> so the model's SQL can call no
  * pwa_chat_*_v1 function and read no pwa_chat_* table, the agent's session settings, and the session_user,
  * current_user and current_database() assertion before the statement runs. Rows come through a server-side cursor
@@ -18,6 +19,7 @@ export function pythonJson(value){
  return '{'+Object.entries(value).map(([k,v])=>JSON.stringify(k)+': '+pythonJson(v)).join(', ')+'}';
 }
 const bytes=text=>Buffer.byteLength(text,'utf8');
+const TOO_LARGE_MESSAGE=`${TOO_LARGE}: over ${RESULT_LIMIT>>10} KB; summarise in SQL instead (aggregate, fewer columns, LIMIT)`;
 
 // JSON-safe values with psycopg's shapes after plain(): numeric as exact text, dates and times as isoformat,
 // json as values, bytea as a size label, anything unknown as its text.
@@ -47,7 +49,7 @@ export function databaseError(error){
  const message=String(error?.message??'').replaceAll('\n',' ').slice(0,300);
  if(state==='57014')return new ToolError('SQL_STATEMENT_TIMEOUT: narrow or aggregate the query');
  if(state==='55P03')return new ToolError('SQL_LOCK_TIMEOUT');
- if(state==='22P02'&&message.includes(TOO_LARGE))return new ToolError(TOO_LARGE+': select fewer columns or rows');
+ if(state==='22P02'&&message.includes(TOO_LARGE))return new ToolError(TOO_LARGE_MESSAGE);
  if(['42','22','0A','25','21','2B','54','53'].includes(state.slice(0,2)))return new ToolError(`SQL_ERROR ${state}: ${message}`);
  return null;
 }
@@ -94,11 +96,11 @@ export function createSqlTool({pool,guardConnection,dbUser,readRole,database}){
   async query(text){
    let {columns,rows}=await run(prepare(text));
    if(columns.at(-1)===BYTES){columns=columns.slice(0,-1);rows=rows.map(r=>r.slice(0,-1));}
-   if(rows.length>ROW_CAP)throw new ToolError('SQL_ROW_CAP_NARROW_QUERY: more than 500 rows; aggregate, filter or page with LIMIT/OFFSET');
+   if(rows.length>ROW_CAP)throw new ToolError(`SQL_ROW_CAP_NARROW_QUERY: more than ${ROW_CAP} rows; aggregate in SQL (sum, count, group by) or LIMIT the rows you will list`);
    if(new Set(columns).size!==columns.length)throw new ToolError('SQL_DUPLICATE_COLUMN_NAMES: give every output column a distinct alias');
-   if(rows.some(row=>row.some(oversized)))throw new ToolError(TOO_LARGE+': a value is over 256 KB');
+   if(rows.some(row=>row.some(oversized)))throw new ToolError(TOO_LARGE_MESSAGE);
    const result={columns,rows:rows.map(row=>Object.fromEntries(columns.map((c,i)=>[c,row[i]]))),row_count:rows.length,complete:true};
-   if(bytes(pythonJson(result))>RESULT_LIMIT)throw new ToolError(TOO_LARGE+': select fewer columns or rows');
+   if(bytes(pythonJson(result))>RESULT_LIMIT)throw new ToolError(TOO_LARGE_MESSAGE);
    return result;
   },
   /** loan_payoff: the encoded Daily Interest payoff for today (Bangkok), or why the loan is ineligible. */
