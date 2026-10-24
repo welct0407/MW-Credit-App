@@ -74,7 +74,7 @@ Private pre-change dashboard, collection permissions and source-model metadata: 
 
 To abandon 8R, remove only tab 19, its 21 placements and the two `collection-detail-*` parameters, then check dependencies before recoverably archiving its exclusive questions 236–252. Do not restore the entire old dashboard over unrelated later work. Original tab 9 remains the working fallback throughout review.
 
-R025 stays Open through review. No R026 handoff, release-scope freeze, final R025 tag, original-tab deletion or final cutover occurred. The owner's instruction to implement 8R authorizes this parallel review surface; subsequent canonical replacement remains deferred. See the [design handoff](../collection-monitor-design-20260924/DESIGN.md), [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) and [release checklist](promotion-checklist.md).
+R025 stays Open through review. No R026 handoff, release-scope freeze, final R025 tag, original-tab deletion or final cutover occurred. The owner's instruction to implement 8R authorizes this parallel review surface; subsequent canonical replacement remains deferred. See the [design handoff](https://github.com/welct0407/MW-Credit-App/blob/4c80ffde/project/outputs/collection-monitor-design-20260924/DESIGN.md), [change log](https://github.com/welct0407/MW-Credit-App/blob/cbc8843/project/Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) and [release checklist](promotion-checklist.md).
 
 ## Top-row refinement — 24 September 2026
 
