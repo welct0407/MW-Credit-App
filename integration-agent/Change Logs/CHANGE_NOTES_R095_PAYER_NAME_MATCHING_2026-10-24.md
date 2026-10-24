@@ -18,7 +18,7 @@ Receipts do not always arrive in the borrower's own 3-member group (a partner fo
 | Agent PostgreSQL lab (CI suite list at V111) | Pass: 79 tests at V111 (Chase) |
 
 ## Not run
-Pending. The VM deploy and the activation of `payer_name_cutoff` follow the merge and the owner's instruction.
+A real slip under the new matching (none since the cutoff).
 
 ## Recovery
 Leave `payer_name_cutoff` unset or set it to a future time (the behaviour is off); `deploy-runtime.py rollback` restores the previous code. In Git, revert the batch. Names already filled stay (editable in the borrower record).
@@ -27,7 +27,7 @@ Leave `payer_name_cutoff` unset or set it to a future time (the behaviour is off
 None.
 
 ## Remaining work
-Implementation checks, the VM deploy, then the owner sets `payer_name_cutoff`.
+Observe the first real slip after the cutoff.
 
 ## Deploy record
-Pending (Forge). Pins are in the [Environment inventory](../../project/Documents/Environment_Inventory.md).
+Deployed to `vm-mw-credit-agent` on 24 October 2026: checkout `e3d5bc2` to `14c4a403`, freeze 18:34:20Z (rollback `runtime-20261024T183420716659Z`), activate 18:34:47Z; `/ready` true, `code_version` `14c4a40399060c45adfbdaf9b93004eba43b95eb`. `payer_name_cutoff` `2026-10-24T18:36:14+00:00` added (configuration 80 to 81 keys; backup `/root/config.json.pre-r095-payer-cutoff`); later cycles clean, 0 `PAYER_` lines. No real slip has arrived since, so the payer path is not yet observed live. Pins are in the [Environment inventory](../../project/Documents/Environment_Inventory.md).

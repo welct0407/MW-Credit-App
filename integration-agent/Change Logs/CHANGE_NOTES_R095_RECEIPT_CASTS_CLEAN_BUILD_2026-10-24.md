@@ -17,7 +17,7 @@ Two R094 candidates on `vm-mw-credit-agent`: `mw-receipt-summary` failed once on
 | Agent PostgreSQL lab (CI suite list at V110) | 79 run, OK; review-settlement update with and without a note, prepared and unprepared (the old statement reproduces 42P18); projection call with `None` key and `{}` |
 
 ## Not run
-Pending. The VM deploy and its readback follow after the merge. Not exercised: a second occurrence on the VM (two failures in two days; the fix is verified by the next clean runs).
+Not exercised: a second occurrence on the VM (two failures in two days; the fix is verified by the next clean runs).
 
 ## Recovery
 The freeze directory of `deploy-runtime.py` holds the previous code; `deploy-runtime.py rollback` restores it. In Git, revert the batch.
@@ -26,7 +26,7 @@ The freeze directory of `deploy-runtime.py` holds the previous code; `deploy-run
 None.
 
 ## Remaining work
-The VM deploy, then the readback: the installed package equals source (no conversation module), `/ready` `code_version`, the next `mw-receipt-summary` runs clean. The root cause above is already read from the Cloud SQL log.
+Done at the VM deploy; still to observe over the next days: the installed package equals source (no conversation module), `/ready` `code_version`, the next `mw-receipt-summary` runs clean. The root cause above is already read from the Cloud SQL log.
 
 ## Deploy record
-Pending (Forge). Pins are in the [Environment inventory](../../project/Documents/Environment_Inventory.md).
+Deployed with the payer-name release on 24 October 2026 (checkout `e3d5bc2` to `14c4a403`, freeze 18:34:20Z, activate 18:34:47Z; rollback `runtime-20261024T183420716659Z`). The helper cleared the stale `build/` and egg-info before pip (removed files none, no unit change); `/ready` true at `14c4a403`; first `mw-receipt-summary` run 18:35:14Z and later cycles succeeded. Pins are in the [Environment inventory](../../project/Documents/Environment_Inventory.md).
