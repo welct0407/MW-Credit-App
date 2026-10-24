@@ -32,7 +32,7 @@ Git baseline `1db8d7e9` (origin/main). The chat service is the only deployed art
 None.
 
 ## Remaining work
-Finish the DEV and PROD chat image deploys (Forge), fill the placeholders in the promotion record and the Environment inventory, then mark R092 Released and create the tag. The three dead VM keys and the agent's SELECT on the notification, push and jobs tables, carried from R091, are carried to R093 (R092 is chat-only).
+Finish the DEV and PROD chat image deploys (Forge), fill the placeholders in the promotion record and the Environment inventory, then mark R092 Released and create the tag. The three dead VM keys and the agent's SELECT on the notification, push and jobs tables, carried from R091, are carried to R094 (R092 and R093 did not take them).
 
 ## Promotion record
 

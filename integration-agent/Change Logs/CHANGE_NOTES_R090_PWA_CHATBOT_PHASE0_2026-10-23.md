@@ -1,7 +1,7 @@
 # Change notes — R090 phase 0, Partner conversation stopped, 23 October 2026
 
 ## Purpose
-The in-app chat (R090, [root change note](../../Change%20Logs/CHANGE_NOTES_R090_PWA_CHATBOT_2026-10-23.md)) replaces the Instagram Partner conversation, so two Partners must not get answers from both. Phase 0 stops the conversation on the Debian host with a config-only change; nothing is removed yet (decommission is phase 3 of the [design](../../project/outputs/r090-pwa-chatbot/DESIGN.md#12-phase-3-decommission-checklist), after the owner's PROD test).
+The in-app chat (R090, [root change note](https://github.com/welct0407/MW-Credit-App/blob/4c80ffde/Change%20Logs/CHANGE_NOTES_R090_PWA_CHATBOT_2026-10-23.md)) replaces the Instagram Partner conversation, so two Partners must not get answers from both. Phase 0 stops the conversation on the Debian host with a config-only change; nothing is removed yet (decommission is phase 3 of the [design](../../project/outputs/r090-pwa-chatbot/DESIGN.md#12-phase-3-decommission-checklist), after the owner's PROD test).
 
 ## Changes
 - Config, `vm-mw-credit-agent`, owner decision in the session to switch four flags together because the agent's `check` refuses `partner_conversations_enabled=false` alone ("conversation writes require conversations"): `partner_conversations_enabled`, `conversation_writes_enabled`, `native_delete_enabled` and `reviewer_dml_enabled` set to `false` at 09:58:42Z. Config sha256 `42a4fc2bc2571bdc15764e6f681723e97515c40294dcf9bb480e813773ed209f` became `85e23eb0c15ee223ab95c297a9b4fa27c4f4cc23a1c4a5aa64421a427df899f5`. Unchanged: provider `gemini` (`gemini-4-argon`, thinking `MEDIUM`), `conversation_sql_read_enabled=true`, code `fbc6b18`. 0 conversation replies were pending.
