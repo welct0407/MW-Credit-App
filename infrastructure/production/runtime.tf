@@ -75,10 +75,6 @@ resource "google_cloud_run_v2_service" "foundation" {
       error_message = "Machine receipt API requires business runtime and a reviewed numeric PROD policy version."
     }
     precondition {
-      condition     = !var.agent_conversation_api.enabled || (var.business_runtime_authorized && var.agent_conversation_api.policy_infrastructure_enabled && var.agent_conversation_api.policy_version != null)
-      error_message = "Machine conversation API requires business runtime and a reviewed numeric PROD policy version."
-    }
-    precondition {
       condition     = !var.receipt_recognizer.enabled || var.business_runtime_authorized
       error_message = "Receipt recognition requires the business runtime command service."
     }
@@ -175,9 +171,6 @@ resource "google_cloud_run_v2_service" "foundation" {
           } : {}, each.key == "command" && var.agent_receipt_api.enabled ? {
           AGENT_RECEIPT_API_ENABLED           = "true"
           AGENT_RECEIPT_POLICY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-agent-receipt-policy/versions/${var.agent_receipt_api.policy_version == null ? "UNBOUND" : var.agent_receipt_api.policy_version}"
-          } : {}, each.key == "command" && var.agent_conversation_api.enabled ? {
-          AGENT_CONVERSATION_API_ENABLED           = "true"
-          AGENT_CONVERSATION_POLICY_SECRET_VERSION = "projects/${var.application_project_id}/secrets/mw-credit-app-prod-agent-conversation-policy/versions/${var.agent_conversation_api.policy_version == null ? "UNBOUND" : var.agent_conversation_api.policy_version}"
           } : {}, each.key == "command" && var.receipt_recognizer.enabled ? {
           PROD_RECEIPT_RECOGNITION     = var.receipt_recognizer.activation
           PROD_RECEIPT_RECOGNITION_URL = local.receipt_recognizer_url
@@ -203,8 +196,6 @@ resource "google_cloud_run_v2_service" "foundation" {
           PROD_RECEIPT_NATIVE_CATALOG_JSON = { secret = "mw-credit-app-prod-native-receipt-catalog", version = var.native_catalog_version }
           } : {}, each.key == "command" && var.agent_receipt_api.enabled ? {
           AGENT_RECEIPT_POLICY_JSON = { secret = "mw-credit-app-prod-agent-receipt-policy", version = var.agent_receipt_api.policy_version }
-          } : {}, each.key == "command" && var.agent_conversation_api.enabled ? {
-          AGENT_CONVERSATION_POLICY_JSON = { secret = "mw-credit-app-prod-agent-conversation-policy", version = var.agent_conversation_api.policy_version }
         } : {}) : {}
         content {
           name = env.key
@@ -226,5 +217,5 @@ resource "google_cloud_run_v2_service" "foundation" {
       }
     }
   }
-  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime_ssd, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt, google_secret_manager_secret_iam_member.command_agent_receipt_policy, google_secret_manager_secret_iam_member.command_agent_conversation_policy]
+  depends_on = [google_project_iam_member.runtime_auth, google_secret_manager_secret_iam_member.runtime_owner, google_project_iam_member.business_sql, google_sql_user.business_runtime_ssd, google_secret_manager_secret_iam_member.business_policy, google_secret_manager_secret_iam_member.business_catalog, google_storage_bucket_iam_member.business_receipt, google_secret_manager_secret_iam_member.command_agent_receipt_policy]
 }
