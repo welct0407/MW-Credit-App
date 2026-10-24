@@ -145,9 +145,23 @@ class RuntimeDeploymentTests(unittest.TestCase):
                                 ({'catalogue': dict(live, revision=30)}, 'revision drift')):
             with self.subTest(change=list(change)), self.assertRaisesRegex(RuntimeError, pattern):
                 self.prepared(config=config, **{'catalogue': live, 'candidate': candidate, **change})
-        # Outside the 31 -> 32 change a retired key is not silently dropped.
-        with self.assertRaisesRegex(RuntimeError, 'Retired conversation keys need the R091 catalogue change'):
-            self.prepared(config=dict(self.config, conversation_provider='codex'))
+
+    def test_retired_keys_are_dropped_outside_the_r091_change(self):
+        # R094: the three inert keys R091 left on the VM (and any other retired key) leave the configuration on an
+        # ordinary code-only deploy (catalogue unchanged); every other key and the catalogue stay as they are.
+        dead = {'conversation_schema_file': '/etc/mw-integration-agent/conversation-schema.json', 'conversation_schema_sha256': 'c' * 64,
+                'partner_conversation_backup': '/var/lib/mw-integration-agent/backup', 'conversation_provider': 'codex'}
+        config = dict(self.config, **dead)
+        before = json.dumps(config, sort_keys=True)
+        cleaned, catalogue = self.prepared(config=config)
+        self.assertEqual(cleaned, dict(self.config, code_version=COMMIT))
+        self.assertEqual(catalogue, self.catalogue)
+        self.assertEqual(json.dumps(config, sort_keys=True), before)  # input untouched
+        self.assertTrue({'conversation_schema_file', 'conversation_schema_sha256', 'partner_conversation_backup'} <= runtime.R091_KEYS)
+        sys.path.insert(0, str(SCRIPTS.parent / 'src'))
+        from mw_integration_agent import config as package
+        self.assertEqual(package.retired_keys(config), sorted(dead))
+        self.assertEqual(package.retired_keys(cleaned), [])
 
     def test_one_off_activation_scripts_are_deleted(self):
         # AGT-QUALITY-05: deploy-runtime.py (with its engine) is the one deploy helper.

@@ -2,9 +2,11 @@
 
 Every switch, cutoff and catalogue entry is preserved; only config code_version follows the pinned commit.
 R091 (Instagram Partner conversation retired): the one accepted change of a live catalogue revision 31 to the
-candidate revision 32 removes exactly the retired conversation services, and the configuration loses exactly the
-retired conversation keys (the package's validator refuses a configuration that still carries one). activate
-writes both while every worker stays paused; the freeze copy (a dated 0700 backup directory) is the rollback.
+candidate revision 32 removes exactly the retired conversation services. R094: every deployment drops the retired
+conversation keys from the configuration, whatever the catalogue change (the package's validator refuses a
+configuration that still carries one; R094 added the three inert keys R091 left on the VM), and keeps every other
+key. activate writes both while every worker stays paused; the freeze copy (a dated 0700 backup directory) is the
+rollback.
 `deploy-shared-receipt-api.py` is the engine; this file supplies the preparation. The probe is the engine's
 read-only receipt-status GET (the native conversation probe left with the conversation)."""
 import copy
@@ -22,7 +24,8 @@ R091_KEYS=frozenset({'partner_conversations_enabled','conversation_writes_enable
     'native_delete_enabled','conversation_provider','conversation_sql_read_enabled','conversation_grounding',
     'conversation_timeout_seconds','partner_conversation_cutoff','reviewer_dml_cutoff','conversation_api_enabled',
     'conversation_api_environment','conversation_api_origin','conversation_api_audience',
-    'conversation_api_manifest_sha256','conversation_api_probe_partner_id'})
+    'conversation_api_manifest_sha256','conversation_api_probe_partner_id',
+    'conversation_schema_file','conversation_schema_sha256','partner_conversation_backup'})
 R091_PREFIXES=('gemini_conversation_','claude_','database_dml_')
 
 
@@ -41,10 +44,7 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
         base.require(live==wanted,'Service drift')
     base.require(all(catalogue['services'][k].get('implemented')==candidate['services'][k].get('implemented') for k in wanted),'Capability drift')
     c=copy.deepcopy(config)
-    if r091:
-        for key in [k for k in c if retired(k)]:del c[key]
-    else:
-        base.require(not any(retired(k) for k in c),'Retired conversation keys need the R091 catalogue change')
+    for key in [k for k in c if retired(k)]:del c[key]
     c['code_version']=commit
     cat=copy.deepcopy(catalogue)
     if r091:
