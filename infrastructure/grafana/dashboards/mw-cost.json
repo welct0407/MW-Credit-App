@@ -1793,7 +1793,7 @@
         },
         "id": 49,
         "panels": [],
-        "title": "Partner chat · cost per question",
+        "title": "In-app chat · cost per question",
         "type": "row"
       },
       {
@@ -1801,7 +1801,7 @@
           "type": "grafana-postgresql-datasource",
           "uid": "mw-agent-questions"
         },
-        "description": "The 10 latest answered Partner chat questions (Instagram conversation agent), newest first, read live from the agent database (monitoring.recent_questions_v1 through Grafana PDC; not stored in Cloud Monitoring). Input = uncached input tokens, Cached = cached input, Output and Thinking = generated tokens (thinking bills as output); every round of the turn, including tool calls, is included. Cost (SGD) = tokens at the billed Vertex AI unit prices (model-prices.json: Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output per million). No usage record = a Codex turn (subscription) or usage older than the 7-day audit retention. The footer sums the listed questions.",
+        "description": "The 10 latest in-app chat questions (Chat in the PWA), newest first, read live from loan_manager_prod (monitoring.pwa_chat_recent_questions_v1 through Grafana PDC; not stored in Cloud Monitoring). Input = uncached input tokens, Cached = cached input, Output and Thinking = generated tokens (thinking bills as output); every round of the turn, including tool calls, is included. Cost (SGD) = tokens at the billed Vertex AI unit prices in model-prices.json (per million tokens: Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output; Gemini 3.8 Flash S$1.92, S$0.19, S$9.59; Gemini 3.5 Flash S$1.91, S$0.19, S$11.50). No answer (pending, unanswered or failed) = a question without a completed reply. The footer sums the listed questions.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -1993,11 +1993,11 @@
             "editorMode": "code",
             "format": "table",
             "rawQuery": true,
-            "rawSql": "SELECT q.asked_at AS \"Asked\", q.question AS \"Question\",\n  coalesce(q.model, 'No usage record') AS \"Model\",\n  q.input_tokens - coalesce(q.cached_tokens, 0) AS \"Input\", q.cached_tokens AS \"Cached\", q.output_tokens AS \"Output\",\n  q.thinking_tokens AS \"Thinking\",\n  round(((q.input_tokens - coalesce(q.cached_tokens, 0)) * p.input + coalesce(q.cached_tokens, 0) * p.cached\n    + (q.output_tokens + coalesce(q.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS \"Cost (SGD)\"\nFROM monitoring.recent_questions_v1(10) q\nLEFT JOIN (VALUES ('gemini-4-argon', 5.1125, 0.2556, 25.5617), ('gemini-3.8-flash', 1.9172, 0.1917, 9.5857)) AS p(model, input, cached, output) ON p.model = q.model\nORDER BY q.asked_at DESC",
+            "rawSql": "SELECT q.asked_at AS \"Asked\", q.question AS \"Question\",\n  coalesce(q.model, 'No answer (' || q.status || ')') AS \"Model\",\n  q.input_tokens - coalesce(q.cached_tokens, 0) AS \"Input\", q.cached_tokens AS \"Cached\", q.output_tokens AS \"Output\",\n  q.thinking_tokens AS \"Thinking\",\n  round(((q.input_tokens - coalesce(q.cached_tokens, 0)) * p.input + coalesce(q.cached_tokens, 0) * p.cached\n    + (q.output_tokens + coalesce(q.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS \"Cost (SGD)\"\nFROM monitoring.pwa_chat_recent_questions_v1(10) q\nLEFT JOIN (VALUES ('gemini-4-argon', 5.1125, 0.2556, 25.5617), ('gemini-3.8-flash', 1.9172, 0.1917, 9.5857), ('gemini-3.5-flash', 1.9132, 0.1913, 11.5)) AS p(model, input, cached, output) ON p.model = q.model\nORDER BY q.asked_at DESC",
             "refId": "A"
           }
         ],
-        "title": "Partner chat · last 10 questions",
+        "title": "In-app chat · last 10 questions",
         "transformations": [],
         "type": "table"
       },

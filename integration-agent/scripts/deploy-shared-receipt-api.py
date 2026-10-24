@@ -35,11 +35,16 @@ OAUTH_BACKUP = 'secrets/outlook-email-oauth.json.bak'
 READY_TIMEOUT = 30
 # These oneshot workers can import the replaced package; they stay paused until the receiver is ready.
 UNITS = ['mw-conversation-poll', 'mw-receipt-summary', 'mw-cash-statement',
-         'mw-cash-statement-email-retry', 'mw-partner-conversation', 'mw-audit-relay']
-# Path units start a worker on demand (R082 B1 receipt wake, R086 conversation wake); paused, recorded and resumed exactly like the timers.
-PATHS = ['mw-receipt-wake.path', 'mw-conversation-wake.path']
+         'mw-cash-statement-email-retry', 'mw-audit-relay']
+# Path units start a worker on demand (R082 B1 receipt wake); paused, recorded and resumed exactly like the timers.
+PATHS = ['mw-receipt-wake.path']
 TRIGGERS = [u + '.timer' for u in UNITS] + PATHS
 UNIT_FILES = [RECEIVER] + [u + '.service' for u in UNITS] + PATHS
+# R091: the Instagram Partner conversation's units (already disabled since phase 0). Freeze stops a still-active
+# trigger (never resumed) and backs the files up, install removes them (daemon-reload, reset-failed), rollback
+# restores the saved files (disabled, as they were).
+RETIRED_UNIT_FILES = ['mw-partner-conversation.service', 'mw-partner-conversation.timer', 'mw-conversation-wake.path']
+RETIRED_TRIGGERS = ['mw-partner-conversation.timer', 'mw-conversation-wake.path']
 CONFIGS = ('config.json', 'service-catalogue.json')
 TERMINAL = ('activated', 'rolled-back')
 OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -182,15 +187,17 @@ def invocation(unit=RECEIVER):
 
 
 def quiet():
-    require(all(active(t) == 'inactive' for t in TRIGGERS), 'Timers or path units not paused')
+    require(all(active(t) == 'inactive' for t in TRIGGERS + RETIRED_TRIGGERS), 'Timers or path units not paused')
     require(all(active(u + '.service') in ('inactive', 'failed') for u in UNITS), 'Worker still running')
+    require(active(RETIRED_UNIT_FILES[0]) in ('inactive', 'failed'), 'Retired conversation worker still running')
 
 
 def pause():
-    # A path unit not yet installed reads inactive; systemctl stop would fail on a not-loaded unit.
-    run('systemctl', 'stop', *[p for p in PATHS if active(p) != 'inactive'], *[u + '.timer' for u in UNITS])
+    # A path unit not yet installed (or a retired trigger already removed) reads inactive; systemctl stop would
+    # fail on a not-loaded unit.
+    run('systemctl', 'stop', *[p for p in PATHS + RETIRED_TRIGGERS if active(p) != 'inactive'], *[u + '.timer' for u in UNITS])
     deadline = time.monotonic() + 2400
-    while any(active(u + '.service') not in ('inactive', 'failed') for u in UNITS):
+    while any(active(u) not in ('inactive', 'failed') for u in [u + '.service' for u in UNITS] + RETIRED_UNIT_FILES[:1]):
         require(time.monotonic() < deadline, 'Workers still running; timers remain paused')
         time.sleep(2)
     quiet()
@@ -267,8 +274,8 @@ def installed():
     return Path(output(PYTHON, '-c', 'import mw_integration_agent; print(next(iter(mw_integration_agent.__path__)))'))
 
 
-def unit_hashes(root):
-    return {name: digest(root / name) for name in UNIT_FILES if (root / name).is_file()}
+def unit_hashes(root, names=None):
+    return {name: digest(root / name) for name in (UNIT_FILES if names is None else names) if (root / name).is_file()}
 
 
 def verify_backup(backup, metadata):
@@ -276,6 +283,7 @@ def verify_backup(backup, metadata):
     for name, sha in metadata['config_hashes'].items():
         require(digest(backup / name) == sha, 'Configuration backup hash mismatch')
     require(unit_hashes(backup / 'units') == metadata.get('unit_hashes', {}), 'Unit backup hash mismatch')
+    require(unit_hashes(backup / 'units', RETIRED_UNIT_FILES) == metadata.get('retired_unit_hashes', {}), 'Retired unit backup hash mismatch')
 
 
 def verify_install(metadata):
@@ -295,6 +303,19 @@ def install_units():
             changed.append(name)
     run('systemctl', 'daemon-reload')
     return changed
+
+
+def remove_retired_units():
+    """R091: delete the retired conversation unit files (their backup copies stay in the freeze), daemon-reload and
+    clear a remembered failed state. Returns the removed names."""
+    removed = [name for name in RETIRED_UNIT_FILES if (SYSTEMD / name).is_file()]
+    for name in removed:
+        (SYSTEMD / name).unlink()
+    run('systemctl', 'daemon-reload')
+    if removed:
+        # A unit that is no longer loaded has no failed state to reset; never fatal.
+        subprocess.run(['systemctl', 'reset-failed', *removed], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return removed
 
 
 def create_oauth_backup():
@@ -427,6 +448,12 @@ def rollback(backup, metadata, resume=False):
             os.chmod(target, 0o644)
         elif name in metadata.get('units_changed', ()) and target.exists():
             target.unlink()
+    # R091: the retired conversation units come back exactly as frozen (disabled, never resumed).
+    for name in RETIRED_UNIT_FILES:
+        saved = backup / 'units' / name
+        if saved.is_file():
+            shutil.copyfile(saved, SYSTEMD / name)
+            os.chmod(SYSTEMD / name, 0o644)
     run('systemctl', 'daemon-reload')
     before = invocation()
     run('systemctl', 'restart', RECEIVER)
@@ -526,6 +553,7 @@ def dry_run(commit, connection_file=None):
                        'checkout' if head == commit else 'not compared (commit not in checkout)',
                        'files': {name: attempt(lambda name=name: unit(name)) if comparable else 'unknown'
                                  for name in UNIT_FILES}}
+    report['retired_units_on_host'] = {name: attempt(lambda name=name: (SYSTEMD / name).is_file()) for name in RETIRED_UNIT_FILES}
     def schema():
         backend = json.loads((PRIVATE / 'config.json').read_text()).get('state_backend')
         if backend != 'postgres':
@@ -548,11 +576,13 @@ def dry_run(commit, connection_file=None):
     report['timers_to_pause_and_resume'] = [t for t, state in timers.items() if state == 'active']
     report['timers_unreadable'] = [t for t, state in timers.items() if state == 'unreadable']
     report['plan'] = [
-        'freeze: archive a finished pointer; stop worker timers and path units; wait for workers; back up config, catalogue, package and units; '
+        'freeze: archive a finished pointer; stop worker timers and path units (and a still-active retired conversation trigger); '
+        'wait for workers; back up config, catalogue, package and units (retired conversation units included); '
         'record receiver InvocationID, unit hashes and ancestry',
         'install: on PostgreSQL state, refuse unless every shipped agent migration is applied (read-only schema_history); '
         'pip install --no-deps ' + str(REPO) + '; delete installed *.py absent from source; verify installed == source; '
-        'install changed units; daemon-reload; create the Graph token backup file when missing',
+        'install changed units; remove the retired conversation units (' + ', '.join(RETIRED_UNIT_FILES) + '); '
+        'daemon-reload; reset-failed; create the Graph token backup file when missing',
         'activate: agent schema check again; read-only probe; write config/catalogue; restart ' + RECEIVER + '; wait for /ready with this commit (' +
         str(READY_TIMEOUT) + ' s) and a new InvocationID; restart ' + RECOGNIZER + ' when running and wait for /healthz '
         'to report the enabled state of the new files; then start the paused timers and path units',
@@ -601,12 +631,13 @@ def main():
         package = installed()
         shutil.copytree(package, backup / 'package', ignore=shutil.ignore_patterns('__pycache__'))
         (backup / 'units').mkdir(mode=0o700)
-        for name in UNIT_FILES:
+        for name in UNIT_FILES + RETIRED_UNIT_FILES:
             if (SYSTEMD / name).is_file():
                 shutil.copy2(SYSTEMD / name, backup / 'units' / name)
         live = json.loads((PRIVATE / 'config.json').read_text()).get('code_version')
         metadata.update(package_hashes=tree(package), config_hashes={name: digest(PRIVATE / name) for name in CONFIGS},
-                        installed_path=str(package), unit_hashes=unit_hashes(SYSTEMD), receiver_invocation=invocation(),
+                        installed_path=str(package), unit_hashes=unit_hashes(SYSTEMD),
+                        retired_unit_hashes=unit_hashes(SYSTEMD, RETIRED_UNIT_FILES), receiver_invocation=invocation(),
                         installed_code_version=live, ancestry=ancestry(live), phase='frozen')
         verify_backup(backup, metadata); save(backup / 'deployment.json', metadata)
         print(json.dumps({'phase': 'frozen', 'backup': str(backup), 'commit': args.commit, 'archived_pointer': archived,
@@ -629,10 +660,12 @@ def main():
             (package / name).unlink()
         metadata.update(installed_commit=args.commit, removed_files=removed, installed_hashes=tree(package))
         verify_install(metadata)
-        metadata.update(units_changed=install_units(), oauth_backup_created=create_oauth_backup(), phase='installed')
+        metadata.update(units_changed=install_units(), units_removed=remove_retired_units(),
+                        oauth_backup_created=create_oauth_backup(), phase='installed')
         save(backup / 'deployment.json', metadata)
         print(json.dumps({'phase': 'installed', 'commit': args.commit, 'removed_files': removed,
-                          'units_changed': metadata['units_changed'], 'effects_resumed': False}))
+                          'units_changed': metadata['units_changed'], 'units_removed': metadata['units_removed'],
+                          'effects_resumed': False}))
         return
     require(metadata['phase'] == 'installed' and metadata['installed_commit'] == args.commit, 'Installed pin mismatch')
     verify_install(metadata)

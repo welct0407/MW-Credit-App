@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,17 +14,21 @@ class ConfigurationTests(unittest.TestCase):
         validate_config(load_json(ROOT / "config.example.json"))
         validate_catalogue(load_json(ROOT / "service-catalogue.json"))
 
-    def test_native_conversations_start_without_appsheet_keys_ids_or_schema_file(self):
-        config=load_json(ROOT/'config.example.json')
-        config={k:v for k,v in config.items() if not k.startswith('appsheet_')}
-        origin='https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'
-        config.update(appsheet_enabled=False,partner_conversations_enabled=True,receiver_enabled=True,database_enabled=True,
-            instagram_account_id='100',partner_conversation_cutoff='2026-10-12T00:00:00+07:00',
-            conversation_api_enabled=True,conversation_api_environment='prod',conversation_api_origin=origin,
-            conversation_api_audience=origin,conversation_api_manifest_sha256='a'*64)
+    def test_retired_conversation_keys_are_refused(self):
+        # R091: a configuration that still carries a key of the retired Instagram Partner conversation fails closed.
+        from mw_integration_agent.config import RETIRED_KEYS, retired_keys
+        config = load_json(ROOT / 'config.example.json')
+        self.assertEqual(retired_keys(config), [])
         validate_config(config)
-        config['conversation_api_enabled']=False
-        with self.assertRaisesRegex(ConfigurationError,'native API'):validate_config(config)
+        retired = sorted(RETIRED_KEYS) + ['gemini_conversation_model', 'claude_model', 'database_dml_user', 'database_dml_auth',
+                                          'database_dml_password_file']
+        for key in retired:
+            for value in (False, None, 'x'):
+                with self.subTest(key=key, value=value), self.assertRaisesRegex(ConfigurationError, 'retired conversation configuration keys present: ' + key):
+                    validate_config(dict(config, **{key: value}))
+        # The receipt providers keep their settings, and the conversation poll keeps every key.
+        for key in ('codex_executable', 'codex_home', 'gemini_project', 'gemini_location', 'conversation_poll_enabled'):
+            self.assertNotIn(key, retired_keys({key: 1}))
 
     def test_retired_appsheet_configuration_cannot_be_enabled(self):
         config = load_json(ROOT / "config.example.json")
@@ -74,22 +79,6 @@ class ConfigurationTests(unittest.TestCase):
                 config=load_json(ROOT/'config.example.json');config[field]=value
                 with self.assertRaises(ConfigurationError):validate_config(config)
 
-    def test_reviewer_delete_is_retired(self):
-        # Owner decision, 16 October 2026: a configured reviewer_delete_enabled=true fails closed.
-        config = load_json(ROOT / 'config.example.json')
-        self.assertNotIn('reviewer_delete_enabled', config)
-        validate_config(dict(config, reviewer_delete_enabled=False))
-        with self.assertRaisesRegex(ConfigurationError, 'retired'):
-            validate_config(dict(config, reviewer_delete_enabled=True))
-        for value in ('false', 1):
-            with self.subTest(value=value), self.assertRaisesRegex(ConfigurationError, 'must be boolean'):
-                validate_config(dict(config, reviewer_delete_enabled=value))
-        # The native command-API Delete keeps its own switch with the gate the shared switch had.
-        with self.assertRaisesRegex(ConfigurationError, 'native Delete requires'):
-            validate_config(dict(config, native_delete_enabled=True))
-        with self.assertRaisesRegex(ConfigurationError, 'must be boolean'):
-            validate_config(dict(config, native_delete_enabled='true'))
-
     def test_python_floor_matches_runtime(self):
         # AGT-QUALITY-02: Debian 13, CI and AGENTS.md all run 3.13; the floor and the ruff target say so.
         import tomllib
@@ -122,25 +111,11 @@ class ConfigurationTests(unittest.TestCase):
         config.update(database_enabled=True, **overrides)
         return config
 
-    def test_database_name_and_roles_must_match_environment(self):
-        # ALL-ARCH-02: DEV is a configurable target; its reviewer role is mw_reviewer_dml_dev.
+    def test_database_name_must_match_an_environment(self):
+        # ALL-ARCH-02: DEV is a configurable target.
         validate_config(self.business(database_name='loan_manager_dev'))
         with self.assertRaisesRegex(ConfigurationError, 'approved business database'):
             validate_config(self.business(database_name='loan_manager_other'))
-        origin = 'https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app'
-        reviewer = dict(database_name='loan_manager_dev', partner_conversations_enabled=True, receiver_enabled=True,
-                        instagram_account_id='100', partner_conversation_cutoff='2026-10-12T00:00:00+07:00',
-                        conversation_api_enabled=True, conversation_api_environment='dev', conversation_api_origin=origin,
-                        conversation_api_audience=origin, conversation_api_manifest_sha256='a' * 64,
-                        reviewer_dml_enabled=True, reviewer_dml_cutoff='2026-10-12T00:00:00+07:00')
-        with self.assertRaisesRegex(ConfigurationError, 'dedicated role'):
-            validate_config(self.business(**reviewer))  # example still names the PROD role
-        validate_config(self.business(**reviewer, database_dml_user='mw_reviewer_dml_dev'))
-        with self.assertRaisesRegex(ConfigurationError, 'dedicated role'):
-            validate_config(self.business(**dict(reviewer, database_name='loan_manager_prod', conversation_api_environment='prod',
-                                                 conversation_api_origin=origin.replace('-dev-', '-prod-'),
-                                                 conversation_api_audience=origin.replace('-dev-', '-prod-')),
-                                          database_dml_user='mw_reviewer_dml_dev'))
 
     def test_iam_auth_needs_no_password_files_and_keeps_the_password_ports(self):
         # ALL-ARCH-03: the IAM roles use the second proxy listener; database_port stays 5432 for the password roles.
@@ -165,169 +140,62 @@ class ConfigurationTests(unittest.TestCase):
         with self.assertRaisesRegex(ConfigurationError, 'agent_database_worker_password_file'):
             validate_config(dict(agent, agent_database_auth='password'))
 
-    def test_dml_and_projector_auth_keys_are_separate_from_database_auth(self):
-        # ALL-ARCH-03 part 2b: own keys, default 'password'; database_auth='iam' does not move them before V95.
+    def test_projector_auth_key_is_separate_from_database_auth(self):
+        # ALL-ARCH-03 part 2b: its own key, default 'password'; database_auth='iam' does not move it.
         from mw_integration_agent.config import auth_mode
-        origin = 'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'
-        reviewer = dict(partner_conversations_enabled=True, receiver_enabled=True, instagram_account_id='100',
-                        partner_conversation_cutoff='2026-10-12T00:00:00+07:00', conversation_api_enabled=True,
-                        conversation_api_environment='prod', conversation_api_origin=origin, conversation_api_audience=origin,
-                        conversation_api_manifest_sha256='a' * 64, reviewer_dml_enabled=True,
-                        reviewer_dml_cutoff='2026-10-12T00:00:00+07:00', database_auth='iam',
-                        database_iam_user='mw-integration-agent@clever-oasis-508610-n7.iam')
-        config = self.business(**reviewer)
+        iam_user = 'mw-integration-agent@clever-oasis-508610-n7.iam'
+        config = self.business(database_auth='iam', database_iam_user=iam_user)
         validate_config(config)
-        self.assertEqual((auth_mode(config, 'database_dml_'), auth_mode(config, 'receipt_projector_')), ('password', 'password'))
-        with self.assertRaisesRegex(ConfigurationError, 'database_dml_password_file'):
-            validate_config(dict(config, database_dml_password_file=None))
-        iam = dict(config, database_dml_auth='iam', receipt_projector_auth='iam')
-        del iam['database_dml_password_file'], iam['receipt_projector_password_file']
+        self.assertEqual(auth_mode(config, 'receipt_projector_'), 'password')
+        iam = dict(config, receipt_projector_auth='iam')
+        del iam['receipt_projector_password_file']
         validate_config(iam)  # no password file under iam
-        with self.assertRaisesRegex(ConfigurationError, 'dedicated role'):
-            validate_config(dict(iam, database_dml_user='mw_reviewer_dml_dev'))
-        for key in ('database_dml_auth', 'receipt_projector_auth'):
-            with self.subTest(key=key):
-                with self.assertRaisesRegex(ConfigurationError, '^' + key + ' must be password or iam$'):
-                    validate_config(dict(config, **{key: 'token'}))
-                with self.assertRaisesRegex(ConfigurationError, '^' + key + ' must be password or iam$'):
-                    validate_config(dict(config, **{key: True}))
-                # 'iam' needs the IAM user and the fixed IAM listener, even with the database_auth path on passwords.
-                alone = dict(self.business(), **{key: 'iam'})
-                with self.assertRaisesRegex(ConfigurationError, 'database_iam_user'):
-                    validate_config(alone)
-                for change in ({'database_iam_user': 'someone@example.com'}, {'iam_database_port': 5432}):
-                    with self.assertRaises(ConfigurationError):
-                        validate_config(dict(iam, **change))
-                validate_config(dict(alone, database_iam_user=reviewer['database_iam_user']))
+        for value in ('token', True):
+            with self.subTest(value=value), self.assertRaisesRegex(ConfigurationError, '^receipt_projector_auth must be password or iam$'):
+                validate_config(dict(config, receipt_projector_auth=value))
+        alone = dict(self.business(), receipt_projector_auth='iam')
+        with self.assertRaisesRegex(ConfigurationError, 'database_iam_user'):
+            validate_config(alone)
+        for change in ({'database_iam_user': 'someone@example.com'}, {'iam_database_port': 5432}):
+            with self.assertRaises(ConfigurationError):
+                validate_config(dict(iam, **change))
+        validate_config(dict(alone, database_iam_user=iam_user))
 
-    def test_password_roles_still_connect_on_5432_with_iam_enabled(self):
-        # Orchestrator correction: reviewer DML and the receipt projector keep password files until W4.
+    def test_password_projector_still_connects_on_5432_with_iam_enabled(self):
         from unittest.mock import patch
-        from mw_integration_agent import conversation_dml, receipt_projection
+        from mw_integration_agent import receipt_projection
         config = self.business(database_auth='iam', agent_database_auth='iam',
-                               database_iam_user='mw-integration-agent@clever-oasis-508610-n7.iam',
-                               receipt_environment='prod', database_dml_user='mw_reviewer_dml')
-        with tempfile.TemporaryDirectory() as secrets:
-            config['secrets_directory'] = secrets
-            config['database_dml_password_file'] = str(Path(secrets) / 'dml.txt')
-            Path(secrets, 'dml.txt').write_text('synthetic')
-            class Conn:
-                def __enter__(self): return self
-                def __exit__(self, *_): return False
-                def execute(self, *_): return self
-                def rollback(self): return None
-            with patch('psycopg.connect', return_value=Conn()) as connect:
-                with conversation_dml.connect(config):
-                    pass
-            self.assertEqual((connect.call_args.kwargs['port'], connect.call_args.kwargs['user'], connect.call_args.kwargs['dbname']),
-                             (5432, 'mw_reviewer_dml', 'loan_manager_prod'))
-            with patch('mw_integration_agent.receipt_projection.receipt_audit.plan', side_effect=RuntimeError('guard passed')):
-                with self.assertRaisesRegex(RuntimeError, 'guard passed'):
-                    receipt_projection.project(config, {}, {})
+                               database_iam_user='mw-integration-agent@clever-oasis-508610-n7.iam', receipt_environment='prod')
+        with patch('mw_integration_agent.receipt_projection.receipt_audit.plan', side_effect=RuntimeError('guard passed')):
+            with self.assertRaisesRegex(RuntimeError, 'guard passed'):
+                receipt_projection.project(config, {}, {})
 
 
-class ConversationProviderTests(unittest.TestCase):
-    """Claude provider settings and the conversation SQL switch (claude_partner_conversation, conversation_sql_read)."""
+class RetiredConversationTests(unittest.TestCase):
+    """R091: the conversation providers and services are gone; the receipt providers keep the Codex paths."""
 
     def example(self, **changes):
         config = load_json(ROOT / "config.example.json")
         config.update(changes)
         return config
 
-    def test_example_ships_codex_with_claude_defaults_and_sql_off(self):
-        config = self.example()
-        self.assertEqual((config["conversation_provider"], config["conversation_sql_read_enabled"]), ("codex", False))
-        self.assertEqual((config["claude_model"], config["claude_effort"], config["claude_location"],
-                          config["claude_seed_history_chars"]), ("claude-opus-5-5", "high", "global", 40000))
-        validate_config(config)
-        catalogue = load_json(ROOT / "service-catalogue.json")
-        for name in ("claude_partner_conversation", "conversation_sql_read"):
-            self.assertEqual(catalogue["services"][name], {"enabled": False, "implemented": True})
-        catalogue["services"]["claude_partner_conversation"]["enabled"] = True
-        validate_catalogue(catalogue)
-        catalogue["services"]["conversation_sql_read"].update(enabled=True, implemented=False)
-        with self.assertRaises(ConfigurationError):
-            validate_catalogue(catalogue)
-
-    def test_provider_allowlist_and_defaults(self):
-        validate_config(self.example(conversation_provider="claude"))
-        bare = {k: v for k, v in self.example().items() if not k.startswith("claude_")}
-        validate_config(bare)  # codex needs no claude keys
-        with self.assertRaisesRegex(ConfigurationError, "claude_project"):
-            validate_config(dict(bare, conversation_provider="claude"))
-        validate_config(dict(bare, conversation_provider="claude", claude_project="clever-oasis-508610-n7"))
-        for value in ("openai", "Claude", None, ""):
-            with self.subTest(provider=value), self.assertRaisesRegex(ConfigurationError, "conversation_provider"):
-                validate_config(self.example(conversation_provider=value))
-
-    def test_claude_settings_bounds_and_model_allowlist(self):
-        bad = {"claude_model": ["claude-opus-5", "claude-sonnet-5-5", "claude-opus-5-5@20260101", None],
-               "claude_effort": ["none", "HIGH", None],
-               "claude_location": ["", "us east", "asia_southeast1"],
-               "claude_project": ["", "Project", "x"],
-               "claude_request_timeout_seconds": [29, 601, 300.0, True],
-               "claude_max_tool_rounds": [3, 41, "24"],
-               "claude_history_token_limit": [49999, 400001, None],
-               "claude_seed_history_chars": [-1, 200001, "40000", 1.5, None]}
-        for key, values in bad.items():
-            for value in values:
-                with self.subTest(key=key, value=value), self.assertRaises(ConfigurationError):
-                    validate_config(self.example(conversation_provider="claude", **{key: value}))
-        for key, value in (("claude_request_timeout_seconds", 30), ("claude_request_timeout_seconds", 600),
-                           ("claude_max_tool_rounds", 4), ("claude_max_tool_rounds", 40), ("claude_effort", "max"),
-                           ("claude_history_token_limit", 50000), ("claude_location", "asia-southeast1"),
-                           ("claude_seed_history_chars", 0), ("claude_seed_history_chars", 200000)):
-            validate_config(self.example(conversation_provider="claude", **{key: value}))
-        with self.assertRaisesRegex(ConfigurationError, "must not exceed conversation_timeout_seconds"):
-            validate_config(self.example(conversation_provider="claude", conversation_timeout_seconds=120))
-        validate_config(self.example(conversation_provider="claude", conversation_timeout_seconds=120,
-                                     claude_request_timeout_seconds=120))
-        # Codex ignores the claude_ settings: they are not validated against a shorter Codex turn.
-        validate_config(self.example(conversation_timeout_seconds=120))
-        validate_config(self.example(claude_seed_history_chars=-1, claude_model="other"))
-
     def test_codex_paths_are_required_only_where_codex_runs(self):
         bare = {k: v for k, v in self.example().items() if k not in ("codex_executable", "codex_home")}
         with self.assertRaisesRegex(ConfigurationError, "codex_executable"):
-            validate_config(bare)  # codex conversation and codex receipt extraction by default
-        with self.assertRaisesRegex(ConfigurationError, "codex_executable"):
-            validate_config(dict(bare, conversation_provider="claude"))  # receipt extraction still codex
-        validate_config(dict(bare, conversation_provider="claude", receipt_extraction_provider="gemini"))
+            validate_config(bare)  # codex receipt extraction by default
+        validate_config(dict(bare, receipt_extraction_provider="gemini"))
         with self.assertRaisesRegex(ConfigurationError, "codex_home"):
-            validate_config(dict(bare, conversation_provider="claude", receipt_extraction_provider="gemini",
-                                 codex_home="relative/path"))
+            validate_config(dict(bare, receipt_extraction_provider="gemini", codex_home="relative/path"))
 
-    def test_sql_switch_is_boolean_and_needs_the_database(self):
-        for value in ("true", 1, None):
-            with self.subTest(value=value), self.assertRaisesRegex(ConfigurationError, "conversation_sql_read_enabled"):
-                validate_config(self.example(conversation_sql_read_enabled=value))
-        with self.assertRaisesRegex(ConfigurationError, "requires database"):
-            validate_config(self.example(conversation_sql_read_enabled=True))
-        validate_config(self.example(conversation_sql_read_enabled=True, database_enabled=True))
-
-    def test_controls_require_the_provider_service_and_the_sql_service(self):
-        from unittest.mock import patch
-        from mw_integration_agent import partner_conversation
-        base = {"persistent_codex_conversation", "partner_authentication", "operational_data_read",
-                "database_connectivity", "signed_webhook_ingress", "instagram_delivery"}
-        def check(config, enabled):
-            catalogue = {"services": {name: {"enabled": True, "implemented": True} for name in enabled}}
-            with patch.object(partner_conversation, "load_controls", return_value=(config, catalogue)):
-                return partner_conversation.controls("config", "catalogue")
-        codex = {"partner_conversations_enabled": True}
-        self.assertIs(check(codex, base), codex)
-        claude = dict(codex, conversation_provider="claude")
-        with self.assertRaisesRegex(ConfigurationError, "CONVERSATION_SERVICE_DISABLED"):
-            check(claude, base)
-        claude_services = base - {"persistent_codex_conversation"} | {"claude_partner_conversation"}
-        self.assertIs(check(claude, claude_services), claude)
-        sql = dict(claude, conversation_sql_read_enabled=True)
-        with self.assertRaisesRegex(ConfigurationError, "CONVERSATION_SERVICE_DISABLED"):
-            check(sql, claude_services)
-        self.assertIs(check(sql, claude_services | {"conversation_sql_read"}), sql)
-        with self.assertRaisesRegex(ConfigurationError, "CONVERSATION_SERVICE_DISABLED"):
-            check(dict(codex, conversation_sql_read_enabled=True), base)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_catalogue_refuses_the_retired_services(self):
+        from mw_integration_agent.config import RETIRED_SERVICES
+        catalogue = load_json(ROOT / "service-catalogue.json")
+        self.assertEqual(catalogue["revision"], 32)
+        self.assertEqual(RETIRED_SERVICES & set(catalogue["services"]), set())
+        validate_catalogue(catalogue)
+        for name in sorted(RETIRED_SERVICES):
+            for enabled in (False, True):
+                broken = json.loads(json.dumps(catalogue))
+                broken["services"][name] = {"enabled": enabled, "implemented": True}
+                with self.subTest(service=name, enabled=enabled), self.assertRaisesRegex(ConfigurationError, "retired service: " + name):
+                    validate_catalogue(broken)

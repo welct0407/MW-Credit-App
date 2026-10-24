@@ -11295,16 +11295,6 @@
       "lookup": []
     },
     {
-      "file": "systems/postgresql/routines/public-pwa-submit-agent-operation-v1-canonical-json-text-0c6fc5ef.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "public.pwa_submit_agent_operation_v1(canonical_json text)",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
       "file": "systems/postgresql/routines/public-pwa-submit-agent-receipt-v1-canonical-json-text-48231378.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",

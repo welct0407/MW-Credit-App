@@ -184,35 +184,14 @@ class NoticeTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             self.j.reserve('event',dict(self.rows[0],enabled=False),'subject','body')
 
-    def conversation(self, body='response'):
+    def test_retired_conversation_notice_is_refused_on_both_channels(self):
+        # R091: conversation replies left with the Instagram Partner conversation; a leftover event sends nothing.
         self.j.db.execute('DELETE FROM partner_notices');self.j.db.commit()
-        key=self.j.reserve('conversation:synthetic',self.rows[0],'reply',body)
-        with self.j.db:self.j.db.execute('UPDATE partner_notices SET recipient_id=? WHERE id=?',('999',key))
-        self.config['partner_conversations_enabled']=True
-
-    def test_conversation_opt_out_blocks_both_channels(self):
-        self.rows[0]['enabled']=False
-        self.conversation()
-        self.dispatch()
+        self.j.reserve('conversation:synthetic',self.rows[0],'reply','response')
+        with self.assertRaisesRegex(ConfigurationError,'CONVERSATION_NOTICES_RETIRED'):
+            self.j.dispatch(self.j.due()[0],self.config,self.rows,api=self.api,mailer=self.mailer)
         self.assertEqual(self.sent+self.mail,[])
-
-    def test_conversation_has_independent_switch(self):
-        self.conversation()
-        self.config['receipt_summary_enabled']=False
-        self.dispatch()
-        self.assertEqual(len(self.sent),1)
-
-    def test_conversation_long_reply_held_for_review_without_email(self):
-        self.conversation('x'*1001)
-        self.dispatch();self.dispatch()
-        self.assertEqual(self.sent+self.mail,[])
-        self.assertEqual((self.notice()['ig_status'],self.notice()['detail']),('REVIEW','IG_MESSAGE_TOO_LONG'))
-
-    def test_conversation_remapped_sender_blocks_both_channels(self):
-        self.conversation()
-        with self.j.db:self.j.db.execute("UPDATE partner_notices SET recipient_id='998'")
-        self.dispatch()
-        self.assertEqual(self.sent+self.mail,[])
+        self.assertEqual((self.notice()['ig_status'],self.notice()['email_status']),('PENDING','PENDING'))
 
     def test_success_and_summary_distinct_localized_minutes(self):
         receipt={'amount':'1300.00','date':'2026-09-21','time':'12:10:59','account_label':'Test TTB'}

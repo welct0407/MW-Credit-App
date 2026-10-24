@@ -9,13 +9,12 @@ from mw_integration_agent import cli
 
 
 class JobWrappingTests(unittest.TestCase):
-    PROBES = (['native-api-probe', '--config', 'c', '--catalogue', 'k', '--scope', 'oltp'],
-              ['instagram-probe', '--config', 'c', '--catalogue', 'k'],
+    PROBES = (['instagram-probe', '--config', 'c', '--catalogue', 'k'],
               ['messages', '--config', 'c'])
 
     def test_probes_and_local_commands_run_without_a_job(self):
         self.assertEqual(set(cli.UNWRAPPED_COMMANDS), {'serve-webhook', 'serve-receipt-recognition', 'receiver-ready', 'status', 'check',
-                                                        'native-api-probe', 'instagram-probe', 'messages'})
+                                                        'instagram-probe', 'messages'})
         for argv in self.PROBES:
             with self.subTest(command=argv[0]), patch('sys.argv', ['mw-integration-agent', *argv]), \
                     patch('mw_integration_agent.audit.job', side_effect=AssertionError('probe wrapped in a job')), \
@@ -41,16 +40,25 @@ class JobWrappingTests(unittest.TestCase):
 
     def test_relay_cycle_marks_the_job_effect_only_when_it_moved_something(self):
         args = cli.build_parser().parse_args(['audit-relay', '--config', 'c', '--catalogue', 'k'])
-        for exported, verified, effect in ((0, 0, None), (2, 0, {'exported': 2}), (0, 1, {'verified': 1}), (1, 1, {'exported': 1, 'verified': 1})):
-            with self.subTest(exported=exported, verified=verified):
+        # R091: the reviewer-DML reconciliation is gone; the relay result is the export count alone.
+        for exported, effect in ((0, None), (2, {'exported': 2})):
+            with self.subTest(exported=exported):
                 outcome = {'exit_code': None}
                 out = io.StringIO()
                 with patch('mw_integration_agent.cli.load_json', return_value={}), patch('mw_integration_agent.cli.validate_config'), \
                         patch('mw_integration_agent.cli.validate_catalogue'), patch('mw_integration_agent.outbox.relay', return_value={'exported': exported}), \
-                        patch('mw_integration_agent.outbox.reconcile', return_value={'verified': verified}), contextlib.redirect_stdout(out):
+                        contextlib.redirect_stdout(out):
                     self.assertEqual(cli.execute(args, outcome), 0)
                 self.assertEqual(outcome.get('effect'), effect)
-                self.assertEqual(json.loads(out.getvalue()), {'relay': {'exported': exported}, 'reconciliation': {'verified': verified}})
+                self.assertEqual(json.loads(out.getvalue()), {'relay': {'exported': exported}})
+        from mw_integration_agent import outbox
+        self.assertFalse(hasattr(outbox, 'reconcile'))
+
+    def test_retired_conversation_commands_are_gone(self):
+        for command in ('partner-conversation-cycle', 'native-api-probe'):
+            with self.subTest(command=command), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                cli.build_parser().parse_args([command, '--config', 'c', '--catalogue', 'k'])
+        cli.build_parser().parse_args(['conversation-poll', '--config', 'c', '--catalogue', 'k'])
 
 
 if __name__ == '__main__':

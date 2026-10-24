@@ -39,7 +39,7 @@ Documentation (Dewey): `integration-agent/docs/PARTNER_CONVERSATIONS.md` (settin
 - Documented limits of the check: ฿0 is always accepted; the sign is not checked; a wrong but observed figure passes; and the sum-and-difference rule is broad, so on wide turns it stops invented non-round amounts but not every round slip. It is a guard against invented figures, not proof that a figure is right.
 
 ## Recovery
-- Config only: set `conversation_grounding` to `audit` (log only) or `off`, with the config-only change in [Operations](../integration-agent/docs/OPERATIONS.md#partner-conversation-provider-activation-and-rollback). Code: revert the R088 commit; no schema or data changed.
+- Config only: set `conversation_grounding` to `audit` (log only) or `off`, with the config-only change in [Operations](https://github.com/welct0407/MW-Credit-App/blob/feca47b2849dbdc881ac881cb58ce7ff91862c9f/integration-agent/docs/OPERATIONS.md#partner-conversation-provider-activation-and-rollback). Code: revert the R088 commit; no schema or data changed.
 
 ## Open questions
 - Decided for deployment: `conversation_grounding=enforce`, because the owner's priority is correctness and the check had 0 false rejections on real data.

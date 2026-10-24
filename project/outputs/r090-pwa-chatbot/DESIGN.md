@@ -293,7 +293,7 @@ Owner decision 4, done at implementation start by the orchestrator or Forge over
 
 1. Back up `/etc/mw-integration-agent/config.json` to a dated root-only copy (the R085 practice).
 2. Set `partner_conversations_enabled: false`; keep `conversation_provider`, the SQL switch and the timers as they are (they no-op without the switch; nothing else is removed until phase 3).
-3. Run the agent's configuration check and restart `mw-partner-conversation.service` units per [OPERATIONS.md](../../../integration-agent/docs/OPERATIONS.md#partner-conversation-provider-activation-and-rollback); confirm `/ready`.
+3. Run the agent's configuration check and restart `mw-partner-conversation.service` units per [OPERATIONS.md](https://github.com/welct0407/MW-Credit-App/blob/feca47b2849dbdc881ac881cb58ce7ff91862c9f/integration-agent/docs/OPERATIONS.md#partner-conversation-provider-activation-and-rollback); confirm `/ready`.
 4. Tell the other Partner that questions move to the app; Instagram messages get no automatic reply from this point (no auto-reply is built).
 
 Rollback of phase 0 is restoring the backed-up config and restarting.

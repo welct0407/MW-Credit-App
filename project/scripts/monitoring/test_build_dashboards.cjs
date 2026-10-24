@@ -279,7 +279,8 @@ for (const uid of L.DASHBOARD_UIDS) {
 // TIMELINE-GAP: the PWA scheduler rows hold each attempt until the job's next expected run.
 const holds = panelOf0('mw-pwa', 20).targets.map(t => [decodeURIComponent(t.url).match(/job_id = "mw-credit-app-\$\{env\}-([a-z-]+)"/)[1], t.url.match(/lookback_(\w+)/)[1]]);
 assert.deepEqual(holds, [['notifications', 'from'], ['daily-charges', 'day'], ['recent-analytics', 'hour']]);
-assert.ok(clippedRows >= 30, 'state-timeline rows clipped: ' + clippedRows);
+// R091: three conversation lanes retired (Now Conversation, Agent Partner conversation and Conversation poll).
+assert.ok(clippedRows >= 29, 'state-timeline rows clipped: ' + clippedRows);
 // R089 follow-up: one-value stats show the value only (the title names it) at the one-value size; Recognitions
 // names each outcome (rows to fields) instead of "Count"; provider tiles show provider and model as text.
 const panelOf = (uid, id) => allPanels(built[uid].spec).map(e => e.panel).find(p => p.id === id);
@@ -299,14 +300,14 @@ assert.equal(recognitions.type, 'bargauge', 'Recognitions: one bar per outcome')
 assert.equal(recognitions.transformations[0].id, 'rowsToFields');
 assert.ok(recognitions.fieldConfig.overrides.some(o => o.matcher.options === 'none' && o.properties[0].value === 'Clean'), 'outcomes named in words');
 // READ-1: provider and model are their own text tiles; the service tiles keep state words at the larger size.
-for (const [uid, id, component] of [['mw-pwa', 33, 'recognizer'], ['mw-agent', 12, 'recognizer'], ['mw-agent', 15, 'conversation']]) {
+for (const [uid, id, component] of [['mw-pwa', 33, 'recognizer'], ['mw-agent', 12, 'recognizer']]) {
   const p = panelOf(uid, id);
   assert.equal(p.targets[0].root_selector, L.jq('provider-model.jq'), uid + ' ' + id + ' provider and model from provider-model.jq');
   assert.ok(decodeURIComponent(p.targets[0].url).includes('metric.labels.component = "' + component + '"'));
   assert.ok(new RegExp(p.options.reduceOptions.fields.slice(1, -1)).test('Provider') && p.options.textMode === 'value');
   assert.deepEqual(p.options.text, L.TEXT_TILE, uid + ' ' + id + ' text tile size');
 }
-for (const [uid, id] of [['mw-pwa', 32], ['mw-agent', 6], ['mw-agent', 5]]) {
+for (const [uid, id] of [['mw-pwa', 32], ['mw-agent', 6]]) {
   const p = panelOf(uid, id);
   assert.ok(!JSON.stringify(p.targets).includes('provider-model') && !p.fieldConfig.overrides.some(o => o.matcher.id === 'byFrameRefID'), uid + ' ' + id + ' no provider text, no per-frame name');
 }
@@ -338,15 +339,16 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
   }
 }
 assert.ok(modelled > 100, 'panels modelled: ' + modelled);
-// AGENT-ROWS: the Agent page is grouped into five titled component rows; each tile title names its component.
+// AGENT-ROWS: the Agent page is grouped into four titled component rows (R091: the Partner conversation row is
+// retired); each tile title names its component.
 const agent = built['mw-agent'].spec.panels;
 assert.deepEqual(agent.filter(p => p.type === 'row').map(p => p.title), ['Receipt pipeline · Instagram to recorded payment',
-  'Receipt recognizer · mw-receipt-recognition on Debian', 'Partner conversation · Instagram chat agent', 'Agent workers and timers · Debian units', 'Connectivity and providers']);
+  'Receipt recognizer · mw-receipt-recognition on Debian', 'Agent workers and timers · Debian units', 'Connectivity and providers']);
 const rowOf = id => { let current; for (const p of agent) { if (p.type === 'row') current = p.title; if (p.id === id) return current.split(' ·')[0]; } };
-assert.deepEqual([1, 2, 14, 6, 12, 7, 8, 3, 4, 5, 15, 9, 10, 11, 13].map(rowOf), ['Receipt pipeline', 'Receipt pipeline', 'Receipt pipeline', 'Receipt recognizer',
-  'Receipt recognizer', 'Receipt recognizer', 'Receipt recognizer', 'Partner conversation', 'Partner conversation', 'Partner conversation', 'Partner conversation',
-  'Agent workers and timers', 'Connectivity and providers', 'Connectivity and providers', 'Connectivity and providers']);
-for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Receipts|Recognizer|Conversation|Agent workers|Connectivity|Providers) /.test(p.title), 'mw-agent ' + p.id + ' title names its component: ' + p.title);
+assert.deepEqual([1, 2, 14, 6, 12, 7, 8, 9, 10, 11, 13].map(rowOf), ['Receipt pipeline', 'Receipt pipeline', 'Receipt pipeline', 'Receipt recognizer',
+  'Receipt recognizer', 'Receipt recognizer', 'Receipt recognizer', 'Agent workers and timers', 'Connectivity and providers', 'Connectivity and providers', 'Connectivity and providers']);
+for (const id of [3, 4, 5, 15, 22]) assert.ok(!agent.some(p => p.id === id), 'mw-agent ' + id + ' retired with the Instagram conversation (R091)');
+for (const p of agent) if (p.type !== 'row') assert.ok(/^(Receipt pipeline|Receipts|Recognizer|Agent workers|Connectivity|Providers) /.test(p.title), 'mw-agent ' + p.id + ' title names its component: ' + p.title);
 // FINAL2-1: the PWA scheduler lanes carry short names that fit the label axis.
 assert.deepEqual(panelOf('mw-pwa', 20).targets.map(t => t.columns[1].text), ['Notify · 1 min', 'Charges · 00:05', 'Analytics · hourly']);
 // FINAL2-4: Infrastructure chart legends are lists below the chart with the full names.
@@ -400,13 +402,14 @@ for (const uid of L.DASHBOARD_UIDS) for (const {panel: p} of allPanels(built[uid
     classified++;
   }
 }
-assert.ok(classified >= 75, 'stat fields classified: ' + classified);
+// R091: the retired conversation stats (Now 5, Agent 3 and 5) and the two native-API values took 15 fields.
+assert.ok(classified >= 60, 'stat fields classified: ' + classified);
 // R090: the per-question cost uses the page's SGD unit (Grafana has no 'currencySGD'; it printed the unit name).
 const costUnit = panelOf('mw-cost', 50).fieldConfig.overrides.find(o => o.matcher.options === 'Cost (SGD)').properties;
 assert.deepEqual([costUnit.find(x => x.id === 'unit').value, costUnit.find(x => x.id === 'decimals').value], ['prefix:S$', 2]);
 // R090 owner limits on the formerly neutral tiles.
 const limitOf = (uid, id, name) => panelOf(uid, id).fieldConfig.overrides.find(o => o.matcher.options === name).properties.find(x => x.id === 'thresholds').value.steps[1].value;
-for (const [uid, id, name, value] of [['mw-now', 5, 'Last turn age', 604800], ['mw-agent', 5, 'Last send', 604800], ['mw-pwa', 22, 'Last notification', 172800],
+for (const [uid, id, name, value] of [['mw-pwa', 22, 'Last notification', 172800],
   ['mw-pwa', 3, '401 · session invalid', 10], ['mw-now', 6, 'Pending', 5], ['mw-pwa', 21, 'Pending', 5]]) assert.equal(limitOf(uid, id, name), value, uid + ' ' + id + ' ' + name);
 // COLOUR-2: both pipeline tiles colour every stage, with the same rule for the same metric.
 for (const [uid, id] of [['mw-now', 4], ['mw-agent', 1]]) {
@@ -416,10 +419,17 @@ for (const [uid, id] of [['mw-now', 4], ['mw-agent', 1]]) {
 }
 const stage = (uid, id, ref) => panelOf(uid, id).targets.find(t => t.refId === ref).root_selector;
 assert.equal(stage('mw-now', 4, 'B'), stage('mw-agent', 1, 'B').replace('Extraction waiting', '2 · Extract · waiting'), 'Extract waiting: the same stalled rule');
-// OWNER-NATIVE: the native-API probes are named for the Partner chat data they check; metric labels unchanged.
+// R091: the native-API probes (oltp, olap) of the Instagram conversation are retired; API health is reader and command.
 const api = panelOf('mw-pwa', 2);
-assert.deepEqual(api.targets.map(t => decodeURIComponent(t.url).match(/component = "([^"]+)"/)[1]), ['pwa_api_reader_${env}', 'pwa_api_command_${env}', 'oltp', 'olap']);
-assert.deepEqual(api.fieldConfig.overrides.map(o => o.properties[0].value), ['Reader', 'Command', 'Chat data · live', 'Chat data · reports']);
+assert.deepEqual(api.targets.map(t => decodeURIComponent(t.url).match(/component = "([^"]+)"/)[1]), ['pwa_api_reader_${env}', 'pwa_api_command_${env}']);
+assert.deepEqual(api.fieldConfig.overrides.map(o => o.properties[0].value), ['Reader', 'Command']);
+// R091: no dashboard reads a retired Instagram conversation series or the agent database.
+for (const uid of L.DASHBOARD_UIDS) {
+  const text = JSON.stringify(built[uid].spec);
+  for (const gone of ['component%20%3D%20%22conversation%22', 'component%20%3D%20%22conversations%22', 'component%20%3D%20%22oltp%22', 'component%20%3D%20%22olap%22', 'recent_questions_v1('])
+    assert.ok(!text.includes(gone) || (gone === 'recent_questions_v1(' && text.includes('pwa_chat_recent_questions_v1(')), uid + ' still reads ' + gone);
+}
+assert.ok(JSON.stringify(panelOf('mw-cost', 50).targets).includes('FROM monitoring.pwa_chat_recent_questions_v1(10) q'), 'Cost 50 reads the in-app chat');
 // FINAL4-2: every fill that carries white text (stat backgrounds, coloured table cells, timeline lanes) gives at
 // least 4.5:1 against Grafana's white in both themes (named colours resolve per theme).
 const THEME_HEX = {'dark-red': ['#C4162A', '#AD0317'], 'dark-blue': ['#1F60C4', '#1250B0'], 'dark-green': ['#37872D', '#19730E'],
@@ -444,7 +454,7 @@ for (const c of fills) {
 }
 assert.ok(fills.has(L.COLOR.ok) && fills.has(L.COLOR.degraded) && fills.has(L.COLOR.down), 'state fills checked: ' + [...fills].join(', '));
 // FINAL4-1: money and info text tiles carry no fill.
-for (const [uid, id] of [['mw-cost', 8], ['mw-pwa', 33], ['mw-agent', 12], ['mw-agent', 15]]) assert.equal(panelOf(uid, id).options.colorMode, 'none', uid + ' ' + id + ' no fill');
+for (const [uid, id] of [['mw-cost', 8], ['mw-pwa', 33], ['mw-agent', 12]]) assert.equal(panelOf(uid, id).options.colorMode, 'none', uid + ' ' + id + ' no fill');
 for (const id of [1, 2, 3, 4, 9]) assert.ok(['value', 'none'].includes(panelOf('mw-cost', id).options.colorMode), 'mw-cost ' + id + ' money without a fill');
 // FINAL4-3: nothing logged on PWA 3 is "None" in green.
 assert.deepEqual(panelOf('mw-pwa', 3).fieldConfig.defaults.mappings[0].options.result, {text: 'None', color: L.COLOR.ok, index: 0});

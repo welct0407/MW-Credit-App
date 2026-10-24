@@ -1,6 +1,6 @@
 def stamp: sub("[.][0-9]+Z$";"Z") | fromdateiso8601;
 if .nextPageToken or .error then error("Health response unavailable or truncated") else
-["tunnel","tailscale_node","webhook_local","oltp","olap","conversations","receipts","polling","daily_jobs","database","audit_relay","codex_ready"] as $wanted |
+["tunnel","tailscale_node","webhook_local","receipts","polling","daily_jobs","database","audit_relay","codex_ready"] as $wanted |
 [(.timeSeries // [])[] | {c:.metric.labels.component,p:(.points|sort_by(.interval.endTime)|last)}] as $rows |
 $wanted[] as $n | ($n=="receipts" or $n=="polling") as $critical |
 ([$rows[]|select(.c==$n)]|sort_by(.p.interval.endTime)|last|.p) as $p |

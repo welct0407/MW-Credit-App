@@ -259,18 +259,6 @@
               "properties": [
                 {
                   "id": "displayName",
-                  "value": "Conversation"
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byFrameRefID",
-                "options": "J"
-              },
-              "properties": [
-                {
-                  "id": "displayName",
                   "value": "Metabase"
                 }
               ]
@@ -377,10 +365,10 @@
             "format": "timeseries",
             "parser": "jq-backend",
             "refId": "C",
-            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 3 members is Unknown. A gap longer than\n# the freshness bound ends in null at (sample + bound), so no state stretches across\n# missing telemetry; a newest sample older than the bound also ends in null at\n# (sample + bound), with a second null at now so Unknown reaches the right edge.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 3 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 then [{time: (now | floor | todateiso8601), value: null}]\n   elif now - ($runs | last | .t) > 360\n   then [{time: ($runs | last | .t + 360 | todateiso8601), value: null}, {time: (now | floor | todateiso8601), value: null}]\n   else [] end) |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 360)] | .[] | {time: (.t | todateiso8601), value}\n",
+            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# the freshness bound ends in null at (sample + bound), so no state stretches across\n# missing telemetry; a newest sample older than the bound also ends in null at\n# (sample + bound), with a second null at now so Unknown reaches the right edge.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 then [{time: (now | floor | todateiso8601), value: null}]\n   elif now - ($runs | last | .t) > 360\n   then [{time: ($runs | last | .t + 360 | todateiso8601), value: null}, {time: (now | floor | todateiso8601), value: null}]\n   else [] end) |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 360)] | .[] | {time: (.t | todateiso8601), value}\n",
             "source": "url",
             "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20one_of(%22pwa_api_command_prod%22%2C%22oltp%22%2C%22olap%22)&interval.startTime=${lookback_from}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22pwa_api_command_prod%22&interval.startTime=${lookback_from}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
             "url_options": {
               "method": "GET"
             }
@@ -534,34 +522,6 @@
               },
               {
                 "selector": "value",
-                "text": "Conversation",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-gcp-monitoring"
-            },
-            "format": "timeseries",
-            "parser": "jq-backend",
-            "refId": "I",
-            "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# the freshness bound ends in null at (sample + bound), so no state stretches across\n# missing telemetry; a newest sample older than the bound also ends in null at\n# (sample + bound), with a second null at now so Unknown reaches the right edge.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 then [{time: (now | floor | todateiso8601), value: null}]\n   elif now - ($runs | last | .t) > 360\n   then [{time: ($runs | last | .t + 360 | todateiso8601), value: null}, {time: (now | floor | todateiso8601), value: null}]\n   else [] end) |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 360)] | .[] | {time: (.t | todateiso8601), value}\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22conversations%22&interval.startTime=${lookback_from}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
-            "url_options": {
-              "method": "GET"
-            }
-          },
-          {
-            "columns": [
-              {
-                "selector": "time",
-                "text": "Time",
-                "type": "timestamp"
-              },
-              {
-                "selector": "value",
                 "text": "Metabase",
                 "type": "number"
               }
@@ -572,7 +532,7 @@
             },
             "format": "timeseries",
             "parser": "jq-backend",
-            "refId": "J",
+            "refId": "I",
             "root_selector": "# Left edge of a state-timeline row. The row query starts before the panel range (the hidden\n# lookback_from variable) and the row's own selector turns it into {time, value} events as usual.\n# Here every event before the range start (epoch s) is dropped except the last one at or before it,\n# which moves to exactly the range start: the state carried in from before the range. A carried\n# state older than the row's freshness bound at the range start becomes null (Unknown), never a stretched old\n# state; with nothing before the start the row also begins with null. No event lies before the\n# range start or after now, so every row starts exactly at the range start.\ndef clip($from; $stale):\n  . as $e |\n  ([$e[] | select(.t <= $from)] | last) as $c |\n  (if $c == null or ($c.value != null and $from - $c.t > $stale) then {t: $from, value: null}\n   else {t: $from, value: $c.value} end),\n  ($e[] | select(.t > $from) | .t |= ([., (now | floor)] | min));\n((${__from} / 1000 | ceil)) as $from |\n[\n# State timeline row: every sample in the range as a state code (0 Down, 1 OK,\n# 2 Degraded, 3 Paused, 4 Unknown). Booleans map true 1, false 0. Samples of one\n# collector run share a timestamp; the worst member wins (0, 4, 2, 3, then 1) and\n# a run missing any of the 1 members is Unknown. A gap longer than\n# the freshness bound ends in null at (sample + bound), so no state stretches across\n# missing telemetry; a newest sample older than the bound also ends in null at\n# (sample + bound), with a second null at now so Unknown reaches the right edge.\n# Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef code: if type == \"boolean\" then (if . then 1 else 0 end)\n  else (try tonumber catch null) | if . != null and IN(0, 1, 2, 3, 4) then . else 4 end end;\ndef worst: if any(.[]; . == 0) then 0 elif any(.[]; . == 4) then 4 elif any(.[]; . == 2) then 2\n  elif any(.[]; . == 3) then 3 else 1 end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Monitoring response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .points[]? |\n    {t: (try (.interval.endTime | stamp) catch null),\n     v: (.value | if has(\"boolValue\") then .boolValue else (.int64Value // .doubleValue) end)}] |\n  map(select(.t != null and .t <= now + 120)) |\n  group_by(.t) | map({t: .[0].t, n: length, v: ([.[].v | code] | worst)}) as $runs |\n  [range(0; $runs | length) as $i | $runs[$i] as $r |\n    {time: ($r.t | todateiso8601), value: (if $r.n == 1 then $r.v else 4 end)},\n    (if $i + 1 < ($runs | length) and $runs[$i + 1].t - $r.t > 360\n     then {time: ($r.t + 360 | todateiso8601), value: null} else empty end)] +\n  (if ($runs | length) == 0 then [{time: (now | floor | todateiso8601), value: null}]\n   elif now - ($runs | last | .t) > 360\n   then [{time: ($runs | last | .t + 360 | todateiso8601), value: null}, {time: (now | floor | todateiso8601), value: null}]\n   else [] end) |\n  .[]\nend\n\n] | map({t: (.time | fromdateiso8601), value}) | [clip($from; 360)] | .[] | {time: (.t | todateiso8601), value}\n",
             "source": "url",
             "type": "json",
@@ -1147,261 +1107,6 @@
           "type": "yesoreyeram-infinity-datasource",
           "uid": "mw-gcp-monitoring"
         },
-        "description": "Debian collector worker_timing{conversation}: Undelivered = finished turns whose reply notice is still not reserved after 5 minutes (field undelivered), Stuck = turns RUNNING over 15 minutes (stuck_running); both red above 0. Last turn = the newest answered turn's outcome (Verified; Review for a clarify or refuse answer; Failed for failed, unknown-write or interrupted) and its age (orange after 7 days without a turn). Rounds, durations and provider are on Agent & Receipts.",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "fixedColor": "transparent",
-              "mode": "fixed"
-            },
-            "decimals": 0,
-            "displayName": "${__field.name}",
-            "mappings": [
-              {
-                "options": {
-                  "match": "null",
-                  "result": {
-                    "color": "#6E7079",
-                    "index": 0,
-                    "text": "No report"
-                  }
-                },
-                "type": "special"
-              }
-            ],
-            "noValue": "No report",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "#2E7D32",
-                  "value": null
-                }
-              ]
-            },
-            "unit": "none"
-          },
-          "overrides": [
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Undelivered"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "mode": "thresholds"
-                  }
-                },
-                {
-                  "id": "thresholds",
-                  "value": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "#2E7D32",
-                        "value": null
-                      },
-                      {
-                        "color": "dark-red",
-                        "value": 1
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Stuck"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "mode": "thresholds"
-                  }
-                },
-                {
-                  "id": "thresholds",
-                  "value": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "#2E7D32",
-                        "value": null
-                      },
-                      {
-                        "color": "dark-red",
-                        "value": 1
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Last turn"
-              },
-              "properties": [
-                {
-                  "id": "mappings",
-                  "value": [
-                    {
-                      "options": {
-                        "0": {
-                          "color": "dark-red",
-                          "index": 0,
-                          "text": "Failed"
-                        },
-                        "1": {
-                          "color": "#2E7D32",
-                          "index": 1,
-                          "text": "Verified"
-                        },
-                        "2": {
-                          "color": "#A65200",
-                          "index": 2,
-                          "text": "Review"
-                        }
-                      },
-                      "type": "value"
-                    },
-                    {
-                      "options": {
-                        "match": "null",
-                        "result": {
-                          "color": "#6E7079",
-                          "index": 3,
-                          "text": "No report"
-                        }
-                      },
-                      "type": "special"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "Last turn age"
-              },
-              "properties": [
-                {
-                  "id": "unit",
-                  "value": "s"
-                },
-                {
-                  "id": "decimals",
-                  "value": 1
-                },
-                {
-                  "id": "color",
-                  "value": {
-                    "mode": "thresholds"
-                  }
-                },
-                {
-                  "id": "thresholds",
-                  "value": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "#2E7D32",
-                        "value": null
-                      },
-                      {
-                        "color": "#A65200",
-                        "value": 604800
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "gridPos": {
-          "h": 8,
-          "w": 8,
-          "x": 8,
-          "y": 12
-        },
-        "id": 5,
-        "options": {
-          "colorMode": "background",
-          "graphMode": "none",
-          "justifyMode": "auto",
-          "orientation": "horizontal",
-          "percentChangeColorMode": "standard",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showPercentChange": false,
-          "text": {
-            "titleSize": 16,
-            "valueSize": 32
-          },
-          "textMode": "value_and_name",
-          "wideLayout": true
-        },
-        "targets": [
-          {
-            "columns": [
-              {
-                "selector": "Undelivered",
-                "text": "Undelivered",
-                "type": "number"
-              },
-              {
-                "selector": "Stuck",
-                "text": "Stuck",
-                "type": "number"
-              },
-              {
-                "selector": "Last turn",
-                "text": "Last turn",
-                "type": "number"
-              },
-              {
-                "selector": "Last turn age",
-                "text": "Last turn age",
-                "type": "number"
-              }
-            ],
-            "datasource": {
-              "type": "yesoreyeram-infinity-datasource",
-              "uid": "mw-gcp-monitoring"
-            },
-            "format": "table",
-            "parser": "jq-backend",
-            "refId": "A",
-            "root_selector": "# Collector snapshot fields of one component (worker_timing or metabase_probe). [{\"key\":\"undelivered\",\"label\":\"Undelivered\"},{\"key\":\"stuck_running\",\"label\":\"Stuck\"},{\"key\":\"last_turn_state\",\"label\":\"Last turn\"},{\"key\":\"last_turn_age_seconds\",\"label\":\"Last turn age\"}] is a list of\n# {key, label, scale?, state_key?}: scale multiplies (epoch seconds to ms); state_key names a state field\n# whose 0 (failed) turns the value into -1 and whose 2 (overdue) into -2, so the panel maps them to\n# words. FINAL3-1: each field takes its own newest fresh sample in the query window (at most 360 s old,\n# not more than 120 s ahead), not only the newest collector run's: a field the collector leaves out of one\n# run (Poll age while a poll is running) keeps its last fresh value instead of flipping to No report. A\n# state_key must come from the same run as its value; a missing state sample makes the value null (No\n# report) rather than an unqualified age. Missing, stale, future, negative or non-integer samples are\n# null, never zero. Provider errors and truncation fail visibly.\ndef stamp: sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601;\ndef number: (try (.v | tonumber) catch null) as $n | if $n != null and $n >= 0 and ($n | floor) == $n then $n else null end;\nif .error then error(\"Monitoring query failed\")\nelif .nextPageToken then error(\"Collector response truncated; shorten the time range\")\nelse\n  [.timeSeries[]? | .metric.labels.field as $field | .points[]? |\n    (try (.interval.endTime | stamp) catch null) as $t |\n    select($t != null and now - $t <= 360 and $t - now <= 120) |\n    {field: $field, t: $t, v: .value.int64Value}] as $samples |\n  [[{\"key\":\"undelivered\",\"label\":\"Undelivered\"},{\"key\":\"stuck_running\",\"label\":\"Stuck\"},{\"key\":\"last_turn_state\",\"label\":\"Last turn\"},{\"key\":\"last_turn_age_seconds\",\"label\":\"Last turn age\"}][] as $f |\n    ([$samples[] | select(.field == $f.key)] | sort_by(.t) | last) as $s |\n    (if $s == null then null else ($s | number) end) as $v |\n    {key: $f.label,\n     value: (if $v == null then null\n             elif $f.state_key == null then $v * ($f.scale // 1)\n             else ([$samples[] | select(.field == $f.state_key and .t == $s.t)] | first) as $state |\n               (if $state == null then null else ($state | number) end) as $code |\n               if $code == null then null elif $code == 0 then -1 elif $code == 2 then -2 else $v * ($f.scale // 1) end\n             end)}] |\n  from_entries\nend\n",
-            "source": "url",
-            "type": "json",
-            "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22conversation%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
-            "url_options": {
-              "method": "GET"
-            }
-          }
-        ],
-        "title": "Partner chat",
-        "type": "stat"
-      },
-      {
-        "datasource": {
-          "type": "yesoreyeram-infinity-datasource",
-          "uid": "mw-gcp-monitoring"
-        },
         "description": "Debian collector worker_timing{pwa_notify} from monitoring.pwa_ops_health_v1() on loan_manager_prod: pending deliveries (orange from 5), oldest pending age (orange above 900 s, the alert value), delivered (Sent · 24 h) and failed in 24 h.",
         "fieldConfig": {
           "defaults": {
@@ -1539,8 +1244,8 @@
         },
         "gridPos": {
           "h": 8,
-          "w": 8,
-          "x": 16,
+          "w": 16,
+          "x": 8,
           "y": 12
         },
         "id": 6,

@@ -3,11 +3,9 @@ import contextlib
 import contextvars
 import importlib.util
 import io
-import hashlib
 import json
 import os
 from pathlib import Path
-import sqlite3
 import tempfile
 import threading
 import time
@@ -20,7 +18,6 @@ from mw_integration_agent import audit, state
 from mw_integration_agent.config import ConfigurationError
 from mw_integration_agent.journal import IngressJournal
 from mw_integration_agent.receipt_journal import ReceiptJournal
-from mw_integration_agent.conversation_store import ConversationStore
 from mw_integration_agent.partner_notice import NoticeJournal
 from mw_integration_agent.partner_review import ReviewStore
 from mw_integration_agent.statement_delivery import DeliveryJournal
@@ -235,24 +232,19 @@ class PostgreSQLStateTests(unittest.TestCase):
             self.assertEqual(c.execute('SELECT count(*) FROM runtime.receipt_jobs WHERE message_id=%s',(self.key,)).fetchone()[0],1)
             self.assertEqual(c.execute('SELECT state FROM runtime.ingress_work WHERE message_id=%s',(self.key+'-old',)).fetchone()[0],'REVIEW')
 
-    def test_notice_streams_are_isolated(self):
-        first=NoticeJournal('partner-notices.db',self.config)
-        second=NoticeJournal('conversation-notices.db',self.config)
-        partner={'id':self.key}
-        key=first.reserve(self.key,partner,'receipt','receipt body')
-        self.assertEqual(second.reserve(self.key,partner,'conversation','conversation body'),key)
-        with first.db:
-            first.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED' WHERE id=?",(key,))
-        self.assertEqual(first.db.execute('SELECT subject FROM partner_notices WHERE id=?',(key,)).fetchone()[0],'receipt')
-        self.assertEqual(second.db.execute('SELECT ig_status FROM partner_notices WHERE id=?',(key,)).fetchone()[0],'PENDING')
+    def test_conversation_notice_stream_is_retired(self):
+        # R091 (agent V11): only the receipt stream remains; the journal and the table refuse the conversation stream.
+        with self.assertRaisesRegex(ConfigurationError,'UNKNOWN_STATE_JOURNAL'):
+            NoticeJournal('conversation-notices.db',self.config)
+        with psycopg.connect(**self.admin) as c:
+            with self.assertRaises(psycopg.errors.CheckViolation):
+                c.execute("INSERT INTO runtime.partner_notices(id,stream,event_key,partner_id,partner,subject,body) VALUES (%s,'conversation','e','p','{}','s','b')",(self.key,))
 
-    def test_notice_deferral_preserves_payload_outcome_and_other_stream(self):
+    def test_notice_deferral_preserves_payload_and_outcome(self):
         first=NoticeJournal('partner-notices.db',self.config)
-        second=NoticeJournal('conversation-notices.db',self.config)
-        self.addCleanup(first.close);self.addCleanup(second.close)
+        self.addCleanup(first.close)
         partner={'id':self.key}
         key=first.reserve(self.key,partner,'synthetic','immutable body')
-        second.reserve(self.key,partner,'synthetic conversation','other stream')
         with first.db:
             # R058: only PENDING/WINDOW_EXPIRED Instagram outcomes stay in the email retry queue.
             first.db.execute("UPDATE partner_notices SET ig_status='WINDOW_EXPIRED',email_status='REJECTED',attempts=1,detail='synthetic failure' WHERE id=?",(key,))
@@ -262,7 +254,6 @@ class PostgreSQLStateTests(unittest.TestCase):
         self.assertGreater(after.pop('retry_after'),time.time())
         before.pop('retry_after');self.assertEqual(after,before)
         self.assertNotIn(key,{r['id'] for r in first.due()})
-        self.assertIn(key,{r['id'] for r in second.due()})
 
     def test_v7_accepted_at_written_by_adapter_on_acceptance_only(self):
         config=dict(self.config,receipt_summary_enabled=True,instagram_account_id='100')
@@ -281,11 +272,7 @@ class PostgreSQLStateTests(unittest.TestCase):
             rows={r[0]:(r[1],r[2]) for r in c.execute("SELECT id,ig_status,coalesce(accepted_at>clock_timestamp()-interval '5 minutes',false) FROM runtime.partner_notices WHERE stream='receipt' AND id=ANY(%s)",([accepted,held],))}
         self.assertEqual(rows,{accepted:('ACCEPTED',True),held:('REVIEW',False)})
 
-    def test_memory_reviews_delivery_and_lazy_tables(self):
-        store=ConversationStore('partner-conversations.db',self.config)
-        store.bind(self.key,'thread-'+self.key)
-        self.assertEqual(store.thread(self.key),'thread-'+self.key)
-        with self.assertRaises(ConfigurationError): store.bind(self.key,'other')
+    def test_reviews_delivery_and_lazy_tables(self):
         receipt=ReceiptJournal('receipt-processing.db',self.config)
         reviews=ReviewStore(receipt.db)
         reviews.reserve(self.key,{'synthetic':True})
@@ -297,47 +284,13 @@ class PostgreSQLStateTests(unittest.TestCase):
             receipt.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key,2.0))
         self.assertEqual(receipt.db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(self.key,)).fetchone()[0],2.0)
 
-    def test_claude_history_commits_with_ready_verbatim_and_append_only(self):
-        store=ConversationStore('partner-conversations.db',self.config)
-        binding=hashlib.sha256(self.key.encode()).hexdigest()
-        content='[{"type":"thinking","thinking":"","signature":"c2ln"},{"type":"tool_use","id":"t1","name":"finish","input":{"status":"CLARIFY","message":"ไทย","observations":[]}}]'
-        history={'binding':binding,'epoch':0,'seq':0,'provider':'claude','prompt_sha256':'b'*64,'input_tokens':1234,
-                 'messages':[{'role':'user','content':'[{"type":"text","text":"q"}]'},{'role':'assistant','content':content},
-                             {'role':'user','content':'[{"type":"tool_result","tool_use_id":"t1","content":"{}"}]'}]}
-        event={'message_id':self.key,'sender_id':'999'}
-        self.assertTrue(store.reserve(event,binding,{'id':'p'}))
-        store.finish(self.key,'READY',{'status':'CLARIFY','message':'ไทย'},history=history)
-        epoch,rows=store.history(binding)
-        self.assertEqual(epoch,0)
-        self.assertEqual({r['provider'] for r in rows},{'claude'})
-        self.assertEqual([(r['seq'],r['role'],r['content'],r['input_tokens']) for r in rows],
-                         [(0,'user',history['messages'][0]['content'],None),(1,'assistant',content,None),(2,'user',history['messages'][2]['content'],1234)])
-        # A conflicting write rolls back the READY outcome with it.
-        other={'message_id':self.key+'-2','sender_id':'999'}
-        store.reserve(other,binding,{'id':'p'})
-        with self.assertRaises(sqlite3.IntegrityError):
-            store.finish(other['message_id'],'READY',{'status':'CLARIFY','message':'x'},history=history)
-        self.assertEqual(store.db.execute('SELECT status FROM turns WHERE message_id=?',(other['message_id'],)).fetchone()[0],'RUNNING')
-        self.assertEqual(len(store.history(binding)[1]),3)
-        with psycopg.connect(**self.admin) as c:
-            with self.assertRaises(psycopg.Error):
-                c.execute('UPDATE runtime.conversation_messages SET role=%s WHERE binding=%s',('assistant',binding))
-        # The earlier-conversation transcript reads finished turns here and partner text from ingress.
-        self.assertEqual([(t['message_id'],t['status']) for t in store.exchanges(binding)],[(self.key,'READY')])
-        ingress=IngressJournal('instagram-ingress.db',self.config)
-        ingress.capture(self.key+'-ingress',[{'message_id':self.key,'sender_id':'999','timestamp':time.time(),'text':'ยอดค้าง?','attachments':[]}])
-        from mw_integration_agent.claude_conversation import partner_texts
-        texts=partner_texts(dict(self.config,state_directory='/unused'),[self.key,self.key+'-absent'])
-        self.assertEqual(list(texts),[self.key])
-        self.assertEqual(texts[self.key][0],'ยอดค้าง?')
-
     def test_rollback_includes_audit(self):
-        store=ConversationStore('partner-conversations.db',self.config)
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
         with self.assertRaises(RuntimeError):
-            with store.db:
-                store.db.execute('INSERT INTO conversations VALUES (?,?)',(self.key,self.key))
+            with receipt.db:
+                receipt.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key,1.0))
                 raise RuntimeError('simulated crash before commit')
-        self.assertIsNone(store.thread(self.key))
+        self.assertIsNone(receipt.db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(self.key,)).fetchone())
 
     def test_forwarded_provenance_and_automatic_decision_are_durable(self):
         receipt=ReceiptJournal('receipt-processing.db',self.config)
@@ -374,7 +327,7 @@ class PostgreSQLStateTests(unittest.TestCase):
     def test_stale_generation_fails_closed(self):
         bad=dict(self.config,state_generation=str(uuid.uuid4()))
         with self.assertRaisesRegex(ConfigurationError,'GENERATION_INACTIVE'):
-            ConversationStore('partner-conversations.db',bad).thread(self.key)
+            ReceiptJournal('receipt-processing.db',bad).db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(self.key,)).fetchone()
 
     def test_late_commit_is_not_skipped_by_queue(self):
         ingress=IngressJournal('instagram-ingress.db',self.config)
@@ -396,9 +349,9 @@ class PostgreSQLStateTests(unittest.TestCase):
         self.assertEqual(ingress.execute('SELECT * FROM messages WHERE message_id=?',(self.key,)).fetchall(),[])
         with self.assertRaises(psycopg.errors.ReadOnlySqlTransaction):
             with state.transaction(self.config,readonly=True) as c:
-                c.execute('INSERT INTO runtime.conversations(binding,thread_id) VALUES (%s,%s)',(self.key,self.key))
+                c.execute('INSERT INTO runtime.conversation_poll_state(conversation_id,checked_through) VALUES (%s,1)',(self.key,))
         with psycopg.connect(**self.admin) as c:
-            self.assertIsNone(c.execute('SELECT 1 FROM runtime.conversations WHERE binding=%s',(self.key,)).fetchone())
+            self.assertIsNone(c.execute('SELECT 1 FROM runtime.conversation_poll_state WHERE conversation_id=%s',(self.key,)).fetchone())
 
     def test_noop_update_leaves_no_audit_rows(self):
         # AGT-STATE-01: a statement that changes nothing writes neither an operation nor an event.
@@ -596,13 +549,13 @@ class PostgreSQLStateTests(unittest.TestCase):
     def test_rolled_back_child_leaves_the_job_lazy(self):
         service='lab-rollback-'+uuid.uuid4().hex[:8]
         before=self.audit_counts()
-        store=ConversationStore('partner-conversations.db',self.config)
+        store=ReceiptJournal('receipt-processing.db',self.config)
         with audit.job(self.config,service) as outcome:
             job_op=audit.PARENT.get()
             with self.assertRaises(RuntimeError):
                 with store.db:
-                    store.db.execute('INSERT INTO conversations VALUES (?,?)',(self.key,self.key))
-                    store.db.execute('INSERT INTO conversations VALUES (?,?)',(self.key+'-2',self.key+'-2'))
+                    store.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key,1.0))
+                    store.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key+'-2',1.0))
                     raise RuntimeError('simulated crash before commit')
             self.assertEqual(self.audit_counts(),before)
             outcome['exit_code']=0
@@ -610,7 +563,8 @@ class PostgreSQLStateTests(unittest.TestCase):
         self.assertIsNone(self.job_tree(job_op)['run'])
         with audit.job(self.config,service) as outcome:
             job_op=audit.PARENT.get()
-            store.bind(self.key,'thread-'+self.key)
+            with store.db:
+                store.db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(self.key,2.0))
             outcome['exit_code']=0
         self.assertEqual(self.job_tree(job_op)['run'][0],'COMPLETED')
 

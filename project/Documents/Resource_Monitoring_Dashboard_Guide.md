@@ -30,7 +30,7 @@ Five dashboards in folder MW Resource Monitoring, all tagged `mw-credit`, all wi
 | --- | --- | --- | --- |
 | [Now](https://monitor.mw-credit.com/d/mw-now) (home) | `mw-now` | Last 3 hours ending now, 1-minute refresh | PROD only: whether everything works, what is firing, headroom |
 | [PWA & APIs](https://monitor.mw-credit.com/d/mw-pwa) | `mw-pwa` | Last 24 hours ending 2 minutes ago, 2-minute refresh | Hosting, four Cloud Run services per environment, schedulers, push, recognition route |
-| [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent) | `mw-agent` | Last 6 hours ending now, 1-minute refresh | Receipt pipeline, Partner conversation, recognizer, workers and timers, connectivity |
+| [Agent & Receipts](https://monitor.mw-credit.com/d/mw-agent) | `mw-agent` | Last 6 hours ending now, 1-minute refresh | Receipt pipeline, recognizer, workers and timers, connectivity |
 | [Infrastructure](https://monitor.mw-credit.com/d/mw-infra) | `mw-infra` | Last 24 hours ending now, 5-minute refresh | Cloud SQL, Cloud Run table (full width), Debian VM, Metabase on Railway, collapsed Azure VM-01 |
 | [Cost](https://monitor.mw-credit.com/d/mw-cost) | `mw-cost` | Month to date, 1-hour refresh | Azure, GCP and Railway cost in SGD |
 
@@ -40,11 +40,10 @@ Conventions on all five (owner review, `8d77284`; fit pass `9ea0209`): a tile fi
 
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
-| 1 (rows 1-A to 1-J) | PROD services · last 3 h | State timeline, one row each: 1-A Hosting `lm.mw-credit.com`; 1-B Reader API `/health`; 1-C Command API (worst of `/health`, `oltp`, `olap`); 1-D Notify worker (scheduler attempts from `mw_scheduler_attempts_prod`); 1-E Jobs worker; 1-F Cloud SQL `database/up`; 1-G Receipt recognizer; 1-H Agent receipt cycle; 1-I Partner conversation; 1-J Metabase | 0/0/16/11. Collector rows use the six-minute freshness rule; Paused (blue) is intentional |
+| 1 (rows 1-A to 1-I) | PROD services · last 3 h | State timeline, one row each: 1-A Hosting `lm.mw-credit.com`; 1-B Reader API `/health`; 1-C Command API (`/health`; the authenticated `oltp` and `olap` probes were removed in R091); 1-D Notify worker (scheduler attempts from `mw_scheduler_attempts_prod`); 1-E Jobs worker; 1-F Cloud SQL `database/up`; 1-G Receipt recognizer; 1-H Agent receipt cycle; 1-I Metabase (the Partner conversation lane was removed in R091) | 0/0/16/11. Collector rows use the six-minute freshness rule; Paused (blue) is intentional |
 | 2 | Firing alerts | Grafana alert list, folder MW Resource Monitoring Alerts: firing, pending, error and no data | Shows "No alerts" when quiet; no resolved history |
 | 3 | Telemetry freshness | Age of the newest point of `database`, `pwa_hosting_prod`, `metabase_platform` and Cloud SQL CPU | Green under 360 s, grey "stale" otherwise; explains a wave of grey rows |
 | 4 | Payments pipeline (each stage coloured by health: Scan by the IG polling state, with the time shown and a grey '—' when stale; Extraction waiting green, orange when the oldest waiting image is over 600 s; holds, unconfirmed postings and notification failures green at 0 and red above 0; reviews waiting or overdue orange when any review is overdue) | Six values: last scan (Bangkok time; the Scan tile reads only the completion-time row, which fixes an intermittent "—"), pending images, unnotified holds, pending reviews, unconfirmed postings, failed notifications | Same rules as the previous Performance panels 101 to 107 |
-| 5 | Partner chat | Four tiles: Undelivered (READY, FAILED, UNKNOWN_WRITE or INTERRUPTED over 5 minutes), Stuck (RUNNING over 15 minutes), Last turn (state), Last turn age | QUEUED is the normal delivered end state of a turn, so there is no queue tile. Alert: stalled conversation (Stuck or Undelivered at 1 or more) |
 | 6 | Push | Pending, oldest pending, failed and Sent · 24 h (delivered in 24 h) | PROD only; alert: push delivery backlog |
 | 7 | Scheduled jobs | Age of the newest completed run of Notify job · last run, daily charges and recent analytics (jobs have no failed state, V94) | Alert: scheduled job overdue |
 | 8 | Cloud SQL capacity | Four LCD bar gauges: CPU (red 85 %), RAM used (85 %), connections (max 200, red 160), disk (red 80 %) | Alerts: Cloud SQL connections, CPU, memory and disk |
@@ -62,7 +61,7 @@ Variable: `env` (prod or dev, default prod) is hidden; the PROD and DEV links af
 | ID | Panel | Shows | Notes |
 | --- | --- | --- | --- |
 | 1 | Hosting · ${env} | Canonical Hosting health, version marker and entry reference | One vantage (Debian), not login or multi-region |
-| 2 | API health | Unauthenticated `/health` of both services; PROD adds two authenticated probes on the PROD command service, 'Chat data · live' (`oltp`: live loan and payment data) and 'Chat data · reports' (`olap`: analytics and reports); each checks the conversation-API sign-in, the catalogue manifest version and one key-only read; the metric labels `oltp` and `olap` are unchanged | DEV has only the unauthenticated checks |
+| 2 | API health | Unauthenticated `/health` of both services (R091: the two authenticated PROD probes of the conversation API were removed) | Both environments have only the unauthenticated checks |
 | 3 | Sign-in and request errors · 24 h | Counts of `session_invalid`, `session_check_unavailable`, `body_timeout` and Cloud Run 5xx | Counts only, no user identity; read from the existing request records, no services change |
 | 10 to 13 (static rows, with 101 to 103, 111 to 113, 121 to 123, 131 to 133; the third panel of each row is titled '<service> · instances, CPU, RAM') | Service rows: reader, command, notify, jobs | The three panels of each row: requests per 5 min (all blue solid, 4xx orange dashed, 5xx red dotted); p95 latency with a red dashed request-timeout line (reader 15 s, command 55 s, workers 120 s); instances, CPU % and memory % with a grey dashed maximum-instances line, each drawn with that service's own value | Request charts have no threshold; idle is neither Down nor Healthy |
 | 19 (row), 20 | Cloud Scheduler attempts · 24 h | State timeline for the notifications, daily-charges and recent-analytics jobs, from the log-based metric `mw_scheduler_attempts_<env>` (Cloud Monitoring has no `attempt_count` metric in this project) | DEV jobs are paused and show grey |
@@ -88,16 +87,12 @@ Everything is Debian-backed except the webhook check and the two public status f
 | 12 | Recognizer · model | Provider with model, for example 'Gemini · gemini-3.5-flash-lite' | From the collector field `model:<id>` |
 | 7 | Recognizer · extractions 24 h | Extractions, valid, timeouts and unreadable | Counts from the agent audit schema, no content |
 | 8 | Recognizer · extraction time | Duration of the newest extraction per run | Red dashed at 25 s (per-attempt bound) |
-| 3 | Conversation · turns 24 h | Turns, verified, failed and review counts, taken from the turn result (not the queue state) | A 24 h count of 0 with no new Partner message is normal |
-| 4 | Conversation · turn duration | Seconds (one decimal), rounds and provider for each completed turn | One point per collector run at most; no reference line |
-| 5 | Conversation · loop health | Poll age and state, wake path, timer | Alert: stalled conversation |
-| 15 | Conversation · model | Provider and model of the Partner conversation | |
-| 9 | Agent workers and timers | State timeline: receipts, conversations, conversation poll state, polling, daily jobs, audit relay, audit retention | Holds last state 2 min, 65 min or 25 h by job cadence |
+| 9 | Agent workers and timers | State timeline: receipts, polling, daily jobs, audit relay, audit retention | Holds last state 2 min, 65 min or 25 h by job cadence |
 | 10 | Connectivity · edge and data | State timeline: webhook (Singapore), tunnel, Tailscale, ingress, database, Codex readiness | |
 | 11 | Providers · status | Railway and Google Cloud status; same stat as Now 17 (nine rows) | Feeds have no history, so a stat |
 | 13 | Connectivity · code version | 1 when the receiver's code version matches the deployed commit prefix | Closes the former known gap for `webhook_code_version` |
 
-Rows by component: Receipt pipeline (20: panels 1, 2, 14), Receipt recognizer (21: 6, 12, 7, 8), Partner conversation (22: 3, 4, 5, 15), Agent workers and timers (23: 9), Connectivity and providers (24: 10, 11, 13).
+Rows by component: Receipt pipeline (20: panels 1, 2, 14), Receipt recognizer (21: 6, 12, 7, 8), Agent workers and timers (23: 9), Connectivity and providers (24: 10, 11, 13).
 
 The bridge tiles of the previous row 5 (121 to 127) are not carried over; the Grafana-to-Dots bridge is being decommissioned and has no panel.
 
@@ -136,7 +131,7 @@ Time zone Asia/Bangkok for display; provider day rules are unchanged (Azure UTC 
 | 7 | GCP by service · net | Billing export grouped by service, net of credits (month to date); columns reordered, 'Monitoring and Logging' is one service name | 100 MB billed-query cap |
 | 10, 20, 30 (collapsed rows) | Azure, GCP, Railway | The previous Cost detail panels unchanged, with their old child IDs | Rates checked 25 September 2026 stay in the description |
 | 40 | Unchanged rules of reading | Short reading text (y 23, height 4) | References, not forecasts |
-| 49, 50 | Partner chat · cost per question (row) · last 10 questions (R090) | The 10 latest answered Partner chat questions, newest first: time asked, question text, model, uncached input, cached input, output and thinking tokens of every round of the turn (tool calls included), and Cost (SGD) at the billed Vertex AI unit prices in `project/scripts/monitoring/model-prices.json` (Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output and thinking per million tokens); the footer sums the listed questions | Read live from the agent database through Grafana PDC (`mw-agent-questions`, function `monitoring.recent_questions_v1`), not stored in Cloud Monitoring. "No usage record" = a Codex turn (subscription) or usage older than the 7-day audit retention or recorded before 21 October. The collapsed provider rows follow at y 41 to 43 |
+| 49, 50 | Partner chat · cost per question (row) · last 10 questions (R090) | The 10 latest answered Partner chat questions, newest first: time asked, question text, model, uncached input, cached input, output and thinking tokens of every round of the turn (tool calls included), and Cost (SGD) at the billed Vertex AI unit prices in `project/scripts/monitoring/model-prices.json` (Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output and thinking per million tokens); the footer sums the listed questions | Read live from the business database `loan_manager_prod` through Grafana PDC (datasource uid `mw-agent-questions`, titled "MW · Chat questions"; function `monitoring.pwa_chat_recent_questions_v1`, R091), not stored in Cloud Monitoring; the usage is the turn's own recorded token counts. Price rows now include `gemini-3.5-flash`. The collapsed provider rows follow at y 41 to 43 |
 
 ### Colour policy for stat fields (all 78, commit `88e5f43`)
 
@@ -168,7 +163,6 @@ The nine remaining Performance 2m rules keep their names, labels and conditions 
 | Scheduled job overdue | 1-E, 7 | PWA & APIs 22 |
 | Push delivery backlog (oldest pending over 15 min only) | 6 | PWA & APIs 21 |
 | Receipt recognizer unhealthy | 1-G | Agent & Receipts 6 |
-| Partner conversation stalled | 1-I, 5 | Agent & Receipts 3 to 5 |
 | Cloud SQL down | 1-F | Infrastructure 1 to 4 |
 | Cloud SQL disk high | 8 | Infrastructure 3 |
 | Cloud SQL backup overdue | 19 | Infrastructure 5 |

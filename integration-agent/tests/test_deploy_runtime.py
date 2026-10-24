@@ -47,36 +47,40 @@ class RuntimeDeploymentTests(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(RuntimeError):
                 self.prepared(**change)
 
-    def test_pointer_prefix_and_native_probe(self):
+    def test_pointer_prefix_and_receipt_status_probe(self):
         self.assertEqual(base.POINTER, Path('/var/lib/mw-integration-agent/rollback/runtime-current'))
         self.assertEqual(base.PREFIX, 'runtime-')
         self.assertIs(base.prepare, runtime.prepare)
-        self.assertIs(base.probe, runtime.probe)
         self.assertFalse(hasattr(runtime, 'native'))  # AGT-QUALITY-05: no import of the deleted R053 script
+        self.assertFalse(hasattr(runtime, 'probe'))  # R091: the engine's receipt-status GET is the only probe
         self.assertFalse((SCRIPTS / 'deploy-native-conversations.py').exists())
-        with self.assertRaisesRegex(RuntimeError, 'Unused status UUID required'):
+        self.assertNotIn('mw_integration_agent.conversation_api', (SCRIPTS / 'deploy-runtime.py').read_text(encoding='utf-8'))
+        with self.assertRaisesRegex(RuntimeError, 'Explicit unused status probe UUID required'):
             base.probe({}, {}, None)
 
-    def test_probe_never_posts_command_and_failure_blocks_activation(self):
+    def test_probe_is_the_read_only_receipt_status_get_and_failure_blocks_activation(self):
         from types import SimpleNamespace
         from unittest.mock import patch
-        with patch.object(base.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='native-read-only-ok\n')) as run:
-            runtime.probe({}, {}, '11111111-1111-4111-8111-111111111111')
+        with patch.object(base.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='read-only-status-ok\n')) as run:
+            base.probe({}, {}, '11111111-1111-4111-8111-111111111111')
             argv = run.call_args.args[0]
             self.assertEqual(argv[:3], ['sudo', '-u', 'mwagent'])
-            self.assertIn("for scope in ('oltp','olap')", argv[-1])
             self.assertIn("'GET'", argv[-1])
+            self.assertNotIn('conversation', argv[-1])
             self.assertNotIn("'commands'", argv[-1])
             run.return_value = SimpleNamespace(returncode=1, stdout='')
             with self.assertRaises(RuntimeError):
-                runtime.probe({}, {}, '11111111-1111-4111-8111-111111111111')
+                base.probe({}, {}, '11111111-1111-4111-8111-111111111111')
 
-    def test_runtime_deploy_pauses_and_installs_the_wake_paths(self):
-        # R082 B1 and R086: the code-only route shares the engine's unit and trigger lists.
-        for name in ('mw-receipt-wake.path', 'mw-conversation-wake.path'):
+    def test_runtime_deploy_pauses_and_installs_the_receipt_wake_path_only(self):
+        # R082 B1: the code-only route shares the engine's unit and trigger lists; R091 retired the conversation wake.
+        self.assertIn('mw-receipt-wake.path', base.UNIT_FILES)
+        self.assertIn('mw-receipt-wake.path', base.TRIGGERS)
+        for name in ('mw-conversation-wake.path', 'mw-partner-conversation.timer', 'mw-partner-conversation.service'):
             with self.subTest(unit=name):
-                self.assertIn(name, base.UNIT_FILES)
-                self.assertIn(name, base.TRIGGERS)
+                self.assertNotIn(name, base.UNIT_FILES)
+                self.assertNotIn(name, base.TRIGGERS)
+                self.assertIn(name, base.RETIRED_UNIT_FILES)
 
     def test_shipped_migrations_match_the_migration_runner(self):
         # The preflight compares with deployment.schema_history as state_migration.migrate writes it.
@@ -104,6 +108,46 @@ class RuntimeDeploymentTests(unittest.TestCase):
         with patch.object(base, 'shipped_migrations', return_value={7: ['V7__b.sql', 'b']}), \
                 patch.object(base, 'applied_migrations', return_value={7: ['V7__b.sql', 'b']}):
             self.assertEqual(base.schema_preflight({'state_backend': 'postgres'}, '/private/conn.json'), 'applied through V7')
+
+    def r091(self):
+        services = {name: {'enabled': True, 'implemented': True} for name in sorted(runtime.R091_SERVICES)}
+        services.update(self.catalogue['services'])
+        live = {'revision': 31, 'default_policy': 'deny', 'services': services}
+        candidate = {'revision': 32, 'default_policy': 'deny', 'services': json.loads(json.dumps(self.catalogue['services']))}
+        config = dict(self.config, partner_conversations_enabled=False, conversation_api_enabled=True, conversation_provider='gemini',
+                      reviewer_dml_enabled=False, claude_model='claude-opus-5-5', gemini_conversation_model='gemini-4-argon',
+                      database_dml_user='mw_reviewer_dml', gemini_project='clever-oasis-508610-n7', codex_home='/var/lib/x')
+        return config, live, candidate
+
+    def test_r091_drops_exactly_the_retired_services_and_keys(self):
+        config, live, candidate = self.r091()
+        before = json.dumps([config, live, candidate], sort_keys=True)
+        cleaned, catalogue = self.prepared(config=config, catalogue=live, candidate=candidate)
+        self.assertEqual(cleaned, dict(self.config, gemini_project='clever-oasis-508610-n7', codex_home='/var/lib/x', code_version=COMMIT))
+        self.assertEqual(catalogue, dict(self.catalogue, revision=32))
+        self.assertEqual(json.dumps([config, live, candidate], sort_keys=True), before)  # inputs untouched
+        # The cleaned configuration passes the package validator's retired-key rule.
+        sys.path.insert(0, str(SCRIPTS.parent / 'src'))
+        from mw_integration_agent import config as package
+        self.assertEqual(package.retired_keys(cleaned), [])
+        self.assertEqual((package.RETIRED_SERVICES, package.RETIRED_KEYS, package.RETIRED_PREFIXES),
+                         (runtime.R091_SERVICES, runtime.R091_KEYS, runtime.R091_PREFIXES))
+        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R091_REVISIONS[1])
+
+    def test_r091_refuses_any_other_catalogue_change_and_leftover_keys(self):
+        config, live, candidate = self.r091()
+        less = json.loads(json.dumps(live)); del less['services']['reviewer_database_dml']
+        more = json.loads(json.dumps(candidate)); more['services']['operational_data_read'] = {'enabled': True, 'implemented': True}
+        other = json.loads(json.dumps(candidate)); del other['services']['partner_oltp_gui']
+        drift = json.loads(json.dumps(candidate)); drift['services']['partner_oltp_gui']['implemented'] = True
+        for change, pattern in (({'catalogue': less}, 'drop exactly'), ({'candidate': more}, 'drop exactly'), ({'candidate': other}, 'drop exactly'),
+                                ({'candidate': drift}, 'Capability drift'), ({'candidate': dict(candidate, revision=33)}, 'revision drift'),
+                                ({'catalogue': dict(live, revision=30)}, 'revision drift')):
+            with self.subTest(change=list(change)), self.assertRaisesRegex(RuntimeError, pattern):
+                self.prepared(config=config, **{'catalogue': live, 'candidate': candidate, **change})
+        # Outside the 31 -> 32 change a retired key is not silently dropped.
+        with self.assertRaisesRegex(RuntimeError, 'Retired conversation keys need the R091 catalogue change'):
+            self.prepared(config=dict(self.config, conversation_provider='codex'))
 
     def test_one_off_activation_scripts_are_deleted(self):
         # AGT-QUALITY-05: deploy-runtime.py (with its engine) is the one deploy helper.

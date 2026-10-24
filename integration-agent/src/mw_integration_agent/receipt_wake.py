@@ -1,7 +1,6 @@
 """Capture wake files: a capture touches one, a systemd path unit starts the worker.
-receipt-wake -> mw-receipt-wake.path -> mw-receipt-summary.service (R082 B1);
-conversation-wake -> mw-conversation-wake.path -> mw-partner-conversation.service (R086).
-A wake failure never fails capture; each worker's timer stays the fallback."""
+receipt-wake -> mw-receipt-wake.path -> mw-receipt-summary.service (R082 B1). The R086 conversation wake went
+with the Instagram Partner conversation (R091). A wake failure never fails capture; the worker's timer stays the fallback."""
 import time
 from pathlib import Path
 
@@ -9,7 +8,6 @@ from .review_resend import is_command
 
 EXTRA_PASSES=2
 RECEIPT='receipt-wake'
-CONVERSATION='conversation-wake'
 
 
 def path(config,name=RECEIPT):return Path(config['state_directory'])/name
@@ -19,13 +17,6 @@ def wakes(message):
     """Work the receipt cycle acts on: an image, a reply (approval or hold dismissal) or a standalone command."""
     return not message.get('quarantine') and bool(
         any(a.get('url') for a in message.get('attachments') or []) or message.get('reply_to') or is_command(message))
-
-
-def converses(message):
-    """A message the partner conversation cycle may answer: text that is not a receipt reply or command
-    (partner_conversation.is_receipt_reply leaves those to receipt review). The sender is authenticated by the cycle."""
-    return not message.get('quarantine') and bool((message.get('text') or '').strip()) and not (
-        message.get('reply_to') or is_command(message))
 
 
 def wake(config,name=RECEIPT):
@@ -43,11 +34,6 @@ def woken(config,since,name=RECEIPT):
 def due(load,config_path,since,name=RECEIPT):
     try:return woken(load(config_path),since,name)
     except Exception:return False  # the finished run's result stands; the timer is the fallback
-
-
-def more_turns(result):
-    """The conversation cycle takes one turn per pass; after a turn, another captured question may be waiting."""
-    return result.get('turns_attempted',0)>=1
 
 
 def rerun(run,config_path,catalogue_path,name=RECEIPT,again=None):

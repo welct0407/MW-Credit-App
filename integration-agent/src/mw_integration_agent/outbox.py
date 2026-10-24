@@ -66,37 +66,3 @@ def relay(config):
                 raise ConfigurationError('OUTBOX_ACK_MISMATCH')
             exported+=1
     return {'exported':exported}
-
-
-def reconcile(config):
-    """Only proven committed SQL operations; never release unknown API sends."""
-    from .conversation_dml import connect, metadata, select
-    with transaction(config) as central:
-        pending=central.execute('''SELECT d.id,d.request,o.operation_id,o.plan_sha256,o.actor_id,o.actor_login
-            FROM runtime.conversation_dml d JOIN audit.operations o
-            ON o.service_name='reviewer_dml' AND o.idempotency_key=d.id WHERE d.state='UNKNOWN' LIMIT 20''').fetchall()
-    verified=0
-    for legacy,raw,op,plan_hash,actor,login in pending:
-        request=json.loads(raw)
-        final=[]
-        with connect(config) as source:
-            marker=source.execute('SELECT plan_sha256,reviewer_id,reviewer_login FROM agent_audit.commits WHERE operation_id=%s',(op,)).fetchone()
-            if not marker: continue  # absence is not proof of rollback
-            if (marker['plan_sha256'],marker['reviewer_id'],marker['reviewer_login'])!=(plan_hash,actor,login):
-                raise ConfigurationError('RECONCILE_MARKER_MISMATCH')
-            valid=True
-            for step in request['plan']:
-                expected={**step['values'],**step['expected_after']}
-                expected={k:login if v=='__ACTOR__' else v for k,v in expected.items()}
-                columns=metadata(source,step['table'])
-                rows=select(source,step['table'],columns,{'Row ID':step['row_id'],**expected})
-                if (step['action']=='DELETE' and rows) or (step['action']!='DELETE' and len(rows)!=1):
-                    valid=False;break
-                final.append({'table':step['table'],'rows':rows})
-        if not valid: continue
-        result={'operation':legacy,'state':'VERIFIED','write_verified':True,'atomic':True,'records':final,'reconciled':True}
-        with transaction(config) as central:
-            central.execute("UPDATE runtime.conversation_dml SET state='VERIFIED',result=%s WHERE id=%s AND state='UNKNOWN'",(audit.canonical(result),legacy))
-            audit.event(central,op,'reconciled',result,'postgres','VERIFIED',key='worker-reconciled')
-        verified+=1
-    return {'verified':verified}

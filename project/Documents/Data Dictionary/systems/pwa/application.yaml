@@ -375,8 +375,8 @@
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/CashWorkspace.tsx"
     - "https://github.com/welct0407/MW-Credit-App/blob/327aa25d58867d280d148aee3991cf386c4be244/apps/pwa/src/live-main.tsx"
     "borrower_name": "Owner rule (17 October 2026, R068 W5): every borrower has a non-blank name. Borrower create/update with\
-      \ a blank name returns 422 borrower_name_required before any write (services/business/borrowers.mjs, services/payment-command/store.mjs,\
-      \ also for the agent conversation API). Loan create for a borrower whose stored name is blank returns 422 borrower_name_required,\
+      \ a blank name returns 422 borrower_name_required before any write (services/business/borrowers.mjs, services/payment-command/store.mjs;\
+      \ the agent conversation API that shared this rule was removed in R091). Loan create for a borrower whose stored name is blank returns 422 borrower_name_required,\
       \ checked after the governed operation applied while it holds the borrower lock; the transaction is rolled back so nothing\
       \ is recorded. Recorded requests replay their stored outcome. PWA: name is required (' *'), Save is blocked, New loan\
       \ is disabled on a nameless borrower. No SQL change: the column stays nullable and existing nameless borrowers were\

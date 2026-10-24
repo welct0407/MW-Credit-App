@@ -1,4 +1,4 @@
-"""Retired transport cannot be invoked; native probe remains available."""
+"""Retired transports cannot be invoked: AppSheet, and the native conversation probe (R091)."""
 import contextlib
 import io
 import unittest
@@ -10,7 +10,7 @@ class AppSheetRetirementTests(unittest.TestCase):
             build_parser().parse_args(["appsheet-probe", "--config", "/missing", "--catalogue", "/missing"])
         self.assertEqual(error.exception.code, 2)
 
-    def test_native_probe_accepts_each_scope(self):
-        for scope in ("oltp", "olap"):
-            parsed = build_parser().parse_args(["native-api-probe", "--config", "/config", "--catalogue", "/catalogue", "--scope", scope])
-            self.assertEqual(parsed.scope, scope)
+    def test_native_probe_is_retired_with_the_conversation(self):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as error:
+            build_parser().parse_args(["native-api-probe", "--config", "/config", "--catalogue", "/catalogue", "--scope", "oltp"])
+        self.assertEqual(error.exception.code, 2)

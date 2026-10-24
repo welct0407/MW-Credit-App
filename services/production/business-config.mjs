@@ -40,6 +40,8 @@ export function loadBusinessConfig(env) {
   if(env.DB_USER!==dbUser||env.RUNTIME_SERVICE_ACCOUNT!==dbUser+'.gserviceaccount.com')fail();
   // Ambient credentials, retired DEV owner/fixture modes and the other environment's names are refused.
   if(AMBIENT.some(k=>env[k]!==undefined)||Object.keys(env).some(k=>k.startsWith(profile.foreign)&&env[k]!==undefined))fail();
+  // R091: the agent conversation API is retired; its activation variables are refused on every role (fail closed).
+  if(Object.keys(env).some(k=>k.startsWith('AGENT_CONVERSATION_')&&env[k]!==undefined))fail();
   if(environment==='prod'&&env.RECEIPT_NATIVE_CATALOG_JSON!==undefined)fail();
   if(serviceRole==='chat'&&Object.keys(env).some(k=>env[k]!==undefined&&chatForbidden(k,profile.prefix)))fail();
   // CHAT_MODELS_JSON is parsed only for the chat role; the reader and command services ignore it.

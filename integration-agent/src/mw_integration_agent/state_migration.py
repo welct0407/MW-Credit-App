@@ -78,7 +78,7 @@ def import_journals(conn, source, config, batch_id, source_commit):
             for name,target in mapping.items():
                 if name=='ingress_work':continue
                 present=name in actual
-                stream={'partner-notices.db':'receipt','conversation-notices.db':'conversation'}.get(filename)
+                stream={'partner-notices.db':'receipt'}.get(filename)
                 relation=sql.Identifier('runtime',target)
                 if present:
                     columns=[r[1] for r in old.execute('PRAGMA table_info('+name+')')]
@@ -113,11 +113,8 @@ def import_journals(conn, source, config, batch_id, source_commit):
                         if col in columns:
                             statuses[col]={str(k):v for k,v in old.execute('SELECT "'+col+'",count(*) FROM "'+name+'" GROUP BY "'+col+'"')}
                 else:
-                    if name not in ('conversation_operations','conversation_dml','conversation_dml_inserts','conversation_messages'):
-                        raise ConfigurationError('EXPECTED_SOURCE_TABLE_MISSING:'+name)
-                    rows=[];readback=conn.execute(sql.SQL('SELECT 1 FROM {}').format(relation)).fetchall()
-                    if readback:raise ConfigurationError('ABSENT_SOURCE_NONEMPTY_TARGET')
-                    source_hash=target_hash=None;statuses={}
+                    # R091: the conversation journals were optional here; with agent V11 every mapped table is required.
+                    raise ConfigurationError('EXPECTED_SOURCE_TABLE_MISSING:'+name)
                 conn.execute('''INSERT INTO migration.table_checks(batch_id,source_file,source_table,target_table,present,
                     source_rows,target_rows,source_sha256,target_sha256,status_counts) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)''',
                     (batch_id,filename,name,'runtime.'+target,present,len(rows),len(readback),source_hash,target_hash,audit.canonical(statuses)))

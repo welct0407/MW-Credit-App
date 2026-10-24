@@ -325,7 +325,6 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual(deploy.unit_hashes(backup / 'units'), metadata['unit_hashes'])
         self.assertEqual(metadata['resume_timers'], [t for t in deploy.TRIGGERS if t != 'mw-audit-relay.timer'])
         self.assertIn('mw-receipt-wake.path', metadata['resume_timers'])
-        self.assertIn('mw-conversation-wake.path', metadata['resume_timers'])
         self.assertEqual(metadata['phase'], 'frozen')
 
     def test_install_removes_stale_modules_installs_units_and_token_backup(self):
@@ -485,8 +484,9 @@ class EngineFlowTests(unittest.TestCase):
         return stops
 
     def test_wake_paths_are_trigger_units(self):
-        # R082 B1 and R086: installed with the units, stopped beside the worker timers, resumed like a timer.
-        self.assertEqual(deploy.PATHS, ['mw-receipt-wake.path', 'mw-conversation-wake.path'])
+        # R082 B1: installed with the units, stopped beside the worker timers, resumed like a timer (R091: receipt only).
+        self.assertEqual(deploy.PATHS, ['mw-receipt-wake.path'])
+        self.assertNotIn('mw-partner-conversation', deploy.UNITS)
         self.assertEqual(set(deploy.TRIGGERS), set(deploy.PATHS) | {u + '.timer' for u in deploy.UNITS})
         for name in deploy.PATHS:
             with self.subTest(unit=name):
@@ -503,21 +503,47 @@ class EngineFlowTests(unittest.TestCase):
         self.assertEqual(self.host.phase('activate')[0], 0)
         self.assertEqual(self.host.timers.get('mw-receipt-wake.path', 'inactive'), 'inactive')
 
-    def test_new_conversation_wake_path_is_installed_but_left_for_a_manual_enable(self):
-        # R086 first deployment: the receipt wake path is paused and resumed; the conversation wake path is absent,
-        # so it is neither stopped nor resumed; install copies its file and activate leaves it inactive.
-        del self.host.timers['mw-conversation-wake.path']
+    def retired_on_host(self, active_timer=False):
+        write(self.host.systemd, {n: '[Unit]\n# ' + n + ' retired\n' for n in deploy.RETIRED_UNIT_FILES})
+        if active_timer:
+            self.host.timers['mw-partner-conversation.timer'] = 'active'
+
+    def test_r091_freeze_backs_up_the_retired_units_and_never_resumes_them(self):
+        self.retired_on_host(active_timer=True)
         stops = self.recorded_stops()
+        self.assertEqual(self.host.phase('freeze')[0], 0)
+        metadata, backup = self.host.metadata(), Path(self.host.pointer.read_text())
+        self.assertIn('mw-partner-conversation.timer', [unit for call in stops for unit in call])
+        self.assertEqual(self.host.timers['mw-partner-conversation.timer'], 'inactive')
+        self.assertNotIn('mw-partner-conversation.timer', metadata['resume_timers'])
+        self.assertEqual(set(metadata['retired_unit_hashes']), set(deploy.RETIRED_UNIT_FILES))
+        self.assertEqual(deploy.unit_hashes(backup / 'units', deploy.RETIRED_UNIT_FILES), metadata['retired_unit_hashes'])
+        (backup / 'units' / 'mw-conversation-wake.path').write_text('tampered')
+        with self.assertRaisesRegex(RuntimeError, 'Retired unit backup hash mismatch'):
+            self.host.phase('install')
+
+    def test_r091_install_removes_the_retired_units_and_rollback_restores_them(self):
+        self.retired_on_host()
         self.deployed()
-        stopped = [unit for call in stops for unit in call]
-        self.assertIn('mw-receipt-wake.path', stopped)
-        self.assertNotIn('mw-conversation-wake.path', stopped)
         metadata = self.host.metadata()
-        self.assertIn('mw-receipt-wake.path', metadata['resume_timers'])
-        self.assertNotIn('mw-conversation-wake.path', metadata['resume_timers'])
+        self.assertEqual(metadata['units_removed'], deploy.RETIRED_UNIT_FILES)
+        for name in deploy.RETIRED_UNIT_FILES:
+            self.assertFalse((self.host.systemd / name).exists())
+        reset = [call.args[0] for call in self.host.git.call_args_list if call.args and call.args[0][:2] == ['systemctl', 'reset-failed']]
+        self.assertEqual(reset, [['systemctl', 'reset-failed', *deploy.RETIRED_UNIT_FILES]])
+        self.assertIn('daemon-reload', self.host.events)
         self.assertEqual(self.host.phase('activate')[0], 0)
-        self.assertEqual(self.host.timers['mw-receipt-wake.path'], 'active')
-        self.assertEqual(self.host.timers.get('mw-conversation-wake.path', 'inactive'), 'inactive')
+        self.assertEqual(self.host.timers.get('mw-partner-conversation.timer', 'inactive'), 'inactive')
+        self.assertEqual(self.host.phase('rollback')[0], 0)
+        for name in deploy.RETIRED_UNIT_FILES:
+            with self.subTest(unit=name):
+                self.assertEqual((self.host.systemd / name).read_text(), '[Unit]\n# ' + name + ' retired\n')
+        self.assertEqual(self.host.timers.get('mw-partner-conversation.timer', 'inactive'), 'inactive')  # restored disabled
+
+    def test_r091_install_without_retired_units_on_the_host_removes_nothing(self):
+        self.deployed()
+        self.assertEqual(self.host.metadata()['units_removed'], [])
+        self.assertFalse(any(call.args and call.args[0][:2] == ['systemctl', 'reset-failed'] for call in self.host.git.call_args_list))
 
     def test_active_path_unit_blocks_install_and_activation(self):
         self.assertEqual(self.host.phase('freeze')[0], 0)

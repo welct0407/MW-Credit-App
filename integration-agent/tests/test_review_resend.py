@@ -6,7 +6,6 @@ from unittest.mock import patch
 from mw_integration_agent.partner_review import ReviewStore
 from mw_integration_agent.partner_notice import NoticeJournal
 from mw_integration_agent.review_resend import queue, is_command
-from mw_integration_agent.partner_conversation import is_receipt_reply
 
 
 class ResendTests(unittest.TestCase):
@@ -35,7 +34,7 @@ class ResendTests(unittest.TestCase):
     def test_exact_standalone_only(self):
         for text in ('review',' REVIEWS ', 'ReSeNd ReViEw'):
             event=dict(self.event,text=text)
-            self.assertTrue(is_command(event)); self.assertTrue(is_receipt_reply(None,event))
+            self.assertTrue(is_command(event))
         self.assertFalse(is_command(dict(self.event,reply_to='original')))
         self.assertFalse(is_command(dict(self.event,text='review this borrower')))
 

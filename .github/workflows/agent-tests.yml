@@ -154,14 +154,12 @@ jobs:
         working-directory: integration-agent
         run: |
           export MW_AGENT_LAB_MANIFEST="$RUNNER_TEMP/agent-state-lab-ci/manifest.json"
-          export MW_DML_TEST_DSN="host=127.0.0.1 port=15540 user=postgres dbname=mw_dml_test_ci"
           export MW_AGENT_FRESH_PG_DSN="host=127.0.0.1 port=15611 user=postgres dbname=postgres"
-          python -m unittest -v tests.test_postgres_state tests.test_postgres_dml_audit \
-            tests.test_conversation_dml tests.test_notice_acknowledgement \
+          # R091: the reviewer DML and conversation SQL lab suites left with the Instagram Partner conversation.
+          python -m unittest -v tests.test_postgres_state tests.test_notice_acknowledgement \
             tests.test_operator_audit_postgres tests.test_operator_execution_postgres \
             tests.test_receipt_audit_postgres tests.test_state_migration_postgres \
-            tests.test_audit_retention_postgres tests.test_statement_snapshot \
-            tests.test_conversation_sql_postgres
+            tests.test_audit_retention_postgres tests.test_statement_snapshot
       - name: Stop the lab cluster
         if: always()
         run: |

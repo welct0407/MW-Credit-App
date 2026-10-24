@@ -1,6 +1,5 @@
 import {createHash} from 'node:crypto';
 import {compileAgentFilter} from './query-filter.mjs';
-import {resolveConversationActor} from './policy.mjs';
 import {relationshipDescriptor} from './relationships.mjs';
 import {resolveNativeDefaults} from './defaults.mjs';
 import {readNativeCommandMetadata} from './command-metadata.mjs';
@@ -11,9 +10,10 @@ const quote = name => '"' + name.replaceAll('"', '""') + '"';
 const fail = () => { throw Error('unsupported_native_capability'); };
 
 /** Definitions are maintained source, never caller-supplied SQL or schema exports.
- * resolveActor (optional, R090) replaces the agent-policy actor check for an in-process caller that resolved its
- * own actor (the PWA chat service); the default keeps the agent route unchanged. */
-export function createConversationReadProvider({pool, guardConnection, policy, catalogue, resources, resolveActor = resolveConversationActor}) {
+ * resolveActor (required; R091 retired the agent-policy default with the Instagram conversation): the in-process
+ * caller's own actor check (the PWA chat service resolves the chat actor). */
+export function createConversationReadProvider({pool, guardConnection, policy, catalogue, resources, resolveActor}) {
+  if (typeof resolveActor !== 'function') throw Error('resolveActor required');
   const manifestSha256 = createHash('sha256').update(JSON.stringify(catalogue)).digest('hex');
   async function read(context, input, operation) {
     let client, quarantine = false;

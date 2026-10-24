@@ -48,3 +48,10 @@ test('environment command handler accepts only its own canonical and fallback or
  assert.throws(()=>createEnvironmentCommandHandler({config:{...dev,origins:['https://lm.mw-credit.com']},...options}));
  assert.throws(()=>createEnvironmentCommandHandler({config:{...dev,origins:[]},...options}));
 });
+test('R091: the retired agent conversation API variables are refused on every role and environment',()=>{
+ for(const environment of ['dev','prod'])for(const role of ['reader','command']){
+  const env=businessEnv(environment,role);assert.ok(loadBusinessConfig(env));
+  for(const patch of [{AGENT_CONVERSATION_API_ENABLED:'false'},{AGENT_CONVERSATION_API_ENABLED:'true'},{AGENT_CONVERSATION_POLICY_SECRET_VERSION:'projects/x/secrets/y/versions/1'},{AGENT_CONVERSATION_POLICY_JSON:'{}'}])
+   assert.throws(()=>loadBusinessConfig({...env,...patch}),/Invalid (DEV|production) business candidate configuration/,environment+' '+role+' '+JSON.stringify(patch));
+ }
+});

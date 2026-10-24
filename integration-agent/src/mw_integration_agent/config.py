@@ -19,21 +19,39 @@ BOOLEAN_FLAGS = (
     "database_enabled",
 )
 
-# Business database per environment and the reviewer DML role that may write to it
-# (ALL-ARCH-02). The DEV role is not created until a later migration relaxes the
-# session_user checks in V33; the DEV target is configurable but stays unusable.
+# Business database per environment (ALL-ARCH-02).
 DATABASES = {'prod': 'loan_manager_prod', 'dev': 'loan_manager_dev'}
-DML_ROLES = {'prod': 'mw_reviewer_dml', 'dev': 'mw_reviewer_dml_dev'}
 # Cloud SQL Auth Proxy listeners (ALL-ARCH-03): database_port/agent_database_port stay
 # on the password listener (5432) for the roles that still sign in with password files;
-# IAM sign-in (worker, relay, integration agent, and reviewer DML / receipt projector
-# under database_dml_auth / receipt_projector_auth = 'iam') uses the auto-iam-authn
-# listener on iam_database_port (5433 only) and SET ROLE to the target role.
+# IAM sign-in (worker, relay, integration agent, and the receipt projector under
+# receipt_projector_auth = 'iam') uses the auto-iam-authn listener on iam_database_port
+# (5433 only) and SET ROLE to the target role.
 PASSWORD_PORT = 5432
 IAM_PORT = 5433
 AUTH_MODES = ('password', 'iam')
-CONVERSATION_PROVIDERS = ('codex', 'claude', 'gemini')
 IAM_USER = r'[a-z][a-z0-9-]*@clever-oasis-508610-n7\.iam'
+# R091 (owner instruction of 23 October 2026): the Instagram Partner conversation, its native command
+# API, reviewer DML and the conversation providers are retired. A configuration that still carries one
+# of their keys is refused (fail closed), so the live file is cleaned deliberately (deploy-runtime.py
+# R091 activation); the receipt providers keep codex_executable, codex_home, gemini_project and
+# gemini_location, and every conversation_poll_* key stays.
+RETIRED_KEYS = frozenset({
+    'partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled', 'reviewer_delete_enabled',
+    'native_delete_enabled', 'conversation_provider', 'conversation_sql_read_enabled', 'conversation_grounding',
+    'conversation_timeout_seconds', 'partner_conversation_cutoff', 'reviewer_dml_cutoff', 'conversation_api_enabled',
+    'conversation_api_environment', 'conversation_api_origin', 'conversation_api_audience',
+    'conversation_api_manifest_sha256', 'conversation_api_probe_partner_id'})
+# gemini_conversation_* and claude_* (the two providers' settings) and database_dml_* (the reviewer DML sign-in).
+RETIRED_PREFIXES = ('gemini_conversation_', 'claude_', 'database_dml_')
+# R091 catalogue revision 32: the services the conversation and its native API needed.
+RETIRED_SERVICES = frozenset({
+    'persistent_codex_conversation', 'gemini_partner_conversation', 'claude_partner_conversation', 'conversation_sql_read',
+    'operational_data_api', 'reviewer_database_dml', 'operational_data_read'})
+
+
+def retired_keys(config: dict[str, Any]) -> list[str]:
+    """Keys of the retired conversation in this configuration, sorted."""
+    return sorted(k for k in config if k in RETIRED_KEYS or k.startswith(RETIRED_PREFIXES))
 
 
 class ConfigurationError(ValueError):
@@ -78,8 +96,8 @@ def environment(config: dict[str, Any]) -> str:
 def auth_mode(config: dict[str, Any], prefix: str) -> str:
     """'password' (default) or 'iam' for the connection family named by prefix.
 
-    Prefixes: 'database_' (reporting reads), 'agent_database_' (mw_agent state),
-    'database_dml_' (reviewer DML) and 'receipt_projector_' (receipt evidence projector).
+    Prefixes: 'database_' (reporting reads), 'agent_database_' (mw_agent state) and
+    'receipt_projector_' (receipt evidence projector).
     """
     mode = config.get(prefix + 'auth', 'password')
     if mode not in AUTH_MODES:
@@ -112,8 +130,9 @@ def load_controls(config_path: str | Path, catalogue_path: str | Path) -> tuple[
 
 
 def validate_config(config: dict[str, Any]) -> None:
-    from .conversation_api import validate as validate_conversation_api
-    validate_conversation_api(config)
+    retired = retired_keys(config)
+    if retired:
+        raise ConfigurationError('retired conversation configuration keys present: ' + ', '.join(retired))
     from .receipt_api import validate as validate_receipt_api
     validate_receipt_api(config)
     from .receipt_recognition_api import validate as validate_receipt_recognition
@@ -157,56 +176,10 @@ def validate_config(config: dict[str, Any]) -> None:
         except (KeyError, TypeError, ValueError):
             raise ConfigurationError('state generation and timezone cutover required') from None
         aware_cutoff(config, 'state_cutover_at', 'state generation and timezone cutover required')
-    for flag in ('partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled', 'reviewer_delete_enabled', 'native_delete_enabled'):
-        if type(config.get(flag, False)) is not bool:
-            raise ConfigurationError(flag + ' must be boolean')
-    # native_delete_enabled gates only the journaled native command-API Delete (conversation_write).
-    if config.get('native_delete_enabled') and (config.get('state_backend') != 'postgres' or not config.get('conversation_writes_enabled')):
-        raise ConfigurationError('native Delete requires PostgreSQL audit and conversation writes')
-    # Reviewer DELETE is retired (owner decision, 16 October 2026): the role no longer holds DELETE
-    # on the source tables and the DML transport accepts no DELETE step. Fail closed on a stale switch.
-    if config.get('reviewer_delete_enabled', False) is not False:
-        raise ConfigurationError('reviewer DELETE is retired; reviewer_delete_enabled must be false or absent')
-    if config.get('conversation_writes_enabled') and not config.get('partner_conversations_enabled'):
-        raise ConfigurationError('conversation writes require conversations')
-    if config.get('partner_conversations_enabled'):
-        aware_cutoff(config, 'partner_conversation_cutoff')
-        if not all(config.get(k) for k in ('receiver_enabled', 'database_enabled', 'conversation_api_enabled')):
-            raise ConfigurationError('conversations require receiver, database and native API')
-    # Reviewer DML and the receipt projector have their own sign-in switches (ALL-ARCH-03 part 2b),
-    # separate from database_auth so deploying the code does not move them before business V95.
-    dml_mode = auth_mode(config, 'database_dml_')
-    for mode in (dml_mode, auth_mode(config, 'receipt_projector_')):
-        if mode == 'iam':
-            iam_user(config)
-            iam_port(config)
-    if config.get('reviewer_dml_enabled'):
-        if not config.get('partner_conversations_enabled') or not config.get('database_enabled'):
-            raise ConfigurationError('reviewer DML requires conversations and database')
-        if config.get('database_dml_user') != DML_ROLES[environment(config)]:
-            raise ConfigurationError('reviewer DML requires dedicated role')
-        if dml_mode == 'password':
-            _validate_secret_path(config, 'database_dml_password_file')
-        aware_cutoff(config, 'reviewer_dml_cutoff')
-    timeout = config.get('conversation_timeout_seconds', 600)
-    if type(timeout) is not int or not 30 <= timeout <= 900:
-        raise ConfigurationError('conversation_timeout_seconds must be 30..900')
-    provider = config.get('conversation_provider', 'codex')
-    if provider not in CONVERSATION_PROVIDERS:
-        raise ConfigurationError('conversation_provider must be codex, claude or gemini')
-    if provider == 'claude':
-        # Codex ignores the claude_ settings, so they are checked only when they take effect.
-        from .claude_conversation import validate as validate_claude
-        validate_claude(config)
-    if provider == 'gemini':
-        from .gemini_conversation import validate as validate_gemini
-        validate_gemini(config)
-    if config.get('conversation_grounding', 'enforce') not in ('enforce', 'audit', 'off'):
-        raise ConfigurationError('conversation_grounding must be enforce, audit or off')
-    if type(config.get('conversation_sql_read_enabled', False)) is not bool:
-        raise ConfigurationError('conversation_sql_read_enabled must be boolean')
-    if config.get('conversation_sql_read_enabled') and not config.get('database_enabled'):
-        raise ConfigurationError('conversation SQL read requires database')
+    # The receipt projector has its own sign-in switch (ALL-ARCH-03 part 2b), separate from database_auth.
+    if auth_mode(config, 'receipt_projector_') == 'iam':
+        iam_user(config)
+        iam_port(config)
     for name,default,low,high in (('receipt_cycle_image_budget_seconds',60,10,180),('receipt_archive_alert_seconds',3600,600,86400)):
         value=config.get(name,default)
         if type(value) is not int or not low<=value<=high:raise ConfigurationError(f'{name} must be {low}..{high}')
@@ -237,8 +210,8 @@ def validate_config(config: dict[str, Any]) -> None:
         if config.get(flag) is not False:
             raise ConfigurationError(f"unimplemented capability requires {flag}=false")
 
-    # Codex sign-in paths are needed by the Codex conversation and the Codex receipt providers only.
-    codex = (provider == 'codex' or config.get('receipt_extraction_provider', 'codex') == 'codex'
+    # Codex sign-in paths are needed by the Codex receipt providers only.
+    codex = (config.get('receipt_extraction_provider', 'codex') == 'codex'
              or (config.get('receipt_recognition_enabled') and config.get('receipt_recognition_provider', 'gemini') == 'codex'))
     for key in ("state_directory", "secrets_directory", "codex_executable", "codex_home"):
         value = config.get(key)
@@ -327,12 +300,12 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
     if not isinstance(services, dict) or not services:
         raise ConfigurationError("service catalogue must define services")
     for name, service in services.items():
-        if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
-                        "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
-                        "operational_data_api", "reviewer_database_dml", "instagram_delivery", "email_fallback", "daily_briefing",
-                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence", "shared_receipt_payment_api", "audit_relay",
-                        "receipt_recognition_api", "claude_partner_conversation", "gemini_partner_conversation",
-                        "conversation_sql_read"}:
+        if name in RETIRED_SERVICES:
+            raise ConfigurationError(f"retired service: {name}")
+        if name not in {"signed_webhook_ingress", "partner_authentication", "database_connectivity", "partner_oltp_gui",
+                        "instagram_delivery", "email_fallback", "daily_briefing", "pattaya_weather", "daily_cash_statement",
+                        "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence",
+                        "shared_receipt_payment_api", "audit_relay", "receipt_recognition_api"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

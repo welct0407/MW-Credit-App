@@ -202,28 +202,28 @@ function neutralMoney(panel) {
   return panel;
 }
 
-/* R090 (owner, 22 October 2026): the latest 10 Partner chat questions and what each cost. The text and token
- * counts come straight from the agent database (monitoring.recent_questions_v1, agent migration V9) through
- * Grafana PDC; nothing is copied to Cloud Monitoring. Cost = uncached input, cached input and output plus
- * thinking tokens at the billed unit prices in model-prices.json (SGD per million tokens). */
+/* R090 (owner, 22 October 2026), R091: the latest 10 in-app chat questions and what each cost. The text and token
+ * counts come straight from loan_manager_prod (monitoring.pwa_chat_recent_questions_v1, V104) through Grafana PDC;
+ * nothing is copied to Cloud Monitoring. Cost = uncached input, cached input and output plus thinking tokens at the
+ * billed unit prices in model-prices.json (SGD per million tokens). */
 const PRICES = require('../model-prices.json');
 function questionsSql() {
   const values = Object.entries(PRICES.models).map(([model, p]) => "('" + model + "', " + p.input + ', ' + p.cached + ', ' + p.output + ')').join(', ');
   return ['SELECT q.asked_at AS "Asked", q.question AS "Question",',
-    "  coalesce(q.model, 'No usage record') AS \"Model\",",
+    "  coalesce(q.model, 'No answer (' || q.status || ')') AS \"Model\",",
     '  q.input_tokens - coalesce(q.cached_tokens, 0) AS "Input", q.cached_tokens AS "Cached", q.output_tokens AS "Output",',
     '  q.thinking_tokens AS "Thinking",',
     '  round(((q.input_tokens - coalesce(q.cached_tokens, 0)) * p.input + coalesce(q.cached_tokens, 0) * p.cached',
     '    + (q.output_tokens + coalesce(q.thinking_tokens, 0)) * p.output) / 1000000.0, 4) AS "Cost (SGD)"',
-    'FROM monitoring.recent_questions_v1(10) q',
+    'FROM monitoring.pwa_chat_recent_questions_v1(10) q',
     'LEFT JOIN (VALUES ' + values + ') AS p(model, input, cached, output) ON p.model = q.model',
     'ORDER BY q.asked_at DESC'].join('\n');
 }
 const QUESTIONS_Y = 27;
 function questions() {
-  const panel = L.table({id: 50, title: 'Partner chat · last 10 questions', gridPos: pos(0, QUESTIONS_Y + 1, 24, 13),
-    description: 'The 10 latest answered Partner chat questions (Instagram conversation agent), newest first, read live from the agent database (monitoring.recent_questions_v1 through Grafana PDC; not stored in Cloud Monitoring). Input = uncached input tokens, Cached = cached input, Output and Thinking = generated tokens (thinking bills as output); every round of the turn, including tool calls, is included. Cost (SGD) = tokens at the billed Vertex AI unit prices (model-prices.json: Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output per million). No usage record = a Codex turn (subscription) or usage older than the 7-day audit retention. The footer sums the listed questions.',
-    targets: [{refId: 'A', datasource: L.DS.agentQuestions, editorMode: 'code', format: 'table', rawQuery: true, rawSql: questionsSql()}],
+  const panel = L.table({id: 50, title: 'In-app chat · last 10 questions', gridPos: pos(0, QUESTIONS_Y + 1, 24, 13),
+    description: 'The 10 latest in-app chat questions (Chat in the PWA), newest first, read live from loan_manager_prod (monitoring.pwa_chat_recent_questions_v1 through Grafana PDC; not stored in Cloud Monitoring). Input = uncached input tokens, Cached = cached input, Output and Thinking = generated tokens (thinking bills as output); every round of the turn, including tool calls, is included. Cost (SGD) = tokens at the billed Vertex AI unit prices in model-prices.json (per million tokens: Gemini 4 Argon S$5.11 input, S$0.26 cached, S$25.56 output; Gemini 3.8 Flash S$1.92, S$0.19, S$9.59; Gemini 3.5 Flash S$1.91, S$0.19, S$11.50). No answer (pending, unanswered or failed) = a question without a completed reply. The footer sums the listed questions.',
+    targets: [{refId: 'A', datasource: L.DS.chatQuestions, editorMode: 'code', format: 'table', rawQuery: true, rawSql: questionsSql()}],
     defaults: {noValue: 'No questions', decimals: 0, unit: 'none', custom: {align: 'auto', cellOptions: {type: 'auto'}, inspect: false}},
     overrides: [byName('Asked', {unit: 'dateTimeAsLocal', 'custom.width': 150}),
       byName('Question', {'custom.cellOptions': {type: 'auto', wrapText: true}, 'custom.minWidth': 300}),
@@ -231,7 +231,7 @@ function questions() {
       ...['Input', 'Cached', 'Output', 'Thinking'].map(name => byName(name, {unit: 'short', 'custom.width': 90})),
       byName('Cost (SGD)', {unit: 'prefix:S$', decimals: 2, 'custom.width': 110})],
     options: {cellHeight: 'md', footer: {show: true, reducer: ['sum'], fields: ['Cost (SGD)'], countRows: false}}});
-  return [L.row({id: 49, title: 'Partner chat · cost per question', gridPos: pos(0, QUESTIONS_Y, 24, 1)}), panel];
+  return [L.row({id: 49, title: 'In-app chat · cost per question', gridPos: pos(0, QUESTIONS_Y, 24, 1)}), panel];
 }
 
 function build() {
