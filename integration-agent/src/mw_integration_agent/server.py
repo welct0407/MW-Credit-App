@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from .config import ConfigurationError, load_controls, load_json, load_secret, validate_catalogue, validate_config
 from .journal import IngressJournal
-from .receipt_wake import CONVERSATION, converses, wake, wakes
+from .receipt_wake import wake, wakes
 from .webhook import extract_messages, verify_signature
 
 PACKAGE = Path(__file__).resolve().parent
@@ -216,8 +216,6 @@ def handler(config_path: str, catalogue_path: str):
                 # and never fails the delivery; each worker's timer is the fallback.
                 if inserted and any(wakes(m) for m in messages):
                     wake(config)
-                if inserted and any(converses(m) for m in messages):
-                    wake(config, CONVERSATION)
                 self.respond(200, "EVENT_RECEIVED")
             except Exception as exc:
                 self.report("POST", exc)
@@ -229,7 +227,7 @@ def serve(config_path: str, catalogue_path: str) -> None:
     config = load_json(config_path)
     validate_config(config)
     # Load every request-path module now, so a later package replacement cannot mix versions in this process.
-    from . import audit, conversation_api, receipt_api, receipt_storage, state  # noqa: F401
+    from . import audit, receipt_api, receipt_storage, state  # noqa: F401
     if state.enabled(config):
         import psycopg  # noqa: F401
     if not config.get("receiver_enabled"):

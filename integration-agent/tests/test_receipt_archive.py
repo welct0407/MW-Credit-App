@@ -14,7 +14,6 @@ from mw_integration_agent.receipt_journal import ReceiptJournal
 from mw_integration_agent.receipt_projection import reconcile
 from mw_integration_agent.receipt_run import process
 from mw_integration_agent.receipt_storage import BUCKET
-from mw_integration_agent.conversation_schema import writable
 
 
 class Storage:
@@ -163,11 +162,6 @@ class ReceiptArchiveTests(unittest.TestCase):
         self.assertEqual(reconcile(self.config,self.journal,transport,lambda *_:True,self.storage)['applied'],1)
         self.assertEqual(calls[0],calls[1])
         self.assertEqual(self.journal.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'POSTED')
-    def test_model_tools_cannot_change_evidence(self):
-        for field in ('IG Receipt ID','Receipt Image','Receipt Received At'):
-            definition={'key':'Row ID','columns':{field:{'Virtual?':'No','Read-Only':'No','Editable Initial Value?':'Yes'}}}
-            self.assertFalse(writable('Payments',definition,field,'Add'))
-            self.assertFalse(writable('Payments',definition,field,'Edit'))
 
 
 class ProjectorSignInTests(unittest.TestCase):

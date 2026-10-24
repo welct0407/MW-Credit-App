@@ -11,7 +11,6 @@ from unittest.mock import patch
 
 from mw_integration_agent import http as agent_http
 from mw_integration_agent.config import ConfigurationError
-from mw_integration_agent.conversation_api import request_id as conversation_request_id
 from mw_integration_agent.instagram import Instagram
 from mw_integration_agent.receipt_api import request_id as receipt_request_id
 
@@ -118,8 +117,7 @@ class RequestIdTests(unittest.TestCase):
         self.assertEqual(receipt_request_id('dev', 'synthetic-review-1'), '1da49312-d7f1-4948-85a6-b3bf3e61035c')
         self.assertEqual(receipt_request_id('prod', 'synthetic-review-1'), 'b8ffcf33-e1ea-439b-aba5-24b6c914918b')
         self.assertEqual(receipt_request_id('prod', 'ใบเสร็จ'), '499ce400-26db-41ad-9095-d69c4f7bbe05')
-        self.assertEqual(conversation_request_id('dev', 'mid-1', 'op_key'), '9f66698f-0aac-4844-b3a3-74d4bb8ff9a6')
-        self.assertEqual(conversation_request_id('prod', 'ข้อความ', 'k'), 'ca7190f8-6a28-4d85-80b5-3062ab1497cc')
+        # The conversation builder (salt mw-credit-agent-conversation-v1) left with the conversation (R091).
         self.assertEqual(agent_http.uuid_from_sha256(['mw-credit-agent-receipt-v1', 'dev', 'synthetic-review-1']),
                          '1da49312-d7f1-4948-85a6-b3bf3e61035c')
         value = agent_http.uuid_from_sha256(['salt', 'x'])

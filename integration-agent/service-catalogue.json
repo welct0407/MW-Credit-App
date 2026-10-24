@@ -1,5 +1,5 @@
 {
-  "revision": 31,
+  "revision": 32,
   "default_policy": "deny",
   "services": {
     "receipt_evidence": {
@@ -30,25 +30,13 @@
       "enabled": true,
       "implemented": true
     },
-    "operational_data_read": {
-      "enabled": true,
-      "implemented": true
-    },
     "database_connectivity": {
-      "enabled": true,
-      "implemented": true
-    },
-    "persistent_codex_conversation": {
       "enabled": true,
       "implemented": true
     },
     "partner_oltp_gui": {
       "enabled": false,
       "implemented": false
-    },
-    "operational_data_api": {
-      "enabled": true,
-      "implemented": true
     },
     "instagram_delivery": {
       "enabled": true,
@@ -66,10 +54,6 @@
       "enabled": false,
       "implemented": false
     },
-    "reviewer_database_dml": {
-      "enabled": true,
-      "implemented": true
-    },
     "shared_receipt_payment_api": {
       "enabled": false,
       "implemented": true
@@ -79,18 +63,6 @@
       "implemented": true
     },
     "receipt_recognition_api": {
-      "enabled": false,
-      "implemented": true
-    },
-    "claude_partner_conversation": {
-      "enabled": false,
-      "implemented": true
-    },
-    "conversation_sql_read": {
-      "enabled": false,
-      "implemented": true
-    },
-    "gemini_partner_conversation": {
       "enabled": false,
       "implemented": true
     }

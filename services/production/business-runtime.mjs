@@ -1,5 +1,4 @@
 import {createAgentReceiptHandler,loadAgentReceiptPolicy} from '../agent-receipts/runtime.mjs';
-import {createAgentConversationRuntime} from '../agent-conversations/runtime.mjs';
 import {createPostCommitWake,loadDispatchConfig} from '../notifications/postcommit.mjs';
 import {createCommandReceipts,createProductionCommandReceipts} from '../receipts/command-receipts.mjs';
 import {createGcsReceiptTransport,createProductionGcsReceiptTransport} from '../receipts/gcs-transport.mjs';
@@ -64,7 +63,6 @@ export async function createProductionBusinessRuntime(env,dependencies) {
       handler=createEnvironmentCommandHandler({config,verifyPrincipal,store,completionLogger});
       if(config.notificationsEnabled)handler=notificationHandler({next:handler,enabled:true,offlineDataset:true,verifyPrincipal,origins:config.origins,publicKey:config.pushPublicKey,completionLogger,store:createNotificationStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer})});
       handler=createAgentReceiptHandler({next:handler,policy:loadAgentReceiptPolicy(env,config.environment),pool,guardConnection,afterCommit,verifyOidc:dependencies.verifyOidc});
-      handler=createAgentConversationRuntime({next:handler,env,environment:config.environment,pool,guardConnection,afterCommit,verifyOidc:dependencies.verifyOidc});
     }
     return {enabled:true,handler,close:()=>pool.end()};
   } catch(error) {await pool.end();throw error;}

@@ -90,10 +90,10 @@ class NoticeJournal:
         if item['ig_status'] not in ('PENDING','WINDOW_EXPIRED') or item['email_status'] in ('SENT','UNKNOWN','REVIEW'):
             return
         subject,body=display_notice(item)
-        conversation = item['event_key'].startswith('conversation:')
-        if conversation and config.get('partner_conversations_enabled') is not True:
-            raise ConfigurationError('PARTNER_CONVERSATIONS_DISABLED')
-        if not conversation and config.get('receipt_summary_enabled') is not True:
+        # R091: conversation replies are retired with the Instagram Partner conversation (agent V11 drops that stream).
+        if item['event_key'].startswith('conversation:'):
+            raise ConfigurationError('CONVERSATION_NOTICES_RETIRED')
+        if config.get('receipt_summary_enabled') is not True:
             raise ConfigurationError('RECEIPT_NOTICES_DISABLED')
         wanted=json.loads(item['partner'])
         matches=[r for r in rows if r['id']==item['partner_id']]
@@ -101,20 +101,11 @@ class NoticeJournal:
             with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_CHANGED' WHERE id=?",(item['id'],))
             return
         partner=matches[0]
-        if conversation:
-            # Unlike receipt notices, opting out blocks BOTH conversation channels.
-            try:eligible(rows,partner['id'])
-            except ConfigurationError:
-                with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_REVOKED' WHERE id=?",(item['id'],))
-                return
         if item['ig_status']=='PENDING':
             try:
                 eligible(rows,partner['id'])
                 api=api or Instagram(config)
                 recipient=resolver(api,partner)
-                if conversation and recipient != item['recipient_id']:
-                    with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='CONVERSATION_SENDER_CHANGED' WHERE id=?",(item['id'],))
-                    return
                 if len(body)>1000:
                     raise ConfigurationError('IG_MESSAGE_TOO_LONG')
             except ConfigurationError as exc:

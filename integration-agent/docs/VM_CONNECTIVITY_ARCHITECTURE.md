@@ -1,6 +1,6 @@
 # Debian VM connectivity architecture
 
-**Historical diagram:** the AppSheet API paths in this diagram and its generator describe the pre-retirement architecture. Current native runtime, monitoring and configuration are documented in [Partner conversations](PARTNER_CONVERSATIONS.md) and [Operations](OPERATIONS.md); do not use the diagram's legacy setup commands.
+**Historical diagram:** the AppSheet API paths in this diagram and its generator describe the pre-retirement architecture. Current native runtime, monitoring and configuration are documented in [Partner conversations](https://github.com/welct0407/MW-Credit-App/blob/feca47b2849dbdc881ac881cb58ce7ff91862c9f/integration-agent/docs/PARTNER_CONVERSATIONS.md) and [Operations](OPERATIONS.md); do not use the diagram's legacy setup commands.
 
 
 The authoritative editable diagram is [VM_CONNECTIVITY_ARCHITECTURE.drawio](VM_CONNECTIVITY_ARCHITECTURE.drawio). A rendered preview is available at [VM_CONNECTIVITY_ARCHITECTURE.png](VM_CONNECTIVITY_ARCHITECTURE.png).

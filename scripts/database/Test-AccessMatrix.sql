@@ -76,7 +76,6 @@ INSERT INTO am_expected_routines VALUES
   ('PUBLIC','pwa_loan_version_v2(text)'),
   ('PUBLIC','pwa_lock_key_v1(text,text)'),
   ('PUBLIC','pwa_plan_effects_v83(jsonb)'),
-  ('mw-credit-app-command-dev@clever-oasis-508610-n7.iam','pwa_submit_agent_operation_v1(text)'),
   ('mw_app_dev','apply_loan_close_calculation_v83(text,date,text)'),
   ('mw_app_dev','payment_crud_finish_core_v83("Payments","Payments",text)'),
   ('mw_app_dev','payment_crud_prepare_core_v83("Payments","Payments",text)'),
@@ -108,7 +107,6 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev_journal_owner','pwa_management_input_text_v2(text,jsonb)'),
   ('mw_app_dev_journal_owner','pwa_management_tools_text_v2(text,jsonb)'),
   ('mw_app_dev_journal_owner','pwa_operation_status_v2(uuid,text,text)'),
-  ('mw_app_dev_journal_owner','pwa_submit_agent_operation_v1(text)'),
   ('mw_app_dev_journal_owner','pwa_submit_agent_receipt_v1(text)'),
   ('mw_app_dev_journal_owner','pwa_submit_operation_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_submit_selected_charges_v1(text)'),
@@ -279,6 +277,11 @@ DO $$ BEGIN
    OR has_function_privilege('mw_integration_agent','public.pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)','EXECUTE')) THEN RAISE EXCEPTION 'the agent role must not execute the V105 routines'; END IF;
  IF NOT has_column_privilege('postgres','public.pwa_chat_messages','text','SELECT') OR EXISTS(SELECT 1 FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) x WHERE c.oid='public.pwa_chat_messages'::regclass AND x.grantee='postgres'::regrole) THEN
   RAISE EXCEPTION 'the Cost page definer reads its chat columns by column grant only'; END IF;
+END $$;
+-- R091 V107: the agent native command route is retired; its V90 function is gone and the command journal stays.
+DO $$ BEGIN
+ IF EXISTS(SELECT 1 FROM pg_proc WHERE proname='pwa_submit_agent_operation_v1') THEN RAISE EXCEPTION 'V107: pwa_submit_agent_operation_v1 must not exist'; END IF;
+ IF to_regprocedure('public.pwa_submit_operation_v2(text)') IS NULL OR to_regclass('public.pwa_payment_commands') IS NULL THEN RAISE EXCEPTION 'V107 must leave the command submit route and its journal'; END IF;
 END $$;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;

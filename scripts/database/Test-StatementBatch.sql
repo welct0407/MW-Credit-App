@@ -72,8 +72,9 @@ DO $$ DECLARE leaked text; BEGIN
  -- DB-LOCK-03: pwa_lock_key_v1 is the only public function that still spells the inline advisory key.
  SELECT string_agg(p.oid::regprocedure::text,', ') INTO leaked FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc LIKE '%hashtextextended(%' AND p.oid<>'public.pwa_lock_key_v1(text,text)'::regprocedure;
  IF leaked IS NOT NULL THEN RAISE EXCEPTION 'inline advisory key still used by %',leaked; END IF;
- IF (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc LIKE '%pwa_lock_key_v1(%' AND p.oid<>'public.pwa_lock_key_v1(text,text)'::regprocedure)<>10 THEN
-  RAISE EXCEPTION 'expected ten public functions to take their advisory key from pwa_lock_key_v1'; END IF;
+ IF (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc LIKE '%pwa_lock_key_v1(%' AND p.oid<>'public.pwa_lock_key_v1(text,text)'::regprocedure)<>9 THEN
+  -- Nine since V107 (R091) dropped pwa_submit_agent_operation_v1, the tenth V94 call site.
+  RAISE EXCEPTION 'expected nine public functions to take their advisory key from pwa_lock_key_v1'; END IF;
  -- DB-LOCK-02: the job journal is pending/completed only; the lease columns are gone.
  IF EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='public.pwa_job_runs'::regclass AND NOT attisdropped AND attname IN ('lease_expires_at','lease_generation','error_code')) THEN
   RAISE EXCEPTION 'pwa_job_runs lease columns survived V94'; END IF;

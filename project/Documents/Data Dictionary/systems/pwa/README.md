@@ -6,7 +6,7 @@ R059 is Released at exact source `7aecf695789fee3ca3b1fd1f2bece4c4a4bc8ba6`, dep
 
 - [Application](application.yaml): environment bindings, pages, authentication and ownership.
 - [Human API](human-api.yaml): key route families and exact owning validation contracts.
-- [Agent API](agent-api.yaml): authenticated machine operations and receipt command identity.
+- [Agent API](agent-api.yaml): the authenticated receipt payment routes and their command identity (the conversation routes were removed in R091).
 - [Receipts](receipts.yaml): private storage evidence/path rules and retained compatibility.
 - [Notifications and jobs](notifications-jobs.yaml): tables, routes, post-commit dispatch and schedule definitions.
 

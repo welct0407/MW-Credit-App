@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     check = sub.add_parser("check", help="validate disabled scaffold configuration")
     check.add_argument("--config", required=True)
-    relay = sub.add_parser('audit-relay', help='relay committed audit and reconcile proven SQL outcomes; never replay DML')
+    relay = sub.add_parser('audit-relay', help='relay committed audit to the central journal; never replay')
     relay.add_argument('--config',required=True)
     relay.add_argument('--catalogue',required=True)
     check.add_argument(
@@ -25,9 +25,6 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(Path(__file__).resolve().parents[2] / "service-catalogue.json"),
     )
     sub.add_parser("status", help="print the repository runtime status")
-    conversation = sub.add_parser('partner-conversation-cycle', help='process new signed partner messages once')
-    conversation.add_argument('--config', required=True)
-    conversation.add_argument('--catalogue', required=True)
     reconsider=sub.add_parser('receipt-reconsider',help='explicitly reconsider an unexecuted receipt; supersede prior pending review')
     reconsider.add_argument('--config',required=True)
     reconsider.add_argument('--catalogue',required=True)
@@ -57,10 +54,6 @@ def build_parser() -> argparse.ArgumentParser:
     send.add_argument("--catalogue", required=True)
     send.add_argument("--recipient", required=True)
     send.add_argument("--text", required=True)
-    native = sub.add_parser('native-api-probe', help='verify authenticated native catalogue and one key-only read')
-    native.add_argument('--config', required=True)
-    native.add_argument('--catalogue', required=True)
-    native.add_argument('--scope', choices=('oltp','olap'), required=True)
     statement = sub.add_parser("cash-statement", help="prepare or explicitly deliver the latest completed daily cash statement")
     statement.add_argument("--config", required=True)
     statement.add_argument("--catalogue", required=True)
@@ -84,7 +77,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 # Long-running services, local checks and the monitoring/read probes run outside audit.job(): no
 # service owner to fence and nothing to record (the probes touch no journal and leave no audit tree).
-UNWRAPPED_COMMANDS = ('serve-webhook','serve-receipt-recognition','receiver-ready','status','check','native-api-probe','instagram-probe','messages')
+UNWRAPPED_COMMANDS = ('serve-webhook','serve-receipt-recognition','receiver-ready','status','check','instagram-probe','messages')
 
 
 def main() -> int:
@@ -105,22 +98,18 @@ def main() -> int:
 def execute(args, outcome=None) -> int:
     try:
         if args.command == 'audit-relay':
-            from .outbox import relay,reconcile
+            from .outbox import relay
             config=load_json(args.config)
             validate_config(config)
             validate_catalogue(load_json(args.catalogue))
-            result={'relay':relay(config),'reconciliation':reconcile(config)}
+            # R091: the legacy reviewer-DML reconciliation went with the conversation journal (agent V11).
+            result={'relay':relay(config)}
             # The relay writes under other services' operations, never a child of its own JOB:
             # a cycle that moved something materialises its JOB record through the outcome.
-            effect={k:v for k,v in (('exported',result['relay']['exported']),('verified',result['reconciliation']['verified'])) if v}
+            effect={k:v for k,v in (('exported',result['relay']['exported']),) if v}
             if effect and outcome is not None:
                 outcome['effect']=effect
             print(json.dumps(result))
-            return 0
-        if args.command == 'partner-conversation-cycle':
-            from .partner_conversation import run
-            from .receipt_wake import CONVERSATION, more_turns, rerun
-            print(json.dumps(rerun(run, args.config, args.catalogue, CONVERSATION, again=more_turns)))
             return 0
         if args.command=='receipt-reconsider':
             from .receipt_reconsider import run
@@ -158,14 +147,11 @@ def execute(args, outcome=None) -> int:
             validate_catalogue(load_json(args.catalogue))
             print(json.dumps({"status": "ok", "activation": {
                 "state_backend": config.get('state_backend','sqlite'),
-                "native_delete": config.get('native_delete_enabled',False),
                 "cash_statement_schedule": config["cash_statement_schedule_enabled"],
                 "email_fallback": config["email_fallback_enabled"],
                 "receipt_summary": config.get('receipt_summary_enabled',False),
                 "receipt_extraction_provider": config.get('receipt_extraction_provider','codex'),
                 "receipt_recognition": config.get('receipt_recognition_enabled',False),
-                "partner_conversations": config.get('partner_conversations_enabled',False),
-                "conversation_writes": config.get('conversation_writes_enabled',False),
                 "generic_sending": config["sending_enabled"],
                 "processing": config["processing_enabled"], "writes": config["writes_enabled"]}}))
             return 0
@@ -224,16 +210,6 @@ def execute(args, outcome=None) -> int:
                 raise ConfigurationError("instagram_delivery is disabled")
             message_id = Instagram(config).send(args.recipient, args.text)
             print(json.dumps({"status": "accepted", "message_id": message_id}))
-            return 0
-        if args.command == 'native-api-probe':
-            from .conversation_api import probe
-            config = load_json(args.config)
-            catalogue = load_json(args.catalogue)
-            validate_config(config)
-            validate_catalogue(catalogue)
-            if not catalogue['services']['operational_data_read']['enabled']:
-                raise ConfigurationError('operational_data_read is disabled')
-            print(json.dumps(probe(config,args.scope)))
             return 0
     except ConfigurationError as exc:
         print(json.dumps({"status": "error", "error": str(exc)}))

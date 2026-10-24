@@ -74,7 +74,7 @@ Documentation (Dewey):
 - Disposable-lab PostgreSQL suites run only where a lab exists (see [Operations](../docs/OPERATIONS.md#test-lab-prerequisites)); Chase records which ran.
 
 ## Recovery
-- Switch back (the batch is activated on PROD): set `conversation_provider` to `codex` and `conversation_sql_read_enabled` to `false` (config-only route in [Operations](../docs/OPERATIONS.md#partner-conversation-provider-activation-and-rollback)). Codex threads resume. V8 and its rows stay; do not delete or rewrite them. Never restore an older journal over accepted sends or writes.
+- Switch back (the batch is activated on PROD): set `conversation_provider` to `codex` and `conversation_sql_read_enabled` to `false` (config-only route in [Operations](https://github.com/welct0407/MW-Credit-App/blob/feca47b2849dbdc881ac881cb58ce7ff91862c9f/integration-agent/docs/OPERATIONS.md#partner-conversation-provider-activation-and-rollback)). Codex threads resume. V8 and its rows stay; do not delete or rewrite them. Never restore an older journal over accepted sends or writes.
 
 ## Open questions
 - Claude only: a `global` `anthropic-claude-opus` quota grant (the request was rejected). Gemini needs no console action.

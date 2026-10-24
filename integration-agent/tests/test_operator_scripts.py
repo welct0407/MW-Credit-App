@@ -1,122 +1,12 @@
-"""Operator scripts take the private location from arguments and identify targets by instance (AGT-QUALITY-03)."""
-import importlib.util
-import secrets
+"""Operator scripts take the private location from arguments (AGT-QUALITY-03). The reviewer DML setup script and its
+tests left with the Instagram Partner conversation (R091)."""
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 
 SCRIPTS = Path(__file__).resolve().parents[1] / 'scripts'
-spec = importlib.util.spec_from_file_location('configure_reviewer_dml', SCRIPTS / 'configure-reviewer-dml.py')
-configure_dml = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(configure_dml)
 
 
-class FakeConnection:
-    def __init__(self):
-        self.statements = []
-        self.info = SimpleNamespace(dbname='loan_manager_dev')
-
-    def execute(self, statement, params=None):
-        text = statement if isinstance(statement, str) else statement.as_string(None)
-        self.statements.append((text, params))
-        if 'pg_roles' in text:
-            return SimpleNamespace(fetchone=lambda: None)
-        if 'has_schema_privilege' in text:
-            return SimpleNamespace(fetchone=lambda: (False, False))
-        return SimpleNamespace(fetchone=lambda: None)
-
-
-class ReviewerDmlScriptTests(unittest.TestCase):
-    def test_configure_uses_the_role_of_the_requested_environment(self):
-        conn = FakeConnection()
-        credential = secrets.token_hex(8)  # generated per run; no fixed credential-like literal
-        configure_dml.configure(conn, credential, 'mw_reviewer_dml_dev')
-        texts = [t for t, _ in conn.statements]
-        self.assertTrue(texts[1].startswith('CREATE ROLE "mw_reviewer_dml_dev" LOGIN NOSUPERUSER'))
-        self.assertIn(f"'{credential}'", texts[1])
-        self.assertIn('GRANT CONNECT ON DATABASE "loan_manager_dev" TO "mw_reviewer_dml_dev"', texts)
-        self.assertFalse(any('"mw_reviewer_dml"' in t for t in texts))
-        self.assertEqual(conn.statements[0][1], ('mw_reviewer_dml_dev',))
-        # Reviewer DELETE retired and, since V93, no direct "Cash Ledger" DML at all: the ledger
-        # projection is the ledger owner's definer; the reviewer keeps a lock-only column grant.
-        self.assertFalse(any(t.startswith('GRANT') and 'DELETE' in t for t in texts))
-        self.assertIn('GRANT UPDATE ("Created At") ON public."Cash Ledger" TO "mw_reviewer_dml_dev"', texts)
-        table_dml = [t for t in texts if t.startswith('GRANT INSERT, UPDATE ON')]
-        self.assertTrue(table_dml and all('"Cash Ledger"' not in t for t in table_dml))
-        with self.assertRaisesRegex(RuntimeError, 'Unknown reviewer DML role'):
-            configure_dml.configure(FakeConnection(), 'x', 'postgres')
-
-    def test_iam_member_is_idempotent_and_creates_only_a_missing_role(self):
-        # ALL-ARCH-03 part 2b: IAM user holds the role INHERIT FALSE, SET TRUE plus CONNECT; no credential.
-        member = 'mw-integration-agent@clever-oasis-508610-n7.iam'
-
-        class Catalogue(FakeConnection):
-            def __init__(self, roles, memberships):
-                super().__init__()
-                self.roles, self.rows = set(roles), list(memberships)
-
-            def execute(self, statement, params=None):
-                text = statement if isinstance(statement, str) else statement.as_string(None)
-                self.statements.append((text, params))
-                if 'pg_auth_members' in text:
-                    rows = list(self.rows)
-                    return SimpleNamespace(fetchall=lambda: rows)
-                if 'FROM pg_roles' in text:
-                    found = params[0] in self.roles
-                    return SimpleNamespace(fetchone=lambda: (1,) if found else None)
-                if text.startswith('CREATE ROLE'):
-                    self.roles.add(params[0] if params else text.split('"')[1])
-                if text.startswith('GRANT "mw_reviewer') and 'WITH INHERIT FALSE, SET TRUE' in text:
-                    self.rows = [(False, True)]
-                if 'has_schema_privilege' in text:
-                    return SimpleNamespace(fetchone=lambda: (False, False))
-                return SimpleNamespace(fetchone=lambda: None)
-
-        # DEV: the role is missing, so it is created NOLOGIN without a credential, with the standard grants.
-        conn = Catalogue({member}, [])
-        self.assertEqual(configure_dml.iam_member(conn, 'mw_reviewer_dml_dev', member),
-                         {'role_created': True, 'membership_granted': True})
-        texts = [t for t, _ in conn.statements]
-        create = [t for t in texts if t.startswith('CREATE ROLE')]
-        self.assertEqual(create, ['CREATE ROLE "mw_reviewer_dml_dev" NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS'])
-        self.assertFalse(any('PASSWORD' in t for t in texts))
-        self.assertIn(f'GRANT "mw_reviewer_dml_dev" TO "{member}" WITH INHERIT FALSE, SET TRUE', texts)
-        self.assertEqual(texts[-1], f'GRANT CONNECT ON DATABASE "loan_manager_dev" TO "{member}"')
-        # PROD: the existing password role and its grants are left alone; a second run changes nothing but CONNECT.
-        conn = Catalogue({member, 'mw_reviewer_dml'}, [])
-        self.assertEqual(configure_dml.iam_member(conn, 'mw_reviewer_dml', member), {'role_created': False, 'membership_granted': True})
-        self.assertFalse(any(t.startswith(('CREATE', 'ALTER')) for t, _ in conn.statements))
-        conn.statements.clear()
-        self.assertEqual(configure_dml.iam_member(conn, 'mw_reviewer_dml', member), {'role_created': False, 'membership_granted': False})
-        self.assertEqual([t for t, _ in conn.statements if t.startswith('GRANT')],
-                         [f'GRANT CONNECT ON DATABASE "loan_manager_dev" TO "{member}"'])
-        # A membership that inherits is re-granted; one that still inherits afterwards (another grantor) fails closed.
-        conn = Catalogue({member, 'mw_reviewer_dml'}, [(True, True)])
-        self.assertTrue(configure_dml.iam_member(conn, 'mw_reviewer_dml', member)['membership_granted'])
-        class OtherGrantor(Catalogue):
-            def execute(self, statement, params=None):
-                result = super().execute(statement, params)
-                if 'WITH INHERIT FALSE' in self.statements[-1][0]:
-                    self.rows.append((True, True))  # a second grantor's inheriting membership survives
-                return result
-        with self.assertRaisesRegex(RuntimeError, 'Unexpected membership options'):
-            configure_dml.iam_member(OtherGrantor({member, 'mw_reviewer_dml'}, [(True, True)]), 'mw_reviewer_dml', member)
-        for role, user, message in (('postgres', member, 'Unknown reviewer DML role'),
-                                    ('mw_reviewer_dml', 'someone@example.com', 'Unexpected IAM database user'),
-                                    ('mw_reviewer_dml', 'other@clever-oasis-508610-n7.iam', 'IAM database user missing')):
-            with self.subTest(role=role, user=user), self.assertRaisesRegex(RuntimeError, message):
-                configure_dml.iam_member(Catalogue({member, 'mw_reviewer_dml'}, []), role, user)
-
-    def test_target_is_identified_by_instance_name_only(self):
-        environments = {'production': {'instance': 'mw-credit-pg-20261017', 'host': '10.0.0.5', 'database': 'loan_manager_prod', 'user': 'postgres'},
-                        'development': {'instance': 'mw-credit-pg-20261017', 'host': '10.0.0.5', 'database': 'loan_manager_dev', 'user': 'postgres'}}
-        self.assertEqual(configure_dml.target_for(environments, 'prod')[1], 'mw_reviewer_dml')
-        target, role = configure_dml.target_for(environments, 'dev')
-        self.assertEqual((target['database'], role), ('loan_manager_dev', 'mw_reviewer_dml_dev'))
-        environments['development']['instance'] = 'other'
-        with self.assertRaisesRegex(RuntimeError, 'Unexpected dev identity'):
-            configure_dml.target_for(environments, 'dev')
-
+class OperatorScriptTests(unittest.TestCase):
     def test_no_workstation_paths_or_public_addresses_remain(self):
         for path in sorted(SCRIPTS.iterdir()):
             if path.suffix in ('.py', '.sh', '.ps1'):
@@ -124,6 +14,13 @@ class ReviewerDmlScriptTests(unittest.TestCase):
                 with self.subTest(script=path.name):
                     self.assertNotIn('C:/Users/', text); self.assertNotIn('C:\\Users\\', text)
                     self.assertNotIn('136.85.127.134', text)
+
+    def test_retired_conversation_scripts_are_gone(self):
+        for name in ('configure-reviewer-dml.py', 'build-schema-digest.py', 'build-conversation-schema.py', 'conversation-timing.py',
+                     'verify-codex-api-planning.py', 'verify-conversation-format.py', 'verify-delete-conversation.py',
+                     'verify-partner-conversation.py', 'verify-reviewer-conversation.py', 'verify-postgresql-vm.py'):
+            with self.subTest(script=name):
+                self.assertFalse((SCRIPTS / name).exists())
 
 
 if __name__ == '__main__':

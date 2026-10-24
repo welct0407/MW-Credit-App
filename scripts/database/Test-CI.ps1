@@ -78,8 +78,7 @@ if (Test-Selected 'phase8') {
 # R053 covers request-driven push, V89 agent RPCs and true three-owner restoration.
 & "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -R053
 if($LASTEXITCODE){throw 'R053 notification/jobs and agent receipt RPC checks failed'}
-& "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -AgentNativeOnly
-if($LASTEXITCODE){throw 'R053 native source-operation compatibility and race checks failed'}
+# R091: the native source-operation route (V90, dropped by V107) and its phase8 mode are retired.
 & "$PSScriptRoot/../../tests/integration/Run-Phase8.ps1" -AgentReadsOnly
 if($LASTEXITCODE){throw 'R053 native read column/type/ACL checks failed'}
 & "$PSScriptRoot/../../tests/integration/Run-R053OperatorIndependent.ps1" -AgentReceipts

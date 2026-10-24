@@ -8,7 +8,7 @@ The in-app chat (R090, [root change note](../../Change%20Logs/CHANGE_NOTES_R090_
 - First attempt, 09:50:42Z to 09:51:00Z: only `partner_conversations_enabled=false`; `check` refused it, the file was restored, workers were paused about 18 s.
 - Units: `mw-partner-conversation.timer` and `mw-conversation-wake.path` stopped at 09:59:45Z and disabled at 10:01:03Z (the design assumed the timers would no-op when the switch was off; instead the unit failed every 15 s, so the failed state was reset). The stop survives a reboot, and the deploy helper resumes only units that were active at `freeze`.
 - Host monitor 10:00:35Z: success. Conversation check reads 3 (disabled); `timer_ok` and `wake_path_active` read 0, which is expected now. Receipts are unaffected.
-- Docs: [Operations](../docs/OPERATIONS.md) (Current state paragraph, restart steps in the provider section) and [Partner conversations](../docs/PARTNER_CONVERSATIONS.md) (stopped banner). Five of the six worker timers stay active.
+- Docs: [Operations](../docs/OPERATIONS.md) (Current state paragraph, restart steps in the provider section) and [Partner conversations](https://github.com/welct0407/MW-Credit-App/blob/feca47b2849dbdc881ac881cb58ce7ff91862c9f/integration-agent/docs/PARTNER_CONVERSATIONS.md) (stopped banner). Five of the six worker timers stay active.
 - Tooling: `scripts/build-schema-digest.py` leaves the `pwa_chat_*` relations (V104, closed to the agent role) out of the agent's schema digest, so the committed digest is unchanged; `tests/test_schema_digest.py` expects that exclusion. The data dictionary now records the four chat tables.
 
 ## Checks
