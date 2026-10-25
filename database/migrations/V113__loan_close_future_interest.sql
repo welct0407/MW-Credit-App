@@ -4,7 +4,7 @@
 -- interest from that future date (none), so the borrower paid interest for days that had not happened. Now, for day D:
 -- 1. latest is the last charge dated on or before D. With no charge dated after D nothing changes: the elapsed interest
 --    from latest (or Loan Date) to D goes to the new lc7: charge, and the calculation and plan hash are byte-identical to V112.
--- 2. A future charge whose Notes carry the line the apply writes (step 4) was settled by an earlier close and keeps its
+-- 2. A future charge whose Notes carry the line the apply writes (step 4), with a real calendar date, was settled by an earlier close and keeps its
 --    stored due; it takes no further part. With any other (unsettled) charge dated after D the lc7: charge carries no
 --    elapsed interest (it still takes missing principal); those days are billed on the first unsettled future charge F1
 --    (by Charge Date, then Row ID):
@@ -45,7 +45,7 @@ CREATE OR REPLACE FUNCTION public.loan_close_calculation_v83(p_loan text, p_day 
     AS $$
 DECLARE l public."Loans"%ROWTYPE; outstanding numeric;scheduled numeric;missing numeric;interest numeric:=0;
  target text;today_count integer;latest date;mutation jsonb:='null'::jsonb;lines jsonb;total numeric;context jsonb;
- trail_pattern text:='(^|\n)Interest Due lowered from [0-9.]+ by Loan Close ([0-9]{4}-[0-9]{2}-[0-9]{2})($|\n)';
+ trail_pattern text:='(^|\n)Interest Due lowered from [0-9.]+ by Loan Close ([1-9][0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]))($|\n)';
  opening date;trail_day date;has_future boolean;future jsonb;future_due jsonb;
 BEGIN
  SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan;
@@ -63,14 +63,16 @@ BEGIN
  -- due, and the days up to that close's date T are billed; the first other one (F1) carries the days from the later of
  -- latest and T up to the day, capped by its stored due; later ones keep their paid interest.
  SELECT max("Charge Date") INTO opening FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
- SELECT max((regexp_match(c."Notes",trail_pattern))[2]::date) INTO trail_day FROM public."Charges" c WHERE c."Ref Loans"=p_loan AND c."Charge Date">p_day;
- WITH s AS(SELECT c."Row ID" id,c."Charge Date" charge_day,c."Interest Due"::numeric due,coalesce(c."Notes",'') ~ trail_pattern settled FROM public."Charges" c
+ -- A trail line counts only with a real calendar date (a hand-edited 2026-02-31 or 2026-99-99 does not), so no cast can fail.
+ WITH s AS(SELECT c."Row ID" id,c."Charge Date" charge_day,c."Interest Due"::numeric due,d.trail,d.trail IS NOT NULL settled FROM public."Charges" c
+   LEFT JOIN LATERAL(SELECT (regexp_match(c."Notes",trail_pattern))[2] t) m ON true
+   LEFT JOIN LATERAL(SELECT CASE WHEN m.t IS NOT NULL THEN CASE WHEN substr(m.t,9,2)::integer<=extract(day FROM make_date(substr(m.t,1,4)::integer,substr(m.t,6,2)::integer,1)+interval '1 month'-interval '1 day') THEN m.t::date END END trail) d ON true
    WHERE c."Ref Loans"=p_loan AND c."Charge Date">p_day),
-  f AS(SELECT s.*,paid.i,row_number() OVER(PARTITION BY s.settled ORDER BY s.charge_day,s.id COLLATE "C") n FROM s
+  f AS(SELECT s.*,paid.i,row_number() OVER(PARTITION BY s.settled ORDER BY s.charge_day,s.id COLLATE "C") n,max(s.trail) OVER() trail_all FROM s
    LEFT JOIN LATERAL(SELECT coalesce(sum(r."Interest Paid"::numeric),0) i FROM public."Repayments" r WHERE r."Ref Charges"=s.id AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment)) paid ON true),
-  v AS(SELECT id,due,settled,CASE WHEN settled THEN due WHEN n>1 THEN i ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(opening,trail_day),l."Loan Date")))) END due_new FROM f)
- SELECT coalesce(bool_or(NOT settled),false),jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new)
-  INTO has_future,future,future_due FROM v;
+  v AS(SELECT id,due,settled,CASE WHEN settled THEN due WHEN n>1 THEN i ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(opening,trail_all),l."Loan Date")))) END due_new,trail FROM f)
+ SELECT coalesce(bool_or(NOT settled),false),jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new),max(trail)
+  INTO has_future,future,future_due,trail_day FROM v;
  SELECT count(*),min("Row ID") INTO today_count,target FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=p_day;
  IF today_count>1 THEN RAISE EXCEPTION 'Multiple charges today require reconciliation before closing';END IF;
  IF today_count=0 THEN

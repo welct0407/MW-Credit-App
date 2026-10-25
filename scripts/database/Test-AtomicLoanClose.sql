@@ -54,7 +54,7 @@ INSERT INTO "Repayments"("Row ID","Ref Loans","Payment Date","Principal Paid","I
 -- Loan Date three days ago, F1 four days ahead with 70 interest. The days up to today are billed on F1 (capped by its
 -- stored due), later future charges keep the interest paid on them, and the lc7: charge takes the principal only.
 INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
-VALUES('AC7-FI-CAPITAL','AC7-PARTNER',current_date,'Contribution',9000::money);
+VALUES('AC7-FI-CAPITAL','AC7-PARTNER',current_date,'Contribution',11000::money);
 INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
 SELECT 'CI-LISA','AC7-FI-'||n,'AC7-B',current_date-3,1000::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money
 FROM unnest(ARRAY['NONE','PART','FULL','TODAY','TWO','CAP','ADJ','MIS','PRE']) n;
@@ -76,6 +76,12 @@ INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Intere
 -- PRE: a pre-V113 lc7: charge with interest (its close reopened), then a hand-booked F1: billed two days, not in full.
 ('lc7:10:AC7-FI-PRE:'||(current_date-2),'AC7-FI-PRE',current_date-2,1000::money,30::money),
 ('AC7-FI-PRE-F1','AC7-FI-PRE',current_date+4,0::money,70::money);
+-- Hand-edited trail lines with an impossible date are not trails: the charge stays unsettled and nothing raises.
+INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
+SELECT 'CI-LISA','AC7-FB-'||n,'AC7-B',current_date-3,1000::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money FROM unnest(ARRAY['MONTH','DAY']) n;
+INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes") VALUES
+('AC7-FB-MONTH-F1','AC7-FB-MONTH',current_date+4,0::money,70::money,'Interest Due lowered from 90 by Loan Close 2026-99-99'),
+('AC7-FB-DAY-F1','AC7-FB-DAY',current_date+4,0::money,70::money,'Interest Due lowered from 90 by Loan Close 2026-02-31');
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-FI-PART-PRE','AC7-B','AC7-FI-PART-F1',current_date,40::money,'Single Partial','Processing');
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-FI-FULL-PRE','AC7-B','AC7-FI-FULL-F1',current_date,70::money,'Single Full','Processing');
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-FI-TODAY-PRE','AC7-B','AC7-FI-TODAY-F1',current_date,20::money,'Single Partial','Processing');
@@ -187,6 +193,8 @@ SELECT pg_temp.close_assert((SELECT c->>'amount'='1020' AND NOT c->'mutation'?'f
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1020' AND c->'mutation'='{"kind":"adjust","futureInterest":[{"chargeId":"AC7-FI-ADJ-F1","interestDue":"10"}]}'::jsonb FROM fi_plan WHERE n='ADJ'),'CH-ADJ: an adjust-only close bills one day on F1');
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1010' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-MIS-F1","interestDue":"10"}]' AND c#>>'{mutation,kind}'='adjust' FROM fi_plan WHERE n='MIS'),'MIS: F1 billed least(70, 10 x 1)');
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1050' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-PRE-F1","interestDue":"20"}]' FROM fi_plan WHERE n='PRE'),'pre-V113 lc7: then a hand-booked F1: F1 billed least(70, 10 x 2)');
+SELECT pg_temp.close_assert((SELECT bool_and(c->>'amount'='1030' AND c#>'{mutation,futureInterest}'=jsonb_build_array(jsonb_build_object('chargeId','AC7-FB-'||n||'-F1','interestDue','30')))
+  FROM unnest(ARRAY['MONTH','DAY']) n CROSS JOIN LATERAL public.loan_close_calculation_v83('AC7-FB-'||n,current_date) c),'trail lines dated 2026-99-99 or 2026-02-31 do not raise and leave the charge unsettled');
 -- Exclusion: as if the early payment did not exist (the correction preview of that receipt).
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1030' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-PART-F1","interestDue":"30"}]' FROM public.loan_close_calculation_v83('AC7-FI-PART',current_date,'AC7-FI-PART-PRE') c),'exclusion of the early payment recomputes F1 from the remaining paid interest');
 SELECT pg_temp.close_reject($q$SELECT public.apply_loan_close_calculation_v83('AC7-FI-NONE',current_date,'0000')$q$,'Close plan changed');
