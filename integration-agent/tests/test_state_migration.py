@@ -4,6 +4,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,7 +15,7 @@ from mw_integration_agent.state import TABLES
 
 def journals(root):
     for name in TABLES:
-        with sqlite3.connect(root / name) as db:
+        with closing(sqlite3.connect(root / name)) as db, db:
             db.execute('CREATE TABLE IF NOT EXISTS marker(name TEXT)')
             db.execute('INSERT INTO marker VALUES (?)', (name,))
 
@@ -33,7 +34,7 @@ class BackupTests(unittest.TestCase):
         self.assertEqual(set(manifest['files']), set(TABLES))
         for name, digest in manifest['files'].items():
             self.assertEqual(hashlib.sha256((self.target / name).read_bytes()).hexdigest(), digest)
-            with sqlite3.connect(self.target / name) as copy:
+            with closing(sqlite3.connect(self.target / name)) as copy:
                 self.assertEqual(copy.execute('SELECT name FROM marker').fetchone()[0], name)
         self.assertEqual(manifest['snapshots'], {'cash-statements/calendar-day/2026-10-01/snapshot.json':
                                                  hashlib.sha256(b'{"synthetic":true}').hexdigest()})
@@ -41,7 +42,7 @@ class BackupTests(unittest.TestCase):
 
     def test_unexpected_or_missing_journals_fail_closed(self):
         journals(self.source)
-        with sqlite3.connect(self.source / 'surprise.db') as db:
+        with closing(sqlite3.connect(self.source / 'surprise.db')) as db, db:
             db.execute('CREATE TABLE x(y)')
         with self.assertRaisesRegex(ConfigurationError, 'UNMAPPED_APPLICATION_JOURNAL'):
             state_migration.backup_journals(self.source, self.target)

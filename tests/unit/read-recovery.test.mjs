@@ -38,6 +38,6 @@ test('only exact installed connection timeout messages classify; public result h
     const store=createBorrowerReadStore({config,pool:{async connect(){throw Error(message)}}});
     const result=await store.session(config.ownerEmail);
     assert.deepEqual(result.diagnostic,{stage:'connect',category});
-    assert.equal(JSON.stringify(result),'\{"ok":false,"status":503,"code":"read_unavailable"\}');
+    assert.equal(JSON.stringify(result),'{"ok":false,"status":503,"code":"read_unavailable"}');
   }
 });

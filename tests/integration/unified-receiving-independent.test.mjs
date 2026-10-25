@@ -125,6 +125,6 @@ test('U6 committed acknowledgement loss resolves through a fresh store/status wi
 
 test('U9 direct child tamper denied; synthetic same-total split projection reports changed',async()=>{
  const f=await seed('UC-SPLIT'),c=command(f,[line(f,'new-z',70,10)],'80'),{id}=await posted(f,c);
- await assert.rejects(admin.query('UPDATE "Payment Allocations" SET "Allocated Principal"=69::money,"Allocated Interest"=11::money WHERE "Ref Payment"=$1',[id]),/immutable/);const result=await readCommandResult({query:async(text,args)=>{const value=await app.query(text,args);if(text.includes('\"Allocated Principal\"'))return {...value,rows:value.rows.map(row=>({...row,principal:'69.00',interest:'11.00'}))};return value}},actor,c.requestId);assert.equal(result.currentSource,'changed',JSON.stringify(result));assert.equal(Number(result.allocations[0].amount),80);assert.deepEqual(result.originalCommand,canonicalCommand(c));
+ await assert.rejects(admin.query('UPDATE "Payment Allocations" SET "Allocated Principal"=69::money,"Allocated Interest"=11::money WHERE "Ref Payment"=$1',[id]),/immutable/);const result=await readCommandResult({query:async(text,args)=>{const value=await app.query(text,args);if(text.includes('"Allocated Principal"'))return {...value,rows:value.rows.map(row=>({...row,principal:'69.00',interest:'11.00'}))};return value}},actor,c.requestId);assert.equal(result.currentSource,'changed',JSON.stringify(result));assert.equal(Number(result.allocations[0].amount),80);assert.deepEqual(result.originalCommand,canonicalCommand(c));
 });
 

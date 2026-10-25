@@ -42,5 +42,17 @@
       },
       "a11y": "warn"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["tests/e2e/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noEmptyPattern": "off"
+          }
+        }
+      }
+    }
+  ]
 }

@@ -32,12 +32,12 @@ async function setup(page:Page,holdChildren=false){
 
 test('amount-first manual grid retains edits and returns to Collection after explicit confirmation',async({page},info)=>{
  const fixture=await setup(page);await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();await page.getByRole('combobox',{name:/^Receiving account(?: \*)?$/}).selectOption('ux-A');
- await page.getByRole('textbox',{name:/^Amount\ received(?: \*)?$/}).fill('7');
+ await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('7');
  const row=page.locator('.payment-allocation-row').first();await row.getByRole('checkbox').check();
  await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('5');await expect(row.getByRole('textbox',{name:/Interest for/})).toHaveValue('2');
  await row.getByRole('textbox',{name:/Principal for/}).fill('7');await row.getByRole('textbox',{name:/Interest for/}).fill('0');
- await page.getByRole('textbox',{name:/^Amount\ received(?: \*)?$/}).fill('9');await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('7');await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();
- await page.getByRole('textbox',{name:/^Amount\ received(?: \*)?$/}).fill('7');await page.getByRole('textbox',{name:/^Notes(?: \*)?$/}).fill('manual ไทย');
+ await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('9');await expect(row.getByRole('textbox',{name:/Principal for/})).toHaveValue('7');await expect(page.getByRole('button',{name:'Review payment',exact:true})).toBeDisabled();
+ await page.getByRole('textbox',{name:/^Amount received(?: \*)?$/}).fill('7');await page.getByRole('textbox',{name:/^Notes(?: \*)?$/}).fill('manual ไทย');
  await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);
  mkdirSync('test-results/r052-unified-receiving',{recursive:true});for(const width of info.project.name.startsWith('mobile')?[320,390]:[1440]){await page.setViewportSize({width,height:850});await page.evaluate(()=>window.scrollTo(0,0));await page.locator('.selected-payment').evaluate(el=>el.scrollTop=0);await page.locator('.payment-charge-scroll').evaluate(el=>el.scrollTop=0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'test-results/r052-unified-receiving/amount-first-'+info.project.name+'-'+width+'.png'});}
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.getByRole('button',{name:'Confirm payment',exact:true})).toBeEnabled();

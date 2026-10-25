@@ -1,4 +1,5 @@
 """Operator-only schema/import tools. No runtime or model entry point."""
+from contextlib import closing
 from datetime import datetime, UTC
 import hashlib
 import json
@@ -26,8 +27,9 @@ def backup_journals(source, target):
     for name in TABLES:
         path=source/name
         if not path.exists(): raise ConfigurationError('EXPECTED_JOURNAL_MISSING:'+name)
-        with sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True) as old:
-            with sqlite3.connect(target/name) as copy:
+        # closing() releases both handles; the inner connection context keeps the commit-or-rollback of before.
+        with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as old, old:
+            with closing(sqlite3.connect(target/name)) as copy, copy:
                 old.backup(copy)
                 if copy.execute('PRAGMA integrity_check').fetchone()[0]!='ok':
                     raise ConfigurationError('SQLITE_BACKUP_INTEGRITY_FAILED')

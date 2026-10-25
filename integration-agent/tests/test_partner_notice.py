@@ -85,8 +85,9 @@ class NoticeTests(unittest.TestCase):
 
     def test_existing_journal_gains_accepted_at_without_backfill(self):
         import sqlite3
+        from contextlib import closing
         path=Path(self.tmp.name)/'old.db'
-        with sqlite3.connect(path) as db:
+        with closing(sqlite3.connect(path)) as db, db:
             db.execute('''CREATE TABLE partner_notices (id TEXT PRIMARY KEY,event_key TEXT NOT NULL,partner_id TEXT NOT NULL,
               partner TEXT NOT NULL,subject TEXT NOT NULL,body TEXT NOT NULL,ig_status TEXT NOT NULL DEFAULT 'PENDING',message_id TEXT,
               email_status TEXT NOT NULL DEFAULT 'PENDING',attempts INTEGER NOT NULL DEFAULT 0,

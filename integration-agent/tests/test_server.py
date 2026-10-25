@@ -9,7 +9,7 @@ import tempfile
 import threading
 import time
 import unittest
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from unittest.mock import patch
@@ -166,7 +166,7 @@ class ReceiverTests(unittest.TestCase):
         path = Path(self.fixture.config['state_directory']) / 'instagram-ingress.db'
         if not path.exists():
             return 0
-        with sqlite3.connect(path) as db:
+        with closing(sqlite3.connect(path)) as db:
             return db.execute('SELECT count(*) FROM receipts').fetchone()[0]
 
     def test_malformed_requests_are_client_errors_and_switches_are_read_per_request(self):

@@ -41,6 +41,12 @@
     "vite": "^7.1.0"
   },
   "overrides": {
-    "@grpc/grpc-js": "1.14.5"
+    "@grpc/grpc-js": "1.14.5",
+    "rimraf": "^6"
+  },
+  "allowScripts": {
+    "@firebase/util": true,
+    "esbuild": true,
+    "protobufjs": true
   }
 }

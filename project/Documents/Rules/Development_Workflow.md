@@ -58,7 +58,7 @@ Documentation is part of development completion, not an optional later task. At 
 | --- | --- |
 | [Project README](../../README.md) | Project background, capability overview and roadmap milestones; update material changes without duplicating detailed release/runtime records |
 | [Development Changes](../Development_Changes.md) | Current operation, active scope, remaining work, limitations and delivery-tooling status; a release's sections are pruned at its closure |
-| [Release Tracker](../Release_Tracker.md) | Open/Frozen/Released state, numbering and pending release actions, without deployment pins; change state only at the authorized transition |
+| [Release Tracker](../Release_Tracker.md) | Open/Frozen/Released state, numbering and pending release actions, without deployment pins; change state only at the authorized transition, published in the release's closure pull request |
 | [Solution Design](../Solution_Design.md) | Implemented architecture, component ownership and business meaning. Its **Current state** section is the first place to update runtime facts for the PWA and API |
 | [PWA Data Model](../PWA_Data_Model_Overview.md) | Relationships, command/user-flow semantics and source-correction behavior |
 | [Database README](../../../database/README.md) | Its **Current state** section is the first place to update runtime facts for the database (migrations, runners, roles) |
@@ -79,6 +79,7 @@ Dewey (Agent D) owns this maintenance step for the six-agent process, obtaining 
 Keep records proportional:
 
 - Record each coherent task or batch once: one change note under `Change Logs/` (root app) or `integration-agent/Change Logs/`, using the template below (a new note file needs no approval), or an entry in the existing development record; plus only the affected owning references and dictionary records. One promotion record plus the required machine manifest suffices. Read-only answers need no record.
+- Publish records with code or at closure: during development they ride the next code push; at release closure the tag is created on the package commit, then the freeze pin, promotion record, tag record and prune are one pull request ([Promotion](Release_Workflow.md#promotion) step 4). Only a live PROD action record when the session ends before closure, or an incident record, is published alone.
 - Optional new logs, plans, reports or handoffs need explicit owner approval (below). Do not add duplicate documents merely because technical deployment records are authorized.
 - Update exact current model definitions for schema, behavior or access changes through the [dictionary helper](../../scripts/dictionary/README.md) and validate the affected batch. UI-only or policy edits need no dictionary rebuild. Retired AppSheet objects are not mirrored for new PWA changes.
 - Update the [monitoring visual guide](../Resource_Monitoring_Dashboard_Guide.md) when its dashboards change. Change architecture prose only when architecture or business meaning changes.
