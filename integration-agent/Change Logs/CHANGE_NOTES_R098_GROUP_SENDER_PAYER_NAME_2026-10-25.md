@@ -26,7 +26,7 @@ Revert this commit and redeploy the previous agent commit with `deploy-runtime.p
 None.
 
 ## Remaining work
-Deploy to the VM. The borrower from the report has no payer name yet: the next slip in that group fills it, or the owner types it in the app.
+Done at the VM deploy: the borrower from the report now has the payer name from the agent's own slip (one guarded write, audited). Watch the next group-sender slip.
 
 ## Promotion record
 
@@ -34,7 +34,7 @@ Deploy to the VM. The borrower from the report has no payer name yet: the next s
 
 ### Continue here
 - Outcome/scope and affected components: R098 is agent only: #156 `654f9812` (a borrower's slip in a multi-borrower group learns the payer name) and #157 `dbd2c897` (`retry_after=0` in `ReceiptJournal.accept`, so an approved payment posts in about 40 s instead of about 5 minutes). No SQL, API, Hosting, migration, configuration, catalogue or unit change. Components: the PROD agent on `vm-mw-credit-agent`, and one data fill (below).
-- State and next action or actual blocker: frozen; next the VM deploy.
+- State and next action or actual blocker: applied and verified; tag `R098` on `dbd2c897` (Release tag workflow). Open check for the owner: the next real automatic payment and the next group-sender slip (below).
 - Source/artifact/configuration pins; runner manifest link: `main` `dbd2c897` (package). No image, no manifest, no SQL release file. Pins go to the Environment inventory after the deploy.
 - Existing owner authority and any explicit hands-on checkpoint: the owner's answer "yes" in this conversation, to merge #156, deploy R098 (with #157) to DEV and the PROD agent, and fill one borrower's payer name in PROD from the agent's slip, only if empty, with audit. No other data write, no forced notification or job.
 - Previous deployed baseline and recovery: VM at `14c4a403` (R095 deploy 24 October 2026; later releases R096 and R097 did not touch the VM), `payer_name_cutoff` `2026-10-24T18:36:14+00:00`; recovery is `deploy-runtime.py rollback` to the freeze directory this deploy creates.
@@ -44,12 +44,12 @@ Deploy to the VM. The borrower from the report has no payer name yet: the next s
 ### Promotion
 | Step | Completion evidence |
 | --- | --- |
-| Scope, target, authority and usable recovery confirmed | Owner answer above; target `vm-mw-credit-agent` (PROD agent, `mw_agent` and `loan_manager_prod`); live `code_version` and the freeze directory captured at deploy: Pending |
+| Scope, target, authority and usable recovery confirmed | Owner answer above; target `vm-mw-credit-agent` (PROD agent, `mw_agent` and `loan_manager_prod`); live `code_version` `14c4a403` (81 keys, `payer_name_cutoff` set) and the freeze directory `runtime-20261025T080421335106Z` captured |
 | Required affected checks passed or explicit owner deferral recorded | CI runs above; no deferral |
 | Tested package captured; tracker freeze/handoff published | `main` `dbd2c897`; tracker updated (R098 Frozen, R099 Open, counter R100) |
-| Changed components deployed in dependency order | DEV: not applicable (below). PROD VM: Pending. Payer-name fill: Pending |
-| Version/environment and affected PROD smoke verified once | Pending |
-| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Pending (inventory, tracker, Development Changes; tag `R098` through the Release tag workflow) |
+| Changed components deployed in dependency order | DEV: not applicable (below). PROD VM: checkout `14c4a403` to `dbd2c897`, freeze 08:04:21Z, install 08:04:21Z to 08:04:28Z (no removed files, no unit change), activate 08:04:28Z to 08:04:32Z, probe `95fe8128-5032-4e7f-b7ba-ca058640f5e5`; dry-run: changed modules `receipt_identity.py` and `receipt_journal.py` only, agent schema through 11, no drift. Payer-name fill: written 08:07:10Z to 08:07:29Z as `postgres` over the backfill admin route (session verified `loan_manager_prod`), one transaction, row locked, guarded to NULL or empty, rows 1, committed |
+| Version/environment and affected PROD smoke verified once | `/ready` true, `code_version` `dbd2c89…` (started 08:04:30Z), 81 keys, `payer_name_cutoff` unchanged, `check` ok, recognizer `/healthz` ok, no failed units, no err-priority `mw-*` journal lines since 08:04:20Z; receipt-summary runs 08:04:37Z to 08:05:59Z no failures (exit 0), conversation-poll 08:05:33Z and audit-relay success. Fill readback: the column equals the written 31-byte single-line name, one `pwa_row_changes` row (audit trigger fired); the private receipt stays outside Git |
+| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Inventory VM row, tracker (R098 Released), Development Changes (pruned); tag `R098` on `dbd2c897bc1bc4648a8b729e8d1386bfb5fecdfe` through the Release tag workflow |
 
 **DEV: not applicable.** The integration agent (receipt cycle, review cycle, conversation poll, audit relay, recognizer service) exists once, on `vm-mw-credit-agent`, and works against PROD (`receipt_environment` prod, `mw_agent`, `loan_manager_prod`). There is no separate DEV agent runtime or DEV agent database; DEV only calls the shared recognizer service on the same VM, told apart by caller identity, which the VM deploy restarts. R094 and R095 (the agent changes since the Instagram conversation retirement) therefore had DEV deploys for SQL and the Cloud Run services only, and one VM deploy each; R096 and R097 had none. R098 changes only agent modules, so it has one VM deploy.
 
@@ -65,8 +65,14 @@ Deploy to the VM. The borrower from the report has no payer name yet: the next s
 - Recovery: `deploy-runtime.py rollback --commit <freeze commit>` restores the previous package (R095 `14c4a403`) from the freeze directory; no state change needs undoing, since the previous package ignores a cleared `retry_after` and the new fill behaviour is only a write the old package does not make. The filled name is editable in the app, or set back to NULL for the one row with the private SQL's row id.
 
 ### Close
-- Outcome: Pending (applied / verified / owner-accepted, with actual limitations).
+- Outcome: applied and verified on the VM (25 October 2026) and the one fill written. Not yet observed on live traffic: the next real automatic payment should reach POSTED about 40 s after capture, and the next group-sender slip should save its payer name. Not owner-accepted yet.
 - Recovery reference: above.
-- Changed documents, if any: Pending (inventory VM row, tracker, Development Changes).
-- Published evidence/tag: Pending (`R098`).
-- Outstanding owner action, if any: none expected.
+- Changed documents, if any: Environment inventory (VM row), Release tracker, Development Changes, this note and the posting-hold note; pruning below.
+- Published evidence/tag: tag `R098` on `dbd2c897bc1bc4648a8b729e8d1386bfb5fecdfe` (Release tag workflow).
+- Outstanding owner action, if any: none; the two live checks above happen with real traffic.
+
+### Closure pruning (release workflow, 25 October 2026)
+- Inbound links repointed first to the commit permalink of `c92c04d5` (the last commit where the target exists): the R095 agent notes, `project/Documents/Development_Changes.md` and `Release_Tracker.md`.
+- Change note deleted (R095 left the retention window of R098, R097 and R096): `Change Logs/CHANGE_NOTES_R095_FOLLOW_UPS_AND_DEV_TEST_ACCOUNT_2026-10-24.md`. The agent-side notes stay.
+- Development Changes: the R098 candidates row is replaced by one R098 follow-up row; the R095 row stays as a condensed row.
+- Evidence deleted: none.
