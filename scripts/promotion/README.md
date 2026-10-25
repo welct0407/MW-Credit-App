@@ -23,6 +23,16 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R096 read, command, chat and frontend promotion with no SQL
+
+`schemaVersion: 29`, `release: R096`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R090's chat-era kind (shared code path) for the Collection change (every charge dated today, also one paid on an earlier day, with a "Paid in advance" caption), with no migration and new read, command and chat images.
+
+- **Source.** The source must descend from the R095 package `14c4a40` (PR #148, frozen at promotion start) and add no file under `database/migrations`. A later delivery-tool commit may carry only the runner, its unit test, this README and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** None: `sql` is exactly `{baselineVersion:111, targetVersion:111, migrations:[], verified}`, where `verified` is a read-only PROD readback (`latestVersion` `"111"`, `historyRows` 111, all successful). No release manifest, apply or backup.
+- **Order.** The images roll out on the unchanged version: `applied.sqlVersion` is 111 and `applied.appliedAt` is no earlier than `sql.verified.verifiedAt`.
+- **Plan.** `{add:0, change:3, destroy:0}` with exactly `read.image`, `command.image`, `chat.image` (the Collection read contract runs in the business runtime of read and command, the chat virtual `Collection Today` in chat). Recovery pins Hosting and all five services; the applied readback names the five services: read, command and chat on the new image with a new revision, notify and jobs exactly on their pinned image and revision.
+- **Live readback and artifact.** As R095. The marker and the entry bundle carry `"R096"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r096`.
+
 ## R095 command, chat, SQL and frontend promotion with V111
 
 `schemaVersion: 28`, `release: R095`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R090's chat-era kind (shared code path) for payer name matching, with V111 and new command and chat images only.
