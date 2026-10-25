@@ -586,6 +586,21 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(self.review('new-job')['state'],'POSTED');self.assertEqual(self.submit.call_count,1)
         self.assertEqual(len(self.notice_rows('review-result:'+self.review('new-job')['id'])),1)
 
+    def test_automatic_review_after_processing_claim_posts_in_same_run(self):
+        # R098: the image phase's processing claim sets retry_after 300 s ahead; accepting the
+        # receipt ends it, so the approved automatic payment is not held until the claim expires.
+        import time
+        self.enable_auto();self.j.db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id='old'")
+        self.j.db.execute("UPDATE receipt_jobs SET id='new-job',status='PENDING',created_at=?,image_hash='hash'",(time.time(),));self.j.db.commit()
+        def images():
+            self.j.retry('new-job',1,'RECEIPT_PROCESSING_STARTED',terminal=False)
+            job=dict(self.j.db.execute("SELECT * FROM receipt_jobs WHERE id='new-job'").fetchone())
+            self.assertGreater(job['retry_after'],time.time()+290)
+            self.assertTrue(self.j.accept(job,{'receipt':self.proposal['receipt'],'borrower':self.b},[]))
+        cycle(self.config,self.j,self.identity,images=images)
+        self.assertEqual(self.j.db.execute("SELECT retry_after FROM receipt_jobs WHERE id='new-job'").fetchone()[0],0)
+        self.assertEqual(self.review('new-job')['state'],'POSTED');self.assertEqual(self.submit.call_count,1)
+
     def test_charge_raised_then_approved_posts_with_note_and_saved_proposal_hash(self):
         self.plan.return_value=dict(self.proposal,facts={'charges':['raised']},loan_keys=['changed'])
         self.run_cycle()
