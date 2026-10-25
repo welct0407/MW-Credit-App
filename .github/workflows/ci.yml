@@ -237,8 +237,9 @@ jobs:
       # The canonical and static specs serve the live-dev build from dist-live-dev.
       - run: npx vite build --mode live-dev
       # Chromium is cached per Playwright version and runner image; a hit skips the
-      # download and the apt step (whose mirror once stalled a shard for 11 min) and
-      # relies on the image's own Chromium libraries.
+      # browser download only. The system dependencies (fonts included) are still
+      # installed: without them the Thai navigation labels render wider and the
+      # chat.spec.ts fit check fails (PR #162, first cache hit).
       - name: Playwright version
         id: pw
         run: |
@@ -252,6 +253,8 @@ jobs:
           key: playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.image }}-${{ steps.pw.outputs.version }}
       - if: steps.pw-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+      - if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
       - run: npx playwright test --shard=${{ matrix.shard }}/3
       # ALL-CI-08: specs write captures only to ignored test-results/; a spec
       # that modifies or adds a tracked path fails the shard.
