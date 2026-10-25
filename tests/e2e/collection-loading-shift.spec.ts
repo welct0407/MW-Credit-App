@@ -1,4 +1,4 @@
-import {chooseLanguage,signOut} from './live-controls';
+
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";

@@ -1,6 +1,6 @@
 import {Icon} from './Icon';
 import {prepareReceiptImage} from './receipt-image';
-import React,{useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 
 /** Presentation only: each form retains its own receipt command and upload state. */
 export function ReceiptPicker({thai,attached,image,preview,disabled=false,removeDisabled=disabled,busy=false,onPick,onRemove,onPreparing}:{thai:boolean;attached:boolean;image?:Blob|null;preview?:string|null;disabled?:boolean;removeDisabled?:boolean;busy?:boolean;onPick:(file:File)=>void;onRemove:()=>void;onPreparing?:(preparing:boolean)=>void}){

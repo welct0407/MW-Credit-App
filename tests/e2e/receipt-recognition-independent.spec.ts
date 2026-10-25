@@ -1,10 +1,9 @@
 import {chooseLanguage,chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
-function preparedWire(value:any){const{data,...metadata}=value;return{...metadata,schemaVersion:2,generation:'fixture-'+value.domain,nextCursor:null,patches:Object.entries(data??{}).map(([key,value])=>({key,mode:'replace',value}))}}
+function _preparedWire(value:any){const{data,...metadata}=value;return{...metadata,schemaVersion:2,generation:'fixture-'+value.domain,nextCursor:null,patches:Object.entries(data??{}).map(([key,value])=>({key,mode:'replace',value}))}}
 
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import sharp from 'sharp';
-import {randomBytes} from 'node:crypto';
 let server:ChildProcess;let base:string;let serverLog="";
 test.beforeAll(async({},info)=>{
  const port=5800+info.workerIndex;base=`http://127.0.0.1:${port}`;

@@ -33,7 +33,7 @@ test('current keyless operator binds supplied token and signed impersonation to 
  await assert.rejects(verifyAppOnlyOperator({}),/token required/);
 });
 test('changed live rollback stops before any Hosting mutation',async()=>{
- let calls=0;await assert.rejects(executeBusinessHosting({...plan(),rollback:{hostingVersion:version,hostingRelease:release}},{approvalReference:'owner',request:async(url,method)=>{calls++;assert.equal(method,'GET');return {releases:[{name:release,version:{name:version+'changed'}}]}}}),/baseline changed/);assert.equal(calls,1);
+ let calls=0;await assert.rejects(executeBusinessHosting({...plan(),rollback:{hostingVersion:version,hostingRelease:release}},{approvalReference:'owner',request:async(_url,method)=>{calls++;assert.equal(method,'GET');return {releases:[{name:release,version:{name:version+'changed'}}]}}}),/baseline changed/);assert.equal(calls,1);
 });
 
 test('app-only exact package validates and repinned configuration, worker, CI, and recovery tampering rejects',async t=>{

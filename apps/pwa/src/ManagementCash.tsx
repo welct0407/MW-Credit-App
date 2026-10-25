@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {ManagementWorkspace} from './ManagementWorkspace';
 import type {CommandAccess} from './SelectedCharges';
 export function ManagementCash({access,thai}:{access:CommandAccess;thai:boolean}){

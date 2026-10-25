@@ -16,7 +16,7 @@ function cells(row:Inline[][],header:boolean){
 function block(item:Block){
  if(item.kind==='paragraph')return <p>{inlines(item.inlines)}</p>;
  if(item.kind==='list')return <ul>{item.items.map(/* biome-ignore lint/suspicious/noArrayIndexKey: list items are positional */(entry,index)=><li key={index}>{inlines(entry)}</li>)}</ul>;
- return <div className="chat-table-scroll"><table>{item.head&&<thead><tr>{cells(item.head,true)}</tr></thead>}<tbody>{item.rows.map(/* biome-ignore lint/suspicious/noArrayIndexKey: table rows are positional */(row,index)=><tr key={index}>{cells(row,false)}</tr>)}</tbody></table></div>;
+ return <div className="chat-table-scroll"><table>{item.head&&<thead><tr>{cells(item.head,true)}</tr></thead>}<tbody>{item.rows.map((row,index)=><tr key={index}>{cells(row,false)}</tr>)}</tbody></table></div>;
 }
 export function MarkdownBlocks({blocks}:{blocks:Block[]}){
  return <>{blocks.map(/* biome-ignore lint/suspicious/noArrayIndexKey: blocks are positional */(item,index)=><React.Fragment key={index}>{block(item)}</React.Fragment>)}</>;

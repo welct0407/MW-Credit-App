@@ -16,12 +16,12 @@ test('abortable push preserves maintained encryption and maps provider results w
 });
 test('provider cancellation destroys pending IO and is uncertain after send start',async()=>{
  const controller=new AbortController();let destroyed=false;
- const send=await createWebPushTransport(vapid,{request:(url,{signal})=>{const req=new EventEmitter();req.destroy=error=>{destroyed=true;req.emit('error',error);};signal.addEventListener('abort',()=>req.destroy(Error('aborted')),{once:true});req.end=()=>controller.abort();return req;}});
+ const send=await createWebPushTransport(vapid,{request:(_url,{signal})=>{const req=new EventEmitter();req.destroy=error=>{destroyed=true;req.emit('error',error);};signal.addEventListener('abort',()=>req.destroy(Error('aborted')),{once:true});req.end=()=>controller.abort();return req;}});
  assert.deepEqual(await send(subscription,'12345678-1234-4234-8234-123456789abc',{signal:controller.signal}),{kind:'network'});assert.equal(destroyed,true);
 });
 test('identity uses the same cancellation signal for token and Firebase lookup and maps current user',async()=>{
  const controller=new AbortController();let calls=0;
- const lookup=createNotificationIdentityLookup('synthetic-project',async(url,options)=>{assert.equal(options.signal,controller.signal);assert.equal(options.redirect,'error');calls++;return{ok:true,json:async()=>calls===1?{access_token:'synthetic-token'}:{users:[{localId:'subject',email:'synthetic@example.invalid',emailVerified:true,providerUserInfo:[{providerId:'google.com'}]}]}};});
+ const lookup=createNotificationIdentityLookup('synthetic-project',async(_url,options)=>{assert.equal(options.signal,controller.signal);assert.equal(options.redirect,'error');calls++;return{ok:true,json:async()=>calls===1?{access_token:'synthetic-token'}:{users:[{localId:'subject',email:'synthetic@example.invalid',emailVerified:true,providerUserInfo:[{providerId:'google.com'}]}]}};});
  const user=await lookup('subject',{signal:controller.signal});assert.equal(user.emailVerified,true);assert.equal(user.providerData[0].providerId,'google.com');assert.equal(calls,2);
 });
 test('R080 transport sends v2 rendered text and falls back to generic text for missing or out-of-bounds content',async()=>{

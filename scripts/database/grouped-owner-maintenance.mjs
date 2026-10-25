@@ -29,7 +29,7 @@ async function rows(client,ctx){
  return {selected,temporary,otherMemberships:memberships.filter(m=>!selectedMembership(m)&&m.role!==temporarySchemaCapability&&m.member!==temporarySchemaCapability&&m.grantor!==temporarySchemaCapability),otherSchemaAcl:acl.filter(a=>!selectedCreate(a)&&a.grantee!==temporarySchemaCapability&&a.grantor!==temporarySchemaCapability)};
 }
 export function planGroupedOwnerMaintenance(ctx,baseline){
- if(!ctx||ctx.database!=='loan_manager_prod'||typeof ctx.operator!=='string'||!ctx.operator||!Array.isArray(ctx.bindings)||ctx.bindings.length!==2||!owners.every(owner=>ctx.bindings.filter(b=>b.ownerRole===owner).length===1)||!Array.isArray(baseline?.selected)||baseline.selected.length!==2)throw Error('Invalid grouped authority snapshot');
+ if(ctx?.database!=='loan_manager_prod'||typeof ctx.operator!=='string'||!ctx.operator||!Array.isArray(ctx.bindings)||ctx.bindings.length!==2||!owners.every(owner=>ctx.bindings.filter(b=>b.ownerRole===owner).length===1)||!Array.isArray(baseline?.selected)||baseline.selected.length!==2)throw Error('Invalid grouped authority snapshot');
  const statements=[],elevated=[];
  if(baseline.temporary!==null)throw Error('Temporary schema capability must be absent initially');
  for(const b of ctx.bindings){const original=baseline.selected.find(s=>s.ownerRole===b.ownerRole);if(!original||typeof b.membershipGrantor!=='string'||!b.membershipGrantor||typeof b.schemaGrantor!=='string'||!b.schemaGrantor||!['explicit','implicit-cloudsql'].includes(b.membershipMode))throw Error('Owner snapshot missing');
@@ -85,6 +85,6 @@ export function validateTemporary(value,ctx){
  const cloud=ctx.operator==='postgres'&&ctx.bindings.length===2&&ctx.bindings.every(b=>b.membershipMode==='implicit-cloudsql'&&b.membershipGrantor==='cloudsqladmin');
  if(!Array.isArray(value.memberships)||value.memberships.length!==(cloud?1:2))throw Error('Temporary capability membership invalid');
  const creator=value.memberships.find(m=>m.role===temporarySchemaCapability&&m.member===ctx.operator),dev=value.memberships.find(m=>m.role===temporarySchemaCapability&&m.member===owners[0]);
- if((cloud?creator!==undefined:!creator||!creator.grantor||creator.admin_option!==true||creator.inherit_option!==false||creator.set_option!==false)||!dev||dev.grantor!==(cloud?'cloudsqladmin':ctx.operator)||dev.admin_option!==false||dev.inherit_option!==true||dev.set_option!==false)throw Error('Temporary capability creator/member tuple invalid');
+ if((cloud?creator!==undefined:!creator?.grantor||creator.admin_option!==true||creator.inherit_option!==false||creator.set_option!==false)||!dev||dev.grantor!==(cloud?'cloudsqladmin':ctx.operator)||dev.admin_option!==false||dev.inherit_option!==true||dev.set_option!==false)throw Error('Temporary capability creator/member tuple invalid');
  if(!equal(value.acl,[{grantor:ctx.bindings[0].schemaGrantor,grantee:temporarySchemaCapability,privilege:'CREATE',grantable:false}])||!Array.isArray(value.dependencies))throw Error('Temporary capability ACL invalid');
 }

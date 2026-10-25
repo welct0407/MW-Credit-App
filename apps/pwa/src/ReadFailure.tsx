@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 export type ReadFailure<Code extends string = string> = { code: Code; reference?: string };
 export function responseReference(response: Response): string | undefined {
   const value = response.headers.get('X-Request-ID');

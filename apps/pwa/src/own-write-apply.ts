@@ -150,7 +150,7 @@ export function verifiedOwnReceipt(access:Access,requestId:string,receiptId:stri
 const receiptMatches=(reference:unknown,receiptId:string)=>typeof reference==='string'&&/^[0-9a-f-]{36}$/.test(receiptId)&&new RegExp('/'+receiptId.replace(/-/g,'')+'\\.(png|jpg)$').test(reference);
 /** Seeds only a Posted payment whose receiptReference is this upload and which has a receiptAt. */
 export function seedPaymentReceipt(access:Access,payment:any,receipt:OwnReceipt&{requestId:string}):Promise<'seeded'|'fetched'|'stored'|'skipped'>{
- if(!payment||payment.status!=='Posted'||typeof payment.id!=='string'||!receiptMatches(payment.receiptReference,receipt.receiptId)||seededReceiptTime(payment.receiptAt)===null)return Promise.resolve('skipped');
+ if(payment?.status!=='Posted'||typeof payment.id!=='string'||!receiptMatches(payment.receiptReference,receipt.receiptId)||seededReceiptTime(payment.receiptAt)===null)return Promise.resolve('skipped');
  return seedOwnReceipt(access,payment.id,payment.receiptAt,receipt);
 }
 const seeding=new Map<string,Promise<'seeded'|'fetched'|'stored'|'skipped'>>();

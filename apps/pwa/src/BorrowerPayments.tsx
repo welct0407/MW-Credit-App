@@ -1,6 +1,6 @@
 import {Icon} from './Icon';
 import {HeaderBack} from './HeaderBack';
-import React,{useState} from 'react';
+import {useState} from 'react';
 import {PaymentGroups,type PaymentTree} from './PaymentGroups';
 import {useContextRefresh} from './context-refresh';
 import {PaymentRecord} from './PaymentRecord';

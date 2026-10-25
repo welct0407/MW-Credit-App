@@ -66,7 +66,7 @@ test('command pipeline derives actor freshly and dispatches canonical immutable 
 });
 test('nonowner verified shared identities authenticate, tenant/revoked/wrong issuer deny',async()=>{
  const now=Math.floor(Date.now()/1000),claims={aud:env.FIREBASE_PROJECT_ID,iss:'https://securetoken.google.com/'+env.FIREBASE_PROJECT_ID,sub:principal.subject,email:principal.email,email_verified:true,exp:now+3600,iat:now,auth_time:now,firebase:{sign_in_provider:'google.com'}};let revoked;
- assert.deepEqual(await createBusinessPrincipalVerifier(async(t,r)=>{revoked=r;return claims;})('Bearer token'),principal);assert.equal(revoked,true);
+ assert.deepEqual(await createBusinessPrincipalVerifier(async(_t,r)=>{revoked=r;return claims;})('Bearer token'),principal);assert.equal(revoked,true);
  for(const c of [{...claims,iss:'wrong'},{...claims,firebase:{...claims.firebase,tenant:'other'}}])assert.equal((await createBusinessPrincipalVerifier(async()=>c)('Bearer token')).ok,false);
  assert.equal((await createBusinessPrincipalVerifier(async()=>{throw Error('revoked');})('Bearer token')).ok,false);
 });

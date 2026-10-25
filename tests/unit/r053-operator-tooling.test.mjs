@@ -26,7 +26,7 @@ const loopback={database:'loan_manager_dev',creators:['test_operator'],execution
 
 function settingsOperatorFixture({version=91,failed=0}={}){
  const binding=r053Environment('loan_manager_prod'),statements=[],members=[...binding.owners,binding.journalOwner].map(role=>({role,member:'postgres',grantor:'cloudsqladmin',admin_option:false,inherit_option:false,set_option:false}));let acl=[];
- return{statements,members,get acl(){return acl},async query(sql,args){statements.push(sql);
+ return{statements,members,get acl(){return acl},async query(sql,_args){statements.push(sql);
   if(sql.startsWith('SELECT current_database()'))return{rows:[{database:'loan_manager_prod',operator:'postgres',host:'136.85.127.134',port:5432,rolsuper:false,rolcreaterole:true,rolbypassrls:false,schemaGrantor:'schema_owner',schema_set:true,schema_create:true}]};
   if(sql.includes('flyway_schema_history'))return{rows:[{version,failed}]};
   if(sql.startsWith('SELECT rolname'))return{rows:binding.roles.map(rolname=>({rolname,rolcanlogin:false,rolinherit:false,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false}))};

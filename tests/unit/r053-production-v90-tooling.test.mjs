@@ -6,7 +6,7 @@ import {prepareR053Maintenance,restoreR053Maintenance,r053Environment} from '../
 const config={database:'loan_manager_prod',creators:['postgres'],executionMode:'cloudsql-prod',productionAuthorization:{approvalReference:'synthetic-reviewed-release',backupSha256:'a'.repeat(64),sourceCommit:'b'.repeat(40),baselineVersion:89,targetVersion:90}};
 function fixture({version=89,failed=0}={}){
  const statements=[],role='mw_app_prod_journal_owner';let elevated=false,create=false;
- return {statements,async query(sql,args){statements.push(sql);
+ return {statements,async query(sql,_args){statements.push(sql);
   if(sql.startsWith('SELECT current_database()'))return {rows:[{database:config.database,operator:'postgres',host:'136.85.127.134',port:5432,rolsuper:false,rolcreaterole:true,rolbypassrls:false,schemaGrantor:'schema_owner',schema_set:true,schema_create:true}]};
   if(sql.startsWith('SELECT rolname,'))return {rows:r053Environment(config.database).roles.map(rolname=>({rolname,rolcanlogin:false,rolinherit:false,rolsuper:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,rolbypassrls:false}))};
   if(sql.includes('flyway_schema_history'))return {rows:[{version,failed}]};

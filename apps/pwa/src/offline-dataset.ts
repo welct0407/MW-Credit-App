@@ -614,7 +614,7 @@ export async function readOfflineDataset(access:Access,path:string):Promise<any|
  const repo=access.offline;if(!repo||!await repo.syncAuthorized())return null;
  const url=parsed(path,access.origin),route=url.pathname,q=(url.searchParams.get('q')??'').trim();if([...q].length>100||/[\u0000-\u001f\u007f]/.test(q))return null;
  const domain=routeDomain(route);
- const bundle=await repo.readDataset(domain);if(!bundle||bundle.schemaVersion!==1||!bundle.complete||!await repo.syncAuthorized())return null;
+ const bundle=await repo.readDataset(domain);if(bundle?.schemaVersion!==1||!bundle.complete||!await repo.syncAuthorized())return null;
  const data=bundle.data,parts=route.split('/').filter(Boolean).map(decodeURIComponent),id=parts[2],tail=parts[3];
  const envelope={ok:true,source:repo.environment,businessDate:bundle.businessDate,asOf:bundle.asOf};
  const filtered=(rows:any[])=>rows.filter(row=>matches(row,q));

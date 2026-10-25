@@ -2,7 +2,7 @@ import {subscribeOfflineDataset,readCachedJson} from './read-cache';
 import {replaceBackTransition} from './swipe-back';
 import {BorrowerRecord} from './BorrowerRecord';import {BorrowerPayments} from './BorrowerPayments';import {LoanRecords,type LoanRecord as LoanRow} from './LoanRecords';import {LoanRecord} from './LoanRecord';import {LoanForm} from './LoanForm';import {beginRequest} from './request-activity';import {useContextRefresh} from './context-refresh';import type {CommandAccess} from './SelectedCharges';
 import {HeaderBack} from './HeaderBack';
-import React,{useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {UpcomingCharges,type UpcomingSummary,type UpcomingDetail} from './UpcomingCharges';
 import {responseReference,type ReadFailure} from './ReadFailure';
 export function BorrowerUpcoming({access,id,thai}:{access:Pick<CommandAccess,'token'|'authFailure'|'offlineOnly'|'offline'>;id:string;thai:boolean}){

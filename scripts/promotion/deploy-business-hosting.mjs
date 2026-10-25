@@ -635,7 +635,7 @@ const r076Release='fa67607e4571d1c01ed39f7919cc627fd5e27ee7';
 // wiring stays enabled and the R077 timeouts stay, both read back live. The integration agent is not covered.
 const r078Release='68ce6694f27960a3f018634052c4cde6fc9923f7',r079V98Commit='7ae8469a4da2e79ba774907041d0f21acf068887';
 const v96DeliveryAllowed=file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md';
-const r076DeliveryAllowed=v96DeliveryAllowed,r077DeliveryAllowed=v96DeliveryAllowed;
+const _r076DeliveryAllowed=v96DeliveryAllowed,_r077DeliveryAllowed=v96DeliveryAllowed;
 const r077PlanActions=[...waveImageActions,'command.timeout'];
 export const R077_SERVICE_TIMEOUTS=Object.freeze({read:'15s',command:'55s',notify:'120s',jobs:'120s'});
 const v96Releases={

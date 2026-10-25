@@ -3,10 +3,10 @@ import {createHash} from 'node:crypto';
 const q=x=>'"'+x.replaceAll('"','""')+'"';
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export const r053Roles=['mw_notify_owner_dev','mw_notify_api_dev','mw_notify_dispatch_dev','mw_jobs_owner_dev','mw_jobs_dev'];
-const owners=[r053Roles[0],r053Roles[3]];
-const journalOwner='mw_app_dev_journal_owner';
+const _owners=[r053Roles[0],r053Roles[3]];
+const _journalOwner='mw_app_dev_journal_owner';
 export const r053AgentReceiptSignatures=['public.pwa_submit_agent_receipt_v1(text)','public.pwa_agent_receipt_status_v1(uuid,text,text)'];
-const commandUser='mw-credit-app-command-dev@clever-oasis-508610-n7.iam';
+const _commandUser='mw-credit-app-command-dev@clever-oasis-508610-n7.iam';
 export function r053Environment(database){
  if(!['loan_manager_dev','payment_rehearsal','loan_manager_prod'].includes(database))throw Error('Explicit DEV operator or guarded PROD operator required');
  const environment=database==='loan_manager_prod'?'prod':'dev';
@@ -48,7 +48,7 @@ async function selected(c,ctx,maintenanceOwners=r053Environment(ctx.database).ow
 }
 function memberSql(ctx,m){return `GRANT ${q(m.role)} TO ${q(m.member)} WITH ${ctx.mode==='explicit'?`ADMIN ${m.admin_option?'TRUE':'FALSE'}, `:''}INHERIT ${m.inherit_option?'TRUE':'FALSE'}, SET ${m.set_option?'TRUE':'FALSE'}${ctx.mode==='explicit'?' GRANTED BY '+q(ctx.grantor):''}`;}
 export async function provisionR053Roles(c,config,{apply=false}={}){
- const ctx=await context(c,config);const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);if((await roles(c,r053Roles)).length)throw Error('Role package already exists; inspect retained provisioning evidence');
+ const ctx=await context(c,config);const {roles:r053Roles}=r053Environment(ctx.database);if((await roles(c,r053Roles)).length)throw Error('Role package already exists; inspect retained provisioning evidence');
  const statements=r053Roles.map(role=>`CREATE ROLE ${q(role)} NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);
  if(!apply)return{mode:'roles-plan',context:ctx,statements};
  return transaction(c,async()=>{for(const sql of statements)await c.query(sql);const ms=await memberships(c);
@@ -68,7 +68,7 @@ export async function provisionR053Roles(c,config,{apply=false}={}){
  });
 }
 export async function prepareR053Maintenance(c,config,{apply=false,expectedRestoreState=null,includeAgentReceipts=false,conversationOnly=false}={}){
- const ctx=await context(c,config,{backupPreparation:true});const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);closed(await roles(c,r053Roles));
+ const ctx=await context(c,config,{backupPreparation:true});const {roles:r053Roles,owners,journalOwner}=r053Environment(ctx.database);closed(await roles(c,r053Roles));
  if(typeof includeAgentReceipts!=='boolean'||typeof conversationOnly!=='boolean'||(includeAgentReceipts&&conversationOnly))throw Error('Explicit exclusive agent maintenance boolean required');
  if(config.productionAuthorization?.baselineVersion===89&&!conversationOnly)throw Error('PROD89 permits journal-only V90 maintenance');
  if(config.productionAuthorization?.baselineVersion===90){if(includeAgentReceipts||conversationOnly)throw Error('PROD90 permits notification/jobs maintenance only');const history=(await c.query("SELECT max(version::integer) FILTER(WHERE success) AS version,count(*) FILTER(WHERE NOT success)::integer AS failed FROM public.flyway_schema_history")).rows[0];if(Number(history?.version)!==90||Number(history?.failed)!==0)throw Error('Exact successful V90 maintenance baseline required');}
@@ -85,7 +85,7 @@ export async function prepareR053Maintenance(c,config,{apply=false,expectedResto
  return{mode:apply?'authority-prepared':'authority-plan',restoreState:state,statements};
 }
 export async function restoreR053Maintenance(c,config,state,{apply=false}={}){
- const ctx=await context(c,config,{backupPreparation:true});const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);if(![1,2,3].includes(state?.version)||!same(ctx,state.context))throw Error('R053 restore context mismatch');
+ const ctx=await context(c,config,{backupPreparation:true});const {roles:r053Roles,owners,journalOwner}=r053Environment(ctx.database);if(![1,2,3].includes(state?.version)||!same(ctx,state.context))throw Error('R053 restore context mismatch');
  if(config.productionAuthorization?.baselineVersion===89&&state.version!==3)throw Error('PROD89 requires journal-only restoration');
  if(config.productionAuthorization?.baselineVersion===90&&state.version!==1)throw Error('PROD90 requires notification/jobs restoration');
  if(config.productionAuthorization?.baselineVersion===91&&state.version!==(config.productionAuthorization.purpose==='r062-backup-preparation'?2:3))throw Error('PROD91 requires matching scoped restoration');
@@ -151,7 +151,7 @@ export async function configureR053Capture(c,config,{enabled,apply=false,expecte
 
 // Exact reviewed dependency bytes are supplied by the operator CLI with a hash pin.
 export async function grantR053JobDependencies(c,config,manifest,{apply=false,reviewedManifestSha256}={}){
- const ctx=await context(c,config);const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);closed(await roles(c,r053Roles));
+ const ctx=await context(c,config);const {roles:r053Roles,manifestDatabase}=r053Environment(ctx.database);closed(await roles(c,r053Roles));
  if(!/^[a-f0-9]{64}$/.test(reviewedManifestSha256??'')||createHash('sha256').update(JSON.stringify(manifest)).digest('hex')!==reviewedManifestSha256)throw Error('Exact reviewed dependency hash required');
  if(manifest?.schemaVersion!==1||manifest.database!==manifestDatabase||manifest.owner!==r053Roles[3]||!Array.isArray(manifest.executeRoots)||!manifest.select||!manifest.insert||!manifest.update)throw Error('Reviewed DEV dependency manifest required');
  const statements=[],before={relations:[],columns:[],routines:[]};
@@ -169,7 +169,7 @@ export async function grantR053JobDependencies(c,config,manifest,{apply=false,re
  if(apply)await transaction(c,async()=>{for(const sql of statements)await c.query(sql);});return{mode:apply?'jobs-dependencies-applied':'jobs-dependencies-plan',context:ctx,before,reviewedManifestSha256,statements};
 }
 export async function bindR053Runtime(c,config,{kind,apply=false}={}){
- const ctx=await context(c,config);const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);if(ctx.mode!=='implicit-cloudsql'||!['api','notify','jobs'].includes(kind))throw Error('Fixed DEV runtime binding required');
+ const ctx=await context(c,config);const {roles:r053Roles,appRole,environment}=r053Environment(ctx.database);if(ctx.mode!=='implicit-cloudsql'||!['api','notify','jobs'].includes(kind))throw Error('Fixed DEV runtime binding required');
  const stem=kind==='api'?'command':kind,role=kind==='api'?r053Roles[1]:kind==='notify'?r053Roles[2]:r053Roles[4],user=`mw-credit-app-${stem}-${environment}@clever-oasis-508610-n7.iam`;
  const x=(await c.query('SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=$1',[user])).rows[0];if(!x?.rolcanlogin||x.rolsuper||x.rolcreatedb||x.rolcreaterole||x.rolreplication||x.rolbypassrls)throw Error('Existing closed IAM runtime required');
  const ms=await memberships(c);if(ms.some(x=>x.member===user&&(
@@ -183,7 +183,7 @@ export async function bindR053Runtime(c,config,{kind,apply=false}={}){
 
 // V89 machine entrypoints are granted directly to the existing command login only.
 export async function grantR053AgentReceiptApi(c,config,{apply=false,expectedBefore=null}={}){
- const ctx=await context(c,config);const {roles:r053Roles,owners,journalOwner,commandUser,appRole,environment,manifestDatabase}=r053Environment(ctx.database);
+ const ctx=await context(c,config);const {journalOwner,commandUser,appRole}=r053Environment(ctx.database);
  if(!(await c.query("SELECT 1 FROM public.flyway_schema_history WHERE version='89' AND success")).rowCount)throw Error('Applied V89 required');
  const user=(await c.query('SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname=$1',[commandUser])).rows[0];
  if(!user?.rolcanlogin||user.rolsuper||user.rolcreatedb||user.rolcreaterole||user.rolreplication||user.rolbypassrls)throw Error('Existing closed DEV command login required');

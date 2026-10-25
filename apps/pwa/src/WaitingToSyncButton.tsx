@@ -1,5 +1,5 @@
 import {Icon} from './Icon';
-import React,{useCallback,useSyncExternalStore} from 'react';
+import {useCallback,useSyncExternalStore} from 'react';
 import type {OwnerOfflineRepository} from './owner-offline';
 
 /** One shared pending snapshot per owner namespace (R064). `count` is every saved

@@ -1,4 +1,4 @@
-import pg from 'pg';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {readFileSync,writeFileSync} from 'node:fs';
+import pg from 'pg';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {writeFileSync} from 'node:fs';
 import {disposablePool} from '../../scripts/rehearsal/disposable-pool.mjs';import {seedPaymentFixture} from '../../scripts/rehearsal/payment-fixture.mjs';import {reconcileApplicationRole} from '../../scripts/database/app-role-policy.mjs';import {attestDisposableApplicationTarget} from '../../services/payment-command/application-target.mjs';import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';import {OWNER_EMAIL} from '../../services/lib/identity.mjs';
 export const sqlErrors=[];
 export const principal={ok:true,email:OWNER_EMAIL,subject:'independent-management-owner'},role='mw_app_dev_c_management';

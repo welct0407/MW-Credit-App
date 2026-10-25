@@ -1,6 +1,6 @@
 import {readCachedJson,readCachedBlob} from './read-cache';
 import {receiptRetainedOffline} from './offline-dataset';
-import React,{useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
 import {beginRequest} from './request-activity';
 import {useContextRefresh} from './context-refresh';

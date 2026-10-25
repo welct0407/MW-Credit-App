@@ -1,5 +1,5 @@
 /** A relationship is a bounded query descriptor, never an eagerly expanded list. */
-export function relationshipDescriptor(scope,resource,field,row,businessDate){
+export function relationshipDescriptor(scope,resource,field,row,_businessDate){
  const eq=(field,value)=>({op:'eq',field,value});
  const base=(resource,predicate)=>({scope,resource,predicate,limit:1001});
  if(resource==='Borrowers'&&field==='Todays Collection Charges')return base('Charges',{op:'and',args:[eq('Borrower Reference TE',row['Row ID']),eq('Collection Today',true)]});
