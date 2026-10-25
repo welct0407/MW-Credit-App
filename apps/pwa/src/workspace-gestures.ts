@@ -19,12 +19,15 @@ function startContext(target:EventTarget|null,shell:HTMLElement){
 export function useWorkspaceGestures(workspaceRef:RefObject<HTMLElement|null>,options:Options){
  const latest=useRef(options);latest.current=options;
  const [pull,setPull]=useState<{distance:number;armed:boolean;phase:'pulling'|'refreshing'|'settling'}|null>(null);
+ // biome-ignore lint/correctness/useExhaustiveDependencies: drops the pull indicator when the scope changes; options.scope is the reset trigger
  useEffect(()=>{setPull(null)},[options.scope]);
+ // biome-ignore lint/correctness/useExhaustiveDependencies: settles the pull indicator on phase changes only; pull is replaced on every touch move and listing it would restart the timer while dragging
  useEffect(()=>{
   if(!pull||pull.phase==='pulling'||options.refreshing)return;
   const timer=setTimeout(()=>setPull(current=>current?.phase==='refreshing'?{...current,distance:0,phase:'settling'}:null),pull.phase==='refreshing'?100:180);
   return()=>clearTimeout(timer);
  },[pull?.phase,options.refreshing]);
+ // biome-ignore lint/correctness/useExhaustiveDependencies: re-binds the touch handlers when the scope, menu availability or refresh identity changes (all are triggers); the handlers read live options through latest
  useEffect(()=>{
   const shell=workspaceRef.current?.closest<HTMLElement>('.live-shell')??workspaceRef.current;if(!shell)return;
   let gesture:Gesture|null=null,suppressUntil=0;

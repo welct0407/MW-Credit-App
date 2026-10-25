@@ -35,6 +35,7 @@ export function usePwa() {
   const chosenActivation = useRef<ServiceWorker | null>(null);
   const activationCleanup = useRef<(() => void) | null>(null);
   useEffect(() => () => { activationCleanup.current?.(); chosenActivation.current = null; }, []);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one startup check per attempt (attempt is the retry trigger); reload is recreated every render
   useEffect(() => {
     if (!canonical) return;
     if(!appUpdateSafe()){setRetryPending(true);return;}
@@ -160,6 +161,7 @@ export function usePwa() {
       target.postMessage({ type: 'ACTIVATE_UPDATE' });
     } catch { failed(); }
   }
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-checks a pending update retry when the app resumes; resumeTick is the resume trigger
   useEffect(()=>{if(retryPending&&safe&&document.visibilityState==='visible'){setRetryPending(false);setAttempt(value=>value+1)}},[retryPending,safe,resumeTick]);
   // No automatic runtime update: a ready build is announced and applied only when the user chooses (startup still applies the latest build before the session).
   const updateReady=startup==='ready'&&!activating&&!reloading&&((reloadAvailable&&dismissed!=='reload')||(!!waiting&&!reloadAvailable&&dismissed!==waiting));

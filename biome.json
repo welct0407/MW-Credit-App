@@ -53,6 +53,19 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/pwa/src/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noLabelWithoutControl": {
+              "level": "warn",
+              "options": { "inputComponents": ["ManagementReference"] }
+            }
+          }
+        }
+      }
     }
   ]
 }

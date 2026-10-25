@@ -16,6 +16,7 @@ export function useHeaderBack(){useEffect(()=>{window.addEventListener('resize',
 export function HeaderBack({priority,navigationKey,...props}:React.ButtonHTMLAttributes<HTMLButtonElement>&{priority?:number;navigationKey:string}){
  const scope=useContext(NavigationScope);navigationKey=scope?scope+'/'+navigationKey:navigationKey;
  const node=useRef<HTMLSpanElement>(null),token=useRef(Symbol('header-back'));
+ // biome-ignore lint/correctness/useExhaustiveDependencies: registers the header Back entry once per mount; the update effect below keeps props and navigationKey current, and priority is fixed at registration
  useLayoutEffect(()=>{if(!node.current)return;let depth=0;for(let parent:HTMLElement|null=node.current.parentElement;parent;parent=parent.parentElement)depth++;
  entries.set(token.current,{token:token.current,navigationKey,node:node.current,priority:priority??depth,props});publish();return()=>{entries.delete(token.current);publish()}},[]);
  useLayoutEffect(()=>{const entry=entries.get(token.current);if(entry){entry.props=props;entry.navigationKey=navigationKey;publish()}});

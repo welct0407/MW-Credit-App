@@ -23,7 +23,9 @@ export function PaymentResult({access,requestId,thai,receipt}:{access:CommandAcc
   // R078 item 6: a Posted server result is applied to the offline bundles (no-op once they hold the server row).
   void applyOwnPayment(access,requestId,value,receipt)}
  async function refresh(){if(working.current)return;working.current=true;const current=++generation.current;setBusy(true);setError('');try{const result=await call('/api/payment-commands/'+requestId+'/result');if(!result.response.ok)throw Error();if(current===generation.current)accept(result.data)}catch{if(current===generation.current)setError(t('Recorded payment is unchanged. Current details could not be loaded.','ผลคำขอเดิมไม่เปลี่ยนแปลง แต่โหลดรายละเอียดปัจจุบันไม่ได้'))}finally{if(current===generation.current)setBusy(false);working.current=false}}
+ // biome-ignore lint/correctness/useExhaustiveDependencies: refreshes the outcome once per requestId (the trigger); refresh is recreated every render
  useEffect(()=>{void refresh();return()=>{generation.current++}},[requestId]);
+ // biome-ignore lint/correctness/useExhaustiveDependencies: reloads the receipt image when the posted payment's receipt fields, source, repository or request change; receipt, access and t are recreated every render
  useEffect(()=>{
   const reference=data?.payment?.receiptReference;
   const match=typeof reference==='string'?new RegExp('^manual-receipts/'+applicationEnvironment+'/pwa/[a-f0-9]{32}/([a-f0-9]{32})\\.(png|jpg)$').exec(reference):null;

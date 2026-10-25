@@ -58,6 +58,17 @@ a {
   font-weight: 600;
   padding: 0 10px 30px
 }
+/* The brand is a button (it navigates in-app); keep the look it had as a link. */
+button.brand {
+  appearance: none;
+  width: 100%;
+  min-height: auto;
+  margin: 0;
+  border: 0;
+  background: none;
+  text-align: start;
+  transition: all 0s
+}
 .brand small {
   display: block;
   font-weight: 500;
