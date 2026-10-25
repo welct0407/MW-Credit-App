@@ -198,7 +198,7 @@ class WeakContextTests(PayerBase):
 
 
 class GroupContextTests(PayerBase):
-    """C4 4+ group (participants, hint in the same read only) and C4' (sender decides, nothing learned)."""
+    """C4 4+ group (participants, hint in the same read only) and C4' (sender decides and learns, R098)."""
 
     def group(self, *messages, extra=()):
         peers = [{'id': '123', 'username': 'mali2'}, {'id': '124', 'username': 'dara'}, {'id': '999', 'username': 'business'},
@@ -268,13 +268,25 @@ class GroupContextTests(PayerBase):
         hints = {k: [t['text'] for t in json.loads(jobs[k]['result']).get('hint_texts', [])] for k in ('s1', 's2', 's3')}
         self.assertEqual(hints, {'s1': [], 's2': ['Dara'], 's3': []})
 
-    def test_c4_prime_sender_decides_and_nothing_is_learned(self):
-        m = self.people()
-        api = self.group(self.message('own', '123'))
-        job = self.capture(api, m)['own']
-        row = self.run_group(job, m, slip('นาย สมศักดิ์ รักดี'), api, username='mali2')
-        self.assertEqual(row['status'], 'VALIDATED')
-        self.assertIsNone(json.loads(row['result'])['receipt']['payer_lines'])
+    def test_c4_prime_sender_decides_and_learns_like_the_borrowers_own_chat(self):
+        """R098: a borrower's slip in a multi-borrower group fills an empty payer name and appends a new payer line;
+        the sender still decides the borrower (the posting decision is unchanged)."""
+        cases = (
+            ('fill', None, 'นาย สมศักดิ์ รักดี', {'before': None, 'after': 'นาย สมศักดิ์ รักดี'}),
+            ('append', 'น.ส. สมฤดี เ', 'นาย สมศักดิ์ รักดี', {'before': 'น.ส. สมฤดี เ', 'after': 'น.ส. สมฤดี เ\nนาย สมศักดิ์ รักดี'}),
+            ('known', 'น.ส. สมฤดี เ', 'น.ส. สมฤดี เ***', None),
+        )
+        for key, stored, name, expected in cases:
+            with self.subTest(key):
+                m = master(borrower('mali2', 'mali2', stored), borrower('dara', 'dara', 'น.ส. กมลา ศรีสุข'), borrower('fon', 'fon', None))
+                api = self.group(self.message('own-' + key, '123'))
+                job = self.capture(api, m)['own-' + key]
+                self.assertEqual(json.loads(job['result'])['candidate_borrower_ids'], ['dara', 'mali2'])
+                row = self.run_group(job, m, slip(name), api, username='mali2')
+                result = json.loads(row['result'])
+                self.assertEqual((row['status'], result['borrower']['id']), ('VALIDATED', 'mali2'))
+                self.assertNotIn('payer_step', result)
+                self.assertEqual(result['receipt']['payer_lines'], expected)
 
 
 class HintReplySeparationTests(unittest.TestCase):
