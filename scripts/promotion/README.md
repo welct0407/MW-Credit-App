@@ -23,6 +23,14 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R100 read, command, chat and frontend promotion with no SQL
+
+`schemaVersion: 31`, `release: R100`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R097's kind (shared code path) for the CI tune-up lint batches (unused code removed, explicit button types, label/control associations, the sync-outcome listener reading the latest result and language).
+
+- **Source.** The source must descend from the R097 package `e040373` (PR #155, frozen at promotion start; the source PROD runs) and add no file under `database/migrations`. A later delivery-tool commit may carry only the runner, its unit test, this README and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL, order and plan.** As R097: no migration, a read-only PROD readback at 111, `{add:0, change:3, destroy:0}` with exactly `read.image`, `command.image`, `chat.image`; notify and jobs read back on their pinned image and revision.
+- **Live readback and artifact.** As R097. The marker and the entry bundle carry `"R100"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r100`.
+
 ## R097 read, command, chat and frontend promotion with no SQL
 
 `schemaVersion: 30`, `release: R097`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R096's kind (shared code path) for the Collection board row (the right amount adds what was paid on earlier days toward today's charges; the status line reads "Paid in advance" when every charge dated today was paid earlier; offline tag `business-offline-v5`).
