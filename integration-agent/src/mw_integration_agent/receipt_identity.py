@@ -3,7 +3,7 @@
 R095 payer name, revision 2 (change note "Revision 2"). From `payer_name_cutoff`:
 - Strong contexts (C1 borrower DM, C2 borrower in a 3-member group, C3 forwarder in a 3-member group) decide the
   borrower exactly as before; the slip name never holds a receipt there and is only learned as a payer line.
-  A borrower sending in a 4+ group (C4') also keeps the sender rule; nothing is learned there.
+  A borrower sending in a multi-borrower group (C4') also keeps the sender rule and learns like C1 (R098).
 - Weak contexts (C4 forwarder in a 4+ group, C5 forwarder DM) are resolved after extraction: borrowers whose payer
   lines match (or are the only near) the slip, narrowed by participants, the forwarder's nickname hint from the same
   read, what is due and an exact amount fit; otherwise REVIEW PAYER_UNRESOLVED (or PAYER_NAME_UNREADABLE).
@@ -158,9 +158,10 @@ def receipt_context(config, job, journal, master, identity_reader, api=None):
         raise
     group = evidence.get('candidate_borrower_ids') if active else None
     if group:
-        # C4': a borrower sends in a multi-borrower group; the sender decides, nothing is learned.
+        # C4': a borrower sends in a multi-borrower group; the sender decides and, as in the borrower's own chat,
+        # the slip's payer name is learned (R098; R095 learned nothing here, so such slips never filled the name).
         members = [b for b in master['borrowers'] if b['id'] in group]
-        return {'kind': 'group_sender', 'borrower': borrower, 'candidates': members, 'active': True, 'fill': False}
+        return {'kind': 'group_sender', 'borrower': borrower, 'candidates': members, 'active': True, 'fill': True}
     return {'kind': 'sender', 'borrower': borrower, 'candidates': [], 'active': active, 'fill': active}
 
 
@@ -232,7 +233,7 @@ def resolve_payer(context, extraction, receipt, master, facts=None, hints=()):
         return context['borrower'], None, None
     if kind in ('sender', 'forwarded', 'group_sender'):
         borrower = context['borrower']
-        return borrower, (learned(borrower, slip) if kind in ('sender', 'forwarded') else None), None
+        return borrower, learned(borrower, slip), None
     enabled = [b for b in master['borrowers'] if b['enabled'] is True]
     hint = hint_borrower(hints, master)
     if not readable(slip) and hint is None:

@@ -4,6 +4,7 @@
 
 | Outstanding work | Owning reference |
 | --- | --- |
+| R098 candidates (Open) | Agent: a slip a borrower sends in a group with several enabled borrowers now learns the payer name like the borrower's own chat (R095 learned nothing there, so one PROD receipt on 25 October 2026 left the payer name empty); posting unchanged. Not deployed. [Change note](../../integration-agent/Change%20Logs/CHANGE_NOTES_R098_GROUP_SENDER_PAYER_NAME_2026-10-25.md) |
 | R097 Collection row amount for prepaid charges (Frozen 25 October 2026) | The Collection borrower row shows collected today plus the amount paid in advance for today's charges, with a "Paid in advance" status line (COLL-UX-01); header and totals stay today's cash. No SQL. [Change note](../../Change%20Logs/CHANGE_NOTES_R097_COLLECTION_PREPAID_AMOUNT_2026-10-25.md); Chase's review and the promotion are pending |
 | R096 follow-up (released 25 October 2026) | Applied and verified in DEV and PROD (no SQL; tag `R096` pending the workflow). Open: the owner's real-device check of the paid-in-advance caption; the Metabase/OLAP "Daily Collection Status" (V22) keeps the old rule and needs a migration; the `Days Outstanding` virtual is negative for a prepaid charge (existing) |
 | Deferred Collection Note concern | Unchanged by released R059; a separate owner-directed correction remains pending |
