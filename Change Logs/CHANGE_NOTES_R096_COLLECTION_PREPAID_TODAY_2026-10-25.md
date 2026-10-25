@@ -25,7 +25,8 @@ The owner reported that a borrower's payment for today's charge was missing from
 | Chase adversarial review | No defects |
 | Chase real-SQL check of the `Collection Today` virtual on PostgreSQL 16 | Pass |
 | `npm run check:docs` | Pass, 0 failures (Byte on the batch; Dewey re-run after the note was filled) |
-| Pull request `Development checks` | PLACEHOLDER (CI run id) |
+| Pull request `Development checks` | Pass, run 40169749071 (PR #150, merge `328acc3c`) |
+| `Database migrations` | Pass, run 40169736097 (same PR) |
 
 ## Not run
 - The local wide browser suite: the pull request run is the one broad run (lean check routine).
@@ -43,16 +44,16 @@ The pull request and its `Development checks` run (placeholder), Echo's DEV devi
 
 ## Promotion record
 
-[Template](../project/scripts/releases/templates/promotion-checklist.md). Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md). Deployment pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No borrower names appear here. Status: **not started** (PLACEHOLDER fields below are filled at promotion).
+[Template](../project/scripts/releases/templates/promotion-checklist.md). Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md). Deployment pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No borrower names appear here. Status: **frozen, promotion not started** (PLACEHOLDER fields below are filled at promotion).
 
 ### Continue here
 - Outcome/scope and affected components: R096 to DEV and PROD: read, command and chat Cloud Run images (plan change 3; notify and jobs stay pinned) and PWA Hosting, in DEV then PROD. No SQL, so no backup, owner window or runner. VM: none (the agent does not use `virtuals.mjs`).
-- State and next action or actual blocker: not started.
-- Source/artifact/configuration pins; runner manifest link: PLACEHOLDER (pull request number, branch `claude/r096-collection-prepaid-today`, merge commit). No SQL manifest.
+- State and next action or actual blocker: frozen at 06:47Z; next, DEV images and Hosting (Forge). No blocker.
+- Source/artifact/configuration pins; runner manifest link: PR #150 (`claude/r096-collection-prepaid-today`), squash-merged as `328acc3c3344b6eafbb027fb79f588f8d0fde468` on `main` (baseline `e194249`). No SQL manifest.
 - Existing owner authority and any explicit hands-on checkpoint: the owner's request of 25 October 2026, verbatim "Get the team work on it and push all the way to production". It covers the merge, DEV and PROD images and Hosting for this scope. It does not cover a financial write, a forced notification or an unrelated correction. No hands-on checkpoint.
 - Previous deployed baseline and recovery: PROD and DEV as recorded in the Environment inventory after R095 (tag `R095`); recovery per Recovery above.
 - Scope freeze/next-number handoff: at promotion start one tracker update marks R096 Frozen, opens R097 and advances the next unused number to R098. No `release.ts` bump; the PROD build takes `MW_RELEASE_NUMBER=R096`.
-- Checks: Byte and Chase results in Checks above; pull request run ids PLACEHOLDER.
+- Checks: Byte and Chase results in Checks above; `Development checks` run 40169749071 and `Database migrations` run 40169736097, both green.
 
 ### Tracker freeze text (prepared, not applied)
 In `project/Documents/Release_Tracker.md` "Current development release" table:
@@ -64,7 +65,7 @@ In `project/Documents/Release_Tracker.md` "Current development release" table:
 ### Promotion
 | Step | Identity | Commands and exact route | Verification | Recovery | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| 0. Merge and freeze | the session's GitHub tools (`mcp__github__*`) | merge the pull request; one tracker commit (R096 Frozen, R097 Open, counter R098) | `main` head equals the pinned commit; `Development checks` run cited | revert commit | PLACEHOLDER |
+| 0. Merge and freeze | the session's GitHub tools (`mcp__github__*`) | merge the pull request; one tracker commit (R096 Frozen, R097 Open, counter R098) | `main` head equals the pinned commit; `Development checks` run cited | revert commit | PR #150 squash-merged as `328acc3c`; `Development checks` run 40169749071 and `Database migrations` run 40169736097 green; tracker frozen 25 October 2026 06:47Z (R096 Frozen, R097 Open, counter R098) |
 | 1. DEV images and Hosting | PLACEHOLDER (Forge) | build the changed images from a `git archive` of the merge commit (`cloudbuild-command.yaml` or the DEV config as Forge confirms), Terraform digests, then the live-dev Hosting route | `build-version.json` carries `R096`; the Collection page lists a synthetic charge dated today and paid yesterday as paid in advance | previous digests and Hosting version from the inventory | PLACEHOLDER |
 | 2. PROD images and Hosting | PLACEHOLDER (Forge) | `cloudbuild-business.yaml`, `runtime_image_overrides` as needed, then `deploy-business-hosting.mjs` with `MW_RELEASE_NUMBER=R096` (the R096 kind exists in the script) | marker and entry bundle carry `R096`; read-only PROD check with no financial write | previous digests and Hosting version | PLACEHOLDER |
 | 3. Records, tag | `codex-cloud`; the Release tag workflow | update the Environment inventory (pins), tracker (Released), Development Changes, this note; tag `R096` on the deployed `main` commit | tag exists; `npm run check:docs` passes | never move an existing tag | PLACEHOLDER |
