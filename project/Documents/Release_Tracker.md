@@ -4,9 +4,11 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R098 — Open** |
-| Next unused number | **R099**, only opened when authorized R098 promotion starts |
+| New product work | **R099 — Open** |
+| Next unused number | **R100**, only opened when authorized R099 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
+
+**R098 — Frozen 25 October 2026 at 08:04Z** for promotion under the owner's answer "yes" (merge the group-sender payer-name fix #156, deploy R098 with #157 to DEV and the PROD agent, and fill one borrower's payer name in PROD from the agent's slip, only if empty, with audit). Scope: agent only, no SQL, API, Hosting, migration, configuration or catalogue change: #156 `654f9812` (`receipt_identity.py`: a borrower's slip in a multi-borrower group learns the payer name) and #157 `dbd2c897` (`ReceiptJournal.accept` sets `retry_after=0`, so an approved payment posts without the 5-minute hold). Package: `main` `dbd2c897`. CI: #156 agent tests (test and lab) run 40174451126 and run 40174450999; #157 `Development checks` and agent tests (test and lab) on `2633117`, input-equivalent to the package. [Promotion record](../../integration-agent/Change%20Logs/CHANGE_NOTES_R098_GROUP_SENDER_PAYER_NAME_2026-10-25.md#promotion-record). Frozen corrections stay with R098; new work goes to R099.
 
 R097 (Collection borrower row shows collected today plus the amount paid in advance, with a "Paid in advance" status line; no SQL; [promotion record](../../Change%20Logs/CHANGE_NOTES_R097_COLLECTION_PREPAID_AMOUNT_2026-10-25.md#promotion-record)) is Released to DEV and PROD on 25 October 2026 (no SQL, no VM) under the owner's answer "Yes, to production"; frozen 07:45Z at PR #154 (`71b31c66`), PROD package from `e040373`, tag `R097` on `e040373`. Applied and verified; the owner confirmed on 25 October 2026 that it works on their phone.
 
