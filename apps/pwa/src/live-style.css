@@ -223,6 +223,7 @@
 ::view-transition-old(live-header),::view-transition-old(live-footer),::view-transition-old(live-sidebar){animation:none;opacity:0}
 ::view-transition-new(live-header),::view-transition-new(live-footer),::view-transition-new(live-sidebar){animation:none;opacity:1;mix-blend-mode:normal}
 /* biome-ignore lint/correctness/noUnknownTypeSelector: workspace is a view-transition-name, not a type selector */
+/* biome-ignore lint/complexity/noImportantStyles: reduced motion must switch off every view-transition animation, whatever the workspace transition rules set */
 @media(prefers-reduced-motion:no-preference){::view-transition-old(workspace){animation:workspace-out 150ms ease both}::view-transition-new(workspace){animation:workspace-in 150ms ease both}@keyframes workspace-out{to{transform:translateX(-24px);opacity:0}}@keyframes workspace-in{from{transform:translateX(24px);opacity:0}}}.live-shell main{view-transition-name:workspace}@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 
 .live-shell .borrower-card.payment-compact-row{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:12px;min-height:44px;padding:6px 12px}.payment-compact-row>span{white-space:nowrap}.payment-compact-row>strong{min-width:0;text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
@@ -238,6 +239,7 @@
 .borrower-tile.inactive{background:#e9e9e9}.borrower-tile.selected{box-shadow:inset 3px 0 #f58220}
 .borrower-tile-main{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:10px;flex:1;min-width:0;background:transparent;border:0;border-radius:0;padding:8px 10px;text-align:left;color:inherit}
 .borrower-tile-main>span{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}.borrower-tile-main>strong{text-align:right;align-self:center}.borrower-tile>.icon-action{flex:0 0 44px}
+/* biome-ignore lint/complexity/noImportantStyles: profit and recovery status colours must win over the table, cell and link colours they are shown in */
 .profit-positive{color:#16803b!important}.profit-negative{color:#c62828!important}.recovery-low{color:#b85c00!important}.recovery-middle{color:#9a7800!important}.recovery-covered{color:#00838f!important}.recovery-closed{color:#777!important;font-style:italic}
 .borrower-record>.related-loans-heading h2{flex:1;min-width:0;text-align:left}
 .borrower-record form>.related-loans{grid-column:1/-1}.loan-record-main{min-width:0}.loan-record-main>strong{overflow-wrap:anywhere}.loan-record-amount{flex:0 0 auto;text-align:right}
@@ -287,19 +289,21 @@
 .live-shell .borrower-card.expense-tile,.live-shell .borrower-card.upcoming-row{min-height:44px;padding:6px 10px;gap:8px}.expense-tile small,.upcoming-row small{margin-top:2px;font-size:14px;line-height:1.35}
 .expense-directory>.section-heading.root-record-heading{margin:0;border-radius:8px 8px 0 0}.expense-directory>.expense-tile{margin:0;border-radius:0;border:1px solid #ccc;border-top:0}.expense-directory>.expense-tile:last-of-type{border-radius:0 0 8px 8px}
 .upcoming-directory>.related-loans-heading,.upcoming-event>.related-loans-heading{min-height:44px;padding:0;gap:4px}.upcoming-directory h2,.upcoming-event h2{margin:0}.upcoming-directory>h3{font-size:15px;margin:6px 0;padding:4px 8px;background:#f2f2f2}.upcoming-event dl{margin:8px 0}.upcoming-event dd{margin:2px 0 8px}
+/* biome-ignore lint/complexity/noImportantStyles: money-in and money-out colours must win over the table, cell and link colours they are shown in */
 .cash-report-layout{display:grid;grid-template-columns:minmax(240px,1fr) minmax(0,2fr);gap:16px;align-items:start}.cash-report-controls{min-width:0}.cash-report-layout .cash-statement-paper{margin:0 0 12px}.cash-report-controls label{display:block;margin:10px 0;font-size:14px;color:#666}.cash-report-controls select,.cash-report-controls input{display:block;width:100%;min-height:44px;font:inherit;font-size:16px}.money-in{color:#16803b!important}.money-out{color:#c62828!important}.cash-table-scroll{max-width:100%;overflow:auto}.cash-transactions table{width:100%;border-collapse:collapse;font-size:14px}.cash-transactions th,.cash-transactions td{text-align:left;padding:8px 6px;border-bottom:1px solid #ddd;vertical-align:top}.cash-transactions th{font-size:14px;color:#666;background:#f5f5f5}.cash-transactions td:nth-last-child(-n+2){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.cash-transactions td:first-child{white-space:nowrap}.cash-transactions td small{display:block;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:#666}.cash-transactions .text-action{padding:0;text-align:left}.cash-dashboard-card{margin-bottom:16px}
 @media(max-width:800px){.cash-report-layout{grid-template-columns:minmax(0,1fr)}.cash-transactions table{font-size:14px}.cash-transactions th,.cash-transactions td{padding:6px 4px}.cash-transactions .text-action{font-size:14px}}
 
 .loan-direct-actions{flex-wrap:wrap}.loan-direct-actions button>span[aria-hidden]{display:inline;font-size:22px;line-height:1}.loan-direct-actions button>span:not([aria-hidden]){font-size:14px}@media(max-width:1050px){.loan-direct-actions button>span[aria-hidden]{display:inline}.loan-direct-actions button>span:not([aria-hidden]){display:none}}
 
 /* Compact collection and receiving controls. */
-.collection-compact-tile{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;border-bottom:1px solid #d8dde2;padding:5px 10px;background:white}.collection-tile-main{border:0;background:none;padding:0;text-align:left;display:flex;flex-direction:column;justify-content:center;min-height:44px;min-width:0;color:inherit}.collection-tile-main strong{overflow-wrap:anywhere}.collection-tile-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:64px;color:#333}.collection-tile-right>strong{white-space:nowrap}.collection-tile-right .icon-action{min-height:44px;min-width:44px;padding:8px}.collection-status-not_paid{color:#c62828}.collection-status-partially_paid{color:#b85c00}.collection-status-overdue{color:#7b1fa2}.collection-status-fully_paid,.collection-tile-right .positive-paid{color:#237b39}.record-group-heading[class*="collection-status-"]{display:flex;justify-content:space-between;gap:8px;background:#eef0f2;padding:7px 10px}.payment-received-input{max-width:220px}.payment-received-input input{width:100%}.receipt-camera-picker{position:relative;display:flex!important;align-items:center;justify-content:center;flex-direction:column;border:1px dashed #8a939c;border-radius:8px;min-height:104px;padding:12px;cursor:pointer}.receipt-camera-picker svg{width:38px;height:38px;fill:none;stroke:currentColor;stroke-width:1.5;margin-top:8px}.receipt-camera-picker input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.receipt-camera-picker:focus-within{outline:2px solid #bf6900;outline-offset:2px}.allocation-summary{grid-template-columns:auto auto minmax(0,1fr) auto}
+/* ":not(#_)" adds one ID-level weight (no element has id "_"), so a rule that must win over every class-based rule does so without !important. */
+.collection-compact-tile{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;border-bottom:1px solid #d8dde2;padding:5px 10px;background:white}.collection-tile-main{border:0;background:none;padding:0;text-align:left;display:flex;flex-direction:column;justify-content:center;min-height:44px;min-width:0;color:inherit}.collection-tile-main strong{overflow-wrap:anywhere}.collection-tile-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:64px;color:#333}.collection-tile-right>strong{white-space:nowrap}.collection-tile-right .icon-action{min-height:44px;min-width:44px;padding:8px}.collection-status-not_paid{color:#c62828}.collection-status-partially_paid{color:#b85c00}.collection-status-overdue{color:#7b1fa2}.collection-status-fully_paid,.collection-tile-right .positive-paid{color:#237b39}.record-group-heading[class*="collection-status-"]{display:flex;justify-content:space-between;gap:8px;background:#eef0f2;padding:7px 10px}.payment-received-input{max-width:220px}.payment-received-input input{width:100%}.receipt-camera-picker{position:relative;align-items:center;justify-content:center;flex-direction:column;border:1px dashed #8a939c;border-radius:8px;min-height:104px;padding:12px;cursor:pointer}.receipt-camera-picker:not(#_){display:flex}.receipt-camera-picker svg{width:38px;height:38px;fill:none;stroke:currentColor;stroke-width:1.5;margin-top:8px}.receipt-camera-picker input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.receipt-camera-picker:focus-within{outline:2px solid #bf6900;outline-offset:2px}.allocation-summary{grid-template-columns:auto auto minmax(0,1fr) auto}
 
 .selected-payment .allocation-summary{grid-template-columns:auto 44px minmax(0,1fr) 44px}@media(max-width:600px){.selected-payment .allocation-summary{grid-template-columns:minmax(0,1fr) 44px 44px}.allocation-summary>button:nth-child(2){grid-column:2;grid-row:1}.allocation-summary>button:last-child{grid-column:3;grid-row:1}.allocation-summary output{grid-column:1/-1;grid-row:2}}
 
 .selected-payment .payment-selection-header .allocation-auto-button{background:#fff;border:1px solid #9b5a13;border-radius:6px;color:#713c00;padding:8px 12px;min-height:44px;font-weight:600;box-shadow:0 1px 2px #00000014}.selected-payment .payment-selection-header .allocation-auto-button:disabled{background:#f2f2f2;border-color:#bfc3c7;color:#595959;box-shadow:none;opacity:1}
 
-.record-group-heading[class*="collection-status-"]{justify-content:flex-start}.record-group-heading[class*="collection-status-"]>strong{font-size:.9em;background:#dfe3e6;border-radius:10px;padding:1px 7px}.collection-tile-right{gap:5px}.collection-tile-right .icon-action svg{width:20px;height:20px}.selected-payment .payment-selection-header .icon-action{border:1px solid #9a9a9a;border-radius:5px;background:#fff}.payment-allocation-row>label>span{font-size:14px}.collection-name-link{border:0;background:none;font-weight:700;font-size:19px;text-align:left;padding:0;min-height:44px;overflow-wrap:anywhere}.collection-amounts{display:flex;flex-wrap:wrap;gap:8px 16px;margin:8px 0}.collection-amounts>div{display:flex;align-items:baseline;gap:5px}.collection-amounts dt{font-size:12px}.collection-amounts dd{margin:0;font-weight:600}.collection-note{margin:8px 0}.collection-note label{display:block;font-size:14px}.collection-note textarea{display:block;width:100%;min-height:64px}.collection-note small{display:block}.collection-charge-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:12px!important;padding:8px 10px!important}.charge-row-left,.charge-row-right{display:flex!important;flex-direction:column;gap:4px}.charge-row-left{align-items:flex-start;min-width:0}.charge-row-left strong{overflow-wrap:anywhere}.charge-row-right{align-items:flex-end;white-space:nowrap}.charge-remaining{color:#c62828}.charge-received{color:#237b39}.collection-charges-heading,.upcoming-charges .related-loans-heading{min-height:44px;padding:4px 10px}.upcoming-table-head,.upcoming-summary-table .upcoming-date-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:6px 10px;margin:0;min-height:44px}.upcoming-table-head{min-height:32px;background:#f1f2f3;font-size:14px}.upcoming-summary-table .upcoming-date-row{width:100%;border:0;border-bottom:1px solid #ddd;border-radius:0}.upcoming-summary-table .upcoming-date-row>span{display:block}
+.record-group-heading[class*="collection-status-"]{justify-content:flex-start}.record-group-heading[class*="collection-status-"]>strong{font-size:.9em;background:#dfe3e6;border-radius:10px;padding:1px 7px}.collection-tile-right{gap:5px}.collection-tile-right .icon-action svg{width:20px;height:20px}.selected-payment .payment-selection-header .icon-action{border:1px solid #9a9a9a;border-radius:5px;background:#fff}.payment-allocation-row>label>span{font-size:14px}.collection-name-link{border:0;background:none;font-weight:700;font-size:19px;text-align:left;padding:0;min-height:44px;overflow-wrap:anywhere}.collection-amounts{display:flex;flex-wrap:wrap;gap:8px 16px;margin:8px 0}.collection-amounts>div{display:flex;align-items:baseline;gap:5px}.collection-amounts dt{font-size:12px}.collection-amounts dd{margin:0;font-weight:600}.collection-note{margin:8px 0}.collection-note label{display:block;font-size:14px}.collection-note textarea{display:block;width:100%;min-height:64px}.collection-note small{display:block}.collection-charge-row:not(#_){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:8px 10px}.charge-row-left,.charge-row-right{flex-direction:column;gap:4px}.charge-row-left:not(#_),.charge-row-right:not(#_){display:flex}.charge-row-left{align-items:flex-start;min-width:0}.charge-row-left strong{overflow-wrap:anywhere}.charge-row-right{align-items:flex-end;white-space:nowrap}.charge-remaining{color:#c62828}.charge-received{color:#237b39}.collection-charges-heading,.upcoming-charges .related-loans-heading{min-height:44px;padding:4px 10px}.upcoming-table-head,.upcoming-summary-table .upcoming-date-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:6px 10px;margin:0;min-height:44px}.upcoming-table-head{min-height:32px;background:#f1f2f3;font-size:14px}.upcoming-summary-table .upcoming-date-row{width:100%;border:0;border-bottom:1px solid #ddd;border-radius:0}.upcoming-summary-table .upcoming-date-row>span{display:block}
 
 .record-group-heading[class*="collection-status-"]>strong{font-weight:400;color:#63676b;background:#e6e8ea}.collection-name-link,.record-field-link,.borrower-record dd button,.borrower-record dd a,.borrower-field-value button,.borrower-field-value a{text-decoration:underline;text-underline-offset:3px}.record-field-link{border:0;background:none;padding:0;text-align:left;color:inherit;min-height:32px;overflow-wrap:anywhere}.charge-loan-link{font-weight:400}.upcoming-table-head,.upcoming-summary-table .upcoming-date-row{grid-template-columns:90px minmax(0,1fr);text-align:left}.upcoming-summary-table .upcoming-date-row>strong,.upcoming-table-head>span:last-child{text-align:left;justify-self:start}
 
@@ -339,7 +343,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
  main[data-workspace=management] .borrower-direct-actions{display:flex;flex-wrap:wrap;justify-content:flex-start;flex-basis:100%;max-width:100%}
  main[data-workspace=management] .borrower-direct-actions button{max-width:100%;white-space:normal;text-align:left}
  main[data-workspace=management] input,main[data-workspace=management] select,main[data-workspace=management] textarea{max-width:100%;box-sizing:border-box}
- .management-nav-item{padding-left:28px!important}
+ .management-nav-item:not(#_){padding-left:28px}
 }
 
 @media(max-width:1050px){
@@ -371,25 +375,28 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .related-loans-heading,.root-record-heading,.payment-context{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
 .related-loans-heading>h2,.root-record-heading>h2,.payment-context>strong{flex:1 1 160px;min-width:0;text-align:left;overflow-wrap:anywhere}
 .borrower-direct-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;margin-left:auto}
-.record-action{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;border:1px solid #bcbcbc!important;border-radius:6px;background:#fff!important;padding:7px 10px!important;color:inherit}
+.record-action{align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;border-radius:6px;color:inherit}.record-action:not(#_){display:inline-flex;border:1px solid #bcbcbc;background:#fff;padding:7px 10px}
 .record-action-icon{display:inline-flex;align-items:center;justify-content:center;font-size:20px}.record-action-icon svg{width:21px;height:21px}.record-action-label{font-size:14px;white-space:normal}.record-action:disabled{opacity:.5}
 @media(max-width:1050px){
- .record-action-label{display:none!important}.record-action{padding:7px!important;width:44px;flex:0 0 44px}.record-action-icon{display:inline-flex!important}
+ .record-action-label:not(#_){display:none}.record-action{width:44px;flex:0 0 44px}.record-action:not(#_){padding:7px}.record-action-icon:not(#_){display:inline-flex}
  .borrower-record>.related-loans-heading:has(.borrower-direct-actions){display:flex;grid-template-columns:none}
  main[data-workspace=management] .borrower-direct-actions,.borrower-direct-actions{flex-basis:auto;justify-content:flex-end;margin-left:auto}
  .borrower-record>.related-loans-heading:has(.borrower-direct-actions)>h2{flex:1 1 150px}
 }
 
 /* HeaderBack is a registry marker, never a visual grid/flex item. */
+/* biome-ignore lint/complexity/noImportantStyles: the Back placeholder is always hidden; HeaderBack relocates its control to the header */
 [data-header-back]{display:none!important;width:0!important;height:0!important;margin:0!important;padding:0!important}
+/* biome-ignore lint/complexity/noImportantStyles: a heading that held a relocated Back control drops its Back grid column in every layout */
 .related-loans-heading:has(>[data-header-back]),.root-record-heading:has(>[data-header-back]){display:flex!important;grid-template-columns:none!important;justify-content:flex-start}
+/* biome-ignore lint/complexity/noImportantStyles: a heading that held a relocated Back control drops its Back grid column in every layout */
 .related-loans-heading:has(>[data-header-back])>h2,.root-record-heading:has(>[data-header-back])>h2{grid-column:auto!important;margin-left:0!important;flex:1 1 160px}
 .cash-accounts-layout{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2fr);gap:16px;align-items:start}.cash-accounts-layout>section{min-width:0}
 .cash-holder-choice{display:flex;align-items:center;gap:6px}.cash-holder-choice>.borrower-card{flex:1;min-width:0}.cash-holder-choice>.record-action{flex-shrink:0}
 .management-position table{width:100%;border-collapse:collapse;font-size:14px}.management-position th,.management-position td{padding:10px;border-bottom:1px solid #ddd;text-align:right;white-space:nowrap}.management-position th:first-child,.management-position td:first-child{text-align:left}.management-position th{font-weight:600;background:#f2f2f2}.management-position .cash-table-scroll{margin-bottom:18px}.management-position .record-field-link{min-height:44px}
 @media(max-width:1050px){.cash-accounts-layout{grid-template-columns:minmax(0,1fr)}}
 
-@media(min-width:1051px){.cash-accounts-layout .record-action.icon-action{width:auto;max-width:none;flex:0 0 auto;padding:7px 10px!important}}
+@media(min-width:1051px){.cash-accounts-layout .record-action.icon-action{width:auto;max-width:none;flex:0 0 auto}.cash-accounts-layout .record-action.icon-action:not(#_){padding:7px 10px}}
 
 .cash-accounts-layout .cash-holder-choice>.borrower-card{min-height:44px;padding:5px 10px;margin:2px 0;gap:10px}.cash-accounts-layout .cash-holder-choice>.borrower-card>span{line-height:1.3}
 .cash-position-holder td{font-weight:700;background:#f2f2f2}.cash-holder-toggle{border:0;background:transparent;padding:4px 0;min-height:44px;font:inherit;font-weight:700;text-align:left}.cash-position-account td{font-weight:400}.cash-position-account td:first-child{padding-left:30px}.cash-position-account .record-field-link{font-weight:400}.cash-ledger-row{cursor:pointer}.cash-ledger-row:hover{background:#fff6e8}.cash-ledger-row:focus-visible{outline:2px solid #a65700;outline-offset:-2px}
@@ -415,13 +422,13 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
  .live-shell main{height:auto;min-height:0;overflow:visible;padding-bottom:max(24px,env(safe-area-inset-bottom))}
  .live-shell .work-grid,.live-shell .collection-workspace{height:auto;min-height:0}
  .live-shell .work-grid>.list-panel,.live-shell .work-grid>.detail-panel,.live-shell .standalone-records,.live-shell .borrower-record,.live-shell .selected-payment{height:auto;max-height:none;overflow-y:visible}
- .live-shell .record-action-label,.live-shell .borrower-direct-actions .record-action-label{display:inline!important;font-size:14px}
- .live-shell .record-action,.live-shell .record-action.icon-action,.cash-accounts-layout .record-action.icon-action{width:auto;max-width:100%;flex:0 1 auto;min-height:44px;padding:7px 10px!important}
+ .live-shell .record-action-label,.live-shell .borrower-direct-actions .record-action-label{font-size:14px}.live-shell .record-action-label:not(#_),.live-shell .borrower-direct-actions .record-action-label:not(#_){display:inline}
+ .live-shell .record-action,.live-shell .record-action.icon-action,.cash-accounts-layout .record-action.icon-action{width:auto;max-width:100%;flex:0 1 auto;min-height:44px}.live-shell .record-action:not(#_),.live-shell .record-action.icon-action:not(#_),.cash-accounts-layout .record-action.icon-action:not(#_){padding:7px 10px}
  .live-shell .borrower-direct-actions{gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}
  .live-shell .related-loans-heading,.live-shell .payment-context{flex-wrap:wrap}
  /* UPC-HEAD-01: the Upcoming headings keep their 20px at every width; the other section headings take the tablet 19px. */
  .live-shell .related-loans-heading>h2{flex:1 1 220px}
- .live-shell :not(.upcoming-directory,.upcoming-event)>.related-loans-heading>h2{font-size:19px!important}
+ .live-shell :not(.upcoming-directory,.upcoming-event)>.related-loans-heading>h2:not(#_){font-size:19px}
  .live-shell .borrower-record form{max-width:900px}
  .live-shell .management-reference{min-width:0;max-width:100%}
  .live-shell .management-reference-option{min-height:44px;white-space:normal;overflow-wrap:anywhere}
@@ -466,7 +473,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 /* Approved pinned-page interpretation and caption fit; financial values are unchanged. */
 .list-meaning-legend{font-size:14px;line-height:1.4;color:#555;margin:8px 10px;overflow-wrap:anywhere}
 .payment-status-symbol{display:inline-block;font-size:.85em;min-width:1em;margin-right:5px;text-align:center}
-.record-action.destructive-action{color:#b3261e;border-color:#b3261e!important}
+.record-action.destructive-action{color:#b3261e}.record-action.destructive-action:not(#_){border-color:#b3261e}
 .borrower-direct-actions .record-action.destructive-action{color:#b3261e;margin-inline-start:12px}
 .borrower-record form>label:has(>input[type=checkbox]){display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
 .borrower-record form>label>input[type=checkbox]{width:24px;height:24px;flex:0 0 24px;margin:0}
@@ -484,8 +491,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .close-summary dl{display:flex;flex-wrap:wrap;gap:16px 32px;margin:0}.close-summary dd{margin:4px 0;font-weight:600}.close-summary dl>div:last-child dd{font-size:1.3em}
 .dashboard-secondary>h3,.live-shell .dashboard-section .dashboard-secondary>h3{font-size:1.15rem;font-weight:600;margin-top:1.5rem}
 @media(min-width:768px){
- .live-shell .record-action,.live-shell .borrower-record .record-action.icon-action{width:auto;max-width:100%;flex:0 1 auto;padding:7px 10px!important}
- .live-shell .record-action-label{display:inline!important;overflow-wrap:normal;word-break:normal}
+ .live-shell .record-action,.live-shell .borrower-record .record-action.icon-action{width:auto;max-width:100%;flex:0 1 auto}.live-shell .record-action:not(#_),.live-shell .borrower-record .record-action.icon-action:not(#_){padding:7px 10px}
+ .live-shell .record-action-label{overflow-wrap:normal;word-break:normal}.live-shell .record-action-label:not(#_){display:inline}
  .live-shell .related-loans-heading.collection-charges-heading{grid-template-columns:minmax(0,1fr) auto;gap:12px}
  .live-shell .related-loans-heading,.live-shell .root-record-heading{flex-wrap:wrap;gap:10px}
  .live-shell .record-action-icon{flex-shrink:0}
@@ -503,7 +510,7 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .field-help{font-size:14px;line-height:1.5;margin:4px 0 12px;color:#444}.field-help output{font-weight:600}
 .referrer-truncated{display:block}
 .referrer-results{display:flex;flex-direction:column;gap:4px;max-height:264px;overflow-y:auto;margin:4px 0 12px;border:1px solid #ccc;border-radius:4px;padding:4px}.referrer-result{min-height:44px;text-align:left;background:#fff;border:0;border-radius:4px;padding:8px;font:inherit;color:inherit;overflow-wrap:anywhere}.referrer-result:hover,.referrer-result:focus-visible{background:#eef3fb}.referrer-result[aria-pressed=true]{font-weight:600;background:#e6efe6}
-.settlement-status{display:inline-block!important;width:fit-content;border:1px solid #ccc;border-radius:4px;padding:1px 6px;color:#444;background:#f2f2f2;font-size:14px}
+.settlement-status{width:fit-content;border:1px solid #ccc;border-radius:4px;padding:1px 6px;color:#444;background:#f2f2f2;font-size:14px}.settlement-status:not(#_){display:inline-block}
 .chart-tick{font-size:16px;fill:#444;font-variant-numeric:tabular-nums}.analytics-pie-legend{list-style:none;padding:0;margin:12px 0;font-size:14px}.analytics-pie-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;align-items:baseline;margin:6px 0}.analytics-pie-legend li>span:nth-child(2){overflow-wrap:anywhere}.pie-swatch{width:12px;height:12px;display:inline-block;border:1px solid #777}.analytics-pie-legend strong{white-space:nowrap;font-variant-numeric:tabular-nums}
 
 .notification-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -610,8 +617,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 }
 
 /* W5 receiving: labelled primary Review/Confirm, captioned Clear draft, no nested scroll on phones. */
-.payment-context .record-action-label{display:inline!important}
-.payment-context .record-action{width:auto;flex:0 0 auto;padding:7px 10px!important}
+.payment-context .record-action-label:not(#_){display:inline}
+.payment-context .record-action{width:auto;flex:0 0 auto}.payment-context .record-action:not(#_){padding:7px 10px}
 /* FORM-SAVE-01: the primary action style is shared by Review, Confirm payment and the Save in a form's sticky actions bar. */
 .selected-payment .payment-selection-header .payment-review-button,.selected-payment .payment-confirm-button,.form-sticky-actions>button[type=submit]{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid #713c00;border-radius:6px;background:#713c00;color:#fff;font-weight:600}
 /* Review step: Edit and Confirm share one row box (same top, bottom and height) instead of baseline-aligning an inline-block beside an inline-flex. */

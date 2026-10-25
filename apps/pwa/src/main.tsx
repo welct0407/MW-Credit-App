@@ -99,13 +99,13 @@ function App() {
   </button>;
   return <div className="app-shell" data-preview-theme={previewTheme}>
     <aside ref={sidebarRef} className={'sidebar ' + (menu ? 'open' : '')}>
-      <a className="brand" href="#" onClick={e => { e.preventDefault(); go('collection'); }}>
+      <button type="button" className="brand" onClick={() => go('collection')}>
         <img className="brand-logo" src={previewTheme === 'dev' ? devLogoUrl : prodLogoUrl} alt="Loan Manager" />
         <span>MW Credit<small>
           {t('WORKSPACE PREVIEW', 'ตัวอย่างพื้นที่ทำงาน')}
         </small>
         </span>
-      </a>
+      </button>
       <div className="nav-caption">
         {t('OPERATIONS', 'งานปฏิบัติการ')}
       </div>
@@ -141,13 +141,13 @@ function App() {
             {routeInfo[locale === 'en' ? 1 : 2]}
           </strong>
         </div>
-        <div className="language" role="group" aria-label="Language">
+        {/* biome-ignore lint/a11y/useSemanticElements: synthetic preview language buttons; a fieldset would add form-group borders and padding */}<div className="language" role="group" aria-label="Language">
           <button type="button" onClick={() => { setLocale('en'); document.documentElement.lang = 'en'; }} aria-pressed={locale === 'en'}>EN</button>
           <button type="button" onClick={() => { setLocale('th'); document.documentElement.lang = 'th'; }} aria-pressed={locale === 'th'}>ไทย</button>
         </div>
       </header>
       <main>
-        <div className="theme-preview" role="group" aria-label={t('Theme preview', 'ตัวอย่างสี')}>
+        {/* biome-ignore lint/a11y/useSemanticElements: synthetic preview theme buttons; a fieldset would add form-group borders and padding */}<div className="theme-preview" role="group" aria-label={t('Theme preview', 'ตัวอย่างสี')}>
           <span>{t('Colors only · no environment change', 'ตัวอย่างสีเท่านั้น · ไม่เปลี่ยนระบบ')}</span>
           <button type="button" aria-pressed={previewTheme === 'dev'} onClick={() => setPreviewTheme('dev')}>DEV</button>
           <button type="button" aria-pressed={previewTheme === 'prod'} onClick={() => setPreviewTheme('prod')}>PROD</button>

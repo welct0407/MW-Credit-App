@@ -46,6 +46,7 @@ export function useMenuDrawer(dialogRef:RefObject<HTMLDialogElement|null>,scope:
   dialog.addEventListener('touchstart',start,{passive:true});dialog.addEventListener('touchmove',touchMove,{passive:false});dialog.addEventListener('touchend',touchEnd,{passive:false});dialog.addEventListener('touchcancel',abort);dialog.addEventListener('click',click,true);dialog.addEventListener('cancel',cancelEscape);dialog.addEventListener('close',closed);window.addEventListener('resize',reset);document.addEventListener('visibilitychange',reset);
   return()=>{clear();if(dialog.open)dialog.close();cleanup();controller.current=inactive;dialog.removeEventListener('touchstart',start);dialog.removeEventListener('touchmove',touchMove);dialog.removeEventListener('touchend',touchEnd);dialog.removeEventListener('touchcancel',abort);dialog.removeEventListener('click',click,true);dialog.removeEventListener('cancel',cancelEscape);dialog.removeEventListener('close',closed);window.removeEventListener('resize',reset);document.removeEventListener('visibilitychange',reset)};
  },[dialogRef]);
+ // biome-ignore lint/correctness/useExhaustiveDependencies: notifies the drawer controller when the scope changes; scope is the trigger
  useEffect(()=>{controller.current.scopeChanged()},[scope]);
  return api;
 }

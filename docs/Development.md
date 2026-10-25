@@ -36,7 +36,7 @@ CI routes by changed files: `Development checks` runs typecheck/unit/build for a
 
 ## Toolchain and lint
 
-Biome 2.5.14 lints TS/JS (`npm run lint`, rules in `biome.json`, formatter off); it blocks CI on errors, while warnings are reported as annotations and do not fail the job. Ruff 0.16.8 checks `integration-agent` with the rule set in its `pyproject.toml` and blocks CI.
+Biome 2.5.14 lints TS/JS (`npm run lint`, rules in `biome.json`, formatter off); it blocks CI on errors, while warnings are reported as annotations and do not fail the job. Since 25 October 2026 the repository lints with 0 warnings and 0 infos, so any new warning is new. A suppression (`biome-ignore`) carries a reason on a `//` line directly above it, because the comment applies to the whole following line; the `useExhaustiveDependencies` suppressions (111 in `apps/pwa/src`) were reviewed site by site and are not to be "fixed" by adding dependencies without the covering spec. Ruff 0.16.8 checks `integration-agent` with the rule set in its `pyproject.toml` and blocks CI.
 
 `npm run check:docs` (`scripts/check-docs.mjs`, run by CI on every event) fails on broken relative Markdown links or anchors, Cloud Run revision, image digest or Firebase Hosting version pins in current documents outside the [environment inventory](../project/Documents/Environment_Inventory.md), and change notes dated from 18 October 2026 that lack the [template headings](../project/Documents/Rules/Development_Workflow.md#records-change-notes-and-retention). It only warns about change notes older than 14 days that no current document links to, evidence files nothing current cites, and an `AGENTS.md` over 800 words.
 

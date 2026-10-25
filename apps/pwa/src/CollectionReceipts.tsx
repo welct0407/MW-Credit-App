@@ -6,6 +6,7 @@ import {beginRequest} from './request-activity';
 import {useContextRefresh} from './context-refresh';
 function ReceiptThumbnail({access,row,source,thai}:{access:CommandAccess;row:any;source:'manual'|'agent';thai:boolean}){
  const [url,setUrl]=useState<string|null>(null),[unavailable,setUnavailable]=useState(false);
+ // biome-ignore lint/correctness/useExhaustiveDependencies: reloads the receipt image when the receipt identity or its timestamp changes (receiptAt is a cache-busting trigger); access is recreated every render
  useEffect(()=>{let active=true,created:string|null=null;setUrl(null);setUnavailable(false);if(!row.manualReceiptPresent&&!row.agentReceiptPresent)return;const done=beginRequest(),controller=new AbortController();void(async()=>{try{const {response,data:blob}=await readCachedBlob(access,'/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source,{signal:controller.signal,onCached:blob=>{if(active){if(created)URL.revokeObjectURL(created);created=URL.createObjectURL(blob);setUrl(created)}}});if(!response.ok)throw Error();if(active){if(created)URL.revokeObjectURL(created);created=URL.createObjectURL(blob);setUrl(created)}}catch{if(active)setUnavailable(true)}finally{done()}})();return()=>{active=false;controller.abort();if(created)URL.revokeObjectURL(created)}},[row.id,row.receiptAt,row.manualReceiptPresent,row.agentReceiptPresent,source]);
  return <span className="collection-receipt-image">{url?<img src={url} alt={thai?'หลักฐานรับชำระ':'Receipt evidence'}/>:unavailable?(!navigator.onLine||access.offlineOnly)&&!receiptRetainedOffline(row)?(thai?'ไม่ได้บันทึกหลักฐานไว้ออฟไลน์ (เก่ากว่า 30 วัน) เชื่อมต่ออีกครั้งเพื่อดู':'Receipt not saved offline (older than 30 days). Reconnect to view it.'):(thai?'หลักฐานใช้ไม่ได้':'Receipt unavailable'):null}</span>;
 }
@@ -30,6 +31,7 @@ export function CollectionReceipts({access,borrowerId,businessDate,chargeIds,tha
    setItems(previous=>Array.from(new Map([...(cursor?previous:[]),...collected].map(row=>[row.id,row])).values()));setNext(value.nextCursor??null);
   }catch{if(current===generation.current)setError(true)}finally{done();if(current===generation.current){active.current=null;setBusy(false)}}
  }
+ // biome-ignore lint/correctness/useExhaustiveDependencies: loads once per receipt scope (scope is the reset trigger); load is recreated every render and listing it would refetch on every render
  useEffect(()=>{setItems([]);setNext(null);void load();return()=>{generation.current++;active.current?.abort();active.current=null}},[scope]);
  useContextRefresh(chargeIds.length>0,t('Refresh collection receipts','โหลดหลักฐานงานติดตามใหม่'),()=>void load());
  if(!error&&!items.length)return null;
