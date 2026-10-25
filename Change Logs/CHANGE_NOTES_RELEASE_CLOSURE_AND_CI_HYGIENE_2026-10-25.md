@@ -1,7 +1,7 @@
 # Change notes — One closure pull request per release and CI hygiene (Batch 1), 25 October 2026
 
 ## Purpose
-Owner instruction of 25 October 2026 ("Adopt the newly proposed methodology"): 40 of the 80 pull requests merged between 19 and 25 October were records-only ceremony. Adopt option A (one closure pull request per release) and option C (records ride code pushes) of the Development Checks tune-up plan, and ship CI hygiene Batch 1 in the same pull request. Options B (several promotions per release number) and D (dropping the `ci.yml` push-to-main trigger) are not adopted.
+Owner instruction of 25 October 2026 ("Adopt the newly proposed methodology"): 40 of the 80 pull requests merged between 19 and 25 October were records-only ceremony. Adopt option A (one closure pull request per release) and option C (records ride code pushes) of the Development Checks tune-up plan, and ship CI hygiene Batch 1 in the same pull request. Option B (several promotions per release number) is not adopted, and Option D (dropping the `ci.yml` push-to-main trigger) is rejected: the trigger stays.
 
 ## Changes
 - `project/Documents/Rules/Release_Workflow.md`: freeze step 2 pins the freeze in the promotion record instead of a separate tracker update and says what `main` shows until the closure lands (the promoted release still Open, DEV builds labelled with it, only frozen-scope corrections merged); Promotion step 4 creates the tag on the package commit first, then publishes freeze pin, promotion record, tag record and prune in one closure pull request after verified deployment; the prune is listed in that same pull request; owner acceptance goes into the next closure or product pull request; revision line 25 October 2026.
@@ -44,7 +44,7 @@ No promotion, deployment or PROD effect. The new closure flow is first exercised
 Revert the batch commit; the previous three-pull-request ceremony is restored from Git. Prior releases' records are unchanged.
 
 ## Open questions
-None. Owner decisions of 25 October 2026: Option B (several promotions under one release number) is not adopted for now; Batch 3 hook warnings are to be fixed with review (reject render-created dependencies, suppress intentional cases with reasons).
+None. Owner decisions of 25 October 2026: Option B (several promotions under one release number) is not adopted for now; Option D is rejected and the `push: main` trigger of `ci.yml` stays, because it is the only CI check of the actual `main` tree (branch protection does not require up-to-date branches, so concurrent merges create untested combinations) and `validateRuntimeCi` in `scripts/promotion/deploy-business-hosting.mjs` needs a run whose `head_sha` is an ancestor of the promoted source, which with squash merges only a main-push (or a dispatch on `main`) run satisfies; the saving would have been about 30 runner minutes a week; Batch 3 hook warnings are to be fixed with review (reject render-created dependencies, suppress intentional cases with reasons).
 
 ## Remaining work
-Chase's verification; Batch 2 and 3 of the tune-up plan.
+None; Batches 2 and 3 are recorded in their own change notes.

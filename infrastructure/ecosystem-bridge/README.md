@@ -1,6 +1,8 @@
 # R057 ecosystem adoption: bridge
 
-Owns bridge infrastructure and Firestore metadata only. Existing IAM policies/grants remain external; service-account adoption is not IAM-policy adoption.
+Owns bridge infrastructure and Firestore metadata only. Existing IAM policies/grants remain external; service-account adoption is not IAM-policy adoption. One exception (R099, owner decision of 25 October 2026): `builder-iam.tf` grants the existing PROD builder `mw-credit-app-build-prod` Artifact Registry writer on the `mw-monitoring` repository only, so bridge images are built with Cloud Build as that builder.
+
+Image update: build from the clean `main` tree with Cloud Build as `mw-credit-app-build-prod` (source staging `gs://mw-credit-app-prod-builds-737787224638/source`), tag `keep-grafana-events-<commit>`, then change the image digest in `owned.tf` and apply (a new revision, no traffic, because traffic is pinned by revision name), check the revision, then change the `traffic` revision name and apply. The adopted template omits the zero `cpu_utilization` and `concurrency_utilization` values; the API rejects an update that sends them.
 
 Terraform 1.16.5 and the committed provider lockfile pin the reviewed implementation. The existing protected GCS backend bucket is `mw-credit-app-tfstate-737787224638` with the unique `ecosystem-bridge` prefix. Use the existing GCP operator authentication for backend access; Azure roots additionally use the established Azure CLI account. Keep credentials, TF_DATA_DIR, saved plans and diagnostic output outside every repository.
 
