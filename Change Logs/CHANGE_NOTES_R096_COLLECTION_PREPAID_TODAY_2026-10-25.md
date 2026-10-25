@@ -33,7 +33,7 @@ The owner reported that a borrower's payment for today's charge was missing from
 ## Not run
 - The local wide browser suite: the pull request run is the one broad run (lean check routine).
 - Receipts real-SQL check with a prepaid charge: not run. The visible change is intended: a charge dated today and prepaid earlier now lists its earlier receipt.
-- The owner's real-device view of the caption: pending. Echo's check used Chromium, not a device.
+- The owner's real-device view: done; the owner confirmed on 25 October 2026 that it works on their phone. Echo's check used Chromium, not a device.
 
 ## Recovery
 Git: revert the R096 merge commit on `main`. Deployment: redeploy the previous Cloud Run images and Hosting version listed in the [Environment inventory](../project/Documents/Environment_Inventory.md). No database change, so no backup restore is involved.
@@ -73,7 +73,7 @@ In `project/Documents/Release_Tracker.md` "Current development release" table:
 | 3. Records, tag | `codex-cloud`; the Release tag workflow | done in the closure commit: Environment inventory (pins and Forge's corrections), tracker (Released), Development Changes, this note; tag `R096` on the deployed `main` commit | tag exists; `npm run check:docs` passes | never move an existing tag | records in the closure commit; tag pending the workflow |
 
 ### Close
-- Outcome: applied and verified in DEV and PROD (25 October 2026); no SQL, no VM. Package: DEV from `328acc3`, PROD from `3cbbcea`; they differ only in three record files. Not yet observed: the owner's real-device view of the caption. Not owner-accepted yet.
+- Outcome: applied and verified in DEV and PROD (25 October 2026); no SQL, no VM. Package: DEV from `328acc3`, PROD from `3cbbcea`; they differ only in three record files. Owner-accepted: the owner confirmed on 25 October 2026 that it works on their phone.
 - Recovery reference: Recovery above.
 - Changed documents: this note, `PWA_Data_Model_Overview.md`, Development Changes, Environment inventory (R096 pins; corrections: the DEV reader was on `00041-nkk`, DEV notify and jobs are on `ef7beb4b…`, and the committed `dev.tfvars` `read_image` is stale because the activation file overrides it) and Release tracker.
 - Published evidence/tag: tag `R096` on `3cbbcea` through the Release tag workflow (pending). Receipts are private, outside Git.
