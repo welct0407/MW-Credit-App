@@ -20,9 +20,10 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 type CollectionStatus = 'not_paid' | 'partially_paid' | 'overdue' | 'fully_paid';
 type Summary = { id: string; displayName: string; status: CollectionStatus; amountDue: string | null; amountCollected: string | null; amountRemaining: string | null; prepaidToday?: string | null; prepaidOnly?: boolean; groupRemaining?:string|null;groupCollected?:string|null };
 // R097: exact sum of two API decimal strings; null when either is unavailable.
-const addDecimal=(a:string|null,b:string|null)=>{if(a===null||b===null)return null;const scale=Math.max((a.split('.')[1]??'').length,(b.split('.')[1]??'').length),units=(v:string)=>{const [i,f='']=v.replace('-','').split('.'),n=BigInt(i+f.padEnd(scale,'0'));return v.startsWith('-')?-n:n},sum=units(a)+units(b),digits=(sum<0n?-sum:sum).toString().padStart(scale+1,'0');return (sum<0n?'-':'')+(scale?digits.slice(0,-scale)+'.'+digits.slice(-scale):digits)};
+const addDecimal=(a:string|null,b:string|null)=>{if(typeof a!=='string'||typeof b!=='string')return null;const scale=Math.max((a.split('.')[1]??'').length,(b.split('.')[1]??'').length),units=(v:string)=>{const [i,f='']=v.replace('-','').split('.'),n=BigInt(i+f.padEnd(scale,'0'));return v.startsWith('-')?-n:n},sum=units(a)+units(b),digits=(sum<0n?-sum:sum).toString().padStart(scale+1,'0');return (sum<0n?'-':'')+(scale?digits.slice(0,-scale)+'.'+digits.slice(-scale):digits)};
 // R097: the board row's right amount adds what was paid earlier toward today's charges; group totals stay cash today.
-const rowPaid=(row:Summary)=>addDecimal(row.amountCollected,row.prepaidToday===undefined?'0':row.prepaidToday);
+// A row without prepaidToday (older or partial payloads) keeps amountCollected as it is.
+const rowPaid=(row:Summary)=>row.prepaidToday===undefined?row.amountCollected:addDecimal(row.amountCollected,row.prepaidToday);
 type Charge = { id: string; loanId: string; loanDisplayKey: string; chargeDate: string; paymentStatus: string; paymentDate: string | null; amountRemaining: string | null; totalPaid: string | null; receivedToday: string | null };
 type Envelope = { ok: true; source: 'dev'; businessDate: string; asOf: string; nextCursor: string | null };
 type BoardResult = Envelope & { items: Summary[] };
