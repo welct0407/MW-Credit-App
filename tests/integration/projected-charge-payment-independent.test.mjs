@@ -92,3 +92,34 @@ test('the offline dataset carries upcoming with the first scope=all payment draf
  }
  assert.ok(found,'a paymentDrafts patch carries the next charge');
 });
+
+test('V113: after a deleted early payment Loan Close bills only the days up to today on the booked charge',async()=>{
+ await admin.query('INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval") VALUES(\'R101-D4\',$1,$2,(CURRENT_TIMESTAMP AT TIME ZONE \'Asia/Bangkok\')::date-3,1000::money,\'ยังไม่ปิดยอด\',\'ดอกเบี้ยรายวัน\',false,10::money,7)',[fixture.borrowerId,fixture.lendingAccountId]);
+ await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='R101-D4'`);
+ const next=await day(4),f1=key('R101-D4',next);
+ const command={schemaVersion:9,requestId:randomUUID(),borrowerId:fixture.borrowerId,allocations:[projectedLine('R101-D4',next,'40')],cashAccountId:fixture.receivingAccountId,paymentDate:today,amountReceived:'40',paymentMethod:'Bank Transfer',notes:null,receiptId:null,bankReference:null,transferTime:null,payerLines:null,materialize:[entry('R101-D4',next)]};
+ const posted=await store.submit(principal,command);assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));
+ const record=(await store.paymentRecord(principal,posted.originalOutcome.paymentId,{preview:true})).item;
+ const deleted=await store.operation(principal,{requestId:randomUUID(),operation:'payment.delete',targetId:posted.originalOutcome.paymentId,expectedVersion:record.sourceVersion,predecessorRequestId:record.predecessorRequestId,receiptId:null,inputs:{}});
+ assert.equal(deleted.originalOutcome?.status,'applied',JSON.stringify(deleted));
+ assert.deepEqual((await admin.query('SELECT "Interest Due"::numeric::text AS i FROM "Charges" WHERE "Row ID"=$1',[f1])).rows[0],{i:'70.00'},'the booked charge stays after the payment is deleted');
+ const preview=await store.loanClosePreview(principal,'R101-D4');assert.equal(preview.status,200,JSON.stringify(preview));
+ assert.equal(preview.amount,'1030','principal plus the three days up to today, not the booked charge in full');
+ assert.deepEqual([preview.principalAmount,preview.interestAmount],['1000.00','30.00']);
+ assert.deepEqual(preview.plan.allocations.find(line=>line.chargeId===f1),{chargeId:f1,principal:'0',interest:'30',expectedPrincipalRemaining:'0',expectedInterestRemaining:'30',chargeDate:next});
+ const client=await app.connect();try{
+  await client.query('BEGIN');
+  const value=(await client.query('SELECT public.loan_close_calculation_v83($1,$2) AS value',['R101-D4',today])).rows[0].value;
+  assert.equal(value.planHash,preview.planHash);assert.deepEqual(value.mutation.futureInterest,[{chargeId:f1,interestDue:'30'}]);
+  await client.query('SELECT public.apply_loan_close_calculation_v83($1,$2,$3)',['R101-D4',today,preview.planHash]);
+  const second=(await client.query('SELECT public.apply_loan_close_calculation_v83($1,$2,NULL) AS value',['R101-D4',today])).rows[0].value;
+  assert.equal(second.amount,preview.amount);assert.equal(second.mutation,null);
+  await client.query('ROLLBACK');
+ }finally{client.release()}
+ const close={requestId:randomUUID(),operation:'loan.close',targetId:'R101-D4',expectedVersion:preview.sourceVersion,predecessorRequestId:null,receiptId:null,inputs:{paymentDate:today,cashAccountId:fixture.receivingAccountId,paymentMethod:'Cash',notes:null,expectedAmount:preview.amount,expectedPlanHash:preview.planHash}};
+ const applied=await store.operation(principal,close);assert.equal(applied.originalOutcome?.status,'applied',JSON.stringify(applied));assert.equal(applied.originalOutcome.result.plan.amountReceived,'1030');
+ const charge=(await admin.query('SELECT "Interest Due"::numeric::text AS i,"Notes" AS notes FROM "Charges" WHERE "Row ID"=$1',[f1])).rows[0];
+ assert.deepEqual(charge,{i:'30.00',notes:'Interest Due lowered from 70 by Loan Close '+today});
+ const loan=(await admin.query('SELECT "Loan Status" AS status FROM "Loans" WHERE "Row ID"=$1',['R101-D4'])).rows[0];assert.equal(loan.status,'ปิดยอดแล้ว');
+ assert.equal((await admin.query('SELECT count(*)::integer AS n FROM "Charges" c CROSS JOIN LATERAL public.vc_charge_values(c) v WHERE c."Ref Loans"=$1 AND v.remaining<>0',['R101-D4'])).rows[0].n,0,'every charge settled');
+});

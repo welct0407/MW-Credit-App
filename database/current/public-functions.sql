@@ -58,7 +58,7 @@ CREATE FUNCTION public.apply_loan_close_calculation_v83(p_loan text, p_day date,
     LANGUAGE plpgsql
     SET search_path TO 'pg_catalog', 'public'
     AS $$
-DECLARE parent text;calculation jsonb;m jsonb;
+DECLARE parent text;calculation jsonb;m jsonb;f jsonb;
 BEGIN
  SELECT "Ref Borrowers" INTO parent FROM public."Loans" WHERE "Row ID"=p_loan;
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=parent FOR UPDATE;
@@ -67,6 +67,12 @@ BEGIN
  calculation:=public.loan_close_calculation_v83(p_loan,p_day);
  IF p_expected IS NOT NULL AND calculation->>'planHash' IS DISTINCT FROM p_expected THEN RAISE EXCEPTION USING ERRCODE='P5B09',MESSAGE='Close plan changed';END IF;
  m:=calculation->'mutation';
+ FOR f IN SELECT value FROM jsonb_array_elements(CASE WHEN jsonb_typeof(m->'futureInterest')='array' THEN m->'futureInterest' ELSE '[]'::jsonb END) LOOP
+  UPDATE public."Charges" SET "Interest Due"=(f->>'interestDue')::numeric::money,
+   "Notes"=coalesce(nullif("Notes",'')||E'\n','')||'Interest Due lowered from '||trim_scale("Interest Due"::numeric)::text||' by Loan Close '||p_day::text
+   WHERE "Row ID"=f->>'chargeId' AND "Ref Loans"=p_loan AND "Charge Date">p_day AND "Interest Due"::numeric>(f->>'interestDue')::numeric;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Close plan future charge differs from the loan';END IF;
+ END LOOP;
  IF m->>'kind'='insert' THEN INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes") VALUES(m->>'chargeId',p_loan,p_day,(m->>'principal')::numeric::money,(m->>'interest')::numeric::money,'Final charge prepared by Loan Close');
  ELSIF m->>'kind'='increase' THEN UPDATE public."Charges" SET "Principal Due"=("Principal Due"::numeric+(m->>'principal')::numeric)::money WHERE "Row ID"=m->>'chargeId';END IF;
  RETURN calculation;
@@ -1672,6 +1678,7 @@ CREATE FUNCTION public.loan_close_calculation_v83(p_loan text, p_day date, p_exc
     AS $$
 DECLARE l public."Loans"%ROWTYPE; outstanding numeric;scheduled numeric;missing numeric;interest numeric:=0;
  target text;today_count integer;latest date;mutation jsonb:='null'::jsonb;lines jsonb;total numeric;context jsonb;
+ opening date;reclose boolean;has_future boolean;future jsonb;future_due jsonb;
 BEGIN
  SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan;
  IF NOT FOUND THEN RAISE EXCEPTION 'Target loan must belong to the payment borrower';END IF;
@@ -1684,19 +1691,29 @@ BEGIN
  SELECT coalesce(sum(c."Principal Due"::numeric-(SELECT coalesce(sum(r."Principal Paid"::numeric),0) FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID" AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment))),0) INTO scheduled FROM public."Charges" c WHERE c."Ref Loans"=p_loan;
  missing:=outstanding-scheduled;
  IF missing<0 THEN RAISE EXCEPTION 'Principal already due exceeds outstanding loan principal';END IF;
+ -- V113: charges dated after the day. F1 carries the days up to the day (capped by its stored due); later ones keep paid interest.
+ SELECT max("Charge Date") INTO opening FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
+ reclose:=EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=opening AND starts_with("Row ID",'lc7:'));
+ WITH f AS(SELECT c."Row ID" id,c."Interest Due"::numeric due,paid.i,row_number() OVER(ORDER BY c."Charge Date",c."Row ID" COLLATE "C") n FROM public."Charges" c
+   LEFT JOIN LATERAL(SELECT coalesce(sum(r."Interest Paid"::numeric),0) i FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID" AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment)) paid ON true
+   WHERE c."Ref Loans"=p_loan AND c."Charge Date">p_day),
+  v AS(SELECT id,due,CASE WHEN n>1 THEN i WHEN reclose THEN due ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(opening,l."Loan Date")))) END due_new FROM f)
+ SELECT count(*)>0,jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new)
+  INTO has_future,future,future_due FROM v;
  SELECT count(*),min("Row ID") INTO today_count,target FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=p_day;
  IF today_count>1 THEN RAISE EXCEPTION 'Multiple charges today require reconciliation before closing';END IF;
  IF today_count=0 THEN
-  SELECT max("Charge Date") INTO latest FROM public."Charges" WHERE "Ref Loans"=p_loan;
-  interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(latest,l."Loan Date"));
+  SELECT max("Charge Date") INTO latest FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
+  IF NOT has_future THEN interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(latest,l."Loan Date"));END IF;
   IF missing+interest>0 THEN
    target:='lc7:'||length(p_loan)||':'||p_loan||':'||p_day::text;
    mutation:=jsonb_build_object('kind','insert','chargeId',target,'principal',missing::text,'interest',interest::text);
   END IF;
  ELSIF missing>0 THEN mutation:=jsonb_build_object('kind','increase','chargeId',target,'principal',missing::text,'interest','0');END IF;
+ IF future IS NOT NULL THEN mutation:=CASE WHEN mutation='null'::jsonb THEN jsonb_build_object('kind','adjust') ELSE mutation END||jsonb_build_object('futureInterest',future);END IF;
  IF target IS NULL THEN SELECT "Row ID" INTO target FROM public."Charges" WHERE "Ref Loans"=p_loan ORDER BY "Charge Date" DESC,"Row ID" COLLATE "C" DESC LIMIT 1;END IF;
  WITH paid AS(SELECT r."Ref Charges" id,sum(r."Principal Paid"::numeric) p,sum(r."Interest Paid"::numeric) i FROM public."Repayments" r WHERE r."Ref Loans"=p_loan AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment) GROUP BY r."Ref Charges"),
- projected AS(SELECT c."Row ID" id,c."Charge Date" AS charge_day,c."Principal Due"::numeric-coalesce(paid.p,0)+CASE WHEN mutation->>'kind'='increase' AND c."Row ID"=target THEN missing ELSE 0 END p,c."Interest Due"::numeric-coalesce(paid.i,0) i FROM public."Charges" c LEFT JOIN paid ON paid.id=c."Row ID" WHERE c."Ref Loans"=p_loan
+ projected AS(SELECT c."Row ID" id,c."Charge Date" AS charge_day,c."Principal Due"::numeric-coalesce(paid.p,0)+CASE WHEN mutation->>'kind'='increase' AND c."Row ID"=target THEN missing ELSE 0 END p,CASE WHEN c."Charge Date">p_day THEN (future_due->>c."Row ID")::numeric ELSE c."Interest Due"::numeric END-coalesce(paid.i,0) i FROM public."Charges" c LEFT JOIN paid ON paid.id=c."Row ID" WHERE c."Ref Loans"=p_loan
  UNION ALL SELECT target,p_day,missing,interest WHERE mutation->>'kind'='insert')
  SELECT coalesce(jsonb_agg(jsonb_build_object('chargeId',id,'principal',trim_scale(p)::text,'interest',trim_scale(i)::text,'expectedPrincipalRemaining',trim_scale(p)::text,'expectedInterestRemaining',trim_scale(i)::text,'chargeDate',charge_day::text) ORDER BY id COLLATE "C") FILTER(WHERE p+i>0),'[]'::jsonb),sum(p+i) INTO lines,total FROM projected;
  IF total IS NULL OR total<=0 OR total<>trunc(total) THEN RAISE EXCEPTION 'Final receipt must be a positive whole-baht amount';END IF;
