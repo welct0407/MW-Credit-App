@@ -1,10 +1,10 @@
 # Open development changes
 
-**R096 is Open**; R095, R094 and R093 are Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
+**R097 is Open**; R096 is Frozen; R095 and R094 are Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
 
 | Outstanding work | Owning reference |
 | --- | --- |
-| R096 Collection shows prepaid charges due today (Open) | Collection now includes every charge dated today even when paid on an earlier day (API collection query and the agent `Collection Today` virtual; a "Paid in advance" caption on the charge row). No SQL, no financial write. [Change note](../../Change%20Logs/CHANGE_NOTES_R096_COLLECTION_PREPAID_TODAY_2026-10-25.md); Byte's checks, Chase's verification and the promotion are pending |
+| R096 Collection shows prepaid charges due today (Frozen 25 October 2026) | Collection now includes every charge dated today even when paid on an earlier day (API collection query and the agent `Collection Today` virtual; a "Paid in advance" caption on the charge row). No SQL, no financial write. [Change note](../../Change%20Logs/CHANGE_NOTES_R096_COLLECTION_PREPAID_TODAY_2026-10-25.md); Byte's checks, Chase's verification and the promotion are pending |
 | Deferred Collection Note concern | Unchanged by released R059; a separate owner-directed correction remains pending |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |

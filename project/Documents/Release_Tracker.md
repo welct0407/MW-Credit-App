@@ -4,9 +4,11 @@
 
 | Item | Current value |
 | --- | --- |
-| New product work | **R096 — Open** |
-| Next unused number | **R097**, only opened when authorized R096 promotion starts |
+| New product work | **R097 — Open** |
+| Next unused number | **R098**, only opened when authorized R097 promotion starts |
 | Current runtime baseline | [Environment inventory](Environment_Inventory.md) |
+
+R096 (Collection lists every charge dated today, including one paid on an earlier day, with a paid-in-advance caption; no SQL; [promotion record](../../Change%20Logs/CHANGE_NOTES_R096_COLLECTION_PREPAID_TODAY_2026-10-25.md#promotion-record)) is Frozen for promotion on 25 October 2026 at 06:47Z on PR #150 (`328acc3c`) under the owner's instruction "Get the team work on it and push all the way to production".
 
 R095 (payer-name matching with V111, the one-time PROD backfill and `payer_name_cutoff`; plus V110, the receipt review fix, the clean agent build and the DEV test Partner; [promotion record](../../Change%20Logs/CHANGE_NOTES_R095_FOLLOW_UPS_AND_DEV_TEST_ACCOUNT_2026-10-24.md#promotion-record)) is Released to DEV, the VM and PROD on 24 October 2026 under the owner's instruction "Proceed with PR, merging and promotion. I give you authorization to write to prod db. Go ahead. I don't want to do it myself as much as possible"; frozen 17:59Z at PR #147 (`1a2e35b9`), tag `R095` on `14c4a403`.
 
@@ -28,6 +30,7 @@ Status and records only; deployment pins are in the [environment inventory](Envi
 
 | Release | Scope | Released | Record | Tag |
 | --- | --- | --- | --- | --- |
+| R096 | Collection includes every charge dated today, including one paid on an earlier day (paid-in-advance caption; read, command and chat images and Hosting; no SQL, no VM). Source PR #150 `328acc3c`, baseline R095 `14c4a40` | Frozen 25 October 2026 06:47Z; not yet released | [promotion record](../../Change%20Logs/CHANGE_NOTES_R096_COLLECTION_PREPAID_TODAY_2026-10-25.md#promotion-record) | pending |
 | R095 | Payer-name matching: `Communication Name` holds payer names on slips (V111; PROD backfill 27 of 36 borrowers; agent `payer_name_cutoff` 2026-10-24T18:36:14Z; command and chat images, Hosting, VM), plus V110 (agent default-select revoke), the receipt review fix, the clean agent build and the DEV test Partner. Source PR #147 `1a2e35b9`, baseline R094 `2032bc3d` | 24 October 2026 under the owner's instruction "Proceed with PR, merging and promotion. I give you authorization to write to prod db. Go ahead. I don't want to do it myself as much as possible" | [promotion record](https://github.com/welct0407/MW-Credit-App/blob/14c4a403/Change%20Logs/CHANGE_NOTES_R095_FOLLOW_UPS_AND_DEV_TEST_ACCOUNT_2026-10-24.md#promotion-record) | `R095` on `14c4a403` |
 | R094 | Follow-ups: chat service redeployed in DEV and PROD at the schema digest of migration 109 (one new history epoch per thread); the three dead VM keys (`conversation_schema_file`, `conversation_schema_sha256`, `partner_conversation_backup`) retired by the agent's `RETIRED_KEYS` and a deploy that drops retired keys in every mode (configuration 80 keys, catalogue revision 32); V109 revokes `mw_integration_agent` SELECT on `pwa_notification_events`, `pwa_notification_preferences`, `pwa_notification_deliveries`, `pwa_push_subscriptions` and `pwa_job_runs` (PROD; DEV no-op). Source `2032bc3d` (PR #143), baseline R093 `1154d7c1` | 24 October 2026 under the owner's instruction "Proceed with R094 till it's in production" | [promotion record](../../Change%20Logs/CHANGE_NOTES_R094_FOLLOW_UPS_2026-10-24.md#promotion-record) | `R094` on `2032bc3d` |
 | R093 | In-app chat on the Grafana dashboards: a Chat API lane and Chat tile on Now, the chat service row and turns row on PWA & APIs, ten services on Infrastructure, chat usage, last turns, month and by-model on Cost; V108 (`pwa_chat_recent_turns_v1`, `pwa_chat_usage_v1`, read functions only); PROD log metrics `mw_chat_*`; the alerts `PWA API health failed` and `Cloud Run 5xx` extended to chat; collector with six health components. No application image or Hosting change. Source `4c80ffde` (PR #141), baseline R092 `a23a8c3f` | 24 October 2026 under the owner's instruction "Yes" | [promotion record](../../Change%20Logs/CHANGE_NOTES_R093_CHAT_DASHBOARDS_2026-10-24.md#promotion-record) | `R093` on `4c80ffde` |
