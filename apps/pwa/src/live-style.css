@@ -679,3 +679,10 @@ html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-beha
 .borrower-record .payer-lines{white-space:pre-line}
 /* R096: a charge due today but paid on an earlier day carries a grey caption under its loan key. */
 .charge-prepaid-note{color:#565656}
+
+/* R101: the next-charge pill in Receive payment (same pill as the collection group count). */
+.next-charge-badge{background:#dfe3e6;border-radius:10px;padding:1px 7px;font-size:13px;display:inline-block;width:fit-content}
+/* The Pay ahead help sits with the rows (8px sides, 12px left like the heading), close above them; on a review line the
+   badge is its own line after the text, so a wrapped line never ends in a dangling separator. */
+.selected-payment .payment-charge-scroll .next-charge-help{padding:0 8px 0 12px;margin-bottom:4px}
+.selected-payment .next-charge-badge-line{display:block;margin-top:2px}

@@ -29,7 +29,7 @@ const EXCLUDED_RELATIONS=/^public\.(?:pwa_chat_|pwa_job_runs$)/;
 
 // Owner (R085), Archie's classification, verbatim from the agent builder.
 export const ALLOWED=new Map([
- ["public.loan_close_calculation_v83(p_loan text, p_day date)",["The system's Loan Close calculation for an open, auto-enabled Daily Interest loan on p_day (amount, allocations, mutation, planHash); raises P0001 for any other loan.",
+ ["public.loan_close_calculation_v83(p_loan text, p_day date)",["The system's Loan Close calculation for an open, auto-enabled Daily Interest loan on p_day (amount, allocations, mutation, planHash); interest runs only to p_day, so a charge dated after p_day is billed only for the days up to p_day (never above its stored due); raises P0001 for any other loan.",
   "Cross-checking the charge-balance payoff (business rules section 6) through the loan_payoff tool; call directly only for a date other than today."]],
  ["public.loan_close_calculation_v83(p_loan text, p_day date, p_exclude_payment text)",["The same payoff computed as if closing payment p_exclude_payment did not exist (correction preview).",
   "\"What would the payoff have been without payment X\"."]],

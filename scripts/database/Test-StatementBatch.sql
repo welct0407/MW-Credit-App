@@ -174,6 +174,8 @@ END $$;
 \ir Test-Chat.sql
 -- V111 (R095): the payer name fill of both payment commands under the DEV command user (rolled back).
 \ir Test-PayerName.sql
+-- V112 (R101): the next projected charge offer and the v9 payment that books it, under the DEV command user (rolled back).
+\ir Test-ProjectedChargePayment.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).
 \ir Test-DevTestPartner.sql
 -- Last: the migration-owned grant matrix (DB-CI-05 / DB-ACCESS-02).

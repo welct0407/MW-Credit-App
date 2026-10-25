@@ -37,6 +37,22 @@ try {
  if(-not $Smoke){$testFiles+="$PSScriptRoot/unified-receiving-independent.test.mjs"}
  & node --test --test-concurrency=1 @testFiles
  if($LASTEXITCODE){throw 'Payment command API rehearsal failed'}
+ if(-not $Smoke){
+  # R101: paying the next charge early needs the newest migration (V112); the same cluster continues to the head.
+  Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object { $savedFlyway[$_.Name]=$_.Value; Remove-Item "Env:$($_.Name)" }
+  try {
+   $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$fixturePort/payment_rehearsal"
+   $env:FLYWAY_USER='postgres';$env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
+   Push-Location $DbRepoRoot
+   try { & (Get-FlywayPath) '-outputType=json' migrate | Out-File (Join-Path $fixtureRoot 'migration-head.json');if($LASTEXITCODE){throw 'Head migration failed'} }
+   finally {Pop-Location}
+  } finally {
+   Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object {Remove-Item "Env:$($_.Name)"}
+   foreach($entry in $savedFlyway.GetEnumerator()){Set-Item "Env:$($entry.Key)" $entry.Value}
+  }
+  & node --test --test-concurrency=1 "$PSScriptRoot/projected-charge-payment-independent.test.mjs"
+  if($LASTEXITCODE){throw 'Projected charge payment integration checks failed'}
+ }
 } finally {
  Remove-Item Env:PAYMENT_REHEARSAL_DISPOSABLE,Env:PAYMENT_REHEARSAL_PORT,Env:PAYMENT_REHEARSAL_DIRECTORY -ErrorAction SilentlyContinue
  if($started){& (Get-PgTool pg_ctl) -D $data -m fast -w stop | Out-Null}

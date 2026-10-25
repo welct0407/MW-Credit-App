@@ -64,7 +64,27 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
  if(accounts.some(row=>typeof row.label!=='string'||!row.label))throw Error('Draft unavailable');
  const last=page.at(-1),nextCursor=more?Buffer.from(JSON.stringify({v:3,borrowerId,scope,businessDate:clock.day,chargeDate:last.chargeDate,id:last.id})).toString('base64url'):null;
- return {mode,scope,businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:borrowerId,displayName:name},charges,accounts,nextCursor,preferredReceivingAccountId:accounts.some(row=>row.id===borrower.preferred_account)?borrower.preferred_account:null};
+ // R101: the first scope=all page (and the review read) also returns each loan's next projected charge, not yet booked
+ // (undefined otherwise, so JSON leaves the key out).
+ const upcoming=scope==='all'&&!after&&!all?await readUpcomingCharges(client,borrowerId,clock.day,name):undefined;
+ return {mode,scope,businessDate:clock.day,asOf:new Date(clock.instant).toISOString(),borrower:{id:borrowerId,displayName:name},charges,upcoming,accounts,nextCursor,preferredReceivingAccountId:accounts.some(row=>row.id===borrower.preferred_account)?borrower.preferred_account:null};
+}
+
+/**
+ * R101: each eligible loan's next projected charge (pwa_next_projected_charge_v1, V112), in the charge row shape plus loanId.
+ * The id is the generator key the payment will book; the amounts are the whole charge. Sorted by date, then loan.
+ */
+async function readUpcomingCharges(client,borrowerId,day,name){
+ // Before V112 (an image ahead of its migration, or an older rehearsal) the function is absent: no next charges.
+ if(!(await client.query(`SELECT to_regprocedure('public.pwa_next_projected_charge_v1(text,date)') IS NOT NULL AS present`)).rows[0].present)return undefined;
+ const rows=(await client.query(`SELECT p.loan_id AS "loanId",p.charge_id AS id,p.charge_date::text AS "chargeDate",p.principal_due::text AS "principalRemaining",p.interest_due::text AS "interestRemaining",
+ l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate
+ FROM public.pwa_next_projected_charge_v1($1,$2::date) p JOIN public."Loans" l ON l."Row ID"=p.loan_id ORDER BY p.charge_date,p.loan_id COLLATE "C"`,[borrowerId,day])).rows;
+ return rows.map(row=>{
+  if(!validDay(row.chargeDate)||row.chargeDate<=day||![row.principalRemaining,row.interestRemaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');
+  const principalRemaining=BigInt(row.principalRemaining.split('.')[0]),interestRemaining=BigInt(row.interestRemaining.split('.')[0]);
+  return {id:row.id,loanId:row.loanId,chargeDate:row.chargeDate,loanDisplayKey:paymentLoanDisplayKey({...row,name}),amountRemaining:(principalRemaining+interestRemaining).toString(),principalRemaining:principalRemaining.toString(),interestRemaining:interestRemaining.toString()};
+ });
 }
 
 /** Shared read-only loan label, identical to receiving entry. Missing parent stays unavailable. */

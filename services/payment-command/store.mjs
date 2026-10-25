@@ -28,7 +28,7 @@ import {readCommandResult,readBorrowerPaymentHistory} from './result.mjs';
 import { readPaymentDraft, readOwnerPaymentDraft } from './draft.mjs';
 import { applicationConnectionGuard } from './application-target.mjs';
 import { evaluateSlip } from '../receipts/recognizer-rules.mjs';
-import { canonicalCommand, canonicalAllocationPlan, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
+import { canonicalCommand, canonicalAllocationPlan, canonicalMaterializePlan, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
 import { PROJECT_ID, OWNER_EMAIL } from '../lib/identity.mjs';
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
 import { statementTimeoutSql, lockTimeoutSql } from '../lib/budget.mjs';
@@ -235,7 +235,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
           let candidate;try{candidate=commandIdentity(command,actor,receipt)}catch{return failure(400,'invalid_request')}
           if (candidate.canonicalJson !== existing.canonical_json) return failure(409, 'command_conflict');
         } else {
-          if (fixture && (command.borrowerId!==fixture.borrowerId || !fixture.cashAccountIds.includes(command.cashAccountId)
+          // R101: the synthetic fixture route never books a projected charge (v9).
+          if (fixture && (command.schemaVersion===9 || command.borrowerId!==fixture.borrowerId || !fixture.cashAccountIds.includes(command.cashAccountId)
             || (command.schemaVersion>=6?command.allocations.map(row=>row.chargeId):command.selectedChargeIds).some(id=>!fixture.chargeIds.includes(id)))) return failure(403,'access_denied');
         }
         if (!existing && command.receiptId !== null) {
@@ -284,12 +285,17 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       return {...result,allocations,amountReceived:input.amountReceived,allocated:(BigInt(input.amountReceived)-remaining).toString(),unallocated:remaining.toString()};
     },
     async review(principal,borrowerId,input){
-      if(input&&Object.keys(input).sort().join(',')==='allocations,amountReceived'){
-        let allocations;try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations)}catch{return failure(400,'invalid_request')}
+      const planKeys=input&&!Array.isArray(input)&&typeof input==='object'?Object.keys(input).sort().join(','):'';
+      if(planKeys==='allocations,amountReceived'||planKeys==='allocations,amountReceived,materialize'){
+        // R101: materialize names the lines that pay a loan's next projected charge; those compare against `upcoming`.
+        let allocations,materialize=[];try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);if(planKeys.endsWith('materialize'))materialize=canonicalMaterializePlan(input.materialize,allocations)}catch{return failure(400,'invalid_request')}
         const result=await this.draft(principal,borrowerId,{selectedChargeIds:allocations.map(row=>row.chargeId),limit:100,scope:'all'});if(!result.ok)return result;
-        const changed=result.charges.length!==allocations.length||allocations.some(line=>{const row=result.charges.find(row=>row.id===line.chargeId);return !row||row.chargeDate!==line.chargeDate||row.principalRemaining!==line.expectedPrincipalRemaining||row.interestRemaining!==line.expectedInterestRemaining});
-        if(changed)return {...failure(409,'plan_changed'),charges:result.charges,businessDate:result.businessDate};
-        return {...result,allocations,total:input.amountReceived,nextCursor:null};
+        const projected=new Set(materialize.map(row=>row.chargeId)),recorded=allocations.filter(line=>!projected.has(line.chargeId)),upcoming=result.upcoming??[];
+        // A projected id that is now a recorded charge (booked meanwhile) is in charges, so the counts differ: plan_changed.
+        const changed=result.charges.length!==recorded.length||recorded.some(line=>{const row=result.charges.find(row=>row.id===line.chargeId);return !row||row.chargeDate!==line.chargeDate||row.principalRemaining!==line.expectedPrincipalRemaining||row.interestRemaining!==line.expectedInterestRemaining})
+          ||materialize.some(entry=>{const row=upcoming.find(row=>row.id===entry.chargeId);return !row||row.loanId!==entry.loanId||row.chargeDate!==entry.chargeDate||row.principalRemaining!==entry.principalDue||row.interestRemaining!==entry.interestDue});
+        if(changed)return {...failure(409,'plan_changed'),charges:result.charges,upcoming,businessDate:result.businessDate};
+        return {...result,allocations,...(materialize.length?{materialize}:{}),total:input.amountReceived,nextCursor:null};
       }
 
       if(!input||!['selectedChargeIds','allocationMethod,selectedChargeIds'].includes(Object.keys(input).sort().join(','))||!Array.isArray(input.selectedChargeIds)||!input.selectedChargeIds.length||input.selectedChargeIds.length>10000||new Set(input.selectedChargeIds).size!==input.selectedChargeIds.length||input.selectedChargeIds.some(id=>typeof id!=='string'||!id||/[\s,]/u.test(id)||Buffer.byteLength(id)>256))return failure(400,'invalid_request');

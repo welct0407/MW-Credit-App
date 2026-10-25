@@ -23,6 +23,16 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R101 read, command, chat, SQL and frontend promotion with V112 and V113
+
+`schemaVersion: 32`, `release: R101`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R095's chat-era kind (shared code path) for paying the next charge early (V112, payment command v9) and Loan Close ignoring unpaid interest on future-dated charges (V113), with new read, command and chat images.
+
+- **Source.** The source must descend from the R100 package `c7ea78d` (PR #166; the source PROD runs) and add exactly `database/migrations/V112__pay_next_projected_charge.sql` and `database/migrations/V113__loan_close_future_interest.sql`, pinned to their reviewed SHA-256 values `a9910bb3…0366` and `c7ea9657…39e8` (the bytes applied to DEV at `293c64d`). A later delivery-tool commit may carry only the runner, its unit test, this README, `scripts/database/R053_OPERATOR.md` and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** `V111 to V113`, two migrations in one grouped release transaction, a verified backup at 111 and a read-only 113-row readback, as R095. Owner window: `mw_app_prod_journal_owner` only (V112 replaces `pwa_submit_selected_charges_v1`, which it owns; `pwa_next_projected_charge_v1`, `pwa_effective_payment_plan_v2`, `forecast_schedule_v1` and the two Loan Close functions are owned by `postgres`); see [R053_OPERATOR.md](../database/R053_OPERATOR.md#journal-owner-window-v112-and-v113-r101).
+- **Order.** SQL first, then the images: `applied.sqlVersion` is 113 and `applied.appliedAt` is no earlier than `sql.applied.finishedAt` (the R101 command image needs V112 for v9 and V113 for Loan Close).
+- **Plan.** `{add:0, change:3, destroy:0}` with exactly `read.image`, `command.image`, `chat.image`. Recovery pins Hosting and all five services; the applied readback names the five services: read, command and chat on the new image with a new revision, notify and jobs exactly on their pinned image and revision.
+- **Live readback and artifact.** As R095 (chat-era checks). The marker and the entry bundle carry `"R101"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r101`.
+
 ## R100 read, command, chat and frontend promotion with no SQL
 
 `schemaVersion: 31`, `release: R100`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R097's kind (shared code path) for the CI tune-up lint batches (unused code removed, explicit button types, label/control associations, the sync-outcome listener reading the latest result and language).
