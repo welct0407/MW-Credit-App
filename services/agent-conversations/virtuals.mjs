@@ -53,7 +53,7 @@ export function nativeVirtualSql(resource,field){
    'Loan Type TE':`CASE b."Loan Type" WHEN 'กำหนดวันชำระ' THEN 'กำหนดวันชำระ / Fixed Due Date' WHEN 'ดอกเบี้ยรายวัน' THEN 'ดอกเบี้ยรายวัน / Daily Interest' WHEN 'ผ่อนชำระรายวัน' THEN 'ผ่อนชำระรายวัน / Daily Installment' ELSE 'ไม่ทราบประเภท / Unknown' END`,
   },
   Charges:{
-   'Collection Today':`(b."Payment Status"<>'ชำระแล้ว' AND b."Charge Date"<=${today}) OR (b."Payment Status"='ชำระแล้ว' AND b."Payment Date"=${today}) OR EXISTS(SELECT 1 FROM public."Repayments" r WHERE r."Ref Charges"=b."Row ID" AND r."Payment Date"=${today})`,
+   'Collection Today':`(b."Payment Status"<>'ชำระแล้ว' AND b."Charge Date"<=${today}) OR (b."Payment Status"='ชำระแล้ว' AND b."Payment Date"=${today}) OR EXISTS(SELECT 1 FROM public."Repayments" r WHERE r."Ref Charges"=b."Row ID" AND r."Payment Date"=${today}) OR b."Charge Date"=${today}`,
    'Payment Status TE':`CASE b."Payment Status" WHEN 'ชำระแล้ว' THEN 'ชำระแล้ว / Payment Received' WHEN 'รอชำระ' THEN 'รอชำระ / Pending Payment' ELSE 'ชำระบางส่วน / Partial Payment' END`,
    'Days Outstanding':`(CASE WHEN b."Payment Status"='ชำระแล้ว' THEN b."Payment Date" ELSE ${today} END)-b."Charge Date"`,
    'Payment Received Today':`(SELECT coalesce(sum(r."Principal Paid"::numeric+r."Interest Paid"::numeric),0) FROM public."Repayments" r WHERE r."Ref Charges"=b."Row ID" AND r."Payment Date"=${today})`,

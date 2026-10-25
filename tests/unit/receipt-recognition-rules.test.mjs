@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {accountPattern,matchAccounts,slipFields,evaluateSlip,previousDay} from '../../services/receipts/recognizer-rules.mjs';
+import {accountPattern,matchAccounts,slipFields,evaluateSlip,previousDay,payerFacts} from '../../services/receipts/recognizer-rules.mjs';
 // R075: port of integration-agent receipt_rules.py (account_pattern, match_account, validate_receipt
 // field rules), judged per field. Synthetic account numbers only.
 const accounts=[
@@ -37,7 +37,7 @@ test('a slip that is not a confirmed payment receipt fills nothing',async()=>{
 
 test('a clean slip fills every field; reference, time and amount are normalized',async()=>{
  const out=await evaluateSlip(slip(),context());
- assert.deepEqual(out,{status:'recognized',suggestion:{amountReceived:'1500',cashAccountId:'acc-a',bankReference:'AB1234CD',paymentDate:'2026-10-18',transferTime:'09:41',paymentMethod:'Bank Transfer'},warnings:[]});
+ assert.deepEqual(out,{status:'recognized',suggestion:{amountReceived:'1500',cashAccountId:'acc-a',bankReference:'AB1234CD',paymentDate:'2026-10-18',transferTime:'09:41',paymentMethod:'Bank Transfer'},payer:{slipName:null,lines:[],listed:false,before:null,after:null},warnings:[]});
  assert.equal((await evaluateSlip(slip({date:'2026-10-17',currency:''}),context())).suggestion.paymentDate,'2026-10-17','yesterday and blank currency are accepted');
 });
 
@@ -86,4 +86,20 @@ test('an existing reference warns but still fills; the transfer time needs an ac
  assert.equal(slipFields(slip({amount:'1,480.00'}),'2026-10-18').amountReceived,'1480');
  assert.equal(slipFields(slip({amount:'1,234,567'}),'2026-10-18').amountReceived,'1234567');
  assert.equal(previousDay('2026-03-01'),'2026-02-28');
+});
+
+test('R095 payer (revision 2): information only, never a warning; after is the learned value or null',async()=>{
+ const listed=await evaluateSlip(slip({payer_name:'MR. SOMCHAI J***'}),context({storedPayerName:'Somchai Jaidee',payerBorrowerKnown:true}));
+ assert.deepEqual(listed.payer,{slipName:'MR. SOMCHAI J***',lines:['Somchai Jaidee'],listed:true,before:'Somchai Jaidee',after:null});assert.deepEqual(listed.warnings,[]);
+ const first=await evaluateSlip(slip({payer_name:'นาย สมชาย ใจดี'}),context({payerBorrowerKnown:true}));
+ assert.deepEqual(first.payer,{slipName:'นาย สมชาย ใจดี',lines:[],listed:false,before:null,after:'นาย สมชาย ใจดี'});
+ const another=await evaluateSlip(slip({payer_name:'น.ส. สมฤดี เ',account_numbers:['999-9-99999-9']}),context({storedPayerName:'สมชาย ใจดี\n',payerBorrowerKnown:true}));
+ assert.deepEqual(another.payer,{slipName:'น.ส. สมฤดี เ',lines:['สมชาย ใจดี'],listed:false,before:'สมชาย ใจดี\n',after:'สมชาย ใจดี\nน.ส. สมฤดี เ'});
+ assert.deepEqual(another.warnings.map(w=>w.code),['account_unmatched'],'no payer warning');
+ const fuller=await evaluateSlip(slip({payer_name:'นาย สมชาย ใจดี'}),context({storedPayerName:'สมชาย ใ***\nAlice Aaa',payerBorrowerKnown:true}));
+ assert.equal(fuller.payer.after,'นาย สมชาย ใจดี\nAlice Aaa');
+ const unnamed=await evaluateSlip(slip({payer_name:'นาย สมชาย ใจดี'}),context());
+ assert.equal(unnamed.payer.after,null,'no borrower named: nothing to learn');
+ for(const unread of ['','ส***',undefined])assert.deepEqual((await evaluateSlip(slip({payer_name:unread}),context({storedPayerName:'สมชาย ใจดี',payerBorrowerKnown:true}))).payer,{slipName:null,lines:['สมชาย ใจดี'],listed:false,before:'สมชาย ใจดี',after:null});
+ assert.deepEqual(payerFacts('  ', null),{slipName:null,lines:[],listed:false,before:null,after:null});
 });

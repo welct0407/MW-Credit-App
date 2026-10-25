@@ -22,21 +22,24 @@ test('route: POST only, lowercase ids, no query or body; the recognition body is
  const seen=[];const handler=handlerFor({recognize:async(_principal,input)=>{seen.push(input);return {ok:true,status:200,recognition:{status:'unavailable',reason:'disabled',suggestion:null,warnings:[]}}}});
  const path=`/api/payment-commands/${requestId.toUpperCase()}/receipts/${receiptId.toUpperCase()}/recognition`;
  const out=await call(handler,'POST',path);assert.equal(out.status,200);assert.deepEqual(out.body,{ok:true,status:'unavailable',reason:'disabled',suggestion:null,warnings:[]});
- assert.deepEqual(seen,[{requestId,receiptId}]);
+ assert.deepEqual(seen,[{requestId,receiptId,borrowerId:undefined}]);
  for(const method of ['GET','PATCH','DELETE'])assert.equal((await call(handler,method,path)).status,405);
  for(const bad of [`/api/payment-commands/not-a-uuid/receipts/${receiptId}/recognition`,`/api/payment-commands/${requestId}/receipts/x/recognition`,path+'?retry=1'])assert.equal((await call(handler,'POST',bad)).status,400,bad);
  assert.equal((await call(handler,'POST',path,{'content-length':'2'})).status,400);
  assert.equal(seen.length,1);
+ await call(handler,'POST',path,{'x-borrower-id':'borrower-1'});assert.deepEqual(seen[1],{requestId,receiptId,borrowerId:'borrower-1'},'R095: the form borrower names the stored payer');
  const missing=handlerFor({recognize:async()=>({ok:false,status:404,code:'not_found'})});
  assert.deepEqual(await call(missing,'POST',path),{status:404,body:{ok:false,code:'not_found'}});
 });
 
-function storeFixture({recognizer,retrieve,resolveActor=async()=>actor,now,accounts=[{id:'acc-a',number:'123-4-56789-0',alternative:null,active:true}],references=[]}={}){
+function storeFixture({recognizer,retrieve,resolveActor=async()=>actor,now,accounts=[{id:'acc-a',number:'123-4-56789-0',alternative:null,active:true}],references=[],payers={}}={}){
  let open=0,checkedOut=0;const record=[],sql=[];
  const client={query:async(text,params)=>{sql.push(text);if(text.startsWith('BEGIN'))open++;if(text==='COMMIT'||text==='ROLLBACK')open--;
   if(text.includes('AS day'))return {rows:[{day:'2026-10-18'}]};
   if(text.includes('public."Cash Accounts"'))return {rows:accounts};
   if(text.includes('"Bank Reference"'))return {rows:[{found:references.includes(params[0])}]};
+  if(text.includes('"Communication Name"')&&text.includes('<>$1'))return {rows:Object.entries(payers).filter(([id,payer])=>id!==params[0]&&payer?.trim()).map(([,payer])=>({payer}))};
+  if(text.includes('"Communication Name"'))return {rows:Object.hasOwn(payers,params[0])?[{payer:payers[params[0]]}]:[]};
   return {rows:[{}]}},release(){checkedOut--}};
  const pool={connect:async()=>{checkedOut++;return client}};
  const receiptAdapter={resolveReceipt(){},retrieve:async input=>{record.push({call:'retrieve',open,checkedOut,input});return retrieve?retrieve(input):{bytes:Buffer.from('synthetic-png'),mimeType:'image/png'}}};
@@ -49,7 +52,7 @@ test('store: recognizer and storage run with no transaction open; rules re-run e
  const references=[];const f=storeFixture({references});
  const first=await f.store.recognize(principal,{requestId,receiptId});
  assert.equal(first.status,200);
- assert.deepEqual(first.recognition,{status:'recognized',provider:'gemini',model:'synthetic-flash-001',suggestion:{amountReceived:'1500',cashAccountId:'acc-a',bankReference:'AB1234CD',paymentDate:'2026-10-18',transferTime:'09:41',paymentMethod:'Bank Transfer'},warnings:[]});
+ assert.deepEqual(first.recognition,{status:'recognized',provider:'gemini',model:'synthetic-flash-001',suggestion:{amountReceived:'1500',cashAccountId:'acc-a',bankReference:'AB1234CD',paymentDate:'2026-10-18',transferTime:'09:41',paymentMethod:'Bank Transfer'},payer:{slipName:null,lines:[],listed:false,before:null,after:null},warnings:[]});
  assert.deepEqual(f.record.map(({call,open,checkedOut})=>({call,open,checkedOut})),[{call:'retrieve',open:0,checkedOut:0},{call:'recognize',open:0,checkedOut:0}]);
  assert.deepEqual(f.record[0].input,{requestId,receiptId,actor});
  assert.ok(f.sql.filter(t=>t.startsWith('BEGIN')).every(t=>t.includes('READ ONLY')));
@@ -100,7 +103,7 @@ test('client: ID token for exactly the URL, hash header, no redirects; the reply
  const fetch=fakeFetch((url)=>url.startsWith('http://metadata.google.internal/')?new Response('aaa.bbb.ccc'):json(200,reply(bytes)));
  const client=createRecognizerClient({url:URL_OK,fetch});
  const out=await client.recognize({bytes,mimeType:'image/png'});
- assert.deepEqual(out,{status:'recognized',provider:'gemini',model:'gemini-2.5-flash-001',result:slip});
+ assert.deepEqual(out,{status:'recognized',provider:'gemini',model:'gemini-2.5-flash-001',result:{...slip,payer_name:''}});
  assert.equal(fetch.calls[0].url,`http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${encodeURIComponent(URL_OK)}&format=full`);
  assert.equal(fetch.calls[0].init.headers['Metadata-Flavor'],'Google');
  const post=fetch.calls[1];assert.equal(post.url,URL_OK);assert.equal(post.init.method,'POST');assert.equal(post.init.redirect,'error');
@@ -126,9 +129,9 @@ test('client: R087 account_numbers; the pre-R087 recipient_numbers key is read, 
  const bytes=Buffer.from('synthetic-png'),hash=createHash('sha256').update(bytes).digest('hex');
  const {account_numbers:numbers,...fields}=slip;
  const current=validRecognition(reply(bytes),hash);
- assert.deepEqual(current.result,slip);assert.ok(Object.isFrozen(current.result)&&Object.isFrozen(current.result.account_numbers));
+ assert.deepEqual(current.result,{...slip,payer_name:''});assert.ok(Object.isFrozen(current.result)&&Object.isFrozen(current.result.account_numbers));
  const legacy=validRecognition(reply(bytes,{result:{...fields,recipient_numbers:numbers}}),hash);
- assert.deepEqual(legacy.result,slip,'the old key is returned as account_numbers');assert.equal('recipient_numbers' in legacy.result,false);
+ assert.deepEqual(legacy.result,{...slip,payer_name:''},'the old key is returned as account_numbers');assert.equal('recipient_numbers' in legacy.result,false);
  assert.ok(Object.isFrozen(legacy.result.account_numbers));
  assert.equal(validRecognition(reply(bytes,{result:{...slip,recipient_numbers:numbers}}),hash),null,'both keys are refused');
  assert.equal(validRecognition(reply(bytes,{result:fields}),hash),null,'neither key is refused');
@@ -166,4 +169,25 @@ test('R089 log: a recognition answer adds its outcome category (first warning or
  const logs=[];const other=createEnvironmentCommandHandler({config:loadBusinessConfig(businessEnv('dev','command')),verifyPrincipal:async()=>({ok:true,subject:'s',email:'e@example.invalid'}),
   store:{status:async()=>({ok:true,status:200,state:'done'})},completionLogger:r=>logs.push(r)});
  await call(other,'GET','/api/payment-commands/12345678-1234-4234-8234-123456789abc');assert.equal('warning' in logs[0],false);
+});
+
+test('client: R095 payer_name is returned as printed; a result without it reads as unreadable during the rolling deploy',()=>{
+ const bytes=Buffer.from('synthetic-png'),hash=createHash('sha256').update(bytes).digest('hex');
+ assert.equal(validRecognition(reply(bytes,{result:{...slip,payer_name:'นาย สมชาย ใ***'}}),hash).result.payer_name,'นาย สมชาย ใ***');
+ assert.equal(validRecognition(reply(bytes),hash).result.payer_name,'');
+ for(const payer_name of [7,null,'x'.repeat(257),'\ud800'])assert.equal(validRecognition(reply(bytes,{result:{...slip,payer_name}}),hash),null,JSON.stringify(payer_name));
+ const {account_numbers:numbers,...fields}=slip;
+ assert.equal(validRecognition(reply(bytes,{result:{...fields,recipient_numbers:numbers,payer_name:'x'}}),hash),null,'the pre-R087 shape never carries payer_name');
+});
+
+test('store: R095 the X-Borrower-ID borrower gives its payer lines and the learned value; nothing warns',async()=>{
+ const f=storeFixture({payers:{'b-1':'Somsak Jaidee','b-2':'Somchai Jaidee','b-3':null},recognizer:async()=>({status:'recognized',provider:'gemini',model:'synthetic-flash-001',result:{...slip,payer_name:'MR. SOMCHAI J***'}})});
+ const recognize=borrowerId=>f.store.recognize(principal,{requestId,receiptId,borrowerId}).then(out=>out.recognition);
+ const other=await recognize('b-1');
+ assert.deepEqual(other.payer,{slipName:'MR. SOMCHAI J***',lines:['Somsak Jaidee'],listed:false,before:'Somsak Jaidee',after:'Somsak Jaidee\nMR. SOMCHAI J***'});
+ assert.deepEqual(other.warnings,[]);assert.equal(other.suggestion.amountReceived,'1500');
+ assert.deepEqual((await recognize('b-2')).payer,{slipName:'MR. SOMCHAI J***',lines:['Somchai Jaidee'],listed:true,before:'Somchai Jaidee',after:null});
+ assert.deepEqual((await recognize('b-3')).payer,{slipName:'MR. SOMCHAI J***',lines:[],listed:false,before:null,after:'MR. SOMCHAI J***'});
+ for(const borrowerId of [undefined,'','missing','x'.repeat(257),7])assert.deepEqual((await recognize(borrowerId)).payer,{slipName:'MR. SOMCHAI J***',lines:[],listed:false,before:null,after:null},String(borrowerId));
+ assert.equal(f.record.filter(r=>r.call==='recognize').length,1,'one model call; the payer facts re-run per call');
 });

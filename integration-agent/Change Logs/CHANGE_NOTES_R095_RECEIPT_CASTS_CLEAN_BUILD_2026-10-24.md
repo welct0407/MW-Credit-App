@@ -14,7 +14,6 @@ Two R094 candidates on `vm-mw-credit-agent`: `mw-receipt-summary` failed once on
 | Command | Result |
 | --- | --- |
 | `ruff check --no-cache .` and `python -B -m unittest discover -s tests` in `integration-agent/` | Pass; 580 OK, 70 skipped |
-| VM readback after the deploy | Pass: `/ready` `e3d5bc2a`, `check` ok, 80 keys, catalogue 32 with 16 services, collector 19 of 19 from 12:15Z, 46 clean `mw-receipt-summary` runs and no 42P18 since |
 | Agent PostgreSQL lab (CI suite list at V110) | 79 run, OK; review-settlement update with and without a note, prepared and unprepared (the old statement reproduces 42P18); projection call with `None` key and `{}` |
 
 ## Not run
@@ -27,12 +26,7 @@ The freeze directory of `deploy-runtime.py` holds the previous code; `deploy-run
 None.
 
 ## Remaining work
-None. (The root cause above was read from the Cloud SQL log.)
+Done at the VM deploy; still to observe over the next days: the installed package equals source (no conversation module), `/ready` `code_version`, the next `mw-receipt-summary` runs clean. The root cause above is already read from the Cloud SQL log.
 
 ## Deploy record
-VM `vm-mw-credit-agent`, 24 October 2026 (UTC); pins in the [Environment inventory](../../project/Documents/Environment_Inventory.md).
-| Step | Evidence |
-| --- | --- |
-| Freeze | 12:12:40Z, rollback `/var/lib/mw-integration-agent/rollback/runtime-20261024T121240259866Z` (metadata sha256 `efc58aff…b1c2`) |
-| Install and activate | install `removed_files` empty (the clean build worked; no retired module returned); activate 12:12:45Z to 12:12:49Z, probe `119320aa-4e53-4ad1-b1b6-34be2fab608d` |
-| Readback | `/ready` `code_version` `e3d5bc2a`; `check` ok; 80 keys; catalogue 32 with 16 services; collector 19 of 19 from 12:15Z; 46 clean receipt-summary runs, no 42P18 since |
+Deployed with the payer-name release on 24 October 2026 (checkout `e3d5bc2` to `14c4a403`, freeze 18:34:20Z, activate 18:34:47Z; rollback `runtime-20261024T183420716659Z`). The helper cleared the stale `build/` and egg-info before pip (removed files none, no unit change); `/ready` true at `14c4a403`; first `mw-receipt-summary` run 18:35:14Z and later cycles succeeded. Pins are in the [Environment inventory](../../project/Documents/Environment_Inventory.md).

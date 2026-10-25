@@ -87,7 +87,7 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
   const command=row.value?.command??row.value;
   // R078 follow-up: the receipt sent with it is stored for the payment (verified locally, or downloaded once).
   const image=row.value?.receipt,ownReceipt:OwnReceipt|undefined=image&&typeof image.id==='string'&&image.image instanceof Blob?{receiptId:image.id,file:image.image,descriptor:uploaded.get(requestId)??null}:undefined;uploaded.delete(requestId);
-  if(result.kind==='synced'&&Number.isInteger(command?.schemaVersion)&&[3,4,5,6,7].includes(command.schemaVersion)&&result.data?.originalOutcome?.status==='posted')void confirmOwnPayment(access,requestId,ownReceipt);
+  if(result.kind==='synced'&&Number.isInteger(command?.schemaVersion)&&[3,4,5,6,7,8].includes(command.schemaVersion)&&result.data?.originalOutcome?.status==='posted')void confirmOwnPayment(access,requestId,ownReceipt);
   else if(result.kind==='synced'&&ownReceipt&&['payment.correct','loan.close'].includes(command?.operation)&&result.data?.originalOutcome?.status==='applied')void seedOperationReceipt(access,requestId,result.data.originalOutcome.result?.paymentId,ownReceipt);
   return result;
  };
@@ -117,7 +117,7 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
  try{
   const value=row.value;let command=value?.command??value;
   if(!uuid.test(requestId)||command?.requestId!==requestId)return settle({kind:'blocked'},'unsupported_saved_request');
-  const payment=Number.isInteger(command.schemaVersion)&&[3,4,5,6,7].includes(command.schemaVersion)&&typeof command.borrowerId==='string';
+  const payment=Number.isInteger(command.schemaVersion)&&[3,4,5,6,7,8].includes(command.schemaVersion)&&typeof command.borrowerId==='string';
   const operation=typeof command.operation==='string'&&typeof command.targetId==='string'&&command.inputs&&typeof command.inputs==='object';
   if(!payment&&!operation)return settle({kind:'blocked'},'unsupported_saved_request');
   const path=payment?'/api/payment-commands':'/api/operations';

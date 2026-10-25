@@ -23,6 +23,26 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R096 read, command, chat and frontend promotion with no SQL
+
+`schemaVersion: 29`, `release: R096`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R090's chat-era kind (shared code path) for the Collection change (every charge dated today, also one paid on an earlier day, with a "Paid in advance" caption), with no migration and new read, command and chat images.
+
+- **Source.** The source must descend from the R095 package `14c4a40` (PR #148, frozen at promotion start) and add no file under `database/migrations`. A later delivery-tool commit may carry only the runner, its unit test, this README and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL.** None: `sql` is exactly `{baselineVersion:111, targetVersion:111, migrations:[], verified}`, where `verified` is a read-only PROD readback (`latestVersion` `"111"`, `historyRows` 111, all successful). No release manifest, apply or backup.
+- **Order.** The images roll out on the unchanged version: `applied.sqlVersion` is 111 and `applied.appliedAt` is no earlier than `sql.verified.verifiedAt`.
+- **Plan.** `{add:0, change:3, destroy:0}` with exactly `read.image`, `command.image`, `chat.image` (the Collection read contract runs in the business runtime of read and command, the chat virtual `Collection Today` in chat). Recovery pins Hosting and all five services; the applied readback names the five services: read, command and chat on the new image with a new revision, notify and jobs exactly on their pinned image and revision.
+- **Live readback and artifact.** As R095. The marker and the entry bundle carry `"R096"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r096`.
+
+## R095 command, chat, SQL and frontend promotion with V111
+
+`schemaVersion: 28`, `release: R095`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R090's chat-era kind (shared code path) for payer name matching, with V111 and new command and chat images only.
+
+- **Source.** The source must descend from `e3d5bc2` (the PR #146 merge carrying V110, which was applied to DEV and PROD separately on 24 October 2026) and add exactly `database/migrations/V111__payer_name.sql`, pinned to its reviewed SHA-256 `657d4660…c03a`. A later delivery-tool commit may also carry the payer backfill script and its test.
+- **SQL.** `V110 to V111`, one migration, grouped release, verified backup and a read-only 111-row readback, as R091.
+- **Order.** SQL first, then the one-time payer backfill (`scripts/database/Backfill-PayerNames.py apply --execute`), then the images: `applied.sqlVersion` is 111 and `applied.appliedAt` is no earlier than `sql.applied.finishedAt`.
+- **Plan.** `{add:0, change:2, destroy:0}` with exactly `command.image`, `chat.image`. Recovery pins Hosting and all five services; the applied readback names the five services: command and chat on the new image with a new revision, read, notify and jobs exactly on their pinned image and revision.
+- **Live readback and artifact.** As R090 (chat-era checks; the five services against the applied pins). The marker and the entry bundle carry `"R095"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r095`.
+
 ## R091 runtime, SQL and frontend promotion with V107
 
 `schemaVersion: 27`, `release: R091`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R090's kind (shared code path) for the Instagram conversation decommission, with V107 and one new image on the five services.

@@ -6,6 +6,18 @@ from .state import connect as state_connect, is_postgres
 import time
 
 
+def batch_hints(batch,sender,stamp,message_id):
+    """R095 hint for the image message_id: the same sender's immediately next message in this ingest batch, when it is
+    a plain text (no reply_to, no attachment) at most 60 s after the image (receipt_identity.next_hint), as a job
+    result; None otherwise. Only the forwarder-DM context reads it; a later batch never adds a hint."""
+    from .receipt_identity import hint_texts,next_hint
+    rows=sorted(enumerate(batch),key=lambda item:(item[1][3],item[0]))
+    read=[(who,ts,text,reply,bool(json.loads(raw or '[]'))) for _,(mid,who,raw,ts,text,reply) in rows]
+    index=next(i for i,(_,row) in enumerate(rows) if row[0]==message_id)
+    texts=hint_texts(next_hint(read,index))
+    return json.dumps({'hint_texts':texts},ensure_ascii=False) if texts else None
+
+
 class ReceiptJournal:
     def __init__(self,path,config=None):
         self.db=state_connect(path,config)
@@ -38,38 +50,43 @@ class ReceiptJournal:
             return self._ingest_postgres(cutoff)
         cursor=self.db.execute('SELECT value FROM receipt_cursor WHERE id=1').fetchone()[0]
         from .receipt_archive import source
-        rows=ingress.execute('''SELECT rowid,message_id,sender_id,attachments,event_timestamp,captured_at FROM messages
-            WHERE rowid>? AND event_timestamp>=? AND captured_at>=? ORDER BY rowid LIMIT 500''',(cursor,cutoff,cutoff))
+        rows=ingress.execute('''SELECT rowid,message_id,sender_id,attachments,event_timestamp,captured_at,text,reply_to FROM messages
+            WHERE rowid>? AND event_timestamp>=? AND captured_at>=? ORDER BY rowid LIMIT 500''',(cursor,cutoff,cutoff)).fetchall()
+        batch=[(r['message_id'],r['sender_id'],r['attachments'],r['event_timestamp'],r['text'],r['reply_to']) for r in rows]
         with self.db:
             for row in rows:
                 attachments=json.loads(row['attachments'])
+                hints=batch_hints(batch,row['sender_id'],row['event_timestamp'],row['message_id']) if attachments else None
                 # One terminal marker for non-images avoids repeated work and preserves audit counts.
                 for index,attachment in enumerate(attachments or [{'url':''}]):
                     key=hashlib.sha256(f"{row['message_id']}:{index}".encode()).hexdigest()
                     self.db.execute('''INSERT OR IGNORE INTO receipt_jobs
-                        (id,message_id,sender_id,url,status,created_at,source) VALUES (?,?,?,?,?,?,?)''',
+                        (id,message_id,sender_id,url,status,created_at,source,result) VALUES (?,?,?,?,?,?,?,?)''',
                         (key,row['message_id'],row['sender_id'],attachment['url'],
                          'PENDING' if attachment['url'] else 'IGNORED',time.time(),
-                         source('webhook',row['message_id'],index,row['sender_id'],row['event_timestamp'],row['captured_at'])))
+                         source('webhook',row['message_id'],index,row['sender_id'],row['event_timestamp'],row['captured_at']),hints))
                 self.db.execute('UPDATE receipt_cursor SET value=? WHERE id=1',(row['rowid'],))
 
     def _ingest_postgres(self, cutoff):
         from .receipt_archive import source
         with self.db:
             conn = self.db.conn
-            rows = conn.execute('''SELECT m.message_id,m.sender_id,m.attachments,m.event_timestamp,m.captured_at
+            rows = conn.execute('''SELECT m.message_id,m.sender_id,m.attachments,m.event_timestamp,m.captured_at,m.text,m.reply_to
                 FROM runtime.ingress_work w JOIN runtime.ingress_messages m USING(message_id)
                 WHERE w.state='PENDING' AND w.eligible_at<=clock_timestamp()
                 ORDER BY w.eligible_at,w.message_id LIMIT 500 FOR UPDATE OF w SKIP LOCKED''').fetchall()
-            for message_id,sender,raw,stamp,captured in rows:
+            batch=[(r[0],r[1],r[2],r[3],r[5],r[6]) for r in rows]
+            for message_id,sender,raw,stamp,captured,_text,_reply in rows:
                 state = 'IGNORED'
                 if stamp >= cutoff and captured >= cutoff:
-                    for index,attachment in enumerate(json.loads(raw) or [{'url':''}]):
+                    attachments=json.loads(raw)
+                    hints=batch_hints(batch,sender,stamp,message_id) if attachments else None
+                    for index,attachment in enumerate(attachments or [{'url':''}]):
                         key = hashlib.sha256(f'{message_id}:{index}'.encode()).hexdigest()
                         self.db.execute('''INSERT OR IGNORE INTO receipt_jobs
-                            (id,message_id,sender_id,url,status,created_at,source) VALUES (?,?,?,?,?,?,?)''',
+                            (id,message_id,sender_id,url,status,created_at,source,result) VALUES (?,?,?,?,?,?,?,?)''',
                             (key,message_id,sender,attachment['url'],'PENDING' if attachment['url'] else 'IGNORED',time.time(),
-                             source('webhook',message_id,index,sender,stamp,captured)))
+                             source('webhook',message_id,index,sender,stamp,captured),hints))
                     state = 'DONE'
                 conn.execute('UPDATE runtime.ingress_work SET state=%s,updated_at=clock_timestamp() WHERE message_id=%s',(state,message_id))
 

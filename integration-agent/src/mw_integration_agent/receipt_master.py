@@ -1,4 +1,7 @@
-"""Fixed SELECT-only receipt masters. Row contents stay in private memory/state."""
+"""Fixed SELECT-only receipt masters. Row contents stay in private memory/state.
+
+R095: "Communication Name" is the borrower's payer name (the sender name printed on their slips).
+"""
 from .audit import reference
 from .cash_statement import read_query
 
@@ -6,7 +9,8 @@ MASTERS_SQL = '''SELECT json_build_object(
       'borrowers',(SELECT coalesce(json_agg(t),'[]'::json) FROM (
         SELECT "Row ID" id,"Instagram Username" username,"AI Collection Enabled" enabled,
         coalesce("Description","Borrower Name",'') name_en,
-        coalesce("Borrower Name","Description",'') name_th FROM public."Borrowers") t),
+        coalesce("Borrower Name","Description",'') name_th,
+        "Communication Name" payer FROM public."Borrowers") t),
       'accounts',(SELECT coalesce(json_agg(t),'[]'::json) FROM (
         SELECT "Row ID" id,"Account Label" label,"Active" active,
         "Account Number" number,"Alternative Account Number" alternative FROM public."Cash Accounts") t),

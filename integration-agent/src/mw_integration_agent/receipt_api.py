@@ -64,7 +64,28 @@ def payload(config, review, proposal, asset, automatic):
                    archiveEvidence=dict(receiptId=asset['receipt_id'], objectKey=asset['object_key'],
                        generation=str(asset['generation']), rawSha256=asset['raw_sha256'], mimeType=asset['mime_type'],
                        sizeBytes=asset['byte_size'], capturedAt=capture))
+    # R095 schemaVersion 8 adds payerLines {before, after}: the payer-lines change the receipt cycle decided (strong
+    # context or a resolved weak context; the database writes it only while the column still equals `before`).
+    # Without one the command stays version 7, so a database without V111 still accepts it during a rolling deploy.
+    lines = payer_lines(receipt)
+    if lines is not None:
+        command = {**{k: v for k, v in command.items() if k != 'archiveEvidence'}, 'schemaVersion': 8,
+                   'payerLines': lines, 'archiveEvidence': command['archiveEvidence']}
     return {'command': command, 'actorPartnerId': review['deciding_partner']}
+
+
+def payer_lines(receipt):
+    """The command's payerLines {before, after}, or None when nothing is learned or the value is not valid."""
+    from .payer_name import valid_lines
+    value = receipt.get('payer_lines')
+    if not isinstance(value, dict) or set(value) != {'before', 'after'}:
+        return None
+    before, after = value['before'], value['after']
+    if before is not None and (not isinstance(before, str) or '\0' in before or len(before.encode('utf-8')) > 65536):
+        return None
+    if not isinstance(after, str) or after == (before or '') or not valid_lines(after.split('\n')):
+        return None
+    return {'before': before, 'after': after}
 
 
 def call(config, method, request=None, body=None):

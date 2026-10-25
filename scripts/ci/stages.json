@@ -27,12 +27,12 @@
   "agent-tests": {
     "test": {
       "checks": ["test"],
-      "include": "^(integration-agent/|database/migrations/|scripts/database/Test-AppRolePrerequisites\\.sql$|\\.github/workflows/agent-tests\\.yml$|scripts/ci/|project/Documents/Data Dictionary/systems/postgresql/)",
+      "include": "^(integration-agent/|database/migrations/|scripts/database/Test-AppRolePrerequisites\\.sql$|tests/fixtures/payer-name-cases\\.json$|\\.github/workflows/agent-tests\\.yml$|scripts/ci/|project/Documents/Data Dictionary/systems/postgresql/)",
       "exclude": "\\.md$"
     },
     "lab": {
       "checks": ["lab"],
-      "include": "^(integration-agent/|database/migrations/|scripts/database/Test-AppRolePrerequisites\\.sql$|\\.github/workflows/agent-tests\\.yml$|scripts/ci/)",
+      "include": "^(integration-agent/|database/migrations/|scripts/database/Test-AppRolePrerequisites\\.sql$|tests/fixtures/payer-name-cases\\.json$|\\.github/workflows/agent-tests\\.yml$|scripts/ci/)",
       "exclude": "\\.md$"
     }
   }

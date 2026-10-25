@@ -23,5 +23,21 @@ test('R075 v7 adds the normalized slip bank reference and HH:MM transfer time af
   assert.throws(()=>canonicalCommand({...v7,...bad}),undefined,JSON.stringify(bad));
  const {transferTime,...missing}=v7;void transferTime;assert.throws(()=>canonicalCommand(missing));
  assert.throws(()=>canonicalCommand({...command,bankReference:null,transferTime:null}),'v6 refuses the v7 keys');
- assert.throws(()=>canonicalCommand({...v7,schemaVersion:8}));
+ assert.throws(()=>canonicalCommand({...v7,schemaVersion:8}),'v8 needs payerName');
+ assert.throws(()=>canonicalCommand({...v7,schemaVersion:9,payerName:null}));
+});
+test('R095 v8 = v7 plus payerLines after transferTime (Bank Transfer only); v7 stays accepted and refuses it',()=>{
+ const payerLines={before:null,after:'นาย สมชาย ใ***'};
+ const v8={...command,schemaVersion:8,paymentMethod:'Bank Transfer',bankReference:'ab-12 34 cd',transferTime:'09:41',payerLines};
+ const value=canonicalCommand(v8);
+ assert.deepEqual(Object.keys(value),['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId','bankReference','transferTime','payerLines']);
+ assert.deepEqual(canonicalCommand(value),value,'canonical form is a fixed point');
+ assert.match(commandIdentity(v8,actor,null).canonicalJson,/"transferTime":"09:41","payerLines":\{"before":null,"after":"นาย สมชาย ใ\*\*\*"\}\},"actor"/);
+ assert.equal(canonicalCommand({...v8,payerLines:null}).payerLines,null);
+ assert.equal(canonicalCommand({...v8,payerLines:null,bankReference:null,transferTime:null,paymentMethod:'Cash'}).payerLines,null,'Cash learns nothing');
+ assert.notEqual(commandIdentity(v8,actor,null).payloadSha256,commandIdentity({...v8,payerLines:{before:'x y z',after:'นาย สมชาย ใ***'}},actor,null).payloadSha256);
+ for(const bad of [{payerLines:{before:null,after:''}},{payerLines:{before:null,after:'a\u0007b'}},{payerLines:{before:null,after:'e\u0301mile'}},{payerLines:'x'},{paymentMethod:'Cash',bankReference:null,transferTime:null}])
+  assert.throws(()=>canonicalCommand({...v8,...bad}),undefined,JSON.stringify(bad));
+ const {payerLines:_,...missing}=v8;assert.throws(()=>canonicalCommand(missing));
+ assert.throws(()=>canonicalCommand({...v8,schemaVersion:7}),'v7 refuses payerLines');
 });
