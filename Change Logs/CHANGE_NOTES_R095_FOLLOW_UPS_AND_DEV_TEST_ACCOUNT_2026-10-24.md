@@ -30,10 +30,10 @@ Take the four R094 candidates the owner approved ("proceed with the four candida
 | `npm run check:docs` | Pass, 0 failures, 0 warnings (Dewey, records as written) |
 | Pull request `Development checks` and `Database migrations` (PR #146) | Pass: runs [40092340777](https://github.com/welct0407/MW-Credit-App/actions/runs/40092340777) and [40092323402](https://github.com/welct0407/MW-Credit-App/actions/runs/40092323402); merged as `e3d5bc2a` |
 | DEV V110 (no-op), DEV images, DEV policy v2, VM readback, PROD V110 ACL before and after, PROD chat | Pass, see the Promotion record and the Environment inventory |
-| Owner sign-in; token script obtains an ID token; a settlement call returns 403 | Pending (owner) |
+| Owner sign-in; token script; DEV reader session; settlement call (25 October 2026) | Pass: the owner signed in once and stored the refresh token (secret version 1); `node scripts/dev/claude-test-token.mjs` returned `{"expiresIn":3600,"email":"welct0407@gmail.com"}` and wrote a 0600 file (deleted after use); DEV reader `/api/session` as the test Partner returned ok (source dev, permission `oltp.read`); `POST /api/operations` `settlement.create` as the test Partner returned 403 `access_denied` (nothing attempted) |
 
 ## Not run
-The owner's sign-in, the token secret version, the token-script smoke and the settlement 403 call (pending). The PROD command service was not moved: the settlement guard is a no-op there with A/B Partners only, so it stays on the R091 image.
+The PROD command service was not moved: the settlement guard is a no-op there with A/B Partners only, so it stays on the R091 image.
 
 ## Recovery
 Git baseline `5b43f0a3`. V110: re-grant `SELECT` on `pwa_row_changes` to `mw_integration_agent` and recreate postgres's `public` default `SELECT ON TABLES` for it from the before-ACL snapshot (additive), or restore the PROD promotion backup `prod-promotion-75f9fa13cfae44f3b9fb54a5a8b457b2` at V109. VM: `deploy-runtime.py rollback` to `runtime-20261024T121240259866Z`. DEV images: restore the previous DEV activation (revisions in the inventory). PROD chat: restore the rollback copy `production.activation.before-r095-1792840421095187.tfvars`, plan 0/1/0, apply, publish. DEV Partner row: delete `claude-dev-test` in DEV inside the ledger-owner window (DEV backup `dev-refresh-bfa0861bedf344608c9267c01f4cf0da` also exists). DEV policy: version back to 1, apply. Secret container: Terraform destroy needs `prevent_destroy` lifted; stored versions are the owner's.
@@ -42,19 +42,19 @@ Git baseline `5b43f0a3`. V110: re-grant `SELECT` on `pwa_row_changes` to `mw_int
 None.
 
 ## Remaining work
-The owner signs in once at https://dev-lm.mw-credit.com with `welct0407@gmail.com`, then adds the refresh token as a secret version (refresh runbook step 7a). Then the token-script smoke and a settlement call returning 403. Then the tag `R095` and the closure (tracker, pruning, final Checks).
+None. The owner re-runs `Ensure-DevTestPartner.sql` after each DEV refresh (runbook step 7a).
 
 ## Promotion record
 
-[Template](../project/scripts/releases/templates/promotion-checklist.md), revision 14 October 2026. Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md). Deployment pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). This record stays open until the owner's sign-in and the token check are done; the tag waits for them.
+[Template](../project/scripts/releases/templates/promotion-checklist.md), revision 14 October 2026. Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md). Deployment pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). The owner's sign-in and the token check were done on 25 October 2026 (below).
 
 ### Continue here
-- Outcome/scope and affected components: R095 is live in DEV, on the VM and in PROD (24 October 2026) except the owner's sign-in and the token check: the receipt cycle fix and clean build (VM), V110 (PROD revoke; DEV no-op), the chat schema digest at migration 110 (DEV and PROD chat), the settlement guard (DEV command service), the DEV test Partner, DEV policy v2 and the DEV secret container.
-- State and next action or actual blocker: waiting for the owner's sign-in, the token secret version, the token-script smoke and the settlement 403 call.
+- Outcome/scope and affected components: R095 is Released to DEV, the VM and PROD (24 to 25 October 2026): the receipt cycle fix and clean build (VM), V110 (PROD revoke; DEV no-op), the chat schema digest at migration 110 (DEV and PROD chat), the settlement guard (DEV command service), the DEV test Partner, DEV policy v2 and the DEV secret container.
+- State and next action or actual blocker: applied and verified. Tag `R095` on `e3d5bc2a`; nothing further.
 - Source/artifact/configuration pins; runner manifest link: source `e3d5bc2a` (PR #146; baseline R094 `5b43f0a3`). PROD manifest `release-r095-prod.json`, backups, images, plans and ACL snapshots are in the Environment inventory.
-- Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 24 October 2026, "proceed with the four candidates", and the DEV test account approval (the owner's own Google account, no settlements). PROD V110 ran under it with its backup. The sign-in is a hands-on step only the owner can do. No forced notification, job or financial write.
+- Existing owner authority and any explicit hands-on checkpoint: the owner's instruction of 24 October 2026, "proceed with the four candidates", and the DEV test account approval (the owner's own Google account, no settlements). PROD V110 ran under it with its backup. The sign-in was a hands-on step only the owner could do (done 25 October 2026). No forced notification, job or financial write.
 - Previous deployed baseline and recovery: PROD at V109, chat on `9cf477a2…`; VM at `2032bc3d`; DEV policy v1. Rollback in Recovery above.
-- Scope freeze/next-number handoff: pending the tag and closure.
+- Scope freeze/next-number handoff: R095 Frozen and R096 opened with the counter at R097 in the [tracker](../project/Documents/Release_Tracker.md); R095 is now Released there.
 - Checks: see Checks above (gaps named).
 
 ### Promotion
@@ -65,7 +65,7 @@ The owner signs in once at https://dev-lm.mw-credit.com with `welct0407@gmail.co
 | Tested package captured | `e3d5bc2a` merged; DEV and PROD chat images built from it; PROD manifest sha256 `b65ac05d…d684` |
 | Changed components deployed in dependency order | VM 12:12:40Z to 12:12:49Z; DEV V110 12:14:12Z; DEV secret container 12:23:25Z; PROD backup and V110 12:25:44Z to 12:27:00Z; DEV images 12:27:47Z to 12:28:23Z (plan 0/2/0); PROD chat 12:30:02Z to 12:30:38Z (plan 0/1/0); DEV test Partner (ledger-owner window 12:36:20Z to 12:36:33Z); DEV policy v2 12:37:50Z to 12:38:27Z (plan 0/3/0) |
 | Version/environment and affected smoke verified once | VM `/ready` `e3d5bc2a`, check ok, 80 keys, catalogue 32/16, collector 19 of 19 from 12:15Z, 46 clean receipt-summary runs and no 42P18 since; PROD V110 readback 110 rows and ACL before and after (two removals); DEV policy v2 smoke ok |
-| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Inventory, Development Changes, `database/README.md`, runbook and this note updated; tag `R095`: pending the owner's sign-in |
+| Actual outcome/changed owning facts recorded; intended publication and final tag verified | Inventory, Development Changes, `database/README.md`, runbook and this note updated; tag `R095` on `e3d5bc2a` (Release tag workflow, 25 October 2026) |
 
 SQL: V110 was the only pending migration from V109 on PROD, applied under the release manifest by the guarded runner with no owner window. Infrastructure: reviewed plans per step with their actual applies. Notification and jobs: unchanged; nothing forced.
 
@@ -73,7 +73,17 @@ SQL: V110 was the only pending migration from V109 on PROD, applied under the re
 1. The first insert into `Partners` on DEV recalculates every Business Expense and resyncs the cash ledger (`expense_partner_changed` to `sync_cash_ledger`, ledger owner only), so `Ensure-DevTestPartner.sql` needed a `mw_ledger_owner_dev` owner window after a DEV backup `dev-refresh-bfa0861bedf344608c9267c01f4cf0da` (sha256 `766001f8…ac1d`, restore 37 tables). Before and after were identical for the expense split hash and sums, the cash ledger (428 rows, hash), four balances, daily analytics, cash account analytics and cash pool contributions; Partners 2 to 3 and `pwa_row_changes` 518 to 520. The runbook step now wraps the script in that window and verifies the amounts.
 2. The PROD agent never had an EXECUTE-on-functions default privilege row; V110 left it with no default privilege at all. Earlier text saying the EXECUTE default was kept is corrected.
 3. The PROD command service was not moved (the guard is a no-op with A/B Partners only).
-4. The DEV test account sign-in, token and 403 check are pending the owner.
+4. None for the sign-in, token and 403 check (done 25 October 2026, see Checks). The Firebase session sits in Local Storage (`firebase:authUser:…`, `stsTokenManager.refreshToken`), not IndexedDB; the runbook has the console one-liner.
 
 ### Close
-Pending the owner's sign-in and the token check; then outcome, tag `R095`, tracker release and pruning.
+- Outcome: applied and verified in DEV, on the VM and in PROD; the DEV test account works (token, session, settlement 403).
+- Recovery reference: Continue here and the Recovery section above.
+- Changed documents, if any: Environment inventory, Release Tracker, Development Changes, `database/README.md`, the refresh runbook, `docs/Development.md`, `integration-agent/docs/`, and links repointed for the pruning below.
+- Published evidence/tag: tag `R095` on `e3d5bc2a` (Release tag workflow, 25 October 2026).
+- Outstanding owner action, if any: none.
+
+### Closure pruning (release workflow, 25 October 2026)
+- Inbound links repointed first to the commit permalink of `e3d5bc2a` (the last commit where the target exists): `project/Documents/Development_Changes.md` and `project/Documents/Release_Tracker.md`.
+- Change note deleted (R092 left the retention window of R095, R094 and R093): `Change Logs/CHANGE_NOTES_R092_CHAT_NAMES_AND_QUERY_SIZE_2026-10-24.md`.
+- Development Changes: the R095 row is replaced by one R095 follow-up row.
+- Evidence deleted: none (`npm run check:docs` reports no uncited evidence).
