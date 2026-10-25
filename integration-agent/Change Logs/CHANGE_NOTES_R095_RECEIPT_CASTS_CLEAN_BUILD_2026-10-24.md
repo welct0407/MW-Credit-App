@@ -1,7 +1,7 @@
 # Change notes — R095 receipt projection casts and clean build, 24 October 2026
 
 ## Purpose
-Two R094 candidates on `vm-mw-credit-agent`: `mw-receipt-summary` failed once on 24 October (11:06:38Z in the Cloud SQL log, reported 11:06:42Z) and once on 23 October (11:46:06Z) with `IndeterminateDatatype` (exit 2), and a stale `integration-agent/build/` directory probably makes `pip` copy the 16 removed conversation modules back into the installed package. Owner: "proceed with the four candidates", 24 October 2026. The root note is [R095 follow-ups](../../Change%20Logs/CHANGE_NOTES_R095_FOLLOW_UPS_AND_DEV_TEST_ACCOUNT_2026-10-24.md).
+Two R094 candidates on `vm-mw-credit-agent`: `mw-receipt-summary` failed once on 24 October (11:06:38Z in the Cloud SQL log, reported 11:06:42Z) and once on 23 October (11:46:06Z) with `IndeterminateDatatype` (exit 2), and a stale `integration-agent/build/` directory probably makes `pip` copy the 16 removed conversation modules back into the installed package. Owner: "proceed with the four candidates", 24 October 2026. The root note is [R095 follow-ups](https://github.com/welct0407/MW-Credit-App/blob/c92c04d5/Change%20Logs/CHANGE_NOTES_R095_FOLLOW_UPS_AND_DEV_TEST_ACCOUNT_2026-10-24.md).
 
 ## Changes
 - **Root cause** (Cloud SQL log on `mw_agent`, both failures identical): `could not determine data type of parameter $2` on the `partner_reviews` state update in `src/mw_integration_agent/review_cycle.py:285` (`CASE WHEN ? IS NULL …` with the note `None`; SQLSTATE 42P18). The final POSTED update failed after a successful receipt submit; the next cycle, about 30 s later, settled the row to POSTED by status alone with no resend (POSTED +1 each time, nothing left in POSTING). Byte casts that statement in `review_cycle.py`.

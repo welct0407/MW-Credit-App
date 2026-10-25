@@ -1,7 +1,7 @@
 # Change notes — R095 payer-name matching in the agent, 24 October 2026
 
 ## Purpose
-Receipts do not always arrive in the borrower's own 3-member group (a partner forwards a slip in a direct message; a referrer and referee share a 4-person group), so the agent could not tell who paid. Owner request, 24 October 2026. The borrower column `Communication Name` becomes the borrower's payer name (the sender name printed on slips). Design (Archie) and the shared record: [R095 root note](../../Change%20Logs/CHANGE_NOTES_R095_FOLLOW_UPS_AND_DEV_TEST_ACCOUNT_2026-10-24.md#payer-name-matching-design).
+Receipts do not always arrive in the borrower's own 3-member group (a partner forwards a slip in a direct message; a referrer and referee share a 4-person group), so the agent could not tell who paid. Owner request, 24 October 2026. The borrower column `Communication Name` becomes the borrower's payer name (the sender name printed on slips). Design (Archie) and the shared record: [R095 root note](https://github.com/welct0407/MW-Credit-App/blob/c92c04d5/Change%20Logs/CHANGE_NOTES_R095_FOLLOW_UPS_AND_DEV_TEST_ACCOUNT_2026-10-24.md#payer-name-matching-design).
 
 ## Changes
 - Slip extraction (`receipt_image.py`) returns `payer_name`; parity module `payer_name.py` (`payer_key`, `compare`: `match`, `near`, `mismatch`, `unknown`; `?` is one unknown letter; `near` = one look-alike Thai letter in a given name of 4 or more letters, accepted only when no other borrower is also `match` or `near`; `learn` for the stored lines) shares the vector file `tests/fixtures/payer-name-cases.json` with `services/receipts/payer-name.mjs`.
