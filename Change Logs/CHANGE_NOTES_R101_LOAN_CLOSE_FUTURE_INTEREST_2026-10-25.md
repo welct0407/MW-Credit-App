@@ -53,4 +53,4 @@ None. Accepted consequence: undoing a close (deleting or correcting the closing 
 Known limitation, owner choice. The case: a loan was closed early, the closing payment was deleted, the loan ran past the future charge's own date, and it is then closed again. What happens: the quoted payoff is short by daily interest × the days between the first close and that charge's date (example: 1030 instead of 1070). Nothing flags it. A Partner corrects it by raising that charge's Interest Due back to the amount shown in its "lowered from" note. The owner can accept this, or have it fixed later by restoring the lowered interest when a closing payment is deleted.
 
 ## Remaining work
-Verification, the DEV deploy and owner acceptance; PROD promotion on the owner's instruction.
+The DEV promotion (applied and verified in DEV on 25 October 2026, including a Loan Close test with a hand-booked future charge; PROD pending the owner's instruction) is in the [promotion record](CHANGE_NOTES_R101_PAY_NEXT_CHARGE_2026-10-25.md#promotion-record). Verification and owner acceptance; PROD promotion on the owner's instruction.
