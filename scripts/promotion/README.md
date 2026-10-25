@@ -23,6 +23,14 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R097 read, command, chat and frontend promotion with no SQL
+
+`schemaVersion: 30`, `release: R097`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R096's kind (shared code path) for the Collection board row (the right amount adds what was paid on earlier days toward today's charges; the status line reads "Paid in advance" when every charge dated today was paid earlier; offline tag `business-offline-v5`).
+
+- **Source.** The source must descend from the R096 package `3cbbcea` (PR #151, frozen at promotion start) and add no file under `database/migrations`. A later delivery-tool commit may carry only the runner, its unit test, this README and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **SQL, order and plan.** As R096: no migration, a read-only PROD readback at 111, `{add:0, change:3, destroy:0}` with exactly `read.image`, `command.image`, `chat.image`; notify and jobs read back on their pinned image and revision.
+- **Live readback and artifact.** As R096. The marker and the entry bundle carry `"R097"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r097`.
+
 ## R096 read, command, chat and frontend promotion with no SQL
 
 `schemaVersion: 29`, `release: R096`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R090's chat-era kind (shared code path) for the Collection change (every charge dated today, also one paid on an earlier day, with a "Paid in advance" caption), with no migration and new read, command and chat images.

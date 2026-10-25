@@ -11,7 +11,7 @@ const sourceRows: SourceBorrower[] = borrowers.map(row => ({
   outstandingPrincipal: row.principal.toFixed(2),
   collection: {
     status: row.status === 'overdue' ? 'overdue' : row.status === 'due' ? 'not_paid' : null,
-    amountDue: dueFor(row).toFixed(2), amountCollected: '0.00', amountRemaining: dueFor(row).toFixed(2),
+    amountDue: dueFor(row).toFixed(2), amountCollected: '0.00', amountRemaining: dueFor(row).toFixed(2), prepaidToday: '0.00', prepaidOnly: false,
   },
   ...(row.note ? { note: row.note } : {}),
   loans: row.loans.map(loan => ({

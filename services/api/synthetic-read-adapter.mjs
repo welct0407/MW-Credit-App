@@ -20,6 +20,8 @@ const projectSummary = row => ({
     amountDue: money(row.collection?.amountDue),
     amountCollected: money(row.collection?.amountCollected),
     amountRemaining: money(row.collection?.amountRemaining),
+    prepaidToday: money(row.collection?.prepaidToday),
+    prepaidOnly: row.collection?.prepaidOnly === true,
   },
   ...(row.note ? { note: localized(row.note) } : {}),
 });

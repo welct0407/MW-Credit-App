@@ -4,7 +4,8 @@
 
 | Outstanding work | Owning reference |
 | --- | --- |
-| R096 follow-up (released 25 October 2026) | Applied and verified in DEV and PROD (no SQL; tag `R096` pending the workflow). Open: the owner's real-device check of the paid-in-advance caption; the Metabase/OLAP "Daily Collection Status" (V22) keeps the old rule and needs a migration; the `Days Outstanding` virtual is negative for a prepaid charge (existing); COLL-UX-01 (board status line) deferred, needs an API field |
+| R097 Collection row amount for prepaid charges (Open) | The Collection borrower row shows collected today plus the amount paid in advance for today's charges, with a "Paid in advance" status line (COLL-UX-01); header and totals stay today's cash. No SQL. [Change note](../../Change%20Logs/CHANGE_NOTES_R097_COLLECTION_PREPAID_AMOUNT_2026-10-25.md); Chase's review and the promotion are pending |
+| R096 follow-up (released 25 October 2026) | Applied and verified in DEV and PROD (no SQL; tag `R096` pending the workflow). Open: the owner's real-device check of the paid-in-advance caption; the Metabase/OLAP "Daily Collection Status" (V22) keeps the old rule and needs a migration; the `Days Outstanding` virtual is negative for a prepaid charge (existing) |
 | Deferred Collection Note concern | Unchanged by released R059; a separate owner-directed correction remains pending |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
 | Apple push enrollment follow-up | R056 V91 deployed; Lisa retry/closure remains pending |
