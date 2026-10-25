@@ -35,8 +35,7 @@ After viewing R096 the owner found that a borrower who paid today's charge on an
 
 ## Not run
 - The local wide browser suite: the pull request run is the one broad run.
-- The owner's real-device view of the row amount and status line: pending.
-- The owner's real-device view: pending.
+- The owner's real-device view of the row amount and status line: done; the owner confirmed on 25 October 2026 that it works on their phone.
 
 ## Recovery
 Git: revert the R097 merge commit on `main`. Deployment: redeploy the R096 images and Hosting (rollback pins are in the [Environment inventory](../project/Documents/Environment_Inventory.md)). No database change. Installed clients rewalk the offline dataset once more on rollback.
@@ -69,7 +68,7 @@ R097 is promoted. Left: the owner's real-device view and the tag `R097` through 
 | 3. Records, tag | `codex-cloud`; the Release tag workflow | done in the closure commit: Environment inventory, tracker (Released), Development Changes, this note; tag `R097` on `e040373` | tag exists; `npm run check:docs` passes | never move an existing tag | records in the closure commit; tag pending the workflow |
 
 ### Close
-- Outcome: applied and verified in DEV and PROD (25 October 2026); no SQL, no VM. Package: DEV from `71b31c6`, PROD from `e040373` (tree-identical in code). Not yet observed: the owner's real-device view. Not owner-accepted yet.
+- Outcome: applied and verified in DEV and PROD (25 October 2026); no SQL, no VM. Package: DEV from `71b31c6`, PROD from `e040373` (tree-identical in code). Owner-accepted: the owner confirmed on 25 October 2026 that it works on their phone.
 - Recovery reference: Recovery above.
 - Changed documents: this note, `PWA_Data_Model_Overview.md`, Development Changes, Environment inventory (R097 pins) and Release tracker.
 - Published evidence/tag: tag `R097` on `e040373` through the Release tag workflow (pending). Receipts are private, outside Git.
