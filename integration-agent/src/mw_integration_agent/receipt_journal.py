@@ -120,7 +120,8 @@ class ReceiptJournal:
             with self.db:
                 for key in keys:
                     self.db.execute('INSERT INTO receipt_keys VALUES (?,?)',(key,job['id']))
-                self.db.execute("UPDATE receipt_jobs SET status='VALIDATED',result=?,image=NULL,url='' WHERE id=?",
+                # retry_after=0 ends the processing claim's 300 s hold; execution reads it as a submit wait.
+                self.db.execute("UPDATE receipt_jobs SET status='VALIDATED',result=?,image=NULL,url='',retry_after=0 WHERE id=?",
                                 (json.dumps(result,ensure_ascii=False),job['id']))
                 for recipient in recipients:
                     key=hashlib.sha256((job['id']+':'+recipient['email']).encode()).hexdigest()
