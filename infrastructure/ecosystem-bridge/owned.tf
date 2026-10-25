@@ -367,7 +367,7 @@ resource "google_cloud_run_v2_service" "bridge" {
       base_image_uri   = null
       command          = []
       depends_on       = []
-      image            = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:9ba9b0f222c7f75e7302cdc7162873060c0c71488696766f11422306f22758fe"
+      image            = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:40dbf8cc997a10dd11980a0738d6b7118a6a57ab37170da9e43df248518b6d18"
       name             = null
       sandbox_launcher = false
       working_dir      = null
@@ -503,10 +503,8 @@ resource "google_cloud_run_v2_service" "bridge" {
       }
     }
     scaling {
-      concurrency_utilization = 0
-      cpu_utilization         = 0
-      max_instance_count      = 2
-      min_instance_count      = 0
+      max_instance_count = 2
+      min_instance_count = 0
     }
     volumes {
       name = "mw-grafana-hmac-pej-jul"
@@ -571,7 +569,7 @@ resource "google_cloud_run_v2_service" "bridge" {
   }
   traffic {
     percent  = 100
-    revision = "mw-grafana-events-00015-qcs"
+    revision = "mw-grafana-events-00016-hzz"
     tag      = null
     type     = "TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION"
   }
