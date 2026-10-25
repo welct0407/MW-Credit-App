@@ -679,3 +679,6 @@ html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-beha
 .borrower-record .payer-lines{white-space:pre-line}
 /* R096: a charge due today but paid on an earlier day carries a grey caption under its loan key. */
 .charge-prepaid-note{color:#565656}
+
+/* R101: the next-charge pill in Receive payment (same pill as the collection group count). */
+.next-charge-badge{background:#dfe3e6;border-radius:10px;padding:1px 7px;font-size:13px;display:inline-block;width:fit-content}

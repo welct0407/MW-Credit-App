@@ -43,7 +43,25 @@ export function canonicalAllocationPlan(amountReceived, input) {
   allocations.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId,'utf8'),Buffer.from(b.chargeId,'utf8')));
   return freeze(allocations);
 }
-/** R075 v7 slip fields (also v8): printed bank reference (spaces/dashes removed, upper case) or null. */
+/**
+ * R101 v9 materialize: the next projected charges this payment books before posting, one per loan. Each entry names the
+ * generator key cg8:<length in code points>:<loan>:<date> (SQL length() counts characters) and is paid by exactly one
+ * allocation line that expects the whole projected charge. Entries are sorted by chargeId byte order.
+ */
+export function canonicalMaterializePlan(input,allocations){
+  if(!Array.isArray(input)||input.length<1||input.length>100||!Array.isArray(allocations))fail();
+  const entries=Array.from(input,row=>{
+    exact(row,['loanId','chargeId','chargeDate','principalDue','interestDue']);
+    const loanId=id(row.loanId),chargeDate=date(row.chargeDate),principalDue=whole(row.principalDue),interestDue=whole(row.interestDue);
+    if(row.chargeId!=='cg8:'+Array.from(loanId).length+':'+loanId+':'+chargeDate||BigInt(principalDue)+BigInt(interestDue)===0n)fail();
+    if(!allocations.some(line=>line.chargeId===row.chargeId&&line.chargeDate===chargeDate&&line.expectedPrincipalRemaining===principalDue&&line.expectedInterestRemaining===interestDue))fail();
+    return {loanId,chargeId:row.chargeId,chargeDate,principalDue,interestDue};
+  });
+  if(new Set(entries.map(row=>row.loanId)).size!==entries.length||new Set(entries.map(row=>row.chargeId)).size!==entries.length)fail();
+  entries.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId,'utf8'),Buffer.from(b.chargeId,'utf8')));
+  return freeze(entries);
+}
+/** R075 v7 slip fields (also v8 and v9): printed bank reference (spaces/dashes removed, upper case) or null. */
 function bankReference(value) {
   if (value === null) return null;
   if (typeof value !== 'string' || value.length > 400) fail();
@@ -58,10 +76,11 @@ function transferTime(value) {
   return value.slice(0, 5);
 }
 export function canonicalCommand(input) {
-  if(input?.schemaVersion===6||input?.schemaVersion===7||input?.schemaVersion===8){
+  if(input?.schemaVersion===6||input?.schemaVersion===7||input?.schemaVersion===8||input?.schemaVersion===9){
     // R095 v8 = v7 plus payerLines (null or the payer-lines change {before, after}, Bank Transfer only).
-    const v7=input.schemaVersion>=7,v8=input.schemaVersion===8;
-    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId',...(v7?['bankReference','transferTime']:[]),...(v8?['payerLines']:[])]);
+    // R101 v9 = v8 plus materialize (the next projected charges to book), set last.
+    const v7=input.schemaVersion>=7,v8=input.schemaVersion>=8,v9=input.schemaVersion===9;
+    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId',...(v7?['bankReference','transferTime']:[]),...(v8?['payerLines']:[]),...(v9?['materialize']:[])]);
     const allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);
     if(!['Bank Transfer','Cash','Net-off at Disbursement'].includes(input.paymentMethod) || !(input.notes===null || (typeof input.notes==='string'&&input.notes.isWellFormed()&&!input.notes.includes('\0')&&Buffer.byteLength(input.notes,'utf8')<=65536)))fail();
     const command={schemaVersion:input.schemaVersion,requestId:requestId(input.requestId),borrowerId:id(input.borrowerId),allocations,cashAccountId:id(input.cashAccountId),paymentDate:date(input.paymentDate),amountReceived:input.amountReceived,paymentMethod:input.paymentMethod,notes:input.notes===''?null:input.notes,receiptId:input.receiptId===null?null:requestId(input.receiptId)};
@@ -73,6 +92,7 @@ export function canonicalCommand(input) {
       if(v8){
         if(!validPayerLines(input.payerLines)||(input.paymentMethod!=='Bank Transfer'&&input.payerLines!==null))fail();
         command.payerLines=input.payerLines===null?null:{before:input.payerLines.before,after:input.payerLines.after};
+        if(v9)command.materialize=canonicalMaterializePlan(input.materialize,allocations);
       }
     }
     return freeze(command);

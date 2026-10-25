@@ -1,5 +1,6 @@
 import { realpathSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { migrationHead } from '../../tests/migration-head.mjs';
 export const TRUSTED_ACTOR = '4A-owner@example.invalid';
 const keys = ['schemaVersion','requestId','borrowerId','selectedChargeIds','cashAccountId','paymentDate','amountReceived','paymentMethod','allocationMethod','notes','receiptId'];
 const fixtureId = value => typeof value === 'string' && /^4A-[A-Za-z0-9-]{1,100}$/.test(value);
@@ -14,7 +15,8 @@ export function canonicalPayment(input, businessDate) {
 }
 export const paymentId = id => '4A-P-' + id;
 export async function assertDisposable(pool, expectedDirectory, expectedVersion=77) {
-  if(![77,78,79,80,81,82,83,84,85,91,92,93,94,95,96].includes(expectedVersion))throw Error('Unsupported rehearsal version');
+  // R101: also the migration head, for suites that need the newest migration (Run-UnifiedReceiving.ps1 head stage).
+  if(![77,78,79,80,81,82,83,84,85,91,92,93,94,95,96,migrationHead()].includes(expectedVersion))throw Error('Unsupported rehearsal version');
   const result = await pool.query("SELECT current_database() AS db, current_setting('data_directory') AS directory, host(inet_server_addr()) AS host");
   const row=result.rows[0];
   if (row?.db !== 'payment_rehearsal' || !['127.0.0.1','::1'].includes(row.host) || realpathSync.native(row.directory).replaceAll('\\','/').toLowerCase() !== realpathSync.native(expectedDirectory).replaceAll('\\','/').toLowerCase()) throw Error('Not runner-owned disposable database');

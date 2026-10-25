@@ -41,3 +41,24 @@ test('R095 v8 = v7 plus payerLines after transferTime (Bank Transfer only); v7 s
  const {payerLines:_,...missing}=v8;assert.throws(()=>canonicalCommand(missing));
  assert.throws(()=>canonicalCommand({...v8,schemaVersion:7}),'v7 refuses payerLines');
 });
+test('R101 v9 = v8 plus materialize, set last: entries bound to a whole-charge line, one per loan, sorted by chargeId',()=>{
+ const due={...line,chargeId:'C1'};
+ const next={chargeId:'cg8:5:L-ไทย:2026-10-12',principal:'0',interest:'3',expectedPrincipalRemaining:'0',expectedInterestRemaining:'70',chargeDate:'2026-10-12'};
+ const other={chargeId:'cg8:3:L-2:2026-10-10',principal:'4',interest:'0',expectedPrincipalRemaining:'20',expectedInterestRemaining:'10',chargeDate:'2026-10-10'};
+ const entry={loanId:'L-ไทย',chargeId:next.chargeId,chargeDate:'2026-10-12',principalDue:'0',interestDue:'70'};
+ const entry2={loanId:'L-2',chargeId:other.chargeId,chargeDate:'2026-10-10',principalDue:'20',interestDue:'10'};
+ const v9={...command,schemaVersion:9,allocations:[next,due,other],amountReceived:'14',paymentMethod:'Bank Transfer',bankReference:null,transferTime:null,payerLines:null,materialize:[entry,entry2]};
+ const value=canonicalCommand(v9);
+ assert.deepEqual(Object.keys(value),['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId','bankReference','transferTime','payerLines','materialize']);
+ assert.deepEqual(value.allocations.map(row=>row.chargeId),['C1','cg8:3:L-2:2026-10-10','cg8:5:L-ไทย:2026-10-12'],'byte order');
+ assert.deepEqual(value.materialize.map(row=>row.loanId),['L-2','L-ไทย'],'entries sorted by chargeId');
+ assert.deepEqual(Object.keys(value.materialize[0]),['loanId','chargeId','chargeDate','principalDue','interestDue']);
+ assert.ok(Object.isFrozen(value.materialize[0]));assert.deepEqual(canonicalCommand(value),value,'canonical form is a fixed point');
+ assert.match(commandIdentity(v9,actor,null).canonicalJson,/"payerLines":null,"materialize":\[\{"loanId":"L-2","chargeId":"cg8:3:L-2:2026-10-10","chargeDate":"2026-10-10","principalDue":"20","interestDue":"10"\},\{"loanId":"L-ไทย","chargeId":"cg8:5:L-ไทย:2026-10-12",/);
+ // The key counts code points, as SQL length() does: 'L-ไทย' is 5 characters and 11 bytes.
+ for(const bad of [{materialize:[]},{materialize:null},{materialize:[{...entry,chargeId:'cg8:11:L-ไทย:2026-10-12'}]},{materialize:[{...entry,interestDue:'69'}]},{materialize:[{...entry,interestDue:70}]},
+   {materialize:[{...entry,extra:'1'}]},{materialize:[entry,entry]},{materialize:[entry,{...entry,chargeId:'cg8:5:L-ไทย:2026-10-10',chargeDate:'2026-10-10'}]},{materialize:[{...entry,principalDue:'0',interestDue:'0'}]},{materialize:[{...entry,loanId:' L-ไทย'}]}])
+  assert.throws(()=>canonicalCommand({...v9,...bad}),undefined,JSON.stringify(bad));
+ const {materialize:_,...missing}=v9;assert.throws(()=>canonicalCommand(missing),'v9 needs materialize');
+ assert.throws(()=>canonicalCommand({...v9,schemaVersion:8}),'v8 refuses materialize');
+});
