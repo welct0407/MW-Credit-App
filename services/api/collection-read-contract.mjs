@@ -41,15 +41,22 @@ export const collectionCte = `WITH today_repayments AS (
       ELSE 0 END AS rank,
     CASE WHEN count(*) FILTER (WHERE charge_date <= $1::date AND amount_remaining IS NULL) > 0 THEN NULL
       ELSE COALESCE(sum(amount_remaining) FILTER (WHERE charge_date <= $1::date), 0::numeric) END AS remaining,
-    CASE WHEN count(*) FILTER (WHERE received_today IS NULL) > 0 THEN NULL ELSE sum(received_today) END AS collected
+    CASE WHEN count(*) FILTER (WHERE received_today IS NULL) > 0 THEN NULL ELSE sum(received_today) END AS collected,
+    CASE WHEN count(*) FILTER (WHERE charge_date = $1::date AND payment_status = 'ชำระแล้ว' AND payment_date < $1::date AND total_paid IS NULL) > 0 THEN NULL
+      ELSE COALESCE(sum(total_paid::numeric) FILTER (WHERE charge_date = $1::date AND payment_status = 'ชำระแล้ว' AND payment_date < $1::date), 0::numeric) END AS prepaid,
+    (count(*) FILTER (WHERE charge_date = $1::date) > 0
+      AND count(*) FILTER (WHERE charge_date = $1::date) = count(*) FILTER (WHERE charge_date = $1::date AND payment_status = 'ชำระแล้ว' AND payment_date < $1::date)
+      AND count(*) FILTER (WHERE payment_status <> 'ชำระแล้ว') = 0) AS prepaid_only
   FROM eligible GROUP BY borrower_id, borrower_name, borrower_description
 ), summaries AS (
   SELECT id, borrower_name, borrower_description, rank, (remaining + collected)::text AS amount_due,
-    collected::text AS amount_collected, remaining::text AS amount_remaining FROM grouped
+    collected::text AS amount_collected, remaining::text AS amount_remaining,
+    prepaid::text AS prepaid_today, prepaid_only FROM grouped
 )`;
 export function projectCollection(row) {
-  if (!validLoanId(row.id) || !collectionStatuses[row.rank]) throw new Error('Invalid collection source');
-  return { id: row.id, displayName: borrowerDisplayName(row.borrower_name, row.borrower_description), status: collectionStatuses[row.rank], amountDue: decimal(row.amount_due), amountCollected: decimal(row.amount_collected), amountRemaining: decimal(row.amount_remaining), ...(row.group_remaining !== undefined ? {groupRemaining:decimal(row.group_remaining),...(row.group_collected!==undefined?{groupCollected:decimal(row.group_collected)}:{})} : {}) };
+  if (!validLoanId(row.id) || !collectionStatuses[row.rank] || typeof row.prepaid_only !== 'boolean') throw new Error('Invalid collection source');
+  // R097: prepaidToday is what was paid on earlier days toward charges dated today (row display only; collected stays cash today).
+  return { id: row.id, displayName: borrowerDisplayName(row.borrower_name, row.borrower_description), status: collectionStatuses[row.rank], amountDue: decimal(row.amount_due), amountCollected: decimal(row.amount_collected), amountRemaining: decimal(row.amount_remaining), prepaidToday: decimal(row.prepaid_today), prepaidOnly: row.prepaid_only, ...(row.group_remaining !== undefined ? {groupRemaining:decimal(row.group_remaining),...(row.group_collected!==undefined?{groupCollected:decimal(row.group_collected)}:{})} : {}) };
 }
 export function projectCollectionCharge(row) {
   if (!validLoanId(row.id) || !validLoanId(row.loan_id) || !validDate(row.charge_date) || !['รอชำระ', 'ชำระบางส่วน', 'ชำระแล้ว'].includes(row.payment_status)) throw new Error('Invalid collection charge');

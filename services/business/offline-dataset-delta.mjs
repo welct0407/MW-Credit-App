@@ -51,7 +51,7 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  const rows=offlineSourceTables[domain].filter(relation=>fingerprints.has(relation)).map(relation=>({relation,fingerprint:fingerprints.get(relation)})).sort((a,b)=>a.relation<b.relation?-1:a.relation>b.relation?1:0);
  // v4 (R078): per-domain table sets and the (key, xmin) aggregate. Installed clients see one
  // changed version per domain after the upgrade and walk once.
- return deltaValueHash(['business-offline-v4',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
+ return deltaValueHash(['business-offline-v5',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){
  if(!offlineSourceTables[domain])throw Error('invalid_request');

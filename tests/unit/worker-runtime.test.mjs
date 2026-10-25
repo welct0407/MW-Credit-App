@@ -83,7 +83,7 @@ test('real HTTP empty Scheduler POST accepts RFC3339 offsets while auth, body an
 
 import {createECDH} from 'node:crypto';
 test('notify accepts only exact command and scheduler, waits for bounded RPC drain, and needs producer deadline',async()=>{
- const key=createECDH('prime256v1');key.generateKeys();
+ const key=createECDH('prime256v1');do key.generateKeys();while(key.getPrivateKey().length!==32);
  const notify={...env,WORKER_ROLE:'notify',WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(SUBJECTS),DB_USER:env.DB_USER.replace('-jobs-','-notify-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-jobs-','-notify-'),WORKER_AUDIENCE:env.WORKER_AUDIENCE.replace('-jobs-','-notify-'),WEB_PUSH_VAPID_JSON:JSON.stringify({publicKey:key.getPublicKey().toString('base64url'),privateKey:key.getPrivateKey().toString('base64url')}),WEB_PUSH_SUBJECT:'mailto:synthetic@example.invalid',NOTIFICATION_POLICY_JSON:JSON.stringify({schemaVersion:1,environment:'dev',evidenceSha256:'a'.repeat(64),members:[{partnerId:'owner',loginEmail:'welct0407@mw-credit.com',partnerRole:'A',capabilities:['read']}],owner:{subject:'owner',partnerId:'owner',loginEmail:'welct0407@mw-credit.com',endpointSha256:'b'.repeat(64)}})};
  let caller=`mw-credit-app-command-dev@${project}.iam.gserviceaccount.com`,release,entered;
  const ready=new Promise(r=>entered=r),gate=new Promise(r=>release=r);let effects=0;
@@ -97,7 +97,7 @@ test('notify accepts only exact command and scheduler, waits for bounded RPC dra
 });
 
 test('R090 batch 2: a wake that arrives while a dispatch runs is queued (202) and the running dispatch makes one more pass',async()=>{
- const key=createECDH('prime256v1');key.generateKeys();
+ const key=createECDH('prime256v1');do key.generateKeys();while(key.getPrivateKey().length!==32);
  const notify={...env,WORKER_ROLE:'notify',WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(SUBJECTS),DB_USER:env.DB_USER.replace('-jobs-','-notify-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-jobs-','-notify-'),WORKER_AUDIENCE:env.WORKER_AUDIENCE.replace('-jobs-','-notify-'),WEB_PUSH_VAPID_JSON:JSON.stringify({publicKey:key.getPublicKey().toString('base64url'),privateKey:key.getPrivateKey().toString('base64url')}),WEB_PUSH_SUBJECT:'mailto:synthetic@example.invalid',NOTIFICATION_POLICY_JSON:JSON.stringify({schemaVersion:1,environment:'dev',evidenceSha256:'a'.repeat(64),members:[{partnerId:'owner',loginEmail:'welct0407@mw-credit.com',partnerRole:'A',capabilities:['read']}],owner:{subject:'owner',partnerId:'owner',loginEmail:'welct0407@mw-credit.com',endpointSha256:'b'.repeat(64)}})};
  const caller=`mw-credit-app-command-dev@${project}.iam.gserviceaccount.com`;let candidates=0,release,entered;
  const ready=new Promise(r=>entered=r),gate=new Promise(r=>release=r);
@@ -119,7 +119,7 @@ test('R090 batch 2: a wake that arrives while a dispatch runs is queued (202) an
 });
 
 test('R090 batch 2: a queued wake with under 11 s left is dropped (logged); a producer wake gets up to 30 s',async()=>{
- const key=createECDH('prime256v1');key.generateKeys();
+ const key=createECDH('prime256v1');do key.generateKeys();while(key.getPrivateKey().length!==32);
  const notify={...env,WORKER_ROLE:'notify',WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(SUBJECTS),DB_USER:env.DB_USER.replace('-jobs-','-notify-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-jobs-','-notify-'),WORKER_AUDIENCE:env.WORKER_AUDIENCE.replace('-jobs-','-notify-'),WEB_PUSH_VAPID_JSON:JSON.stringify({publicKey:key.getPublicKey().toString('base64url'),privateKey:key.getPrivateKey().toString('base64url')}),WEB_PUSH_SUBJECT:'mailto:synthetic@example.invalid',NOTIFICATION_POLICY_JSON:JSON.stringify({schemaVersion:1,environment:'dev',evidenceSha256:'a'.repeat(64),members:[{partnerId:'owner',loginEmail:'welct0407@mw-credit.com',partnerRole:'A',capabilities:['read']}],owner:{subject:'owner',partnerId:'owner',loginEmail:'welct0407@mw-credit.com',endpointSha256:'b'.repeat(64)}})};
  const caller=`mw-credit-app-command-dev@${project}.iam.gserviceaccount.com`,logs=[];let candidates=0,release,entered;
  const ready=new Promise(r=>entered=r),gate=new Promise(r=>release=r);
@@ -140,7 +140,7 @@ test('R090 batch 2: every producer may wake dispatch; the jobs worker wakes it a
  const caller=s=>`mw-credit-app-${s}-dev@${project}.iam.gserviceaccount.com`;
  const audience='https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app';
  const dispatchEnv={NOTIFICATION_DISPATCH_ENABLED:'true',NOTIFICATION_DISPATCH_URL:audience+'/internal/dispatch',NOTIFICATION_DISPATCH_AUDIENCE:audience};
- const key=createECDH('prime256v1');key.generateKeys();
+ const key=createECDH('prime256v1');do key.generateKeys();while(key.getPrivateKey().length!==32);
  const notify={...env,WORKER_ROLE:'notify',DB_USER:env.DB_USER.replace('-jobs-','-notify-'),RUNTIME_SERVICE_ACCOUNT:env.RUNTIME_SERVICE_ACCOUNT.replace('-jobs-','-notify-'),WORKER_AUDIENCE:env.WORKER_AUDIENCE.replace('-jobs-','-notify-'),WEB_PUSH_VAPID_JSON:JSON.stringify({publicKey:key.getPublicKey().toString('base64url'),privateKey:key.getPrivateKey().toString('base64url')}),WEB_PUSH_SUBJECT:'mailto:synthetic@example.invalid',NOTIFICATION_POLICY_JSON:JSON.stringify({schemaVersion:1,environment:'dev',evidenceSha256:'a'.repeat(64),members:[{partnerId:'owner',loginEmail:'welct0407@mw-credit.com',partnerRole:'A',capabilities:['read']}],owner:{subject:'owner',partnerId:'owner',loginEmail:'welct0407@mw-credit.com',endpointSha256:'b'.repeat(64)}})};
  const subjects={[caller('scheduler')]:'1001',[caller('command')]:'1002',[caller('chat')]:'1003',[caller('jobs')]:'1004'};
  assert.deepEqual(loadWorkerConfig({...notify,WORKER_CALLER_SUBJECTS_JSON:JSON.stringify(subjects)}).callers,[caller('scheduler'),caller('command'),caller('chat'),caller('jobs')]);
