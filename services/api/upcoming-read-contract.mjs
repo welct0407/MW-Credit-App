@@ -14,7 +14,7 @@ export function decodeUpcomingCursor(cursor, parentId, businessDate, dueDate) {
   if (cursor === null || cursor === undefined || cursor === '') return null;
   if (typeof cursor !== 'string' || cursor.length > 4096 || !/^[A-Za-z0-9_-]+$/.test(cursor)) throw new Error('Invalid cursor');
   const row = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
-  if (!row || row.v !== 1 || row.kind !== 'collection-upcoming' || row.parentId !== parentId || row.businessDate !== businessDate || row.dueDate !== dueDate || encodeUpcomingCursor(row) !== cursor) throw new Error('Invalid cursor');
+  if (row?.v !== 1 || row.kind !== 'collection-upcoming' || row.parentId !== parentId || row.businessDate !== businessDate || row.dueDate !== dueDate || encodeUpcomingCursor(row) !== cursor) throw new Error('Invalid cursor');
   return row;
 }
 export const upcomingSummarySql = `SELECT s."Row ID" AS id, s."Due Date"::text AS "dueDate", s."Total Charge"::text AS "totalCharge"

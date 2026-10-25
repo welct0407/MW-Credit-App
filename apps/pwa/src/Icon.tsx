@@ -1,4 +1,4 @@
-import React from 'react';
+
 const paths = {
  add:'M12 8v8M8 12h8M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
  increase:'M12 5v14M5 12h14', decrease:'M5 12h14',

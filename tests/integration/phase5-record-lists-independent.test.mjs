@@ -1,34 +1,31 @@
 import test,{before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import pg from 'pg';
-import {randomUUID,createHash} from 'node:crypto';
-import {readFileSync} from 'node:fs';
+import {randomUUID} from 'node:crypto';
 import {disposablePool} from '../../scripts/rehearsal/disposable-pool.mjs';
 import {seedPaymentFixture} from '../../scripts/rehearsal/payment-fixture.mjs';
 import {planApplicationRole,reconcileApplicationRole} from '../../scripts/database/app-role-policy.mjs';
 import {attestDisposableApplicationTarget} from '../../services/payment-command/application-target.mjs';
 import {createApplicationRoleCommandStore} from '../../services/payment-command/store.mjs';
-import {canonicalOperation,operationIdentity} from '../../services/contracts/operation-command.mjs';
-import {canonicalCommand,commandIdentity} from '../../services/contracts/payment-command.mjs';
 import {OWNER_EMAIL,PROJECT_ID as DEV_PROJECT} from '../../services/lib/identity.mjs';
 let admin,app,store,proof,fixture;const user='mw_app_dev_c_root_lists_fixture';
 const principal={ok:true,email:OWNER_EMAIL,subject:'independent-generalized-owner'};
 const fields=()=>({name:'C operation '+randomUUID(),description:'Synthetic English',communicationName:null,instagramUsername:null,city:null,workingLocation:null,address:null,hidden:null,referrerId:null,preferredReceivingAccountId:fixture.receivingAccountId,note:' exact ไทย\n '});
 const command=(inputs=fields())=>({requestId:randomUUID(),operation:'borrower.create',targetId:randomUUID(),expectedVersion:null,predecessorRequestId:null,inputs,receiptId:null});
-const actor=()=>({issuer:`https://securetoken.google.com/${DEV_PROJECT}`,subject:principal.subject,partnerId:fixture.actorId,loginEmail:OWNER_EMAIL});
+const _actor=()=>({issuer:`https://securetoken.google.com/${DEV_PROJECT}`,subject:principal.subject,partnerId:fixture.actorId,loginEmail:OWNER_EMAIL});
 before(async()=>{
  admin=await disposablePool(96);await admin.query(`CREATE ROLE ${user} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);await admin.query(`GRANT mw_app_dev TO ${user}`);const c=await admin.connect();try{const plan=await planApplicationRole(c,{database:'payment_rehearsal',creators:['postgres']});assert.deepEqual(plan.violations,[]);await reconcileApplicationRole(c,{database:'payment_rehearsal',creators:['postgres']},{apply:true})}finally{c.release()}
  app=new pg.Pool({host:'127.0.0.1',port:Number(process.env.PAYMENT_REHEARSAL_PORT),database:'payment_rehearsal',user,password:'',max:4});proof=await attestDisposableApplicationTarget({adminPool:admin,expectedDirectory:process.env.PAYMENT_REHEARSAL_DIRECTORY,runtimeUser:user,expectedVersion:96});store=createApplicationRoleCommandStore({pool:app,targetAttestation:proof,ownerTesting:true});
  fixture=await seedPaymentFixture(admin,'C-P5-ROOTS');await admin.query('UPDATE "Partners" SET "Login Email"=$1 WHERE "Row ID"=$2',[OWNER_EMAIL,fixture.actorId]);const role=(await app.query('SELECT current_user AS name,rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user')).rows[0];assert.deepEqual(role,{name:user,rolsuper:false,rolbypassrls:false});
 });
 after(async()=>{await app?.end();await admin?.end()});
-async function assertSameBusinessReadC(current,expected){
+async function _assertSameBusinessReadC(current,expected){
  const day=(await admin.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day;
  const business=row=>{const {asOf,businessDate,...value}=row;assert.match(asOf,/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);assert.equal(new Date(asOf).toISOString(),asOf);assert.equal(businessDate,day);return value};
  assert.deepEqual(business(current),business(expected));
 }
-async function rows(id){return(await admin.query('SELECT to_jsonb(j) AS value FROM pwa_payment_commands j WHERE request_id=$1',[id])).rows}
-async function source(id){return(await admin.query('SELECT to_jsonb(b) AS value FROM "Borrowers" b WHERE "Row ID"=$1',[id])).rows}
+async function _rows(id){return(await admin.query('SELECT to_jsonb(j) AS value FROM pwa_payment_commands j WHERE request_id=$1',[id])).rows}
+async function _source(id){return(await admin.query('SELECT to_jsonb(b) AS value FROM "Borrowers" b WHERE "Row ID"=$1',[id])).rows}
 async function create(c=command()){const r=await store.operation(principal,c);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.originalOutcome.status,'applied');return {c,r,item:(await store.borrowerRecord(principal,c.targetId)).item}}
 
 const byteSort=(a,b)=>Buffer.compare(Buffer.from(a??''),Buffer.from(b??''));
@@ -37,7 +34,7 @@ test('F13-C01 root Loans and Payments preserve complete source groups ordering l
  const tag='C-root-'+randomUUID(),a=await create(command({...fields(),name:tag+' - X',description:'Y %_ ไทย',hidden:true})),b=await create(command({...fields(),name:tag,description:'X - Y %_ ไทย',hidden:false}));
  const day=(await admin.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day")).rows[0].day;
  const loanIds=[];for(let i=0;i<28;i++){const id=randomUUID(),borrower=i%2?a.c.targetId:b.c.targetId,status=['ยังไม่ปิดยอด','ปิดยอดแล้ว',null][i%3];await app.query('INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Created By") VALUES($1,$2,$3,$4::date-900,1000::money,$5,$6,false,$7)',[id,borrower,fixture.lendingAccountId,day,status,'กำหนดวันชำระ',OWNER_EMAIL]);loanIds.push(id)}
- for(const [id,borrower] of [[loanIds[0],b.c.targetId],[loanIds[1],a.c.targetId]])await app.query('INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,$3::date-900,0::money,10000::money)',[randomUUID(),id,day]);
+ for(const [id,_borrower] of [[loanIds[0],b.c.targetId],[loanIds[1],a.c.targetId]])await app.query('INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,$3::date-900,0::money,10000::money)',[randomUUID(),id,day]);
  const paymentIds=[];for(let i=0;i<29;i++){const id=randomUUID(),borrower=i<26?a.c.targetId:b.c.targetId;await app.query('INSERT INTO "Payments"("Row ID","Status","Ref Borrower","Amount Received","Payment Date","Payment Method","Allocation Method","Ref Received By Cash Account","Created By","Created At") VALUES($1,$2,$3,1::money,$4,$5,$6,$7,$8,$9::timestamp)',[id,'Processing',borrower,day,'Cash','Lump Sum',fixture.receivingAccountId,OWNER_EMAIL,i%2?'2026-01-01 01:00:00':null]);paymentIds.push(id)}
 
  const loans=await allRootC('loans',tag);assert.equal(loans.items.length,28);assert.deepEqual(new Set(loans.items.map(r=>r.id)),new Set(loanIds));assert.deepEqual(new Set(loans.items.map(r=>r.rank)),new Set([0,1,2]));

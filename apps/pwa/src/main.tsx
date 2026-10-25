@@ -72,7 +72,7 @@ function App() {
   const dueCount = collection.filter(b => b.remaining !== null && b.remaining > 0).length;
   const routeInfo = routes.find(r => r[0] === route)!;
   const status = (b: Borrower) => b.collectionStatus === 'overdue' ? t('Overdue', 'เลยกำหนด') : b.collectionStatus === 'not_paid' ? t('Not paid', 'ยังไม่ชำระ') : b.collectionStatus === 'partially_paid' ? t('Partially paid', 'ชำระบางส่วน') : b.collectionStatus === 'fully_paid' ? t('Fully paid', 'ชำระครบแล้ว') : t('No collection status', 'ไม่มีสถานะติดตาม');
-  const renderCard = (b: Borrower) => <button key={b.id} className={'borrower-card ' + (current?.id === b.id ? 'selected' : '')} onClick={() => setSelected(b.id)} aria-pressed={current?.id === b.id} data-testid={'borrower-' + b.id}>
+  const renderCard = (b: Borrower) => <button type="button" key={b.id} className={'borrower-card ' + (current?.id === b.id ? 'selected' : '')} onClick={() => setSelected(b.id)} aria-pressed={current?.id === b.id} data-testid={'borrower-' + b.id}>
     <span className="avatar">
       {b.initials}
     </span>
@@ -114,7 +114,7 @@ function App() {
           {i === 8 && <div className="nav-caption management">
             {t('MANAGEMENT', 'งานบริหาร')}
           </div>}
-          <button className={'nav-item ' + (route === r[0] ? 'active' : '')} onClick={() => go(r[0])} aria-current={route === r[0] ? 'page' : undefined}>
+          <button type="button" className={'nav-item ' + (route === r[0] ? 'active' : '')} onClick={() => go(r[0])} aria-current={route === r[0] ? 'page' : undefined}>
             <span className="nav-icon" aria-hidden="true">
               <Icon name={r[3]}/>
             </span>
@@ -130,10 +130,10 @@ function App() {
         </small>
       </div>
     </aside>
-    {menu && <button className="menu-scrim" aria-label={t('Close navigation', 'ปิดเมนู')} onClick={() => setMenu(false)} />}
+    {menu && <button type="button" className="menu-scrim" aria-label={t('Close navigation', 'ปิดเมนู')} onClick={() => setMenu(false)} />}
     <div className="workspace" inert={menu}>
       <header className="topbar">
-        <button className="menu-toggle" aria-expanded={menu} aria-label={t('Open navigation', 'เปิดเมนู')} onClick={() => setMenu(!menu)}><Icon name="menu"/></button>
+        <button type="button" className="menu-toggle" aria-expanded={menu} aria-label={t('Open navigation', 'เปิดเมนู')} onClick={() => setMenu(!menu)}><Icon name="menu"/></button>
         <div className="breadcrumb">
           {t('Workspace', 'พื้นที่ทำงาน')}
           <span>/</span>
@@ -142,15 +142,15 @@ function App() {
           </strong>
         </div>
         <div className="language" role="group" aria-label="Language">
-          <button onClick={() => { setLocale('en'); document.documentElement.lang = 'en'; }} aria-pressed={locale === 'en'}>EN</button>
-          <button onClick={() => { setLocale('th'); document.documentElement.lang = 'th'; }} aria-pressed={locale === 'th'}>ไทย</button>
+          <button type="button" onClick={() => { setLocale('en'); document.documentElement.lang = 'en'; }} aria-pressed={locale === 'en'}>EN</button>
+          <button type="button" onClick={() => { setLocale('th'); document.documentElement.lang = 'th'; }} aria-pressed={locale === 'th'}>ไทย</button>
         </div>
       </header>
       <main>
         <div className="theme-preview" role="group" aria-label={t('Theme preview', 'ตัวอย่างสี')}>
           <span>{t('Colors only · no environment change', 'ตัวอย่างสีเท่านั้น · ไม่เปลี่ยนระบบ')}</span>
-          <button aria-pressed={previewTheme === 'dev'} onClick={() => setPreviewTheme('dev')}>DEV</button>
-          <button aria-pressed={previewTheme === 'prod'} onClick={() => setPreviewTheme('prod')}>PROD</button>
+          <button type="button" aria-pressed={previewTheme === 'dev'} onClick={() => setPreviewTheme('dev')}>DEV</button>
+          <button type="button" aria-pressed={previewTheme === 'prod'} onClick={() => setPreviewTheme('prod')}>PROD</button>
         </div>
         <div className="preview-strip">
           <span className="preview-dot" />
@@ -259,11 +259,10 @@ function App() {
                   <p>
                     {t('Try another name or reset your filters.', 'ลองชื่ออื่นหรือล้างตัวกรอง')}
                   </p>
-                  <button className="secondary-button" onClick={() => { setQuery(''); setFilter('all'); }}>
+                  <button type="button" className="secondary-button" onClick={() => { setQuery(''); setFilter('all'); }}>
                     {t('Reset filters', 'ล้างตัวกรอง')}
                   </button>
-                </div> : route === 'borrowers' ? <>
-                  {[true, false].map(active => {
+                </div> : route === 'borrowers' ? [true, false].map(active => {
                     const group = visible.filter(b => b.hasActiveLoan === active); return group.length > 0 && <div key={String(active)}>
                       <h3 className="group-label">
                         {active ? t('Active loans', 'มีสัญญาที่ใช้งาน') : t('No active loan', 'ไม่มีสัญญาที่ใช้งาน')}
@@ -273,8 +272,7 @@ function App() {
                       </h3>
                       {group.map(renderCard)}
                     </div>;
-                  })}
-                </> : visible.map(renderCard)}
+                  }) : visible.map(renderCard)}
               </div>
               <div className="list-foot">
                 {t('Fictional records for design review only.', 'ข้อมูลสมมติสำหรับตรวจสอบการออกแบบเท่านั้น')}
@@ -282,7 +280,7 @@ function App() {
             </section>
             <section className={'detail-panel ' + (!current ? 'unselected' : '')} aria-label={t('Borrower details', 'รายละเอียดผู้กู้')}>
               {current ? <>
-                <button className="back-button" onClick={() => setSelected(null)}>← {t('Back to list', 'กลับไปรายการ')}
+                <button type="button" className="back-button" onClick={() => setSelected(null)}>← {t('Back to list', 'กลับไปรายการ')}
                 </button>
                 <div className="detail-heading">
                   <span className="avatar large">
@@ -382,7 +380,7 @@ function App() {
                     </p>
                   </div>
                 </div>
-                <button className="post-button" disabled>
+                <button type="button" className="post-button" disabled>
                   {t('Record payment · planned', 'บันทึกการชำระ · อยู่ในแผน')}
                 </button>
                 <p className="action-note">
@@ -421,7 +419,7 @@ function App() {
           </p> : routes.findIndex(r => r[0] === route) >= 8 && <p>
             {t('Native management workflows remain planned before production go-live.', 'งานบริหารภายในแอปยังอยู่ในแผนก่อนเปิดใช้งานจริง')}
           </p>}
-          <button className="secondary-button" onClick={() => go('collection')}>
+          <button type="button" className="secondary-button" onClick={() => go('collection')}>
             {t('Explore Collection', 'ทดลองหน้าติดตามชำระ')} <Icon name="forward"/></button>
         </section>}
         <footer className="page-footer">
@@ -430,15 +428,15 @@ function App() {
         </footer>
       </main>
       <nav className="mobile-nav" aria-label={t('Quick navigation', 'เมนูลัด')}>
-        <button aria-current={route === 'collection' ? 'page' : undefined} onClick={() => go('collection')}>
+        <button type="button" aria-current={route === 'collection' ? 'page' : undefined} onClick={() => go('collection')}>
           <Icon name="collection"/>
           {t('Collection', 'ติดตามชำระ')}
         </button>
-        <button aria-current={route === 'borrowers' ? 'page' : undefined} onClick={() => go('borrowers')}>
+        <button type="button" aria-current={route === 'borrowers' ? 'page' : undefined} onClick={() => go('borrowers')}>
           <Icon name="borrowers"/>
           {t('Borrowers', 'ผู้กู้')}
         </button>
-        <button onClick={() => setMenu(!menu)}>
+        <button type="button" onClick={() => setMenu(!menu)}>
           <Icon name="menu"/>
           {t('More', 'เพิ่มเติม')}
         </button>

@@ -1,6 +1,6 @@
 import {HeaderBack} from './HeaderBack';
-import {displayDate,displayTimestamp,displayValue} from './display-date';
-import {CompactPager,RefreshIcon} from './CompactPager';
+import {displayDate} from './display-date';
+import {CompactPager} from './CompactPager';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
 import React from 'react';
 
@@ -38,10 +38,10 @@ export function LoanRecords(props: Props) {
   return <section className="related-loans" aria-label={t('Related loans', 'สัญญาที่เกี่ยวข้อง')}>
     <div className="related-loans-heading"><h3>{t('Related loans', 'สัญญาที่เกี่ยวข้อง')}</h3></div><p className="list-meaning-legend">{t('Principal · Interest received · Interest covering principal (%)','เงินต้น · ดอกเบี้ยรับแล้ว · ดอกเบี้ยครอบคลุมเงินต้น (%)')}</p>
 
-    {props.error && <div className="loan-read-error" role="status"><p>{props.error.code === 'not_found' ? t('This borrower or loan is no longer available.', 'ไม่พบผู้กู้หรือสัญญานี้แล้ว') : t('Unable to load loan records.', 'ไม่สามารถโหลดข้อมูลสัญญาได้')}</p><ErrorReference failure={props.error} thai={props.thai} /><button className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Retry loan list', 'ลองโหลดรายการสัญญาอีกครั้ง')}</button></div>}
+    {props.error && <div className="loan-read-error" role="status"><p>{props.error.code === 'not_found' ? t('This borrower or loan is no longer available.', 'ไม่พบผู้กู้หรือสัญญานี้แล้ว') : t('Unable to load loan records.', 'ไม่สามารถโหลดข้อมูลสัญญาได้')}</p><ErrorReference failure={props.error} thai={props.thai} /><button type="button" className="secondary-button" disabled={props.busy} onClick={props.onRefresh}>{t('Retry loan list', 'ลองโหลดรายการสัญญาอีกครั้ง')}</button></div>}
     {props.selected ? <article className="loan-detail" aria-label={t('Loan details', 'รายละเอียดสัญญา')}>
       <HeaderBack navigationKey="legacy-loan-detail" aria-label={t('Back to loans', 'กลับไปรายการสัญญา')} onClick={props.onBack}/>
-      <h4>{loanDisplayKey(props.selected)}</h4>{props.onFullDetail&&<button className="text-action" onClick={()=>props.onFullDetail!(props.selected!.id)}>{t('Full loan details','รายละเอียดสินเชื่อทั้งหมด')}</button>}
+      <h4>{loanDisplayKey(props.selected)}</h4>{props.onFullDetail&&<button type="button" className="text-action" onClick={()=>props.onFullDetail!(props.selected!.id)}>{t('Full loan details','รายละเอียดสินเชื่อทั้งหมด')}</button>}
       <dl>
         <div><dt>{t('Loan status', 'สถานะสัญญา')}</dt><dd>{status(props.selected.status)}</dd></div>
         <div><dt>{t('Loan type', 'ประเภทสัญญา')}</dt><dd>{type(props.selected.loanType)}</dd></div>
@@ -59,7 +59,7 @@ export function LoanRecords(props: Props) {
     </article> : <>
 
       {!props.loading && !props.error && props.items.length === 0 && <p>{t('No loans for this borrower.', 'ผู้กู้รายนี้ไม่มีสัญญา')}</p>}
-      <div className="loan-record-list">{props.items.map((loan, index) => <React.Fragment key={loan.id}>{(index === 0 || loanGroup(props.items[index - 1].status) !== loanGroup(loan.status)) && <h4 className={'record-group-heading ' + (loanGroup(loan.status) === 0 ? 'group-active' : loanGroup(loan.status) === 1 ? 'group-inactive' : 'group-unknown')}>{loanGroup(loan.status) === 0 ? t('Open loans', 'สัญญาที่ยังเปิด') : loanGroup(loan.status) === 1 ? t('Closed loans', 'สัญญาที่ปิดแล้ว') : t('Other / unavailable status', 'สถานะอื่น / ไม่มีข้อมูล')}</h4>}<button className={'loan-record ' + (loanGroup(loan.status) === 1 ? 'closed' : '')} onClick={() => props.onSelect(loan.id)} disabled={props.busy}>
+      <div className="loan-record-list">{props.items.map((loan, index) => <React.Fragment key={loan.id}>{(index === 0 || loanGroup(props.items[index - 1].status) !== loanGroup(loan.status)) && <h4 className={'record-group-heading ' + (loanGroup(loan.status) === 0 ? 'group-active' : loanGroup(loan.status) === 1 ? 'group-inactive' : 'group-unknown')}>{loanGroup(loan.status) === 0 ? t('Open loans', 'สัญญาที่ยังเปิด') : loanGroup(loan.status) === 1 ? t('Closed loans', 'สัญญาที่ปิดแล้ว') : t('Other / unavailable status', 'สถานะอื่น / ไม่มีข้อมูล')}</h4>}<button type="button" className={'loan-record ' + (loanGroup(loan.status) === 1 ? 'closed' : '')} onClick={() => props.onSelect(loan.id)} disabled={props.busy}>
         <span className="loan-record-main"><strong>{loanDisplayKey(loan)}</strong><span title={t('Original principal','เงินต้นเริ่มต้น')}>{money(loan.principalAmount)}</span></span>
         <span className="loan-record-amount"><strong className={loan.totalInterestReceived!==null&&Number(loan.totalInterestReceived)>0?'profit-positive':''} title={t('Total Interest Received','ดอกเบี้ยรับรวม')}>{money(loan.totalInterestReceived)}</strong><span className={loanRecoveryClass(loan)} title={t('Principal Recovered by Interest','เงินต้นที่ครอบคลุมด้วยดอกเบี้ย')}>{loanRecoveryRatio(loan)===null?'—':new Intl.NumberFormat('en-US',{style:'percent',maximumFractionDigits:2}).format(loanRecoveryRatio(loan)!)}</span></span>
       </button></React.Fragment>)}</div>

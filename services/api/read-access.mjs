@@ -7,7 +7,7 @@ export function evaluateReadAccess(context = {}) {
   const { principal, config, grants, partners, nowMs } = context && typeof context === 'object' ? context : {};
   const denied = code => ({ ok: false, code });
   const nonblank = value => typeof value === 'string' && value.trim().length > 0;
-  if (!config || config.mode !== 'synthetic' || !['environment', 'issuer', 'audience'].every(key => nonblank(config[key])) || !Number.isFinite(nowMs)) return denied('configuration_invalid');
+  if (config?.mode !== 'synthetic' || !['environment', 'issuer', 'audience'].every(key => nonblank(config[key])) || !Number.isFinite(nowMs)) return denied('configuration_invalid');
   if (!principal) return denied('signed_out');
   if (principal.serverVerified !== true || principal.emailVerified !== true || !nonblank(principal.subject) || !nonblank(principal.email)) return denied('access_denied');
   if (principal.revoked !== false || principal.disabled !== false) return denied('access_denied');

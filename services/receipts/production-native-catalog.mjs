@@ -5,7 +5,7 @@ const invalid=()=>{throw Error('Invalid production native receipt catalog')};
 /** The binding is separately reviewed current PROD source evidence, never catalog self-approval. */
 export function parseNativeProductionCatalog(raw,binding){
  try{
-  if(!binding||binding.environment!=='prod'||binding.database!=='loan_manager_prod'||binding.bucket!=='mw-payment-receipts-prod-508610-n7'||!hex(binding.sourceEvidenceSha256)||binding.objectRoot!=='appsheet/data/LoanManager_975338008_26_08_07/manual_receipts/prod/'||!binding.objectRoot.endsWith('/')||binding.objectRoot.includes('MW_OLTP_DEV')||binding.objectRoot.includes('/dev/')||/[\\\u0000-\u001f]/.test(binding.objectRoot)||binding.objectRoot.split('/').slice(0,-1).some(v=>!v||v==='.'||v==='..'))invalid();
+  if(binding?.environment!=='prod'||binding.database!=='loan_manager_prod'||binding.bucket!=='mw-payment-receipts-prod-508610-n7'||!hex(binding.sourceEvidenceSha256)||binding.objectRoot!=='appsheet/data/LoanManager_975338008_26_08_07/manual_receipts/prod/'||!binding.objectRoot.endsWith('/')||binding.objectRoot.includes('MW_OLTP_DEV')||binding.objectRoot.includes('/dev/')||/[\\\u0000-\u001f]/.test(binding.objectRoot)||binding.objectRoot.split('/').slice(0,-1).some(v=>!v||v==='.'||v==='..'))invalid();
   if(typeof raw!=='string'||Buffer.byteLength(raw)>65536)invalid();const c=JSON.parse(raw);
   if(!c||Object.keys(c).sort().join(',')!=='bucket,database,entries,environment,objectRoot,schemaVersion,sourceEvidenceSha256'||c.schemaVersion!==1||['environment','database','bucket','objectRoot','sourceEvidenceSha256'].some(k=>c[k]!==binding[k])||!Array.isArray(c.entries)||c.entries.length>256)invalid();
   const refs=new Set(),keys=new Set();

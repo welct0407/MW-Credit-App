@@ -1,9 +1,9 @@
 import test,{before,after} from 'node:test';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {readFileSync} from 'node:fs';
-import {connect,principal,command,journalRows,financialRows,sqlErrors} from './phase6-populated-fixture.mjs';import {verifyPopulatedJournalAfter83} from './phase5-populated-journal-fixture.mjs';import {canonicalOperation,operationIdentity} from '../../services/contracts/operation-command.mjs';import {OWNER_EMAIL,PROJECT_ID as DEV_PROJECT} from '../../services/lib/identity.mjs';
+import {connect,principal,command,journalRows,financialRows,sqlErrors} from './phase6-populated-fixture.mjs';import {canonicalOperation,operationIdentity} from '../../services/contracts/operation-command.mjs';import {OWNER_EMAIL,PROJECT_ID as DEV_PROJECT} from '../../services/lib/identity.mjs';
 import {bulkReadClient} from '../../services/business/offline-dataset.mjs';
 import {readOfflineDatasetChunk} from '../../services/business/offline-dataset-chunks.mjs';
 import {readOfflineSourceVersion,readOfflineDatasetDelta} from '../../services/business/offline-dataset-delta.mjs';
-let admin,app,store,proof,snapshot;before(async()=>{({admin,app,store,proof}=await connect(85));snapshot=JSON.parse(readFileSync(process.env.PHASE6_POPULATED_SNAPSHOT,'utf8'))});after(async()=>{await app?.end();await admin?.end()});
+let admin,app,store,snapshot;before(async()=>{({admin,app,store}=await connect(85));snapshot=JSON.parse(readFileSync(process.env.PHASE6_POPULATED_SNAPSHOT,'utf8'))});after(async()=>{await app?.end();await admin?.end()});
 test('offline bulk dataset preserves restricted-role detail DTOs and complete domain reads',async()=>{
  await admin.query(`INSERT INTO public."Statistics"("Row ID","Statistics ID") SELECT 'C-P6-ANALYTICS','Synthetic analytics' WHERE NOT EXISTS(SELECT 1 FROM public."Statistics")`);
  const visible=randomUUID(),hidden=randomUUID();await app.query('INSERT INTO "Borrowers"("Row ID","Borrower Name","Hidden Flag") VALUES($1,\'C dataset visible\',false),($2,\'C dataset hidden eligible\',true)',[visible,hidden]);

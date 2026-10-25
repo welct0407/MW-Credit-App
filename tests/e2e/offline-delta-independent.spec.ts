@@ -332,7 +332,7 @@ test('R078 a server without dates steps the path down: dates first, then since',
   return route.fulfill({json:{...bundle(domain,[],oldVersion),schemaVersion:3,unchanged:true,values:{}}});
  });
  await start(page);await settled(page);
- const records=bodies.filter(body=>true);
+ const records=bodies.filter(_body=>true);
  expect(records[0].dates).toBe(true);expect(records[0].since).toBeDefined();
  // Level 3: since without dates; level 2: neither.
  expect(records.some(body=>body.dates===undefined&&body.since!==undefined)).toBe(true);

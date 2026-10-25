@@ -29,7 +29,7 @@ async function fixture(){
 
 test('enqueue drains more than100 events per device, excludes actor/unknown and history has unique chronological pages',async()=>{
  const f=await fixture();try{
-  const own=await f.subscription(f.actor,'actor'),one=await f.subscription(f.recipient,'one'),two=await f.subscription(f.recipient,'two'),other=await f.subscription(f.other,'other');
+  const own=await f.subscription(f.actor,'actor'),one=await f.subscription(f.recipient,'one'),two=await f.subscription(f.recipient,'two'),_other=await f.subscription(f.other,'other');
   for(let n=0;n<105;n++)await f.event(n);await f.event('unknown',null);
   let more=true,count=0,pages=0;while(more){const page=await enqueueNotifications(f.dispatchPool,{eligible:async()=>true});assert.ok(page.candidates<=100);count+=page.enqueued;more=page.candidates===100;pages++;assert.ok(pages<=4,'bounded candidate anti-join pages');}
   assert.equal(count,315);assert.equal(pages,4);assert.equal((await enqueueNotifications(f.dispatchPool,{eligible:async()=>true})).enqueued,0);

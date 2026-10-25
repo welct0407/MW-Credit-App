@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,mkdir,writeFile,readFile,rm} from 'node:fs/promises';import path from 'node:path';import os from 'node:os';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
+import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';import path from 'node:path';import os from 'node:os';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
 import {validateR053Candidate,validateR053ApplicationReceipt} from '../../scripts/promotion/r053-candidate.mjs';import {businessHostingPlan} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 async function fixture(t){

@@ -27,7 +27,7 @@ export async function readNativeCommandMetadata(client,resource,id,actor){
    coalesce(bool_or(principal IS NULL OR interest IS NULL OR principal<0 OR interest<0 OR invalid>0),false) AS invalid,
    EXISTS(SELECT 1 FROM public."Payments" p WHERE p."Ref Borrower"=$1 AND p."Status" IN('Processing','Error')) AS blocked
   FROM balances`,[source.borrowerId,targetChargeId])).rows[0];
-  if(!row||row.invalid!==false||row.blocked!==false||typeof row.amountReceived!=='string'
+  if(row?.invalid!==false||row.blocked!==false||typeof row.amountReceived!=='string'
    ||!/^\d+(?:\.0+)?$/.test(row.amountReceived))return {quickPayment:null};
   const amount=BigInt(row.amountReceived.split('.')[0]);
   if(amount<=0n||amount>92233720368547758n)return {quickPayment:null};

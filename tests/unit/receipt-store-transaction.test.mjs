@@ -7,7 +7,7 @@ const actor={issuer:'https://issuer.invalid',subject:'synthetic',partnerId:'synt
 const requestId='12345678-1234-4234-8234-123456789abc',receiptId='12345678-1234-4234-8234-123456789abd';
 function fixture({adapter={},reader,resolveActor=async()=>actor,principalAllowed=()=>true,rows}={}){
  let open=0,checkedOut=0;const sql=[];
- const client={query:async(text,params)=>{sql.push(text);if(text.startsWith('BEGIN'))open++;if(text==='COMMIT'||text==='ROLLBACK')open--;if(rows&&text.startsWith('SELECT "Uploaded Receipt"'))return {rows:rows(sql.filter(t=>t.startsWith('SELECT "Uploaded Receipt"')).length)};return {rows:[{}]}},release(){checkedOut--}};
+ const client={query:async(text,_params)=>{sql.push(text);if(text.startsWith('BEGIN'))open++;if(text==='COMMIT'||text==='ROLLBACK')open--;if(rows&&text.startsWith('SELECT "Uploaded Receipt"'))return {rows:rows(sql.filter(t=>t.startsWith('SELECT "Uploaded Receipt"')).length)};return {rows:[{}]}},release(){checkedOut--}};
  const pool={connect:async()=>{checkedOut++;return client}};
  const snapshot=()=>({open,checkedOut});
  const record=[];

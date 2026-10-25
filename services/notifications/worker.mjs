@@ -5,7 +5,7 @@ import {createWebPushTransport} from './web-push.mjs';
 export async function createNotificationWorker({enabled=false,pool,guardConnection,policy,getUser,vapid,shouldStop=()=>false,remainingMs=()=>Infinity,signal=()=>undefined}){
  if(!enabled)return async()=>({enabled:false});
  if(!policy?.members?.length||typeof getUser!=='function')throw Error('approved_notification_policy_required');
- const eligible=async(client,s)=>{
+ const eligible=async(_client,s)=>{
   if(shouldStop())return null;
   if(!policy.members.some(m=>m.partnerId===s.partner_id&&m.loginEmail===s.login_email&&m.partnerRole===s.partner_role&&m.capabilities.includes('read')))return false;
   if(policy.environment==='dev'&&(s.subject!==policy.owner.subject||s.partner_id!==policy.owner.partnerId||s.login_email!==policy.owner.loginEmail||s.endpoint_hash!==policy.owner.endpointSha256))return false;

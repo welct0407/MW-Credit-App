@@ -52,7 +52,7 @@ test('C colliding normalized basenames resolve distinct exact keys and generatio
  const refs=['manual-receipts/dev/PRIVATE a-b.png','manual-receipts/dev/PRIVATE a b.png'];
  const entries=refs.map((reference,i)=>({referenceSha256:sha(reference),key:NATIVE_DEV_ROOT+`PRIVATE/exact ${i}.png`,keySha256:sha(NATIVE_DEV_ROOT+`PRIVATE/exact ${i}.png`),generation:String(910+i),mimeType:'image/png',sizeBytes:bytes.length,sha256:sha(bytes)}));
  const catalog={schemaVersion:1,environment:'dev',bucket:DEV_RECEIPT_MAPPING.bucket,objectRoot:NATIVE_DEV_ROOT,entries};const descriptors=parseNativeDevCatalog(JSON.stringify(catalog));let calls=0;const seen=[];
- const storage={bucket:bucket=>({file:(key,pin)=>{calls++;seen.push({key,pin});const entry=entries.find(x=>x.key===key);assert.ok(entry);return {getMetadata:async()=>[{generation:entry.generation,size:bytes.length,contentType:'image/png'}],download:async()=>[bytes]};}})};
+ const storage={bucket:_bucket=>({file:(key,pin)=>{calls++;seen.push({key,pin});const entry=entries.find(x=>x.key===key);assert.ok(entry);return {getMetadata:async()=>[{generation:entry.generation,size:bytes.length,contentType:'image/png'}],download:async()=>[bytes]};}})};
  const reader=createSourceReceiptReader({storage:createSourceGcsReadTransport(storage,{nativeDescriptors:descriptors}),nativeDescriptors:descriptors,decodeImage:decodeSourceReceipt});
  for(const ref of refs)assert.deepEqual((await reader(ref,'manual')).bytes,bytes);
  assert.deepEqual(seen.map(x=>x.pin.generation),['910','910','911','911']);assert.notEqual(seen[0].key,seen[2].key);

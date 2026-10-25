@@ -1,12 +1,11 @@
 import {Icon} from './Icon';
 import {HeaderBack} from './HeaderBack';
-import {displayDate,displayTimestamp,displayValue} from './display-date';
-import {CompactPager,RefreshIcon} from './CompactPager';
+import {displayDate} from './display-date';
+import {CompactPager} from './CompactPager';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
-import React from 'react';
 export type UpcomingSummary = { ok: true; source: 'dev'; businessDate: string; asOf: string; horizonEnd: string; reviewRequired: boolean; previews?: UpcomingDetail[]; items: { id: string; dueDate: string; totalCharge: string | null }[] };
 export type UpcomingDetail = Omit<UpcomingSummary, 'items' | 'previews'> & { dueDate: string; totalCharge: string | null; nextCursor: string | null; items: { id: string; loanId: string; loanDisplayKey: string; principalRemaining: string | null; interestRemaining: string | null; amountRemaining: string | null; basis: string }[] };
-export function UpcomingCharges({ thai, summary, detail, page, busy, error, onDate, onBack, onRefresh, onNext, onPrevious, onDetailRefresh }: { thai: boolean; summary: UpcomingSummary | null; detail: UpcomingDetail | null; page: number; busy: boolean; error: ReadFailure | null; onDate: (date: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void; onPrevious?:()=>void; onDetailRefresh: () => void }) {
+export function UpcomingCharges({ thai, summary, detail, busy, error, onDate, onBack, onRefresh, onNext, onPrevious, onDetailRefresh }: { thai: boolean; summary: UpcomingSummary | null; detail: UpcomingDetail | null; page: number; busy: boolean; error: ReadFailure | null; onDate: (date: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void; onPrevious?:()=>void; onDetailRefresh: () => void }) {
   const t = (en: string, th: string) => thai ? th : en;
   const date = (value: string) => displayDate(value);
   const money = (value: string | null) => value === null ? t('Unavailable', 'ไม่มีข้อมูล') : new Intl.NumberFormat(thai ? 'th-TH' : 'en-TH', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value));

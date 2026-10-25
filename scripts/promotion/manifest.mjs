@@ -162,8 +162,9 @@ async function shellFrontend(artifact,target,targetSha,root) {
     if(artifact.phase==='maintenance' && /\bfetch\s*\(|\bXMLHttpRequest\b|firebase|signIn|getIdToken|\/api\//i.test(source)) fail('Maintenance must have no auth/API calls');
   }
 }
-export async function validateCandidate(manifest,{artifactRoot,rollbackRoot}={}) {
-  if(manifest?.mode==='business') return (manifest.status==='prepared'?validateBusinessPreparation:validateBusinessCandidate)(manifest,arguments[1]??{});
+export async function validateCandidate(manifest,options={}) {
+  const {artifactRoot,rollbackRoot}=options;
+  if(manifest?.mode==='business') return (manifest.status==='prepared'?validateBusinessPreparation:validateBusinessCandidate)(manifest,options);
   inspect(manifest,shape);equal(manifest.schemaVersion,1,'schema version');equal(manifest.environment,'prod','environment');equal(manifest.mode,'foundation','mode');equal(manifest.status,'reviewable','candidate status');
   const phase=manifest.artifacts?.frontend?.phase??'foundation';checkTarget(manifest.target,true,phase);
   if(!COMMIT.test(manifest.sourceCommit)) fail('Full source commit required');hash(manifest.targetSha256,'target');equal(manifest.targetSha256,fingerprint(manifest.target),'target fingerprint');equal(manifest.sql?.mode,'none','foundation SQL mode');
@@ -181,7 +182,7 @@ export async function validateCandidate(manifest,{artifactRoot,rollbackRoot}={})
     equal(baseline.projectId,manifest.target.applicationProject.id,'baseline project');equal(baseline.projectNumber,manifest.target.applicationProject.number,'baseline project number');positive(baseline.stateGeneration,'baseline state generation');
     if(typeof baseline.stateLineage!=='string' || !/^[a-f0-9-]{36}$/.test(baseline.stateLineage)) fail('Exact baseline state lineage required');text(baseline.evidence,'baseline evidence');
     for(const key of ['readerAbsent','commandAbsent','hostingVersionAbsent']) equal(baseline[key],true,'measured resource absence');
-    const dns=previous.dnsBefore;if(!dns || dns.name!=='lm.mw-credit.com' || !Number.isFinite(Date.parse(dns.observedAt))) fail('Exact DNS before-state required');text(dns.evidence,'DNS evidence');if(!Array.isArray(dns.records)) fail('DNS records or verified empty state required');
+    const dns=previous.dnsBefore;if(dns?.name!=='lm.mw-credit.com' || !Number.isFinite(Date.parse(dns.observedAt))) fail('Exact DNS before-state required');text(dns.evidence,'DNS evidence');if(!Array.isArray(dns.records)) fail('DNS records or verified empty state required');
     for(const record of dns.records) {if(!['A','AAAA','CNAME','TXT','MX','NS','CAA'].includes(record.type)) fail('Wrong DNS record type');positive(record.ttl,'DNS TTL');if(!Array.isArray(record.values) || !record.values.length) fail('Exact DNS record values required');for(const value of record.values) text(value,'DNS record value');}
     const containment=previous.containment;if(!containment || !['withhold-runtime-traffic','retain-denying-foundation'].includes(containment.traffic) || !['withhold-domain-activation','restore-dns-before-state'].includes(containment.route) || containment.retainResources!==true) fail('Explicit stop/retain route and traffic containment required');
     if(previous.artifacts?.frontend?.phase!=='maintenance' || previous.artifacts.frontend.publicWorker!==false) fail('Immutable unauthenticated maintenance artifact required');

@@ -1,4 +1,4 @@
-import {chooseLanguage,signOut} from './live-controls';
+import {chooseLanguage} from './live-controls';
 import {test,expect} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess;let base:string;let serverLog="";
@@ -13,8 +13,8 @@ test.afterAll(()=>server?.kill()); test.afterEach(async({},info)=>{if(info.statu
 const authMock=`let listener;export const browserLocalPersistence='local';export const inMemoryPersistence='memory';export const browserPopupRedirectResolver={};export function initializeAuth(a,o){if(o.persistence!=='local')throw Error('persistence');return {}};export function getAuth(){return {}};export async function setPersistence(a,p){if(p!=='local')throw Error('persistence');}export function onAuthStateChanged(a,fn){listener=fn;fn(null);return()=>{listener=null}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){listener({uid:'synthetic-owner',getIdToken:async()=>'synthetic-bearer'})};export async function signOut(){listener(null)};`;
 test.use({timezoneId:'America/Los_Angeles'});
 const statuses=['not_paid','partially_paid','overdue','fully_paid'];
-const rows=Array.from({length:27},(_,i)=>({id:'private-board-'+i,displayName:'ผู้กู้ตัวอย่าง - Synthetic '+i,status:statuses[Math.min(3,Math.floor(i/7))],amountDue:i>=21?'0':'13.75',amountCollected:i>=21?'0':'3.25',amountRemaining:i>=21?'0':'10.50'}));
-const charges=Array.from({length:27},(_,i)=>({id:'private-charge-'+i,loanId:'private-loan',loanDisplayKey:'ผู้กู้ตัวอย่างชื่อยาว - Long synthetic borrower English name-฿12,000-07/10-2%',chargeDate:'2026-10-07',paymentStatus:'ชำระบางส่วน',paymentDate:null,amountRemaining:i===0?null:'10.50',totalPaid:'0',receivedToday:'-2.50'}));
+const _rows=Array.from({length:27},(_,i)=>({id:'private-board-'+i,displayName:'ผู้กู้ตัวอย่าง - Synthetic '+i,status:statuses[Math.min(3,Math.floor(i/7))],amountDue:i>=21?'0':'13.75',amountCollected:i>=21?'0':'3.25',amountRemaining:i>=21?'0':'10.50'}));
+const _charges=Array.from({length:27},(_,i)=>({id:'private-charge-'+i,loanId:'private-loan',loanDisplayKey:'ผู้กู้ตัวอย่างชื่อยาว - Long synthetic borrower English name-฿12,000-07/10-2%',chargeDate:'2026-10-07',paymentStatus:'ชำระบางส่วน',paymentDate:null,amountRemaining:i===0?null:'10.50',totalPaid:'0',receivedToday:'-2.50'}));
 
 
 import {mkdirSync} from 'node:fs';

@@ -1,6 +1,6 @@
 // Environment-bound administration helpers; recovery application remains DEV-only.
 import { planApplicationRole, reconcileApplicationRole,applicationDatabaseRoles } from './app-role-policy.mjs';
-const APP='mw_app_dev', OWNER='mw_app_dev_journal_owner';
+const APP='mw_app_dev', _OWNER='mw_app_dev_journal_owner';
 const quote=x=>'"'+x.replaceAll('"','""')+'"';
 function configCheck(config){applicationDatabaseRoles(config?.database);if(!Array.isArray(config.creators)||!config.creators.length)throw Error('Explicit database and registered creators required');}
 async function target(client,config){configCheck(config);if((await client.query('SELECT current_database() AS db')).rows[0]?.db!==config.database)throw Error('Wrong DEV administration target');}

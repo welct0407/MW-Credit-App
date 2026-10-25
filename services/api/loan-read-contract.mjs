@@ -43,6 +43,6 @@ export function decodeLoanCursor(cursor, borrowerId) {
   if (cursor === null || cursor === undefined || cursor === '') return null;
   if (typeof cursor !== 'string' || cursor.length > 4096 || !/^[A-Za-z0-9_-]+$/.test(cursor)) throw new Error('Invalid loan cursor');
   const parsed = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
-  if (!parsed || parsed.v !== 2 || parsed.borrowerId !== borrowerId || encodeLoanCursor(borrowerId, parsed) !== cursor) throw new Error('Invalid loan cursor');
+  if (parsed?.v !== 2 || parsed.borrowerId !== borrowerId || encodeLoanCursor(borrowerId, parsed) !== cursor) throw new Error('Invalid loan cursor');
   return parsed;
 }
