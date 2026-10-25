@@ -1,10 +1,10 @@
 # Open development changes
 
-**R098 is Open**; R097 is Frozen; R096 and R095 are Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
+**R098 is Open**; R097, R096 and R095 are Released (see the [release tracker](Release_Tracker.md#current-development-release)). Released releases have no section here: each tracker row links its record at a commit permalink, and the release tags mark the packages. Current runtime pins and recovery evidence live only in the [environment inventory](Environment_Inventory.md).
 
 | Outstanding work | Owning reference |
 | --- | --- |
-| R097 Collection row amount for prepaid charges (Frozen 25 October 2026) | The Collection borrower row shows collected today plus the amount paid in advance for today's charges, with a "Paid in advance" status line (COLL-UX-01); header and totals stay today's cash. No SQL. [Change note](../../Change%20Logs/CHANGE_NOTES_R097_COLLECTION_PREPAID_AMOUNT_2026-10-25.md); Chase's review and the promotion are pending |
+| R097 follow-up (released 25 October 2026) | Applied and verified in DEV and PROD (no SQL; tag `R097` pending the workflow). COLL-UX-01 is done. Open: the owner's real-device view of the row amount and status line. Accepted edge case: a prepaid charge today plus cash today on an older charge still gives `prepaidOnly` true, and the row amount includes that cash |
 | R096 follow-up (released 25 October 2026) | Applied and verified in DEV and PROD (no SQL; tag `R096` pending the workflow). Open: the owner's real-device check of the paid-in-advance caption; the Metabase/OLAP "Daily Collection Status" (V22) keeps the old rule and needs a migration; the `Days Outstanding` virtual is negative for a prepaid charge (existing) |
 | Deferred Collection Note concern | Unchanged by released R059; a separate owner-directed correction remains pending |
 | Carried operational credential migration | R055 remains Frozen; paused work is unfinished |
