@@ -12,6 +12,8 @@ After viewing R096 the owner found that a borrower who paid today's charge on an
 - `docs/Development_Read_Service.md`: the read contract description.
 - Tests: unit (`collection-read`, `collection-receiving-display`, `read-contract`, `production-business`, `business-hosting-delivery`), integration `collection-postgres`, e2e `collection-read.spec`.
 - `project/Documents/PWA_Data_Model_Overview.md` and `project/Documents/Development_Changes.md`: the row-amount rule and the R097 entry; the R096 follow-up row drops COLL-UX-01.
+- `tests/unit/worker-runtime.test.mjs` (test-only, added after Chase's review): VAPID keys are regenerated until they are 32 bytes. About 1 in 170 generated keys was 31 bytes and failed the 43-character config check, an intermittent unit failure.
+- Board row sum (added after Chase's review): it returns null for a row with no amounts, and a row without `prepaidToday` shows `amountCollected` unchanged. Without it a fixture row with no `amountCollected` crashed the page and the phase5 native-pull e2e test failed (Byte reproduced it on `9517bf2`; it passed on `main`; after the fix that spec and collection-read passed).
 - No SQL migration, no financial write, no VM.
 
 ## Checks
@@ -23,8 +25,10 @@ After viewing R096 the owner found that a borrower who paid today's charge on an
 | Integration `collection-postgres` | Pass, 21 of 21 |
 | e2e `collection-read.spec` | Pass, 2 passed |
 | `npm run check:docs` | Pass, 0 failures (Byte; Dewey re-run on the records) |
-| Chase review | PLACEHOLDER (pending) |
-| Pull request `Development checks` | PLACEHOLDER (run id) |
+| Chase review | Done before the two later commits above; they were not in that review |
+| Phase5 native-pull e2e and collection-read e2e after the board row sum fix | Pass (Byte) |
+| Pull request `Development checks` | Pass, run 40173388080 on head `3edc4d5` (PR #154, merge `71b31c66`) |
+| `Database migrations` | Pass, run 40172628744 on `bedf46b`; no database-path changes since |
 
 ## Not run
 - The local wide browser suite: the pull request run is the one broad run.
@@ -42,21 +46,21 @@ Chase's review, the pull request and CI, then promotion under the record below.
 
 ## Promotion record
 
-[Template](../project/scripts/releases/templates/promotion-checklist.md). Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md). Deployment pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No borrower names appear here. Status: **not started**.
+[Template](../project/scripts/releases/templates/promotion-checklist.md). Recovery: [Release recovery runbook](../project/Documents/Rules/Release_Recovery_Runbook.md). Deployment pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No borrower names appear here. Status: **frozen, promotion not started**.
 
 ### Continue here
 - Outcome/scope and affected components: R097 to DEV and PROD: read, command and chat Cloud Run images and PWA Hosting. No SQL, so no backup, owner window or runner. No VM.
-- State and next action or actual blocker: not started; Chase's review pending.
-- Source/artifact/configuration pins; runner manifest link: PLACEHOLDER (pull request, merge commit). No SQL manifest.
+- State and next action or actual blocker: frozen at 07:45Z; next, DEV images and Hosting (Forge). No blocker.
+- Source/artifact/configuration pins; runner manifest link: PR #154, squash-merged as `71b31c66133f581d0ff3f21661a61f9af1f2a4f2` on `main` (baseline `51287351`; R096 package `3cbbcea`). No SQL manifest.
 - Existing owner authority and any explicit hands-on checkpoint: the owner's follow-up of 25 October 2026, answer "Yes, to production" (with R096's "push all the way to production" context). It covers the merge, DEV and PROD images and Hosting for this scope. It does not cover a financial write or a forced notification. No hands-on checkpoint.
 - Previous deployed baseline and recovery: R096 as recorded in the Environment inventory (activations and Hosting versions there); recovery per Recovery above.
 - Scope freeze/next-number handoff: at promotion start one tracker update marks R097 Frozen, opens R098 and advances the counter to R099. `MW_RELEASE_NUMBER=R097` for the PROD build.
-- Checks: PLACEHOLDER (run ids).
+- Checks: `Development checks` run 40173388080 and `Database migrations` run 40172628744, both green.
 
 ### Promotion
 | Step | Identity | Commands and exact route | Verification | Recovery | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| 0. Merge and freeze | the session's GitHub tools | merge the pull request; one tracker commit (R097 Frozen, R098 Open, counter R099) | `main` head equals the pinned commit; checks cited | revert commit | PLACEHOLDER |
+| 0. Merge and freeze | the session's GitHub tools | merge the pull request; one tracker commit (R097 Frozen, R098 Open, counter R099) | `main` head equals the pinned commit; checks cited | revert commit | PR #154 squash-merged as `71b31c66`; runs 40173388080 and 40172628744 green; tracker frozen 25 October 2026 07:45Z (R097 Frozen, R098 Open, counter R099) |
 | 1. DEV images and Hosting | Forge (F) | PLACEHOLDER (as R096: Cloud Build, plan 0/3/0, Hosting) | PLACEHOLDER (a prepaid-only row shows the amount and "Paid in advance") | previous DEV activation | PLACEHOLDER |
 | 2. PROD images and Hosting | Forge (F) | PLACEHOLDER (`cloudbuild-business.yaml`, overrides, `deploy-business-hosting.mjs` R097 kind) | PLACEHOLDER | previous PROD activation | PLACEHOLDER |
 | 3. Records, tag | `codex-cloud`; the Release tag workflow | inventory pins, tracker, Development Changes, this note; tag `R097` | tag exists; `npm run check:docs` passes | never move an existing tag | PLACEHOLDER |
