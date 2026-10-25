@@ -13,9 +13,9 @@ const nextA={id:'cg8:5:pc-LA:2026-10-12',loanId:'pc-LA',chargeDate:'2026-10-12',
 const nextB={id:'cg8:5:pc-LB:2026-10-10',loanId:'pc-LB',chargeDate:'2026-10-10',loanDisplayKey:'Next B / เงินกู้จำลอง',principalRemaining:'20',interestRemaining:'10',amountRemaining:'30'};
 const upcoming=[nextB,nextA];
 const draft={ok:true,mode:'dev-owner-testing',scope:'all',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.displayName},accounts:[{id:'pc-A',label:'Synthetic receiving account'}]};
-type State={posts:any[],reviews:any[],autos:any[],reviewStatus:number,reviewCharges?:any[],reviewUpcoming?:any[],lost:boolean};
+type State={posts:any[],reviews:any[],autos:any[],reviewStatus:number,reviewCharges?:any[],reviewUpcoming?:any[],lost:boolean,upcoming:any[]};
 async function setup(page:Page){
- const state:State={posts:[],reviews:[],autos:[],reviewStatus:200,lost:false};
+ const state:State={posts:[],reviews:[],autos:[],reviewStatus:200,lost:false,upcoming:[...upcoming]};
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
  await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>{const u=new URL(r.request().url()),charges=u.pathname.endsWith('/charges'),list=u.pathname.endsWith('/upcoming');return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',businessDate:draft.businessDate,timezone:'Asia/Bangkok',asOf:draft.asOf,items:list?[]:charges?due.map(x=>({...x,loanId:'pc-LD',paymentStatus:'ยังไม่ชำระ',paymentDate:null,totalPaid:'0',receivedToday:'0'})):[borrower],borrower,nextCursor:null,horizonEnd:'2027-01-08',reviewRequired:false})})});
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
@@ -23,8 +23,9 @@ async function setup(page:Page){
   if(path.includes('/payment-drafts/')){
    // Auto-assign reads due charges only (scope=due on the server), so it never allocates a next charge.
    if(path.endsWith('/auto-assign')){const body=r.request().postDataJSON();state.autos.push(body);let remain=BigInt(body.amountReceived);const allocations=[];for(const row of due){const interest=remain<BigInt(row.interestRemaining)?remain:BigInt(row.interestRemaining);remain-=interest;const principal=remain<BigInt(row.principalRemaining)?remain:BigInt(row.principalRemaining);remain-=principal;if(principal+interest>0n)allocations.push({chargeId:row.id,principal:principal.toString(),interest:interest.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate})}return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges:due,allocations,amountReceived:body.amountReceived,allocated:(BigInt(body.amountReceived)-remain).toString(),unallocated:remain.toString(),nextCursor:null})})}
-   if(path.endsWith('/review')){const body=r.request().postDataJSON();state.reviews.push(body);return r.fulfill({status:state.reviewStatus,contentType:'application/json',body:JSON.stringify(state.reviewStatus===200?{...draft,charges:due.filter(row=>body.allocations.some((line:any)=>line.chargeId===row.id)),upcoming,allocations:body.allocations,...(body.materialize?{materialize:body.materialize}:{}),total:body.amountReceived,nextCursor:null}:{ok:false,code:'plan_changed',charges:state.reviewCharges??due,upcoming:state.reviewUpcoming??upcoming,businessDate:draft.businessDate})})}
-   return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges:due,upcoming,nextCursor:null})});
+   // As the server does: an entry whose amounts differ from the current next charge is plan_changed.
+   if(path.endsWith('/review')){const body=r.request().postDataJSON();state.reviews.push(body);const drift=(body.materialize??[]).some((entry:any)=>{const row=state.upcoming.find(row=>row.id===entry.chargeId);return !row||row.principalRemaining!==entry.principalDue||row.interestRemaining!==entry.interestDue});const status=drift?409:state.reviewStatus;return r.fulfill({status,contentType:'application/json',body:JSON.stringify(status===200?{...draft,charges:due.filter(row=>body.allocations.some((line:any)=>line.chargeId===row.id)),upcoming:state.upcoming,allocations:body.allocations,...(body.materialize?{materialize:body.materialize}:{}),total:body.amountReceived,nextCursor:null}:{ok:false,code:'plan_changed',charges:state.reviewCharges??due,upcoming:state.reviewUpcoming??state.upcoming,businessDate:draft.businessDate})})}
+   return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges:due,upcoming:state.upcoming,nextCursor:null})});
   }
   if(path.endsWith('/payments'))return r.fulfill({contentType:'application/json',body:'{"ok":true,"items":[],"nextCursor":null}'});
   if(path.endsWith('/api/payment-commands')&&r.request().method()==='POST'){state.posts.push(r.request().postDataJSON());if(state.lost)return r.abort('failed');return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-projected',code:null,recordedAt:draft.asOf}})});}
@@ -37,6 +38,7 @@ const rowFor=(page:Page,key:string)=>page.locator('.payment-allocation-row').fil
 const amount=(page:Page)=>page.getByRole('textbox',{name:/^Amount received(?: \*)?$/});
 const review=(page:Page)=>page.getByRole('button',{name:'Review payment',exact:true});
 const badge='Next charge · not yet due';
+async function drafts(page:Page){return page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'projected-independent-owner'}).list('draft')})}
 
 test('next charges render after the due rows with the badge, caps and one help line; Auto-assign leaves them at 0',async({page})=>{
  const s=await setup(page);
@@ -108,4 +110,23 @@ test('the offline queue keeps and resends the same v9 command',async({page,conte
  expect(s.posts.every(value=>JSON.stringify(value)===JSON.stringify(original))).toBe(true);
  const pending=await page.evaluate(async()=>{const {ownerOfflineRepository}=await import('/apps/pwa/src/owner-offline.ts');return ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'projected-independent-owner'}).list('pending')});
  expect(pending).toHaveLength(1);expect(pending[0].value.command).toEqual(original);
+});
+
+test('a restored draft planned before the next charge changed reviews as plan_changed and adopts the new amounts',async({page})=>{
+ const s=await setup(page);await amount(page).fill('70');await rowFor(page,'Next A').getByRole('textbox',{name:/Interest for/}).fill('70');
+ await expect.poll(async()=>(await drafts(page))[0]?.value?.allocations?.find((line:any)=>line.chargeId===nextA.id)?.interest).toBe('70');
+ // The schedule changed (rate edited): Next A is now 80. Reopen the form; the saved plan still expects 70.
+ s.upcoming=[nextB,{...nextA,interestRemaining:'80',amountRemaining:'80'}];
+ page.once('dialog',dialog=>void dialog.accept());await page.reload();await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-tile-main').first().click();await page.getByRole('button',{name:'Receive selected charges',exact:true}).click();
+ await expect(rowFor(page,'Next A').getByRole('textbox',{name:/Interest for/})).toHaveValue('70');await expect(rowFor(page,'Next A')).toContainText('Interest (Max ฿80)');
+ await review(page).click();await expect(page.getByRole('alert')).toContainText('The allocation plan changed');
+ // The entry carries the line's planned amounts, so the server answers plan_changed (not 400 invalid_request).
+ expect(s.reviews.at(-1).materialize).toEqual([{loanId:'pc-LA',chargeId:nextA.id,chargeDate:'2026-10-12',principalDue:'0',interestDue:'70'}]);
+ await page.getByRole('button',{name:'Use current balances',exact:true}).click();await expect(review(page)).toBeEnabled();await review(page).click();
+ await expect(page.getByRole('button',{name:'Confirm payment',exact:true})).toBeEnabled();
+ expect(s.reviews.at(-1).materialize).toEqual([{loanId:'pc-LA',chargeId:nextA.id,chargeDate:'2026-10-12',principalDue:'0',interestDue:'80'}]);
+ // The review line keeps the badge on its own line after the text.
+ await expect(page.locator('.selected-payment ul li').filter({hasText:'Next A'}).locator('small.next-charge-badge-line')).toHaveText(badge);
+ await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect.poll(()=>s.posts.length).toBe(1);
+ expect(s.posts[0].schemaVersion).toBe(9);expect(s.posts[0].materialize[0].interestDue).toBe('80');expect(s.posts[0].allocations[0]).toMatchObject({interest:'70',expectedInterestRemaining:'80'});
 });
