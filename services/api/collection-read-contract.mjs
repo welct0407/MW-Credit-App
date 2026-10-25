@@ -30,7 +30,8 @@ export const collectionCte = `WITH today_repayments AS (
   WHERE ($2::text IS NULL OR b."Row ID" = $2) AND (
     (c."Payment Status" <> 'ชำระแล้ว' AND c."Charge Date" <= $1::date)
     OR (c."Payment Status" = 'ชำระแล้ว' AND c."Payment Date" = $1::date)
-    OR tr.charge_id IS NOT NULL)
+    OR tr.charge_id IS NOT NULL
+    OR c."Charge Date" = $1::date)
 ), grouped AS (
   SELECT borrower_id AS id, borrower_name, borrower_description,
     CASE WHEN count(*) FILTER (WHERE charge_date < $1::date AND payment_status <> 'ชำระแล้ว') > 0 THEN 2
