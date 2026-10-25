@@ -49,7 +49,7 @@ The container uses a pinned Linux amd64 Node image, a locked dependency tree and
 | `deploy/` | Owner-run bootstrap, inert revision, secure secret seeding, service template and Firestore policies |
 | `test/` | Synthetic behavior and security regression checks |
 
-The SDK is pinned to `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. Custom Events handlers use v2 request schemas; old v1 generic-server examples are incompatible. The server exposes only `get_bridge_health` and `get_alert_event` as read tools.
+The SDK is pinned to `@modelcontextprotocol/server` 2.4.0 (with `zod` 4.6.7, after the October 2026 advisories against 2.2.0 and 4.3.6) and `/node` 2.1.0. Custom Events handlers use v2 request schemas; old v1 generic-server examples are incompatible. The server exposes only `get_bridge_health` and `get_alert_event` as read tools.
 
 Production configuration uses the pinned ChatGPT CIMD URL and platform redirect. An empty callback allowlist permits staged OAuth startup while denying every subscription. [Current preparation evidence](../../../outputs/grafana-cimd-20261003/README.md) distinguishes mocked native-provider acceptance from the proxy-blocked live metadata GET. [Human subject helper](deploy/CLOUD_SHELL_GOOGLE_IDENTITY.md) is a standalone file tested only with mocks. The contained application now serves traffic; the inert revision is retained for rollback. See the contained deployment evidence above for current live state.
 
