@@ -54,10 +54,10 @@ INSERT INTO "Repayments"("Row ID","Ref Loans","Payment Date","Principal Paid","I
 -- Loan Date three days ago, F1 four days ahead with 70 interest. The days up to today are billed on F1 (capped by its
 -- stored due), later future charges keep the interest paid on them, and the lc7: charge takes the principal only.
 INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
-VALUES('AC7-FI-CAPITAL','AC7-PARTNER',current_date,'Contribution',6000::money);
+VALUES('AC7-FI-CAPITAL','AC7-PARTNER',current_date,'Contribution',9000::money);
 INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
 SELECT 'CI-LISA','AC7-FI-'||n,'AC7-B',current_date-3,1000::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money
-FROM unnest(ARRAY['NONE','PART','FULL','TODAY','TWO','CAP']) n;
+FROM unnest(ARRAY['NONE','PART','FULL','TODAY','TWO','CAP','ADJ','MIS','PRE']) n;
 INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES
 ('AC7-FI-NONE-F1','AC7-FI-NONE',current_date+4,0::money,70::money),
 ('AC7-FI-PART-F1','AC7-FI-PART',current_date+4,0::money,70::money),
@@ -66,7 +66,16 @@ INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Intere
 ('AC7-FI-TODAY-F1','AC7-FI-TODAY',current_date+4,0::money,40::money),
 ('AC7-FI-TWO-F1','AC7-FI-TWO',current_date+4,0::money,70::money),
 ('AC7-FI-TWO-F2','AC7-FI-TWO',current_date+8,0::money,40::money),
-('AC7-FI-CAP-F1','AC7-FI-CAP',current_date+4,0::money,20::money);
+('AC7-FI-CAP-F1','AC7-FI-CAP',current_date+4,0::money,20::money),
+-- CH-ADJ: yesterday's charge already carries all the principal, so the close only lowers F1 (no lc7: row).
+('AC7-FI-ADJ-C','AC7-FI-ADJ',current_date-1,1000::money,10::money),
+('AC7-FI-ADJ-F1','AC7-FI-ADJ',current_date+4,0::money,70::money),
+-- MIS: an lc7: charge dated yesterday already holds the principal; a hand-booked F1 is billed one day.
+('lc7:10:AC7-FI-MIS:'||(current_date-1),'AC7-FI-MIS',current_date-1,1000::money,0::money),
+('AC7-FI-MIS-F1','AC7-FI-MIS',current_date+4,0::money,70::money),
+-- PRE: a pre-V113 lc7: charge with interest (its close reopened), then a hand-booked F1: billed two days, not in full.
+('lc7:10:AC7-FI-PRE:'||(current_date-2),'AC7-FI-PRE',current_date-2,1000::money,30::money),
+('AC7-FI-PRE-F1','AC7-FI-PRE',current_date+4,0::money,70::money);
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-FI-PART-PRE','AC7-B','AC7-FI-PART-F1',current_date,40::money,'Single Partial','Processing');
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-FI-FULL-PRE','AC7-B','AC7-FI-FULL-F1',current_date,70::money,'Single Full','Processing');
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-FI-TODAY-PRE','AC7-B','AC7-FI-TODAY-F1',current_date,20::money,'Single Partial','Processing');
@@ -167,7 +176,7 @@ SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Charges" WHERE "Ref Loans"
 SELECT pg_temp.close_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Ref Closing Payment" IS NULL FROM "Loans" WHERE "Row ID"='AC7-ROLLBACK'),'failure restores loan state');
 -- V113 cases 1 to 7.
 SELECT pg_temp.close_assert((SELECT bool_and("Status"='Posted') FROM "Payments" WHERE "Row ID" LIKE 'AC7-FI-%-PRE'),'early payments on future charges posted');
-CREATE TEMP TABLE fi_plan AS SELECT n,public.loan_close_calculation_v83('AC7-FI-'||n,current_date) c FROM unnest(ARRAY['NONE','PART','FULL','TODAY','TWO','CAP']) n;
+CREATE TEMP TABLE fi_plan AS SELECT n,public.loan_close_calculation_v83('AC7-FI-'||n,current_date) c FROM unnest(ARRAY['NONE','PART','FULL','TODAY','TWO','CAP','ADJ','MIS','PRE']) n;
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1030' AND c->'mutation'=jsonb_build_object('kind','insert','chargeId','lc7:11:AC7-FI-NONE:'||current_date,'principal','1000.00','interest','0','futureInterest','[{"chargeId":"AC7-FI-NONE-F1","interestDue":"30"}]'::jsonb)
   AND c->'allocations' @> '[{"chargeId":"AC7-FI-NONE-F1","principal":"0","interest":"30","expectedInterestRemaining":"30"}]' FROM fi_plan WHERE n='NONE'),'case 1: no early payment closes at principal plus the days up to today, billed on F1');
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1000' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-PART-F1","interestDue":"40"}]' AND NOT c->'allocations' @> '[{"chargeId":"AC7-FI-PART-F1"}]' FROM fi_plan WHERE n='PART'),'case 2: 40 prepaid covers the days up to today; nothing refunded');
@@ -175,16 +184,19 @@ SELECT pg_temp.close_assert((SELECT c->>'amount'='1000' AND c->'mutation'?'kind'
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1030' AND c#>>'{mutation,kind}'='increase' AND c#>>'{mutation,principal}'='1000.00' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-TODAY-F1","interestDue":"20"}]' AND c->>'targetChargeId'='AC7-FI-TODAY-C' FROM fi_plan WHERE n='TODAY'),'case 4: a charge today already covers the days; F1 keeps its paid interest');
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1030' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-TWO-F1","interestDue":"30"},{"chargeId":"AC7-FI-TWO-F2","interestDue":"10"}]' FROM fi_plan WHERE n='TWO'),'case 5: only F1 has days; F2 keeps its prepaid 10');
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1020' AND NOT c->'mutation'?'futureInterest' FROM fi_plan WHERE n='CAP'),'case 6: a hand-booked F1 below the elapsed days is not raised');
+SELECT pg_temp.close_assert((SELECT c->>'amount'='1020' AND c->'mutation'='{"kind":"adjust","futureInterest":[{"chargeId":"AC7-FI-ADJ-F1","interestDue":"10"}]}'::jsonb FROM fi_plan WHERE n='ADJ'),'CH-ADJ: an adjust-only close bills one day on F1');
+SELECT pg_temp.close_assert((SELECT c->>'amount'='1010' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-MIS-F1","interestDue":"10"}]' AND c#>>'{mutation,kind}'='adjust' FROM fi_plan WHERE n='MIS'),'MIS: F1 billed least(70, 10 x 1)');
+SELECT pg_temp.close_assert((SELECT c->>'amount'='1050' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-PRE-F1","interestDue":"20"}]' FROM fi_plan WHERE n='PRE'),'pre-V113 lc7: then a hand-booked F1: F1 billed least(70, 10 x 2)');
 -- Exclusion: as if the early payment did not exist (the correction preview of that receipt).
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1030' AND c#>'{mutation,futureInterest}'='[{"chargeId":"AC7-FI-PART-F1","interestDue":"30"}]' FROM public.loan_close_calculation_v83('AC7-FI-PART',current_date,'AC7-FI-PART-PRE') c),'exclusion of the early payment recomputes F1 from the remaining paid interest');
 SELECT pg_temp.close_reject($q$SELECT public.apply_loan_close_calculation_v83('AC7-FI-NONE',current_date,'0000')$q$,'Close plan changed');
-DO $$ DECLARE n text; BEGIN FOREACH n IN ARRAY ARRAY['NONE','PART','FULL','TODAY','TWO','CAP'] LOOP
+DO $$ DECLARE n text; BEGIN FOREACH n IN ARRAY ARRAY['NONE','PART','FULL','TODAY','TWO','CAP','ADJ','MIS','PRE'] LOOP
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-FI-P-'||n,'AC7-B','AC7-FI-'||n,current_date,1::money,'Loan Close','Processing');
 END LOOP; END $$;
 SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM fi_plan JOIN "Payments" p ON p."Row ID"='AC7-FI-P-'||n WHERE p."Status"<>'Posted' OR p."Amount Received"::numeric<>(c->>'amount')::numeric),'every future-charge close posts its previewed amount');
 SELECT pg_temp.close_assert((SELECT bool_and("Loan Status"='ปิดยอดแล้ว' AND "Outstanding Principal"=0) FROM "Loans" WHERE "Row ID" LIKE 'AC7-FI-%'),'future-charge loans close normally');
 SELECT pg_temp.close_assert((SELECT bool_and(v.remaining=0 AND v.pr=0 AND v.ir=0) FROM "Charges" c CROSS JOIN LATERAL public.vc_charge_values(c) v WHERE c."Ref Loans" LIKE 'AC7-FI-%'),'every charge of a future-charge close settled, future charges included');
-SELECT pg_temp.close_assert((SELECT jsonb_object_agg("Row ID","Interest Due"::numeric::text)='{"AC7-FI-NONE-F1":"30.00","AC7-FI-PART-F1":"40.00","AC7-FI-FULL-F1":"70.00","AC7-FI-TODAY-F1":"20.00","AC7-FI-TWO-F1":"30.00","AC7-FI-TWO-F2":"10.00","AC7-FI-CAP-F1":"20.00"}'::jsonb
+SELECT pg_temp.close_assert((SELECT jsonb_object_agg("Row ID","Interest Due"::numeric::text)='{"AC7-FI-NONE-F1":"30.00","AC7-FI-PART-F1":"40.00","AC7-FI-FULL-F1":"70.00","AC7-FI-TODAY-F1":"20.00","AC7-FI-TWO-F1":"30.00","AC7-FI-TWO-F2":"10.00","AC7-FI-CAP-F1":"20.00","AC7-FI-ADJ-F1":"10.00","AC7-FI-MIS-F1":"10.00","AC7-FI-PRE-F1":"20.00"}'::jsonb
   FROM "Charges" WHERE "Ref Loans" LIKE 'AC7-FI-%' AND "Charge Date">current_date),'future charges lowered to their new due only');
 SELECT pg_temp.close_assert((SELECT "Notes"='Interest Due lowered from 70 by Loan Close '||current_date FROM "Charges" WHERE "Row ID"='AC7-FI-NONE-F1')
   AND (SELECT "Notes" IS NULL FROM "Charges" WHERE "Row ID"='AC7-FI-FULL-F1'),'lowered charges carry the trail note');
@@ -199,7 +211,20 @@ SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.close_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Outstanding Principal"=1000 AND "Ref Closing Payment" IS NULL FROM "Loans" WHERE "Row ID"='AC7-FI-NONE'),'case 7: deleting the closing receipt reopens the loan');
 SELECT pg_temp.close_assert((SELECT "Interest Due"::numeric=30 AND "Notes" LIKE 'Interest Due lowered from 70 by Loan Close %' FROM "Charges" WHERE "Row ID"='AC7-FI-NONE-F1'),'case 7: F1 stays lowered with its note');
 SELECT pg_temp.close_assert((SELECT c->>'amount'='1030' AND c->'mutation'='null'::jsonb FROM public.loan_close_calculation_v83('AC7-FI-NONE',current_date) c),'case 7: a same-day re-close quotes the same 1030 with no mutation');
+-- Archie (b) and Chase S1: a later re-close bills the days since the first close on a new lc7: charge; F1 stays settled.
+SELECT pg_temp.close_assert((SELECT c->>'amount'='1040' FROM public.loan_close_calculation_v83('AC7-FI-NONE',current_date+1) c),'S1: re-close a day later adds one day');
+SELECT pg_temp.close_assert((SELECT c->>'amount'='1050' AND c#>>'{mutation,kind}'='insert' AND (c#>>'{mutation,interest}')::numeric=20 AND (c#>>'{mutation,principal}')::numeric=0 AND NOT c->'mutation'?'futureInterest'
+  AND c->'allocations' @> '[{"chargeId":"AC7-FI-NONE-F1","interest":"30"}]' FROM public.loan_close_calculation_v83('AC7-FI-NONE',current_date+2) c),'re-close two days later: F1 stays 30, new lc7: interest 20');
+SELECT pg_temp.close_assert((SELECT c->>'amount'='1060' FROM public.loan_close_calculation_v83('AC7-FI-NONE',current_date+3) c),'S1: re-close three days later adds three days');
 ROLLBACK TO fi_delete;
+SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Charges" WHERE "Ref Loans"='AC7-FI-ADJ' AND starts_with("Row ID",'lc7:')),'CH-ADJ: no lc7: row');
+SELECT pg_temp.close_assert((SELECT "Interest Due"::numeric=10 AND "Notes"='Interest Due lowered from 70 by Loan Close '||current_date FROM "Charges" WHERE "Row ID"='AC7-FI-ADJ-F1'),'CH-ADJ: F1 lowered with its trail');
+SELECT pg_temp.close_assert((SELECT c->>'amount'='1020' AND c->'mutation'='null'::jsonb FROM public.loan_close_calculation_v83('AC7-FI-ADJ',current_date,'AC7-FI-P-ADJ') c),'CH-ADJ: exclusion recompute adds no gap after the trail');
+SAVEPOINT fi_adj_delete;
+UPDATE "Payments" SET "Delete Requested"=true WHERE "Row ID"='AC7-FI-P-ADJ';
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.close_assert((SELECT c->>'amount'='1020' AND c->'mutation'='null'::jsonb FROM public.loan_close_calculation_v83('AC7-FI-ADJ',current_date) c),'CH-ADJ: same-day re-close adds no gap');
+ROLLBACK TO fi_adj_delete;
 -- Owner's simple inverse: retain prepared/augmented charge, reverse receipt/cash.
 SAVEPOINT close_delete;
 CREATE TEMP TABLE close_charge_before AS SELECT "Row ID","Principal Due","Interest Due","Notes" FROM "Charges" WHERE "Ref Loans"='AC7-PAID';

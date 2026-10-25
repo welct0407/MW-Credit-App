@@ -4,20 +4,24 @@
 -- interest from that future date (none), so the borrower paid interest for days that had not happened. Now, for day D:
 -- 1. latest is the last charge dated on or before D. With no charge dated after D nothing changes: the elapsed interest
 --    from latest (or Loan Date) to D goes to the new lc7: charge, and the calculation and plan hash are byte-identical to V112.
--- 2. With any charge dated after D the lc7: charge carries no elapsed interest (it still takes missing principal); those
---    days are billed on the first future charge F1 (by Charge Date, then Row ID):
+-- 2. A future charge whose Notes carry the line the apply writes (step 4) was settled by an earlier close and keeps its
+--    stored due; it takes no further part. With any other (unsettled) charge dated after D the lc7: charge carries no
+--    elapsed interest (it still takes missing principal); those days are billed on the first unsettled future charge F1
+--    (by Charge Date, then Row ID):
 --    due_new(F1) = least(stored Interest Due, greatest(interest paid on F1, daily x (D - latest))), latest defaulting to
---    Loan Date. When a charge dated latest is an lc7: charge, a close already billed those days on F1, so F1 keeps its
---    stored due: the recompute that leaves out the closing receipt (the close repaid the principal and set the daily
---    interest to 0) and a re-close after the receipt is deleted give the posted plan again. Every later future charge:
---    due_new = interest paid on it. least() never raises a hand-booked or discounted charge; paid interest is never
---    refunded. Paid interest honours p_exclude_payment. A future charge's allocation line carries due_new - paid interest.
+--    Loan Date. Every later unsettled future charge: due_new = interest paid on it. least() never raises a hand-booked or
+--    discounted charge; paid interest is never refunded. Paid interest honours p_exclude_payment. A future charge's
+--    allocation line carries due_new - paid interest. Settled charges move the start: the elapsed days (on F1, or on the
+--    lc7: charge when every future charge is settled) run from the later of latest and the latest trail date T (0 days
+--    when T is after D). So the recompute that leaves out the closing receipt (the close repaid the principal and set the
+--    daily interest to 0), a re-close after that receipt is deleted (the same day adds nothing; a later day adds the days
+--    since T on the new lc7: charge) and a close that only lowered F1 (no lc7: row) never bill a day twice.
 -- 3. Only when some future charge's due_new differs from its stored Interest Due, mutation gains futureInterest
 --    [{chargeId, interestDue}] (only those charges, ordered by Row ID COLLATE "C"); a mutation that was null becomes
 --    {kind: 'adjust', futureInterest}. No top-level key is added, and the plan hash covers the whole context, so a preview
 --    made before a future charge changed fails with P5B09.
 -- 4. apply_loan_close_calculation_v83 first lowers each listed charge (Row ID, loan and Charge Date after D must match,
---    and the new due must be lower) and appends "Interest Due lowered from <old> by Loan Close <D>" to its Notes, then
+--    and the new due must be lower) and appends the line "Interest Due lowered from <old> by Loan Close <D>" to its Notes, then
 --    applies the insert or increase as before. Deleting the closing receipt keeps the lowered due, as it keeps the lc7:
 --    charge; the note is the trail.
 -- The (text,date) wrapper, prepare_loan_close, pwa_apply_loan_close_v2 and pwa_apply_payment_v2 need no change; services and
@@ -41,7 +45,8 @@ CREATE OR REPLACE FUNCTION public.loan_close_calculation_v83(p_loan text, p_day 
     AS $$
 DECLARE l public."Loans"%ROWTYPE; outstanding numeric;scheduled numeric;missing numeric;interest numeric:=0;
  target text;today_count integer;latest date;mutation jsonb:='null'::jsonb;lines jsonb;total numeric;context jsonb;
- opening date;reclose boolean;has_future boolean;future jsonb;future_due jsonb;
+ trail_pattern text:='(^|\n)Interest Due lowered from [0-9.]+ by Loan Close ([0-9]{4}-[0-9]{2}-[0-9]{2})($|\n)';
+ opening date;trail_day date;has_future boolean;future jsonb;future_due jsonb;
 BEGIN
  SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan;
  IF NOT FOUND THEN RAISE EXCEPTION 'Target loan must belong to the payment borrower';END IF;
@@ -54,20 +59,23 @@ BEGIN
  SELECT coalesce(sum(c."Principal Due"::numeric-(SELECT coalesce(sum(r."Principal Paid"::numeric),0) FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID" AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment))),0) INTO scheduled FROM public."Charges" c WHERE c."Ref Loans"=p_loan;
  missing:=outstanding-scheduled;
  IF missing<0 THEN RAISE EXCEPTION 'Principal already due exceeds outstanding loan principal';END IF;
- -- V113: charges dated after the day. F1 carries the days up to the day (capped by its stored due); later ones keep paid interest.
+ -- V113: charges dated after the day. A charge an earlier close lowered (its trail line, written by the apply) keeps its
+ -- due, and the days up to that close's date T are billed; the first other one (F1) carries the days from the later of
+ -- latest and T up to the day, capped by its stored due; later ones keep their paid interest.
  SELECT max("Charge Date") INTO opening FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
- reclose:=EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=opening AND starts_with("Row ID",'lc7:'));
- WITH f AS(SELECT c."Row ID" id,c."Interest Due"::numeric due,paid.i,row_number() OVER(ORDER BY c."Charge Date",c."Row ID" COLLATE "C") n FROM public."Charges" c
-   LEFT JOIN LATERAL(SELECT coalesce(sum(r."Interest Paid"::numeric),0) i FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID" AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment)) paid ON true
+ SELECT max((regexp_match(c."Notes",trail_pattern))[2]::date) INTO trail_day FROM public."Charges" c WHERE c."Ref Loans"=p_loan AND c."Charge Date">p_day;
+ WITH s AS(SELECT c."Row ID" id,c."Charge Date" charge_day,c."Interest Due"::numeric due,coalesce(c."Notes",'') ~ trail_pattern settled FROM public."Charges" c
    WHERE c."Ref Loans"=p_loan AND c."Charge Date">p_day),
-  v AS(SELECT id,due,CASE WHEN n>1 THEN i WHEN reclose THEN due ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(opening,l."Loan Date")))) END due_new FROM f)
- SELECT count(*)>0,jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new)
+  f AS(SELECT s.*,paid.i,row_number() OVER(PARTITION BY s.settled ORDER BY s.charge_day,s.id COLLATE "C") n FROM s
+   LEFT JOIN LATERAL(SELECT coalesce(sum(r."Interest Paid"::numeric),0) i FROM public."Repayments" r WHERE r."Ref Charges"=s.id AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment)) paid ON true),
+  v AS(SELECT id,due,settled,CASE WHEN settled THEN due WHEN n>1 THEN i ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(opening,trail_day),l."Loan Date")))) END due_new FROM f)
+ SELECT coalesce(bool_or(NOT settled),false),jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new)
   INTO has_future,future,future_due FROM v;
  SELECT count(*),min("Row ID") INTO today_count,target FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=p_day;
  IF today_count>1 THEN RAISE EXCEPTION 'Multiple charges today require reconciliation before closing';END IF;
  IF today_count=0 THEN
   SELECT max("Charge Date") INTO latest FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
-  IF NOT has_future THEN interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(latest,l."Loan Date"));END IF;
+  IF NOT has_future THEN interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(latest,trail_day),l."Loan Date"));END IF;
   IF missing+interest>0 THEN
    target:='lc7:'||length(p_loan)||':'||p_loan||':'||p_day::text;
    mutation:=jsonb_build_object('kind','insert','chargeId',target,'principal',missing::text,'interest',interest::text);

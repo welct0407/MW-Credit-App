@@ -1675,10 +1675,11 @@ CREATE FUNCTION public.loan_close_calculation_v83(p_loan text, p_day date) RETUR
 CREATE FUNCTION public.loan_close_calculation_v83(p_loan text, p_day date, p_exclude_payment text) RETURNS jsonb
     LANGUAGE plpgsql STABLE
     SET search_path TO 'pg_catalog', 'public'
-    AS $$
+    AS $_$
 DECLARE l public."Loans"%ROWTYPE; outstanding numeric;scheduled numeric;missing numeric;interest numeric:=0;
  target text;today_count integer;latest date;mutation jsonb:='null'::jsonb;lines jsonb;total numeric;context jsonb;
- opening date;reclose boolean;has_future boolean;future jsonb;future_due jsonb;
+ trail_pattern text:='(^|\n)Interest Due lowered from [0-9.]+ by Loan Close ([0-9]{4}-[0-9]{2}-[0-9]{2})($|\n)';
+ opening date;trail_day date;has_future boolean;future jsonb;future_due jsonb;
 BEGIN
  SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan;
  IF NOT FOUND THEN RAISE EXCEPTION 'Target loan must belong to the payment borrower';END IF;
@@ -1691,20 +1692,23 @@ BEGIN
  SELECT coalesce(sum(c."Principal Due"::numeric-(SELECT coalesce(sum(r."Principal Paid"::numeric),0) FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID" AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment))),0) INTO scheduled FROM public."Charges" c WHERE c."Ref Loans"=p_loan;
  missing:=outstanding-scheduled;
  IF missing<0 THEN RAISE EXCEPTION 'Principal already due exceeds outstanding loan principal';END IF;
- -- V113: charges dated after the day. F1 carries the days up to the day (capped by its stored due); later ones keep paid interest.
+ -- V113: charges dated after the day. A charge an earlier close lowered (its trail line, written by the apply) keeps its
+ -- due, and the days up to that close's date T are billed; the first other one (F1) carries the days from the later of
+ -- latest and T up to the day, capped by its stored due; later ones keep their paid interest.
  SELECT max("Charge Date") INTO opening FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
- reclose:=EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=opening AND starts_with("Row ID",'lc7:'));
- WITH f AS(SELECT c."Row ID" id,c."Interest Due"::numeric due,paid.i,row_number() OVER(ORDER BY c."Charge Date",c."Row ID" COLLATE "C") n FROM public."Charges" c
-   LEFT JOIN LATERAL(SELECT coalesce(sum(r."Interest Paid"::numeric),0) i FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID" AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment)) paid ON true
+ SELECT max((regexp_match(c."Notes",trail_pattern))[2]::date) INTO trail_day FROM public."Charges" c WHERE c."Ref Loans"=p_loan AND c."Charge Date">p_day;
+ WITH s AS(SELECT c."Row ID" id,c."Charge Date" charge_day,c."Interest Due"::numeric due,coalesce(c."Notes",'') ~ trail_pattern settled FROM public."Charges" c
    WHERE c."Ref Loans"=p_loan AND c."Charge Date">p_day),
-  v AS(SELECT id,due,CASE WHEN n>1 THEN i WHEN reclose THEN due ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(opening,l."Loan Date")))) END due_new FROM f)
- SELECT count(*)>0,jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new)
+  f AS(SELECT s.*,paid.i,row_number() OVER(PARTITION BY s.settled ORDER BY s.charge_day,s.id COLLATE "C") n FROM s
+   LEFT JOIN LATERAL(SELECT coalesce(sum(r."Interest Paid"::numeric),0) i FROM public."Repayments" r WHERE r."Ref Charges"=s.id AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment)) paid ON true),
+  v AS(SELECT id,due,settled,CASE WHEN settled THEN due WHEN n>1 THEN i ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(opening,trail_day),l."Loan Date")))) END due_new FROM f)
+ SELECT coalesce(bool_or(NOT settled),false),jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new)
   INTO has_future,future,future_due FROM v;
  SELECT count(*),min("Row ID") INTO today_count,target FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=p_day;
  IF today_count>1 THEN RAISE EXCEPTION 'Multiple charges today require reconciliation before closing';END IF;
  IF today_count=0 THEN
   SELECT max("Charge Date") INTO latest FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
-  IF NOT has_future THEN interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(latest,l."Loan Date"));END IF;
+  IF NOT has_future THEN interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(latest,trail_day),l."Loan Date"));END IF;
   IF missing+interest>0 THEN
    target:='lc7:'||length(p_loan)||':'||p_loan||':'||p_day::text;
    mutation:=jsonb_build_object('kind','insert','chargeId',target,'principal',missing::text,'interest',interest::text);
@@ -1720,7 +1724,7 @@ BEGIN
  context:=jsonb_build_object('sourceVersion',public.pwa_loan_version_v2(p_loan),'excludedPayment',p_exclude_payment,'businessDate',p_day::text,'borrowerId',l."Ref Borrowers",'amount',trim_scale(total)::text,'allocations',lines,'targetChargeId',target,'targetLoanId',p_loan,'mutation',mutation);
  IF p_exclude_payment IS NULL THEN context:=context-'excludedPayment';END IF;
  RETURN context||jsonb_build_object('planHash',encode(sha256(convert_to(context::text,'UTF8')),'hex'));
-END $$;
+END $_$;
 
 
 --
