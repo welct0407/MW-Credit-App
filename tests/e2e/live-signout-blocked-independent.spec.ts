@@ -80,7 +80,7 @@ test('sign-out fails closed when the pending list cannot be read',async({page})=
  await setup(page);
  await page.evaluate(()=>(window as any).emitUser());
  await account(page);await expect(page.getByRole('button',{name:'Sign out',exact:true}).filter({visible:true})).toBeEnabled();await closeAccount(page);
- await page.evaluate(()=>{IDBObjectStore.prototype.getAll=function(){throw new DOMException('synthetic storage failure','InvalidStateError')}});
+ await page.evaluate(()=>{IDBObjectStore.prototype.getAll=()=> {throw new DOMException('synthetic storage failure','InvalidStateError')}});
  await signOut(page);
  await expect(page.getByRole('heading',{name:'Sign-out could not be completed',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>(window as any).signouts??0)).toBe(0);

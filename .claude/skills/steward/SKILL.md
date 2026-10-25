@@ -15,7 +15,7 @@ These conventions apply the [lean check routine](../../../project/Documents/Rule
 
 ## One push per verified batch
 
-- Finish the batch, the fixes and the change note, then push once. Do not push a commit to start CI "for a look", and do not push record-only commits one by one; CI reuses evidence for them, but every push still wakes this session several times.
+- Finish the batch, the fixes and the change note, then push once. Do not push a commit to start CI "for a look", and do not push record-only commits one by one (development and release records ride the next code push or the release's single closure pull request, owner acceptance never gets its own, and a documentation or governance task whose PR is the work itself is unaffected; exceptions are in the lean check routine); CI reuses evidence for them, but every push still wakes this session several times.
 - Merge `main` into the branch only to resolve a conflict. Branch protection on `main` requires the `Development checks result` status and does not require an up-to-date branch.
 - Never dispatch a workflow by hand when a run on an input-equivalent commit exists, and never re-run a green job. One re-run of a failed job in total, and only for the cases the harness rules allow.
 

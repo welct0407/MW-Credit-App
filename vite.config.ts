@@ -75,6 +75,8 @@ export default defineConfig(({ mode }) => {
         this.emitFile({ type: 'asset', fileName: 'build-mode.json', source: JSON.stringify({ schemaVersion: 1, mode }) + '\n' });
       },
     }],
-    build: { outDir: mode === 'live-prod' ? 'dist-live-prod' : mode === 'live-dev' ? 'dist-live-dev' : 'dist' },
+    // The live entry chunk is about 770 kB (live-dev and live-prod, 25 Oct 2026; the production candidate about 840 kB),
+    // above Vite's 500 kB default. Two users load it once into the service-worker cache, so a vendor split buys nothing.
+    build: { outDir: mode === 'live-prod' ? 'dist-live-prod' : mode === 'live-dev' ? 'dist-live-dev' : 'dist', chunkSizeWarningLimit: 1000 },
   };
 });

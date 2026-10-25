@@ -129,6 +129,8 @@ test('R095 a first payer name says it will be saved (EN and Thai) and posts sche
  await routeSyntheticPreferences(page);
  await openForm(page);await attach(page);
  await expect(page.locator('p.field-help[role=status]').filter({hasText:'payer name'})).toHaveText("Will be saved as this borrower's payer name.");
+ // Auto-assign answers after the payer note; snapshot the form for the language switch only once its allocation is shown.
+ await expect.poll(()=>state.autoAssignBodies.length).toBe(1);await expect(page.locator('output')).toContainText('Allocated฿110');
  await chooseLanguagePreservingForm(page,'ไทย');
  await expect(page.locator('p.field-summary').filter({hasText:'ผู้โอนในสลิป'})).toHaveText('ผู้โอนในสลิป: นาย สมชาย ใจดี');
  await expect(page.locator('p.field-help[role=status]').filter({hasText:'จะบันทึกเป็นชื่อผู้โอน'})).toHaveText('จะบันทึกเป็นชื่อผู้โอนของผู้กู้รายนี้');

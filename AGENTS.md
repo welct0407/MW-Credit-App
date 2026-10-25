@@ -1,6 +1,6 @@
 # AGENTS.md — MW Credit
 
-Owner revision: **18 October 2026, Asia/Bangkok**. MW Credit is a small PWA used by two people, including the owner. Prefer simple, reversible solutions and short delivery cycles; no enterprise process, extra services or speculative compliance requirements.
+Owner revision: **25 October 2026, Asia/Bangkok**. MW Credit is a small PWA used by two people, including the owner. Prefer simple, reversible solutions and short delivery cycles; no enterprise process, extra services or speculative compliance requirements.
 
 ## Hard rules
 
@@ -10,7 +10,7 @@ Owner revision: **18 October 2026, Asia/Bangkok**. MW Credit is a small PWA used
 - **PROD.** Verify project, instance, database, service and storage prefix before a live action; the host alone is insufficient. DEV and PROD are separate databases (`loan_manager_dev`, `loan_manager_prod`) on one shared Cloud SQL instance; keep their targets and identities isolated. A production database change needs a verified restorable backup. Never disable integrity or calculation triggers.
 - **Migrations.** Shared SQL migrations are immutable and increasing. Use the canonical guarded runner with the exact tested commit and manifest; never use `clean`, `repair`, checksum edits or automatic baselining to hide drift.
 - **Publication.** After coherent completion, commit and push only the task's changes to the configured branch; no force-push or history rewriting; preserve unrelated uncommitted work. Never move an existing release tag. Publication does not authorize production effects or merging.
-- **Records.** Update every affected existing document in the same batch and record the batch once: a change note file (no approval needed) with the [template](project/Documents/Rules/Development_Workflow.md#records-change-notes-and-retention), or an entry in the existing development record; read-only answers need none. Optional new documents need explicit owner approval.
+- **Records.** Update every affected existing document in the same batch and record the batch once: a change note file (no approval needed) with the [template](project/Documents/Rules/Development_Workflow.md#records-change-notes-and-retention), or an entry in the existing development record; read-only answers need none. Development and release records ride the next code push or the release's closure PR ([exceptions](project/Documents/Rules/PWA_Orchestration.md#lean-check-routine)). Optional new documents need explicit owner approval.
 - **AppSheet** is retired, not a dependency or delivery gate ([retirement evidence](project/outputs/r057-appsheet-retirement/README.md)); do not reactivate it without scoped owner authorization.
 - **AI Collection** is a separate scope with its own instructions and catalogue; compatibility junctions are not runtimes.
 - **PWA product development** uses the [six-agent process](project/Documents/Rules/PWA_Orchestration.md#six-agent-development-process) automatically; this is standing owner authorization to delegate to the named team Archie, Byte, Chase, Dewey, Echo and Forge (Agents A–F). Start each worker once per session and give it every later task in that session; do not create a new worker per task. Other work is done directly by default.

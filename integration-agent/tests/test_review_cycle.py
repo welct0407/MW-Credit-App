@@ -728,7 +728,7 @@ class SettleReviewStatementTests(unittest.TestCase):
         # R095: the cast form (for PostgreSQL's 42P18) still runs on the SQLite backend, with the same meaning.
         import sqlite3
         from mw_integration_agent.review_cycle import SETTLE_REVIEW_SQL
-        db = sqlite3.connect(':memory:')
+        db = sqlite3.connect(':memory:'); self.addCleanup(db.close)
         db.execute("CREATE TABLE partner_reviews(id TEXT PRIMARY KEY, state TEXT, detail TEXT NOT NULL DEFAULT '')")
         for note, detail in ((None, 'kept'), ('policy: note', 'policy: note')):
             with self.subTest(note=note):
