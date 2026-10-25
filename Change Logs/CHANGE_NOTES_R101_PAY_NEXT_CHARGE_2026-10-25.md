@@ -35,7 +35,7 @@ Dictionary routine files under `project/Documents/Data Dictionary/systems/postgr
 Git baseline `0b26e41`. V112 is additive `CREATE OR REPLACE`; rollback is a later migration that restores the V111 function bodies of the submit function and `pwa_next_projected_charge_v1` only. Once any schemaVersion 9 payment exists, that migration must keep `'9'` in the provenance filter of `pwa_effective_payment_plan_v2`; otherwise corrections and deletes of those payments would go through the legacy engine. No data changes except charges booked by early payments, which are ordinary charges.
 
 ## Open questions
-Owner decision on Loan Close. Scenario: an early payment is deleted or only partly paid, and the loan is then closed before the booked charge's date. Effect: Loan Close (`loan_close_calculation_v83`) bills interest up to that future date instead of up to today. Example: 1070 instead of 1030 on a loan at 10 a day, with the charge booked 4 days ahead and the last charge 3 days ago. No money is wrong when the early payment stands. Options: accept it, or have Loan Close ignore unpaid interest on charges dated after the close date (a separate change).
+Loan Close question (Chase D-1), decided. Scenario: an early payment is deleted or only partly paid, and the loan is then closed before the booked charge's date; Loan Close billed interest up to that future date (1070 instead of 1030 on a loan at 10 a day). Owner decision, 25 October 2026: ignore unpaid interest on future-dated charges, as a separate change; see the [Loan Close change note](CHANGE_NOTES_R101_LOAN_CLOSE_FUTURE_INTEREST_2026-10-25.md).
 
 Also owner acceptance. Excluding Fixed Due Date loans and one charge ahead per loan were owner defaults.
 
