@@ -59,9 +59,14 @@ class InstagramRejected(InstagramAPIError):
     """The provider definitely did not accept the request (HTTP 4xx, Graph error code retained)."""
 
 
+SEND_TIMEOUT = 20
+
+
 class Instagram:
-    def __init__(self, config: dict[str, Any]):
+    def __init__(self, config: dict[str, Any], read_timeout: float = SEND_TIMEOUT):
         self.config = config
+        # Per socket operation. Reads may wait longer (the poll's conversation list); sends always keep SEND_TIMEOUT.
+        self.read_timeout = read_timeout
 
     def request(self, path, query=None, body=None):
         from .audit import activity, digest
@@ -83,12 +88,13 @@ class Instagram:
         request = urllib.request.Request(url, data=data, headers=headers, method="POST" if body is not None else "GET")
         try:
             # The bearer token must never travel to a redirect target.
-            with http_opener().open(request, timeout=20) as response:
+            with http_opener().open(request, timeout=self.read_timeout if body is None else SEND_TIMEOUT) as response:
                 return json.load(response)
         except urllib.error.HTTPError as exc:
             raise InstagramAPIError.from_http(exc, message_send=(body is not None and path == self.config['instagram_account_id'] + '/messages')) from None
-        except Exception:
-            raise ConfigurationError("Instagram API request failed") from None
+        except Exception as exc:
+            # The exception class only (TimeoutError, URLError, ...): never the URL, query or token.
+            raise ConfigurationError(f"Instagram API request failed ({type(exc).__name__})") from None
 
     def probe(self) -> dict[str, Any]:
         account = self.request(self.config["instagram_account_id"], {"fields": "id,username"})

@@ -32,6 +32,16 @@ class Queries(unittest.TestCase):
             with self.subTest(state=state,age=age):
                 result={r['component']:r['value'] for r in query('debian-alert.jq',{'timeSeries':[sample('receipts',state,age,True)]})}
                 self.assertEqual(result['receipts'],expected)
+    def test_polling_pages_on_down_not_on_one_degraded_run(self):
+        # The collector reports polling Degraded for a failed run with a success in the last 10 minutes and
+        # Down once polling has stopped, so only Down, Unknown or missing telemetry page for polling.
+        for state,age,expected in [(0,0,1),(1,0,0),(2,0,0),(3,0,0),(4,0,1),(1,400,1),('invalid',0,1)]:
+            with self.subTest(state=state,age=age):
+                result={r['component']:r['value'] for r in query('debian-alert.jq',{'timeSeries':[sample('polling',state,age,True)]})}
+                self.assertEqual(result['polling'],expected)
+        # Degraded still pages for every other component.
+        result={r['component']:r['value'] for r in query('debian-alert.jq',{'timeSeries':[sample('tunnel',2,0,True)]})}
+        self.assertEqual(result['tunnel'],1)
     def test_trend_rejects_invalid_counts(self):
         self.assertEqual(query('receipt-trend.jq',{'timeSeries':[sample('pending_images','bad')]}),[])
     def test_trend_does_not_connect_telemetry_outages(self):

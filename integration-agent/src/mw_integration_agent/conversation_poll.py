@@ -16,7 +16,12 @@ from .receipt_run import controls
 
 # R095: `message` (text) carries the forwarder's nickname hint that follows a slip in the same read.
 MESSAGE_FIELDS='id,created_time,from,message,attachments'
+# The first conversation-list read carries every conversation's newest FIRST_PAGE_MESSAGES, which covers the
+# ~6-minute window (one-minute cadence plus the 300 s overlap); a longer window continues per conversation with
+# 100-message pages (history_page). Reach per scan: 20 + 9 x 100 messages within MAX_HISTORY_PAGES.
+FIRST_PAGE_MESSAGES=20
 MAX_HISTORY_PAGES=10
+READ_TIMEOUT=40  # seconds per socket operation for the poll's API reads; sends keep instagram.SEND_TIMEOUT
 
 
 def history_page(api,config,conversation_id,cursor):
@@ -96,7 +101,7 @@ def scan(config,api,master,journal,now=None,day=None):
     counts={'conversations':0,'eligible_conversations':0,'new_messages':0,'image_jobs':0,
             'failed_conversations':0,'errors':[]}
     for batch in pages(api,config['instagram_account_id']+'/conversations',
-                       {'platform':'instagram','fields':'id,participants,messages.limit(100){'+MESSAGE_FIELDS+'}','limit':100}):
+                       {'platform':'instagram','fields':'id,participants,messages.limit('+str(FIRST_PAGE_MESSAGES)+'){'+MESSAGE_FIELDS+'}','limit':100}):
         for conversation in batch:
             counts['conversations']+=1
             try:
@@ -107,7 +112,7 @@ def scan(config,api,master,journal,now=None,day=None):
                 if len(counts['errors'])<20:
                     cid=conversation.get('id','') if isinstance(conversation,dict) else ''
                     counts['errors'].append({'conversation_key':hashlib.sha256(str(cid).encode()).hexdigest()[:16],
-                                             'error':str(exc) if isinstance(exc,ConfigurationError) else 'POLL_CONVERSATION_UNAVAILABLE'})
+                                             'error':str(exc) if isinstance(exc,ConfigurationError) else 'POLL_CONVERSATION_UNAVAILABLE:'+type(exc).__name__})
                 continue
             counts['eligible_conversations']+=int(eligible)
             counts['new_messages']+=added;counts['image_jobs']+=images
@@ -204,7 +209,7 @@ def run(config_path,catalogue_path,day=None):
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:return {'status':'already_running'}
         journal=ReceiptJournal(root/'receipt-processing.db', config=config)
-        try:result=scan(config,Instagram(config),masters(config),journal,day=day)
+        try:result=scan(config,Instagram(config,read_timeout=READ_TIMEOUT),masters(config),journal,day=day)
         finally:journal.close()
         if result.get('image_jobs'):
             from .receipt_wake import wake

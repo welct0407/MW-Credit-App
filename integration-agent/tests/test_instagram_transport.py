@@ -78,6 +78,18 @@ class InstagramTransportTests(unittest.TestCase):
                 with self.assertRaises(ConfigurationError) as other:
                     client._request("456", {"fields": "id"})
                 self.assertNotIsInstance(other.exception, InstagramAPIError)
+                # The class names the failure; the URL, query and token never appear.
+                self.assertEqual(str(other.exception), "Instagram API request failed (TimeoutError)")
+            for read_timeout, expected_read in ((20, 20), (40, 40)):
+                with self.subTest(read_timeout=read_timeout):
+                    timed = Instagram(client.config, read_timeout=read_timeout)
+                    with patch.object(urllib.request.OpenerDirector, "open", side_effect=TimeoutError()) as opened:
+                        with self.assertRaises(ConfigurationError):
+                            timed._request("456", {"fields": "id"})
+                        with self.assertRaises(ConfigurationError):
+                            timed._request("123/messages", body={"recipient": {"id": "456"}, "message": {"text": "x"}})
+                    # Reads use the client's read timeout; a send always keeps 20 s.
+                    self.assertEqual([c.kwargs["timeout"] for c in opened.call_args_list], [expected_read, 20])
 
     def test_signature_and_message_filtering(self):
         now = time.time()

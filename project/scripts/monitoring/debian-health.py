@@ -120,6 +120,40 @@ def timer_status(service, timer, uptime, now, max_idle, max_run):
     return 4
 
 
+POLL_STALL_SECONDS = 600
+
+
+def polling_status(service, timer, monotonic_now, epoch_now, last_success, max_run=600, stall=POLL_STALL_SECONDS):
+    """IG polling: (status, last_success). Runs every ~70 s, so one failed run (exit 2 after a Meta timeout) is
+    Degraded; Down only when polling stopped: timer or unit not loaded or inactive, a run hung past `max_run`, or no
+    successful run for `stall` seconds.
+
+    systemd keeps only the last run (ExecMainExitTimestamp is its exit, success or failure, and resets when a run
+    starts), so the newest successful exit is carried in the collector state file as `last_success` (epoch). With no
+    saved value it is seeded with this observation, which gives a fresh state one `stall` of grace.
+    """
+    if (timer.get('LoadState') != 'loaded' or service.get('LoadState') != 'loaded'
+            or timer.get('ActiveState') != 'active'):
+        return 0, last_success
+    running = service.get('ActiveState') in ('active', 'activating')
+    failed = (service.get('ActiveState') == 'failed' or service.get('Result') not in ('success', None, '')
+              or service.get('ExecMainStatus') not in ('0', None))
+    ended = completion_epoch(service, monotonic_now, epoch_now)
+    if not running and not failed and ended:
+        last_success = max(last_success or 0, ended)
+    if last_success is None or last_success > epoch_now:
+        # A saved value in the future (clock skew) could hide a stall: count it from now.
+        last_success = int(epoch_now)
+    if running:
+        # A start time of 0 is a transient activating state: treat it as just started (the stall check still applies).
+        started = int(service.get('ExecMainStartTimestampMonotonic', '0') or 0) / 1e6
+        if started and monotonic_now - started > max_run:
+            return 0, last_success
+    if epoch_now - last_success > stall:
+        return 0, last_success
+    return (2 if failed else 1), last_success
+
+
 def fetch(url, headers=None):
     with urllib.request.urlopen(urllib.request.Request(url, headers=headers or {}), timeout=15) as r:
         return r.read().decode()
@@ -707,13 +741,19 @@ def main():
         return timer_status(properties(name+'.service'), properties(name+'.timer'), uptime, now, idle, duration)
     receipt_pipeline=receipt_snapshot(config,job)
     result['receipts']=receipt_pipeline['status']
+    points = load_points()
     polling_timing = {'last_completion': 0, 'running': -1}
+    polling_state = {'last_success': points.get('polling_last_success')}
     def polling():
         service = properties('mw-conversation-poll.service')
         timer = properties('mw-conversation-poll.timer')
-        polling_timing['last_completion'] = completion_epoch(service, time.monotonic(), time.time())
+        monotonic_now, epoch_now = time.monotonic(), time.time()
+        polling_timing['last_completion'] = completion_epoch(service, monotonic_now, epoch_now)
         polling_timing['running'] = int(service.get('ActiveState') in ('active', 'activating'))
-        return timer_status(service, timer, uptime, now, 600, 600)
+        saved = polling_state['last_success']
+        status, polling_state['last_success'] = polling_status(
+            service, timer, monotonic_now, epoch_now, saved if type(saved) is int else None)
+        return status
     check('polling', lambda: polling() if config.get('conversation_poll_enabled') else 3)
     audit_relay = relay_snapshot(config, job)
     result['audit_relay'] = audit_relay['status']
@@ -764,7 +804,6 @@ def main():
     meta = {'Metadata-Flavor': 'Google'}
     instance = fetch('http://metadata.google.internal/computeMetadata/v1/instance/id', meta).strip()
     token = json.loads(fetch('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', meta))['access_token']
-    points = load_points()
     added = collect_r089(config, token, uptime, time.time(), result, polling_timing, extras, webhook['code_version'], points, collect)
     metabase = added['metabase']
     result.update(added['health'])
@@ -797,6 +836,8 @@ def main():
                            'points': [{'interval': {'endTime': timestamp}, 'value': {'int64Value': str(value)}}]})
     for component, fields, end_time in added['timing']:
         series.extend(timing_series(component, fields, series[0]['resource'], end_time or timestamp))
+    if type(polling_state['last_success']) is int:
+        added['points']['polling_last_success'] = polling_state['last_success']
     # Saved before the export: a point is never sent twice out of order (losing one is acceptable).
     try:
         save_points(added['points'])
