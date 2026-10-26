@@ -1,0 +1,163 @@
+{
+  "at": "2026-10-26T16:53:09.924Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "structure",
+      "passed": true,
+      "detail": {
+        "tabs": 12,
+        "placements": 240,
+        "parameters": 22,
+        "unmatched": 0
+      }
+    },
+    {
+      "name": "mapping parity",
+      "passed": true,
+      "detail": {
+        "checked": 183,
+        "mismatched": 0
+      }
+    },
+    {
+      "name": "collection lanes and 64 map nothing",
+      "passed": true,
+      "detail": {
+        "mapped": []
+      }
+    },
+    {
+      "name": "execution",
+      "passed": true,
+      "detail": {
+        "dashcards": 194,
+        "errors": 0,
+        "failed": []
+      }
+    },
+    {
+      "name": "reused values equal dashboard 3",
+      "passed": true,
+      "detail": {
+        "sampled": 111,
+        "different": []
+      }
+    },
+    {
+      "name": "today.realization",
+      "passed": true,
+      "detail": {
+        "equalsModel73": true,
+        "equals51over52": true
+      }
+    },
+    {
+      "name": "today.collection-rate",
+      "passed": true,
+      "detail": {
+        "equalsModel73": true,
+        "dueToday": "non-zero"
+      }
+    },
+    {
+      "name": "today.principal-smart",
+      "passed": true,
+      "detail": {
+        "days": 30,
+        "latestEquals62": true,
+        "firstEquals62": true
+      }
+    },
+    {
+      "name": "cash.pool-selected",
+      "passed": true,
+      "detail": {
+        "todayEquals": 47,
+        "pastDateEqualsModel205": true,
+        "beforeOpeningsBlank": true
+      }
+    },
+    {
+      "name": "cash.principal-selected",
+      "passed": true,
+      "detail": {
+        "todayEquals": 48,
+        "pastDateEqualsModel205": true,
+        "beforeOpeningsBlank": true
+      }
+    },
+    {
+      "name": "income.vs-previous",
+      "passed": true,
+      "detail": {
+        "thisEquals168to171": true,
+        "previousEqualsPrecedingRange": true,
+        "days": 26
+      }
+    },
+    {
+      "name": "income.monthly",
+      "passed": true,
+      "detail": {
+        "months": 3,
+        "equalsModel186MonthSums": true,
+        "question213Rows": 25
+      }
+    },
+    {
+      "name": "cashflow.by-type-row",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "period": "thismonth",
+            "equal": true
+          },
+          {
+            "period": "past30days",
+            "equal": true
+          },
+          {
+            "period": "previous range",
+            "equal": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "perf.vs-previous",
+      "passed": true,
+      "detail": {
+        "thisEquals217to219": true,
+        "previousEqualsPrecedingRange": true
+      }
+    },
+    {
+      "name": "partners.capital-share-row",
+      "passed": true,
+      "detail": {
+        "rows": 2,
+        "equals331": true
+      }
+    },
+    {
+      "name": "links target the proposed dashboard",
+      "passed": true,
+      "detail": {
+        "links": 25,
+        "toDashboard3": 0
+      }
+    },
+    {
+      "name": "dashboard 3 preserved",
+      "passed": true,
+      "detail": {
+        "dashcards": 272,
+        "tabs": 12,
+        "parameters": 28
+      }
+    }
+  ],
+  "financialValuesPublished": false
+}

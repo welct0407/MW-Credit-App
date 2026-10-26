@@ -1,0 +1,47 @@
+{
+  "collection": 10,
+  "questions": {
+    "today.principal-smart": 379,
+    "today.realization": 380,
+    "today.collection-rate": 381,
+    "cash.pool-selected": 382,
+    "cash.principal-selected": 383,
+    "income.vs-previous": 384,
+    "income.monthly": 385,
+    "cashflow.by-type-row": 386,
+    "perf.vs-previous": 387,
+    "partners.capital-share-row": 388
+  },
+  "tabs": {
+    "today": 375,
+    "cash-position": 376,
+    "income": 377,
+    "cashflow": 378,
+    "performance": 379,
+    "borrowers": 380,
+    "health": 381,
+    "borrower-detail": 382,
+    "collection": 383,
+    "partners": 384,
+    "forecast": 385,
+    "data-health": 386
+  },
+  "cardColumns": {
+    "275": [
+      "Borrower ID",
+      "Borrower",
+      "Category",
+      "Payment score /100",
+      "Schedule",
+      "Contribution ×",
+      "Interest 30d ฿",
+      "Principal ฿",
+      "History",
+      "Plot status",
+      "Position basis",
+      "Category reason",
+      "As of"
+    ]
+  },
+  "dashboard": 32
+}
