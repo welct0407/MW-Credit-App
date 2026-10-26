@@ -130,7 +130,6 @@ export function questions(sources={},state={},baseline){
   }
   const link=links[key];if(link)(copied.column_settings??={})[JSON.stringify(['name',link.column])]={click_behavior:{type:'link',linkType:'url',linkTemplate:link.linkTemplate}};
   const presentation=rewrite(copied,state);vs=mergeVs(vs,presentation);
-  Object.assign(vs,measuredQuestions[key]??{});
   // Row and bar charts on this version colour series from series_settings; graph.colors alone is ignored there.
   (vs['graph.metrics']??[]).forEach((m,i)=>{const color=vs['graph.colors']?.[i];if(color&&!vs.series_settings?.[m]?.color)vs.series_settings={...vs.series_settings,[m]:{...vs.series_settings?.[m],color}};});
   return {key,name:d.name,display:d.display,description:`Loan Reports · proposed (${key}). ${d.definition} Basis: ${d.basis}.`,dataset_query,visualization_settings:vs,mappings,presentation,params:d.params};
@@ -161,12 +160,7 @@ function columnsFor(spec,card,current){
  const saved=(current??card.visualization_settings?.['table.columns']??[]).filter(c=>names.includes(c.name));
  return [...new Set([...spec.order,...saved.map(c=>c.name),...names])].map(name=>({name,enabled:!spec.hide.includes(name)&&(spec.order.includes(name)||(saved.find(c=>c.name===name)?.enabled??true))}));
 }
-// Measured question settings not yet in the spec (column widths that fit a 390 px phone without clipping or sideways scroll).
-const measuredQuestions={'today.attention':{'table.column_widths':[117,75,81,67]},'collection.board':{'table.column_widths':[110,75,69,86]}};
-// Measured placement settings not yet in the spec (tab key:card id), applied before the placement's own options.
-const measured={'borrowers:289':{'table.column_widths':[96,168]}};
-function options(vs,p,card,where){
- Object.assign(vs,measured[where]??{});
+function options(vs,p,card){
  vs['card.title']=p.title;if(p.description)vs['card.description']=p.description;const extra=normKeys(p.vs??{});Object.assign(vs,extra);
  if(p.hide_empty)vs['card.hide_empty']=true;
  if(p.columns)vs['table.columns']=columnsFor(p.columns,card,vs['table.columns']);
@@ -185,7 +179,7 @@ function placements(tab,state,baseline,live1501,specs,cards){
    return {...base,card_id:card,parameter_mappings:p.params.filter(k=>q.mappings[k]).map(k=>({parameter_id:k,card_id:card,target:q.mappings[k]})),visualization_settings:options(structuredClone(q.presentation),p,cards[card])};
   }
   const old=firstDashcard(baseline,p.reuse_card_id);
-  const vs=options(rewrite(structuredClone(old?.visualization_settings??{}),state),p,cards[p.reuse_card_id],`${tab.key}:${p.reuse_card_id}`);
+  const vs=options(rewrite(structuredClone(old?.visualization_settings??{}),state),p,cards[p.reuse_card_id]);
   const mappings=[];
   for(const m of old?.parameter_mappings??[]){const pid=replaced[m.parameter_id];if(p.params.includes(pid)&&!mappings.some(x=>x.parameter_id===pid))mappings.push({parameter_id:pid,card_id:p.reuse_card_id,target:m.target});}
   return {...base,card_id:p.reuse_card_id,series:(old?.series??[]).map(s=>({id:s.id})),parameter_mappings:mappings,visualization_settings:vs};
