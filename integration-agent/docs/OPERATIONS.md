@@ -170,7 +170,7 @@ The provider switch, its activation steps and its speed and grounding settings w
 
 ## Conversation polling
 
-The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs every minute (since 20 October 2026; five minutes before) for conversations containing AI-enabled borrowers. Browser automation is prohibited. History gaps fail without advancing the checkpoint; inspect mw-conversation-poll.service for errors. Financial writes remain disabled.
+The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs every minute (since 20 October 2026; five minutes before) for conversations containing AI-enabled borrowers. Browser automation is prohibited. History gaps fail without advancing the checkpoint; inspect mw-conversation-poll.service for errors. One failed run (exit 2, usually a Meta read timeout) is monitored as Degraded and does not page; polling is Down only when the timer is inactive, a run hangs over 600 s, or no run succeeds for over 600 s. Financial writes remain disabled.
 
 ## Partner receipt review
 

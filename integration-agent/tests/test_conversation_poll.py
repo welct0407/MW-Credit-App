@@ -45,7 +45,8 @@ class PollTests(unittest.TestCase):
         api=self.api([self.message()]);api.request.return_value['data'].insert(0,None)
         result=scan(self.c,api,self.master,self.j,self.now)
         self.assertEqual((result['failed_conversations'],result['image_jobs']),(1,1))
-        self.assertEqual(result['errors'][0]['error'],'POLL_CONVERSATION_UNAVAILABLE')
+        # The exception class is kept (never its text): a None conversation fails on .get.
+        self.assertEqual(result['errors'][0]['error'],'POLL_CONVERSATION_UNAVAILABLE:AttributeError')
     def test_today_backfill_preserves_cursor_and_dedupes(self):
         api=self.api([self.message()])
         scan(self.c,api,self.master,self.j,self.now)
@@ -82,6 +83,10 @@ class PollTests(unittest.TestCase):
         path,query=api.request.call_args_list[1].args
         self.assertEqual(path,'999/conversations')
         self.assertIn('messages.limit(100).after(abc=)',query['fields'])
+        # Only the first conversation-list read is lighter; continuation pages stay at 100 messages.
+        first=api.request.call_args_list[0].args[1]
+        self.assertIn('messages.limit(20){',first['fields'])
+        self.assertEqual(first['limit'],100)
         # Restart/next scheduled scan cannot duplicate the first receipt.
         self.assertEqual(scan(self.c,self.api([self.message()]),self.master,self.j,self.now+300)['image_jobs'],0)
 
@@ -188,10 +193,21 @@ class PollTests(unittest.TestCase):
         for jobs,expected in ((0,False),(2,True)):
             with self.subTest(jobs=jobs),patch('mw_integration_agent.conversation_poll.controls',return_value=config), \
                  patch('mw_integration_agent.conversation_poll.load_json',return_value={'services':{'conversation_poll':{'enabled':True}}}), \
-                 patch('mw_integration_agent.conversation_poll.masters'),patch('mw_integration_agent.conversation_poll.Instagram'), \
+                 patch('mw_integration_agent.conversation_poll.masters'),patch('mw_integration_agent.conversation_poll.Instagram') as client, \
                  patch('mw_integration_agent.conversation_poll.scan',return_value={'image_jobs':jobs}):
                 self.assertEqual(run('unused','unused'),{'image_jobs':jobs})
                 self.assertEqual(wake.exists(),expected)
+                # The poll's reads wait 40 s per socket operation; the client never sends.
+                client.assert_called_once_with(config,read_timeout=40)
+
+    def test_first_page_holds_more_than_twenty_new_messages_by_continuing(self):
+        # 20 messages all inside the window and a next link: the group continues on a 100-message page
+        # before anything commits, so the lighter first read skips nothing.
+        first=[self.message(f'n{i}',time=f'2026-09-21T00:59:{59-i:02d}+00:00') for i in range(20)]
+        api=self.paged_api([(first,'c1='),([self.message('older',time='2026-09-21T00:58:00+00:00')],None)])
+        result=scan(self.c,api,self.master,self.j,self.now)
+        self.assertEqual((result['image_jobs'],result['failed_conversations']),(21,0))
+        self.assertIn('messages.limit(100).after(c1=)',api.request.call_args_list[1].args[1]['fields'])
 
     def forwarding(self):
         self.master['borrowers'][0]['id']='borrower-row'

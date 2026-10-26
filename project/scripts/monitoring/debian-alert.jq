@@ -8,5 +8,5 @@ $wanted[] as $n | ($n=="receipts" or $n=="polling") as $critical |
 (try ($p.value.int64Value|tonumber) catch null) as $v |
 ($t!=null and now-$t<=360 and $t-now<=120 and ($v|IN(0,1,2,3,4))) as $valid |
 {component:$n,value:(if ($valid|not) then (if $critical then 1 else 0 end)
- elif $v==0 or $v==2 or ($critical and $v==4) then 1 else 0 end)}
+ elif $v==0 or ($v==2 and $n!="polling") or ($critical and $v==4) then 1 else 0 end)}
 end

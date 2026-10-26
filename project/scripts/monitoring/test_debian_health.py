@@ -38,6 +38,53 @@ class TimerHealthTests(unittest.TestCase):
         service.update(kw)
         return health.timer_status(service,timer or {'LoadState':'loaded','ActiveState':'active'},1000,dt.datetime(2026,9,22,12),180,300)
 
+class PollingStatusTests(unittest.TestCase):
+    """IG polling runs about every 70 s: one failed run is Degraded, Down only when polling has stopped."""
+    EPOCH=1800000000
+    def poll(self,last_success=None,timer=None,**kw):
+        # Monotonic now 1000 s; the last run exited at 950 s (50 s ago, epoch EPOCH-50) unless overridden.
+        service=dict(LoadState='loaded',ActiveState='inactive',Result='success',ExecMainStatus='0',ExecMainExitTimestampMonotonic='950000000')
+        service.update(kw)
+        return health.polling_status(service,timer or {'LoadState':'loaded','ActiveState':'active'},1000,self.EPOCH,last_success)
+    def failed(self,last_success):
+        return self.poll(last_success,ActiveState='failed',Result='exit-code',ExecMainStatus='2')
+    def test_success_is_healthy_and_records_its_exit(self):
+        self.assertEqual(self.poll(self.EPOCH-500),(1,self.EPOCH-50))
+    def test_one_failed_run_after_a_recent_success_is_degraded(self):
+        self.assertEqual(self.failed(self.EPOCH-120),(2,self.EPOCH-120))
+    def test_no_success_for_ten_minutes_is_down(self):
+        self.assertEqual(self.failed(self.EPOCH-601),(0,self.EPOCH-601))
+        self.assertEqual(self.failed(self.EPOCH-600),(2,self.EPOCH-600))
+    def test_unknown_last_success_gets_one_stall_of_grace(self):
+        self.assertEqual(self.failed(None),(2,self.EPOCH))
+    def test_success_exited_long_ago_means_the_timer_stopped(self):
+        # No run for 15 min (exit at monotonic 100 s): stalled, even though the last run succeeded.
+        self.assertEqual(self.poll(None,ExecMainExitTimestampMonotonic='100000000'),(0,self.EPOCH-900))
+        self.assertEqual(self.poll(self.EPOCH-900,ExecMainExitTimestampMonotonic='100000000'),(0,self.EPOCH-900))
+    def test_running_scan_keeps_the_previous_state(self):
+        running=dict(ActiveState='activating',ExecMainStartTimestampMonotonic='980000000',ExecMainExitTimestampMonotonic='0')
+        self.assertEqual(self.poll(self.EPOCH-100,**running),(1,self.EPOCH-100))
+        self.assertEqual(self.poll(self.EPOCH-700,**running)[0],0)
+    def test_future_saved_success_is_clamped_to_now(self):
+        self.assertEqual(self.failed(self.EPOCH+3600),(2,self.EPOCH))
+        # Clamped, so ten more minutes without a success is Down rather than hidden by the skew.
+        service=dict(LoadState='loaded',ActiveState='failed',Result='exit-code',ExecMainStatus='2',ExecMainExitTimestampMonotonic='950000000')
+        self.assertEqual(health.polling_status(service,{'LoadState':'loaded','ActiveState':'active'},1601,self.EPOCH+601,self.EPOCH)[0],0)
+    def test_running_without_start_time_is_just_started(self):
+        starting=dict(ActiveState='activating',ExecMainStartTimestampMonotonic='0',ExecMainExitTimestampMonotonic='0')
+        self.assertEqual(self.poll(self.EPOCH-100,**starting),(1,self.EPOCH-100))
+        self.assertEqual(self.poll(self.EPOCH-700,**starting)[0],0)  # the stall check still applies
+    def test_hung_run_is_down(self):
+        self.assertEqual(self.poll(self.EPOCH-60,ActiveState='activating',ExecMainStartTimestampMonotonic='300000000',ExecMainExitTimestampMonotonic='0')[0],0)
+    def test_inactive_timer_or_missing_unit_is_down(self):
+        self.assertEqual(self.poll(self.EPOCH-60,timer={'LoadState':'loaded','ActiveState':'inactive'}),(0,self.EPOCH-60))
+        self.assertEqual(self.poll(self.EPOCH-60,LoadState='not-found')[0],0)
+        self.assertEqual(self.poll(self.EPOCH-60,timer={'LoadState':'not-found','ActiveState':'inactive'})[0],0)
+    def test_shared_timer_rule_is_unchanged_for_other_jobs(self):
+        # Other timers keep timer_status: a failed run there is still Down.
+        service=dict(LoadState='loaded',ActiveState='failed',Result='exit-code',ExecMainStatus='2',ExecMainExitTimestampMonotonic='950000000')
+        self.assertEqual(health.timer_status(service,{'LoadState':'loaded','ActiveState':'active'},1000,dt.datetime(2026,9,22,12),180,300),0)
+
 class ReceiptSnapshotTests(unittest.TestCase):
     def setUp(self):
         self.values={k:0 for k in ('pending_images','validated_receipts','held_receipts','pending_reviews','approved_payments','completed_payments','oldest_pending_seconds','stalled_jobs','unnotified_holds','unconfirmed_postings','undelivered_reviews','overdue_reviews','failed_notifications')}

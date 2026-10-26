@@ -10,7 +10,7 @@ if .nextPageToken then error("Worker timing response truncated") else
   details:("IG polling — " + (["Down","Healthy","Degraded","Paused","Unknown"][$status] // "Unknown") +
     "\nLast scan completion: " + (if $fresh and ($v.last_completion // 0) > 0 then ($v.last_completion | sgt) else "Unavailable" end) +
     "\nWorker: " + (if $fresh and $v.running == 1 then "Running" elif $fresh and $v.running == 0 then "Idle" else "Not observed" end) +
-    "\nSchedule: 5 minutes after the previous run finishes (plus timer scheduling delay)." +
+    "\nSchedule: 1 minute after the previous run finishes (plus timer scheduling delay)." +
     "\nCompletion includes scans with no new images; it does not mean a payment was posted." +
     "\nObserved: " + (if $p != null then ($p.interval.endTime | stamp | sgt) else "Unavailable" end) +
     (if $fresh then "\nTiming telemetry updates about every 2 minutes." else "\nTelemetry missing or older than 6 minutes; refresh for current status." end))}
