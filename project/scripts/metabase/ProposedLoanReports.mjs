@@ -98,13 +98,7 @@ export function questions(sources={},state={},baseline){
   'income.vs-previous':{dataset_query:native(incomeSql,[model(186),dateTag('statement_period','Statement period')]),visualization_settings:compareTable,mappings:{'statement-period':tagTarget('statement_period')}},
   'income.monthly':{dataset_query:mbql({'source-table':'card__186',aggregation:[['aggregation-options',['sum',f('Income')],{name:'Income','display-name':'Income'}],['aggregation-options',['sum',f('Expenses')],{name:'Expenses','display-name':'Expenses'}],['aggregation-options',['-',['sum',f('Income')],['sum',f('Expenses')]],{name:'Net profit','display-name':'Net profit'}]],breakout:[f('Date','type/Date',{'temporal-unit':'month'})],filter:['time-interval',f('Date','type/Date'),-5,'month',{'include-current':true}]}),
    visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Income','Expenses','Net profit'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#178F8A','#D6816B','#2a78d6'],'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Income','Expenses','Net profit'])},mappings:{}},
-  // Stacked: each type moves money one way, and the row chart fits floor(height/24) stacked categories instead of
-  // floor(height/48) grouped ones, so no type is folded into "Other (n)" at the planned 18×7 size.
-  'cashflow.by-type-row':{visualization_settings:{'graph.label_value_formatting':'compact','stackable.stack_type':'stacked',column_settings:fmt(['Money In','Money Out'])}},
-  // Six-wide lanes (about 256 px): pixel widths of the three visible columns so every value and the Due/Left headers fit; the
-  // longer headers (Borrower, Overdue ฿, Received ฿) still clip at this width. This version reads table.column_widths (the
-  // origin lanes' table.cell_column_widths is ignored).
-  ...Object.fromEntries(['not-paid','partial','overdue','paid'].map(l=>['collection.lane-'+l,{visualization_settings:{'table.column_widths':[80,90,86]}}])),
+  'cashflow.by-type-row':{visualization_settings:{'graph.label_value_formatting':'compact',column_settings:fmt(['Money In','Money Out'])}},
   'perf.vs-previous':{dataset_query:native(perfSql,[model(70),model(71),dateTag('performance_period','Performance period')]),visualization_settings:{...compareTable,column_settings:{...compareTable.column_settings}},mappings:{period:tagTarget('performance_period')}},
   'partners.capital-share-row':{dataset_query:q331&&native(`SELECT "Partner","Net capital ฿"/nullif(sum("Net capital ฿") OVER (),0) AS "Capital share %","Net capital ฿" FROM (${sql(q331)}) t`,[{id:'lrp-partner',name:'partner','display-name':'Partner',type:'dimension',dimension:['field',121,null],'widget-type':'string/=',alias:'d.partner_id'},model(318)]),
    visualization_settings:{'graph.dimensions':['Partner'],'graph.metrics':['Capital share %'],'graph.show_values':true,'graph.show_legend':false,'graph.colors':['#178F8A','#7472BE','#D6816B','#D4AD60'],'graph.y_axis.min':0,'graph.y_axis.max':1,column_settings:{...fmt(['Capital share %'],pct),...fmt(['Net capital ฿'])}},mappings:{partner:tagTarget('partner')}}
@@ -159,7 +153,7 @@ function rewrite(o,state){
  if(o&&typeof o==='object')return Object.fromEntries(Object.entries(o).map(([k,v])=>[k,rewrite(v,state)]));
  return o;
 }
-// Placement options (layout.json): title, vs (merged, and inside visualization.settings for visualizer-format placements), columns
+// Placement options (layout.json): title, description, vs (merged, and inside visualization.settings for visualizer-format placements), columns
 // (named columns first, the rest in their saved order, `hide` disabled) and hide_empty.
 function columnsFor(spec,card,current){
  const names=card.result_metadata.map(m=>m.name);for(const n of [...spec.order,...spec.hide])assert(names.includes(n),`column ${n} not in question ${card.id}`);
@@ -167,10 +161,10 @@ function columnsFor(spec,card,current){
  return [...new Set([...spec.order,...saved.map(c=>c.name),...names])].map(name=>({name,enabled:!spec.hide.includes(name)&&(spec.order.includes(name)||(saved.find(c=>c.name===name)?.enabled??true))}));
 }
 function options(vs,p,card){
- vs['card.title']=p.title;const extra=normKeys(p.vs??{});Object.assign(vs,extra);
+ vs['card.title']=p.title;if(p.description)vs['card.description']=p.description;const extra=normKeys(p.vs??{});Object.assign(vs,extra);
  if(p.hide_empty)vs['card.hide_empty']=true;
  if(p.columns)vs['table.columns']=columnsFor(p.columns,card,vs['table.columns']);
- if(vs.visualization?.settings){vs.visualization.settings['card.title']=p.title;Object.assign(vs.visualization.settings,extra);}
+ if(vs.visualization?.settings){vs.visualization.settings['card.title']=p.title;if(p.description)vs.visualization.settings['card.description']=p.description;Object.assign(vs.visualization.settings,extra);}
  return vs;
 }
 function placements(tab,state,baseline,live1501,specs,cards){
