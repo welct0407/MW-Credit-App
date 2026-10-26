@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-26T19:20:28.305Z",
+  "at": "2026-10-26T20:03:30.809Z",
   "passed": true,
   "checks": [
     {
@@ -161,7 +161,8 @@
       "detail": {
         "rows": 4,
         "people240_242_244_270": true,
-        "amounts254_162": true,
+        "overdueAmountEquals254": true,
+        "leftEquals162": true,
         "tabIds": true,
         "itemLink": true
       }

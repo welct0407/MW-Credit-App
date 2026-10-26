@@ -130,6 +130,7 @@ export function questions(sources={},state={},baseline){
   }
   const link=links[key];if(link)(copied.column_settings??={})[JSON.stringify(['name',link.column])]={click_behavior:{type:'link',linkType:'url',linkTemplate:link.linkTemplate}};
   const presentation=rewrite(copied,state);vs=mergeVs(vs,presentation);
+  Object.assign(vs,measuredQuestions[key]??{});
   // Row and bar charts on this version colour series from series_settings; graph.colors alone is ignored there.
   (vs['graph.metrics']??[]).forEach((m,i)=>{const color=vs['graph.colors']?.[i];if(color&&!vs.series_settings?.[m]?.color)vs.series_settings={...vs.series_settings,[m]:{...vs.series_settings?.[m],color}};});
   return {key,name:d.name,display:d.display,description:`Loan Reports · proposed (${key}). ${d.definition} Basis: ${d.basis}.`,dataset_query,visualization_settings:vs,mappings,presentation,params:d.params};
@@ -160,6 +161,8 @@ function columnsFor(spec,card,current){
  const saved=(current??card.visualization_settings?.['table.columns']??[]).filter(c=>names.includes(c.name));
  return [...new Set([...spec.order,...saved.map(c=>c.name),...names])].map(name=>({name,enabled:!spec.hide.includes(name)&&(spec.order.includes(name)||(saved.find(c=>c.name===name)?.enabled??true))}));
 }
+// Measured question settings not yet in the spec (column widths that fit a 390 px phone without clipping or sideways scroll).
+const measuredQuestions={'today.attention':{'table.column_widths':[117,75,81,67]},'collection.board':{'table.column_widths':[110,75,69,86]}};
 // Measured placement settings not yet in the spec (tab key:card id), applied before the placement's own options.
 const measured={'borrowers:289':{'table.column_widths':[96,168]}};
 function options(vs,p,card,where){
@@ -374,7 +377,7 @@ if(args.includes('--verify')){
  // Revision 2 questions (Archie's test plan; details are booleans and counts, no amounts)
  const att=resultRows('today.attention'),s162=objs(await run(162)),st=n=>s162.find(r=>r['Collection Status']===n)?.['Amount Remaining']??null;
  const attOk={people240_242_244_270:near(att[0]?.[1],await one(240))&&near(att[1]?.[1],await one(242))&&near(att[2]?.[1],await one(244))&&near(att[3]?.[1],await one(270)),
-  amounts254_162:near(att[0]?.[2],await one(254))&&near(att[1]?.[2],st('Not Paid'))&&near(att[2]?.[2],st('Partially Paid')),
+  overdueAmountEquals254:near(att[0]?.[2],await one(254)),leftEquals162:near(att[1]?.[2],st('Not Paid'))&&near(att[2]?.[2],st('Partially Paid')),
   tabIds:att[0]?.[4]===String(state.tabs.collection)&&att[1]?.[4]===String(state.tabs.collection)&&att[3]?.[4]===String(state.tabs.health),
   itemLink:JSON.stringify(dc('today.attention').visualization_settings).includes(`dashboard/${state.dashboard}?tab={{Tab}}`)};
  (att.length===4&&Object.values(attOk).every(Boolean)?pass:fail)('today.attention',{rows:att.length,...attOk});
