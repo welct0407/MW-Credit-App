@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-26T20:43:30.074Z",
+  "at": "2026-10-26T21:08:21.571Z",
   "passed": true,
   "checks": [
     {
@@ -8,11 +8,11 @@
       "detail": {
         "want": {
           "tabs": 12,
-          "placements": 227,
+          "placements": 225,
           "parameters": 22
         },
         "tabs": 12,
-        "placements": 227,
+        "placements": 225,
         "parameters": 22,
         "parameterIdsMatch": true,
         "unmatched": 0
@@ -22,7 +22,7 @@
       "name": "mapping parity",
       "passed": true,
       "detail": {
-        "checked": 158,
+        "checked": 157,
         "mismatched": 0
       }
     },
@@ -38,7 +38,7 @@
       "name": "execution",
       "passed": true,
       "detail": {
-        "dashcards": 182,
+        "dashcards": 180,
         "errors": 0,
         "failed": []
       }
