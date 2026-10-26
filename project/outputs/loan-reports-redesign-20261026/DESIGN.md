@@ -96,13 +96,13 @@ Metabase renders one column below about 760 px: every card full width, in grid o
 
 ### 1 · Today (`today`)
 
-Replaces: 1 · Overview (tab 4). Filters: `period`. Height 29 grid rows, 14 placements (12 visuals).
+Replaces: 1 · Overview (tab 4). Filters: `period`. Height 30 grid rows, 14 placements (12 visuals).
 
 The first page every day: cash available, principal at work, interest this month against the projection, collection progress, what needs attention, and the two trends that explain the month.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 18×2 | text card | **Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before… |  |  |
+| 0/0 | 18×2 | text card | **Today** · live on refresh, Bangkok dates · trends from completed-day snapshots · gross interest. | vs text.align_vertical=top |  |
 | 0/18 | 6×2 | reuse q257 | As of · Bangkok |  |  |
 | 2/0 | 6×3 | reuse q49 | Cash available |  |  |
 | 2/6 | 6×3 | new `today.principal-smart` | Principal at work |  |  |
@@ -115,7 +115,7 @@ The first page every day: cash available, principal at work, interest this month
 | 14/12 | 12×7 | reuse q222 | Daily gross interest · 7-day average | vs graph.show_goal=True, graph.goal_value=10000, graph.goal_label=Daily interest goal 10,000 | goal line = daily interest goal 10,000 |
 | 21/0 | 12×7 | new `today.principal-top4` | Principal by borrower · top 4 + others |  |  |
 | 21/12 | 12×7 | new `today.interest-top4` | Interest 30d by borrower · top 4 + rest |  |  |
-| 28/0 | 24×1 | text card | Card descriptions hold the exact definitions. Profit means gross interest before expenses. Capital deployed ga… |  |  |
+| 28/0 | 24×2 | text card | Card descriptions hold the exact definitions · profit = gross interest before expenses · gauge: Cash Position. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q47, q50, q52, q54, q55, q56, q57, q58, q59, q63, q64, q68, q60, q61, q240, q254, q242, q244, q270, q251 (the saved questions are kept; nothing is deleted).
 
@@ -124,13 +124,13 @@ Phone: Eleven cards instead of eighteen: header, As of, four numbers, two meters
 
 ### 2 · Cash Position (`cash-position`)
 
-Replaces: 2 · Cash Position (tab 14). Filters: `position-date`, `period`. Height 25 grid rows, 10 placements (8 visuals).
+Replaces: 2 · Cash Position (tab 14). Filters: `position-date`, `period`. Height 26 grid rows, 10 placements (8 visuals).
 
 Where the money is on a chosen date: pool, principal, lending capital and net cash, by holder and account, with the completed-day trend.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Cash position** · Date selects the position (today = live, past dates = hourly snapshot). Lending capital is… |  |  |
+| 0/0 | 24×2 | text card | **Cash position** · Date selects the position (today = live, past = snapshot) · net cash includes negatives. | vs text.align_vertical=top |  |
 | 2/0 | 6×3 | new `cash.pool-selected` | Total cash pool |  |  |
 | 2/6 | 6×3 | new `cash.principal-selected` | Principal outstanding |  |  |
 | 2/12 | 6×3 | reuse q207 | Remaining lending capital |  |  |
@@ -139,7 +139,7 @@ Where the money is on a chosen date: pool, principal, lending capital and net ca
 | 5/8 | 16×6 | reuse q210 | Net cash by holder · selected date |  |  |
 | 11/0 | 24×6 | reuse q211 | Account balances · selected date |  |  |
 | 17/0 | 24×7 | reuse q202 | Daily closing positions · completed days | filters period |  |
-| 24/0 | 24×1 | text card | Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab. |  |  |
+| 24/0 | 24×2 | text card | Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q47, q48, q209 (the saved questions are kept; nothing is deleted).
 
@@ -148,13 +148,13 @@ Phone: Four numbers, gauge, holder chart, account table, trend, in that order; n
 
 ### 3 · Income (`income`)
 
-Replaces: 3 · Income Statement (tab 16). Filters: `statement-period`. Height 34 grid rows, 11 placements (9 visuals).
+Replaces: 3 · Income Statement (tab 16). Filters: `statement-period`. Height 35 grid rows, 11 placements (9 visuals).
 
 Income − expenses = net profit for the statement period, compared with the previous period and the previous months, with expense categories and detail.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit… |  |  |
+| 0/0 | 24×2 | text card | **Income statement** · live, with corrections · daily chart from snapshots · net = gross interest − expenses. | vs text.align_vertical=top |  |
 | 2/0 | 8×3 | reuse q168 | Income · gross interest |  |  |
 | 2/8 | 8×3 | new `income.expenses` | − Expenses |  |  |
 | 2/16 | 8×3 | reuse q170 | = Net profit |  |  |
@@ -164,7 +164,7 @@ Income − expenses = net profit for the statement period, compared with the pre
 | 11/16 | 8×8 | reuse q178 | Expenses by category · this period |  |  |
 | 19/0 | 24×7 | reuse q213 | Daily income and expenses · snapshots |  |  |
 | 26/0 | 24×7 | reuse q212 | Expense detail · this period |  |  |
-| 33/0 | 24×1 | text card | Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab. |  |  |
+| 33/0 | 24×2 | text card | Per-day average uses calendar days in the period. Freshness and snapshot coverage: Data health tab. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q184, q204, q214, q169 (the saved questions are kept; nothing is deleted).
 
@@ -173,13 +173,13 @@ Phone: Equation band stacks vertically with the − and = in the titles; compari
 
 ### 4 · Cashflow (`cashflow`)
 
-Replaces: 4 · Cashflow Statement (tab 15). Filters: `statement-period`, `account`. Height 40 grid rows, 11 placements (9 visuals).
+Replaces: 4 · Cashflow Statement (tab 15). Filters: `statement-period`, `account`. Height 41 grid rows, 11 placements (9 visuals).
 
 Opening + money in − money out = closing for the period and account, movement by type, the daily movement and the transaction list.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable. |  |  |
+| 0/0 | 24×2 | text card | **Cashflow statement** · live · All accounts nets transfers to zero · unknown openings show Unavailable. | vs text.align_vertical=top |  |
 | 2/0 | 6×3 | reuse q195 | Opening cash |  |  |
 | 2/6 | 6×3 | reuse q192 | + Money in |  |  |
 | 2/12 | 6×3 | reuse q193 | − Money out |  |  |
@@ -189,7 +189,7 @@ Opening + money in − money out = closing for the period and account, movement 
 | 12/0 | 24×10 | reuse q203 | Movement by transaction type · table |  | height fits all nine type rows |
 | 22/0 | 24×7 | reuse q215 | Daily cash movement · completed days | vs graph.show_values=False | value labels off: they overlapped |
 | 29/0 | 24×10 | reuse q196 | Transactions · chronological |  |  |
-| 39/0 | 24×1 | text card | Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab. |  |  |
+| 39/0 | 24×2 | text card | Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q198, q216 (the saved questions are kept; nothing is deleted).
 
@@ -198,13 +198,13 @@ Phone: Equation band stacks; chart, type table, daily chart, transactions; table
 
 ### 5 · Performance (`performance`)
 
-Replaces: 5 · Performance (tab 18). Filters: `period`. Height 48 grid rows, 19 placements (15 visuals).
+Replaces: 5 · Performance (tab 18). Filters: `period`. Height 49 grid rows, 19 placements (15 visuals).
 
 Lending results for the period: interest, principal issued and returned, loans issued, cohort return, with the daily and weekly trends.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use P… |  |  |
+| 0/0 | 24×2 | text card | **Performance** · totals live · trends from completed-day snapshots · loan and interest dates both use Period. | vs text.align_vertical=top |  |
 | 2/0 | 6×3 | reuse q217 | Gross interest |  |  |
 | 2/6 | 6×3 | reuse q218 | Principal issued |  |  |
 | 2/12 | 6×3 | reuse q219 | Loans issued |  |  |
@@ -222,7 +222,7 @@ Lending results for the period: interest, principal issued and returned, loans i
 | 33/0 | 12×6 | reuse q230 | Cumulative gross interest · 7-day avg |  |  |
 | 33/12 | 12×6 | reuse q226 | Active loans and borrowers · end of day |  |  |
 | 39/0 | 24×8 | reuse q227 | Daily performance · snapshots |  |  |
-| 47/0 | 24×1 | text card | Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab. |  |  |
+| 47/0 | 24×2 | text card | Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q221, q228, q231, q234 (the saved questions are kept; nothing is deleted).
 
@@ -231,13 +231,13 @@ Phone: Four numbers (six columns each, so they stay uncompacted), the comparison
 
 ### 6 · Borrowers (`borrowers`)
 
-Replaces: 6 · Borrowers (tab 104) and 9 · Risks (tab 8). Filters: `period`, `population`. Height 46 grid rows, 20 placements (16 visuals).
+Replaces: 6 · Borrowers (tab 104) and 9 · Risks (tab 8). Filters: `period`, `population`. Height 47 grid rows, 20 placements (16 visuals).
 
 Who holds the principal and who pays the interest, lifetime returns, concentration and ageing (from the former Risks tab), and the comparison table that opens Borrower Detail.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere. |  |  |
+| 0/0 | 24×2 | text card | **Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere. | vs text.align_vertical=top |  |
 | 2/0 | 6×3 | reuse q278 | Active borrowers |  |  |
 | 2/6 | 6×3 | reuse q279 | Active loans |  |  |
 | 2/12 | 6×3 | reuse q280 | Principal outstanding |  |  |
@@ -255,8 +255,8 @@ Who holds the principal and who pays the interest, lifetime returns, concentrati
 | 26/0 | 24×11 | reuse q289 | Borrower comparison · names open Detail | columns Borrower › BCG Matrix category › Current health › Active loans › Principal ฿ › Principal share › Interest ฿ › Lifetime interest return › Last payment; hide Borrower ID, Period start, Period end | category and health columns first; sorted by principal (saved order) |
 | 37/0 | 24×1 | heading card | Activity over time |  |  |
 | 38/0 | 12×7 | reuse q287 | Interest over time · top 5 + others |  |  |
-| 38/12 | 12×7 | reuse q288 | First and repeat loans · weekly |  |  |
-| 45/0 | 24×1 | text card | Gross interest before expenses. Categories come from Borrower Health. Lifetime daily rate (question 313) and t… |  |  |
+| 38/12 | 12×7 | reuse q288 | First and repeat loans · weekly | vs  | short legend labels so the phone legend is not clipped; keys are the series names (COLUMN_n if the placement is visualizer-format) |
+| 45/0 | 24×2 | text card | Gross interest before expenses. Categories come from Borrower Health. Questions 313 and 118 stay saved. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q282, q283, q284, q311, q312, q313, q315, q48, q81, q112, q113, q118, q285, q286 (the saved questions are kept; nothing is deleted).
 
@@ -271,7 +271,7 @@ The payment-behaviour × contribution matrix and the category lists, with the ra
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 12×2 | text card | **Borrower Health** · current portfolio, refreshed on load · click a name to open Borrower Detail. |  |  |
+| 0/0 | 12×2 | text card | **Borrower Health** · current portfolio, refreshed on load · names open Borrower Detail. | vs text.align_vertical=top |  |
 | 0/12 | 6×2 | reuse q270 | Modified plans |  |  |
 | 0/18 | 6×2 | reuse q257 | As of · Bangkok |  |  |
 | 2/0 | 6×3 | reuse q253 | Active borrowers |  |  |
@@ -290,7 +290,7 @@ The payment-behaviour × contribution matrix and the category lists, with the ra
 | 55/0 | 24×10 | reuse q268 | Reliability components and weights |  |  |
 | 65/0 | 24×8 | reuse q271 | Schedule assessment · active borrowers |  |  |
 | 73/0 | 24×8 | reuse q272 | Modified schedules · loan and next plan | hide when empty |  |
-| 81/0 | 24×2 | text card | Rating: recent punctuality 45% · older punctuality 15% · average delay 15% · current payment health 25%; thres… |  |  |
+| 81/0 | 24×2 | text card | Rating weights 45 / 15 / 15 / 25 (recent, older, delay, current) · threshold 80 · boundary 1× · dictionary. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q259, q261, q263, q265 (the saved questions are kept; nothing is deleted).
 
@@ -299,13 +299,13 @@ Phone: Header, numbers, matrix, category counts, tables. Metabase gives the matr
 
 ### 8 · Borrower Detail (`borrower-detail`)
 
-Replaces: 8 · Borrower Detail (tab 105). Filters: `borrower`, `period`, `scenario-amount`. Height 102 grid rows, 37 placements (30 visuals).
+Replaces: 8 · Borrower Detail (tab 105). Filters: `borrower`, `period`, `scenario-amount`. Height 103 grid rows, 37 placements (30 visuals).
 
 One borrower: profile, current and lifetime position, charge lights, activity in the period, the three working tables, the evidence tables and the lending scenario.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it. |  |  |
+| 0/0 | 24×2 | text card | **Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it. | vs text.align_vertical=top |  |
 | 2/0 | 24×4 | reuse q290 | Profile · current position |  |  |
 | 6/0 | 6×3 | reuse q378 | Category · BCG matrix |  |  |
 | 6/6 | 6×3 | reuse q293 | Overdue ฿ |  |  |
@@ -341,7 +341,7 @@ One borrower: profile, current and lifetime position, charge lights, activity in
 | 87/0 | 24×8 | reuse q306 | Repayment allocations · payment dates |  |  |
 | 95/0 | 24×1 | heading card | Additional lending scenario · hypothetical only |  |  |
 | 96/0 | 24×5 | reuse q309 | Additional lending · hypothetical only |  |  |
-| 101/0 | 24×1 | text card | All amounts are baht. Allocations are not unique receipts; corrections remain signed. Context and dates: Data … |  |  |
+| 101/0 | 24×2 | text card | Amounts in baht · allocations are not unique receipts · corrections stay signed · dates: Data health tab. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q300 (the saved questions are kept; nothing is deleted).
 
@@ -350,13 +350,13 @@ Phone: Profile first, then every number card one per row (30 visuals; Metabase c
 
 ### 9 · Collection (`collection`)
 
-Replaces: 10 · Collection Monitor (tab 19). Filters: `collection-borrower`, `collection-status`. Height 43 grid rows, 16 placements (14 visuals).
+Replaces: 10 · Collection Monitor (tab 19). Filters: `collection-borrower`, `collection-status`. Height 44 grid rows, 16 placements (14 visuals).
 
 Today's collection board: progress, the four status lanes, the detail table and today's charges.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 18×2 | text card | **Collection · Bangkok today** · live · payments appear after sync. Filters apply to the detail table only. |  |  |
+| 0/0 | 18×2 | text card | **Collection · Bangkok today** · live · payments appear after sync · filters apply to the detail table only. | vs text.align_vertical=top |  |
 | 0/18 | 6×2 | reuse q257 | As of · Bangkok |  |  |
 | 2/0 | 6×3 | reuse q237 | Collected today |  |  |
 | 2/6 | 6×3 | reuse q238 | Left to collect |  |  |
@@ -371,7 +371,7 @@ Today's collection board: progress, the four status lanes, the detail table and 
 | 22/0 | 24×10 | reuse q248 | Collection detail · filters apply here | columns Borrower › Daily Collection Status › Amount Remaining › Amount Due › Amount Collected › Receipts Today › Overdue Amount; hide Borrower ID |  |
 | 32/0 | 24×4 | reuse q249 | Charges dated today · not board balances |  |  |
 | 36/0 | 24×6 | reuse q64 | Overdue charges · completed days | filters none |  |
-| 42/0 | 24×1 | text card | Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people m… |  |  |
+| 42/0 | 24×2 | text card | Received = receipts today · Left includes older dues · a payment can leave someone Overdue until refresh. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q250, q239, q242, q244, q240, q246, q251, q243, q245, q241, q247 (the saved questions are kept; nothing is deleted).
 
@@ -380,13 +380,13 @@ Phone: Fourteen cards instead of eighteen: As of, four numbers, the meter, the b
 
 ### 10 · Partners (`partners`)
 
-Replaces: 11 · Partners (tab 249). Filters: `partner`, `statement-period`, `settlement-status`. Height 56 grid rows, 20 placements (16 visuals).
+Replaces: 11 · Partners (tab 249). Filters: `partner`, `statement-period`, `settlement-status`. Height 57 grid rows, 20 placements (16 visuals).
 
 Each partner's capital, earnings, payouts, pending settlements and net available, the activity in the period and the ledgers.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Partners** · current balances stay current when the period changes · baht · net available is an entitlement … |  |  |
+| 0/0 | 24×2 | text card | **Partners** · balances stay current when the period changes · net available is an entitlement, not cash. | vs text.align_vertical=top |  |
 | 2/0 | 6×3 | reuse q325 | Net capital ฿ |  |  |
 | 2/6 | 6×3 | reuse q326 | Net earned to date ฿ |  |  |
 | 2/12 | 6×3 | reuse q327 | Completed payouts ฿ |  |  |
@@ -405,7 +405,7 @@ Each partner's capital, earnings, payouts, pending settlements and net available
 | 38/0 | 24×1 | heading card | Ledgers · statement period |  |  |
 | 39/0 | 24×8 | reuse q341 | Capital transaction ledger | hide when empty |  |
 | 47/0 | 24×8 | reuse q342 | Settlement transaction ledger | hide when empty |  |
-| 55/0 | 24×1 | text card | Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab. |  |  |
+| 55/0 | 24×2 | text card | Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q331, q332, q343, q328, q330 (the saved questions are kept; nothing is deleted).
 
@@ -420,7 +420,7 @@ Interest outlook for the current month under one scenario, the drivers and the w
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Forecast & Plan · current Bangkok month** · existing loan book · scenarios are assumptions, not promised col… |  |  |
+| 0/0 | 24×2 | text card | **Forecast & Plan · current month** · existing loan book · scenarios are assumptions, not promises. | vs text.align_vertical=top |  |
 | 2/0 | 24×4 | reuse q353 | Scenario and assumptions in force |  |  |
 | 6/0 | 24×1 | heading card | Interest outlook |  |  |
 | 7/0 | 6×3 | reuse q348 | Interest · month to date |  |  |
@@ -441,7 +441,7 @@ Interest outlook for the current month under one scenario, the drivers and the w
 | 41/16 | 8×3 | reuse q367 | Reserve shortfall ฿ |  |  |
 | 44/0 | 24×6 | reuse q364 | Plan inputs and status |  | Plan not ready until all five inputs are set; blank results until then |
 | 50/0 | 24×8 | reuse q368 | Month-end cash bridge |  |  |
-| 58/0 | 24×2 | text card | Recorded obligations come before simulated ones. Planned new lending adds no forecast income. Month-end cash i… |  |  |
+| 58/0 | 24×2 | text card | Recorded obligations before simulated · planned lending adds no income · month-end cash is not the low point. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q361, q362, q363 (the saved questions are kept; nothing is deleted).
 
@@ -456,7 +456,7 @@ Freshness, coverage, source and calculation checks for every page, in page order
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 0/0 | 24×2 | text card | **Data health** · every page's freshness, coverage and source checks. Filters here mirror the pages they belon… |  |  |
+| 0/0 | 24×2 | text card | **Data health** · every page's freshness, coverage and source checks · filters mirror their pages. | vs text.align_vertical=top |  |
 | 2/0 | 8×3 | reuse q276 | Reporting connection · SELECT 1 |  |  |
 | 2/8 | 8×3 | reuse q257 | Queried at · Bangkok |  |  |
 | 2/16 | 8×3 | reuse q250 | Bangkok date and query time |  |  |

@@ -330,7 +330,7 @@
    "origin": 240,
    "params": [],
    "definition": "One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid today (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card.",
-   "sql": "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\nSELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__','overdue'),\n (2,'🔴 Not paid today',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__','not_paid'),\n (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Borrower Health','__TAB_HEALTH__','')\n) v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
+   "sql": "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\nSELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__','overdue'),\n (2,'🔴 Not paid today',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__','not_paid'),\n (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','__TAB_HEALTH__','')\n) v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
    "settings": {
     "table.pivot": false,
     "column_settings": {
@@ -338,9 +338,16 @@
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
-      "compact": false
+      "compact": false,
+      "column_title": "Amount"
      }
     },
+    "table.column_widths": [
+     126,
+     58,
+     80,
+     86
+    ],
     "table.columns": [
      {
       "name": "Item",
@@ -713,15 +720,23 @@
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
-      "compact": false
+      "compact": false,
+      "column_title": "Left"
      },
      "[\"name\", \"Received \\u0e3f\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
-      "compact": false
+      "compact": false,
+      "column_title": "Received"
      }
     },
+    "table.column_widths": [
+     118,
+     62,
+     82,
+     88
+    ],
     "table.columns": [
      {
       "name": "Lane",
@@ -1444,7 +1459,10 @@
      "size_x": 18,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before expenses.",
+     "text": "**Today** · live on refresh, Bangkok dates · trends from completed-day snapshots · gross interest.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -1604,13 +1622,16 @@
      "row": 28,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Card descriptions hold the exact definitions. Profit means gross interest before expenses. Capital deployed gauge: Cash Position tab.",
+     "text": "Card descriptions hold the exact definitions · profit = gross interest before expenses · gauge: Cash Position.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 29,
+   "height_rows": 30,
    "dropped_from_dashboard_3": [
     47,
     50,
@@ -1649,7 +1670,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Cash position** · Date selects the position (today = live, past dates = hourly snapshot). Lending capital is not a bank balance; net cash includes negative balances.",
+     "text": "**Cash position** · Date selects the position (today = live, past = snapshot) · net cash includes negatives.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -1752,13 +1776,16 @@
      "row": 24,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
      "text": "Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 25,
+   "height_rows": 26,
    "dropped_from_dashboard_3": [
     47,
     48,
@@ -1779,7 +1806,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit = gross interest − expenses.",
+     "text": "**Income statement** · live, with corrections · daily chart from snapshots · net = gross interest − expenses.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -1886,13 +1916,16 @@
      "row": 33,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab.",
+     "text": "Per-day average uses calendar days in the period. Freshness and snapshot coverage: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 34,
+   "height_rows": 35,
    "dropped_from_dashboard_3": [
     184,
     204,
@@ -1915,7 +1948,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable.",
+     "text": "**Cashflow statement** · live · All accounts nets transfers to zero · unknown openings show Unavailable.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -2035,13 +2071,16 @@
      "row": 39,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
      "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 40,
+   "height_rows": 41,
    "dropped_from_dashboard_3": [
     198,
     216
@@ -2061,7 +2100,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use Period.",
+     "text": "**Performance** · totals live · trends from completed-day snapshots · loan and interest dates both use Period.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -2257,13 +2299,16 @@
      "row": 47,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
      "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 48,
+   "height_rows": 49,
    "dropped_from_dashboard_3": [
     221,
     228,
@@ -2287,6 +2332,9 @@
      "size_y": 2,
      "virtual": "text",
      "text": "**Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -2512,6 +2560,20 @@
      "size_y": 7,
      "reuse_card_id": 288,
      "title": "First and repeat loans · weekly",
+     "note": "short legend labels so the phone legend is not clipped; keys are the series names (COLUMN_n if the placement is visualizer-format)",
+     "vs": {
+      "series_settings": {
+       "First loans": {
+        "title": "First"
+       },
+       "Repeat loans": {
+        "title": "Repeat"
+       },
+       "Unavailable classification": {
+        "title": "Unclassified"
+       }
+      }
+     },
      "params": [
       "period",
       "population"
@@ -2521,13 +2583,16 @@
      "row": 45,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Gross interest before expenses. Categories come from Borrower Health. Lifetime daily rate (question 313) and the risk monitor (118) stay available as saved questions.",
+     "text": "Gross interest before expenses. Categories come from Borrower Health. Questions 313 and 118 stay saved.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 46,
+   "height_rows": 47,
    "dropped_from_dashboard_3": [
     282,
     283,
@@ -2557,7 +2622,10 @@
      "size_x": 12,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Borrower Health** · current portfolio, refreshed on load · click a name to open Borrower Detail.",
+     "text": "**Borrower Health** · current portfolio, refreshed on load · names open Borrower Detail.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -2744,7 +2812,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "Rating: recent punctuality 45% · older punctuality 15% · average delay 15% · current payment health 25%; threshold 80; contribution boundary 1×. Full method in the dictionary.",
+     "text": "Rating weights 45 / 15 / 15 / 25 (recent, older, delay, current) · threshold 80 · boundary 1× · dictionary.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
@@ -2773,6 +2844,9 @@
      "size_y": 2,
      "virtual": "text",
      "text": "**Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -3215,13 +3289,16 @@
      "row": 101,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "All amounts are baht. Allocations are not unique receipts; corrections remain signed. Context and dates: Data health tab.",
+     "text": "Amounts in baht · allocations are not unique receipts · corrections stay signed · dates: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 102,
+   "height_rows": 103,
    "dropped_from_dashboard_3": [
     300
    ]
@@ -3241,7 +3318,10 @@
      "size_x": 18,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Collection · Bangkok today** · live · payments appear after sync. Filters apply to the detail table only.",
+     "text": "**Collection · Bangkok today** · live · payments appear after sync · filters apply to the detail table only.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -3432,13 +3512,16 @@
      "row": 42,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people move lanes after refresh.",
+     "text": "Received = receipts today · Left includes older dues · a payment can leave someone Overdue until refresh.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 43,
+   "height_rows": 44,
    "dropped_from_dashboard_3": [
     250,
     239,
@@ -3469,7 +3552,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Partners** · current balances stay current when the period changes · baht · net available is an entitlement after reservations, not cash on hand.",
+     "text": "**Partners** · balances stay current when the period changes · net available is an entitlement, not cash.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -3706,13 +3792,16 @@
      "row": 55,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
      "text": "Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 56,
+   "height_rows": 57,
    "dropped_from_dashboard_3": [
     331,
     332,
@@ -3745,7 +3834,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Forecast & Plan · current Bangkok month** · existing loan book · scenarios are assumptions, not promised collections. Interest and principal stay separate.",
+     "text": "**Forecast & Plan · current month** · existing loan book · scenarios are assumptions, not promises.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -4151,7 +4243,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "Recorded obligations come before simulated ones. Planned new lending adds no forecast income. Month-end cash is not the lowest balance of the month. Detail and coverage: Data health tab.",
+     "text": "Recorded obligations before simulated · planned lending adds no income · month-end cash is not the low point.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
@@ -4188,7 +4283,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Data health** · every page's freshness, coverage and source checks. Filters here mirror the pages they belong to.",
+     "text": "**Data health** · every page's freshness, coverage and source checks · filters mirror their pages.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
