@@ -343,10 +343,10 @@
      }
     },
     "table.column_widths": [
-     117,
-     75,
-     81,
-     67
+     110,
+     74,
+     80,
+     76
     ],
     "table.columns": [
      {
@@ -2776,6 +2776,21 @@
      "size_y": 10,
      "reuse_card_id": 267,
      "title": "Payment health · all borrowers",
+     "note": "Category column (10th) wide enough for \"Outside active cohort\"; 0 = auto",
+     "vs": {
+      "table.column_widths": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       148
+      ]
+     },
      "params": []
     },
     {

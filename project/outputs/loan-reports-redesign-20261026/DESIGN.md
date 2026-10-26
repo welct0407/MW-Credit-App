@@ -285,7 +285,7 @@ The payment-behaviour × contribution matrix and the category lists, with the ra
 | 27/18 | 6×2 | reuse q262 | Dog |  |  |
 | 29/0 | 24×9 | reuse q275 | Borrowers by category · scores | vs table.column_widths=[168]; columns Category › Borrower › Payment score /100 › Contribution × › Schedule; hide Borrower ID | column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category |
 | 38/0 | 24×1 | heading card | Rating detail |  |  |
-| 39/0 | 24×10 | reuse q267 | Payment health · all borrowers |  |  |
+| 39/0 | 24×10 | reuse q267 | Payment health · all borrowers | vs table.column_widths=[0, 0, 0, 0, 0, 0, 0, 0, 0, 148] | Category column (10th) wide enough for "Outside active cohort"; 0 = auto |
 | 49/0 | 24×6 | reuse q269 | Unavailable ratings and default context | hide when empty |  |
 | 55/0 | 24×10 | reuse q268 | Reliability components and weights |  |  |
 | 65/0 | 24×8 | reuse q271 | Schedule assessment · active borrowers |  |  |

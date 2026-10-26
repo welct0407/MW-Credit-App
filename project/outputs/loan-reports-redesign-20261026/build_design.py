@@ -196,7 +196,7 @@ NEW_QUESTIONS = {
                " (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n"
                " (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','__TAB_HEALTH__','')\n"
                ") v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
-        'settings': {'table.pivot': False, 'column_settings': titled('Amount ฿', 'Amount'), 'table.column_widths': [117, 75, 81, 67],
+        'settings': {'table.pivot': False, 'column_settings': titled('Amount ฿', 'Amount'), 'table.column_widths': [110, 74, 80, 76],
                      'table.columns': [{'name': n, 'enabled': n not in ('Tab', 'Tint')} for n in ['Item', 'People', 'Amount ฿', 'Opens', 'Tab', 'Tint']],
                      'table.column_formatting': [
                          {'id': 0, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'overdue', 'color': STATUS['overdue'], 'highlight_row': True},
@@ -568,7 +568,7 @@ TABS = [
             [(275, 24, 9, {'title': 'Borrowers by category · scores', 'description': 'Payment score, contribution and schedule per borrower, sorted by category.', 'columns': COLUMNS_275, 'vs': {'table.column_widths': [168]},
                            'note': 'column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category'})],
             [H('Rating detail')],
-            [(267, 24, 10, {'title': 'Payment health · all borrowers'})],
+            [(267, 24, 10, {'title': 'Payment health · all borrowers', 'vs': {'table.column_widths': [0, 0, 0, 0, 0, 0, 0, 0, 0, 148]}, 'note': 'Category column (10th) wide enough for "Outside active cohort"; 0 = auto'})],
             [(269, 24, 6, {'title': 'Unavailable ratings and default context', 'hide_empty': True})],
             [(268, 24, 10, {'title': 'Reliability components and weights', 'description': 'Active borrowers: score components and the effective weights.'})],
             [(271, 24, 8, {'title': 'Schedule assessment · active borrowers'})],
