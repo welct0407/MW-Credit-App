@@ -128,6 +128,8 @@ function placements(tab,state,baseline,live1501){
   const vs=rewrite(structuredClone(old?.visualization_settings??{}),state);
   vs['card.title']=p.title;
   if(goals[p.reuse_card_id])Object.assign(vs,goals[p.reuse_card_id]);
+  // Visualizer-format placements render from their inner settings, so the title and goal go there too.
+  if(vs.visualization?.settings){vs.visualization.settings['card.title']=p.title;if(goals[p.reuse_card_id])Object.assign(vs.visualization.settings,goals[p.reuse_card_id]);}
   if(p.reuse_card_id===275&&tab.key==='health'){const cols=state.cardColumns?.[275]??[];vs['table.columns']=[...order275,...cols.filter(c=>!order275.includes(c))].filter(c=>cols.includes(c)).map(name=>({name,enabled:name!=='Borrower ID'}));}
   // Today's attention chips (row 10) open the proposed tab that holds the same question.
   if(tab.key==='today'&&p.row===10&&cardTab.has(p.reuse_card_id))vs.click_behavior={type:'link',linkType:'url',linkTemplate:`${site}/dashboard/${state.dashboard}?tab=${state.tabs[cardTab.get(p.reuse_card_id)]}`};
