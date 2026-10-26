@@ -44,7 +44,7 @@ Railway disclosed on 22 October 2026 (incident QH8L8B3E) that customers' environ
 - Since the first fresh start at 12:12 UTC, Metabase memory sits at about 1.9 of 2.0 GB (about 1.4 GB before), and the Grafana memory-pressure alert fires. The memory limit, replica count and `JAVA_OPTS` are unchanged. The owner assigned this alert to another session.
 
 ## Open questions
-- Whether to revoke Metabase API key 3 ("Report development", admin). It was kept by owner instruction until the report migration ends; Metabase stores only a hash of it.
+- Whether to revoke Metabase API key 3 ("Report development", admin). It was kept by owner instruction until the report migration ends; Metabase stores only a hash of it. Resolved 26 October 2026: the owner regenerated key 3 and stored it in `mw-metabase-admin-api-key` ([change note](CHANGE_NOTES_METABASE_ADMIN_KEY_SECRET_2026-10-26.md)).
 
 ## Remaining work
 - Review Cloud SQL and Metabase logs for use of the old credentials.
