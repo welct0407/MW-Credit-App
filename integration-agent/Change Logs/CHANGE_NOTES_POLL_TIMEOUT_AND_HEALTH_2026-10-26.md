@@ -23,10 +23,11 @@ Owner-approved fix for false polling Down alerts. Forge journal evidence for 24-
 ## Deployment
 | Item | Value |
 | --- | --- |
-| Commit / merge | TBD |
-| Deploy time (Asia/Bangkok) | TBD |
-| Collector (`debian-health.py`) and runtime installed | TBD |
-| Post-deploy evidence (poll runs, exit codes, first-call duration, Debian polling status) | TBD |
+| Commit / merge | `c3b62a8` on `claude/great-dirac-nr42ue`; merged to `main` by its pull request (owner approved 26 October) |
+| Collector (`debian-health.py`) | Installed on `vm-mw-credit-agent` (project `clever-oasis-508610-n7`) 10:30 ICT from `c3b62a8`; previous file kept as `/opt/mw-resource-monitoring/debian-health.before-polling-degraded-20261026.py` (identical to the prior `HEAD` copy). First run 10:31:16: `polling` 1, exported; `last-points.json` holds `polling_last_success` |
+| Grafana alert rule | Saved plan changed only `MW \| Debian component unhealthy` (`afz3o5cmmfabkb`) `root_selector` (`$v==2` → `($v==2 and $n!="polling")`); applied 10:31:39 ICT as `codex-cloud`; re-plan: no changes; live selector byte-identical to `debian-alert.jq` |
+| Runtime (`deploy-runtime.py`) | Pending the merge: the host deploys `main` commits only (`update-from-github.sh`, checkout pin) |
+| Pre-deploy poll runs | 10:25-10:32 ICT: 8 runs, exit 0, 6-7 s, `failed_conversations` 0 |
 
 ## Not run
 - Live measurement of the 01:00-08:00 ICT window after deploy: pending.
@@ -38,4 +39,4 @@ Revert the merge commit and redeploy; the collector keeps the previous file besi
 None.
 
 ## Remaining work
-- Fill the deployment section; confirm no exit-2 cluster the following night.
+- Deploy the runtime from the merged `main` commit and record its evidence (poll exit codes, run durations, any `(…Error)` detail); confirm no exit-2 cluster the following night.
