@@ -82,7 +82,7 @@ const normKeys=o=>Array.isArray(o)?o.map(normKeys):o&&typeof o==='object'?Object
 const mergeVs=(a={},b={})=>{const m={...a,...b};for(const k of ['column_settings','series_settings'])if(a[k]||b[k])m[k]=Object.fromEntries([...new Set([...Object.keys(a[k]??{}),...Object.keys(b[k]??{})])].map(n=>[n,{...a[k]?.[n],...b[k]?.[n]}]));return m;};
 const firstDashcard=(baseline,id)=>[...(baseline?.dashcards??[])].sort((a,b)=>a.id-b.id).find(c=>c.card_id===id);
 // Definitions given as an edit of the origin's query (layout: "rank<=10 changed to rank<=5 ... 'Others' replaced by 'Others (n)'").
-const top5=s=>{assert.equal(s.split('rank<=10').length,3,'origin rank<=10 twice');assert.equal(s.split(`ELSE 'Others' END`).length,2,'origin Others label once');return s.replaceAll('rank<=10','rank<=5').replace(`ELSE 'Others' END`,`ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')' END`);};
+const top5=s=>{assert.equal(s.split('rank<=10').length,3,'origin rank<=10 twice');assert.equal(s.split(`ELSE 'Others' END`).length,2,'origin Others label once');const amount=['outstanding_principal','interest_received'].find(c=>s.includes(`sum(${c})`));assert(amount,'top-5 amount column');return s.replaceAll('rank<=10','rank<=5').replace(`ELSE 'Others' END`,`ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(${amount},0)<>0)||')' END`);};
 const edits={'borrowers.principal-top5':top5,'borrowers.interest-top5':top5};
 // The new questions. A native question built from its origin's query (sql_wrap, an edit, or sql naming the origin's tags) copies the
 // origin's template tags and maps them as the origin's dashboard-3 dashcard did; other new questions carry the mappings written below.

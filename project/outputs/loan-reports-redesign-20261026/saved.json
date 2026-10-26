@@ -1536,7 +1536,7 @@
               }
             ],
             "lib/type": "mbql.stage/native",
-            "native": "WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT has_active_loan)), ranked AS (SELECT *,row_number() OVER(ORDER BY outstanding_principal DESC NULLS LAST,borrower_id) rank FROM cohort), groups AS (SELECT CASE WHEN rank<=5 THEN borrower_id END id,CASE WHEN rank<=5 THEN borrower_label ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')' END label,CASE WHEN bool_and(outstanding_principal IS NOT NULL) THEN sum(outstanding_principal) END amount,min(rank) rank FROM ranked GROUP BY 1,2)\n SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM groups ORDER BY rank"
+            "native": "WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT has_active_loan)), ranked AS (SELECT *,row_number() OVER(ORDER BY outstanding_principal DESC NULLS LAST,borrower_id) rank FROM cohort), groups AS (SELECT CASE WHEN rank<=5 THEN borrower_id END id,CASE WHEN rank<=5 THEN borrower_label ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(outstanding_principal,0)<>0)||')' END label,CASE WHEN bool_and(outstanding_principal IS NOT NULL) THEN sum(outstanding_principal) END amount,min(rank) rank FROM ranked GROUP BY 1,2)\n SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM groups ORDER BY rank"
           }
         ],
         "lib/type": "mbql/query",
@@ -1599,7 +1599,7 @@
                   "field",
                   {
                     "base-type": "type/Date",
-                    "lib/uuid": "2e7f9d9a-737f-4bca-bd41-89f27fd7ce66",
+                    "lib/uuid": "e3cad524-0445-4a0c-88bf-6dda6e0f6106",
                     "effective-type": "type/Date"
                   },
                   82
@@ -1614,7 +1614,7 @@
               }
             ],
             "lib/type": "mbql.stage/native",
-            "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid), ranked AS (SELECT *,interest_rank rank FROM cohort), groups AS (SELECT CASE WHEN rank<=5 THEN borrower_id END id,CASE WHEN rank<=5 THEN borrower_label ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')' END label,CASE WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END amount,min(rank) rank FROM ranked GROUP BY 1,2)\n SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM groups ORDER BY rank"
+            "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid), ranked AS (SELECT *,interest_rank rank FROM cohort), groups AS (SELECT CASE WHEN rank<=5 THEN borrower_id END id,CASE WHEN rank<=5 THEN borrower_label ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(interest_received,0)<>0)||')' END label,CASE WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END amount,min(rank) rank FROM ranked GROUP BY 1,2)\n SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM groups ORDER BY rank"
           }
         ],
         "lib/type": "mbql/query",
