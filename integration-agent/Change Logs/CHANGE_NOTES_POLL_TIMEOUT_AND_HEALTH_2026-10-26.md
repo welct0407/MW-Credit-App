@@ -23,20 +23,21 @@ Owner-approved fix for false polling Down alerts. Forge journal evidence for 24-
 ## Deployment
 | Item | Value |
 | --- | --- |
-| Commit / merge | `c3b62a8` on `claude/great-dirac-nr42ue`; merged to `main` by its pull request (owner approved 26 October) |
+| Commit / merge | `c3b62a8` and `0fcdfc3` on `claude/great-dirac-nr42ue`; merged to `main` as `374551d` by pull request 170 (owner approved 26 October) |
 | Collector (`debian-health.py`) | Installed on `vm-mw-credit-agent` (project `clever-oasis-508610-n7`) 10:30 ICT from `c3b62a8`; previous file kept as `/opt/mw-resource-monitoring/debian-health.before-polling-degraded-20261026.py` (identical to the prior `HEAD` copy). First run 10:31:16: `polling` 1, exported; `last-points.json` holds `polling_last_success` |
 | Grafana alert rule | Saved plan changed only `MW \| Debian component unhealthy` (`afz3o5cmmfabkb`) `root_selector` (`$v==2` → `($v==2 and $n!="polling")`); applied 10:31:39 ICT as `codex-cloud`; re-plan: no changes; live selector byte-identical to `debian-alert.jq` |
-| Runtime (`deploy-runtime.py`) | Pending the merge: the host deploys `main` commits only (`update-from-github.sh`, checkout pin) |
+| Runtime (`deploy-runtime.py`) | `update-from-github.sh` `dbd2c89` → `374551d`; dry-run: changed modules `conversation_poll.py`, `instagram.py`, `state_migration.py`, units unchanged, schema check `ok` (through V11, no drift) with the temporary root-only operator connection file (Secret Manager, never printed; shredded and removed afterwards, as at R094/R098); freeze 11:46:52 ICT, install, activate (probe `6f332001-b2f8-40ac-b22e-bfb1c59563b9`), timers resumed |
+| Post-deploy evidence | `code_version` `374551d`; receiver `/ready` true, cloudflared 4 connections, no failed units. Poll runs 11:48-11:53 ICT: all exit 0, 5-7 s, `eligible_conversations` 20, `failed_conversations` 0. Collector `polling`/`receipts`/`audit_relay` 1, exported; `polling_last_success` advancing. Receipt summary 16, audit relay 12, email retry 2 runs since activation, 0 failures |
 | Pre-deploy poll runs | 10:25-10:32 ICT: 8 runs, exit 0, 6-7 s, `failed_conversations` 0 |
 
 ## Not run
 - Live measurement of the 01:00-08:00 ICT window after deploy: pending.
 
 ## Recovery
-Revert the merge commit and redeploy; the collector keeps the previous file beside the new one. `polling_last_success` in `last-points.json` is ignored by older collectors.
+Runtime: `sudo python3 integration-agent/scripts/deploy-runtime.py rollback --commit 374551d60fda07f4768f0beafa4dd100bfa6954b` in `/opt/mw-integration-agent-src` restores `dbd2c89` from `/var/lib/mw-integration-agent/rollback/runtime-20261026T044652298574Z`. Collector: copy back the `.before-polling-degraded-20261026.py` file. Alert: revert the one `root_selector` line and plan/apply. `polling_last_success` in `last-points.json` is ignored by older collectors.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Deploy the runtime from the merged `main` commit and record its evidence (poll exit codes, run durations, any `(…Error)` detail); confirm no exit-2 cluster the following night.
+- After the 27 October 01:00-08:00 ICT window, confirm no exit-2 cluster and record any `(…Error)` detail and run durations.
