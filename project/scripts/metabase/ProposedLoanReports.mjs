@@ -160,7 +160,10 @@ function columnsFor(spec,card,current){
  const saved=(current??card.visualization_settings?.['table.columns']??[]).filter(c=>names.includes(c.name));
  return [...new Set([...spec.order,...saved.map(c=>c.name),...names])].map(name=>({name,enabled:!spec.hide.includes(name)&&(spec.order.includes(name)||(saved.find(c=>c.name===name)?.enabled??true))}));
 }
-function options(vs,p,card){
+// Measured placement settings not yet in the spec (tab key:card id), applied before the placement's own options.
+const measured={'borrowers:289':{'table.column_widths':[96,168]}};
+function options(vs,p,card,where){
+ Object.assign(vs,measured[where]??{});
  vs['card.title']=p.title;if(p.description)vs['card.description']=p.description;const extra=normKeys(p.vs??{});Object.assign(vs,extra);
  if(p.hide_empty)vs['card.hide_empty']=true;
  if(p.columns)vs['table.columns']=columnsFor(p.columns,card,vs['table.columns']);
@@ -171,14 +174,15 @@ function placements(tab,state,baseline,live1501,specs,cards){
  const tabId=state.tabs[tab.key];let id=-1-1000*tab.position;
  return tab.placements.map(p=>{
   const base={id:id--,dashboard_tab_id:tabId,row:p.row,col:p.col,size_x:p.size_x,size_y:p.size_y,series:[]};
-  if(p.virtual)return {...base,card_id:null,parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:p.virtual,visualization_settings:{text:p.text,...(p.virtual==='text'?{'text.align_vertical':'middle'}:{})}},text:p.text}};
+  // Text and heading cards: the placement vs (e.g. text.align_vertical) goes on the card and inside its virtual card.
+  if(p.virtual){const extra=normKeys(p.vs??{});return {...base,card_id:null,parameter_mappings:[],visualization_settings:{'card.background':false,...extra,virtual_card:{display:p.virtual,visualization_settings:{text:p.text,...extra}},text:p.text}};}
   if(p.copy_dashcard){assert.equal(p.copy_dashcard,1501);return {...base,card_id:null,parameter_mappings:[],visualization_settings:structuredClone(live1501.visualization_settings)};}
   if(p.new_question){
    const q=specs.find(q=>q.key===p.new_question),card=state.questions[p.new_question];assert(card,'question not created yet: '+p.new_question);
    return {...base,card_id:card,parameter_mappings:p.params.filter(k=>q.mappings[k]).map(k=>({parameter_id:k,card_id:card,target:q.mappings[k]})),visualization_settings:options(structuredClone(q.presentation),p,cards[card])};
   }
   const old=firstDashcard(baseline,p.reuse_card_id);
-  const vs=options(rewrite(structuredClone(old?.visualization_settings??{}),state),p,cards[p.reuse_card_id]);
+  const vs=options(rewrite(structuredClone(old?.visualization_settings??{}),state),p,cards[p.reuse_card_id],`${tab.key}:${p.reuse_card_id}`);
   const mappings=[];
   for(const m of old?.parameter_mappings??[]){const pid=replaced[m.parameter_id];if(p.params.includes(pid)&&!mappings.some(x=>x.parameter_id===pid))mappings.push({parameter_id:pid,card_id:p.reuse_card_id,target:m.target});}
   return {...base,card_id:p.reuse_card_id,series:(old?.series??[]).map(s=>({id:s.id})),parameter_mappings:mappings,visualization_settings:vs};
