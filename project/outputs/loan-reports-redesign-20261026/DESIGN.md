@@ -73,7 +73,7 @@ Metabase renders one column below about 760 px: every card full width, in grid o
 | `today.principal-smart` | Principal at work · change over the period | smartscalar | q62 | model 74 Daily Performance | period | MBQL on model 74: Outstanding Principal (max) by Date, filtered by Period on Date. Smart scalar shows the latest completed-day value and the change against the first date in the period (29 periods ago on the default 30-day Period). Whole baht. | Latest value equals question 62's last completed day; first value equals its first day (built, verified). |
 | `today.realization` | Interest this month · share of projection | progress | q52 | model 73 Portfolio Overview | none | MBQL on model 73: field Forecast Realization (Realized Profit MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far. | Equals question 51 ÷ question 52 (built, verified). |
 | `today.collection-rate` | Collected today · share of amount due | progress | q252 | model 73 Portfolio Overview | none | MBQL on model 73: field Amount Collection Rate Today (Amount Collected Today ÷ Amount Due Today). Progress goal 1. Reused on Today and Collection. | Equals model 73 Amount Collection Rate Today and question 252 (built, verified). |
-| `today.attention` | Needs attention · strip | table | q240 | models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270 | none | One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid today (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens, Tab (hidden). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card. | People: rows 1–3 equal questions 240, 242, 244; row 4 equals 270. Amount: row 1 equals 254; rows 2–3 equal model 162 Amount Remaining for the status (also the sum of the lane's Left column). |
+| `today.attention` | Needs attention · strip | table | q240 | models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270 | none | One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid today (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card. | People: rows 1–3 equal questions 240, 242, 244; row 4 equals 270. Amount: row 1 equals 254; rows 2–3 equal model 162 Amount Remaining for the status (also the sum of the lane's Left column). |
 | `today.principal-top4` | Principal by borrower · top four + others | row | q60 | model 72 Borrower Performance | none | Native on model 72: borrowers with Principal Rank ≤ 4 named, the rest summed as "Others (n)" (n counts borrowers with principal above zero). Same total as question 60, four bars instead of ten. | Sum of the five bars equals the sum of question 60's bars; the four named bars equal question 60's first four. |
 | `today.interest-top4` | Interest · past 30 days by borrower · top four + others | row | q61 | model 72 Borrower Performance | none | Native on model 72 with question 61's filter (Payments 30D > 0): Profit Rank ≤ 4 named, the rest summed as "Others (n)". Same total as question 61. | Sum of the five bars equals the sum of question 61's bars; the four named bars equal question 61's first four. |
 | `cash.pool-selected` | Total cash pool · selected date | scalar | q207 | snippet 4 Cash position source routing (models 205, 73) | position-date | Native, same routing as question 207: today reads model 73 Total Cash Pool, a past date reads model 205 Total Cash Pool for that date; blank when no snapshot exists. | Today equals question 47; a past date equals model 205 (built, verified). |
@@ -81,16 +81,16 @@ Metabase renders one column below about 760 px: every card full width, in grid o
 | `income.expenses` | Expenses · statement period (positive) | scalar | q169 | snippet 2 Income statement period | statement-period | Question 169's query with the sign flipped, so the equation band reads "Income − Expenses = Net profit" with the minus in the title and a positive magnitude in the card. Copies 169's template tags (statement_period, #186, snippet 2) and mapping. | Equals −(question 169) for the same Statement period. |
 | `income.vs-previous` | This period and the previous period | table | q168 | snippet 2 Income statement period (model 186 Income Events) | statement-period | Native: for the selected statement period and the immediately preceding period of equal length, one row per measure (Income, Expenses, Net profit, Net profit per day) with This period, Previous period, Change and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent. | This period equals 168–171; previous equals them with the preceding range (built, verified). |
 | `income.monthly` | Monthly income, expenses and net profit | bar | q213 | model 186 Income Events | none | MBQL on model 186: sum Income, sum Expenses and sum (Income − Expenses) by Date month, the previous five complete months plus the current month (partial). One shared y-axis so expenses read at true scale. | Each month equals the model 186 month sums (built, verified). |
-| `cashflow.by-type-row` | Cash movement by transaction type · chart | row | q203 | snippet 3 Cashflow statement period (same query as question 203) | statement-period, account | Question 203's query wrapped: TOTAL row and rows with no movement removed, ordered by Money In + Money Out descending. Horizontal bars of Money In (green) and Money Out (red); no "Other" grouping. | Row set equals question 203 without TOTAL and zero rows, for three period/account cases. |
+| `cashflow.by-type-row` | Cash movement by transaction type · chart | row | q203 | snippet 3 Cashflow statement period (same query as question 203) | statement-period, account | Question 203's query wrapped: TOTAL row and rows with no movement removed, ordered by Money In + Money Out descending. Horizontal bars of Money In (green) and Money Out (red), stacked (stackable.stack_type = stacked): on this version Metabase folds unstacked row-chart categories into "Other (n)" regardless of graph.max_categories_enabled; each type moves money one way, so stacking changes nothing visually. | Row set equals question 203 without TOTAL and zero rows, for three period/account cases. |
 | `perf.vs-previous` | This period and the previous period | table | q217 | models 71 Repayment Ledger and 70 Loan Book (pattern of questions 217–219) | period | Native: for the selected Period and the preceding period of equal length, one row per measure: Gross interest, Principal issued, Loans issued, Principal returned and Net principal deployed (issued − returned), with This period, Previous period, Change and Change %. Same date rules as questions 217–219. | Rows 1–3 equal 217–219 (built, verified); row 5 equals question 234 for the same Period; previous equals the preceding range. |
 | `borrowers.principal-top5` | Principal outstanding by borrower · top five + others | row | q285 | view reporting_borrower_directory_v1 (same query as question 285) | population | Question 285's query with rank<=10 changed to rank<=5 (both occurrences) and the label 'Others' replaced by 'Others ('\|\|(SELECT count(*) FROM ranked WHERE rank>5)\|\|')'. Template tag population copied verbatim; maps `population` as 285 maps bp-population. | Sum of bars equals the sum of question 285's bars; the five named bars equal 285's first five, for two Population values. |
 | `borrowers.interest-top5` | Interest received · period by borrower · top five + others | row | q286 | function reporting_borrower_period_v1 (same query as question 286) | period, population | Question 286's query with the same two edits as borrowers.principal-top5. Template tags period and population copied verbatim; maps `period` and `population` as 286 maps bp-period and bp-population. | Sum of bars equals the sum of question 286's bars; named bars equal 286's first five, for two Periods. |
 | `collection.people` | People paid today · x of n | scalar | q239 | model 162 Collection Status Summary | none | Text scalar "<fully paid> of <people with a status today> paid" from model 162 Borrower Count. Replaces the percent card 239 with the prototype's wording. | First number equals question 246; first ÷ second equals question 239. |
-| `collection.board` | Collection board · lanes summary | table | q242 | model 162 Collection Status Summary | none | One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, 🟢 Fully paid; all four always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162. Replaces the four count chips and the Unclassified card. | People per lane equal questions 242, 244, 240, 246; the ⚪ rows' People sum equals question 251; Left ฿ per lane equals the sum of that lane table's Left column. |
-| `collection.lane-not-paid` | 🔴 Not paid · lane | table | q243 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Not Paid'; fields ['Borrower', 'Amount Due', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 243, resorted. | Same Borrower set and the same values per borrower as question 243 (order differs). |
-| `collection.lane-partial` | 🟠 Partially paid · lane | table | q245 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Partially Paid'; fields ['Borrower', 'Receipts Today', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 245, resorted. | Same Borrower set and the same values per borrower as question 245 (order differs). |
-| `collection.lane-overdue` | 🟣 Overdue · lane | table | q241 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as question 241, resorted. | Same Borrower set and the same values per borrower as question 241 (order differs). |
-| `collection.lane-paid` | 🟢 Fully paid · lane | table | q247 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Fully Paid'; fields ['Borrower', 'Receipts Today', 'Amount Due', 'Borrower ID', 'Daily Collection Status']; ORDER BY Receipts Today desc, Borrower asc. Same rows as question 247, resorted. | Same Borrower set and the same values per borrower as question 247 (order differs). |
+| `collection.board` | Collection board · lanes summary | table | q242 | model 162 Collection Status Summary | none | One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, 🟢 Fully paid; all four always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card. | People per lane equal questions 242, 244, 240, 246; the ⚪ rows' People sum equals question 251; Left ฿ per lane equals the sum of that lane table's Left column. |
+| `collection.lane-not-paid` | 🔴 Not paid · lane | table | q243 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Not Paid'; fields ['Borrower', 'Amount Due', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 243, resorted. Column titles Name / Due / Left; widths [80, 76, 76] px for the three visible columns. | Same Borrower set and the same values per borrower as question 243 (order differs). |
+| `collection.lane-partial` | 🟠 Partially paid · lane | table | q245 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Partially Paid'; fields ['Borrower', 'Receipts Today', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 245, resorted. Column titles Name / Paid / Left; widths [80, 76, 76] px for the three visible columns. | Same Borrower set and the same values per borrower as question 245 (order differs). |
+| `collection.lane-overdue` | 🟣 Overdue · lane | table | q241 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as question 241, resorted. Column titles Name / Overdue / Left; widths [72, 90, 70] px for the three visible columns. | Same Borrower set and the same values per borrower as question 241 (order differs). |
+| `collection.lane-paid` | 🟢 Fully paid · lane | table | q247 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Fully Paid'; fields ['Borrower', 'Receipts Today', 'Amount Due', 'Borrower ID', 'Daily Collection Status']; ORDER BY Receipts Today desc, Borrower asc. Same rows as question 247, resorted. Column titles Name / Paid / Due; widths [80, 76, 76] px for the three visible columns. | Same Borrower set and the same values per borrower as question 247 (order differs). |
 | `partners.statement` | Partner positions · statement | table | q330 | model 318 Partners · position source (same query as question 330) | partner | Question 330's query as a CTE, unpivoted to (Measure, Partner, Amount ฿) for the five statement measures Net capital, Net earned to date, Completed payouts, Pending settlements, Net available; shown pivoted (measures as rows, partners as columns) with table.pivot. Template tags partner and #318 copied; maps `partner` as 330 maps pt-partner. If table.pivot does not render for a native result on this version, the fallback is question 330 reused with columns limited to Partner and the five measures. | Every (Measure, Partner) cell equals the matching column of question 330 for the same Partner filter. |
 | `partners.capital-share-row` | Capital share · full pool | row | q331 | model 318 Partners · position source (same query as question 331) | partner | Question 331's query with Capital share % (each row's share of the rows) as the plotted value. | Rows equal question 331 (built, verified). |
 
@@ -108,13 +108,13 @@ The first page every day: cash available, principal at work, interest this month
 | 2/6 | 6×3 | new `today.principal-smart` | Principal at work |  |  |
 | 2/12 | 6×3 | reuse q51 | Interest this month |  |  |
 | 2/18 | 6×3 | reuse q237 | Collected today |  |  |
-| 5/0 | 12×3 | new `today.realization` | Interest this month · share of projection |  |  |
+| 5/0 | 12×3 | new `today.realization` | Interest this month · of projection |  |  |
 | 5/12 | 12×3 | new `today.collection-rate` | Collected today · share of amount due |  |  |
-| 8/0 | 24×6 | new `today.attention` | Needs attention · click a row to open Collection or Borrower Health |  |  |
+| 8/0 | 24×6 | new `today.attention` | Needs attention · rows open pages |  |  |
 | 14/0 | 12×7 | reuse q62 | Principal at work · daily close | vs graph.show_goal=True, graph.goal_value=120000, graph.goal_label=Principal reference 120,000, graph.colors=['#509EE3'] | goal line = principal reference 120,000; series blue (red is a status colour) |
 | 14/12 | 12×7 | reuse q222 | Daily gross interest · 7-day average | vs graph.show_goal=True, graph.goal_value=10000, graph.goal_label=Daily interest goal 10,000 | goal line = daily interest goal 10,000 |
-| 21/0 | 12×7 | new `today.principal-top4` | Principal by borrower · top four + others |  |  |
-| 21/12 | 12×7 | new `today.interest-top4` | Interest · past 30 days by borrower · top four + others |  |  |
+| 21/0 | 12×7 | new `today.principal-top4` | Principal by borrower · top 4 + others |  |  |
+| 21/12 | 12×7 | new `today.interest-top4` | Interest 30d by borrower · top 4 + rest |  |  |
 | 28/0 | 24×1 | text card | Card descriptions hold the exact definitions. Profit means gross interest before expenses. Capital deployed ga… |  |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q47, q50, q52, q54, q55, q56, q57, q58, q59, q63, q64, q68, q60, q61, q240, q254, q242, q244, q270, q251 (the saved questions are kept; nothing is deleted).
@@ -137,7 +137,7 @@ Where the money is on a chosen date: pool, principal, lending capital and net ca
 | 2/18 | 6×3 | reuse q208 | Net cash balance |  |  |
 | 5/0 | 8×6 | reuse q68 | Capital deployed · live |  |  |
 | 5/8 | 16×6 | reuse q210 | Net cash by holder · selected date |  |  |
-| 11/0 | 24×6 | reuse q211 | Account balances · selected date (signed) |  |  |
+| 11/0 | 24×6 | reuse q211 | Account balances · selected date |  |  |
 | 17/0 | 24×7 | reuse q202 | Daily closing positions · completed days | filters period |  |
 | 24/0 | 24×1 | text card | Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab. |  |  |
 
@@ -162,7 +162,7 @@ Income − expenses = net profit for the statement period, compared with the pre
 | 5/16 | 8×6 | reuse q171 | Net profit per day · calendar days |  |  |
 | 11/0 | 16×8 | new `income.monthly` | Monthly income, expenses and net profit |  |  |
 | 11/16 | 8×8 | reuse q178 | Expenses by category · this period |  |  |
-| 19/0 | 24×7 | reuse q213 | Daily income and expenses · completed days |  |  |
+| 19/0 | 24×7 | reuse q213 | Daily income and expenses · snapshots |  |  |
 | 26/0 | 24×7 | reuse q212 | Expense detail · this period |  |  |
 | 33/0 | 24×1 | text card | Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab. |  |  |
 
@@ -186,7 +186,7 @@ Opening + money in − money out = closing for the period and account, movement 
 | 2/18 | 6×3 | reuse q197 | = Closing cash |  |  |
 | 5/0 | 6×3 | reuse q194 | Net cash movement |  |  |
 | 5/6 | 18×7 | new `cashflow.by-type-row` | Cash movement by transaction type |  |  |
-| 12/0 | 24×10 | reuse q203 | Cash movement by transaction type · table |  | height fits all nine type rows |
+| 12/0 | 24×10 | reuse q203 | Movement by transaction type · table |  | height fits all nine type rows |
 | 22/0 | 24×7 | reuse q215 | Daily cash movement · completed days | vs graph.show_values=False | value labels off: they overlapped |
 | 29/0 | 24×10 | reuse q196 | Transactions · chronological |  |  |
 | 39/0 | 24×1 | text card | Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab. |  |  |
@@ -219,7 +219,7 @@ Lending results for the period: interest, principal issued and returned, loans i
 | 26/0 | 24×1 | heading card | Returns |  |  |
 | 27/0 | 12×6 | reuse q232 | Daily capital yield |  |  |
 | 27/12 | 12×6 | reuse q233 | Weekly loan-cohort return |  |  |
-| 33/0 | 12×6 | reuse q230 | Cumulative gross interest · 7-day average |  |  |
+| 33/0 | 12×6 | reuse q230 | Cumulative gross interest · 7-day avg |  |  |
 | 33/12 | 12×6 | reuse q226 | Active loans and borrowers · end of day |  |  |
 | 39/0 | 24×8 | reuse q227 | Daily performance · snapshots |  |  |
 | 47/0 | 24×1 | text card | Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab. |  |  |
@@ -242,8 +242,8 @@ Who holds the principal and who pays the interest, lifetime returns, concentrati
 | 2/6 | 6×3 | reuse q279 | Active loans |  |  |
 | 2/12 | 6×3 | reuse q280 | Principal outstanding |  |  |
 | 2/18 | 6×3 | reuse q281 | Interest received · period |  |  |
-| 5/0 | 8×8 | new `borrowers.principal-top5` | Principal outstanding · top five + others | filters population |  |
-| 5/8 | 8×8 | new `borrowers.interest-top5` | Interest received · period · top five + others |  |  |
+| 5/0 | 8×8 | new `borrowers.principal-top5` | Principal outstanding · top 5 + others | filters population |  |
+| 5/8 | 8×8 | new `borrowers.interest-top5` | Interest · period · top 5 + others |  |  |
 | 5/16 | 8×8 | reuse q314 | Lifetime return · top 8 |  |  |
 | 13/0 | 24×1 | heading card | Concentration & ageing |  |  |
 | 14/0 | 6×3 | reuse q110 | Top three concentration |  |  |
@@ -251,10 +251,10 @@ Who holds the principal and who pays the interest, lifetime returns, concentrati
 | 14/6 | 9×6 | reuse q115 | Active principal by age |  |  |
 | 14/15 | 9×6 | reuse q117 | Default loss over time |  |  |
 | 20/0 | 12×6 | reuse q114 | Active loan count by age |  |  |
-| 20/12 | 12×6 | reuse q116 | Borrower risk · excluding largest exposure |  |  |
-| 26/0 | 24×11 | reuse q289 | Borrower comparison · click a name for Detail | columns Borrower › BCG Matrix category › Current health › Active loans › Principal ฿ › Principal share › Interest ฿ › Lifetime interest return › Last payment; hide Borrower ID, Period start, Period end | category and health columns first; sorted by principal (saved order) |
+| 20/12 | 12×6 | reuse q116 | Borrower risk · excl. largest exposure |  |  |
+| 26/0 | 24×11 | reuse q289 | Borrower comparison · names open Detail | columns Borrower › BCG Matrix category › Current health › Active loans › Principal ฿ › Principal share › Interest ฿ › Lifetime interest return › Last payment; hide Borrower ID, Period start, Period end | category and health columns first; sorted by principal (saved order) |
 | 37/0 | 24×1 | heading card | Activity over time |  |  |
-| 38/0 | 12×7 | reuse q287 | Interest received over time · top 5 + others |  |  |
+| 38/0 | 12×7 | reuse q287 | Interest over time · top 5 + others |  |  |
 | 38/12 | 12×7 | reuse q288 | First and repeat loans · weekly |  |  |
 | 45/0 | 24×1 | text card | Gross interest before expenses. Categories come from Borrower Health. Lifetime daily rate (question 313) and t… |  |  |
 
@@ -283,13 +283,13 @@ The payment-behaviour × contribution matrix and the category lists, with the ra
 | 27/6 | 6×2 | reuse q258 | Cash Cow |  |  |
 | 27/12 | 6×2 | reuse q264 | Question Mark |  |  |
 | 27/18 | 6×2 | reuse q262 | Dog |  |  |
-| 29/0 | 24×9 | reuse q275 | Borrowers by category · scores, schedule and contribution | columns Category › Borrower › Payment score /100 › Contribution × › Schedule; hide Borrower ID | column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category |
+| 29/0 | 24×9 | reuse q275 | Borrowers by category · scores | columns Category › Borrower › Payment score /100 › Contribution × › Schedule; hide Borrower ID | column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category |
 | 38/0 | 24×1 | heading card | Rating detail |  |  |
 | 39/0 | 24×10 | reuse q267 | Payment health · all borrowers |  |  |
 | 49/0 | 24×6 | reuse q269 | Unavailable ratings and default context | hide when empty |  |
-| 55/0 | 24×10 | reuse q268 | Reliability components and effective weights · active borrowers |  |  |
-| 65/0 | 24×8 | reuse q271 | Automatic schedule assessment · active borrowers |  |  |
-| 73/0 | 24×8 | reuse q272 | Modified schedules · loan and next-plan detail | hide when empty |  |
+| 55/0 | 24×10 | reuse q268 | Reliability components and weights |  |  |
+| 65/0 | 24×8 | reuse q271 | Schedule assessment · active borrowers |  |  |
+| 73/0 | 24×8 | reuse q272 | Modified schedules · loan and next plan | hide when empty |  |
 | 81/0 | 24×2 | text card | Rating: recent punctuality 45% · older punctuality 15% · average delay 15% · current payment health 25%; thres… |  |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q259, q261, q263, q265 (the saved questions are kept; nothing is deleted).
@@ -322,7 +322,7 @@ One borrower: profile, current and lifetime position, charge lights, activity in
 | 17/0 | 8×3 | reuse q375 | Original principal ฿ |  |  |
 | 17/8 | 8×3 | reuse q376 | Interest earned ฿ |  |  |
 | 17/16 | 8×3 | reuse q377 | Return on closed loans |  |  |
-| 20/0 | 24×5 | reuse q369 | Most recent seven charge dates · red overdue, orange paid late, green on time |  |  |
+| 20/0 | 24×5 | reuse q369 | Last seven charge dates |  |  |
 | 25/0 | 24×1 | heading card | Activity · selected period |  |  |
 | 26/0 | 6×3 | reuse q296 | Interest received ฿ |  |  |
 | 26/6 | 6×3 | reuse q297 | Principal issued ฿ |  |  |
@@ -334,11 +334,11 @@ One borrower: profile, current and lifetime position, charge lights, activity in
 | 44/0 | 24×7 | reuse q308 | All current overdue obligations |  |  |
 | 51/0 | 24×8 | reuse q305 | Loan history · lifetime |  |  |
 | 59/0 | 24×4 | reuse q316 | Payment punctuality · selected due dates |  |  |
-| 63/0 | 24×7 | reuse q304 | Payment punctuality over time · due month |  |  |
+| 63/0 | 24×7 | reuse q304 | Punctuality over time · due month |  |  |
 | 70/0 | 24×1 | heading card | Records · selected period |  |  |
 | 71/0 | 24×8 | reuse q307 | Obligation evidence · selected due dates |  |  |
 | 79/0 | 24×8 | reuse q317 | Payments · selected payment dates |  |  |
-| 87/0 | 24×8 | reuse q306 | Repayment allocations · selected payment dates |  |  |
+| 87/0 | 24×8 | reuse q306 | Repayment allocations · payment dates |  |  |
 | 95/0 | 24×1 | heading card | Additional lending scenario · hypothetical only |  |  |
 | 96/0 | 24×5 | reuse q309 | Additional lending · hypothetical only |  |  |
 | 101/0 | 24×1 | text card | All amounts are baht. Allocations are not unique receipts; corrections remain signed. Context and dates: Data … |  |  |
@@ -368,8 +368,8 @@ Today's collection board: progress, the four status lanes, the detail table and 
 | 13/6 | 6×9 | new `collection.lane-partial` | 🟠 Partially paid |  | Received ฿ · Left ฿, sorted by amount left |
 | 13/12 | 6×9 | new `collection.lane-overdue` | 🟣 Overdue |  | Overdue ฿ · Left ฿, sorted by overdue amount |
 | 13/18 | 6×9 | new `collection.lane-paid` | 🟢 Fully paid |  | Received ฿ · Due ฿, sorted by received |
-| 22/0 | 24×10 | reuse q248 | Collection detail · filters above apply here | columns Borrower › Daily Collection Status › Amount Remaining › Amount Due › Amount Collected › Receipts Today › Overdue Amount; hide Borrower ID |  |
-| 32/0 | 24×4 | reuse q249 | Charges dated today · separate from board balances |  |  |
+| 22/0 | 24×10 | reuse q248 | Collection detail · filters apply here | columns Borrower › Daily Collection Status › Amount Remaining › Amount Due › Amount Collected › Receipts Today › Overdue Amount; hide Borrower ID |  |
+| 32/0 | 24×4 | reuse q249 | Charges dated today · not board balances |  |  |
 | 36/0 | 24×6 | reuse q64 | Overdue charges · completed days | filters none |  |
 | 42/0 | 24×1 | text card | Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people m… |  |  |
 
@@ -427,7 +427,7 @@ Interest outlook for the current month under one scenario, the drivers and the w
 | 7/6 | 6×3 | reuse q349 | Remaining · scenario |  |  |
 | 7/12 | 6×3 | reuse q350 | Month-end outlook |  |  |
 | 7/18 | 6×3 | reuse q351 | Target gap |  |  |
-| 10/0 | 16×9 | reuse q356 | Cumulative interest · actual and projected |  |  |
+| 10/0 | 16×9 | reuse q356 | Cumulative interest · actual + projected |  |  |
 | 10/16 | 8×9 | reuse q355 | Month-end by scenario |  |  |
 | 19/0 | 12×8 | reuse q357 | Upcoming dues · remaining weeks |  |  |
 | 19/12 | 12×8 | reuse q360 | Watchlist · dues at risk |  |  |
@@ -471,11 +471,11 @@ Freshness, coverage, source and calculation checks for every page, in page order
 | 28/0 | 24×1 | heading card | Performance |  |  |
 | 29/0 | 8×7 | reuse q221 | Live period and source |  |  |
 | 29/8 | 16×7 | reuse q228 | Snapshot coverage and generation times |  |  |
-| 36/0 | 24×4 | reuse q231 | Rolling-average coverage · selected completed dates |  |  |
+| 36/0 | 24×4 | reuse q231 | Rolling-average coverage |  |  |
 | 40/0 | 24×1 | heading card | Borrowers and Borrower Detail |  |  |
 | 41/0 | 12×4 | reuse q284 | Period, population and source |  |  |
-| 41/12 | 12×4 | reuse q315 | Overall charts · dates and data availability |  |  |
-| 45/0 | 24×5 | reuse q300 | Activity dates and lifetime context · selected borrower |  |  |
+| 41/12 | 12×4 | reuse q315 | Overall charts · dates and availability |  |  |
+| 45/0 | 24×5 | reuse q300 | Activity dates and lifetime context |  |  |
 | 50/0 | 24×1 | heading card | Partners |  |  |
 | 51/0 | 12×7 | reuse q332 | How net available is calculated |  |  |
 | 51/12 | 12×7 | reuse q343 | Source and balance checks |  |  |

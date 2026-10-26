@@ -12,6 +12,7 @@ dashcard 1501. A list as the reference is a vertical stack of cards in one colum
 
 Placement options (the installer applies them generically):
     title       -> visualization_settings['card.title'] (and inside a visualizer block when present)
+    description -> visualization_settings['card.description'] (words moved out of a shortened title)
     vs          -> merged into visualization_settings (and inside visualization.settings for visualizer-format
                    placements copied from dashboard 3, where the inner settings win at render time)
     columns     -> {'order': [...], 'hide': [...]} -> table.columns from the card's result_metadata names: the
@@ -124,23 +125,29 @@ def titled(name, title, fmt=BAHT):
 LANE_FIELDS = ['Borrower', 'Borrower ID', 'Daily Collection Status']
 
 
-def lane(status, emoji_name, first, first_title, second, second_title, sort_field, origin):
+def lane(status, emoji_name, first, first_title, second, second_title, sort_field, origin, tint, widths):
     """Copy of a Collection Monitor lane (MBQL on model 77 Collection Worklist) with the prototype's columns
-    and a sort by amount. Hidden columns keep the origin's click-through to Borrower Detail."""
+    and a sort by amount. Hidden columns keep the origin's click-through to Borrower Detail. Column titles are
+    short so headers fit a 6-column card; the row tint is a rule on the hidden status column so every cell of
+    the row gets the same colour (a rule on a visible column darkens that cell)."""
     fields = ['Borrower', first, second] + LANE_FIELDS[1:]
     return {
         'name': f'{emoji_name} · lane', 'display': 'table', 'kind': 'mbql',
         'basis': 'model 77 Collection Worklist', 'origin': origin, 'params': [],
         'definition': f'MBQL on model 77 filtered Daily Collection Status = {status!r}; fields {fields}; '
-                      f'ORDER BY {sort_field} desc, Borrower asc. Same rows as question {origin}, resorted.',
+                      f'ORDER BY {sort_field} desc, Borrower asc. Same rows as question {origin}, resorted. Column titles '
+                      f'Name / {first_title} / {second_title}; widths {widths} px for the three visible columns.',
         'query': {'source-table': 'card__77', 'filter': ['=', ['field', 'Daily Collection Status', {'base-type': 'type/Text'}], status],
                   'fields': [['field', f, {'base-type': 'type/Text' if f in LANE_FIELDS else 'type/Decimal'}] for f in fields],
                   'order-by': [['desc', ['field', sort_field, {'base-type': 'type/Decimal'}]],
                                ['asc', ['field', 'Borrower', {'base-type': 'type/Text'}]]]},
         'settings': {'table.pivot': False,
                      'table.columns': [{'name': f, 'enabled': f not in ('Borrower ID', 'Daily Collection Status')} for f in fields],
-                     'column_settings': {**titled(first, first_title), **titled(second, second_title)},
-                     'copy_from_origin': ['table.column_formatting', 'click_behavior']},
+                     'table.column_widths': widths,
+                     'column_settings': {**titled('Borrower', 'Name', {}), **titled(first, first_title), **titled(second, second_title)},
+                     'table.column_formatting': [{'id': 0, 'columns': ['Daily Collection Status'], 'type': 'single', 'operator': '=',
+                                                  'value': status, 'color': tint, 'highlight_row': True}],
+                     'copy_from_origin': ['click_behavior']},
         'reconcile': f'Same Borrower set and the same values per borrower as question {origin} (order differs).',
     }
 
@@ -179,22 +186,22 @@ NEW_QUESTIONS = {
         'definition': 'One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, '
                       'amount as question 254), 🔴 Not paid today (model 162 count as 242, amount left), 🟠 Partially paid '
                       '(model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, '
-                      'Opens, Tab (hidden). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the '
+                      'Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the '
                       'proposed tab ids and sets the Item column click behaviour to the link template '
                       f'{SITE}/dashboard/<dashboard>?tab={{{{Tab}}}}. Replaces six chips with one card.',
         'sql': "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\n"
-               "SELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\" FROM (VALUES\n"
-               " (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__'),\n"
-               " (2,'🔴 Not paid today',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__'),\n"
-               " (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__'),\n"
-               " (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Borrower Health','__TAB_HEALTH__')\n"
-               ") v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\") ORDER BY v.ord",
+               "SELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n"
+               " (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__','overdue'),\n"
+               " (2,'🔴 Not paid today',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__','not_paid'),\n"
+               " (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n"
+               " (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Borrower Health','__TAB_HEALTH__','')\n"
+               ") v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
         'settings': {'table.pivot': False, 'column_settings': cols(['Amount ฿']),
-                     'table.columns': [{'name': n, 'enabled': n != 'Tab'} for n in ['Item', 'People', 'Amount ฿', 'Opens', 'Tab']],
+                     'table.columns': [{'name': n, 'enabled': n not in ('Tab', 'Tint')} for n in ['Item', 'People', 'Amount ฿', 'Opens', 'Tab', 'Tint']],
                      'table.column_formatting': [
-                         {'id': 0, 'columns': ['Item'], 'type': 'single', 'operator': 'contains', 'value': 'Overdue', 'color': STATUS['overdue'], 'highlight_row': True},
-                         {'id': 1, 'columns': ['Item'], 'type': 'single', 'operator': 'contains', 'value': 'Not paid', 'color': STATUS['not_paid'], 'highlight_row': True},
-                         {'id': 2, 'columns': ['Item'], 'type': 'single', 'operator': 'contains', 'value': 'Partially', 'color': STATUS['partial'], 'highlight_row': True}]},
+                         {'id': 0, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'overdue', 'color': STATUS['overdue'], 'highlight_row': True},
+                         {'id': 1, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'not_paid', 'color': STATUS['not_paid'], 'highlight_row': True},
+                         {'id': 2, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'partial', 'color': STATUS['partial'], 'highlight_row': True}]},
         'reconcile': 'People: rows 1–3 equal questions 240, 242, 244; row 4 equals 270. Amount: row 1 equals 254; rows 2–3 equal '
                      'model 162 Amount Remaining for the status (also the sum of the lane\'s Left column).',
     },
@@ -274,11 +281,13 @@ NEW_QUESTIONS = {
         'name': 'Cash movement by transaction type · chart', 'display': 'row', 'kind': 'native',
         'basis': 'snippet 3 Cashflow statement period (same query as question 203)', 'origin': 203, 'params': ['statement-period', 'account'],
         'definition': 'Question 203\'s query wrapped: TOTAL row and rows with no movement removed, ordered by Money In + Money Out '
-                      'descending. Horizontal bars of Money In (green) and Money Out (red); no "Other" grouping.',
+                      'descending. Horizontal bars of Money In (green) and Money Out (red), stacked (stackable.stack_type = stacked): on this '
+                      'version Metabase folds unstacked row-chart categories into "Other (n)" regardless of graph.max_categories_enabled; '
+                      'each type moves money one way, so stacking changes nothing visually.',
         'sql_wrap': 'SELECT * FROM (<203>) t WHERE t."Transaction Type"<>\'TOTAL\' AND (coalesce(t."Money In",0)<>0 OR coalesce(t."Money Out",0)<>0) '
                     'ORDER BY coalesce(t."Money In",0)+coalesce(t."Money Out",0) DESC,t."Transaction Type"',
         'settings': {'graph.dimensions': ['Transaction Type'], 'graph.metrics': ['Money In', 'Money Out'], 'graph.show_values': True,
-                     'graph.max_categories_enabled': False, 'graph.x_axis.title_enabled': False, 'graph.y_axis.title_enabled': False,
+                     'stackable.stack_type': 'stacked', 'graph.x_axis.title_enabled': False, 'graph.y_axis.title_enabled': False,
                      'series_settings': {'Money In': {'color': '#13855B'}, 'Money Out': {'color': '#D1495B'}}},
         'reconcile': 'Row set equals question 203 without TOTAL and zero rows, for three period/account cases.',
     },
@@ -329,23 +338,24 @@ NEW_QUESTIONS = {
         'basis': 'model 162 Collection Status Summary', 'origin': 242, 'params': [],
         'definition': 'One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, 🟢 Fully paid; all four '
                       'always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and '
-                      'Received ฿ from model 162. Replaces the four count chips and the Unclassified card.',
-        'sql': "WITH lanes(ord,status,label) AS (VALUES (1,'Not Paid','🔴 Not paid'),(2,'Partially Paid','🟠 Partially paid'),(3,'Overdue','🟣 Overdue'),(4,'Fully Paid','🟢 Fully paid')),\n"
-               " rows AS (SELECT l.ord,l.label,coalesce(s.\"Borrower Count\",0) people,coalesce(s.\"Amount Remaining\",0) remaining,coalesce(s.\"Receipts Today\",0) received FROM lanes l LEFT JOIN {{#162}} s ON s.\"Collection Status\"=l.status\n"
-               " UNION ALL SELECT 9,'⚪ '||coalesce(s.\"Collection Status\",'Unclassified'),s.\"Borrower Count\",s.\"Amount Remaining\",s.\"Receipts Today\" FROM {{#162}} s WHERE s.\"Collection Status\" IS NULL OR s.\"Collection Status\" NOT IN ('Not Paid','Partially Paid','Overdue','Fully Paid'))\n"
-               "SELECT label AS \"Lane\",people AS \"People\",remaining AS \"Left ฿\",received AS \"Received ฿\" FROM rows ORDER BY ord,label",
+                      'Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card.',
+        'sql': "WITH lanes(ord,status,label,tint) AS (VALUES (1,'Not Paid','🔴 Not paid','not_paid'),(2,'Partially Paid','🟠 Partially paid','partial'),(3,'Overdue','🟣 Overdue','overdue'),(4,'Fully Paid','🟢 Fully paid','paid')),\n"
+               " rows AS (SELECT l.ord,l.label,l.tint,coalesce(s.\"Borrower Count\",0) people,coalesce(s.\"Amount Remaining\",0) remaining,coalesce(s.\"Receipts Today\",0) received FROM lanes l LEFT JOIN {{#162}} s ON s.\"Collection Status\"=l.status\n"
+               " UNION ALL SELECT 9,'⚪ '||coalesce(s.\"Collection Status\",'Unclassified'),'',s.\"Borrower Count\",s.\"Amount Remaining\",s.\"Receipts Today\" FROM {{#162}} s WHERE s.\"Collection Status\" IS NULL OR s.\"Collection Status\" NOT IN ('Not Paid','Partially Paid','Overdue','Fully Paid'))\n"
+               "SELECT label AS \"Lane\",people AS \"People\",remaining AS \"Left ฿\",received AS \"Received ฿\",tint AS \"Tint\" FROM rows ORDER BY ord,label",
         'settings': {'table.pivot': False, 'column_settings': cols(['Left ฿', 'Received ฿']),
+                     'table.columns': [{'name': n, 'enabled': n != 'Tint'} for n in ['Lane', 'People', 'Left ฿', 'Received ฿', 'Tint']],
                      'table.column_formatting': [
-                         {'id': 0, 'columns': ['Lane'], 'type': 'single', 'operator': 'contains', 'value': 'Not paid', 'color': STATUS['not_paid'], 'highlight_row': True},
-                         {'id': 1, 'columns': ['Lane'], 'type': 'single', 'operator': 'contains', 'value': 'Partially', 'color': STATUS['partial'], 'highlight_row': True},
-                         {'id': 2, 'columns': ['Lane'], 'type': 'single', 'operator': 'contains', 'value': 'Overdue', 'color': STATUS['overdue'], 'highlight_row': True},
-                         {'id': 3, 'columns': ['Lane'], 'type': 'single', 'operator': 'contains', 'value': 'Fully', 'color': STATUS['paid'], 'highlight_row': True}]},
+                         {'id': 0, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'not_paid', 'color': STATUS['not_paid'], 'highlight_row': True},
+                         {'id': 1, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'partial', 'color': STATUS['partial'], 'highlight_row': True},
+                         {'id': 2, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'overdue', 'color': STATUS['overdue'], 'highlight_row': True},
+                         {'id': 3, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'paid', 'color': STATUS['paid'], 'highlight_row': True}]},
         'reconcile': 'People per lane equal questions 242, 244, 240, 246; the ⚪ rows\' People sum equals question 251; Left ฿ per lane equals the sum of that lane table\'s Left column.',
     },
-    'collection.lane-not-paid': lane('Not Paid', '🔴 Not paid', 'Amount Due', 'Due ฿', 'Amount Remaining', 'Left ฿', 'Amount Remaining', 243),
-    'collection.lane-partial': lane('Partially Paid', '🟠 Partially paid', 'Receipts Today', 'Received ฿', 'Amount Remaining', 'Left ฿', 'Amount Remaining', 245),
-    'collection.lane-overdue': lane('Overdue', '🟣 Overdue', 'Overdue Amount', 'Overdue ฿', 'Amount Remaining', 'Left ฿', 'Overdue Amount', 241),
-    'collection.lane-paid': lane('Fully Paid', '🟢 Fully paid', 'Receipts Today', 'Received ฿', 'Amount Due', 'Due ฿', 'Receipts Today', 247),
+    'collection.lane-not-paid': lane('Not Paid', '🔴 Not paid', 'Amount Due', 'Due', 'Amount Remaining', 'Left', 'Amount Remaining', 243, STATUS['not_paid'], [80, 76, 76]),
+    'collection.lane-partial': lane('Partially Paid', '🟠 Partially paid', 'Receipts Today', 'Paid', 'Amount Remaining', 'Left', 'Amount Remaining', 245, STATUS['partial'], [80, 76, 76]),
+    'collection.lane-overdue': lane('Overdue', '🟣 Overdue', 'Overdue Amount', 'Overdue', 'Amount Remaining', 'Left', 'Overdue Amount', 241, STATUS['overdue'], [72, 90, 70]),
+    'collection.lane-paid': lane('Fully Paid', '🟢 Fully paid', 'Receipts Today', 'Paid', 'Amount Due', 'Due', 'Receipts Today', 247, STATUS['paid'], [80, 76, 76]),
     # ---- Partners ----------------------------------------------------------------------------------------
     'partners.statement': {
         'name': 'Partner positions · statement', 'display': 'table', 'kind': 'native',
@@ -410,15 +420,15 @@ TABS = [
              ('today.principal-smart', 6, 3, {'title': 'Principal at work'}),
              (51, 6, 3, {'title': 'Interest this month'}),
              (237, 6, 3, {'title': 'Collected today'})],
-            [('today.realization', 12, 3, {'title': 'Interest this month · share of projection'}),
+            [('today.realization', 12, 3, {'title': 'Interest this month · of projection'}),
              ('today.collection-rate', 12, 3, {'title': 'Collected today · share of amount due'})],
-            [('today.attention', 24, 6, {'title': 'Needs attention · click a row to open Collection or Borrower Health'})],
+            [('today.attention', 24, 6, {'title': 'Needs attention · rows open pages', 'description': 'Click a row to open Collection or Borrower Health.'})],
             [(62, 12, 7, {'title': 'Principal at work · daily close', 'vs': {'graph.show_goal': True, 'graph.goal_value': 120000, 'graph.goal_label': 'Principal reference 120,000', **SERIES_BLUE},
                           'note': 'goal line = principal reference 120,000; series blue (red is a status colour)'}),
              (222, 12, 7, {'title': 'Daily gross interest · 7-day average', 'vs': {'graph.show_goal': True, 'graph.goal_value': 10000, 'graph.goal_label': 'Daily interest goal 10,000'},
                            'note': 'goal line = daily interest goal 10,000'})],
-            [('today.principal-top4', 12, 7, {'title': 'Principal by borrower · top four + others'}),
-             ('today.interest-top4', 12, 7, {'title': 'Interest · past 30 days by borrower · top four + others'})],
+            [('today.principal-top4', 12, 7, {'title': 'Principal by borrower · top 4 + others'}),
+             ('today.interest-top4', 12, 7, {'title': 'Interest 30d by borrower · top 4 + rest'})],
             [T('Card descriptions hold the exact definitions. Profit means gross interest before expenses. Capital deployed gauge: Cash Position tab.', 24, 1)],
         ],
         'dropped': [47, 50, 52, 54, 55, 56, 57, 58, 59, 63, 64, 68, 60, 61, 240, 254, 242, 244, 270, 251],
@@ -440,7 +450,7 @@ TABS = [
              (208, 6, 3, {'title': 'Net cash balance'})],
             [(68, 8, 6, {'title': 'Capital deployed · live'}),
              (210, 16, 6, {'title': 'Net cash by holder · selected date'})],
-            [(211, 24, 6, {'title': 'Account balances · selected date (signed)'})],
+            [(211, 24, 6, {'title': 'Account balances · selected date', 'description': 'Signed balances; negative balances count.'})],
             [(202, 24, 7, {'title': 'Daily closing positions · completed days', 'params': ['period']})],
             [T('Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab.', 24, 1)],
         ],
@@ -460,7 +470,7 @@ TABS = [
              (171, 8, 6, {'title': 'Net profit per day · calendar days'})],
             [('income.monthly', 16, 8, {'title': 'Monthly income, expenses and net profit'}),
              (178, 8, 8, {'title': 'Expenses by category · this period'})],
-            [(213, 24, 7, {'title': 'Daily income and expenses · completed days'})],
+            [(213, 24, 7, {'title': 'Daily income and expenses · snapshots'})],
             [(212, 24, 7, {'title': 'Expense detail · this period'})],
             [T('Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab.', 24, 1)],
         ],
@@ -478,7 +488,7 @@ TABS = [
              (193, 6, 3, {'title': '− Money out'}), (197, 6, 3, {'title': '= Closing cash'})],
             [(194, 6, 3, {'title': 'Net cash movement'}),
              ('cashflow.by-type-row', 18, 7, {'title': 'Cash movement by transaction type'})],
-            [(203, 24, 10, {'title': 'Cash movement by transaction type · table', 'note': 'height fits all nine type rows'})],
+            [(203, 24, 10, {'title': 'Movement by transaction type · table', 'note': 'height fits all nine type rows'})],
             [(215, 24, 7, {'title': 'Daily cash movement · completed days', 'vs': {'graph.show_values': False}, 'note': 'value labels off: they overlapped'})],
             [(196, 24, 10, {'title': 'Transactions · chronological'})],
             [T('Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab.', 24, 1)],
@@ -503,7 +513,7 @@ TABS = [
              (225, 8, 6, {'title': 'Average loan size · per week'})],
             [H('Returns')],
             [(232, 12, 6, {'title': 'Daily capital yield'}), (233, 12, 6, {'title': 'Weekly loan-cohort return'})],
-            [(230, 12, 6, {'title': 'Cumulative gross interest · 7-day average'}),
+            [(230, 12, 6, {'title': 'Cumulative gross interest · 7-day avg'}),
              (226, 12, 6, {'title': 'Active loans and borrowers · end of day'})],
             [(227, 24, 8, {'title': 'Daily performance · snapshots'})],
             [T('Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab.', 24, 1)],
@@ -520,17 +530,17 @@ TABS = [
             [T('**Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere.', 24, 2)],
             [(278, 6, 3, {'title': 'Active borrowers'}), (279, 6, 3, {'title': 'Active loans'}),
              (280, 6, 3, {'title': 'Principal outstanding'}), (281, 6, 3, {'title': 'Interest received · period'})],
-            [('borrowers.principal-top5', 8, 8, {'title': 'Principal outstanding · top five + others', 'params': ['population']}),
-             ('borrowers.interest-top5', 8, 8, {'title': 'Interest received · period · top five + others'}),
+            [('borrowers.principal-top5', 8, 8, {'title': 'Principal outstanding · top 5 + others', 'params': ['population']}),
+             ('borrowers.interest-top5', 8, 8, {'title': 'Interest · period · top 5 + others'}),
              (314, 8, 8, {'title': 'Lifetime return · top 8'})],
             [H('Concentration & ageing')],
             [stack(6, (110, 3, {'title': 'Top three concentration'}), (111, 3, {'title': 'Past-due amount'})),
              (115, 9, 6, {'title': 'Active principal by age'}), (117, 9, 6, {'title': 'Default loss over time'})],
-            [(114, 12, 6, {'title': 'Active loan count by age'}), (116, 12, 6, {'title': 'Borrower risk · excluding largest exposure'})],
-            [(289, 24, 11, {'title': 'Borrower comparison · click a name for Detail', 'columns': COLUMNS_289,
+            [(114, 12, 6, {'title': 'Active loan count by age'}), (116, 12, 6, {'title': 'Borrower risk · excl. largest exposure'})],
+            [(289, 24, 11, {'title': 'Borrower comparison · names open Detail', 'columns': COLUMNS_289,
                             'note': 'category and health columns first; sorted by principal (saved order)'})],
             [H('Activity over time')],
-            [(287, 12, 7, {'title': 'Interest received over time · top 5 + others'}),
+            [(287, 12, 7, {'title': 'Interest over time · top 5 + others'}),
              (288, 12, 7, {'title': 'First and repeat loans · weekly'})],
             [T('Gross interest before expenses. Categories come from Borrower Health. Lifetime daily rate (question 313) and the risk monitor (118) stay available as saved questions.', 24, 1)],
         ],
@@ -549,14 +559,14 @@ TABS = [
             [('iframe:matrix', 24, 22)],
             [(260, 6, 2, {'title': 'Star'}), (258, 6, 2, {'title': 'Cash Cow'}),
              (264, 6, 2, {'title': 'Question Mark'}), (262, 6, 2, {'title': 'Dog'})],
-            [(275, 24, 9, {'title': 'Borrowers by category · scores, schedule and contribution', 'columns': COLUMNS_275,
+            [(275, 24, 9, {'title': 'Borrowers by category · scores', 'description': 'Payment score, contribution and schedule per borrower, sorted by category.', 'columns': COLUMNS_275,
                            'note': 'column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category'})],
             [H('Rating detail')],
             [(267, 24, 10, {'title': 'Payment health · all borrowers'})],
             [(269, 24, 6, {'title': 'Unavailable ratings and default context', 'hide_empty': True})],
-            [(268, 24, 10, {'title': 'Reliability components and effective weights · active borrowers'})],
-            [(271, 24, 8, {'title': 'Automatic schedule assessment · active borrowers'})],
-            [(272, 24, 8, {'title': 'Modified schedules · loan and next-plan detail', 'hide_empty': True})],
+            [(268, 24, 10, {'title': 'Reliability components and weights', 'description': 'Active borrowers: score components and the effective weights.'})],
+            [(271, 24, 8, {'title': 'Schedule assessment · active borrowers'})],
+            [(272, 24, 8, {'title': 'Modified schedules · loan and next plan', 'hide_empty': True})],
             [T('Rating: recent punctuality 45% · older punctuality 15% · average delay 15% · current payment health 25%; threshold 80; contribution boundary 1×. Full method in the dictionary.', 24, 2)],
         ],
         'dropped': [259, 261, 263, 265],
@@ -580,7 +590,7 @@ TABS = [
             [H('Closed loans · lifetime')],
             [(375, 8, 3, {'title': 'Original principal ฿'}), (376, 8, 3, {'title': 'Interest earned ฿'}),
              (377, 8, 3, {'title': 'Return on closed loans'})],
-            [(369, 24, 5, {'title': 'Most recent seven charge dates · red overdue, orange paid late, green on time'})],
+            [(369, 24, 5, {'title': 'Last seven charge dates', 'description': 'Red = overdue, orange = paid late, green = on time.'})],
             [H('Activity · selected period')],
             [(296, 6, 3, {'title': 'Interest received ฿'}), (297, 6, 3, {'title': 'Principal issued ฿'}),
              (298, 6, 3, {'title': 'Principal returned ฿'}), (299, 6, 3, {'title': 'Loans issued'})],
@@ -589,11 +599,11 @@ TABS = [
             [(308, 24, 7, {'title': 'All current overdue obligations'})],
             [(305, 24, 8, {'title': 'Loan history · lifetime'})],
             [(316, 24, 4, {'title': 'Payment punctuality · selected due dates'})],
-            [(304, 24, 7, {'title': 'Payment punctuality over time · due month'})],
+            [(304, 24, 7, {'title': 'Punctuality over time · due month'})],
             [H('Records · selected period')],
             [(307, 24, 8, {'title': 'Obligation evidence · selected due dates'})],
             [(317, 24, 8, {'title': 'Payments · selected payment dates'})],
-            [(306, 24, 8, {'title': 'Repayment allocations · selected payment dates'})],
+            [(306, 24, 8, {'title': 'Repayment allocations · payment dates'})],
             [H('Additional lending scenario · hypothetical only')],
             [(309, 24, 5, {'title': 'Additional lending · hypothetical only'})],
             [T('All amounts are baht. Allocations are not unique receipts; corrections remain signed. Context and dates: Data health tab.', 24, 1)],
@@ -616,8 +626,8 @@ TABS = [
              ('collection.lane-partial', 6, 9, {'title': '🟠 Partially paid', 'note': 'Received ฿ · Left ฿, sorted by amount left'}),
              ('collection.lane-overdue', 6, 9, {'title': '🟣 Overdue', 'note': 'Overdue ฿ · Left ฿, sorted by overdue amount'}),
              ('collection.lane-paid', 6, 9, {'title': '🟢 Fully paid', 'note': 'Received ฿ · Due ฿, sorted by received'})],
-            [(248, 24, 10, {'title': 'Collection detail · filters above apply here', 'columns': COLUMNS_248})],
-            [(249, 24, 4, {'title': 'Charges dated today · separate from board balances'})],
+            [(248, 24, 10, {'title': 'Collection detail · filters apply here', 'columns': COLUMNS_248})],
+            [(249, 24, 4, {'title': 'Charges dated today · not board balances', 'description': 'Charges dated today are a separate drill-down, not board balances.'})],
             [(64, 24, 6, {'title': 'Overdue charges · completed days', 'params': []})],
             [T('Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people move lanes after refresh.', 24, 1)],
         ],
@@ -662,7 +672,7 @@ TABS = [
             [H('Interest outlook')],
             [(348, 6, 3, {'title': 'Interest · month to date'}), (349, 6, 3, {'title': 'Remaining · scenario'}),
              (350, 6, 3, {'title': 'Month-end outlook'}), (351, 6, 3, {'title': 'Target gap'})],
-            [(356, 16, 9, {'title': 'Cumulative interest · actual and projected'}),
+            [(356, 16, 9, {'title': 'Cumulative interest · actual + projected'}),
              (355, 8, 9, {'title': 'Month-end by scenario'})],
             [(357, 12, 8, {'title': 'Upcoming dues · remaining weeks'}), (360, 12, 8, {'title': 'Watchlist · dues at risk'})],
             [(354, 12, 7, {'title': 'Interest outlook bridge'}), (358, 12, 7, {'title': 'Borrower forecast contribution'})],
@@ -691,9 +701,9 @@ TABS = [
             [H('Income')], [(184, 12, 6, {'title': 'Income period and freshness'}), (214, 12, 6, {'title': 'Profit trend snapshot freshness'})],
             [H('Cashflow')], [(198, 12, 8, {'title': 'Cashflow period and freshness'}), (216, 12, 8, {'title': 'Cash trend snapshot freshness'})],
             [H('Performance')], [(221, 8, 7, {'title': 'Live period and source'}), (228, 16, 7, {'title': 'Snapshot coverage and generation times'})],
-            [(231, 24, 4, {'title': 'Rolling-average coverage · selected completed dates'})],
-            [H('Borrowers and Borrower Detail')], [(284, 12, 4, {'title': 'Period, population and source'}), (315, 12, 4, {'title': 'Overall charts · dates and data availability'})],
-            [(300, 24, 5, {'title': 'Activity dates and lifetime context · selected borrower'})],
+            [(231, 24, 4, {'title': 'Rolling-average coverage'})],
+            [H('Borrowers and Borrower Detail')], [(284, 12, 4, {'title': 'Period, population and source'}), (315, 12, 4, {'title': 'Overall charts · dates and availability'})],
+            [(300, 24, 5, {'title': 'Activity dates and lifetime context'})],
             [H('Partners')], [(332, 12, 7, {'title': 'How net available is calculated'}), (343, 12, 7, {'title': 'Source and balance checks'})],
             [H('Forecast')], [(363, 24, 7, {'title': 'Forecast coverage and exceptions'})],
             [(361, 24, 10, {'title': 'Loan forecast detail'})], [(362, 24, 10, {'title': 'Recorded and simulated obligations'})],
@@ -729,7 +739,7 @@ def place(ref, w, h, opt, row, col, p_list, all_refs, tab):
     else:
         assert ref in NEW_QUESTIONS, ref
         p['new_question'] = ref
-    for key in ('title', 'note', 'vs', 'columns'):
+    for key in ('title', 'description', 'note', 'vs', 'columns'):
         if key in opt:
             p[key] = opt[key]
     if opt.get('hide_empty'):

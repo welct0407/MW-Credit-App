@@ -329,8 +329,8 @@
    "basis": "models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270",
    "origin": 240,
    "params": [],
-   "definition": "One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid today (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens, Tab (hidden). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card.",
-   "sql": "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\nSELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\" FROM (VALUES\n (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__'),\n (2,'🔴 Not paid today',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__'),\n (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__'),\n (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Borrower Health','__TAB_HEALTH__')\n) v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\") ORDER BY v.ord",
+   "definition": "One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid today (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card.",
+   "sql": "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\nSELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__','overdue'),\n (2,'🔴 Not paid today',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__','not_paid'),\n (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Borrower Health','__TAB_HEALTH__','')\n) v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
    "settings": {
     "table.pivot": false,
     "column_settings": {
@@ -361,39 +361,43 @@
      {
       "name": "Tab",
       "enabled": false
+     },
+     {
+      "name": "Tint",
+      "enabled": false
      }
     ],
     "table.column_formatting": [
      {
       "id": 0,
       "columns": [
-       "Item"
+       "Tint"
       ],
       "type": "single",
-      "operator": "contains",
-      "value": "Overdue",
+      "operator": "=",
+      "value": "overdue",
       "color": "#7172AD",
       "highlight_row": true
      },
      {
       "id": 1,
       "columns": [
-       "Item"
+       "Tint"
       ],
       "type": "single",
-      "operator": "contains",
-      "value": "Not paid",
+      "operator": "=",
+      "value": "not_paid",
       "color": "#ED6E6E",
       "highlight_row": true
      },
      {
       "id": 2,
       "columns": [
-       "Item"
+       "Tint"
       ],
       "type": "single",
-      "operator": "contains",
-      "value": "Partially",
+      "operator": "=",
+      "value": "partial",
       "color": "#F9A825",
       "highlight_row": true
      }
@@ -574,7 +578,7 @@
     "statement-period",
     "account"
    ],
-   "definition": "Question 203's query wrapped: TOTAL row and rows with no movement removed, ordered by Money In + Money Out descending. Horizontal bars of Money In (green) and Money Out (red); no \"Other\" grouping.",
+   "definition": "Question 203's query wrapped: TOTAL row and rows with no movement removed, ordered by Money In + Money Out descending. Horizontal bars of Money In (green) and Money Out (red), stacked (stackable.stack_type = stacked): on this version Metabase folds unstacked row-chart categories into \"Other (n)\" regardless of graph.max_categories_enabled; each type moves money one way, so stacking changes nothing visually.",
    "sql_wrap": "SELECT * FROM (<203>) t WHERE t.\"Transaction Type\"<>'TOTAL' AND (coalesce(t.\"Money In\",0)<>0 OR coalesce(t.\"Money Out\",0)<>0) ORDER BY coalesce(t.\"Money In\",0)+coalesce(t.\"Money Out\",0) DESC,t.\"Transaction Type\"",
    "settings": {
     "graph.dimensions": [
@@ -585,7 +589,7 @@
      "Money Out"
     ],
     "graph.show_values": true,
-    "graph.max_categories_enabled": false,
+    "stackable.stack_type": "stacked",
     "graph.x_axis.title_enabled": false,
     "graph.y_axis.title_enabled": false,
     "series_settings": {
@@ -700,8 +704,8 @@
    "basis": "model 162 Collection Status Summary",
    "origin": 242,
    "params": [],
-   "definition": "One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, 🟢 Fully paid; all four always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162. Replaces the four count chips and the Unclassified card.",
-   "sql": "WITH lanes(ord,status,label) AS (VALUES (1,'Not Paid','🔴 Not paid'),(2,'Partially Paid','🟠 Partially paid'),(3,'Overdue','🟣 Overdue'),(4,'Fully Paid','🟢 Fully paid')),\n rows AS (SELECT l.ord,l.label,coalesce(s.\"Borrower Count\",0) people,coalesce(s.\"Amount Remaining\",0) remaining,coalesce(s.\"Receipts Today\",0) received FROM lanes l LEFT JOIN {{#162}} s ON s.\"Collection Status\"=l.status\n UNION ALL SELECT 9,'⚪ '||coalesce(s.\"Collection Status\",'Unclassified'),s.\"Borrower Count\",s.\"Amount Remaining\",s.\"Receipts Today\" FROM {{#162}} s WHERE s.\"Collection Status\" IS NULL OR s.\"Collection Status\" NOT IN ('Not Paid','Partially Paid','Overdue','Fully Paid'))\nSELECT label AS \"Lane\",people AS \"People\",remaining AS \"Left ฿\",received AS \"Received ฿\" FROM rows ORDER BY ord,label",
+   "definition": "One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, 🟢 Fully paid; all four always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card.",
+   "sql": "WITH lanes(ord,status,label,tint) AS (VALUES (1,'Not Paid','🔴 Not paid','not_paid'),(2,'Partially Paid','🟠 Partially paid','partial'),(3,'Overdue','🟣 Overdue','overdue'),(4,'Fully Paid','🟢 Fully paid','paid')),\n rows AS (SELECT l.ord,l.label,l.tint,coalesce(s.\"Borrower Count\",0) people,coalesce(s.\"Amount Remaining\",0) remaining,coalesce(s.\"Receipts Today\",0) received FROM lanes l LEFT JOIN {{#162}} s ON s.\"Collection Status\"=l.status\n UNION ALL SELECT 9,'⚪ '||coalesce(s.\"Collection Status\",'Unclassified'),'',s.\"Borrower Count\",s.\"Amount Remaining\",s.\"Receipts Today\" FROM {{#162}} s WHERE s.\"Collection Status\" IS NULL OR s.\"Collection Status\" NOT IN ('Not Paid','Partially Paid','Overdue','Fully Paid'))\nSELECT label AS \"Lane\",people AS \"People\",remaining AS \"Left ฿\",received AS \"Received ฿\",tint AS \"Tint\" FROM rows ORDER BY ord,label",
    "settings": {
     "table.pivot": false,
     "column_settings": {
@@ -718,48 +722,70 @@
       "compact": false
      }
     },
+    "table.columns": [
+     {
+      "name": "Lane",
+      "enabled": true
+     },
+     {
+      "name": "People",
+      "enabled": true
+     },
+     {
+      "name": "Left ฿",
+      "enabled": true
+     },
+     {
+      "name": "Received ฿",
+      "enabled": true
+     },
+     {
+      "name": "Tint",
+      "enabled": false
+     }
+    ],
     "table.column_formatting": [
      {
       "id": 0,
       "columns": [
-       "Lane"
+       "Tint"
       ],
       "type": "single",
-      "operator": "contains",
-      "value": "Not paid",
+      "operator": "=",
+      "value": "not_paid",
       "color": "#ED6E6E",
       "highlight_row": true
      },
      {
       "id": 1,
       "columns": [
-       "Lane"
+       "Tint"
       ],
       "type": "single",
-      "operator": "contains",
-      "value": "Partially",
+      "operator": "=",
+      "value": "partial",
       "color": "#F9A825",
       "highlight_row": true
      },
      {
       "id": 2,
       "columns": [
-       "Lane"
+       "Tint"
       ],
       "type": "single",
-      "operator": "contains",
-      "value": "Overdue",
+      "operator": "=",
+      "value": "overdue",
       "color": "#7172AD",
       "highlight_row": true
      },
      {
       "id": 3,
       "columns": [
-       "Lane"
+       "Tint"
       ],
       "type": "single",
-      "operator": "contains",
-      "value": "Fully",
+      "operator": "=",
+      "value": "paid",
       "color": "#1E9F5A",
       "highlight_row": true
      }
@@ -774,7 +800,7 @@
    "basis": "model 77 Collection Worklist",
    "origin": 243,
    "params": [],
-   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Not Paid'; fields ['Borrower', 'Amount Due', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 243, resorted.",
+   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Not Paid'; fields ['Borrower', 'Amount Due', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 243, resorted. Column titles Name / Due / Left; widths [80, 76, 76] px for the three visible columns.",
    "query": {
     "source-table": "card__77",
     "filter": [
@@ -872,24 +898,44 @@
       "enabled": false
      }
     ],
+    "table.column_widths": [
+     80,
+     76,
+     76
+    ],
     "column_settings": {
+     "[\"name\", \"Borrower\"]": {
+      "column_title": "Name"
+     },
      "[\"name\", \"Amount Due\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
       "compact": false,
-      "column_title": "Due ฿"
+      "column_title": "Due"
      },
      "[\"name\", \"Amount Remaining\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
       "compact": false,
-      "column_title": "Left ฿"
+      "column_title": "Left"
      }
     },
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Daily Collection Status"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "Not Paid",
+      "color": "#ED6E6E",
+      "highlight_row": true
+     }
+    ],
     "copy_from_origin": [
-     "table.column_formatting",
      "click_behavior"
     ]
    },
@@ -902,7 +948,7 @@
    "basis": "model 77 Collection Worklist",
    "origin": 245,
    "params": [],
-   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Partially Paid'; fields ['Borrower', 'Receipts Today', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 245, resorted.",
+   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Partially Paid'; fields ['Borrower', 'Receipts Today', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 245, resorted. Column titles Name / Paid / Left; widths [80, 76, 76] px for the three visible columns.",
    "query": {
     "source-table": "card__77",
     "filter": [
@@ -1000,24 +1046,44 @@
       "enabled": false
      }
     ],
+    "table.column_widths": [
+     80,
+     76,
+     76
+    ],
     "column_settings": {
+     "[\"name\", \"Borrower\"]": {
+      "column_title": "Name"
+     },
      "[\"name\", \"Receipts Today\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
       "compact": false,
-      "column_title": "Received ฿"
+      "column_title": "Paid"
      },
      "[\"name\", \"Amount Remaining\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
       "compact": false,
-      "column_title": "Left ฿"
+      "column_title": "Left"
      }
     },
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Daily Collection Status"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "Partially Paid",
+      "color": "#F9A825",
+      "highlight_row": true
+     }
+    ],
     "copy_from_origin": [
-     "table.column_formatting",
      "click_behavior"
     ]
    },
@@ -1030,7 +1096,7 @@
    "basis": "model 77 Collection Worklist",
    "origin": 241,
    "params": [],
-   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as question 241, resorted.",
+   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as question 241, resorted. Column titles Name / Overdue / Left; widths [72, 90, 70] px for the three visible columns.",
    "query": {
     "source-table": "card__77",
     "filter": [
@@ -1128,24 +1194,44 @@
       "enabled": false
      }
     ],
+    "table.column_widths": [
+     72,
+     90,
+     70
+    ],
     "column_settings": {
+     "[\"name\", \"Borrower\"]": {
+      "column_title": "Name"
+     },
      "[\"name\", \"Overdue Amount\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
       "compact": false,
-      "column_title": "Overdue ฿"
+      "column_title": "Overdue"
      },
      "[\"name\", \"Amount Remaining\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
       "compact": false,
-      "column_title": "Left ฿"
+      "column_title": "Left"
      }
     },
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Daily Collection Status"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "Overdue",
+      "color": "#7172AD",
+      "highlight_row": true
+     }
+    ],
     "copy_from_origin": [
-     "table.column_formatting",
      "click_behavior"
     ]
    },
@@ -1158,7 +1244,7 @@
    "basis": "model 77 Collection Worklist",
    "origin": 247,
    "params": [],
-   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Fully Paid'; fields ['Borrower', 'Receipts Today', 'Amount Due', 'Borrower ID', 'Daily Collection Status']; ORDER BY Receipts Today desc, Borrower asc. Same rows as question 247, resorted.",
+   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Fully Paid'; fields ['Borrower', 'Receipts Today', 'Amount Due', 'Borrower ID', 'Daily Collection Status']; ORDER BY Receipts Today desc, Borrower asc. Same rows as question 247, resorted. Column titles Name / Paid / Due; widths [80, 76, 76] px for the three visible columns.",
    "query": {
     "source-table": "card__77",
     "filter": [
@@ -1256,24 +1342,44 @@
       "enabled": false
      }
     ],
+    "table.column_widths": [
+     80,
+     76,
+     76
+    ],
     "column_settings": {
+     "[\"name\", \"Borrower\"]": {
+      "column_title": "Name"
+     },
      "[\"name\", \"Receipts Today\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
       "compact": false,
-      "column_title": "Received ฿"
+      "column_title": "Paid"
      },
      "[\"name\", \"Amount Due\"]": {
       "number_style": "decimal",
       "decimals": 0,
       "number_separators": ".,",
       "compact": false,
-      "column_title": "Due ฿"
+      "column_title": "Due"
      }
     },
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Daily Collection Status"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "Fully Paid",
+      "color": "#1E9F5A",
+      "highlight_row": true
+     }
+    ],
     "copy_from_origin": [
-     "table.column_formatting",
      "click_behavior"
     ]
    },
@@ -1402,7 +1508,7 @@
      "size_x": 12,
      "size_y": 3,
      "new_question": "today.realization",
-     "title": "Interest this month · share of projection",
+     "title": "Interest this month · of projection",
      "params": [
       "period"
      ]
@@ -1424,7 +1530,8 @@
      "size_x": 24,
      "size_y": 6,
      "new_question": "today.attention",
-     "title": "Needs attention · click a row to open Collection or Borrower Health",
+     "title": "Needs attention · rows open pages",
+     "description": "Click a row to open Collection or Borrower Health.",
      "params": [
       "period"
      ]
@@ -1477,7 +1584,7 @@
      "size_x": 12,
      "size_y": 7,
      "new_question": "today.principal-top4",
-     "title": "Principal by borrower · top four + others",
+     "title": "Principal by borrower · top 4 + others",
      "params": [
       "period"
      ]
@@ -1488,7 +1595,7 @@
      "size_x": 12,
      "size_y": 7,
      "new_question": "today.interest-top4",
-     "title": "Interest · past 30 days by borrower · top four + others",
+     "title": "Interest 30d by borrower · top 4 + rest",
      "params": [
       "period"
      ]
@@ -1623,7 +1730,8 @@
      "size_x": 24,
      "size_y": 6,
      "reuse_card_id": 211,
-     "title": "Account balances · selected date (signed)",
+     "title": "Account balances · selected date",
+     "description": "Signed balances; negative balances count.",
      "params": [
       "position-date",
       "period"
@@ -1758,7 +1866,7 @@
      "size_x": 24,
      "size_y": 7,
      "reuse_card_id": 213,
-     "title": "Daily income and expenses · completed days",
+     "title": "Daily income and expenses · snapshots",
      "params": [
       "statement-period"
      ]
@@ -1888,7 +1996,7 @@
      "size_x": 24,
      "size_y": 10,
      "reuse_card_id": 203,
-     "title": "Cash movement by transaction type · table",
+     "title": "Movement by transaction type · table",
      "note": "height fits all nine type rows",
      "params": [
       "statement-period",
@@ -2118,7 +2226,7 @@
      "size_x": 12,
      "size_y": 6,
      "reuse_card_id": 230,
-     "title": "Cumulative gross interest · 7-day average",
+     "title": "Cumulative gross interest · 7-day avg",
      "params": [
       "period"
      ]
@@ -2235,7 +2343,7 @@
      "size_x": 8,
      "size_y": 8,
      "new_question": "borrowers.principal-top5",
-     "title": "Principal outstanding · top five + others",
+     "title": "Principal outstanding · top 5 + others",
      "params": [
       "population"
      ]
@@ -2246,7 +2354,7 @@
      "size_x": 8,
      "size_y": 8,
      "new_question": "borrowers.interest-top5",
-     "title": "Interest received · period · top five + others",
+     "title": "Interest · period · top 5 + others",
      "params": [
       "period",
       "population"
@@ -2339,7 +2447,7 @@
      "size_x": 12,
      "size_y": 6,
      "reuse_card_id": 116,
-     "title": "Borrower risk · excluding largest exposure",
+     "title": "Borrower risk · excl. largest exposure",
      "params": [
       "period",
       "population"
@@ -2351,7 +2459,7 @@
      "size_x": 24,
      "size_y": 11,
      "reuse_card_id": 289,
-     "title": "Borrower comparison · click a name for Detail",
+     "title": "Borrower comparison · names open Detail",
      "note": "category and health columns first; sorted by principal (saved order)",
      "columns": {
       "order": [
@@ -2391,7 +2499,7 @@
      "size_x": 12,
      "size_y": 7,
      "reuse_card_id": 287,
-     "title": "Interest received over time · top 5 + others",
+     "title": "Interest over time · top 5 + others",
      "params": [
       "period",
       "population"
@@ -2556,7 +2664,8 @@
      "size_x": 24,
      "size_y": 9,
      "reuse_card_id": 275,
-     "title": "Borrowers by category · scores, schedule and contribution",
+     "title": "Borrowers by category · scores",
+     "description": "Payment score, contribution and schedule per borrower, sorted by category.",
      "note": "column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category",
      "columns": {
       "order": [
@@ -2606,7 +2715,8 @@
      "size_x": 24,
      "size_y": 10,
      "reuse_card_id": 268,
-     "title": "Reliability components and effective weights · active borrowers",
+     "title": "Reliability components and weights",
+     "description": "Active borrowers: score components and the effective weights.",
      "params": []
     },
     {
@@ -2615,7 +2725,7 @@
      "size_x": 24,
      "size_y": 8,
      "reuse_card_id": 271,
-     "title": "Automatic schedule assessment · active borrowers",
+     "title": "Schedule assessment · active borrowers",
      "params": []
     },
     {
@@ -2624,7 +2734,7 @@
      "size_x": 24,
      "size_y": 8,
      "reuse_card_id": 272,
-     "title": "Modified schedules · loan and next-plan detail",
+     "title": "Modified schedules · loan and next plan",
      "hide_empty": true,
      "params": []
     },
@@ -2871,7 +2981,8 @@
      "size_x": 24,
      "size_y": 5,
      "reuse_card_id": 369,
-     "title": "Most recent seven charge dates · red overdue, orange paid late, green on time",
+     "title": "Last seven charge dates",
+     "description": "Red = overdue, orange = paid late, green = on time.",
      "params": [
       "borrower",
       "period",
@@ -3023,7 +3134,7 @@
      "size_x": 24,
      "size_y": 7,
      "reuse_card_id": 304,
-     "title": "Payment punctuality over time · due month",
+     "title": "Punctuality over time · due month",
      "params": [
       "borrower",
       "period",
@@ -3071,7 +3182,7 @@
      "size_x": 24,
      "size_y": 8,
      "reuse_card_id": 306,
-     "title": "Repayment allocations · selected payment dates",
+     "title": "Repayment allocations · payment dates",
      "params": [
       "borrower",
       "period",
@@ -3275,7 +3386,7 @@
      "size_x": 24,
      "size_y": 10,
      "reuse_card_id": 248,
-     "title": "Collection detail · filters above apply here",
+     "title": "Collection detail · filters apply here",
      "columns": {
       "order": [
        "Borrower",
@@ -3301,7 +3412,8 @@
      "size_x": 24,
      "size_y": 4,
      "reuse_card_id": 249,
-     "title": "Charges dated today · separate from board balances",
+     "title": "Charges dated today · not board balances",
+     "description": "Charges dated today are a separate drill-down, not board balances.",
      "params": [
       "collection-borrower",
       "collection-status"
@@ -3756,7 +3868,7 @@
      "size_x": 16,
      "size_y": 9,
      "reuse_card_id": 356,
-     "title": "Cumulative interest · actual and projected",
+     "title": "Cumulative interest · actual + projected",
      "params": [
       "scenario",
       "interest-collected",
@@ -4351,7 +4463,7 @@
      "size_x": 24,
      "size_y": 4,
      "reuse_card_id": 231,
-     "title": "Rolling-average coverage · selected completed dates",
+     "title": "Rolling-average coverage",
      "params": [
       "statement-period",
       "account",
@@ -4406,7 +4518,7 @@
      "size_x": 12,
      "size_y": 4,
      "reuse_card_id": 315,
-     "title": "Overall charts · dates and data availability",
+     "title": "Overall charts · dates and availability",
      "params": [
       "statement-period",
       "account",
@@ -4429,7 +4541,7 @@
      "size_x": 24,
      "size_y": 5,
      "reuse_card_id": 300,
-     "title": "Activity dates and lifetime context · selected borrower",
+     "title": "Activity dates and lifetime context",
      "params": [
       "statement-period",
       "account",
