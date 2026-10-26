@@ -96,7 +96,7 @@ Metabase renders one column below about 760 px: every card full width, in grid o
 
 ### 1 · Today (`today`)
 
-Replaces: 1 · Overview (tab 4). Filters: `period`. Height 29 grid rows, 14 placements (12 visuals).
+Replaces: 1 · Overview (tab 4). Filters: `period`. Height 30 grid rows, 14 placements (12 visuals).
 
 The first page every day: cash available, principal at work, interest this month against the projection, collection progress, what needs attention, and the two trends that explain the month.
 
@@ -110,12 +110,12 @@ The first page every day: cash available, principal at work, interest this month
 | 2/18 | 6×3 | reuse q237 | Collected today |  |  |
 | 5/0 | 12×3 | new `today.realization` | Interest this month · of projection |  |  |
 | 5/12 | 12×3 | new `today.collection-rate` | Today's charges · paid |  |  |
-| 8/0 | 24×5 | new `today.attention` | Needs attention · rows open pages |  |  |
-| 13/0 | 12×7 | reuse q62 | Principal at work · daily close | vs graph.show_goal=True, graph.goal_value=120000, graph.goal_label=Principal reference 120,000, graph.show_values=False, graph.colors=['#509EE3'] | goal line = principal reference 120,000; series blue (red is a status colour) |
-| 13/12 | 12×7 | reuse q222 | Daily gross interest · 7-day average | vs graph.show_goal=True, graph.goal_value=10000, graph.goal_label=Daily interest goal 10,000, graph.show_values=False | goal line = daily interest goal 10,000; value labels off so they do not collide with the goal label |
-| 20/0 | 12×7 | new `today.principal-top4` | Principal by borrower · top 4 + others |  |  |
-| 20/12 | 12×7 | new `today.interest-top4` | Interest 30d by borrower · top 4 + rest |  |  |
-| 27/0 | 24×2 | text card | Profit = gross interest before expenses · definitions in card descriptions. | vs text.align_vertical=top |  |
+| 8/0 | 24×6 | new `today.attention` | Needs attention · rows open pages |  |  |
+| 14/0 | 12×7 | reuse q62 | Principal at work · daily close | vs graph.show_goal=True, graph.goal_value=120000, graph.goal_label=Principal reference 120,000, graph.show_values=False, graph.colors=['#509EE3'] | goal line = principal reference 120,000; series blue (red is a status colour) |
+| 14/12 | 12×7 | reuse q222 | Daily gross interest · 7-day average | vs graph.show_goal=True, graph.goal_value=10000, graph.goal_label=Daily interest goal 10,000, graph.show_values=False | goal line = daily interest goal 10,000; value labels off so they do not collide with the goal label |
+| 21/0 | 12×7 | new `today.principal-top4` | Principal by borrower · top 4 + others |  |  |
+| 21/12 | 12×7 | new `today.interest-top4` | Interest 30d by borrower · top 4 + rest |  |  |
+| 28/0 | 24×2 | text card | Profit = gross interest before expenses · definitions in card descriptions. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q47, q50, q52, q54, q55, q56, q57, q58, q59, q63, q64, q68, q60, q61, q240, q254, q242, q244, q270, q251 (the saved questions are kept; nothing is deleted).
 
@@ -252,7 +252,7 @@ Who holds the principal and who pays the interest, lifetime returns, concentrati
 | 14/15 | 9×6 | reuse q117 | Default loss over time |  |  |
 | 20/0 | 12×6 | reuse q114 | Active loan count by age |  |  |
 | 20/12 | 12×6 | reuse q116 | Borrower risk · excl. largest exposure |  |  |
-| 26/0 | 24×11 | reuse q289 | Borrower comparison · names open Detail | vs table.column_widths=[90, 145]; columns Borrower › BCG Matrix category › Current health › Active loans › Principal ฿ › Interest ฿ › Lifetime interest return › Last payment; hide Borrower ID, Period start, Period end, Principal share | category and health columns first; Principal share hidden so the eight leading columns fit at 1440 px; sorted by principal (saved order) |
+| 26/0 | 24×11 | reuse q289 | Borrower comparison · names open Detail | vs table.column_widths=[104, 150], column_settings={'["name", "BCG Matrix category"]': {'column_title': 'Category'}}; columns Borrower › BCG Matrix category › Current health › Active loans › Principal ฿ › Interest ฿ › Lifetime interest return › Last payment; hide Borrower ID, Period start, Period end, Principal share | category and health columns first; Principal share hidden so the eight leading columns fit at 1440 px; sorted by principal (saved order) |
 | 37/0 | 24×1 | heading card | Activity over time |  |  |
 | 38/0 | 12×7 | reuse q287 | Interest over time · top 5 + others |  |  |
 | 38/12 | 12×7 | reuse q288 | First and repeat loans · weekly | vs  | short legend labels so the phone legend is not clipped; keys are the series names (COLUMN_n if the placement is visualizer-format) |
@@ -413,7 +413,7 @@ Phone: Four numbers (six columns each so 7-digit baht stay uncompacted), the sta
 
 ### 11 · Forecast & Plan (`forecast`)
 
-Replaces: 12 · Forecast & Planning (tab 262). Filters: `scenario`, `interest-collected`, `principal-collected`, `overdue-recovered`, `loan-kind`, `target`, `plan-lending`, `plan-expenses`, `plan-withdrawals`, `plan-inflows`, `plan-reserve`. Height 61 grid rows, 22 placements (18 visuals).
+Replaces: 12 · Forecast & Planning (tab 262). Filters: `scenario`, `interest-collected`, `principal-collected`, `overdue-recovered`, `loan-kind`, `target`, `plan-lending`, `plan-expenses`, `plan-withdrawals`, `plan-inflows`, `plan-reserve`. Height 59 grid rows, 22 placements (18 visuals).
 
 Interest outlook for the current month under one scenario, the drivers and the watchlist, then the cash plan with its inputs checklist and month-end bridge.
 
@@ -435,12 +435,12 @@ Interest outlook for the current month under one scenario, the drivers and the w
 | 34/12 | 12×7 | reuse q359 | Interest by loan type |  |  |
 | 41/0 | 24×1 | heading card | Cash plan · whole portfolio |  |  |
 | 42/0 | 6×3 | reuse q365 | Business cash now ฿ |  |  |
-| 42/6 | 6×3 | reuse q352 | Principal receipts · scenario |  |  |
+| 42/6 | 6×3 | reuse q352 | Principal receipts |  |  |
 | 42/12 | 6×3 | reuse q366 | Month-end cash ฿ |  |  |
 | 42/18 | 6×3 | reuse q367 | Reserve shortfall ฿ |  |  |
-| 45/0 | 24×6 | reuse q364 | Plan inputs and status |  | Plan not ready until all five inputs are set; blank results until then |
-| 51/0 | 24×8 | reuse q368 | Month-end cash bridge |  |  |
-| 59/0 | 24×2 | text card | Recorded before simulated · planned lending adds no income · not a minimum. | vs text.align_vertical=top |  |
+| 45/0 | 24×4 | reuse q364 | Plan inputs and status |  | Plan not ready until all five inputs are set; blank results until then |
+| 49/0 | 24×8 | reuse q368 | Month-end cash bridge |  |  |
+| 57/0 | 24×2 | text card | Recorded before simulated · planned lending adds no income · not a minimum. | vs text.align_vertical=top |  |
 
 Dropped from dashboard 3 (or replaced by a new question): q361, q362, q363 (the saved questions are kept; nothing is deleted).
 

@@ -5465,377 +5465,6 @@
       }
     },
     {
-      "id": 8894,
-      "card_id": null,
-      "dashboard_tab_id": 375,
-      "row": 0,
-      "col": 0,
-      "size_x": 18,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Today** · live on refresh · trends from completed-day snapshots.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "**Today** · live on refresh · trends from completed-day snapshots."
-      }
-    },
-    {
-      "id": 8895,
-      "card_id": 257,
-      "dashboard_tab_id": 375,
-      "row": 0,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "As of · Bangkok"
-      }
-    },
-    {
-      "id": 8896,
-      "card_id": 49,
-      "dashboard_tab_id": 375,
-      "row": 2,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "scalar.field": "Available Cash",
-        "card.title": "Cash available",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#88BF4D",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Available Cash\"]": {
-            "number_style": "decimal",
-            "number_separators": ".,",
-            "decimals": 0
-          }
-        }
-      }
-    },
-    {
-      "id": 8897,
-      "card_id": 379,
-      "dashboard_tab_id": 375,
-      "row": 2,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 379,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Principal at work"
-      }
-    },
-    {
-      "id": 8898,
-      "card_id": 51,
-      "dashboard_tab_id": 375,
-      "row": 2,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "scalar.field": "Realized Profit MTD",
-        "card.title": "Interest this month",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#689636",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Realized Profit MTD\"]": {
-            "number_style": "decimal",
-            "number_separators": ".,",
-            "decimals": 0
-          }
-        }
-      }
-    },
-    {
-      "id": 8899,
-      "card_id": 237,
-      "dashboard_tab_id": 375,
-      "row": 2,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Collected today"
-      }
-    },
-    {
-      "id": 8900,
-      "card_id": 380,
-      "dashboard_tab_id": 375,
-      "row": 5,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Interest this month · of projection"
-      }
-    },
-    {
-      "id": 8901,
-      "card_id": 381,
-      "dashboard_tab_id": 375,
-      "row": 5,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Today's charges · paid"
-      }
-    },
-    {
-      "id": 8902,
-      "card_id": 389,
-      "dashboard_tab_id": 375,
-      "row": 8,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 5,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Needs attention · rows open pages",
-        "card.description": "Click a row to open Collection or Borrower Health.",
-        "column_settings": {
-          "[\"name\",\"Item\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab={{Tab}}"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8903,
-      "card_id": 62,
-      "dashboard_tab_id": 375,
-      "row": 13,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 62,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "visualization": {
-          "display": "area",
-          "columnValuesMapping": {
-            "COLUMN_1": [
-              {
-                "sourceId": "card:62",
-                "originalName": "Date",
-                "name": "COLUMN_1"
-              }
-            ],
-            "COLUMN_2": [
-              {
-                "sourceId": "card:62",
-                "originalName": "Amount (THB)",
-                "name": "COLUMN_2"
-              }
-            ]
-          },
-          "settings": {
-            "graph.show_goal": true,
-            "graph.y_axis.title_text": "THB",
-            "graph.show_values": false,
-            "graph.show_legend": false,
-            "graph.x_axis.title_enabled": false,
-            "graph.missing": "zero",
-            "graph.goal_label": "Principal reference 120,000",
-            "graph.goal_value": 120000,
-            "card.title": "Principal at work · daily close",
-            "graph.metrics": [
-              "COLUMN_2"
-            ],
-            "graph.label_value_formatting": "auto",
-            "graph.colors": [
-              "#509EE3"
-            ],
-            "graph.show_dots": false,
-            "column_settings": {
-              "[\"name\",\"COLUMN_2\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,"
-              }
-            },
-            "series_settings": {
-              "COLUMN_2": {
-                "color": "#509EE3"
-              }
-            },
-            "graph.y_axis.auto_range": true,
-            "graph.dimensions": [
-              "COLUMN_1"
-            ]
-          }
-        },
-        "card.title": "Principal at work · daily close",
-        "graph.show_goal": true,
-        "graph.goal_value": 120000,
-        "graph.goal_label": "Principal reference 120,000",
-        "graph.show_values": false,
-        "series_settings": {
-          "COLUMN_2": {
-            "color": "#509EE3"
-          }
-        },
-        "graph.colors": [
-          "#509EE3"
-        ]
-      }
-    },
-    {
-      "id": 8904,
-      "card_id": 222,
-      "dashboard_tab_id": 375,
-      "row": 13,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 222,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Daily gross interest · 7-day average",
-        "graph.show_goal": true,
-        "graph.goal_value": 10000,
-        "graph.goal_label": "Daily interest goal 10,000",
-        "graph.show_values": false
-      }
-    },
-    {
-      "id": 8905,
-      "card_id": 390,
-      "dashboard_tab_id": 375,
-      "row": 20,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Principal by borrower · top 4 + others"
-      }
-    },
-    {
-      "id": 8906,
-      "card_id": 391,
-      "dashboard_tab_id": 375,
-      "row": 20,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Interest 30d by borrower · top 4 + rest"
-      }
-    },
-    {
-      "id": 8907,
-      "card_id": null,
-      "dashboard_tab_id": 375,
-      "row": 27,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Profit = gross interest before expenses · definitions in card descriptions.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "Profit = gross interest before expenses · definitions in card descriptions."
-      }
-    },
-    {
       "id": 8908,
       "card_id": null,
       "dashboard_tab_id": 379,
@@ -6451,607 +6080,6 @@
           }
         },
         "text": "Principal counts once per loan · coverage rules: Data health tab."
-      }
-    },
-    {
-      "id": 8927,
-      "card_id": null,
-      "dashboard_tab_id": 380,
-      "row": 0,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Borrowers** · live · positions ignore Period, activity uses it.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "**Borrowers** · live · positions ignore Period, activity uses it."
-      }
-    },
-    {
-      "id": 8928,
-      "card_id": 278,
-      "dashboard_tab_id": 380,
-      "row": 2,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "population",
-          "card_id": 278,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Active borrowers"
-      }
-    },
-    {
-      "id": 8929,
-      "card_id": 279,
-      "dashboard_tab_id": 380,
-      "row": 2,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "population",
-          "card_id": 279,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Active loans"
-      }
-    },
-    {
-      "id": 8930,
-      "card_id": 280,
-      "dashboard_tab_id": 380,
-      "row": 2,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "population",
-          "card_id": 280,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Principal outstanding"
-      }
-    },
-    {
-      "id": 8931,
-      "card_id": 281,
-      "dashboard_tab_id": 380,
-      "row": 2,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 281,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "population",
-          "card_id": 281,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Interest received · period"
-      }
-    },
-    {
-      "id": 8932,
-      "card_id": 393,
-      "dashboard_tab_id": 380,
-      "row": 5,
-      "col": 0,
-      "size_x": 8,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "population",
-          "card_id": 393,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-        },
-        "card.title": "Principal outstanding · top 5 + others"
-      }
-    },
-    {
-      "id": 8933,
-      "card_id": 394,
-      "dashboard_tab_id": 380,
-      "row": 5,
-      "col": 8,
-      "size_x": 8,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 394,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "population",
-          "card_id": 394,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-        },
-        "card.title": "Interest · period · top 5 + others"
-      }
-    },
-    {
-      "id": 8934,
-      "card_id": 314,
-      "dashboard_tab_id": 380,
-      "row": 5,
-      "col": 16,
-      "size_x": 8,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "population",
-          "card_id": 314,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-        },
-        "card.title": "Lifetime return · top 8"
-      }
-    },
-    {
-      "id": 8935,
-      "card_id": null,
-      "dashboard_tab_id": 380,
-      "row": 13,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Concentration & ageing"
-          }
-        },
-        "text": "Concentration & ageing"
-      }
-    },
-    {
-      "id": 8936,
-      "card_id": 110,
-      "dashboard_tab_id": 380,
-      "row": 14,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Top three concentration"
-      }
-    },
-    {
-      "id": 8937,
-      "card_id": 111,
-      "dashboard_tab_id": 380,
-      "row": 17,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Past-due amount"
-      }
-    },
-    {
-      "id": 8938,
-      "card_id": 115,
-      "dashboard_tab_id": 380,
-      "row": 14,
-      "col": 6,
-      "size_x": 9,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Active principal by age"
-      }
-    },
-    {
-      "id": 8939,
-      "card_id": 117,
-      "dashboard_tab_id": 380,
-      "row": 14,
-      "col": 15,
-      "size_x": 9,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Default loss over time"
-      }
-    },
-    {
-      "id": 8940,
-      "card_id": 114,
-      "dashboard_tab_id": 380,
-      "row": 20,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Active loan count by age"
-      }
-    },
-    {
-      "id": 8941,
-      "card_id": 116,
-      "dashboard_tab_id": 380,
-      "row": 20,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Borrower risk · excl. largest exposure"
-      }
-    },
-    {
-      "id": 8942,
-      "card_id": 289,
-      "dashboard_tab_id": 380,
-      "row": 26,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 11,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 289,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "population",
-          "card_id": 289,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Borrower comparison · names open Detail",
-        "table.column_widths": [
-          90,
-          145
-        ],
-        "table.columns": [
-          {
-            "name": "Borrower",
-            "enabled": true
-          },
-          {
-            "name": "BCG Matrix category",
-            "enabled": true
-          },
-          {
-            "name": "Current health",
-            "enabled": true
-          },
-          {
-            "name": "Active loans",
-            "enabled": true
-          },
-          {
-            "name": "Principal ฿",
-            "enabled": true
-          },
-          {
-            "name": "Interest ฿",
-            "enabled": true
-          },
-          {
-            "name": "Lifetime interest return",
-            "enabled": true
-          },
-          {
-            "name": "Last payment",
-            "enabled": true
-          },
-          {
-            "name": "Principal share",
-            "enabled": false
-          },
-          {
-            "name": "Lifetime daily rate",
-            "enabled": true
-          },
-          {
-            "name": "Principal issued ฿",
-            "enabled": true
-          },
-          {
-            "name": "Loans issued",
-            "enabled": true
-          },
-          {
-            "name": "Principal returned ฿",
-            "enabled": true
-          },
-          {
-            "name": "Lifetime loans",
-            "enabled": true
-          },
-          {
-            "name": "Borrower ID",
-            "enabled": false
-          },
-          {
-            "name": "Period start",
-            "enabled": false
-          },
-          {
-            "name": "Period end",
-            "enabled": false
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period={{Period start}}~{{Period end}}"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8943,
-      "card_id": null,
-      "dashboard_tab_id": 380,
-      "row": 37,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Activity over time"
-          }
-        },
-        "text": "Activity over time"
-      }
-    },
-    {
-      "id": 8944,
-      "card_id": 287,
-      "dashboard_tab_id": 380,
-      "row": 38,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 287,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "population",
-          "card_id": 287,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-        },
-        "card.title": "Interest over time · top 5 + others"
-      }
-    },
-    {
-      "id": 8945,
-      "card_id": 288,
-      "dashboard_tab_id": 380,
-      "row": 38,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 288,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "population",
-          "card_id": 288,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "First and repeat loans · weekly",
-        "series_settings": {
-          "First loans": {
-            "title": "First"
-          },
-          "Repeat loans": {
-            "title": "Repeat"
-          },
-          "Unavailable classification": {
-            "title": "Unclassified"
-          }
-        }
-      }
-    },
-    {
-      "id": 8946,
-      "card_id": null,
-      "dashboard_tab_id": 380,
-      "row": 45,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Gross interest before expenses · categories from Borrower Health.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "Gross interest before expenses · categories from Borrower Health."
       }
     },
     {
@@ -7878,1874 +6906,6 @@
           }
         },
         "text": "Received = receipts today · Left includes older dues · refresh moves lanes."
-      }
-    },
-    {
-      "id": 8982,
-      "card_id": null,
-      "dashboard_tab_id": 385,
-      "row": 0,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Forecast & Plan · this month** · scenarios are assumptions, not promises.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "**Forecast & Plan · this month** · scenarios are assumptions, not promises."
-      }
-    },
-    {
-      "id": 8983,
-      "card_id": 353,
-      "dashboard_tab_id": 385,
-      "row": 2,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 353,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 353,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 353,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 353,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 353,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 353,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Scenario and assumptions in force",
-        "table.columns": [
-          {
-            "name": "Bangkok today",
-            "enabled": true
-          },
-          {
-            "name": "Calculated at",
-            "enabled": false
-          },
-          {
-            "name": "Scenario",
-            "enabled": true
-          },
-          {
-            "name": "Loan type",
-            "enabled": true
-          },
-          {
-            "name": "Interest %",
-            "enabled": true
-          },
-          {
-            "name": "Principal %",
-            "enabled": true
-          },
-          {
-            "name": "Overdue %",
-            "enabled": true
-          },
-          {
-            "name": "Status",
-            "enabled": true
-          },
-          {
-            "name": "Target",
-            "enabled": true
-          }
-        ]
-      }
-    },
-    {
-      "id": 8984,
-      "card_id": null,
-      "dashboard_tab_id": 385,
-      "row": 5,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Interest outlook"
-          }
-        },
-        "text": "Interest outlook"
-      }
-    },
-    {
-      "id": 8985,
-      "card_id": 348,
-      "dashboard_tab_id": 385,
-      "row": 6,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 348,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 348,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 348,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 348,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 348,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 348,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Interest · month to date"
-      }
-    },
-    {
-      "id": 8986,
-      "card_id": 349,
-      "dashboard_tab_id": 385,
-      "row": 6,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 349,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 349,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 349,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 349,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 349,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 349,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Remaining · scenario"
-      }
-    },
-    {
-      "id": 8987,
-      "card_id": 350,
-      "dashboard_tab_id": 385,
-      "row": 6,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 350,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 350,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 350,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 350,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 350,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 350,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Month-end outlook"
-      }
-    },
-    {
-      "id": 8988,
-      "card_id": 351,
-      "dashboard_tab_id": 385,
-      "row": 6,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 351,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 351,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 351,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 351,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 351,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 351,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Target gap"
-      }
-    },
-    {
-      "id": 8989,
-      "card_id": 356,
-      "dashboard_tab_id": 385,
-      "row": 9,
-      "col": 0,
-      "size_x": 16,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 356,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 356,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 356,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 356,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 356,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 356,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Cumulative interest · actual + projected"
-      }
-    },
-    {
-      "id": 8990,
-      "card_id": 355,
-      "dashboard_tab_id": 385,
-      "row": 9,
-      "col": 16,
-      "size_x": 8,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 355,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 355,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 355,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 355,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 355,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 355,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Month-end by scenario"
-      }
-    },
-    {
-      "id": 8991,
-      "card_id": 360,
-      "dashboard_tab_id": 385,
-      "row": 18,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 360,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 360,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 360,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 360,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 360,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 360,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Watchlist · dues at risk",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8992,
-      "card_id": 357,
-      "dashboard_tab_id": 385,
-      "row": 26,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 357,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 357,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 357,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 357,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 357,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 357,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Upcoming dues · remaining weeks"
-      }
-    },
-    {
-      "id": 8993,
-      "card_id": 354,
-      "dashboard_tab_id": 385,
-      "row": 26,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 354,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 354,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 354,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 354,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 354,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 354,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Interest outlook bridge"
-      }
-    },
-    {
-      "id": 8994,
-      "card_id": 358,
-      "dashboard_tab_id": 385,
-      "row": 34,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 358,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 358,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 358,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 358,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 358,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 358,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Borrower forecast contribution"
-      }
-    },
-    {
-      "id": 8995,
-      "card_id": 359,
-      "dashboard_tab_id": 385,
-      "row": 34,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 359,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 359,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 359,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 359,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 359,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 359,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Interest by loan type"
-      }
-    },
-    {
-      "id": 8996,
-      "card_id": null,
-      "dashboard_tab_id": 385,
-      "row": 41,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Cash plan · whole portfolio"
-          }
-        },
-        "text": "Cash plan · whole portfolio"
-      }
-    },
-    {
-      "id": 8997,
-      "card_id": 365,
-      "dashboard_tab_id": 385,
-      "row": 42,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-lending",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "lending"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-expenses",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "expenses"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-withdrawals",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "withdrawals"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-inflows",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "inflows"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-reserve",
-          "card_id": 365,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "reserve"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Business cash now ฿"
-      }
-    },
-    {
-      "id": 8998,
-      "card_id": 352,
-      "dashboard_tab_id": 385,
-      "row": 42,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 352,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 352,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 352,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 352,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 352,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 352,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Principal receipts · scenario"
-      }
-    },
-    {
-      "id": 8999,
-      "card_id": 366,
-      "dashboard_tab_id": 385,
-      "row": 42,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-lending",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "lending"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-expenses",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "expenses"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-withdrawals",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "withdrawals"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-inflows",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "inflows"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-reserve",
-          "card_id": 366,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "reserve"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Month-end cash ฿"
-      }
-    },
-    {
-      "id": 9000,
-      "card_id": 367,
-      "dashboard_tab_id": 385,
-      "row": 42,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-lending",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "lending"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-expenses",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "expenses"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-withdrawals",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "withdrawals"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-inflows",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "inflows"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-reserve",
-          "card_id": 367,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "reserve"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Reserve shortfall ฿"
-      }
-    },
-    {
-      "id": 9001,
-      "card_id": 364,
-      "dashboard_tab_id": 385,
-      "row": 45,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-lending",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "lending"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-expenses",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "expenses"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-withdrawals",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "withdrawals"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-inflows",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "inflows"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-reserve",
-          "card_id": 364,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "reserve"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Plan inputs and status"
-      }
-    },
-    {
-      "id": 9002,
-      "card_id": 368,
-      "dashboard_tab_id": 385,
-      "row": 51,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-lending",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "lending"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-expenses",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "expenses"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-withdrawals",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "withdrawals"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-inflows",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "inflows"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "plan-reserve",
-          "card_id": 368,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "reserve"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Month-end cash bridge"
-      }
-    },
-    {
-      "id": 9003,
-      "card_id": null,
-      "dashboard_tab_id": 385,
-      "row": 59,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Recorded before simulated · planned lending adds no income · not a minimum.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "Recorded before simulated · planned lending adds no income · not a minimum."
       }
     },
     {
@@ -10591,6 +7751,2843 @@
             }
           }
         }
+      }
+    },
+    {
+      "id": 9030,
+      "card_id": null,
+      "dashboard_tab_id": 375,
+      "row": 0,
+      "col": 0,
+      "size_x": 18,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Today** · live on refresh · trends from completed-day snapshots.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "**Today** · live on refresh · trends from completed-day snapshots."
+      }
+    },
+    {
+      "id": 9031,
+      "card_id": 257,
+      "dashboard_tab_id": 375,
+      "row": 0,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "As of · Bangkok"
+      }
+    },
+    {
+      "id": 9032,
+      "card_id": 49,
+      "dashboard_tab_id": 375,
+      "row": 2,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "scalar.field": "Available Cash",
+        "card.title": "Cash available",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#88BF4D",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Available Cash\"]": {
+            "number_style": "decimal",
+            "number_separators": ".,",
+            "decimals": 0
+          }
+        }
+      }
+    },
+    {
+      "id": 9033,
+      "card_id": 379,
+      "dashboard_tab_id": 375,
+      "row": 2,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 379,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Principal at work"
+      }
+    },
+    {
+      "id": 9034,
+      "card_id": 51,
+      "dashboard_tab_id": 375,
+      "row": 2,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "scalar.field": "Realized Profit MTD",
+        "card.title": "Interest this month",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#689636",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Realized Profit MTD\"]": {
+            "number_style": "decimal",
+            "number_separators": ".,",
+            "decimals": 0
+          }
+        }
+      }
+    },
+    {
+      "id": 9035,
+      "card_id": 237,
+      "dashboard_tab_id": 375,
+      "row": 2,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Collected today"
+      }
+    },
+    {
+      "id": 9036,
+      "card_id": 380,
+      "dashboard_tab_id": 375,
+      "row": 5,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Interest this month · of projection"
+      }
+    },
+    {
+      "id": 9037,
+      "card_id": 381,
+      "dashboard_tab_id": 375,
+      "row": 5,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Today's charges · paid"
+      }
+    },
+    {
+      "id": 9038,
+      "card_id": 389,
+      "dashboard_tab_id": 375,
+      "row": 8,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Needs attention · rows open pages",
+        "card.description": "Click a row to open Collection or Borrower Health.",
+        "column_settings": {
+          "[\"name\",\"Item\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab={{Tab}}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9039,
+      "card_id": 62,
+      "dashboard_tab_id": 375,
+      "row": 14,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 62,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "visualization": {
+          "display": "area",
+          "columnValuesMapping": {
+            "COLUMN_1": [
+              {
+                "sourceId": "card:62",
+                "originalName": "Date",
+                "name": "COLUMN_1"
+              }
+            ],
+            "COLUMN_2": [
+              {
+                "sourceId": "card:62",
+                "originalName": "Amount (THB)",
+                "name": "COLUMN_2"
+              }
+            ]
+          },
+          "settings": {
+            "graph.show_goal": true,
+            "graph.y_axis.title_text": "THB",
+            "graph.show_values": false,
+            "graph.show_legend": false,
+            "graph.x_axis.title_enabled": false,
+            "graph.missing": "zero",
+            "graph.goal_label": "Principal reference 120,000",
+            "graph.goal_value": 120000,
+            "card.title": "Principal at work · daily close",
+            "graph.metrics": [
+              "COLUMN_2"
+            ],
+            "graph.label_value_formatting": "auto",
+            "graph.colors": [
+              "#509EE3"
+            ],
+            "graph.show_dots": false,
+            "column_settings": {
+              "[\"name\",\"COLUMN_2\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,"
+              }
+            },
+            "series_settings": {
+              "COLUMN_2": {
+                "color": "#509EE3"
+              }
+            },
+            "graph.y_axis.auto_range": true,
+            "graph.dimensions": [
+              "COLUMN_1"
+            ]
+          }
+        },
+        "card.title": "Principal at work · daily close",
+        "graph.show_goal": true,
+        "graph.goal_value": 120000,
+        "graph.goal_label": "Principal reference 120,000",
+        "graph.show_values": false,
+        "series_settings": {
+          "COLUMN_2": {
+            "color": "#509EE3"
+          }
+        },
+        "graph.colors": [
+          "#509EE3"
+        ]
+      }
+    },
+    {
+      "id": 9040,
+      "card_id": 222,
+      "dashboard_tab_id": 375,
+      "row": 14,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 222,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily gross interest · 7-day average",
+        "graph.show_goal": true,
+        "graph.goal_value": 10000,
+        "graph.goal_label": "Daily interest goal 10,000",
+        "graph.show_values": false
+      }
+    },
+    {
+      "id": 9041,
+      "card_id": 390,
+      "dashboard_tab_id": 375,
+      "row": 21,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Principal by borrower · top 4 + others"
+      }
+    },
+    {
+      "id": 9042,
+      "card_id": 391,
+      "dashboard_tab_id": 375,
+      "row": 21,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Interest 30d by borrower · top 4 + rest"
+      }
+    },
+    {
+      "id": 9043,
+      "card_id": null,
+      "dashboard_tab_id": 375,
+      "row": 28,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Profit = gross interest before expenses · definitions in card descriptions.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "Profit = gross interest before expenses · definitions in card descriptions."
+      }
+    },
+    {
+      "id": 9044,
+      "card_id": null,
+      "dashboard_tab_id": 380,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Borrowers** · live · positions ignore Period, activity uses it.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "**Borrowers** · live · positions ignore Period, activity uses it."
+      }
+    },
+    {
+      "id": 9045,
+      "card_id": 278,
+      "dashboard_tab_id": 380,
+      "row": 2,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "population",
+          "card_id": 278,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Active borrowers"
+      }
+    },
+    {
+      "id": 9046,
+      "card_id": 279,
+      "dashboard_tab_id": 380,
+      "row": 2,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "population",
+          "card_id": 279,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Active loans"
+      }
+    },
+    {
+      "id": 9047,
+      "card_id": 280,
+      "dashboard_tab_id": 380,
+      "row": 2,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "population",
+          "card_id": 280,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Principal outstanding"
+      }
+    },
+    {
+      "id": 9048,
+      "card_id": 281,
+      "dashboard_tab_id": 380,
+      "row": 2,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 281,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "population",
+          "card_id": 281,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Interest received · period"
+      }
+    },
+    {
+      "id": 9049,
+      "card_id": 393,
+      "dashboard_tab_id": 380,
+      "row": 5,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "population",
+          "card_id": 393,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+        },
+        "card.title": "Principal outstanding · top 5 + others"
+      }
+    },
+    {
+      "id": 9050,
+      "card_id": 394,
+      "dashboard_tab_id": 380,
+      "row": 5,
+      "col": 8,
+      "size_x": 8,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 394,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "population",
+          "card_id": 394,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+        },
+        "card.title": "Interest · period · top 5 + others"
+      }
+    },
+    {
+      "id": 9051,
+      "card_id": 314,
+      "dashboard_tab_id": 380,
+      "row": 5,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "population",
+          "card_id": 314,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+        },
+        "card.title": "Lifetime return · top 8"
+      }
+    },
+    {
+      "id": 9052,
+      "card_id": null,
+      "dashboard_tab_id": 380,
+      "row": 13,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Concentration & ageing"
+          }
+        },
+        "text": "Concentration & ageing"
+      }
+    },
+    {
+      "id": 9053,
+      "card_id": 110,
+      "dashboard_tab_id": 380,
+      "row": 14,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Top three concentration"
+      }
+    },
+    {
+      "id": 9054,
+      "card_id": 111,
+      "dashboard_tab_id": 380,
+      "row": 17,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Past-due amount"
+      }
+    },
+    {
+      "id": 9055,
+      "card_id": 115,
+      "dashboard_tab_id": 380,
+      "row": 14,
+      "col": 6,
+      "size_x": 9,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Active principal by age"
+      }
+    },
+    {
+      "id": 9056,
+      "card_id": 117,
+      "dashboard_tab_id": 380,
+      "row": 14,
+      "col": 15,
+      "size_x": 9,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Default loss over time"
+      }
+    },
+    {
+      "id": 9057,
+      "card_id": 114,
+      "dashboard_tab_id": 380,
+      "row": 20,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Active loan count by age"
+      }
+    },
+    {
+      "id": 9058,
+      "card_id": 116,
+      "dashboard_tab_id": 380,
+      "row": 20,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Borrower risk · excl. largest exposure"
+      }
+    },
+    {
+      "id": 9059,
+      "card_id": 289,
+      "dashboard_tab_id": 380,
+      "row": 26,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 11,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 289,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "population",
+          "card_id": 289,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Borrower comparison · names open Detail",
+        "table.column_widths": [
+          104,
+          150
+        ],
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "enabled": true
+          },
+          {
+            "name": "BCG Matrix category",
+            "enabled": true
+          },
+          {
+            "name": "Current health",
+            "enabled": true
+          },
+          {
+            "name": "Active loans",
+            "enabled": true
+          },
+          {
+            "name": "Principal ฿",
+            "enabled": true
+          },
+          {
+            "name": "Interest ฿",
+            "enabled": true
+          },
+          {
+            "name": "Lifetime interest return",
+            "enabled": true
+          },
+          {
+            "name": "Last payment",
+            "enabled": true
+          },
+          {
+            "name": "Principal share",
+            "enabled": false
+          },
+          {
+            "name": "Lifetime daily rate",
+            "enabled": true
+          },
+          {
+            "name": "Principal issued ฿",
+            "enabled": true
+          },
+          {
+            "name": "Loans issued",
+            "enabled": true
+          },
+          {
+            "name": "Principal returned ฿",
+            "enabled": true
+          },
+          {
+            "name": "Lifetime loans",
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "enabled": false
+          },
+          {
+            "name": "Period start",
+            "enabled": false
+          },
+          {
+            "name": "Period end",
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"BCG Matrix category\"]": {
+            "column_title": "Category"
+          }
+        }
+      }
+    },
+    {
+      "id": 9060,
+      "card_id": null,
+      "dashboard_tab_id": 380,
+      "row": 37,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Activity over time"
+          }
+        },
+        "text": "Activity over time"
+      }
+    },
+    {
+      "id": 9061,
+      "card_id": 287,
+      "dashboard_tab_id": 380,
+      "row": 38,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 287,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "population",
+          "card_id": 287,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+        },
+        "card.title": "Interest over time · top 5 + others"
+      }
+    },
+    {
+      "id": 9062,
+      "card_id": 288,
+      "dashboard_tab_id": 380,
+      "row": 38,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 288,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "population",
+          "card_id": 288,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "First and repeat loans · weekly",
+        "series_settings": {
+          "First loans": {
+            "title": "First"
+          },
+          "Repeat loans": {
+            "title": "Repeat"
+          },
+          "Unavailable classification": {
+            "title": "Unclassified"
+          }
+        }
+      }
+    },
+    {
+      "id": 9063,
+      "card_id": null,
+      "dashboard_tab_id": 380,
+      "row": 45,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Gross interest before expenses · categories from Borrower Health.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "Gross interest before expenses · categories from Borrower Health."
+      }
+    },
+    {
+      "id": 9064,
+      "card_id": null,
+      "dashboard_tab_id": 385,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Forecast & Plan · this month** · scenarios are assumptions, not promises.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "**Forecast & Plan · this month** · scenarios are assumptions, not promises."
+      }
+    },
+    {
+      "id": 9065,
+      "card_id": 353,
+      "dashboard_tab_id": 385,
+      "row": 2,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 353,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 353,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 353,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 353,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 353,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 353,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Scenario and assumptions in force",
+        "table.columns": [
+          {
+            "name": "Bangkok today",
+            "enabled": true
+          },
+          {
+            "name": "Calculated at",
+            "enabled": false
+          },
+          {
+            "name": "Scenario",
+            "enabled": true
+          },
+          {
+            "name": "Loan type",
+            "enabled": true
+          },
+          {
+            "name": "Interest %",
+            "enabled": true
+          },
+          {
+            "name": "Principal %",
+            "enabled": true
+          },
+          {
+            "name": "Overdue %",
+            "enabled": true
+          },
+          {
+            "name": "Status",
+            "enabled": true
+          },
+          {
+            "name": "Target",
+            "enabled": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 9066,
+      "card_id": null,
+      "dashboard_tab_id": 385,
+      "row": 5,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Interest outlook"
+          }
+        },
+        "text": "Interest outlook"
+      }
+    },
+    {
+      "id": 9067,
+      "card_id": 348,
+      "dashboard_tab_id": 385,
+      "row": 6,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 348,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 348,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 348,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 348,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 348,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 348,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Interest · month to date"
+      }
+    },
+    {
+      "id": 9068,
+      "card_id": 349,
+      "dashboard_tab_id": 385,
+      "row": 6,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 349,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 349,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 349,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 349,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 349,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 349,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Remaining · scenario"
+      }
+    },
+    {
+      "id": 9069,
+      "card_id": 350,
+      "dashboard_tab_id": 385,
+      "row": 6,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 350,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 350,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 350,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 350,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 350,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 350,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Month-end outlook"
+      }
+    },
+    {
+      "id": 9070,
+      "card_id": 351,
+      "dashboard_tab_id": 385,
+      "row": 6,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 351,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 351,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 351,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 351,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 351,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 351,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Target gap"
+      }
+    },
+    {
+      "id": 9071,
+      "card_id": 356,
+      "dashboard_tab_id": 385,
+      "row": 9,
+      "col": 0,
+      "size_x": 16,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 356,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 356,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 356,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 356,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 356,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 356,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cumulative interest · actual + projected"
+      }
+    },
+    {
+      "id": 9072,
+      "card_id": 355,
+      "dashboard_tab_id": 385,
+      "row": 9,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 355,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 355,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 355,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 355,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 355,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 355,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Month-end by scenario"
+      }
+    },
+    {
+      "id": 9073,
+      "card_id": 360,
+      "dashboard_tab_id": 385,
+      "row": 18,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 360,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 360,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 360,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 360,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 360,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 360,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Watchlist · dues at risk",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9074,
+      "card_id": 357,
+      "dashboard_tab_id": 385,
+      "row": 26,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 357,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 357,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 357,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 357,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 357,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 357,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Upcoming dues · remaining weeks"
+      }
+    },
+    {
+      "id": 9075,
+      "card_id": 354,
+      "dashboard_tab_id": 385,
+      "row": 26,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 354,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 354,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 354,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 354,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 354,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 354,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Interest outlook bridge"
+      }
+    },
+    {
+      "id": 9076,
+      "card_id": 358,
+      "dashboard_tab_id": 385,
+      "row": 34,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 358,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 358,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 358,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 358,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 358,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 358,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Borrower forecast contribution"
+      }
+    },
+    {
+      "id": 9077,
+      "card_id": 359,
+      "dashboard_tab_id": 385,
+      "row": 34,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 359,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 359,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 359,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 359,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 359,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 359,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Interest by loan type"
+      }
+    },
+    {
+      "id": 9078,
+      "card_id": null,
+      "dashboard_tab_id": 385,
+      "row": 41,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Cash plan · whole portfolio"
+          }
+        },
+        "text": "Cash plan · whole portfolio"
+      }
+    },
+    {
+      "id": 9079,
+      "card_id": 365,
+      "dashboard_tab_id": 385,
+      "row": 42,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-lending",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "lending"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-expenses",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "expenses"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-withdrawals",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "withdrawals"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-inflows",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "inflows"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-reserve",
+          "card_id": 365,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "reserve"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Business cash now ฿"
+      }
+    },
+    {
+      "id": 9080,
+      "card_id": 352,
+      "dashboard_tab_id": 385,
+      "row": 42,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 352,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 352,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 352,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 352,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 352,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 352,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Principal receipts",
+        "card.description": "Principal receipts remaining this month under the selected scenario."
+      }
+    },
+    {
+      "id": 9081,
+      "card_id": 366,
+      "dashboard_tab_id": 385,
+      "row": 42,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-lending",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "lending"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-expenses",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "expenses"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-withdrawals",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "withdrawals"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-inflows",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "inflows"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-reserve",
+          "card_id": 366,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "reserve"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Month-end cash ฿"
+      }
+    },
+    {
+      "id": 9082,
+      "card_id": 367,
+      "dashboard_tab_id": 385,
+      "row": 42,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-lending",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "lending"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-expenses",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "expenses"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-withdrawals",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "withdrawals"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-inflows",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "inflows"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-reserve",
+          "card_id": 367,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "reserve"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Reserve shortfall ฿"
+      }
+    },
+    {
+      "id": 9083,
+      "card_id": 364,
+      "dashboard_tab_id": 385,
+      "row": 45,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-lending",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "lending"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-expenses",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "expenses"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-withdrawals",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "withdrawals"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-inflows",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "inflows"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-reserve",
+          "card_id": 364,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "reserve"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Plan inputs and status"
+      }
+    },
+    {
+      "id": 9084,
+      "card_id": 368,
+      "dashboard_tab_id": 385,
+      "row": 49,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-lending",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "lending"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-expenses",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "expenses"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-withdrawals",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "withdrawals"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-inflows",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "inflows"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "plan-reserve",
+          "card_id": 368,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "reserve"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Month-end cash bridge"
+      }
+    },
+    {
+      "id": 9085,
+      "card_id": null,
+      "dashboard_tab_id": 385,
+      "row": 57,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Recorded before simulated · planned lending adds no income · not a minimum.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "Recorded before simulated · planned lending adds no income · not a minimum."
       }
     }
   ]

@@ -1546,7 +1546,7 @@
      "row": 8,
      "col": 0,
      "size_x": 24,
-     "size_y": 5,
+     "size_y": 6,
      "new_question": "today.attention",
      "title": "Needs attention · rows open pages",
      "description": "Click a row to open Collection or Borrower Health.",
@@ -1555,7 +1555,7 @@
      ]
     },
     {
-     "row": 13,
+     "row": 14,
      "col": 0,
      "size_x": 12,
      "size_y": 7,
@@ -1581,7 +1581,7 @@
      ]
     },
     {
-     "row": 13,
+     "row": 14,
      "col": 12,
      "size_x": 12,
      "size_y": 7,
@@ -1599,7 +1599,7 @@
      ]
     },
     {
-     "row": 20,
+     "row": 21,
      "col": 0,
      "size_x": 12,
      "size_y": 7,
@@ -1610,7 +1610,7 @@
      ]
     },
     {
-     "row": 20,
+     "row": 21,
      "col": 12,
      "size_x": 12,
      "size_y": 7,
@@ -1621,7 +1621,7 @@
      ]
     },
     {
-     "row": 27,
+     "row": 28,
      "col": 0,
      "size_x": 24,
      "size_y": 2,
@@ -1633,7 +1633,7 @@
      "params": []
     }
    ],
-   "height_rows": 29,
+   "height_rows": 30,
    "dropped_from_dashboard_3": [
     47,
     50,
@@ -2514,9 +2514,14 @@
      "note": "category and health columns first; Principal share hidden so the eight leading columns fit at 1440 px; sorted by principal (saved order)",
      "vs": {
       "table.column_widths": [
-       90,
-       145
-      ]
+       104,
+       150
+      ],
+      "column_settings": {
+       "[\"name\", \"BCG Matrix category\"]": {
+        "column_title": "Category"
+       }
+      }
      },
      "columns": {
       "order": [
@@ -4160,7 +4165,8 @@
      "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 352,
-     "title": "Principal receipts · scenario",
+     "title": "Principal receipts",
+     "description": "Principal receipts remaining this month under the selected scenario.",
      "params": [
       "scenario",
       "interest-collected",
@@ -4221,7 +4227,7 @@
      "row": 45,
      "col": 0,
      "size_x": 24,
-     "size_y": 6,
+     "size_y": 4,
      "reuse_card_id": 364,
      "title": "Plan inputs and status",
      "note": "Plan not ready until all five inputs are set; blank results until then",
@@ -4240,7 +4246,7 @@
      ]
     },
     {
-     "row": 51,
+     "row": 49,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -4261,7 +4267,7 @@
      ]
     },
     {
-     "row": 59,
+     "row": 57,
      "col": 0,
      "size_x": 24,
      "size_y": 2,
@@ -4273,7 +4279,7 @@
      "params": []
     }
    ],
-   "height_rows": 61,
+   "height_rows": 59,
    "dropped_from_dashboard_3": [
     361,
     362,

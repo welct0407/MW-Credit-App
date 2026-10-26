@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-26T21:22:47.668Z",
+  "at": "2026-10-26T21:26:44.477Z",
   "passed": true,
   "checks": [
     {
@@ -307,7 +307,7 @@
       "name": "links target the proposed dashboard",
       "passed": true,
       "detail": {
-        "links": 19,
+        "links": 18,
         "toDashboard3": 0
       }
     },
