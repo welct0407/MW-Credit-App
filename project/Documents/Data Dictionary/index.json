@@ -1478,7 +1478,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Collected today · share of amount due / 381",
+      "name": "Today's charges · paid share / 381",
       "scope": "production",
       "status": "documented",
       "lookup": []

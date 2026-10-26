@@ -12,9 +12,10 @@
   "key": "borrowers.interest-top5"
   "id": 394
   "name": "Interest received · period by borrower · top five + others"
-  "description": "Loan Reports · proposed (borrowers.interest-top5). Question 286's query with the same two edits as borrowers.principal-top5.\
-    \ Template tags period and population copied verbatim; maps `period` and `population` as 286 maps bp-period and bp-population.\
-    \ Basis: function reporting_borrower_period_v1 (same query as question 286)."
+  "description": "Loan Reports · proposed (borrowers.interest-top5). Question 286's query with the same two edits as borrowers.principal-top5,\
+    \ the count being (SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(interest_received,0)<>0). Template tags period\
+    \ and population copied verbatim; maps `period` and `population` as 286 maps bp-period and bp-population. Basis: function\
+    \ reporting_borrower_period_v1 (same query as question 286)."
   "display": "row"
   "dataset_query":
     "stages":
@@ -28,7 +29,7 @@
         "dimension":
         - "field"
         - "base-type": "type/Date"
-          "lib/uuid": "6ea246df-793f-45d5-81d8-7a3c60a3eb7e"
+          "lib/uuid": "2e7f9d9a-737f-4bca-bd41-89f27fd7ce66"
           "effective-type": "type/Date"
         - 82
       - "display-name": "Population"

@@ -13,9 +13,9 @@
   "id": 393
   "name": "Principal outstanding by borrower · top five + others"
   "description": "Loan Reports · proposed (borrowers.principal-top5). Question 285's query with rank<=10 changed to rank<=5\
-    \ (both occurrences) and the label 'Others' replaced by 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')'. Template\
-    \ tag population copied verbatim; maps `population` as 285 maps bp-population. Basis: view reporting_borrower_directory_v1\
-    \ (same query as question 285)."
+    \ (both occurrences) and the label 'Others' replaced by 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(outstanding_principal,0)<>0)||')'\
+    \ (n counts only borrowers with a non-zero amount). Template tag population copied verbatim; maps `population` as 285\
+    \ maps bp-population. Basis: view reporting_borrower_directory_v1 (same query as question 285)."
   "display": "row"
   "dataset_query":
     "stages":
