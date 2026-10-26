@@ -1230,7 +1230,7 @@
       "id": 389,
       "name": "Needs attention · strip",
       "display": "table",
-      "description": "Loan Reports · proposed (today.attention). One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid today (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card. Basis: models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270.",
+      "description": "Loan Reports · proposed (today.attention). One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card. Basis: models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270.",
       "dataset_query": {
         "stages": [
           {
@@ -1244,7 +1244,7 @@
               }
             ],
             "lib/type": "mbql.stage/native",
-            "native": "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\nSELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','383','overdue'),\n (2,'🔴 Not paid today',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','383','not_paid'),\n (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','383','partial'),\n (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','381','')\n) v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord"
+            "native": "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\nSELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','383','overdue'),\n (2,'🔴 Not paid',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','383','not_paid'),\n (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','383','partial'),\n (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','381','')\n) v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord"
           }
         ],
         "lib/type": "mbql/query",
@@ -2603,7 +2603,7 @@
   ],
   "layout": [
     {
-      "id": 8420,
+      "id": 8647,
       "card_id": null,
       "dashboard_tab_id": 375,
       "row": 0,
@@ -2618,15 +2618,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Today** · live on refresh, Bangkok dates · trends from completed-day snapshots · gross interest.",
+            "text": "**Today** · live on refresh · trends from completed-day snapshots.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Today** · live on refresh, Bangkok dates · trends from completed-day snapshots · gross interest."
+        "text": "**Today** · live on refresh · trends from completed-day snapshots."
       }
     },
     {
-      "id": 8421,
+      "id": 8648,
       "card_id": 257,
       "dashboard_tab_id": 375,
       "row": 0,
@@ -2640,7 +2640,7 @@
       }
     },
     {
-      "id": 8422,
+      "id": 8649,
       "card_id": 49,
       "dashboard_tab_id": 375,
       "row": 2,
@@ -2670,7 +2670,7 @@
       }
     },
     {
-      "id": 8423,
+      "id": 8650,
       "card_id": 379,
       "dashboard_tab_id": 375,
       "row": 2,
@@ -2699,7 +2699,7 @@
       }
     },
     {
-      "id": 8424,
+      "id": 8651,
       "card_id": 51,
       "dashboard_tab_id": 375,
       "row": 2,
@@ -2729,7 +2729,7 @@
       }
     },
     {
-      "id": 8425,
+      "id": 8652,
       "card_id": 237,
       "dashboard_tab_id": 375,
       "row": 2,
@@ -2743,7 +2743,7 @@
       }
     },
     {
-      "id": 8426,
+      "id": 8653,
       "card_id": 380,
       "dashboard_tab_id": 375,
       "row": 5,
@@ -2757,7 +2757,7 @@
       }
     },
     {
-      "id": 8427,
+      "id": 8654,
       "card_id": 381,
       "dashboard_tab_id": 375,
       "row": 5,
@@ -2771,7 +2771,7 @@
       }
     },
     {
-      "id": 8428,
+      "id": 8655,
       "card_id": 389,
       "dashboard_tab_id": 375,
       "row": 8,
@@ -2795,7 +2795,7 @@
       }
     },
     {
-      "id": 8429,
+      "id": 8656,
       "card_id": 62,
       "dashboard_tab_id": 375,
       "row": 14,
@@ -2889,7 +2889,7 @@
       }
     },
     {
-      "id": 8430,
+      "id": 8657,
       "card_id": 222,
       "dashboard_tab_id": 375,
       "row": 14,
@@ -2921,7 +2921,7 @@
       }
     },
     {
-      "id": 8431,
+      "id": 8658,
       "card_id": 390,
       "dashboard_tab_id": 375,
       "row": 21,
@@ -2935,7 +2935,7 @@
       }
     },
     {
-      "id": 8432,
+      "id": 8659,
       "card_id": 391,
       "dashboard_tab_id": 375,
       "row": 21,
@@ -2949,7 +2949,7 @@
       }
     },
     {
-      "id": 8433,
+      "id": 8660,
       "card_id": null,
       "dashboard_tab_id": 375,
       "row": 28,
@@ -2964,15 +2964,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Card descriptions hold the exact definitions · profit = gross interest before expenses · gauge: Cash Position.",
+            "text": "Profit = gross interest before expenses · definitions in card descriptions.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Card descriptions hold the exact definitions · profit = gross interest before expenses · gauge: Cash Position."
+        "text": "Profit = gross interest before expenses · definitions in card descriptions."
       }
     },
     {
-      "id": 8434,
+      "id": 8661,
       "card_id": null,
       "dashboard_tab_id": 376,
       "row": 0,
@@ -2987,15 +2987,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Cash position** · Date selects the position (today = live, past = snapshot) · net cash includes negatives.",
+            "text": "**Cash position** · Date = today is live, a past date is the snapshot.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Cash position** · Date selects the position (today = live, past = snapshot) · net cash includes negatives."
+        "text": "**Cash position** · Date = today is live, a past date is the snapshot."
       }
     },
     {
-      "id": 8435,
+      "id": 8662,
       "card_id": 382,
       "dashboard_tab_id": 376,
       "row": 2,
@@ -3021,7 +3021,7 @@
       }
     },
     {
-      "id": 8436,
+      "id": 8663,
       "card_id": 383,
       "dashboard_tab_id": 376,
       "row": 2,
@@ -3047,7 +3047,7 @@
       }
     },
     {
-      "id": 8437,
+      "id": 8664,
       "card_id": 207,
       "dashboard_tab_id": 376,
       "row": 2,
@@ -3073,7 +3073,7 @@
       }
     },
     {
-      "id": 8438,
+      "id": 8665,
       "card_id": 208,
       "dashboard_tab_id": 376,
       "row": 2,
@@ -3099,7 +3099,7 @@
       }
     },
     {
-      "id": 8439,
+      "id": 8666,
       "card_id": 68,
       "dashboard_tab_id": 376,
       "row": 5,
@@ -3113,7 +3113,7 @@
       }
     },
     {
-      "id": 8440,
+      "id": 8667,
       "card_id": 210,
       "dashboard_tab_id": 376,
       "row": 5,
@@ -3139,7 +3139,7 @@
       }
     },
     {
-      "id": 8441,
+      "id": 8668,
       "card_id": 211,
       "dashboard_tab_id": 376,
       "row": 11,
@@ -3166,7 +3166,7 @@
       }
     },
     {
-      "id": 8442,
+      "id": 8669,
       "card_id": 202,
       "dashboard_tab_id": 376,
       "row": 17,
@@ -3192,7 +3192,7 @@
       }
     },
     {
-      "id": 8443,
+      "id": 8670,
       "card_id": null,
       "dashboard_tab_id": 376,
       "row": 24,
@@ -3207,15 +3207,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab.",
+            "text": "Unknown openings stay blank · source and freshness: Data health tab.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab."
+        "text": "Unknown openings stay blank · source and freshness: Data health tab."
       }
     },
     {
-      "id": 8444,
+      "id": 8671,
       "card_id": null,
       "dashboard_tab_id": 377,
       "row": 0,
@@ -3230,15 +3230,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Income statement** · live, with corrections · daily chart from snapshots · net = gross interest − expenses.",
+            "text": "**Income statement** · live · net profit = gross interest − expenses.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Income statement** · live, with corrections · daily chart from snapshots · net = gross interest − expenses."
+        "text": "**Income statement** · live · net profit = gross interest − expenses."
       }
     },
     {
-      "id": 8445,
+      "id": 8672,
       "card_id": 168,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -3281,7 +3281,7 @@
       }
     },
     {
-      "id": 8446,
+      "id": 8673,
       "card_id": 392,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -3307,7 +3307,7 @@
       }
     },
     {
-      "id": 8447,
+      "id": 8674,
       "card_id": 170,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -3350,7 +3350,7 @@
       }
     },
     {
-      "id": 8448,
+      "id": 8675,
       "card_id": 384,
       "dashboard_tab_id": 377,
       "row": 5,
@@ -3376,7 +3376,7 @@
       }
     },
     {
-      "id": 8449,
+      "id": 8676,
       "card_id": 171,
       "dashboard_tab_id": 377,
       "row": 5,
@@ -3419,7 +3419,7 @@
       }
     },
     {
-      "id": 8450,
+      "id": 8677,
       "card_id": 385,
       "dashboard_tab_id": 377,
       "row": 11,
@@ -3433,7 +3433,7 @@
       }
     },
     {
-      "id": 8451,
+      "id": 8678,
       "card_id": 178,
       "dashboard_tab_id": 377,
       "row": 11,
@@ -3476,7 +3476,7 @@
       }
     },
     {
-      "id": 8452,
+      "id": 8679,
       "card_id": 213,
       "dashboard_tab_id": 377,
       "row": 19,
@@ -3572,7 +3572,7 @@
       }
     },
     {
-      "id": 8453,
+      "id": 8680,
       "card_id": 212,
       "dashboard_tab_id": 377,
       "row": 26,
@@ -3598,7 +3598,7 @@
       }
     },
     {
-      "id": 8454,
+      "id": 8681,
       "card_id": null,
       "dashboard_tab_id": 377,
       "row": 33,
@@ -3613,15 +3613,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Per-day average uses calendar days in the period. Freshness and snapshot coverage: Data health tab.",
+            "text": "Per-day average uses calendar days · freshness: Data health tab.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Per-day average uses calendar days in the period. Freshness and snapshot coverage: Data health tab."
+        "text": "Per-day average uses calendar days · freshness: Data health tab."
       }
     },
     {
-      "id": 8455,
+      "id": 8682,
       "card_id": null,
       "dashboard_tab_id": 378,
       "row": 0,
@@ -3636,15 +3636,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Cashflow statement** · live · All accounts nets transfers to zero · unknown openings show Unavailable.",
+            "text": "**Cashflow statement** · live · All accounts nets transfers to zero.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Cashflow statement** · live · All accounts nets transfers to zero · unknown openings show Unavailable."
+        "text": "**Cashflow statement** · live · All accounts nets transfers to zero."
       }
     },
     {
-      "id": 8456,
+      "id": 8683,
       "card_id": 195,
       "dashboard_tab_id": 378,
       "row": 2,
@@ -3698,7 +3698,7 @@
       }
     },
     {
-      "id": 8457,
+      "id": 8684,
       "card_id": 192,
       "dashboard_tab_id": 378,
       "row": 2,
@@ -3752,7 +3752,7 @@
       }
     },
     {
-      "id": 8458,
+      "id": 8685,
       "card_id": 193,
       "dashboard_tab_id": 378,
       "row": 2,
@@ -3806,7 +3806,7 @@
       }
     },
     {
-      "id": 8459,
+      "id": 8686,
       "card_id": 197,
       "dashboard_tab_id": 378,
       "row": 2,
@@ -3860,7 +3860,7 @@
       }
     },
     {
-      "id": 8460,
+      "id": 8687,
       "card_id": 194,
       "dashboard_tab_id": 378,
       "row": 5,
@@ -3920,7 +3920,7 @@
       }
     },
     {
-      "id": 8461,
+      "id": 8688,
       "card_id": 386,
       "dashboard_tab_id": 378,
       "row": 5,
@@ -3957,7 +3957,7 @@
       }
     },
     {
-      "id": 8462,
+      "id": 8689,
       "card_id": 203,
       "dashboard_tab_id": 378,
       "row": 12,
@@ -3994,7 +3994,7 @@
       }
     },
     {
-      "id": 8463,
+      "id": 8690,
       "card_id": 215,
       "dashboard_tab_id": 378,
       "row": 22,
@@ -4093,7 +4093,7 @@
       }
     },
     {
-      "id": 8464,
+      "id": 8691,
       "card_id": 196,
       "dashboard_tab_id": 378,
       "row": 29,
@@ -4130,7 +4130,7 @@
       }
     },
     {
-      "id": 8465,
+      "id": 8692,
       "card_id": null,
       "dashboard_tab_id": 378,
       "row": 39,
@@ -4145,15 +4145,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab.",
+            "text": "Repayments keep their recorded type · freshness: Data health tab.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab."
+        "text": "Repayments keep their recorded type · freshness: Data health tab."
       }
     },
     {
-      "id": 8466,
+      "id": 8693,
       "card_id": null,
       "dashboard_tab_id": 379,
       "row": 0,
@@ -4168,15 +4168,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Performance** · totals live · trends from completed-day snapshots · loan and interest dates both use Period.",
+            "text": "**Performance** · totals live · trends from snapshots · Period sets dates.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Performance** · totals live · trends from completed-day snapshots · loan and interest dates both use Period."
+        "text": "**Performance** · totals live · trends from snapshots · Period sets dates."
       }
     },
     {
-      "id": 8467,
+      "id": 8694,
       "card_id": 217,
       "dashboard_tab_id": 379,
       "row": 2,
@@ -4219,7 +4219,7 @@
       }
     },
     {
-      "id": 8468,
+      "id": 8695,
       "card_id": 218,
       "dashboard_tab_id": 379,
       "row": 2,
@@ -4262,7 +4262,7 @@
       }
     },
     {
-      "id": 8469,
+      "id": 8696,
       "card_id": 219,
       "dashboard_tab_id": 379,
       "row": 2,
@@ -4305,7 +4305,7 @@
       }
     },
     {
-      "id": 8470,
+      "id": 8697,
       "card_id": 235,
       "dashboard_tab_id": 379,
       "row": 2,
@@ -4348,7 +4348,7 @@
       }
     },
     {
-      "id": 8471,
+      "id": 8698,
       "card_id": 387,
       "dashboard_tab_id": 379,
       "row": 5,
@@ -4374,7 +4374,7 @@
       }
     },
     {
-      "id": 8472,
+      "id": 8699,
       "card_id": 223,
       "dashboard_tab_id": 379,
       "row": 12,
@@ -4400,7 +4400,7 @@
       }
     },
     {
-      "id": 8473,
+      "id": 8700,
       "card_id": 222,
       "dashboard_tab_id": 379,
       "row": 12,
@@ -4432,7 +4432,7 @@
       }
     },
     {
-      "id": 8474,
+      "id": 8701,
       "card_id": null,
       "dashboard_tab_id": 379,
       "row": 19,
@@ -4453,7 +4453,7 @@
       }
     },
     {
-      "id": 8475,
+      "id": 8702,
       "card_id": 220,
       "dashboard_tab_id": 379,
       "row": 20,
@@ -4479,7 +4479,7 @@
       }
     },
     {
-      "id": 8476,
+      "id": 8703,
       "card_id": 224,
       "dashboard_tab_id": 379,
       "row": 20,
@@ -4505,7 +4505,7 @@
       }
     },
     {
-      "id": 8477,
+      "id": 8704,
       "card_id": 225,
       "dashboard_tab_id": 379,
       "row": 20,
@@ -4531,7 +4531,7 @@
       }
     },
     {
-      "id": 8478,
+      "id": 8705,
       "card_id": null,
       "dashboard_tab_id": 379,
       "row": 26,
@@ -4552,7 +4552,7 @@
       }
     },
     {
-      "id": 8479,
+      "id": 8706,
       "card_id": 232,
       "dashboard_tab_id": 379,
       "row": 27,
@@ -4581,7 +4581,7 @@
       }
     },
     {
-      "id": 8480,
+      "id": 8707,
       "card_id": 233,
       "dashboard_tab_id": 379,
       "row": 27,
@@ -4607,7 +4607,7 @@
       }
     },
     {
-      "id": 8481,
+      "id": 8708,
       "card_id": 230,
       "dashboard_tab_id": 379,
       "row": 33,
@@ -4636,7 +4636,7 @@
       }
     },
     {
-      "id": 8482,
+      "id": 8709,
       "card_id": 226,
       "dashboard_tab_id": 379,
       "row": 33,
@@ -4721,7 +4721,7 @@
       }
     },
     {
-      "id": 8483,
+      "id": 8710,
       "card_id": 227,
       "dashboard_tab_id": 379,
       "row": 39,
@@ -4747,7 +4747,7 @@
       }
     },
     {
-      "id": 8484,
+      "id": 8711,
       "card_id": null,
       "dashboard_tab_id": 379,
       "row": 47,
@@ -4762,15 +4762,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab.",
+            "text": "Principal counts once per loan · coverage rules: Data health tab.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab."
+        "text": "Principal counts once per loan · coverage rules: Data health tab."
       }
     },
     {
-      "id": 8485,
+      "id": 8712,
       "card_id": null,
       "dashboard_tab_id": 380,
       "row": 0,
@@ -4785,15 +4785,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere.",
+            "text": "**Borrowers** · live · positions ignore Period, activity uses it.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere."
+        "text": "**Borrowers** · live · positions ignore Period, activity uses it."
       }
     },
     {
-      "id": 8486,
+      "id": 8713,
       "card_id": 278,
       "dashboard_tab_id": 380,
       "row": 2,
@@ -4819,7 +4819,7 @@
       }
     },
     {
-      "id": 8487,
+      "id": 8714,
       "card_id": 279,
       "dashboard_tab_id": 380,
       "row": 2,
@@ -4845,7 +4845,7 @@
       }
     },
     {
-      "id": 8488,
+      "id": 8715,
       "card_id": 280,
       "dashboard_tab_id": 380,
       "row": 2,
@@ -4871,7 +4871,7 @@
       }
     },
     {
-      "id": 8489,
+      "id": 8716,
       "card_id": 281,
       "dashboard_tab_id": 380,
       "row": 2,
@@ -4908,7 +4908,7 @@
       }
     },
     {
-      "id": 8490,
+      "id": 8717,
       "card_id": 393,
       "dashboard_tab_id": 380,
       "row": 5,
@@ -4939,7 +4939,7 @@
       }
     },
     {
-      "id": 8491,
+      "id": 8718,
       "card_id": 394,
       "dashboard_tab_id": 380,
       "row": 5,
@@ -4981,7 +4981,7 @@
       }
     },
     {
-      "id": 8492,
+      "id": 8719,
       "card_id": 314,
       "dashboard_tab_id": 380,
       "row": 5,
@@ -5012,7 +5012,7 @@
       }
     },
     {
-      "id": 8493,
+      "id": 8720,
       "card_id": null,
       "dashboard_tab_id": 380,
       "row": 13,
@@ -5033,7 +5033,7 @@
       }
     },
     {
-      "id": 8494,
+      "id": 8721,
       "card_id": 110,
       "dashboard_tab_id": 380,
       "row": 14,
@@ -5047,7 +5047,7 @@
       }
     },
     {
-      "id": 8495,
+      "id": 8722,
       "card_id": 111,
       "dashboard_tab_id": 380,
       "row": 17,
@@ -5061,7 +5061,7 @@
       }
     },
     {
-      "id": 8496,
+      "id": 8723,
       "card_id": 115,
       "dashboard_tab_id": 380,
       "row": 14,
@@ -5075,7 +5075,7 @@
       }
     },
     {
-      "id": 8497,
+      "id": 8724,
       "card_id": 117,
       "dashboard_tab_id": 380,
       "row": 14,
@@ -5089,7 +5089,7 @@
       }
     },
     {
-      "id": 8498,
+      "id": 8725,
       "card_id": 114,
       "dashboard_tab_id": 380,
       "row": 20,
@@ -5103,7 +5103,7 @@
       }
     },
     {
-      "id": 8499,
+      "id": 8726,
       "card_id": 116,
       "dashboard_tab_id": 380,
       "row": 20,
@@ -5117,7 +5117,7 @@
       }
     },
     {
-      "id": 8500,
+      "id": 8727,
       "card_id": 289,
       "dashboard_tab_id": 380,
       "row": 26,
@@ -5150,11 +5150,11 @@
         }
       ],
       "visualization_settings": {
+        "card.title": "Borrower comparison · names open Detail",
         "table.column_widths": [
           96,
           168
         ],
-        "card.title": "Borrower comparison · names open Detail",
         "table.columns": [
           {
             "name": "Borrower",
@@ -5237,7 +5237,7 @@
       }
     },
     {
-      "id": 8501,
+      "id": 8728,
       "card_id": null,
       "dashboard_tab_id": 380,
       "row": 37,
@@ -5258,7 +5258,7 @@
       }
     },
     {
-      "id": 8502,
+      "id": 8729,
       "card_id": 287,
       "dashboard_tab_id": 380,
       "row": 38,
@@ -5300,7 +5300,7 @@
       }
     },
     {
-      "id": 8503,
+      "id": 8730,
       "card_id": 288,
       "dashboard_tab_id": 380,
       "row": 38,
@@ -5348,7 +5348,7 @@
       }
     },
     {
-      "id": 8504,
+      "id": 8731,
       "card_id": null,
       "dashboard_tab_id": 380,
       "row": 45,
@@ -5363,15 +5363,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Gross interest before expenses. Categories come from Borrower Health. Questions 313 and 118 stay saved.",
+            "text": "Gross interest before expenses · categories from Borrower Health.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Gross interest before expenses. Categories come from Borrower Health. Questions 313 and 118 stay saved."
+        "text": "Gross interest before expenses · categories from Borrower Health."
       }
     },
     {
-      "id": 8505,
+      "id": 8732,
       "card_id": null,
       "dashboard_tab_id": 381,
       "row": 0,
@@ -5386,15 +5386,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Borrower Health** · current portfolio, refreshed on load · names open Borrower Detail.",
+            "text": "**Borrower Health** · current portfolio · names open Borrower Detail.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Borrower Health** · current portfolio, refreshed on load · names open Borrower Detail."
+        "text": "**Borrower Health** · current portfolio · names open Borrower Detail."
       }
     },
     {
-      "id": 8506,
+      "id": 8733,
       "card_id": 270,
       "dashboard_tab_id": 381,
       "row": 0,
@@ -5408,7 +5408,7 @@
       }
     },
     {
-      "id": 8507,
+      "id": 8734,
       "card_id": 257,
       "dashboard_tab_id": 381,
       "row": 0,
@@ -5422,7 +5422,7 @@
       }
     },
     {
-      "id": 8508,
+      "id": 8735,
       "card_id": 253,
       "dashboard_tab_id": 381,
       "row": 2,
@@ -5436,7 +5436,7 @@
       }
     },
     {
-      "id": 8509,
+      "id": 8736,
       "card_id": 254,
       "dashboard_tab_id": 381,
       "row": 2,
@@ -5450,7 +5450,7 @@
       }
     },
     {
-      "id": 8510,
+      "id": 8737,
       "card_id": 255,
       "dashboard_tab_id": 381,
       "row": 2,
@@ -5464,7 +5464,7 @@
       }
     },
     {
-      "id": 8511,
+      "id": 8738,
       "card_id": 256,
       "dashboard_tab_id": 381,
       "row": 2,
@@ -5478,7 +5478,7 @@
       }
     },
     {
-      "id": 8512,
+      "id": 8739,
       "card_id": null,
       "dashboard_tab_id": 381,
       "row": 5,
@@ -5497,7 +5497,7 @@
       }
     },
     {
-      "id": 8513,
+      "id": 8740,
       "card_id": 260,
       "dashboard_tab_id": 381,
       "row": 27,
@@ -5511,7 +5511,7 @@
       }
     },
     {
-      "id": 8514,
+      "id": 8741,
       "card_id": 258,
       "dashboard_tab_id": 381,
       "row": 27,
@@ -5525,7 +5525,7 @@
       }
     },
     {
-      "id": 8515,
+      "id": 8742,
       "card_id": 264,
       "dashboard_tab_id": 381,
       "row": 27,
@@ -5539,7 +5539,7 @@
       }
     },
     {
-      "id": 8516,
+      "id": 8743,
       "card_id": 262,
       "dashboard_tab_id": 381,
       "row": 27,
@@ -5553,7 +5553,7 @@
       }
     },
     {
-      "id": 8517,
+      "id": 8744,
       "card_id": 275,
       "dashboard_tab_id": 381,
       "row": 29,
@@ -5565,6 +5565,9 @@
       "visualization_settings": {
         "card.title": "Borrowers by category · scores",
         "card.description": "Payment score, contribution and schedule per borrower, sorted by category.",
+        "table.column_widths": [
+          168
+        ],
         "table.columns": [
           {
             "name": "Category",
@@ -5631,7 +5634,7 @@
       }
     },
     {
-      "id": 8518,
+      "id": 8745,
       "card_id": null,
       "dashboard_tab_id": 381,
       "row": 38,
@@ -5652,7 +5655,7 @@
       }
     },
     {
-      "id": 8519,
+      "id": 8746,
       "card_id": 267,
       "dashboard_tab_id": 381,
       "row": 39,
@@ -5675,7 +5678,7 @@
       }
     },
     {
-      "id": 8520,
+      "id": 8747,
       "card_id": 269,
       "dashboard_tab_id": 381,
       "row": 49,
@@ -5699,7 +5702,7 @@
       }
     },
     {
-      "id": 8521,
+      "id": 8748,
       "card_id": 268,
       "dashboard_tab_id": 381,
       "row": 55,
@@ -5723,7 +5726,7 @@
       }
     },
     {
-      "id": 8522,
+      "id": 8749,
       "card_id": 271,
       "dashboard_tab_id": 381,
       "row": 65,
@@ -5746,7 +5749,7 @@
       }
     },
     {
-      "id": 8523,
+      "id": 8750,
       "card_id": 272,
       "dashboard_tab_id": 381,
       "row": 73,
@@ -5770,7 +5773,7 @@
       }
     },
     {
-      "id": 8524,
+      "id": 8751,
       "card_id": null,
       "dashboard_tab_id": 381,
       "row": 81,
@@ -5785,15 +5788,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Rating weights 45 / 15 / 15 / 25 (recent, older, delay, current) · threshold 80 · boundary 1× · dictionary.",
+            "text": "Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Rating weights 45 / 15 / 15 / 25 (recent, older, delay, current) · threshold 80 · boundary 1× · dictionary."
+        "text": "Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary."
       }
     },
     {
-      "id": 8525,
+      "id": 8752,
       "card_id": null,
       "dashboard_tab_id": 382,
       "row": 0,
@@ -5808,15 +5811,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it.",
+            "text": "**Borrower Detail** · select one borrower · Period applies to activity.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it."
+        "text": "**Borrower Detail** · select one borrower · Period applies to activity."
       }
     },
     {
-      "id": 8526,
+      "id": 8753,
       "card_id": 290,
       "dashboard_tab_id": 382,
       "row": 2,
@@ -5842,7 +5845,7 @@
       }
     },
     {
-      "id": 8527,
+      "id": 8754,
       "card_id": 378,
       "dashboard_tab_id": 382,
       "row": 6,
@@ -5868,7 +5871,7 @@
       }
     },
     {
-      "id": 8528,
+      "id": 8755,
       "card_id": 293,
       "dashboard_tab_id": 382,
       "row": 6,
@@ -5894,7 +5897,7 @@
       }
     },
     {
-      "id": 8529,
+      "id": 8756,
       "card_id": 294,
       "dashboard_tab_id": 382,
       "row": 6,
@@ -5920,7 +5923,7 @@
       }
     },
     {
-      "id": 8530,
+      "id": 8757,
       "card_id": 292,
       "dashboard_tab_id": 382,
       "row": 6,
@@ -5946,7 +5949,7 @@
       }
     },
     {
-      "id": 8531,
+      "id": 8758,
       "card_id": null,
       "dashboard_tab_id": 382,
       "row": 9,
@@ -5967,7 +5970,7 @@
       }
     },
     {
-      "id": 8532,
+      "id": 8759,
       "card_id": 291,
       "dashboard_tab_id": 382,
       "row": 10,
@@ -5993,7 +5996,7 @@
       }
     },
     {
-      "id": 8533,
+      "id": 8760,
       "card_id": 370,
       "dashboard_tab_id": 382,
       "row": 10,
@@ -6019,7 +6022,7 @@
       }
     },
     {
-      "id": 8534,
+      "id": 8761,
       "card_id": 371,
       "dashboard_tab_id": 382,
       "row": 10,
@@ -6045,7 +6048,7 @@
       }
     },
     {
-      "id": 8535,
+      "id": 8762,
       "card_id": 372,
       "dashboard_tab_id": 382,
       "row": 13,
@@ -6071,7 +6074,7 @@
       }
     },
     {
-      "id": 8536,
+      "id": 8763,
       "card_id": 373,
       "dashboard_tab_id": 382,
       "row": 13,
@@ -6097,7 +6100,7 @@
       }
     },
     {
-      "id": 8537,
+      "id": 8764,
       "card_id": 374,
       "dashboard_tab_id": 382,
       "row": 13,
@@ -6123,7 +6126,7 @@
       }
     },
     {
-      "id": 8538,
+      "id": 8765,
       "card_id": null,
       "dashboard_tab_id": 382,
       "row": 16,
@@ -6144,7 +6147,7 @@
       }
     },
     {
-      "id": 8539,
+      "id": 8766,
       "card_id": 375,
       "dashboard_tab_id": 382,
       "row": 17,
@@ -6170,7 +6173,7 @@
       }
     },
     {
-      "id": 8540,
+      "id": 8767,
       "card_id": 376,
       "dashboard_tab_id": 382,
       "row": 17,
@@ -6196,7 +6199,7 @@
       }
     },
     {
-      "id": 8541,
+      "id": 8768,
       "card_id": 377,
       "dashboard_tab_id": 382,
       "row": 17,
@@ -6222,7 +6225,7 @@
       }
     },
     {
-      "id": 8542,
+      "id": 8769,
       "card_id": 369,
       "dashboard_tab_id": 382,
       "row": 20,
@@ -6249,7 +6252,7 @@
       }
     },
     {
-      "id": 8543,
+      "id": 8770,
       "card_id": null,
       "dashboard_tab_id": 382,
       "row": 25,
@@ -6270,7 +6273,7 @@
       }
     },
     {
-      "id": 8544,
+      "id": 8771,
       "card_id": 296,
       "dashboard_tab_id": 382,
       "row": 26,
@@ -6307,7 +6310,7 @@
       }
     },
     {
-      "id": 8545,
+      "id": 8772,
       "card_id": 297,
       "dashboard_tab_id": 382,
       "row": 26,
@@ -6344,7 +6347,7 @@
       }
     },
     {
-      "id": 8546,
+      "id": 8773,
       "card_id": 298,
       "dashboard_tab_id": 382,
       "row": 26,
@@ -6381,7 +6384,7 @@
       }
     },
     {
-      "id": 8547,
+      "id": 8774,
       "card_id": 299,
       "dashboard_tab_id": 382,
       "row": 26,
@@ -6418,7 +6421,7 @@
       }
     },
     {
-      "id": 8548,
+      "id": 8775,
       "card_id": 301,
       "dashboard_tab_id": 382,
       "row": 29,
@@ -6455,7 +6458,7 @@
       }
     },
     {
-      "id": 8549,
+      "id": 8776,
       "card_id": 302,
       "dashboard_tab_id": 382,
       "row": 29,
@@ -6492,7 +6495,7 @@
       }
     },
     {
-      "id": 8550,
+      "id": 8777,
       "card_id": 303,
       "dashboard_tab_id": 382,
       "row": 36,
@@ -6518,7 +6521,7 @@
       }
     },
     {
-      "id": 8551,
+      "id": 8778,
       "card_id": 308,
       "dashboard_tab_id": 382,
       "row": 44,
@@ -6544,7 +6547,7 @@
       }
     },
     {
-      "id": 8552,
+      "id": 8779,
       "card_id": 305,
       "dashboard_tab_id": 382,
       "row": 51,
@@ -6570,7 +6573,7 @@
       }
     },
     {
-      "id": 8553,
+      "id": 8780,
       "card_id": 316,
       "dashboard_tab_id": 382,
       "row": 59,
@@ -6607,7 +6610,7 @@
       }
     },
     {
-      "id": 8554,
+      "id": 8781,
       "card_id": 304,
       "dashboard_tab_id": 382,
       "row": 63,
@@ -6644,7 +6647,7 @@
       }
     },
     {
-      "id": 8555,
+      "id": 8782,
       "card_id": null,
       "dashboard_tab_id": 382,
       "row": 70,
@@ -6665,7 +6668,7 @@
       }
     },
     {
-      "id": 8556,
+      "id": 8783,
       "card_id": 307,
       "dashboard_tab_id": 382,
       "row": 71,
@@ -6702,7 +6705,7 @@
       }
     },
     {
-      "id": 8557,
+      "id": 8784,
       "card_id": 317,
       "dashboard_tab_id": 382,
       "row": 79,
@@ -6739,7 +6742,7 @@
       }
     },
     {
-      "id": 8558,
+      "id": 8785,
       "card_id": 306,
       "dashboard_tab_id": 382,
       "row": 87,
@@ -6776,7 +6779,7 @@
       }
     },
     {
-      "id": 8559,
+      "id": 8786,
       "card_id": null,
       "dashboard_tab_id": 382,
       "row": 95,
@@ -6797,7 +6800,7 @@
       }
     },
     {
-      "id": 8560,
+      "id": 8787,
       "card_id": 309,
       "dashboard_tab_id": 382,
       "row": 96,
@@ -6834,7 +6837,7 @@
       }
     },
     {
-      "id": 8561,
+      "id": 8788,
       "card_id": null,
       "dashboard_tab_id": 382,
       "row": 101,
@@ -6849,15 +6852,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Amounts in baht · allocations are not unique receipts · corrections stay signed · dates: Data health tab.",
+            "text": "Allocations are not unique receipts · corrections stay signed.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Amounts in baht · allocations are not unique receipts · corrections stay signed · dates: Data health tab."
+        "text": "Allocations are not unique receipts · corrections stay signed."
       }
     },
     {
-      "id": 8562,
+      "id": 8789,
       "card_id": null,
       "dashboard_tab_id": 383,
       "row": 0,
@@ -6872,15 +6875,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Collection · Bangkok today** · live · payments appear after sync · filters apply to the detail table only.",
+            "text": "**Collection · today** · live · filters apply to the detail table only.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Collection · Bangkok today** · live · payments appear after sync · filters apply to the detail table only."
+        "text": "**Collection · today** · live · filters apply to the detail table only."
       }
     },
     {
-      "id": 8563,
+      "id": 8790,
       "card_id": 257,
       "dashboard_tab_id": 383,
       "row": 0,
@@ -6894,7 +6897,7 @@
       }
     },
     {
-      "id": 8564,
+      "id": 8791,
       "card_id": 237,
       "dashboard_tab_id": 383,
       "row": 2,
@@ -6908,7 +6911,7 @@
       }
     },
     {
-      "id": 8565,
+      "id": 8792,
       "card_id": 238,
       "dashboard_tab_id": 383,
       "row": 2,
@@ -6922,7 +6925,7 @@
       }
     },
     {
-      "id": 8566,
+      "id": 8793,
       "card_id": 395,
       "dashboard_tab_id": 383,
       "row": 2,
@@ -6936,7 +6939,7 @@
       }
     },
     {
-      "id": 8567,
+      "id": 8794,
       "card_id": 252,
       "dashboard_tab_id": 383,
       "row": 2,
@@ -6950,7 +6953,7 @@
       }
     },
     {
-      "id": 8568,
+      "id": 8795,
       "card_id": 381,
       "dashboard_tab_id": 383,
       "row": 5,
@@ -6964,7 +6967,7 @@
       }
     },
     {
-      "id": 8569,
+      "id": 8796,
       "card_id": 396,
       "dashboard_tab_id": 383,
       "row": 7,
@@ -6978,7 +6981,7 @@
       }
     },
     {
-      "id": 8570,
+      "id": 8797,
       "card_id": 397,
       "dashboard_tab_id": 383,
       "row": 13,
@@ -7001,7 +7004,7 @@
       }
     },
     {
-      "id": 8571,
+      "id": 8798,
       "card_id": 398,
       "dashboard_tab_id": 383,
       "row": 13,
@@ -7024,7 +7027,7 @@
       }
     },
     {
-      "id": 8572,
+      "id": 8799,
       "card_id": 399,
       "dashboard_tab_id": 383,
       "row": 13,
@@ -7047,7 +7050,7 @@
       }
     },
     {
-      "id": 8573,
+      "id": 8800,
       "card_id": 400,
       "dashboard_tab_id": 383,
       "row": 13,
@@ -7070,7 +7073,7 @@
       }
     },
     {
-      "id": 8574,
+      "id": 8801,
       "card_id": 248,
       "dashboard_tab_id": 383,
       "row": 22,
@@ -7156,7 +7159,7 @@
       }
     },
     {
-      "id": 8575,
+      "id": 8802,
       "card_id": 249,
       "dashboard_tab_id": 383,
       "row": 32,
@@ -7171,7 +7174,7 @@
       }
     },
     {
-      "id": 8576,
+      "id": 8803,
       "card_id": 64,
       "dashboard_tab_id": 383,
       "row": 36,
@@ -7237,7 +7240,7 @@
       }
     },
     {
-      "id": 8577,
+      "id": 8804,
       "card_id": null,
       "dashboard_tab_id": 383,
       "row": 42,
@@ -7252,15 +7255,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Received = receipts today · Left includes older dues · a payment can leave someone Overdue until refresh.",
+            "text": "Received = receipts today · Left includes older dues · refresh moves lanes.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Received = receipts today · Left includes older dues · a payment can leave someone Overdue until refresh."
+        "text": "Received = receipts today · Left includes older dues · refresh moves lanes."
       }
     },
     {
-      "id": 8578,
+      "id": 8805,
       "card_id": null,
       "dashboard_tab_id": 384,
       "row": 0,
@@ -7275,15 +7278,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Partners** · balances stay current when the period changes · net available is an entitlement, not cash.",
+            "text": "**Partners** · balances stay current · net available is not cash on hand.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Partners** · balances stay current when the period changes · net available is an entitlement, not cash."
+        "text": "**Partners** · balances stay current · net available is not cash on hand."
       }
     },
     {
-      "id": 8579,
+      "id": 8806,
       "card_id": 325,
       "dashboard_tab_id": 384,
       "row": 2,
@@ -7309,7 +7312,7 @@
       }
     },
     {
-      "id": 8580,
+      "id": 8807,
       "card_id": 326,
       "dashboard_tab_id": 384,
       "row": 2,
@@ -7335,7 +7338,7 @@
       }
     },
     {
-      "id": 8581,
+      "id": 8808,
       "card_id": 327,
       "dashboard_tab_id": 384,
       "row": 2,
@@ -7361,7 +7364,7 @@
       }
     },
     {
-      "id": 8582,
+      "id": 8809,
       "card_id": 329,
       "dashboard_tab_id": 384,
       "row": 2,
@@ -7387,7 +7390,7 @@
       }
     },
     {
-      "id": 8583,
+      "id": 8810,
       "card_id": 401,
       "dashboard_tab_id": 384,
       "row": 5,
@@ -7413,7 +7416,7 @@
       }
     },
     {
-      "id": 8584,
+      "id": 8811,
       "card_id": 388,
       "dashboard_tab_id": 384,
       "row": 5,
@@ -7439,7 +7442,7 @@
       }
     },
     {
-      "id": 8585,
+      "id": 8812,
       "card_id": 340,
       "dashboard_tab_id": 384,
       "row": 12,
@@ -7466,7 +7469,7 @@
       }
     },
     {
-      "id": 8586,
+      "id": 8813,
       "card_id": null,
       "dashboard_tab_id": 384,
       "row": 18,
@@ -7487,7 +7490,7 @@
       }
     },
     {
-      "id": 8587,
+      "id": 8814,
       "card_id": 333,
       "dashboard_tab_id": 384,
       "row": 19,
@@ -7524,7 +7527,7 @@
       }
     },
     {
-      "id": 8588,
+      "id": 8815,
       "card_id": 334,
       "dashboard_tab_id": 384,
       "row": 19,
@@ -7561,7 +7564,7 @@
       }
     },
     {
-      "id": 8589,
+      "id": 8816,
       "card_id": 335,
       "dashboard_tab_id": 384,
       "row": 19,
@@ -7598,7 +7601,7 @@
       }
     },
     {
-      "id": 8590,
+      "id": 8817,
       "card_id": 336,
       "dashboard_tab_id": 384,
       "row": 19,
@@ -7635,7 +7638,7 @@
       }
     },
     {
-      "id": 8591,
+      "id": 8818,
       "card_id": 337,
       "dashboard_tab_id": 384,
       "row": 22,
@@ -7672,7 +7675,7 @@
       }
     },
     {
-      "id": 8592,
+      "id": 8819,
       "card_id": 338,
       "dashboard_tab_id": 384,
       "row": 22,
@@ -7709,7 +7712,7 @@
       }
     },
     {
-      "id": 8593,
+      "id": 8820,
       "card_id": 339,
       "dashboard_tab_id": 384,
       "row": 30,
@@ -7746,7 +7749,7 @@
       }
     },
     {
-      "id": 8594,
+      "id": 8821,
       "card_id": null,
       "dashboard_tab_id": 384,
       "row": 38,
@@ -7767,7 +7770,7 @@
       }
     },
     {
-      "id": 8595,
+      "id": 8822,
       "card_id": 341,
       "dashboard_tab_id": 384,
       "row": 39,
@@ -7805,7 +7808,7 @@
       }
     },
     {
-      "id": 8596,
+      "id": 8823,
       "card_id": 342,
       "dashboard_tab_id": 384,
       "row": 47,
@@ -7854,7 +7857,7 @@
       }
     },
     {
-      "id": 8597,
+      "id": 8824,
       "card_id": null,
       "dashboard_tab_id": 384,
       "row": 55,
@@ -7869,15 +7872,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab.",
+            "text": "Withdrawals and payouts are separate · checks: Data health tab.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab."
+        "text": "Withdrawals and payouts are separate · checks: Data health tab."
       }
     },
     {
-      "id": 8598,
+      "id": 8825,
       "card_id": null,
       "dashboard_tab_id": 385,
       "row": 0,
@@ -7892,15 +7895,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Forecast & Plan · current month** · existing loan book · scenarios are assumptions, not promises.",
+            "text": "**Forecast & Plan · this month** · scenarios are assumptions, not promises.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Forecast & Plan · current month** · existing loan book · scenarios are assumptions, not promises."
+        "text": "**Forecast & Plan · this month** · scenarios are assumptions, not promises."
       }
     },
     {
-      "id": 8599,
+      "id": 8826,
       "card_id": 353,
       "dashboard_tab_id": 385,
       "row": 2,
@@ -7981,7 +7984,7 @@
       }
     },
     {
-      "id": 8600,
+      "id": 8827,
       "card_id": null,
       "dashboard_tab_id": 385,
       "row": 6,
@@ -8002,7 +8005,7 @@
       }
     },
     {
-      "id": 8601,
+      "id": 8828,
       "card_id": 348,
       "dashboard_tab_id": 385,
       "row": 7,
@@ -8083,7 +8086,7 @@
       }
     },
     {
-      "id": 8602,
+      "id": 8829,
       "card_id": 349,
       "dashboard_tab_id": 385,
       "row": 7,
@@ -8164,7 +8167,7 @@
       }
     },
     {
-      "id": 8603,
+      "id": 8830,
       "card_id": 350,
       "dashboard_tab_id": 385,
       "row": 7,
@@ -8245,7 +8248,7 @@
       }
     },
     {
-      "id": 8604,
+      "id": 8831,
       "card_id": 351,
       "dashboard_tab_id": 385,
       "row": 7,
@@ -8326,7 +8329,7 @@
       }
     },
     {
-      "id": 8605,
+      "id": 8832,
       "card_id": 356,
       "dashboard_tab_id": 385,
       "row": 10,
@@ -8407,7 +8410,7 @@
       }
     },
     {
-      "id": 8606,
+      "id": 8833,
       "card_id": 355,
       "dashboard_tab_id": 385,
       "row": 10,
@@ -8488,7 +8491,7 @@
       }
     },
     {
-      "id": 8607,
+      "id": 8834,
       "card_id": 357,
       "dashboard_tab_id": 385,
       "row": 19,
@@ -8569,7 +8572,7 @@
       }
     },
     {
-      "id": 8608,
+      "id": 8835,
       "card_id": 360,
       "dashboard_tab_id": 385,
       "row": 19,
@@ -8659,7 +8662,7 @@
       }
     },
     {
-      "id": 8609,
+      "id": 8836,
       "card_id": 354,
       "dashboard_tab_id": 385,
       "row": 27,
@@ -8740,7 +8743,7 @@
       }
     },
     {
-      "id": 8610,
+      "id": 8837,
       "card_id": 358,
       "dashboard_tab_id": 385,
       "row": 27,
@@ -8821,7 +8824,7 @@
       }
     },
     {
-      "id": 8611,
+      "id": 8838,
       "card_id": 359,
       "dashboard_tab_id": 385,
       "row": 34,
@@ -8902,7 +8905,7 @@
       }
     },
     {
-      "id": 8612,
+      "id": 8839,
       "card_id": 352,
       "dashboard_tab_id": 385,
       "row": 34,
@@ -8983,7 +8986,7 @@
       }
     },
     {
-      "id": 8613,
+      "id": 8840,
       "card_id": null,
       "dashboard_tab_id": 385,
       "row": 40,
@@ -9004,7 +9007,7 @@
       }
     },
     {
-      "id": 8614,
+      "id": 8841,
       "card_id": 365,
       "dashboard_tab_id": 385,
       "row": 41,
@@ -9140,7 +9143,7 @@
       }
     },
     {
-      "id": 8615,
+      "id": 8842,
       "card_id": 366,
       "dashboard_tab_id": 385,
       "row": 41,
@@ -9276,7 +9279,7 @@
       }
     },
     {
-      "id": 8616,
+      "id": 8843,
       "card_id": 367,
       "dashboard_tab_id": 385,
       "row": 41,
@@ -9412,7 +9415,7 @@
       }
     },
     {
-      "id": 8617,
+      "id": 8844,
       "card_id": 364,
       "dashboard_tab_id": 385,
       "row": 44,
@@ -9548,7 +9551,7 @@
       }
     },
     {
-      "id": 8618,
+      "id": 8845,
       "card_id": 368,
       "dashboard_tab_id": 385,
       "row": 50,
@@ -9684,7 +9687,7 @@
       }
     },
     {
-      "id": 8619,
+      "id": 8846,
       "card_id": null,
       "dashboard_tab_id": 385,
       "row": 58,
@@ -9699,15 +9702,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "Recorded obligations before simulated · planned lending adds no income · month-end cash is not the low point.",
+            "text": "Recorded before simulated · planned lending adds no income · not a minimum.",
             "text.align_vertical": "top"
           }
         },
-        "text": "Recorded obligations before simulated · planned lending adds no income · month-end cash is not the low point."
+        "text": "Recorded before simulated · planned lending adds no income · not a minimum."
       }
     },
     {
-      "id": 8620,
+      "id": 8847,
       "card_id": null,
       "dashboard_tab_id": 386,
       "row": 0,
@@ -9722,15 +9725,15 @@
         "virtual_card": {
           "display": "text",
           "visualization_settings": {
-            "text": "**Data health** · every page's freshness, coverage and source checks · filters mirror their pages.",
+            "text": "**Data health** · freshness, coverage and source checks per page.",
             "text.align_vertical": "top"
           }
         },
-        "text": "**Data health** · every page's freshness, coverage and source checks · filters mirror their pages."
+        "text": "**Data health** · freshness, coverage and source checks per page."
       }
     },
     {
-      "id": 8621,
+      "id": 8848,
       "card_id": 276,
       "dashboard_tab_id": 386,
       "row": 2,
@@ -9744,7 +9747,7 @@
       }
     },
     {
-      "id": 8622,
+      "id": 8849,
       "card_id": 257,
       "dashboard_tab_id": 386,
       "row": 2,
@@ -9758,7 +9761,7 @@
       }
     },
     {
-      "id": 8623,
+      "id": 8850,
       "card_id": 250,
       "dashboard_tab_id": 386,
       "row": 2,
@@ -9772,7 +9775,7 @@
       }
     },
     {
-      "id": 8624,
+      "id": 8851,
       "card_id": null,
       "dashboard_tab_id": 386,
       "row": 5,
@@ -9793,7 +9796,7 @@
       }
     },
     {
-      "id": 8625,
+      "id": 8852,
       "card_id": 209,
       "dashboard_tab_id": 386,
       "row": 6,
@@ -9819,7 +9822,7 @@
       }
     },
     {
-      "id": 8626,
+      "id": 8853,
       "card_id": null,
       "dashboard_tab_id": 386,
       "row": 12,
@@ -9840,7 +9843,7 @@
       }
     },
     {
-      "id": 8627,
+      "id": 8854,
       "card_id": 184,
       "dashboard_tab_id": 386,
       "row": 13,
@@ -9867,7 +9870,7 @@
       }
     },
     {
-      "id": 8628,
+      "id": 8855,
       "card_id": 214,
       "dashboard_tab_id": 386,
       "row": 13,
@@ -9893,7 +9896,7 @@
       }
     },
     {
-      "id": 8629,
+      "id": 8856,
       "card_id": null,
       "dashboard_tab_id": 386,
       "row": 19,
@@ -9914,7 +9917,7 @@
       }
     },
     {
-      "id": 8630,
+      "id": 8857,
       "card_id": 198,
       "dashboard_tab_id": 386,
       "row": 20,
@@ -9951,7 +9954,7 @@
       }
     },
     {
-      "id": 8631,
+      "id": 8858,
       "card_id": 216,
       "dashboard_tab_id": 386,
       "row": 20,
@@ -9988,7 +9991,7 @@
       }
     },
     {
-      "id": 8632,
+      "id": 8859,
       "card_id": null,
       "dashboard_tab_id": 386,
       "row": 28,
@@ -10009,7 +10012,7 @@
       }
     },
     {
-      "id": 8633,
+      "id": 8860,
       "card_id": 221,
       "dashboard_tab_id": 386,
       "row": 29,
@@ -10035,7 +10038,7 @@
       }
     },
     {
-      "id": 8634,
+      "id": 8861,
       "card_id": 228,
       "dashboard_tab_id": 386,
       "row": 29,
@@ -10061,7 +10064,7 @@
       }
     },
     {
-      "id": 8635,
+      "id": 8862,
       "card_id": 231,
       "dashboard_tab_id": 386,
       "row": 36,
@@ -10090,7 +10093,7 @@
       }
     },
     {
-      "id": 8636,
+      "id": 8863,
       "card_id": null,
       "dashboard_tab_id": 386,
       "row": 40,
@@ -10111,7 +10114,7 @@
       }
     },
     {
-      "id": 8637,
+      "id": 8864,
       "card_id": 284,
       "dashboard_tab_id": 386,
       "row": 41,
@@ -10148,7 +10151,7 @@
       }
     },
     {
-      "id": 8638,
+      "id": 8865,
       "card_id": 315,
       "dashboard_tab_id": 386,
       "row": 41,
@@ -10174,7 +10177,7 @@
       }
     },
     {
-      "id": 8639,
+      "id": 8866,
       "card_id": 300,
       "dashboard_tab_id": 386,
       "row": 45,
@@ -10211,7 +10214,7 @@
       }
     },
     {
-      "id": 8640,
+      "id": 8867,
       "card_id": null,
       "dashboard_tab_id": 386,
       "row": 50,
@@ -10232,7 +10235,7 @@
       }
     },
     {
-      "id": 8641,
+      "id": 8868,
       "card_id": 332,
       "dashboard_tab_id": 386,
       "row": 51,
@@ -10258,7 +10261,7 @@
       }
     },
     {
-      "id": 8642,
+      "id": 8869,
       "card_id": 343,
       "dashboard_tab_id": 386,
       "row": 51,
@@ -10284,7 +10287,7 @@
       }
     },
     {
-      "id": 8643,
+      "id": 8870,
       "card_id": null,
       "dashboard_tab_id": 386,
       "row": 58,
@@ -10305,7 +10308,7 @@
       }
     },
     {
-      "id": 8644,
+      "id": 8871,
       "card_id": 363,
       "dashboard_tab_id": 386,
       "row": 59,
@@ -10386,7 +10389,7 @@
       }
     },
     {
-      "id": 8645,
+      "id": 8872,
       "card_id": 361,
       "dashboard_tab_id": 386,
       "row": 66,
@@ -10476,7 +10479,7 @@
       }
     },
     {
-      "id": 8646,
+      "id": 8873,
       "card_id": 362,
       "dashboard_tab_id": 386,
       "row": 76,
