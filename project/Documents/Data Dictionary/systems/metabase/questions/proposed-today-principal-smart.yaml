@@ -1,0 +1,64 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Principal at work · change over the period / 379"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "today.principal-smart"
+  "id": 379
+  "name": "Principal at work · change over the period"
+  "description": "Loan Reports · proposed (today.principal-smart). MBQL on model 74: Outstanding Principal (max) by Date,\
+    \ filtered by Period on Date. Smart scalar shows the latest completed-day value and the change against the first date\
+    \ in the period. Whole baht. Basis: model 74 Daily Performance."
+  "display": "smartscalar"
+  "dataset_query":
+    "stages":
+    - "order-by":
+      - - "asc"
+        - "lib/uuid": "74f17e9e-49da-4a71-af96-48ef17f07d1a"
+        - - "field"
+          - "temporal-unit": "day"
+            "base-type": "type/Date"
+            "lib/uuid": "34d45fd4-d5ff-42b8-9498-ce4ae539fa49"
+          - "Date"
+      "lib/type": "mbql.stage/mbql"
+      "aggregation":
+      - - "max"
+        - "name": "Principal at work"
+          "lib/uuid": "1479b6a4-322a-44a9-a968-7b50a3c6f97b"
+          "display-name": "Principal at work"
+        - - "field"
+          - "base-type": "type/Decimal"
+            "lib/uuid": "5594c037-f95f-42ac-b831-c17d8083d3c1"
+          - "Outstanding Principal"
+      "breakout":
+      - - "field"
+        - "temporal-unit": "day"
+          "base-type": "type/Date"
+          "lib/uuid": "49401759-bac6-48d0-a7eb-02ae1e0917ef"
+        - "Date"
+      "source-card": 74
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.compact_primary_number": false
+    "scalar.field": "Principal at work"
+    "scalar.comparisons":
+    - "id": "first"
+      "type": "periodsAgo"
+      "value": 29
+    "column_settings":
+      "[\"name\",\"Principal at work\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "basis": "model 74 Daily Performance"
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

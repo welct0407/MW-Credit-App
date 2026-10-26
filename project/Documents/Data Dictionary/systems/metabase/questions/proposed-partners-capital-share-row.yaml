@@ -1,0 +1,86 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Capital share · full pool / 388"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "partners.capital-share-row"
+  "id": 388
+  "name": "Capital share · full pool"
+  "description": "Loan Reports · proposed (partners.capital-share-row). Native: question 331's query unchanged, displayed\
+    \ as a horizontal bar with the share percent as the value label. Replaces the two-slice pie. Basis: model 318 Partners\
+    \ · position source (same query as question 331)."
+  "display": "row"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "widget-type": "string/="
+        "id": "lrp-partner"
+        "name": "partner"
+        "display-name": "Partner"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "00ab59eb-c4bd-48af-b15d-7d49cda1e76a"
+          "effective-type": "type/Text"
+        - 121
+        "alias": "d.partner_id"
+      - "type": "card"
+        "id": "lrp-model-318"
+        "name": "#318"
+        "display-name": "Model 318"
+        "card-id": 318
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        SELECT "Partner","Net capital ฿"/nullif(sum("Net capital ฿") OVER (),0) AS "Capital share %","Net capital ฿" FROM (WITH pool AS (
+         SELECT d.partner_id,d.partner_name,d.partner_role,d.net_capital,d.capital_share
+         FROM {{#318}} d
+        ), chosen AS (
+         SELECT d.* FROM pool d WHERE true [[AND {{partner}}]]
+        ), slices AS (
+         SELECT partner_name AS label,net_capital AS amount,1 AS sort_order FROM chosen
+         UNION ALL
+         SELECT 'Other partners',sum(p.net_capital),2
+         FROM pool p WHERE NOT EXISTS (SELECT 1 FROM chosen c WHERE c.partner_id=p.partner_id)
+         HAVING count(*)>0 AND sum(p.net_capital)>0
+        )
+        SELECT label AS "Partner",amount AS "Net capital ฿"
+        FROM slices
+        WHERE amount>0 AND (SELECT bool_and(net_capital>=0 AND capital_share IS NOT NULL) AND sum(net_capital)>0 FROM pool)
+        ORDER BY sort_order,label) t
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.dimensions":
+    - "Partner"
+    "graph.show_values": true
+    "graph.show_legend": false
+    "graph.colors":
+    - "#178F8A"
+    - "#7472BE"
+    - "#D6816B"
+    - "#D4AD60"
+    "graph.y_axis.min": 0
+    "graph.y_axis.max": 1
+    "column_settings":
+      "[\"name\",\"Capital share %\"]":
+        "number_style": "percent"
+        "decimals": 1
+        "number_separators": ".,"
+      "[\"name\",\"Net capital ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "graph.metrics":
+    - "Capital share %"
+  "basis": "model 318 Partners · position source (same query as question 331)"
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

@@ -1,0 +1,108 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Monthly income, expenses and net profit / 385"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "income.monthly"
+  "id": 385
+  "name": "Monthly income, expenses and net profit"
+  "description": "Loan Reports · proposed (income.monthly). MBQL on model 186: sum Income, sum Expenses and sum (Income −\
+    \ Expenses) by Date month, filtered to the previous five complete months plus the current month. Current month is partial\
+    \ and labelled \"to date\" in the card description. Basis: model 186 Income Events."
+  "display": "bar"
+  "dataset_query":
+    "stages":
+    - "filters":
+      - - "time-interval"
+        - "include-current": true
+          "lib/uuid": "0ec781cf-aa21-4b80-8e9a-f1901e4e6806"
+        - - "field"
+          - "base-type": "type/Date"
+            "lib/uuid": "b30f6f64-9a2b-40f8-b888-9cebc2aa4539"
+          - "Date"
+        - -5
+        - "month"
+      "lib/type": "mbql.stage/mbql"
+      "aggregation":
+      - - "sum"
+        - "name": "Income"
+          "lib/uuid": "617719f9-697b-430c-b893-783bca93b31e"
+          "display-name": "Income"
+        - - "field"
+          - "base-type": "type/Decimal"
+            "lib/uuid": "a716c02b-a39f-417d-8234-b4ce77d4895a"
+          - "Income"
+      - - "sum"
+        - "name": "Expenses"
+          "lib/uuid": "b2354354-0318-45e9-b139-3be7c7109d1a"
+          "display-name": "Expenses"
+        - - "field"
+          - "base-type": "type/Decimal"
+            "lib/uuid": "8dfdf69f-f85d-468d-9b60-8fd68da44766"
+          - "Expenses"
+      - - "-"
+        - "name": "Net profit"
+          "lib/uuid": "dd804b4e-e6bd-4142-b1cc-6194e784b774"
+          "display-name": "Net profit"
+        - - "sum"
+          - "lib/uuid": "b3cacaf0-8bc6-4f64-b536-53ccb3d3c8b2"
+          - - "field"
+            - "base-type": "type/Decimal"
+              "lib/uuid": "e6b7948d-1e03-4200-9dc9-7769d543bf0c"
+            - "Income"
+        - - "sum"
+          - "lib/uuid": "8613fa52-bc85-4bc9-bb02-61d8b8f90a83"
+          - - "field"
+            - "base-type": "type/Decimal"
+              "lib/uuid": "1c3d693f-3fbe-41f4-90c4-cb77202017f1"
+            - "Expenses"
+      "breakout":
+      - - "field"
+        - "temporal-unit": "month"
+          "base-type": "type/Date"
+          "lib/uuid": "d3b2cd72-9228-4118-82f6-2f1bfe42470d"
+        - "Date"
+      "source-card": 186
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.dimensions":
+    - "Date"
+    "graph.show_values": true
+    "graph.label_value_formatting": "compact"
+    "graph.colors":
+    - "#178F8A"
+    - "#D6816B"
+    - "#2a78d6"
+    "graph.x_axis.title_enabled": false
+    "graph.y_axis.title_enabled": false
+    "column_settings":
+      "[\"name\",\"Income\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Expenses\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Net profit\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "graph.metrics":
+    - "Income"
+    - "Expenses"
+    - "Net profit"
+  "basis": "model 186 Income Events"
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

@@ -1,0 +1,81 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Cash movement by transaction type · chart / 386"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "cashflow.by-type-row"
+  "id": 386
+  "name": "Cash movement by transaction type · chart"
+  "description": "Loan Reports · proposed (cashflow.by-type-row). Native: question 203's query unchanged, displayed as a horizontal\
+    \ bar of Money in and Money out per transaction type. Question 203 stays the table beside it. Basis: snippet 3 Cashflow\
+    \ statement period (same query as question 203)."
+  "display": "row"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "widget-type": "date/all-options"
+        "id": "lrp-cashflow-period"
+        "name": "cashflow_period"
+        "display-name": "Statement period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "ece96c4d-39ef-448c-b50f-224209d425b6"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      - "required": true
+        "id": "lrp-cash-account"
+        "name": "cash_account"
+        "display-name": "Account"
+        "type": "text"
+        "default": "__ALL__"
+      - "snippet-name": "Cashflow statement period"
+        "id": "lrp-snippet-3"
+        "name": "snippet: Cashflow statement period"
+        "display-name": "Cashflow statement period"
+        "type": "snippet"
+        "snippet-id": 3
+      "lib/type": "mbql.stage/native"
+      "native": "SELECT * FROM (WITH statement AS ({{snippet: Cashflow statement period}}) SELECT CASE WHEN grouping(t.\"\
+        Transaction Type\")=1 THEN 'TOTAL' ELSE t.\"Transaction Type\" END AS \"Transaction Type\",coalesce(sum(t.\"Money\
+        \ In\"),0) AS \"Money In\",coalesce(sum(t.\"Money Out\"),0) AS \"Money Out\",coalesce(sum(t.\"Net Movement\"),0) AS\
+        \ \"Net Movement\" FROM statement s LEFT JOIN LATERAL public.reporting_cash_period_entries(s.\"Period Start\",s.\"\
+        Period End\",{{cash_account}}) t ON true WHERE s.\"Continuous Period\" GROUP BY GROUPING SETS ((t.\"Transaction Type\"\
+        ),()) HAVING bool_or(s.\"Continuous Period\") AND (grouping(t.\"Transaction Type\")=1 OR count(t.\"Entry ID\")>0)\
+        \ ORDER BY grouping(t.\"Transaction Type\"),1) t WHERE t.\"Transaction Type\"<>'TOTAL'"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.dimensions":
+    - "Transaction Type"
+    "graph.show_values": true
+    "graph.label_value_formatting": "compact"
+    "graph.colors":
+    - "#178F8A"
+    - "#D6816B"
+    "column_settings":
+      "[\"name\",\"Money In\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Money Out\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "graph.metrics":
+    - "Money In"
+    - "Money Out"
+  "basis": "snippet 3 Cashflow statement period (same query as question 203)"
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

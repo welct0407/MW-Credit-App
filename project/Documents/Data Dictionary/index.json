@@ -3,6 +3,16 @@
   "generated_by": "scripts/dictionary/dictionary.py index",
   "entries": [
     {
+      "file": "systems/metabase/dashboards/loan-reports-proposed.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "dashboard",
+      "name": "Loan Reports · proposed / 32",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/dashboards/loan-reports.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -1279,6 +1289,106 @@
       "component": "reports.mw-credit.com",
       "kind": "question",
       "name": "Capital share · full pool / 331",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-cash-pool-selected.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Total cash pool · selected date / 382",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-cash-principal-selected.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal outstanding · selected date / 383",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-cashflow-by-type-row.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Cash movement by transaction type · chart / 386",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-income-monthly.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Monthly income, expenses and net profit / 385",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-income-vs-previous.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "This period and the previous period / 384",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-partners-capital-share-row.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Capital share · full pool / 388",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-perf-vs-previous.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "This period and the previous period / 387",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-today-collection-rate.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Collected today · share of amount due / 381",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-today-principal-smart.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal at work · change over the period / 379",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-today-realization.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest this month · share of projection / 380",
       "scope": "production",
       "status": "documented",
       "lookup": []
