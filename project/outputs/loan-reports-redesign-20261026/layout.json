@@ -1,0 +1,3905 @@
+{
+ "dashboard": {
+  "name": "Loan Reports · proposed",
+  "collection": {
+   "name": "Loan Reports · proposed",
+   "parent_collection_id": 5,
+   "description": "Parallel redesign of Loan Reports (dashboard 3) for side-by-side review. Reuses the governed models and saved questions; new questions live here."
+  },
+  "description": "Parallel redesign of Loan Reports for owner review. Live PROD OLAP · THB · Bangkok dates. Same models, snippets and saved questions as dashboard 3; diagnostics on the Data health tab.",
+  "auto_apply_filters": true
+ },
+ "parameters": [
+  {
+   "id": "period",
+   "name": "Period",
+   "slug": "period",
+   "type": "date/all-options",
+   "default": "past30days",
+   "replaces": [
+    "overview-trend-period",
+    "review-position-trend",
+    "review-performance",
+    "bp-period",
+    "bd-period"
+   ]
+  },
+  {
+   "id": "statement-period",
+   "name": "Statement period",
+   "slug": "statement_period",
+   "type": "date/all-options",
+   "default": "thismonth",
+   "replaces": [
+    "review-income",
+    "review-flow",
+    "pt-period"
+   ]
+  },
+  {
+   "id": "position-date",
+   "name": "Date",
+   "slug": "position_date",
+   "type": "date/all-options",
+   "default": "today",
+   "replaces": [
+    "review-position"
+   ]
+  },
+  {
+   "id": "account",
+   "name": "Account",
+   "slug": "account",
+   "type": "string/=",
+   "default": [
+    "__ALL__"
+   ],
+   "values_source": {
+    "card_id": 199
+   },
+   "replaces": [
+    "review-account"
+   ]
+  },
+  {
+   "id": "population",
+   "name": "Population",
+   "slug": "population",
+   "type": "string/=",
+   "default": [
+    "All with loan history"
+   ],
+   "values_source": "copy",
+   "replaces": [
+    "bp-population"
+   ]
+  },
+  {
+   "id": "borrower",
+   "name": "Borrower",
+   "slug": "borrower",
+   "type": "string/=",
+   "default": null,
+   "values_source": {
+    "card_id": 277
+   },
+   "replaces": [
+    "bd-borrower"
+   ]
+  },
+  {
+   "id": "scenario-amount",
+   "name": "Scenario · additional principal",
+   "slug": "scenario_amount",
+   "type": "number/=",
+   "default": [
+    0
+   ],
+   "replaces": [
+    "bd-amount"
+   ]
+  },
+  {
+   "id": "collection-borrower",
+   "name": "Collection · borrower",
+   "slug": "collection_borrower",
+   "type": "string/=",
+   "default": null,
+   "values_source": {
+    "card_id": 77
+   },
+   "replaces": [
+    "collection-detail-borrower"
+   ]
+  },
+  {
+   "id": "collection-status",
+   "name": "Collection · status",
+   "slug": "collection_status",
+   "type": "string/=",
+   "default": null,
+   "values_source": "copy",
+   "replaces": [
+    "collection-detail-status"
+   ]
+  },
+  {
+   "id": "partner",
+   "name": "Partner",
+   "slug": "partner",
+   "type": "string/=",
+   "default": null,
+   "values_source": {
+    "card_id": 324
+   },
+   "multi": true,
+   "replaces": [
+    "pt-partner"
+   ]
+  },
+  {
+   "id": "settlement-status",
+   "name": "Settlement status",
+   "slug": "settlement_status",
+   "type": "string/=",
+   "default": null,
+   "values_source": "copy",
+   "replaces": [
+    "pt-status"
+   ]
+  },
+  {
+   "id": "scenario",
+   "name": "Scenario",
+   "slug": "scenario",
+   "type": "string/=",
+   "default": [
+    "Planning"
+   ],
+   "values_source": "copy",
+   "replaces": [
+    "fp-scenario"
+   ]
+  },
+  {
+   "id": "interest-collected",
+   "name": "Interest collected %",
+   "slug": "interest_collected",
+   "type": "number/=",
+   "default": [
+    100
+   ],
+   "replaces": [
+    "fp-ci"
+   ]
+  },
+  {
+   "id": "principal-collected",
+   "name": "Principal collected %",
+   "slug": "principal_collected",
+   "type": "number/=",
+   "default": [
+    100
+   ],
+   "replaces": [
+    "fp-cp"
+   ]
+  },
+  {
+   "id": "overdue-recovered",
+   "name": "Overdue recovered %",
+   "slug": "overdue_recovered",
+   "type": "number/=",
+   "default": [
+    0
+   ],
+   "replaces": [
+    "fp-rr"
+   ]
+  },
+  {
+   "id": "loan-kind",
+   "name": "Loan type",
+   "slug": "loan_kind",
+   "type": "string/=",
+   "default": [
+    "All"
+   ],
+   "values_source": "copy",
+   "replaces": [
+    "fp-kind"
+   ]
+  },
+  {
+   "id": "target",
+   "name": "Interest target ฿",
+   "slug": "target",
+   "type": "number/=",
+   "default": null,
+   "replaces": [
+    "fp-target"
+   ]
+  },
+  {
+   "id": "plan-lending",
+   "name": "Plan · new lending ฿",
+   "slug": "plan_lending",
+   "type": "number/=",
+   "default": null,
+   "replaces": [
+    "fp-lending"
+   ]
+  },
+  {
+   "id": "plan-expenses",
+   "name": "Plan · cash expenses ฿",
+   "slug": "plan_expenses",
+   "type": "number/=",
+   "default": null,
+   "replaces": [
+    "fp-expenses"
+   ]
+  },
+  {
+   "id": "plan-withdrawals",
+   "name": "Plan · payouts & withdrawals ฿",
+   "slug": "plan_withdrawals",
+   "type": "number/=",
+   "default": null,
+   "replaces": [
+    "fp-withdrawals"
+   ]
+  },
+  {
+   "id": "plan-inflows",
+   "name": "Plan · external inflows ฿",
+   "slug": "plan_inflows",
+   "type": "number/=",
+   "default": null,
+   "replaces": [
+    "fp-inflows"
+   ]
+  },
+  {
+   "id": "plan-reserve",
+   "name": "Plan · cash reserve ฿",
+   "slug": "plan_reserve",
+   "type": "number/=",
+   "default": null,
+   "replaces": [
+    "fp-reserve"
+   ]
+  }
+ ],
+ "new_questions": {
+  "today.principal-smart": {
+   "name": "Principal at work · change over the period",
+   "display": "smartscalar",
+   "basis": "model 74 Daily Performance",
+   "params": [
+    "period"
+   ],
+   "definition": "MBQL on model 74: Outstanding Principal (max) by Date, filtered by Period on Date. Smart scalar shows the latest completed-day value and the change against the first date in the period. Whole baht.",
+   "settings": {
+    "scalar.compact_primary_number": false,
+    "scalar.comparisons": [
+     {
+      "id": "first",
+      "type": "periodsAgo",
+      "value": 30
+     }
+    ]
+   }
+  },
+  "today.realization": {
+   "name": "Interest this month · share of projection",
+   "display": "progress",
+   "basis": "model 73 Portfolio Overview",
+   "params": [],
+   "definition": "MBQL on model 73: field Forecast Realization (Realized Profit MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far; the card description names the projected amount source.",
+   "settings": {
+    "progress.goal": 1,
+    "progress.color": "#2a78d6"
+   }
+  },
+  "today.collection-rate": {
+   "name": "Collected today · share of amount due",
+   "display": "progress",
+   "basis": "model 73 Portfolio Overview",
+   "params": [],
+   "definition": "MBQL on model 73: field Amount Collection Rate Today (Amount Collected Today ÷ Amount Due Today). Progress goal 1. Reused on Today and Collection.",
+   "settings": {
+    "progress.goal": 1,
+    "progress.color": "#067647"
+   }
+  },
+  "cash.pool-selected": {
+   "name": "Total cash pool · selected date",
+   "display": "scalar",
+   "basis": "snippet 4 Cash position source routing (models 205, 206, 164, 73)",
+   "params": [
+    "position-date"
+   ],
+   "definition": "Native, same routing as question 207: today reads model 73 Total Cash Pool, a past date reads model 205 Total Cash Pool for that date; blank when no snapshot exists.",
+   "settings": {
+    "scalar.field": "Total Cash Pool"
+   }
+  },
+  "cash.principal-selected": {
+   "name": "Principal outstanding · selected date",
+   "display": "scalar",
+   "basis": "snippet 4 Cash position source routing (models 205, 73)",
+   "params": [
+    "position-date"
+   ],
+   "definition": "Native, same routing as question 207, selecting Outstanding Principal.",
+   "settings": {
+    "scalar.field": "Outstanding Principal"
+   }
+  },
+  "income.vs-previous": {
+   "name": "This period and the previous period",
+   "display": "table",
+   "basis": "snippet 2 Income statement period (model 186 Income Events)",
+   "params": [
+    "statement-period"
+   ],
+   "definition": "Native: for the selected statement period and the immediately preceding period of equal length, Income, Expenses, Net profit, Days and Net per day, plus change % of each. Two rows (This period, Previous period) and one Change row. Whole baht, one-decimal percent.",
+   "settings": {
+    "table.column_formatting": "change row: positive green, negative red"
+   }
+  },
+  "income.monthly": {
+   "name": "Monthly income, expenses and net profit",
+   "display": "bar",
+   "basis": "model 186 Income Events",
+   "params": [],
+   "definition": "MBQL on model 186: sum Income, sum Expenses and sum (Income − Expenses) by Date month, filtered to the previous five complete months plus the current month. Current month is partial and labelled \"to date\" in the card description.",
+   "settings": {
+    "graph.dimensions": [
+     "Date"
+    ],
+    "graph.metrics": [
+     "Income",
+     "Expenses",
+     "Net profit"
+    ],
+    "graph.show_values": true
+   }
+  },
+  "cashflow.by-type-row": {
+   "name": "Cash movement by transaction type · chart",
+   "display": "row",
+   "basis": "snippet 3 Cashflow statement period (same query as question 203)",
+   "params": [
+    "statement-period",
+    "account"
+   ],
+   "definition": "Native: question 203's query unchanged, displayed as a horizontal bar of Money in and Money out per transaction type. Question 203 stays the table beside it.",
+   "settings": {
+    "graph.dimensions": [
+     "Transaction Type"
+    ],
+    "graph.metrics": [
+     "Money In",
+     "Money Out"
+    ]
+   }
+  },
+  "perf.vs-previous": {
+   "name": "This period and the previous period",
+   "display": "table",
+   "basis": "models 71 Repayment Ledger and 70 Loan Book (pattern of questions 217–219)",
+   "params": [
+    "period"
+   ],
+   "definition": "Native: for the selected Period and the preceding period of equal length, Gross interest, Principal issued, Loans issued and Principal returned, with change %. Same date rules as questions 217–219 (loan dates and payment dates both use the filter).",
+   "settings": {
+    "table.column_formatting": "change row: positive green, negative red"
+   }
+  },
+  "partners.capital-share-row": {
+   "name": "Capital share · full pool",
+   "display": "row",
+   "basis": "model 318 Partners · position source (same query as question 331)",
+   "params": [
+    "partner"
+   ],
+   "definition": "Native: question 331's query unchanged, displayed as a horizontal bar with the share percent as the value label. Replaces the two-slice pie.",
+   "settings": {
+    "graph.show_values": true
+   }
+  }
+ },
+ "tabs": [
+  {
+   "key": "today",
+   "name": "Today",
+   "position": 0,
+   "filters": [
+    "period"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 18,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before expenses.",
+     "params": []
+    },
+    {
+     "row": 0,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 257,
+     "title": "As of · Bangkok",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 49,
+     "title": "Cash available",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "new_question": "today.principal-smart",
+     "title": "Principal at work",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 51,
+     "title": "Interest this month · realized",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 237,
+     "title": "Collected today",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 4,
+     "reuse_card_id": 68,
+     "title": "Capital deployed · live",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 8,
+     "size_x": 8,
+     "size_y": 4,
+     "new_question": "today.realization",
+     "title": "Interest this month · share of projection",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 4,
+     "new_question": "today.collection-rate",
+     "title": "Collected today · share of amount due",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Needs attention · chips open Collection and Borrower Health",
+     "params": []
+    },
+    {
+     "row": 10,
+     "col": 0,
+     "size_x": 4,
+     "size_y": 2,
+     "reuse_card_id": 240,
+     "title": "🟣 Overdue · people",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 4,
+     "size_x": 4,
+     "size_y": 2,
+     "reuse_card_id": 254,
+     "title": "Overdue ฿",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 8,
+     "size_x": 4,
+     "size_y": 2,
+     "reuse_card_id": 242,
+     "title": "🔴 Not paid today",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 12,
+     "size_x": 4,
+     "size_y": 2,
+     "reuse_card_id": 244,
+     "title": "🟠 Partially paid",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 16,
+     "size_x": 4,
+     "size_y": 2,
+     "reuse_card_id": 270,
+     "title": "Modified plans",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 20,
+     "size_x": 4,
+     "size_y": 2,
+     "reuse_card_id": 251,
+     "title": "Unclassified · expect 0",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 12,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 62,
+     "title": "Principal at work · daily close",
+     "note": "goal line = principal reference 120,000",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 12,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 222,
+     "title": "Daily gross interest · 7-day average",
+     "note": "goal line = daily interest goal 10,000",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 19,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 60,
+     "title": "Principal by borrower · top four + others",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 19,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 61,
+     "title": "Interest · past 30 days by borrower",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 26,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "Card descriptions hold the exact definitions. Profit means gross interest before expenses.",
+     "params": []
+    }
+   ],
+   "height_rows": 27,
+   "dropped_from_dashboard_3": [
+    47,
+    50,
+    52,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    63,
+    64
+   ]
+  },
+  {
+   "key": "cash-position",
+   "name": "Cash Position",
+   "position": 1,
+   "filters": [
+    "position-date",
+    "period"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Cash position** · Date selects the position (today = live, past dates = hourly snapshot). Lending capital is not a bank balance; net cash includes negative balances.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "new_question": "cash.pool-selected",
+     "title": "Total cash pool",
+     "params": [
+      "position-date",
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "new_question": "cash.principal-selected",
+     "title": "Principal outstanding",
+     "params": [
+      "position-date",
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 207,
+     "title": "Remaining lending capital",
+     "params": [
+      "position-date",
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 208,
+     "title": "Net cash balance",
+     "params": [
+      "position-date",
+      "period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 6,
+     "reuse_card_id": 68,
+     "title": "Capital deployed · live",
+     "params": [
+      "position-date",
+      "period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 8,
+     "size_x": 16,
+     "size_y": 6,
+     "reuse_card_id": 210,
+     "title": "Net cash by holder · selected date",
+     "params": [
+      "position-date",
+      "period"
+     ]
+    },
+    {
+     "row": 11,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 7,
+     "reuse_card_id": 211,
+     "title": "Account balances · selected date (signed)",
+     "params": [
+      "position-date",
+      "period"
+     ]
+    },
+    {
+     "row": 18,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 7,
+     "reuse_card_id": 202,
+     "title": "Daily closing positions · completed days",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 25,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab.",
+     "params": []
+    }
+   ],
+   "height_rows": 26,
+   "dropped_from_dashboard_3": [
+    47,
+    48,
+    209
+   ]
+  },
+  {
+   "key": "income",
+   "name": "Income",
+   "position": 2,
+   "filters": [
+    "statement-period"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit = gross interest − expenses.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 168,
+     "title": "Income · gross interest",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 8,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 169,
+     "title": "− Expenses",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 170,
+     "title": "= Net profit",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 16,
+     "size_y": 4,
+     "new_question": "income.vs-previous",
+     "title": "This period and the previous period",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 4,
+     "reuse_card_id": 171,
+     "title": "Net profit per day · calendar days",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 0,
+     "size_x": 16,
+     "size_y": 8,
+     "new_question": "income.monthly",
+     "title": "Monthly income, expenses and net profit",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 8,
+     "reuse_card_id": 178,
+     "title": "Expenses by category · this period",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 17,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 7,
+     "reuse_card_id": 213,
+     "title": "Daily income and expenses · completed days",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 24,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 7,
+     "reuse_card_id": 212,
+     "title": "Expense detail · this period",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 31,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab.",
+     "params": []
+    }
+   ],
+   "height_rows": 32,
+   "dropped_from_dashboard_3": [
+    184,
+    204,
+    214
+   ]
+  },
+  {
+   "key": "cashflow",
+   "name": "Cashflow",
+   "position": 3,
+   "filters": [
+    "statement-period",
+    "account"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 195,
+     "title": "Opening cash",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 192,
+     "title": "+ Money in",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 193,
+     "title": "− Money out",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 197,
+     "title": "= Closing cash",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 194,
+     "title": "Net cash movement",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 6,
+     "size_x": 18,
+     "size_y": 7,
+     "new_question": "cashflow.by-type-row",
+     "title": "Cash movement by transaction type",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 12,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 6,
+     "reuse_card_id": 203,
+     "title": "Cash movement by transaction type · table",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 18,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 7,
+     "reuse_card_id": 215,
+     "title": "Daily cash movement · completed days",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 25,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 10,
+     "reuse_card_id": 196,
+     "title": "Transactions · chronological",
+     "params": [
+      "statement-period",
+      "account"
+     ]
+    },
+    {
+     "row": 35,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab.",
+     "params": []
+    }
+   ],
+   "height_rows": 36,
+   "dropped_from_dashboard_3": [
+    198,
+    216
+   ]
+  },
+  {
+   "key": "performance",
+   "name": "Performance",
+   "position": 4,
+   "filters": [
+    "period"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use Period.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 5,
+     "size_y": 3,
+     "reuse_card_id": 217,
+     "title": "Gross interest",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 5,
+     "size_x": 5,
+     "size_y": 3,
+     "reuse_card_id": 218,
+     "title": "Principal issued",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 10,
+     "size_x": 4,
+     "size_y": 3,
+     "reuse_card_id": 219,
+     "title": "Loans issued",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 14,
+     "size_x": 5,
+     "size_y": 3,
+     "reuse_card_id": 234,
+     "title": "Net principal deployed",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 19,
+     "size_x": 5,
+     "size_y": 3,
+     "reuse_card_id": 235,
+     "title": "Loan-cohort return",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 4,
+     "new_question": "perf.vs-previous",
+     "title": "This period and the previous period",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 223,
+     "title": "Principal issued and returned · daily",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 222,
+     "title": "Daily gross interest · 7-day average",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 16,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Lending volume",
+     "params": []
+    },
+    {
+     "row": 17,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 6,
+     "reuse_card_id": 220,
+     "title": "Gross interest by loan type",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 17,
+     "col": 8,
+     "size_x": 8,
+     "size_y": 6,
+     "reuse_card_id": 224,
+     "title": "Loans issued per day",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 17,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 6,
+     "reuse_card_id": 225,
+     "title": "Average loan size · per week",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 23,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Returns",
+     "params": []
+    },
+    {
+     "row": 24,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 232,
+     "title": "Daily capital yield",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 24,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 233,
+     "title": "Weekly loan-cohort return",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 30,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 230,
+     "title": "Cumulative gross interest · 7-day average",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 30,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 226,
+     "title": "Active loans and borrowers · end of day",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 36,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 227,
+     "title": "Daily performance · snapshots",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 44,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab.",
+     "params": []
+    }
+   ],
+   "height_rows": 45,
+   "dropped_from_dashboard_3": [
+    221,
+    228,
+    231
+   ]
+  },
+  {
+   "key": "borrowers",
+   "name": "Borrowers",
+   "position": 5,
+   "filters": [
+    "period",
+    "population"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 278,
+     "title": "Active borrowers",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 279,
+     "title": "Active loans",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 280,
+     "title": "Principal outstanding",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 281,
+     "title": "Interest received · period",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 8,
+     "reuse_card_id": 285,
+     "title": "Principal outstanding by borrower",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 8,
+     "size_x": 8,
+     "size_y": 8,
+     "reuse_card_id": 286,
+     "title": "Interest received · period by borrower",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 8,
+     "reuse_card_id": 314,
+     "title": "Lifetime interest return on principal lent · top 8",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 13,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Concentration & ageing",
+     "params": []
+    },
+    {
+     "row": 14,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 110,
+     "title": "Top three concentration",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 14,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 111,
+     "title": "Past-due amount",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 14,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 117,
+     "title": "Default loss over time",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 20,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 6,
+     "reuse_card_id": 114,
+     "title": "Active loan count by age",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 20,
+     "col": 8,
+     "size_x": 8,
+     "size_y": 6,
+     "reuse_card_id": 115,
+     "title": "Active principal by age",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 20,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 6,
+     "reuse_card_id": 116,
+     "title": "Borrower risk · excluding largest exposure",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 26,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 11,
+     "reuse_card_id": 289,
+     "title": "Borrower comparison · click a name for Detail",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 37,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Activity over time",
+     "params": []
+    },
+    {
+     "row": 38,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 287,
+     "title": "Interest received over time · top 5 + others",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 38,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 288,
+     "title": "First and repeat loans · weekly",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 45,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "Gross interest before expenses. Categories come from Borrower Health. Lifetime daily rate (question 313) and the risk monitor (118) stay available as saved questions.",
+     "params": []
+    }
+   ],
+   "height_rows": 46,
+   "dropped_from_dashboard_3": [
+    282,
+    283,
+    284,
+    311,
+    312,
+    313,
+    315,
+    48,
+    81,
+    112,
+    113,
+    118
+   ]
+  },
+  {
+   "key": "health",
+   "name": "Borrower Health",
+   "position": 6,
+   "filters": [],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Borrower Health** · current portfolio, refreshed on load · click a name to open Borrower Detail.",
+     "params": []
+    },
+    {
+     "row": 0,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 270,
+     "title": "Modified plans",
+     "params": []
+    },
+    {
+     "row": 0,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 257,
+     "title": "As of · Bangkok",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 253,
+     "title": "Active borrowers",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 254,
+     "title": "Overdue ฿ · all borrowers",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 255,
+     "title": "Provisional · active",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 256,
+     "title": "Unclassified · active",
+     "params": []
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 22,
+     "copy_dashcard": 1501,
+     "params": []
+    },
+    {
+     "row": 27,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 260,
+     "title": "Star",
+     "params": []
+    },
+    {
+     "row": 27,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 258,
+     "title": "Cash Cow",
+     "params": []
+    },
+    {
+     "row": 27,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 264,
+     "title": "Question Mark",
+     "params": []
+    },
+    {
+     "row": 27,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 262,
+     "title": "Dog",
+     "params": []
+    },
+    {
+     "row": 29,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 9,
+     "reuse_card_id": 275,
+     "title": "Borrowers by category · scores, schedule and contribution",
+     "note": "column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category",
+     "params": []
+    },
+    {
+     "row": 38,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Rating detail",
+     "params": []
+    },
+    {
+     "row": 39,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 10,
+     "reuse_card_id": 267,
+     "title": "Payment health · all borrowers",
+     "params": []
+    },
+    {
+     "row": 49,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 6,
+     "reuse_card_id": 269,
+     "title": "Unavailable ratings and default context",
+     "params": []
+    },
+    {
+     "row": 55,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 10,
+     "reuse_card_id": 268,
+     "title": "Reliability components and effective weights · active borrowers",
+     "params": []
+    },
+    {
+     "row": 65,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 271,
+     "title": "Automatic schedule assessment · active borrowers",
+     "params": []
+    },
+    {
+     "row": 73,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 272,
+     "title": "Modified schedules · loan and next-plan detail",
+     "params": []
+    },
+    {
+     "row": 81,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "Rating: recent punctuality 45% · older punctuality 15% · average delay 15% · current payment health 25%; threshold 80; contribution boundary 1×. Full method in the dictionary.",
+     "params": []
+    }
+   ],
+   "height_rows": 83,
+   "dropped_from_dashboard_3": [
+    259,
+    261,
+    263,
+    265
+   ]
+  },
+  {
+   "key": "borrower-detail",
+   "name": "Borrower Detail",
+   "position": 7,
+   "filters": [
+    "borrower",
+    "period",
+    "scenario-amount"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 4,
+     "reuse_card_id": 290,
+     "title": "Profile · current position",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 6,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 378,
+     "title": "Category · BCG matrix",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 6,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 293,
+     "title": "Overdue ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 6,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 294,
+     "title": "Portfolio share",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 6,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 292,
+     "title": "Active loans",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Active loans · lifetime receipts / current principal",
+     "params": []
+    },
+    {
+     "row": 10,
+     "col": 0,
+     "size_x": 4,
+     "size_y": 3,
+     "reuse_card_id": 291,
+     "title": "Current principal ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 4,
+     "size_x": 4,
+     "size_y": 3,
+     "reuse_card_id": 370,
+     "title": "Outstanding ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 8,
+     "size_x": 4,
+     "size_y": 3,
+     "reuse_card_id": 371,
+     "title": "Interest earned ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 12,
+     "size_x": 4,
+     "size_y": 3,
+     "reuse_card_id": 372,
+     "title": "After coverage ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 16,
+     "size_x": 4,
+     "size_y": 3,
+     "reuse_card_id": 373,
+     "title": "Return %",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 20,
+     "size_x": 4,
+     "size_y": 3,
+     "reuse_card_id": 374,
+     "title": "Coverage date",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 13,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Closed loans · lifetime",
+     "params": []
+    },
+    {
+     "row": 14,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 375,
+     "title": "Original principal ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 14,
+     "col": 8,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 376,
+     "title": "Interest earned ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 14,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 377,
+     "title": "Return on closed loans",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 17,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 5,
+     "reuse_card_id": 369,
+     "title": "Most recent seven charge dates · red overdue, orange paid late, green on time",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 22,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Activity · selected period",
+     "params": []
+    },
+    {
+     "row": 23,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 296,
+     "title": "Interest received ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 23,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 297,
+     "title": "Principal issued ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 23,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 298,
+     "title": "Principal returned ฿",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 23,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 299,
+     "title": "Loans issued",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 26,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 301,
+     "title": "Principal issued and returned",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 26,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 302,
+     "title": "Interest received over time",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 33,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 303,
+     "title": "Active loans and recorded next plan",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 41,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 7,
+     "reuse_card_id": 308,
+     "title": "All current overdue obligations",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 48,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 305,
+     "title": "Loan history · lifetime",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 56,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 4,
+     "reuse_card_id": 316,
+     "title": "Payment punctuality · selected due dates",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 60,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 7,
+     "reuse_card_id": 304,
+     "title": "Payment punctuality over time · due month",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 67,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Records · selected period",
+     "params": []
+    },
+    {
+     "row": 68,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 307,
+     "title": "Obligation evidence · selected due dates",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 76,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 317,
+     "title": "Payments · selected payment dates",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 84,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 306,
+     "title": "Repayment allocations · selected payment dates",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 92,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Additional lending scenario · hypothetical only",
+     "params": []
+    },
+    {
+     "row": 93,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 5,
+     "reuse_card_id": 309,
+     "title": "Additional lending · hypothetical only",
+     "params": [
+      "borrower",
+      "period",
+      "scenario-amount"
+     ]
+    },
+    {
+     "row": 98,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "All amounts are baht. Allocations are not unique receipts; corrections remain signed. Context and dates: Data health tab.",
+     "params": []
+    }
+   ],
+   "height_rows": 99,
+   "dropped_from_dashboard_3": [
+    300
+   ]
+  },
+  {
+   "key": "collection",
+   "name": "Collection",
+   "position": 8,
+   "filters": [
+    "collection-borrower",
+    "collection-status"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Collection · Bangkok today** · live · refresh every minute · payments appear after sync. Filters apply to the detail table only.",
+     "params": []
+    },
+    {
+     "row": 0,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 2,
+     "reuse_card_id": 250,
+     "title": "As of · query time",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 237,
+     "title": "Collected today",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 238,
+     "title": "Left to collect",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 239,
+     "title": "People fully paid",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 252,
+     "title": "Today's charges · paid %",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "new_question": "today.collection-rate",
+     "title": "Collected today · share of amount due",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 7,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 242,
+     "title": "🔴 Not paid · people",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 7,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 244,
+     "title": "🟠 Partially paid · people",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 7,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 240,
+     "title": "🟣 Overdue · people",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 7,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 2,
+     "reuse_card_id": 246,
+     "title": "🟢 Fully paid · people",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 9,
+     "reuse_card_id": 243,
+     "title": "🔴 Not paid",
+     "note": "sort by amount left desc",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 9,
+     "reuse_card_id": 245,
+     "title": "🟠 Partially paid",
+     "note": "sort by amount left desc",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 9,
+     "reuse_card_id": 241,
+     "title": "🟣 Overdue",
+     "note": "sort by overdue amount desc",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 9,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 9,
+     "reuse_card_id": 247,
+     "title": "🟢 Fully paid",
+     "note": "sort by received desc",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 18,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 6,
+     "reuse_card_id": 251,
+     "title": "Unclassified · expect 0",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 18,
+     "col": 6,
+     "size_x": 18,
+     "size_y": 6,
+     "reuse_card_id": 64,
+     "title": "Overdue charges · completed days",
+     "params": []
+    },
+    {
+     "row": 24,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 10,
+     "reuse_card_id": 248,
+     "title": "Collection detail · filters above apply here",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 34,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 5,
+     "reuse_card_id": 249,
+     "title": "Charges dated today · separate from board balances",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 39,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people move lanes after refresh.",
+     "params": []
+    }
+   ],
+   "height_rows": 40,
+   "dropped_from_dashboard_3": []
+  },
+  {
+   "key": "partners",
+   "name": "Partners",
+   "position": 9,
+   "filters": [
+    "partner",
+    "statement-period",
+    "settlement-status"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Partners** · current balances stay current when the period changes · baht · net available is an entitlement after reservations, not cash on hand.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 5,
+     "size_y": 3,
+     "reuse_card_id": 325,
+     "title": "Net capital ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 5,
+     "size_x": 5,
+     "size_y": 3,
+     "reuse_card_id": 326,
+     "title": "Net earned to date ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 10,
+     "size_x": 5,
+     "size_y": 3,
+     "reuse_card_id": 327,
+     "title": "Completed payouts ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 15,
+     "size_x": 5,
+     "size_y": 3,
+     "reuse_card_id": 328,
+     "title": "Pending settlements ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 20,
+     "size_x": 4,
+     "size_y": 3,
+     "reuse_card_id": 329,
+     "title": "Net available ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 16,
+     "size_y": 7,
+     "reuse_card_id": 330,
+     "title": "Partner positions · current",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 7,
+     "new_question": "partners.capital-share-row",
+     "title": "Capital share · full pool",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 12,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 6,
+     "reuse_card_id": 340,
+     "title": "Pending settlements · all dates",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 18,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Activity · statement period",
+     "params": []
+    },
+    {
+     "row": 19,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 333,
+     "title": "Allocated interest ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 19,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 334,
+     "title": "Allocated expenses ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 19,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 335,
+     "title": "Net earned ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 19,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 336,
+     "title": "Payouts in period ฿",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 22,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 8,
+     "reuse_card_id": 337,
+     "title": "Monthly net earned versus paid",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 22,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 8,
+     "reuse_card_id": 338,
+     "title": "Capital contributions and withdrawals",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 30,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 339,
+     "title": "Net contributed capital over time",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 38,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Ledgers · statement period",
+     "params": []
+    },
+    {
+     "row": 39,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 341,
+     "title": "Capital transaction ledger",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 47,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 342,
+     "title": "Settlement transaction ledger",
+     "params": [
+      "partner",
+      "statement-period",
+      "settlement-status"
+     ]
+    },
+    {
+     "row": 55,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "text",
+     "text": "Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab.",
+     "params": []
+    }
+   ],
+   "height_rows": 56,
+   "dropped_from_dashboard_3": [
+    331,
+    332,
+    343
+   ]
+  },
+  {
+   "key": "forecast",
+   "name": "Forecast & Plan",
+   "position": 10,
+   "filters": [
+    "scenario",
+    "interest-collected",
+    "principal-collected",
+    "overdue-recovered",
+    "loan-kind",
+    "target",
+    "plan-lending",
+    "plan-expenses",
+    "plan-withdrawals",
+    "plan-inflows",
+    "plan-reserve"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Forecast & Plan · current Bangkok month** · existing loan book · scenarios are assumptions, not promised collections. Interest and principal stay separate.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 4,
+     "reuse_card_id": 353,
+     "title": "Scenario and assumptions in force",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 6,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Interest outlook",
+     "params": []
+    },
+    {
+     "row": 7,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 348,
+     "title": "Interest received · month to date",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 7,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 349,
+     "title": "Remaining · scenario",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 7,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 350,
+     "title": "Month-end outlook",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 7,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 351,
+     "title": "Target gap",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 0,
+     "size_x": 16,
+     "size_y": 9,
+     "reuse_card_id": 356,
+     "title": "Cumulative interest · actual and projected",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 10,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 9,
+     "reuse_card_id": 355,
+     "title": "Month-end by scenario",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 19,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 8,
+     "reuse_card_id": 357,
+     "title": "Upcoming dues · remaining weeks",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 19,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 8,
+     "reuse_card_id": 360,
+     "title": "Watchlist · dues at risk",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 27,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 354,
+     "title": "Interest outlook bridge",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 27,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 358,
+     "title": "Borrower forecast contribution",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 34,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 359,
+     "title": "Interest by loan type",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 34,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 352,
+     "title": "Principal receipts · scenario",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 40,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Cash plan · whole portfolio",
+     "params": []
+    },
+    {
+     "row": 41,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 365,
+     "title": "Business cash now ฿",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 41,
+     "col": 8,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 366,
+     "title": "Month-end cash ฿",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 41,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 367,
+     "title": "Reserve shortfall ฿",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 44,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 6,
+     "reuse_card_id": 364,
+     "title": "Plan inputs and status",
+     "note": "Plan not ready until all five inputs are set; blank results until then",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 50,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 368,
+     "title": "Month-end cash bridge",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 58,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "Recorded obligations come before simulated ones. Planned new lending adds no forecast income. Month-end cash is not the lowest balance of the month. Detail and coverage: Data health tab.",
+     "params": []
+    }
+   ],
+   "height_rows": 60,
+   "dropped_from_dashboard_3": [
+    361,
+    362,
+    363
+   ]
+  },
+  {
+   "key": "data-health",
+   "name": "Data health",
+   "position": 11,
+   "filters": [
+    "statement-period",
+    "account",
+    "period",
+    "position-date",
+    "population",
+    "borrower",
+    "partner",
+    "scenario",
+    "interest-collected",
+    "principal-collected",
+    "overdue-recovered",
+    "loan-kind",
+    "target"
+   ],
+   "placements": [
+    {
+     "row": 0,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 2,
+     "virtual": "text",
+     "text": "**Data health** · every page's freshness, coverage and source checks. Filters here mirror the pages they belong to.",
+     "params": []
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 276,
+     "title": "Reporting connection · SELECT 1",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 8,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 257,
+     "title": "Queried at · Bangkok",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 2,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 3,
+     "reuse_card_id": 250,
+     "title": "Bangkok date and query time",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Cash Position",
+     "params": []
+    },
+    {
+     "row": 6,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 6,
+     "reuse_card_id": 209,
+     "title": "Cash position · source and freshness",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 12,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Income",
+     "params": []
+    },
+    {
+     "row": 13,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 184,
+     "title": "Income period and freshness",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 13,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 6,
+     "reuse_card_id": 214,
+     "title": "Profit trend snapshot freshness",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 19,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Cashflow",
+     "params": []
+    },
+    {
+     "row": 20,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 8,
+     "reuse_card_id": 198,
+     "title": "Cashflow period and freshness",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 20,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 8,
+     "reuse_card_id": 216,
+     "title": "Cash trend snapshot freshness",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 28,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Performance",
+     "params": []
+    },
+    {
+     "row": 29,
+     "col": 0,
+     "size_x": 8,
+     "size_y": 7,
+     "reuse_card_id": 221,
+     "title": "Live period and source",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 29,
+     "col": 8,
+     "size_x": 16,
+     "size_y": 7,
+     "reuse_card_id": 228,
+     "title": "Snapshot coverage and generation times",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 36,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 4,
+     "reuse_card_id": 231,
+     "title": "Rolling-average coverage · selected completed dates",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 40,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Borrowers and Borrower Detail",
+     "params": []
+    },
+    {
+     "row": 41,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 4,
+     "reuse_card_id": 284,
+     "title": "Period, population and source",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 41,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 4,
+     "reuse_card_id": 315,
+     "title": "Overall charts · dates and data availability",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 45,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 5,
+     "reuse_card_id": 300,
+     "title": "Activity dates and lifetime context · selected borrower",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 50,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Partners",
+     "params": []
+    },
+    {
+     "row": 51,
+     "col": 0,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 332,
+     "title": "How net available is calculated",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 51,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 7,
+     "reuse_card_id": 343,
+     "title": "Source and balance checks",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 58,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Forecast",
+     "params": []
+    },
+    {
+     "row": 59,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 7,
+     "reuse_card_id": 363,
+     "title": "Forecast coverage and exceptions",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 66,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 10,
+     "reuse_card_id": 361,
+     "title": "Loan forecast detail",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    },
+    {
+     "row": 76,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 10,
+     "reuse_card_id": 362,
+     "title": "Recorded and simulated obligations",
+     "params": [
+      "statement-period",
+      "account",
+      "period",
+      "position-date",
+      "population",
+      "borrower",
+      "partner",
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target"
+     ]
+    }
+   ],
+   "height_rows": 86,
+   "dropped_from_dashboard_3": []
+  }
+ ],
+ "summary": {
+  "tabs": 12,
+  "placements": 240,
+  "reused_questions": [
+   49,
+   51,
+   60,
+   61,
+   62,
+   64,
+   68,
+   110,
+   111,
+   114,
+   115,
+   116,
+   117,
+   168,
+   169,
+   170,
+   171,
+   178,
+   184,
+   192,
+   193,
+   194,
+   195,
+   196,
+   197,
+   198,
+   202,
+   203,
+   207,
+   208,
+   209,
+   210,
+   211,
+   212,
+   213,
+   214,
+   215,
+   216,
+   217,
+   218,
+   219,
+   220,
+   221,
+   222,
+   223,
+   224,
+   225,
+   226,
+   227,
+   228,
+   230,
+   231,
+   232,
+   233,
+   234,
+   235,
+   237,
+   238,
+   239,
+   240,
+   241,
+   242,
+   243,
+   244,
+   245,
+   246,
+   247,
+   248,
+   249,
+   250,
+   251,
+   252,
+   253,
+   254,
+   255,
+   256,
+   257,
+   258,
+   260,
+   262,
+   264,
+   267,
+   268,
+   269,
+   270,
+   271,
+   272,
+   275,
+   276,
+   278,
+   279,
+   280,
+   281,
+   284,
+   285,
+   286,
+   287,
+   288,
+   289,
+   290,
+   291,
+   292,
+   293,
+   294,
+   296,
+   297,
+   298,
+   299,
+   300,
+   301,
+   302,
+   303,
+   304,
+   305,
+   306,
+   307,
+   308,
+   309,
+   314,
+   315,
+   316,
+   317,
+   325,
+   326,
+   327,
+   328,
+   329,
+   330,
+   332,
+   333,
+   334,
+   335,
+   336,
+   337,
+   338,
+   339,
+   340,
+   341,
+   342,
+   343,
+   348,
+   349,
+   350,
+   351,
+   352,
+   353,
+   354,
+   355,
+   356,
+   357,
+   358,
+   359,
+   360,
+   361,
+   362,
+   363,
+   364,
+   365,
+   366,
+   367,
+   368,
+   369,
+   370,
+   371,
+   372,
+   373,
+   374,
+   375,
+   376,
+   377,
+   378
+  ],
+  "new_questions": [
+   "cash.pool-selected",
+   "cash.principal-selected",
+   "cashflow.by-type-row",
+   "income.monthly",
+   "income.vs-previous",
+   "partners.capital-share-row",
+   "perf.vs-previous",
+   "today.collection-rate",
+   "today.principal-smart",
+   "today.realization"
+  ],
+  "parameters": 22
+ }
+}
