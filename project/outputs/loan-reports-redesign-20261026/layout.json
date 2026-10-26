@@ -329,7 +329,7 @@
    "basis": "models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270",
    "origin": 240,
    "params": [],
-   "definition": "One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card.",
+   "definition": "One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens (kept in the SQL, hidden: the Item link and the title already say rows open pages), Tab and Tint (hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card.",
    "sql": "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\nSELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__','overdue'),\n (2,'🔴 Not paid',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__','not_paid'),\n (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','__TAB_HEALTH__','')\n) v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
    "settings": {
     "table.pivot": false,
@@ -343,10 +343,9 @@
      }
     },
     "table.column_widths": [
-     110,
-     74,
-     80,
-     76
+     150,
+     90,
+     110
     ],
     "table.columns": [
      {
@@ -363,7 +362,7 @@
      },
      {
       "name": "Opens",
-      "enabled": true
+      "enabled": false
      },
      {
       "name": "Tab",

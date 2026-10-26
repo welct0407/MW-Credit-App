@@ -187,7 +187,7 @@ NEW_QUESTIONS = {
         'definition': 'One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, '
                       'amount as question 254), 🔴 Not paid (model 162 count as 242, amount left), 🟠 Partially paid '
                       '(model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, '
-                      'Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the '
+                      'Opens (kept in the SQL, hidden: the Item link and the title already say rows open pages), Tab and Tint (hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the '
                       'proposed tab ids and sets the Item column click behaviour to the link template '
                       f'{SITE}/dashboard/<dashboard>?tab={{{{Tab}}}}. Replaces six chips with one card.',
         'sql': "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\n"
@@ -197,8 +197,8 @@ NEW_QUESTIONS = {
                " (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n"
                " (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','__TAB_HEALTH__','')\n"
                ") v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
-        'settings': {'table.pivot': False, 'column_settings': titled('Amount ฿', 'Amount'), 'table.column_widths': [110, 74, 80, 76],
-                     'table.columns': [{'name': n, 'enabled': n not in ('Tab', 'Tint')} for n in ['Item', 'People', 'Amount ฿', 'Opens', 'Tab', 'Tint']],
+        'settings': {'table.pivot': False, 'column_settings': titled('Amount ฿', 'Amount'), 'table.column_widths': [150, 90, 110],
+                     'table.columns': [{'name': n, 'enabled': n not in ('Opens', 'Tab', 'Tint')} for n in ['Item', 'People', 'Amount ฿', 'Opens', 'Tab', 'Tint']],
                      'table.column_formatting': [
                          {'id': 0, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'overdue', 'color': STATUS['overdue'], 'highlight_row': True},
                          {'id': 1, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'not_paid', 'color': STATUS['not_paid'], 'highlight_row': True},

@@ -15,8 +15,9 @@
   "description": "Loan Reports · proposed (today.attention). One row per attention item with people and baht: \U0001F7E3 Overdue\
     \ (count from model 162 as question 240, amount as question 254), \U0001F534 Not paid (model 162 count as 242, amount\
     \ left), \U0001F7E0 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People,\
-    \ Amount ฿, Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__\
-    \ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}.\
+    \ Amount ฿, Opens (kept in the SQL, hidden: the Item link and the title already say rows open pages), Tab and Tint (hidden;\
+    \ Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab\
+    \ ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}.\
     \ Replaces six chips with one card. Basis: models 162 Collection Status Summary and 77 Collection Worklist; views of questions\
     \ 254 and 270."
   "display": "table"
@@ -42,10 +43,9 @@
   "visualization_settings":
     "table.pivot": false
     "table.column_widths":
+    - 150
+    - 90
     - 110
-    - 74
-    - 80
-    - 76
     "table.columns":
     - "name": "Item"
       "enabled": true
@@ -54,7 +54,7 @@
     - "name": "Amount ฿"
       "enabled": true
     - "name": "Opens"
-      "enabled": true
+      "enabled": false
     - "name": "Tab"
       "enabled": false
     - "name": "Tint"
