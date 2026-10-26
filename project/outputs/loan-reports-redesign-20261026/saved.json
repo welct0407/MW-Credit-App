@@ -1197,534 +1197,6 @@
   ],
   "layout": [
     {
-      "id": 7663,
-      "card_id": null,
-      "dashboard_tab_id": 375,
-      "row": 0,
-      "col": 0,
-      "size_x": 18,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before expenses.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "**Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before expenses."
-      }
-    },
-    {
-      "id": 7664,
-      "card_id": 257,
-      "dashboard_tab_id": 375,
-      "row": 0,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "As of · Bangkok"
-      }
-    },
-    {
-      "id": 7665,
-      "card_id": 49,
-      "dashboard_tab_id": 375,
-      "row": 2,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "scalar.field": "Available Cash",
-        "card.title": "Cash available",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#88BF4D",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Available Cash\"]": {
-            "number_style": "decimal",
-            "number_separators": ".,",
-            "decimals": 0
-          }
-        }
-      }
-    },
-    {
-      "id": 7666,
-      "card_id": 379,
-      "dashboard_tab_id": 375,
-      "row": 2,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 379,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Principal at work"
-      }
-    },
-    {
-      "id": 7667,
-      "card_id": 51,
-      "dashboard_tab_id": 375,
-      "row": 2,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "scalar.field": "Realized Profit MTD",
-        "card.title": "Interest this month · realized",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#689636",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Realized Profit MTD\"]": {
-            "number_style": "decimal",
-            "number_separators": ".,",
-            "decimals": 0
-          }
-        }
-      }
-    },
-    {
-      "id": 7668,
-      "card_id": 237,
-      "dashboard_tab_id": 375,
-      "row": 2,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Collected today"
-      }
-    },
-    {
-      "id": 7669,
-      "card_id": 68,
-      "dashboard_tab_id": 375,
-      "row": 5,
-      "col": 0,
-      "size_x": 8,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Capital deployed · live"
-      }
-    },
-    {
-      "id": 7670,
-      "card_id": 380,
-      "dashboard_tab_id": 375,
-      "row": 5,
-      "col": 8,
-      "size_x": 8,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Interest this month · share of projection"
-      }
-    },
-    {
-      "id": 7671,
-      "card_id": 381,
-      "dashboard_tab_id": 375,
-      "row": 5,
-      "col": 16,
-      "size_x": 8,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Collected today · share of amount due"
-      }
-    },
-    {
-      "id": 7672,
-      "card_id": null,
-      "dashboard_tab_id": 375,
-      "row": 9,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Needs attention · chips open Collection and Borrower Health"
-          }
-        },
-        "text": "Needs attention · chips open Collection and Borrower Health"
-      }
-    },
-    {
-      "id": 7673,
-      "card_id": 240,
-      "dashboard_tab_id": 375,
-      "row": 10,
-      "col": 0,
-      "size_x": 4,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟣 Overdue · people",
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=383"
-        }
-      }
-    },
-    {
-      "id": 7674,
-      "card_id": 254,
-      "dashboard_tab_id": 375,
-      "row": 10,
-      "col": 4,
-      "size_x": 4,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Overdue ฿",
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=381"
-        }
-      }
-    },
-    {
-      "id": 7675,
-      "card_id": 242,
-      "dashboard_tab_id": 375,
-      "row": 10,
-      "col": 8,
-      "size_x": 4,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🔴 Not paid today",
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=383"
-        }
-      }
-    },
-    {
-      "id": 7676,
-      "card_id": 244,
-      "dashboard_tab_id": 375,
-      "row": 10,
-      "col": 12,
-      "size_x": 4,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟠 Partially paid",
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=383"
-        }
-      }
-    },
-    {
-      "id": 7677,
-      "card_id": 270,
-      "dashboard_tab_id": 375,
-      "row": 10,
-      "col": 16,
-      "size_x": 4,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Modified plans",
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=381"
-        }
-      }
-    },
-    {
-      "id": 7678,
-      "card_id": 251,
-      "dashboard_tab_id": 375,
-      "row": 10,
-      "col": 20,
-      "size_x": 4,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Unclassified · expect 0",
-        "click_behavior": {
-          "type": "link",
-          "linkType": "url",
-          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=383"
-        }
-      }
-    },
-    {
-      "id": 7679,
-      "card_id": 62,
-      "dashboard_tab_id": 375,
-      "row": 12,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 62,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "visualization": {
-          "display": "area",
-          "columnValuesMapping": {
-            "COLUMN_1": [
-              {
-                "sourceId": "card:62",
-                "originalName": "Date",
-                "name": "COLUMN_1"
-              }
-            ],
-            "COLUMN_2": [
-              {
-                "sourceId": "card:62",
-                "originalName": "Amount (THB)",
-                "name": "COLUMN_2"
-              }
-            ]
-          },
-          "settings": {
-            "graph.show_goal": true,
-            "graph.y_axis.title_text": "THB",
-            "graph.show_values": true,
-            "graph.show_legend": false,
-            "graph.x_axis.title_enabled": false,
-            "graph.missing": "zero",
-            "graph.goal_label": "Total Cash Pool",
-            "graph.goal_value": 130000,
-            "card.title": "Principal outstanding",
-            "graph.metrics": [
-              "COLUMN_2"
-            ],
-            "graph.label_value_formatting": "auto",
-            "graph.colors": [
-              "#178F8A"
-            ],
-            "graph.show_dots": false,
-            "column_settings": {
-              "[\"name\",\"COLUMN_2\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,"
-              }
-            },
-            "series_settings": {
-              "COLUMN_2": {
-                "color": "#EF8C8C",
-                "line.size": "M",
-                "line.marker_enabled": null
-              }
-            },
-            "graph.y_axis.auto_range": true,
-            "graph.dimensions": [
-              "COLUMN_1"
-            ]
-          }
-        },
-        "card.title": "Principal at work · daily close",
-        "graph.show_goal": true,
-        "graph.goal_value": 120000,
-        "graph.goal_label": "Principal reference 120,000"
-      }
-    },
-    {
-      "id": 7680,
-      "card_id": 222,
-      "dashboard_tab_id": 375,
-      "row": 12,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 222,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Daily gross interest · 7-day average",
-        "graph.show_goal": true,
-        "graph.goal_value": 10000,
-        "graph.goal_label": "Daily interest goal 10,000"
-      }
-    },
-    {
-      "id": 7681,
-      "card_id": 60,
-      "dashboard_tab_id": 375,
-      "row": 19,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "graph.y_axis.title_text": "THB",
-        "graph.show_values": true,
-        "graph.show_legend": false,
-        "graph.x_axis.title_enabled": false,
-        "card.title": "Principal by borrower · top four + others",
-        "graph.label_value_formatting": "full",
-        "graph.colors": [
-          "#178F8A"
-        ],
-        "graph.show_dots": false,
-        "column_settings": {
-          "[\"name\",\"Amount (THB)\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,"
-          }
-        },
-        "series_settings": {
-          "Amount (THB)": {
-            "color": "#EF8C8C"
-          }
-        }
-      }
-    },
-    {
-      "id": 7682,
-      "card_id": 61,
-      "dashboard_tab_id": 375,
-      "row": 19,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "graph.y_axis.title_text": "THB",
-        "graph.show_values": true,
-        "graph.show_legend": false,
-        "graph.x_axis.title_enabled": false,
-        "card.title": "Interest · past 30 days by borrower",
-        "graph.label_value_formatting": "full",
-        "graph.colors": [
-          "#7472BE"
-        ],
-        "graph.show_dots": false,
-        "column_settings": {
-          "[\"name\",\"Amount (THB)\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,"
-          }
-        },
-        "series_settings": {
-          "Amount (THB)": {
-            "color": "#88BF4D"
-          }
-        }
-      }
-    },
-    {
-      "id": 7683,
-      "card_id": null,
-      "dashboard_tab_id": 375,
-      "row": 26,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Card descriptions hold the exact definitions. Profit means gross interest before expenses.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "Card descriptions hold the exact definitions. Profit means gross interest before expenses."
-      }
-    },
-    {
       "id": 7684,
       "card_id": null,
       "dashboard_tab_id": 376,
@@ -1962,1619 +1434,6 @@
           }
         },
         "text": "Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab."
-      }
-    },
-    {
-      "id": 7694,
-      "card_id": null,
-      "dashboard_tab_id": 377,
-      "row": 0,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit = gross interest − expenses.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "**Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit = gross interest − expenses."
-      }
-    },
-    {
-      "id": 7695,
-      "card_id": 168,
-      "dashboard_tab_id": 377,
-      "row": 2,
-      "col": 0,
-      "size_x": 8,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 168,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Operating Income",
-        "card.title": "Income · gross interest",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#88BF4D",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Operating Income\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7696,
-      "card_id": 169,
-      "dashboard_tab_id": 377,
-      "row": 2,
-      "col": 8,
-      "size_x": 8,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 169,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Operating Expenses",
-        "card.title": "− Expenses",
-        "scalar.segments": [
-          {
-            "min": null,
-            "max": 0,
-            "color": "#E3595E",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Operating Expenses\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7697,
-      "card_id": 170,
-      "dashboard_tab_id": 377,
-      "row": 2,
-      "col": 16,
-      "size_x": 8,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 170,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Net Profit",
-        "card.title": "= Net profit",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#88BF4D",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Net Profit\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7698,
-      "card_id": 384,
-      "dashboard_tab_id": 377,
-      "row": 5,
-      "col": 0,
-      "size_x": 16,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 384,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "This period and the previous period"
-      }
-    },
-    {
-      "id": 7699,
-      "card_id": 171,
-      "dashboard_tab_id": 377,
-      "row": 5,
-      "col": 16,
-      "size_x": 8,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 171,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Average Daily Net Profit",
-        "card.title": "Net profit per day · calendar days",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#F7C41F",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Average Daily Net Profit\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7700,
-      "card_id": 385,
-      "dashboard_tab_id": 377,
-      "row": 9,
-      "col": 0,
-      "size_x": 16,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Monthly income, expenses and net profit"
-      }
-    },
-    {
-      "id": 7701,
-      "card_id": 178,
-      "dashboard_tab_id": 377,
-      "row": 9,
-      "col": 16,
-      "size_x": 8,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 178,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "graph.colors": [
-          "#D1495B"
-        ],
-        "graph.show_values": true,
-        "card.title": "Expenses by category · this period",
-        "series_settings": {
-          "Expenses": {
-            "color": "#EF8C8C"
-          }
-        },
-        "column_settings": {
-          "[\"name\",\"Expenses\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7702,
-      "card_id": 213,
-      "dashboard_tab_id": 377,
-      "row": 17,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 213,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "visualization": {
-          "display": "bar",
-          "columnValuesMapping": {
-            "COLUMN_1": [
-              {
-                "sourceId": "card:213",
-                "originalName": "Date",
-                "name": "COLUMN_1"
-              }
-            ],
-            "COLUMN_2": [
-              {
-                "sourceId": "card:213",
-                "originalName": "Income",
-                "name": "COLUMN_2"
-              }
-            ],
-            "COLUMN_3": [
-              {
-                "sourceId": "card:213",
-                "originalName": "Expenses",
-                "name": "COLUMN_3"
-              }
-            ]
-          },
-          "settings": {
-            "graph.show_values": true,
-            "graph.show_legend": true,
-            "graph.missing": "none",
-            "card.title": "Daily income & expenses",
-            "graph.y_axis.auto_split": false,
-            "graph.label_value_frequency": "fit",
-            "graph.metrics": [
-              "COLUMN_2",
-              "COLUMN_3"
-            ],
-            "graph.colors": [
-              "#13855B",
-              "#D1495B"
-            ],
-            "card.hide_empty": false,
-            "column_settings": {
-              "[\"name\",\"COLUMN_2\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,",
-                "compact": false
-              },
-              "[\"name\",\"COLUMN_3\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,",
-                "compact": false
-              }
-            },
-            "series_settings": {
-              "COLUMN_2": {
-                "display": "bar",
-                "color": "#13855B"
-              },
-              "COLUMN_3": {
-                "display": "bar",
-                "color": "#D1495B"
-              }
-            },
-            "graph.dimensions": [
-              "COLUMN_1"
-            ]
-          }
-        },
-        "card.title": "Daily income and expenses · completed days"
-      }
-    },
-    {
-      "id": 7703,
-      "card_id": 212,
-      "dashboard_tab_id": 377,
-      "row": 24,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 212,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Expense detail · this period"
-      }
-    },
-    {
-      "id": 7704,
-      "card_id": null,
-      "dashboard_tab_id": 377,
-      "row": 31,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab."
-      }
-    },
-    {
-      "id": 7705,
-      "card_id": null,
-      "dashboard_tab_id": 378,
-      "row": 0,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "**Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable."
-      }
-    },
-    {
-      "id": 7706,
-      "card_id": 195,
-      "dashboard_tab_id": 378,
-      "row": 2,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 195,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 195,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Display Balance",
-        "card.title": "Opening cash",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#69C8C8",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Opening Balance\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7707,
-      "card_id": 192,
-      "dashboard_tab_id": 378,
-      "row": 2,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 192,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 192,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Money In",
-        "card.title": "+ Money in",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#689636",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Money In\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7708,
-      "card_id": 193,
-      "dashboard_tab_id": 378,
-      "row": 2,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 193,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 193,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Money Out",
-        "card.title": "− Money out",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#E75454",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Money Out\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7709,
-      "card_id": 197,
-      "dashboard_tab_id": 378,
-      "row": 2,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 197,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 197,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Display Balance",
-        "card.title": "= Closing cash",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#227FD2",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Closing Balance\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7710,
-      "card_id": 194,
-      "dashboard_tab_id": 378,
-      "row": 5,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 194,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 194,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Net Movement",
-        "card.title": "Net cash movement",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#88BF4D",
-            "label": ""
-          },
-          {
-            "min": null,
-            "max": 0,
-            "color": "#EF8C8C",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Net Movement\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7711,
-      "card_id": 386,
-      "dashboard_tab_id": 378,
-      "row": 5,
-      "col": 6,
-      "size_x": 18,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 386,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 386,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Cash movement by transaction type"
-      }
-    },
-    {
-      "id": 7712,
-      "card_id": 203,
-      "dashboard_tab_id": 378,
-      "row": 12,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 203,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 203,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Cash movement by transaction type · table"
-      }
-    },
-    {
-      "id": 7713,
-      "card_id": 215,
-      "dashboard_tab_id": 378,
-      "row": 18,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 215,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 215,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "visualization": {
-          "display": "bar",
-          "columnValuesMapping": {
-            "COLUMN_1": [
-              {
-                "sourceId": "card:215",
-                "originalName": "Date",
-                "name": "COLUMN_1"
-              }
-            ],
-            "COLUMN_2": [
-              {
-                "sourceId": "card:215",
-                "originalName": "Money In",
-                "name": "COLUMN_2"
-              }
-            ],
-            "COLUMN_3": [
-              {
-                "sourceId": "card:215",
-                "originalName": "Money Out",
-                "name": "COLUMN_3"
-              }
-            ]
-          },
-          "settings": {
-            "graph.show_values": true,
-            "graph.show_legend": true,
-            "graph.missing": "none",
-            "card.title": "Daily money in & money out",
-            "graph.y_axis.auto_split": false,
-            "graph.label_value_frequency": "all",
-            "graph.metrics": [
-              "COLUMN_2",
-              "COLUMN_3"
-            ],
-            "graph.colors": [
-              "#13855B",
-              "#D1495B"
-            ],
-            "column_settings": {
-              "[\"name\",\"COLUMN_2\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,",
-                "compact": false
-              },
-              "[\"name\",\"COLUMN_3\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,",
-                "compact": false
-              }
-            },
-            "series_settings": {},
-            "graph.dimensions": [
-              "COLUMN_1"
-            ],
-            "graph.split_panels": false
-          }
-        },
-        "card.title": "Daily cash movement · completed days"
-      }
-    },
-    {
-      "id": 7714,
-      "card_id": 196,
-      "dashboard_tab_id": 378,
-      "row": 25,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 10,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 196,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 196,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Transactions · chronological"
-      }
-    },
-    {
-      "id": 7715,
-      "card_id": null,
-      "dashboard_tab_id": 378,
-      "row": 35,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab."
-      }
-    },
-    {
-      "id": 7716,
-      "card_id": null,
-      "dashboard_tab_id": 379,
-      "row": 0,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use Period.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "**Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use Period."
-      }
-    },
-    {
-      "id": 7717,
-      "card_id": 217,
-      "dashboard_tab_id": 379,
-      "row": 2,
-      "col": 0,
-      "size_x": 5,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 217,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Gross interest",
-        "card.title": "Gross interest",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#88BF4D",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Gross interest\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7718,
-      "card_id": 218,
-      "dashboard_tab_id": 379,
-      "row": 2,
-      "col": 5,
-      "size_x": 5,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 218,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Principal issued",
-        "card.title": "Principal issued",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#8A5EB0",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Principal issued\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7719,
-      "card_id": 219,
-      "dashboard_tab_id": 379,
-      "row": 2,
-      "col": 10,
-      "size_x": 4,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 219,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Loans issued",
-        "card.title": "Loans issued",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#509EE3",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Loans issued\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7720,
-      "card_id": 234,
-      "dashboard_tab_id": 379,
-      "row": 2,
-      "col": 14,
-      "size_x": 5,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 234,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Net principal deployed",
-        "card.title": "Net principal deployed",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": null,
-            "color": "#8A5EB0",
-            "label": ""
-          },
-          {
-            "min": null,
-            "max": 0,
-            "color": "#E75454",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Net principal deployed\"]": {
-            "number_style": "decimal",
-            "decimals": 0,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7721,
-      "card_id": 235,
-      "dashboard_tab_id": 379,
-      "row": 2,
-      "col": 19,
-      "size_x": 5,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 235,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "scalar.field": "Loan-cohort return",
-        "card.title": "Loan-cohort return",
-        "scalar.segments": [
-          {
-            "min": 0,
-            "max": 1,
-            "color": "#509EE3",
-            "label": ""
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Loan-cohort return\"]": {
-            "number_style": "percent",
-            "decimals": 2,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
-      }
-    },
-    {
-      "id": 7722,
-      "card_id": 387,
-      "dashboard_tab_id": 379,
-      "row": 5,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 387,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "This period and the previous period"
-      }
-    },
-    {
-      "id": 7723,
-      "card_id": 223,
-      "dashboard_tab_id": 379,
-      "row": 9,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 223,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Principal issued and returned · daily"
-      }
-    },
-    {
-      "id": 7724,
-      "card_id": 222,
-      "dashboard_tab_id": 379,
-      "row": 9,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 222,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Daily gross interest · 7-day average",
-        "graph.show_goal": true,
-        "graph.goal_value": 10000,
-        "graph.goal_label": "Daily interest goal 10,000"
-      }
-    },
-    {
-      "id": 7725,
-      "card_id": null,
-      "dashboard_tab_id": 379,
-      "row": 16,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Lending volume"
-          }
-        },
-        "text": "Lending volume"
-      }
-    },
-    {
-      "id": 7726,
-      "card_id": 220,
-      "dashboard_tab_id": 379,
-      "row": 17,
-      "col": 0,
-      "size_x": 8,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 220,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Gross interest by loan type"
-      }
-    },
-    {
-      "id": 7727,
-      "card_id": 224,
-      "dashboard_tab_id": 379,
-      "row": 17,
-      "col": 8,
-      "size_x": 8,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 224,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Loans issued per day"
-      }
-    },
-    {
-      "id": 7728,
-      "card_id": 225,
-      "dashboard_tab_id": 379,
-      "row": 17,
-      "col": 16,
-      "size_x": 8,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 225,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Average loan size · per week"
-      }
-    },
-    {
-      "id": 7729,
-      "card_id": null,
-      "dashboard_tab_id": 379,
-      "row": 23,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Returns"
-          }
-        },
-        "text": "Returns"
-      }
-    },
-    {
-      "id": 7730,
-      "card_id": 232,
-      "dashboard_tab_id": 379,
-      "row": 24,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 232,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Daily capital yield"
-      }
-    },
-    {
-      "id": 7731,
-      "card_id": 233,
-      "dashboard_tab_id": 379,
-      "row": 24,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 233,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Weekly loan-cohort return"
-      }
-    },
-    {
-      "id": 7732,
-      "card_id": 230,
-      "dashboard_tab_id": 379,
-      "row": 30,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 230,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Cumulative gross interest · 7-day average"
-      }
-    },
-    {
-      "id": 7733,
-      "card_id": 226,
-      "dashboard_tab_id": 379,
-      "row": 30,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 226,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "visualization": {
-          "display": "line",
-          "columnValuesMapping": {
-            "COLUMN_1": [
-              {
-                "sourceId": "card:226",
-                "originalName": "Date",
-                "name": "COLUMN_1"
-              }
-            ],
-            "COLUMN_2": [
-              {
-                "sourceId": "card:226",
-                "originalName": "Active loans EOD",
-                "name": "COLUMN_2"
-              }
-            ],
-            "COLUMN_3": [
-              {
-                "sourceId": "card:226",
-                "originalName": "Active borrowers EOD",
-                "name": "COLUMN_3"
-              }
-            ]
-          },
-          "settings": {
-            "graph.show_values": true,
-            "graph.show_legend": true,
-            "graph.missing": "none",
-            "graph.y_axis.auto_split": false,
-            "graph.metrics": [
-              "COLUMN_2",
-              "COLUMN_3"
-            ],
-            "graph.colors": [
-              "#509EE3",
-              "#F2A86F"
-            ],
-            "column_settings": {
-              "[\"name\",\"COLUMN_2\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,",
-                "compact": false
-              },
-              "[\"name\",\"COLUMN_3\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,",
-                "compact": false
-              }
-            },
-            "graph.dimensions": [
-              "COLUMN_1"
-            ],
-            "stackable.stack_type": null
-          }
-        },
-        "card.title": "Active loans and borrowers · end of day"
-      }
-    },
-    {
-      "id": 7734,
-      "card_id": 227,
-      "dashboard_tab_id": 379,
-      "row": 36,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 227,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Daily performance · snapshots"
-      }
-    },
-    {
-      "id": 7735,
-      "card_id": null,
-      "dashboard_tab_id": 379,
-      "row": 44,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab."
       }
     },
     {
@@ -5566,428 +3425,6 @@
           }
         },
         "text": "All amounts are baht. Allocations are not unique receipts; corrections remain signed. Context and dates: Data health tab."
-      }
-    },
-    {
-      "id": 7813,
-      "card_id": null,
-      "dashboard_tab_id": 383,
-      "row": 0,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Collection · Bangkok today** · live · refresh every minute · payments appear after sync. Filters apply to the detail table only.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "**Collection · Bangkok today** · live · refresh every minute · payments appear after sync. Filters apply to the detail table only."
-      }
-    },
-    {
-      "id": 7814,
-      "card_id": 250,
-      "dashboard_tab_id": 383,
-      "row": 0,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "As of · query time"
-      }
-    },
-    {
-      "id": 7815,
-      "card_id": 237,
-      "dashboard_tab_id": 383,
-      "row": 2,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Collected today"
-      }
-    },
-    {
-      "id": 7816,
-      "card_id": 238,
-      "dashboard_tab_id": 383,
-      "row": 2,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Left to collect"
-      }
-    },
-    {
-      "id": 7817,
-      "card_id": 239,
-      "dashboard_tab_id": 383,
-      "row": 2,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "People fully paid"
-      }
-    },
-    {
-      "id": 7818,
-      "card_id": 252,
-      "dashboard_tab_id": 383,
-      "row": 2,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Today's charges · paid %"
-      }
-    },
-    {
-      "id": 7819,
-      "card_id": 381,
-      "dashboard_tab_id": 383,
-      "row": 5,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Collected today · share of amount due"
-      }
-    },
-    {
-      "id": 7820,
-      "card_id": 242,
-      "dashboard_tab_id": 383,
-      "row": 7,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🔴 Not paid · people"
-      }
-    },
-    {
-      "id": 7821,
-      "card_id": 244,
-      "dashboard_tab_id": 383,
-      "row": 7,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟠 Partially paid · people"
-      }
-    },
-    {
-      "id": 7822,
-      "card_id": 240,
-      "dashboard_tab_id": 383,
-      "row": 7,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟣 Overdue · people"
-      }
-    },
-    {
-      "id": 7823,
-      "card_id": 246,
-      "dashboard_tab_id": 383,
-      "row": 7,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟢 Fully paid · people"
-      }
-    },
-    {
-      "id": 7824,
-      "card_id": 243,
-      "dashboard_tab_id": 383,
-      "row": 9,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🔴 Not paid",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 7825,
-      "card_id": 245,
-      "dashboard_tab_id": 383,
-      "row": 9,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟠 Partially paid",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 7826,
-      "card_id": 241,
-      "dashboard_tab_id": 383,
-      "row": 9,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟣 Overdue",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 7827,
-      "card_id": 247,
-      "dashboard_tab_id": 383,
-      "row": 9,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟢 Fully paid",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 7828,
-      "card_id": 251,
-      "dashboard_tab_id": 383,
-      "row": 18,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Unclassified · expect 0"
-      }
-    },
-    {
-      "id": 7829,
-      "card_id": 64,
-      "dashboard_tab_id": 383,
-      "row": 18,
-      "col": 6,
-      "size_x": 18,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "visualization": {
-          "display": "area",
-          "columnValuesMapping": {
-            "COLUMN_1": [
-              {
-                "sourceId": "card:64",
-                "originalName": "Date",
-                "name": "COLUMN_1"
-              }
-            ],
-            "COLUMN_2": [
-              {
-                "sourceId": "card:64",
-                "originalName": "Amount (THB)",
-                "name": "COLUMN_2"
-              }
-            ]
-          },
-          "settings": {
-            "graph.show_trendline": false,
-            "graph.y_axis.title_text": "THB",
-            "graph.show_values": true,
-            "graph.show_legend": false,
-            "graph.x_axis.title_enabled": false,
-            "graph.missing": "zero",
-            "card.title": "Overdue · through yesterday",
-            "graph.metrics": [
-              "COLUMN_2"
-            ],
-            "graph.label_value_formatting": "auto",
-            "graph.colors": [
-              "#D6816B"
-            ],
-            "graph.show_dots": false,
-            "column_settings": {
-              "[\"name\",\"COLUMN_2\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,"
-              }
-            },
-            "series_settings": {
-              "COLUMN_2": {
-                "color": "#C8B4DA"
-              }
-            },
-            "graph.y_axis.auto_range": true,
-            "graph.dimensions": [
-              "COLUMN_1"
-            ]
-          }
-        },
-        "card.title": "Overdue charges · completed days"
-      }
-    },
-    {
-      "id": 7830,
-      "card_id": 248,
-      "dashboard_tab_id": 383,
-      "row": 24,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 10,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "collection-borrower",
-          "card_id": 248,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Borrower ID",
-              {
-                "base-type": "type/Text"
-              }
-            ]
-          ]
-        },
-        {
-          "parameter_id": "collection-status",
-          "card_id": 248,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Daily Collection Status",
-              {
-                "base-type": "type/Text"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Collection detail · filters above apply here",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 7831,
-      "card_id": 249,
-      "dashboard_tab_id": 383,
-      "row": 34,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 5,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Charges dated today · separate from board balances"
-      }
-    },
-    {
-      "id": 7832,
-      "card_id": null,
-      "dashboard_tab_id": 383,
-      "row": 39,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people move lanes after refresh.",
-            "text.align_vertical": "middle"
-          }
-        },
-        "text": "Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people move lanes after refresh."
       }
     },
     {
@@ -9312,6 +6749,2570 @@
             }
           }
         }
+      }
+    },
+    {
+      "id": 7903,
+      "card_id": null,
+      "dashboard_tab_id": 375,
+      "row": 0,
+      "col": 0,
+      "size_x": 18,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before expenses.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "**Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before expenses."
+      }
+    },
+    {
+      "id": 7904,
+      "card_id": 257,
+      "dashboard_tab_id": 375,
+      "row": 0,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "As of · Bangkok"
+      }
+    },
+    {
+      "id": 7905,
+      "card_id": 49,
+      "dashboard_tab_id": 375,
+      "row": 2,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "scalar.field": "Available Cash",
+        "card.title": "Cash available",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#88BF4D",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Available Cash\"]": {
+            "number_style": "decimal",
+            "number_separators": ".,",
+            "decimals": 0
+          }
+        }
+      }
+    },
+    {
+      "id": 7906,
+      "card_id": 379,
+      "dashboard_tab_id": 375,
+      "row": 2,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 379,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Principal at work"
+      }
+    },
+    {
+      "id": 7907,
+      "card_id": 51,
+      "dashboard_tab_id": 375,
+      "row": 2,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "scalar.field": "Realized Profit MTD",
+        "card.title": "Interest this month · realized",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#689636",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Realized Profit MTD\"]": {
+            "number_style": "decimal",
+            "number_separators": ".,",
+            "decimals": 0
+          }
+        }
+      }
+    },
+    {
+      "id": 7908,
+      "card_id": 237,
+      "dashboard_tab_id": 375,
+      "row": 2,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Collected today"
+      }
+    },
+    {
+      "id": 7909,
+      "card_id": 68,
+      "dashboard_tab_id": 375,
+      "row": 5,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Capital deployed · live"
+      }
+    },
+    {
+      "id": 7910,
+      "card_id": 380,
+      "dashboard_tab_id": 375,
+      "row": 5,
+      "col": 8,
+      "size_x": 8,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Interest this month · share of projection"
+      }
+    },
+    {
+      "id": 7911,
+      "card_id": 381,
+      "dashboard_tab_id": 375,
+      "row": 5,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Collected today · share of amount due"
+      }
+    },
+    {
+      "id": 7912,
+      "card_id": null,
+      "dashboard_tab_id": 375,
+      "row": 9,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Needs attention · chips open Collection and Borrower Health"
+          }
+        },
+        "text": "Needs attention · chips open Collection and Borrower Health"
+      }
+    },
+    {
+      "id": 7913,
+      "card_id": 240,
+      "dashboard_tab_id": 375,
+      "row": 10,
+      "col": 0,
+      "size_x": 4,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟣 Overdue · people",
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=383"
+        }
+      }
+    },
+    {
+      "id": 7914,
+      "card_id": 254,
+      "dashboard_tab_id": 375,
+      "row": 10,
+      "col": 4,
+      "size_x": 4,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Overdue ฿",
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=381"
+        }
+      }
+    },
+    {
+      "id": 7915,
+      "card_id": 242,
+      "dashboard_tab_id": 375,
+      "row": 10,
+      "col": 8,
+      "size_x": 4,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🔴 Not paid today",
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=383"
+        }
+      }
+    },
+    {
+      "id": 7916,
+      "card_id": 244,
+      "dashboard_tab_id": 375,
+      "row": 10,
+      "col": 12,
+      "size_x": 4,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟠 Partially paid",
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=383"
+        }
+      }
+    },
+    {
+      "id": 7917,
+      "card_id": 270,
+      "dashboard_tab_id": 375,
+      "row": 10,
+      "col": 16,
+      "size_x": 4,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Modified plans",
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=381"
+        }
+      }
+    },
+    {
+      "id": 7918,
+      "card_id": 251,
+      "dashboard_tab_id": 375,
+      "row": 10,
+      "col": 20,
+      "size_x": 4,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Unclassified · expect 0",
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=383"
+        }
+      }
+    },
+    {
+      "id": 7919,
+      "card_id": 62,
+      "dashboard_tab_id": 375,
+      "row": 12,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 62,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "visualization": {
+          "display": "area",
+          "columnValuesMapping": {
+            "COLUMN_1": [
+              {
+                "sourceId": "card:62",
+                "originalName": "Date",
+                "name": "COLUMN_1"
+              }
+            ],
+            "COLUMN_2": [
+              {
+                "sourceId": "card:62",
+                "originalName": "Amount (THB)",
+                "name": "COLUMN_2"
+              }
+            ]
+          },
+          "settings": {
+            "graph.show_goal": true,
+            "graph.y_axis.title_text": "THB",
+            "graph.show_values": true,
+            "graph.show_legend": false,
+            "graph.x_axis.title_enabled": false,
+            "graph.missing": "zero",
+            "graph.goal_label": "Principal reference 120,000",
+            "graph.goal_value": 120000,
+            "card.title": "Principal at work · daily close",
+            "graph.metrics": [
+              "COLUMN_2"
+            ],
+            "graph.label_value_formatting": "auto",
+            "graph.colors": [
+              "#178F8A"
+            ],
+            "graph.show_dots": false,
+            "column_settings": {
+              "[\"name\",\"COLUMN_2\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,"
+              }
+            },
+            "series_settings": {
+              "COLUMN_2": {
+                "color": "#EF8C8C",
+                "line.size": "M",
+                "line.marker_enabled": null
+              }
+            },
+            "graph.y_axis.auto_range": true,
+            "graph.dimensions": [
+              "COLUMN_1"
+            ]
+          }
+        },
+        "card.title": "Principal at work · daily close",
+        "graph.show_goal": true,
+        "graph.goal_value": 120000,
+        "graph.goal_label": "Principal reference 120,000"
+      }
+    },
+    {
+      "id": 7920,
+      "card_id": 222,
+      "dashboard_tab_id": 375,
+      "row": 12,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 222,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily gross interest · 7-day average",
+        "graph.show_goal": true,
+        "graph.goal_value": 10000,
+        "graph.goal_label": "Daily interest goal 10,000"
+      }
+    },
+    {
+      "id": 7921,
+      "card_id": 60,
+      "dashboard_tab_id": 375,
+      "row": 19,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "graph.y_axis.title_text": "THB",
+        "graph.show_values": true,
+        "graph.show_legend": false,
+        "graph.x_axis.title_enabled": false,
+        "card.title": "Principal by borrower · top four + others",
+        "graph.label_value_formatting": "full",
+        "graph.colors": [
+          "#178F8A"
+        ],
+        "graph.show_dots": false,
+        "column_settings": {
+          "[\"name\",\"Amount (THB)\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          }
+        },
+        "series_settings": {
+          "Amount (THB)": {
+            "color": "#EF8C8C"
+          }
+        }
+      }
+    },
+    {
+      "id": 7922,
+      "card_id": 61,
+      "dashboard_tab_id": 375,
+      "row": 19,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "graph.y_axis.title_text": "THB",
+        "graph.show_values": true,
+        "graph.show_legend": false,
+        "graph.x_axis.title_enabled": false,
+        "card.title": "Interest · past 30 days by borrower",
+        "graph.label_value_formatting": "full",
+        "graph.colors": [
+          "#7472BE"
+        ],
+        "graph.show_dots": false,
+        "column_settings": {
+          "[\"name\",\"Amount (THB)\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          }
+        },
+        "series_settings": {
+          "Amount (THB)": {
+            "color": "#88BF4D"
+          }
+        }
+      }
+    },
+    {
+      "id": 7923,
+      "card_id": null,
+      "dashboard_tab_id": 375,
+      "row": 26,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Card descriptions hold the exact definitions. Profit means gross interest before expenses.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "Card descriptions hold the exact definitions. Profit means gross interest before expenses."
+      }
+    },
+    {
+      "id": 7924,
+      "card_id": null,
+      "dashboard_tab_id": 377,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit = gross interest − expenses.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "**Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit = gross interest − expenses."
+      }
+    },
+    {
+      "id": 7925,
+      "card_id": 168,
+      "dashboard_tab_id": 377,
+      "row": 2,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 168,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Operating Income",
+        "card.title": "Income · gross interest",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#88BF4D",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Operating Income\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7926,
+      "card_id": 169,
+      "dashboard_tab_id": 377,
+      "row": 2,
+      "col": 8,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 169,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Operating Expenses",
+        "card.title": "− Expenses",
+        "scalar.segments": [
+          {
+            "min": null,
+            "max": 0,
+            "color": "#E3595E",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Operating Expenses\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7927,
+      "card_id": 170,
+      "dashboard_tab_id": 377,
+      "row": 2,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 170,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Net Profit",
+        "card.title": "= Net profit",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#88BF4D",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Net Profit\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7928,
+      "card_id": 384,
+      "dashboard_tab_id": 377,
+      "row": 5,
+      "col": 0,
+      "size_x": 16,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 384,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "This period and the previous period"
+      }
+    },
+    {
+      "id": 7929,
+      "card_id": 171,
+      "dashboard_tab_id": 377,
+      "row": 5,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 171,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Average Daily Net Profit",
+        "card.title": "Net profit per day · calendar days",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#F7C41F",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Average Daily Net Profit\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7930,
+      "card_id": 385,
+      "dashboard_tab_id": 377,
+      "row": 9,
+      "col": 0,
+      "size_x": 16,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Monthly income, expenses and net profit"
+      }
+    },
+    {
+      "id": 7931,
+      "card_id": 178,
+      "dashboard_tab_id": 377,
+      "row": 9,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 178,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "graph.colors": [
+          "#D1495B"
+        ],
+        "graph.show_values": true,
+        "card.title": "Expenses by category · this period",
+        "series_settings": {
+          "Expenses": {
+            "color": "#EF8C8C"
+          }
+        },
+        "column_settings": {
+          "[\"name\",\"Expenses\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7932,
+      "card_id": 213,
+      "dashboard_tab_id": 377,
+      "row": 17,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 213,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "visualization": {
+          "display": "bar",
+          "columnValuesMapping": {
+            "COLUMN_1": [
+              {
+                "sourceId": "card:213",
+                "originalName": "Date",
+                "name": "COLUMN_1"
+              }
+            ],
+            "COLUMN_2": [
+              {
+                "sourceId": "card:213",
+                "originalName": "Income",
+                "name": "COLUMN_2"
+              }
+            ],
+            "COLUMN_3": [
+              {
+                "sourceId": "card:213",
+                "originalName": "Expenses",
+                "name": "COLUMN_3"
+              }
+            ]
+          },
+          "settings": {
+            "graph.show_values": true,
+            "graph.show_legend": true,
+            "graph.missing": "none",
+            "card.title": "Daily income and expenses · completed days",
+            "graph.y_axis.auto_split": false,
+            "graph.label_value_frequency": "fit",
+            "graph.metrics": [
+              "COLUMN_2",
+              "COLUMN_3"
+            ],
+            "graph.colors": [
+              "#13855B",
+              "#D1495B"
+            ],
+            "card.hide_empty": false,
+            "column_settings": {
+              "[\"name\",\"COLUMN_2\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,",
+                "compact": false
+              },
+              "[\"name\",\"COLUMN_3\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,",
+                "compact": false
+              }
+            },
+            "series_settings": {
+              "COLUMN_2": {
+                "display": "bar",
+                "color": "#13855B"
+              },
+              "COLUMN_3": {
+                "display": "bar",
+                "color": "#D1495B"
+              }
+            },
+            "graph.dimensions": [
+              "COLUMN_1"
+            ]
+          }
+        },
+        "card.title": "Daily income and expenses · completed days"
+      }
+    },
+    {
+      "id": 7933,
+      "card_id": 212,
+      "dashboard_tab_id": 377,
+      "row": 24,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 212,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Expense detail · this period"
+      }
+    },
+    {
+      "id": 7934,
+      "card_id": null,
+      "dashboard_tab_id": 377,
+      "row": 31,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab."
+      }
+    },
+    {
+      "id": 7935,
+      "card_id": null,
+      "dashboard_tab_id": 378,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "**Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable."
+      }
+    },
+    {
+      "id": 7936,
+      "card_id": 195,
+      "dashboard_tab_id": 378,
+      "row": 2,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 195,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 195,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Display Balance",
+        "card.title": "Opening cash",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#69C8C8",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Opening Balance\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7937,
+      "card_id": 192,
+      "dashboard_tab_id": 378,
+      "row": 2,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 192,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 192,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Money In",
+        "card.title": "+ Money in",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#689636",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Money In\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7938,
+      "card_id": 193,
+      "dashboard_tab_id": 378,
+      "row": 2,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 193,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 193,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Money Out",
+        "card.title": "− Money out",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#E75454",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Money Out\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7939,
+      "card_id": 197,
+      "dashboard_tab_id": 378,
+      "row": 2,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 197,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 197,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Display Balance",
+        "card.title": "= Closing cash",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#227FD2",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Closing Balance\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7940,
+      "card_id": 194,
+      "dashboard_tab_id": 378,
+      "row": 5,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 194,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 194,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Net Movement",
+        "card.title": "Net cash movement",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#88BF4D",
+            "label": ""
+          },
+          {
+            "min": null,
+            "max": 0,
+            "color": "#EF8C8C",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Net Movement\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7941,
+      "card_id": 386,
+      "dashboard_tab_id": 378,
+      "row": 5,
+      "col": 6,
+      "size_x": 18,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 386,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 386,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cash movement by transaction type"
+      }
+    },
+    {
+      "id": 7942,
+      "card_id": 203,
+      "dashboard_tab_id": 378,
+      "row": 12,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 203,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 203,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cash movement by transaction type · table"
+      }
+    },
+    {
+      "id": 7943,
+      "card_id": 215,
+      "dashboard_tab_id": 378,
+      "row": 18,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 215,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 215,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "visualization": {
+          "display": "bar",
+          "columnValuesMapping": {
+            "COLUMN_1": [
+              {
+                "sourceId": "card:215",
+                "originalName": "Date",
+                "name": "COLUMN_1"
+              }
+            ],
+            "COLUMN_2": [
+              {
+                "sourceId": "card:215",
+                "originalName": "Money In",
+                "name": "COLUMN_2"
+              }
+            ],
+            "COLUMN_3": [
+              {
+                "sourceId": "card:215",
+                "originalName": "Money Out",
+                "name": "COLUMN_3"
+              }
+            ]
+          },
+          "settings": {
+            "graph.show_values": true,
+            "graph.show_legend": true,
+            "graph.missing": "none",
+            "card.title": "Daily cash movement · completed days",
+            "graph.y_axis.auto_split": false,
+            "graph.label_value_frequency": "all",
+            "graph.metrics": [
+              "COLUMN_2",
+              "COLUMN_3"
+            ],
+            "graph.colors": [
+              "#13855B",
+              "#D1495B"
+            ],
+            "column_settings": {
+              "[\"name\",\"COLUMN_2\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,",
+                "compact": false
+              },
+              "[\"name\",\"COLUMN_3\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,",
+                "compact": false
+              }
+            },
+            "series_settings": {},
+            "graph.dimensions": [
+              "COLUMN_1"
+            ],
+            "graph.split_panels": false
+          }
+        },
+        "card.title": "Daily cash movement · completed days"
+      }
+    },
+    {
+      "id": 7944,
+      "card_id": 196,
+      "dashboard_tab_id": 378,
+      "row": 25,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 196,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 196,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Transactions · chronological"
+      }
+    },
+    {
+      "id": 7945,
+      "card_id": null,
+      "dashboard_tab_id": 378,
+      "row": 35,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab."
+      }
+    },
+    {
+      "id": 7946,
+      "card_id": null,
+      "dashboard_tab_id": 379,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use Period.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "**Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use Period."
+      }
+    },
+    {
+      "id": 7947,
+      "card_id": 217,
+      "dashboard_tab_id": 379,
+      "row": 2,
+      "col": 0,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 217,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Gross interest",
+        "card.title": "Gross interest",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#88BF4D",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Gross interest\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7948,
+      "card_id": 218,
+      "dashboard_tab_id": 379,
+      "row": 2,
+      "col": 5,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 218,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Principal issued",
+        "card.title": "Principal issued",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#8A5EB0",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Principal issued\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7949,
+      "card_id": 219,
+      "dashboard_tab_id": 379,
+      "row": 2,
+      "col": 10,
+      "size_x": 4,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 219,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Loans issued",
+        "card.title": "Loans issued",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#509EE3",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Loans issued\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7950,
+      "card_id": 234,
+      "dashboard_tab_id": 379,
+      "row": 2,
+      "col": 14,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 234,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Net principal deployed",
+        "card.title": "Net principal deployed",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": null,
+            "color": "#8A5EB0",
+            "label": ""
+          },
+          {
+            "min": null,
+            "max": 0,
+            "color": "#E75454",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Net principal deployed\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7951,
+      "card_id": 235,
+      "dashboard_tab_id": 379,
+      "row": 2,
+      "col": 19,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 235,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "scalar.field": "Loan-cohort return",
+        "card.title": "Loan-cohort return",
+        "scalar.segments": [
+          {
+            "min": 0,
+            "max": 1,
+            "color": "#509EE3",
+            "label": ""
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Loan-cohort return\"]": {
+            "number_style": "percent",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 7952,
+      "card_id": 387,
+      "dashboard_tab_id": 379,
+      "row": 5,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 387,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "This period and the previous period"
+      }
+    },
+    {
+      "id": 7953,
+      "card_id": 223,
+      "dashboard_tab_id": 379,
+      "row": 9,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 223,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Principal issued and returned · daily"
+      }
+    },
+    {
+      "id": 7954,
+      "card_id": 222,
+      "dashboard_tab_id": 379,
+      "row": 9,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 222,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily gross interest · 7-day average",
+        "graph.show_goal": true,
+        "graph.goal_value": 10000,
+        "graph.goal_label": "Daily interest goal 10,000"
+      }
+    },
+    {
+      "id": 7955,
+      "card_id": null,
+      "dashboard_tab_id": 379,
+      "row": 16,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Lending volume"
+          }
+        },
+        "text": "Lending volume"
+      }
+    },
+    {
+      "id": 7956,
+      "card_id": 220,
+      "dashboard_tab_id": 379,
+      "row": 17,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 220,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Gross interest by loan type"
+      }
+    },
+    {
+      "id": 7957,
+      "card_id": 224,
+      "dashboard_tab_id": 379,
+      "row": 17,
+      "col": 8,
+      "size_x": 8,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 224,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Loans issued per day"
+      }
+    },
+    {
+      "id": 7958,
+      "card_id": 225,
+      "dashboard_tab_id": 379,
+      "row": 17,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 225,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Average loan size · per week"
+      }
+    },
+    {
+      "id": 7959,
+      "card_id": null,
+      "dashboard_tab_id": 379,
+      "row": 23,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Returns"
+          }
+        },
+        "text": "Returns"
+      }
+    },
+    {
+      "id": 7960,
+      "card_id": 232,
+      "dashboard_tab_id": 379,
+      "row": 24,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 232,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily capital yield"
+      }
+    },
+    {
+      "id": 7961,
+      "card_id": 233,
+      "dashboard_tab_id": 379,
+      "row": 24,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 233,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Weekly loan-cohort return"
+      }
+    },
+    {
+      "id": 7962,
+      "card_id": 230,
+      "dashboard_tab_id": 379,
+      "row": 30,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 230,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cumulative gross interest · 7-day average"
+      }
+    },
+    {
+      "id": 7963,
+      "card_id": 226,
+      "dashboard_tab_id": 379,
+      "row": 30,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 226,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "visualization": {
+          "display": "line",
+          "columnValuesMapping": {
+            "COLUMN_1": [
+              {
+                "sourceId": "card:226",
+                "originalName": "Date",
+                "name": "COLUMN_1"
+              }
+            ],
+            "COLUMN_2": [
+              {
+                "sourceId": "card:226",
+                "originalName": "Active loans EOD",
+                "name": "COLUMN_2"
+              }
+            ],
+            "COLUMN_3": [
+              {
+                "sourceId": "card:226",
+                "originalName": "Active borrowers EOD",
+                "name": "COLUMN_3"
+              }
+            ]
+          },
+          "settings": {
+            "graph.show_values": true,
+            "graph.show_legend": true,
+            "graph.missing": "none",
+            "card.title": "Active loans and borrowers · end of day",
+            "graph.y_axis.auto_split": false,
+            "graph.metrics": [
+              "COLUMN_2",
+              "COLUMN_3"
+            ],
+            "graph.colors": [
+              "#509EE3",
+              "#F2A86F"
+            ],
+            "column_settings": {
+              "[\"name\",\"COLUMN_2\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,",
+                "compact": false
+              },
+              "[\"name\",\"COLUMN_3\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,",
+                "compact": false
+              }
+            },
+            "graph.dimensions": [
+              "COLUMN_1"
+            ],
+            "stackable.stack_type": null
+          }
+        },
+        "card.title": "Active loans and borrowers · end of day"
+      }
+    },
+    {
+      "id": 7964,
+      "card_id": 227,
+      "dashboard_tab_id": 379,
+      "row": 36,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 227,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily performance · snapshots"
+      }
+    },
+    {
+      "id": 7965,
+      "card_id": null,
+      "dashboard_tab_id": 379,
+      "row": 44,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab."
+      }
+    },
+    {
+      "id": 7966,
+      "card_id": null,
+      "dashboard_tab_id": 383,
+      "row": 0,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Collection · Bangkok today** · live · refresh every minute · payments appear after sync. Filters apply to the detail table only.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "**Collection · Bangkok today** · live · refresh every minute · payments appear after sync. Filters apply to the detail table only."
+      }
+    },
+    {
+      "id": 7967,
+      "card_id": 250,
+      "dashboard_tab_id": 383,
+      "row": 0,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "As of · query time"
+      }
+    },
+    {
+      "id": 7968,
+      "card_id": 237,
+      "dashboard_tab_id": 383,
+      "row": 2,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Collected today"
+      }
+    },
+    {
+      "id": 7969,
+      "card_id": 238,
+      "dashboard_tab_id": 383,
+      "row": 2,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Left to collect"
+      }
+    },
+    {
+      "id": 7970,
+      "card_id": 239,
+      "dashboard_tab_id": 383,
+      "row": 2,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "People fully paid"
+      }
+    },
+    {
+      "id": 7971,
+      "card_id": 252,
+      "dashboard_tab_id": 383,
+      "row": 2,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Today's charges · paid %"
+      }
+    },
+    {
+      "id": 7972,
+      "card_id": 381,
+      "dashboard_tab_id": 383,
+      "row": 5,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Collected today · share of amount due"
+      }
+    },
+    {
+      "id": 7973,
+      "card_id": 242,
+      "dashboard_tab_id": 383,
+      "row": 7,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🔴 Not paid · people"
+      }
+    },
+    {
+      "id": 7974,
+      "card_id": 244,
+      "dashboard_tab_id": 383,
+      "row": 7,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟠 Partially paid · people"
+      }
+    },
+    {
+      "id": 7975,
+      "card_id": 240,
+      "dashboard_tab_id": 383,
+      "row": 7,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟣 Overdue · people"
+      }
+    },
+    {
+      "id": 7976,
+      "card_id": 246,
+      "dashboard_tab_id": 383,
+      "row": 7,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟢 Fully paid · people"
+      }
+    },
+    {
+      "id": 7977,
+      "card_id": 243,
+      "dashboard_tab_id": 383,
+      "row": 9,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🔴 Not paid",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 7978,
+      "card_id": 245,
+      "dashboard_tab_id": 383,
+      "row": 9,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟠 Partially paid",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 7979,
+      "card_id": 241,
+      "dashboard_tab_id": 383,
+      "row": 9,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟣 Overdue",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 7980,
+      "card_id": 247,
+      "dashboard_tab_id": 383,
+      "row": 9,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟢 Fully paid",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 7981,
+      "card_id": 251,
+      "dashboard_tab_id": 383,
+      "row": 18,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Unclassified · expect 0"
+      }
+    },
+    {
+      "id": 7982,
+      "card_id": 64,
+      "dashboard_tab_id": 383,
+      "row": 18,
+      "col": 6,
+      "size_x": 18,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "visualization": {
+          "display": "area",
+          "columnValuesMapping": {
+            "COLUMN_1": [
+              {
+                "sourceId": "card:64",
+                "originalName": "Date",
+                "name": "COLUMN_1"
+              }
+            ],
+            "COLUMN_2": [
+              {
+                "sourceId": "card:64",
+                "originalName": "Amount (THB)",
+                "name": "COLUMN_2"
+              }
+            ]
+          },
+          "settings": {
+            "graph.show_trendline": false,
+            "graph.y_axis.title_text": "THB",
+            "graph.show_values": true,
+            "graph.show_legend": false,
+            "graph.x_axis.title_enabled": false,
+            "graph.missing": "zero",
+            "card.title": "Overdue charges · completed days",
+            "graph.metrics": [
+              "COLUMN_2"
+            ],
+            "graph.label_value_formatting": "auto",
+            "graph.colors": [
+              "#D6816B"
+            ],
+            "graph.show_dots": false,
+            "column_settings": {
+              "[\"name\",\"COLUMN_2\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,"
+              }
+            },
+            "series_settings": {
+              "COLUMN_2": {
+                "color": "#C8B4DA"
+              }
+            },
+            "graph.y_axis.auto_range": true,
+            "graph.dimensions": [
+              "COLUMN_1"
+            ]
+          }
+        },
+        "card.title": "Overdue charges · completed days"
+      }
+    },
+    {
+      "id": 7983,
+      "card_id": 248,
+      "dashboard_tab_id": 383,
+      "row": 24,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "collection-borrower",
+          "card_id": 248,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        },
+        {
+          "parameter_id": "collection-status",
+          "card_id": 248,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Collection detail · filters above apply here",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 7984,
+      "card_id": 249,
+      "dashboard_tab_id": 383,
+      "row": 34,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 5,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Charges dated today · separate from board balances"
+      }
+    },
+    {
+      "id": 7985,
+      "card_id": null,
+      "dashboard_tab_id": 383,
+      "row": 39,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people move lanes after refresh.",
+            "text.align_vertical": "middle"
+          }
+        },
+        "text": "Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people move lanes after refresh."
       }
     }
   ]
