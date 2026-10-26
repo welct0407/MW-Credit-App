@@ -39,22 +39,5 @@
     "forecast": 385,
     "data-health": 386
   },
-  "cardColumns": {
-    "275": [
-      "Borrower ID",
-      "Borrower",
-      "Category",
-      "Payment score /100",
-      "Schedule",
-      "Contribution ×",
-      "Interest 30d ฿",
-      "Principal ฿",
-      "History",
-      "Plot status",
-      "Position basis",
-      "Category reason",
-      "As of"
-    ]
-  },
   "dashboard": 32
 }

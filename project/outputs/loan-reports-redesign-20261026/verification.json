@@ -1,14 +1,20 @@
 {
-  "at": "2026-10-26T17:02:42.266Z",
+  "at": "2026-10-26T18:56:16.968Z",
   "passed": true,
   "checks": [
     {
       "name": "structure",
       "passed": true,
       "detail": {
+        "want": {
+          "tabs": 12,
+          "placements": 227,
+          "parameters": 22
+        },
         "tabs": 12,
-        "placements": 240,
+        "placements": 227,
         "parameters": 22,
+        "parameterIdsMatch": true,
         "unmatched": 0
       }
     },
@@ -16,22 +22,23 @@
       "name": "mapping parity",
       "passed": true,
       "detail": {
-        "checked": 183,
+        "checked": 158,
         "mismatched": 0
       }
     },
     {
-      "name": "collection lanes and 64 map nothing",
+      "name": "new-question mappings; attention, board, people, lanes and 64 map nothing",
       "passed": true,
       "detail": {
-        "mapped": []
+        "mismatched": [],
+        "mappedAnyway": []
       }
     },
     {
       "name": "execution",
       "passed": true,
       "detail": {
-        "dashcards": 194,
+        "dashcards": 182,
         "errors": 0,
         "failed": []
       }
@@ -40,7 +47,7 @@
       "name": "reused values equal dashboard 3",
       "passed": true,
       "detail": {
-        "sampled": 111,
+        "sampled": 103,
         "different": []
       }
     },
@@ -112,15 +119,21 @@
         "cases": [
           {
             "period": "thismonth",
-            "equal": true
+            "rows": 6,
+            "equal": true,
+            "sortedByMovement": true
           },
           {
             "period": "past30days",
-            "equal": true
+            "rows": 6,
+            "equal": true,
+            "sortedByMovement": true
           },
           {
             "period": "previous range",
-            "equal": true
+            "rows": 7,
+            "equal": true,
+            "sortedByMovement": true
           }
         ]
       }
@@ -129,7 +142,8 @@
       "name": "perf.vs-previous",
       "passed": true,
       "detail": {
-        "thisEquals217to219": true,
+        "rows": 5,
+        "thisEquals217to219and234": true,
         "previousEqualsPrecedingRange": true
       }
     },
@@ -142,10 +156,157 @@
       }
     },
     {
+      "name": "today.attention",
+      "passed": true,
+      "detail": {
+        "rows": 4,
+        "people240_242_244_270": true,
+        "amounts254_162": true,
+        "tabIds": true,
+        "itemLink": true
+      }
+    },
+    {
+      "name": "today.principal-top4",
+      "passed": true,
+      "detail": {
+        "bars": 5,
+        "sumEquals": true,
+        "firstFourEqual": true,
+        "othersLabel": true
+      }
+    },
+    {
+      "name": "today.interest-top4",
+      "passed": true,
+      "detail": {
+        "bars": 5,
+        "sumEquals": true,
+        "firstFourEqual": true,
+        "othersLabel": true
+      }
+    },
+    {
+      "name": "income.expenses",
+      "passed": true,
+      "detail": {
+        "thisMonthEqualsMinus169": true,
+        "previousRangeEqualsMinus169": true
+      }
+    },
+    {
+      "name": "borrowers.principal-top5",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "case": "All with loan history",
+            "bars": 6,
+            "sumEquals": true,
+            "firstFiveEqual": true,
+            "othersLabel": true
+          },
+          {
+            "case": "Currently active",
+            "bars": 6,
+            "sumEquals": true,
+            "firstFiveEqual": true,
+            "othersLabel": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "borrowers.interest-top5",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "case": "past30days · All with loan history",
+            "bars": 6,
+            "sumEquals": true,
+            "firstFiveEqual": true,
+            "othersLabel": true
+          },
+          {
+            "case": "past7days · Currently active",
+            "bars": 6,
+            "sumEquals": true,
+            "firstFiveEqual": true,
+            "othersLabel": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "collection.people",
+      "passed": true,
+      "detail": {
+        "format": true,
+        "firstEquals246": true,
+        "ratioEquals239": true
+      }
+    },
+    {
+      "name": "collection.board",
+      "passed": true,
+      "detail": {
+        "order": true,
+        "people242_244_240_246": true,
+        "unclassifiedEquals251": true,
+        "leftEqualsLaneSums": true
+      }
+    },
+    {
+      "name": "collection lanes equal origins, resorted",
+      "passed": true,
+      "detail": {
+        "lanes": [
+          {
+            "key": "collection.lane-not-paid",
+            "rows": 7,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Amount Remaining",
+            "sorted": true
+          },
+          {
+            "key": "collection.lane-partial",
+            "rows": 1,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Amount Remaining",
+            "sorted": true
+          },
+          {
+            "key": "collection.lane-overdue",
+            "rows": 13,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Overdue Amount",
+            "sorted": true
+          },
+          {
+            "key": "collection.lane-paid",
+            "rows": 0,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Receipts Today",
+            "sorted": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "partners.statement",
+      "passed": true,
+      "detail": {
+        "cells": 10,
+        "partners": 2,
+        "everyCellEquals330": true
+      }
+    },
+    {
       "name": "links target the proposed dashboard",
       "passed": true,
       "detail": {
-        "links": 25,
+        "links": 19,
         "toDashboard3": 0
       }
     },

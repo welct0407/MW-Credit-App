@@ -101,6 +101,10 @@ export function questions(sources={},state={},baseline){
   // Stacked: each type moves money one way, and the row chart fits floor(height/24) stacked categories instead of
   // floor(height/48) grouped ones, so no type is folded into "Other (n)" at the planned 18×7 size.
   'cashflow.by-type-row':{visualization_settings:{'graph.label_value_formatting':'compact','stackable.stack_type':'stacked',column_settings:fmt(['Money In','Money Out'])}},
+  // Six-wide lanes (about 256 px): pixel widths of the three visible columns so every value and the Due/Left headers fit; the
+  // longer headers (Borrower, Overdue ฿, Received ฿) still clip at this width. This version reads table.column_widths (the
+  // origin lanes' table.cell_column_widths is ignored).
+  ...Object.fromEntries(['not-paid','partial','overdue','paid'].map(l=>['collection.lane-'+l,{visualization_settings:{'table.column_widths':[80,90,86]}}])),
   'perf.vs-previous':{dataset_query:native(perfSql,[model(70),model(71),dateTag('performance_period','Performance period')]),visualization_settings:{...compareTable,column_settings:{...compareTable.column_settings}},mappings:{period:tagTarget('performance_period')}},
   'partners.capital-share-row':{dataset_query:q331&&native(`SELECT "Partner","Net capital ฿"/nullif(sum("Net capital ฿") OVER (),0) AS "Capital share %","Net capital ฿" FROM (${sql(q331)}) t`,[{id:'lrp-partner',name:'partner','display-name':'Partner',type:'dimension',dimension:['field',121,null],'widget-type':'string/=',alias:'d.partner_id'},model(318)]),
    visualization_settings:{'graph.dimensions':['Partner'],'graph.metrics':['Capital share %'],'graph.show_values':true,'graph.show_legend':false,'graph.colors':['#178F8A','#7472BE','#D6816B','#D4AD60'],'graph.y_axis.min':0,'graph.y_axis.max':1,column_settings:{...fmt(['Capital share %'],pct),...fmt(['Net capital ฿'])}},mappings:{partner:tagTarget('partner')}}
@@ -132,10 +136,6 @@ export function questions(sources={},state={},baseline){
   }
   const link=links[key];if(link)(copied.column_settings??={})[JSON.stringify(['name',link.column])]={click_behavior:{type:'link',linkType:'url',linkTemplate:link.linkTemplate}};
   const presentation=rewrite(copied,state);vs=mergeVs(vs,presentation);
-  // A table copy with the origin's visible column count keeps the origin's column widths, under the key this version reads
-  // (table.column_widths; the origin's table.cell_column_widths is ignored, and the six-wide lanes truncate without widths).
-  const widths=from['table.column_widths']??from['table.cell_column_widths'],visible=vs['table.columns']?.filter(c=>c.enabled).length;
-  if(copyKeys.length&&widths&&widths.length===visible)vs['table.column_widths']=widths;
   // Row and bar charts on this version colour series from series_settings; graph.colors alone is ignored there.
   (vs['graph.metrics']??[]).forEach((m,i)=>{const color=vs['graph.colors']?.[i];if(color&&!vs.series_settings?.[m]?.color)vs.series_settings={...vs.series_settings,[m]:{...vs.series_settings?.[m],color}};});
   return {key,name:d.name,display:d.display,description:`Loan Reports · proposed (${key}). ${d.definition} Basis: ${d.basis}.`,dataset_query,visualization_settings:vs,mappings,presentation,params:d.params};
@@ -398,7 +398,7 @@ if(args.includes('--verify')){
   (out.every(r=>r.sumEquals&&r.firstFiveEqual&&r.othersLabel)?pass:fail)(key,{cases:out});
  };
  await topN('borrowers.principal-top5',285,[{population:['All with loan history']},{population:['Currently active']}]);
- await topN('borrowers.interest-top5',286,[{period:'past30days',population:['All with loan history']},{period:'thismonth',population:['Currently active']}]);
+ await topN('borrowers.interest-top5',286,[{period:'past30days',population:['All with loan history']},{period:'past7days',population:['Currently active']}]);
  const ppl=String(resultRows('collection.people')[0]?.[0]),[x,n]=(ppl.match(/^(\d+) of (\d+) paid$/)??[]).slice(1).map(Number),q239=await one(239);
  const pplOk={format:x!==undefined,firstEquals246:near(x,await one(246)),ratioEquals239:n?near(x/n,q239):q239==null};
  (Object.values(pplOk).every(Boolean)?pass:fail)('collection.people',pplOk);
