@@ -13,7 +13,7 @@ The owner reviewed the Metabase Loan Reports pages and asked for a detailed desi
 | --- | --- |
 | `python3 -I project/outputs/loan-reports-redesign-20261026/build_design.py` | Pass: 12 tabs, 240 placements, 22 parameters, 183 reused questions, 10 new questions |
 | Grid validation of `layout.json` (no overlapping or out-of-grid cells per tab) | Pass: 0 conflicts on all 12 tabs |
-| Reused card ids against the live dashboard-3 card list | Pass: all 183 present on dashboard 3 on 26 October 2026 |
+| Reused card ids against the live card list | Pass: 182 present on dashboard 3 on 26 October 2026; question 276 is the monitoring probe in collection 9 |
 | `npm run check:docs` | Pass |
 
 ## Not run
