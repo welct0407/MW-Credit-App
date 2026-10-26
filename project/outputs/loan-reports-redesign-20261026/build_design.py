@@ -184,7 +184,7 @@ NEW_QUESTIONS = {
         'basis': 'models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270',
         'origin': 240, 'params': [],
         'definition': 'One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, '
-                      'amount as question 254), 🔴 Not paid today (model 162 count as 242, amount left), 🟠 Partially paid '
+                      'amount as question 254), 🔴 Not paid (model 162 count as 242, amount left), 🟠 Partially paid '
                       '(model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, '
                       'Opens, Tab and Tint (both hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the '
                       'proposed tab ids and sets the Item column click behaviour to the link template '
@@ -192,11 +192,11 @@ NEW_QUESTIONS = {
         'sql': "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\n"
                "SELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n"
                " (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__','overdue'),\n"
-               " (2,'🔴 Not paid today',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__','not_paid'),\n"
+               " (2,'🔴 Not paid',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__','not_paid'),\n"
                " (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n"
                " (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','__TAB_HEALTH__','')\n"
                ") v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
-        'settings': {'table.pivot': False, 'column_settings': titled('Amount ฿', 'Amount'), 'table.column_widths': [126, 58, 80, 86],
+        'settings': {'table.pivot': False, 'column_settings': titled('Amount ฿', 'Amount'), 'table.column_widths': [117, 75, 81, 67],
                      'table.columns': [{'name': n, 'enabled': n not in ('Tab', 'Tint')} for n in ['Item', 'People', 'Amount ฿', 'Opens', 'Tab', 'Tint']],
                      'table.column_formatting': [
                          {'id': 0, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'overdue', 'color': STATUS['overdue'], 'highlight_row': True},
@@ -343,7 +343,7 @@ NEW_QUESTIONS = {
                " rows AS (SELECT l.ord,l.label,l.tint,coalesce(s.\"Borrower Count\",0) people,coalesce(s.\"Amount Remaining\",0) remaining,coalesce(s.\"Receipts Today\",0) received FROM lanes l LEFT JOIN {{#162}} s ON s.\"Collection Status\"=l.status\n"
                " UNION ALL SELECT 9,'⚪ '||coalesce(s.\"Collection Status\",'Unclassified'),'',s.\"Borrower Count\",s.\"Amount Remaining\",s.\"Receipts Today\" FROM {{#162}} s WHERE s.\"Collection Status\" IS NULL OR s.\"Collection Status\" NOT IN ('Not Paid','Partially Paid','Overdue','Fully Paid'))\n"
                "SELECT label AS \"Lane\",people AS \"People\",remaining AS \"Left ฿\",received AS \"Received ฿\",tint AS \"Tint\" FROM rows ORDER BY ord,label",
-        'settings': {'table.pivot': False, 'column_settings': {**titled('Left ฿', 'Left'), **titled('Received ฿', 'Received')}, 'table.column_widths': [118, 62, 82, 88],
+        'settings': {'table.pivot': False, 'column_settings': {**titled('Left ฿', 'Left'), **titled('Received ฿', 'Received')}, 'table.column_widths': [110, 75, 69, 86],
                      'table.columns': [{'name': n, 'enabled': n != 'Tint'} for n in ['Lane', 'People', 'Left ฿', 'Received ฿', 'Tint']],
                      'table.column_formatting': [
                          {'id': 0, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'not_paid', 'color': STATUS['not_paid'], 'highlight_row': True},
@@ -393,7 +393,7 @@ COLUMNS_248 = {'order': ['Borrower', 'Daily Collection Status', 'Amount Remainin
 # Tabs. Each entry: key, name, purpose, filters, rows. A row is a list of cards placed left to right;
 # a card is (ref, width, height[, options]); ref may be a list of (ref, height[, options]) stacked in one column.
 # ---------------------------------------------------------------------------------------------------------
-TEXT_LIMIT = 110  # characters: a 2-unit text card at 390 px shows three lines
+TEXT_LIMIT = 75  # characters: Metabase shows about two lines of a text card at 390 px whatever its height
 
 
 def T(text, w=GRID, h=2):
@@ -420,7 +420,7 @@ TABS = [
                    'projection, collection progress, what needs attention, and the two trends that explain the month.',
         'replaces': '1 · Overview (tab 4)',
         'rows': [
-            [T('**Today** · live on refresh, Bangkok dates · trends from completed-day snapshots · gross interest.', 18),
+            [T('**Today** · live on refresh · trends from completed-day snapshots.', 18),
              (257, 6, 2, {'title': 'As of · Bangkok'})],
             [(49, 6, 3, {'title': 'Cash available'}),
              ('today.principal-smart', 6, 3, {'title': 'Principal at work'}),
@@ -435,7 +435,7 @@ TABS = [
                            'note': 'goal line = daily interest goal 10,000'})],
             [('today.principal-top4', 12, 7, {'title': 'Principal by borrower · top 4 + others'}),
              ('today.interest-top4', 12, 7, {'title': 'Interest 30d by borrower · top 4 + rest'})],
-            [T('Card descriptions hold the exact definitions · profit = gross interest before expenses · gauge: Cash Position.', 24)],
+            [T('Profit = gross interest before expenses · definitions in card descriptions.', 24)],
         ],
         'dropped': [47, 50, 52, 54, 55, 56, 57, 58, 59, 63, 64, 68, 60, 61, 240, 254, 242, 244, 270, 251],
         'phone': 'Eleven cards instead of eighteen: header, As of, four numbers, two meters, the attention strip (one card), '
@@ -449,7 +449,7 @@ TABS = [
                    'account, with the completed-day trend.',
         'replaces': '2 · Cash Position (tab 14)',
         'rows': [
-            [T('**Cash position** · Date selects the position (today = live, past = snapshot) · net cash includes negatives.', 24)],
+            [T('**Cash position** · Date = today is live, a past date is the snapshot.', 24)],
             [('cash.pool-selected', 6, 3, {'title': 'Total cash pool'}),
              ('cash.principal-selected', 6, 3, {'title': 'Principal outstanding'}),
              (207, 6, 3, {'title': 'Remaining lending capital'}),
@@ -458,7 +458,7 @@ TABS = [
              (210, 16, 6, {'title': 'Net cash by holder · selected date'})],
             [(211, 24, 6, {'title': 'Account balances · selected date', 'description': 'Signed balances; negative balances count.'})],
             [(202, 24, 7, {'title': 'Daily closing positions · completed days', 'params': ['period']})],
-            [T('Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab.', 24)],
+            [T('Unknown openings stay blank · source and freshness: Data health tab.', 24)],
         ],
         'dropped': [47, 48, 209],
         'phone': 'Four numbers, gauge, holder chart, account table, trend, in that order; nothing to merge.',
@@ -469,7 +469,7 @@ TABS = [
                    'the previous months, with expense categories and detail.',
         'replaces': '3 · Income Statement (tab 16)',
         'rows': [
-            [T('**Income statement** · live, with corrections · daily chart from snapshots · net = gross interest − expenses.', 24)],
+            [T('**Income statement** · live · net profit = gross interest − expenses.', 24)],
             [(168, 8, 3, {'title': 'Income · gross interest'}), ('income.expenses', 8, 3, {'title': '− Expenses'}),
              (170, 8, 3, {'title': '= Net profit'})],
             [('income.vs-previous', 16, 6, {'title': 'This period and the previous period', 'note': 'height fits the four measure rows'}),
@@ -478,7 +478,7 @@ TABS = [
              (178, 8, 8, {'title': 'Expenses by category · this period'})],
             [(213, 24, 7, {'title': 'Daily income and expenses · snapshots'})],
             [(212, 24, 7, {'title': 'Expense detail · this period'})],
-            [T('Per-day average uses calendar days in the period. Freshness and snapshot coverage: Data health tab.', 24)],
+            [T('Per-day average uses calendar days · freshness: Data health tab.', 24)],
         ],
         'dropped': [184, 204, 214, 169],
         'phone': 'Equation band stacks vertically with the − and = in the titles; comparison table, per-day number, charts, tables.',
@@ -489,7 +489,7 @@ TABS = [
                    'daily movement and the transaction list.',
         'replaces': '4 · Cashflow Statement (tab 15)',
         'rows': [
-            [T('**Cashflow statement** · live · All accounts nets transfers to zero · unknown openings show Unavailable.', 24)],
+            [T('**Cashflow statement** · live · All accounts nets transfers to zero.', 24)],
             [(195, 6, 3, {'title': 'Opening cash'}), (192, 6, 3, {'title': '+ Money in'}),
              (193, 6, 3, {'title': '− Money out'}), (197, 6, 3, {'title': '= Closing cash'})],
             [(194, 6, 3, {'title': 'Net cash movement'}),
@@ -497,7 +497,7 @@ TABS = [
             [(203, 24, 10, {'title': 'Movement by transaction type · table', 'note': 'height fits all nine type rows'})],
             [(215, 24, 7, {'title': 'Daily cash movement · completed days', 'vs': {'graph.show_values': False}, 'note': 'value labels off: they overlapped'})],
             [(196, 24, 10, {'title': 'Transactions · chronological'})],
-            [T('Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab.', 24)],
+            [T('Repayments keep their recorded type · freshness: Data health tab.', 24)],
         ],
         'dropped': [198, 216],
         'phone': 'Equation band stacks; chart, type table, daily chart, transactions; tables scroll sideways (no phone column set exists in Metabase).',
@@ -508,7 +508,7 @@ TABS = [
                    'return, with the daily and weekly trends.',
         'replaces': '5 · Performance (tab 18)',
         'rows': [
-            [T('**Performance** · totals live · trends from completed-day snapshots · loan and interest dates both use Period.', 24)],
+            [T('**Performance** · totals live · trends from snapshots · Period sets dates.', 24)],
             [(217, 6, 3, {'title': 'Gross interest'}), (218, 6, 3, {'title': 'Principal issued'}),
              (219, 6, 3, {'title': 'Loans issued'}), (235, 6, 3, {'title': 'Loan-cohort return'})],
             [('perf.vs-previous', 24, 7, {'title': 'This period and the previous period', 'note': 'five measure rows incl. Net principal deployed (formerly card 234)'})],
@@ -522,7 +522,7 @@ TABS = [
             [(230, 12, 6, {'title': 'Cumulative gross interest · 7-day avg'}),
              (226, 12, 6, {'title': 'Active loans and borrowers · end of day'})],
             [(227, 24, 8, {'title': 'Daily performance · snapshots'})],
-            [T('Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab.', 24)],
+            [T('Principal counts once per loan · coverage rules: Data health tab.', 24)],
         ],
         'dropped': [221, 228, 231, 234],
         'phone': 'Four numbers (six columns each, so they stay uncompacted), the comparison table, then the charts in pairs order.',
@@ -533,7 +533,7 @@ TABS = [
                    '(from the former Risks tab), and the comparison table that opens Borrower Detail.',
         'replaces': '6 · Borrowers (tab 104) and 9 · Risks (tab 8)',
         'rows': [
-            [T('**Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere.', 24)],
+            [T('**Borrowers** · live · positions ignore Period, activity uses it.', 24)],
             [(278, 6, 3, {'title': 'Active borrowers'}), (279, 6, 3, {'title': 'Active loans'}),
              (280, 6, 3, {'title': 'Principal outstanding'}), (281, 6, 3, {'title': 'Interest received · period'})],
             [('borrowers.principal-top5', 8, 8, {'title': 'Principal outstanding · top 5 + others', 'params': ['population']}),
@@ -543,12 +543,12 @@ TABS = [
             [stack(6, (110, 3, {'title': 'Top three concentration'}), (111, 3, {'title': 'Past-due amount'})),
              (115, 9, 6, {'title': 'Active principal by age'}), (117, 9, 6, {'title': 'Default loss over time'})],
             [(114, 12, 6, {'title': 'Active loan count by age'}), (116, 12, 6, {'title': 'Borrower risk · excl. largest exposure'})],
-            [(289, 24, 11, {'title': 'Borrower comparison · names open Detail', 'columns': COLUMNS_289,
+            [(289, 24, 11, {'title': 'Borrower comparison · names open Detail', 'columns': COLUMNS_289, 'vs': {'table.column_widths': [96, 168]},
                             'note': 'category and health columns first; sorted by principal (saved order)'})],
             [H('Activity over time')],
             [(287, 12, 7, {'title': 'Interest over time · top 5 + others'}),
              (288, 12, 7, {'title': 'First and repeat loans · weekly', 'vs': {'series_settings': {'First loans': {'title': 'First'}, 'Repeat loans': {'title': 'Repeat'}, 'Unavailable classification': {'title': 'Unclassified'}}}, 'note': 'short legend labels so the phone legend is not clipped; keys are the series names (COLUMN_n if the placement is visualizer-format)'})],
-            [T('Gross interest before expenses. Categories come from Borrower Health. Questions 313 and 118 stay saved.', 24)],
+            [T('Gross interest before expenses · categories from Borrower Health.', 24)],
         ],
         'dropped': [282, 283, 284, 311, 312, 313, 315, 48, 81, 112, 113, 118, 285, 286],
         'phone': 'Four numbers, three ranked bars, concentration numbers and charts, comparison table (scrolls), activity charts.',
@@ -558,14 +558,14 @@ TABS = [
         'purpose': 'The payment-behaviour × contribution matrix and the category lists, with the rating detail below.',
         'replaces': '7 · Borrower Health Review (tab 31)',
         'rows': [
-            [T('**Borrower Health** · current portfolio, refreshed on load · names open Borrower Detail.', 12),
+            [T('**Borrower Health** · current portfolio · names open Borrower Detail.', 12),
              (270, 6, 2, {'title': 'Modified plans'}), (257, 6, 2, {'title': 'As of · Bangkok'})],
             [(253, 6, 3, {'title': 'Active borrowers'}), (254, 6, 3, {'title': 'Overdue ฿ · all borrowers'}),
              (255, 6, 3, {'title': 'Provisional · active'}), (256, 6, 3, {'title': 'Unclassified · active'})],
             [('iframe:matrix', 24, 22)],
             [(260, 6, 2, {'title': 'Star'}), (258, 6, 2, {'title': 'Cash Cow'}),
              (264, 6, 2, {'title': 'Question Mark'}), (262, 6, 2, {'title': 'Dog'})],
-            [(275, 24, 9, {'title': 'Borrowers by category · scores', 'description': 'Payment score, contribution and schedule per borrower, sorted by category.', 'columns': COLUMNS_275,
+            [(275, 24, 9, {'title': 'Borrowers by category · scores', 'description': 'Payment score, contribution and schedule per borrower, sorted by category.', 'columns': COLUMNS_275, 'vs': {'table.column_widths': [168]},
                            'note': 'column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category'})],
             [H('Rating detail')],
             [(267, 24, 10, {'title': 'Payment health · all borrowers'})],
@@ -573,7 +573,7 @@ TABS = [
             [(268, 24, 10, {'title': 'Reliability components and weights', 'description': 'Active borrowers: score components and the effective weights.'})],
             [(271, 24, 8, {'title': 'Schedule assessment · active borrowers'})],
             [(272, 24, 8, {'title': 'Modified schedules · loan and next plan', 'hide_empty': True})],
-            [T('Rating weights 45 / 15 / 15 / 25 (recent, older, delay, current) · threshold 80 · boundary 1× · dictionary.', 24)],
+            [T('Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary.', 24)],
         ],
         'dropped': [259, 261, 263, 265],
         'phone': 'Header, numbers, matrix, category counts, tables. Metabase gives the matrix iframe a fixed 6-unit height on a phone, '
@@ -585,7 +585,7 @@ TABS = [
                    'the three working tables, the evidence tables and the lending scenario.',
         'replaces': '8 · Borrower Detail (tab 105)',
         'rows': [
-            [T('**Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it.', 24)],
+            [T('**Borrower Detail** · select one borrower · Period applies to activity.', 24)],
             [(290, 24, 4, {'title': 'Profile · current position'})],
             [(378, 6, 3, {'title': 'Category · BCG matrix'}), (293, 6, 3, {'title': 'Overdue ฿'}),
              (294, 6, 3, {'title': 'Portfolio share'}), (292, 6, 3, {'title': 'Active loans'})],
@@ -612,7 +612,7 @@ TABS = [
             [(306, 24, 8, {'title': 'Repayment allocations · payment dates'})],
             [H('Additional lending scenario · hypothetical only')],
             [(309, 24, 5, {'title': 'Additional lending · hypothetical only'})],
-            [T('Amounts in baht · allocations are not unique receipts · corrections stay signed · dates: Data health tab.', 24)],
+            [T('Allocations are not unique receipts · corrections stay signed.', 24)],
         ],
         'dropped': [300],
         'phone': 'Profile first, then every number card one per row (30 visuals; Metabase cannot pair them), charge lights, tables that scroll. Select a borrower first; all cards are empty until then.',
@@ -622,7 +622,7 @@ TABS = [
         'purpose': 'Today\'s collection board: progress, the four status lanes, the detail table and today\'s charges.',
         'replaces': '10 · Collection Monitor (tab 19)',
         'rows': [
-            [T('**Collection · Bangkok today** · live · payments appear after sync · filters apply to the detail table only.', 18),
+            [T('**Collection · today** · live · filters apply to the detail table only.', 18),
              (257, 6, 2, {'title': 'As of · Bangkok'})],
             [(237, 6, 3, {'title': 'Collected today'}), (238, 6, 3, {'title': 'Left to collect'}),
              ('collection.people', 6, 3, {'title': 'People paid today'}), (252, 6, 3, {'title': "Today's charges · paid %"})],
@@ -635,7 +635,7 @@ TABS = [
             [(248, 24, 10, {'title': 'Collection detail · filters apply here', 'columns': COLUMNS_248})],
             [(249, 24, 4, {'title': 'Charges dated today · not board balances', 'description': 'Charges dated today are a separate drill-down, not board balances.'})],
             [(64, 24, 6, {'title': 'Overdue charges · completed days', 'params': []})],
-            [T('Received = receipts today · Left includes older dues · a payment can leave someone Overdue until refresh.', 24)],
+            [T('Received = receipts today · Left includes older dues · refresh moves lanes.', 24)],
         ],
         'dropped': [250, 239, 242, 244, 240, 246, 251, 243, 245, 241, 247],
         'phone': 'Fourteen cards instead of eighteen: As of, four numbers, the meter, the board strip, the four lanes in the order '
@@ -648,7 +648,7 @@ TABS = [
                    'in the period and the ledgers.',
         'replaces': '11 · Partners (tab 249)',
         'rows': [
-            [T('**Partners** · balances stay current when the period changes · net available is an entitlement, not cash.', 24)],
+            [T('**Partners** · balances stay current · net available is not cash on hand.', 24)],
             [(325, 6, 3, {'title': 'Net capital ฿'}), (326, 6, 3, {'title': 'Net earned to date ฿'}),
              (327, 6, 3, {'title': 'Completed payouts ฿'}), (329, 6, 3, {'title': 'Net available ฿'})],
             [('partners.statement', 16, 7, {'title': 'Partner positions · statement', 'note': 'pending settlements per partner sit here and in the table below'}),
@@ -662,7 +662,7 @@ TABS = [
             [H('Ledgers · statement period')],
             [(341, 24, 8, {'title': 'Capital transaction ledger', 'hide_empty': True})],
             [(342, 24, 8, {'title': 'Settlement transaction ledger', 'hide_empty': True})],
-            [T('Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab.', 24)],
+            [T('Withdrawals and payouts are separate · checks: Data health tab.', 24)],
         ],
         'dropped': [331, 332, 343, 328, 330],
         'phone': 'Four numbers (six columns each so 7-digit baht stay uncompacted), the statement table, share chart, then activity; empty ledgers are hidden.',
@@ -673,7 +673,7 @@ TABS = [
                    'cash plan with its inputs checklist and month-end bridge.',
         'replaces': '12 · Forecast & Planning (tab 262)',
         'rows': [
-            [T('**Forecast & Plan · current month** · existing loan book · scenarios are assumptions, not promises.', 24)],
+            [T('**Forecast & Plan · this month** · scenarios are assumptions, not promises.', 24)],
             [(353, 24, 4, {'title': 'Scenario and assumptions in force'})],
             [H('Interest outlook')],
             [(348, 6, 3, {'title': 'Interest · month to date'}), (349, 6, 3, {'title': 'Remaining · scenario'}),
@@ -688,7 +688,7 @@ TABS = [
              (367, 8, 3, {'title': 'Reserve shortfall ฿'})],
             [(364, 24, 6, {'title': 'Plan inputs and status', 'note': 'Plan not ready until all five inputs are set; blank results until then'})],
             [(368, 24, 8, {'title': 'Month-end cash bridge'})],
-            [T('Recorded obligations before simulated · planned lending adds no income · month-end cash is not the low point.', 24)],
+            [T('Recorded before simulated · planned lending adds no income · not a minimum.', 24)],
         ],
         'dropped': [361, 362, 363],
         'phone': 'Assumptions, four numbers, cumulative chart first among charts, watchlist, plan numbers, inputs above the bridge; one card per row.',
@@ -700,7 +700,7 @@ TABS = [
                    'pages stay clean and the checks stay one click away.',
         'replaces': 'new tab; cards moved from tabs 14, 16, 15, 18, 104, 105, 249 and 262',
         'rows': [
-            [T('**Data health** · every page\'s freshness, coverage and source checks · filters mirror their pages.', 24)],
+            [T('**Data health** · freshness, coverage and source checks per page.', 24)],
             [(276, 8, 3, {'title': 'Reporting connection · SELECT 1'}), (257, 8, 3, {'title': 'Queried at · Bangkok'}),
              (250, 8, 3, {'title': 'Bangkok date and query time'})],
             [H('Cash Position')], [(209, 24, 6, {'title': 'Cash position · source and freshness'})],
