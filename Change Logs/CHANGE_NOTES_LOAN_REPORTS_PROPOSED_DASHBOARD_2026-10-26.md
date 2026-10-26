@@ -4,7 +4,7 @@
 Owner instruction of 26 October 2026: follow the design and plan and create a parallel Metabase dashboard so the owner can compare and evaluate it against the existing Loan Reports (dashboard 3), carried end to end. This batch builds and verifies that dashboard in PROD Metabase (reporting is read-only, source database 2 `loan_manager_prod`) and records it. Dashboard 3 stays canonical and was not changed.
 
 ## Changes
-- Metabase PROD (`reports.mw-credit.com`): sub-collection 10 "Loan Reports · proposed" under collection 5; dashboard 32 "Loan Reports · proposed" with 12 tabs, 22 parameters and 240 placements (183 placements of 171 reused saved questions, 10 new questions 379 to 388, 45 text and heading cards, 1 matrix iframe copied at run time from dashboard 3 dashcard 1501; its key is redacted in `saved.json` and never in Git). Ids are in `project/outputs/loan-reports-redesign-20261026/state.json`.
+- First batch. Metabase PROD (`reports.mw-credit.com`): sub-collection 10 "Loan Reports · proposed" under collection 5; dashboard 32 "Loan Reports · proposed" with 12 tabs, 22 parameters and 240 placements (183 placements of 171 reused saved questions, 10 new questions 379 to 388, 45 text and heading cards, 1 matrix iframe copied at run time from dashboard 3 dashcard 1501; its key is redacted in `saved.json` and never in Git). Ids are in `project/outputs/loan-reports-redesign-20261026/state.json`.
 - `project/scripts/metabase/ProposedLoanReports.mjs`: the installer (`--plan`, `--prepare`, `--publish`, `--refine --only=<question key|tab key>,...`, `--verify`). Publish runs once and refuses to replay while `state.json` exists; refine is scoped and re-guards dashboard 3; every run asserts dashboard 3 equals the private baseline (directory set with `MW_METABASE_PRIVATE_DIR`, outside Git).
 - `project/outputs/loan-reports-redesign-20261026/`: `state.json` (ids), `saved.json` (sanitized definitions), `verification.json` (result of `--verify`); README gains the Build record.
 - Data dictionary: new `dashboards/loan-reports-proposed.yaml` (tabs, parameters with `replaces`, layout per tab, parallel status), ten `questions/proposed-<key>.yaml` records, a `parallel_review` pointer in `dashboards/loan-reports.yaml`, the `REPORTING-COVERAGE` text in `unresolved.yaml`, and the rebuilt `index.json`.
@@ -20,6 +20,17 @@ Owner instruction of 26 October 2026: follow the design and plan and create a pa
   7. Not applied, because Metabase cannot set them on a placement without editing saved questions: lane-table sort by amount and phone-specific column sets.
   8. The six open design points of `PLAN.md` section 6.3 were built as the design proposes and stay open for the owner's review.
 
+### Second revision, 26 October 2026
+
+Owner instruction: "You may edit the existing queries or questions, or create new ones. The goal is to make the dashboard look what we planned for, without compromise."
+- Decision (orchestrator): never edit a dashboard 3 question, so dashboard 3 stays identical; where the design needs a different question, a copy is created in collection 10. Existing state-owned questions are updated in place.
+- Specification (Archie, `layout.json`, `DESIGN.md` generated section): 12 tabs, 227 placements, 22 filters, 153 reused saved questions and 23 new questions; per-tab gap-to-realization codes TODAY-01 to FCST-01; text cards at most 75 characters (phones show about 2 lines); measured column widths.
+- New questions 389 to 401: `today.attention` 389, `today.principal-top4` 390, `today.interest-top4` 391, `income.expenses` 392, `borrowers.principal-top5` 393, `borrowers.interest-top5` 394, `collection.people` 395, `collection.board` 396, lanes `collection.lane-not-paid` 397, `collection.lane-partial` 398, `collection.lane-overdue` 399, `collection.lane-paid` 400, and `partners.statement` 401. Questions 379, 380, 382 and 384 to 388 were updated in place.
+- Installer `ProposedLoanReports.mjs`: questions are built from the `layout.json` kinds (native SQL, wrapped, an edited copy of the origin question, or MBQL), with the origin's template tags and mappings copied. Placement options: `vs`, `columns`, `hide_empty`, `title`, `description`. `--refine` dry-runs every named question first (`--dry-run` stops there), creates missing questions, and archives dropped state-owned questions only once they are unreferenced. `--verify` counts from `layout.json` and now runs 27 checks, including reconciliations of the new questions against their origins.
+- Browser renders became possible from the cloud session (headless Chromium sending the administrator API key header to `/api`); the screenshots are private and outside Git. The earlier "no screenshots" limitation is resolved.
+- Dictionary: `loan-reports-proposed.yaml` (227 placements, 12 tabs) and 23 `questions/proposed-<key>.yaml` records regenerated from `saved.json`; index rebuilt.
+- Genuine Metabase limits: one card per row on phones (two per row is impossible, so fewer and combined cards); no per-device column sets (key columns first); lanes lack days overdue and time paid (model 77 has neither); the 60-second refresh works only through the URL `?refresh=60`; phone text cards show about 2 lines.
+
 ## Checks
 | Command | Result |
 | --- | --- |
@@ -27,10 +38,12 @@ Owner instruction of 26 October 2026: follow the design and plan and create a pa
 | `python3 project/scripts/dictionary/dictionary.py --root "project/Documents/Data Dictionary" index` then `validate` | Pass: 449 documents, 0 errors |
 | Chase independent API checks, non-default filters, dashboard 32 against dashboard 3 with the equivalent old filter ids (query-time columns ignored) | Pass, 8 of 8: Borrower Detail 150 of 150 equal (2 borrowers, 2 periods, scenario amount); Collection 3 runs of 17 cards equal (only question 248 takes the two collection filters; lanes and 64 unmapped); Borrowers 32 of 32; Partners 32 of 32 (2 partners, Completed, September period); Forecast 54 of 54 (Stress and Schedule, kinds, percentages, five plan inputs); Cash Position 6 of 6 and Cashflow 8 of 8 (2026-10-01, one account, September period); 25 links on dashboard 32, 0 to dashboard 3, 19 borrower links to Borrower Detail tab 382; dashboard 3 dashcards, tabs and parameters identical (only Metabase-maintained `result_metadata` and `query_average_duration` on embedded cards changed from running queries, not edits) |
 | `--refine --only=today,income,cashflow,performance,collection` then `--verify` | Pass, 17 of 17 again, after the fix below |
+| `node project/scripts/metabase/ProposedLoanReports.mjs --verify` after the second revision | Pass, 27 of 27 (`verification.json`, 2026-10-26T20:30Z), including the reconciliations of the new questions against their origins; dashboard 3 unchanged |
+| Chase and Echo, second revision | Final results to follow in this note |
 | `npm run check:docs` | Pass: 0 failures, 0 warnings on the working tree over `cf71e79` |
 
 ## Not run
-- Browser screenshots: the cloud session has no Metabase UI login, so the owner reviews in their browser. `browser-verification.json` named in the plan is not produced.
+- Browser screenshots were not possible in the first batch; headless renders became possible in the second revision and are kept private. `browser-verification.json` named in the plan is not produced.
 - Echo's phone and desktop review was done from the coded definitions, not applied: the items below change the owner-approved design and wait for the owner. Key correction: Metabase phones stack one card per row with fixed heights by display (numbers 4, headings 2, text at least 2, tables, charts and iframes 6 units), so the "two per row" phone notes in `DESIGN.md` cannot be honoured, and the Health matrix iframe gets 6 units on a phone.
   - Should: TODAY-PH-01 (attention chips push the charts about 5 screens down; move the band up, drop 270 and 251); TODAY-PH-02 (7 headline items, more than 5; drop gauge 68 from Today, matching the open point); COLL-PH-01 (as-of table 250 to a number card); COLL-PH-02 (239 duplicates 246; three similar paid percentages); COLL-PH-03 (reorder the columns of 248); COLL-PH-04 (move 248 right after the lanes); COLL-PH-05 (lane sort needs a saved-question change); GEN-02 (rewrite the impossible phone promises in the records); GEN-03 (move Collection to the second tab); FCST-01 (assumptions table 353 above the headline).
   - Could: TODAY-PH-03; TODAY-PH-04 (smart scalar "vs 29 days earlier" when Period changes); TODAY-PH-05 (60 and 61 return 11 bars despite the title "top four + others"); COLL-PH-06 (hide empty lanes); GEN-04 (251 is a data check); CASH-01; INC-01; CFLOW-01; BORR-01; DET-01; WORD-01 (title and baht consistency).
@@ -40,6 +53,7 @@ Owner instruction of 26 October 2026: follow the design and plan and create a pa
 Archive dashboard 32 and sub-collection 10 in Metabase (recoverable), then archive questions 379 to 388. Remove the dictionary records and `state.json`, `saved.json`, `verification.json`, rebuild the index. Dashboard 3 needs no recovery because it was never written. Git baseline `cf71e79`.
 
 ## Open questions
+- Chase's and Echo's final results on the second revision are pending (placeholder).
 - Echo's codes above and the six design points of `PLAN.md` section 6.3 await the owner's review; each can be applied later with a scoped `--refine`.
 - The owner's comparison of dashboard 32 with dashboard 3. The six design points of `PLAN.md` section 6.3 (shared Period on the borrower pages, Income waterfall dropped, question 64 on Collection, the gauge on two tabs, the unplaced Risks cards, the Data health card list).
 - Cutover (rename to replace dashboard 3 or migrate tab by tab) is not part of this build and needs its own decision and change note.
