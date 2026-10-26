@@ -309,13 +309,13 @@
    "reconcile": "Equals question 51 ÷ question 52 (built, verified)."
   },
   "today.collection-rate": {
-   "name": "Collected today · share of amount due",
+   "name": "Today's charges · paid share",
    "display": "progress",
    "kind": "mbql",
    "basis": "model 73 Portfolio Overview",
    "origin": 252,
    "params": [],
-   "definition": "MBQL on model 73: field Amount Collection Rate Today (Amount Collected Today ÷ Amount Due Today). Progress goal 1. Reused on Today and Collection.",
+   "definition": "MBQL on model 73: field Amount Collection Rate Today (Amount Collected Today ÷ Amount Due Today): the share of the charges dated today that is paid, not receipts. Progress goal 1. Placed on Today only; Collection shows the same share as question 252.",
    "settings": {
     "progress.goal": 1,
     "progress.color": "#067647"
@@ -634,7 +634,7 @@
    "params": [
     "population"
    ],
-   "definition": "Question 285's query with rank<=10 changed to rank<=5 (both occurrences) and the label 'Others' replaced by 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')'. Template tag population copied verbatim; maps `population` as 285 maps bp-population.",
+   "definition": "Question 285's query with rank<=10 changed to rank<=5 (both occurrences) and the label 'Others' replaced by 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(outstanding_principal,0)<>0)||')' (n counts only borrowers with a non-zero amount). Template tag population copied verbatim; maps `population` as 285 maps bp-population.",
    "settings": {
     "graph.dimensions": [
      "Borrower"
@@ -667,7 +667,7 @@
     "period",
     "population"
    ],
-   "definition": "Question 286's query with the same two edits as borrowers.principal-top5. Template tags period and population copied verbatim; maps `period` and `population` as 286 maps bp-period and bp-population.",
+   "definition": "Question 286's query with the same two edits as borrowers.principal-top5, the count being (SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(interest_received,0)<>0). Template tags period and population copied verbatim; maps `period` and `population` as 286 maps bp-period and bp-population.",
    "settings": {
     "graph.dimensions": [
      "Borrower"
@@ -1537,7 +1537,7 @@
      "size_x": 12,
      "size_y": 3,
      "new_question": "today.collection-rate",
-     "title": "Collected today · share of amount due",
+     "title": "Today's charges · paid",
      "params": [
       "period"
      ]
@@ -1546,7 +1546,7 @@
      "row": 8,
      "col": 0,
      "size_x": 24,
-     "size_y": 6,
+     "size_y": 5,
      "new_question": "today.attention",
      "title": "Needs attention · rows open pages",
      "description": "Click a row to open Collection or Borrower Health.",
@@ -1555,7 +1555,7 @@
      ]
     },
     {
-     "row": 14,
+     "row": 13,
      "col": 0,
      "size_x": 12,
      "size_y": 7,
@@ -1566,6 +1566,7 @@
       "graph.show_goal": true,
       "graph.goal_value": 120000,
       "graph.goal_label": "Principal reference 120,000",
+      "graph.show_values": false,
       "series_settings": {
        "COLUMN_2": {
         "color": "#509EE3"
@@ -1580,24 +1581,25 @@
      ]
     },
     {
-     "row": 14,
+     "row": 13,
      "col": 12,
      "size_x": 12,
      "size_y": 7,
      "reuse_card_id": 222,
      "title": "Daily gross interest · 7-day average",
-     "note": "goal line = daily interest goal 10,000",
+     "note": "goal line = daily interest goal 10,000; value labels off so they do not collide with the goal label",
      "vs": {
       "graph.show_goal": true,
       "graph.goal_value": 10000,
-      "graph.goal_label": "Daily interest goal 10,000"
+      "graph.goal_label": "Daily interest goal 10,000",
+      "graph.show_values": false
      },
      "params": [
       "period"
      ]
     },
     {
-     "row": 21,
+     "row": 20,
      "col": 0,
      "size_x": 12,
      "size_y": 7,
@@ -1608,7 +1610,7 @@
      ]
     },
     {
-     "row": 21,
+     "row": 20,
      "col": 12,
      "size_x": 12,
      "size_y": 7,
@@ -1619,7 +1621,7 @@
      ]
     },
     {
-     "row": 28,
+     "row": 27,
      "col": 0,
      "size_x": 24,
      "size_y": 2,
@@ -1631,7 +1633,7 @@
      "params": []
     }
    ],
-   "height_rows": 30,
+   "height_rows": 29,
    "dropped_from_dashboard_3": [
     47,
     50,
@@ -2183,7 +2185,8 @@
      "vs": {
       "graph.show_goal": true,
       "graph.goal_value": 10000,
-      "graph.goal_label": "Daily interest goal 10,000"
+      "graph.goal_label": "Daily interest goal 10,000",
+      "graph.show_values": false
      },
      "params": [
       "period"
@@ -2508,11 +2511,11 @@
      "size_y": 11,
      "reuse_card_id": 289,
      "title": "Borrower comparison · names open Detail",
-     "note": "category and health columns first; sorted by principal (saved order)",
+     "note": "category and health columns first; Principal share hidden so the eight leading columns fit at 1440 px; sorted by principal (saved order)",
      "vs": {
       "table.column_widths": [
-       96,
-       168
+       90,
+       145
       ]
      },
      "columns": {
@@ -2522,7 +2525,6 @@
        "Current health",
        "Active loans",
        "Principal ฿",
-       "Principal share",
        "Interest ฿",
        "Lifetime interest return",
        "Last payment"
@@ -2530,7 +2532,8 @@
       "hide": [
        "Borrower ID",
        "Period start",
-       "Period end"
+       "Period end",
+       "Principal share"
       ]
      },
      "params": [
@@ -2692,12 +2695,12 @@
      "row": 5,
      "col": 0,
      "size_x": 24,
-     "size_y": 22,
+     "size_y": 20,
      "copy_dashcard": 1501,
      "params": []
     },
     {
-     "row": 27,
+     "row": 25,
      "col": 0,
      "size_x": 6,
      "size_y": 2,
@@ -2706,7 +2709,7 @@
      "params": []
     },
     {
-     "row": 27,
+     "row": 25,
      "col": 6,
      "size_x": 6,
      "size_y": 2,
@@ -2715,7 +2718,7 @@
      "params": []
     },
     {
-     "row": 27,
+     "row": 25,
      "col": 12,
      "size_x": 6,
      "size_y": 2,
@@ -2724,7 +2727,7 @@
      "params": []
     },
     {
-     "row": 27,
+     "row": 25,
      "col": 18,
      "size_x": 6,
      "size_y": 2,
@@ -2733,7 +2736,7 @@
      "params": []
     },
     {
-     "row": 29,
+     "row": 27,
      "col": 0,
      "size_x": 24,
      "size_y": 9,
@@ -2761,7 +2764,7 @@
      "params": []
     },
     {
-     "row": 38,
+     "row": 36,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -2770,7 +2773,7 @@
      "params": []
     },
     {
-     "row": 39,
+     "row": 37,
      "col": 0,
      "size_x": 24,
      "size_y": 10,
@@ -2794,7 +2797,7 @@
      "params": []
     },
     {
-     "row": 49,
+     "row": 47,
      "col": 0,
      "size_x": 24,
      "size_y": 6,
@@ -2804,7 +2807,7 @@
      "params": []
     },
     {
-     "row": 55,
+     "row": 53,
      "col": 0,
      "size_x": 24,
      "size_y": 10,
@@ -2814,7 +2817,7 @@
      "params": []
     },
     {
-     "row": 65,
+     "row": 63,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -2823,7 +2826,7 @@
      "params": []
     },
     {
-     "row": 73,
+     "row": 71,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -2833,7 +2836,7 @@
      "params": []
     },
     {
-     "row": 81,
+     "row": 79,
      "col": 0,
      "size_x": 24,
      "size_y": 2,
@@ -2845,7 +2848,7 @@
      "params": []
     }
    ],
-   "height_rows": 83,
+   "height_rows": 81,
    "dropped_from_dashboard_3": [
     259,
     261,
@@ -3414,18 +3417,6 @@
      "row": 5,
      "col": 0,
      "size_x": 24,
-     "size_y": 2,
-     "new_question": "today.collection-rate",
-     "title": "Collected today · share of amount due",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 7,
-     "col": 0,
-     "size_x": 24,
      "size_y": 6,
      "new_question": "collection.board",
      "title": "Board · people and baht per lane",
@@ -3435,7 +3426,7 @@
      ]
     },
     {
-     "row": 13,
+     "row": 11,
      "col": 0,
      "size_x": 6,
      "size_y": 9,
@@ -3448,7 +3439,7 @@
      ]
     },
     {
-     "row": 13,
+     "row": 11,
      "col": 6,
      "size_x": 6,
      "size_y": 9,
@@ -3461,7 +3452,7 @@
      ]
     },
     {
-     "row": 13,
+     "row": 11,
      "col": 12,
      "size_x": 6,
      "size_y": 9,
@@ -3474,7 +3465,7 @@
      ]
     },
     {
-     "row": 13,
+     "row": 11,
      "col": 18,
      "size_x": 6,
      "size_y": 9,
@@ -3487,7 +3478,7 @@
      ]
     },
     {
-     "row": 22,
+     "row": 20,
      "col": 0,
      "size_x": 24,
      "size_y": 10,
@@ -3513,10 +3504,10 @@
      ]
     },
     {
-     "row": 32,
+     "row": 30,
      "col": 0,
      "size_x": 24,
-     "size_y": 4,
+     "size_y": 3,
      "reuse_card_id": 249,
      "title": "Charges dated today · not board balances",
      "description": "Charges dated today are a separate drill-down, not board balances.",
@@ -3526,7 +3517,7 @@
      ]
     },
     {
-     "row": 36,
+     "row": 33,
      "col": 0,
      "size_x": 24,
      "size_y": 6,
@@ -3535,7 +3526,7 @@
      "params": []
     },
     {
-     "row": 42,
+     "row": 39,
      "col": 0,
      "size_x": 24,
      "size_y": 2,
@@ -3547,7 +3538,7 @@
      "params": []
     }
    ],
-   "height_rows": 44,
+   "height_rows": 41,
    "dropped_from_dashboard_3": [
     250,
     239,
@@ -3870,9 +3861,15 @@
      "row": 2,
      "col": 0,
      "size_x": 24,
-     "size_y": 4,
+     "size_y": 3,
      "reuse_card_id": 353,
      "title": "Scenario and assumptions in force",
+     "columns": {
+      "order": [],
+      "hide": [
+       "Calculated at"
+      ]
+     },
      "params": [
       "scenario",
       "interest-collected",
@@ -3888,7 +3885,7 @@
      ]
     },
     {
-     "row": 6,
+     "row": 5,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -3897,7 +3894,7 @@
      "params": []
     },
     {
-     "row": 7,
+     "row": 6,
      "col": 0,
      "size_x": 6,
      "size_y": 3,
@@ -3918,7 +3915,7 @@
      ]
     },
     {
-     "row": 7,
+     "row": 6,
      "col": 6,
      "size_x": 6,
      "size_y": 3,
@@ -3939,7 +3936,7 @@
      ]
     },
     {
-     "row": 7,
+     "row": 6,
      "col": 12,
      "size_x": 6,
      "size_y": 3,
@@ -3960,7 +3957,7 @@
      ]
     },
     {
-     "row": 7,
+     "row": 6,
      "col": 18,
      "size_x": 6,
      "size_y": 3,
@@ -3981,7 +3978,7 @@
      ]
     },
     {
-     "row": 10,
+     "row": 9,
      "col": 0,
      "size_x": 16,
      "size_y": 9,
@@ -4002,7 +3999,7 @@
      ]
     },
     {
-     "row": 10,
+     "row": 9,
      "col": 16,
      "size_x": 8,
      "size_y": 9,
@@ -4023,7 +4020,28 @@
      ]
     },
     {
-     "row": 19,
+     "row": 18,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 360,
+     "title": "Watchlist · dues at risk",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 26,
      "col": 0,
      "size_x": 12,
      "size_y": 8,
@@ -4044,31 +4062,10 @@
      ]
     },
     {
-     "row": 19,
+     "row": 26,
      "col": 12,
      "size_x": 12,
      "size_y": 8,
-     "reuse_card_id": 360,
-     "title": "Watchlist · dues at risk",
-     "params": [
-      "scenario",
-      "interest-collected",
-      "principal-collected",
-      "overdue-recovered",
-      "loan-kind",
-      "target",
-      "plan-lending",
-      "plan-expenses",
-      "plan-withdrawals",
-      "plan-inflows",
-      "plan-reserve"
-     ]
-    },
-    {
-     "row": 27,
-     "col": 0,
-     "size_x": 12,
-     "size_y": 7,
      "reuse_card_id": 354,
      "title": "Interest outlook bridge",
      "params": [
@@ -4086,8 +4083,8 @@
      ]
     },
     {
-     "row": 27,
-     "col": 12,
+     "row": 34,
+     "col": 0,
      "size_x": 12,
      "size_y": 7,
      "reuse_card_id": 358,
@@ -4108,9 +4105,9 @@
     },
     {
      "row": 34,
-     "col": 0,
+     "col": 12,
      "size_x": 12,
-     "size_y": 6,
+     "size_y": 7,
      "reuse_card_id": 359,
      "title": "Interest by loan type",
      "params": [
@@ -4128,28 +4125,7 @@
      ]
     },
     {
-     "row": 34,
-     "col": 12,
-     "size_x": 12,
-     "size_y": 6,
-     "reuse_card_id": 352,
-     "title": "Principal receipts · scenario",
-     "params": [
-      "scenario",
-      "interest-collected",
-      "principal-collected",
-      "overdue-recovered",
-      "loan-kind",
-      "target",
-      "plan-lending",
-      "plan-expenses",
-      "plan-withdrawals",
-      "plan-inflows",
-      "plan-reserve"
-     ]
-    },
-    {
-     "row": 40,
+     "row": 41,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -4158,9 +4134,9 @@
      "params": []
     },
     {
-     "row": 41,
+     "row": 42,
      "col": 0,
-     "size_x": 8,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 365,
      "title": "Business cash now ฿",
@@ -4179,9 +4155,30 @@
      ]
     },
     {
-     "row": 41,
-     "col": 8,
-     "size_x": 8,
+     "row": 42,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 352,
+     "title": "Principal receipts · scenario",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 42,
+     "col": 12,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 366,
      "title": "Month-end cash ฿",
@@ -4200,9 +4197,9 @@
      ]
     },
     {
-     "row": 41,
-     "col": 16,
-     "size_x": 8,
+     "row": 42,
+     "col": 18,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 367,
      "title": "Reserve shortfall ฿",
@@ -4221,7 +4218,7 @@
      ]
     },
     {
-     "row": 44,
+     "row": 45,
      "col": 0,
      "size_x": 24,
      "size_y": 6,
@@ -4243,7 +4240,7 @@
      ]
     },
     {
-     "row": 50,
+     "row": 51,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -4264,7 +4261,7 @@
      ]
     },
     {
-     "row": 58,
+     "row": 59,
      "col": 0,
      "size_x": 24,
      "size_y": 2,
@@ -4276,7 +4273,7 @@
      "params": []
     }
    ],
-   "height_rows": 60,
+   "height_rows": 61,
    "dropped_from_dashboard_3": [
     361,
     362,
@@ -4318,7 +4315,7 @@
     {
      "row": 2,
      "col": 0,
-     "size_x": 8,
+     "size_x": 12,
      "size_y": 3,
      "reuse_card_id": 276,
      "title": "Reporting connection · SELECT 1",
@@ -4340,34 +4337,11 @@
     },
     {
      "row": 2,
-     "col": 8,
-     "size_x": 8,
+     "col": 12,
+     "size_x": 12,
      "size_y": 3,
      "reuse_card_id": 257,
      "title": "Queried at · Bangkok",
-     "params": [
-      "statement-period",
-      "account",
-      "period",
-      "position-date",
-      "population",
-      "borrower",
-      "partner",
-      "scenario",
-      "interest-collected",
-      "principal-collected",
-      "overdue-recovered",
-      "loan-kind",
-      "target"
-     ]
-    },
-    {
-     "row": 2,
-     "col": 16,
-     "size_x": 8,
-     "size_y": 3,
-     "reuse_card_id": 250,
-     "title": "Bangkok date and query time",
      "params": [
       "statement-period",
       "account",
@@ -4817,12 +4791,14 @@
     }
    ],
    "height_rows": 86,
-   "dropped_from_dashboard_3": []
+   "dropped_from_dashboard_3": [
+    250
+   ]
   }
  ],
  "summary": {
   "tabs": 12,
-  "placements": 227,
+  "placements": 225,
   "reused_questions": [
    49,
    51,
@@ -4880,7 +4856,6 @@
    238,
    248,
    249,
-   250,
    252,
    253,
    254,
