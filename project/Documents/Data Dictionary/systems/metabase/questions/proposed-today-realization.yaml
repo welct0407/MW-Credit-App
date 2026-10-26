@@ -1,0 +1,43 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Interest this month · share of projection / 380"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "today.realization"
+  "id": 380
+  "name": "Interest this month · share of projection"
+  "description": "Loan Reports · proposed (today.realization). MBQL on model 73: field Forecast Realization (Realized Profit\
+    \ MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far. Basis: model\
+    \ 73 Portfolio Overview."
+  "display": "progress"
+  "dataset_query":
+    "stages":
+    - "fields":
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "d39c691c-d5f3-4561-a840-4e84d42fc590"
+        - "Forecast Realization"
+      "lib/type": "mbql.stage/mbql"
+      "source-card": 73
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "progress.goal": 1
+    "progress.color": "#2a78d6"
+    "column_settings":
+      "[\"name\",\"Forecast Realization\"]":
+        "number_style": "percent"
+        "decimals": 1
+        "number_separators": ".,"
+  "basis": "model 73 Portfolio Overview"
+  "build_kind": "mbql"
+  "origin_question_id": 52
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

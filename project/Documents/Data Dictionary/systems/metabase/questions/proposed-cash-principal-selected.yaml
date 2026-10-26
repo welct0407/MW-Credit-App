@@ -1,0 +1,66 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Principal outstanding · selected date / 383"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "cash.principal-selected"
+  "id": 383
+  "name": "Principal outstanding · selected date"
+  "description": "Loan Reports · proposed (cash.principal-selected). Native, same routing as question 207, selecting Outstanding\
+    \ Principal. Basis: snippet 4 Cash position source routing (models 205, 73)."
+  "display": "scalar"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-205"
+        "name": "#205"
+        "display-name": "Model 205"
+        "card-id": 205
+      - "type": "card"
+        "id": "lrp-model-73"
+        "name": "#73"
+        "display-name": "Model 73"
+        "card-id": 73
+      - "widget-type": "date/all-options"
+        "id": "lrp-position-date"
+        "name": "position_date"
+        "display-name": "Date"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "309a5a02-c832-4f12-a0be-a8c1eeded09e"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date AS today),
+         dates AS (SELECT generate_series(coalesce((SELECT min("Date") FROM {{#205}}),c.today),c.today,interval '1 day')::date AS "Date" FROM clock c),
+         selected AS (SELECT max(d."Date") AS position_date FROM dates d WHERE true [[AND {{position_date}}]])
+        SELECT CASE WHEN s.position_date=c.today THEN (SELECT p."Outstanding Principal" FROM {{#73}} p LIMIT 1)
+         WHEN s.position_date<c.today THEN (SELECT p."Outstanding Principal" FROM {{#205}} p WHERE p."Date"=s.position_date ORDER BY p."Generated At" DESC NULLS LAST LIMIT 1) END AS "Outstanding Principal"
+        FROM selected s CROSS JOIN clock c
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "Outstanding Principal"
+    "column_settings":
+      "[\"name\",\"Outstanding Principal\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "basis": "snippet 4 Cash position source routing (models 205, 73)"
+  "build_kind": "native"
+  "origin_question_id": 207
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

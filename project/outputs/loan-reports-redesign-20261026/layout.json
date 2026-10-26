@@ -275,86 +275,291 @@
   "today.principal-smart": {
    "name": "Principal at work · change over the period",
    "display": "smartscalar",
+   "kind": "mbql",
    "basis": "model 74 Daily Performance",
+   "origin": 62,
    "params": [
     "period"
    ],
-   "definition": "MBQL on model 74: Outstanding Principal (max) by Date, filtered by Period on Date. Smart scalar shows the latest completed-day value and the change against the first date in the period. Whole baht.",
+   "definition": "MBQL on model 74: Outstanding Principal (max) by Date, filtered by Period on Date. Smart scalar shows the latest completed-day value and the change against the first date in the period (29 periods ago on the default 30-day Period). Whole baht.",
    "settings": {
     "scalar.compact_primary_number": false,
     "scalar.comparisons": [
      {
       "id": "first",
       "type": "periodsAgo",
-      "value": 30
+      "value": 29
      }
     ]
-   }
+   },
+   "reconcile": "Latest value equals question 62's last completed day; first value equals its first day (built, verified)."
   },
   "today.realization": {
    "name": "Interest this month · share of projection",
    "display": "progress",
+   "kind": "mbql",
    "basis": "model 73 Portfolio Overview",
+   "origin": 52,
    "params": [],
-   "definition": "MBQL on model 73: field Forecast Realization (Realized Profit MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far; the card description names the projected amount source.",
+   "definition": "MBQL on model 73: field Forecast Realization (Realized Profit MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far.",
    "settings": {
     "progress.goal": 1,
     "progress.color": "#2a78d6"
-   }
+   },
+   "reconcile": "Equals question 51 ÷ question 52 (built, verified)."
   },
   "today.collection-rate": {
-   "name": "Collected today · share of amount due",
+   "name": "Today's charges · paid share",
    "display": "progress",
+   "kind": "mbql",
    "basis": "model 73 Portfolio Overview",
+   "origin": 252,
    "params": [],
-   "definition": "MBQL on model 73: field Amount Collection Rate Today (Amount Collected Today ÷ Amount Due Today). Progress goal 1. Reused on Today and Collection.",
+   "definition": "MBQL on model 73: field Amount Collection Rate Today (Amount Collected Today ÷ Amount Due Today): the share of the charges dated today that is paid, not receipts. Progress goal 1. Placed on Today only; Collection shows the same share as question 252.",
    "settings": {
     "progress.goal": 1,
     "progress.color": "#067647"
-   }
+   },
+   "reconcile": "Equals model 73 Amount Collection Rate Today and question 252 (built, verified)."
+  },
+  "today.attention": {
+   "name": "Needs attention · strip",
+   "display": "table",
+   "kind": "native",
+   "basis": "models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270",
+   "origin": 240,
+   "params": [],
+   "definition": "One row per attention item with people and baht: 🟣 Overdue (count from model 162 as question 240, amount as question 254), 🔴 Not paid (model 162 count as 242, amount left), 🟠 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People, Amount ฿, Opens (kept in the SQL, hidden: the Item link and the title already say rows open pages), Tab and Tint (hidden; Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}. Replaces six chips with one card.",
+   "sql": "WITH s AS (SELECT \"Collection Status\" status,\"Borrower Count\" people,\"Amount Remaining\" remaining FROM {{#162}})\nSELECT v.\"Item\",v.\"People\",v.\"Amount ฿\",v.\"Opens\",v.\"Tab\",v.\"Tint\" FROM (VALUES\n (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','__TAB_COLLECTION__','overdue'),\n (2,'🔴 Not paid',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','__TAB_COLLECTION__','not_paid'),\n (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','__TAB_COLLECTION__','partial'),\n (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','__TAB_HEALTH__','')\n) v(ord,\"Item\",\"People\",\"Amount ฿\",\"Opens\",\"Tab\",\"Tint\") ORDER BY v.ord",
+   "settings": {
+    "table.pivot": false,
+    "column_settings": {
+     "[\"name\", \"Amount \\u0e3f\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Amount"
+     }
+    },
+    "table.column_widths": [
+     150,
+     90,
+     110
+    ],
+    "table.columns": [
+     {
+      "name": "Item",
+      "enabled": true
+     },
+     {
+      "name": "People",
+      "enabled": true
+     },
+     {
+      "name": "Amount ฿",
+      "enabled": true
+     },
+     {
+      "name": "Opens",
+      "enabled": false
+     },
+     {
+      "name": "Tab",
+      "enabled": false
+     },
+     {
+      "name": "Tint",
+      "enabled": false
+     }
+    ],
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Tint"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "overdue",
+      "color": "#7172AD",
+      "highlight_row": true
+     },
+     {
+      "id": 1,
+      "columns": [
+       "Tint"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "not_paid",
+      "color": "#ED6E6E",
+      "highlight_row": true
+     },
+     {
+      "id": 2,
+      "columns": [
+       "Tint"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "partial",
+      "color": "#F9A825",
+      "highlight_row": true
+     }
+    ]
+   },
+   "reconcile": "People: rows 1–3 equal questions 240, 242, 244; row 4 equals 270. Amount: row 1 equals 254; rows 2–3 equal model 162 Amount Remaining for the status (also the sum of the lane's Left column)."
+  },
+  "today.principal-top4": {
+   "name": "Principal by borrower · top four + others",
+   "display": "row",
+   "kind": "native",
+   "basis": "model 72 Borrower Performance",
+   "origin": 60,
+   "params": [],
+   "definition": "Native on model 72: borrowers with Principal Rank ≤ 4 named, the rest summed as \"Others (n)\" (n counts borrowers with principal above zero). Same total as question 60, four bars instead of ten.",
+   "sql": "WITH r AS (SELECT \"Borrower\",\"Outstanding Principal\" amount,\"Principal Rank\" rank FROM {{#72}})\nSELECT CASE WHEN rank<=4 THEN \"Borrower\" ELSE 'Others ('||(SELECT count(*) FROM r WHERE rank>4 AND amount>0)||')' END AS \"Borrower\",sum(amount) AS \"Amount ฿\",min(rank) AS \"Order\" FROM r GROUP BY 1 ORDER BY 3",
+   "settings": {
+    "graph.dimensions": [
+     "Borrower"
+    ],
+    "graph.metrics": [
+     "Amount ฿"
+    ],
+    "graph.show_values": true,
+    "graph.show_legend": false,
+    "graph.label_value_formatting": "full",
+    "graph.x_axis.title_enabled": false,
+    "graph.y_axis.title_enabled": false,
+    "graph.max_categories_enabled": false,
+    "graph.colors": [
+     "#178F8A"
+    ],
+    "column_settings": {
+     "[\"name\", \"Amount \\u0e3f\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
+   },
+   "reconcile": "Sum of the five bars equals the sum of question 60's bars; the four named bars equal question 60's first four."
+  },
+  "today.interest-top4": {
+   "name": "Interest · past 30 days by borrower · top four + others",
+   "display": "row",
+   "kind": "native",
+   "basis": "model 72 Borrower Performance",
+   "origin": 61,
+   "params": [],
+   "definition": "Native on model 72 with question 61's filter (Payments 30D > 0): Profit Rank ≤ 4 named, the rest summed as \"Others (n)\". Same total as question 61.",
+   "sql": "WITH r AS (SELECT \"Borrower\",\"Profit 30D\" amount,\"Profit Rank\" rank FROM {{#72}} WHERE \"Payments 30D\">0)\nSELECT CASE WHEN rank<=4 THEN \"Borrower\" ELSE 'Others ('||(SELECT count(*) FROM r WHERE rank>4)||')' END AS \"Borrower\",sum(amount) AS \"Amount ฿\",min(rank) AS \"Order\" FROM r GROUP BY 1 ORDER BY 3",
+   "settings": {
+    "graph.dimensions": [
+     "Borrower"
+    ],
+    "graph.metrics": [
+     "Amount ฿"
+    ],
+    "graph.show_values": true,
+    "graph.show_legend": false,
+    "graph.label_value_formatting": "full",
+    "graph.x_axis.title_enabled": false,
+    "graph.y_axis.title_enabled": false,
+    "graph.max_categories_enabled": false,
+    "graph.colors": [
+     "#7472BE"
+    ],
+    "column_settings": {
+     "[\"name\", \"Amount \\u0e3f\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
+   },
+   "reconcile": "Sum of the five bars equals the sum of question 61's bars; the four named bars equal question 61's first four."
   },
   "cash.pool-selected": {
    "name": "Total cash pool · selected date",
    "display": "scalar",
-   "basis": "snippet 4 Cash position source routing (models 205, 206, 164, 73)",
+   "kind": "native",
+   "basis": "snippet 4 Cash position source routing (models 205, 73)",
+   "origin": 207,
    "params": [
     "position-date"
    ],
    "definition": "Native, same routing as question 207: today reads model 73 Total Cash Pool, a past date reads model 205 Total Cash Pool for that date; blank when no snapshot exists.",
    "settings": {
     "scalar.field": "Total Cash Pool"
-   }
+   },
+   "reconcile": "Today equals question 47; a past date equals model 205 (built, verified)."
   },
   "cash.principal-selected": {
    "name": "Principal outstanding · selected date",
    "display": "scalar",
+   "kind": "native",
    "basis": "snippet 4 Cash position source routing (models 205, 73)",
+   "origin": 207,
    "params": [
     "position-date"
    ],
    "definition": "Native, same routing as question 207, selecting Outstanding Principal.",
    "settings": {
     "scalar.field": "Outstanding Principal"
-   }
+   },
+   "reconcile": "Today equals question 48; a past date equals model 205 (built, verified)."
+  },
+  "income.expenses": {
+   "name": "Expenses · statement period (positive)",
+   "display": "scalar",
+   "kind": "native",
+   "basis": "snippet 2 Income statement period",
+   "origin": 169,
+   "params": [
+    "statement-period"
+   ],
+   "definition": "Question 169's query with the sign flipped, so the equation band reads \"Income − Expenses = Net profit\" with the minus in the title and a positive magnitude in the card. Copies 169's template tags (statement_period, #186, snippet 2) and mapping.",
+   "sql": "WITH statement AS ({{snippet: Income statement period}}) SELECT -\"Operating Expenses\" AS \"Expenses\" FROM statement",
+   "settings": {
+    "scalar.field": "Expenses",
+    "column_settings": {
+     "[\"name\", \"Expenses\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
+   },
+   "reconcile": "Equals −(question 169) for the same Statement period."
   },
   "income.vs-previous": {
    "name": "This period and the previous period",
    "display": "table",
+   "kind": "native",
    "basis": "snippet 2 Income statement period (model 186 Income Events)",
+   "origin": 168,
    "params": [
     "statement-period"
    ],
-   "definition": "Native: for the selected statement period and the immediately preceding period of equal length, Income, Expenses, Net profit, Days and Net per day, plus change % of each. Two rows (This period, Previous period) and one Change row. Whole baht, one-decimal percent.",
+   "definition": "Native: for the selected statement period and the immediately preceding period of equal length, one row per measure (Income, Expenses, Net profit, Net profit per day) with This period, Previous period, Change and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent.",
    "settings": {
-    "table.column_formatting": "change row: positive green, negative red"
-   }
+    "table.column_formatting": "Change and Change % columns: positive green, negative red"
+   },
+   "reconcile": "This period equals 168–171; previous equals them with the preceding range (built, verified)."
   },
   "income.monthly": {
    "name": "Monthly income, expenses and net profit",
    "display": "bar",
+   "kind": "mbql",
    "basis": "model 186 Income Events",
+   "origin": 213,
    "params": [],
-   "definition": "MBQL on model 186: sum Income, sum Expenses and sum (Income − Expenses) by Date month, filtered to the previous five complete months plus the current month. Current month is partial and labelled \"to date\" in the card description.",
+   "definition": "MBQL on model 186: sum Income, sum Expenses and sum (Income − Expenses) by Date month, the previous five complete months plus the current month (partial). One shared y-axis so expenses read at true scale.",
    "settings": {
     "graph.dimensions": [
      "Date"
@@ -364,18 +569,23 @@
      "Expenses",
      "Net profit"
     ],
-    "graph.show_values": true
-   }
+    "graph.show_values": true,
+    "graph.y_axis.auto_split": false
+   },
+   "reconcile": "Each month equals the model 186 month sums (built, verified)."
   },
   "cashflow.by-type-row": {
    "name": "Cash movement by transaction type · chart",
    "display": "row",
+   "kind": "native",
    "basis": "snippet 3 Cashflow statement period (same query as question 203)",
+   "origin": 203,
    "params": [
     "statement-period",
     "account"
    ],
-   "definition": "Native: question 203's query unchanged, displayed as a horizontal bar of Money in and Money out per transaction type. Question 203 stays the table beside it.",
+   "definition": "Question 203's query wrapped: TOTAL row and rows with no movement removed, ordered by Money In + Money Out descending. Horizontal bars of Money In (green) and Money Out (red), stacked (stackable.stack_type = stacked): on this version Metabase folds unstacked row-chart categories into \"Other (n)\" regardless of graph.max_categories_enabled; each type moves money one way, so stacking changes nothing visually.",
+   "sql_wrap": "SELECT * FROM (<203>) t WHERE t.\"Transaction Type\"<>'TOTAL' AND (coalesce(t.\"Money In\",0)<>0 OR coalesce(t.\"Money Out\",0)<>0) ORDER BY coalesce(t.\"Money In\",0)+coalesce(t.\"Money Out\",0) DESC,t.\"Transaction Type\"",
    "settings": {
     "graph.dimensions": [
      "Transaction Type"
@@ -383,34 +593,856 @@
     "graph.metrics": [
      "Money In",
      "Money Out"
-    ]
-   }
+    ],
+    "graph.show_values": true,
+    "stackable.stack_type": "stacked",
+    "graph.x_axis.title_enabled": false,
+    "graph.y_axis.title_enabled": false,
+    "series_settings": {
+     "Money In": {
+      "color": "#13855B"
+     },
+     "Money Out": {
+      "color": "#D1495B"
+     }
+    }
+   },
+   "reconcile": "Row set equals question 203 without TOTAL and zero rows, for three period/account cases."
   },
   "perf.vs-previous": {
    "name": "This period and the previous period",
    "display": "table",
+   "kind": "native",
    "basis": "models 71 Repayment Ledger and 70 Loan Book (pattern of questions 217–219)",
+   "origin": 217,
    "params": [
     "period"
    ],
-   "definition": "Native: for the selected Period and the preceding period of equal length, Gross interest, Principal issued, Loans issued and Principal returned, with change %. Same date rules as questions 217–219 (loan dates and payment dates both use the filter).",
+   "definition": "Native: for the selected Period and the preceding period of equal length, one row per measure: Gross interest, Principal issued, Loans issued, Principal returned and Net principal deployed (issued − returned), with This period, Previous period, Change and Change %. Same date rules as questions 217–219.",
    "settings": {
-    "table.column_formatting": "change row: positive green, negative red"
-   }
+    "table.column_formatting": "Change and Change % columns: positive green, negative red"
+   },
+   "reconcile": "Rows 1–3 equal 217–219 (built, verified); row 5 equals question 234 for the same Period; previous equals the preceding range."
+  },
+  "borrowers.principal-top5": {
+   "name": "Principal outstanding by borrower · top five + others",
+   "display": "row",
+   "kind": "native",
+   "basis": "view reporting_borrower_directory_v1 (same query as question 285)",
+   "origin": 285,
+   "params": [
+    "population"
+   ],
+   "definition": "Question 285's query with rank<=10 changed to rank<=5 (both occurrences) and the label 'Others' replaced by 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(outstanding_principal,0)<>0)||')' (n counts only borrowers with a non-zero amount). Template tag population copied verbatim; maps `population` as 285 maps bp-population.",
+   "settings": {
+    "graph.dimensions": [
+     "Borrower"
+    ],
+    "graph.metrics": [
+     "Amount ฿"
+    ],
+    "graph.show_values": true,
+    "graph.show_legend": false,
+    "graph.label_value_formatting": "full",
+    "graph.max_categories_enabled": false,
+    "graph.colors": [
+     "#178F8A"
+    ],
+    "graph.x_axis.title_enabled": false,
+    "graph.y_axis.title_enabled": false,
+    "copy_from_origin": [
+     "click_behavior"
+    ]
+   },
+   "reconcile": "Sum of bars equals the sum of question 285's bars; the five named bars equal 285's first five, for two Population values."
+  },
+  "borrowers.interest-top5": {
+   "name": "Interest received · period by borrower · top five + others",
+   "display": "row",
+   "kind": "native",
+   "basis": "function reporting_borrower_period_v1 (same query as question 286)",
+   "origin": 286,
+   "params": [
+    "period",
+    "population"
+   ],
+   "definition": "Question 286's query with the same two edits as borrowers.principal-top5, the count being (SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(interest_received,0)<>0). Template tags period and population copied verbatim; maps `period` and `population` as 286 maps bp-period and bp-population.",
+   "settings": {
+    "graph.dimensions": [
+     "Borrower"
+    ],
+    "graph.metrics": [
+     "Amount ฿"
+    ],
+    "graph.show_values": true,
+    "graph.show_legend": false,
+    "graph.label_value_formatting": "full",
+    "graph.max_categories_enabled": false,
+    "graph.colors": [
+     "#7472BE"
+    ],
+    "graph.x_axis.title_enabled": false,
+    "graph.y_axis.title_enabled": false,
+    "copy_from_origin": [
+     "click_behavior"
+    ]
+   },
+   "reconcile": "Sum of bars equals the sum of question 286's bars; named bars equal 286's first five, for two Periods."
+  },
+  "collection.people": {
+   "name": "People paid today · x of n",
+   "display": "scalar",
+   "kind": "native",
+   "basis": "model 162 Collection Status Summary",
+   "origin": 239,
+   "params": [],
+   "definition": "Text scalar \"<fully paid> of <people with a status today> paid\" from model 162 Borrower Count. Replaces the percent card 239 with the prototype's wording.",
+   "sql": "SELECT coalesce(sum(\"Borrower Count\") FILTER (WHERE \"Collection Status\"='Fully Paid'),0)||' of '||coalesce(sum(\"Borrower Count\"),0)||' paid' AS \"People paid\" FROM {{#162}}",
+   "settings": {
+    "scalar.field": "People paid"
+   },
+   "reconcile": "First number equals question 246; first ÷ second equals question 239."
+  },
+  "collection.board": {
+   "name": "Collection board · lanes summary",
+   "display": "table",
+   "kind": "native",
+   "basis": "model 162 Collection Status Summary",
+   "origin": 242,
+   "params": [],
+   "definition": "One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, 🟢 Fully paid; all four always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card.",
+   "sql": "WITH lanes(ord,status,label,tint) AS (VALUES (1,'Not Paid','🔴 Not paid','not_paid'),(2,'Partially Paid','🟠 Partially paid','partial'),(3,'Overdue','🟣 Overdue','overdue'),(4,'Fully Paid','🟢 Fully paid','paid')),\n rows AS (SELECT l.ord,l.label,l.tint,coalesce(s.\"Borrower Count\",0) people,coalesce(s.\"Amount Remaining\",0) remaining,coalesce(s.\"Receipts Today\",0) received FROM lanes l LEFT JOIN {{#162}} s ON s.\"Collection Status\"=l.status\n UNION ALL SELECT 9,'⚪ '||coalesce(s.\"Collection Status\",'Unclassified'),'',s.\"Borrower Count\",s.\"Amount Remaining\",s.\"Receipts Today\" FROM {{#162}} s WHERE s.\"Collection Status\" IS NULL OR s.\"Collection Status\" NOT IN ('Not Paid','Partially Paid','Overdue','Fully Paid'))\nSELECT label AS \"Lane\",people AS \"People\",remaining AS \"Left ฿\",received AS \"Received ฿\",tint AS \"Tint\" FROM rows ORDER BY ord,label",
+   "settings": {
+    "table.pivot": false,
+    "column_settings": {
+     "[\"name\", \"Left \\u0e3f\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Left"
+     },
+     "[\"name\", \"Received \\u0e3f\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Received"
+     }
+    },
+    "table.column_widths": [
+     110,
+     75,
+     69,
+     86
+    ],
+    "table.columns": [
+     {
+      "name": "Lane",
+      "enabled": true
+     },
+     {
+      "name": "People",
+      "enabled": true
+     },
+     {
+      "name": "Left ฿",
+      "enabled": true
+     },
+     {
+      "name": "Received ฿",
+      "enabled": true
+     },
+     {
+      "name": "Tint",
+      "enabled": false
+     }
+    ],
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Tint"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "not_paid",
+      "color": "#ED6E6E",
+      "highlight_row": true
+     },
+     {
+      "id": 1,
+      "columns": [
+       "Tint"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "partial",
+      "color": "#F9A825",
+      "highlight_row": true
+     },
+     {
+      "id": 2,
+      "columns": [
+       "Tint"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "overdue",
+      "color": "#7172AD",
+      "highlight_row": true
+     },
+     {
+      "id": 3,
+      "columns": [
+       "Tint"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "paid",
+      "color": "#1E9F5A",
+      "highlight_row": true
+     }
+    ]
+   },
+   "reconcile": "People per lane equal questions 242, 244, 240, 246; the ⚪ rows' People sum equals question 251; Left ฿ per lane equals the sum of that lane table's Left column."
+  },
+  "collection.lane-not-paid": {
+   "name": "🔴 Not paid · lane",
+   "display": "table",
+   "kind": "mbql",
+   "basis": "model 77 Collection Worklist",
+   "origin": 243,
+   "params": [],
+   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Not Paid'; fields ['Borrower', 'Amount Due', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 243, resorted. Column titles Name / Due / Left; widths [80, 76, 76] px for the three visible columns.",
+   "query": {
+    "source-table": "card__77",
+    "filter": [
+     "=",
+     [
+      "field",
+      "Daily Collection Status",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     "Not Paid"
+    ],
+    "fields": [
+     [
+      "field",
+      "Borrower",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     [
+      "field",
+      "Amount Due",
+      {
+       "base-type": "type/Decimal"
+      }
+     ],
+     [
+      "field",
+      "Amount Remaining",
+      {
+       "base-type": "type/Decimal"
+      }
+     ],
+     [
+      "field",
+      "Borrower ID",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     [
+      "field",
+      "Daily Collection Status",
+      {
+       "base-type": "type/Text"
+      }
+     ]
+    ],
+    "order-by": [
+     [
+      "desc",
+      [
+       "field",
+       "Amount Remaining",
+       {
+        "base-type": "type/Decimal"
+       }
+      ]
+     ],
+     [
+      "asc",
+      [
+       "field",
+       "Borrower",
+       {
+        "base-type": "type/Text"
+       }
+      ]
+     ]
+    ]
+   },
+   "settings": {
+    "table.pivot": false,
+    "table.columns": [
+     {
+      "name": "Borrower",
+      "enabled": true
+     },
+     {
+      "name": "Amount Due",
+      "enabled": true
+     },
+     {
+      "name": "Amount Remaining",
+      "enabled": true
+     },
+     {
+      "name": "Borrower ID",
+      "enabled": false
+     },
+     {
+      "name": "Daily Collection Status",
+      "enabled": false
+     }
+    ],
+    "table.column_widths": [
+     80,
+     76,
+     76
+    ],
+    "column_settings": {
+     "[\"name\", \"Borrower\"]": {
+      "column_title": "Name"
+     },
+     "[\"name\", \"Amount Due\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Due"
+     },
+     "[\"name\", \"Amount Remaining\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Left"
+     }
+    },
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Daily Collection Status"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "Not Paid",
+      "color": "#ED6E6E",
+      "highlight_row": true
+     }
+    ],
+    "copy_from_origin": [
+     "click_behavior"
+    ]
+   },
+   "reconcile": "Same Borrower set and the same values per borrower as question 243 (order differs)."
+  },
+  "collection.lane-partial": {
+   "name": "🟠 Partially paid · lane",
+   "display": "table",
+   "kind": "mbql",
+   "basis": "model 77 Collection Worklist",
+   "origin": 245,
+   "params": [],
+   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Partially Paid'; fields ['Borrower', 'Receipts Today', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 245, resorted. Column titles Name / Paid / Left; widths [80, 76, 76] px for the three visible columns.",
+   "query": {
+    "source-table": "card__77",
+    "filter": [
+     "=",
+     [
+      "field",
+      "Daily Collection Status",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     "Partially Paid"
+    ],
+    "fields": [
+     [
+      "field",
+      "Borrower",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     [
+      "field",
+      "Receipts Today",
+      {
+       "base-type": "type/Decimal"
+      }
+     ],
+     [
+      "field",
+      "Amount Remaining",
+      {
+       "base-type": "type/Decimal"
+      }
+     ],
+     [
+      "field",
+      "Borrower ID",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     [
+      "field",
+      "Daily Collection Status",
+      {
+       "base-type": "type/Text"
+      }
+     ]
+    ],
+    "order-by": [
+     [
+      "desc",
+      [
+       "field",
+       "Amount Remaining",
+       {
+        "base-type": "type/Decimal"
+       }
+      ]
+     ],
+     [
+      "asc",
+      [
+       "field",
+       "Borrower",
+       {
+        "base-type": "type/Text"
+       }
+      ]
+     ]
+    ]
+   },
+   "settings": {
+    "table.pivot": false,
+    "table.columns": [
+     {
+      "name": "Borrower",
+      "enabled": true
+     },
+     {
+      "name": "Receipts Today",
+      "enabled": true
+     },
+     {
+      "name": "Amount Remaining",
+      "enabled": true
+     },
+     {
+      "name": "Borrower ID",
+      "enabled": false
+     },
+     {
+      "name": "Daily Collection Status",
+      "enabled": false
+     }
+    ],
+    "table.column_widths": [
+     80,
+     76,
+     76
+    ],
+    "column_settings": {
+     "[\"name\", \"Borrower\"]": {
+      "column_title": "Name"
+     },
+     "[\"name\", \"Receipts Today\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Paid"
+     },
+     "[\"name\", \"Amount Remaining\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Left"
+     }
+    },
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Daily Collection Status"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "Partially Paid",
+      "color": "#F9A825",
+      "highlight_row": true
+     }
+    ],
+    "copy_from_origin": [
+     "click_behavior"
+    ]
+   },
+   "reconcile": "Same Borrower set and the same values per borrower as question 245 (order differs)."
+  },
+  "collection.lane-overdue": {
+   "name": "🟣 Overdue · lane",
+   "display": "table",
+   "kind": "mbql",
+   "basis": "model 77 Collection Worklist",
+   "origin": 241,
+   "params": [],
+   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as question 241, resorted. Column titles Name / Overdue / Left; widths [72, 90, 70] px for the three visible columns.",
+   "query": {
+    "source-table": "card__77",
+    "filter": [
+     "=",
+     [
+      "field",
+      "Daily Collection Status",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     "Overdue"
+    ],
+    "fields": [
+     [
+      "field",
+      "Borrower",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     [
+      "field",
+      "Overdue Amount",
+      {
+       "base-type": "type/Decimal"
+      }
+     ],
+     [
+      "field",
+      "Amount Remaining",
+      {
+       "base-type": "type/Decimal"
+      }
+     ],
+     [
+      "field",
+      "Borrower ID",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     [
+      "field",
+      "Daily Collection Status",
+      {
+       "base-type": "type/Text"
+      }
+     ]
+    ],
+    "order-by": [
+     [
+      "desc",
+      [
+       "field",
+       "Overdue Amount",
+       {
+        "base-type": "type/Decimal"
+       }
+      ]
+     ],
+     [
+      "asc",
+      [
+       "field",
+       "Borrower",
+       {
+        "base-type": "type/Text"
+       }
+      ]
+     ]
+    ]
+   },
+   "settings": {
+    "table.pivot": false,
+    "table.columns": [
+     {
+      "name": "Borrower",
+      "enabled": true
+     },
+     {
+      "name": "Overdue Amount",
+      "enabled": true
+     },
+     {
+      "name": "Amount Remaining",
+      "enabled": true
+     },
+     {
+      "name": "Borrower ID",
+      "enabled": false
+     },
+     {
+      "name": "Daily Collection Status",
+      "enabled": false
+     }
+    ],
+    "table.column_widths": [
+     72,
+     90,
+     70
+    ],
+    "column_settings": {
+     "[\"name\", \"Borrower\"]": {
+      "column_title": "Name"
+     },
+     "[\"name\", \"Overdue Amount\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Overdue"
+     },
+     "[\"name\", \"Amount Remaining\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Left"
+     }
+    },
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Daily Collection Status"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "Overdue",
+      "color": "#7172AD",
+      "highlight_row": true
+     }
+    ],
+    "copy_from_origin": [
+     "click_behavior"
+    ]
+   },
+   "reconcile": "Same Borrower set and the same values per borrower as question 241 (order differs)."
+  },
+  "collection.lane-paid": {
+   "name": "🟢 Fully paid · lane",
+   "display": "table",
+   "kind": "mbql",
+   "basis": "model 77 Collection Worklist",
+   "origin": 247,
+   "params": [],
+   "definition": "MBQL on model 77 filtered Daily Collection Status = 'Fully Paid'; fields ['Borrower', 'Receipts Today', 'Amount Due', 'Borrower ID', 'Daily Collection Status']; ORDER BY Receipts Today desc, Borrower asc. Same rows as question 247, resorted. Column titles Name / Paid / Due; widths [80, 76, 76] px for the three visible columns.",
+   "query": {
+    "source-table": "card__77",
+    "filter": [
+     "=",
+     [
+      "field",
+      "Daily Collection Status",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     "Fully Paid"
+    ],
+    "fields": [
+     [
+      "field",
+      "Borrower",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     [
+      "field",
+      "Receipts Today",
+      {
+       "base-type": "type/Decimal"
+      }
+     ],
+     [
+      "field",
+      "Amount Due",
+      {
+       "base-type": "type/Decimal"
+      }
+     ],
+     [
+      "field",
+      "Borrower ID",
+      {
+       "base-type": "type/Text"
+      }
+     ],
+     [
+      "field",
+      "Daily Collection Status",
+      {
+       "base-type": "type/Text"
+      }
+     ]
+    ],
+    "order-by": [
+     [
+      "desc",
+      [
+       "field",
+       "Receipts Today",
+       {
+        "base-type": "type/Decimal"
+       }
+      ]
+     ],
+     [
+      "asc",
+      [
+       "field",
+       "Borrower",
+       {
+        "base-type": "type/Text"
+       }
+      ]
+     ]
+    ]
+   },
+   "settings": {
+    "table.pivot": false,
+    "table.columns": [
+     {
+      "name": "Borrower",
+      "enabled": true
+     },
+     {
+      "name": "Receipts Today",
+      "enabled": true
+     },
+     {
+      "name": "Amount Due",
+      "enabled": true
+     },
+     {
+      "name": "Borrower ID",
+      "enabled": false
+     },
+     {
+      "name": "Daily Collection Status",
+      "enabled": false
+     }
+    ],
+    "table.column_widths": [
+     80,
+     76,
+     76
+    ],
+    "column_settings": {
+     "[\"name\", \"Borrower\"]": {
+      "column_title": "Name"
+     },
+     "[\"name\", \"Receipts Today\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Paid"
+     },
+     "[\"name\", \"Amount Due\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false,
+      "column_title": "Due"
+     }
+    },
+    "table.column_formatting": [
+     {
+      "id": 0,
+      "columns": [
+       "Daily Collection Status"
+      ],
+      "type": "single",
+      "operator": "=",
+      "value": "Fully Paid",
+      "color": "#1E9F5A",
+      "highlight_row": true
+     }
+    ],
+    "copy_from_origin": [
+     "click_behavior"
+    ]
+   },
+   "reconcile": "Same Borrower set and the same values per borrower as question 247 (order differs)."
+  },
+  "partners.statement": {
+   "name": "Partner positions · statement",
+   "display": "table",
+   "kind": "native",
+   "basis": "model 318 Partners · position source (same query as question 330)",
+   "origin": 330,
+   "params": [
+    "partner"
+   ],
+   "definition": "Question 330's query as a CTE, unpivoted to (Measure, Partner, Amount ฿) for the five statement measures Net capital, Net earned to date, Completed payouts, Pending settlements, Net available; shown pivoted (measures as rows, partners as columns) with table.pivot. Template tags partner and #318 copied; maps `partner` as 330 maps pt-partner. If table.pivot does not render for a native result on this version, the fallback is question 330 reused with columns limited to Partner and the five measures.",
+   "sql_wrap": "WITH p AS (<330>) SELECT m.\"Measure\",p.\"Partner\",m.amount AS \"Amount ฿\" FROM p CROSS JOIN LATERAL (VALUES (1,'Net capital ฿',p.\"Net capital ฿\"),(2,'Net earned to date ฿',p.\"Net earned ฿\"),(3,'Completed payouts ฿',p.\"Paid ฿\"),(4,'Pending settlements ฿',p.\"Pending ฿\"),(5,'Net available ฿',p.\"Net available ฿\")) m(ord,\"Measure\",amount) ORDER BY m.ord,p.\"Partner\"",
+   "settings": {
+    "table.pivot": true,
+    "table.pivot_column": "Partner",
+    "table.cell_column": "Amount ฿",
+    "column_settings": {
+     "[\"name\", \"Amount \\u0e3f\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
+   },
+   "reconcile": "Every (Measure, Partner) cell equals the matching column of question 330 for the same Partner filter."
   },
   "partners.capital-share-row": {
    "name": "Capital share · full pool",
    "display": "row",
+   "kind": "native",
    "basis": "model 318 Partners · position source (same query as question 331)",
+   "origin": 331,
    "params": [
     "partner"
    ],
-   "definition": "Native: question 331's query unchanged, displayed as a horizontal bar with the share percent as the value label. Replaces the two-slice pie.",
+   "definition": "Question 331's query with Capital share % (each row's share of the rows) as the plotted value.",
    "settings": {
-    "graph.show_values": true
-   }
+    "graph.show_values": true,
+    "graph.max_categories_enabled": false
+   },
+   "reconcile": "Rows equal question 331 (built, verified)."
   }
  },
+ "phone_model": "Metabase renders one column below about 760 px: every card full width, in grid order (row, then column), with a fixed height per display type (numbers and text about 4 units, tables, charts and iframes 6). There is no per-device layout, no side-by-side pair and no phone column set; the design therefore reduces card counts on the daily pages (Today, Collection) and keeps the desktop order as the phone order.",
  "tabs": [
   {
    "key": "today",
@@ -426,7 +1458,10 @@
      "size_x": 18,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before expenses.",
+     "text": "**Today** · live on refresh · trends from completed-day snapshots.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -468,7 +1503,7 @@
      "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 51,
-     "title": "Interest this month · realized",
+     "title": "Interest this month",
      "params": [
       "period"
      ]
@@ -487,168 +1522,117 @@
     {
      "row": 5,
      "col": 0,
-     "size_x": 8,
-     "size_y": 4,
-     "reuse_card_id": 68,
-     "title": "Capital deployed · live",
-     "params": [
-      "period"
-     ]
-    },
-    {
-     "row": 5,
-     "col": 8,
-     "size_x": 8,
-     "size_y": 4,
+     "size_x": 12,
+     "size_y": 3,
      "new_question": "today.realization",
-     "title": "Interest this month · share of projection",
+     "title": "Interest this month · of projection",
      "params": [
       "period"
      ]
     },
     {
      "row": 5,
-     "col": 16,
-     "size_x": 8,
-     "size_y": 4,
+     "col": 12,
+     "size_x": 12,
+     "size_y": 3,
      "new_question": "today.collection-rate",
-     "title": "Collected today · share of amount due",
+     "title": "Today's charges · paid",
      "params": [
       "period"
      ]
     },
     {
-     "row": 9,
+     "row": 8,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
-     "virtual": "heading",
-     "text": "Needs attention · chips open Collection and Borrower Health",
-     "params": []
-    },
-    {
-     "row": 10,
-     "col": 0,
-     "size_x": 4,
-     "size_y": 2,
-     "reuse_card_id": 240,
-     "title": "🟣 Overdue · people",
+     "size_y": 6,
+     "new_question": "today.attention",
+     "title": "Needs attention · rows open pages",
+     "description": "Click a row to open Collection or Borrower Health.",
      "params": [
       "period"
      ]
     },
     {
-     "row": 10,
-     "col": 4,
-     "size_x": 4,
-     "size_y": 2,
-     "reuse_card_id": 254,
-     "title": "Overdue ฿",
-     "params": [
-      "period"
-     ]
-    },
-    {
-     "row": 10,
-     "col": 8,
-     "size_x": 4,
-     "size_y": 2,
-     "reuse_card_id": 242,
-     "title": "🔴 Not paid today",
-     "params": [
-      "period"
-     ]
-    },
-    {
-     "row": 10,
-     "col": 12,
-     "size_x": 4,
-     "size_y": 2,
-     "reuse_card_id": 244,
-     "title": "🟠 Partially paid",
-     "params": [
-      "period"
-     ]
-    },
-    {
-     "row": 10,
-     "col": 16,
-     "size_x": 4,
-     "size_y": 2,
-     "reuse_card_id": 270,
-     "title": "Modified plans",
-     "params": [
-      "period"
-     ]
-    },
-    {
-     "row": 10,
-     "col": 20,
-     "size_x": 4,
-     "size_y": 2,
-     "reuse_card_id": 251,
-     "title": "Unclassified · expect 0",
-     "params": [
-      "period"
-     ]
-    },
-    {
-     "row": 12,
+     "row": 14,
      "col": 0,
      "size_x": 12,
      "size_y": 7,
      "reuse_card_id": 62,
      "title": "Principal at work · daily close",
-     "note": "goal line = principal reference 120,000",
+     "note": "goal line = principal reference 120,000; series blue (red is a status colour)",
+     "vs": {
+      "graph.show_goal": true,
+      "graph.goal_value": 120000,
+      "graph.goal_label": "Principal reference 120,000",
+      "graph.show_values": false,
+      "series_settings": {
+       "COLUMN_2": {
+        "color": "#509EE3"
+       }
+      },
+      "graph.colors": [
+       "#509EE3"
+      ]
+     },
      "params": [
       "period"
      ]
     },
     {
-     "row": 12,
+     "row": 14,
      "col": 12,
      "size_x": 12,
      "size_y": 7,
      "reuse_card_id": 222,
      "title": "Daily gross interest · 7-day average",
-     "note": "goal line = daily interest goal 10,000",
+     "note": "goal line = daily interest goal 10,000; value labels off so they do not collide with the goal label",
+     "vs": {
+      "graph.show_goal": true,
+      "graph.goal_value": 10000,
+      "graph.goal_label": "Daily interest goal 10,000",
+      "graph.show_values": false
+     },
      "params": [
       "period"
      ]
     },
     {
-     "row": 19,
+     "row": 21,
      "col": 0,
      "size_x": 12,
      "size_y": 7,
-     "reuse_card_id": 60,
-     "title": "Principal by borrower · top four + others",
+     "new_question": "today.principal-top4",
+     "title": "Principal by borrower · top 4 + others",
      "params": [
       "period"
      ]
     },
     {
-     "row": 19,
+     "row": 21,
      "col": 12,
      "size_x": 12,
      "size_y": 7,
-     "reuse_card_id": 61,
-     "title": "Interest · past 30 days by borrower",
+     "new_question": "today.interest-top4",
+     "title": "Interest 30d by borrower · top 4 + rest",
      "params": [
       "period"
      ]
     },
     {
-     "row": 26,
+     "row": 28,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Card descriptions hold the exact definitions. Profit means gross interest before expenses.",
+     "text": "Profit = gross interest before expenses · definitions in card descriptions.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 27,
+   "height_rows": 30,
    "dropped_from_dashboard_3": [
     47,
     50,
@@ -660,7 +1644,16 @@
     58,
     59,
     63,
-    64
+    64,
+    68,
+    60,
+    61,
+    240,
+    254,
+    242,
+    244,
+    270,
+    251
    ]
   },
   {
@@ -678,7 +1671,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Cash position** · Date selects the position (today = live, past dates = hourly snapshot). Lending capital is not a bank balance; net cash includes negative balances.",
+     "text": "**Cash position** · Date = today is live, a past date is the snapshot.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -757,16 +1753,17 @@
      "row": 11,
      "col": 0,
      "size_x": 24,
-     "size_y": 7,
+     "size_y": 6,
      "reuse_card_id": 211,
-     "title": "Account balances · selected date (signed)",
+     "title": "Account balances · selected date",
+     "description": "Signed balances; negative balances count.",
      "params": [
       "position-date",
       "period"
      ]
     },
     {
-     "row": 18,
+     "row": 17,
      "col": 0,
      "size_x": 24,
      "size_y": 7,
@@ -777,12 +1774,15 @@
      ]
     },
     {
-     "row": 25,
+     "row": 24,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab.",
+     "text": "Unknown openings stay blank · source and freshness: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
@@ -807,7 +1807,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit = gross interest − expenses.",
+     "text": "**Income statement** · live · net profit = gross interest − expenses.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -826,7 +1829,7 @@
      "col": 8,
      "size_x": 8,
      "size_y": 3,
-     "reuse_card_id": 169,
+     "new_question": "income.expenses",
      "title": "− Expenses",
      "params": [
       "statement-period"
@@ -847,9 +1850,10 @@
      "row": 5,
      "col": 0,
      "size_x": 16,
-     "size_y": 4,
+     "size_y": 6,
      "new_question": "income.vs-previous",
      "title": "This period and the previous period",
+     "note": "height fits the four measure rows",
      "params": [
       "statement-period"
      ]
@@ -858,7 +1862,7 @@
      "row": 5,
      "col": 16,
      "size_x": 8,
-     "size_y": 4,
+     "size_y": 6,
      "reuse_card_id": 171,
      "title": "Net profit per day · calendar days",
      "params": [
@@ -866,7 +1870,7 @@
      ]
     },
     {
-     "row": 9,
+     "row": 11,
      "col": 0,
      "size_x": 16,
      "size_y": 8,
@@ -877,7 +1881,7 @@
      ]
     },
     {
-     "row": 9,
+     "row": 11,
      "col": 16,
      "size_x": 8,
      "size_y": 8,
@@ -888,18 +1892,18 @@
      ]
     },
     {
-     "row": 17,
+     "row": 19,
      "col": 0,
      "size_x": 24,
      "size_y": 7,
      "reuse_card_id": 213,
-     "title": "Daily income and expenses · completed days",
+     "title": "Daily income and expenses · snapshots",
      "params": [
       "statement-period"
      ]
     },
     {
-     "row": 24,
+     "row": 26,
      "col": 0,
      "size_x": 24,
      "size_y": 7,
@@ -910,20 +1914,24 @@
      ]
     },
     {
-     "row": 31,
+     "row": 33,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab.",
+     "text": "Per-day average uses calendar days · freshness: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 32,
+   "height_rows": 35,
    "dropped_from_dashboard_3": [
     184,
     204,
-    214
+    214,
+    169
    ]
   },
   {
@@ -941,7 +1949,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable.",
+     "text": "**Cashflow statement** · live · All accounts nets transfers to zero.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -1020,28 +2031,33 @@
      "row": 12,
      "col": 0,
      "size_x": 24,
-     "size_y": 6,
+     "size_y": 10,
      "reuse_card_id": 203,
-     "title": "Cash movement by transaction type · table",
+     "title": "Movement by transaction type · table",
+     "note": "height fits all nine type rows",
      "params": [
       "statement-period",
       "account"
      ]
     },
     {
-     "row": 18,
+     "row": 22,
      "col": 0,
      "size_x": 24,
      "size_y": 7,
      "reuse_card_id": 215,
      "title": "Daily cash movement · completed days",
+     "note": "value labels off: they overlapped",
+     "vs": {
+      "graph.show_values": false
+     },
      "params": [
       "statement-period",
       "account"
      ]
     },
     {
-     "row": 25,
+     "row": 29,
      "col": 0,
      "size_x": 24,
      "size_y": 10,
@@ -1053,16 +2069,19 @@
      ]
     },
     {
-     "row": 35,
+     "row": 39,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab.",
+     "text": "Repayments keep their recorded type · freshness: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 36,
+   "height_rows": 41,
    "dropped_from_dashboard_3": [
     198,
     216
@@ -1082,13 +2101,16 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use Period.",
+     "text": "**Performance** · totals live · trends from snapshots · Period sets dates.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
      "row": 2,
      "col": 0,
-     "size_x": 5,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 217,
      "title": "Gross interest",
@@ -1098,8 +2120,8 @@
     },
     {
      "row": 2,
-     "col": 5,
-     "size_x": 5,
+     "col": 6,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 218,
      "title": "Principal issued",
@@ -1109,8 +2131,8 @@
     },
     {
      "row": 2,
-     "col": 10,
-     "size_x": 4,
+     "col": 12,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 219,
      "title": "Loans issued",
@@ -1120,19 +2142,8 @@
     },
     {
      "row": 2,
-     "col": 14,
-     "size_x": 5,
-     "size_y": 3,
-     "reuse_card_id": 234,
-     "title": "Net principal deployed",
-     "params": [
-      "period"
-     ]
-    },
-    {
-     "row": 2,
-     "col": 19,
-     "size_x": 5,
+     "col": 18,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 235,
      "title": "Loan-cohort return",
@@ -1144,15 +2155,16 @@
      "row": 5,
      "col": 0,
      "size_x": 24,
-     "size_y": 4,
+     "size_y": 7,
      "new_question": "perf.vs-previous",
      "title": "This period and the previous period",
+     "note": "five measure rows incl. Net principal deployed (formerly card 234)",
      "params": [
       "period"
      ]
     },
     {
-     "row": 9,
+     "row": 12,
      "col": 0,
      "size_x": 12,
      "size_y": 7,
@@ -1163,18 +2175,24 @@
      ]
     },
     {
-     "row": 9,
+     "row": 12,
      "col": 12,
      "size_x": 12,
      "size_y": 7,
      "reuse_card_id": 222,
      "title": "Daily gross interest · 7-day average",
+     "vs": {
+      "graph.show_goal": true,
+      "graph.goal_value": 10000,
+      "graph.goal_label": "Daily interest goal 10,000",
+      "graph.show_values": false
+     },
      "params": [
       "period"
      ]
     },
     {
-     "row": 16,
+     "row": 19,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -1183,7 +2201,7 @@
      "params": []
     },
     {
-     "row": 17,
+     "row": 20,
      "col": 0,
      "size_x": 8,
      "size_y": 6,
@@ -1194,7 +2212,7 @@
      ]
     },
     {
-     "row": 17,
+     "row": 20,
      "col": 8,
      "size_x": 8,
      "size_y": 6,
@@ -1205,7 +2223,7 @@
      ]
     },
     {
-     "row": 17,
+     "row": 20,
      "col": 16,
      "size_x": 8,
      "size_y": 6,
@@ -1216,7 +2234,7 @@
      ]
     },
     {
-     "row": 23,
+     "row": 26,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -1225,7 +2243,7 @@
      "params": []
     },
     {
-     "row": 24,
+     "row": 27,
      "col": 0,
      "size_x": 12,
      "size_y": 6,
@@ -1236,7 +2254,7 @@
      ]
     },
     {
-     "row": 24,
+     "row": 27,
      "col": 12,
      "size_x": 12,
      "size_y": 6,
@@ -1247,18 +2265,18 @@
      ]
     },
     {
-     "row": 30,
+     "row": 33,
      "col": 0,
      "size_x": 12,
      "size_y": 6,
      "reuse_card_id": 230,
-     "title": "Cumulative gross interest · 7-day average",
+     "title": "Cumulative gross interest · 7-day avg",
      "params": [
       "period"
      ]
     },
     {
-     "row": 30,
+     "row": 33,
      "col": 12,
      "size_x": 12,
      "size_y": 6,
@@ -1269,7 +2287,7 @@
      ]
     },
     {
-     "row": 36,
+     "row": 39,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -1280,20 +2298,24 @@
      ]
     },
     {
-     "row": 44,
+     "row": 47,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab.",
+     "text": "Principal counts once per loan · coverage rules: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 45,
+   "height_rows": 49,
    "dropped_from_dashboard_3": [
     221,
     228,
-    231
+    231,
+    234
    ]
   },
   {
@@ -1311,7 +2333,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere.",
+     "text": "**Borrowers** · live · positions ignore Period, activity uses it.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -1367,10 +2392,9 @@
      "col": 0,
      "size_x": 8,
      "size_y": 8,
-     "reuse_card_id": 285,
-     "title": "Principal outstanding by borrower",
+     "new_question": "borrowers.principal-top5",
+     "title": "Principal outstanding · top 5 + others",
      "params": [
-      "period",
       "population"
      ]
     },
@@ -1379,8 +2403,8 @@
      "col": 8,
      "size_x": 8,
      "size_y": 8,
-     "reuse_card_id": 286,
-     "title": "Interest received · period by borrower",
+     "new_question": "borrowers.interest-top5",
+     "title": "Interest · period · top 5 + others",
      "params": [
       "period",
       "population"
@@ -1392,7 +2416,7 @@
      "size_x": 8,
      "size_y": 8,
      "reuse_card_id": 314,
-     "title": "Lifetime interest return on principal lent · top 8",
+     "title": "Lifetime return · top 8",
      "params": [
       "period",
       "population"
@@ -1420,8 +2444,8 @@
      ]
     },
     {
-     "row": 14,
-     "col": 6,
+     "row": 17,
+     "col": 0,
      "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 111,
@@ -1433,8 +2457,20 @@
     },
     {
      "row": 14,
-     "col": 12,
-     "size_x": 12,
+     "col": 6,
+     "size_x": 9,
+     "size_y": 6,
+     "reuse_card_id": 115,
+     "title": "Active principal by age",
+     "params": [
+      "period",
+      "population"
+     ]
+    },
+    {
+     "row": 14,
+     "col": 15,
+     "size_x": 9,
      "size_y": 6,
      "reuse_card_id": 117,
      "title": "Default loss over time",
@@ -1446,7 +2482,7 @@
     {
      "row": 20,
      "col": 0,
-     "size_x": 8,
+     "size_x": 12,
      "size_y": 6,
      "reuse_card_id": 114,
      "title": "Active loan count by age",
@@ -1457,23 +2493,11 @@
     },
     {
      "row": 20,
-     "col": 8,
-     "size_x": 8,
-     "size_y": 6,
-     "reuse_card_id": 115,
-     "title": "Active principal by age",
-     "params": [
-      "period",
-      "population"
-     ]
-    },
-    {
-     "row": 20,
-     "col": 16,
-     "size_x": 8,
+     "col": 12,
+     "size_x": 12,
      "size_y": 6,
      "reuse_card_id": 116,
-     "title": "Borrower risk · excluding largest exposure",
+     "title": "Borrower risk · excl. largest exposure",
      "params": [
       "period",
       "population"
@@ -1485,7 +2509,37 @@
      "size_x": 24,
      "size_y": 11,
      "reuse_card_id": 289,
-     "title": "Borrower comparison · click a name for Detail",
+     "title": "Borrower comparison · names open Detail",
+     "note": "category and health columns first; Principal share hidden so the eight leading columns fit at 1440 px; sorted by principal (saved order)",
+     "vs": {
+      "table.column_widths": [
+       104,
+       150
+      ],
+      "column_settings": {
+       "[\"name\", \"BCG Matrix category\"]": {
+        "column_title": "Category"
+       }
+      }
+     },
+     "columns": {
+      "order": [
+       "Borrower",
+       "BCG Matrix category",
+       "Current health",
+       "Active loans",
+       "Principal ฿",
+       "Interest ฿",
+       "Lifetime interest return",
+       "Last payment"
+      ],
+      "hide": [
+       "Borrower ID",
+       "Period start",
+       "Period end",
+       "Principal share"
+      ]
+     },
      "params": [
       "period",
       "population"
@@ -1506,7 +2560,7 @@
      "size_x": 12,
      "size_y": 7,
      "reuse_card_id": 287,
-     "title": "Interest received over time · top 5 + others",
+     "title": "Interest over time · top 5 + others",
      "params": [
       "period",
       "population"
@@ -1519,6 +2573,20 @@
      "size_y": 7,
      "reuse_card_id": 288,
      "title": "First and repeat loans · weekly",
+     "note": "short legend labels so the phone legend is not clipped; keys are the series names (COLUMN_n if the placement is visualizer-format)",
+     "vs": {
+      "series_settings": {
+       "First loans": {
+        "title": "First"
+       },
+       "Repeat loans": {
+        "title": "Repeat"
+       },
+       "Unavailable classification": {
+        "title": "Unclassified"
+       }
+      }
+     },
      "params": [
       "period",
       "population"
@@ -1528,13 +2596,16 @@
      "row": 45,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Gross interest before expenses. Categories come from Borrower Health. Lifetime daily rate (question 313) and the risk monitor (118) stay available as saved questions.",
+     "text": "Gross interest before expenses · categories from Borrower Health.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 46,
+   "height_rows": 47,
    "dropped_from_dashboard_3": [
     282,
     283,
@@ -1547,7 +2618,9 @@
     81,
     112,
     113,
-    118
+    118,
+    285,
+    286
    ]
   },
   {
@@ -1562,7 +2635,10 @@
      "size_x": 12,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Borrower Health** · current portfolio, refreshed on load · click a name to open Borrower Detail.",
+     "text": "**Borrower Health** · current portfolio · names open Borrower Detail.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -1623,12 +2699,12 @@
      "row": 5,
      "col": 0,
      "size_x": 24,
-     "size_y": 22,
+     "size_y": 20,
      "copy_dashcard": 1501,
      "params": []
     },
     {
-     "row": 27,
+     "row": 25,
      "col": 0,
      "size_x": 6,
      "size_y": 2,
@@ -1637,7 +2713,7 @@
      "params": []
     },
     {
-     "row": 27,
+     "row": 25,
      "col": 6,
      "size_x": 6,
      "size_y": 2,
@@ -1646,7 +2722,7 @@
      "params": []
     },
     {
-     "row": 27,
+     "row": 25,
      "col": 12,
      "size_x": 6,
      "size_y": 2,
@@ -1655,7 +2731,7 @@
      "params": []
     },
     {
-     "row": 27,
+     "row": 25,
      "col": 18,
      "size_x": 6,
      "size_y": 2,
@@ -1664,17 +2740,35 @@
      "params": []
     },
     {
-     "row": 29,
+     "row": 27,
      "col": 0,
      "size_x": 24,
      "size_y": 9,
      "reuse_card_id": 275,
-     "title": "Borrowers by category · scores, schedule and contribution",
+     "title": "Borrowers by category · scores",
+     "description": "Payment score, contribution and schedule per borrower, sorted by category.",
      "note": "column order: Category, Borrower, Score, Contribution, Schedule, then detail; sorted by category",
+     "vs": {
+      "table.column_widths": [
+       168
+      ]
+     },
+     "columns": {
+      "order": [
+       "Category",
+       "Borrower",
+       "Payment score /100",
+       "Contribution ×",
+       "Schedule"
+      ],
+      "hide": [
+       "Borrower ID"
+      ]
+     },
      "params": []
     },
     {
-     "row": 38,
+     "row": 36,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -1683,61 +2777,82 @@
      "params": []
     },
     {
-     "row": 39,
+     "row": 37,
      "col": 0,
      "size_x": 24,
      "size_y": 10,
      "reuse_card_id": 267,
      "title": "Payment health · all borrowers",
+     "note": "Category column (10th) wide enough for \"Outside active cohort\"; 0 = auto",
+     "vs": {
+      "table.column_widths": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       148
+      ]
+     },
      "params": []
     },
     {
-     "row": 49,
+     "row": 47,
      "col": 0,
      "size_x": 24,
      "size_y": 6,
      "reuse_card_id": 269,
      "title": "Unavailable ratings and default context",
+     "hide_empty": true,
      "params": []
     },
     {
-     "row": 55,
+     "row": 53,
      "col": 0,
      "size_x": 24,
      "size_y": 10,
      "reuse_card_id": 268,
-     "title": "Reliability components and effective weights · active borrowers",
+     "title": "Reliability components and weights",
+     "description": "Active borrowers: score components and the effective weights.",
      "params": []
     },
     {
-     "row": 65,
+     "row": 63,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
      "reuse_card_id": 271,
-     "title": "Automatic schedule assessment · active borrowers",
+     "title": "Schedule assessment · active borrowers",
      "params": []
     },
     {
-     "row": 73,
+     "row": 71,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
      "reuse_card_id": 272,
-     "title": "Modified schedules · loan and next-plan detail",
+     "title": "Modified schedules · loan and next plan",
+     "hide_empty": true,
      "params": []
     },
     {
-     "row": 81,
+     "row": 79,
      "col": 0,
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "Rating: recent punctuality 45% · older punctuality 15% · average delay 15% · current payment health 25%; threshold 80; contribution boundary 1×. Full method in the dictionary.",
+     "text": "Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 83,
+   "height_rows": 81,
    "dropped_from_dashboard_3": [
     259,
     261,
@@ -1761,7 +2876,10 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it.",
+     "text": "**Borrower Detail** · select one borrower · Period applies to activity.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
@@ -1841,7 +2959,7 @@
     {
      "row": 10,
      "col": 0,
-     "size_x": 4,
+     "size_x": 8,
      "size_y": 3,
      "reuse_card_id": 291,
      "title": "Current principal ฿",
@@ -1853,8 +2971,8 @@
     },
     {
      "row": 10,
-     "col": 4,
-     "size_x": 4,
+     "col": 8,
+     "size_x": 8,
      "size_y": 3,
      "reuse_card_id": 370,
      "title": "Outstanding ฿",
@@ -1866,8 +2984,8 @@
     },
     {
      "row": 10,
-     "col": 8,
-     "size_x": 4,
+     "col": 16,
+     "size_x": 8,
      "size_y": 3,
      "reuse_card_id": 371,
      "title": "Interest earned ฿",
@@ -1878,9 +2996,9 @@
      ]
     },
     {
-     "row": 10,
-     "col": 12,
-     "size_x": 4,
+     "row": 13,
+     "col": 0,
+     "size_x": 8,
      "size_y": 3,
      "reuse_card_id": 372,
      "title": "After coverage ฿",
@@ -1891,9 +3009,9 @@
      ]
     },
     {
-     "row": 10,
-     "col": 16,
-     "size_x": 4,
+     "row": 13,
+     "col": 8,
+     "size_x": 8,
      "size_y": 3,
      "reuse_card_id": 373,
      "title": "Return %",
@@ -1904,9 +3022,9 @@
      ]
     },
     {
-     "row": 10,
-     "col": 20,
-     "size_x": 4,
+     "row": 13,
+     "col": 16,
+     "size_x": 8,
      "size_y": 3,
      "reuse_card_id": 374,
      "title": "Coverage date",
@@ -1917,7 +3035,7 @@
      ]
     },
     {
-     "row": 13,
+     "row": 16,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -1926,7 +3044,7 @@
      "params": []
     },
     {
-     "row": 14,
+     "row": 17,
      "col": 0,
      "size_x": 8,
      "size_y": 3,
@@ -1939,7 +3057,7 @@
      ]
     },
     {
-     "row": 14,
+     "row": 17,
      "col": 8,
      "size_x": 8,
      "size_y": 3,
@@ -1952,7 +3070,7 @@
      ]
     },
     {
-     "row": 14,
+     "row": 17,
      "col": 16,
      "size_x": 8,
      "size_y": 3,
@@ -1965,12 +3083,13 @@
      ]
     },
     {
-     "row": 17,
+     "row": 20,
      "col": 0,
      "size_x": 24,
      "size_y": 5,
      "reuse_card_id": 369,
-     "title": "Most recent seven charge dates · red overdue, orange paid late, green on time",
+     "title": "Last seven charge dates",
+     "description": "Red = overdue, orange = paid late, green = on time.",
      "params": [
       "borrower",
       "period",
@@ -1978,7 +3097,7 @@
      ]
     },
     {
-     "row": 22,
+     "row": 25,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -1987,7 +3106,7 @@
      "params": []
     },
     {
-     "row": 23,
+     "row": 26,
      "col": 0,
      "size_x": 6,
      "size_y": 3,
@@ -2000,7 +3119,7 @@
      ]
     },
     {
-     "row": 23,
+     "row": 26,
      "col": 6,
      "size_x": 6,
      "size_y": 3,
@@ -2013,7 +3132,7 @@
      ]
     },
     {
-     "row": 23,
+     "row": 26,
      "col": 12,
      "size_x": 6,
      "size_y": 3,
@@ -2026,7 +3145,7 @@
      ]
     },
     {
-     "row": 23,
+     "row": 26,
      "col": 18,
      "size_x": 6,
      "size_y": 3,
@@ -2039,7 +3158,7 @@
      ]
     },
     {
-     "row": 26,
+     "row": 29,
      "col": 0,
      "size_x": 12,
      "size_y": 7,
@@ -2052,7 +3171,7 @@
      ]
     },
     {
-     "row": 26,
+     "row": 29,
      "col": 12,
      "size_x": 12,
      "size_y": 7,
@@ -2065,7 +3184,7 @@
      ]
     },
     {
-     "row": 33,
+     "row": 36,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -2078,7 +3197,7 @@
      ]
     },
     {
-     "row": 41,
+     "row": 44,
      "col": 0,
      "size_x": 24,
      "size_y": 7,
@@ -2091,7 +3210,7 @@
      ]
     },
     {
-     "row": 48,
+     "row": 51,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -2104,7 +3223,7 @@
      ]
     },
     {
-     "row": 56,
+     "row": 59,
      "col": 0,
      "size_x": 24,
      "size_y": 4,
@@ -2117,12 +3236,12 @@
      ]
     },
     {
-     "row": 60,
+     "row": 63,
      "col": 0,
      "size_x": 24,
      "size_y": 7,
      "reuse_card_id": 304,
-     "title": "Payment punctuality over time · due month",
+     "title": "Punctuality over time · due month",
      "params": [
       "borrower",
       "period",
@@ -2130,7 +3249,7 @@
      ]
     },
     {
-     "row": 67,
+     "row": 70,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -2139,7 +3258,7 @@
      "params": []
     },
     {
-     "row": 68,
+     "row": 71,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -2152,7 +3271,7 @@
      ]
     },
     {
-     "row": 76,
+     "row": 79,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -2165,12 +3284,12 @@
      ]
     },
     {
-     "row": 84,
+     "row": 87,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
      "reuse_card_id": 306,
-     "title": "Repayment allocations · selected payment dates",
+     "title": "Repayment allocations · payment dates",
      "params": [
       "borrower",
       "period",
@@ -2178,7 +3297,7 @@
      ]
     },
     {
-     "row": 92,
+     "row": 95,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -2187,7 +3306,7 @@
      "params": []
     },
     {
-     "row": 93,
+     "row": 96,
      "col": 0,
      "size_x": 24,
      "size_y": 5,
@@ -2200,16 +3319,19 @@
      ]
     },
     {
-     "row": 98,
+     "row": 101,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "All amounts are baht. Allocations are not unique receipts; corrections remain signed. Context and dates: Data health tab.",
+     "text": "Allocations are not unique receipts · corrections stay signed.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 99,
+   "height_rows": 103,
    "dropped_from_dashboard_3": [
     300
    ]
@@ -2226,19 +3348,22 @@
     {
      "row": 0,
      "col": 0,
-     "size_x": 12,
+     "size_x": 18,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Collection · Bangkok today** · live · refresh every minute · payments appear after sync. Filters apply to the detail table only.",
+     "text": "**Collection · today** · live · filters apply to the detail table only.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
      "row": 0,
-     "col": 12,
-     "size_x": 12,
+     "col": 18,
+     "size_x": 6,
      "size_y": 2,
-     "reuse_card_id": 250,
-     "title": "As of · query time",
+     "reuse_card_id": 257,
+     "title": "As of · Bangkok",
      "params": [
       "collection-borrower",
       "collection-status"
@@ -2273,8 +3398,8 @@
      "col": 12,
      "size_x": 6,
      "size_y": 3,
-     "reuse_card_id": 239,
-     "title": "People fully paid",
+     "new_question": "collection.people",
+     "title": "People paid today",
      "params": [
       "collection-borrower",
       "collection-status"
@@ -2296,171 +3421,141 @@
      "row": 5,
      "col": 0,
      "size_x": 24,
-     "size_y": 2,
-     "new_question": "today.collection-rate",
-     "title": "Collected today · share of amount due",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 7,
-     "col": 0,
-     "size_x": 6,
-     "size_y": 2,
-     "reuse_card_id": 242,
-     "title": "🔴 Not paid · people",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 7,
-     "col": 6,
-     "size_x": 6,
-     "size_y": 2,
-     "reuse_card_id": 244,
-     "title": "🟠 Partially paid · people",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 7,
-     "col": 12,
-     "size_x": 6,
-     "size_y": 2,
-     "reuse_card_id": 240,
-     "title": "🟣 Overdue · people",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 7,
-     "col": 18,
-     "size_x": 6,
-     "size_y": 2,
-     "reuse_card_id": 246,
-     "title": "🟢 Fully paid · people",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 9,
-     "col": 0,
-     "size_x": 6,
-     "size_y": 9,
-     "reuse_card_id": 243,
-     "title": "🔴 Not paid",
-     "note": "sort by amount left desc",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 9,
-     "col": 6,
-     "size_x": 6,
-     "size_y": 9,
-     "reuse_card_id": 245,
-     "title": "🟠 Partially paid",
-     "note": "sort by amount left desc",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 9,
-     "col": 12,
-     "size_x": 6,
-     "size_y": 9,
-     "reuse_card_id": 241,
-     "title": "🟣 Overdue",
-     "note": "sort by overdue amount desc",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 9,
-     "col": 18,
-     "size_x": 6,
-     "size_y": 9,
-     "reuse_card_id": 247,
-     "title": "🟢 Fully paid",
-     "note": "sort by received desc",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 18,
-     "col": 0,
-     "size_x": 6,
      "size_y": 6,
-     "reuse_card_id": 251,
-     "title": "Unclassified · expect 0",
+     "new_question": "collection.board",
+     "title": "Board · people and baht per lane",
      "params": [
       "collection-borrower",
       "collection-status"
      ]
     },
     {
-     "row": 18,
+     "row": 11,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 9,
+     "new_question": "collection.lane-not-paid",
+     "title": "🔴 Not paid",
+     "note": "Due ฿ · Left ฿, sorted by amount left",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 11,
      "col": 6,
-     "size_x": 18,
+     "size_x": 6,
+     "size_y": 9,
+     "new_question": "collection.lane-partial",
+     "title": "🟠 Partially paid",
+     "note": "Received ฿ · Left ฿, sorted by amount left",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 11,
+     "col": 12,
+     "size_x": 6,
+     "size_y": 9,
+     "new_question": "collection.lane-overdue",
+     "title": "🟣 Overdue",
+     "note": "Overdue ฿ · Left ฿, sorted by overdue amount",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 11,
+     "col": 18,
+     "size_x": 6,
+     "size_y": 9,
+     "new_question": "collection.lane-paid",
+     "title": "🟢 Fully paid",
+     "note": "Received ฿ · Due ฿, sorted by received",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 20,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 10,
+     "reuse_card_id": 248,
+     "title": "Collection detail · filters apply here",
+     "columns": {
+      "order": [
+       "Borrower",
+       "Daily Collection Status",
+       "Amount Remaining",
+       "Amount Due",
+       "Amount Collected",
+       "Receipts Today",
+       "Overdue Amount"
+      ],
+      "hide": [
+       "Borrower ID"
+      ]
+     },
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 30,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 3,
+     "reuse_card_id": 249,
+     "title": "Charges dated today · not board balances",
+     "description": "Charges dated today are a separate drill-down, not board balances.",
+     "params": [
+      "collection-borrower",
+      "collection-status"
+     ]
+    },
+    {
+     "row": 33,
+     "col": 0,
+     "size_x": 24,
      "size_y": 6,
      "reuse_card_id": 64,
      "title": "Overdue charges · completed days",
      "params": []
     },
     {
-     "row": 24,
-     "col": 0,
-     "size_x": 24,
-     "size_y": 10,
-     "reuse_card_id": 248,
-     "title": "Collection detail · filters above apply here",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
-     "row": 34,
-     "col": 0,
-     "size_x": 24,
-     "size_y": 5,
-     "reuse_card_id": 249,
-     "title": "Charges dated today · separate from board balances",
-     "params": [
-      "collection-borrower",
-      "collection-status"
-     ]
-    },
-    {
      "row": 39,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people move lanes after refresh.",
+     "text": "Received = receipts today · Left includes older dues · refresh moves lanes.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 40,
-   "dropped_from_dashboard_3": []
+   "height_rows": 41,
+   "dropped_from_dashboard_3": [
+    250,
+    239,
+    242,
+    244,
+    240,
+    246,
+    251,
+    243,
+    245,
+    241,
+    247
+   ]
   },
   {
    "key": "partners",
@@ -2478,13 +3573,16 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Partners** · current balances stay current when the period changes · baht · net available is an entitlement after reservations, not cash on hand.",
+     "text": "**Partners** · balances stay current · net available is not cash on hand.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
      "row": 2,
      "col": 0,
-     "size_x": 5,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 325,
      "title": "Net capital ฿",
@@ -2496,8 +3594,8 @@
     },
     {
      "row": 2,
-     "col": 5,
-     "size_x": 5,
+     "col": 6,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 326,
      "title": "Net earned to date ฿",
@@ -2509,8 +3607,8 @@
     },
     {
      "row": 2,
-     "col": 10,
-     "size_x": 5,
+     "col": 12,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 327,
      "title": "Completed payouts ฿",
@@ -2522,21 +3620,8 @@
     },
     {
      "row": 2,
-     "col": 15,
-     "size_x": 5,
-     "size_y": 3,
-     "reuse_card_id": 328,
-     "title": "Pending settlements ฿",
-     "params": [
-      "partner",
-      "statement-period",
-      "settlement-status"
-     ]
-    },
-    {
-     "row": 2,
-     "col": 20,
-     "size_x": 4,
+     "col": 18,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 329,
      "title": "Net available ฿",
@@ -2551,8 +3636,9 @@
      "col": 0,
      "size_x": 16,
      "size_y": 7,
-     "reuse_card_id": 330,
-     "title": "Partner positions · current",
+     "new_question": "partners.statement",
+     "title": "Partner positions · statement",
+     "note": "pending settlements per partner sit here and in the table below",
      "params": [
       "partner",
       "statement-period",
@@ -2579,6 +3665,7 @@
      "size_y": 6,
      "reuse_card_id": 340,
      "title": "Pending settlements · all dates",
+     "hide_empty": true,
      "params": [
       "partner",
       "statement-period",
@@ -2701,6 +3788,7 @@
      "size_y": 8,
      "reuse_card_id": 341,
      "title": "Capital transaction ledger",
+     "hide_empty": true,
      "params": [
       "partner",
       "statement-period",
@@ -2714,6 +3802,7 @@
      "size_y": 8,
      "reuse_card_id": 342,
      "title": "Settlement transaction ledger",
+     "hide_empty": true,
      "params": [
       "partner",
       "statement-period",
@@ -2724,17 +3813,22 @@
      "row": 55,
      "col": 0,
      "size_x": 24,
-     "size_y": 1,
+     "size_y": 2,
      "virtual": "text",
-     "text": "Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab.",
+     "text": "Withdrawals and payouts are separate · checks: Data health tab.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 56,
+   "height_rows": 57,
    "dropped_from_dashboard_3": [
     331,
     332,
-    343
+    343,
+    328,
+    330
    ]
   },
   {
@@ -2761,16 +3855,55 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Forecast & Plan · current Bangkok month** · existing loan book · scenarios are assumptions, not promised collections. Interest and principal stay separate.",
+     "text": "**Forecast & Plan · this month** · scenarios are assumptions, not promises.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
      "row": 2,
      "col": 0,
      "size_x": 24,
-     "size_y": 4,
+     "size_y": 3,
      "reuse_card_id": 353,
      "title": "Scenario and assumptions in force",
+     "columns": {
+      "order": [],
+      "hide": [
+       "Calculated at"
+      ]
+     },
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 1,
+     "virtual": "heading",
+     "text": "Interest outlook",
+     "params": []
+    },
+    {
+     "row": 6,
+     "col": 0,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 348,
+     "title": "Interest · month to date",
      "params": [
       "scenario",
       "interest-collected",
@@ -2787,36 +3920,6 @@
     },
     {
      "row": 6,
-     "col": 0,
-     "size_x": 24,
-     "size_y": 1,
-     "virtual": "heading",
-     "text": "Interest outlook",
-     "params": []
-    },
-    {
-     "row": 7,
-     "col": 0,
-     "size_x": 6,
-     "size_y": 3,
-     "reuse_card_id": 348,
-     "title": "Interest received · month to date",
-     "params": [
-      "scenario",
-      "interest-collected",
-      "principal-collected",
-      "overdue-recovered",
-      "loan-kind",
-      "target",
-      "plan-lending",
-      "plan-expenses",
-      "plan-withdrawals",
-      "plan-inflows",
-      "plan-reserve"
-     ]
-    },
-    {
-     "row": 7,
      "col": 6,
      "size_x": 6,
      "size_y": 3,
@@ -2837,7 +3940,7 @@
      ]
     },
     {
-     "row": 7,
+     "row": 6,
      "col": 12,
      "size_x": 6,
      "size_y": 3,
@@ -2858,7 +3961,7 @@
      ]
     },
     {
-     "row": 7,
+     "row": 6,
      "col": 18,
      "size_x": 6,
      "size_y": 3,
@@ -2879,12 +3982,12 @@
      ]
     },
     {
-     "row": 10,
+     "row": 9,
      "col": 0,
      "size_x": 16,
      "size_y": 9,
      "reuse_card_id": 356,
-     "title": "Cumulative interest · actual and projected",
+     "title": "Cumulative interest · actual + projected",
      "params": [
       "scenario",
       "interest-collected",
@@ -2900,7 +4003,7 @@
      ]
     },
     {
-     "row": 10,
+     "row": 9,
      "col": 16,
      "size_x": 8,
      "size_y": 9,
@@ -2921,7 +4024,28 @@
      ]
     },
     {
-     "row": 19,
+     "row": 18,
+     "col": 0,
+     "size_x": 24,
+     "size_y": 8,
+     "reuse_card_id": 360,
+     "title": "Watchlist · dues at risk",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 26,
      "col": 0,
      "size_x": 12,
      "size_y": 8,
@@ -2942,31 +4066,10 @@
      ]
     },
     {
-     "row": 19,
+     "row": 26,
      "col": 12,
      "size_x": 12,
      "size_y": 8,
-     "reuse_card_id": 360,
-     "title": "Watchlist · dues at risk",
-     "params": [
-      "scenario",
-      "interest-collected",
-      "principal-collected",
-      "overdue-recovered",
-      "loan-kind",
-      "target",
-      "plan-lending",
-      "plan-expenses",
-      "plan-withdrawals",
-      "plan-inflows",
-      "plan-reserve"
-     ]
-    },
-    {
-     "row": 27,
-     "col": 0,
-     "size_x": 12,
-     "size_y": 7,
      "reuse_card_id": 354,
      "title": "Interest outlook bridge",
      "params": [
@@ -2984,8 +4087,8 @@
      ]
     },
     {
-     "row": 27,
-     "col": 12,
+     "row": 34,
+     "col": 0,
      "size_x": 12,
      "size_y": 7,
      "reuse_card_id": 358,
@@ -3006,9 +4109,9 @@
     },
     {
      "row": 34,
-     "col": 0,
+     "col": 12,
      "size_x": 12,
-     "size_y": 6,
+     "size_y": 7,
      "reuse_card_id": 359,
      "title": "Interest by loan type",
      "params": [
@@ -3026,28 +4129,7 @@
      ]
     },
     {
-     "row": 34,
-     "col": 12,
-     "size_x": 12,
-     "size_y": 6,
-     "reuse_card_id": 352,
-     "title": "Principal receipts · scenario",
-     "params": [
-      "scenario",
-      "interest-collected",
-      "principal-collected",
-      "overdue-recovered",
-      "loan-kind",
-      "target",
-      "plan-lending",
-      "plan-expenses",
-      "plan-withdrawals",
-      "plan-inflows",
-      "plan-reserve"
-     ]
-    },
-    {
-     "row": 40,
+     "row": 41,
      "col": 0,
      "size_x": 24,
      "size_y": 1,
@@ -3056,9 +4138,9 @@
      "params": []
     },
     {
-     "row": 41,
+     "row": 42,
      "col": 0,
-     "size_x": 8,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 365,
      "title": "Business cash now ฿",
@@ -3077,9 +4159,31 @@
      ]
     },
     {
-     "row": 41,
-     "col": 8,
-     "size_x": 8,
+     "row": 42,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 352,
+     "title": "Principal receipts",
+     "description": "Principal receipts remaining this month under the selected scenario.",
+     "params": [
+      "scenario",
+      "interest-collected",
+      "principal-collected",
+      "overdue-recovered",
+      "loan-kind",
+      "target",
+      "plan-lending",
+      "plan-expenses",
+      "plan-withdrawals",
+      "plan-inflows",
+      "plan-reserve"
+     ]
+    },
+    {
+     "row": 42,
+     "col": 12,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 366,
      "title": "Month-end cash ฿",
@@ -3098,9 +4202,9 @@
      ]
     },
     {
-     "row": 41,
-     "col": 16,
-     "size_x": 8,
+     "row": 42,
+     "col": 18,
+     "size_x": 6,
      "size_y": 3,
      "reuse_card_id": 367,
      "title": "Reserve shortfall ฿",
@@ -3119,10 +4223,10 @@
      ]
     },
     {
-     "row": 44,
+     "row": 45,
      "col": 0,
      "size_x": 24,
-     "size_y": 6,
+     "size_y": 4,
      "reuse_card_id": 364,
      "title": "Plan inputs and status",
      "note": "Plan not ready until all five inputs are set; blank results until then",
@@ -3141,7 +4245,7 @@
      ]
     },
     {
-     "row": 50,
+     "row": 49,
      "col": 0,
      "size_x": 24,
      "size_y": 8,
@@ -3162,16 +4266,19 @@
      ]
     },
     {
-     "row": 58,
+     "row": 57,
      "col": 0,
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "Recorded obligations come before simulated ones. Planned new lending adds no forecast income. Month-end cash is not the lowest balance of the month. Detail and coverage: Data health tab.",
+     "text": "Recorded before simulated · planned lending adds no income · not a minimum.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     }
    ],
-   "height_rows": 60,
+   "height_rows": 59,
    "dropped_from_dashboard_3": [
     361,
     362,
@@ -3204,13 +4311,16 @@
      "size_x": 24,
      "size_y": 2,
      "virtual": "text",
-     "text": "**Data health** · every page's freshness, coverage and source checks. Filters here mirror the pages they belong to.",
+     "text": "**Data health** · freshness, coverage and source checks per page.",
+     "vs": {
+      "text.align_vertical": "top"
+     },
      "params": []
     },
     {
      "row": 2,
      "col": 0,
-     "size_x": 8,
+     "size_x": 12,
      "size_y": 3,
      "reuse_card_id": 276,
      "title": "Reporting connection · SELECT 1",
@@ -3232,34 +4342,11 @@
     },
     {
      "row": 2,
-     "col": 8,
-     "size_x": 8,
+     "col": 12,
+     "size_x": 12,
      "size_y": 3,
      "reuse_card_id": 257,
      "title": "Queried at · Bangkok",
-     "params": [
-      "statement-period",
-      "account",
-      "period",
-      "position-date",
-      "population",
-      "borrower",
-      "partner",
-      "scenario",
-      "interest-collected",
-      "principal-collected",
-      "overdue-recovered",
-      "loan-kind",
-      "target"
-     ]
-    },
-    {
-     "row": 2,
-     "col": 16,
-     "size_x": 8,
-     "size_y": 3,
-     "reuse_card_id": 250,
-     "title": "Bangkok date and query time",
      "params": [
       "statement-period",
       "account",
@@ -3479,7 +4566,7 @@
      "size_x": 24,
      "size_y": 4,
      "reuse_card_id": 231,
-     "title": "Rolling-average coverage · selected completed dates",
+     "title": "Rolling-average coverage",
      "params": [
       "statement-period",
       "account",
@@ -3534,7 +4621,7 @@
      "size_x": 12,
      "size_y": 4,
      "reuse_card_id": 315,
-     "title": "Overall charts · dates and data availability",
+     "title": "Overall charts · dates and availability",
      "params": [
       "statement-period",
       "account",
@@ -3557,7 +4644,7 @@
      "size_x": 24,
      "size_y": 5,
      "reuse_card_id": 300,
-     "title": "Activity dates and lifetime context · selected borrower",
+     "title": "Activity dates and lifetime context",
      "params": [
       "statement-period",
       "account",
@@ -3709,17 +4796,17 @@
     }
    ],
    "height_rows": 86,
-   "dropped_from_dashboard_3": []
+   "dropped_from_dashboard_3": [
+    250
+   ]
   }
  ],
  "summary": {
   "tabs": 12,
-  "placements": 240,
+  "placements": 225,
   "reused_questions": [
    49,
    51,
-   60,
-   61,
    62,
    64,
    68,
@@ -3730,7 +4817,6 @@
    116,
    117,
    168,
-   169,
    170,
    171,
    178,
@@ -3770,23 +4856,11 @@
    231,
    232,
    233,
-   234,
    235,
    237,
    238,
-   239,
-   240,
-   241,
-   242,
-   243,
-   244,
-   245,
-   246,
-   247,
    248,
    249,
-   250,
-   251,
    252,
    253,
    254,
@@ -3810,8 +4884,6 @@
    280,
    281,
    284,
-   285,
-   286,
    287,
    288,
    289,
@@ -3841,9 +4913,7 @@
    325,
    326,
    327,
-   328,
    329,
-   330,
    332,
    333,
    334,
@@ -3889,15 +4959,28 @@
    378
   ],
   "new_questions": [
+   "borrowers.interest-top5",
+   "borrowers.principal-top5",
    "cash.pool-selected",
    "cash.principal-selected",
    "cashflow.by-type-row",
+   "collection.board",
+   "collection.lane-not-paid",
+   "collection.lane-overdue",
+   "collection.lane-paid",
+   "collection.lane-partial",
+   "collection.people",
+   "income.expenses",
    "income.monthly",
    "income.vs-previous",
    "partners.capital-share-row",
+   "partners.statement",
    "perf.vs-previous",
+   "today.attention",
    "today.collection-rate",
+   "today.interest-top4",
    "today.principal-smart",
+   "today.principal-top4",
    "today.realization"
   ],
   "parameters": 22

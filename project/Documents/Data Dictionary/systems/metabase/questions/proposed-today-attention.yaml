@@ -1,0 +1,104 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Needs attention · strip / 389"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "today.attention"
+  "id": 389
+  "name": "Needs attention · strip"
+  "description": "Loan Reports · proposed (today.attention). One row per attention item with people and baht: \U0001F7E3 Overdue\
+    \ (count from model 162 as question 240, amount as question 254), \U0001F534 Not paid (model 162 count as 242, amount\
+    \ left), \U0001F7E0 Partially paid (model 162 as 244, amount left), Modified plans (question 270). Columns Item, People,\
+    \ Amount ฿, Opens (kept in the SQL, hidden: the Item link and the title already say rows open pages), Tab and Tint (hidden;\
+    \ Tint drives an even row tint). The installer substitutes __TAB_COLLECTION__ and __TAB_HEALTH__ with the proposed tab\
+    \ ids and sets the Item column click behaviour to the link template https://reports.mw-credit.com/dashboard/<dashboard>?tab={{Tab}}.\
+    \ Replaces six chips with one card. Basis: models 162 Collection Status Summary and 77 Collection Worklist; views of questions\
+    \ 254 and 270."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-162"
+        "name": "#162"
+        "display-name": "Model 162"
+        "card-id": 162
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH s AS (SELECT "Collection Status" status,"Borrower Count" people,"Amount Remaining" remaining FROM {{#162}})
+        SELECT v."Item",v."People",v."Amount ฿",v."Opens",v."Tab",v."Tint" FROM (VALUES
+         (1,'🟣 Overdue',coalesce((SELECT people FROM s WHERE status='Overdue'),0)::bigint,(SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END FROM public.reporting_borrower_payment_health_v1)::numeric,'Collection','383','overdue'),
+         (2,'🔴 Not paid',coalesce((SELECT people FROM s WHERE status='Not Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Not Paid')::numeric,'Collection','383','not_paid'),
+         (3,'🟠 Partially paid',coalesce((SELECT people FROM s WHERE status='Partially Paid'),0)::bigint,(SELECT remaining FROM s WHERE status='Partially Paid')::numeric,'Collection','383','partial'),
+         (4,'Modified plans',(SELECT count(*) FROM public.reporting_borrower_matrix_v3 WHERE arrangement_gate)::bigint,NULL::numeric,'Health','381','')
+        ) v(ord,"Item","People","Amount ฿","Opens","Tab","Tint") ORDER BY v.ord
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_widths":
+    - 150
+    - 90
+    - 110
+    "table.columns":
+    - "name": "Item"
+      "enabled": true
+    - "name": "People"
+      "enabled": true
+    - "name": "Amount ฿"
+      "enabled": true
+    - "name": "Opens"
+      "enabled": false
+    - "name": "Tab"
+      "enabled": false
+    - "name": "Tint"
+      "enabled": false
+    "table.column_formatting":
+    - "id": 0
+      "columns":
+      - "Tint"
+      "type": "single"
+      "operator": "="
+      "value": "overdue"
+      "color": "#7172AD"
+      "highlight_row": true
+    - "id": 1
+      "columns":
+      - "Tint"
+      "type": "single"
+      "operator": "="
+      "value": "not_paid"
+      "color": "#ED6E6E"
+      "highlight_row": true
+    - "id": 2
+      "columns":
+      - "Tint"
+      "type": "single"
+      "operator": "="
+      "value": "partial"
+      "color": "#F9A825"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Amount ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Amount"
+      "[\"name\",\"Item\"]":
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab={{Tab}}"
+  "basis": "models 162 Collection Status Summary and 77 Collection Worklist; views of questions 254 and 270"
+  "build_kind": "native"
+  "origin_question_id": 240
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

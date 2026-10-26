@@ -1,0 +1,118 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "\U0001F7E2 Fully paid · lane / 400"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "collection.lane-paid"
+  "id": 400
+  "name": "\U0001F7E2 Fully paid · lane"
+  "description": "Loan Reports · proposed (collection.lane-paid). MBQL on model 77 filtered Daily Collection Status = 'Fully\
+    \ Paid'; fields ['Borrower', 'Receipts Today', 'Amount Due', 'Borrower ID', 'Daily Collection Status']; ORDER BY Receipts\
+    \ Today desc, Borrower asc. Same rows as question 247, resorted. Column titles Name / Paid / Due; widths [80, 76, 76]\
+    \ px for the three visible columns. Basis: model 77 Collection Worklist."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "filters":
+      - - "="
+        - "lib/uuid": "d343bfa4-f59b-4379-a1b8-6e9d1b8750c7"
+        - - "field"
+          - "base-type": "type/Text"
+            "lib/uuid": "adb97148-9d00-427b-b307-495dc97bbfc6"
+          - "Daily Collection Status"
+        - "Fully Paid"
+      "lib/type": "mbql.stage/mbql"
+      "fields":
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "3b518ee4-11d9-4413-b135-b9fef02077d1"
+        - "Borrower"
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "09da7ebb-f69a-409e-8f73-435685306e6b"
+        - "Receipts Today"
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "3d9b3cdf-8f32-43f3-97af-ac300c06eb62"
+        - "Amount Due"
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "948dadeb-5dcb-4e7f-a3c5-4cbe1a53baa2"
+        - "Borrower ID"
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "ffda47bd-a98a-4b31-9d9d-fd73b2ba858d"
+        - "Daily Collection Status"
+      "order-by":
+      - - "desc"
+        - "lib/uuid": "caffe0cd-44b5-48f7-979f-d02bdf2e7690"
+        - - "field"
+          - "base-type": "type/Decimal"
+            "lib/uuid": "6677f8b2-2a31-41d2-9a96-cbda017ac7c1"
+          - "Receipts Today"
+      - - "asc"
+        - "lib/uuid": "1e98332a-ab4a-43bf-806e-882b3880c394"
+        - - "field"
+          - "base-type": "type/Text"
+            "lib/uuid": "0729e8e4-5e94-4357-8b2f-3f118e6495b6"
+          - "Borrower"
+      "source-card": 77
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Borrower"
+      "enabled": true
+    - "name": "Receipts Today"
+      "enabled": true
+    - "name": "Amount Due"
+      "enabled": true
+    - "name": "Borrower ID"
+      "enabled": false
+    - "name": "Daily Collection Status"
+      "enabled": false
+    "table.column_widths":
+    - 80
+    - 76
+    - 76
+    "table.column_formatting":
+    - "id": 0
+      "columns":
+      - "Daily Collection Status"
+      "type": "single"
+      "operator": "="
+      "value": "Fully Paid"
+      "color": "#1E9F5A"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Borrower\"]":
+        "column_title": "Name"
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+      "[\"name\",\"Receipts Today\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Paid"
+      "[\"name\",\"Amount Due\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Due"
+  "basis": "model 77 Collection Worklist"
+  "build_kind": "mbql"
+  "origin_question_id": 247
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

@@ -1,0 +1,105 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "This period and the previous period / 384"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "income.vs-previous"
+  "id": 384
+  "name": "This period and the previous period"
+  "description": "Loan Reports · proposed (income.vs-previous). Native: for the selected statement period and the immediately\
+    \ preceding period of equal length, one row per measure (Income, Expenses, Net profit, Net profit per day) with This period,\
+    \ Previous period, Change and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent.\
+    \ Basis: snippet 2 Income statement period (model 186 Income Events)."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-186"
+        "name": "#186"
+        "display-name": "Model 186"
+        "card-id": 186
+      - "widget-type": "date/all-options"
+        "id": "lrp-statement-period"
+        "name": "statement_period"
+        "display-name": "Statement period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "020c209c-1b62-4c10-9b5a-8ee7bac2344e"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE true [[AND {{statement_period}}]]),
+         available AS (SELECT min("Date") starts FROM public.reporting_statement_calendar),
+         bounds AS (SELECT min("Date") starts,max("Date") ends,count(*)::int days FROM selected),
+         periods AS (
+         SELECT 'this' p,b.starts,b.ends,b.days,true ok FROM bounds b WHERE b.days>0 AND b.days=b.ends-b.starts+1
+         UNION ALL SELECT 'previous',b.starts-b.days,b.starts-1,b.days,b.starts-b.days>=a.starts FROM bounds b CROSS JOIN available a WHERE b.days>0 AND b.days=b.ends-b.starts+1
+         ), totals AS (
+         SELECT p.p,p.ok,p.days,coalesce((SELECT sum(e."Income") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) income,
+         coalesce((SELECT sum(e."Expenses") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) expenses FROM periods p
+         ), m AS (
+         SELECT v.ord,v.metric,max(v.amount) FILTER (WHERE t.p='this') cur,max(v.amount) FILTER (WHERE t.p='previous' AND t.ok) prev
+         FROM totals t CROSS JOIN LATERAL (VALUES (1,'Income',t.income),(2,'Expenses',t.expenses),(3,'Net profit',t.income-t.expenses),(4,'Net profit per day',(t.income-t.expenses)/nullif(t.days,0))) v(ord,metric,amount)
+         GROUP BY v.ord,v.metric
+         )
+        SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_formatting":
+    - "id": 0
+      "columns":
+      - "Change %"
+      - "Change"
+      "type": "single"
+      "operator": ">"
+      "value": 0
+      "color": "#84BB4C"
+      "highlight_row": false
+    - "id": 1
+      "columns":
+      - "Change %"
+      - "Change"
+      "type": "single"
+      "operator": "<"
+      "value": 0
+      "color": "#ED6E6E"
+      "highlight_row": false
+    "column_settings":
+      "[\"name\",\"This period\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Previous period\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Change\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Change %\"]":
+        "number_style": "percent"
+        "decimals": 1
+        "number_separators": ".,"
+  "basis": "snippet 2 Income statement period (model 186 Income Events)"
+  "build_kind": "native"
+  "origin_question_id": 168
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

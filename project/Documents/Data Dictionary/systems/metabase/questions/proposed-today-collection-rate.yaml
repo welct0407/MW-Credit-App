@@ -1,0 +1,43 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Today's charges · paid share / 381"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "today.collection-rate"
+  "id": 381
+  "name": "Today's charges · paid share"
+  "description": "Loan Reports · proposed (today.collection-rate). MBQL on model 73: field Amount Collection Rate Today (Amount\
+    \ Collected Today ÷ Amount Due Today): the share of the charges dated today that is paid, not receipts. Progress goal\
+    \ 1. Placed on Today only; Collection shows the same share as question 252. Basis: model 73 Portfolio Overview."
+  "display": "progress"
+  "dataset_query":
+    "stages":
+    - "fields":
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "846ade83-215c-4e86-909b-954221fa69d0"
+        - "Amount Collection Rate Today"
+      "lib/type": "mbql.stage/mbql"
+      "source-card": 73
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "progress.goal": 1
+    "progress.color": "#067647"
+    "column_settings":
+      "[\"name\",\"Amount Collection Rate Today\"]":
+        "number_style": "percent"
+        "decimals": 1
+        "number_separators": ".,"
+  "basis": "model 73 Portfolio Overview"
+  "build_kind": "mbql"
+  "origin_question_id": 252
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

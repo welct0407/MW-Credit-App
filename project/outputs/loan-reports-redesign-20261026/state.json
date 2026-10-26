@@ -1,0 +1,43 @@
+{
+  "collection": 10,
+  "questions": {
+    "today.principal-smart": 379,
+    "today.realization": 380,
+    "today.collection-rate": 381,
+    "cash.pool-selected": 382,
+    "cash.principal-selected": 383,
+    "income.vs-previous": 384,
+    "income.monthly": 385,
+    "cashflow.by-type-row": 386,
+    "perf.vs-previous": 387,
+    "partners.capital-share-row": 388,
+    "today.attention": 389,
+    "today.principal-top4": 390,
+    "today.interest-top4": 391,
+    "income.expenses": 392,
+    "borrowers.principal-top5": 393,
+    "borrowers.interest-top5": 394,
+    "collection.people": 395,
+    "collection.board": 396,
+    "collection.lane-not-paid": 397,
+    "collection.lane-partial": 398,
+    "collection.lane-overdue": 399,
+    "collection.lane-paid": 400,
+    "partners.statement": 401
+  },
+  "tabs": {
+    "today": 375,
+    "cash-position": 376,
+    "income": 377,
+    "cashflow": 378,
+    "performance": 379,
+    "borrowers": 380,
+    "health": 381,
+    "borrower-detail": 382,
+    "collection": 383,
+    "partners": 384,
+    "forecast": 385,
+    "data-health": 386
+  },
+  "dashboard": 32
+}

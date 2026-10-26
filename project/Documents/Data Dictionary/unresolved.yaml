@@ -7,4 +7,6 @@
 - "id": "REPORTING-COVERAGE"
   "status": "deferred"
   "detail": "Metabase/Grafana dictionary coverage is bounded; owning current dashboard and Terraform source definitions remain\
-    \ authoritative. This task does not recapture every external dashboard."
+    \ authoritative. This task does not recapture every external dashboard.\
+    \ The parallel dashboard 32 (Loan Reports · proposed, 26 October 2026) and its 23 new questions are fully recorded; dashboard\
+    \ 3 coverage is unchanged."

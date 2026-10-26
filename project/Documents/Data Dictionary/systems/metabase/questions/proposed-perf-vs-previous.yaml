@@ -1,0 +1,118 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "This period and the previous period / 387"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "perf.vs-previous"
+  "id": 387
+  "name": "This period and the previous period"
+  "description": "Loan Reports · proposed (perf.vs-previous). Native: for the selected Period and the preceding period of\
+    \ equal length, one row per measure: Gross interest, Principal issued, Loans issued, Principal returned and Net principal\
+    \ deployed (issued − returned), with This period, Previous period, Change and Change %. Same date rules as questions 217–219.\
+    \ Basis: models 71 Repayment Ledger and 70 Loan Book (pattern of questions 217–219)."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-70"
+        "name": "#70"
+        "display-name": "Model 70"
+        "card-id": 70
+      - "type": "card"
+        "id": "lrp-model-71"
+        "name": "#71"
+        "display-name": "Model 71"
+        "card-id": 71
+      - "widget-type": "date/all-options"
+        "id": "lrp-performance-period"
+        "name": "performance_period"
+        "display-name": "Performance period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "365aa399-878c-4b9a-a0dd-e6d99b600b79"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today),
+         available AS (SELECT min("Date") starts FROM public.reporting_statement_calendar),
+         selected AS (
+         SELECT d."Date" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',INTERVAL '1 day')::date AS "Date") d
+         WHERE [[{{performance_period}} --]] d."Date" BETWEEN (SELECT starts FROM available) AND (SELECT today FROM clock)
+         ), bounds AS (SELECT min("Date") starts,max("Date") ends,count(*)::int days,
+         count(*)>0 AND count(*)=max("Date")-min("Date")+1 continuous FROM selected),
+         periods AS (
+         SELECT 'this' p,b.starts,least(b.ends,c.today) ends,b.starts>=a.starts ok FROM bounds b CROSS JOIN clock c CROSS JOIN available a WHERE b.continuous
+         UNION ALL SELECT 'previous',b.starts-b.days,b.starts-1,b.starts-b.days>=a.starts FROM bounds b CROSS JOIN available a WHERE b.continuous
+         ), totals AS (
+         SELECT p.p,p.ok,
+         (SELECT coalesce(sum(s."Interest Paid"),0) FROM {{#71}} s WHERE s."Payment Date" BETWEEN p.starts AND p.ends) interest,
+         (SELECT coalesce(sum(s."Principal Amount"),0) FROM {{#70}} s WHERE s."Loan Date" BETWEEN p.starts AND p.ends) issued,
+         (SELECT count(*) FROM {{#70}} s WHERE s."Loan Date" BETWEEN p.starts AND p.ends) loans,
+         (SELECT coalesce(sum(s."Principal Paid"),0) FROM {{#71}} s WHERE s."Payment Date" BETWEEN p.starts AND p.ends) returned
+         FROM periods p
+         ), m AS (
+         SELECT v.ord,v.metric,max(v.amount) FILTER (WHERE t.p='this') cur,max(v.amount) FILTER (WHERE t.p='previous' AND t.ok) prev
+         FROM totals t CROSS JOIN LATERAL (VALUES (1,'Gross interest',t.interest),(2,'Principal issued',t.issued),(3,'Loans issued',t.loans::numeric),(4,'Principal returned',t.returned),(5,'Net principal deployed',t.issued-t.returned)) v(ord,metric,amount)
+         GROUP BY v.ord,v.metric
+         )
+        SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_formatting":
+    - "id": 0
+      "columns":
+      - "Change %"
+      - "Change"
+      "type": "single"
+      "operator": ">"
+      "value": 0
+      "color": "#84BB4C"
+      "highlight_row": false
+    - "id": 1
+      "columns":
+      - "Change %"
+      - "Change"
+      "type": "single"
+      "operator": "<"
+      "value": 0
+      "color": "#ED6E6E"
+      "highlight_row": false
+    "column_settings":
+      "[\"name\",\"This period\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Previous period\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Change\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Change %\"]":
+        "number_style": "percent"
+        "decimals": 1
+        "number_separators": ".,"
+  "basis": "models 71 Repayment Ledger and 70 Loan Book (pattern of questions 217–219)"
+  "build_kind": "native"
+  "origin_question_id": 217
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

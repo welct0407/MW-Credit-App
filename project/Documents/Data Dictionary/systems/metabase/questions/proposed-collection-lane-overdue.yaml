@@ -1,0 +1,118 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "\U0001F7E3 Overdue · lane / 399"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "collection.lane-overdue"
+  "id": 399
+  "name": "\U0001F7E3 Overdue · lane"
+  "description": "Loan Reports · proposed (collection.lane-overdue). MBQL on model 77 filtered Daily Collection Status = 'Overdue';\
+    \ fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue\
+    \ Amount desc, Borrower asc. Same rows as question 241, resorted. Column titles Name / Overdue / Left; widths [72, 90,\
+    \ 70] px for the three visible columns. Basis: model 77 Collection Worklist."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "filters":
+      - - "="
+        - "lib/uuid": "f3157bc1-d7df-4a8f-9c52-20f74c83b5d7"
+        - - "field"
+          - "base-type": "type/Text"
+            "lib/uuid": "979a5702-996f-4c06-9a2d-a65da7639929"
+          - "Daily Collection Status"
+        - "Overdue"
+      "lib/type": "mbql.stage/mbql"
+      "fields":
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "acd786f5-c689-4742-bc1f-995197b9d0b5"
+        - "Borrower"
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "8418f5c5-1bf3-4414-b4db-64d371f8adbf"
+        - "Overdue Amount"
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "816dfb96-86af-49d2-815a-065a6e261741"
+        - "Amount Remaining"
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "ebdef92b-3935-4828-85df-5b311c4bddd4"
+        - "Borrower ID"
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "f2b1e136-3cbb-4b4c-a207-f899abafb5e5"
+        - "Daily Collection Status"
+      "order-by":
+      - - "desc"
+        - "lib/uuid": "825ca5e6-b501-4471-9251-f2e889fba204"
+        - - "field"
+          - "base-type": "type/Decimal"
+            "lib/uuid": "bcb445ed-9873-4784-8b53-4ef46217fa3b"
+          - "Overdue Amount"
+      - - "asc"
+        - "lib/uuid": "4574569d-744f-4076-85f2-82c4f3eaf4e7"
+        - - "field"
+          - "base-type": "type/Text"
+            "lib/uuid": "d2ba8900-3292-48f0-a07e-c07b7beffc0c"
+          - "Borrower"
+      "source-card": 77
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Borrower"
+      "enabled": true
+    - "name": "Overdue Amount"
+      "enabled": true
+    - "name": "Amount Remaining"
+      "enabled": true
+    - "name": "Borrower ID"
+      "enabled": false
+    - "name": "Daily Collection Status"
+      "enabled": false
+    "table.column_widths":
+    - 72
+    - 90
+    - 70
+    "table.column_formatting":
+    - "id": 0
+      "columns":
+      - "Daily Collection Status"
+      "type": "single"
+      "operator": "="
+      "value": "Overdue"
+      "color": "#7172AD"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Borrower\"]":
+        "column_title": "Name"
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+      "[\"name\",\"Overdue Amount\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Overdue"
+      "[\"name\",\"Amount Remaining\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Left"
+  "basis": "model 77 Collection Worklist"
+  "build_kind": "mbql"
+  "origin_question_id": 241
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

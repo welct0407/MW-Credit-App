@@ -1,0 +1,325 @@
+{
+  "at": "2026-10-26T21:32:45.836Z",
+  "passed": true,
+  "checks": [
+    {
+      "name": "structure",
+      "passed": true,
+      "detail": {
+        "want": {
+          "tabs": 12,
+          "placements": 225,
+          "parameters": 22
+        },
+        "tabs": 12,
+        "placements": 225,
+        "parameters": 22,
+        "parameterIdsMatch": true,
+        "unmatched": 0
+      }
+    },
+    {
+      "name": "mapping parity",
+      "passed": true,
+      "detail": {
+        "checked": 157,
+        "mismatched": 0
+      }
+    },
+    {
+      "name": "new-question mappings; attention, board, people, lanes and 64 map nothing",
+      "passed": true,
+      "detail": {
+        "mismatched": [],
+        "mappedAnyway": []
+      }
+    },
+    {
+      "name": "execution",
+      "passed": true,
+      "detail": {
+        "dashcards": 180,
+        "errors": 0,
+        "failed": []
+      }
+    },
+    {
+      "name": "reused values equal dashboard 3",
+      "passed": true,
+      "detail": {
+        "sampled": 103,
+        "different": []
+      }
+    },
+    {
+      "name": "today.realization",
+      "passed": true,
+      "detail": {
+        "equalsModel73": true,
+        "equals51over52": true
+      }
+    },
+    {
+      "name": "today.collection-rate",
+      "passed": true,
+      "detail": {
+        "equalsModel73": true,
+        "dueToday": "non-zero"
+      }
+    },
+    {
+      "name": "today.principal-smart",
+      "passed": true,
+      "detail": {
+        "days": 30,
+        "latestEquals62": true,
+        "firstEquals62": true
+      }
+    },
+    {
+      "name": "cash.pool-selected",
+      "passed": true,
+      "detail": {
+        "todayEquals": 47,
+        "pastDateEqualsModel205": true,
+        "beforeOpeningsBlank": true
+      }
+    },
+    {
+      "name": "cash.principal-selected",
+      "passed": true,
+      "detail": {
+        "todayEquals": 48,
+        "pastDateEqualsModel205": true,
+        "beforeOpeningsBlank": true
+      }
+    },
+    {
+      "name": "income.vs-previous",
+      "passed": true,
+      "detail": {
+        "thisEquals168to171": true,
+        "previousEqualsPrecedingRange": true,
+        "days": 27
+      }
+    },
+    {
+      "name": "income.monthly",
+      "passed": true,
+      "detail": {
+        "months": 3,
+        "equalsModel186MonthSums": true,
+        "question213Rows": 26
+      }
+    },
+    {
+      "name": "cashflow.by-type-row",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "period": "thismonth",
+            "rows": 6,
+            "equal": true,
+            "sortedByMovement": true
+          },
+          {
+            "period": "past30days",
+            "rows": 6,
+            "equal": true,
+            "sortedByMovement": true
+          },
+          {
+            "period": "previous range",
+            "rows": 7,
+            "equal": true,
+            "sortedByMovement": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "perf.vs-previous",
+      "passed": true,
+      "detail": {
+        "rows": 5,
+        "thisEquals217to219and234": true,
+        "previousEqualsPrecedingRange": true
+      }
+    },
+    {
+      "name": "partners.capital-share-row",
+      "passed": true,
+      "detail": {
+        "rows": 2,
+        "equals331": true
+      }
+    },
+    {
+      "name": "today.attention",
+      "passed": true,
+      "detail": {
+        "rows": 4,
+        "people240_242_244_270": true,
+        "overdueAmountEquals254": true,
+        "leftEquals162": true,
+        "tabIds": true,
+        "itemLink": true
+      }
+    },
+    {
+      "name": "today.principal-top4",
+      "passed": true,
+      "detail": {
+        "bars": 5,
+        "sumEquals": true,
+        "firstFourEqual": true,
+        "othersLabel": true
+      }
+    },
+    {
+      "name": "today.interest-top4",
+      "passed": true,
+      "detail": {
+        "bars": 5,
+        "sumEquals": true,
+        "firstFourEqual": true,
+        "othersLabel": true
+      }
+    },
+    {
+      "name": "income.expenses",
+      "passed": true,
+      "detail": {
+        "thisMonthEqualsMinus169": true,
+        "previousRangeEqualsMinus169": true
+      }
+    },
+    {
+      "name": "borrowers.principal-top5",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "case": "All with loan history",
+            "bars": 6,
+            "sumEquals": true,
+            "firstFiveEqual": true,
+            "othersLabel": true
+          },
+          {
+            "case": "Currently active",
+            "bars": 6,
+            "sumEquals": true,
+            "firstFiveEqual": true,
+            "othersLabel": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "borrowers.interest-top5",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "case": "past30days · All with loan history",
+            "bars": 6,
+            "sumEquals": true,
+            "firstFiveEqual": true,
+            "othersLabel": true
+          },
+          {
+            "case": "past7days · Currently active",
+            "bars": 6,
+            "sumEquals": true,
+            "firstFiveEqual": true,
+            "othersLabel": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "collection.people",
+      "passed": true,
+      "detail": {
+        "format": true,
+        "firstEquals246": true,
+        "ratioEquals239": true
+      }
+    },
+    {
+      "name": "collection.board",
+      "passed": true,
+      "detail": {
+        "order": true,
+        "people242_244_240_246": true,
+        "unclassifiedEquals251": true,
+        "leftEqualsLaneSums": true
+      }
+    },
+    {
+      "name": "collection lanes equal origins, resorted",
+      "passed": true,
+      "detail": {
+        "lanes": [
+          {
+            "key": "collection.lane-not-paid",
+            "rows": 7,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Amount Remaining",
+            "sorted": true
+          },
+          {
+            "key": "collection.lane-partial",
+            "rows": 1,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Amount Remaining",
+            "sorted": true
+          },
+          {
+            "key": "collection.lane-overdue",
+            "rows": 13,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Overdue Amount",
+            "sorted": true
+          },
+          {
+            "key": "collection.lane-paid",
+            "rows": 0,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Receipts Today",
+            "sorted": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "partners.statement",
+      "passed": true,
+      "detail": {
+        "cells": 10,
+        "partners": 2,
+        "everyCellEquals330": true
+      }
+    },
+    {
+      "name": "links target the proposed dashboard",
+      "passed": true,
+      "detail": {
+        "links": 18,
+        "toDashboard3": 0
+      }
+    },
+    {
+      "name": "dashboard 3 preserved",
+      "passed": true,
+      "detail": {
+        "dashcards": 272,
+        "tabs": 12,
+        "parameters": 28
+      }
+    }
+  ],
+  "financialValuesPublished": false
+}

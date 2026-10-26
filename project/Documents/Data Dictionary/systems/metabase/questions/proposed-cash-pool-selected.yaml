@@ -1,0 +1,67 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Total cash pool · selected date / 382"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "cash.pool-selected"
+  "id": 382
+  "name": "Total cash pool · selected date"
+  "description": "Loan Reports · proposed (cash.pool-selected). Native, same routing as question 207: today reads model 73\
+    \ Total Cash Pool, a past date reads model 205 Total Cash Pool for that date; blank when no snapshot exists. Basis: snippet\
+    \ 4 Cash position source routing (models 205, 73)."
+  "display": "scalar"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-205"
+        "name": "#205"
+        "display-name": "Model 205"
+        "card-id": 205
+      - "type": "card"
+        "id": "lrp-model-73"
+        "name": "#73"
+        "display-name": "Model 73"
+        "card-id": 73
+      - "widget-type": "date/all-options"
+        "id": "lrp-position-date"
+        "name": "position_date"
+        "display-name": "Date"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "0b78f2e4-6e05-4101-aa1b-1ef7dafa70ab"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date AS today),
+         dates AS (SELECT generate_series(coalesce((SELECT min("Date") FROM {{#205}}),c.today),c.today,interval '1 day')::date AS "Date" FROM clock c),
+         selected AS (SELECT max(d."Date") AS position_date FROM dates d WHERE true [[AND {{position_date}}]])
+        SELECT CASE WHEN s.position_date=c.today THEN (SELECT p."Total Cash Pool" FROM {{#73}} p LIMIT 1)
+         WHEN s.position_date<c.today THEN (SELECT p."Total Cash Pool" FROM {{#205}} p WHERE p."Date"=s.position_date ORDER BY p."Generated At" DESC NULLS LAST LIMIT 1) END AS "Total Cash Pool"
+        FROM selected s CROSS JOIN clock c
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "Total Cash Pool"
+    "column_settings":
+      "[\"name\",\"Total Cash Pool\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "basis": "snippet 4 Cash position source routing (models 205, 73)"
+  "build_kind": "native"
+  "origin_question_id": 207
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."
