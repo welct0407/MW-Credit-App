@@ -45,7 +45,7 @@ Loan Close charged the full interest of a charge dated after the close day and s
 - A data dictionary capture: production captures are refreshed after V113 reaches PROD.
 
 ## Recovery
-Git baseline `bfd2ad4` (V113 committed as `3edf1d1`). V113 is `CREATE OR REPLACE` of the two Loan Close functions; rollback is a later migration that restores the V112 bodies. Charges whose Interest Due a close lowered keep the lower value and a note; a rollback does not restore them. Deleting the closing payment also keeps the lowered due.
+Git baseline `bfd2ad4` (V113 committed as `3edf1d1`; released in `10d543d`). PROD backup at V111 `prod-promotion-0f44f815be3448c482ab4cce4ed346b6` (details in the promotion record). V113 is `CREATE OR REPLACE` of the two Loan Close functions; rollback is a later migration that restores the V112 bodies. Charges whose Interest Due a close lowered keep the lower value and a note; a rollback does not restore them. Deleting the closing payment also keeps the lowered due.
 
 ## Open questions
 None. Accepted consequence: undoing a close (deleting or correcting the closing payment) leaves the future charge's lowered interest. If the loan then continues past that date, a Partner should edit the charge.
@@ -53,4 +53,4 @@ None. Accepted consequence: undoing a close (deleting or correcting the closing 
 Known limitation, owner choice. The case: a loan was closed early, the closing payment was deleted, the loan ran past the future charge's own date, and it is then closed again. What happens: the quoted payoff is short by daily interest × the days between the first close and that charge's date (example: 1030 instead of 1070). Nothing flags it. A Partner corrects it by raising that charge's Interest Due back to the amount shown in its "lowered from" note. The owner can accept this, or have it fixed later by restoring the lowered interest when a closing payment is deleted.
 
 ## Remaining work
-The DEV promotion (applied and verified in DEV on 25 October 2026, including a Loan Close test with a hand-booked future charge; PROD pending the owner's instruction) is in the [promotion record](CHANGE_NOTES_R101_PAY_NEXT_CHARGE_2026-10-25.md#promotion-record). Verification and owner acceptance; PROD promotion on the owner's instruction.
+The DEV promotion (applied and verified in DEV and released to PROD on 25 October 2026; DEV included a Loan Close test with a hand-booked future charge, PROD had no live Loan Close) is in the [promotion record](CHANGE_NOTES_R101_PAY_NEXT_CHARGE_2026-10-25.md#promotion-record). Open: owner acceptance and the first real Loan Close with a future-dated charge, recorded in the next closure or product pull request.
