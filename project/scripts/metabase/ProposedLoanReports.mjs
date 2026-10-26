@@ -1,6 +1,7 @@
 // Loan Reports · proposed: parallel redesign of dashboard 3 for owner review. Reads layout.json; never writes dashboard 3.
 // --prepare captures the private baseline; --publish creates the collection, ten questions and the dashboard once;
-// --refine --only=<question key|tab key>,... re-applies state-owned objects; --verify checks structure, parity and preservation.
+// --refine --only=<question key|tab key>,... [--dry-run] dry-runs the named questions, then creates missing ones, updates the rest,
+// rebuilds the named tabs and archives state-owned questions the spec dropped; --verify checks structure, parity and preservation.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource,root} from './ReportingApi.mjs';
@@ -49,7 +50,7 @@ const perfSql=`WITH clock AS (SELECT public.olap_reporting_date() today),
  FROM periods p
  ), m AS (
  SELECT v.ord,v.metric,max(v.amount) FILTER (WHERE t.p='this') cur,max(v.amount) FILTER (WHERE t.p='previous' AND t.ok) prev
- FROM totals t CROSS JOIN LATERAL (VALUES (1,'Gross interest',t.interest),(2,'Principal issued',t.issued),(3,'Loans issued',t.loans::numeric),(4,'Principal returned',t.returned)) v(ord,metric,amount)
+ FROM totals t CROSS JOIN LATERAL (VALUES (1,'Gross interest',t.interest),(2,'Principal issued',t.issued),(3,'Loans issued',t.loans::numeric),(4,'Principal returned',t.returned),(5,'Net principal deployed',t.issued-t.returned)) v(ord,metric,amount)
  GROUP BY v.ord,v.metric
  )
 SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord`;
@@ -70,10 +71,23 @@ const incomeSql=`WITH selected AS (SELECT d."Date" FROM public.reporting_stateme
  )
 SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord`;
 const compareTable={'table.pivot':false,column_settings:{...fmt(['This period','Previous period','Change']),...fmt(['Change %'],pct)},'table.column_formatting':[{id:0,columns:['Change %','Change'],type:'single',operator:'>',value:0,color:'#84BB4C',highlight_row:false},{id:1,columns:['Change %','Change'],type:'single',operator:'<',value:0,color:'#ED6E6E',highlight_row:false}]};
-// The ten new questions. dataset_query for the two copies (cashflow.by-type-row, partners.capital-share-row) is read from the live source question.
-export function questions(sources={}){
- const q203=sources[203],q331=sources[331];
- const sql=c=>c?.dataset_query?.stages?.[0]?.native??c?.dataset_query?.native?.query;
+const sql=c=>c?.dataset_query?.stages?.[0]?.native??c?.dataset_query?.native?.query;
+// The origin's template tags in the legacy shape this installer posts (names, ids, types and defaults unchanged).
+function originTags(c){
+ const t=c?.dataset_query?.stages?.[0]?.['template-tags']??c?.dataset_query?.native?.['template-tags']??{};
+ return Object.fromEntries((Array.isArray(t)?t:Object.values(t)).map(({dimension,...x})=>[x.name,dimension?{...x,dimension:dimension[1]&&typeof dimension[1]==='object'?['field',dimension[2],null]:dimension}:x]));
+}
+// Column-settings keys as Metabase writes them (the Python spec writes ["name", "x"] with a space and escapes).
+const normKeys=o=>Array.isArray(o)?o.map(normKeys):o&&typeof o==='object'?Object.fromEntries(Object.entries(o).map(([k,v])=>[k.startsWith('["')?JSON.stringify(JSON.parse(k)):k,normKeys(v)])):o;
+const mergeVs=(a={},b={})=>{const m={...a,...b};for(const k of ['column_settings','series_settings'])if(a[k]||b[k])m[k]=Object.fromEntries([...new Set([...Object.keys(a[k]??{}),...Object.keys(b[k]??{})])].map(n=>[n,{...a[k]?.[n],...b[k]?.[n]}]));return m;};
+const firstDashcard=(baseline,id)=>[...(baseline?.dashcards??[])].sort((a,b)=>a.id-b.id).find(c=>c.card_id===id);
+// Definitions given as an edit of the origin's query (layout: "rank<=10 changed to rank<=5 ... 'Others' replaced by 'Others (n)'").
+const top5=s=>{assert.equal(s.split('rank<=10').length,3,'origin rank<=10 twice');assert.equal(s.split(`ELSE 'Others' END`).length,2,'origin Others label once');return s.replaceAll('rank<=10','rank<=5').replace(`ELSE 'Others' END`,`ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')' END`);};
+const edits={'borrowers.principal-top5':top5,'borrowers.interest-top5':top5};
+// The new questions. A native question built from its origin's query (sql_wrap, an edit, or sql naming the origin's tags) copies the
+// origin's template tags and maps them as the origin's dashboard-3 dashcard did; other new questions carry the mappings written below.
+export function questions(sources={},state={},baseline){
+ const q331=sources[331];
  const spec={
   'today.principal-smart':{dataset_query:mbql({'source-table':'card__74',aggregation:[['aggregation-options',['max',f('Outstanding Principal')],{name:'Principal at work','display-name':'Principal at work'}]],breakout:[f('Date','type/Date',{'temporal-unit':'day'})],'order-by':[['asc',f('Date','type/Date',{'temporal-unit':'day'})]]}),
    visualization_settings:{'scalar.compact_primary_number':false,'scalar.field':'Principal at work','scalar.comparisons':[{id:'first',type:'periodsAgo',value:29}],column_settings:fmt(['Principal at work'])},mappings:{period:['dimension',f('Date','type/Date')]}},
@@ -84,13 +98,48 @@ export function questions(sources={}){
   'income.vs-previous':{dataset_query:native(incomeSql,[model(186),dateTag('statement_period','Statement period')]),visualization_settings:compareTable,mappings:{'statement-period':tagTarget('statement_period')}},
   'income.monthly':{dataset_query:mbql({'source-table':'card__186',aggregation:[['aggregation-options',['sum',f('Income')],{name:'Income','display-name':'Income'}],['aggregation-options',['sum',f('Expenses')],{name:'Expenses','display-name':'Expenses'}],['aggregation-options',['-',['sum',f('Income')],['sum',f('Expenses')]],{name:'Net profit','display-name':'Net profit'}]],breakout:[f('Date','type/Date',{'temporal-unit':'month'})],filter:['time-interval',f('Date','type/Date'),-5,'month',{'include-current':true}]}),
    visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Income','Expenses','Net profit'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#178F8A','#D6816B','#2a78d6'],'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Income','Expenses','Net profit'])},mappings:{}},
-  'cashflow.by-type-row':{dataset_query:q203&&native(`SELECT * FROM (${sql(q203)}) t WHERE t."Transaction Type"<>'TOTAL'`,[{id:'lrp-cashflow-period',name:'cashflow_period','display-name':'Statement period',type:'dimension',dimension:['field',82,null],'widget-type':'date/all-options',alias:'d."Date"'},{id:'lrp-cash-account',name:'cash_account','display-name':'Account',type:'text',required:true,default:'__ALL__'},{id:'lrp-snippet-3',name:'snippet: Cashflow statement period','display-name':'Cashflow statement period',type:'snippet','snippet-name':'Cashflow statement period','snippet-id':3}]),
-   visualization_settings:{'graph.dimensions':['Transaction Type'],'graph.metrics':['Money In','Money Out'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#178F8A','#D6816B'],column_settings:fmt(['Money In','Money Out'])},mappings:{'statement-period':tagTarget('cashflow_period'),account:tagTarget('cash_account','variable')}},
+  // Stacked: each type moves money one way, and the row chart fits floor(height/24) stacked categories instead of
+  // floor(height/48) grouped ones, so no type is folded into "Other (n)" at the planned 18×7 size.
+  'cashflow.by-type-row':{visualization_settings:{'graph.label_value_formatting':'compact','stackable.stack_type':'stacked',column_settings:fmt(['Money In','Money Out'])}},
   'perf.vs-previous':{dataset_query:native(perfSql,[model(70),model(71),dateTag('performance_period','Performance period')]),visualization_settings:{...compareTable,column_settings:{...compareTable.column_settings}},mappings:{period:tagTarget('performance_period')}},
   'partners.capital-share-row':{dataset_query:q331&&native(`SELECT "Partner","Net capital ฿"/nullif(sum("Net capital ฿") OVER (),0) AS "Capital share %","Net capital ฿" FROM (${sql(q331)}) t`,[{id:'lrp-partner',name:'partner','display-name':'Partner',type:'dimension',dimension:['field',121,null],'widget-type':'string/=',alias:'d.partner_id'},model(318)]),
    visualization_settings:{'graph.dimensions':['Partner'],'graph.metrics':['Capital share %'],'graph.show_values':true,'graph.show_legend':false,'graph.colors':['#178F8A','#7472BE','#D6816B','#D4AD60'],'graph.y_axis.min':0,'graph.y_axis.max':1,column_settings:{...fmt(['Capital share %'],pct),...fmt(['Net capital ฿'])}},mappings:{partner:tagTarget('partner')}}
  };
- return Object.entries(layout.new_questions).map(([key,d])=>({key,name:d.name,display:d.display,description:`Loan Reports · proposed (${key}). ${d.definition} Basis: ${d.basis}.`,...spec[key]}));
+ // Column links written by the installer (layout: the attention strip's Item opens the tab named in its hidden Tab column).
+ const links={'today.attention':{column:'Item',linkTemplate:`${site}/dashboard/${state.dashboard}?tab={{Tab}}`}};
+ return Object.entries(layout.new_questions).map(([key,d])=>{
+  const origin=sources[d.origin],s=spec[key]??{};let {dataset_query,mappings={}}=s;
+  let copy=false,text=d.sql??(d.sql_wrap&&sql(origin)&&d.sql_wrap.replace(`<${d.origin}>`,sql(origin)))??(edits[key]&&sql(origin)&&edits[key](sql(origin)));
+  if(text){
+   assert(!d.sql_wrap||!text.includes(`<${d.origin}>`),'sql_wrap placeholder left: '+key);
+   text=text.replaceAll('__TAB_COLLECTION__',String(state.tabs?.collection)).replaceAll('__TAB_HEALTH__',String(state.tabs?.health));
+   const own=sql(origin)?originTags(origin):{};copy=Object.keys(own).some(n=>text.includes(`{{${n}}}`));const tags=copy?{...own}:{};
+   for(const [,id] of text.matchAll(/\{\{#(\d+)\}\}/g))tags['#'+id]??=model(+id);
+   dataset_query=native(text,Object.values(tags));mappings={};
+   if(copy)for(const m of firstDashcard(baseline,d.origin)?.parameter_mappings??[]){const pid=replaced[m.parameter_id];if(d.params.includes(pid))mappings[pid]??=m.target;}
+  }else if(d.query){dataset_query=mbql(d.query);mappings={};}
+  // Saved settings: the installer's base, the layout's settings over it (descriptive strings skipped), the origin's copied presentation.
+  const {copy_from_origin:copyKeys=[],...given}=d.settings??{};
+  // A copy of a native origin keeps the origin's column number formats (whole baht) under the layout's settings.
+  let vs=mergeVs(mergeVs(copy?{column_settings:origin.visualization_settings?.column_settings}:{},s.visualization_settings),normKeys(Object.fromEntries(Object.entries(given).filter(([k,v])=>!(k==='table.column_formatting'&&typeof v==='string')))));
+  const from=mergeVs(origin?.visualization_settings,firstDashcard(baseline,d.origin)?.visualization_settings),copied={};
+  // Formatting rules keep only columns the new question returns (a rule left without columns is dropped).
+  const fields=d.query?.fields?.map(x=>x[1]);
+  if(copyKeys.includes('table.column_formatting')&&from['table.column_formatting'])copied['table.column_formatting']=from['table.column_formatting'].map(r=>({...r,columns:r.columns.filter(c=>!fields||fields.includes(c))})).filter(r=>r.columns.length);
+  if(copyKeys.includes('click_behavior')){
+   if(from.click_behavior)copied.click_behavior=from.click_behavior;
+   for(const [k,v] of Object.entries(from.column_settings??{}))if(v.click_behavior)(copied.column_settings??={})[k]={click_behavior:v.click_behavior};
+  }
+  const link=links[key];if(link)(copied.column_settings??={})[JSON.stringify(['name',link.column])]={click_behavior:{type:'link',linkType:'url',linkTemplate:link.linkTemplate}};
+  const presentation=rewrite(copied,state);vs=mergeVs(vs,presentation);
+  // A table copy with the origin's visible column count keeps the origin's column widths, under the key this version reads
+  // (table.column_widths; the origin's table.cell_column_widths is ignored, and the six-wide lanes truncate without widths).
+  const widths=from['table.column_widths']??from['table.cell_column_widths'],visible=vs['table.columns']?.filter(c=>c.enabled).length;
+  if(copyKeys.length&&widths&&widths.length===visible)vs['table.column_widths']=widths;
+  // Row and bar charts on this version colour series from series_settings; graph.colors alone is ignored there.
+  (vs['graph.metrics']??[]).forEach((m,i)=>{const color=vs['graph.colors']?.[i];if(color&&!vs.series_settings?.[m]?.color)vs.series_settings={...vs.series_settings,[m]:{...vs.series_settings?.[m],color}};});
+  return {key,name:d.name,display:d.display,description:`Loan Reports · proposed (${key}). ${d.definition} Basis: ${d.basis}.`,dataset_query,visualization_settings:vs,mappings,presentation,params:d.params};
+ });
 }
 function parameters(baseline){
  return layout.parameters.map(p=>{
@@ -103,58 +152,83 @@ function parameters(baseline){
   return out;
  });
 }
-const relink=(text,state)=>text.replaceAll(`${site}/dashboard/3?tab=105&bd_borrower=`,`${site}/dashboard/${state.dashboard}?tab=${state.tabs['borrower-detail']}&borrower=`).replaceAll('&bd_activity=','&period=');
+const relink=(text,state)=>text.replaceAll(`${site}/dashboard/3?tab=105&bd_borrower=`,`${site}/dashboard/${state.dashboard}?tab=${state.tabs?.['borrower-detail']}&borrower=`).replaceAll('&bd_activity=','&period=');
 function rewrite(o,state){
  if(typeof o==='string')return relink(o,state);
  if(Array.isArray(o))return o.map(v=>rewrite(v,state));
  if(o&&typeof o==='object')return Object.fromEntries(Object.entries(o).map(([k,v])=>[k,rewrite(v,state)]));
  return o;
 }
-const goals={62:{'graph.show_goal':true,'graph.goal_value':120000,'graph.goal_label':'Principal reference 120,000'},222:{'graph.show_goal':true,'graph.goal_value':10000,'graph.goal_label':'Daily interest goal 10,000'}};
-const order275=['Category','Borrower','Payment score /100','Contribution ×','Schedule'];
-function placements(tab,state,baseline,live1501){
- const byCard=new Map();for(const c of [...baseline.dashcards].sort((a,b)=>a.id-b.id))if(c.card_id&&!byCard.has(c.card_id))byCard.set(c.card_id,c);
- const cardTab=new Map();for(const t of layout.tabs)for(const p of t.placements)if(p.reuse_card_id&&t.key!=='today'&&!cardTab.has(p.reuse_card_id))cardTab.set(p.reuse_card_id,t.key);
+// Placement options (layout.json): title, vs (merged, and inside visualization.settings for visualizer-format placements), columns
+// (named columns first, the rest in their saved order, `hide` disabled) and hide_empty.
+function columnsFor(spec,card,current){
+ const names=card.result_metadata.map(m=>m.name);for(const n of [...spec.order,...spec.hide])assert(names.includes(n),`column ${n} not in question ${card.id}`);
+ const saved=(current??card.visualization_settings?.['table.columns']??[]).filter(c=>names.includes(c.name));
+ return [...new Set([...spec.order,...saved.map(c=>c.name),...names])].map(name=>({name,enabled:!spec.hide.includes(name)&&(spec.order.includes(name)||(saved.find(c=>c.name===name)?.enabled??true))}));
+}
+function options(vs,p,card){
+ vs['card.title']=p.title;const extra=normKeys(p.vs??{});Object.assign(vs,extra);
+ if(p.hide_empty)vs['card.hide_empty']=true;
+ if(p.columns)vs['table.columns']=columnsFor(p.columns,card,vs['table.columns']);
+ if(vs.visualization?.settings){vs.visualization.settings['card.title']=p.title;Object.assign(vs.visualization.settings,extra);}
+ return vs;
+}
+function placements(tab,state,baseline,live1501,specs,cards){
  const tabId=state.tabs[tab.key];let id=-1-1000*tab.position;
  return tab.placements.map(p=>{
   const base={id:id--,dashboard_tab_id:tabId,row:p.row,col:p.col,size_x:p.size_x,size_y:p.size_y,series:[]};
   if(p.virtual)return {...base,card_id:null,parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:p.virtual,visualization_settings:{text:p.text,...(p.virtual==='text'?{'text.align_vertical':'middle'}:{})}},text:p.text}};
   if(p.copy_dashcard){assert.equal(p.copy_dashcard,1501);return {...base,card_id:null,parameter_mappings:[],visualization_settings:structuredClone(live1501.visualization_settings)};}
   if(p.new_question){
-   const q=questions().find(q=>q.key===p.new_question),card=state.questions[p.new_question];
-   return {...base,card_id:card,parameter_mappings:p.params.filter(k=>q.mappings[k]).map(k=>({parameter_id:k,card_id:card,target:q.mappings[k]})),visualization_settings:{'card.title':p.title}};
+   const q=specs.find(q=>q.key===p.new_question),card=state.questions[p.new_question];assert(card,'question not created yet: '+p.new_question);
+   return {...base,card_id:card,parameter_mappings:p.params.filter(k=>q.mappings[k]).map(k=>({parameter_id:k,card_id:card,target:q.mappings[k]})),visualization_settings:options(structuredClone(q.presentation),p,cards[card])};
   }
-  const old=byCard.get(p.reuse_card_id);
-  const vs=rewrite(structuredClone(old?.visualization_settings??{}),state);
-  vs['card.title']=p.title;
-  if(goals[p.reuse_card_id])Object.assign(vs,goals[p.reuse_card_id]);
-  // Visualizer-format placements render from their inner settings, so the title and goal go there too.
-  if(vs.visualization?.settings){vs.visualization.settings['card.title']=p.title;if(goals[p.reuse_card_id])Object.assign(vs.visualization.settings,goals[p.reuse_card_id]);}
-  if(p.reuse_card_id===275&&tab.key==='health'){const cols=state.cardColumns?.[275]??[];vs['table.columns']=[...order275,...cols.filter(c=>!order275.includes(c))].filter(c=>cols.includes(c)).map(name=>({name,enabled:name!=='Borrower ID'}));}
-  // Today's attention chips (row 10) open the proposed tab that holds the same question.
-  if(tab.key==='today'&&p.row===10&&cardTab.has(p.reuse_card_id))vs.click_behavior={type:'link',linkType:'url',linkTemplate:`${site}/dashboard/${state.dashboard}?tab=${state.tabs[cardTab.get(p.reuse_card_id)]}`};
+  const old=firstDashcard(baseline,p.reuse_card_id);
+  const vs=options(rewrite(structuredClone(old?.visualization_settings??{}),state),p,cards[p.reuse_card_id]);
   const mappings=[];
   for(const m of old?.parameter_mappings??[]){const pid=replaced[m.parameter_id];if(p.params.includes(pid)&&!mappings.some(x=>x.parameter_id===pid))mappings.push({parameter_id:pid,card_id:p.reuse_card_id,target:m.target});}
   return {...base,card_id:p.reuse_card_id,series:(old?.series??[]).map(s=>({id:s.id})),parameter_mappings:mappings,visualization_settings:vs};
  });
 }
+const cardBody=({key,mappings,presentation,params,...body})=>body;
 const redact=vs=>JSON.parse(JSON.stringify(vs).replace(/#key=[^"\\]+/g,'#key=<private>'));
-async function liveSources(){return {203:await api('GET','card/203'),331:await api('GET','card/331')};}
+// Live origin questions (read only): every new question's origin, for copied queries, tags and presentation.
+async function liveSources(){const out={};for(const id of new Set([331,...Object.values(layout.new_questions).map(d=>d.origin)]))out[id]=await api('GET','card/'+id);return out;}
+// Representative parameters (layout defaults) for a question's own mappings; used for dry runs before any write.
+const sample=q=>Object.entries(q.mappings).map(([pid,target])=>{const p=layout.parameters.find(x=>x.id===pid);return p.default===null?null:{type:p.type,value:p.default,target};}).filter(Boolean);
+async function dryRun(specs){
+ const report=[];
+ for(const q of specs){
+  const r=await api('POST','dataset',{...q.dataset_query,parameters:sample(q)});
+  if(r.status!=='completed'){save('query-error',r,priv);throw Error(`dry run failed: ${q.key}: ${String(r.error).slice(0,300)}`);}
+  report.push({key:q.key,rows:r.data.rows.length,cols:r.data.cols.map(c=>c.name)});
+ }
+ return report;
+}
 async function guardDashboard3(){
  const baseline=read('dashboard-3-before',priv),live=await api('GET','dashboard/3');
  assert.deepEqual(shape(live),shape(baseline),'dashboard 3 dashcards changed since the baseline');assert.deepEqual(live.tabs,baseline.tabs);assert.deepEqual(live.parameters,baseline.parameters);
  return {baseline,live};
 }
-async function applyTabs(state,baseline,only){
+async function applyTabs(state,baseline,only,specs){
  const d=await api('GET','dashboard/'+state.dashboard);
  const live1501=(await api('GET','dashboard/3')).dashcards.find(c=>c.id===1501);assert(live1501?.visualization_settings?.virtual_card?.display==='iframe','dashcard 1501 matrix iframe missing');
+ const tabs=layout.tabs.filter(t=>!only||only.includes(t.key)),cards={};
+ for(const t of tabs)for(const p of t.placements)if(p.columns){const id=p.reuse_card_id??state.questions[p.new_question];cards[id]??=await api('GET','card/'+id);}
  const keep=d.dashcards.filter(c=>only&&!only.includes(layout.tabs.find(t=>state.tabs[t.key]===c.dashboard_tab_id)?.key));
- const fresh=layout.tabs.filter(t=>!only||only.includes(t.key)).flatMap(t=>placements(t,state,baseline,live1501));
+ const fresh=tabs.flatMap(t=>placements(t,state,baseline,live1501,specs,cards));
  await api('PUT','dashboard/'+state.dashboard,{tabs:d.tabs.map(({id,name,position})=>({id,name,position})),dashcards:[...keep,...fresh]});
+}
+// State-owned questions the spec no longer names are archived once no proposed dashcard references them.
+async function retire(state){
+ const gone=Object.keys(state.questions).filter(k=>!layout.new_questions[k]);if(!gone.length)return [];
+ const used=new Set((await api('GET','dashboard/'+state.dashboard)).dashcards.map(c=>c.card_id));
+ for(const k of gone){const id=state.questions[k];assert(!used.has(id),`question ${id} (${k}) still placed`);await api('PUT','card/'+id,{archived:true});(state.archived??={})[k]=id;delete state.questions[k];save('state',state);}
+ return gone;
 }
 const args=process.argv.slice(2),only=(args.find(a=>a.startsWith('--only='))||'').slice(7).split(',').filter(Boolean);
 if(args.includes('--plan')){
- const q=questions();console.log(JSON.stringify({tabs:layout.tabs.length,placements:layout.tabs.reduce((n,t)=>n+t.placements.length,0),parameters:layout.parameters.length,questions:q.map(x=>x.key),reused:layout.summary.reused_questions.length}));
+ const q=questions({},{},null);console.log(JSON.stringify({tabs:layout.tabs.length,placements:layout.tabs.reduce((n,t)=>n+t.placements.length,0),parameters:layout.parameters.length,questions:q.map(x=>x.key),reused:layout.summary.reused_questions.length}));
 }
 if(args.includes('--prepare')){
  await assertSource();assert(!fs.existsSync(out+'/state.json'),'Already published: the baseline is fixed');
@@ -168,24 +242,30 @@ if(args.includes('--prepare')){
 if(args.includes('--publish')){
  await assertSource();assert(!fs.existsSync(out+'/state.json'),'Already published: use --refine, never replay --publish');
  const {baseline}=await guardDashboard3(),sources=await liveSources();
- const specs=questions(sources);
- for(const s of specs){const r=await api('POST','dataset',s.dataset_query);if(r.status!=='completed'){save('query-error',r,priv);throw Error('query failed: '+s.key);}}
+ await dryRun(questions(sources,{},baseline));
  const collection=await api('POST','collection',{...layout.dashboard.collection});
- const state={collection:collection.id,questions:{},tabs:{},cardColumns:{275:(await api('GET','card/275')).result_metadata.map(m=>m.name)}};save('state',state);
- for(const s of specs){const {key,mappings,...body}=s;const c=await api('POST','card',{...body,type:'question',collection_id:collection.id});state.questions[key]=c.id;save('state',state);}
+ const state={collection:collection.id,questions:{},tabs:{}};save('state',state);
  const dash=await api('POST','dashboard',{name:layout.dashboard.name,description:layout.dashboard.description,collection_id:collection.id});state.dashboard=dash.id;save('state',state);
  await api('PUT','dashboard/'+dash.id,{parameters:parameters(baseline),auto_apply_filters:layout.dashboard.auto_apply_filters,width:'fixed',tabs:layout.tabs.map(t=>({id:-1-t.position,name:t.name,position:t.position})),dashcards:[]});
  const withTabs=await api('GET','dashboard/'+dash.id);for(const t of layout.tabs)state.tabs[t.key]=withTabs.tabs.find(x=>x.name===t.name).id;save('state',state);
- await applyTabs(state,baseline);
+ const specs=questions(sources,state,baseline);
+ for(const s of specs){const c=await api('POST','card',{...cardBody(s),type:'question',collection_id:collection.id});state.questions[s.key]=c.id;save('state',state);}
+ await applyTabs(state,baseline,null,specs);
  await guardDashboard3();
  console.log(JSON.stringify({dashboard:dash.id,collection:collection.id,questions:Object.keys(state.questions).length,tabs:Object.keys(state.tabs).length}));
 }
 if(args.includes('--refine')){
- await assertSource();assert(only.length,'--refine needs --only=<keys>');const state=read('state'),{baseline}=await guardDashboard3(),specs=questions(await liveSources());
- const qs=only.filter(k=>state.questions[k]),tabs=only.filter(k=>state.tabs[k]);assert.equal(qs.length+tabs.length,only.length,'unknown key in --only');
- for(const k of qs){const {key,mappings,...body}=specs.find(s=>s.key===k);const c=await api('GET','card/'+state.questions[k]);save('question-before-refine-'+c.id,c,priv);await api('PUT','card/'+c.id,body);}
- if(tabs.length){save('proposed-before-refine',await api('GET','dashboard/'+state.dashboard),priv);await applyTabs(state,baseline,tabs);}
- await guardDashboard3();console.log(JSON.stringify({refined:only}));
+ await assertSource();assert(only.length,'--refine needs --only=<keys>');const state=read('state'),{baseline}=await guardDashboard3(),specs=questions(await liveSources(),state,baseline);
+ const qs=only.filter(k=>layout.new_questions[k]),tabs=only.filter(k=>state.tabs[k]);assert.equal(qs.length+tabs.length,only.length,'unknown key in --only');
+ const changed=specs.filter(s=>qs.includes(s.key)),dry=await dryRun(changed);
+ if(args.includes('--dry-run')){console.log(JSON.stringify({dryRun:dry},null,1));process.exit(0);}
+ for(const s of changed){
+  if(state.questions[s.key]){const c=await api('GET','card/'+state.questions[s.key]);save('question-before-refine-'+c.id,c,priv);await api('PUT','card/'+c.id,cardBody(s));}
+  else{const c=await api('POST','card',{...cardBody(s),type:'question',collection_id:state.collection});state.questions[s.key]=c.id;save('state',state);}
+ }
+ if(tabs.length){save('proposed-before-refine',await api('GET','dashboard/'+state.dashboard),priv);await applyTabs(state,baseline,tabs,specs);}
+ const archived=await retire(state);
+ await guardDashboard3();console.log(JSON.stringify({refined:only,questions:Object.fromEntries(qs.map(k=>[k,state.questions[k]])),archived}));
 }
 const dashQuery=(dash,dc,parameters=[])=>api('POST',`dashboard/${dash}/dashcard/${dc.id}/card/${dc.card_id}/query`,{parameters});
 if(args.includes('--verify')){
@@ -194,7 +274,9 @@ if(args.includes('--verify')){
  // Structure
  const tabKey=Object.fromEntries(Object.entries(state.tabs).map(([k,v])=>[v,k]));
  let missing=0;for(const t of layout.tabs)for(const p of t.placements){const card=p.reuse_card_id??state.questions[p.new_question]??null;if(!d.dashcards.some(c=>c.dashboard_tab_id===state.tabs[t.key]&&c.row===p.row&&c.col===p.col&&c.size_x===p.size_x&&c.size_y===p.size_y&&c.card_id===card))missing++;}
- (d.tabs.length===12&&d.dashcards.length===240&&d.parameters.length===22&&!missing?pass:fail)('structure',{tabs:d.tabs.length,placements:d.dashcards.length,parameters:d.parameters.length,unmatched:missing});
+ const want={tabs:layout.tabs.length,placements:layout.tabs.reduce((n,t)=>n+t.placements.length,0),parameters:layout.parameters.length};
+ const sameParams=JSON.stringify(d.parameters.map(p=>p.id))===JSON.stringify(layout.parameters.map(p=>p.id));
+ (d.tabs.length===want.tabs&&d.dashcards.length===want.placements&&sameParams&&!missing?pass:fail)('structure',{want,tabs:d.tabs.length,placements:d.dashcards.length,parameters:d.parameters.length,parameterIdsMatch:sameParams,unmatched:missing});
  // Mapping parity: reused cards carry the dashboard-3 targets after id substitution
  let parity=0,parityChecked=0;
  for(const c of d.dashcards.filter(c=>c.card_id&&!Object.values(state.questions).includes(c.card_id))){
@@ -205,8 +287,16 @@ if(args.includes('--verify')){
   if(JSON.stringify([...new Set(want)].sort())!==JSON.stringify(got.sort())){parity++;if(parity<5)fail('mapping '+c.card_id,{want,got});}
  }
  (parity?fail:pass)('mapping parity',{checked:parityChecked,mismatched:parity});
- const collectionUnmapped=d.dashcards.filter(c=>c.dashboard_tab_id===state.tabs.collection&&[241,243,245,247,64].includes(c.card_id)&&c.parameter_mappings.length);
- (collectionUnmapped.length?fail:pass)('collection lanes and 64 map nothing',{mapped:collectionUnmapped.map(c=>c.card_id)});
+ // New questions map exactly the spec's mappings within the placement's filters (copies: the origin's dashboard-3 targets)
+ const specs=questions(await liveSources(),state,baseline),byId=new Map(Object.entries(state.questions).map(([k,v])=>[v,specs.find(q=>q.key===k)]));let newBad=[];
+ for(const c of d.dashcards.filter(c=>byId.has(c.card_id))){
+  const q=byId.get(c.card_id),p=layout.tabs.find(t=>t.key===tabKey[c.dashboard_tab_id]).placements.find(p=>p.row===c.row&&p.col===c.col);
+  const want=p.params.filter(k=>q.mappings[k]).map(k=>JSON.stringify([k,q.mappings[k]])).sort(),got=c.parameter_mappings.map(m=>JSON.stringify([m.parameter_id,m.target])).sort();
+  if(JSON.stringify(want)!==JSON.stringify(got))newBad.push({key:q.key,want,got});
+ }
+ const unmappedKeys=['today.attention','collection.board','collection.people','collection.lane-not-paid','collection.lane-partial','collection.lane-overdue','collection.lane-paid'];
+ const mappedAnyway=d.dashcards.filter(c=>(unmappedKeys.map(k=>state.questions[k]).includes(c.card_id)||c.card_id===64)&&c.parameter_mappings.length).map(c=>c.card_id);
+ (newBad.length||mappedAnyway.length?fail:pass)('new-question mappings; attention, board, people, lanes and 64 map nothing',{mismatched:newBad,mappedAnyway});
  // Execution with default filters
  const defaults=d.parameters.filter(p=>p.default!==undefined).map(p=>({id:p.id,type:p.type,value:p.default}));
  const results=new Map();let errors=0;const failed=[];
@@ -236,6 +326,8 @@ if(args.includes('--verify')){
  const run=async id=>(await api('POST',`card/${id}/query`,{parameters:[]})).data;
  const one=async(id,values)=>(await ref(id,values)).rows?.[0]?.[0]??null;
  const near=(a,b)=>a===b||(a!=null&&b!=null&&Math.abs(Number(a)-Number(b))<0.005);
+ const objs=data=>data.rows.map(r=>Object.fromEntries(data.cols.map((c,i)=>[c.name,r[i]]))),sum=(rows,i)=>rows.reduce((t,r)=>t+Number(r[i]??0),0);
+ const sortRows=rows=>rows.map(r=>JSON.stringify(r)).sort(),neg=x=>x==null?null:-x;
  const dc=key=>d.dashcards.find(c=>c.card_id===state.questions[key]);
  const resultRows=key=>results.get(dc(key).id).data.rows;
  const ovRows=(await run(73)).rows;assert.equal(ovRows.length,1);const ov=ovRows[0],ovCols=(await api('GET','card/73')).result_metadata.map(m=>m.name),ovv=n=>ov[ovCols.indexOf(n)];
@@ -270,16 +362,64 @@ if(args.includes('--verify')){
  const cfc=dc('cashflow.by-type-row');let cfOk=true;const cfCases=[];
  for(const [period,account] of [['thismonth','__ALL__'],['past30days','__ALL__'],[prevStmt,'__ALL__']]){
   const a=(await dashQuery(state.dashboard,cfc,[{id:'statement-period',type:'date/all-options',value:period,target:tagTarget('cashflow_period')},{id:'account',type:'string/=',value:[account],target:tagTarget('cash_account','variable')}])).data.rows;
-  const b=(await ref(203,{'review-flow':period,'review-account':[account]})).rows.filter(r=>r[0]!=='TOTAL');
-  cfCases.push({period:period.includes('~')?'previous range':period,equal:JSON.stringify(a)===JSON.stringify(b)});cfOk&&=JSON.stringify(a)===JSON.stringify(b);
+  const b=(await ref(203,{'review-flow':period,'review-account':[account]})).rows.filter(r=>r[0]!=='TOTAL'&&(Number(r[1])||Number(r[2])));
+  const sorted=a.every((r,i)=>!i||Number(a[i-1][1])+Number(a[i-1][2])>=Number(r[1])+Number(r[2])),equal=JSON.stringify(sortRows(a))===JSON.stringify(sortRows(b));
+  cfCases.push({period:period.includes('~')?'previous range':period,rows:a.length,equal,sortedByMovement:sorted});cfOk&&=equal&&sorted;
  }
  (cfOk?pass:fail)('cashflow.by-type-row',{cases:cfCases});
  const perf=resultRows('perf.vs-previous'),pp=v=>({'review-performance':v});
  const perfRange=await range('past30days'),prevPerf=shift(perfRange);
- const perfOk=near(perf[0][1],await one(217,pp('past30days')))&&near(perf[1][1],await one(218,pp('past30days')))&&near(perf[2][1],await one(219,pp('past30days')))&&near(perf[0][2],await one(217,pp(prevPerf)))&&near(perf[1][2],await one(218,pp(prevPerf)))&&near(perf[2][2],await one(219,pp(prevPerf)));
- (perfOk?pass:fail)('perf.vs-previous',{thisEquals217to219:true,previousEqualsPrecedingRange:perfOk});
+ const perfOk=perf.length===5&&near(perf[4][1],await one(234,pp('past30days')))&&near(perf[4][2],await one(234,pp(prevPerf)))&&near(perf[0][1],await one(217,pp('past30days')))&&near(perf[1][1],await one(218,pp('past30days')))&&near(perf[2][1],await one(219,pp('past30days')))&&near(perf[0][2],await one(217,pp(prevPerf)))&&near(perf[1][2],await one(218,pp(prevPerf)))&&near(perf[2][2],await one(219,pp(prevPerf)));
+ (perfOk?pass:fail)('perf.vs-previous',{rows:perf.length,thisEquals217to219and234:perfOk,previousEqualsPrecedingRange:perfOk});
  const share=resultRows('partners.capital-share-row'),q331=(await ref(331)).rows;
  (JSON.stringify(share.map(r=>[r[0],r[2]]))===JSON.stringify(q331)&&near(share.reduce((s,r)=>s+r[1],0),1)?pass:fail)('partners.capital-share-row',{rows:share.length,equals331:JSON.stringify(share.map(r=>[r[0],r[2]]))===JSON.stringify(q331)});
+ // Revision 2 questions (Archie's test plan; details are booleans and counts, no amounts)
+ const att=resultRows('today.attention'),s162=objs(await run(162)),st=n=>s162.find(r=>r['Collection Status']===n)?.['Amount Remaining']??null;
+ const attOk={people240_242_244_270:near(att[0]?.[1],await one(240))&&near(att[1]?.[1],await one(242))&&near(att[2]?.[1],await one(244))&&near(att[3]?.[1],await one(270)),
+  amounts254_162:near(att[0]?.[2],await one(254))&&near(att[1]?.[2],st('Not Paid'))&&near(att[2]?.[2],st('Partially Paid')),
+  tabIds:att[0]?.[4]===String(state.tabs.collection)&&att[1]?.[4]===String(state.tabs.collection)&&att[3]?.[4]===String(state.tabs.health),
+  itemLink:JSON.stringify(dc('today.attention').visualization_settings).includes(`dashboard/${state.dashboard}?tab={{Tab}}`)};
+ (att.length===4&&Object.values(attOk).every(Boolean)?pass:fail)('today.attention',{rows:att.length,...attOk});
+ for(const [key,origin] of [['today.principal-top4',60],['today.interest-top4',61]]){
+  const a=resultRows(key),b=(await ref(origin)).rows,r={bars:a.length,sumEquals:near(sum(a,1),sum(b,1)),firstFourEqual:a.slice(0,4).every((r,i)=>r[0]===b[i]?.[0]&&near(r[1],b[i][1])),othersLabel:a.length<=4||/^Others \(\d+\)$/.test(a[4][0])};
+  (r.sumEquals&&r.firstFourEqual&&r.othersLabel&&a.length<=5?pass:fail)(key,r);
+ }
+ const ec=dc('income.expenses'),exp=async v=>(await dashQuery(state.dashboard,ec,[{id:'statement-period',type:'date/all-options',value:v,target:ec.parameter_mappings[0].target}])).data.rows[0]?.[0]??null;
+ const expOk={thisMonthEqualsMinus169:near(await exp('thismonth'),neg(i169)),previousRangeEqualsMinus169:near(await exp(prevStmt),neg(await one(169,sp(prevStmt))))};
+ (Object.values(expOk).every(Boolean)?pass:fail)('income.expenses',expOk);
+ const topN=async(key,origin,cases)=>{
+  const c=dc(key),old=firstDashcard(d3,origin),out=[];
+  for(const vals of cases){
+   const a=(await dashQuery(state.dashboard,c,c.parameter_mappings.filter(m=>m.parameter_id in vals).map(m=>({id:m.parameter_id,type:layout.parameters.find(p=>p.id===m.parameter_id).type,value:vals[m.parameter_id],target:m.target})))).data.rows;
+   const b=(await dashQuery(3,old,old.parameter_mappings.filter(m=>replaced[m.parameter_id] in vals).map(m=>({id:m.parameter_id,type:oldParams.get(m.parameter_id).type,value:vals[replaced[m.parameter_id]],target:m.target})))).data.rows;
+   const named=a.filter(r=>!String(r[0]).startsWith('Others'));
+   out.push({case:Object.values(vals).flat().join(' · '),bars:a.length,sumEquals:near(sum(a,1),sum(b,1)),firstFiveEqual:named.length===Math.min(5,b.filter(r=>r[0]!=='Others').length)&&named.every((r,i)=>JSON.stringify(r)===JSON.stringify(b[i])),othersLabel:a.every(r=>r[0]!=='Others')});
+  }
+  (out.every(r=>r.sumEquals&&r.firstFiveEqual&&r.othersLabel)?pass:fail)(key,{cases:out});
+ };
+ await topN('borrowers.principal-top5',285,[{population:['All with loan history']},{population:['Currently active']}]);
+ await topN('borrowers.interest-top5',286,[{period:'past30days',population:['All with loan history']},{period:'thismonth',population:['Currently active']}]);
+ const ppl=String(resultRows('collection.people')[0]?.[0]),[x,n]=(ppl.match(/^(\d+) of (\d+) paid$/)??[]).slice(1).map(Number),q239=await one(239);
+ const pplOk={format:x!==undefined,firstEquals246:near(x,await one(246)),ratioEquals239:n?near(x/n,q239):q239==null};
+ (Object.values(pplOk).every(Boolean)?pass:fail)('collection.people',pplOk);
+ const board=objs(results.get(dc('collection.board').id).data),lanes=[['🔴 Not paid',242,'collection.lane-not-paid',243],['🟠 Partially paid',244,'collection.lane-partial',245],['🟣 Overdue',240,'collection.lane-overdue',241],['🟢 Fully paid',246,'collection.lane-paid',247]];
+ const boardOk={order:JSON.stringify(board.slice(0,4).map(r=>r.Lane))===JSON.stringify(lanes.map(l=>l[0])),people242_244_240_246:true,unclassifiedEquals251:near(board.filter(r=>r.Lane.startsWith('⚪')).reduce((t,r)=>t+Number(r.People),0),(await one(251))??0),leftEqualsLaneSums:true};
+ for(const [label,id,key] of lanes){
+  const row=board.find(r=>r.Lane===label),lane=objs(results.get(dc(key).id).data);boardOk.people242_244_240_246&&=near(row?.People,await one(id));
+  if(lane[0]&&'Amount Remaining' in lane[0])boardOk.leftEqualsLaneSums&&=near(row?.['Left ฿'],lane.reduce((t,r)=>t+Number(r['Amount Remaining']??0),0));
+ }
+ (Object.values(boardOk).every(Boolean)?pass:fail)('collection.board',boardOk);
+ const laneRes=[];
+ for(const [,,key,origin] of lanes){
+  const a=objs(results.get(dc(key).id).data),b=objs(await ref(origin)),cols=a[0]?Object.keys(a[0]).filter(k=>!b[0]||k in b[0]):[],by=layout.new_questions[key].query['order-by'][0][1][1];
+  const proj=rows=>rows.map(r=>JSON.stringify(cols.map(k=>r[k]))).sort();
+  laneRes.push({key,rows:a.length,sameRowsAsOrigin:a.length===b.length&&JSON.stringify(proj(a))===JSON.stringify(proj(b)),sortedBy:by,sorted:a.every((r,i)=>!i||Number(a[i-1][by])>=Number(r[by]))});
+ }
+ (laneRes.every(r=>r.sameRowsAsOrigin&&r.sorted)?pass:fail)('collection lanes equal origins, resorted',{lanes:laneRes});
+ const stm=objs(results.get(dc('partners.statement').id).data),q330=objs(await ref(330));
+ const measures={'Net capital ฿':'Net capital ฿','Net earned to date ฿':'Net earned ฿','Completed payouts ฿':'Paid ฿','Pending settlements ฿':'Pending ฿','Net available ฿':'Net available ฿'};
+ const cells=q330.flatMap(r=>Object.entries(measures).map(([m,col])=>[m,r.Partner,r[col]]));
+ (stm.length===cells.length&&cells.every(([m,p,v])=>near(stm.find(x=>x.Measure===m&&x.Partner===p)?.['Amount ฿'],v))?pass:fail)('partners.statement',{cells:stm.length,partners:q330.length,everyCellEquals330:cells.every(([m,p,v])=>near(stm.find(x=>x.Measure===m&&x.Partner===p)?.['Amount ฿'],v))});
  // Click-through and preservation
  const links=d.dashcards.flatMap(c=>JSON.stringify(c.visualization_settings).match(/dashboard\/\d+\?tab=\d+[^"\\]*/g)??[]);
  (links.length&&links.every(l=>l.startsWith(`dashboard/${state.dashboard}?tab=`))?pass:fail)('links target the proposed dashboard',{links:links.length,toDashboard3:links.filter(l=>l.startsWith('dashboard/3?')).length});

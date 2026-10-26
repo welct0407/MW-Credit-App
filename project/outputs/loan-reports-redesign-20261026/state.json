@@ -10,7 +10,20 @@
     "income.monthly": 385,
     "cashflow.by-type-row": 386,
     "perf.vs-previous": 387,
-    "partners.capital-share-row": 388
+    "partners.capital-share-row": 388,
+    "today.attention": 389,
+    "today.principal-top4": 390,
+    "today.interest-top4": 391,
+    "income.expenses": 392,
+    "borrowers.principal-top5": 393,
+    "borrowers.interest-top5": 394,
+    "collection.people": 395,
+    "collection.board": 396,
+    "collection.lane-not-paid": 397,
+    "collection.lane-partial": 398,
+    "collection.lane-overdue": 399,
+    "collection.lane-paid": 400,
+    "partners.statement": 401
   },
   "tabs": {
     "today": 375,
