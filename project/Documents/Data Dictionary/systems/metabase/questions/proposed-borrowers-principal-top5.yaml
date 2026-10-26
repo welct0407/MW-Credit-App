@@ -1,0 +1,68 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Principal outstanding by borrower · top five + others / 393"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "borrowers.principal-top5"
+  "id": 393
+  "name": "Principal outstanding by borrower · top five + others"
+  "description": "Loan Reports · proposed (borrowers.principal-top5). Question 285's query with rank<=10 changed to rank<=5\
+    \ (both occurrences) and the label 'Others' replaced by 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')'. Template\
+    \ tag population copied verbatim; maps `population` as 285 maps bp-population. Basis: view reporting_borrower_directory_v1\
+    \ (same query as question 285)."
+  "display": "row"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "display-name": "Population"
+        "type": "text"
+        "id": "bp-population"
+        "name": "population"
+        "default": "All with loan history"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'
+        ='All with loan history' OR [[{{population}} --]] 'All with loan history'
+        ='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'
+        ='Currently inactive' AND NOT has_active_loan)), ranked AS (SELECT *,row_number() OVER(ORDER BY outstanding_principal DESC NULLS LAST,borrower_id) rank FROM cohort), groups AS (SELECT CASE WHEN rank<=5 THEN borrower_id END id,CASE WHEN rank<=5 THEN borrower_label ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')' END label,CASE WHEN bool_and(outstanding_principal IS NOT NULL) THEN sum(outstanding_principal) END amount,min(rank) rank FROM ranked GROUP BY 1,2)
+         SELECT label AS "Borrower",amount AS "Amount ฿",id AS "Borrower ID" FROM groups ORDER BY rank
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.show_values": true
+    "click_behavior":
+      "type": "link"
+      "linkType": "url"
+      "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+    "graph.show_legend": false
+    "graph.x_axis.title_enabled": false
+    "graph.y_axis.title_enabled": false
+    "graph.metrics":
+    - "Amount ฿"
+    "graph.label_value_formatting": "full"
+    "graph.colors":
+    - "#178F8A"
+    "column_settings":
+      "[\"name\",\"Amount ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "series_settings":
+      "Amount ฿":
+        "color": "#178F8A"
+    "graph.max_categories_enabled": false
+    "graph.dimensions":
+    - "Borrower"
+  "basis": "view reporting_borrower_directory_v1 (same query as question 285)"
+  "build_kind": "native"
+  "origin_question_id": 285
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

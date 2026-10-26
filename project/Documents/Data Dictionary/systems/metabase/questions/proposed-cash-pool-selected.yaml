@@ -14,7 +14,7 @@
   "name": "Total cash pool · selected date"
   "description": "Loan Reports · proposed (cash.pool-selected). Native, same routing as question 207: today reads model 73\
     \ Total Cash Pool, a past date reads model 205 Total Cash Pool for that date; blank when no snapshot exists. Basis: snippet\
-    \ 4 Cash position source routing (models 205, 206, 164, 73)."
+    \ 4 Cash position source routing (models 205, 73)."
   "display": "scalar"
   "dataset_query":
     "stages":
@@ -37,7 +37,7 @@
         "dimension":
         - "field"
         - "base-type": "type/Date"
-          "lib/uuid": "cdfae2c0-8e01-44d5-b286-288569c28911"
+          "lib/uuid": "0b78f2e4-6e05-4101-aa1b-1ef7dafa70ab"
           "effective-type": "type/Date"
         - 82
         "alias": "d.\"Date\""
@@ -59,7 +59,9 @@
         "decimals": 0
         "number_separators": ".,"
         "compact": false
-  "basis": "snippet 4 Cash position source routing (models 205, 206, 164, 73)"
+  "basis": "snippet 4 Cash position source routing (models 205, 73)"
+  "build_kind": "native"
+  "origin_question_id": 207
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

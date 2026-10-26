@@ -1,0 +1,118 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "\U0001F534 Not paid · lane / 397"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "collection.lane-not-paid"
+  "id": 397
+  "name": "\U0001F534 Not paid · lane"
+  "description": "Loan Reports · proposed (collection.lane-not-paid). MBQL on model 77 filtered Daily Collection Status =\
+    \ 'Not Paid'; fields ['Borrower', 'Amount Due', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY\
+    \ Amount Remaining desc, Borrower asc. Same rows as question 243, resorted. Column titles Name / Due / Left; widths [80,\
+    \ 76, 76] px for the three visible columns. Basis: model 77 Collection Worklist."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "filters":
+      - - "="
+        - "lib/uuid": "ec6c3138-5721-448c-a7c8-b6b524958265"
+        - - "field"
+          - "base-type": "type/Text"
+            "lib/uuid": "0f7ddf10-916d-4dd6-ac32-81016c6bdcf4"
+          - "Daily Collection Status"
+        - "Not Paid"
+      "lib/type": "mbql.stage/mbql"
+      "fields":
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "44910b11-8792-4658-8e60-f8bc19ca32b1"
+        - "Borrower"
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "59ef4cfc-96b7-4508-8d64-08fa0fe97168"
+        - "Amount Due"
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "20febb8c-6b35-4420-bf27-6723c3dcc288"
+        - "Amount Remaining"
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "9ecffd14-3ebb-4126-9cc9-6a4085643ac2"
+        - "Borrower ID"
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "3d1ca3b7-2943-45dd-8fdf-7b9d68c82ad8"
+        - "Daily Collection Status"
+      "order-by":
+      - - "desc"
+        - "lib/uuid": "0ba0e8f8-898f-4e5e-a491-fc62933e6727"
+        - - "field"
+          - "base-type": "type/Decimal"
+            "lib/uuid": "2b10fb45-6127-42ed-8319-9dae8092a0e4"
+          - "Amount Remaining"
+      - - "asc"
+        - "lib/uuid": "d4412835-3bc9-46ba-8114-543cb2bedfeb"
+        - - "field"
+          - "base-type": "type/Text"
+            "lib/uuid": "e15a4708-ffef-4b70-87a4-cd7dfcc2f7a1"
+          - "Borrower"
+      "source-card": 77
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Borrower"
+      "enabled": true
+    - "name": "Amount Due"
+      "enabled": true
+    - "name": "Amount Remaining"
+      "enabled": true
+    - "name": "Borrower ID"
+      "enabled": false
+    - "name": "Daily Collection Status"
+      "enabled": false
+    "table.column_widths":
+    - 80
+    - 76
+    - 76
+    "table.column_formatting":
+    - "id": 0
+      "columns":
+      - "Daily Collection Status"
+      "type": "single"
+      "operator": "="
+      "value": "Not Paid"
+      "color": "#ED6E6E"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Borrower\"]":
+        "column_title": "Name"
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+      "[\"name\",\"Amount Due\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Due"
+      "[\"name\",\"Amount Remaining\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Left"
+  "basis": "model 77 Collection Worklist"
+  "build_kind": "mbql"
+  "origin_question_id": 243
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

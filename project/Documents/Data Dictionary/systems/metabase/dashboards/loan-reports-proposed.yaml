@@ -19,6 +19,8 @@
   "created": "2026-10-26"
   "release": "Loan Reports redesign build (no product release number)"
   "design_reference": "outputs/loan-reports-redesign-20261026/DESIGN.md"
+  "revision": "Second batch, 26 October 2026: spec revised to 227 placements and 23 new questions (389 to 401 added; 379,\
+    \ 380, 382, 384 to 388 updated in place). Questions of dashboard 3 are never edited; copies live in collection 10."
   "plan_reference": "outputs/loan-reports-redesign-20261026/PLAN.md"
   "specification": "outputs/loan-reports-redesign-20261026/layout.json"
   "definition_reference": "outputs/loan-reports-redesign-20261026/saved.json"
@@ -28,11 +30,12 @@
   "counts":
     "tabs": 12
     "parameters": 22
-    "placements": 240
-    "reused_placements": 183
-    "reused_questions": 171
-    "new_questions": 10
-    "text_and_heading_cards": 45
+    "placements": 227
+    "reused_placements": 158
+    "reused_questions": 153
+    "new_questions": 23
+    "new_question_placements": 24
+    "text_and_heading_cards": 44
     "iframe_cards": 1
   "new_question_ids":
     "today.principal-smart": 379
@@ -45,6 +48,19 @@
     "cashflow.by-type-row": 386
     "perf.vs-previous": 387
     "partners.capital-share-row": 388
+    "today.attention": 389
+    "today.principal-top4": 390
+    "today.interest-top4": 391
+    "income.expenses": 392
+    "borrowers.principal-top5": 393
+    "borrowers.interest-top5": 394
+    "collection.people": 395
+    "collection.board": 396
+    "collection.lane-not-paid": 397
+    "collection.lane-partial": 398
+    "collection.lane-overdue": 399
+    "collection.lane-paid": 400
+    "partners.statement": 401
   "new_question_records":
     "today.principal-smart": "questions/proposed-today-principal-smart.yaml"
     "today.realization": "questions/proposed-today-realization.yaml"
@@ -56,6 +72,19 @@
     "cashflow.by-type-row": "questions/proposed-cashflow-by-type-row.yaml"
     "perf.vs-previous": "questions/proposed-perf-vs-previous.yaml"
     "partners.capital-share-row": "questions/proposed-partners-capital-share-row.yaml"
+    "today.attention": "questions/proposed-today-attention.yaml"
+    "today.principal-top4": "questions/proposed-today-principal-top4.yaml"
+    "today.interest-top4": "questions/proposed-today-interest-top4.yaml"
+    "income.expenses": "questions/proposed-income-expenses.yaml"
+    "borrowers.principal-top5": "questions/proposed-borrowers-principal-top5.yaml"
+    "borrowers.interest-top5": "questions/proposed-borrowers-interest-top5.yaml"
+    "collection.people": "questions/proposed-collection-people.yaml"
+    "collection.board": "questions/proposed-collection-board.yaml"
+    "collection.lane-not-paid": "questions/proposed-collection-lane-not-paid.yaml"
+    "collection.lane-partial": "questions/proposed-collection-lane-partial.yaml"
+    "collection.lane-overdue": "questions/proposed-collection-lane-overdue.yaml"
+    "collection.lane-paid": "questions/proposed-collection-lane-paid.yaml"
+    "partners.statement": "questions/proposed-partners-statement.yaml"
   "tabs":
   - "id": 375
     "name": "Today"
@@ -445,16 +474,15 @@
     - "fp-reserve"
   "layout":
     "today":
-    - "dashcard_id": 7663
+    - "dashcard_id": 8647
       "row": 0
       "col": 0
       "size_x": 18
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Today** · live figures on refresh, Bangkok dates; trends from completed-day snapshots. Gross interest before\
-        \ expenses."
-    - "dashcard_id": 7664
+      "text": "**Today** · live on refresh · trends from completed-day snapshots."
+    - "dashcard_id": 8648
       "row": 0
       "col": 18
       "size_x": 6
@@ -463,7 +491,7 @@
       "title": "As of · Bangkok"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7665
+    - "dashcard_id": 8649
       "row": 2
       "col": 0
       "size_x": 6
@@ -472,7 +500,7 @@
       "title": "Cash available"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7666
+    - "dashcard_id": 8650
       "row": 2
       "col": 6
       "size_x": 6
@@ -483,16 +511,16 @@
       "question_key": "today.principal-smart"
       "parameters":
       - "period"
-    - "dashcard_id": 7667
+    - "dashcard_id": 8651
       "row": 2
       "col": 12
       "size_x": 6
       "size_y": 3
       "card_id": 51
-      "title": "Interest this month · realized"
+      "title": "Interest this month"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7668
+    - "dashcard_id": 8652
       "row": 2
       "col": 18
       "size_x": 6
@@ -501,99 +529,38 @@
       "title": "Collected today"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7669
+    - "dashcard_id": 8653
       "row": 5
       "col": 0
-      "size_x": 8
-      "size_y": 4
-      "card_id": 68
-      "title": "Capital deployed · live"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7670
-      "row": 5
-      "col": 8
-      "size_x": 8
-      "size_y": 4
+      "size_x": 12
+      "size_y": 3
       "card_id": 380
-      "title": "Interest this month · share of projection"
+      "title": "Interest this month · of projection"
       "source": "new"
       "question_key": "today.realization"
       "parameters": []
-    - "dashcard_id": 7671
+    - "dashcard_id": 8654
       "row": 5
-      "col": 16
-      "size_x": 8
-      "size_y": 4
+      "col": 12
+      "size_x": 12
+      "size_y": 3
       "card_id": 381
       "title": "Collected today · share of amount due"
       "source": "new"
       "question_key": "today.collection-rate"
       "parameters": []
-    - "dashcard_id": 7672
-      "row": 9
+    - "dashcard_id": 8655
+      "row": 8
       "col": 0
       "size_x": 24
-      "size_y": 1
-      "card_id": null
-      "virtual": "heading"
-      "text": "Needs attention · chips open Collection and Borrower Health"
-    - "dashcard_id": 7673
-      "row": 10
-      "col": 0
-      "size_x": 4
-      "size_y": 2
-      "card_id": 240
-      "title": "\U0001F7E3 Overdue · people"
-      "source": "reused"
+      "size_y": 6
+      "card_id": 389
+      "title": "Needs attention · rows open pages"
+      "source": "new"
+      "question_key": "today.attention"
       "parameters": []
-    - "dashcard_id": 7674
-      "row": 10
-      "col": 4
-      "size_x": 4
-      "size_y": 2
-      "card_id": 254
-      "title": "Overdue ฿"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7675
-      "row": 10
-      "col": 8
-      "size_x": 4
-      "size_y": 2
-      "card_id": 242
-      "title": "\U0001F534 Not paid today"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7676
-      "row": 10
-      "col": 12
-      "size_x": 4
-      "size_y": 2
-      "card_id": 244
-      "title": "\U0001F7E0 Partially paid"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7677
-      "row": 10
-      "col": 16
-      "size_x": 4
-      "size_y": 2
-      "card_id": 270
-      "title": "Modified plans"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7678
-      "row": 10
-      "col": 20
-      "size_x": 4
-      "size_y": 2
-      "card_id": 251
-      "title": "Unclassified · expect 0"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7679
-      "row": 12
+    - "dashcard_id": 8656
+      "row": 14
       "col": 0
       "size_x": 12
       "size_y": 7
@@ -602,8 +569,8 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7680
-      "row": 12
+    - "dashcard_id": 8657
+      "row": 14
       "col": 12
       "size_x": 12
       "size_y": 7
@@ -612,43 +579,44 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7681
-      "row": 19
+    - "dashcard_id": 8658
+      "row": 21
       "col": 0
       "size_x": 12
       "size_y": 7
-      "card_id": 60
-      "title": "Principal by borrower · top four + others"
-      "source": "reused"
+      "card_id": 390
+      "title": "Principal by borrower · top 4 + others"
+      "source": "new"
+      "question_key": "today.principal-top4"
       "parameters": []
-    - "dashcard_id": 7682
-      "row": 19
+    - "dashcard_id": 8659
+      "row": 21
       "col": 12
       "size_x": 12
       "size_y": 7
-      "card_id": 61
-      "title": "Interest · past 30 days by borrower"
-      "source": "reused"
+      "card_id": 391
+      "title": "Interest 30d by borrower · top 4 + rest"
+      "source": "new"
+      "question_key": "today.interest-top4"
       "parameters": []
-    - "dashcard_id": 7683
-      "row": 26
+    - "dashcard_id": 8660
+      "row": 28
       "col": 0
       "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Card descriptions hold the exact definitions. Profit means gross interest before expenses."
+      "text": "Profit = gross interest before expenses · definitions in card descriptions."
     "cash-position":
-    - "dashcard_id": 7684
+    - "dashcard_id": 8661
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Cash position** · Date selects the position (today = live, past dates = hourly snapshot). Lending capital\
-        \ is not a bank balance; net cash includes negative balances."
-    - "dashcard_id": 7685
+      "text": "**Cash position** · Date = today is live, a past date is the snapshot."
+    - "dashcard_id": 8662
       "row": 2
       "col": 0
       "size_x": 6
@@ -659,7 +627,7 @@
       "question_key": "cash.pool-selected"
       "parameters":
       - "position-date"
-    - "dashcard_id": 7686
+    - "dashcard_id": 8663
       "row": 2
       "col": 6
       "size_x": 6
@@ -670,7 +638,7 @@
       "question_key": "cash.principal-selected"
       "parameters":
       - "position-date"
-    - "dashcard_id": 7687
+    - "dashcard_id": 8664
       "row": 2
       "col": 12
       "size_x": 6
@@ -680,7 +648,7 @@
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 7688
+    - "dashcard_id": 8665
       "row": 2
       "col": 18
       "size_x": 6
@@ -690,7 +658,7 @@
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 7689
+    - "dashcard_id": 8666
       "row": 5
       "col": 0
       "size_x": 8
@@ -699,7 +667,7 @@
       "title": "Capital deployed · live"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7690
+    - "dashcard_id": 8667
       "row": 5
       "col": 8
       "size_x": 16
@@ -709,18 +677,18 @@
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 7691
+    - "dashcard_id": 8668
       "row": 11
       "col": 0
       "size_x": 24
-      "size_y": 7
+      "size_y": 6
       "card_id": 211
-      "title": "Account balances · selected date (signed)"
+      "title": "Account balances · selected date"
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 7692
-      "row": 18
+    - "dashcard_id": 8669
+      "row": 17
       "col": 0
       "size_x": 24
       "size_y": 7
@@ -729,25 +697,24 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7693
-      "row": 25
+    - "dashcard_id": 8670
+      "row": 24
       "col": 0
       "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Unknown openings stay blank rather than showing current values. Source and freshness: Data health tab."
+      "text": "Unknown openings stay blank · source and freshness: Data health tab."
     "income":
-    - "dashcard_id": 7694
+    - "dashcard_id": 8671
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Income statement** · live, includes later corrections · daily chart from completed-day snapshots. Net profit\
-        \ = gross interest − expenses."
-    - "dashcard_id": 7695
+      "text": "**Income statement** · live · net profit = gross interest − expenses."
+    - "dashcard_id": 8672
       "row": 2
       "col": 0
       "size_x": 8
@@ -757,17 +724,18 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7696
+    - "dashcard_id": 8673
       "row": 2
       "col": 8
       "size_x": 8
       "size_y": 3
-      "card_id": 169
+      "card_id": 392
       "title": "− Expenses"
-      "source": "reused"
+      "source": "new"
+      "question_key": "income.expenses"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7697
+    - "dashcard_id": 8674
       "row": 2
       "col": 16
       "size_x": 8
@@ -777,29 +745,29 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7698
+    - "dashcard_id": 8675
       "row": 5
       "col": 0
       "size_x": 16
-      "size_y": 4
+      "size_y": 6
       "card_id": 384
       "title": "This period and the previous period"
       "source": "new"
       "question_key": "income.vs-previous"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7699
+    - "dashcard_id": 8676
       "row": 5
       "col": 16
       "size_x": 8
-      "size_y": 4
+      "size_y": 6
       "card_id": 171
       "title": "Net profit per day · calendar days"
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7700
-      "row": 9
+    - "dashcard_id": 8677
+      "row": 11
       "col": 0
       "size_x": 16
       "size_y": 8
@@ -808,8 +776,8 @@
       "source": "new"
       "question_key": "income.monthly"
       "parameters": []
-    - "dashcard_id": 7701
-      "row": 9
+    - "dashcard_id": 8678
+      "row": 11
       "col": 16
       "size_x": 8
       "size_y": 8
@@ -818,18 +786,18 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7702
-      "row": 17
+    - "dashcard_id": 8679
+      "row": 19
       "col": 0
       "size_x": 24
       "size_y": 7
       "card_id": 213
-      "title": "Daily income and expenses · completed days"
+      "title": "Daily income and expenses · snapshots"
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7703
-      "row": 24
+    - "dashcard_id": 8680
+      "row": 26
       "col": 0
       "size_x": 24
       "size_y": 7
@@ -838,24 +806,24 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7704
-      "row": 31
+    - "dashcard_id": 8681
+      "row": 33
       "col": 0
       "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Per-day average uses calendar days in the period. Period freshness and snapshot coverage: Data health tab."
+      "text": "Per-day average uses calendar days · freshness: Data health tab."
     "cashflow":
-    - "dashcard_id": 7705
+    - "dashcard_id": 8682
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Cashflow statement** · live · All accounts nets transfers to zero. Unknown openings show Unavailable."
-    - "dashcard_id": 7706
+      "text": "**Cashflow statement** · live · All accounts nets transfers to zero."
+    - "dashcard_id": 8683
       "row": 2
       "col": 0
       "size_x": 6
@@ -866,7 +834,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7707
+    - "dashcard_id": 8684
       "row": 2
       "col": 6
       "size_x": 6
@@ -877,7 +845,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7708
+    - "dashcard_id": 8685
       "row": 2
       "col": 12
       "size_x": 6
@@ -888,7 +856,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7709
+    - "dashcard_id": 8686
       "row": 2
       "col": 18
       "size_x": 6
@@ -899,7 +867,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7710
+    - "dashcard_id": 8687
       "row": 5
       "col": 0
       "size_x": 6
@@ -910,7 +878,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7711
+    - "dashcard_id": 8688
       "row": 5
       "col": 6
       "size_x": 18
@@ -922,19 +890,19 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7712
+    - "dashcard_id": 8689
       "row": 12
       "col": 0
       "size_x": 24
-      "size_y": 6
+      "size_y": 10
       "card_id": 203
-      "title": "Cash movement by transaction type · table"
+      "title": "Movement by transaction type · table"
       "source": "reused"
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7713
-      "row": 18
+    - "dashcard_id": 8690
+      "row": 22
       "col": 0
       "size_x": 24
       "size_y": 7
@@ -944,8 +912,8 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7714
-      "row": 25
+    - "dashcard_id": 8691
+      "row": 29
       "col": 0
       "size_x": 24
       "size_y": 10
@@ -955,87 +923,76 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7715
-      "row": 35
+    - "dashcard_id": 8692
+      "row": 39
       "col": 0
       "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Statement date plus posting time. Repayments keep their recorded type. Freshness: Data health tab."
+      "text": "Repayments keep their recorded type · freshness: Data health tab."
     "performance":
-    - "dashcard_id": 7716
+    - "dashcard_id": 8693
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Performance** · totals live · trends from completed-day snapshots · loan dates and interest dates both use\
-        \ Period."
-    - "dashcard_id": 7717
+      "text": "**Performance** · totals live · trends from snapshots · Period sets dates."
+    - "dashcard_id": 8694
       "row": 2
       "col": 0
-      "size_x": 5
+      "size_x": 6
       "size_y": 3
       "card_id": 217
       "title": "Gross interest"
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7718
+    - "dashcard_id": 8695
       "row": 2
-      "col": 5
-      "size_x": 5
+      "col": 6
+      "size_x": 6
       "size_y": 3
       "card_id": 218
       "title": "Principal issued"
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7719
+    - "dashcard_id": 8696
       "row": 2
-      "col": 10
-      "size_x": 4
+      "col": 12
+      "size_x": 6
       "size_y": 3
       "card_id": 219
       "title": "Loans issued"
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7720
+    - "dashcard_id": 8697
       "row": 2
-      "col": 14
-      "size_x": 5
-      "size_y": 3
-      "card_id": 234
-      "title": "Net principal deployed"
-      "source": "reused"
-      "parameters":
-      - "period"
-    - "dashcard_id": 7721
-      "row": 2
-      "col": 19
-      "size_x": 5
+      "col": 18
+      "size_x": 6
       "size_y": 3
       "card_id": 235
       "title": "Loan-cohort return"
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7722
+    - "dashcard_id": 8698
       "row": 5
       "col": 0
       "size_x": 24
-      "size_y": 4
+      "size_y": 7
       "card_id": 387
       "title": "This period and the previous period"
       "source": "new"
       "question_key": "perf.vs-previous"
       "parameters":
       - "period"
-    - "dashcard_id": 7723
-      "row": 9
+    - "dashcard_id": 8699
+      "row": 12
       "col": 0
       "size_x": 12
       "size_y": 7
@@ -1044,8 +1001,8 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7724
-      "row": 9
+    - "dashcard_id": 8700
+      "row": 12
       "col": 12
       "size_x": 12
       "size_y": 7
@@ -1054,16 +1011,16 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7725
-      "row": 16
+    - "dashcard_id": 8701
+      "row": 19
       "col": 0
       "size_x": 24
       "size_y": 1
       "card_id": null
       "virtual": "heading"
       "text": "Lending volume"
-    - "dashcard_id": 7726
-      "row": 17
+    - "dashcard_id": 8702
+      "row": 20
       "col": 0
       "size_x": 8
       "size_y": 6
@@ -1072,8 +1029,8 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7727
-      "row": 17
+    - "dashcard_id": 8703
+      "row": 20
       "col": 8
       "size_x": 8
       "size_y": 6
@@ -1082,8 +1039,8 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7728
-      "row": 17
+    - "dashcard_id": 8704
+      "row": 20
       "col": 16
       "size_x": 8
       "size_y": 6
@@ -1092,16 +1049,16 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7729
-      "row": 23
+    - "dashcard_id": 8705
+      "row": 26
       "col": 0
       "size_x": 24
       "size_y": 1
       "card_id": null
       "virtual": "heading"
       "text": "Returns"
-    - "dashcard_id": 7730
-      "row": 24
+    - "dashcard_id": 8706
+      "row": 27
       "col": 0
       "size_x": 12
       "size_y": 6
@@ -1110,8 +1067,8 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7731
-      "row": 24
+    - "dashcard_id": 8707
+      "row": 27
       "col": 12
       "size_x": 12
       "size_y": 6
@@ -1120,18 +1077,18 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7732
-      "row": 30
+    - "dashcard_id": 8708
+      "row": 33
       "col": 0
       "size_x": 12
       "size_y": 6
       "card_id": 230
-      "title": "Cumulative gross interest · 7-day average"
+      "title": "Cumulative gross interest · 7-day avg"
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7733
-      "row": 30
+    - "dashcard_id": 8709
+      "row": 33
       "col": 12
       "size_x": 12
       "size_y": 6
@@ -1140,8 +1097,8 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7734
-      "row": 36
+    - "dashcard_id": 8710
+      "row": 39
       "col": 0
       "size_x": 24
       "size_y": 8
@@ -1150,24 +1107,24 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7735
-      "row": 44
+    - "dashcard_id": 8711
+      "row": 47
       "col": 0
       "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Principal counts once per loan. Snapshot coverage and rolling-average rules: Data health tab."
+      "text": "Principal counts once per loan · coverage rules: Data health tab."
     "borrowers":
-    - "dashcard_id": 7736
+    - "dashcard_id": 8712
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Borrowers** · live · current positions ignore Period; activity uses it. Population applies everywhere."
-    - "dashcard_id": 7737
+      "text": "**Borrowers** · live · positions ignore Period, activity uses it."
+    - "dashcard_id": 8713
       "row": 2
       "col": 0
       "size_x": 6
@@ -1177,7 +1134,7 @@
       "source": "reused"
       "parameters":
       - "population"
-    - "dashcard_id": 7738
+    - "dashcard_id": 8714
       "row": 2
       "col": 6
       "size_x": 6
@@ -1187,7 +1144,7 @@
       "source": "reused"
       "parameters":
       - "population"
-    - "dashcard_id": 7739
+    - "dashcard_id": 8715
       "row": 2
       "col": 12
       "size_x": 6
@@ -1197,7 +1154,7 @@
       "source": "reused"
       "parameters":
       - "population"
-    - "dashcard_id": 7740
+    - "dashcard_id": 8716
       "row": 2
       "col": 18
       "size_x": 6
@@ -1208,38 +1165,40 @@
       "parameters":
       - "period"
       - "population"
-    - "dashcard_id": 7741
+    - "dashcard_id": 8717
       "row": 5
       "col": 0
       "size_x": 8
       "size_y": 8
-      "card_id": 285
-      "title": "Principal outstanding by borrower"
-      "source": "reused"
+      "card_id": 393
+      "title": "Principal outstanding · top 5 + others"
+      "source": "new"
+      "question_key": "borrowers.principal-top5"
       "parameters":
       - "population"
-    - "dashcard_id": 7742
+    - "dashcard_id": 8718
       "row": 5
       "col": 8
       "size_x": 8
       "size_y": 8
-      "card_id": 286
-      "title": "Interest received · period by borrower"
-      "source": "reused"
+      "card_id": 394
+      "title": "Interest · period · top 5 + others"
+      "source": "new"
+      "question_key": "borrowers.interest-top5"
       "parameters":
       - "period"
       - "population"
-    - "dashcard_id": 7743
+    - "dashcard_id": 8719
       "row": 5
       "col": 16
       "size_x": 8
       "size_y": 8
       "card_id": 314
-      "title": "Lifetime interest return on principal lent · top 8"
+      "title": "Lifetime return · top 8"
       "source": "reused"
       "parameters":
       - "population"
-    - "dashcard_id": 7744
+    - "dashcard_id": 8720
       "row": 13
       "col": 0
       "size_x": 24
@@ -1247,7 +1206,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Concentration & ageing"
-    - "dashcard_id": 7745
+    - "dashcard_id": 8721
       "row": 14
       "col": 0
       "size_x": 6
@@ -1256,63 +1215,63 @@
       "title": "Top three concentration"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7746
-      "row": 14
-      "col": 6
+    - "dashcard_id": 8722
+      "row": 17
+      "col": 0
       "size_x": 6
       "size_y": 3
       "card_id": 111
       "title": "Past-due amount"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7747
+    - "dashcard_id": 8723
       "row": 14
-      "col": 12
-      "size_x": 12
-      "size_y": 6
-      "card_id": 117
-      "title": "Default loss over time"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7748
-      "row": 20
-      "col": 0
-      "size_x": 8
-      "size_y": 6
-      "card_id": 114
-      "title": "Active loan count by age"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7749
-      "row": 20
-      "col": 8
-      "size_x": 8
+      "col": 6
+      "size_x": 9
       "size_y": 6
       "card_id": 115
       "title": "Active principal by age"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7750
-      "row": 20
-      "col": 16
-      "size_x": 8
+    - "dashcard_id": 8724
+      "row": 14
+      "col": 15
+      "size_x": 9
       "size_y": 6
-      "card_id": 116
-      "title": "Borrower risk · excluding largest exposure"
+      "card_id": 117
+      "title": "Default loss over time"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7751
+    - "dashcard_id": 8725
+      "row": 20
+      "col": 0
+      "size_x": 12
+      "size_y": 6
+      "card_id": 114
+      "title": "Active loan count by age"
+      "source": "reused"
+      "parameters": []
+    - "dashcard_id": 8726
+      "row": 20
+      "col": 12
+      "size_x": 12
+      "size_y": 6
+      "card_id": 116
+      "title": "Borrower risk · excl. largest exposure"
+      "source": "reused"
+      "parameters": []
+    - "dashcard_id": 8727
       "row": 26
       "col": 0
       "size_x": 24
       "size_y": 11
       "card_id": 289
-      "title": "Borrower comparison · click a name for Detail"
+      "title": "Borrower comparison · names open Detail"
       "source": "reused"
       "parameters":
       - "period"
       - "population"
-    - "dashcard_id": 7752
+    - "dashcard_id": 8728
       "row": 37
       "col": 0
       "size_x": 24
@@ -1320,18 +1279,18 @@
       "card_id": null
       "virtual": "heading"
       "text": "Activity over time"
-    - "dashcard_id": 7753
+    - "dashcard_id": 8729
       "row": 38
       "col": 0
       "size_x": 12
       "size_y": 7
       "card_id": 287
-      "title": "Interest received over time · top 5 + others"
+      "title": "Interest over time · top 5 + others"
       "source": "reused"
       "parameters":
       - "period"
       - "population"
-    - "dashcard_id": 7754
+    - "dashcard_id": 8730
       "row": 38
       "col": 12
       "size_x": 12
@@ -1342,25 +1301,24 @@
       "parameters":
       - "period"
       - "population"
-    - "dashcard_id": 7755
+    - "dashcard_id": 8731
       "row": 45
       "col": 0
       "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Gross interest before expenses. Categories come from Borrower Health. Lifetime daily rate (question 313) and\
-        \ the risk monitor (118) stay available as saved questions."
+      "text": "Gross interest before expenses · categories from Borrower Health."
     "health":
-    - "dashcard_id": 7756
+    - "dashcard_id": 8874
       "row": 0
       "col": 0
       "size_x": 12
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Borrower Health** · current portfolio, refreshed on load · click a name to open Borrower Detail."
-    - "dashcard_id": 7757
+      "text": "**Borrower Health** · current portfolio · names open Borrower Detail."
+    - "dashcard_id": 8875
       "row": 0
       "col": 12
       "size_x": 6
@@ -1369,7 +1327,7 @@
       "title": "Modified plans"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7758
+    - "dashcard_id": 8876
       "row": 0
       "col": 18
       "size_x": 6
@@ -1378,7 +1336,7 @@
       "title": "As of · Bangkok"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7759
+    - "dashcard_id": 8877
       "row": 2
       "col": 0
       "size_x": 6
@@ -1387,7 +1345,7 @@
       "title": "Active borrowers"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7760
+    - "dashcard_id": 8878
       "row": 2
       "col": 6
       "size_x": 6
@@ -1396,7 +1354,7 @@
       "title": "Overdue ฿ · all borrowers"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7761
+    - "dashcard_id": 8879
       "row": 2
       "col": 12
       "size_x": 6
@@ -1405,7 +1363,7 @@
       "title": "Provisional · active"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7762
+    - "dashcard_id": 8880
       "row": 2
       "col": 18
       "size_x": 6
@@ -1414,7 +1372,7 @@
       "title": "Unclassified · active"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7763
+    - "dashcard_id": 8881
       "row": 5
       "col": 0
       "size_x": 24
@@ -1422,7 +1380,7 @@
       "card_id": null
       "virtual": "iframe"
       "detail": "Custom borrower matrix comparison iframe copied at run time from dashboard 3 dashcard 1501; key not recorded"
-    - "dashcard_id": 7764
+    - "dashcard_id": 8882
       "row": 27
       "col": 0
       "size_x": 6
@@ -1431,7 +1389,7 @@
       "title": "Star"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7765
+    - "dashcard_id": 8883
       "row": 27
       "col": 6
       "size_x": 6
@@ -1440,7 +1398,7 @@
       "title": "Cash Cow"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7766
+    - "dashcard_id": 8884
       "row": 27
       "col": 12
       "size_x": 6
@@ -1449,7 +1407,7 @@
       "title": "Question Mark"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7767
+    - "dashcard_id": 8885
       "row": 27
       "col": 18
       "size_x": 6
@@ -1458,16 +1416,16 @@
       "title": "Dog"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7768
+    - "dashcard_id": 8886
       "row": 29
       "col": 0
       "size_x": 24
       "size_y": 9
       "card_id": 275
-      "title": "Borrowers by category · scores, schedule and contribution"
+      "title": "Borrowers by category · scores"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7769
+    - "dashcard_id": 8887
       "row": 38
       "col": 0
       "size_x": 24
@@ -1475,7 +1433,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Rating detail"
-    - "dashcard_id": 7770
+    - "dashcard_id": 8888
       "row": 39
       "col": 0
       "size_x": 24
@@ -1484,7 +1442,7 @@
       "title": "Payment health · all borrowers"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7771
+    - "dashcard_id": 8889
       "row": 49
       "col": 0
       "size_x": 24
@@ -1493,52 +1451,51 @@
       "title": "Unavailable ratings and default context"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7772
+    - "dashcard_id": 8890
       "row": 55
       "col": 0
       "size_x": 24
       "size_y": 10
       "card_id": 268
-      "title": "Reliability components and effective weights · active borrowers"
+      "title": "Reliability components and weights"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7773
+    - "dashcard_id": 8891
       "row": 65
       "col": 0
       "size_x": 24
       "size_y": 8
       "card_id": 271
-      "title": "Automatic schedule assessment · active borrowers"
+      "title": "Schedule assessment · active borrowers"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7774
+    - "dashcard_id": 8892
       "row": 73
       "col": 0
       "size_x": 24
       "size_y": 8
       "card_id": 272
-      "title": "Modified schedules · loan and next-plan detail"
+      "title": "Modified schedules · loan and next plan"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7775
+    - "dashcard_id": 8893
       "row": 81
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Rating: recent punctuality 45% · older punctuality 15% · average delay 15% · current payment health 25%; threshold\
-        \ 80; contribution boundary 1×. Full method in the dictionary."
+      "text": "Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary."
     "borrower-detail":
-    - "dashcard_id": 7776
+    - "dashcard_id": 8752
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Borrower Detail** · select one borrower. Lifetime and current sections ignore Period; activity uses it."
-    - "dashcard_id": 7777
+      "text": "**Borrower Detail** · select one borrower · Period applies to activity."
+    - "dashcard_id": 8753
       "row": 2
       "col": 0
       "size_x": 24
@@ -1548,7 +1505,7 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7778
+    - "dashcard_id": 8754
       "row": 6
       "col": 0
       "size_x": 6
@@ -1558,7 +1515,7 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7779
+    - "dashcard_id": 8755
       "row": 6
       "col": 6
       "size_x": 6
@@ -1568,7 +1525,7 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7780
+    - "dashcard_id": 8756
       "row": 6
       "col": 12
       "size_x": 6
@@ -1578,7 +1535,7 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7781
+    - "dashcard_id": 8757
       "row": 6
       "col": 18
       "size_x": 6
@@ -1588,7 +1545,7 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7782
+    - "dashcard_id": 8758
       "row": 9
       "col": 0
       "size_x": 24
@@ -1596,76 +1553,76 @@
       "card_id": null
       "virtual": "heading"
       "text": "Active loans · lifetime receipts / current principal"
-    - "dashcard_id": 7783
+    - "dashcard_id": 8759
       "row": 10
       "col": 0
-      "size_x": 4
+      "size_x": 8
       "size_y": 3
       "card_id": 291
       "title": "Current principal ฿"
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7784
+    - "dashcard_id": 8760
       "row": 10
-      "col": 4
-      "size_x": 4
+      "col": 8
+      "size_x": 8
       "size_y": 3
       "card_id": 370
       "title": "Outstanding ฿"
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7785
+    - "dashcard_id": 8761
       "row": 10
-      "col": 8
-      "size_x": 4
+      "col": 16
+      "size_x": 8
       "size_y": 3
       "card_id": 371
       "title": "Interest earned ฿"
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7786
-      "row": 10
-      "col": 12
-      "size_x": 4
+    - "dashcard_id": 8762
+      "row": 13
+      "col": 0
+      "size_x": 8
       "size_y": 3
       "card_id": 372
       "title": "After coverage ฿"
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7787
-      "row": 10
-      "col": 16
-      "size_x": 4
+    - "dashcard_id": 8763
+      "row": 13
+      "col": 8
+      "size_x": 8
       "size_y": 3
       "card_id": 373
       "title": "Return %"
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7788
-      "row": 10
-      "col": 20
-      "size_x": 4
+    - "dashcard_id": 8764
+      "row": 13
+      "col": 16
+      "size_x": 8
       "size_y": 3
       "card_id": 374
       "title": "Coverage date"
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7789
-      "row": 13
+    - "dashcard_id": 8765
+      "row": 16
       "col": 0
       "size_x": 24
       "size_y": 1
       "card_id": null
       "virtual": "heading"
       "text": "Closed loans · lifetime"
-    - "dashcard_id": 7790
-      "row": 14
+    - "dashcard_id": 8766
+      "row": 17
       "col": 0
       "size_x": 8
       "size_y": 3
@@ -1674,8 +1631,8 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7791
-      "row": 14
+    - "dashcard_id": 8767
+      "row": 17
       "col": 8
       "size_x": 8
       "size_y": 3
@@ -1684,8 +1641,8 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7792
-      "row": 14
+    - "dashcard_id": 8768
+      "row": 17
       "col": 16
       "size_x": 8
       "size_y": 3
@@ -1694,26 +1651,26 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7793
-      "row": 17
+    - "dashcard_id": 8769
+      "row": 20
       "col": 0
       "size_x": 24
       "size_y": 5
       "card_id": 369
-      "title": "Most recent seven charge dates · red overdue, orange paid late, green on time"
+      "title": "Last seven charge dates"
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7794
-      "row": 22
+    - "dashcard_id": 8770
+      "row": 25
       "col": 0
       "size_x": 24
       "size_y": 1
       "card_id": null
       "virtual": "heading"
       "text": "Activity · selected period"
-    - "dashcard_id": 7795
-      "row": 23
+    - "dashcard_id": 8771
+      "row": 26
       "col": 0
       "size_x": 6
       "size_y": 3
@@ -1723,8 +1680,8 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7796
-      "row": 23
+    - "dashcard_id": 8772
+      "row": 26
       "col": 6
       "size_x": 6
       "size_y": 3
@@ -1734,8 +1691,8 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7797
-      "row": 23
+    - "dashcard_id": 8773
+      "row": 26
       "col": 12
       "size_x": 6
       "size_y": 3
@@ -1745,8 +1702,8 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7798
-      "row": 23
+    - "dashcard_id": 8774
+      "row": 26
       "col": 18
       "size_x": 6
       "size_y": 3
@@ -1756,8 +1713,8 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7799
-      "row": 26
+    - "dashcard_id": 8775
+      "row": 29
       "col": 0
       "size_x": 12
       "size_y": 7
@@ -1767,8 +1724,8 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7800
-      "row": 26
+    - "dashcard_id": 8776
+      "row": 29
       "col": 12
       "size_x": 12
       "size_y": 7
@@ -1778,8 +1735,8 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7801
-      "row": 33
+    - "dashcard_id": 8777
+      "row": 36
       "col": 0
       "size_x": 24
       "size_y": 8
@@ -1788,8 +1745,8 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7802
-      "row": 41
+    - "dashcard_id": 8778
+      "row": 44
       "col": 0
       "size_x": 24
       "size_y": 7
@@ -1798,8 +1755,8 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7803
-      "row": 48
+    - "dashcard_id": 8779
+      "row": 51
       "col": 0
       "size_x": 24
       "size_y": 8
@@ -1808,8 +1765,8 @@
       "source": "reused"
       "parameters":
       - "borrower"
-    - "dashcard_id": 7804
-      "row": 56
+    - "dashcard_id": 8780
+      "row": 59
       "col": 0
       "size_x": 24
       "size_y": 4
@@ -1819,27 +1776,27 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7805
-      "row": 60
+    - "dashcard_id": 8781
+      "row": 63
       "col": 0
       "size_x": 24
       "size_y": 7
       "card_id": 304
-      "title": "Payment punctuality over time · due month"
+      "title": "Punctuality over time · due month"
       "source": "reused"
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7806
-      "row": 67
+    - "dashcard_id": 8782
+      "row": 70
       "col": 0
       "size_x": 24
       "size_y": 1
       "card_id": null
       "virtual": "heading"
       "text": "Records · selected period"
-    - "dashcard_id": 7807
-      "row": 68
+    - "dashcard_id": 8783
+      "row": 71
       "col": 0
       "size_x": 24
       "size_y": 8
@@ -1849,8 +1806,8 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7808
-      "row": 76
+    - "dashcard_id": 8784
+      "row": 79
       "col": 0
       "size_x": 24
       "size_y": 8
@@ -1860,27 +1817,27 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7809
-      "row": 84
+    - "dashcard_id": 8785
+      "row": 87
       "col": 0
       "size_x": 24
       "size_y": 8
       "card_id": 306
-      "title": "Repayment allocations · selected payment dates"
+      "title": "Repayment allocations · payment dates"
       "source": "reused"
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7810
-      "row": 92
+    - "dashcard_id": 8786
+      "row": 95
       "col": 0
       "size_x": 24
       "size_y": 1
       "card_id": null
       "virtual": "heading"
       "text": "Additional lending scenario · hypothetical only"
-    - "dashcard_id": 7811
-      "row": 93
+    - "dashcard_id": 8787
+      "row": 96
       "col": 0
       "size_x": 24
       "size_y": 5
@@ -1890,35 +1847,33 @@
       "parameters":
       - "borrower"
       - "scenario-amount"
-    - "dashcard_id": 7812
-      "row": 98
+    - "dashcard_id": 8788
+      "row": 101
       "col": 0
       "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "All amounts are baht. Allocations are not unique receipts; corrections remain signed. Context and dates: Data\
-        \ health tab."
+      "text": "Allocations are not unique receipts · corrections stay signed."
     "collection":
-    - "dashcard_id": 7813
+    - "dashcard_id": 8789
       "row": 0
       "col": 0
-      "size_x": 12
+      "size_x": 18
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Collection · Bangkok today** · live · refresh every minute · payments appear after sync. Filters apply to\
-        \ the detail table only."
-    - "dashcard_id": 7814
+      "text": "**Collection · today** · live · filters apply to the detail table only."
+    - "dashcard_id": 8790
       "row": 0
-      "col": 12
-      "size_x": 12
+      "col": 18
+      "size_x": 6
       "size_y": 2
-      "card_id": 250
-      "title": "As of · query time"
+      "card_id": 257
+      "title": "As of · Bangkok"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7815
+    - "dashcard_id": 8791
       "row": 2
       "col": 0
       "size_x": 6
@@ -1927,7 +1882,7 @@
       "title": "Collected today"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7816
+    - "dashcard_id": 8792
       "row": 2
       "col": 6
       "size_x": 6
@@ -1936,16 +1891,17 @@
       "title": "Left to collect"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7817
+    - "dashcard_id": 8793
       "row": 2
       "col": 12
       "size_x": 6
       "size_y": 3
-      "card_id": 239
-      "title": "People fully paid"
-      "source": "reused"
+      "card_id": 395
+      "title": "People paid today"
+      "source": "new"
+      "question_key": "collection.people"
       "parameters": []
-    - "dashcard_id": 7818
+    - "dashcard_id": 8794
       "row": 2
       "col": 18
       "size_x": 6
@@ -1954,7 +1910,7 @@
       "title": "Today's charges · paid %"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7819
+    - "dashcard_id": 8795
       "row": 5
       "col": 0
       "size_x": 24
@@ -1964,196 +1920,154 @@
       "source": "new"
       "question_key": "today.collection-rate"
       "parameters": []
-    - "dashcard_id": 7820
+    - "dashcard_id": 8796
       "row": 7
       "col": 0
-      "size_x": 6
-      "size_y": 2
-      "card_id": 242
-      "title": "\U0001F534 Not paid · people"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7821
-      "row": 7
-      "col": 6
-      "size_x": 6
-      "size_y": 2
-      "card_id": 244
-      "title": "\U0001F7E0 Partially paid · people"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7822
-      "row": 7
-      "col": 12
-      "size_x": 6
-      "size_y": 2
-      "card_id": 240
-      "title": "\U0001F7E3 Overdue · people"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7823
-      "row": 7
-      "col": 18
-      "size_x": 6
-      "size_y": 2
-      "card_id": 246
-      "title": "\U0001F7E2 Fully paid · people"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7824
-      "row": 9
-      "col": 0
-      "size_x": 6
-      "size_y": 9
-      "card_id": 243
-      "title": "\U0001F534 Not paid"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7825
-      "row": 9
-      "col": 6
-      "size_x": 6
-      "size_y": 9
-      "card_id": 245
-      "title": "\U0001F7E0 Partially paid"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7826
-      "row": 9
-      "col": 12
-      "size_x": 6
-      "size_y": 9
-      "card_id": 241
-      "title": "\U0001F7E3 Overdue"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7827
-      "row": 9
-      "col": 18
-      "size_x": 6
-      "size_y": 9
-      "card_id": 247
-      "title": "\U0001F7E2 Fully paid"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7828
-      "row": 18
-      "col": 0
-      "size_x": 6
+      "size_x": 24
       "size_y": 6
-      "card_id": 251
-      "title": "Unclassified · expect 0"
+      "card_id": 396
+      "title": "Board · people and baht per lane"
+      "source": "new"
+      "question_key": "collection.board"
+      "parameters": []
+    - "dashcard_id": 8797
+      "row": 13
+      "col": 0
+      "size_x": 6
+      "size_y": 9
+      "card_id": 397
+      "title": "\U0001F534 Not paid"
+      "source": "new"
+      "question_key": "collection.lane-not-paid"
+      "parameters": []
+    - "dashcard_id": 8798
+      "row": 13
+      "col": 6
+      "size_x": 6
+      "size_y": 9
+      "card_id": 398
+      "title": "\U0001F7E0 Partially paid"
+      "source": "new"
+      "question_key": "collection.lane-partial"
+      "parameters": []
+    - "dashcard_id": 8799
+      "row": 13
+      "col": 12
+      "size_x": 6
+      "size_y": 9
+      "card_id": 399
+      "title": "\U0001F7E3 Overdue"
+      "source": "new"
+      "question_key": "collection.lane-overdue"
+      "parameters": []
+    - "dashcard_id": 8800
+      "row": 13
+      "col": 18
+      "size_x": 6
+      "size_y": 9
+      "card_id": 400
+      "title": "\U0001F7E2 Fully paid"
+      "source": "new"
+      "question_key": "collection.lane-paid"
+      "parameters": []
+    - "dashcard_id": 8801
+      "row": 22
+      "col": 0
+      "size_x": 24
+      "size_y": 10
+      "card_id": 248
+      "title": "Collection detail · filters apply here"
+      "source": "reused"
+      "parameters":
+      - "collection-borrower"
+      - "collection-status"
+    - "dashcard_id": 8802
+      "row": 32
+      "col": 0
+      "size_x": 24
+      "size_y": 4
+      "card_id": 249
+      "title": "Charges dated today · not board balances"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7829
-      "row": 18
-      "col": 6
-      "size_x": 18
+    - "dashcard_id": 8803
+      "row": 36
+      "col": 0
+      "size_x": 24
       "size_y": 6
       "card_id": 64
       "title": "Overdue charges · completed days"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7830
-      "row": 24
+    - "dashcard_id": 8804
+      "row": 42
       "col": 0
       "size_x": 24
-      "size_y": 10
-      "card_id": 248
-      "title": "Collection detail · filters above apply here"
-      "source": "reused"
-      "parameters":
-      - "collection-borrower"
-      - "collection-status"
-    - "dashcard_id": 7831
-      "row": 34
-      "col": 0
-      "size_x": 24
-      "size_y": 5
-      "card_id": 249
-      "title": "Charges dated today · separate from board balances"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 7832
-      "row": 39
-      "col": 0
-      "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Received = receipts today. Left includes older dues. A payment today can still leave someone Overdue; people\
-        \ move lanes after refresh."
+      "text": "Received = receipts today · Left includes older dues · refresh moves lanes."
     "partners":
-    - "dashcard_id": 7833
+    - "dashcard_id": 8805
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Partners** · current balances stay current when the period changes · baht · net available is an entitlement\
-        \ after reservations, not cash on hand."
-    - "dashcard_id": 7834
+      "text": "**Partners** · balances stay current · net available is not cash on hand."
+    - "dashcard_id": 8806
       "row": 2
       "col": 0
-      "size_x": 5
+      "size_x": 6
       "size_y": 3
       "card_id": 325
       "title": "Net capital ฿"
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 7835
+    - "dashcard_id": 8807
       "row": 2
-      "col": 5
-      "size_x": 5
+      "col": 6
+      "size_x": 6
       "size_y": 3
       "card_id": 326
       "title": "Net earned to date ฿"
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 7836
+    - "dashcard_id": 8808
       "row": 2
-      "col": 10
-      "size_x": 5
+      "col": 12
+      "size_x": 6
       "size_y": 3
       "card_id": 327
       "title": "Completed payouts ฿"
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 7837
+    - "dashcard_id": 8809
       "row": 2
-      "col": 15
-      "size_x": 5
-      "size_y": 3
-      "card_id": 328
-      "title": "Pending settlements ฿"
-      "source": "reused"
-      "parameters":
-      - "partner"
-    - "dashcard_id": 7838
-      "row": 2
-      "col": 20
-      "size_x": 4
+      "col": 18
+      "size_x": 6
       "size_y": 3
       "card_id": 329
       "title": "Net available ฿"
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 7839
+    - "dashcard_id": 8810
       "row": 5
       "col": 0
       "size_x": 16
       "size_y": 7
-      "card_id": 330
-      "title": "Partner positions · current"
-      "source": "reused"
+      "card_id": 401
+      "title": "Partner positions · statement"
+      "source": "new"
+      "question_key": "partners.statement"
       "parameters":
       - "partner"
-    - "dashcard_id": 7840
+    - "dashcard_id": 8811
       "row": 5
       "col": 16
       "size_x": 8
@@ -2164,7 +2078,7 @@
       "question_key": "partners.capital-share-row"
       "parameters":
       - "partner"
-    - "dashcard_id": 7841
+    - "dashcard_id": 8812
       "row": 12
       "col": 0
       "size_x": 24
@@ -2174,7 +2088,7 @@
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 7842
+    - "dashcard_id": 8813
       "row": 18
       "col": 0
       "size_x": 24
@@ -2182,7 +2096,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Activity · statement period"
-    - "dashcard_id": 7843
+    - "dashcard_id": 8814
       "row": 19
       "col": 0
       "size_x": 6
@@ -2193,7 +2107,7 @@
       "parameters":
       - "partner"
       - "statement-period"
-    - "dashcard_id": 7844
+    - "dashcard_id": 8815
       "row": 19
       "col": 6
       "size_x": 6
@@ -2204,7 +2118,7 @@
       "parameters":
       - "partner"
       - "statement-period"
-    - "dashcard_id": 7845
+    - "dashcard_id": 8816
       "row": 19
       "col": 12
       "size_x": 6
@@ -2215,7 +2129,7 @@
       "parameters":
       - "partner"
       - "statement-period"
-    - "dashcard_id": 7846
+    - "dashcard_id": 8817
       "row": 19
       "col": 18
       "size_x": 6
@@ -2226,7 +2140,7 @@
       "parameters":
       - "partner"
       - "statement-period"
-    - "dashcard_id": 7847
+    - "dashcard_id": 8818
       "row": 22
       "col": 0
       "size_x": 12
@@ -2237,7 +2151,7 @@
       "parameters":
       - "partner"
       - "statement-period"
-    - "dashcard_id": 7848
+    - "dashcard_id": 8819
       "row": 22
       "col": 12
       "size_x": 12
@@ -2248,7 +2162,7 @@
       "parameters":
       - "partner"
       - "statement-period"
-    - "dashcard_id": 7849
+    - "dashcard_id": 8820
       "row": 30
       "col": 0
       "size_x": 24
@@ -2259,7 +2173,7 @@
       "parameters":
       - "partner"
       - "statement-period"
-    - "dashcard_id": 7850
+    - "dashcard_id": 8821
       "row": 38
       "col": 0
       "size_x": 24
@@ -2267,7 +2181,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Ledgers · statement period"
-    - "dashcard_id": 7851
+    - "dashcard_id": 8822
       "row": 39
       "col": 0
       "size_x": 24
@@ -2278,7 +2192,7 @@
       "parameters":
       - "partner"
       - "statement-period"
-    - "dashcard_id": 7852
+    - "dashcard_id": 8823
       "row": 47
       "col": 0
       "size_x": 24
@@ -2290,25 +2204,24 @@
       - "partner"
       - "statement-period"
       - "settlement-status"
-    - "dashcard_id": 7853
+    - "dashcard_id": 8824
       "row": 55
       "col": 0
       "size_x": 24
-      "size_y": 1
+      "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Capital withdrawals and profit payouts are separate. Calculation and source checks: Data health tab."
+      "text": "Withdrawals and payouts are separate · checks: Data health tab."
     "forecast":
-    - "dashcard_id": 7854
+    - "dashcard_id": 8825
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Forecast & Plan · current Bangkok month** · existing loan book · scenarios are assumptions, not promised\
-        \ collections. Interest and principal stay separate."
-    - "dashcard_id": 7855
+      "text": "**Forecast & Plan · this month** · scenarios are assumptions, not promises."
+    - "dashcard_id": 8826
       "row": 2
       "col": 0
       "size_x": 24
@@ -2323,7 +2236,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7856
+    - "dashcard_id": 8827
       "row": 6
       "col": 0
       "size_x": 24
@@ -2331,13 +2244,13 @@
       "card_id": null
       "virtual": "heading"
       "text": "Interest outlook"
-    - "dashcard_id": 7857
+    - "dashcard_id": 8828
       "row": 7
       "col": 0
       "size_x": 6
       "size_y": 3
       "card_id": 348
-      "title": "Interest received · month to date"
+      "title": "Interest · month to date"
       "source": "reused"
       "parameters":
       - "interest-collected"
@@ -2346,7 +2259,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7858
+    - "dashcard_id": 8829
       "row": 7
       "col": 6
       "size_x": 6
@@ -2361,7 +2274,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7859
+    - "dashcard_id": 8830
       "row": 7
       "col": 12
       "size_x": 6
@@ -2376,7 +2289,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7860
+    - "dashcard_id": 8831
       "row": 7
       "col": 18
       "size_x": 6
@@ -2391,13 +2304,13 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7861
+    - "dashcard_id": 8832
       "row": 10
       "col": 0
       "size_x": 16
       "size_y": 9
       "card_id": 356
-      "title": "Cumulative interest · actual and projected"
+      "title": "Cumulative interest · actual + projected"
       "source": "reused"
       "parameters":
       - "interest-collected"
@@ -2406,7 +2319,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7862
+    - "dashcard_id": 8833
       "row": 10
       "col": 16
       "size_x": 8
@@ -2421,7 +2334,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7863
+    - "dashcard_id": 8834
       "row": 19
       "col": 0
       "size_x": 12
@@ -2436,7 +2349,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7864
+    - "dashcard_id": 8835
       "row": 19
       "col": 12
       "size_x": 12
@@ -2451,7 +2364,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7865
+    - "dashcard_id": 8836
       "row": 27
       "col": 0
       "size_x": 12
@@ -2466,7 +2379,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7866
+    - "dashcard_id": 8837
       "row": 27
       "col": 12
       "size_x": 12
@@ -2481,7 +2394,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7867
+    - "dashcard_id": 8838
       "row": 34
       "col": 0
       "size_x": 12
@@ -2496,7 +2409,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7868
+    - "dashcard_id": 8839
       "row": 34
       "col": 12
       "size_x": 12
@@ -2511,7 +2424,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7869
+    - "dashcard_id": 8840
       "row": 40
       "col": 0
       "size_x": 24
@@ -2519,7 +2432,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Cash plan · whole portfolio"
-    - "dashcard_id": 7870
+    - "dashcard_id": 8841
       "row": 41
       "col": 0
       "size_x": 8
@@ -2539,7 +2452,7 @@
       - "plan-withdrawals"
       - "plan-inflows"
       - "plan-reserve"
-    - "dashcard_id": 7871
+    - "dashcard_id": 8842
       "row": 41
       "col": 8
       "size_x": 8
@@ -2559,7 +2472,7 @@
       - "plan-withdrawals"
       - "plan-inflows"
       - "plan-reserve"
-    - "dashcard_id": 7872
+    - "dashcard_id": 8843
       "row": 41
       "col": 16
       "size_x": 8
@@ -2579,7 +2492,7 @@
       - "plan-withdrawals"
       - "plan-inflows"
       - "plan-reserve"
-    - "dashcard_id": 7873
+    - "dashcard_id": 8844
       "row": 44
       "col": 0
       "size_x": 24
@@ -2599,7 +2512,7 @@
       - "plan-withdrawals"
       - "plan-inflows"
       - "plan-reserve"
-    - "dashcard_id": 7874
+    - "dashcard_id": 8845
       "row": 50
       "col": 0
       "size_x": 24
@@ -2619,26 +2532,24 @@
       - "plan-withdrawals"
       - "plan-inflows"
       - "plan-reserve"
-    - "dashcard_id": 7875
+    - "dashcard_id": 8846
       "row": 58
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "Recorded obligations come before simulated ones. Planned new lending adds no forecast income. Month-end cash\
-        \ is not the lowest balance of the month. Detail and coverage: Data health tab."
+      "text": "Recorded before simulated · planned lending adds no income · not a minimum."
     "data-health":
-    - "dashcard_id": 7876
+    - "dashcard_id": 8847
       "row": 0
       "col": 0
       "size_x": 24
       "size_y": 2
       "card_id": null
       "virtual": "text"
-      "text": "**Data health** · every page's freshness, coverage and source checks. Filters here mirror the pages they belong\
-        \ to."
-    - "dashcard_id": 7877
+      "text": "**Data health** · freshness, coverage and source checks per page."
+    - "dashcard_id": 8848
       "row": 2
       "col": 0
       "size_x": 8
@@ -2647,7 +2558,7 @@
       "title": "Reporting connection · SELECT 1"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7878
+    - "dashcard_id": 8849
       "row": 2
       "col": 8
       "size_x": 8
@@ -2656,7 +2567,7 @@
       "title": "Queried at · Bangkok"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7879
+    - "dashcard_id": 8850
       "row": 2
       "col": 16
       "size_x": 8
@@ -2665,7 +2576,7 @@
       "title": "Bangkok date and query time"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 7880
+    - "dashcard_id": 8851
       "row": 5
       "col": 0
       "size_x": 24
@@ -2673,7 +2584,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Cash Position"
-    - "dashcard_id": 7881
+    - "dashcard_id": 8852
       "row": 6
       "col": 0
       "size_x": 24
@@ -2683,7 +2594,7 @@
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 7882
+    - "dashcard_id": 8853
       "row": 12
       "col": 0
       "size_x": 24
@@ -2691,7 +2602,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Income"
-    - "dashcard_id": 7883
+    - "dashcard_id": 8854
       "row": 13
       "col": 0
       "size_x": 12
@@ -2701,7 +2612,7 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7884
+    - "dashcard_id": 8855
       "row": 13
       "col": 12
       "size_x": 12
@@ -2711,7 +2622,7 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 7885
+    - "dashcard_id": 8856
       "row": 19
       "col": 0
       "size_x": 24
@@ -2719,7 +2630,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Cashflow"
-    - "dashcard_id": 7886
+    - "dashcard_id": 8857
       "row": 20
       "col": 0
       "size_x": 12
@@ -2730,7 +2641,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7887
+    - "dashcard_id": 8858
       "row": 20
       "col": 12
       "size_x": 12
@@ -2741,7 +2652,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 7888
+    - "dashcard_id": 8859
       "row": 28
       "col": 0
       "size_x": 24
@@ -2749,7 +2660,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Performance"
-    - "dashcard_id": 7889
+    - "dashcard_id": 8860
       "row": 29
       "col": 0
       "size_x": 8
@@ -2759,7 +2670,7 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7890
+    - "dashcard_id": 8861
       "row": 29
       "col": 8
       "size_x": 16
@@ -2769,17 +2680,17 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7891
+    - "dashcard_id": 8862
       "row": 36
       "col": 0
       "size_x": 24
       "size_y": 4
       "card_id": 231
-      "title": "Rolling-average coverage · selected completed dates"
+      "title": "Rolling-average coverage"
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 7892
+    - "dashcard_id": 8863
       "row": 40
       "col": 0
       "size_x": 24
@@ -2787,7 +2698,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Borrowers and Borrower Detail"
-    - "dashcard_id": 7893
+    - "dashcard_id": 8864
       "row": 41
       "col": 0
       "size_x": 12
@@ -2798,28 +2709,28 @@
       "parameters":
       - "period"
       - "population"
-    - "dashcard_id": 7894
+    - "dashcard_id": 8865
       "row": 41
       "col": 12
       "size_x": 12
       "size_y": 4
       "card_id": 315
-      "title": "Overall charts · dates and data availability"
+      "title": "Overall charts · dates and availability"
       "source": "reused"
       "parameters":
       - "population"
-    - "dashcard_id": 7895
+    - "dashcard_id": 8866
       "row": 45
       "col": 0
       "size_x": 24
       "size_y": 5
       "card_id": 300
-      "title": "Activity dates and lifetime context · selected borrower"
+      "title": "Activity dates and lifetime context"
       "source": "reused"
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 7896
+    - "dashcard_id": 8867
       "row": 50
       "col": 0
       "size_x": 24
@@ -2827,7 +2738,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Partners"
-    - "dashcard_id": 7897
+    - "dashcard_id": 8868
       "row": 51
       "col": 0
       "size_x": 12
@@ -2837,7 +2748,7 @@
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 7898
+    - "dashcard_id": 8869
       "row": 51
       "col": 12
       "size_x": 12
@@ -2847,7 +2758,7 @@
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 7899
+    - "dashcard_id": 8870
       "row": 58
       "col": 0
       "size_x": 24
@@ -2855,7 +2766,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Forecast"
-    - "dashcard_id": 7900
+    - "dashcard_id": 8871
       "row": 59
       "col": 0
       "size_x": 24
@@ -2870,7 +2781,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7901
+    - "dashcard_id": 8872
       "row": 66
       "col": 0
       "size_x": 24
@@ -2885,7 +2796,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 7902
+    - "dashcard_id": 8873
       "row": 76
       "col": 0
       "size_x": 24

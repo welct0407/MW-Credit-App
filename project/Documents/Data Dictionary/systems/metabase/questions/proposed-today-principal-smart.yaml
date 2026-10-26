@@ -14,33 +14,33 @@
   "name": "Principal at work · change over the period"
   "description": "Loan Reports · proposed (today.principal-smart). MBQL on model 74: Outstanding Principal (max) by Date,\
     \ filtered by Period on Date. Smart scalar shows the latest completed-day value and the change against the first date\
-    \ in the period. Whole baht. Basis: model 74 Daily Performance."
+    \ in the period (29 periods ago on the default 30-day Period). Whole baht. Basis: model 74 Daily Performance."
   "display": "smartscalar"
   "dataset_query":
     "stages":
     - "order-by":
       - - "asc"
-        - "lib/uuid": "74f17e9e-49da-4a71-af96-48ef17f07d1a"
+        - "lib/uuid": "ed3c52c7-d617-4267-84d5-db3a70152ed6"
         - - "field"
           - "temporal-unit": "day"
             "base-type": "type/Date"
-            "lib/uuid": "34d45fd4-d5ff-42b8-9498-ce4ae539fa49"
+            "lib/uuid": "cfb78b7e-5656-454d-9337-a63b86cadcc6"
           - "Date"
       "lib/type": "mbql.stage/mbql"
       "aggregation":
       - - "max"
         - "name": "Principal at work"
-          "lib/uuid": "1479b6a4-322a-44a9-a968-7b50a3c6f97b"
+          "lib/uuid": "8157978f-448e-4621-bcf4-f170f1e603ef"
           "display-name": "Principal at work"
         - - "field"
           - "base-type": "type/Decimal"
-            "lib/uuid": "5594c037-f95f-42ac-b831-c17d8083d3c1"
+            "lib/uuid": "6b0391b9-e439-42dd-a961-372e1cf7e929"
           - "Outstanding Principal"
       "breakout":
       - - "field"
         - "temporal-unit": "day"
           "base-type": "type/Date"
-          "lib/uuid": "49401759-bac6-48d0-a7eb-02ae1e0917ef"
+          "lib/uuid": "9cefa1fb-53e3-4108-9744-18d506ff3e3f"
         - "Date"
       "source-card": 74
     "lib/type": "mbql/query"
@@ -59,6 +59,8 @@
         "number_separators": ".,"
         "compact": false
   "basis": "model 74 Daily Performance"
+  "build_kind": "mbql"
+  "origin_question_id": 62
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

@@ -12,37 +12,39 @@
   "key": "cashflow.by-type-row"
   "id": 386
   "name": "Cash movement by transaction type · chart"
-  "description": "Loan Reports · proposed (cashflow.by-type-row). Native: question 203's query unchanged, displayed as a horizontal\
-    \ bar of Money in and Money out per transaction type. Question 203 stays the table beside it. Basis: snippet 3 Cashflow\
-    \ statement period (same query as question 203)."
+  "description": "Loan Reports · proposed (cashflow.by-type-row). Question 203's query wrapped: TOTAL row and rows with no\
+    \ movement removed, ordered by Money In + Money Out descending. Horizontal bars of Money In (green) and Money Out (red),\
+    \ stacked (stackable.stack_type = stacked): on this version Metabase folds unstacked row-chart categories into \"Other\
+    \ (n)\" regardless of graph.max_categories_enabled; each type moves money one way, so stacking changes nothing visually.\
+    \ Basis: snippet 3 Cashflow statement period (same query as question 203)."
   "display": "row"
   "dataset_query":
     "stages":
     - "template-tags":
-      - "widget-type": "date/all-options"
-        "id": "lrp-cashflow-period"
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "r016-cashflow_period"
         "name": "cashflow_period"
         "display-name": "Statement period"
         "type": "dimension"
         "dimension":
         - "field"
         - "base-type": "type/Date"
-          "lib/uuid": "ece96c4d-39ef-448c-b50f-224209d425b6"
+          "lib/uuid": "098994fd-9c39-474d-8dfb-6bbe351b7442"
           "effective-type": "type/Date"
         - 82
-        "alias": "d.\"Date\""
-      - "required": true
-        "id": "lrp-cash-account"
+      - "type": "text"
+        "required": true
+        "id": "r016-cash-account"
         "name": "cash_account"
         "display-name": "Account"
-        "type": "text"
         "default": "__ALL__"
-      - "snippet-name": "Cashflow statement period"
-        "id": "lrp-snippet-3"
+      - "type": "snippet"
+        "snippet-id": 3
+        "id": "r016-snippet-3"
         "name": "snippet: Cashflow statement period"
         "display-name": "Cashflow statement period"
-        "type": "snippet"
-        "snippet-id": 3
+        "snippet-name": "Cashflow statement period"
       "lib/type": "mbql.stage/native"
       "native": "SELECT * FROM (WITH statement AS ({{snippet: Cashflow statement period}}) SELECT CASE WHEN grouping(t.\"\
         Transaction Type\")=1 THEN 'TOTAL' ELSE t.\"Transaction Type\" END AS \"Transaction Type\",coalesce(sum(t.\"Money\
@@ -50,17 +52,19 @@
         \ \"Net Movement\" FROM statement s LEFT JOIN LATERAL public.reporting_cash_period_entries(s.\"Period Start\",s.\"\
         Period End\",{{cash_account}}) t ON true WHERE s.\"Continuous Period\" GROUP BY GROUPING SETS ((t.\"Transaction Type\"\
         ),()) HAVING bool_or(s.\"Continuous Period\") AND (grouping(t.\"Transaction Type\")=1 OR count(t.\"Entry ID\")>0)\
-        \ ORDER BY grouping(t.\"Transaction Type\"),1) t WHERE t.\"Transaction Type\"<>'TOTAL'"
+        \ ORDER BY grouping(t.\"Transaction Type\"),1) t WHERE t.\"Transaction Type\"<>'TOTAL' AND (coalesce(t.\"Money In\"\
+        ,0)<>0 OR coalesce(t.\"Money Out\",0)<>0) ORDER BY coalesce(t.\"Money In\",0)+coalesce(t.\"Money Out\",0) DESC,t.\"\
+        Transaction Type\""
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
-    "graph.dimensions":
-    - "Transaction Type"
     "graph.show_values": true
+    "graph.x_axis.title_enabled": false
+    "graph.y_axis.title_enabled": false
+    "graph.metrics":
+    - "Money In"
+    - "Money Out"
     "graph.label_value_formatting": "compact"
-    "graph.colors":
-    - "#178F8A"
-    - "#D6816B"
     "column_settings":
       "[\"name\",\"Money In\"]":
         "number_style": "decimal"
@@ -72,10 +76,22 @@
         "decimals": 0
         "number_separators": ".,"
         "compact": false
-    "graph.metrics":
-    - "Money In"
-    - "Money Out"
+      "[\"name\",\"Net Movement\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "series_settings":
+      "Money In":
+        "color": "#13855B"
+      "Money Out":
+        "color": "#D1495B"
+    "graph.dimensions":
+    - "Transaction Type"
+    "stackable.stack_type": "stacked"
   "basis": "snippet 3 Cashflow statement period (same query as question 203)"
+  "build_kind": "native"
+  "origin_question_id": 203
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

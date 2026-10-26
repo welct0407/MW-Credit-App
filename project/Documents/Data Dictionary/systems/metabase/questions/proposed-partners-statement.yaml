@@ -1,0 +1,108 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Partner positions · statement / 401"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "partners.statement"
+  "id": 401
+  "name": "Partner positions · statement"
+  "description": "Loan Reports · proposed (partners.statement). Question 330's query as a CTE, unpivoted to (Measure, Partner,\
+    \ Amount ฿) for the five statement measures Net capital, Net earned to date, Completed payouts, Pending settlements, Net\
+    \ available; shown pivoted (measures as rows, partners as columns) with table.pivot. Template tags partner and #318 copied;\
+    \ maps `partner` as 330 maps pt-partner. If table.pivot does not render for a native result on this version, the fallback\
+    \ is question 330 reused with columns limited to Partner and the five measures. Basis: model 318 Partners · position source\
+    \ (same query as question 330)."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "alias": "d.partner_id"
+        "widget-type": "string/="
+        "id": "pt-partner"
+        "name": "partner"
+        "display-name": "Partner"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "4f95d9e0-3bf7-4bf6-a130-e70459edb55f"
+          "effective-type": "type/Text"
+        - 121
+      - "display-name": "Partners source 318"
+        "type": "card"
+        "id": "r044-model-318"
+        "name": "#318"
+        "card-id": 318
+      "lib/type": "mbql.stage/native"
+      "native": "WITH p AS (SELECT d.partner_name AS \"Partner\",net_capital AS \"Net capital ฿\",capital_share AS \"Capital\
+        \ share %\",interest_earned AS \"Allocated interest ฿\",expenses AS \"Allocated expenses ฿\",net_earned AS \"Net earned\
+        \ ฿\",completed AS \"Paid ฿\",pending AS \"Pending ฿\",available AS \"Net available ฿\",quality_status AS \"Status\"\
+        ,d.partner_id AS \"Partner ID\" FROM {{#318}} d WHERE true [[AND {{partner}}]] ORDER BY partner_role,d.partner_id)\
+        \ SELECT m.\"Measure\",p.\"Partner\",m.amount AS \"Amount ฿\" FROM p CROSS JOIN LATERAL (VALUES (1,'Net capital ฿',p.\"\
+        Net capital ฿\"),(2,'Net earned to date ฿',p.\"Net earned ฿\"),(3,'Completed payouts ฿',p.\"Paid ฿\"),(4,'Pending\
+        \ settlements ฿',p.\"Pending ฿\"),(5,'Net available ฿',p.\"Net available ฿\")) m(ord,\"Measure\",amount) ORDER BY\
+        \ m.ord,p.\"Partner\""
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": true
+    "table.pivot_column": "Partner"
+    "table.cell_column": "Amount ฿"
+    "column_settings":
+      "[\"name\",\"Allocated expenses ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Net earned ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Amount ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Net capital ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Pending ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Capital share %\"]":
+        "number_style": "percent"
+        "decimals": 2
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Paid ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Allocated interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Net available ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "basis": "model 318 Partners · position source (same query as question 330)"
+  "build_kind": "native"
+  "origin_question_id": 330
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

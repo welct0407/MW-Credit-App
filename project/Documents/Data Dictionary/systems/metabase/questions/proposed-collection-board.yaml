@@ -1,0 +1,105 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Collection board · lanes summary / 396"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "collection.board"
+  "id": 396
+  "name": "Collection board · lanes summary"
+  "description": "Loan Reports · proposed (collection.board). One row per lane in board order (\U0001F534 Not paid, \U0001F7E0\
+    \ Partially paid, \U0001F7E3 Overdue, \U0001F7E2 Fully paid; all four always present, zero when empty) plus one row per\
+    \ unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162, plus a hidden Tint column that drives an even\
+    \ row tint. Replaces the four count chips and the Unclassified card. Basis: model 162 Collection Status Summary."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-162"
+        "name": "#162"
+        "display-name": "Model 162"
+        "card-id": 162
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH lanes(ord,status,label,tint) AS (VALUES (1,'Not Paid','🔴 Not paid','not_paid'),(2,'Partially Paid','🟠 Partially paid','partial'),(3,'Overdue','🟣 Overdue','overdue'),(4,'Fully Paid','🟢 Fully paid','paid')),
+         rows AS (SELECT l.ord,l.label,l.tint,coalesce(s."Borrower Count",0) people,coalesce(s."Amount Remaining",0) remaining,coalesce(s."Receipts Today",0) received FROM lanes l LEFT JOIN {{#162}} s ON s."Collection Status"=l.status
+         UNION ALL SELECT 9,'⚪ '||coalesce(s."Collection Status",'Unclassified'),'',s."Borrower Count",s."Amount Remaining",s."Receipts Today" FROM {{#162}} s WHERE s."Collection Status" IS NULL OR s."Collection Status" NOT IN ('Not Paid','Partially Paid','Overdue','Fully Paid'))
+        SELECT label AS "Lane",people AS "People",remaining AS "Left ฿",received AS "Received ฿",tint AS "Tint" FROM rows ORDER BY ord,label
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_widths":
+    - 110
+    - 75
+    - 69
+    - 86
+    "table.columns":
+    - "name": "Lane"
+      "enabled": true
+    - "name": "People"
+      "enabled": true
+    - "name": "Left ฿"
+      "enabled": true
+    - "name": "Received ฿"
+      "enabled": true
+    - "name": "Tint"
+      "enabled": false
+    "table.column_formatting":
+    - "id": 0
+      "columns":
+      - "Tint"
+      "type": "single"
+      "operator": "="
+      "value": "not_paid"
+      "color": "#ED6E6E"
+      "highlight_row": true
+    - "id": 1
+      "columns":
+      - "Tint"
+      "type": "single"
+      "operator": "="
+      "value": "partial"
+      "color": "#F9A825"
+      "highlight_row": true
+    - "id": 2
+      "columns":
+      - "Tint"
+      "type": "single"
+      "operator": "="
+      "value": "overdue"
+      "color": "#7172AD"
+      "highlight_row": true
+    - "id": 3
+      "columns":
+      - "Tint"
+      "type": "single"
+      "operator": "="
+      "value": "paid"
+      "color": "#1E9F5A"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Left ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Left"
+      "[\"name\",\"Received ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Received"
+  "basis": "model 162 Collection Status Summary"
+  "build_kind": "native"
+  "origin_question_id": 242
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

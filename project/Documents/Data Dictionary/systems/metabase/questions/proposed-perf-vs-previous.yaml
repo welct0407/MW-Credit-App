@@ -13,9 +13,9 @@
   "id": 387
   "name": "This period and the previous period"
   "description": "Loan Reports · proposed (perf.vs-previous). Native: for the selected Period and the preceding period of\
-    \ equal length, Gross interest, Principal issued, Loans issued and Principal returned, with change %. Same date rules\
-    \ as questions 217–219 (loan dates and payment dates both use the filter). Basis: models 71 Repayment Ledger and 70 Loan\
-    \ Book (pattern of questions 217–219)."
+    \ equal length, one row per measure: Gross interest, Principal issued, Loans issued, Principal returned and Net principal\
+    \ deployed (issued − returned), with This period, Previous period, Change and Change %. Same date rules as questions 217–219.\
+    \ Basis: models 71 Repayment Ledger and 70 Loan Book (pattern of questions 217–219)."
   "display": "table"
   "dataset_query":
     "stages":
@@ -38,7 +38,7 @@
         "dimension":
         - "field"
         - "base-type": "type/Date"
-          "lib/uuid": "bf11956d-d48d-4c6f-a6fc-ee58bdf98cc9"
+          "lib/uuid": "365aa399-878c-4b9a-a0dd-e6d99b600b79"
           "effective-type": "type/Date"
         - 82
         "alias": "d.\"Date\""
@@ -63,7 +63,7 @@
          FROM periods p
          ), m AS (
          SELECT v.ord,v.metric,max(v.amount) FILTER (WHERE t.p='this') cur,max(v.amount) FILTER (WHERE t.p='previous' AND t.ok) prev
-         FROM totals t CROSS JOIN LATERAL (VALUES (1,'Gross interest',t.interest),(2,'Principal issued',t.issued),(3,'Loans issued',t.loans::numeric),(4,'Principal returned',t.returned)) v(ord,metric,amount)
+         FROM totals t CROSS JOIN LATERAL (VALUES (1,'Gross interest',t.interest),(2,'Principal issued',t.issued),(3,'Loans issued',t.loans::numeric),(4,'Principal returned',t.returned),(5,'Net principal deployed',t.issued-t.returned)) v(ord,metric,amount)
          GROUP BY v.ord,v.metric
          )
         SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord
@@ -111,6 +111,8 @@
         "decimals": 1
         "number_separators": ".,"
   "basis": "models 71 Repayment Ledger and 70 Loan Book (pattern of questions 217–219)"
+  "build_kind": "native"
+  "origin_question_id": 217
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

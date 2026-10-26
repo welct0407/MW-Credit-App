@@ -13,9 +13,9 @@
   "id": 384
   "name": "This period and the previous period"
   "description": "Loan Reports · proposed (income.vs-previous). Native: for the selected statement period and the immediately\
-    \ preceding period of equal length, Income, Expenses, Net profit, Days and Net per day, plus change % of each. Two rows\
-    \ (This period, Previous period) and one Change row. Whole baht, one-decimal percent. Basis: snippet 2 Income statement\
-    \ period (model 186 Income Events)."
+    \ preceding period of equal length, one row per measure (Income, Expenses, Net profit, Net profit per day) with This period,\
+    \ Previous period, Change and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent.\
+    \ Basis: snippet 2 Income statement period (model 186 Income Events)."
   "display": "table"
   "dataset_query":
     "stages":
@@ -33,7 +33,7 @@
         "dimension":
         - "field"
         - "base-type": "type/Date"
-          "lib/uuid": "4d8cc8f0-1b82-4ab1-bac3-d847076014d7"
+          "lib/uuid": "020c209c-1b62-4c10-9b5a-8ee7bac2344e"
           "effective-type": "type/Date"
         - 82
         "alias": "d.\"Date\""
@@ -98,6 +98,8 @@
         "decimals": 1
         "number_separators": ".,"
   "basis": "snippet 2 Income statement period (model 186 Income Events)"
+  "build_kind": "native"
+  "origin_question_id": 168
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

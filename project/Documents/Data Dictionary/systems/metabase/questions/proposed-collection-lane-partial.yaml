@@ -1,0 +1,118 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "\U0001F7E0 Partially paid · lane / 398"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "collection.lane-partial"
+  "id": 398
+  "name": "\U0001F7E0 Partially paid · lane"
+  "description": "Loan Reports · proposed (collection.lane-partial). MBQL on model 77 filtered Daily Collection Status = 'Partially\
+    \ Paid'; fields ['Borrower', 'Receipts Today', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY\
+    \ Amount Remaining desc, Borrower asc. Same rows as question 245, resorted. Column titles Name / Paid / Left; widths [80,\
+    \ 76, 76] px for the three visible columns. Basis: model 77 Collection Worklist."
+  "display": "table"
+  "dataset_query":
+    "stages":
+    - "filters":
+      - - "="
+        - "lib/uuid": "0912c719-fadd-46c5-a675-050d896fdecc"
+        - - "field"
+          - "base-type": "type/Text"
+            "lib/uuid": "969a62f0-62cc-453f-9368-4ad35f4a831e"
+          - "Daily Collection Status"
+        - "Partially Paid"
+      "lib/type": "mbql.stage/mbql"
+      "fields":
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "58db0c7f-b80e-4c37-9cd5-a2e6870015f1"
+        - "Borrower"
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "26db52de-01f1-4000-860b-f2271a5d8611"
+        - "Receipts Today"
+      - - "field"
+        - "base-type": "type/Decimal"
+          "lib/uuid": "d3c08e5d-5bb8-4d00-ab99-7591bf9506cc"
+        - "Amount Remaining"
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "2075b386-778f-4746-9615-8e90736864ef"
+        - "Borrower ID"
+      - - "field"
+        - "base-type": "type/Text"
+          "lib/uuid": "cb66836e-9389-466f-a732-ad1d33f13d38"
+        - "Daily Collection Status"
+      "order-by":
+      - - "desc"
+        - "lib/uuid": "304316d5-c43e-406f-be83-167f4ff193b3"
+        - - "field"
+          - "base-type": "type/Decimal"
+            "lib/uuid": "5d8506e1-441a-4424-bcc4-e2a987ef3747"
+          - "Amount Remaining"
+      - - "asc"
+        - "lib/uuid": "1a6e0186-a863-452d-a567-f111fd5671e0"
+        - - "field"
+          - "base-type": "type/Text"
+            "lib/uuid": "3396ebcf-2ee8-423a-8af0-f1efce640c71"
+          - "Borrower"
+      "source-card": 77
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Borrower"
+      "enabled": true
+    - "name": "Receipts Today"
+      "enabled": true
+    - "name": "Amount Remaining"
+      "enabled": true
+    - "name": "Borrower ID"
+      "enabled": false
+    - "name": "Daily Collection Status"
+      "enabled": false
+    "table.column_widths":
+    - 80
+    - 76
+    - 76
+    "table.column_formatting":
+    - "id": 0
+      "columns":
+      - "Daily Collection Status"
+      "type": "single"
+      "operator": "="
+      "value": "Partially Paid"
+      "color": "#F9A825"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Borrower\"]":
+        "column_title": "Name"
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+      "[\"name\",\"Receipts Today\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Paid"
+      "[\"name\",\"Amount Remaining\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+        "column_title": "Left"
+  "basis": "model 77 Collection Worklist"
+  "build_kind": "mbql"
+  "origin_question_id": 245
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

@@ -1,0 +1,78 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Interest received · period by borrower · top five + others / 394"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "borrowers.interest-top5"
+  "id": 394
+  "name": "Interest received · period by borrower · top five + others"
+  "description": "Loan Reports · proposed (borrowers.interest-top5). Question 286's query with the same two edits as borrowers.principal-top5.\
+    \ Template tags period and population copied verbatim; maps `period` and `population` as 286 maps bp-period and bp-population.\
+    \ Basis: function reporting_borrower_period_v1 (same query as question 286)."
+  "display": "row"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "bp-period"
+        "name": "period"
+        "display-name": "Activity period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "6ea246df-793f-45d5-81d8-7a3c60a3eb7e"
+          "effective-type": "type/Date"
+        - 82
+      - "display-name": "Population"
+        "type": "text"
+        "id": "bp-population"
+        "name": "population"
+        "default": "All with loan history"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d."Date" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date "Date") d WHERE [[{{period}} --]] d."Date" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)
+        ), bounds AS (SELECT min("Date") starts,max("Date") ends,count(*) days,count(*)>0 AND count(*)=max("Date")-min("Date")+1 AND max("Date")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'
+        ) p WHERE b.valid), ranked AS (SELECT *,interest_rank rank FROM cohort), groups AS (SELECT CASE WHEN rank<=5 THEN borrower_id END id,CASE WHEN rank<=5 THEN borrower_label ELSE 'Others ('||(SELECT count(*) FROM ranked WHERE rank>5)||')' END label,CASE WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END amount,min(rank) rank FROM ranked GROUP BY 1,2)
+         SELECT label AS "Borrower",amount AS "Amount ฿",id AS "Borrower ID" FROM groups ORDER BY rank
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.show_values": true
+    "click_behavior":
+      "type": "link"
+      "linkType": "url"
+      "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+    "graph.show_legend": false
+    "graph.x_axis.title_enabled": false
+    "graph.y_axis.title_enabled": false
+    "graph.metrics":
+    - "Amount ฿"
+    "graph.label_value_formatting": "full"
+    "graph.colors":
+    - "#7472BE"
+    "column_settings":
+      "[\"name\",\"Amount ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "series_settings":
+      "Amount ฿":
+        "color": "#7472BE"
+    "graph.max_categories_enabled": false
+    "graph.dimensions":
+    - "Borrower"
+  "basis": "function reporting_borrower_period_v1 (same query as question 286)"
+  "build_kind": "native"
+  "origin_question_id": 286
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

@@ -1,0 +1,39 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "People paid today · x of n / 395"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "collection.people"
+  "id": 395
+  "name": "People paid today · x of n"
+  "description": "Loan Reports · proposed (collection.people). Text scalar \"<fully paid> of <people with a status today>\
+    \ paid\" from model 162 Borrower Count. Replaces the percent card 239 with the prototype's wording. Basis: model 162 Collection\
+    \ Status Summary."
+  "display": "scalar"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-162"
+        "name": "#162"
+        "display-name": "Model 162"
+        "card-id": 162
+      "lib/type": "mbql.stage/native"
+      "native": "SELECT coalesce(sum(\"Borrower Count\") FILTER (WHERE \"Collection Status\"='Fully Paid'),0)||' of '||coalesce(sum(\"\
+        Borrower Count\"),0)||' paid' AS \"People paid\" FROM {{#162}}"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "People paid"
+  "basis": "model 162 Collection Status Summary"
+  "build_kind": "native"
+  "origin_question_id": 239
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

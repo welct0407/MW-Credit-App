@@ -35,6 +35,8 @@
         "decimals": 1
         "number_separators": ".,"
   "basis": "model 73 Portfolio Overview"
+  "build_kind": "mbql"
+  "origin_question_id": 252
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

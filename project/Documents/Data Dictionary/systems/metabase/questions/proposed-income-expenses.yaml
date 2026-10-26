@@ -1,0 +1,68 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Expenses · statement period (positive) / 392"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "income.expenses"
+  "id": 392
+  "name": "Expenses · statement period (positive)"
+  "description": "Loan Reports · proposed (income.expenses). Question 169's query with the sign flipped, so the equation band\
+    \ reads \"Income − Expenses = Net profit\" with the minus in the title and a positive magnitude in the card. Copies 169's\
+    \ template tags (statement_period, #186, snippet 2) and mapping. Basis: snippet 2 Income statement period."
+  "display": "scalar"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "alias": "d.\"Date\""
+        "widget-type": "date/all-options"
+        "id": "r016-statement_period"
+        "name": "statement_period"
+        "display-name": "Statement period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "681cd639-0d1b-4fa3-87c0-dbfe7e385c09"
+          "effective-type": "type/Date"
+        - 82
+      - "display-name": "Model 186"
+        "type": "card"
+        "id": "r016-model-186"
+        "name": "#186"
+        "card-id": 186
+      - "type": "snippet"
+        "snippet-id": 2
+        "id": "r016-snippet-2"
+        "name": "snippet: Income statement period"
+        "display-name": "Income statement period"
+        "snippet-name": "Income statement period"
+      "lib/type": "mbql.stage/native"
+      "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT -\"Operating Expenses\" AS \"Expenses\" FROM\
+        \ statement"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "Expenses"
+    "column_settings":
+      "[\"name\",\"Operating Expenses\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Expenses\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "basis": "snippet 2 Income statement period"
+  "build_kind": "native"
+  "origin_question_id": 169
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

@@ -1294,6 +1294,26 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/proposed-borrowers-interest-top5.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest received · period by borrower · top five + others / 394",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-borrowers-principal-top5.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal outstanding by borrower · top five + others / 393",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/proposed-cash-pool-selected.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -1319,6 +1339,76 @@
       "component": "reports.mw-credit.com",
       "kind": "question",
       "name": "Cash movement by transaction type · chart / 386",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-collection-board.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Collection board · lanes summary / 396",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-collection-lane-not-paid.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "🔴 Not paid · lane / 397",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-collection-lane-overdue.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "🟣 Overdue · lane / 399",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-collection-lane-paid.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "🟢 Fully paid · lane / 400",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-collection-lane-partial.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "🟠 Partially paid · lane / 398",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-collection-people.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "People paid today · x of n / 395",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-income-expenses.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Expenses · statement period (positive) / 392",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1354,11 +1444,31 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/proposed-partners-statement.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Partner positions · statement / 401",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/proposed-perf-vs-previous.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
       "name": "This period and the previous period / 387",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-today-attention.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Needs attention · strip / 389",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -1374,11 +1484,31 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/proposed-today-interest-top4.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest · past 30 days by borrower · top four + others / 391",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/proposed-today-principal-smart.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
       "name": "Principal at work · change over the period / 379",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/proposed-today-principal-top4.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal by borrower · top four + others / 390",
       "scope": "production",
       "status": "documented",
       "lookup": []

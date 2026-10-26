@@ -12,9 +12,8 @@
   "key": "partners.capital-share-row"
   "id": 388
   "name": "Capital share · full pool"
-  "description": "Loan Reports · proposed (partners.capital-share-row). Native: question 331's query unchanged, displayed\
-    \ as a horizontal bar with the share percent as the value label. Replaces the two-slice pie. Basis: model 318 Partners\
-    \ · position source (same query as question 331)."
+  "description": "Loan Reports · proposed (partners.capital-share-row). Question 331's query with Capital share % (each row's\
+    \ share of the rows) as the plotted value. Basis: model 318 Partners · position source (same query as question 331)."
   "display": "row"
   "dataset_query":
     "stages":
@@ -27,7 +26,7 @@
         "dimension":
         - "field"
         - "base-type": "type/Text"
-          "lib/uuid": "00ab59eb-c4bd-48af-b15d-7d49cda1e76a"
+          "lib/uuid": "192d1531-6607-4665-bac2-8af5c58b9c37"
           "effective-type": "type/Text"
         - 121
         "alias": "d.partner_id"
@@ -57,17 +56,16 @@
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
-    "graph.dimensions":
-    - "Partner"
     "graph.show_values": true
     "graph.show_legend": false
+    "graph.y_axis.max": 1
+    "graph.metrics":
+    - "Capital share %"
     "graph.colors":
     - "#178F8A"
     - "#7472BE"
     - "#D6816B"
     - "#D4AD60"
-    "graph.y_axis.min": 0
-    "graph.y_axis.max": 1
     "column_settings":
       "[\"name\",\"Capital share %\"]":
         "number_style": "percent"
@@ -78,9 +76,16 @@
         "decimals": 0
         "number_separators": ".,"
         "compact": false
-    "graph.metrics":
-    - "Capital share %"
+    "series_settings":
+      "Capital share %":
+        "color": "#178F8A"
+    "graph.max_categories_enabled": false
+    "graph.dimensions":
+    - "Partner"
+    "graph.y_axis.min": 0
   "basis": "model 318 Partners · position source (same query as question 331)"
+  "build_kind": "native"
+  "origin_question_id": 331
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

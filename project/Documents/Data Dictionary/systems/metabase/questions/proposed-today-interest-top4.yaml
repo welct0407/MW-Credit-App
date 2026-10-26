@@ -1,0 +1,60 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Interest · past 30 days by borrower · top four + others / 391"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "today.interest-top4"
+  "id": 391
+  "name": "Interest · past 30 days by borrower · top four + others"
+  "description": "Loan Reports · proposed (today.interest-top4). Native on model 72 with question 61's filter (Payments 30D\
+    \ > 0): Profit Rank ≤ 4 named, the rest summed as \"Others (n)\". Same total as question 61. Basis: model 72 Borrower\
+    \ Performance."
+  "display": "row"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-72"
+        "name": "#72"
+        "display-name": "Model 72"
+        "card-id": 72
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH r AS (SELECT "Borrower","Profit 30D" amount,"Profit Rank" rank FROM {{#72}} WHERE "Payments 30D">0)
+        SELECT CASE WHEN rank<=4 THEN "Borrower" ELSE 'Others ('||(SELECT count(*) FROM r WHERE rank>4)||')' END AS "Borrower",sum(amount) AS "Amount ฿",min(rank) AS "Order" FROM r GROUP BY 1 ORDER BY 3
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.show_values": true
+    "graph.show_legend": false
+    "graph.x_axis.title_enabled": false
+    "graph.y_axis.title_enabled": false
+    "graph.metrics":
+    - "Amount ฿"
+    "graph.label_value_formatting": "full"
+    "graph.colors":
+    - "#7472BE"
+    "column_settings":
+      "[\"name\",\"Amount ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "series_settings":
+      "Amount ฿":
+        "color": "#7472BE"
+    "graph.max_categories_enabled": false
+    "graph.dimensions":
+    - "Borrower"
+  "basis": "model 72 Borrower Performance"
+  "build_kind": "native"
+  "origin_question_id": 61
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

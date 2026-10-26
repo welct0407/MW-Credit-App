@@ -13,15 +13,15 @@
   "id": 380
   "name": "Interest this month · share of projection"
   "description": "Loan Reports · proposed (today.realization). MBQL on model 73: field Forecast Realization (Realized Profit\
-    \ MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far; the card description\
-    \ names the projected amount source. Basis: model 73 Portfolio Overview."
+    \ MTD ÷ Projected Monthly Profit). Progress goal 1 shows the share of the projected month collected so far. Basis: model\
+    \ 73 Portfolio Overview."
   "display": "progress"
   "dataset_query":
     "stages":
     - "fields":
       - - "field"
         - "base-type": "type/Decimal"
-          "lib/uuid": "a6f7206a-7bed-4255-b4ab-bd0de4589889"
+          "lib/uuid": "d39c691c-d5f3-4561-a840-4e84d42fc590"
         - "Forecast Realization"
       "lib/type": "mbql.stage/mbql"
       "source-card": 73
@@ -36,6 +36,8 @@
         "decimals": 1
         "number_separators": ".,"
   "basis": "model 73 Portfolio Overview"
+  "build_kind": "mbql"
+  "origin_question_id": 52
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."

@@ -59,6 +59,8 @@
         "number_separators": ".,"
         "compact": false
   "basis": "snippet 4 Cash position source routing (models 205, 73)"
+  "build_kind": "native"
+  "origin_question_id": 207
   "dashboard_id": 32
   "collection_id": 10
   "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."
