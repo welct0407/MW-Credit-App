@@ -232,6 +232,29 @@ NEW_QUESTIONS = {
                      'graph.max_categories_enabled': False, 'graph.colors': ['#7472BE'], 'column_settings': cols(['Amount ฿'])},
         'reconcile': 'Sum of the five bars equals the sum of question 61\'s bars; the four named bars equal question 61\'s first four.',
     },
+    'today.principal-vs-pool': {
+        'name': 'Principal at work and total cash pool · daily close', 'display': 'combo', 'kind': 'native',
+        'basis': 'models 74 Daily Performance and 205 Daily Cash Snapshots', 'origin': 62, 'params': ['period'],
+        'definition': 'Native per completed day: Outstanding Principal summed by Date from model 74 (as question 62) joined to '
+                      'model 205 Total Cash Pool for the same Date (latest Generated At per date; NULL where no snapshot). The '
+                      'Period template tag is the dimension tag on field 82 (alias d."Date") used by the other native copies, '
+                      'applied through the reporting statement calendar; maps `period` as question 62 maps overview-trend-period. '
+                      'Principal is the blue area (same look as the question 62 placement), Total cash pool a dashed grey line; '
+                      'no static goal, so the reference follows the pool. Fallback only if combo area+line does not render on '
+                      'v0.63: keep question 62 with goal 130,000 "Total cash pool reference".',
+        'sql': "WITH selected AS (SELECT d.\"Date\" FROM public.reporting_statement_calendar d WHERE true [[AND {{period}}]]),\n"
+               " principal AS (SELECT p.\"Date\",sum(p.\"Outstanding Principal\") amount FROM {{#74}} p JOIN selected s ON s.\"Date\"=p.\"Date\" GROUP BY p.\"Date\"),\n"
+               " pool AS (SELECT DISTINCT ON (c.\"Date\") c.\"Date\",c.\"Total Cash Pool\" pool FROM {{#205}} c JOIN selected s ON s.\"Date\"=c.\"Date\" ORDER BY c.\"Date\",c.\"Generated At\" DESC NULLS LAST)\n"
+               "SELECT p.\"Date\",p.amount AS \"Principal at work\",l.pool AS \"Total cash pool\" FROM principal p LEFT JOIN pool l USING (\"Date\") ORDER BY p.\"Date\"",
+        'settings': {'graph.dimensions': ['Date'], 'graph.metrics': ['Principal at work', 'Total cash pool'], 'graph.show_values': False,
+                     'graph.show_legend': True, 'graph.y_axis.auto_split': False, 'graph.y_axis.title_text': 'THB', 'graph.x_axis.title_enabled': False,
+                     'graph.missing': 'none',
+                     'series_settings': {'Principal at work': {'display': 'area', 'color': BLUE, 'line.marker_enabled': False},
+                                         'Total cash pool': {'display': 'line', 'color': '#949AAB', 'line.style': 'dashed', 'line.marker_enabled': False, 'title': 'Total cash pool'}},
+                     'column_settings': cols(['Principal at work', 'Total cash pool'])},
+        'reconcile': 'Principal series equals question 62 (same dates, same values) for the same Period; pool series equals model 205 '
+                     'Total Cash Pool (latest Generated At) for those dates, NULL only where model 205 has no row.',
+    },
     # ---- Cash Position -----------------------------------------------------------------------------------
     'cash.pool-selected': {
         'name': 'Total cash pool · selected date', 'display': 'scalar', 'kind': 'native',
@@ -414,8 +437,6 @@ def stack(w, *cards):
     return (list(cards), w, sum(c[1] for c in cards))
 
 
-SERIES_BLUE = {'series_settings': {'COLUMN_2': {'color': BLUE}}, 'graph.colors': [BLUE]}
-
 TABS = [
     {
         'key': 'today', 'name': 'Today', 'filters': ['period'],
@@ -433,15 +454,15 @@ TABS = [
              ('today.realization', 6, 3, {'title': 'Interest · of projection'}),
              ('today.collection-rate', 6, 3, {'title': "Today's charges · paid"})],
             [('today.attention', 24, 6, {'title': 'Needs attention · rows open pages', 'description': 'Click a row to open Collection or Borrower Health.'})],
-            [(62, 12, 7, {'title': 'Principal at work · daily close', 'vs': {'graph.show_goal': True, 'graph.goal_value': 120000, 'graph.goal_label': 'Principal reference 120,000', 'graph.show_values': False, **SERIES_BLUE},
-                          'note': 'goal line = principal reference 120,000; series blue (red is a status colour)'}),
+            [('today.principal-vs-pool', 12, 7, {'title': 'Principal at work · daily close',
+                                                 'note': 'dynamic reference: total cash pool as a dashed line instead of the static 120,000 goal; value labels off'}),
              (222, 12, 7, {'title': 'Daily gross interest · 7-day average', 'vs': {'graph.show_goal': True, 'graph.goal_value': 10000, 'graph.goal_label': 'Daily interest goal 10,000', 'graph.show_values': False},
                            'note': 'goal line = daily interest goal 10,000; value labels off so they do not collide with the goal label'})],
             [('today.principal-top4', 12, 7, {'title': 'Principal by borrower · top 4 + others'}),
              ('today.interest-top4', 12, 7, {'title': 'Interest 30d by borrower · top 4 + rest'})],
             [T('Profit = gross interest before expenses · definitions in card descriptions.', 24)],
         ],
-        'dropped': [47, 52, 54, 55, 57, 58, 59, 63, 64, 68, 60, 61, 240, 254, 242, 244, 270, 251],
+        'dropped': [47, 52, 54, 55, 57, 58, 59, 62, 63, 64, 68, 60, 61, 240, 254, 242, 244, 270, 251],
         'phone': 'Thirteen cards instead of eighteen: header, As of, four numbers, expected interest and 7-day growth, two meters, the attention strip (one card), '
                  'then the four charts, in this order. Metabase stacks one card per row below about 760 px, in grid order, '
                  'with fixed heights by display type; the prototype\'s phone order (Collected today first) and its '

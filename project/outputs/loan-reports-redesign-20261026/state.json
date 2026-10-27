@@ -23,7 +23,8 @@
     "collection.lane-partial": 398,
     "collection.lane-overdue": 399,
     "collection.lane-paid": 400,
-    "partners.statement": 401
+    "partners.statement": 401,
+    "today.principal-vs-pool": 402
   },
   "tabs": {
     "today": 375,
