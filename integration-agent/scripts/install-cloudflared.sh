@@ -6,8 +6,8 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-version=2026.9.1
-sha256=03f1f25d1cc93b9ad6c60569d44060bc4f17ed97075760ed8cfca4b12dcd68cc
+version=2026.10.3
+sha256=053b80b0a23031a038fdbf3c073f59f82b8f1f152aa67971d7383ffafc0dbab0
 url="https://github.com/cloudflare/cloudflared/releases/download/${version}/cloudflared-linux-amd64"
 download=$(mktemp)
 trap 'rm -f "$download"' EXIT
