@@ -6,7 +6,7 @@ Owner-requested design package for the proposed Loan Reports pages, to be built 
 | --- | --- |
 | [REVIEW.md](REVIEW.md) | The page-by-page review of the live dashboard and the enhancement plan that led to the design |
 | [DESIGN.md](DESIGN.md) | Detailed design: principles, filter semantics, reuse policy, and the generated per-tab card tables and new-question definitions |
-| [layout.json](layout.json) | Machine-readable specification the installer reads: dashboard, 22 filters with the dashboard-3 ids they replace, 23 new questions, 12 tabs with 227 placements |
+| [layout.json](layout.json) | Machine-readable specification the installer reads: dashboard, 22 filters with the dashboard-3 ids they replace, 24 new questions, 12 tabs with 227 placements |
 | [build_design.py](build_design.py) | The single source of the specification; regenerates `layout.json` and the generated section of `DESIGN.md` |
 | [PLAN.md](PLAN.md) | Execution plan for the build session: installer, verification, data dictionary updates, records, review and cutover boundary |
 
@@ -16,7 +16,7 @@ Inputs: the live definition of dashboard 3 read through the Metabase API on 26 O
 
 ## Build record
 
-Built on 26 October 2026 as a parallel dashboard; the live Loan Reports (dashboard 3) is canonical and was not changed. Installer: [ProposedLoanReports.mjs](../../scripts/metabase/ProposedLoanReports.mjs). Record: [change note](../../../Change%20Logs/CHANGE_NOTES_LOAN_REPORTS_PROPOSED_DASHBOARD_2026-10-26.md), dictionary [loan-reports-proposed.yaml](../../Documents/Data%20Dictionary/systems/metabase/dashboards/loan-reports-proposed.yaml). Metabase: sub-collection 10, dashboard 32, new questions 379 to 401 (23; the second revision of 26 October 2026 added 389 to 401, updated 379, 380, 382 and 384 to 388, and never edits a dashboard 3 question).
+Built on 26 October 2026 as a parallel dashboard; the live Loan Reports (dashboard 3) is canonical and was not changed. Installer: [ProposedLoanReports.mjs](../../scripts/metabase/ProposedLoanReports.mjs). Record: [change note](../../../Change%20Logs/CHANGE_NOTES_LOAN_REPORTS_PROPOSED_DASHBOARD_2026-10-26.md), dictionary [loan-reports-proposed.yaml](../../Documents/Data%20Dictionary/systems/metabase/dashboards/loan-reports-proposed.yaml). Metabase: sub-collection 10, dashboard 32, new questions 379 to 402 (24; the second revision of 26 October 2026 added 389 to 401, updated 379, 380, 382 and 384 to 388, and never edits a dashboard 3 question).
 
 | File | What it is |
 | --- | --- |

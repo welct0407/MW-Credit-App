@@ -1514,6 +1514,16 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/proposed-today-principal-vs-pool.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal at work and total cash pool · daily close / 402",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/proposed-today-realization.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",

@@ -1,0 +1,95 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Principal at work and total cash pool · daily close / 402"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/loan-reports-redesign-20261026/saved.json"
+"content":
+  "key": "today.principal-vs-pool"
+  "id": 402
+  "name": "Principal at work and total cash pool · daily close"
+  "description": "Loan Reports · proposed (today.principal-vs-pool). Native per completed day: Outstanding Principal summed\
+    \ by Date from model 74 (as question 62) joined to model 205 Total Cash Pool for the same Date (latest Generated At per\
+    \ date; NULL where no snapshot). The Period template tag is the dimension tag on field 82 (alias d.\"Date\") used by the\
+    \ other native copies, applied through the reporting statement calendar; maps `period` as question 62 maps overview-trend-period.\
+    \ Principal is the blue area (same look as the question 62 placement), Total cash pool a dashed grey line; no static goal,\
+    \ so the reference follows the pool. Fallback only if combo area+line does not render on v0.63: keep question 62 with\
+    \ goal 130,000 \"Total cash pool reference\". Basis: models 74 Daily Performance and 205 Daily Cash Snapshots."
+  "display": "combo"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "card"
+        "id": "lrp-model-74"
+        "name": "#74"
+        "display-name": "Model 74"
+        "card-id": 74
+      - "type": "card"
+        "id": "lrp-model-205"
+        "name": "#205"
+        "display-name": "Model 205"
+        "card-id": 205
+      - "widget-type": "date/all-options"
+        "id": "lrp-period"
+        "name": "period"
+        "display-name": "Period"
+        "type": "dimension"
+        "dimension":
+        - "field"
+        - "base-type": "type/Date"
+          "lib/uuid": "2ed41d72-6b6b-4b1b-9b8d-100e9dffb74c"
+          "effective-type": "type/Date"
+        - 82
+        "alias": "d.\"Date\""
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE true [[AND {{period}}]]),
+         principal AS (SELECT p."Date",sum(p."Outstanding Principal") amount FROM {{#74}} p JOIN selected s ON s."Date"=p."Date" GROUP BY p."Date"),
+         pool AS (SELECT DISTINCT ON (c."Date") c."Date",c."Total Cash Pool" pool FROM {{#205}} c JOIN selected s ON s."Date"=c."Date" ORDER BY c."Date",c."Generated At" DESC NULLS LAST)
+        SELECT p."Date",p.amount AS "Principal at work",l.pool AS "Total cash pool" FROM principal p LEFT JOIN pool l USING ("Date") ORDER BY p."Date"
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.y_axis.title_text": "THB"
+    "graph.show_values": false
+    "graph.show_legend": true
+    "graph.x_axis.title_enabled": false
+    "graph.missing": "none"
+    "graph.y_axis.auto_split": false
+    "graph.metrics":
+    - "Principal at work"
+    - "Total cash pool"
+    "column_settings":
+      "[\"name\",\"Principal at work\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Total cash pool\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "series_settings":
+      "Principal at work":
+        "display": "area"
+        "color": "#509EE3"
+        "line.marker_enabled": false
+      "Total cash pool":
+        "display": "line"
+        "color": "#949AAB"
+        "line.style": "dashed"
+        "line.marker_enabled": false
+        "title": "Total cash pool"
+    "graph.dimensions":
+    - "Date"
+  "basis": "models 74 Daily Performance and 205 Daily Cash Snapshots"
+  "build_kind": "native"
+  "origin_question_id": 62
+  "dashboard_id": 32
+  "collection_id": 10
+  "status": "Parallel review question on dashboard 32 only; dashboard 3 does not use it."
