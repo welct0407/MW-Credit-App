@@ -19,9 +19,9 @@
   "created": "2026-10-26"
   "release": "Loan Reports redesign build (no product release number)"
   "design_reference": "outputs/loan-reports-redesign-20261026/DESIGN.md"
-  "revision": "Second batch, 26 October 2026 (after the fit-and-finish pass): spec revised to 225 placements and 23 new questions\
-    \ (389 to 401 added; 379, 380, 382, 384 to 388 updated in place). Questions of dashboard 3 are never edited; copies live\
-    \ in collection 10."
+  "revision": "Second batch, 26 October 2026 (after the fit-and-finish pass and the 27 October 2026 follow-up): spec revised\
+    \ to 227 placements and 23 new questions (389 to 401 added; 379, 380, 382, 384 to 388 updated in place). Questions of\
+    \ dashboard 3 are never edited; copies live in collection 10."
   "plan_reference": "outputs/loan-reports-redesign-20261026/PLAN.md"
   "specification": "outputs/loan-reports-redesign-20261026/layout.json"
   "definition_reference": "outputs/loan-reports-redesign-20261026/saved.json"
@@ -31,9 +31,9 @@
   "counts":
     "tabs": 12
     "parameters": 22
-    "placements": 225
-    "reused_placements": 157
-    "reused_questions": 152
+    "placements": 227
+    "reused_placements": 159
+    "reused_questions": 154
     "new_questions": 23
     "new_question_placements": 23
     "text_and_heading_cards": 44
@@ -475,7 +475,7 @@
     - "fp-reserve"
   "layout":
     "today":
-    - "dashcard_id": 9030
+    - "dashcard_id": 9086
       "row": 0
       "col": 0
       "size_x": 18
@@ -483,7 +483,7 @@
       "card_id": null
       "virtual": "text"
       "text": "**Today** · live on refresh · trends from completed-day snapshots."
-    - "dashcard_id": 9031
+    - "dashcard_id": 9087
       "row": 0
       "col": 18
       "size_x": 6
@@ -492,7 +492,7 @@
       "title": "As of · Bangkok"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9032
+    - "dashcard_id": 9088
       "row": 2
       "col": 0
       "size_x": 6
@@ -501,7 +501,7 @@
       "title": "Cash available"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9033
+    - "dashcard_id": 9089
       "row": 2
       "col": 6
       "size_x": 6
@@ -512,7 +512,7 @@
       "question_key": "today.principal-smart"
       "parameters":
       - "period"
-    - "dashcard_id": 9034
+    - "dashcard_id": 9090
       "row": 2
       "col": 12
       "size_x": 6
@@ -521,7 +521,7 @@
       "title": "Interest this month"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9035
+    - "dashcard_id": 9091
       "row": 2
       "col": 18
       "size_x": 6
@@ -530,27 +530,45 @@
       "title": "Collected today"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9036
+    - "dashcard_id": 9092
       "row": 5
       "col": 0
-      "size_x": 12
+      "size_x": 6
+      "size_y": 3
+      "card_id": 50
+      "title": "Expected interest · per day"
+      "source": "reused"
+      "parameters": []
+    - "dashcard_id": 9093
+      "row": 5
+      "col": 6
+      "size_x": 6
+      "size_y": 3
+      "card_id": 56
+      "title": "Profit growth · 7 days"
+      "source": "reused"
+      "parameters": []
+    - "dashcard_id": 9094
+      "row": 5
+      "col": 12
+      "size_x": 6
       "size_y": 3
       "card_id": 380
-      "title": "Interest this month · of projection"
+      "title": "Interest · of projection"
       "source": "new"
       "question_key": "today.realization"
       "parameters": []
-    - "dashcard_id": 9037
+    - "dashcard_id": 9095
       "row": 5
-      "col": 12
-      "size_x": 12
+      "col": 18
+      "size_x": 6
       "size_y": 3
       "card_id": 381
       "title": "Today's charges · paid"
       "source": "new"
       "question_key": "today.collection-rate"
       "parameters": []
-    - "dashcard_id": 9038
+    - "dashcard_id": 9096
       "row": 8
       "col": 0
       "size_x": 24
@@ -560,7 +578,7 @@
       "source": "new"
       "question_key": "today.attention"
       "parameters": []
-    - "dashcard_id": 9039
+    - "dashcard_id": 9097
       "row": 14
       "col": 0
       "size_x": 12
@@ -570,7 +588,7 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 9040
+    - "dashcard_id": 9098
       "row": 14
       "col": 12
       "size_x": 12
@@ -580,7 +598,7 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 9041
+    - "dashcard_id": 9099
       "row": 21
       "col": 0
       "size_x": 12
@@ -590,7 +608,7 @@
       "source": "new"
       "question_key": "today.principal-top4"
       "parameters": []
-    - "dashcard_id": 9042
+    - "dashcard_id": 9100
       "row": 21
       "col": 12
       "size_x": 12
@@ -600,7 +618,7 @@
       "source": "new"
       "question_key": "today.interest-top4"
       "parameters": []
-    - "dashcard_id": 9043
+    - "dashcard_id": 9101
       "row": 28
       "col": 0
       "size_x": 24
