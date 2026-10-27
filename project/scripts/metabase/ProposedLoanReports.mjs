@@ -115,6 +115,10 @@ export function questions(sources={},state={},baseline){
    for(const [,id] of text.matchAll(/\{\{#(\d+)\}\}/g))tags['#'+id]??=model(+id);
    dataset_query=native(text,Object.values(tags));mappings={};
    if(copy)for(const m of firstDashcard(baseline,d.origin)?.parameter_mappings??[]){const pid=replaced[m.parameter_id];if(d.params.includes(pid))mappings[pid]??=m.target;}
+   // A date tag the SQL names but no origin supplies (an MBQL origin) maps from the question's single date filter.
+   const dates=d.params.filter(p=>layout.parameters.find(x=>x.id===p)?.type.startsWith('date/'));
+   const missing=[...text.matchAll(/\{\{(\w+)\}\}/g)].map(m=>m[1]).filter(n=>!tags[n]);
+   if(missing.length){assert(dates.length===1&&new Set(missing).size===1,'unmapped template tag in '+key);const n=missing[0];dataset_query=native(text,[...Object.values(tags),dateTag(n,layout.parameters.find(x=>x.id===dates[0]).name)]);mappings[dates[0]]??=tagTarget(n);}
   }else if(d.query){dataset_query=mbql(d.query);mappings={};}
   // Saved settings: the installer's base, the layout's settings over it (descriptive strings skipped), the origin's copied presentation.
   const {copy_from_origin:copyKeys=[],...given}=d.settings??{};

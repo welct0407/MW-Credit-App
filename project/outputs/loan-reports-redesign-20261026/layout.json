@@ -483,6 +483,62 @@
    },
    "reconcile": "Sum of the five bars equals the sum of question 61's bars; the four named bars equal question 61's first four."
   },
+  "today.principal-vs-pool": {
+   "name": "Principal at work and total cash pool · daily close",
+   "display": "combo",
+   "kind": "native",
+   "basis": "models 74 Daily Performance and 205 Daily Cash Snapshots",
+   "origin": 62,
+   "params": [
+    "period"
+   ],
+   "definition": "Native per completed day: Outstanding Principal summed by Date from model 74 (as question 62) joined to model 205 Total Cash Pool for the same Date (latest Generated At per date; NULL where no snapshot). The Period template tag is the dimension tag on field 82 (alias d.\"Date\") used by the other native copies, applied through the reporting statement calendar; maps `period` as question 62 maps overview-trend-period. Principal is the blue area (same look as the question 62 placement), Total cash pool a dashed grey line; no static goal, so the reference follows the pool. Fallback only if combo area+line does not render on v0.63: keep question 62 with goal 130,000 \"Total cash pool reference\".",
+   "sql": "WITH selected AS (SELECT d.\"Date\" FROM public.reporting_statement_calendar d WHERE true [[AND {{period}}]]),\n principal AS (SELECT p.\"Date\",sum(p.\"Outstanding Principal\") amount FROM {{#74}} p JOIN selected s ON s.\"Date\"=p.\"Date\" GROUP BY p.\"Date\"),\n pool AS (SELECT DISTINCT ON (c.\"Date\") c.\"Date\",c.\"Total Cash Pool\" pool FROM {{#205}} c JOIN selected s ON s.\"Date\"=c.\"Date\" ORDER BY c.\"Date\",c.\"Generated At\" DESC NULLS LAST)\nSELECT p.\"Date\",p.amount AS \"Principal at work\",l.pool AS \"Total cash pool\" FROM principal p LEFT JOIN pool l USING (\"Date\") ORDER BY p.\"Date\"",
+   "settings": {
+    "graph.dimensions": [
+     "Date"
+    ],
+    "graph.metrics": [
+     "Principal at work",
+     "Total cash pool"
+    ],
+    "graph.show_values": false,
+    "graph.show_legend": true,
+    "graph.y_axis.auto_split": false,
+    "graph.y_axis.title_text": "THB",
+    "graph.x_axis.title_enabled": false,
+    "graph.missing": "none",
+    "series_settings": {
+     "Principal at work": {
+      "display": "area",
+      "color": "#509EE3",
+      "line.marker_enabled": false
+     },
+     "Total cash pool": {
+      "display": "line",
+      "color": "#949AAB",
+      "line.style": "dashed",
+      "line.marker_enabled": false,
+      "title": "Total cash pool"
+     }
+    },
+    "column_settings": {
+     "[\"name\", \"Principal at work\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     },
+     "[\"name\", \"Total cash pool\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
+   },
+   "reconcile": "Principal series equals question 62 (same dates, same values) for the same Period; pool series equals model 205 Total Cash Pool (latest Generated At) for those dates, NULL only where model 205 has no row."
+  },
   "cash.pool-selected": {
    "name": "Total cash pool · selected date",
    "display": "scalar",
@@ -1580,23 +1636,9 @@
      "col": 0,
      "size_x": 12,
      "size_y": 7,
-     "reuse_card_id": 62,
+     "new_question": "today.principal-vs-pool",
      "title": "Principal at work · daily close",
-     "note": "goal line = principal reference 120,000; series blue (red is a status colour)",
-     "vs": {
-      "graph.show_goal": true,
-      "graph.goal_value": 120000,
-      "graph.goal_label": "Principal reference 120,000",
-      "graph.show_values": false,
-      "series_settings": {
-       "COLUMN_2": {
-        "color": "#509EE3"
-       }
-      },
-      "graph.colors": [
-       "#509EE3"
-      ]
-     },
+     "note": "dynamic reference: total cash pool as a dashed line instead of the static 120,000 goal; value labels off",
      "params": [
       "period"
      ]
@@ -1663,6 +1705,7 @@
     57,
     58,
     59,
+    62,
     63,
     64,
     68,
@@ -4829,7 +4872,6 @@
    50,
    51,
    56,
-   62,
    64,
    68,
    110,
@@ -5003,6 +5045,7 @@
    "today.interest-top4",
    "today.principal-smart",
    "today.principal-top4",
+   "today.principal-vs-pool",
    "today.realization"
   ],
   "parameters": 22

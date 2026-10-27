@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-27T17:10:44.838Z",
+  "at": "2026-10-27T17:40:11.159Z",
   "passed": true,
   "checks": [
     {
@@ -22,7 +22,7 @@
       "name": "mapping parity",
       "passed": true,
       "detail": {
-        "checked": 159,
+        "checked": 158,
         "mismatched": 0
       }
     },
@@ -47,7 +47,7 @@
       "name": "reused values equal dashboard 3",
       "passed": true,
       "detail": {
-        "sampled": 105,
+        "sampled": 104,
         "different": []
       }
     },
