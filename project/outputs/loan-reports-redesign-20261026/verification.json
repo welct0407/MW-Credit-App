@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-27T16:40:54.704Z",
+  "at": "2026-10-27T17:10:44.838Z",
   "passed": true,
   "checks": [
     {
@@ -100,7 +100,7 @@
       "detail": {
         "thisEquals168to171": true,
         "previousEqualsPrecedingRange": true,
-        "days": 27
+        "days": 28
       }
     },
     {
@@ -109,7 +109,7 @@
       "detail": {
         "months": 3,
         "equalsModel186MonthSums": true,
-        "question213Rows": 26
+        "question213Rows": 27
       }
     },
     {
@@ -265,7 +265,7 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 1,
+            "rows": 9,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
@@ -279,14 +279,14 @@
           },
           {
             "key": "collection.lane-overdue",
-            "rows": 12,
+            "rows": 13,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-paid",
-            "rows": 8,
+            "rows": 0,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true

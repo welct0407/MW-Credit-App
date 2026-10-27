@@ -32,7 +32,7 @@ R044 Partners: `PartnersTab.mjs --publish` adds the tab once, refusing a pre-exi
 
 # Custom borrower matrix — R030
 
-The deployed comparison visual is maintained in `chart_service/`. Read the [operating contract, deployment evidence and rollback](../../outputs/r030-custom-matrix/README.md) before changing it. `install.sh` and `Install-Metabase.mjs` (and the deleted `provision_role.py`) were guarded one-time deployment helpers, not replayable update commands. Secrets and full iframe metadata stay outside Git.
+The deployed comparison visual is maintained in `chart_service/`. Read the [operating contract, deployment evidence and rollback](../../outputs/r030-custom-matrix/README.md) before changing it. `install.sh` and `Install-Metabase.mjs` (and the deleted `provision_role.py`) were guarded one-time deployment helpers, not replayable update commands. Secrets and full iframe metadata stay outside Git. Since 27 October 2026 the iframe fragment accepts a whitelisted `detail=<dashboard>:<tab>` parameter (default `3:105`; dashboard 32's copy uses `32:382`) and the chart has a compact mode for frames up to 480 px tall; chart files are copied to the VM without a service restart ([change note](../../../Change%20Logs/CHANGE_NOTES_BCG_MATRIX_UX_2026-10-27.md)).
 
 # Canonical cash pages — current entry point
 

@@ -6082,443 +6082,6 @@
       }
     },
     {
-      "id": 8947,
-      "card_id": null,
-      "dashboard_tab_id": 381,
-      "row": 0,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Borrower Health** · current portfolio · names open Borrower Detail.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "**Borrower Health** · current portfolio · names open Borrower Detail."
-      }
-    },
-    {
-      "id": 8948,
-      "card_id": 270,
-      "dashboard_tab_id": 381,
-      "row": 0,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Modified plans"
-      }
-    },
-    {
-      "id": 8949,
-      "card_id": 257,
-      "dashboard_tab_id": 381,
-      "row": 0,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "As of · Bangkok"
-      }
-    },
-    {
-      "id": 8950,
-      "card_id": 253,
-      "dashboard_tab_id": 381,
-      "row": 2,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Active borrowers"
-      }
-    },
-    {
-      "id": 8951,
-      "card_id": 254,
-      "dashboard_tab_id": 381,
-      "row": 2,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Overdue ฿ · all borrowers"
-      }
-    },
-    {
-      "id": 8952,
-      "card_id": 255,
-      "dashboard_tab_id": 381,
-      "row": 2,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Provisional · active"
-      }
-    },
-    {
-      "id": 8953,
-      "card_id": 256,
-      "dashboard_tab_id": 381,
-      "row": 2,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Unclassified · active"
-      }
-    },
-    {
-      "id": 8954,
-      "card_id": null,
-      "dashboard_tab_id": 381,
-      "row": 5,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 20,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "virtual_card": {
-          "display": "iframe",
-          "visualization_settings": {
-            "iframe": "<iframe src=\"https://charts.mw-credit.com/#key=<private>\" title=\"Custom borrower matrix comparison\"></iframe>"
-          }
-        }
-      }
-    },
-    {
-      "id": 8955,
-      "card_id": 260,
-      "dashboard_tab_id": 381,
-      "row": 25,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Star"
-      }
-    },
-    {
-      "id": 8956,
-      "card_id": 258,
-      "dashboard_tab_id": 381,
-      "row": 25,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Cash Cow"
-      }
-    },
-    {
-      "id": 8957,
-      "card_id": 264,
-      "dashboard_tab_id": 381,
-      "row": 25,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Question Mark"
-      }
-    },
-    {
-      "id": 8958,
-      "card_id": 262,
-      "dashboard_tab_id": 381,
-      "row": 25,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Dog"
-      }
-    },
-    {
-      "id": 8959,
-      "card_id": 275,
-      "dashboard_tab_id": 381,
-      "row": 27,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Borrowers by category · scores",
-        "card.description": "Payment score, contribution and schedule per borrower, sorted by category.",
-        "table.column_widths": [
-          168
-        ],
-        "table.columns": [
-          {
-            "name": "Category",
-            "enabled": true
-          },
-          {
-            "name": "Borrower",
-            "enabled": true
-          },
-          {
-            "name": "Payment score /100",
-            "enabled": true
-          },
-          {
-            "name": "Contribution ×",
-            "enabled": true
-          },
-          {
-            "name": "Schedule",
-            "enabled": true
-          },
-          {
-            "name": "Interest 30d ฿",
-            "enabled": true
-          },
-          {
-            "name": "Principal ฿",
-            "enabled": true
-          },
-          {
-            "name": "History",
-            "enabled": true
-          },
-          {
-            "name": "Plot status",
-            "enabled": true
-          },
-          {
-            "name": "Position basis",
-            "enabled": true
-          },
-          {
-            "name": "Category reason",
-            "enabled": true
-          },
-          {
-            "name": "As of",
-            "enabled": true
-          },
-          {
-            "name": "Borrower ID",
-            "enabled": false
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8960,
-      "card_id": null,
-      "dashboard_tab_id": 381,
-      "row": 36,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Rating detail"
-          }
-        },
-        "text": "Rating detail"
-      }
-    },
-    {
-      "id": 8961,
-      "card_id": 267,
-      "dashboard_tab_id": 381,
-      "row": 37,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 10,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Payment health · all borrowers",
-        "table.column_widths": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          148
-        ],
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8962,
-      "card_id": 269,
-      "dashboard_tab_id": 381,
-      "row": 47,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Unavailable ratings and default context",
-        "card.hide_empty": true,
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8963,
-      "card_id": 268,
-      "dashboard_tab_id": 381,
-      "row": 53,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 10,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Reliability components and weights",
-        "card.description": "Active borrowers: score components and the effective weights.",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8964,
-      "card_id": 271,
-      "dashboard_tab_id": 381,
-      "row": 63,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Schedule assessment · active borrowers",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8965,
-      "card_id": 272,
-      "dashboard_tab_id": 381,
-      "row": 71,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Modified schedules · loan and next plan",
-        "card.hide_empty": true,
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 8966,
-      "card_id": null,
-      "dashboard_tab_id": 381,
-      "row": 79,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary."
-      }
-    },
-    {
       "id": 8967,
       "card_id": null,
       "dashboard_tab_id": 383,
@@ -10653,6 +10216,443 @@
           }
         },
         "text": "Profit = gross interest before expenses · definitions in card descriptions."
+      }
+    },
+    {
+      "id": 9102,
+      "card_id": null,
+      "dashboard_tab_id": 381,
+      "row": 0,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Borrower Health** · current portfolio · names open Borrower Detail.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "**Borrower Health** · current portfolio · names open Borrower Detail."
+      }
+    },
+    {
+      "id": 9103,
+      "card_id": 270,
+      "dashboard_tab_id": 381,
+      "row": 0,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Modified plans"
+      }
+    },
+    {
+      "id": 9104,
+      "card_id": 257,
+      "dashboard_tab_id": 381,
+      "row": 0,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "As of · Bangkok"
+      }
+    },
+    {
+      "id": 9105,
+      "card_id": 253,
+      "dashboard_tab_id": 381,
+      "row": 2,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Active borrowers"
+      }
+    },
+    {
+      "id": 9106,
+      "card_id": 254,
+      "dashboard_tab_id": 381,
+      "row": 2,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Overdue ฿ · all borrowers"
+      }
+    },
+    {
+      "id": 9107,
+      "card_id": 255,
+      "dashboard_tab_id": 381,
+      "row": 2,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Provisional · active"
+      }
+    },
+    {
+      "id": 9108,
+      "card_id": 256,
+      "dashboard_tab_id": 381,
+      "row": 2,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Unclassified · active"
+      }
+    },
+    {
+      "id": 9109,
+      "card_id": null,
+      "dashboard_tab_id": 381,
+      "row": 5,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 20,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "virtual_card": {
+          "display": "iframe",
+          "visualization_settings": {
+            "iframe": "<iframe src=\"https://charts.mw-credit.com/#key=<private>&detail=32:382\" title=\"Custom borrower matrix comparison\"></iframe>"
+          }
+        }
+      }
+    },
+    {
+      "id": 9110,
+      "card_id": 260,
+      "dashboard_tab_id": 381,
+      "row": 25,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Star"
+      }
+    },
+    {
+      "id": 9111,
+      "card_id": 258,
+      "dashboard_tab_id": 381,
+      "row": 25,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Cash Cow"
+      }
+    },
+    {
+      "id": 9112,
+      "card_id": 264,
+      "dashboard_tab_id": 381,
+      "row": 25,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Question Mark"
+      }
+    },
+    {
+      "id": 9113,
+      "card_id": 262,
+      "dashboard_tab_id": 381,
+      "row": 25,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Dog"
+      }
+    },
+    {
+      "id": 9114,
+      "card_id": 275,
+      "dashboard_tab_id": 381,
+      "row": 27,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Borrowers by category · scores",
+        "card.description": "Payment score, contribution and schedule per borrower, sorted by category.",
+        "table.column_widths": [
+          168
+        ],
+        "table.columns": [
+          {
+            "name": "Category",
+            "enabled": true
+          },
+          {
+            "name": "Borrower",
+            "enabled": true
+          },
+          {
+            "name": "Payment score /100",
+            "enabled": true
+          },
+          {
+            "name": "Contribution ×",
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "enabled": true
+          },
+          {
+            "name": "Interest 30d ฿",
+            "enabled": true
+          },
+          {
+            "name": "Principal ฿",
+            "enabled": true
+          },
+          {
+            "name": "History",
+            "enabled": true
+          },
+          {
+            "name": "Plot status",
+            "enabled": true
+          },
+          {
+            "name": "Position basis",
+            "enabled": true
+          },
+          {
+            "name": "Category reason",
+            "enabled": true
+          },
+          {
+            "name": "As of",
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9115,
+      "card_id": null,
+      "dashboard_tab_id": 381,
+      "row": 36,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Rating detail"
+          }
+        },
+        "text": "Rating detail"
+      }
+    },
+    {
+      "id": 9116,
+      "card_id": 267,
+      "dashboard_tab_id": 381,
+      "row": 37,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Payment health · all borrowers",
+        "table.column_widths": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          148
+        ],
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9117,
+      "card_id": 269,
+      "dashboard_tab_id": 381,
+      "row": 47,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Unavailable ratings and default context",
+        "card.hide_empty": true,
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9118,
+      "card_id": 268,
+      "dashboard_tab_id": 381,
+      "row": 53,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Reliability components and weights",
+        "card.description": "Active borrowers: score components and the effective weights.",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9119,
+      "card_id": 271,
+      "dashboard_tab_id": 381,
+      "row": 63,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Schedule assessment · active borrowers",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9120,
+      "card_id": 272,
+      "dashboard_tab_id": 381,
+      "row": 71,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Modified schedules · loan and next plan",
+        "card.hide_empty": true,
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9121,
+      "card_id": null,
+      "dashboard_tab_id": 381,
+      "row": 79,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "Rating weights 45 / 15 / 15 / 25 · threshold 80 · boundary 1× · dictionary."
       }
     }
   ]

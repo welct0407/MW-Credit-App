@@ -2,6 +2,8 @@
 
 **Current placement, R033:** owner accepted the custom chart. The old native plot and its four surrounding text labels are removed from tab31; question274 remains saved for recovery. Iframe1501 is now row31; method note row53 and detail table row56. [Cutover evidence](https://github.com/welct0407/MW-Credit-App/blob/de8d66a79bb0a6bb814359b427256b9912361a45/project/outputs/r033-matrix-cutover/README.md). The original comparison placement below is the dated R030 deployment.
 
+**27 October 2026 update:** the chart gained quadrant names at the outer corners, "Score 80" and "1× equal share" labels, axis titles in place of the footer, a compact mode for frames up to 480 px tall, AA colours, a pinned tooltip with an "Open Borrower Detail" button, and the `detail=<dashboard>:<tab>` fragment parameter. See the [change note](../../../Change%20Logs/CHANGE_NOTES_BCG_MATRIX_UX_2026-10-27.md). Where the contract below disagrees (footer, mobile scrolling), this update wins.
+
 ## Scope
 
 Owner authorized Debian hosting, necessary database access and insertion of a separate custom visual into existing Metabase dashboard 3, Borrower Health Review tab 31. Apps must remain untouched. This latest instruction supersedes the earlier proposed owner-only placement: dashboard 3 remains readable by Loan Report Partners, and its authorized readers/admins can obtain the shared iframe key. Possession of that key grants the same chart data until rotation. No Google login, paid Metabase feature or new VM is introduced.
@@ -20,6 +22,7 @@ The app authenticates every data request using a 256-bit random bearer secret, s
 - Exact existing SQL `plot_x`/`plot_y` positions, no scaffold rows, display-score changes or retuned categories.
 - R031 presentation update: muted grey category icons, category totals above the plot, and names directly above/below dots without connector lines. Nearby candidate positions reduce collisions; narrow screens prioritize boundary-constrained points. All dots remain radius5.5. Long names may truncate; the tooltip shows the full name. [Refinement evidence](https://github.com/welct0407/MW-Credit-App/blob/4a14d07/project/outputs/r031-matrix-labels/README.md).
 - Tooltip starts with a 25px borrower name (23px mobile), then only that borrower's category badge. Raw payment score, contribution ratio, interest, principal, schedule, history confidence, reporting date and placement explanation follow.
+- 27 October 2026: the footer is removed; axis titles and corner quadrant names replace it. In frames up to 480 px tall (compact mode) the eyebrow, subtitle, search, note and not-plotted list are hidden, the plot fills the frame, names are off and details open in a bottom sheet. Click, tap or Enter pins the tooltip with a 44 px "Open Borrower Detail" button; Esc or an outside click unpins; tooltip and focus survive the 60-second refresh and resize. The iframe fragment may carry `detail=<dashboard>:<tab>` (whitelisted; default `3:105`): dashboard 3 passes `bd_borrower` and `bd_activity`, any other dashboard passes `borrower` and `period`. Dashboard 32's copy uses `&detail=32:382`.
 - Search highlights matching names without moving points or changing category totals. Names toggle and manual refresh; automatic refresh every 60 seconds while visible, plus refresh on returning to the page. Timestamp is explicitly Bangkok.
 - Explicit unplotted list for unavailable/invalid positions. Errors clear previously rendered private data rather than leaving an apparently live chart.
 - Add the iframe below the existing matrix/method note, moving later cards down. Preserve original question 274, its placement and all other tabs, questions and filter definitions.
@@ -30,7 +33,7 @@ Prepared candidate: nine backend tests passed; JavaScript syntax passed. Synthet
 
 Deployed and verified on 25 September 2026. Placement1501 renders 23 named borrowers: 4 Stars, 8 Cash Cows, 5 Question Marks and 6 Dogs. Every returned field matches the same SQL query through Metabase source2. Browser checks verified four equal quadrants, 25px name heading, one category, search, names toggle and refresh. Missing/wrong keys return401; valid key returns200. Deployed source hashes match pin07efaac; chart, proxy and tunnel services are active. See [final verification](final-verification.json), [installation](metabase-installation.json), [manifest](release-manifest.json) and [single checklist](promotion-checklist.md).
 
-On mobile Metabase gives iframe cards a shorter viewport, so the chart scrolls inside the card. The chart itself still has four equal quadrants and all23 labels. Desktop is the recommended monitoring view.
+On mobile Metabase gives iframe cards a shorter viewport; since 27 October 2026 the chart switches to compact mode there instead of scrolling. The chart itself still has four equal quadrants and all23 labels. Desktop is the recommended monitoring view.
 
 ## Rollback
 
@@ -39,6 +42,8 @@ Retain the built-in chart throughout comparison. Remove only the new iframe and 
 Remove only the new chart tunnel/DNS route, stop/disable `mw-report-charts`, and retain its private recovery files. Revoke the chart role's explicit grants, disable its login and terminate only its idle connections if required. Do not restore the business database or change AppSheet to undo this additive deployment. No integration-agent service/timer/route is stopped or changed.
 
 ## Operating notes
+
+Deployed 27 October 2026 (chart.js, chart.css and index.html; `app.py` and `query.sql` unchanged, no restart). Pre-change copy: `/opt/mw-report-charts/recovery-bcg-20261027/`; restore by copying the three files back. Hashes are in the [Environment inventory](../../Documents/Environment_Inventory.md).
 
 Credentials and complete secret-bearing Metabase metadata live outside Git under `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r030-custom-matrix`; deployed config is `/etc/mw-report-charts/config.json` (root:mwcharts 0640). Git contains no credentials or raw borrower exports. Owner-managed backup coverage of the external credential directory is not independently verified; retain private deployment/recovery files on Debian too.
 
