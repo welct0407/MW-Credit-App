@@ -1522,10 +1522,21 @@
     {
      "row": 5,
      "col": 0,
-     "size_x": 12,
+     "size_x": 6,
      "size_y": 3,
-     "new_question": "today.realization",
-     "title": "Interest this month · of projection",
+     "reuse_card_id": 50,
+     "title": "Expected interest · per day",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 6,
+     "size_x": 6,
+     "size_y": 3,
+     "reuse_card_id": 56,
+     "title": "Profit growth · 7 days",
      "params": [
       "period"
      ]
@@ -1533,7 +1544,18 @@
     {
      "row": 5,
      "col": 12,
-     "size_x": 12,
+     "size_x": 6,
+     "size_y": 3,
+     "new_question": "today.realization",
+     "title": "Interest · of projection",
+     "params": [
+      "period"
+     ]
+    },
+    {
+     "row": 5,
+     "col": 18,
+     "size_x": 6,
      "size_y": 3,
      "new_question": "today.collection-rate",
      "title": "Today's charges · paid",
@@ -1635,11 +1657,9 @@
    "height_rows": 30,
    "dropped_from_dashboard_3": [
     47,
-    50,
     52,
     54,
     55,
-    56,
     57,
     58,
     59,
@@ -4803,10 +4823,12 @@
  ],
  "summary": {
   "tabs": 12,
-  "placements": 225,
+  "placements": 227,
   "reused_questions": [
    49,
+   50,
    51,
+   56,
    62,
    64,
    68,

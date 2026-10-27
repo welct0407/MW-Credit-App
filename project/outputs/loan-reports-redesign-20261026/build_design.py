@@ -429,8 +429,9 @@ TABS = [
              ('today.principal-smart', 6, 3, {'title': 'Principal at work'}),
              (51, 6, 3, {'title': 'Interest this month'}),
              (237, 6, 3, {'title': 'Collected today'})],
-            [('today.realization', 12, 3, {'title': 'Interest this month · of projection'}),
-             ('today.collection-rate', 12, 3, {'title': "Today's charges · paid"})],
+            [(50, 6, 3, {'title': 'Expected interest · per day'}), (56, 6, 3, {'title': 'Profit growth · 7 days'}),
+             ('today.realization', 6, 3, {'title': 'Interest · of projection'}),
+             ('today.collection-rate', 6, 3, {'title': "Today's charges · paid"})],
             [('today.attention', 24, 6, {'title': 'Needs attention · rows open pages', 'description': 'Click a row to open Collection or Borrower Health.'})],
             [(62, 12, 7, {'title': 'Principal at work · daily close', 'vs': {'graph.show_goal': True, 'graph.goal_value': 120000, 'graph.goal_label': 'Principal reference 120,000', 'graph.show_values': False, **SERIES_BLUE},
                           'note': 'goal line = principal reference 120,000; series blue (red is a status colour)'}),
@@ -440,8 +441,8 @@ TABS = [
              ('today.interest-top4', 12, 7, {'title': 'Interest 30d by borrower · top 4 + rest'})],
             [T('Profit = gross interest before expenses · definitions in card descriptions.', 24)],
         ],
-        'dropped': [47, 50, 52, 54, 55, 56, 57, 58, 59, 63, 64, 68, 60, 61, 240, 254, 242, 244, 270, 251],
-        'phone': 'Eleven cards instead of eighteen: header, As of, four numbers, two meters, the attention strip (one card), '
+        'dropped': [47, 52, 54, 55, 57, 58, 59, 63, 64, 68, 60, 61, 240, 254, 242, 244, 270, 251],
+        'phone': 'Thirteen cards instead of eighteen: header, As of, four numbers, expected interest and 7-day growth, two meters, the attention strip (one card), '
                  'then the four charts, in this order. Metabase stacks one card per row below about 760 px, in grid order, '
                  'with fixed heights by display type; the prototype\'s phone order (Collected today first) and its '
                  'side-by-side pairs cannot be expressed, so the desktop order is the phone order.',

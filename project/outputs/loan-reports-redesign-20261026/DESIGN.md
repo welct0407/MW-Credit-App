@@ -34,7 +34,7 @@ The BCG matrix on Borrower Health is live dashcard 1501 (an iframe with a bearer
 The tables below are generated from `build_design.py`. Positions are grid row/column on Metabase's 24-column grid; sizes are width × height in grid units. "reuse qNNN" is an existing saved question; "new `key`" is defined in the New questions table.
 
 <!-- GENERATED:START -->
-12 tabs, 225 placements, 22 filters, 152 reused saved questions, 23 new questions.
+12 tabs, 227 placements, 22 filters, 154 reused saved questions, 23 new questions.
 
 Metabase renders one column below about 760 px: every card full width, in grid order (row, then column), with a fixed height per display type (numbers and text about 4 units, tables, charts and iframes 6). There is no per-device layout, no side-by-side pair and no phone column set; the design therefore reduces card counts on the daily pages (Today, Collection) and keeps the desktop order as the phone order.
 
@@ -96,7 +96,7 @@ Metabase renders one column below about 760 px: every card full width, in grid o
 
 ### 1 · Today (`today`)
 
-Replaces: 1 · Overview (tab 4). Filters: `period`. Height 30 grid rows, 14 placements (12 visuals).
+Replaces: 1 · Overview (tab 4). Filters: `period`. Height 30 grid rows, 16 placements (14 visuals).
 
 The first page every day: cash available, principal at work, interest this month against the projection, collection progress, what needs attention, and the two trends that explain the month.
 
@@ -108,8 +108,10 @@ The first page every day: cash available, principal at work, interest this month
 | 2/6 | 6×3 | new `today.principal-smart` | Principal at work |  |  |
 | 2/12 | 6×3 | reuse q51 | Interest this month |  |  |
 | 2/18 | 6×3 | reuse q237 | Collected today |  |  |
-| 5/0 | 12×3 | new `today.realization` | Interest this month · of projection |  |  |
-| 5/12 | 12×3 | new `today.collection-rate` | Today's charges · paid |  |  |
+| 5/0 | 6×3 | reuse q50 | Expected interest · per day |  |  |
+| 5/6 | 6×3 | reuse q56 | Profit growth · 7 days |  |  |
+| 5/12 | 6×3 | new `today.realization` | Interest · of projection |  |  |
+| 5/18 | 6×3 | new `today.collection-rate` | Today's charges · paid |  |  |
 | 8/0 | 24×6 | new `today.attention` | Needs attention · rows open pages |  |  |
 | 14/0 | 12×7 | reuse q62 | Principal at work · daily close | vs graph.show_goal=True, graph.goal_value=120000, graph.goal_label=Principal reference 120,000, graph.show_values=False, graph.colors=['#509EE3'] | goal line = principal reference 120,000; series blue (red is a status colour) |
 | 14/12 | 12×7 | reuse q222 | Daily gross interest · 7-day average | vs graph.show_goal=True, graph.goal_value=10000, graph.goal_label=Daily interest goal 10,000, graph.show_values=False | goal line = daily interest goal 10,000; value labels off so they do not collide with the goal label |
@@ -117,9 +119,9 @@ The first page every day: cash available, principal at work, interest this month
 | 21/12 | 12×7 | new `today.interest-top4` | Interest 30d by borrower · top 4 + rest |  |  |
 | 28/0 | 24×2 | text card | Profit = gross interest before expenses · definitions in card descriptions. | vs text.align_vertical=top |  |
 
-Dropped from dashboard 3 (or replaced by a new question): q47, q50, q52, q54, q55, q56, q57, q58, q59, q63, q64, q68, q60, q61, q240, q254, q242, q244, q270, q251 (the saved questions are kept; nothing is deleted).
+Dropped from dashboard 3 (or replaced by a new question): q47, q52, q54, q55, q57, q58, q59, q63, q64, q68, q60, q61, q240, q254, q242, q244, q270, q251 (the saved questions are kept; nothing is deleted).
 
-Phone: Eleven cards instead of eighteen: header, As of, four numbers, two meters, the attention strip (one card), then the four charts, in this order. Metabase stacks one card per row below about 760 px, in grid order, with fixed heights by display type; the prototype's phone order (Collected today first) and its side-by-side pairs cannot be expressed, so the desktop order is the phone order.
+Phone: Thirteen cards instead of eighteen: header, As of, four numbers, expected interest and 7-day growth, two meters, the attention strip (one card), then the four charts, in this order. Metabase stacks one card per row below about 760 px, in grid order, with fixed heights by display type; the prototype's phone order (Collected today first) and its side-by-side pairs cannot be expressed, so the desktop order is the phone order.
 
 
 ### 2 · Cash Position (`cash-position`)
