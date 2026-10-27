@@ -173,7 +173,14 @@ function placements(tab,state,baseline,live1501,specs,cards){
   const base={id:id--,dashboard_tab_id:tabId,row:p.row,col:p.col,size_x:p.size_x,size_y:p.size_y,series:[]};
   // Text and heading cards: the placement vs (e.g. text.align_vertical) goes on the card and inside its virtual card.
   if(p.virtual){const extra=normKeys(p.vs??{});return {...base,card_id:null,parameter_mappings:[],visualization_settings:{'card.background':false,...extra,virtual_card:{display:p.virtual,visualization_settings:{text:p.text,...extra}},text:p.text}};}
-  if(p.copy_dashcard){assert.equal(p.copy_dashcard,1501);return {...base,card_id:null,parameter_mappings:[],visualization_settings:structuredClone(live1501.visualization_settings)};}
+  // The matrix iframe is copied from live dashcard 1501 in memory; its fragment gains detail=<dashboard>:<Borrower Detail tab>
+  // so name links open this dashboard (charts without detail support ignore the parameter and keep dashboard 3 links).
+  if(p.copy_dashcard){
+   assert.equal(p.copy_dashcard,1501);const vs=structuredClone(live1501.visualization_settings),vc=vs.virtual_card.visualization_settings;
+   const detail=`detail=${state.dashboard}:${state.tabs['borrower-detail']}`,before=vc.iframe;
+   vc.iframe=before.replace(/(#key=[^"&]+)(?:&detail=[^"]*)?"/,`$1&${detail}"`);assert.notEqual(vc.iframe,before,'iframe src fragment not found');
+   return {...base,card_id:null,parameter_mappings:[],visualization_settings:vs};
+  }
   if(p.new_question){
    const q=specs.find(q=>q.key===p.new_question),card=state.questions[p.new_question];assert(card,'question not created yet: '+p.new_question);
    return {...base,card_id:card,parameter_mappings:p.params.filter(k=>q.mappings[k]).map(k=>({parameter_id:k,card_id:card,target:q.mappings[k]})),visualization_settings:options(structuredClone(q.presentation),p,cards[card])};
@@ -186,7 +193,8 @@ function placements(tab,state,baseline,live1501,specs,cards){
  });
 }
 const cardBody=({key,mappings,presentation,params,...body})=>body;
-const redact=vs=>JSON.parse(JSON.stringify(vs).replace(/#key=[^"\\]+/g,'#key=<private>'));
+// The key stops at '&', '"' or '\\'; later fragment parameters (detail) stay visible.
+const redact=vs=>JSON.parse(JSON.stringify(vs).replace(/#key=[^"\\&]+/g,'#key=<private>'));
 // Live origin questions (read only): every new question's origin, for copied queries, tags and presentation.
 async function liveSources(){const out={};for(const id of new Set([331,...Object.values(layout.new_questions).map(d=>d.origin)]))out[id]=await api('GET','card/'+id);return out;}
 // Representative parameters (layout defaults) for a question's own mappings; used for dry runs before any write.

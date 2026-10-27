@@ -60,6 +60,19 @@ class AppTests(unittest.TestCase):
         self.assertTrue(result['status'].startswith('503'))
         self.assertNotIn(b'private-password',body)
 
+    def test_client_keeps_fragment_values_in_memory(self):
+        _,script=self.call(key='',path='/chart.js')
+        for banned in (b'localStorage',b'sessionStorage',b'document.cookie',b'import('):
+            self.assertNotIn(banned,script)
+        self.assertIn(b"history.replaceState(null, '', location.pathname)",script)
+        self.assertIn(b"Authorization:'Bearer '+secret",script)
+        # detail is whitelisted to digits only (dashboard:tab) and defaults to dashboard 3 tab 105
+        self.assertIn(rb"/^(\d{1,9}):(\d{1,9})$/",script)
+        self.assertIn(b"[null, '3', '105']",script)
+        _,shell=self.call(key='',path='/')
+        self.assertNotIn(b'<script src="http',shell)
+        self.assertEqual(self.calls,0)
+
     def test_unknown_path(self):
         self.assertTrue(self.call(path='/../config.json')[0]['status'].startswith('404'))
 
