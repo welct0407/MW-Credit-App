@@ -15,8 +15,9 @@ test.use({timezoneId:'America/Los_Angeles'});
 // Exercise cold-source errors explicitly; successful reads normally remain available from the owner cache.
 async function clearReadCache(page:import('@playwright/test').Page){await page.evaluate(async()=>{const path='/apps/pwa/src/owner-offline.ts';const {ownerOfflineRepository}=await import(path);await ownerOfflineRepository({issuer:'https://securetoken.google.com/clever-oasis-508610-n7',uid:'synthetic-owner'}).invalidateReads()})}
 
-const statuses=['not_paid','partially_paid','overdue','fully_paid'];
-const rows=Array.from({length:27},(_,i)=>({id:'private-board-'+i,displayName:'ผู้กู้ตัวอย่าง - Synthetic '+i,status:statuses[Math.min(3,Math.floor(i/7))],amountDue:i>=21?'0':'13.75',amountCollected:i>=21?'0':'3.25',amountRemaining:i>=21?'0':'10.50'}));
+// R102: rows 18-20 are long_overdue (8+ days); 21+ stay fully_paid.
+const statuses=['not_paid','partially_paid','overdue','long_overdue','fully_paid'];
+const rows=Array.from({length:27},(_,i)=>({id:'private-board-'+i,displayName:'ผู้กู้ตัวอย่าง - Synthetic '+i,status:i>=21?'fully_paid':i>=18?'long_overdue':statuses[Math.floor(i/7)],overdueDays:i>=18&&i<21?i-10:i>=14&&i<18?2:null,amountDue:i>=21?'0':'13.75',amountCollected:i>=21?'0':'3.25',amountRemaining:i>=21?'0':'10.50'}));
 const charges=Array.from({length:27},(_,i)=>({id:'private-charge-'+i,loanId:'private-loan',loanDisplayKey:'ผู้กู้ตัวอย่างชื่อยาว - Long synthetic borrower English name-฿12,000-07/10-2%',chargeDate:'2026-10-07',paymentStatus:'ชำระบางส่วน',paymentDate:null,amountRemaining:i===0?null:'10.50',totalPaid:'0',receivedToday:'-2.50'}));
 async function backFromUpcoming(page:import('@playwright/test').Page,mobile:boolean){
  if(!mobile){await page.getByRole('button',{name:'Back to borrower summary',exact:true}).click();return}

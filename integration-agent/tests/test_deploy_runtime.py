@@ -132,7 +132,24 @@ class RuntimeDeploymentTests(unittest.TestCase):
         self.assertEqual(package.retired_keys(cleaned), [])
         self.assertEqual((package.RETIRED_SERVICES, package.RETIRED_KEYS, package.RETIRED_PREFIXES),
                          (runtime.R091_SERVICES, runtime.R091_KEYS, runtime.R091_PREFIXES))
-        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R091_REVISIONS[1])
+        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R102_REVISIONS[1])
+
+    def test_r102_adds_exactly_the_disabled_chat_relay(self):
+        live = dict(self.catalogue, revision=32)
+        candidate = json.loads(json.dumps(live)); candidate['revision'] = 33
+        candidate['services']['chat_messages_relay'] = {'enabled': False, 'implemented': True}
+        before = json.dumps([live, candidate], sort_keys=True)
+        config, catalogue = self.prepared(catalogue=live, candidate=candidate)
+        self.assertEqual(catalogue['revision'], 33)
+        self.assertEqual(catalogue['services']['chat_messages_relay'], {'enabled': False, 'implemented': True})
+        self.assertEqual(catalogue['services']['signed_webhook_ingress'], {'enabled': True, 'implemented': True})  # live switches kept
+        self.assertEqual(json.dumps([live, candidate], sort_keys=True), before)
+        enabled = json.loads(json.dumps(candidate)); enabled['services']['chat_messages_relay']['enabled'] = True
+        other = json.loads(json.dumps(candidate)); other['services']['extra_service'] = {'enabled': False, 'implemented': True}
+        dropped = json.loads(json.dumps(candidate)); del dropped['services']['partner_oltp_gui']
+        for change, pattern in ((enabled, 'arrive disabled'), (other, 'add exactly'), (dropped, 'add exactly')):
+            with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, pattern):
+                self.prepared(catalogue=live, candidate=change)
 
     def test_r091_refuses_any_other_catalogue_change_and_leftover_keys(self):
         config, live, candidate = self.r091()

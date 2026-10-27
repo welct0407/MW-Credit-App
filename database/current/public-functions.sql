@@ -3459,7 +3459,7 @@ DECLARE partner text:=public.pwa_chat_actor_v1(actor); row_value public.pwa_chat
 BEGIN
  IF thread IS NULL OR jsonb_typeof(thread)<>'object' OR EXISTS(SELECT 1 FROM jsonb_object_keys(thread) k WHERE k NOT IN ('id','model','title'))
   OR jsonb_typeof(thread->'id') IS DISTINCT FROM 'string' OR thread->>'id' !~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-  OR jsonb_typeof(thread->'model') IS DISTINCT FROM 'string' OR thread->>'model' !~ '^gemini-[0-9]+(\.[0-9]+)?-[a-z0-9-]+$' OR length(thread->>'model')>64
+  OR jsonb_typeof(thread->'model') IS DISTINCT FROM 'string' OR thread->>'model' !~ '^(gemini-[0-9]+(\.[0-9]+)?-[a-z0-9-]+|claude-[a-z]+-[0-9]+(-[0-9]+)?)$' OR length(thread->>'model')>64
   OR (thread ? 'title' AND jsonb_typeof(thread->'title')<>'null' AND (jsonb_typeof(thread->'title')<>'string' OR length(thread->>'title') NOT BETWEEN 1 AND 120 OR thread->>'title'<>btrim(thread->>'title') OR thread->>'title' ~ '[[:cntrl:]]')) THEN
   RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
  thread_id:=(thread->>'id')::uuid;title_value:=coalesce(nullif(thread->>'title',''),'New chat');
@@ -3510,7 +3510,7 @@ DECLARE partner text:=public.pwa_chat_actor_v1(actor); row_value public.pwa_chat
 BEGIN
  IF patch IS NULL OR jsonb_typeof(patch)<>'object' OR NOT EXISTS(SELECT 1 FROM jsonb_object_keys(patch)) OR EXISTS(SELECT 1 FROM jsonb_object_keys(patch) k WHERE k NOT IN ('title','model','status'))
   OR (patch ? 'title' AND (jsonb_typeof(patch->'title')<>'string' OR length(patch->>'title') NOT BETWEEN 1 AND 120 OR patch->>'title'<>btrim(patch->>'title') OR patch->>'title' ~ '[[:cntrl:]]'))
-  OR (patch ? 'model' AND (jsonb_typeof(patch->'model')<>'string' OR patch->>'model' !~ '^gemini-[0-9]+(\.[0-9]+)?-[a-z0-9-]+$' OR length(patch->>'model')>64))
+  OR (patch ? 'model' AND (jsonb_typeof(patch->'model')<>'string' OR patch->>'model' !~ '^(gemini-[0-9]+(\.[0-9]+)?-[a-z0-9-]+|claude-[a-z]+-[0-9]+(-[0-9]+)?)$' OR length(patch->>'model')>64))
   OR (patch ? 'status' AND (jsonb_typeof(patch->'status')<>'string' OR patch->>'status' NOT IN ('active','archived'))) THEN
   RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
  UPDATE public.pwa_chat_threads t SET title=coalesce(patch->>'title',t.title),model=coalesce(patch->>'model',t.model),status=coalesce(patch->>'status',t.status),updated_at=clock_timestamp()

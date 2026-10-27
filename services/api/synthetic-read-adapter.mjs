@@ -1,6 +1,6 @@
 import { evaluateReadAccess } from './read-access.mjs';
 
-const statuses = ['not_paid', 'partially_paid', 'overdue', 'fully_paid'];
+const statuses = ['not_paid', 'partially_paid', 'overdue', 'long_overdue', 'fully_paid'];
 const money = value => value === null ? null : typeof value === 'string' && /^\d+(?:\.\d{1,2})?$/.test(value) ? value : null;
 const localized = value => ({ en: typeof value?.en === 'string' ? value.en : '', th: typeof value?.th === 'string' ? value.th : '' });
 const date = value => {

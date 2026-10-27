@@ -7,7 +7,7 @@
  * completion reads that mark in its transaction and a stream whose device left records the chat reply push. */
 import {beginRequest} from '../lib/http-boundary.mjs';
 import {UUID_V4} from '../lib/ids.mjs';
-import {availableModel} from './config.mjs';
+import {availableModel,providerFor} from './config.mjs';
 import {storeError} from './store.mjs';
 import {runTurn,failureText} from './engine.mjs';
 
@@ -55,6 +55,8 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   finally{req.setTimeout?.(0);}
   try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)));}catch{throw invalid();}
  }
+ // R102: Claude runs at the fixed effort medium (claude.mjs); Gemini at the configured thinking level.
+ const thinkingLevel=model=>providerFor(model)==='claude'?'MEDIUM':chat.thinkingLevel;
  const modelOrFail=id=>{if(typeof id!=='string'||!availableModel(chat,id))throw new RequestError(400,'model_unavailable');return id;};
 
  /**
@@ -72,7 +74,7 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
    try{outcome=await runTurn({chat,model,transport,tools:createTools(actor),history:claim.history,seed:claim.seed,partnerLanguage:claim.partnerLanguage,text,emit,now,started});}
    catch(error){outcome={ok:false,code:'INTERNAL',detail:String(error?.name??'INTERNAL').slice(0,200),...none};}
   }
-  const assistant={status:outcome.ok?'ok':'failed',text:outcome.ok?outcome.text:failureText(claim.partnerLanguage),model,thinkingLevel:chat.thinkingLevel,
+  const assistant={status:outcome.ok?'ok':'failed',text:outcome.ok?outcome.text:failureText(claim.partnerLanguage),model,thinkingLevel:thinkingLevel(model),
    rounds:outcome.rounds,attempts:outcome.attempts,...outcome.usage,latencyMs:Math.max(0,Math.round(now()-started)),errorCode:outcome.ok?null:outcome.code};
   log({event:'chat_turn',thread,messageId,model,ok:outcome.ok,code:outcome.ok?'ok':outcome.code,detail:outcome.ok?undefined:outcome.detail,rounds:outcome.rounds,attempts:outcome.attempts,
    epoch:outcome.epoch,tools:outcome.toolCalls.length,...outcome.usage,latencyMs:assistant.latencyMs});
@@ -98,7 +100,7 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
  async function release({principal,thread,claim,started,usage={},cause,stream=false}){
   if(cause?.code==='23505'||cause?.code==='42501'||cause?.message==='access_denied')return false;
   const messageId=claim.message.id;
-  const failed={status:'failed',text:failureText(claim.partnerLanguage),model:claim.thread.model,thinkingLevel:chat.thinkingLevel,
+  const failed={status:'failed',text:failureText(claim.partnerLanguage),model:claim.thread.model,thinkingLevel:thinkingLevel(claim.thread.model),
    rounds:usage.rounds??0,attempts:usage.attempts??0,promptTokens:usage.promptTokens??0,outputTokens:usage.outputTokens??0,thoughtsTokens:usage.thoughtsTokens??0,cachedTokens:usage.cachedTokens??0,
    latencyMs:Math.max(0,Math.round(now()-started)),errorCode:'INTERNAL'};
   try{const {detached}=await store.complete(principal,messageId,failed,null,[],stream?{thread}:null);log({event:'chat_turn_released',thread,messageId,detached});return true;}

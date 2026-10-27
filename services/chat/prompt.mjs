@@ -185,7 +185,7 @@ export function canonicalJson(value){
 }
 export const sha256=text=>createHash('sha256').update(text).digest('hex');
 /** prompt_sha256: provider, model, system instruction and tool declarations (a change starts a new epoch). */
-export const promptDigest=({model,declarations})=>sha256(canonicalJson({provider:'gemini',model,system:systemInstruction(),tools:declarations}));
+export const promptDigest=({model,declarations,provider='gemini'})=>sha256(canonicalJson({provider,model,system:systemInstruction(),tools:declarations}));
 
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const bangkok=at=>new Date(new Date(at).getTime()+7*3600000);

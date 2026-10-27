@@ -139,4 +139,8 @@ R025 canonical cutover: `PromoteCollectionTab.mjs` uses the private pre-cutover 
 
 `ReorderCollectionStatusLanes.mjs --apply --verify` applies the later owner-requested order to existing lane placements, the detail status selector and its color-rule sequence. It snapshots the current dashboard/detail question privately and guards the starting order. After installation, use `--verify` alone; do not replay `--apply`. The earlier color verifier is dated evidence and expects the pre-reorder layout. [Order evidence](../../outputs/r036-collection-status-colors/order-verification.json).
 
+## R102 Long overdue lane
+
+`AddLongOverdueLane.mjs --prepare`, `--apply`, `--verify` adds the Collection Monitor lane "Long overdue" (status 'Long Overdue', colour `#37474f`) between Overdue and Paid on dashboard 3 tab 19, with its two cards and the matching status selector and color rule, and updates the lane model `models/collection-summary.sql`. It snapshots the current objects privately and refuses to replay. It reads PROD only, so run it right after the PROD promotion that installs V114 (until then the `unclassified` card shows a positive count), then `--verify` and `Verify-CollectionMonitor.mjs`, which now expects five lanes. The Loan Reports proposed dashboard lanes follow the same order. Overdue now means 1 to 7 days.
+
 `AlignForecastOriginalRate.mjs`: completed guarded R048 question360 correction; private rollback, non-key value comparison and saved-query verification. Do not replay completed capture. [Evidence](../../outputs/r048-forecast-original-rate/README.md).

@@ -4,10 +4,22 @@
 # No VPC egress, receipt, notification, agent or owner-identity settings and no new secret. SQL
 # role membership (mw_chat_api_prod, mw_chat_read_prod) is granted by the operator outside
 # Terraform. Enabling the gate needs the owner's promotion instruction.
+# R102 (prepared, default off): chat_relay.enabled adds Direct VPC egress (private ranges only)
+# to the VM chat relay (http://10.148.0.2:8791; firewall and the PROD Anthropic key secret in
+# ../ecosystem-debian), CHAT_RELAY_URL and the claude-* models in CHAT_MODELS_JSON. Enable it
+# at promotion only, with a chat image that understands claude-* models.
 variable "chat_authorized" {
   description = "Owner-gated PROD chat service (R090). Requires the business runtime gates."
   type        = bool
   default     = false
+}
+
+variable "chat_relay" {
+  description = "R102 PROD chat relay wiring (promotion-gated): enabled adds Direct VPC egress, CHAT_RELAY_URL and the claude-* models (otherwise filtered out of CHAT_MODELS_JSON)."
+  type = object({
+    enabled = optional(bool, false)
+  })
+  default = {}
 }
 
 variable "chat_models" {
@@ -42,6 +54,8 @@ variable "chat_models" {
     seedChars             = 40000
     maxOutputTokens       = 16384
     models = [
+      # R102: listed only while chat_relay.enabled (filtered in local.chat_models_list).
+      { id = "claude-opus-5-5", label = "Claude Opus 5.5", available = true },
       { id = "gemini-4-argon", label = "Gemini 4 Argon", available = true },
       { id = "gemini-3.8-flash", label = "Gemini 3.8 Flash", available = true },
       { id = "gemini-3.5-flash", label = "Gemini 3.5 Flash", available = true },
@@ -51,7 +65,7 @@ variable "chat_models" {
     condition = (var.chat_models.version == 1 && var.chat_models.location == "global"
       && length(var.chat_models.models) >= 1 && length(var.chat_models.models) <= 8
       && length(distinct([for m in var.chat_models.models : m.id])) == length(var.chat_models.models)
-      && alltrue([for m in var.chat_models.models : can(regex("^gemini-[0-9]+([.][0-9]+)?-[a-z0-9-]+$", m.id)) && length(m.label) >= 1 && length(m.label) <= 60 && (m.available ? m.reason == null : m.reason != null)])
+      && alltrue([for m in var.chat_models.models : can(regex("^(gemini-[0-9]+([.][0-9]+)?-[a-z0-9-]+|claude-[a-z]+-[0-9]+(-[0-9]+)?)$", m.id)) && length(m.label) >= 1 && length(m.label) <= 60 && (m.available ? m.reason == null : m.reason != null)])
       && contains([for m in var.chat_models.models : m.id if m.available], var.chat_models.default)
       && contains(["LOW", "MEDIUM", "HIGH", "MAX"], var.chat_models.thinkingLevel)
       && var.chat_models.maxRounds >= 4 && var.chat_models.maxRounds <= 40
@@ -60,14 +74,18 @@ variable "chat_models" {
       && var.chat_models.historyTokenLimit >= 50000 && var.chat_models.historyTokenLimit <= 400000
       && var.chat_models.seedChars >= 0 && var.chat_models.seedChars <= 200000
     && var.chat_models.maxOutputTokens >= 1024 && var.chat_models.maxOutputTokens <= 65536)
-    error_message = "chat_models must follow the R090 section 3.2 rules: version 1, location global, 1-8 unique gemini ids, available default, LOW|MEDIUM|HIGH|MAX, bounded rounds/timeouts/history/seed, reason only on unavailable models."
+    error_message = "chat_models must follow the R090 section 3.2 rules: version 1, location global, 1-8 unique gemini-* or claude-* ids, available default, LOW|MEDIUM|HIGH|MAX, bounded rounds/timeouts/history/seed, reason only on unavailable models."
   }
 }
 
 locals {
+  # R102: claude-* models are served only through the VM relay; without it they are not listed.
+  chat_models_list = [for m in var.chat_models.models : m if var.chat_relay.enabled || !startswith(m.id, "claude-")]
   chat_models_json = jsonencode(merge(var.chat_models, {
-    models = [for m in var.chat_models.models : merge({ id = m.id, label = m.label, available = m.available }, m.reason == null ? {} : { reason = m.reason })]
+    models = [for m in local.chat_models_list : merge({ id = m.id, label = m.label, available = m.available }, m.reason == null ? {} : { reason = m.reason })]
   }))
+  # VM (vm-mw-credit-agent) pinned network_ip; the ID-token audience is exactly this URL.
+  chat_relay_url = "http://10.148.0.2:8791/v1/chat/messages"
 }
 
 resource "google_service_account" "chat" {
@@ -134,10 +152,25 @@ resource "google_cloud_run_v2_service" "chat" {
       condition     = !var.workers.chat_dispatch_enabled || (var.workers.enabled && var.workers.image != null && var.workers.notification_enabled)
       error_message = "PROD chat dispatch wake requires the enabled PROD notify worker."
     }
+    precondition {
+      condition     = contains([for m in local.chat_models_list : m.id if m.available], var.chat_models.default)
+      error_message = "The chat default must be an available listed model; a claude-* default needs chat_relay.enabled."
+    }
   }
   template {
     service_account = google_service_account.chat[0].email
     # One request per turn: turn deadline 240 s < Cloud Run 300 s.
+    # R102: private-range egress to the VM chat relay only; Vertex AI and Cloud SQL stay on Google paths.
+    dynamic "vpc_access" {
+      for_each = var.chat_relay.enabled ? [1] : []
+      content {
+        egress = "PRIVATE_RANGES_ONLY"
+        network_interfaces {
+          network    = "default"
+          subnetwork = "default"
+        }
+      }
+    }
     timeout                          = "300s"
     max_instance_request_concurrency = 10
     scaling {
@@ -177,7 +210,9 @@ resource "google_cloud_run_v2_service" "chat" {
           PROD_SQL_JOURNAL_OWNER_ROLE           = "mw_app_prod_journal_owner"
           PROD_SQL_REGISTERED_CREATORS          = jsonencode(var.business_registered_creators)
           CHAT_MODELS_JSON                      = local.chat_models_json
-          }, var.workers.chat_dispatch_enabled ? {
+          }, var.chat_relay.enabled ? {
+          CHAT_RELAY_URL = local.chat_relay_url
+          } : {}, var.workers.chat_dispatch_enabled ? {
           NOTIFICATION_DISPATCH_ENABLED  = "true"
           NOTIFICATION_DISPATCH_URL      = "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app/internal/dispatch"
           NOTIFICATION_DISPATCH_AUDIENCE = "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app"

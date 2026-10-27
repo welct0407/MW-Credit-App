@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource} from './ReportingApi.mjs';
 import {out,backup,read,save,lanes,parameters,shape,specs,runQuery} from './CollectionMonitor.mjs';
+import {targetModelSql} from './AddLongOverdueLane.mjs';
 await assertSource();
 const state=read('state'),d=await api('GET','dashboard/3'),before=JSON.parse(fs.readFileSync(`${backup}/dashboard.json`));
 const checks=[];const check=(name,ok)=>{assert.ok(ok,name);checks.push(name);};
@@ -10,7 +11,9 @@ assert.deepEqual(d.tabs.filter(t=>t.id!==state.tab).map(t=>[t.id,t.name]),before
 check('New tab immediately follows original collection',d.tabs[d.tabs.findIndex(t=>t.id===9)+1].id===state.tab);
 assert.deepEqual(d.parameters.filter(p=>!parameters.some(x=>x.id===p.id)),before.parameters);checks.push('Original tab names/order and original parameters preserved');
 assert.deepEqual(await api('GET','collection/graph'),JSON.parse(fs.readFileSync(`${backup}/permissions.json`)));checks.push('Collection permission graph unchanged');
-for(const id of [69,71,73,77,162]){const old=JSON.parse(fs.readFileSync(`${backup}/model-${id}.json`)),now=await api('GET',`card/${id}`);assert.deepEqual(now.dataset_query,old.dataset_query);assert.deepEqual(now.visualization_settings,old.visualization_settings);}checks.push('All five shared models unchanged');
+for(const id of [69,71,73,77,162]){const old=JSON.parse(fs.readFileSync(`${backup}/model-${id}.json`)),now=await api('GET',`card/${id}`);
+ // R102: model 162 zero-fills Long Overdue after AddLongOverdueLane.mjs; every other part stays as captured.
+ assert.deepEqual(now.dataset_query,id===162?{...old.dataset_query,native:{...old.dataset_query.native,query:targetModelSql(old.dataset_query.native.query)}}:old.dataset_query);assert.deepEqual(now.visualization_settings,old.visualization_settings);}checks.push('All five shared models unchanged');
 for(const old of before.dashcards.filter(c=>c.card_id)){const now=d.dashcards.find(c=>c.id===old.id);assert.deepEqual(now.card.dataset_query,old.card.dataset_query);assert.deepEqual(now.card.visualization_settings,old.card.visualization_settings);}checks.push('All original embedded saved question queries and formatting unchanged');
 const results={},timings=[];
 for(const spec of specs){const id=state.cards[spec.key],p=d.dashcards.find(c=>c.dashboard_tab_id===state.tab&&c.card_id===id);assert.ok(p);const started=Date.now();results[spec.key]=await runQuery(`dashboard/3/dashcard/${p.id}/card/${id}/query`,{parameters:[]});timings.push({key:spec.key,ms:Date.now()-started});}

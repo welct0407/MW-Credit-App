@@ -1,6 +1,10 @@
 /** R090 chat service configuration: CHAT_MODELS_JSON (a plain Terraform variable, no credential), validated on
  * start (design §3.2). The PWA never hard-codes a model; GET /api/chat/models answers from this allowlist. */
-export const MODEL_ID=/^gemini-[0-9]+(\.[0-9]+)?-[a-z0-9-]+$/;
+import {chatRelayUrl} from './claude.mjs';
+/** R102: gemini-* (Vertex) or claude-<family>-<major>[-<minor>] (VM relay); date-suffixed ids are refused. */
+export const MODEL_ID=/^(?:gemini-[0-9]+(?:\.[0-9]+)?-[a-z0-9-]+|claude-[a-z]+-[0-9]+(?:-[0-9]+)?)$/;
+/** The provider that serves a model id. */
+export const providerFor=id=>typeof id==='string'&&id.startsWith('claude-')?'claude':'gemini';
 export const THINKING_LEVELS=Object.freeze(['LOW','MEDIUM','HIGH','MAX']);
 /** Integer bounds; the first four are gemini_conversation.BOUNDS of the integration agent. */
 export const CHAT_BOUNDS=Object.freeze({maxRounds:[4,40],requestTimeoutSeconds:[30,240],historyTokenLimit:[50000,400000],seedChars:[0,200000],
@@ -39,3 +43,11 @@ export function parseChatModels(raw){
 }
 /** The listed and available model, or null. */
 export const availableModel=(chat,id)=>chat.models.find(m=>m.id===id&&m.available)??null;
+/** R102: CHAT_RELAY_URL (the VM chat relay endpoint, also the ID-token audience). Absent: no relay. An available
+ * claude-* model without a valid relay URL fails start; a present but invalid URL fails too (one generic error). */
+export function parseChatRelay(chat,raw){
+ const url=raw===undefined?null:chatRelayUrl(raw);
+ if(raw!==undefined&&!url)throw Error('Invalid chat configuration');
+ if(!url&&chat.models.some(m=>m.available&&providerFor(m.id)==='claude'))throw Error('Invalid chat configuration');
+ return url?Object.freeze({url,audience:url}):null;
+}

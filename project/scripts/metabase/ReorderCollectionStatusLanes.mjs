@@ -8,7 +8,8 @@ const backup='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r036-col
 const output='outputs/r036-collection-status-colors/order-verification.json';
 const placementIds={unpaid:[242,243],partial:[244,245],overdue:[240,241],paid:[246,247]};
 const expectedOld=['Overdue','Not Paid','Partially Paid','Fully Paid'];
-const wanted=lanes.map(l=>l.status);
+// R102 added the Long Overdue lane (AddLongOverdueLane.mjs); this R036 step covers the original four.
+const wanted=lanes.filter(l=>l.key!=='long').map(l=>l.status);
 assert.deepEqual(wanted,['Not Paid','Partially Paid','Overdue','Fully Paid']);
 const read=()=>JSON.parse(fs.readFileSync(`${backup}/before.json`,'utf8'));
 const write=(path,value)=>fs.writeFileSync(path,JSON.stringify(value,null,2)+'\n');

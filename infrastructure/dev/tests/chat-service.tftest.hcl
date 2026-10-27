@@ -207,3 +207,74 @@ run "chat_turn_metrics" {
     error_message = "R093: the three DEV chat turn metrics read only mw-credit-app-chat-dev chat_turn records with the agreed labels, extractors and buckets."
   }
 }
+
+run "chat_relay_off_lists_no_claude" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  assert {
+    condition = (length(google_cloud_run_v2_service.chat_api[0].template[0].vpc_access) == 0
+      && alltrue([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.name != "CHAT_RELAY_URL"])
+    && alltrue([for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : !startswith(m.id, "claude-")]))
+    error_message = "R102: without chat_relay.enabled there is no VPC egress, no CHAT_RELAY_URL and no claude-* model in CHAT_MODELS_JSON."
+  }
+}
+
+run "chat_relay_enabled_wiring" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables { chat_relay = { enabled = true } }
+  assert {
+    condition = (google_cloud_run_v2_service.chat_api[0].template[0].vpc_access[0].egress == "PRIVATE_RANGES_ONLY"
+      && google_cloud_run_v2_service.chat_api[0].template[0].vpc_access[0].network_interfaces[0].network == "default"
+      && google_cloud_run_v2_service.chat_api[0].template[0].vpc_access[0].network_interfaces[0].subnetwork == "default"
+    && one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_RELAY_URL"]) == "http://10.148.0.2:8791/v1/chat/messages")
+    error_message = "R102: the relay adds private-range egress on the default subnet and CHAT_RELAY_URL for the VM relay on 8791."
+  }
+  assert {
+    condition = ([for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.id] == ["claude-opus-5-5", "gemini-4-argon", "gemini-3.8-flash", "gemini-3.5-flash"]
+      && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models[0].label == "Claude Opus 5.5"
+    && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "gemini-4-argon")
+    error_message = "R102: with the relay, Claude Opus 5.5 is listed first and the default stays gemini-4-argon until the DEV proof."
+  }
+}
+
+run "chat_relay_claude_default" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables {
+    chat_relay = { enabled = true }
+    chat_models = {
+      version = 1, location = "global", default = "claude-opus-5-5", thinkingLevel = "MEDIUM", maxRounds = 16, requestTimeoutSeconds = 120, turnTimeoutSeconds = 240, historyTokenLimit = 150000, seedChars = 40000, maxOutputTokens = 16384
+      models  = [{ id = "claude-opus-5-5", label = "Claude Opus 5.5", available = true }, { id = "gemini-4-argon", label = "Gemini 4 Argon", available = true }]
+    }
+  }
+  assert {
+    condition     = jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "claude-opus-5-5"
+    error_message = "R102: a claude-* default is accepted with the relay enabled."
+  }
+}
+
+run "reject_claude_default_without_relay" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables {
+    chat_models = {
+      version = 1, location = "global", default = "claude-opus-5-5", thinkingLevel = "MEDIUM", maxRounds = 16, requestTimeoutSeconds = 120, turnTimeoutSeconds = 240, historyTokenLimit = 150000, seedChars = 40000, maxOutputTokens = 16384
+      models  = [{ id = "claude-opus-5-5", label = "Claude Opus 5.5", available = true }, { id = "gemini-4-argon", label = "Gemini 4 Argon", available = true }]
+    }
+  }
+  expect_failures = [google_cloud_run_v2_service.chat_api]
+}
+
+run "reject_bad_claude_id" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables {
+    chat_relay = { enabled = true }
+    chat_models = {
+      version = 1, location = "global", default = "gemini-4-argon", thinkingLevel = "MEDIUM", maxRounds = 16, requestTimeoutSeconds = 120, turnTimeoutSeconds = 240, historyTokenLimit = 150000, seedChars = 40000, maxOutputTokens = 16384
+      models  = [{ id = "claude-opus-5-5-20260401", label = "Claude dated", available = true }, { id = "gemini-4-argon", label = "Gemini 4 Argon", available = true }]
+    }
+  }
+  expect_failures = [var.chat_models]
+}

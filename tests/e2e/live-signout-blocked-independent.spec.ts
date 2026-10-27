@@ -23,7 +23,7 @@ async function setup(page:Page):Promise<Routes>{
   if(path==='/api/operations'&&method==='POST'){routes.posts.push(path);return routes.applied?r.fulfill({contentType:'application/json',body:'{"ok":true,"kind":"recorded","originalOutcome":{"status":"applied","code":null}}'}):r.fulfill({status:503,contentType:'application/json',body:'{"ok":false,"code":"command_unavailable"}'})}
   if(path==='/api/operations/'+id){routes.statusGets++;return r.fulfill({contentType:'application/json',body:'{"ok":true,"kind":"unresolved","safeToUseNewRequestId":false}'})}
   if(path==='/api/preferences')return r.fulfill({contentType:'application/json',body:'{"ok":true,"item":{"language":null}}'});
-  if(path==='/api/dashboard')return r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})});
+  if(path==='/api/dashboard')return r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})});
   return r.fulfill({contentType:'application/json',body:'{"ok":true,"items":[],"nextCursor":null}'})});
  await page.goto(base);return routes;
 }

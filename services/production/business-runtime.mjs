@@ -47,7 +47,10 @@ export async function createProductionBusinessRuntime(env,dependencies) {
     let handler;
     if(config.serviceRole==='chat') {
       // R090: the chat service never installs the command, notification or agent handlers.
-      const transport=await dependencies.createVertexTransport(config);
+      const gemini=await dependencies.createVertexTransport(config);
+      // R102: claude-* models go through the VM chat relay when CHAT_RELAY_URL is configured.
+      const claude=config.chatRelay&&dependencies.createClaudeTransport?await dependencies.createClaudeTransport(config):null;
+      const transport=claude?{gemini,claude}:gemini;
       // Batch 2 (B1): the chat reply push uses the command service's post-commit dispatch wake (three env keys, validated here).
       const afterCommit=createPostCommitWake(loadDispatchConfig(env,config.environment),{log:completionLogger});
       handler=createChatServiceHandler({config,verifyPrincipal,membership,pool,guardConnection,transport,completionLogger,log:dependencies.log,afterCommit});

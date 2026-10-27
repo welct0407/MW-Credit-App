@@ -46,7 +46,7 @@ export function toPreviewBorrower(row: BorrowerSummary | BorrowerDetail): Previe
     id: row.id, name: row.name, initials: row.initials, area: row.area,
     principal: displayAmount(row.outstandingPrincipal), remaining: displayAmount(row.collection.amountRemaining),
     hasActiveLoan: row.hasActiveLoan, collectionStatus: row.collection.status,
-    status: row.collection.status === 'overdue' ? 'overdue' : row.collection.status ? 'due' : 'clear',
+    status: row.collection.status === 'overdue' || row.collection.status === 'long_overdue' ? 'overdue' : row.collection.status ? 'due' : 'clear',
     note: row.note,
     loans: 'loans' in row ? row.loans.map(loan => ({ id: loan.id, principal: displayAmount(loan.outstandingPrincipal), nextDate: loan.nextDate, charges: loan.charges.map(charge => ({ id: charge.id, label: charge.label, amount: displayAmount(charge.amount), date: charge.date })) })) : [],
   };
