@@ -12,6 +12,24 @@ Let a Partner book a loan's next projected charge as an actual charge on its fut
 - Tests: `tests/unit/operation-command.test.mjs`, `tests/unit/collection-receiving-display.test.mjs`, `tests/integration/projected-charge-payment-independent.test.mjs`, `tests/e2e/projected-charge-payment-independent.spec.ts`.
 - Deploy note: `pwa_submit_operation_v2` is owned by `mw_app_<env>_journal_owner`, so V116 on Cloud SQL needs that owner's authority window, as V107 did. Promotion components: V116, command image, Hosting; the read service is unchanged.
 
+## Owner feedback and follow-up
+After trying it in DEV on 28 October 2026 the owner asked: "I want to be allowed to record multiple future charges." Orchestrator decision: Pay ahead stays one charge ahead.
+- `database/migrations/V117__sequential_projected_charge_booking.sql`: new read function `pwa_next_bookable_charge_v1` (V112's next-projected read without the one-ahead gate; the offered date must be later than every recorded charge; 93-day horizon). The `loan.book-projected-charge` guard in `pwa_apply_loan_source_v2` uses it. New grant: EXECUTE to `mw_app_<env>`, none to PUBLIC. `pwa_next_projected_charge_v1` and `pwa_submit_selected_charges_v1` are unchanged.
+- `services/payment-command/draft.mjs`: the payment-draft GET gains a `bookable` list (`upcoming` unchanged). `apps/pwa/src/UpcomingCharges.tsx` reads it, so after a booking the loan's next date shows the button.
+- Also: `database/current/public-functions.sql`, `services/chat/assets/schema-digest.json` (rebuilt at 117), `scripts/database/Test-AccessMatrix.sql`, `tests/unit/collection-receiving-display.test.mjs`, `tests/integration/projected-charge-payment-independent.test.mjs`, `tests/e2e/projected-charge-payment-independent.spec.ts`.
+- Records: `database/README.md` (V117 paragraph), `project/Documents/PWA_Data_Model_Overview.md` and the chat rules asset (section 5), which no longer say next only.
+
+Follow-up checks (Byte, uncommitted tree on `3da056c`):
+
+| Command | Result |
+| --- | --- |
+| `npm run typecheck`, `npx biome lint` | Pass |
+| `npm test` | Pass, 967, 0 fail |
+| `tests/integration/projected-charge-payment-independent.test.mjs` at V117 | Pass, 10/10; three sequential bookings per loan type equal the generator (daily interest 0/70 each; installment 196/14, 193/17, 189/21); with two booked future charges Loan Close charges 130 (principal plus 3 days) and writes the future interest down to 30 and 0, and Default writes both to 0/0 with the same loss posting as one future charge |
+| `mw-db-ci -Group migrations` | Pass, exit 0 |
+| `tests/e2e/projected-charge-payment-independent.spec.ts` | Pass, 12/12 |
+| Review of V117 | Chase: no defects. Low, kept: `bookable` adds one forecast per eligible loan to each `scope=all` draft read (immaterial at two users). `Test-AccessMatrix.sql` is DEV only; in PROD the V117 self-check enforces the grant. Gap closed by the two Loan Close and Default cases above |
+
 ## Checks
 All on the uncommitted tree on `9dbe334` unless noted.
 
@@ -34,7 +52,7 @@ All on the uncommitted tree on `9dbe334` unless noted.
 Real iPhone Safari. PROD: nothing run. DEV: API-level proof only (see DEV proof); the signed-in button click in the DEV PWA was not driven by Chase (Echo's visual pass is read-only and confirms no booking), so the button's rendering and the stale-offer message in DEV rest on Byte's Playwright specs. Chat cannot book a charge (intended).
 
 ## Recovery
-Git baseline `9dbe334`. V116 is `CREATE OR REPLACE` only; rollback is a later migration that restores the V115 bodies of the two functions. A booked charge is an ordinary charge, and no other data changes.
+Git baseline `9dbe334`. V116 is `CREATE OR REPLACE` only; rollback is a later migration that restores the V115 bodies of the two functions. V117 adds one read function and its grant and replaces `pwa_apply_loan_source_v2` again; roll back by a later migration that restores the V116 body of that function and drops `pwa_next_bookable_charge_v1`. A booked charge is an ordinary charge, and no other data changes.
 
 ## Open questions
 Owner acceptance after first real use.

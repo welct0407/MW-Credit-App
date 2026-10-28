@@ -2932,7 +2932,7 @@ BEGIN
  WHEN 'loan.generate-charge' THEN UPDATE public."Loans" SET "Charge Generation Request"=(i->>'businessDate')||'|'||(e->>'requestId') WHERE "Row ID"=target;
  WHEN 'loan.book-projected-charge' THEN
   -- R104: still this loan's next projected charge (V112 read, same day) with the reviewed date and amounts.
-  IF NOT EXISTS(SELECT 1 FROM public.pwa_next_projected_charge_v1(parent,(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date) p
+  IF NOT EXISTS(SELECT 1 FROM public.pwa_next_bookable_charge_v1(parent,(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date) p
     WHERE p.loan_id=target AND p.charge_date=(i->>'chargeDate')::date AND p.principal_due=(i->>'principalDue')::numeric AND p.interest_due=(i->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P5B11';END IF;
   BEGIN
    booked:=public.generate_loan_charge(target,(i->>'chargeDate')::date);
@@ -4067,6 +4067,74 @@ CREATE FUNCTION public.pwa_native_inverse_permitted_v2(payment text) RETURNS boo
   AND j.actor_partner_id=(SELECT "Row ID" FROM public."Partners" WHERE lower(btrim("Login Email"))=j.actor_login_email)
   AND NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands successor WHERE successor.contract_version=2 AND successor.outcome='applied' AND successor.canonical_json::jsonb#>>'{command,operation}'='payment.correct' AND successor.canonical_json::jsonb#>>'{command,targetId}'=$1 AND successor.canonical_json::jsonb#>>'{command,predecessorRequestId}'=j.request_id::text));
 $_$;
+
+
+--
+-- Name: pwa_next_bookable_charge_v1(text, date); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_next_bookable_charge_v1(p_borrower text, p_day date) RETURNS TABLE(loan_id text, charge_id text, charge_date date, principal_due numeric, interest_due numeric)
+    LANGUAGE plpgsql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE l public."Loans"%ROWTYPE; loan jsonb; charges jsonb; blocked boolean; d date; latest date; days integer; elapsed integer; remainder numeric; p numeric; i numeric;
+BEGIN
+ IF p_borrower IS NULL OR p_day IS NULL THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Borrower and day required'; END IF;
+ FOR l IN SELECT * FROM public."Loans" x WHERE x."Ref Borrowers"=p_borrower AND x."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(x."Defaulted",false)
+   AND coalesce(x."Auto Charge Enabled",false) AND x."Loan Type" IN ('ดอกเบี้ยรายวัน','ผ่อนชำระรายวัน') AND x."Loan Date"<=p_day
+   ORDER BY x."Row ID" COLLATE "C" LOOP
+  -- R104 V117: no one-ahead gate; an undated row still means no offer.
+  IF EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date" IS NULL) THEN CONTINUE; END IF;
+  IF l."Loan Type"='ดอกเบี้ยรายวัน' AND EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID"
+    AND c."Principal Due"::numeric>coalesce((SELECT sum(r."Principal Paid"::numeric) FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID"),0)) THEN CONTINUE; END IF;
+  -- Forecast inputs for this loan and day, as reporting_forecast_inputs_v1 builds them (V48, V53).
+  SELECT jsonb_build_object('status',l."Loan Status",'defaulted',coalesce(l."Defaulted",false),'start',l."Loan Date",'close',l."Close Date",
+    'balance',l."Principal Amount"::numeric-coalesce(sum(r."Principal Paid"::numeric) FILTER(WHERE r."Payment Date"<=p_day),0),'daily',l."Current Daily Interest"::numeric,'auto',l."Auto Charge Enabled",
+    'interval',l."Interest Payment Interval",'anchor',l."Interest Schedule Anchor Date",'type',l."Loan Type",'due',l."Due Date",
+    'arrangement',l."Loan Arrangement",'original',l."Principal Amount"::numeric,'payment',l."Daily Payment Amount"::numeric,'fixed',l."Fixed Interest"::numeric,
+    'invalid',l."Loan Date" IS NULL OR l."Principal Amount" IS NULL OR NOT EXISTS(SELECT 1 FROM public."Borrowers" b WHERE b."Row ID"=l."Ref Borrowers")
+     OR coalesce(bool_or(r."Payment Date" IS NULL OR r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL OR r."Payment Date">p_day),false),
+    'original_rate',l."Original Daily Interest Rate")
+   INTO loan FROM public."Repayments" r WHERE r."Ref Loans"=l."Row ID";
+  SELECT coalesce(jsonb_agg(jsonb_build_object('id',c."Row ID",'date',c."Charge Date",'pdue',c."Principal Due"::numeric,'idue',c."Interest Due"::numeric,
+    'ppaid',coalesce(paid.p,0),'ipaid',coalesce(paid.i,0),'invalid',coalesce(paid.invalid,false) OR c."Charge Date" IS NULL OR c."Principal Due" IS NULL OR c."Interest Due" IS NULL)),'[]'::jsonb)
+   INTO charges FROM public."Charges" c
+   LEFT JOIN LATERAL (SELECT sum(r."Principal Paid"::numeric) FILTER(WHERE r."Payment Date"<=p_day) p,sum(r."Interest Paid"::numeric) FILTER(WHERE r."Payment Date"<=p_day) i,
+     bool_or(r."Payment Date" IS NULL OR r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL OR r."Ref Loans" IS DISTINCT FROM c."Ref Loans") invalid
+    FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID") paid ON true
+   WHERE c."Ref Loans"=l."Row ID";
+  -- The forecast gives the next date only; every row is read, so an Exception or Notice anywhere skips the loan.
+  SELECT coalesce(bool_or(s.origin IN ('Exception','Notice')),false),min(s.due_date) FILTER(WHERE s.origin='Simulated' AND s.eligible AND s.due_date>p_day AND s.principal+s.interest>0)
+   INTO blocked,d FROM public.forecast_schedule_v1(loan,charges,p_day,p_day+93) s;
+  IF blocked OR d IS NULL THEN CONTINUE; END IF;
+  -- Strict schedule order: the offer is after every recorded charge of the loan, booked future charges included.
+  IF d<=(SELECT max(c."Charge Date") FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID") THEN CONTINUE; END IF;
+  -- The amounts are generate_loan_charge's own arithmetic for that date.
+  IF l."Loan Type"='ดอกเบี้ยรายวัน' THEN
+   SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date"<=d;
+   p:=0;i:=l."Current Daily Interest"::numeric*greatest(0,d-coalesce(latest,l."Loan Date"));
+  ELSE
+   SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID";
+   IF latest IS NULL OR l."Due Date" IS NULL THEN CONTINUE; END IF;
+   days:=l."Due Date"-l."Loan Date"+1;elapsed:=d-latest;
+   IF days<=0 OR elapsed<=0 THEN CONTINUE; END IF;
+   remainder:=mod(l."Principal Amount"::numeric,days);
+   p:=floor(l."Principal Amount"::numeric/days)*elapsed+
+     greatest(0,least(d-l."Loan Date"+1,remainder)-(latest-l."Loan Date"+1));
+   i:=l."Daily Payment Amount"::numeric*elapsed-p;
+  END IF;
+  IF p IS NULL OR i IS NULL OR p<0 OR i<0 OR p+i<=0 OR p<>trunc(p) OR i<>trunc(i) THEN CONTINUE; END IF;
+  loan_id:=l."Row ID";charge_date:=d;charge_id:='cg8:'||length(l."Row ID")||':'||l."Row ID"||':'||to_char(d,'YYYY-MM-DD');principal_due:=trunc(p);interest_due:=trunc(i);
+  RETURN NEXT;
+ END LOOP;
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_next_bookable_charge_v1(p_borrower text, p_day date); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_next_bookable_charge_v1(p_borrower text, p_day date) IS 'R104 V117: per eligible loan of the borrower, the next scheduled charge after the day and after every recorded charge (generator key and amounts), recordable from Upcoming Charges by loan.book-projected-charge in schedule order. Read only.';
 
 
 --

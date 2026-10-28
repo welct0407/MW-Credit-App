@@ -8,7 +8,7 @@ import type {CommandAccess} from './SelectedCharges';
 import {useEffect,useId,useRef,useState} from 'react';
 export type UpcomingSummary = { ok: true; source: 'dev'; businessDate: string; asOf: string; horizonEnd: string; reviewRequired: boolean; previews?: UpcomingDetail[]; items: { id: string; dueDate: string; totalCharge: string | null }[] };
 export type UpcomingDetail = Omit<UpcomingSummary, 'items' | 'previews'> & { dueDate: string; totalCharge: string | null; nextCursor: string | null; items: { id: string; loanId: string; loanDisplayKey: string; principalRemaining: string | null; interestRemaining: string | null; amountRemaining: string | null; basis: string }[] };
-/** R104: a loan's next projected charge as the command service's payment draft offers it (V112), with the loan version that books it. */
+/** R104: the charge a loan may record next, as the command service's payment draft offers it in `bookable` (V117, schedule order), with the loan version that books it. */
 type BookOffer = { loanId: string; chargeDate: string; principalRemaining: string; interestRemaining: string; bookVersion: string };
 const sameAmount = (shown: string | null, offered: string) => shown !== null && /^-?\d+(?:\.\d+)?$/.test(shown) && Number(shown) === Number(offered);
 /** The offers are read online from the command origin once per detail open or refresh; any failure only means no Record charge button. */
@@ -18,8 +18,8 @@ async function readBookOffers(access: CommandAccess, borrowerId: string, signal:
   if (response.status === 401 || response.status === 403) { access.authFailure(response.status); return []; }
   if (!response.ok) return [];
   const data = await response.json();
-  if (!Array.isArray(data?.upcoming)) return [];
-  return data.upcoming.filter((row: any) => row && typeof row.loanId === 'string' && typeof row.chargeDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(row.chargeDate) && typeof row.principalRemaining === 'string' && /^(0|[1-9]\d*)$/.test(row.principalRemaining) && typeof row.interestRemaining === 'string' && /^(0|[1-9]\d*)$/.test(row.interestRemaining) && typeof row.bookVersion === 'string' && /^[a-f0-9]{64}$/.test(row.bookVersion))
+  if (!Array.isArray(data?.bookable)) return [];
+  return data.bookable.filter((row: any) => row && typeof row.loanId === 'string' && typeof row.chargeDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(row.chargeDate) && typeof row.principalRemaining === 'string' && /^(0|[1-9]\d*)$/.test(row.principalRemaining) && typeof row.interestRemaining === 'string' && /^(0|[1-9]\d*)$/.test(row.interestRemaining) && typeof row.bookVersion === 'string' && /^[a-f0-9]{64}$/.test(row.bookVersion))
     .map((row: any) => ({ loanId: row.loanId, chargeDate: row.chargeDate, principalRemaining: row.principalRemaining, interestRemaining: row.interestRemaining, bookVersion: row.bookVersion }));
 }
 export function UpcomingCharges({ thai, summary, detail, busy, error, onDate, onBack, onRefresh, onNext, onPrevious, onDetailRefresh, access, borrowerId }: { thai: boolean; summary: UpcomingSummary | null; detail: UpcomingDetail | null; page: number; busy: boolean; error: ReadFailure | null; onDate: (date: string) => void; onBack: () => void; onRefresh: () => void; onNext: () => void; onPrevious?:()=>void; onDetailRefresh: () => void; access?: CommandAccess; borrowerId?: string }) {

@@ -16,3 +16,17 @@ test('R104 draft upcoming rows carry bookVersion, the loan version that books th
  assert.deepEqual(result.upcoming.map(row=>[row.id,row.loanId,row.chargeDate,row.principalRemaining,row.interestRemaining,row.bookVersion]),[['cg8:2:L1:2026-10-14','L1','2026-10-14','0','70',version]]);
  for(const bad of [null,'A'.repeat(64),'a'.repeat(63)])await assert.rejects(draft(bad),/Draft unavailable/);
 });
+
+// R104 V117: the first scope=all draft also returns `bookable` (pwa_next_bookable_charge_v1, no one-ahead gate) in the same
+// row shape with bookVersion; `upcoming` (Pay ahead) stays the V112 read. Either malformed makes the draft unavailable.
+test('R104 V117 draft bookable rows come from the bookable read, separate from upcoming, with a validated bookVersion',async()=>{
+ const version='fedcba9876543210'.repeat(4),row=(date,v)=>({loanId:'L1',id:'cg8:2:L1:'+date,chargeDate:date,principalRemaining:'0',interestRemaining:'70',principal:'1000',loanDate:'2026-10-07',rate:'1',bookVersion:v});
+ const draft=async({upcoming=[],bookable=[]}={},options={scope:'all'})=>{const sql=[];const client={query:async(q,p)=>{if(q.includes(' AS day'))return{rows:[{day:'2026-10-10',instant:'2026-10-10T00:00:00Z'}]};if(q.includes('preferred_account'))return{rows:[{name:'Thai',description:'English',preferred_account:null}]};if(q.includes('AS blocked'))return{rows:[{blocked:false}]};if(q.includes('to_regprocedure')){sql.push(p[0]);return{rows:[{present:true}]}}if(q.startsWith('SELECT EXISTS'))return{rows:[{invalid:false}]};if(q.includes('public.pwa_next_bookable_charge_v1($1'))return{rows:bookable};if(q.includes('public.pwa_next_projected_charge_v1($1'))return{rows:upcoming};if(q.includes('Account Label'))return{rows:[{id:'A',label:'Alpha'}]};return{rows:[]}}};return {result:await readOwnerPaymentDraft(client,'borrower',options),sql}};
+ // A loan with a booked 10-14 charge: Pay ahead offers nothing, Upcoming Charges may record 10-21 next.
+ const {result,sql}=await draft({bookable:[row('2026-10-21',version)]});
+ assert.deepEqual(sql,['public.pwa_next_projected_charge_v1(text,date)','public.pwa_next_bookable_charge_v1(text,date)']);
+ assert.deepEqual(result.upcoming,[]);
+ assert.deepEqual(result.bookable,[{id:'cg8:2:L1:2026-10-21',loanId:'L1',chargeDate:'2026-10-21',loanDisplayKey:'Thai - English-฿1,000-07/10-1%',amountRemaining:'70',principalRemaining:'0',interestRemaining:'70',bookVersion:version}]);
+ for(const bad of [row('2026-10-21',null),row('2026-10-21','A'.repeat(64)),row('2026-10-10',version),{...row('2026-10-21',version),interestRemaining:'70.5'}])await assert.rejects(draft({bookable:[bad]}),/Draft unavailable/);
+ assert.equal((await draft({bookable:[row('2026-10-21',version)]},{scope:'due'})).result.bookable,undefined,'only the first scope=all page carries it');
+});
