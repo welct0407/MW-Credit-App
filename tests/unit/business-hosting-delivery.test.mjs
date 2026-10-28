@@ -2412,7 +2412,9 @@ test('every package kind dispatches to its own plan, operator release and live v
 // Generic release kind (R105 onwards): no per-release code. A synthetic Git repository (with a bare origin carrying the
 // release tags) gives the runner real facts to derive: the baseline tag, the SQL range and its new migrations, and the
 // services whose entry points reach the changed files.
-const gitIn=(cwd,...args)=>{const r=spawnSync('git',args,{cwd,encoding:'utf8'});if(r.status!==0)throw Error('git '+args.join(' ')+': '+r.stderr);return r.stdout.trim();};
+// A fixed identity, so commits and annotated tags work on a CI runner with no git user configured.
+const gitIdentity={GIT_AUTHOR_NAME:'Test',GIT_AUTHOR_EMAIL:'test@example.invalid',GIT_COMMITTER_NAME:'Test',GIT_COMMITTER_EMAIL:'test@example.invalid'};
+const gitIn=(cwd,...args)=>{const r=spawnSync('git',args,{cwd,encoding:'utf8',env:{...process.env,...gitIdentity}});if(r.status!==0)throw Error('git '+args.join(' ')+': '+r.stderr);return r.stdout.trim();};
 // Synthetic entry points with the shape of the real ones: read and command run production/business-server.mjs, which reaches
 // payment-command and chat through business-runtime.mjs; chat's server reaches the same runtime; the workers reach jobs and lib.
 const syntheticServices={
