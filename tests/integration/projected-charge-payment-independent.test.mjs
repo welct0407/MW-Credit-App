@@ -123,3 +123,44 @@ test('V113: after a deleted early payment Loan Close bills only the days up to t
  const loan=(await admin.query('SELECT "Loan Status" AS status FROM "Loans" WHERE "Row ID"=$1',['R101-D4'])).rows[0];assert.equal(loan.status,'ปิดยอดแล้ว');
  assert.equal((await admin.query('SELECT count(*)::integer AS n FROM "Charges" c CROSS JOIN LATERAL public.vc_charge_values(c) v WHERE c."Ref Loans"=$1 AND v.remaining<>0',['R101-D4'])).rows[0].n,0,'every charge settled');
 });
+
+// R104 V116: loan.book-projected-charge records a loan's next projected charge as an actual charge on its future date,
+// through the operation route as the real application role. Drift is recorded as plan_changed (P5B11; the journal CHECK
+// has no projection code), a stale loan version as source_conflict, today or earlier as invalid_date.
+test('V116: the next projected charge is booked with the generator key and amounts; drift, staleness and dates are refused',async()=>{
+ await admin.query(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval")
+  VALUES('R104-B1',$1,$2,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-3,1000::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money,7)`,[fixture.borrowerId,fixture.lendingAccountId]);
+ await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='R104-B1'`);
+ const next=await day(4),later=await day(11),version=async()=>(await admin.query('SELECT public.pwa_loan_version_v2($1) AS v',['R104-B1'])).rows[0].v;
+ const draft=await store.draft(principal,fixture.borrowerId,{scope:'all'});assert.equal(draft.status,200,JSON.stringify(draft));
+ const offer=draft.upcoming.find(row=>row.loanId==='R104-B1');
+ assert.deepEqual([offer.id,offer.chargeDate,offer.principalRemaining,offer.interestRemaining,offer.bookVersion],[key('R104-B1',next),next,'0','70',await version()],'the draft offers the next charge with the loan version that books it');
+ const book=(inputs,expectedVersion=offer.bookVersion,requestId=randomUUID())=>({requestId,operation:'loan.book-projected-charge',targetId:'R104-B1',expectedVersion,predecessorRequestId:null,receiptId:null,inputs:{chargeDate:next,principalDue:'0',interestDue:'70',...inputs}});
+ const rejected=async(command,code)=>{const value=await store.operation(principal,command);assert.equal(value.originalOutcome?.status,'rejected',JSON.stringify(value));assert.equal(value.originalOutcome.code,code,JSON.stringify(value));};
+ await rejected(book({chargeDate:later}),'plan_changed');
+ await rejected(book({interestDue:'60'}),'plan_changed');
+ await rejected(book({},'f'.repeat(64)),'source_conflict');
+ await rejected(book({chargeDate:today}),'invalid_date');
+ await rejected(book({chargeDate:await day(-1)}),'invalid_date');
+ assert.equal((await admin.query('SELECT count(*)::integer AS n FROM "Charges" WHERE "Ref Loans"=$1',['R104-B1'])).rows[0].n,0,'a refusal books nothing');
+ assert.equal((await store.operation(principal,{...book({}),inputs:{chargeDate:next,principalDue:'0',interestDue:'70',chargeId:key('R104-B1',next)}})).status,400,'the charge id is not an input');
+ const command=book({}),applied=await store.operation(principal,command);
+ assert.equal(applied.originalOutcome?.status,'applied',JSON.stringify(applied));
+ assert.deepEqual(applied.originalOutcome.result,{operation:'loan.book-projected-charge',targetType:'loan',targetId:'R104-B1',paymentId:null,plan:null,predecessorRequestId:null,sourceCreatedBy:null});
+ const journal=(await admin.query('SELECT canonical_json FROM pwa_payment_commands WHERE request_id=$1',[command.requestId])).rows[0].canonical_json;
+ assert.ok(journal.includes('"inputs":{"chargeDate":"'+next+'","principalDue":"0","interestDue":"70"}'),journal);
+ assert.deepEqual((await admin.query(`SELECT "Row ID" AS id,"Charge Date"::text AS d,"Principal Due"::numeric::text AS p,"Interest Due"::numeric::text AS i FROM "Charges" WHERE "Ref Loans"=$1`,['R104-B1'])).rows,[{id:key('R104-B1',next),d:next,p:'0.00',i:'70.00'}]);
+ assert.deepEqual(await store.operation(principal,command),applied,'the same request replays its recorded outcome');
+ assert.equal((await admin.query('SELECT count(*)::integer AS n FROM "Charges" WHERE "Ref Loans"=$1',['R104-B1'])).rows[0].n,1,'replay books nothing more');
+ const after=await store.draft(principal,fixture.borrowerId,{scope:'all'});assert.ok(!after.upcoming.some(row=>row.loanId==='R104-B1'),'one charge ahead: no further offer');
+ await rejected(book({},await version()),'plan_changed');
+ await rejected(book({chargeDate:later},await version()),'plan_changed');
+});
+
+test('V116: PUBLIC executes neither operation function, and the application user cannot call the loan writer directly',async()=>{
+ for(const routine of ['public.pwa_submit_operation_v2(text)','public.pwa_apply_loan_source_v2(text)'])
+  assert.equal((await admin.query(`SELECT has_function_privilege('public',$1,'EXECUTE') AS x`,[routine])).rows[0].x,false,routine);
+ const owner=(await admin.query(`SELECT pg_get_userbyid(proowner) AS owner,prosecdef FROM pg_proc WHERE oid='public.pwa_submit_operation_v2(text)'::regprocedure`)).rows[0];
+ assert.deepEqual(owner,{owner:'mw_app_dev_journal_owner',prosecdef:true},'CREATE OR REPLACE kept the owner and SECURITY DEFINER');
+ await assert.rejects(app.query('SELECT public.pwa_apply_loan_source_v2($1)',['{}']),error=>error.code==='42501');
+});

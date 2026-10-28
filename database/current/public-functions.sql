@@ -2908,9 +2908,9 @@ CREATE FUNCTION public.pwa_apply_loan_source_v2(canonical text) RETURNS jsonb
     SET search_path TO 'pg_catalog', 'public'
     AS $$
 DECLARE e jsonb:=canonical::jsonb;i jsonb:=e#>'{command,inputs}';a jsonb:=e->'actor';target text:=e#>>'{command,targetId}';op text:=e#>>'{command,operation}';
- parent text;l public."Loans"%ROWTYPE;message text;
+ parent text;l public."Loans"%ROWTYPE;message text;booked text;
 BEGIN
- IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR op NOT IN('loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
+ IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR op NOT IN('loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
  SELECT "Ref Borrowers" INTO parent FROM public."Loans" WHERE "Row ID"=target;
  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=parent OR (op='loan.update' AND "Row ID"=i->>'borrowerId') ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
@@ -2921,6 +2921,8 @@ BEGIN
  PERFORM 1 FROM public."Charges" WHERE "Ref Loans"=target ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
  IF public.pwa_loan_version_v2(target) IS DISTINCT FROM e#>>'{command,expectedVersion}' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  IF op IN('loan.default','loan.generate-charge') AND (i->>'businessDate')::date IS DISTINCT FROM (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
+ -- R104: a projected charge is booked only for a date after today (Bangkok).
+ IF op='loan.book-projected-charge' AND (i->>'chargeDate')::date<=(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
 
  BEGIN
  CASE op
@@ -2928,6 +2930,16 @@ BEGIN
  WHEN 'loan.default' THEN UPDATE public."Loans" SET "Defaulted"=true,"Close Date"=(i->>'businessDate')::date,"Closed By"=a->>'loginEmail' WHERE "Row ID"=target;
  WHEN 'loan.undo-default' THEN UPDATE public."Loans" SET "Defaulted"=false WHERE "Row ID"=target;
  WHEN 'loan.generate-charge' THEN UPDATE public."Loans" SET "Charge Generation Request"=(i->>'businessDate')||'|'||(e->>'requestId') WHERE "Row ID"=target;
+ WHEN 'loan.book-projected-charge' THEN
+  -- R104: still this loan's next projected charge (V112 read, same day) with the reviewed date and amounts.
+  IF NOT EXISTS(SELECT 1 FROM public.pwa_next_projected_charge_v1(parent,(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date) p
+    WHERE p.loan_id=target AND p.charge_date=(i->>'chargeDate')::date AND p.principal_due=(i->>'principalDue')::numeric AND p.interest_due=(i->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P5B11';END IF;
+  BEGIN
+   booked:=public.generate_loan_charge(target,(i->>'chargeDate')::date);
+  EXCEPTION WHEN SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P5B11';
+  END;
+  IF booked IS DISTINCT FROM 'cg8:'||length(target)||':'||target||':'||(i->>'chargeDate') OR NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=booked AND "Ref Loans"=target AND "Charge Date"=(i->>'chargeDate')::date
+    AND "Principal Due"::numeric=(i->>'principalDue')::numeric AND "Interest Due"::numeric=(i->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P5B11';END IF;
  WHEN 'loan.update' THEN
  IF i ? 'scheduleAnchor' AND (i->>'scheduleAnchor')::date<(i->>'loanDate')::date THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
  UPDATE public."Loans" SET "Ref Borrowers"=i->>'borrowerId',"Loan Date"=(i->>'loanDate')::date,"Principal Amount"=(i->>'principal')::numeric::money,"Transfer Fee"=(i->>'transferFee')::numeric::money,"Ref Disbursed From Cash Account"=i->>'disbursingAccountId',"Loan Type"=i->>'type',"Due Date"=(i->>'dueDate')::date,"Daily Payment Amount"=(i->>'dailyPayment')::numeric::money,"Fixed Interest"=(i->>'fixedInterest')::numeric::money,"Current Daily Interest"=(i->>'currentDailyInterest')::numeric::money,"Interest Payment Interval"=(i->>'paymentInterval')::integer,"Interest Schedule Anchor Date"=CASE WHEN i ? 'scheduleAnchor' THEN (i->>'scheduleAnchor')::date ELSE l."Interest Schedule Anchor Date" END,"Loan Arrangement"=i->>'arrangement',"Auto Charge Enabled"=(i->>'autoChargeEnabled')::boolean WHERE "Row ID"=target;
@@ -4861,7 +4873,7 @@ BEGIN
  IF jsonb_typeof(c) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c) key) IS DISTINCT FROM ARRAY['expectedVersion','inputs','operation','predecessorRequestId','schemaVersion','targetId','targetType'] OR c->'schemaVersion'<>'1'::jsonb OR c->>'targetType' IS DISTINCT FROM split_part(c->>'operation','.',1) THEN RAISE EXCEPTION 'command';END IF;
  IF e->>'requestId' !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' THEN RAISE EXCEPTION 'id';END IF;request:=(e->>'requestId')::uuid;
  target:=c->>'targetId';op:=c->>'operation';expected:=c->>'expectedVersion';
- IF jsonb_typeof(c->'targetId') IS DISTINCT FROM 'string' OR octet_length(target) NOT BETWEEN 1 AND 256 OR target~'[[:cntrl:]]' OR op NOT IN('borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update','cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete','capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-openings.initialize','assessment.create','assessment.update','assessment.refresh','assessment.delete','analytics.refresh') THEN RAISE EXCEPTION 'target';END IF;
+ IF jsonb_typeof(c->'targetId') IS DISTINCT FROM 'string' OR octet_length(target) NOT BETWEEN 1 AND 256 OR target~'[[:cntrl:]]' OR op NOT IN('borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update','cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete','capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-openings.initialize','assessment.create','assessment.update','assessment.refresh','assessment.delete','analytics.refresh') THEN RAISE EXCEPTION 'target';END IF;
  IF split_part(op,'.',1)='payment' THEN IF c->'predecessorRequestId'<>'null'::jsonb AND (jsonb_typeof(c->'predecessorRequestId') IS DISTINCT FROM 'string' OR c->>'predecessorRequestId'!~'^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$') THEN RAISE EXCEPTION 'predecessor';END IF;ELSIF c->'predecessorRequestId'<>'null'::jsonb THEN RAISE EXCEPTION 'predecessor';END IF;
  IF op IN('borrower.create','loan.create','charge.create','expense.create','cash-holder.create','cash-account.create','partner.create','capital-contribution.create','settlement.create','settlement.settle-all','cash-movement.create','assessment.create') THEN IF c->'expectedVersion'<>'null'::jsonb OR target !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' THEN RAISE EXCEPTION 'create';END IF;
  ELSE IF jsonb_typeof(c->'expectedVersion') IS DISTINCT FROM 'string' OR expected !~ '^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'version';END IF;END IF;
@@ -4929,6 +4941,11 @@ BEGIN
  ELSIF op IN('loan.default','loan.generate-charge') THEN
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['businessDate'] OR jsonb_typeof(i->'businessDate') IS DISTINCT FROM 'string' OR i->>'businessDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'businessDate')::date)::text<>i->>'businessDate' THEN RAISE EXCEPTION 'business date';END IF;
  input_text:='{"businessDate":'||to_json(i->>'businessDate')::text||'}';
+ ELSIF op='loan.book-projected-charge' THEN
+ -- R104: the reviewed next projected charge of the loan; the generator key is derived, never sent.
+ IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['chargeDate','interestDue','principalDue'] OR jsonb_typeof(i->'chargeDate') IS DISTINCT FROM 'string' OR jsonb_typeof(i->'principalDue') IS DISTINCT FROM 'string' OR jsonb_typeof(i->'interestDue') IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'projected charge keys';END IF;
+ IF i->>'chargeDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'chargeDate')::date)::text<>i->>'chargeDate' OR i->>'principalDue'!~'^(0|[1-9][0-9]{0,16})$' OR i->>'interestDue'!~'^(0|[1-9][0-9]{0,16})$' OR (i->>'principalDue')::numeric>92233720368547758 OR (i->>'interestDue')::numeric>92233720368547758 OR (i->>'principalDue')::numeric+(i->>'interestDue')::numeric<=0 THEN RAISE EXCEPTION 'projected charge input';END IF;
+ input_text:='{"chargeDate":'||to_json(i->>'chargeDate')::text||',"principalDue":'||to_json(i->>'principalDue')::text||',"interestDue":'||to_json(i->>'interestDue')::text||'}';
  ELSIF op IN('borrower.delete','loan.delete','loan.undo-default','charge.delete','payment.delete','expense.delete') THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION 'delete';END IF;input_text:='{}';
  ELSE
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i-'aiCollectionEnabled') key) IS DISTINCT FROM ARRAY['address','city','communicationName','description','hidden','instagramUsername','name','note','preferredReceivingAccountId','referrerId','workingLocation'] THEN RAISE EXCEPTION 'inputs';END IF;
@@ -4975,7 +4992,7 @@ BEGIN
  EXCEPTION WHEN foreign_key_violation THEN RAISE EXCEPTION USING ERRCODE='P5B05';WHEN check_violation OR not_null_violation THEN RAISE EXCEPTION USING ERRCODE='P5B06';END;
  result_value:=jsonb_build_object('operation',op,'targetType','borrower','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL);
  END IF;
- EXCEPTION WHEN SQLSTATE 'P5B01' THEN rejection:='source_conflict';WHEN SQLSTATE 'P5B02' THEN rejection:='not_found';WHEN SQLSTATE 'P5B03' THEN rejection:='borrower_name_exists';WHEN SQLSTATE 'P5B04' THEN rejection:='invalid_reference';WHEN SQLSTATE 'P5B05' THEN rejection:='dependency_conflict';WHEN SQLSTATE 'P5B06' THEN rejection:='record_requires_reconciliation';WHEN SQLSTATE 'P5B07' THEN rejection:='account_unavailable';WHEN SQLSTATE 'P5B08' THEN rejection:='invalid_date';WHEN SQLSTATE 'P5B09' THEN rejection:='plan_changed';WHEN SQLSTATE 'P5B10' THEN rejection:='insufficient_funds';END;
+ EXCEPTION WHEN SQLSTATE 'P5B01' THEN rejection:='source_conflict';WHEN SQLSTATE 'P5B02' THEN rejection:='not_found';WHEN SQLSTATE 'P5B03' THEN rejection:='borrower_name_exists';WHEN SQLSTATE 'P5B04' THEN rejection:='invalid_reference';WHEN SQLSTATE 'P5B05' THEN rejection:='dependency_conflict';WHEN SQLSTATE 'P5B06' THEN rejection:='record_requires_reconciliation';WHEN SQLSTATE 'P5B07' THEN rejection:='account_unavailable';WHEN SQLSTATE 'P5B08' THEN rejection:='invalid_date';WHEN SQLSTATE 'P5B09' THEN rejection:='plan_changed';WHEN SQLSTATE 'P5B10' THEN rejection:='insufficient_funds';WHEN SQLSTATE 'P5B11' THEN rejection:='plan_changed';END;
  IF NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id=request) THEN
  INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code,result_json)
  VALUES(request,2,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',$1,encode(sha256(convert_to($1,'UTF8')),'hex'),CASE WHEN rejection IS NULL THEN 'applied' ELSE 'rejected' END,NULL,rejection,CASE WHEN rejection IS NULL THEN result_value ELSE NULL END);END IF;

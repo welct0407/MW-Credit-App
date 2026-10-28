@@ -73,17 +73,18 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
 /**
  * R101: each eligible loan's next projected charge (pwa_next_projected_charge_v1, V112), in the charge row shape plus loanId.
  * The id is the generator key the payment will book; the amounts are the whole charge. Sorted by date, then loan.
+ * R104: bookVersion is the loan's pwa_loan_version_v2, the expectedVersion of loan.book-projected-charge (Upcoming Charges).
  */
 async function readUpcomingCharges(client,borrowerId,day,name){
  // Before V112 (an image ahead of its migration, or an older rehearsal) the function is absent: no next charges.
  if(!(await client.query(`SELECT to_regprocedure('public.pwa_next_projected_charge_v1(text,date)') IS NOT NULL AS present`)).rows[0].present)return undefined;
  const rows=(await client.query(`SELECT p.loan_id AS "loanId",p.charge_id AS id,p.charge_date::text AS "chargeDate",p.principal_due::text AS "principalRemaining",p.interest_due::text AS "interestRemaining",
- l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate
+ l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate,public.pwa_loan_version_v2(p.loan_id) AS "bookVersion"
  FROM public.pwa_next_projected_charge_v1($1,$2::date) p JOIN public."Loans" l ON l."Row ID"=p.loan_id ORDER BY p.charge_date,p.loan_id COLLATE "C"`,[borrowerId,day])).rows;
  return rows.map(row=>{
-  if(!validDay(row.chargeDate)||row.chargeDate<=day||![row.principalRemaining,row.interestRemaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');
+  if(!validDay(row.chargeDate)||row.chargeDate<=day||typeof row.bookVersion!=='string'||!/^[a-f0-9]{64}$/.test(row.bookVersion)||![row.principalRemaining,row.interestRemaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');
   const principalRemaining=BigInt(row.principalRemaining.split('.')[0]),interestRemaining=BigInt(row.interestRemaining.split('.')[0]);
-  return {id:row.id,loanId:row.loanId,chargeDate:row.chargeDate,loanDisplayKey:paymentLoanDisplayKey({...row,name}),amountRemaining:(principalRemaining+interestRemaining).toString(),principalRemaining:principalRemaining.toString(),interestRemaining:interestRemaining.toString()};
+  return {id:row.id,loanId:row.loanId,chargeDate:row.chargeDate,loanDisplayKey:paymentLoanDisplayKey({...row,name}),amountRemaining:(principalRemaining+interestRemaining).toString(),principalRemaining:principalRemaining.toString(),interestRemaining:interestRemaining.toString(),bookVersion:row.bookVersion};
  });
 }
 

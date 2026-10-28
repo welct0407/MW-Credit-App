@@ -686,3 +686,7 @@ html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-beha
    badge is its own line after the text, so a wrapped line never ends in a dangling separator. */
 .selected-payment .payment-charge-scroll .next-charge-help{padding:0 8px 0 12px;margin-bottom:4px}
 .selected-payment .next-charge-badge-line{display:block;margin-top:2px}
+/* R104 (UPC-02, UPC-R01, UPC-R03): Record charge is a full-width icon-and-text button under its row at every width; its offline help sits directly below it. */
+.upcoming-charges .upcoming-record-charge{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin-top:8px;white-space:normal}
+.upcoming-charges .upcoming-record-charge svg{width:21px;height:21px}
+.upcoming-charges .upcoming-record-help{margin:6px 0 0}

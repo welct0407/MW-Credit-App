@@ -17,3 +17,18 @@ test('loan codec preserves decimal precision and nullable legacy terms without i
  assert.throws(()=>canonicalLoanFields({...fields,principal:null},{create:true}));
  assert.throws(()=>canonicalLoanFields({...fields,originalRate:5},{create:true}));
 });
+
+test('R104 loan.book-projected-charge: a versioned loan target, closed date and whole-baht inputs, canonical key order',()=>{
+ const version='a'.repeat(64),book={requestId:'12345678-1234-4234-8234-123456789abc',operation:'loan.book-projected-charge',targetId:'LOAN-1',expectedVersion:version,predecessorRequestId:null,receiptId:null,inputs:{interestDue:'70',chargeDate:'2026-11-01',principalDue:'0'}};
+ const canonical=canonicalOperation(book);
+ assert.deepEqual(Object.keys(canonical.inputs),['chargeDate','principalDue','interestDue'],'the SQL canonical order');
+ const json=operationIdentity(book,actor).canonicalJson;
+ assert.ok(json.includes('"operation":"loan.book-projected-charge","targetType":"loan","targetId":"LOAN-1","expectedVersion":"'+version+'"'));
+ assert.ok(json.includes('"inputs":{"chargeDate":"2026-11-01","principalDue":"0","interestDue":"70"}'),'the charge id is derived, never an input');
+ assert.equal(operationIdentity({...book,inputs:{chargeDate:'2026-11-01',principalDue:'0',interestDue:'70'}},actor).payloadSha256,operationIdentity(book,actor).payloadSha256);
+ const bad=[{...book,expectedVersion:null},{...book,expectedVersion:'A'.repeat(64)},{...book,receiptId:'12345678-1234-4234-8234-123456789abe'},{...book,predecessorRequestId:'12345678-1234-4234-8234-123456789abe'},
+  {...book,inputs:{...book.inputs,chargeId:'cg8:6:LOAN-1:2026-11-01'}},{...book,inputs:{chargeDate:'2026-11-01',principalDue:'0'}}];
+ for(const [key,value] of [['chargeDate','2026-02-30'],['chargeDate','2026-11-1'],['chargeDate',null],['principalDue','0.5'],['principalDue','-1'],['principalDue','01'],['principalDue',0],['interestDue','1e2'],['interestDue','92233720368547759'],['interestDue','0']])bad.push({...book,inputs:{...book.inputs,principalDue:key==='interestDue'&&value==='0'?'0':book.inputs.principalDue,[key]:value}});
+ for(const value of bad)assert.throws(()=>canonicalOperation(value),/invalid_request/,JSON.stringify(value.inputs));
+ assert.doesNotThrow(()=>canonicalOperation({...book,inputs:{chargeDate:'2026-11-01',principalDue:'16',interestDue:'0'}}),'one component may be zero');
+});

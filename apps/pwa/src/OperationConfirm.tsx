@@ -6,11 +6,12 @@ import {useEffect,useRef,useState} from 'react';
 import type {CommandAccess} from './SelectedCharges';
 import {syncSavedRequest,savedRejectionMessage} from './offline-sync';
 /** Confirmation durably queues one immutable request; synchronization owns transport. */
-export function OperationConfirm({access,command,domain,label,thai,recovery=false,draftKey,receipt,children,onBack,onApplied}:{access:CommandAccess;command:any;domain:string;label:string;thai:boolean;recovery?:boolean;draftKey?:string;receipt?:{id:string;image:Blob;borrowerId?:string};children?:React.ReactNode;onBack:()=>void;onApplied:(result:any)=>void}){
+/** onBlocked (R104) hears the rejection code of a blocked request, after the generic message is set. */
+export function OperationConfirm({access,command,domain,label,thai,recovery=false,draftKey,receipt,children,onBack,onApplied,onBlocked}:{access:CommandAccess;command:any;domain:string;label:string;thai:boolean;recovery?:boolean;draftKey?:string;receipt?:{id:string;image:Blob;borrowerId?:string};children?:React.ReactNode;onBack:()=>void;onApplied:(result:any)=>void;onBlocked?:(code:string)=>void}){
  const t=(en:string,th:string)=>thai?th:en,payload=useRef(command),inflight=useRef(false),applied=useRef(false);
  const [busy,setBusy]=useState(false),[saved,setSaved]=useState(recovery),[error,setError]=useState(''),[blocked,setBlocked]=useState(false);
  useAppUpdateBlock(!saved||busy);
- const accept=useRef((_outcome:any)=>{});accept.current=outcome=>{if(outcome.kind==='synced'&&!applied.current){applied.current=true;onApplied(outcome.data?.originalOutcome?.result)}else if(outcome.kind==='blocked'){setBlocked(true);setError(savedRejectionMessage(outcome,thai))}};
+ const accept=useRef((_outcome:any)=>{});accept.current=outcome=>{if(outcome.kind==='synced'&&!applied.current){applied.current=true;onApplied(outcome.data?.originalOutcome?.result)}else if(outcome.kind==='blocked'){setBlocked(true);setError(savedRejectionMessage(outcome,thai));onBlocked?.(outcome.code??outcome.data?.originalOutcome?.code??outcome.data?.code??'request_rejected')}};
  useEffect(()=>{const outcome=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.requestId===payload.current.requestId)accept.current(detail)};window.addEventListener('mw-offline-sync-outcome',outcome);return()=>window.removeEventListener('mw-offline-sync-outcome',outcome)},[]);
  useEffect(()=>{let active=true;void access.offline?.pending(payload.current.requestId).then(row=>{if(active&&row?.sync?.state==='blocked'){setSaved(true);accept.current({kind:'blocked',code:row.sync.code,data:row.sync.outcome})}}).catch(()=>{});return()=>{active=false}},[access.offline]);
  async function save(){if(inflight.current||blocked)return;inflight.current=true;setBusy(true);setError('');try{
