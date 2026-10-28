@@ -57,6 +57,12 @@ try {
     if(-not ($AnchorOnly -or $ManagementOnly)){
      & (Get-FlywayPath) '-outputType=json' '-target=96' migrate | Out-File (Join-Path $fixtureRoot 'migration96.json')
      if($LASTEXITCODE){throw 'V96 journal-family upgrade failed'}
+     # R102: the operational Dashboard reads olap_portfolio_summary at its V114 shape ("Borrowers with Long Overdue
+     # Payment", which the command service requires, as in DEV and PROD). The family's write paths stay pinned at V96
+     # (later migrations change their contracts), so only V114's two read-only view replacements are applied on top,
+     # outside the Flyway history; they depend on V22/V23 objects only.
+     & (Get-PgTool psql) -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $fixturePort -U postgres -d payment_rehearsal -f (Join-Path $DbRepoRoot 'database/migrations/V114__long_overdue_collection_status.sql')
+     if($LASTEXITCODE){throw 'V114 Dashboard view shape on the V96 journal family failed'}
     }
     if($AnchorOnly -or $ManagementOnly){
      $env:LOAN_ANCHOR_SNAPSHOT=Join-Path $fixtureRoot 'populated-anchor83.json'
