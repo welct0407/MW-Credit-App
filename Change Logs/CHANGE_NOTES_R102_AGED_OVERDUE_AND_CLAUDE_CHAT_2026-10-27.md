@@ -55,4 +55,13 @@ Deploy order: apply V114 and V115 before the app images in each environment, bec
 - Confirm the Metabase apply order: right after V114 on PROD.
 
 ## Remaining work
+Anthropic workload identity federation (identifiers, not secrets; owner set up in the Claude Console on 28 October 2026). Organization `fe93c72e-d3c5-4710-8de5-465493fd3c57`, issuer `google-cloud`; both rules match `sub` `111496211387247382045` and the `mw-integration-agent@` email, scope `workspace:developer`, lifetime 600 s.
+
+| Env | Rule | Service account | Workspace | Audience |
+| --- | --- | --- | --- | --- |
+| DEV | `fdrl_015LhxsBXmuQTpNgZ88DMofy` | `svac_012cXQHFn4eG1b21um6iHEpF` | `wrkspc_013UyN3VKLEsFST7c5jvq6Y5` | `https://api.anthropic.com/mw-credit-chat-dev` |
+| PROD | `fdrl_01FQt7BocPj6Nbztk78KLKrx` | `svac_019kDNyni1Jxk488bQXbiMbZ` | `wrkspc_01MPUWyGuZGX2SJa8zBZrgax` | `https://api.anthropic.com/mw-credit-chat-prod` |
+
+The DEV values are in the VM relay configuration; the PROD values and the PROD caller go in at promotion.
+
 Checks and the DEV proof of Claude Opus 5.5 (tool call, streaming, grounding, deadline, usage, plus one unavailable-model proof) before the default flips. Regenerate the data dictionary entries for the two OLAP views and the chat model constraint after V114 and V115 are applied to DEV. Fill the Checks table from Chase's evidence.
