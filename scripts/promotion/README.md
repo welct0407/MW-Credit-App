@@ -11,6 +11,29 @@ node scripts/promotion/manifest.mjs --manifest PATH --artifact-root CURRENT_ROOT
 node --test tests/unit/phase3-promotion-manifest.test.mjs
 ```
 
+## Generic release kind (R105 onwards)
+
+From R105 a release needs no runner edit when it fits this kind. The package is `schemaVersion: 36`, `kindRule: generic-v1`, `release: RNNN` (a release with no hand-written kind below), `scope: runtime-workers-frontend` or `frontend-only`. `deploy-business-hosting.mjs --check|--apply` routes it through the `generic` row of `HOSTING_KINDS`, after every hand-written kind.
+
+**The operator supplies** the manifest:
+- `release`, `scope`, `status`, `sourceCommit` (= `artifactSourceCommit`), `sourceBaseline`, `target`, `repoRoot`, `artifactRoot` and the frontend artifact list;
+- for a runtime package: `build`, the reviewed saved `plan` (`sha256`, `path`, `counts`, `actions`), `rollback` (Hosting plus all five services), `applied` (the readback of the five services), `recognition` (unchanged: enabled, R075 URL);
+- for a frontend-only package: `runtime.services` (the five PROD services on their pinned revisions and images) and `rollback` (Hosting) only, with no `build`, `plan` or `applied`;
+- `sql`: the DEV release evidence (`release.path`, `sha256`, `commit`) with the PROD `applied` and `verified` readback, or only `verified` when there is no migration;
+- `ownerWindows`: the PROD owner windows the SQL needed (for example `mw_app_prod_journal_owner`), `[]` without a migration. The runner checks their format only; it does not open or gate them;
+- `deliveryToolSource` and `deliveryToolChecks` when a later delivery-tool commit is used, and the per-job CI receipts (`applicationCi`, R074 rule).
+
+**The runner derives** and checks against the manifest:
+- the baseline: the highest `RNNN` tag below the release; it must equal `sourceBaseline` and be an ancestor of the source;
+- the SQL range: the highest migration version at the baseline and at the source. The migrations are the files added between them and must be exactly `V(baseline+1)` to `V(target)`, each once; an edited or removed migration is refused. Each pin is hashed from the source commit and must match the DEV release manifest (`validatePromotionSql`);
+- the changed services, from the files changed between baseline and source (`GENERIC_ROLE_MAP`): `services/chat/` changes chat, `services/payment-command/` command, `services/workers/` and `services/jobs/` notify and jobs. Any other image input (`services/**`, `Dockerfile`, `.dockerignore`, package files, Cloud Build files) changes all five, because the business directories import each other. A `package.json` change outside `scripts` only counts; Markdown and frontend files change no image;
+- the plan: `{add:0, change:n, destroy:0}` with exactly the changed services' `.image` actions in the order read, command, notify, jobs, chat. Any other action is refused (`generic plan may change images only`);
+- the order: SQL first, then the images (`applied.sqlVersion` is the target; `appliedAt` no earlier than the SQL apply or, without a migration, the readback); unchanged services must read back on their pinned image and revision;
+- a frontend-only package may change no runtime input and no migration;
+- the live readback: the chat-era checks with the current (R102) chat rule, and unchanged services on their pins. The operator audience is `https://lm.mw-credit.com/promotion/rnnn`.
+
+**Still needs a hand-written kind (a code edit):** a new service or role; a Terraform action other than an image (environment, scaling, IAM, VPC, a new resource) or any change under `infrastructure/production` or `infrastructure/modules`; a change to the receipt recognizer wiring; images before SQL (as R091); a new scope; a change to the chat rule; and growing the delivery allow-list.
+
 ## Linux cloud sessions
 
 `deploy-business-hosting.mjs` runs unchanged from a Claude Code cloud session. The cloud account `codex-cloud` holds Token Creator on the pinned operator `mw-credit-unattended-admin`, so supply the operator token and the impersonation source token from gcloud:

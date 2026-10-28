@@ -840,9 +840,10 @@ async function sqlRuntimeHostingPlan(m,{requireApplied,git},L){
  }
  return validatedHostingArtifact(m,recovery,{release:L});
 }
-async function verifySqlRuntimeLivePackage(m,{token,request=fetch,readGithub,git=sourceGit},L){
+// `allowed` (the generic kind) replaces the hand-written kind's delivery allow-list.
+async function verifySqlRuntimeLivePackage(m,{token,request=fetch,readGithub,git=sourceGit},L,allowed=sqlRuntimeDeliveryAllowed(L)){
  const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
- await verifyAppOnlyLivePackage(m,{token,request,readGithub,verifyCi:()=>verifyPerJobCiLive(m,gh,git,L,sqlRuntimeDeliveryAllowed(L))});
+ await verifyAppOnlyLivePackage(m,{token,request,readGithub,verifyCi:()=>verifyPerJobCiLive(m,gh,git,L,allowed)});
  await verifyRecognizerWiringLive(m,{token,request},L);
  for(const role of runtimeRoles){
   const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
@@ -940,9 +941,10 @@ export async function r090HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
 // API omits false), the jobs dispatch wake, the chat and jobs callers on notify, and the chat service (identity, image,
 // revision, 300 s timeout, cpu_idle false, dispatch wake, three Gemini models with maxRounds 16). Returns the five live
 // service documents for release-specific checks.
-async function verifyChatRuntimeLive(m,options,L){
+// The generic kind passes its delivery allow-list and the current (R102) chat rule.
+async function verifyChatRuntimeLive(m,options,L,{allowed,liveChat=chatRuntimeKinds[L]?.liveChat}={}){
  const {token,request=fetch}=options;
- await verifySqlRuntimeLivePackage(m,options,L);
+ await verifySqlRuntimeLivePackage(m,options,L,...(allowed?[allowed]:[]));
  const get=async role=>{const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');return r.json();};
  const live={};for(const role of [...runtimeRoles,'chat'])live[role]=await get(role);
  const envOf=s=>Object.fromEntries((s.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value]));
@@ -958,7 +960,7 @@ async function verifyChatRuntimeLive(m,options,L){
  requireValue(s.template.timeout==='300s'&&s.template.containers[0].resources?.cpuIdle!==true,L+' live chat timeout 300s and cpu_idle false required');
  requireValue(dispatch(env),L+' live chat dispatch wake drift');
  let models;try{models=JSON.parse(env.CHAT_MODELS_JSON);}catch{models=null;}
- if(chatRuntimeKinds[L]?.liveChat==='r102'){verifyR102LiveChat(live,env,models,L);return live;}
+ if(liveChat==='r102'){verifyR102LiveChat(live,env,models,L);return live;}
  requireValue(plainObject(models)&&models.maxRounds===16&&Array.isArray(models.models)&&models.models.length===3&&models.models.every(x=>/^gemini-[0-9]+(?:\.[0-9]+)?-[a-z0-9-]+$/.test(x?.id??'')),L+' live chat models must be three Gemini models with maxRounds 16');
  return live;
 }
@@ -1096,7 +1098,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095','R096','R097','R100','R101','R102','R103','R104'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095','R096','R097','R100','R101','R102','R103','R104'].includes(release)||genericRelease(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }
@@ -1165,6 +1167,150 @@ export async function executeBusinessHosting(plan,{request,approvalReference}){
  return {schemaVersion:1,sourceCommit:plan.sourceCommit,site:plan.site,version:version.name,release:release.name,publicVersion:plan.publicVersion,fileCount:Object.keys(plan.files).length,cacheControl:'no-store',approvalReference};
 }
 
+// Generic release kind (R105 onwards; schemaVersion 36, kindRule 'generic-v1'): no per-release code. The operator supplies
+// the manifest (release, scope, source and baseline commits, target, build, reviewed plan, rollback pins, applied readback,
+// the DEV SQL release evidence with the PROD apply and readback, the declared owner windows, the delivery tool and the CI
+// receipts); the runner derives from the repository and checks against it:
+// - baseline: the highest RNNN release tag below the release; it must equal sourceBaseline and be an ancestor of the source;
+// - SQL: the highest migration version at the baseline and at the source; the migrations are the files added between them,
+//   exactly V(baseline+1) to V(target), each hashed from the source commit and equal to the DEV release manifest;
+// - roles: the services whose image changes, from the files changed between baseline and source (GENERIC_ROLE_MAP);
+// - plan: {add:0, change:n, destroy:0} with exactly the changed roles' `.image` actions in canonical order, nothing else.
+// Order: SQL first, then the images. The live readback is the chat-era one with the current (R102) chat check; unchanged
+// services must read back on their pinned image and revision. Anything the derivation cannot express (a new service, a
+// non-image Terraform action, infrastructure changes, recognizer wiring, images before SQL, a new scope) still needs a
+// hand-written kind.
+const GENERIC_SCHEMA=36,GENERIC_RULE='generic-v1',GENERIC_FIRST=105;
+const genericRelease=release=>typeof release==='string'&&/^R[0-9]{3}$/.test(release)&&Number(release.slice(1))>=GENERIC_FIRST;
+export const GENERIC_ROLES=Object.freeze(['read','command','notify','jobs','chat']);
+// Image files under a prefix change only these services. Any other image input (Dockerfile, .dockerignore, package files,
+// Cloud Build files and every other services/ directory) changes all five: the business directories import each other
+// (services/lib imports services/api, services/notifications and services/business import services/api and
+// services/payment-command), so a narrower role cannot be proven from the directory alone.
+export const GENERIC_ROLE_MAP=Object.freeze([
+ Object.freeze(['services/chat/',Object.freeze(['chat'])]),
+ Object.freeze(['services/payment-command/',Object.freeze(['command'])]),
+ Object.freeze(['services/workers/',Object.freeze(['notify','jobs'])]),
+ Object.freeze(['services/jobs/',Object.freeze(['notify','jobs'])]),
+]);
+const genericImageInputs=['services','Dockerfile','.dockerignore','.gcloudignore','package.json','package-lock.json','cloudbuild-command.yaml','cloudbuild-business.yaml'];
+const genericInfrastructure=['infrastructure/production','infrastructure/modules'];
+const underAny=(file,prefixes)=>prefixes.some(prefix=>file===prefix||file.startsWith(prefix+'/'));
+/** The services whose image a set of changed files changes, in canonical order; a scripts-only package.json changes none. */
+export function genericChangedRoles(files,{packageScriptsOnly=false}={}){
+ const roles=new Set();
+ for(const file of files){
+  if((file==='package.json'&&packageScriptsOnly)||!underAny(file,genericImageInputs))continue;
+  const row=GENERIC_ROLE_MAP.find(([prefix])=>file.startsWith(prefix));
+  for(const role of row?row[1]:GENERIC_ROLES)roles.add(role);
+ }
+ return GENERIC_ROLES.filter(role=>roles.has(role));
+}
+const genericDeliveryAllowed=file=>runtimeDeliveryAllowed(file)||['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py'].includes(file);
+const migrationVersion=file=>{const match=/^database\/migrations\/V([1-9][0-9]*)__[^/]+\.sql$/.exec(file);return match?Number(match[1]):null;};
+const migrationFilesAt=(git,root,commit)=>git(root,['ls-tree','-r','--name-only',commit,'--','database/migrations']).split('\n').filter(Boolean);
+const highestVersion=files=>Math.max(0,...files.map(migrationVersion).filter(version=>version!==null));
+const handWrittenReleases=()=>new Set([...HOSTING_KINDS.map(row=>row.kind),...Object.keys(hostingOnlyReleases),...Object.keys(sqlRuntimeReleases)].filter(x=>/^R[0-9]{3}$/.test(x)));
+export function genericKindMatches(m){return m?.schemaVersion===GENERIC_SCHEMA&&m.kindRule===GENERIC_RULE&&genericRelease(m.release)&&!handWrittenReleases().has(m.release)&&['runtime-workers-frontend','frontend-only'].includes(m.scope);}
+/** Repository facts of a generic package: the previous release tag, the SQL range and its new migrations, the changed roles. */
+export function deriveGenericRelease(m,git=sourceGit){
+ const L=m.release,number=Number(L.slice(1));
+ requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&/^[a-f0-9]{40}$/.test(m.sourceBaseline??''),'exact '+L+' source/baseline required');
+ requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
+ requireValue(git(m.repoRoot,['rev-parse','--verify',m.sourceCommit+'^{commit}'])===m.sourceCommit,L+' unknown source commit');
+ const tags=git(m.repoRoot,['tag','--list','R[0-9][0-9][0-9]']).split('\n').map(x=>x.trim()).filter(x=>/^R[0-9]{3}$/.test(x)&&Number(x.slice(1))<number).sort();
+ requireValue(tags.length>0,L+' no previous release tag');
+ const tag=tags.at(-1),baseline=git(m.repoRoot,['rev-parse','--verify','refs/tags/'+tag+'^{commit}']);
+ requireValue(m.sourceBaseline===baseline,L+' source baseline must be the previous release tag '+tag);
+ requireValue(git(m.repoRoot,['merge-base',baseline,m.sourceCommit])===baseline,L+' source must descend from the '+tag+' release');
+ const before=migrationFilesAt(git,m.repoRoot,baseline),after=migrationFilesAt(git,m.repoRoot,m.sourceCommit),known=new Set(before);
+ const sqlBaseline=highestVersion(before),sqlTarget=highestVersion(after);
+ const added=strictNames(git,m.repoRoot,baseline,m.sourceCommit,['database/migrations']);
+ requireValue(added.every(file=>migrationVersion(file)!==null&&!known.has(file)&&after.includes(file)),L+' may only add new versioned migrations');
+ const versions=added.map(migrationVersion).sort((a,b)=>a-b);
+ requireValue(sqlTarget>=sqlBaseline&&exact(versions,Array.from({length:sqlTarget-sqlBaseline},(_,i)=>sqlBaseline+1+i)),L+' migrations must be exactly V'+(sqlBaseline+1)+' to V'+sqlTarget+', each once');
+ const migrations=[...added].sort((a,b)=>migrationVersion(a)-migrationVersion(b)).map(file=>path.posix.basename(file));
+ const changed=strictNames(git,m.repoRoot,baseline,m.sourceCommit);
+ const packageScriptsOnly=changed.includes('package.json')&&(()=>{const b=withoutScripts(git,m.repoRoot,baseline),a=withoutScripts(git,m.repoRoot,m.sourceCommit);return !!(a&&b&&isDeepStrictEqual(a,b));})();
+ return {tag,baseline,sqlBaseline,sqlTarget,migrations,changed,packageScriptsOnly,changedRoles:genericChangedRoles(changed,{packageScriptsOnly}),infrastructure:changed.filter(file=>underAny(file,genericInfrastructure))};
+}
+function validateGenericSource(m,git,L){
+ const tool=m.deliveryToolSource??m.sourceCommit;
+ requireValue(/^[a-f0-9]{40}$/.test(tool)&&git(m.repoRoot,['rev-parse','HEAD'])===tool,L+' delivery source mismatch');
+ if(tool!==m.sourceCommit){requireValue(git(m.repoRoot,['merge-base',m.sourceCommit,tool])===m.sourceCommit,L+' delivery source must descend from the pinned source');requireValue(strictNames(git,m.repoRoot,m.sourceCommit,tool).every(genericDeliveryAllowed)&&m.deliveryToolChecks?.command==='node --test tests/unit/business-hosting-delivery.test.mjs'&&m.deliveryToolChecks.exitCode===0,L+' unverified delivery correction');}
+ requireValue(git(m.repoRoot,['diff','--name-only',tool,'--no-renames','-z','--',...runtimeInputs,'scripts/promotion'])==='',L+' working input drift');
+ requireValue(git(m.repoRoot,['ls-files','--others','--exclude-standard','--',...runtimeInputs,'scripts/promotion'])==='',L+' untracked input');
+}
+const ownerWindowPattern=/^mw_[a-z][a-z0-9_]*_owner(?:_prod)?$/;
+function validateGenericSql(m,facts,L){
+ const windows=m.ownerWindows;
+ requireValue(Array.isArray(windows)&&new Set(windows).size===windows.length&&windows.every(x=>typeof x==='string'&&ownerWindowPattern.test(x)&&!/(?:^|_)dev(?:_|$)/.test(x))&&(facts.migrations.length>0||windows.length===0),L+' declared PROD owner windows required (none without a migration)');
+ if(facts.migrations.length)return false;
+ const v=m.sql?.verified,V=facts.sqlTarget;
+ requireValue(plainObject(m.sql)&&exact(Object.keys(m.sql).sort(),['baselineVersion','migrations','targetVersion','verified'])&&m.sql.baselineVersion===V&&m.sql.targetVersion===V&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion===String(V)&&v.historyRows===V&&v.allSuccessful===true&&zulu(v.verifiedAt),L+' read-only V'+V+' readback with no migration required');
+ return true;
+}
+const recoveryHosting=(recovery)=>requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
+export async function genericHostingPlan(m,{requireApplied=true,git=sourceGit}={}){
+ requireValue(genericKindMatches(m)&&m.environment==='prod','wrong generic package kind');
+ const L=m.release,facts=deriveGenericRelease(m,git);
+ validateGenericSource(m,git,L);
+ requireValue(exact(m.target,{projectId:project,projectNumber:'737787224638',region:'asia-southeast1',site:prodSite,database:'loan_manager_prod',connectionName:project+':asia-southeast1:mw-credit-pg-20261017',canonicalOrigin:'https://lm.mw-credit.com'}),'wrong production target');
+ requireValue(facts.infrastructure.length===0,L+' generic kind cannot carry infrastructure changes: '+facts.infrastructure.join(', '));
+ validateR074Ci(m.applicationCi,m,git,L,genericDeliveryAllowed);
+ const recovery=m.rollback;recoveryHosting(recovery);
+ if(m.scope==='frontend-only'){
+  requireValue(m.status==='prepared'&&!m.build&&!m.plan&&!m.applied&&!m.activation,L+' frontend-only package must not apply runtime or infrastructure changes');
+  const runtime=facts.changed.filter(file=>underAny(file,r065RuntimeInputs)&&!(file==='package.json'&&facts.packageScriptsOnly)&&!/^database\/(?!migrations\/).+\.md$/.test(file));
+  requireValue(facts.migrations.length===0&&runtime.length===0,L+' frontend-only must not change runtime inputs or SQL: '+[...facts.migrations,...runtime].join(', '));
+  validateGenericSql(m,facts,L);
+  const pins=m.runtime?.services;
+  requireValue(plainObject(pins)&&exact(Object.keys(pins).sort(),[...GENERIC_ROLES].sort())&&GENERIC_ROLES.every(role=>imagePattern.test(pins[role]?.image??'')&&revisionOf(role).test(pins[role]?.revision??'')),L+' unchanged runtime pins required: the five services on their PROD revisions and images');
+  return validatedHostingArtifact(m,recovery,{release:L,chatOrigin:R090_CHAT_ORIGIN});
+ }
+ requireValue(['prepared','applied'].includes(m.status),'wrong generic package kind');
+ requireValue(!requireApplied||m.status==='applied',L+' runtime apply/readback required');
+ const roles=facts.changedRoles;requireValue(roles.length>0,L+' changes no service image; use scope frontend-only');
+ const readbackOnly=validateGenericSql(m,facts,L);
+ if(!readbackOnly)await validatePromotionSql(m,git,{label:L,baseline:facts.sqlBaseline,target:facts.sqlTarget,migrations:facts.migrations});
+ requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,L+' PROD image provenance required');
+ requireValue(exact(m.recognition,{activation:'enabled',url:R075_RECOGNIZER_URL}),L+' unchanged enabled receipt recognition wiring required');
+ const actions=m.plan?.actions;
+ requireValue(/^[a-f0-9]{64}$/.test(m.plan?.sha256??'')&&path.isAbsolute(m.plan.path??'')&&Array.isArray(actions),L+' reviewed plan required');
+ requireValue(actions.every(action=>typeof action==='string'&&GENERIC_ROLES.some(role=>action===role+'.image')),L+' generic plan may change images only');
+ requireValue(exact(actions,roles.map(role=>role+'.image'))&&exact(m.plan.counts,{add:0,change:roles.length,destroy:0}),L+' reviewed plan must change exactly the images of '+roles.join(', '));
+ requireValue(plainObject(recovery?.services)&&exact(Object.keys(recovery.services).sort(),[...GENERIC_ROLES].sort()),L+' recovery pins exactly the five services');
+ for(const role of GENERIC_ROLES)requireValue(imagePattern.test(recovery.services[role]?.image??'')&&revisionOf(role).test(recovery.services[role]?.revision??'')&&(!roles.includes(role)||recovery.services[role].image!==m.build.image),'service recovery pin required');
+ if(m.status==='applied'){
+  const after=readbackOnly?m.sql.verified.verifiedAt:m.sql.applied.finishedAt;
+  requireValue(m.applied?.sourceCommit===m.sourceCommit&&m.applied.planSha256===m.plan.sha256&&m.applied.database==='loan_manager_prod'&&m.applied.sqlVersion===facts.sqlTarget&&zulu(m.applied.appliedAt)&&Date.parse(m.applied.appliedAt)>=Date.parse(after),L+' applied source/plan/database mismatch (SQL first, then the images)');
+  requireValue(plainObject(m.applied.services)&&exact(Object.keys(m.applied.services).sort(),[...GENERIC_ROLES].sort()),L+' applied readback must name the five services');
+  for(const role of GENERIC_ROLES){
+   const s=m.applied.services[role];
+   if(!roles.includes(role)){requireValue(s?.image===recovery.services[role].image&&s.revision===recovery.services[role].revision&&s.ready===true&&s.trafficPercent===100,L+' unchanged '+role+' must read back on its pinned image and revision');continue;}
+   requireValue(s?.image===m.build.image&&s.ready===true&&s.trafficPercent===100&&revisionOf(role).test(s.revision??'')&&s.revision!==recovery.services[role].revision,L+' ready service readback required');
+  }
+ }
+ return validatedHostingArtifact(m,recovery,{release:L,chatOrigin:R090_CHAT_ORIGIN});
+}
+/** Live: the chat-era readback with the current (R102) chat check; a frontend-only package re-reads CI and the five pins. */
+export async function verifyGenericLivePackage(m,options={}){
+ const L=m.release;
+ if(m.scope!=='frontend-only'){await verifyChatRuntimeLive(m,options,L,{allowed:genericDeliveryAllowed,liveChat:'r102'});return;}
+ const {token,request=fetch,readGithub,git=sourceGit}=options;
+ const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
+ await verifyPerJobCiLive(m,gh,git,L,genericDeliveryAllowed);
+ const live={};
+ for(const role of GENERIC_ROLES){
+  const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
+  const s=await r.json(),pin=m.runtime.services[role];live[role]=s;
+  requireValue(s.template?.containers?.[0]?.image===pin.image&&s.latestReadyRevision?.endsWith('/'+pin.revision)&&s.terminalCondition?.state==='CONDITION_SUCCEEDED'&&s.trafficStatuses?.length===1&&s.trafficStatuses[0].percent===100&&s.trafficStatuses[0].revision===pin.revision,L+' live '+role+' differs from its pinned image and revision');
+ }
+ const env=Object.fromEntries((live.chat.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value]));let models;try{models=JSON.parse(env.CHAT_MODELS_JSON);}catch{models=null;}
+ requireValue(live.chat.template?.serviceAccount===`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`,L+' live chat identity drift');
+ verifyR102LiveChat(live,env,models,L);
+}
+
 // Every current package kind in one row: its matcher (first match wins, in this order), its plan, its operator audience
 // release and its live verifier. The --check and --apply paths read only this table, so a kind cannot reach another kind's
 // verifier (the R104 apply was refused because the old if-chain had no R104 live branch). R061 and R059 keep the default
@@ -1195,6 +1341,8 @@ export const HOSTING_KINDS=Object.freeze([
  {kind:'R062',match:i=>i.schemaVersion===4&&i.release==='R062',plan:(i,o)=>settingsHostingPlan(i,o),operatorRelease:()=>'R062',live:(i,o)=>verifySettingsLivePackage(i,o)},
  {kind:'R061',match:i=>i.schemaVersion===3&&i.release==='R061',plan:i=>frontendOnlyHostingPlan(i),operatorRelease:()=>undefined,live:i=>verifyFrontendOnlyLivePackage(i)},
  {kind:'R059',match:i=>i.schemaVersion===2&&i.release==='R059',plan:(i,o)=>appOnlyHostingPlan(i,o),operatorRelease:()=>undefined,live:(i,o)=>verifyAppOnlyLivePackage(i,o)},
+ // After every hand-written kind: a release with none of its own (R105 onwards) as the generic kind.
+ {kind:'generic',match:i=>genericKindMatches(i),plan:(i,o)=>genericHostingPlan(i,o),operatorRelease:i=>i.release,live:(i,o)=>verifyGenericLivePackage(i,o)},
 ].map(row=>Object.freeze(row)));
 export function hostingKind(inputs){return HOSTING_KINDS.find(row=>row.match(inputs))??null;}
 
