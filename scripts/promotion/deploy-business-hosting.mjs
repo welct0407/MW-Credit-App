@@ -1174,8 +1174,9 @@ export async function executeBusinessHosting(plan,{request,approvalReference}){
 // - baseline: the highest RNNN release tag below the release; it must equal sourceBaseline and be an ancestor of the source;
 // - SQL: the highest migration version at the baseline and at the source; the migrations are the files added between them,
 //   exactly V(baseline+1) to V(target), each hashed from the source commit and equal to the DEV release manifest;
-// - roles: the services whose image changes, from the files changed between baseline and source (GENERIC_ROLE_MAP);
-// - plan: {add:0, change:n, destroy:0} with exactly the changed roles' `.image` actions in canonical order, nothing else.
+// - roles: the services whose image changes: the services whose entry points reach a changed file (GENERIC_ROLE_ENTRIES);
+// - plan: read back from the saved plan and its JSON export: image-only updates of exactly the changed services;
+// - tags: from origin; the release itself must not be tagged yet.
 // Order: SQL first, then the images. The live readback is the chat-era one with the current (R102) chat check; unchanged
 // services must read back on their pinned image and revision. Anything the derivation cannot express (a new service, a
 // non-image Terraform action, infrastructure changes, recognizer wiring, images before SQL, a new scope) still needs a
@@ -1183,26 +1184,46 @@ export async function executeBusinessHosting(plan,{request,approvalReference}){
 const GENERIC_SCHEMA=36,GENERIC_RULE='generic-v1',GENERIC_FIRST=105;
 const genericRelease=release=>typeof release==='string'&&/^R[0-9]{3}$/.test(release)&&Number(release.slice(1))>=GENERIC_FIRST;
 export const GENERIC_ROLES=Object.freeze(['read','command','notify','jobs','chat']);
-// Image files under a prefix change only these services. Any other image input (Dockerfile, .dockerignore, package files,
-// Cloud Build files and every other services/ directory) changes all five: the business directories import each other
-// (services/lib imports services/api, services/notifications and services/business import services/api and
-// services/payment-command), so a narrower role cannot be proven from the directory alone.
-export const GENERIC_ROLE_MAP=Object.freeze([
- Object.freeze(['services/chat/',Object.freeze(['chat'])]),
- Object.freeze(['services/payment-command/',Object.freeze(['command'])]),
- Object.freeze(['services/workers/',Object.freeze(['notify','jobs'])]),
- Object.freeze(['services/jobs/',Object.freeze(['notify','jobs'])]),
-]);
+// Each service's entry point in the image (Dockerfile copies services/; infrastructure/production/runtime.tf runs read and
+// command on services/production/business-server.mjs, or services/production/server.mjs before the business runtime;
+// the workers module runs notify and jobs on services/workers/server.mjs; chat-service.tf runs services/chat/server.mjs).
+export const GENERIC_ROLE_ENTRIES=Object.freeze({
+ read:Object.freeze(['services/production/business-server.mjs','services/production/server.mjs']),
+ command:Object.freeze(['services/production/business-server.mjs','services/production/server.mjs']),
+ notify:Object.freeze(['services/workers/server.mjs']),
+ jobs:Object.freeze(['services/workers/server.mjs']),
+ chat:Object.freeze(['services/chat/server.mjs'])});
 const genericImageInputs=['services','Dockerfile','.dockerignore','.gcloudignore','package.json','package-lock.json','cloudbuild-command.yaml','cloudbuild-business.yaml'];
 const genericInfrastructure=['infrastructure/production','infrastructure/modules'];
 const underAny=(file,prefixes)=>prefixes.some(prefix=>file===prefix||file.startsWith(prefix+'/'));
-/** The services whose image a set of changed files changes, in canonical order; a scripts-only package.json changes none. */
-export function genericChangedRoles(files,{packageScriptsOnly=false}={}){
+// Relative references a module makes: static and side-effect imports, re-exports, literal dynamic imports (also JSDoc
+// import() types, an over-approximation) and `new URL('./file', import.meta.url)` files read at run time.
+const referencePatterns=[/\bfrom\s*['"](\.{1,2}\/[^'"]+)['"]/g,/\bimport\s*['"](\.{1,2}\/[^'"]+)['"]/g,/\bimport\s*\(\s*['"](\.{1,2}\/[^'"]+)['"]\s*\)/g,/\bnew\s+URL\s*\(\s*['"](\.{1,2}\/[^'"]+)['"]\s*,\s*import\.meta\.url\s*\)/g];
+/** Per service, every file under services/ its entry points reach through relative references (`read` returns a file's text). */
+export function genericRoleClosures(files,read){
+ const closures={};
+ for(const [role,entries] of Object.entries(GENERIC_ROLE_ENTRIES)){
+  requireValue(entries.some(entry=>files.has(entry)),'generic role entry missing for '+role);
+  const seen=new Set(),stack=entries.filter(entry=>files.has(entry));
+  while(stack.length){
+   const file=stack.pop();if(seen.has(file))continue;seen.add(file);
+   if(!/\.(?:mjs|js|cjs)$/.test(file))continue;
+   const text=read(file);
+   for(const pattern of referencePatterns)for(const match of text.matchAll(pattern)){const target=path.posix.normalize(path.posix.join(path.posix.dirname(file),match[1]));if(files.has(target)&&!seen.has(target))stack.push(target);}
+  }
+  closures[role]=seen;
+ }
+ return closures;
+}
+/** The services whose image the changed files change, in canonical order. A services/ file changes the services whose
+ * entry points reach it; one no entry reaches, and every other image input, changes all five. Type declarations and a
+ * scripts-only package.json change none. */
+export function genericChangedRoles(files,{closures,packageScriptsOnly=false}){
  const roles=new Set();
  for(const file of files){
-  if((file==='package.json'&&packageScriptsOnly)||!underAny(file,genericImageInputs))continue;
-  const row=GENERIC_ROLE_MAP.find(([prefix])=>file.startsWith(prefix));
-  for(const role of row?row[1]:GENERIC_ROLES)roles.add(role);
+  if((file==='package.json'&&packageScriptsOnly)||!underAny(file,genericImageInputs)||/^services\/.+\.d\.[cm]?ts$/.test(file))continue;
+  const reached=file.startsWith('services/')?GENERIC_ROLES.filter(role=>closures[role].has(file)):[];
+  for(const role of reached.length?reached:GENERIC_ROLES)roles.add(role);
  }
  return GENERIC_ROLES.filter(role=>roles.has(role));
 }
@@ -1218,9 +1239,16 @@ export function deriveGenericRelease(m,git=sourceGit){
  requireValue(/^[a-f0-9]{40}$/.test(m.sourceCommit??'')&&m.artifactSourceCommit===m.sourceCommit&&/^[a-f0-9]{40}$/.test(m.sourceBaseline??''),'exact '+L+' source/baseline required');
  requireValue(path.isAbsolute(m.repoRoot??'')&&path.isAbsolute(m.artifactRoot??''),'absolute source/artifact roots required');
  requireValue(git(m.repoRoot,['rev-parse','--verify',m.sourceCommit+'^{commit}'])===m.sourceCommit,L+' unknown source commit');
- const tags=git(m.repoRoot,['tag','--list','R[0-9][0-9][0-9]']).split('\n').map(x=>x.trim()).filter(x=>/^R[0-9]{3}$/.test(x)&&Number(x.slice(1))<number).sort();
- requireValue(tags.length>0,L+' no previous release tag');
- const tag=tags.at(-1),baseline=git(m.repoRoot,['rev-parse','--verify','refs/tags/'+tag+'^{commit}']);
+ // Release tags come from origin (peeled), so a missing or stale local tag cannot choose the baseline; every local release
+ // tag must exist on origin at the same commit, and the release itself must not be tagged yet.
+ const remote=new Map();
+ for(const line of git(m.repoRoot,['ls-remote','--tags','origin']).split('\n').filter(Boolean)){const [commit,ref]=line.split('\t'),match=/^refs\/tags\/(R[0-9]{3})(\^\{\})?$/.exec(ref??'');if(match&&/^[a-f0-9]{40}$/.test(commit)&&(match[2]||!remote.has(match[1])))remote.set(match[1],commit);}
+ const local=git(m.repoRoot,['tag','--list','R[0-9][0-9][0-9]']).split('\n').map(x=>x.trim()).filter(x=>/^R[0-9]{3}$/.test(x));
+ for(const tag of local)requireValue(remote.get(tag)===git(m.repoRoot,['rev-parse','--verify','refs/tags/'+tag+'^{commit}']),L+' local release tag '+tag+' differs from origin');
+ requireValue(!remote.has(L)&&!local.includes(L),L+' release tag already exists');
+ const tags=[...remote.keys()].filter(x=>Number(x.slice(1))<number).sort();
+ requireValue(tags.length>0,L+' no previous release tag on origin');
+ const tag=tags.at(-1),baseline=remote.get(tag);
  requireValue(m.sourceBaseline===baseline,L+' source baseline must be the previous release tag '+tag);
  requireValue(git(m.repoRoot,['merge-base',baseline,m.sourceCommit])===baseline,L+' source must descend from the '+tag+' release');
  const before=migrationFilesAt(git,m.repoRoot,baseline),after=migrationFilesAt(git,m.repoRoot,m.sourceCommit),known=new Set(before);
@@ -1232,7 +1260,9 @@ export function deriveGenericRelease(m,git=sourceGit){
  const migrations=[...added].sort((a,b)=>migrationVersion(a)-migrationVersion(b)).map(file=>path.posix.basename(file));
  const changed=strictNames(git,m.repoRoot,baseline,m.sourceCommit);
  const packageScriptsOnly=changed.includes('package.json')&&(()=>{const b=withoutScripts(git,m.repoRoot,baseline),a=withoutScripts(git,m.repoRoot,m.sourceCommit);return !!(a&&b&&isDeepStrictEqual(a,b));})();
- return {tag,baseline,sqlBaseline,sqlTarget,migrations,changed,packageScriptsOnly,changedRoles:genericChangedRoles(changed,{packageScriptsOnly}),infrastructure:changed.filter(file=>underAny(file,genericInfrastructure))};
+ const tree=new Set(git(m.repoRoot,['ls-tree','-r','--name-only',m.sourceCommit,'--','services']).split('\n').filter(Boolean));
+ const closures=genericRoleClosures(tree,file=>git(m.repoRoot,['show',m.sourceCommit+':'+file]));
+ return {tag,baseline,sqlBaseline,sqlTarget,migrations,changed,packageScriptsOnly,changedRoles:genericChangedRoles(changed,{closures,packageScriptsOnly}),infrastructure:changed.filter(file=>underAny(file,genericInfrastructure))};
 }
 function validateGenericSource(m,git,L){
  const tool=m.deliveryToolSource??m.sourceCommit;
@@ -1251,6 +1281,36 @@ function validateGenericSql(m,facts,L){
  return true;
 }
 const recoveryHosting=(recovery)=>requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
+// The reviewed plan is read back, not taken from the manifest: the saved binary plan (`plan.path`, `plan.sha256`) and its
+// `terraform show -json` export (`plan.jsonPath`, `plan.jsonSha256`). Every resource change other than a no-op or a data
+// read must be an in-place update of a mw-credit-app-<role>-prod Cloud Run service whose only configured difference is the
+// container image (attributes Terraform marks unknown after apply are computed and ignored).
+function planDiffs(before,after,unknown,at=''){
+ if(unknown===true||isDeepStrictEqual(before,after))return [];
+ const arrays=Array.isArray(before)&&Array.isArray(after)&&before.length===after.length;
+ if(!arrays&&!(plainObject(before)&&plainObject(after)))return [at||'(resource)'];
+ const keys=arrays?before.map((_,i)=>String(i)):[...new Set([...Object.keys(before),...Object.keys(after)])];
+ return keys.flatMap(key=>planDiffs(before[key],after[key],plainObject(unknown)||Array.isArray(unknown)?unknown[key]:undefined,at?at+'.'+key:key));
+}
+async function readGenericPlan(m,L){
+ const p=m.plan;
+ requireValue(/^[a-f0-9]{64}$/.test(p?.sha256??'')&&path.isAbsolute(p.path??'')&&/^[a-f0-9]{64}$/.test(p.jsonSha256??'')&&path.isAbsolute(p.jsonPath??''),L+' reviewed plan and its JSON export required');
+ requireValue(sha(await readFile(p.path))===p.sha256,L+' saved plan changed');
+ const bytes=await readFile(p.jsonPath);requireValue(sha(bytes)===p.jsonSha256,L+' plan JSON export changed');
+ let json;try{json=JSON.parse(bytes.toString('utf8'));}catch{json=null;}
+ requireValue(plainObject(json)&&Array.isArray(json.resource_changes),L+' plan JSON export unreadable');
+ const changed=[];
+ for(const rc of json.resource_changes){
+  const actions=rc?.change?.actions;
+  if(exact(actions,['no-op'])||exact(actions,['read']))continue;
+  const role=/^mw-credit-app-(read|command|notify|jobs|chat)-prod$/.exec(rc?.change?.after?.name??'')?.[1];
+  requireValue(rc.type==='google_cloud_run_v2_service'&&exact(actions,['update'])&&role&&rc.change.before?.name===rc.change.after.name,L+' generic plan may change images only: '+(rc?.address??'unknown resource'));
+  const diffs=planDiffs(rc.change.before,rc.change.after,rc.change.after_unknown);
+  requireValue(diffs.length>0&&diffs.every(d=>d==='template.0.containers.0.image'),L+' generic plan may change images only: '+rc.address+' changes '+diffs.join(', '));
+  requireValue(!changed.includes(role+'.image'),L+' generic plan changes '+role+' twice');changed.push(role+'.image');
+ }
+ return GENERIC_ROLES.map(role=>role+'.image').filter(action=>changed.includes(action));
+}
 export async function genericHostingPlan(m,{requireApplied=true,git=sourceGit}={}){
  requireValue(genericKindMatches(m)&&m.environment==='prod','wrong generic package kind');
  const L=m.release,facts=deriveGenericRelease(m,git);
@@ -1276,9 +1336,9 @@ export async function genericHostingPlan(m,{requireApplied=true,git=sourceGit}={
  requireValue(m.build?.sourceCommit===m.sourceCommit&&m.build.status==='SUCCESS'&&imagePattern.test(m.build.image??'')&&typeof m.build.id==='string'&&m.build.id.length>0,L+' PROD image provenance required');
  requireValue(exact(m.recognition,{activation:'enabled',url:R075_RECOGNIZER_URL}),L+' unchanged enabled receipt recognition wiring required');
  const actions=m.plan?.actions;
- requireValue(/^[a-f0-9]{64}$/.test(m.plan?.sha256??'')&&path.isAbsolute(m.plan.path??'')&&Array.isArray(actions),L+' reviewed plan required');
- requireValue(actions.every(action=>typeof action==='string'&&GENERIC_ROLES.some(role=>action===role+'.image')),L+' generic plan may change images only');
- requireValue(exact(actions,roles.map(role=>role+'.image'))&&exact(m.plan.counts,{add:0,change:roles.length,destroy:0}),L+' reviewed plan must change exactly the images of '+roles.join(', '));
+ requireValue(Array.isArray(actions)&&actions.every(action=>typeof action==='string'&&GENERIC_ROLES.some(role=>action===role+'.image')),L+' generic plan may change images only');
+ const planned=await readGenericPlan(m,L);
+ requireValue(exact(planned,roles.map(role=>role+'.image'))&&exact(actions,planned)&&exact(m.plan.counts,{add:0,change:roles.length,destroy:0}),L+' reviewed plan must change exactly the images of '+roles.join(', ')+' (the plan JSON changes '+(planned.join(', ')||'nothing')+')');
  requireValue(plainObject(recovery?.services)&&exact(Object.keys(recovery.services).sort(),[...GENERIC_ROLES].sort()),L+' recovery pins exactly the five services');
  for(const role of GENERIC_ROLES)requireValue(imagePattern.test(recovery.services[role]?.image??'')&&revisionOf(role).test(recovery.services[role]?.revision??'')&&(!roles.includes(role)||recovery.services[role].image!==m.build.image),'service recovery pin required');
  if(m.status==='applied'){
