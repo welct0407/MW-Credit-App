@@ -1056,7 +1056,12 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
 export async function verifyAppOnlyLivePackage(m,{token,request=fetch,readGithub,settings=false,verifyCi}){
  requireValue(path.isAbsolute(m.plan.path??'')&&sha(await readFile(m.plan.path))===m.plan.sha256,'saved plan changed');
  const get=async url=>{const r=await request(url,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');return r.json();};
- const build=await get(`https://cloudbuild.googleapis.com/v1/projects/${project}/locations/asia-southeast1/builds/${encodeURIComponent(m.build.id)}`);
+ // The image build is read regionally; only a regional 404 falls back to the global location (R102's PROD build was
+ // submitted globally). A global build must name the recorded build id and the project; every check below stays exact.
+ const buildUrl=location=>`https://cloudbuild.googleapis.com/v1/projects/${project}/locations/${location}/builds/${encodeURIComponent(m.build.id)}`;
+ let build;{const regional=await request(buildUrl('asia-southeast1'),{redirect:'error',headers:{Authorization:'Bearer '+token}});
+  if(regional.ok)build=await regional.json();
+  else{requireValue(regional.status===404,'live package readback failed');build=await get(buildUrl('global'));requireValue(build?.id===m.build.id&&build.projectId===project,'live global build identity mismatch');}}
  requireValue(build.status==='SUCCESS'&&build.results?.images?.some(image=>image.name.startsWith(`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api:`)&&m.build.image.endsWith('@'+image.digest)),'live build digest mismatch');
  requireValue(exact(build.source?.storageSource,m.build.storageSource)&&typeof m.build.storageSource?.generation==='string'&&typeof m.build.storageSource?.bucket==='string'&&typeof m.build.storageSource?.object==='string','exact CloudBuild source object required');
  for(const role of ['read','command','notify','jobs']){
