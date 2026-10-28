@@ -44,11 +44,21 @@ export const toolLabel=(name:string,thai:boolean)=>TOOLS[name]?pick(TOOLS[name].
 export function toolProgressLabel(tool:{name:string;state:string;summary?:string},thai:boolean){
  return tool.name==='read_records'&&tool.state==='ok'&&tool.summary?tool.summary.toLowerCase():toolLabel(tool.name,thai);
 }
-/** "Round 2 · checking Loans, Payments…" from the `round` and `tool` events. */
-export function progressText(round:number,tools:{name:string;state:string;summary?:string}[],thai:boolean){
+/** Elapsed seconds appear on the status row only from this many seconds on (R103). */
+export const ELAPSED_FROM_SECONDS=5;
+const MAX_PROGRESS_TOOLS=3;
+/**
+ * The status row of an accepted turn (R103): "Looking up data…", or "Looking up data · loans, database…" once tools
+ * run (at most three distinct labels, then "…"), and "Preparing a reply…" before the first `round`. `seconds` is the
+ * client-side elapsed time (" · 12 s"), empty before 5 s; the row renders it aria-hidden.
+ */
+export function progressText(round:number,tools:{name:string;state:string;summary?:string}[],thai:boolean,elapsedSeconds=0){
  const names=[...new Set(tools.map(tool=>toolProgressLabel(tool,thai)))];
- const head=thai?'รอบที่ '+round:'Round '+round;
- return names.length?head+(thai?' · กำลังตรวจ ':' · checking ')+names.join(', ')+'…':head+(thai?' · กำลังคิด…':' · thinking…');
+ const head=thai?'กำลังค้นหาข้อมูล':'Looking up data';
+ const list=names.slice(0,MAX_PROGRESS_TOOLS).join(', ')+(names.length>MAX_PROGRESS_TOOLS?', …':'…');
+ const text=round===0&&!names.length?(thai?'กำลังเตรียมคำตอบ…':'Preparing a reply…'):names.length?head+' · '+list:head+'…';
+ const whole=Math.floor(elapsedSeconds);
+ return {text,seconds:whole>=ELAPSED_FROM_SECONDS?' · '+whole+(thai?' วิ':' s'):''};
 }
 /** "Checked: database (2 queries), loan payoff" under a committed reply. */
 export function sourcesText(tools:{name:string;count:number}[]|undefined,thai:boolean){

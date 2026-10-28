@@ -6,6 +6,24 @@ Current definitions: [Data Dictionary](../../Documents/Data%20Dictionary/README.
 
 Use bundled Python and the external pinned parser in `requirements.txt`. The default package directory is `$env:USERPROFILE/Documents/ChatGPT/AppSheet-Loan-Project/tools/dictionary-python`; override with `MW_DICTIONARY_PYTHON_PACKAGES` if needed. Do not reinstall when available.
 
+## PostgreSQL capture (R103)
+
+The capture is read-only and metadata-only, and runs on Linux and Windows through a local Cloud SQL Auth Proxy endpoint as `codex-cloud-read`; the direct public-IP connection is retired. The output stays under `MW_PRIVATE_ROOT`, outside the repository, and is never overwritten.
+
+```bash
+# Linux cloud session: opens or reuses the IAP tunnel of scripts/database/Invoke-CloudFlyway.py
+python3 scripts/dictionary/capture_postgresql.py production "$MW_PRIVATE_ROOT/dictionary/production-complete.json"
+# Windows: --local-port of the pinned proxy that Get-DbEnvironment started (loopback only)
+py scripts\dictionary\capture_postgresql.py production <private path> --local-port 15432
+# Targeted reconciliation, then apply the plan and validate
+python3 project/scripts/dictionary/reconcile_captures.py plan <private dir> <output dir> --postgres-only --only relation:public.olap_portfolio_summary --only routine:<name>
+python3 project/scripts/dictionary/reconcile_captures.py apply <output dir>/plan.json
+python3 project/scripts/dictionary/dictionary.py index
+python3 project/scripts/dictionary/dictionary.py validate
+```
+
+`--only` takes `kind:name` (repeatable or comma-separated) and needs `--postgres-only`; a named object the capture lacks is refused. Run it against `production`, because the dictionary records `loan_manager_prod` only, and after a migration is applied to PROD. Evidence for the R103 run is in `project/outputs/dictionary-r103-20261028/`.
+
 ## Commands
 
 From the repository root, using the established Python executable:

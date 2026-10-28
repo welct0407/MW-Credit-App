@@ -1,5 +1,7 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';
-import {api,assertSource,read,write,privateDir} from './ReportingApi.mjs';
+import {api as rawApi,assertSource,read,write} from './ReportingApi.mjs';import {baselineDir,redactedReads} from './Baselines.mjs';
+const api=redactedReads(rawApi);  // R103: compare the redacted form the baselines hold
+const privateDir=await baselineDir('r016-20260922');  // R103: Baselines.mjs (override or private bucket)
 await assertSource();const state=read('cashflow-state.json'),d=await api('GET','dashboard/3'),checks=[];
 const check=(name,ok)=>{assert.ok(ok,name);checks.push(name);};
 const near=(a,b)=>a===null||b===null?a===b:Math.abs(Number(a)-Number(b))<1e-7;

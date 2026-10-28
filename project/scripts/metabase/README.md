@@ -139,6 +139,12 @@ R025 canonical cutover: `PromoteCollectionTab.mjs` uses the private pre-cutover 
 
 `ReorderCollectionStatusLanes.mjs --apply --verify` applies the later owner-requested order to existing lane placements, the detail status selector and its color-rule sequence. It snapshots the current dashboard/detail question privately and guards the starting order. After installation, use `--verify` alone; do not replay `--apply`. The earlier color verifier is dated evidence and expects the pre-reorder layout. [Order evidence](../../outputs/r036-collection-status-colors/order-verification.json).
 
+## Verify baselines (R103)
+
+The `Verify-*` scripts read their baselines through `Baselines.mjs` (`baselineDir(name)`), not from a Windows profile. It uses `MW_METABASE_PRIVATE_DIR/<name>` when that directory exists, otherwise it syncs `gs://mw-credit-operator-private-737787224638/metabase-baselines/<name>/` read-only into `$MW_PRIVATE_ROOT/metabase-baselines/<name>` (default `~/.mw-private`) and refuses an empty or partial set. Keys and tokens in the files are redacted to `<private>`. The bucket keeps the latest set only (noncurrent generations are deleted after each refresh; bucket soft delete gives 7 days of recovery).
+
+`node scripts/metabase/Baselines.mjs --refresh` (from `project/`, owner-approved, never implicit) is the only command that writes to the bucket: it asserts the PROD reporting source, captures the files with read-only Metabase API calls, refuses a credential-bearing file or an empty or partial capture, then replaces each prefix. `Verify-CollectionMonitor.mjs` runs live against these baselines (41 pass, 1 data-dependent skip, 0 fail on 28 October 2026). `Verify-RemainingPages.mjs` is not runnable because its install state cannot be derived.
+
 ## R102 Long overdue lane
 
 `AddLongOverdueLane.mjs --prepare`, `--apply`, `--verify` adds the Collection Monitor lane "Long overdue" (status 'Long Overdue', colour `#37474f`) between Overdue and Paid on dashboard 3 tab 19, with its two cards and the matching status selector and color rule, and updates the lane model `models/collection-summary.sql`. It snapshots the current objects privately and refuses to replay. It reads PROD only, so run it right after the PROD promotion that installs V114 (until then the `unclassified` card shows a positive count), then `--verify` and `Verify-CollectionMonitor.mjs`, which now expects five lanes. The Loan Reports proposed dashboard lanes follow the same order. Overdue now means 1 to 7 days.

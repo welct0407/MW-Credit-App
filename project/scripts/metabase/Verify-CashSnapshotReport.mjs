@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {api,assertSource,read,write,privateDir,root} from './ReportingApi.mjs';
-import {prior,projection,layout,modelSpecs} from './CashSnapshotReport.mjs';
+import {api as rawApi,assertSource,read,write,root} from './ReportingApi.mjs';import {redactedReads} from './Baselines.mjs';
+import {prior,projection,layout,modelSpecs,backup,useBaseline} from './CashSnapshotReport.mjs';
+await useBaseline();  // R103: resolve the baseline (override or private bucket) before any read
+const api=redactedReads(rawApi);  // R103: compare the redacted form the baselines hold
 await assertSource();const d=await api('GET','dashboard/3'),state=read('cash-snapshot-report-state.json'),baseline=prior('dashboard'),checks=[];
 const check=(name,ok)=>{if(!ok)throw Error(name);checks.push(name);};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -12,7 +14,7 @@ assert.deepEqual(sorted(d.dashcards.filter(c=>c.dashboard_tab_id===14)),sorted(l
 assert.deepEqual(await api('GET','collection/graph'),prior('collection-graph'));checks.push('Partner permissions preserved');
 for(const old of prior('snippets')){const current=(await api('GET','native-query-snippet')).find(s=>s.id===old.id);assert.deepEqual(current,old);}checks.push('Existing three snippets preserved');
 for(const id of [47,48,68,73,74,164,179,180,182,183,184,187,188,197,200,201]){const old=prior('card-'+id),now=await api('GET','card/'+id);for(const k of ['name','dataset_query','visualization_settings','result_metadata','archived'])assert.deepEqual(now[k],old[k]);}checks.push('All existing shared live/historical cards and model definitions preserved');
-const result=async(route,body)=>{const r=await api('POST',route,body);if(r.status!=='completed'){fs.writeFileSync(privateDir+'/cash-snapshot-report-before/verify-error.json',JSON.stringify(r));throw Error('Query failed: '+route);}assert.ok(!r.data.rows_truncated);return r.data;};
+const result=async(route,body)=>{const r=await api('POST',route,body);if(r.status!=='completed'){fs.writeFileSync(backup+'/verify-error.json',JSON.stringify(r));throw Error('Query failed: '+route);}assert.ok(!r.data.rows_truncated);return r.data;};
 const sql=query=>result('dataset',{database:2,type:'native',native:{query}});
 const today=(await sql("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date")).rows[0][0].slice(0,10);
 const yesterday=new Date(new Date(today+'T12:00:00Z').getTime()-86400000).toISOString().slice(0,10);
@@ -53,5 +55,5 @@ for(const day of [today,yesterday])for(const unknown of [false,true]){
  check(`${day===today?'Live':'Past'} synthetic ${unknown?'unknown':'negative'} balances propagate through real routing logic`,unknown?r.rows[0][0]===null&&r.rows[0][1]===null:near(r.rows[0][0],-25)&&near(r.rows[0][1],-25)&&near(r.rows[0][2],-125));
 }
 write('cash-snapshot-report-verification.json',{verified_at:new Date().toISOString(),checks,check_count:checks.length,financial_values_published:false,reporting_only:true,other_tabs_preserved:true,visuals:d.dashcards.filter(c=>c.card_id).length,questions:new Set(d.dashcards.map(c=>c.card_id).filter(Boolean)).size,models:Object.keys(read('models.json')).length,model_fields:Object.values(read('models.json')).reduce((s,m)=>s+m.columns.length,0),today,yesterday});
-fs.writeFileSync(privateDir+'/cash-snapshot-report-before/completed-dashboard.json',JSON.stringify(d,null,2));
+fs.writeFileSync(backup+'/completed-dashboard.json',JSON.stringify(d,null,2));
 console.log(checks.length+' focused checks passed; no financial values published.');

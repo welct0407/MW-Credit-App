@@ -1,12 +1,14 @@
 {
-  "at": "2026-09-24T11:46:12.549Z",
+  "at": "2026-10-28T14:12:01.312Z",
   "checks": [
     "All 189 original placements, layouts and mappings unchanged",
-    "New tab immediately follows original collection",
+    "Original collection tab retired; the R025 tab is the one Collection Monitor page",
     "Original tab names/order and original parameters preserved",
     "Collection permission graph unchanged",
     "All five shared models unchanged",
     "All original embedded saved question queries and formatting unchanged",
+    "People question 236 retained, unarchived and unplaced",
+    "Question 252 completes the top card row 237, 238, 239, 252 at the right",
     "All 16 saved dashboard questions complete without truncation",
     "Worklist grain is unique immutable borrower ID",
     "No unexpected non-null collection statuses",
@@ -14,12 +16,14 @@
     "Receipts total matches worklist",
     "Remaining total matches worklist without double-counting overdue",
     "People percentage is weighted count ratio",
-    "Overdue: count and table agree",
-    "Overdue: exact names/IDs/receipts/remaining",
     "Not Paid: count and table agree",
     "Not Paid: exact names/IDs/receipts/remaining",
     "Partially Paid: count and table agree",
     "Partially Paid: exact names/IDs/receipts/remaining",
+    "Overdue: count and table agree",
+    "Overdue: exact names/IDs/receipts/remaining",
+    "Long Overdue: count and table agree",
+    "Long Overdue: exact names/IDs/receipts/remaining",
     "Fully Paid: count and table agree",
     "Fully Paid: exact names/IDs/receipts/remaining",
     "Four lanes partition source without overlap",
@@ -30,7 +34,6 @@
     "Detail only · Status: actual dashboard mapping filters precisely",
     "No-match borrower filter returns empty, not all borrowers",
     "Current rows independently reconcile to governed PostgreSQL views",
-    "Observed overdue payer remains overdue",
     "Today-charge summary preserves separate population",
     "Live view contains expected status precedence",
     "Synthetic null/partial/multi-loan/overdue/paid statuses",
@@ -40,76 +43,97 @@
     "Empty board remaining: honest zero/null",
     "Empty board completion: honest zero/null"
   ],
-  "passed": 38,
+  "skipped": [
+    {
+      "check": "Observed overdue payer remains overdue",
+      "status": "SKIPPED",
+      "reason": "no Overdue borrower who paid today and still owes in the source views today"
+    }
+  ],
+  "passed": 41,
+  "skippedCount": 1,
+  "failed": 0,
   "queryTimings": [
     {
       "key": "people",
-      "ms": 199
+      "ms": 504
     },
     {
       "key": "receipts",
-      "ms": 223
+      "ms": 467
     },
     {
       "key": "remaining",
-      "ms": 194
+      "ms": 398
     },
     {
       "key": "completion",
-      "ms": 198
-    },
-    {
-      "key": "overdue-count",
-      "ms": 188
-    },
-    {
-      "key": "overdue-list",
-      "ms": 226
+      "ms": 416
     },
     {
       "key": "unpaid-count",
-      "ms": 194
+      "ms": 435
     },
     {
       "key": "unpaid-list",
-      "ms": 210
+      "ms": 553
     },
     {
       "key": "partial-count",
-      "ms": 210
+      "ms": 534
     },
     {
       "key": "partial-list",
-      "ms": 235
+      "ms": 513
+    },
+    {
+      "key": "overdue-count",
+      "ms": 446
+    },
+    {
+      "key": "overdue-list",
+      "ms": 645
+    },
+    {
+      "key": "long-count",
+      "ms": 473
+    },
+    {
+      "key": "long-list",
+      "ms": 478
     },
     {
       "key": "paid-count",
-      "ms": 193
+      "ms": 482
     },
     {
       "key": "paid-list",
-      "ms": 220
+      "ms": 512
     },
     {
       "key": "detail",
-      "ms": 235
+      "ms": 442
     },
     {
       "key": "today-charges",
-      "ms": 310
+      "ms": 571
+    },
+    {
+      "key": "today-charge-paid",
+      "ms": 481
     },
     {
       "key": "freshness",
-      "ms": 329
+      "ms": 492
     },
     {
       "key": "unclassified",
-      "ms": 209
+      "ms": 429
     }
   ],
-  "totalSequentialQueryMs": 3573,
-  "originalPlacements": 189,
-  "newPlacements": 21,
+  "totalSequentialQueryMs": 9271,
+  "originalPlacements": 251,
+  "newPlacements": 23,
   "tabs": 12,
   "financialValuesPublished": false
 }

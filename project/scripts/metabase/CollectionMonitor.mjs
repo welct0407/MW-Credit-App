@@ -4,10 +4,14 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {api,assertSource} from './ReportingApi.mjs';
+import {baselineDir,diagnosticsDir} from './Baselines.mjs';
 // R102: the command flags act only when this file is run directly (AddLongOverdueLane.mjs imports it and shares --prepare).
 const main=!!process.argv[1]&&fileURLToPath(import.meta.url)===path.resolve(process.argv[1]),flag=name=>main&&process.argv.includes(name);
 export const out='outputs/r025-20260924';
-export const backup='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor';
+// R103: the rollback/verify baseline comes from Baselines.mjs (override or private bucket), resolved only when a command
+// needs it, so importing this module (AddLongOverdueLane.mjs, the unit tests) never syncs.
+export const BASELINE='r025-collection-monitor';
+let resolved;export const baseline=()=>resolved??=baselineDir(BASELINE);
 export const save=(name,value)=>{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(`${out}/${name}.json`,JSON.stringify(value,null,2)+'\n');};
 export const read=name=>JSON.parse(fs.readFileSync(`${out}/${name}.json`,'utf8'));
 const F=(name,type='type/Decimal')=>['field',name,{'base-type':type}];
@@ -83,9 +87,9 @@ export function layout(state){
  note('Amounts are baht. Queried at is the helper query time; errors remain visible per card. AppSheet payments appear after sync and refresh.',34,2);
  return cards;
 }
-export async function runQuery(route,body){const r=await api('POST',route,body);if(r.status!=='completed'){fs.mkdirSync(backup,{recursive:true});fs.writeFileSync(`${backup}/query-error.json`,JSON.stringify(r));throw Error(`Query failed ${route}; private diagnostic saved`);}assert.ok(!r.data.rows_truncated,'No truncation');return r.data;}
+export async function runQuery(route,body){const r=await api('POST',route,body);if(r.status!=='completed'){const dir=diagnosticsDir(BASELINE);fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(`${dir}/query-error.json`,JSON.stringify(r));throw Error(`Query failed ${route}; private diagnostic saved`);}assert.ok(!r.data.rows_truncated,'No truncation');return r.data;}
 if(flag('--prepare')){
- await assertSource();fs.mkdirSync(backup,{recursive:true});
+ await assertSource();const backup=await baseline();
  if(!fs.existsSync(`${backup}/dashboard.json`)){
   const d=await api('GET','dashboard/3');assert.equal(d.tabs.find(t=>t.id===9)?.name,'8 · Daily Collection');
   fs.writeFileSync(`${backup}/dashboard.json`,JSON.stringify(d));fs.writeFileSync(`${backup}/permissions.json`,JSON.stringify(await api('GET','collection/graph')));
@@ -97,7 +101,7 @@ if(flag('--prepare')){
  save('preflight',{at:new Date().toISOString(),checks});console.log(`Rollback captured privately; ${checks.length} queries passed preflight`);
 }
 if(flag('--install')){
- await assertSource();const before=JSON.parse(fs.readFileSync(`${backup}/dashboard.json`));
+ await assertSource();const backup=await baseline(),before=JSON.parse(fs.readFileSync(`${backup}/dashboard.json`));
  const state=fs.existsSync(`${out}/state.json`)?read('state'):{cards:{},backup,baselineCommit:'f4b8ffd86a73667b0d30c429a7b6d85da6151a5b'};
  let d=await api('GET','dashboard/3');assert.deepEqual(shape(d.dashcards.filter(c=>c.dashboard_tab_id!==state.tab)),shape(before.dashcards));
  for(const s of specs){if(state.cards[s.key])continue;const {key,...body}=s;const c=await api('POST','card',{...body,type:'question',collection_id:5});state.cards[key]=c.id;save('state',state);}
@@ -112,7 +116,7 @@ if(flag('--install')){
  console.log(`Installed tab ${state.tab}; ${before.dashcards.length} original placements preserved`);
 }
 if(flag('--refine')){
- const state=read('state'),before=JSON.parse(fs.readFileSync(`${backup}/dashboard.json`));
+ const backup=await baseline(),state=read('state'),before=JSON.parse(fs.readFileSync(`${backup}/dashboard.json`));
  let d=await api('GET','dashboard/3');assert.deepEqual(shape(d.dashcards.filter(c=>c.dashboard_tab_id!==state.tab)),shape(before.dashcards));
  fs.writeFileSync(`${backup}/before-refinement-${Date.now()}.json`,JSON.stringify(d));
  await api('PUT','dashboard/3',{parameters:d.parameters.map(p=>parameters.find(x=>x.id===p.id)??p)});

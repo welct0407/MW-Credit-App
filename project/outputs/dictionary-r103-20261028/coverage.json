@@ -1,0 +1,126 @@
+{
+  "status": "in progress",
+  "targets": {
+    "postgresql-production": {
+      "identity": {
+        "instance": "mw-credit-pg-20261017",
+        "database": "loan_manager_prod",
+        "route": "cloud-sql-auth-proxy",
+        "host": "127.0.0.1",
+        "port": 15432
+      },
+      "version_or_hash": "2aa78e2ef2365a6a06f4f48ba71849d767a1c32c66de91ce3a9c1320b003afb5",
+      "counts": {
+        "schemas": 4,
+        "relations": 98,
+        "columns": 1501,
+        "constraints": 420,
+        "indexes": 87,
+        "routines": 213,
+        "triggers": 416,
+        "sequences": 2,
+        "types": 0,
+        "policies": 0,
+        "extensions": 2,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 7,
+        "role_dependencies": 40,
+        "relevant_roles": 52,
+        "role_memberships": 51,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 115,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 1197,
+        "jobs": 0
+      },
+      "captured_utc": "2026-10-28T14:14:30.934939+00:00"
+    }
+  },
+  "objects": [
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "2aa78e2ef2365a6a06f4f48ba71849d767a1c32c66de91ce3a9c1320b003afb5",
+      "object_kind": "relation",
+      "object_name": "public.olap_borrowers_analytics",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-borrowers-analytics-2ac154a3.yaml",
+      "status": "updated",
+      "expected_properties": 1518,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "2aa78e2ef2365a6a06f4f48ba71849d767a1c32c66de91ce3a9c1320b003afb5",
+      "object_kind": "relation",
+      "object_name": "public.olap_portfolio_summary",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-portfolio-summary-3be1193e.yaml",
+      "status": "updated",
+      "expected_properties": 1062,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "2aa78e2ef2365a6a06f4f48ba71849d767a1c32c66de91ce3a9c1320b003afb5",
+      "object_kind": "relation",
+      "object_name": "public.pwa_chat_threads",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-pwa-chat-threads-1add5eb1.yaml",
+      "status": "updated",
+      "expected_properties": 489,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "2aa78e2ef2365a6a06f4f48ba71849d767a1c32c66de91ce3a9c1320b003afb5",
+      "object_kind": "routine",
+      "object_name": "public.pwa_chat_thread_create_v1(actor jsonb, thread jsonb)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-chat-thread-create-v1-actor-jsonb-thread-jsonb-f5918c1c.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "2aa78e2ef2365a6a06f4f48ba71849d767a1c32c66de91ce3a9c1320b003afb5",
+      "object_kind": "routine",
+      "object_name": "public.pwa_chat_thread_update_v1(actor jsonb, id uuid, patch jsonb)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-chat-thread-update-v1-actor-jsonb-id-uuid-patch-jsonb-232af8a2.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    }
+  ]
+}

@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
   "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "f9424c714eb92d7dc0bc710bc6f721121ac71ff2"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-portfolio-summary-3be1193e.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "relation"
+      "name": "public.olap_portfolio_summary"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -21,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres,mw_chat_read_prod=r/postgres}"
     "comment": null
     "view_definition": |2-
        WITH ctx AS (
@@ -59,7 +68,8 @@
                SELECT count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Fully Paid'::text) AS full_count,
                   count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Partially Paid'::text) AS partial_count,
                   count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Overdue'::text) AS overdue_count,
-                  count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Not Paid'::text) AS notpaid_count
+                  count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Not Paid'::text) AS notpaid_count,
+                  count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Long Overdue'::text) AS long_overdue_count
                  FROM olap_borrowers_analytics
               ), top3 AS (
                SELECT COALESCE(sum(q.v), 0::numeric) AS total
@@ -113,7 +123,20 @@
                   a."Unsettled Profit EOD",
                   a."Business Expenses",
                   a."Net Profit",
-                  a."Net Unsettled Profit EOD"
+                  a."Net Unsettled Profit EOD",
+                  a."Capital Contributed",
+                  a."Capital Withdrawn",
+                  a."Partner Settlements",
+                  a."Partner A Net Profit",
+                  a."Partner B Net Profit",
+                  a."Partner A Settlements",
+                  a."Partner B Settlements",
+                  a."Cash Money In",
+                  a."Cash Money Out",
+                  a."Cash Opening Balance",
+                  a."Cash Balance EOD",
+                  a."Cash Available From",
+                  a."Cash Balance Status"
                  FROM "Daily Analytics" a
                 WHERE a."Snapshot Date" >= ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text) - '30 days'::interval)
               ), peak AS (
@@ -174,7 +197,8 @@
                   earned.total - settled.total - er.total AS "Net Unsettled Profit",
                   pool.total - lr.principal + earned.total - settled.total - er.total AS "Net Expected Loan Account Balance",
                   rr.mtd AS "Operating Income MTD",
-                  - er.mtd AS "Income Statement Expenses MTD"
+                  - er.mtd AS "Income Statement Expenses MTD",
+                  br.long_overdue_count AS "Borrowers with Long Overdue Payment"
                  FROM "Statistics" s
                    CROSS JOIN ctx
                    CROSS JOIN lr
@@ -230,6 +254,7 @@
                   a."Net Expected Loan Account Balance",
                   a."Operating Income MTD",
                   a."Income Statement Expenses MTD",
+                  a."Borrowers with Long Overdue Payment",
                       CASE
                           WHEN a."Forecast Average Daily Outstanding Principal" > 0::numeric THEN a."Projected Monthly Profit" / a."Forecast Average Daily Outstanding Principal"
                           ELSE 0::numeric
@@ -277,7 +302,8 @@
           round("Net Unsettled Profit", 0) AS "Net Unsettled Profit",
           round("Net Expected Loan Account Balance", 0) AS "Net Expected Loan Account Balance",
           round("Income Statement Expenses MTD", 0) AS "Income Statement Expenses MTD",
-          round("Operating Income MTD", 0) AS "Operating Income MTD"
+          round("Operating Income MTD", 0) AS "Operating Income MTD",
+          "Borrowers with Long Overdue Payment"
          FROM final x;
     "partition_key": null
     "partition_bound": null
@@ -1040,6 +1066,24 @@
       "collation": null
       "acl": null
       "comment": null
+    "Borrowers with Long Overdue Payment":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Borrowers with Long Overdue Payment"
+      "ordinal": 43
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
   "indexes": {}
   "triggers": {}
@@ -1094,6 +1138,46 @@
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
     "referenced_relation": "Daily Analytics"
+    "referenced_column": "Capital Contributed"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Capital Withdrawn"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Available From"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Balance EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Balance Status"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Money In"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Money Out"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Opening Balance"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
     "referenced_column": "Generated At"
   - "schema": "public"
     "relation": "olap_portfolio_summary"
@@ -1125,6 +1209,31 @@
     "referenced_schema": "public"
     "referenced_relation": "Daily Analytics"
     "referenced_column": "Outstanding Principal EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner A Net Profit"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner A Settlements"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner B Net Profit"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner B Settlements"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner Settlements"
   - "schema": "public"
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
@@ -1290,8 +1399,3 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Principal Returned Days MTD"
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"

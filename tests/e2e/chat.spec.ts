@@ -174,11 +174,13 @@ test('new thread: round, tool, delta and message render in order; provisional te
   const progress=page.locator('.chat-progress'),provisional=page.locator('.chat-provisional');
   await expect(progress).toHaveText('Sending…');
   await feed(page,ev('accepted',{messageId:post.body.id,seq:0,model:'gemini-a'}));await expect(progress).toHaveText('Preparing a reply…');
-  await feed(page,ev('round',{n:1}),ev('tool',{callId:'c1',name:'read_records',state:'running'}));await expect(progress).toHaveText('Round 1 · checking records…');
-  await feed(page,ev('tool',{callId:'c1',name:'read_records',state:'ok',ms:12,summary:'Charges'}),ev('tool',{callId:'c2',name:'sql_query',state:'running'}));await expect(progress).toHaveText('Round 1 · checking charges, database…');
+  await feed(page,ev('round',{n:1}),ev('tool',{callId:'c1',name:'read_records',state:'running'}));await expect(progress.locator('.chat-progress-text')).toHaveText('Looking up data · records…');await expect(progress).not.toContainText('Round');
+  await feed(page,ev('tool',{callId:'c1',name:'read_records',state:'ok',ms:12,summary:'Charges'}),ev('tool',{callId:'c2',name:'sql_query',state:'running'}));await expect(progress.locator('.chat-progress-text')).toHaveText('Looking up data · charges, database…');
   // A text round that ends in a tool call is retracted silently.
   await feed(page,ev('delta',{text:'Let me look'}));await expect(provisional).toContainText('Let me look');await expect(provisional.locator('.chat-provisional-label')).toHaveText('checking figures · Gemini A');
   await feed(page,ev('retract',{reason:'tool_round',attempt:0}));await expect(provisional).toHaveCount(0);await expect(page.getByText('Checking the figures again…')).toHaveCount(0);
+  // R103: the row comes back after a tool-round retract; any elapsed seconds are aria-hidden.
+  await expect(progress.locator('.chat-progress-text')).toHaveText('Looking up data · charges, database…');await expect(progress.locator('.chat-progress-seconds:not([aria-hidden="true"])')).toHaveCount(0);
   await feed(page,ev('round',{n:2}),ev('delta',{text:'Due today: **1,500**'}),ev('delta',{text:' baht'}));
   await expect(provisional.locator('strong')).toHaveText('1,500');await expect(provisional).toContainText('Due today: 1,500 baht');
   await feed(page,ev('retract',{reason:'ungrounded',attempt:1}));await expect(provisional).toHaveCount(0);await expect(progress).toHaveText('Checking the figures again…');
@@ -414,7 +416,7 @@ test('review captures: conversation, thread sheet and provisional reply (EN/TH)'
     await composer(page).fill(language==='EN'?'Payoff for Somchai today?':'ปิดยอดของสมชายวันนี้เท่าไร');await page.getByRole('button',{name:/^(Send|ส่ง)$/}).click();
     await expect.poll(async()=>(await streams(page)).length).toBe(index+1);const post=(await streams(page))[index];
     await feed(page,ev('accepted',{messageId:post.body.id,seq:0,model:'gemini-a'}),ev('round',{n:1}),ev('tool',{callId:'c1',name:'read_records',state:'ok',summary:'Loans'}),ev('tool',{callId:'c2',name:'loan_payoff',state:'running'}));
-    await expect(page.locator('.chat-progress')).toContainText(/Round 1|รอบที่ 1/);await page.screenshot({path:name('progress',tag)});
+    await expect(page.locator('.chat-progress-text')).toHaveText(language==='EN'?'Looking up data · loans, loan payoff…':'กำลังค้นหาข้อมูล · loans, ยอดปิดสินเชื่อ…');await page.screenshot({path:name('progress',tag)});
     await feed(page,ev('round',{n:2}),ev('delta',{text:'Payoff for **Somchai** today is **12,450** baht.\n\n- Principal: 12,000'}));
     await expect(page.locator('.chat-provisional')).toBeVisible();await page.screenshot({path:name('provisional',tag)});
     await feed(page,ev('message',{id:crypto.randomUUID(),seq:1,role:'assistant',text:'Payoff for **Somchai** today is **12,450** baht.',status:'ok',tools:[{name:'loan_payoff',count:1}]}),ev('done',{}));

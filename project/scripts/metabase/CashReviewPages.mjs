@@ -1,10 +1,14 @@
 // Additive R016 review pages. Existing questions, models, snippets and tabs are immutable here.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {api,assertSource,privateDir,read,write} from './ReportingApi.mjs';
-export const backup=privateDir+'/cash-review-before';
-export const prior=name=>JSON.parse(fs.readFileSync(backup+'/'+name+'.json','utf8'));
-export const original=prior('dashboard');
+import {api,assertSource,read,write} from './ReportingApi.mjs';
+import {baselineDir} from './Baselines.mjs';
+// R103: the R016 baseline from Baselines.mjs (override or private bucket), resolved only by useBaseline() (as
+// CollectionMonitor.mjs does), so importing this module runs no gcloud. backup, original, specs and parameters are live
+// bindings set by useBaseline(); a command that needs them awaits it first.
+export let backup,original,specs,parameters;
+export const prior=name=>{if(!backup)throw Error('CashReviewPages: await useBaseline() first');return JSON.parse(fs.readFileSync(backup+'/'+name+'.json','utf8'));};
+export async function useBaseline(){if(!backup){backup=(await baselineDir('r016-20260922'))+'/cash-review-before';original=prior('dashboard');specs=buildSpecs();parameters=buildParameters();}return backup;}
 export const tabNames=['2R · Cash Position','10R · Cashflow Statement','9R · Income Statement'];
 export const project=c=>Object.fromEntries(['id','card_id','dashboard_tab_id','col','row','size_x','size_y','series','parameter_mappings','visualization_settings'].map(k=>[k,c[k]]));
 export function assertPreserved(d){
@@ -18,14 +22,14 @@ const native=(id,sql)=>{const q=structuredClone(prior('card-'+id).dataset_query)
 const inc=sql=>native(184,'WITH statement AS ({{snippet: Income statement period}}) '+sql);
 const flow=sql=>native(197,'WITH statement AS ({{snippet: Cashflow statement period}}) '+sql);
 const cols=(names,hidden=[])=>({'table.columns':names.map(name=>({name,enabled:!hidden.includes(name)}))});
-export const specs=[
+const buildSpecs=()=>[
  {key:'advance',name:'Partner advances · position date',display:'scalar',dataset_query:inc('SELECT "Advance Due" FROM statement'),visualization_settings:{'scalar.field':'Advance Due',column_settings:{...fmt(['Advance Due']),...{'["name","Advance Due"]':{number_style:'currency',currency:'THB',currency_style:'symbol',decimals:0,number_separators:'.,',compact:false}}}},reason:'Dated advances are not an existing active scalar question.'},
  {key:'reconciliation',name:'Cash position reconciliation · position date',display:'table',dataset_query:inc(`SELECT v.component AS "Component",v.amount AS "Amount" FROM statement s JOIN {{#188}} c ON c."Date"=s."Period End" CROSS JOIN LATERAL (VALUES (1,'Remaining lending capital',c."Cash Pool Remaining"),(2,'+ Retained net profit · all periods',c."Retained Profit Through Date"),(3,'+ Reconciliation difference',c."Cash Reconciliation Difference"),(4,'= Net cash balance',c."Business Cash Held"-c."Advance Due"),(5,'+ Partner advances',c."Advance Due"),(6,'= Business cash held',c."Business Cash Held")) v(step,component,amount) ORDER BY v.step`),visualization_settings:{'table.pivot':false,column_settings:fmt(['Amount'])},reason:'Existing income cash cards do not provide this all-period net-profit reconciliation.'},
  {key:'trend',name:'Cash position trend · remaining capital and net cash',display:'line',dataset_query:{database:2,type:'native',native:{query:'SELECT d."Date",d."Cash Pool Remaining" AS "Remaining lending capital",d."Business Cash Held"-d."Advance Due" AS "Net cash balance" FROM {{#188}} d WHERE true [[AND {{position_trend}}]] ORDER BY d."Date"','template-tags':{'#188':{id:'r016-model-188',name:'#188','display-name':'Cash Position by Date',type:'card','card-id':188},position_trend:{id:'cash-review-trend',name:'position_trend','display-name':'Position trend period',type:'dimension',dimension:['field',82,null],'widget-type':'date/all-options',alias:'d."Date"'}}}},visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Remaining lending capital','Net cash balance'],'graph.colors':['#267DCC','#13855B'],'graph.show_legend':true,'graph.show_values':false,'graph.show_dots':false,'graph.label_value_formatting':'full','graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Remaining lending capital','Net cash balance'])},reason:'Existing principal snapshot trend measures a different position; this reads the existing dated cash model.'},
  {key:'movement',name:'Cash movement by transaction type',display:'table',dataset_query:flow('SELECT t."Transaction Type",sum(t."Money In") AS "Money In",sum(t."Money Out") AS "Money Out",sum(t."Net Movement") AS "Net Movement" FROM statement s JOIN {{#190}} t ON t."Date" BETWEEN s."Period Start" AND s."Period End" WHERE t."Scope ID"={{cash_account}} AND s."Continuous Period" GROUP BY 1 ORDER BY 1'),visualization_settings:{'table.pivot':false,column_settings:fmt(['Money In','Money Out','Net Movement'])},reason:'New simple aggregation of existing transaction classifications; no invented principal/interest split.'},
  {key:'profit-bridge',name:'Income less expenses · Total = Net profit',display:'waterfall',dataset_query:inc(`SELECT v.movement AS "Movement",v.amount AS "Amount" FROM statement s CROSS JOIN LATERAL (VALUES (1,'Income',s."Operating Income"),(2,'Expenses',s."Operating Expenses")) v(step,movement,amount) ORDER BY v.step`),visualization_settings:{'graph.dimensions':['Movement'],'graph.metrics':['Amount'],'graph.show_values':true,'graph.label_value_formatting':'full','graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,'waterfall.increase_color':'#13855B','waterfall.decrease_color':'#D1495B','waterfall.total_color':'#267DCC','waterfall.show_total':true,column_settings:fmt(['Amount'])},reason:'Existing waterfall includes partner draws and totals unsettled profit; this totals operating net profit.'}
 ];
-export const parameters=[
+const buildParameters=()=>[
  {id:'review-position',name:'Position date / period end',slug:'review_position',type:'date/all-options',sectionId:'date',default:'today'},
  {id:'review-position-trend',name:'Position trend period',slug:'review_position_trend',type:'date/all-options',sectionId:'date',default:'past30days'},
  {id:'review-flow',name:'Cashflow review period',slug:'review_flow',type:'date/all-options',sectionId:'date',default:'thismonth'},
@@ -88,6 +92,7 @@ export function layout(state,d){
  return cards;
 }
 if(process.argv.includes('--install')){
+ await useBaseline();
  if(fs.existsSync(new URL('../../outputs/r016-20260922/cash-snapshot-report-state.json',import.meta.url)))throw Error('2R now uses stored snapshots. Use CashSnapshotReport.mjs; reconcile any 9R/10R work before using this legacy three-page installer.');
  await assertSource();let d=await api('GET','dashboard/3');assertPreserved(d);
  let state;try{state=read('cash-review-state.json');}catch{state={cards:{},baseline_commit:'909fe5374b5383fa8171c5ff90d6ca7007abe2f5'};}

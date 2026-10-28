@@ -29,6 +29,7 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
  const [models,setModels]=useState<ChatModels|null>(null),[modelsError,setModelsError]=useState(false);
  const [threads,setThreads]=useState<ChatThread[]>([]),[threadsCursor,setThreadsCursor]=useState<string|null>(null),[threadsBusy,setThreadsBusy]=useState(false),[threadsError,setThreadsError]=useState(false),[archived,setArchived]=useState(false);
  const [thread,setThread]=useState<ChatThread|null>(null);
+ const [,setTick]=useState(0);
  const [items,setItems]=useState<Item[]>([]),[itemsCursor,setItemsCursor]=useState<string|null>(null),[itemsBusy,setItemsBusy]=useState(false),[itemsError,setItemsError]=useState(false);
  const [drafts,setDrafts]=useState<Record<string,string>>({});
  const [turn,setTurn]=useState<Turn|null>(null);
@@ -87,7 +88,7 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
    scrollToEnd();
    // A turn still in flight (another tab, or the app was closed mid-reply) resumes as an outcome poll.
    const last=page.items.at(-1);
-   if(last?.role==='user'&&last.status==='pending'&&!turnRef.current)void follow(target,last.id,{...initialTurn(),accepted:true});
+   if(last?.role==='user'&&last.status==='pending'&&!turnRef.current)void follow(target,last.id,{...initialTurn(),accepted:true,startedAt:Date.now()});
   }catch(error){
    if(gen!==itemsGen.current||error instanceof ChatAccessError)return;
    if(error instanceof ChatHttpError&&error.status===404){setThread(null);setItems([]);void loadThreads(archivedRef.current);return}
@@ -268,7 +269,12 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
  const modelLabel=(id:string)=>modelOptions.find(model=>model.id===id)?.label??id;
  const readOnly=thread?.status==='archived';
  const activeTurn=turn&&(turn.threadId===thread?.id||(!thread&&turn.threadId===''))?turn:null;
- const progress=!activeTurn?'':activeTurn.phase==='polling'?t('Waiting for the reply…','กำลังรอคำตอบ…'):activeTurn.state.checking?t('Checking the figures again…','กำลังตรวจตัวเลขอีกครั้ง…'):!activeTurn.state.accepted?t('Sending…','กำลังส่ง…'):activeTurn.state.round===0?t('Preparing a reply…','กำลังเตรียมคำตอบ…'):progressText(activeTurn.state.round,activeTurn.state.tools,thai);
+ const progress=!activeTurn?'':activeTurn.phase==='polling'?t('Waiting for the reply…','กำลังรอคำตอบ…'):activeTurn.state.checking?t('Checking the figures again…','กำลังตรวจตัวเลขอีกครั้ง…'):!activeTurn.state.accepted?t('Sending…','กำลังส่ง…'):null;
+ // R103: the elapsed seconds read the clock on every render, so the row never shows a stale value (e.g. when it returns
+ // after a tool-round retract); a one-second tick re-renders only while the status row shows (no text yet).
+ const lookup=activeTurn&&!progress?progressText(activeTurn.state.round,activeTurn.state.tools,thai,activeTurn.state.startedAt===null?0:(Date.now()-activeTurn.state.startedAt)/1000):null;
+ const ticking=!!lookup&&!activeTurn?.state.provisional;
+ useEffect(()=>{if(!ticking)return;const timer=setInterval(()=>setTick(tick=>tick+1),1000);return()=>clearInterval(timer)},[ticking]);
  const composerNote=!online?t('You are offline. Connect to send a message.','ขณะนี้ออฟไลน์ เชื่อมต่ออินเทอร์เน็ตเพื่อส่งข้อความ'):readOnly?t('This thread is archived. Unarchive it to continue.','แชทนี้เก็บถาวรแล้ว เลิกเก็บถาวรเพื่อคุยต่อ'):modelNote?t('Applies to your next message','ใช้กับข้อความถัดไป'):null;
  const actionDisabled=(action:FailureAction)=>action==='retry'?!!turn||!online||readOnly:action==='edit'?!!turn||readOnly:action==='model'?!models||readOnly:false;
  const empty=!itemsBusy&&!itemsError&&items.length===0&&!activeTurn;
@@ -312,7 +318,7 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
      </React.Fragment>;
     })}
     {activeTurn&&<div className="chat-turn">
-     {(!activeTurn.state.provisional||activeTurn.state.checking)&&<p className="chat-progress" role="status"><span className="collection-spinner" aria-hidden="true"/>{progress}</p>}
+     {(!activeTurn.state.provisional||activeTurn.state.checking)&&<p className="chat-progress" role="status"><span className="collection-spinner" aria-hidden="true"/><span className="chat-progress-text">{progress||lookup?.text}</span>{lookup?.seconds&&<span className="chat-progress-seconds" aria-hidden="true">{lookup.seconds}</span>}</p>}
      {activeTurn.state.provisional&&<ProvisionalMessage text={activeTurn.state.provisional} thai={thai} model={(activeTurn.state.model??currentModel)?modelLabel(activeTurn.state.model??currentModel??''):null}/>}
     </div>}
     <div ref={endRef} className="chat-end"/>

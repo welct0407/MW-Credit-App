@@ -1,17 +1,43 @@
-"""Read-only, metadata-only PostgreSQL capture. Writes private evidence, never SQL objects."""
+"""Read-only, metadata-only PostgreSQL capture. Writes private evidence, never SQL objects.
+
+R103: one route for both operating systems, through a local Cloud SQL Auth Proxy endpoint (the direct public-address
+connection is retired, DB-ACCESS-07). Linux opens or reuses the IAP tunnel of scripts/database/Invoke-CloudFlyway.py
+(tunnel()); Windows passes --local-port of the pinned proxy that Get-DbEnvironment started. Both sign in as the read
+identity codex-cloud-read@...iam with a short-lived impersonated IAM token (Invoke-CloudFlyway's read credential).
+Guards: the instance and database are pinned from database/environments.json; the session is default read-only, the
+capture runs in one REPEATABLE READ READ ONLY transaction with a 30 s statement timeout; the live identity must be the
+expected database, the read user, read-only on and the cluster system identifier of mw-credit-pg-20261017 (the loopback
+hop to the proxy is plain and the proxy encrypts to the instance, so pg_stat_ssl reads false and is recorded, not
+required); the output stays under MW_PRIVATE_ROOT, outside the repository, and is never overwritten.
+
+  python3 scripts/dictionary/capture_postgresql.py production "$MW_PRIVATE_ROOT/dictionary/production-complete.json"
+  py scripts\\dictionary\\capture_postgresql.py production <private path> --local-port 15432   (Windows)
+
+--local-port must be the operator's own pinned Cloud SQL Auth Proxy listening on loopback; the host is always 127.0.0.1
+and cannot be passed, so a non-loopback endpoint is not reachable through this option.
+"""
 import argparse
+import contextlib
 import datetime as dt
 import hashlib
+import importlib.util
 import json
 import os
-import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-PRIVATE = Path.home() / 'Documents/ChatGPT/AppSheet-Loan-Project'
-sys.path.insert(0, str(Path(os.environ['LOCALAPPDATA']) / 'AppSheetLoanTools/python-deps'))
-import psycopg
-from psycopg.rows import dict_row
+INSTANCE = 'mw-credit-pg-20261017'
+CLUSTER_SYSTEM_IDENTIFIER = 7685391508477894672  # mw-credit-pg-20261017, as Backup-ProductionPromotion.py
+DATABASES = {'production': 'loan_manager_prod', 'development': 'loan_manager_dev'}
+_spec = importlib.util.spec_from_file_location('invoke_cloud_flyway', REPO / 'scripts/database/Invoke-CloudFlyway.py')
+flyway = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(flyway)
+
+
+def private_root(environ=None):
+    environ = os.environ if environ is None else environ
+    return Path(environ.get('MW_PRIVATE_ROOT') or Path.home() / '.mw-private')
+
 
 NS = "n.nspname !~ '^pg_' AND n.nspname <> 'information_schema'"
 QUERIES = {
@@ -126,46 +152,94 @@ QUERIES = {
 def content_hash(data):
     return hashlib.sha256(json.dumps(data,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
 
-def capture(environment, destination):
-    config = json.loads((REPO/'database/environments.json').read_text())[environment]
-    expected_db = {'production':'loan_manager_prod','development':'loan_manager_dev'}[environment]
-    if (config['instance'],config['host'],config['database']) != ('mw-credit-pg-20261017','136.85.127.134',expected_db):
+IDENTITY = ("SELECT current_database() AS database,current_user AS role,session_user AS session_role,"
+ "inet_server_addr()::text AS server_address,inet_server_port() AS server_port,"
+ "(SELECT system_identifier FROM pg_control_system())::text AS system_identifier,"
+ "current_setting('server_version') AS server_version,current_setting('TimeZone') AS timezone,"
+ "current_setting('search_path') AS search_path,current_setting('transaction_read_only') AS read_only,"
+ "(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) AS ssl")
+
+
+def target(environment, repo=REPO):
+    config = json.loads((repo/'database/environments.json').read_text())[environment]
+    if (config['instance'], config['database']) != (INSTANCE, DATABASES[environment]):
         raise ValueError('Unrecognized environment tuple')
-    password_path=Path(config['passwordFile']).resolve()
-    if not password_path.is_relative_to(Path.home()/'Documents/ChatGPT'):
-        raise ValueError('Credential path is outside approved private storage')
-    destination=Path(destination).resolve()
-    if not destination.is_relative_to(PRIVATE.resolve()):
-        raise ValueError('Raw capture must remain in private project storage')
+    return config
+
+
+def check_destination(destination, environ=None, repo=REPO):
+    destination = Path(destination).resolve()
+    if destination.is_relative_to(Path(repo).resolve()):
+        raise ValueError('Raw capture must stay outside the repository')
+    if not destination.is_relative_to(private_root(environ).resolve()):
+        raise ValueError('Raw capture must remain under MW_PRIVATE_ROOT')
     if destination.exists():
         raise FileExistsError('Refusing to overwrite existing capture')
-    with psycopg.connect(host=config['host'],port=config['port'],dbname=config['database'],user=config['user'],
-        password=password_path.read_text().strip(),sslmode='require',connect_timeout=10,
-        application_name='dictionary-metadata-read-only',options='-c default_transaction_read_only=on -c statement_timeout=30000',row_factory=dict_row) as conn:
-        conn.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
-        identity=conn.execute("SELECT current_database() AS database,current_user AS role,inet_server_addr()::text AS server_address,inet_server_port() AS server_port,current_setting('server_version') AS server_version,current_setting('TimeZone') AS timezone,current_setting('search_path') AS search_path,current_setting('transaction_read_only') AS read_only,(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) AS ssl").fetchone()
-        if identity['database']!=expected_db or identity['read_only']!='on' or not identity['ssl']:
-            raise ValueError('Live identity/read-only/SSL assertion failed')
-        sections={}
-        for name,query in QUERIES.items():
-            try:
-                sections[name]=conn.execute(query).fetchall()
-            except Exception as exc:
-                raise RuntimeError('Catalog section failed: '+name) from exc
-        sections['jobs'] = conn.execute('SELECT jobid,jobname,schedule,command,nodename,nodeport,database,username,active FROM cron.job ORDER BY jobid').fetchall() if any(x['name']=='pg_cron' for x in sections['extensions']) else []
-        identity['cron_timezone']=conn.execute("SELECT current_setting('cron.timezone',true) AS value").fetchone()['value']
-        conn.rollback()
-    result={'format':1,'environment':environment,'captured_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
-      'target':{k:config[k] for k in ('instance','host','port','database')},'identity':identity,
-      'sections':sections,'metadata_sha256':content_hash(sections),
-      'collector_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
-    destination.parent.mkdir(parents=True,exist_ok=True)
-    destination.write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n',encoding='utf8')
-    print(json.dumps({'environment':environment,'identity':identity,'counts':{k:len(v) for k,v in sections.items()},'metadata_sha256':result['metadata_sha256']}))
+    return destination
 
-if __name__=='__main__':
-    parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('environment',choices=['development','production'])
+
+def assert_identity(identity, environment):
+    if (identity['database'] != DATABASES[environment] or identity['role'] != flyway.READ_USER or identity['session_role'] != flyway.READ_USER
+            or identity['read_only'] != 'on' or str(identity['system_identifier']) != str(CLUSTER_SYSTEM_IDENTIFIER)):
+        raise ValueError('Live identity/read-only/cluster assertion failed')
+
+
+def connect_psycopg(**options):
+    import psycopg
+    from psycopg.rows import dict_row
+    return psycopg.connect(row_factory=dict_row, **options)
+
+
+@contextlib.contextmanager
+def given_port(port):
+    yield int(port)
+
+
+def capture(environment, destination, local_port=None, environ=None, connect=connect_psycopg, secrets=flyway.secret_output,
+            tunnel_factory=flyway.tunnel, repo=REPO, windows=None):
+    environ = os.environ if environ is None else environ
+    config = target(environment, repo)
+    destination = check_destination(destination, environ, repo)
+    if local_port is None and (os.name == 'nt' if windows is None else windows):
+        raise ValueError('Windows: start the pinned proxy (Get-DbEnvironment) and pass --local-port')
+    route = given_port(local_port) if local_port is not None else tunnel_factory(repo, environ)
+    with route as port:
+        if not 1 <= int(port) <= 65535:
+            raise ValueError('Invalid local proxy port')
+        password = secrets(['gcloud', 'sql', 'generate-login-token', '--impersonate-service-account=' + flyway.READ_SERVICE_ACCOUNT])
+        with connect(host='127.0.0.1', port=int(port), dbname=config['database'], user=flyway.READ_USER, password=password,
+                     sslmode='disable', connect_timeout=10, application_name='dictionary-metadata-read-only',
+                     options='-c default_transaction_read_only=on -c statement_timeout=30000') as conn:
+            del password
+            conn.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+            identity = dict(conn.execute(IDENTITY).fetchone())
+            assert_identity(identity, environment)
+            sections = {}
+            for name, query in QUERIES.items():
+                try:
+                    sections[name] = conn.execute(query).fetchall()
+                except Exception as exc:
+                    raise RuntimeError('Catalog section failed: '+name) from exc
+            sections['jobs'] = conn.execute('SELECT jobid,jobname,schedule,command,nodename,nodeport,database,username,active FROM cron.job ORDER BY jobid').fetchall() if any(x['name'] == 'pg_cron' for x in sections['extensions']) else []
+            identity['cron_timezone'] = conn.execute("SELECT current_setting('cron.timezone',true) AS value").fetchone()['value']
+            conn.rollback()
+    result = {'format': 1, 'environment': environment, 'captured_utc': dt.datetime.now(dt.timezone.utc).isoformat(),
+              'target': {'instance': config['instance'], 'database': config['database'], 'route': 'cloud-sql-auth-proxy', 'host': '127.0.0.1', 'port': int(port)},
+              'identity': identity, 'sections': sections, 'metadata_sha256': content_hash(sections),
+              'collector_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, 'w', encoding='utf8') as handle:
+        handle.write(json.dumps(result, indent=2, ensure_ascii=False, default=str)+'\n')
+    summary = {'environment': environment, 'identity': identity, 'counts': {k: len(v) for k, v in sections.items()}, 'metadata_sha256': result['metadata_sha256']}
+    print(json.dumps(summary, default=str))
+    return result
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('environment', choices=sorted(DATABASES))
     parser.add_argument('output')
-    args=parser.parse_args()
-    capture(args.environment,args.output)
+    parser.add_argument('--local-port', type=int, help="the operator's own pinned Cloud SQL Auth Proxy on loopback (host fixed at 127.0.0.1, never passed); required on Windows")
+    args = parser.parse_args()
+    capture(args.environment, args.output, args.local_port)

@@ -2,6 +2,11 @@
 
 AppDoc coverage is explicitly narrower than a full saved app definition. Missing UI
 properties remain unresolved; writing a file does not mark its work-queue entry verified.
+
+R103 targeted run: `plan <private> <output> --postgres-only --only kind:name [--only ...]` reads only
+production-complete.json (and development-complete.json when present; without it no development delta is proposed),
+skips the retired AppSheet captures and the catalog, and proposes exactly the named PostgreSQL objects; a name that
+the capture lacks refuses. `--only` also takes a comma-separated list; commas inside a routine's argument list stay.
 """
 import argparse
 import collections
@@ -10,6 +15,7 @@ import datetime as dt
 import hashlib
 import json
 import re
+import subprocess
 from pathlib import Path
 from appdoc_capture import objects, html_tables
 from common import ROOT, REPO, load, dump, digest, equal, write_json, atomic_write, document_paths, make_index
@@ -101,8 +107,29 @@ def postgres_objects(capture):
     result[('settings','Database metadata')]={'sections':remaining}
     return result
 
-def plan(private,output):
-    private=Path(private);output=Path(output);output.mkdir(parents=True,exist_ok=True)
+def parse_only(values):
+    """['relation:public.a,routine:public.f(a integer, b text)'] -> {('relation','public.a'),('routine','public.f(a integer, b text)')}."""
+    result=set()
+    for value in values or []:
+        depth,item=0,''
+        for ch in value+',':
+            depth+=(ch=='(')-(ch==')')
+            if ch==',' and depth==0:
+                item=item.strip()
+                if item:
+                    kind,sep,name=item.partition(':')
+                    if not sep or not name or kind not in ('relation','routine','schema','sequence','type','settings'):raise ValueError('--only takes kind:name, got '+item)
+                    result.add((kind,name))
+                item=''
+            else:item+=ch
+        if depth:raise ValueError('Unbalanced parentheses in --only '+value)
+    return result
+
+def plan(private,output,only=None,postgres_only=False):
+    private=Path(private);output=Path(output)
+    only=parse_only(only) if only else None
+    if only and not postgres_only:raise ValueError('--only needs --postgres-only (the AppSheet captures are retired)')
+    output.mkdir(parents=True,exist_ok=True)
     evidence_root=output.relative_to(REPO).as_posix()
     existing={}
     for path in document_paths(ROOT):
@@ -120,7 +147,13 @@ def plan(private,output):
           'status':status,'expected_properties':len(list(leaves(content))),'verified_properties':0,
           'unknown_properties':unknown or [],'evidence':[source],'last_checked_utc':None})
     def add_pair(system,component,prod,dev,prod_source,dev_source,pg=False):
-        for key in sorted(set(prod)|set(dev)):
+        compare=dev is not None;dev=dev or {}
+        keys=sorted(set(prod)|set(dev))
+        if only is not None:
+            missing=sorted(only-set(prod))
+            if missing:raise ValueError('Not in the production capture: '+', '.join(k+':'+n for k,n in missing))
+            keys=sorted(only)
+        for key in keys:
             kind,name=key
             current=prod.get(key)
             known=existing.get((system,component,kind,name))
@@ -141,12 +174,13 @@ def plan(private,output):
                 doc=envelope(system,component,kind,name,content,prod_source)
                 doc['verification']['coverage']='catalog metadata' if pg else 'AppDoc exposed properties; editor-only gaps tracked in run coverage'
                 if known:
-                    doc['verification']['previous_record']={'commit':'dffa437c29a762f5b87a10b14a32063da8df07aa','path':path.relative_to(REPO).as_posix(),'identity':known[1]['identity']}
+                    doc['verification']['previous_record']={'commit':previous_commit,'path':path.relative_to(REPO).as_posix(),'identity':known[1]['identity']}
                     reconciliation.append({'path':path.relative_to(REPO).as_posix(),'previous_identity':known[1]['identity'],'current_identity':doc['identity'],'previous_sha256':digest(path.read_bytes())})
                 add(path,doc)
                 cover(target,key,path,current,prod_source,unknown=[] if pg else ['editor-only properties not established by AppDoc'])
             changes=delta(current,dev.get(key)) if current is not None and key in dev else []
-            if key not in prod:changes=[{'pointer':'','before':{'state':'absent'},'after':{'state':'value','value':dev[key]}}]
+            if not compare:changes=[]
+            elif key not in prod:changes=[{'pointer':'','before':{'state':'absent'},'after':{'state':'value','value':dev[key]}}]
             elif key not in dev:changes=[{'pointer':'','before':{'state':'value','value':current},'after':{'state':'absent'}}]
             if changes:
                 delta_path=ROOT/'development'/system/'environment'/(component+'-'+kind+'-'+slug(name)+'.yaml')
@@ -158,8 +192,10 @@ def plan(private,output):
             else:path_for_dev=path
             if key in dev:cover(devtarget,key,path_for_dev,dev[key],dev_source,unknown=[] if pg else ['editor-only properties not established by AppDoc'])
         # Historical aliases stay explicitly as-recorded; never reinterpret them as live absence.
+    # A full run keeps the original reconciliation commit; a targeted run names the checkout it replaces.
+    previous_commit='dffa437c29a762f5b87a10b14a32063da8df07aa' if only is None else subprocess.check_output(['git','-C',str(REPO),'rev-parse','HEAD'],text=True).strip()
     apps={}
-    for target,appid in APP_IDS.items():
+    for target,appid in ({} if postgres_only else APP_IDS).items():
         records=json.loads((private/(target+'-tables.json')).read_text(encoding='utf8'))
         if records!=html_tables(private/(target+'-appdoc.html')):raise ValueError('Independent HTML/DOM mismatch '+target)
         data,counts,settings=objects(records)
@@ -167,20 +203,22 @@ def plan(private,output):
         apps[target]=data
         summaries[target]={'identity':appid,'version_or_hash':settings['Version'],'counts':counts,'settings':settings,'html_sha256':digest((private/(target+'-appdoc.html')).read_bytes())}
         write_json(output/(target+'-observations.json'),{'target':target,'app_id':appid,'settings':settings,'objects':[{'kind':k[0],'name':k[1],'content':v} for k,v in sorted(data.items())]})
-    for role in ('oltp','olap'):
+    for role in (() if postgres_only else ('oltp','olap')):
         add_pair('appsheet',role,apps['production-'+role],apps['development-'+role],evidence_root+'/production-'+role+'-observations.json',evidence_root+'/development-'+role+'-observations.json')
     sql={}
     for environment in ('production','development'):
+        if postgres_only and environment=='development' and not (private/'development-complete.json').exists():continue
         raw=json.loads((private/(environment+'-complete.json')).read_text(encoding='utf8'))
         sql[environment]=postgres_objects(raw)
         summaries['postgresql-'+environment]={'identity':raw['target'],'version_or_hash':raw['metadata_sha256'],'counts':{k:len(v) for k,v in raw['sections'].items()},'captured_utc':raw['captured_utc']}
         write_json(output/(environment+'-postgresql-observations.json'),raw)
-    add_pair('postgresql','loan_manager_prod',sql['production'],sql['development'],evidence_root+'/production-postgresql-observations.json',evidence_root+'/development-postgresql-observations.json',pg=True)
-    catalog=load(ROOT/'catalog.yaml')
-    for system,kinds in {'appsheet':['format-rule'],'postgresql':['schema','sequence','type','settings']}.items():
-        for kind in kinds:
-            if kind not in catalog['systems'][system]['kinds']:catalog['systems'][system]['kinds'].append(kind)
-    add(ROOT/'catalog.yaml',catalog)
+    add_pair('postgresql','loan_manager_prod',sql['production'],sql.get('development'),evidence_root+'/production-postgresql-observations.json',evidence_root+'/development-postgresql-observations.json',pg=True)
+    if only is None:
+        catalog=load(ROOT/'catalog.yaml')
+        for system,kinds in {'appsheet':['format-rule'],'postgresql':['schema','sequence','type','settings']}.items():
+            for kind in kinds:
+                if kind not in catalog['systems'][system]['kinds']:catalog['systems'][system]['kinds'].append(kind)
+        add(ROOT/'catalog.yaml',catalog)
     write_json(output/'plan.json',{'writes':writes,'sources':summaries,'coverage':coverage,'reconciled_previous_records':reconciliation})
     write_json(output/'coverage.json',{'status':'in progress','targets':summaries,'objects':coverage})
     print(json.dumps({'planned_files':len(writes),'coverage_objects':len(coverage),'reconciled_previous_records':len(reconciliation),'source_counts':{k:v['counts'] for k,v in summaries.items()}},ensure_ascii=False))
@@ -204,7 +242,9 @@ def apply(path):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)
     p=sub.add_parser('plan');p.add_argument('private');p.add_argument('output')
+    p.add_argument('--only',action='append',help='kind:name of a PostgreSQL object to propose (repeatable or comma-separated); needs --postgres-only')
+    p.add_argument('--postgres-only',action='store_true',help='skip the retired AppSheet captures and the catalog update')
     p=sub.add_parser('apply');p.add_argument('plan')
     args=parser.parse_args()
-    if args.command=='plan':plan(args.private,Path(args.output).resolve())
+    if args.command=='plan':plan(args.private,Path(args.output).resolve(),args.only,args.postgres_only)
     else:apply(args.plan)
