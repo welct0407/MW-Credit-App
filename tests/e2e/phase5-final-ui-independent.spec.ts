@@ -18,6 +18,34 @@ const previewA={origin:'pwa-plan',sourceVersion:v,predecessorRequestId:requestId
 const correctionDraft={kind:'correction',id:'C-payment',requestId,preview:previewA,fields,accounts,lines:{'C-charge':line},closeHash:null,receiptMode:'replace',receiptId};
 const preferenceA={item:{id:'C-partner',version:v,language:'English',statementAccountId:'C-account',statementDate:'2026-10-09'},accounts,dates:['2026-10-09']};
 
+test('R102 Cash Statement Date opens on yesterday (Bangkok) over a saved date; the account default applies and the prompt ignores the date',async()=>{
+ const day=(offset:number)=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),g=(t:string)=>p.find(x=>x.type===t)!.value;return new Date(Date.UTC(+g('year'),+g('month')-1,+g('day'))-offset*86400000).toISOString().slice(0,10)};
+ const yesterday=day(1),twoAgo=day(2),writes:any[]=[];
+ const {context,page}=await launch();let current={...structuredClone(preferenceA),item:{...preferenceA.item,statementAccountId:'C-account-2',statementDate:twoAgo},accounts:[...accounts,{id:'C-account-2',label:'Second synthetic account',holderId:'ch:lisa',holderLabel:'Lisa'}],dates:[yesterday,twoAgo,day(3)]};
+ try{
+  await context.route('https://'+fixtureCommandHost+'/api/preferences',r=>r.fulfill({json:current}));await context.route('https://'+fixtureCommandHost+'/api/operations/**',r=>r.fulfill({json:{kind:'unresolved'}}));await context.route('https://'+fixtureCommandHost+'/api/operations',r=>{const command=r.request().postDataJSON();writes.push(command);current={...current,item:{...current.item,...command.inputs,version:v2}};return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})});
+  await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name:'Cash',exact:true}).filter({visible:true}).click();
+  const account=page.getByRole('combobox',{name:'Account',exact:true}),date=page.getByLabel('Statement Date',{exact:true}),note=page.getByText('This account is not your default.',{exact:true});
+  await expect(account).toHaveValue('C-account-2');await expect(date).toHaveValue(yesterday);await expect(note).toHaveCount(0);
+  await date.fill(day(3));await expect(date).toHaveValue(day(3));await expect(note).toHaveCount(0);
+  await account.selectOption('C-account');await expect(note).toBeVisible();await page.getByRole('button',{name:'Save as defaults',exact:true}).click();
+  await expect.poll(()=>writes.length).toBe(1);expect(writes[0].inputs).toEqual({language:'English',statementAccountId:'C-account',statementDate:twoAgo});await expect(note).toHaveCount(0);
+ }finally{await context.close()}
+});
+test('R102 Cash Statement Date returns to yesterday (Bangkok) after choosing another date, leaving Cash and reopening it',async()=>{
+ const day=(offset:number)=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),g=(t:string)=>p.find(x=>x.type===t)!.value;return new Date(Date.UTC(+g('year'),+g('month')-1,+g('day'))-offset*86400000).toISOString().slice(0,10)};
+ const yesterday=day(1);
+ const {context,page}=await launch();const current={...structuredClone(preferenceA),item:{...preferenceA.item,statementDate:day(2)},dates:[yesterday,day(2),day(3)]};
+ try{
+  await context.route('https://'+fixtureCommandHost+'/api/preferences',r=>r.fulfill({json:current}));await context.route('https://'+fixtureCommandHost+'/api/operations/**',r=>r.fulfill({json:{kind:'unresolved'}}));
+  const open=async(name:string)=>{await expect(page.locator('dialog.live-menu-dialog[open]')).toHaveCount(0);await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name,exact:true}).filter({visible:true}).click()};
+  const date=page.getByLabel('Statement Date',{exact:true});
+  await open('Cash');await expect(date).toHaveValue(yesterday);
+  await date.fill(day(3));await expect(date).toHaveValue(day(3));
+  await expect(page.locator('dialog.live-menu-dialog[open]')).toHaveCount(0);await page.getByRole('button',{name:'Borrowers',exact:true}).filter({visible:true}).click();await expect(date).toHaveCount(0);
+  await open('Cash');await expect(date).toHaveValue(yesterday);
+ }finally{await context.close()}
+});
 test('R062 sidebar language durably queues offline and reconnect saves same request before offline reload',async()=>{
  const {context,page,s}=await launch();const writes:any[]=[];let current=structuredClone(preferenceA);
  try{
@@ -35,9 +63,9 @@ test('R062 cash filters stay temporary and only explicit valid defaults write pr
  const {context,page,s}=await launch();const writes:any[]=[];let current={...structuredClone(preferenceA),accounts:[...accounts,{id:'C-account-2',label:'Second synthetic account',holderId:'ch:lisa',holderLabel:'Lisa'}],dates:['2026-10-09','2026-10-08']};
  try{
   await context.route('https://'+fixtureCommandHost+'/api/preferences',r=>r.fulfill({json:current}));await context.route('https://'+fixtureCommandHost+'/api/operations/**',r=>r.fulfill({json:{kind:'unresolved'}}));await context.route('https://'+fixtureCommandHost+'/api/operations',r=>{const command=r.request().postDataJSON();writes.push(command);current={...current,item:{...current.item,...command.inputs,version:v2}};return r.fulfill({json:{kind:'recorded',originalOutcome:{status:'applied'}}})});
-  await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name:'Cash',exact:true}).filter({visible:true}).click();const account=page.getByRole('combobox',{name:'Account',exact:true}),date=page.getByLabel('Statement Date',{exact:true});await expect(account).toHaveValue('C-account');const note=page.getByText('This account and date are not your defaults.',{exact:true});await expect(note).toHaveCount(0);await account.selectOption('C-account-2');await date.fill('2026-10-08');await expect(page.locator('.cash-date-text')).toHaveText('08-Oct-2026');await expect(note).toBeVisible();expect(writes).toEqual([]);expect(await repo(page,'pending')).toEqual([]);
-  await date.fill('2000-01-01');await page.getByRole('button',{name:'Save as defaults',exact:true}).click();await expect(page.locator('.cash-workspace').getByRole('status')).toContainText('Choose a default date');expect(writes).toEqual([]);expect(await repo(page,'pending')).toEqual([]);
-  await date.fill('2026-10-08');await page.getByRole('button',{name:'Save as defaults',exact:true}).click();await expect.poll(()=>writes.length).toBe(1);expect(writes[0].inputs).toEqual({language:'English',statementAccountId:'C-account-2',statementDate:'2026-10-08'});await expect.poll(async()=>(await repo(page,'pending')).length).toBe(0);await expect(account).toHaveValue('C-account-2');await expect(date).toHaveValue('2026-10-08');await expect(note).toHaveCount(0);await expect(page.getByRole('button',{name:'Save as defaults',exact:true})).toHaveCount(0);expect(s.posts).toEqual([]);
+  await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('button',{name:'Cash',exact:true}).filter({visible:true}).click();const account=page.getByRole('combobox',{name:'Account',exact:true}),date=page.getByLabel('Statement Date',{exact:true});await expect(account).toHaveValue('C-account');const note=page.getByText('This account is not your default.',{exact:true});await expect(note).toHaveCount(0);await date.fill('2026-10-08');await expect(page.locator('.cash-date-text')).toHaveText('08-Oct-2026');await expect(note).toHaveCount(0);await account.selectOption('C-account-2');await expect(note).toBeVisible();expect(writes).toEqual([]);expect(await repo(page,'pending')).toEqual([]);
+  // R102: the default covers the account only; the command keeps the stored statementDate unchanged.
+  await page.getByRole('button',{name:'Save as defaults',exact:true}).click();await expect.poll(()=>writes.length).toBe(1);expect(writes[0].inputs).toEqual({language:'English',statementAccountId:'C-account-2',statementDate:'2026-10-09'});await expect.poll(async()=>(await repo(page,'pending')).length).toBe(0);await expect(account).toHaveValue('C-account-2');await expect(date).toHaveValue('2026-10-08');await expect(note).toHaveCount(0);await expect(page.getByRole('button',{name:'Save as defaults',exact:true})).toHaveCount(0);expect(s.posts).toEqual([]);
  }finally{await context.close()}
 });
 type S={posts:any[],preferenceWrites:any[],pendingAtPost:any[],close:any,correction:any,preferences:any,deleted:boolean,receiptReads:string[],manualFail:boolean,record:any};
