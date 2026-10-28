@@ -212,8 +212,8 @@ The lane depends on V114: if V114 is rolled back, remove the lane first.
 - Metabase: `AddLongOverdueLane.mjs` writes a private baseline before `--apply`; restore from it.
 
 ## Open questions
-- Owner review on DEV before any PROD promotion (owner instruction of 28 October 2026).
-- Pre-existing since R090, found in the DEV pass (R102-DEV-01): the PWA sends `X-MW-Wake-Deadline` on reads, but the read service's CORS allowlist accepts only `Authorization`, so browser preflights to the read service get 403 `origin_denied` (DEV today; PROD 126 refused from 24 to 26 October, none granted) and those reads fall back to the offline copy. Not caused by R102; the owner chose to fix it in R102 (see Changes).
+- Owner acceptance: the first PROD use of Long overdue, Claude and Cash is pending.
+- Pre-existing since R090 (R102-DEV-01), fixed in R102 per the owner's choice (see Changes): the read service CORS allowlist now accepts `X-MW-Wake-Deadline`.
 
 ## Remaining work
 Anthropic workload identity federation (identifiers, not secrets; owner set up in the Claude Console on 28 October 2026). Organization `fe93c72e-d3c5-4710-8de5-465493fd3c57`, issuer `google-cloud`; both rules match `sub` `111496211387247382045` and the `mw-integration-agent@` email, scope `workspace:developer`, lifetime 600 s.
@@ -225,5 +225,18 @@ Anthropic workload identity federation (identifiers, not secrets; owner set up i
 
 The DEV values are in the VM relay configuration; the PROD values and the PROD caller go in at promotion.
 
-Owner review on DEV, then PROD promotion on the owner's instruction (V114 and V115 before the images; Metabase `AddLongOverdueLane.mjs` right after V114; PROD relay values and caller). Regenerate the Data Dictionary entries for the two OLAP views (`public.olap_borrowers_analytics`, `public.olap_portfolio_summary`) and the chat model CHECK and functions at PROD promotion, from a read-only PROD capture: the dictionary records `loan_manager_prod` only, so a DEV capture would put DEV ACLs and a state PROD does not have into production records.
+See Closure below for the open follow-ups.
 Known behavior: chat text streams only in the final round, after the tool rounds, so the first text appears 10 to 14 s after sending.
+
+## Closure (28 October 2026)
+Tag record: the annotated tag `R102` points at the package commit `b216968ad45f2228d88a6f53ba9bc07f813636db` (PR #177 on `main`), created by the Release tag workflow; the [GitHub Release](https://github.com/welct0407/MW-Credit-App/releases/tag/R102) was published at 08:29:00Z. Baseline R101 `10d543d`.
+
+Open follow-ups:
+- The deploy-script fix for the 0600 configuration restore that caused the 2.5-minute VM outage.
+- The Metabase `Verify-*` baseline scripts were not run (VM-01 only).
+- The Meta 30-second gap cannot be verified from logs.
+- Chat text streams only after the tool rounds (the first text appears 10 to 14 s after sending).
+- Data Dictionary not regenerated: the entries for `public.olap_borrowers_analytics`, `public.olap_portfolio_summary` and the chat model CHECK and functions still show the pre-V114 and pre-V115 PROD state. No Linux route exists: `scripts/dictionary/capture_postgresql.py` is Windows-only (it needs `LOCALAPPDATA` dependencies), so a PROD capture needs the Windows host. Not faked by hand.
+- Owner acceptance (above).
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R099_GRAFANA_BRIDGE_SDK_HOTFIX_2026-10-25.md`, which left the retention window (R103 Open; R102, R101, R100 Released); its links in the Release tracker and Development Changes now point to the commit permalink `b216968`. No Development Changes section existed for R102 beyond its follow-up row, which stays as the pattern for released follow-ups. No other change note or evidence file is outside the window or uncited (`npm run check:docs`: 0 failures, 0 warnings).
