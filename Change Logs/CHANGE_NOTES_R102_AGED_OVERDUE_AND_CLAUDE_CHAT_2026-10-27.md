@@ -80,6 +80,13 @@ Source: PR #177 head `b3fa05b9bcde49a84991716883380a33e2e3c6db`, CI green on tha
 | 3. DEV Hosting | Same route as the first deploy (temporary 0600 `.env.live-dev`, deleted after the build). `MW_RELEASE_NUMBER=R102 npm run build:live-dev` at `b3fa05b` (clean checkout) exit 0; `--check` passed (15 files); deploy 06:26:47Z to 06:26:53Z | Version `f60e05997c6f5998`, release `1793168812972000`. Live `build-version.json`: R102, version `a42ca298e5b8f0340e1d5365`, entry `/assets/index-DN8vbQAE.js` | Redeploy version `8b0da9e96de6e231` (first R102 deploy) |
 | 4. Smoke | Unauthenticated probes; one test-account Collection GET (token never printed, file deleted afterwards) | `/health` 200 on read, command and chat. Preflight `OPTIONS /api/collection` from `https://dev-lm.mw-credit.com` with `authorization, x-mw-wake-deadline`: 204. With `authorization, x-unknown-header`: 403. As the test account, `GET /api/collection` 200 with 21 items (12 `long_overdue`, 9 `overdue`); the `long_overdue` rows' `overdueDays` are 9, 10, 14, 19, 19, 20, 21, 22, 23, 41, 42, 64, which is ascending. No ERROR logs in read, command or chat since 06:25Z | — |
 
+### Third DEV deploy (Forge, 28 October 2026, UTC): Hosting only, `c3c74df`
+Source: PR #177 head `c3c74df28af386177aaa9ae694c7eb40154a8d16` (check, lint and e2e x3 green). The only product change since `b3fa05b` is in the PWA (`apps/pwa/src/CashWorkspace.tsx`, `cash-view.ts`): the Cash Statement Date opens on yesterday. No service, SQL or Terraform change, so the images and Cloud Run revisions stay as they are (read `00047-nqz`, command `00064-4zd`, chat `00016-zdm`). Authority: the owner's DEV-review instruction, DEV only.
+
+| Step | What ran | Result | Recovery |
+| --- | --- | --- | --- |
+| DEV Hosting | Same route (temporary 0600 `.env.live-dev`, deleted after the build). `MW_RELEASE_NUMBER=R102 npm run build:live-dev` at `c3c74df` (clean checkout) exit 0; `--check` passed (15 files); deploy 06:54:43Z to 06:54:49Z | Version `18ff0ae926b872e9`, release `1793170488940000`. Live `build-version.json`: R102, version `487b26542279005c3f7298c1`, entry `/assets/index-YKhHZ33O.js`. `build-version.json` carries no commit field; the served entry bundle embeds source commit `c3c74df`. `/health` 200 on read, command and chat | Redeploy version `f60e05997c6f5998` (second R102 deploy) |
+
 ## Recovery
 - Git baseline: the commit before the R102 package. Product code, Terraform and documents revert with the pull request.
 - V114 and V115 are forward migrations, not edited in place once applied. Roll back by a later migration that restores the V113 view bodies (V114) and the V114 CHECK and function bodies (V115). Both are definition-only, so a PROD backup stays the safety net.
