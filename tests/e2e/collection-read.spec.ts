@@ -16,6 +16,24 @@ test.use({timezoneId:'America/Los_Angeles'});
 const statuses=['not_paid','partially_paid','overdue','long_overdue','fully_paid'];
 const rows=Array.from({length:27},(_,i)=>({id:'private-board-'+i,displayName:'ผู้กู้ตัวอย่าง - Synthetic '+i,status:i>=21?'fully_paid':i>=18?'long_overdue':statuses[Math.floor(i/7)],overdueDays:i>=18&&i<21?i-10:i>=14&&i<18?2:null,amountDue:i>=21?'0':'13.75',amountCollected:i>=21?'0':'3.25',amountRemaining:i>=21?'0':'10.50',prepaidToday:i===22?'100':'0',prepaidOnly:i===22,...(i>=21?{groupRemaining:'0',groupCollected:'0'}:{})}));
 const charges=Array.from({length:27},(_,i)=>({id:'private-charge-'+i,loanId:'private-loan',loanDisplayKey:'ผู้กู้ตัวอย่างชื่อยาว - Long synthetic borrower English name-฿12,000-07/10-2%',chargeDate:'2026-10-07',paymentStatus:'ชำระบางส่วน',paymentDate:null,amountRemaining:i===0?null:'10.50',totalPaid:'0',receivedToday:'-2.50',...(i===1?{paymentStatus:'ชำระแล้ว',paymentDate:'2026-10-06',amountRemaining:'0',totalPaid:'10.50',receivedToday:'0'}:i===2?{paymentStatus:'ชำระแล้ว',paymentDate:'2026-10-07',amountRemaining:'0',totalPaid:'10.50',receivedToday:'10.50'}:{})}));
+test('R102 a stale Collection cursor (400) reloads the first page once; a 400 without a cursor stays an error',async({page},info)=>{
+ if(info.project.name.startsWith('desktop'))await page.setViewportSize({width:1440,height:900});let staleCursor=false,firstPage400=false;const board:string[]=[];
+ await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));
+ await page.route('https://mw-credit-app-read-dev-test.run.app/**',async r=>{const u=new URL(r.request().url());const cursor=u.searchParams.get('cursor');
+  if(u.pathname==='/api/collection'){board.push(cursor??'first');const bad=cursor?staleCursor:firstPage400;const start=cursor?Number(cursor):0;
+   await r.fulfill({status:bad?400:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(bad?{ok:false,code:'invalid_request'}:{ok:true,source:'dev',businessDate:'2026-10-07',timezone:'Asia/Bangkok',asOf:'2026-10-07T05:00:00Z',items:rows.slice(start,start+25),nextCursor:start+25<rows.length?String(start+25):null})}).catch(()=>{});return;}
+  await r.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({ok:true,source:'dev',businessDate:'2026-10-07',asOf:'2026-10-07T05:00:00Z',horizonEnd:'2027-01-07',reviewRequired:false,items:[]})}).catch(()=>{});});
+ await page.goto(base);await page.getByRole('button',{name:'Continue with Google'}).click();await page.getByRole('button',{name:'Collection',exact:true}).click();
+ await expect(page.locator('.collection-compact-tile')).toHaveCount(25);
+ // A cursor issued before a release answers 400: one automatic first-page reload replaces the list, no error.
+ staleCursor=true;board.length=0;await page.getByRole('button',{name:'Next Collection page',exact:true}).click();
+ await expect.poll(()=>board).toEqual(['25','first']);await expect(page.locator('.collection-compact-tile')).toHaveCount(25);
+ await expect(page.locator('.collection-compact-tile').first()).toContainText('Synthetic 0');await expect(page.getByRole('heading',{name:'Collection is unavailable'})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Previous Collection page',exact:true})).toHaveCount(0);
+ // A second consecutive 400 (the reload itself refused) and a 400 without a cursor stay errors.
+ firstPage400=true;board.length=0;await page.getByRole('button',{name:'Next Collection page',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Collection is unavailable'})).toBeVisible();expect(board).toEqual(['25','first']);
+});
 test('Collection board child pages financial display rollover errors and route/logout races',async({page},info)=>{
  if(info.project.name.startsWith('desktop'))await page.setViewportSize({width:1440,height:900});async function navigate(name:string){await page.getByRole('button',{name,exact:true}).click();} let code=200,businessDate='2026-10-07',hold=false,release:(()=>void)|undefined;const paths:string[]=[];
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:authMock}));

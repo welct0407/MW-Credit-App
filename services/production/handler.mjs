@@ -3,7 +3,8 @@ import { beginRequest } from '../lib/http-boundary.mjs';
 export function createProductionFoundationHandler({ config, verifyPrincipal, completionLogger = () => {} }) {
   return async (req, res) => {
     let operation = 'denied', code = 'foundation_disabled';
-    const boundary = beginRequest(req, res, { origins: config.origins, methods: ['GET'], headers: ['Authorization'], logger: completionLogger,
+    // R102-DEV-01: accepts the PWA's X-MW-Wake-Deadline in the preflight (value unused; the foundation starts no wake).
+    const boundary = beginRequest(req, res, { origins: config.origins, methods: ['GET'], headers: ['Authorization', 'X-MW-Wake-Deadline'], logger: completionLogger,
       record: ({ requestId, status }) => ({ event: 'foundation_request', requestId, serviceRole: config.serviceRole, operation, status, code }) });
     const send = (status, body) => { res.statusCode = status; code = body?.code ?? 'ok'; res.end(body === undefined ? undefined : JSON.stringify(body)); };
     if (boundary.originDenied) return send(403, { ok: false, code: 'origin_denied' });

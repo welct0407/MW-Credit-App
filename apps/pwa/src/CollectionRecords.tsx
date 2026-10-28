@@ -50,6 +50,8 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const [page, setPage] = useState(1);
   const boardCursors=useRef<(string|undefined)[]>([undefined]),chargeCursors=useRef<(string|undefined)[]>([undefined]),upcomingCursors=useRef<(string|undefined)[]>([undefined]);
   const lastBoardKey=useRef('');
+  // R102: set while the automatic first-page reload after a stale-cursor 400 runs; cleared by the next answered board.
+  const staleCursorReload=useRef(false);
 
   const [chargePage, setChargePage] = useState(1);
   const [businessDate, setBusinessDate] = useState('');
@@ -97,10 +99,13 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     cancel(); const current = ++revision.current,key=query+'|'+(next??'');reset(lastBoardKey.current===key);lastBoardKey.current=key;setError(null); setBusy(true); setUpdateState('loading');
     setScrollTarget(value => ({ kind: 'list', sequence: value.sequence + 1 }));
     const apply=(value:BoardResult)=>{if(current!==revision.current)return;setItems(value.items);setCursor(value.nextCursor);setPage(pageNumber);setBusinessDate(value.businessDate);setAsOf(value.asOf);setBusy(false)};
-    const result = await request<BoardResult>('/api/collection?limit=25' + (query ? '&q=' + encodeURIComponent(query) : '') + (next ? '&cursor=' + encodeURIComponent(next) : ''), code => { if (current === revision.current) fail(code); },apply);
+    // R102: a 400 on a cursor request is a cursor from before a release (the board keyset is versioned): reload the first
+    // page once, replacing the list. A 400 without a cursor, a second consecutive 400 and every other error stay errors.
+    const onError=(code:ReadFailure<CollectionReadError>)=>{if(current!==revision.current)return;if(code.status===400&&next&&!staleCursorReload.current){staleCursorReload.current=true;void loadBoard(undefined,1);return}staleCursorReload.current=false;fail(code)};
+    const result = await request<BoardResult>('/api/collection?limit=25' + (query ? '&q=' + encodeURIComponent(query) : '') + (next ? '&cursor=' + encodeURIComponent(next) : ''), onError,apply);
     if (current !== revision.current) return;
     setBusy(false);
-    if (result) { setUpdateState('success');apply(result); }
+    if (result) { staleCursorReload.current=false;setUpdateState('success');apply(result); }
   }
   // biome-ignore lint/correctness/useExhaustiveDependencies: collection board and detail subscriptions keyed by the narrow identities (commandAccess?.offline, selected?.id, upcomingDetail?.dueDate); commandAccess, selected, upcomingDetail and the hold callbacks are recreated every render and must not resubscribe on each one
   useEffect(()=>{

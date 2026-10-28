@@ -266,7 +266,7 @@ function App() {
       if (!response.ok) {
         if (response.status === 401) { await expireSession({ code: 'session_invalid', reference: responseReference(response) }); return null; }
         if (response.status === 409 && onDateChanged) { onDateChanged({ code: 'business_date_changed', reference: responseReference(response) }); return null; }
-        if (localError && response.status !== 401 && response.status !== 403) { localError({ code: response.status === 404 ? 'not_found' : 'unavailable', reference: responseReference(response) }); return null; }
+        if (localError && response.status !== 401 && response.status !== 403) { localError({ code: response.status === 404 ? 'not_found' : 'unavailable', reference: responseReference(response), status: response.status }); return null; }
         if (response.status === 403) {purgeKeepPending();resetSearch();}
         clear(); setRootError({ code: response.status === 403 ? 'access_denied' : 'unavailable', reference: responseReference(response) });
         setStatus(response.status === 401 ? 'expired' : response.status === 403 ? 'denied' : 'error');

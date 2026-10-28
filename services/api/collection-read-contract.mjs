@@ -53,7 +53,9 @@ export const collectionCte = `WITH today_repayments AS (
       AND count(*) FILTER (WHERE payment_status <> 'ชำระแล้ว') = 0) AS prepaid_only
   FROM eligible GROUP BY borrower_id, borrower_name, borrower_description
 ), summaries AS (
-  SELECT id, borrower_name, borrower_description, rank, overdue_days, (remaining + collected)::text AS amount_due,
+  SELECT id, borrower_name, borrower_description, rank, overdue_days,
+    -- R102 owner decision: the long overdue group lists the most recently overdue first (fewest days); 0 elsewhere.
+    CASE WHEN rank = 3 THEN overdue_days ELSE 0 END AS sort_days, (remaining + collected)::text AS amount_due,
     collected::text AS amount_collected, remaining::text AS amount_remaining,
     prepaid::text AS prepaid_today, prepaid_only FROM grouped
 )`;
@@ -75,7 +77,8 @@ export function encodeCollectionCursor(value, query = '') {
   const { kind, businessDate, id } = value;
   if (!validDate(businessDate) || !validLoanId(id)) throw new Error('Invalid cursor');
   let canonical;
-  if (kind === 'collection' && Number.isInteger(value.rank) && value.rank >= 0 && value.rank <= 4 && typeof value.name === 'string') canonical = { v: 4, kind, businessDate, rank: value.rank, name: value.name, id, queryHash: searchQueryHash(query) };
+  // v5 (R102): the board keyset is (rank, days, name, id); days is the long overdue group's sort key (0 in other groups).
+  if (kind === 'collection' && Number.isInteger(value.rank) && value.rank >= 0 && value.rank <= 4 && Number.isSafeInteger(value.days) && (value.rank === 3 ? value.days > 0 : value.days === 0) && typeof value.name === 'string') canonical = { v: 5, kind, businessDate, rank: value.rank, days: value.days, name: value.name, id, queryHash: searchQueryHash(query) };
   else if (kind === 'collection-charges' && validLoanId(value.parentId) && validDate(value.chargeDate)) canonical = { v: 1, kind, businessDate, parentId: value.parentId, chargeDate: value.chargeDate, id };
   else throw new Error('Invalid cursor');
   return Buffer.from(JSON.stringify(canonical)).toString('base64url');
@@ -97,10 +100,10 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
   const quality = await client.query(collectionQualitySql, [borrowerId]);
   if (quality.rows[0]?.invalid !== false) return { collectionError: 'source_unavailable', collectionStatus: 503 };
   if (borrowerId === null) {
-    const result = await client.query(`${collectionCte}, filtered AS (SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0)), totals AS (SELECT *, CASE WHEN count(*) FILTER (WHERE amount_remaining IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_remaining::numeric) OVER (PARTITION BY rank)::text END AS group_remaining, CASE WHEN count(*) FILTER (WHERE amount_collected IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_collected::numeric) OVER (PARTITION BY rank)::text END AS group_collected FROM filtered) SELECT * FROM totals WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND (COALESCE(borrower_name, '') COLLATE "C" > $7::text COLLATE "C" OR (COALESCE(borrower_name, '') COLLATE "C" = $7::text COLLATE "C" AND id COLLATE "C" > $4::text COLLATE "C")))) ORDER BY rank, COALESCE(borrower_name, '') COLLATE "C" ASC, id COLLATE "C" ASC LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query, after?.name ?? null]);
+    const result = await client.query(`${collectionCte}, filtered AS (SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0)), totals AS (SELECT *, CASE WHEN count(*) FILTER (WHERE amount_remaining IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_remaining::numeric) OVER (PARTITION BY rank)::text END AS group_remaining, CASE WHEN count(*) FILTER (WHERE amount_collected IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_collected::numeric) OVER (PARTITION BY rank)::text END AS group_collected FROM filtered) SELECT * FROM totals WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND (sort_days > $8::integer OR (sort_days = $8::integer AND (COALESCE(borrower_name, '') COLLATE "C" > $7::text COLLATE "C" OR (COALESCE(borrower_name, '') COLLATE "C" = $7::text COLLATE "C" AND id COLLATE "C" > $4::text COLLATE "C")))))) ORDER BY rank, sort_days, COALESCE(borrower_name, '') COLLATE "C" ASC, id COLLATE "C" ASC LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query, after?.name ?? null, after?.days ?? null]);
     const items = result.rows.slice(0, limit).map(projectCollection);
     const last = result.rows[Math.min(limit, result.rows.length) - 1];
-    return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, name: last.borrower_name ?? '', id: last.id }, query) : null };
+    return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, days: last.sort_days, name: last.borrower_name ?? '', id: last.id }, query) : null };
   }
   const summary = await client.query(`${collectionCte} SELECT * FROM summaries`, [businessDate, borrowerId]);
   if (summary.rows.length !== 1) return { collectionError: 'not_found', collectionStatus: 404 };
