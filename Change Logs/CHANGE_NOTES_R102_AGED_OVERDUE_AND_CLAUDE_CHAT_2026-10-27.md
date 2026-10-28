@@ -69,6 +69,16 @@ Authority: the owner's instruction "open the PR, test it in Dev, and let me revi
 
 Not done in this step: the device pass and anything in PROD.
 
+### Second DEV deploy (Forge, 28 October 2026, UTC): `b3fa05b`
+Source: PR #177 head `b3fa05b9bcde49a84991716883380a33e2e3c6db`, CI green on that head. Changes since `3908f85`: the read service and the foundation handler accept `X-MW-Wake-Deadline` in CORS; Long overdue sorts fewest days first (board cursor v5); the PWA reloads page 1 after a stale-cursor 400. No SQL; the DEV database stays at V115. Authority: the owner's DEV-review instruction, DEV only.
+
+| Step | What ran | Result | Recovery |
+| --- | --- | --- | --- |
+| 1. DEV image | Cloud Build `5bfb68a6-ca4e-40db-b052-6dfd0936c6f8` (`cloudbuild-command.yaml`, builder `mw-credit-app-build`, staging `mw-credit-app-builds-737787224638`) from a clean `git archive` of `b3fa05b`, 06:23:00Z to 06:23:49Z, SUCCESS | `mw-credit-app/api@sha256:7a193c9fe7abb24335a9f818789361d6b456e361a32333f1597151a9a61edae5` | Previous image `7171b465…8fd2` (`3908f85`) |
+| 2. DEV Terraform | Activation: `read_image`, `command_image` and `chat_image` pinned to `7a193c9f…`. Chat `CHAT_MODELS_JSON` (default `claude-opus-5-5`) and the relay wiring unchanged. Previous generation `1793166070377743` (equal to the local file; private copy `dev.activation.tfvars.pre-r102b-gen1793166070377743`). Plan 0 add, 3 change, 0 destroy, images only (binary sha256 `cabeb588…3c92`, text sha256 `34d73c44…2f49`). Published as generation `1793168697855428`; applied 06:25:01Z to 06:25:38Z | Re-plan no changes. Revisions at 100%: read `00047-nqz`, command `00064-4zd`, chat `00016-zdm`. Chat readback: `CHAT_RELAY_URL` set, default `claude-opus-5-5`, egress `private-ranges-only` | Republish generation `1793166070377743` (the private copy) and apply |
+| 3. DEV Hosting | Same route as the first deploy (temporary 0600 `.env.live-dev`, deleted after the build). `MW_RELEASE_NUMBER=R102 npm run build:live-dev` at `b3fa05b` (clean checkout) exit 0; `--check` passed (15 files); deploy 06:26:47Z to 06:26:53Z | Version `f60e05997c6f5998`, release `1793168812972000`. Live `build-version.json`: R102, version `a42ca298e5b8f0340e1d5365`, entry `/assets/index-DN8vbQAE.js` | Redeploy version `8b0da9e96de6e231` (first R102 deploy) |
+| 4. Smoke | Unauthenticated probes; one test-account Collection GET (token never printed, file deleted afterwards) | `/health` 200 on read, command and chat. Preflight `OPTIONS /api/collection` from `https://dev-lm.mw-credit.com` with `authorization, x-mw-wake-deadline`: 204. With `authorization, x-unknown-header`: 403. As the test account, `GET /api/collection` 200 with 21 items (12 `long_overdue`, 9 `overdue`); the `long_overdue` rows' `overdueDays` are 9, 10, 14, 19, 19, 20, 21, 22, 23, 41, 42, 64, which is ascending. No ERROR logs in read, command or chat since 06:25Z | — |
+
 ## Recovery
 - Git baseline: the commit before the R102 package. Product code, Terraform and documents revert with the pull request.
 - V114 and V115 are forward migrations, not edited in place once applied. Roll back by a later migration that restores the V113 view bodies (V114) and the V114 CHECK and function bodies (V115). Both are definition-only, so a PROD backup stays the safety net.
