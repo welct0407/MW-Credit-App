@@ -16,7 +16,9 @@
     "today-charges": 249,
     "freshness": 250,
     "unclassified": 251,
-    "today-charge-paid": 252
+    "today-charge-paid": 252,
+    "long-count": 412,
+    "long-list": 413
   },
   "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor",
   "baselineCommit": "f4b8ffd86a73667b0d30c429a7b6d85da6151a5b",

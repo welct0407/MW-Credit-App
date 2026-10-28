@@ -87,6 +87,123 @@ Source: PR #177 head `c3c74df28af386177aaa9ae694c7eb40154a8d16` (check, lint and
 | --- | --- | --- | --- |
 | DEV Hosting | Same route (temporary 0600 `.env.live-dev`, deleted after the build). `MW_RELEASE_NUMBER=R102 npm run build:live-dev` at `c3c74df` (clean checkout) exit 0; `--check` passed (15 files); deploy 06:54:43Z to 06:54:49Z | Version `18ff0ae926b872e9`, release `1793170488940000`. Live `build-version.json`: R102, version `487b26542279005c3f7298c1`, entry `/assets/index-YKhHZ33O.js`. `build-version.json` carries no commit field; the served entry bundle embeds source commit `c3c74df`. `/health` 200 on read, command and chat | Redeploy version `f60e05997c6f5998` (second R102 deploy) |
 
+## PROD promotion (28 October 2026, UTC)
+
+### Promotion record (Forge, 28 October 2026, UTC)
+[Template](../project/scripts/releases/templates/promotion-checklist.md). Pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No secret value, token or borrower data appears here.
+
+**Continue here**
+- **Scope:** R102 to PROD.
+  - V114 and V115 on `loan_manager_prod`.
+  - Read, command and chat images (one image), with the chat relay wiring.
+  - The PROD entries for the VM chat relay.
+  - PWA Hosting.
+  - The Metabase lane, by Byte (next section).
+  - Notify and jobs stay on their R091 image.
+- **Authority:** the owner's "promote to production" for R102 (28 October 2026), relayed by the orchestrator. It covers the backup and restore check, V114 and V115, the chat owner window, the image, Cloud Run, Terraform, Hosting, the VM relay PROD configuration and these records. It does not cover forced notifications, payments, jobs or chat turns.
+- **Freeze:** 2026-10-28T07:34:26Z.
+  - Package `main` at `b216968ad45f2228d88a6f53ba9bc07f813636db`, the PR #177 merge. Its tree equals `5deae79` and its code equals DEV's `c3c74df`.
+  - Delivery-tool commit `51d72f06222fe94358f794aaabd12e492ca72018`: Byte's R102 runner kind `3de5cc0` plus the global-build readback from `126a155`, runner files only; `node --test tests/unit/business-hosting-delivery.test.mjs` 114/114, exit 0 (see step 10).
+  - Next unused release number: R103.
+  - Migration bytes: V114 sha256 `af10766e…84af9`, V115 `669d9b31…7252e`, the same as applied to DEV at `3908f85`.
+- **Baseline at freeze, used for recovery:**
+  - Revisions: read `00028-crh`, command `00033-qvh`, chat `00011-ngn`, all on `99abc23c…61e6` (R101); notify `00022-4lt` and jobs `00022-42m` on `50953149…0468`.
+  - Hosting version `6f15f2aa732be9c7`, release `1792964245484000` (R101).
+  - Flyway head 113: 113 rows, all successful.
+  - PROD activation generation `1792964036695139`.
+  - VM: checkout detached at `49f6044`, `config.json` sha256 `9363d74c…5c5c`.
+
+| Step | What ran | Result | Recovery |
+| --- | --- | --- | --- |
+| 1. Backup | Target `clever-oasis-508610-n7` / `mw-credit-pg-20261017` / `loan_manager_prod`, verified before every database action (system identifier `7685391508477894672`, `inet_server_addr` NULL through the tunnel). `Backup-ProductionPromotion.py --expected-version 113` from a clean checkout of `b216968`, 07:35:51Z to 07:38:16Z | `prod-promotion-08659cdaf2554f8d9d745d4d4ce1fd2d`: dump sha256 `b158e819…020b`, archive listing and isolated restore passed, fingerprints match for 37 tables. Copied to `gs://mw-credit-operator-private-737787224638/prod-backups/` | Restore this backup (V113) |
+| 2. Migration package | `Invoke-CloudFlyway.py prepare`, 07:38:55Z to 07:39:36Z. The DEV evidence is the validation reference: DEV V114 and V115 at `3908f85`, the DEV info and validate, and the disposable chain with `Test-LongOverdue`, `Test-Chat` and `Test-AccessMatrix`. `connect_preflight.py --baseline 113 --target 115`, 07:39:41Z to 07:40:09Z. `check`, 07:40:15Z to 07:40:51Z | Release file `release-r102-v115-b216968.json` (private), 115 migrations, commit `b216968`. Preflight `connect-preflight-2026-10-28T074009Z.json`, sha256 `93a3a460…a38e`: 18 retained consumers, 17 DEV principals, 0 DEV sessions. `check`: 0 writes, pending exactly 114 and 115 | n/a |
+| 3. Owner window | `owner-authority-cli.mjs prepare --environment production --owner mw_chat_owner_prod` (baseline 113, source pin `b216968`, backup proof above). Dry run 07:41:20Z, applied 07:41:30Z to 07:41:36Z (4 statements) | Record `owner-authority-prod-prepare-f2d9e66b-baf8-4236-bf53-99a65923c563.json` (private) | `restore --apply` with that record |
+| 4. V114 and V115 | `Invoke-CloudFlyway.py apply`, one grouped transaction, 07:41:42Z to 07:43:31Z | 2 migrations executed, version 115. Both rows installed 07:42:23.921Z: V114 31.4 s (checksum -1327275677), V115 2.4 s (checksum 1917255405). The runner's own validate and info passed with nothing pending | Forward migration only; the backup in step 1 is the safety net |
+| 5. Window restored | `restore --apply`, 07:43:44Z to 07:43:53Z (4 statements). The local admin credential file was deleted afterwards | `postgres` membership in `mw_chat_owner_prod` is back to no inherit and no set; the chat owner has no CREATE on `public` | — |
+| 6. Readback | `Invoke-CloudFlyway.py verify --target prod` at 07:44:03Z, plus read-only queries as `codex-cloud-read` | Validation successful, schemaVersion 115, 0 pending, 0 writes. History: 115 versioned rows, all successful. The `pwa_chat_threads` CHECK allows `claude-*`. The two OLAP views keep their owner `postgres` and their ACLs (`mw_app_prod`, `mw_chat_read_prod`, `metabase_borrower_reader`, `mw_reviewer_dml`, `mw_integration_agent` read). `olap_portfolio_summary`: Overdue 2, Long Overdue 11. `olap_borrowers_analytics`: Long Overdue 11, Overdue 2, Not Paid 5, Partially Paid 1, Fully Paid 5 | — |
+| 7. PROD image | Cloud Build `f3f9e683-633e-4b59-b6d9-4023f683f2b1` (`cloudbuild-business.yaml`, builder `mw-credit-app-build-prod`, staging `mw-credit-app-prod-builds-737787224638`, source generation `1793172976662171`) from a clean `git archive` of `b216968`, 07:36:18Z to 07:37:20Z, SUCCESS. The container smoke steps passed | `mw-credit-app-prod/api@sha256:599e19b64600b94720f6ef803fdc1f1f494b1d525c62e3430487abfd9717ff26`, tag `keep-r102-runtime`. Not a relabelled DEV image | Previous image `99abc23c…61e6` (R101) |
+| 8. VM relay (PROD) | `vm-mw-credit-agent`. Checkout moved from detached `49f6044` to `main`: `git checkout main`, then `update-from-github.sh` fast-forward to `b216968`, clean (07:46:49Z). Config-only change (OPERATIONS.md procedure): backup `/root/config.json.pre-r102-prod`; worker timers and the wake path stopped 07:47:55Z; caller `mw-credit-app-chat-prod@` (subject `109821788246551148361`, `prod`, verified against the service account's unique id) and `chat_relay_wif.prod` added (organization `fe93c72e-…3c57`, rule `fdrl_01FQt7BocPj6Nbztk78KLKrx`, service account `svac_019kDNyni1Jxk488bQXbiMbZ`, workspace `wrkspc_01MPUWyGuZGX2SJa8zBZrgax`, audience `https://api.anthropic.com/mw-credit-chat-prod`). The DEV entries were kept. `check` ok; receiver, recognizer and relay restarted; timers started 07:48:27Z | `config.json` sha256 `177bd31b…a5a5`, 89 keys; catalogue unchanged (`56a660e6…9c25`). The installed package is unchanged: `/ready` `code_version` stays `49f6044`, whose `integration-agent/` bytes equal `b216968` except the change note. One PROD federation exchange on the VM, 07:50:46Z: 200, `Bearer`, `expires_in` 600, scope `workspace:developer` (token discarded, not printed). After the incident fix below: `/ready` true, relay and recognizer `/healthz` ok, 0 failed units, all 7 timers and the wake path active | Config back with `/root/config.json.pre-r102-prod` (mode 0640 root:mwagent) through the same procedure, or archive the PROD rule in the Claude Console. Checkout: `git checkout --detach 49f6044` |
+| 9. PROD Terraform | Activation: `runtime_image_overrides` read, command and chat set to `599e19b6…`; `chat_relay = { enabled = true }`; a `chat_models` block identical to the variable default except `default = "claude-opus-5-5"`, with the three Gemini models still listed. Private copy of the previous generation: `production.activation.tfvars.pre-r102-gen1792964036695139`. `Invoke-Terraform.ps1 -Stack production` plan from the clean `b216968` checkout, 07:45:25Z: 0 add, 3 change, 0 destroy. Saved plan `production-r102.tfplan` (binary sha256 `f7244670…6678`, text sha256 `fc724316…1def`). Changes: read and command image only; chat image, `CHAT_MODELS_JSON`, `CHAT_RELAY_URL` added, `vpc_access` added. These match the runner's `R102_PLAN_ACTIONS`. Published as activation generation `1793173874352889` at 07:51:17Z; applied 07:51:17Z to 07:51:56Z | Re-plan: no changes. Revisions at 100%: read `00029-tzt`, command `00034-8m8`, chat `00012-7lz`, all on `599e19b6…`. Notify `00022-4lt` and jobs `00022-42m` unchanged. Chat readback: models `claude-opus-5-5`, `gemini-4-argon`, `gemini-3.8-flash`, `gemini-3.5-flash`, default `claude-opus-5-5`, `maxRounds` 16; `CHAT_RELAY_URL=http://10.148.0.2:8791/v1/chat/messages`; network interface default/default, egress `private-ranges-only` | Republish generation `1792964036695139` (the private copy) and apply. This reverts the images and turns off the relay wiring, a config-only chat revision |
+| 10. PROD Hosting | Operator `mw-credit-unattended-admin`, runner `deploy-business-hosting.mjs` (R102 kind, schemaVersion 33) from a clean clone.<br>• **Candidate:** `buildProductionBusinessCandidate` (release `R102`, the R101 public config input) from the clean `b216968` checkout: marker version `d092d986cf2b73f0a7aa4c17`, entry `/assets/index-BU83gPDJ.js`, public config sha256 `6eea01ac…` (equal to R101), 16 files. Private package `promotion-packages/r102/promotion-package.json`, sha256 `02981205…cdfcb`.<br>• **CI gate:** the R074 gate needed a successful run that executed `terraform` for R102's terraform inputs; the only evidence (run 40634156857) was cancelled. The orchestrator dispatched `ci.yml` on `main` with `force: true`: run 40653479949 on `b216968`, all green. It is cited for check, e2e and terraform. Rebuild jobs cite run 40642495092 (stage evidence) and guards run 40650268012.<br>• **First `--apply` (08:08:21Z), refused before any write:** the live readback failed because Cloud Build `f3f9e683` is a global build (submitted without `--region`), and the runner read builds at `asia-southeast1` only. Decision B: Byte's readback falls back to `global` only on a regional 404, with the build id and project exact (126a155).<br>• **Delivery-tool commit:** 126a155 also carried the Metabase commit 3556210, which the gate refuses (only runner files may lie between the package and the tool commit). So the delivery-tool commit is `51d72f06222fe94358f794aaabd12e492ca72018`: parent `3de5cc0`, only `scripts/promotion/deploy-business-hosting.mjs`, `scripts/promotion/README.md` and `tests/unit/business-hosting-delivery.test.mjs`, byte-identical to 126a155. `deliveryToolChecks`: the runner's unit test 114/114, exit 0. Diff reviewed by the orchestrator instead of Chase because of the interim exposure. The orchestrator merges `51d72f0` into the branch.<br>• **Apply:** `--check` passed, then `--apply` 08:25:43Z to 08:26:27Z. | Version `83c857918dfcbeb4`, release `1793175980087000`, 16 files, `no-store`. Live `build-version.json` on `lm.mw-credit.com` and on the `web.app` host: release `R102`, version `d092d986cf2b73f0a7aa4c17`, entry `/assets/index-BU83gPDJ.js`. The served entry bundle embeds source commit `b216968` and `"R102"`. `no-store` on `build-version.json` and `sw.js`; `/` 200. Receipt `promotion-receipts/R102-HOSTING-RECEIPT.json` (private). The interim window, with the R101 PWA on the R102 API, ran from 07:51:56Z to 08:26:27Z. Post-Hosting smoke 08:27Z: `/health` 200 on read, command and chat; `/api/collection` 401 without a token; preflight with `x-mw-wake-deadline` 204; no ERROR logs in the five PROD services since 07:51Z; VM 0 failed units and relay `/healthz` ok | Redeploy version `6f15f2aa732be9c7`, release `1792964245484000` (R101) |
+| 11. Smoke (read-only) | Unauthenticated probes and read-only queries. No PROD chat turn was created, and no test account was used | `/health` 200 on read, command and chat. 401 without a token on read `/api/session` and `/api/collection`, command `/api/session`, chat `/api/chat/models` and `/api/chat/threads`. Preflight from `https://lm.mw-credit.com`: read with `authorization, x-mw-wake-deadline` 204; with `authorization, x-unknown-header` 403; command 204; chat 204. Long overdue count 11 from the V114 views (step 6). No ERROR logs in read, command, chat, notify or jobs since 07:51Z (checked 08:01:37Z). Relay journal: no request lines since the restart (no PROD turn yet). The owner's first PROD chat is the real-use check | — |
+
+**VM incident during step 8 (07:47:30Z to 07:50:01Z), recovered**
+- **Cause.** The first attempt of the config script failed its own `check` because the `--catalogue` argument was missing. Its restore branch then copied the backup back with `cp -p`, but the backup had just been set to mode 0600. `config.json` therefore became `root:mwagent` 0600, which the `mwagent` service user cannot read. The second run inherited that mode.
+- **Impact.** The receiver, recognizer and relay could not start on restart, and each worker timer service failed once at its config read, so no work was done.
+  - **Receiver:** one inbound request reached the tunnel in the window. It was refused at 07:48:15Z (`connection refused` to 127.0.0.1:8000). That request was the Cloud Monitoring uptime check from Belgium, which failed from 07:48:20Z to 07:49:10Z and passed again from 07:53:20Z; the other two regions passed. No Instagram delivery is recorded: `runtime.ingress_messages` has no row since 2026-10-27 17:52Z, and `ingress_work` has 197 rows, all DONE. The receiver does not log refused requests itself, so a Meta POST between 07:47:30Z and 07:48:00Z cannot be ruled out from logs. Meta retries failed deliveries, and nothing has arrived since.
+  - **Recognizer:** the PROD command service received no requests between 07:46Z and 07:51:28Z, when the new revision started. So 0 recognition calls failed.
+  - **Relay:** no relay request lines in that window and no `chat_turn` logs on DEV or PROD since 07:40Z.
+  - **Workers:** audit-relay, conversation-poll, resource-health, cash-statement-email-retry and receipt-summary each failed once. Each next tick succeeded between 07:58Z and 08:00Z. Heartbeats show COMPLETED with exit code 0. No `job_runs` row has started since 07:40Z other than 17 COMPLETED ones, and the only INTERRUPTED rows predate this (September and 16 October). Cash statement and audit retention were not due.
+- **Fix.** 07:50Z: `chmod 0640` (`root:mwagent`, as the other files in `/etc/mw-integration-agent`), `reset-failed`, restart. `/ready` true at 07:50:01Z, 0 failed units.
+- **Follow-up (proposed, not done):** in any config-only restore, copy with `install -m 0640 -o root -g mwagent` (or chmod the backup only after copying it back) instead of `cp -p` from a 0600 backup.
+- The 07:47:30Z to 07:48:00Z gap for Meta deliveries cannot be verified from logs. It is mitigated by Meta's retries, and no delivery has arrived since.
+
+**Build-region miss and the interim window**
+- **The miss.** Cloud Build `f3f9e683` was submitted without `--region asia-southeast1`, so it is a global build. The runner reads builds at `locations/asia-southeast1`, which answers 404 for it, so the Hosting `--apply` stopped at the live readback before any write. The image itself is the reviewed one: SUCCESS, from the clean archive of `b216968`, digest `599e19b6…`.
+- **Decision B (orchestrator).** PROD stays as it is, with no rollback. Byte changes the runner's build readback to also accept `locations/global`, with every identity check still exact. Hosting then runs from the new delivery-tool commit.
+- **Interim window.** From the 07:51:56Z apply until the Hosting release, the R101 PWA runs against the R102 read, command and chat services. Read-only assessment of the R101 client (`10d543d`):
+  - Collection board: `statusLabel` has no `long_overdue` entry, so the Long overdue group heading and tile status text are blank and unstyled. Amounts and group totals still show, and the group sorts after Overdue.
+  - Dashboard: it lists a fixed set of metrics, so there is no Long overdue row, and Overdue shows the 1 to 7 day count only (2 instead of 13).
+  - Cursors: a v3 board cursor would get 400 with no automatic reload in R101. But the PROD board has 24 rows, one page under the 25 limit, so it returns no next cursor.
+  - PROD read logs from 07:51Z to 08:02Z (paths and status only): `/api/collection` GET 200 ×4, plus one charges and one upcoming GET 200; 0 cursor requests, 0 responses with status 400.
+  - Chat: the R101 `chat/ChatWorkspace.tsx` picks `models.default`, so a new thread starts on Claude Opus 5.5 through the relay, which is configured for PROD. The picker lists the four models the server returns.
+  - So the owner could see blank Long overdue labels and a lower Overdue count on the Dashboard, but no Collection errors.
+- The PROD Firebase web API key, a public client identifier, was echoed in the session terminal while the R101 package was inspected. It was not written to a file or Git.
+
+### Metabase (PROD) (Byte, 28 October 2026, UTC)
+Authority: the owner's "promote to production", after Forge confirmed V114 in PROD (guarded Flyway apply 07:41:42Z to 07:43:31Z, head 115). Source: Metabase `reports.mw-credit.com`, database 2 (`loan_manager_prod` as `metabase_borrower_reader`). The admin key came from Secret Manager `mw-metabase-admin-api-key`, read by the scripts and never printed.
+
+The first `--prepare` refused because tab 19 is now named "10 · Collection Monitor", and model 162 and card 122 are stored in Metabase's newer query format (MBQL 5). Before any write, the script was changed:
+- It matches tab 19 by its id.
+- It parses and re-renders both query formats structurally.
+- It refuses anything else and refuses a replay.
+- A read-only `--plan` prints the change per object.
+- Unit tests in `tests/unit/metabase-long-overdue-lane.test.mjs` use the live shapes.
+
+| Object | Change | Id |
+| --- | --- | --- |
+| Model 162 (Collection Status Summary) | Zero-filled status list adds `Long Overdue` after `Overdue` | 162 |
+| Card 248 (Collection detail) | Row highlights add `Long Overdue` (`#ECEFF1`) | 248 |
+| Card 122 ("Not paid / overdue", remaining pages) | Its "or" filter adds a `Long Overdue` clause | 122 |
+| Card 251 ("Unclassified people · expected 0") | Not-equals list adds `Long Overdue` (follow-up step `--apply-unclassified`) | 251 |
+| Dashboard 3 filter `collection-detail-status` | Values add `Long Overdue` | dashboard 3 |
+| Dashboard 3 tab 19 | Five lanes on rows 6 and 8, widths 5/5/5/5/4 | dashboard 3, tab 19 |
+| New "⚫ Long overdue · people" | Created | 412 |
+| New "⚫ Long overdue · borrowers" | Created | 413 |
+| Dashboard 32 (Loan Reports · proposed) board | Five lanes (`--refine`) | 396 |
+| Dashboard 32 new lane question | Created; collection tab rebuilt | 414 |
+
+Dashboard 32 refine:
+- Dashboard 3 changes on purpose with this lane, so `ProposedLoanReports.mjs --rebaseline-dashboard3=R102` renewed its guard baseline from live dashboard 3 first. The new step only runs once lane cards 412 and 413 are placed on tab 19.
+- Then `--refine --only=collection.board,collection.lane-long-overdue,collection`: the dry run passed (board 5 rows, lane 11 rows), then the refine ran.
+
+Before-state copies (private, outside Git), in `gs://mw-credit-operator-private-737787224638/promotion-receipts/r102-metabase/`:
+- `r102-long-overdue-lane/before.json`: dashboard 3 and cards 248, 162 and 122 before `--apply`.
+- `r102-long-overdue-lane/before-251.json`
+- `state.json` and `unclassified-state.json`
+- `dashboard-32/`: the dashboard 3 baselines, `proposed-before-refine.json` and `question-before-refine-396.json`.
+
+The session copy is under `~/.mw-private/MW-Credit-App/metabase`.
+
+| Check | Result |
+| --- | --- |
+| `AddLongOverdueLane.mjs --plan` and `--plan-unclassified` (read-only) | Exactly the intended change per object; other query keys unchanged |
+| `AddLongOverdueLane.mjs --verify` (post-apply read-back) | Passed: five lanes in order and widths, other placements unchanged, filter and highlights, model 162 statuses, card 122 statuses; evidence `project/outputs/r102-long-overdue-lane/verification.json` |
+| `AddLongOverdueLane.mjs --verify-unclassified` | Passed; card 251 returns 0 (it returned 11 after the first apply, which is why the follow-up step was added) |
+| `ProposedLoanReports.mjs --verify` after the refine | 27 of 27 checks passed (`project/outputs/loan-reports-redesign-20261026/verification.json`) |
+| Read-only reconciliation (counts only) | Card 412 = 11, equal to the PROD view's `Long Overdue` count of 11. Card 122 = 17, equal to the view's Not Paid + Overdue + Long Overdue count of 17 (it was 18 at 07:55Z; live data moved). Card 251 = 0; the view has 0 statuses outside the five |
+| `node --test tests/unit/metabase-long-overdue-lane.test.mjs` | 7 of 7 passed |
+
+Not run: `Verify-CollectionMonitor.mjs` and `Verify-RemainingPages.mjs`. Both read private baselines that exist only on VM-01 (the R025 and R016 Windows paths); the reconciliation above replaces them, as the orchestrator decided.
+
+Recovery (remove the lane). Restore from the private copies above, using the admin API:
+1. `PUT card/251`, `card/162`, `card/122` and `card/248` with the `dataset_query` and `visualization_settings` from the before copies.
+2. `PUT dashboard/3` with the parameter values from `before.json`.
+3. `PUT dashboard/3/cards` with the tab 19 placements from `before.json` (this drops 412 and 413 from the dashboard); then archive cards 412 and 413.
+4. Dashboard 32: `PUT card/396` from `question-before-refine-396.json`, archive 414, then restore the collection tab from `proposed-before-refine.json` (or `--refine --only=collection` with the four-lane layout from Git).
+
+The lane depends on V114: if V114 is rolled back, remove the lane first.
+
 ## Recovery
 - Git baseline: the commit before the R102 package. Product code, Terraform and documents revert with the pull request.
 - V114 and V115 are forward migrations, not edited in place once applied. Roll back by a later migration that restores the V113 view bodies (V114) and the V114 CHECK and function bodies (V115). Both are definition-only, so a PROD backup stays the safety net.
@@ -95,8 +212,8 @@ Source: PR #177 head `c3c74df28af386177aaa9ae694c7eb40154a8d16` (check, lint and
 - Metabase: `AddLongOverdueLane.mjs` writes a private baseline before `--apply`; restore from it.
 
 ## Open questions
-- Owner review on DEV before any PROD promotion (owner instruction of 28 October 2026).
-- Pre-existing since R090, found in the DEV pass (R102-DEV-01): the PWA sends `X-MW-Wake-Deadline` on reads, but the read service's CORS allowlist accepts only `Authorization`, so browser preflights to the read service get 403 `origin_denied` (DEV today; PROD 126 refused from 24 to 26 October, none granted) and those reads fall back to the offline copy. Not caused by R102; the owner chose to fix it in R102 (see Changes).
+- Owner acceptance: the first PROD use of Long overdue, Claude and Cash is pending.
+- Pre-existing since R090 (R102-DEV-01), fixed in R102 per the owner's choice (see Changes): the read service CORS allowlist now accepts `X-MW-Wake-Deadline`.
 
 ## Remaining work
 Anthropic workload identity federation (identifiers, not secrets; owner set up in the Claude Console on 28 October 2026). Organization `fe93c72e-d3c5-4710-8de5-465493fd3c57`, issuer `google-cloud`; both rules match `sub` `111496211387247382045` and the `mw-integration-agent@` email, scope `workspace:developer`, lifetime 600 s.
@@ -108,5 +225,18 @@ Anthropic workload identity federation (identifiers, not secrets; owner set up i
 
 The DEV values are in the VM relay configuration; the PROD values and the PROD caller go in at promotion.
 
-Owner review on DEV, then PROD promotion on the owner's instruction (V114 and V115 before the images; Metabase `AddLongOverdueLane.mjs` right after V114; PROD relay values and caller). Regenerate the Data Dictionary entries for the two OLAP views (`public.olap_borrowers_analytics`, `public.olap_portfolio_summary`) and the chat model CHECK and functions at PROD promotion, from a read-only PROD capture: the dictionary records `loan_manager_prod` only, so a DEV capture would put DEV ACLs and a state PROD does not have into production records.
+See Closure below for the open follow-ups.
 Known behavior: chat text streams only in the final round, after the tool rounds, so the first text appears 10 to 14 s after sending.
+
+## Closure (28 October 2026)
+Tag record: the annotated tag `R102` points at the package commit `b216968ad45f2228d88a6f53ba9bc07f813636db` (PR #177 on `main`), created by the Release tag workflow; the [GitHub Release](https://github.com/welct0407/MW-Credit-App/releases/tag/R102) was published at 08:29:00Z. Baseline R101 `10d543d`.
+
+Open follow-ups:
+- The deploy-script fix for the 0600 configuration restore that caused the 2.5-minute VM outage.
+- The Metabase `Verify-*` baseline scripts were not run (VM-01 only).
+- The Meta 30-second gap cannot be verified from logs.
+- Chat text streams only after the tool rounds (the first text appears 10 to 14 s after sending).
+- Data Dictionary not regenerated: the entries for `public.olap_borrowers_analytics`, `public.olap_portfolio_summary` and the chat model CHECK and functions still show the pre-V114 and pre-V115 PROD state. No Linux route exists: `scripts/dictionary/capture_postgresql.py` is Windows-only (it needs `LOCALAPPDATA` dependencies), so a PROD capture needs the Windows host. Not faked by hand.
+- Owner acceptance (above).
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R099_GRAFANA_BRIDGE_SDK_HOTFIX_2026-10-25.md`, which left the retention window (R103 Open; R102, R101, R100 Released); its links in the Release tracker and Development Changes now point to the commit permalink `b216968`. No Development Changes section existed for R102 beyond its follow-up row, which stays as the pattern for released follow-ups. No other change note or evidence file is outside the window or uncited (`npm run check:docs`: 0 failures, 0 warnings).

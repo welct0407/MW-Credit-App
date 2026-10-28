@@ -262,6 +262,17 @@ if(args.includes('--publish')){
  await guardDashboard3();
  console.log(JSON.stringify({dashboard:dash.id,collection:collection.id,questions:Object.keys(state.questions).length,tabs:Object.keys(state.tabs).length}));
 }
+// R102: dashboard 3 changes on purpose when AddLongOverdueLane.mjs --apply adds the Long overdue lane, so the guard's
+// baseline is renewed once from live dashboard 3, only after that script's state exists and its two lane cards are placed on
+// tab 19; the earlier baseline (when present) is kept beside it. Later runs guard against the renewed baseline.
+if(args.includes('--rebaseline-dashboard3=R102')){
+ await assertSource();read('state');const long=longLaneCards();assert(long?.count&&long?.list,'run AddLongOverdueLane.mjs --apply first');
+ const d=await api('GET','dashboard/3'),placed=d.dashcards.filter(c=>c.dashboard_tab_id===19&&[long.count,long.list].includes(c.card_id));
+ assert.deepEqual(placed.map(c=>[c.card_id,c.row]).sort((a,b)=>a[1]-b[1]),[[long.count,6],[long.list,8]],'the Long overdue lane is not placed on dashboard 3 tab 19');
+ if(fs.existsSync(`${priv}/dashboard-3-before.json`))fs.copyFileSync(`${priv}/dashboard-3-before.json`,`${priv}/dashboard-3-before-pre-r102.json`);
+ save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline',{at:new Date().toISOString(),reason:'R102 Long overdue lane (AddLongOverdueLane.mjs)',laneCards:long,dashcards:d.dashcards.length},priv);
+ console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,laneCards:long}));
+}
 if(args.includes('--refine')){
  await assertSource();assert(only.length,'--refine needs --only=<keys>');const state=read('state'),{baseline}=await guardDashboard3(),specs=questions(await liveSources(),state,baseline);
  const qs=only.filter(k=>layout.new_questions[k]),tabs=only.filter(k=>state.tabs[k]);assert.equal(qs.length+tabs.length,only.length,'unknown key in --only');

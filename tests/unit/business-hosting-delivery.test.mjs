@@ -7,7 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {hashEntries,evidenceName,variantOf,loadStages} from '../../scripts/ci/reuse-evidence.mjs';
 import {migrationHead} from '../migration-head.mjs';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage,r080HostingPlan,validateR080Source,validateR080Sql,verifyR080LivePackage,r081HostingPlan,validateR081Source,validateR081Sql,verifyR081LivePackage,validateR089Source,validateR089Sql,r089HostingPlan,verifyR089LivePackage,validateR090Source,validateR090Sql,r090HostingPlan,verifyR090LivePackage,R090_CHAT_ORIGIN,R090_PLAN_ACTIONS,R090_DISPATCH,validateR091Source,validateR091Sql,r091HostingPlan,verifyR091LivePackage,R091_PLAN_ACTIONS,validateR095Source,validateR095Sql,r095HostingPlan,verifyR095LivePackage,R095_PLAN_ACTIONS,validateR096Source,validateR096Sql,r096HostingPlan,verifyR096LivePackage,R096_PLAN_ACTIONS,validateR097Source,validateR097Sql,validateR100Source,validateR100Sql,r100HostingPlan,verifyR100LivePackage,R100_PLAN_ACTIONS,validateR101Source,validateR101Sql,r101HostingPlan,verifyR101LivePackage,R101_PLAN_ACTIONS,r097HostingPlan,verifyR097LivePackage,R097_PLAN_ACTIONS} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage,r080HostingPlan,validateR080Source,validateR080Sql,verifyR080LivePackage,r081HostingPlan,validateR081Source,validateR081Sql,verifyR081LivePackage,validateR089Source,validateR089Sql,r089HostingPlan,verifyR089LivePackage,validateR090Source,validateR090Sql,r090HostingPlan,verifyR090LivePackage,R090_CHAT_ORIGIN,R090_PLAN_ACTIONS,R090_DISPATCH,validateR091Source,validateR091Sql,r091HostingPlan,verifyR091LivePackage,R091_PLAN_ACTIONS,validateR095Source,validateR095Sql,r095HostingPlan,verifyR095LivePackage,R095_PLAN_ACTIONS,validateR096Source,validateR096Sql,r096HostingPlan,verifyR096LivePackage,R096_PLAN_ACTIONS,validateR097Source,validateR097Sql,validateR100Source,validateR100Sql,r100HostingPlan,verifyR100LivePackage,R100_PLAN_ACTIONS,validateR101Source,validateR101Sql,r101HostingPlan,verifyR101LivePackage,R101_PLAN_ACTIONS,r102HostingPlan,validateR102Source,validateR102Sql,verifyR102LivePackage,R102_PLAN_ACTIONS,R102_CHAT_RELAY_URL,r097HostingPlan,verifyR097LivePackage,R097_PLAN_ACTIONS} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -1696,7 +1696,8 @@ function chatLive(m,image){
   if(role==='notify')env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify(edit.subjects??{[`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`]:'114454898477847610024',[`mw-credit-app-jobs-prod@${project}.iam.gserviceaccount.com`]:'114454898477847610025','mw-credit-app-command-prod@x':'114454898477847610026'})});
   if(role==='jobs')env.push({name:'WORKER_CALLER_SUBJECTS_JSON',value:JSON.stringify({'a@b':'114454898477847610024'})},...(edit.jobsDispatch??dispatch));
   if(role==='chat')env.push(...(edit.chatDispatch??dispatch),{name:'CHAT_MODELS_JSON',value:JSON.stringify(edit.models??models)});
-  const vpc=role==='command'?{egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]}:undefined;
+  // R102: edit.vpc overrides a role's vpcAccess (undefined removes it); otherwise only command carries private-range egress.
+  const vpc=edit.vpc&&Object.hasOwn(edit.vpc,role)?edit.vpc[role]:role==='command'?{egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]}:undefined;
   const timeout=role==='chat'?edit.chatTimeout??'300s':R077_SERVICE_TIMEOUTS[role];
   // The live v2 API omits false booleans: command and chat carry no cpuIdle key unless an edit sets one ('absent' by default).
   const cpuIdle=role==='command'?edit.commandCpuIdle??'absent':role==='chat'?edit.chatCpuIdle??'absent':true;
@@ -2128,9 +2129,119 @@ test('R101 operator audience and live verification keep the chat-era checks with
  const {m,source,tool,image}=await r101Package(t),git=r101Git({source,tool}),project='clever-oasis-508610-n7';
  const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
  const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
- assert.equal((await operator('R101')).operator,email);await assert.rejects(operator('R101','https://lm.mw-credit.com/promotion/r100'),/impersonation proof/);await assert.rejects(operator('R102'),/unsupported operator release/);
+ assert.equal((await operator('R101')).operator,email);await assert.rejects(operator('R101','https://lm.mw-credit.com/promotion/r100'),/impersonation proof/);await assert.rejects(operator('R103'),/unsupported operator release/);
  const {make}=chatLive(m,image),pinned=Object.fromEntries(['notify','jobs'].map(role=>[role,m.rollback.services[role].image]));
  const live=r074Readback(m);await verifyR101LivePackage(m,{token:'t',request:make({image:pinned}),readGithub:live.readGithub,git});assert.equal(live.calls.length,10);
  for(const [edit,pattern] of [[{image:{...pinned,read:m.rollback.services.read.image}},/live service revision\/identity drift/],[{image:pinned,revision:{chat:'mw-credit-app-chat-prod-00001-abc'}},/R101 live chat revision\/identity drift/],[{image:pinned,chatTimeout:'120s'},/R101 live chat timeout 300s/]])
   await assert.rejects(verifyR101LivePackage(m,{token:'t',request:make(edit),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
+});
+
+// R102 (Long overdue; Claude Opus 5.5 chat through the keyless VM relay): V114 and V115 (PROD 113 to 115, one grouped
+// transaction), SQL first, then new read, command and chat images; the chat change also carries CHAT_MODELS_JSON,
+// CHAT_RELAY_URL and Direct VPC egress; notify and jobs read back on their pinned revisions.
+const r102Baseline='10d543d16cd83e6baeaf480edd03719160b8588d',r102Migrations=['V114__long_overdue_collection_status.sql','V115__chat_claude_model_ids.sql'];
+const r102Files={...r101Files,...Object.fromEntries(await Promise.all(r102Migrations.map(async name=>[name,await readFile(new URL('../../database/migrations/'+name,import.meta.url),'utf8')])))};
+const r102Added=r102Migrations.map(name=>'database/migrations/'+name).join('\n');
+const r102Git=(options={})=>r090Git({migration:r102Added,files:r102Files,baseline:r102Baseline,...options});
+const r102Marker=(m,extra={})=>JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release:'R102',...extra});
+const r102Models={version:1,location:'global',default:'claude-opus-5-5',thinkingLevel:'MEDIUM',maxRounds:16,requestTimeoutSeconds:120,turnTimeoutSeconds:240,historyTokenLimit:150000,seedChars:40000,maxOutputTokens:16384,
+ models:[{id:'claude-opus-5-5',label:'Claude Opus 5.5',available:true},{id:'gemini-4-argon',label:'Gemini 4 Argon',available:true},{id:'gemini-3.8-flash',label:'Gemini 3.8 Flash',available:true},{id:'gemini-3.5-flash',label:'Gemini 3.5 Flash',available:true}]};
+const r102ChatVpc={egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]};
+async function r102Package(t){
+ const p=await r101Package(t),m=p.m,hash=value=>createHash('sha256').update(value).digest('hex');
+ const manifest={environment:'development',commit:sqlRelease,validationReference:'synthetic',productionTransaction:{baselineVersion:113,targetVersion:115,group:true,mixed:false,executeInTransaction:true,callbacks:[]},migrations:Object.entries(r102Files).map(([name,value])=>({name,sha256:hash(value)}))};
+ const releasePath=path.join(p.root,'release-r102.json'),bytes=JSON.stringify(manifest);await writeFile(releasePath,bytes);
+ Object.assign(m,{schemaVersion:33,release:'R102',sourceBaseline:r102Baseline,
+  sql:{baselineVersion:113,targetVersion:115,migrations:manifest.migrations.slice(-2),release:{path:releasePath,sha256:hash(bytes),commit:sqlRelease},
+   applied:{environment:'production',database:'loan_manager_prod',instance:'mw-credit-pg-20261017',releaseCommit:sqlRelease,baselineVersion:113,targetVersion:115,migrationsExecuted:2,startedAt:'2026-10-28T03:00:00Z',finishedAt:'2026-10-28T03:00:40Z',backup:{dumpSha256:'a'.repeat(64),restorePassed:true,reference:'prod-promotion-'+'c'.repeat(32)}},
+   verified:{database:'loan_manager_prod',latestVersion:'115',historyRows:115,allSuccessful:true,verifiedAt:'2026-10-28T03:01:00Z'}}});
+ m.plan.counts={add:0,change:3,destroy:0};m.plan.actions=[...R102_PLAN_ACTIONS];
+ m.applied.sqlVersion=115;m.applied.appliedAt='2026-10-28T03:20:00Z';
+ await setArtifact(m,'build-version.json',r102Marker(m));
+ const bundle=await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8');await setArtifact(m,'assets/test.js',bundle.replace('"R101"','"R102"'));
+ return p;
+}
+test('R102 package validates and rejects SQL, pinned V114 and V115 bytes, the six-action plan, unchanged-service readback, ordering and kind',async t=>{
+ const {m,source,tool}=await r102Package(t),git=r102Git({source,tool});
+ const plan=await r102HostingPlan(m,{git});assert.equal(plan.site,site);
+ assert.deepEqual([...R102_PLAN_ACTIONS],['read.image','command.image','chat.image','chat.modelsJson','chat.relayUrl','chat.vpcAccess']);
+ assert.deepEqual(r102Migrations.map(name=>createHash('sha256').update(r102Files[name]).digest('hex')),['af10766eea0bec9b40c737de86312b189789212e6a786f21586ff98636284af9','669d9b3154399c13e02d03ec7d110951e5b44782144b3165330df6966c17252e'],'V114 and V115 bytes are the reviewed (DEV-applied) ones');
+ for(const [mutate,pattern] of [
+  [x=>x.sql.baselineVersion=114,/R102 exact V113 to V115/],[x=>x.sql.targetVersion=114,/R102 exact V113 to V115/],[x=>x.sql.migrations.pop(),/R102 exact V113 to V115/],
+  [x=>x.sql.migrations.reverse(),/R102 exact V113 to V115/],[x=>x.sql.migrations.push({name:'V116__x.sql',sha256:'0'.repeat(64)}),/R102 exact V113 to V115/],
+  [x=>x.sql.migrations[1].sha256='0'.repeat(64),/R102 migration source hash/],[x=>x.sql.applied.baselineVersion=114,/R102 actual SQL apply/],[x=>x.sql.applied.migrationsExecuted=1,/R102 actual SQL apply/],
+  [x=>x.sql.applied.backup.restorePassed=false,/R102 actual SQL apply/],[x=>x.sql.applied.backup.reference='dev-refresh-'+'c'.repeat(32),/R102 actual SQL apply/],
+  [x=>x.sql.verified.latestVersion='114',/R102 read-only V115 readback/],[x=>x.sql.verified.historyRows=114,/R102 read-only V115 readback/],[x=>x.sql.verified.verifiedAt='2026-10-28T03:00:39Z',/R102 read-only V115 readback/],
+  [x=>x.applied.sqlVersion=113,/R102 applied source/],[x=>x.applied.appliedAt='2026-10-28T03:00:39Z',/R102 applied source/],
+  [x=>x.plan.counts={add:0,change:4,destroy:0},/R102 reviewed read and command image, chat image, models, relay and VPC plan/],[x=>x.plan.actions=[...R101_PLAN_ACTIONS],/R102 reviewed/],
+  [x=>x.plan.actions.reverse(),/R102 reviewed/],[x=>x.plan.actions.pop(),/R102 reviewed/],[x=>x.plan.actions.push('notify.image'),/R102 reviewed/],
+  [x=>delete x.rollback.services.jobs,/R102 recovery pins exactly the five services/],[x=>x.rollback.services.chat.image=x.build.image,/recovery pin/],
+  [x=>x.applied.services.notify.image=x.build.image,/R102 unchanged notify must read back on its pinned image and revision/],[x=>x.applied.services.jobs.revision='mw-credit-app-jobs-prod-00099-new',/R102 unchanged jobs/],
+  [x=>x.applied.services.read.revision=x.rollback.services.read.revision,/R102 ready service/],[x=>x.applied.services.command.image=x.rollback.services.command.image,/R102 ready service/],[x=>x.applied.services.chat.ready=false,/R102 ready service/],
+  [x=>delete x.applied.services.chat,/R102 applied readback must name the five services/],
+  [x=>x.release='R101',/package kind/],[x=>x.schemaVersion=32,/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(r102HostingPlan(candidate,{git}),pattern,String(mutate));}
+ {const hash=value=>createHash('sha256').update(value).digest('hex'),files={...r102Files,'V115__chat_claude_model_ids.sql':r102Files['V115__chat_claude_model_ids.sql']+'\n-- edited'},x=structuredClone(m);
+  const manifest={...JSON.parse(await readFile(m.sql.release.path,'utf8')),migrations:Object.entries(files).map(([name,value])=>({name,sha256:hash(value)}))},bytes=JSON.stringify(manifest),releasePath=m.sql.release.path.replace('.json','-edited.json');
+  await writeFile(releasePath,bytes);x.sql.release={...x.sql.release,path:releasePath,sha256:hash(bytes)};x.sql.migrations=manifest.migrations.slice(-2);
+  await assert.rejects(validateR102Sql(x,r102Git({source,tool,files})),/R102 migration is not the reviewed V115__chat_claude_model_ids.sql/);}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(r102HostingPlan(prepared,{git}),/R102 runtime apply\/readback/);assert.equal((await r102HostingPlan(prepared,{git,requireApplied:false})).site,site);
+ await assert.rejects(r101HostingPlan(m,{git}),/wrong R101 package kind/);
+ {const r101=await r101Package(t);await assert.rejects(r102HostingPlan(r101.m,{git:r101Git({source:r101.source,tool:r101.tool})}),/wrong R102 package kind/);}
+ assert.equal(await validateR102Sql(m,git),undefined);
+ {const x=structuredClone(m);await setArtifact(x,'build-version.json',r102Marker(m,{release:'R101'}));await assert.rejects(r102HostingPlan(x,{git}),/R102 artifact release mismatch/);}
+});
+test('R102 source descends from the R101 package and adds exactly V114 and V115; the delivery commit may add only the runner, its test, the READMEs and documents',async t=>{
+ const {m,source,tool}=await r102Package(t);
+ assert.doesNotThrow(()=>validateR102Source(m,r102Git({source,tool})));
+ for(const file of ['scripts/promotion/README.md','scripts/promotion/deploy-business-hosting.mjs','tests/unit/business-hosting-delivery.test.mjs','scripts/database/R053_OPERATOR.md','project/Documents/Release_Tracker.md'])assert.doesNotThrow(()=>validateR102Source(m,r102Git({source,tool,delivery:file})),file);
+ for(const file of ['services/chat/claude.mjs','database/migrations/V115__chat_claude_model_ids.sql','scripts/database/Test-LongOverdue.sql','infrastructure/production/chat-service.tf'])assert.throws(()=>validateR102Source(m,r102Git({source,tool,delivery:file})),/R102 unverified delivery/,file);
+ for(const migration of ['','database/migrations/V114__long_overdue_collection_status.sql',r102Added+'\ndatabase/migrations/V116__x.sql',r101Added+'\n'+r102Added])assert.throws(()=>validateR102Source(m,r102Git({source,tool,migration})),/R102 carries exactly the separately applied V115/,migration);
+ assert.throws(()=>validateR102Source({...m,sourceBaseline:r101Baseline},r102Git({source,tool})),/R102 source\/baseline/);
+ assert.throws(()=>validateR102Source(m,r102Git({source,tool,ancestors:{[r102Baseline]:r101Baseline}})),/R102 source must descend from the R101 release/);
+});
+test('R102 operator audience and live verification: chat-era checks plus Claude Opus 5.5 default, the relay URL and private-range VPC egress on chat only',async t=>{
+ const {m,source,tool,image}=await r102Package(t),git=r102Git({source,tool}),project='clever-oasis-508610-n7';
+ const email='mw-credit-unattended-admin@clever-oasis-508610-n7.iam.gserviceaccount.com';
+ const operator=async(release,proofAudience)=>{const aud='https://lm.mw-credit.com/promotion/'+release.toLowerCase(),rows=[{email,expires_in:1200},{email,projectId:project,uniqueId:'123456'},{token:'synthetic-signed'},...['mw-credit-prod-737787224638','mw-credit-app-dev-737787224638'].map(site=>({name:`projects/${project}/sites/${site}`}))];let calls=0;return verifyAppOnlyOperator({token:'synthetic',release,request:async(_url,options)=>{if(options.method==='POST')assert.equal(JSON.parse(options.body).audience,aud);return{ok:true,json:async()=>rows[calls++]}},verifyIdToken:async(_token,audience)=>{assert.equal(audience,aud);return{email,email_verified:true,sub:'123456',aud:proofAudience??aud}}})};
+ assert.equal((await operator('R102')).operator,email);await assert.rejects(operator('R102','https://lm.mw-credit.com/promotion/r101'),/impersonation proof/);await assert.rejects(operator('R103'),/unsupported operator release/);
+ const {make}=chatLive(m,image),pinned=Object.fromEntries(['notify','jobs'].map(role=>[role,m.rollback.services[role].image]));
+ const relay=[{name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL}],good={image:pinned,models:r102Models,env:{chat:relay},vpc:{chat:r102ChatVpc}};
+ assert.equal(R102_CHAT_RELAY_URL,'http://10.148.0.2:8791/v1/chat/messages');
+ const live=r074Readback(m);await verifyR102LivePackage(m,{token:'t',request:make(good),readGithub:live.readGithub,git});assert.equal(live.calls.length,10);
+ const threeGemini={...r102Models,default:'gemini-4-argon',models:r102Models.models.slice(1)};
+ for(const [edit,pattern] of [
+  [{...good,image:{...pinned,read:m.rollback.services.read.image}},/live service revision\/identity drift/],[{...good,revision:{chat:'mw-credit-app-chat-prod-00001-abc'}},/R102 live chat revision\/identity drift/],[{...good,chatTimeout:'120s'},/R102 live chat timeout 300s/],
+  [{...good,models:threeGemini},/R102 live chat models must be Claude Opus 5.5 \(default\)/],[{...good,models:{...r102Models,default:'gemini-4-argon'}},/R102 live chat models/],
+  [{...good,models:{...r102Models,models:[r102Models.models[1],r102Models.models[0],...r102Models.models.slice(2)]}},/R102 live chat models/],
+  [{...good,models:{...r102Models,models:r102Models.models.map((x,i)=>i?x:{...x,available:false,reason:'down'})}},/R102 live chat models/],
+  [{...good,models:{...r102Models,maxRounds:8}},/R102 live chat models/],
+  [{...good,env:{}},/R102 live chat relay URL drift/],[{...good,env:{chat:[{name:'CHAT_RELAY_URL',value:'http://10.148.0.2:8790/v1/chat/messages'}]}},/R102 live chat relay URL drift/],
+  [{...good,vpc:{}},/R102 live chat private-range VPC egress required/],[{...good,vpc:{chat:{...r102ChatVpc,egress:'ALL_TRAFFIC'}}},/R102 live chat private-range VPC egress required/],
+  [{...good,vpc:{chat:{...r102ChatVpc,networkInterfaces:[{network:'default',subnetwork:'other'}]}}},/R102 live chat private-range VPC egress required/],
+  [{...good,env:{chat:relay,read:relay}},/R102 live read must carry no chat relay or VPC egress/],[{...good,vpc:{chat:r102ChatVpc,notify:r102ChatVpc}},/R102 recognizer wiring outside the command service/],[{...good,env:{chat:relay,notify:relay}},/R102 live notify must carry no chat relay or VPC egress/]])
+  await assert.rejects(verifyR102LivePackage(m,{token:'t',request:make(edit),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
+ // The older chat-era kinds keep their three-Gemini rule: an R101 readback with the R102 models is still refused.
+ {const r101=await r101Package(t);await assert.rejects(verifyR101LivePackage(r101.m,{token:'t',request:chatLive(r101.m,r101.image).make({image:Object.fromEntries(['notify','jobs'].map(role=>[role,r101.m.rollback.services[role].image])),models:r102Models}),readGithub:r074Readback(r101.m).readGithub,git:r101Git({source:r101.source,tool:r101.tool})}),/R101 live chat models must be three Gemini models/);}
+});
+test('live build readback: regional first, global only on a regional 404, with build id, project, digest and source still exact',async t=>{
+ const {m,source,tool,image}=await r102Package(t),git=r102Git({source,tool}),project='clever-oasis-508610-n7';
+ const {make}=chatLive(m,image),pinned=Object.fromEntries(['notify','jobs'].map(role=>[role,m.rollback.services[role].image]));
+ const good={image:pinned,models:r102Models,env:{chat:[{name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL}]},vpc:{chat:r102ChatVpc}};
+ const regional=`/v1/projects/${project}/locations/asia-southeast1/builds/`,global=`/v1/projects/${project}/locations/global/builds/`;
+ // where: 'regional' answers regionally; 'global' 404s regionally and answers globally; 'none' 404s in both. edit alters the global build.
+ const located=(where,{digest='e',status=404,edit=x=>x}={})=>{const base=make(good,digest),urls=[];const request=async(url,options)=>{
+  if(!url.includes('cloudbuild'))return base(url,options);urls.push(url);
+  if(url.includes(regional))return where==='regional'?base(url,options):{ok:false,status,json:async()=>({})};
+  assert.ok(url.includes(global),url);if(where!=='global')return{ok:false,status:404,json:async()=>({})};
+  const r=await base(url,options),build=await r.json();return{ok:true,json:async()=>edit({...build,id:m.build.id,projectId:project})};};return{request,urls};};
+ const run=located=>verifyR102LivePackage(m,{token:'t',request:located.request,readGithub:r074Readback(m).readGithub,git});
+ {const x=located('regional');await run(x);assert.equal(x.urls.length,1);assert.ok(x.urls[0].includes(regional));}
+ {const x=located('global');await run(x);assert.deepEqual(x.urls.map(url=>url.includes(global)),[false,true]);}
+ await assert.rejects(run(located('none')),/live package readback failed/);
+ for(const status of [403,500])await assert.rejects(run(located('global',{status})),/live package readback failed/,String(status));
+ await assert.rejects(run(located('global',{digest:'f'})),/live build digest mismatch/);
+ await assert.rejects(run(located('global',{edit:b=>({...b,status:'FAILURE'})})),/live build digest mismatch/);
+ await assert.rejects(run(located('global',{edit:b=>({...b,source:{storageSource:{...b.source.storageSource,generation:'other'}}})})),/exact CloudBuild source object required/);
+ await assert.rejects(run(located('global',{edit:b=>({...b,id:'other-build'})})),/live global build identity mismatch/);
+ await assert.rejects(run(located('global',{edit:b=>({...b,projectId:'other-project'})})),/live global build identity mismatch/);
 });

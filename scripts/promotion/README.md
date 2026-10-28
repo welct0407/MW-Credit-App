@@ -23,6 +23,37 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R102 read, command, chat, SQL and frontend promotion with V114 and V115
+
+`schemaVersion: 33`, `release: R102`, `scope: runtime-workers-frontend`, `status: prepared|applied`. This is R101's chat-era kind (shared code path) for two changes: the Collection "Long overdue" status (V114) and Claude Opus 5.5 in the chat through the keyless VM relay (V115). Read, command and chat get new images; the chat change also carries its relay wiring.
+
+- **Source.** The source must descend from the R101 package `10d543d` (tag R101; the source PROD runs at 113). It adds exactly two migrations, each pinned to its reviewed SHA-256 (the bytes applied to DEV):
+  - `database/migrations/V114__long_overdue_collection_status.sql`: `af10766e…84af9`
+  - `database/migrations/V115__chat_claude_model_ids.sql`: `669d9b31…7252e`
+
+  A later delivery-tool commit may carry only the runner, its unit test, this README, the R101 database delivery files and documents. Record the runner's unit test as `deliveryToolChecks`.
+- **SQL.** `V113 to V115` runs as two migrations in one grouped release transaction. It needs a verified backup at 113 and a read-only 115-row readback, as R101.
+  - Owner window: `mw_chat_owner_prod` only. V115 replaces the CHECK on `pwa_chat_threads` and the functions `pwa_chat_thread_create_v1` and `pwa_chat_thread_update_v1`, all owned by the chat owner. V114 replaces two `postgres`-owned views.
+  - The runner does not gate the owner window.
+- **Order.** SQL first, then the images: `applied.sqlVersion` is 115, and `applied.appliedAt` is no earlier than `sql.applied.finishedAt`. The read and command images select V114's column, and the chat image needs V115 for `claude-*` threads.
+- **Plan.** `{add:0, change:3, destroy:0}` with exactly these actions, in this order (`R102_PLAN_ACTIONS`, kept in one place in the runner):
+  - `read.image`
+  - `command.image`
+  - `chat.image`
+  - `chat.modelsJson`
+  - `chat.relayUrl`
+  - `chat.vpcAccess`
+
+  Forge confirms the labels against the reviewed saved PROD plan before any apply.
+- **Recovery and applied readback.** Recovery pins Hosting and all five services. The applied readback must show read, command and chat on the new image with a new revision, and notify and jobs exactly on their pinned image and revision.
+- **Live readback.** As R101, except the chat checks:
+  - `CHAT_MODELS_JSON` is exactly `claude-opus-5-5` (the default), `gemini-4-argon`, `gemini-3.8-flash` and `gemini-3.5-flash`, all available, with `maxRounds` 16.
+  - `CHAT_RELAY_URL` is `http://10.148.0.2:8791/v1/chat/messages`.
+  - Chat has private-range Direct VPC egress on `default/default`.
+  - Read and notify carry no relay URL and no VPC egress.
+  - The older kinds keep their three-Gemini rule.
+- **Artifact and operator.** The marker and the entry bundle carry `"R102"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r102`.
+
 ## R101 read, command, chat, SQL and frontend promotion with V112 and V113
 
 `schemaVersion: 32`, `release: R101`, `scope: runtime-workers-frontend`, `status: prepared|applied`: R095's chat-era kind (shared code path) for paying the next charge early (V112, payment command v9) and Loan Close ignoring unpaid interest on future-dated charges (V113), with new read, command and chat images.
