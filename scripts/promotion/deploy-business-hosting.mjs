@@ -1165,38 +1165,47 @@ export async function executeBusinessHosting(plan,{request,approvalReference}){
  return {schemaVersion:1,sourceCommit:plan.sourceCommit,site:plan.site,version:version.name,release:release.name,publicVersion:plan.publicVersion,fileCount:Object.keys(plan.files).length,cacheControl:'no-store',approvalReference};
 }
 
+// Every current package kind in one row: its matcher (first match wins, in this order), its plan, its operator audience
+// release and its live verifier. The --check and --apply paths read only this table, so a kind cannot reach another kind's
+// verifier (the R104 apply was refused because the old if-chain had no R104 live branch). R061 and R059 keep the default
+// operator audience (R059); a package no row matches is the legacy business package.
+export const HOSTING_KINDS=Object.freeze([
+ {kind:'R104',match:i=>i.schemaVersion===35&&i.release==='R104',plan:(i,o)=>r104HostingPlan(i,o),operatorRelease:()=>'R104',live:(i,o)=>verifyR104LivePackage(i,o)},
+ {kind:'R102',match:i=>i.schemaVersion===33&&i.release==='R102',plan:(i,o)=>r102HostingPlan(i,o),operatorRelease:()=>'R102',live:(i,o)=>verifyR102LivePackage(i,o)},
+ {kind:'R101',match:i=>i.schemaVersion===32&&i.release==='R101',plan:(i,o)=>r101HostingPlan(i,o),operatorRelease:()=>'R101',live:(i,o)=>verifyR101LivePackage(i,o)},
+ {kind:'R100',match:i=>i.schemaVersion===31&&i.release==='R100',plan:(i,o)=>r100HostingPlan(i,o),operatorRelease:()=>'R100',live:(i,o)=>verifyR100LivePackage(i,o)},
+ {kind:'R097',match:i=>i.schemaVersion===30&&i.release==='R097',plan:(i,o)=>r097HostingPlan(i,o),operatorRelease:()=>'R097',live:(i,o)=>verifyR097LivePackage(i,o)},
+ {kind:'R096',match:i=>i.schemaVersion===29&&i.release==='R096',plan:(i,o)=>r096HostingPlan(i,o),operatorRelease:()=>'R096',live:(i,o)=>verifyR096LivePackage(i,o)},
+ {kind:'R095',match:i=>i.schemaVersion===28&&i.release==='R095',plan:(i,o)=>r095HostingPlan(i,o),operatorRelease:()=>'R095',live:(i,o)=>verifyR095LivePackage(i,o)},
+ {kind:'R091',match:i=>i.schemaVersion===27&&i.release==='R091',plan:(i,o)=>r091HostingPlan(i,o),operatorRelease:()=>'R091',live:(i,o)=>verifyR091LivePackage(i,o)},
+ {kind:'R090',match:i=>i.schemaVersion===26&&i.release==='R090',plan:(i,o)=>r090HostingPlan(i,o),operatorRelease:()=>'R090',live:(i,o)=>verifyR090LivePackage(i,o)},
+ {kind:'R089',match:i=>i.schemaVersion===25&&i.release==='R089',plan:(i,o)=>r089HostingPlan(i,o),operatorRelease:()=>'R089',live:(i,o)=>verifyR089LivePackage(i,o)},
+ {kind:'R081',match:i=>i.schemaVersion===23&&i.release==='R081',plan:(i,o)=>r081HostingPlan(i,o),operatorRelease:()=>'R081',live:(i,o)=>verifyR081LivePackage(i,o)},
+ {kind:'R080',match:i=>i.schemaVersion===22&&i.release==='R080',plan:(i,o)=>r080HostingPlan(i,o),operatorRelease:()=>'R080',live:(i,o)=>verifyR080LivePackage(i,o)},
+ {kind:'R079',match:i=>i.schemaVersion===21&&i.release==='R079',plan:(i,o)=>r079HostingPlan(i,o),operatorRelease:()=>'R079',live:(i,o)=>verifyR079LivePackage(i,o)},
+ {kind:'R078',match:i=>i.schemaVersion===20&&i.release==='R078',plan:(i,o)=>r078HostingPlan(i,o),operatorRelease:()=>'R078',live:(i,o)=>verifyR078LivePackage(i,o)},
+ {kind:'R077',match:i=>i.schemaVersion===19&&i.release==='R077',plan:(i,o)=>r077HostingPlan(i,o),operatorRelease:()=>'R077',live:(i,o)=>verifyR077LivePackage(i,o)},
+ {kind:'R076',match:i=>i.schemaVersion===18&&i.release==='R076',plan:(i,o)=>r076HostingPlan(i,o),operatorRelease:()=>'R076',live:(i,o)=>verifyR076LivePackage(i,o)},
+ {kind:'R075',match:i=>i.schemaVersion===17&&i.release==='R075',plan:(i,o)=>r075HostingPlan(i,o),operatorRelease:()=>'R075',live:(i,o)=>verifyR075LivePackage(i,o)},
+ {kind:'R069',match:i=>i.schemaVersion===10&&i.release==='R069',plan:(i,o)=>r069HostingPlan(i,o),operatorRelease:()=>'R069',live:(i,o)=>verifyR069LivePackage(i,o)},
+ {kind:'R068',match:i=>i.schemaVersion===9&&i.release==='R068',plan:(i,o)=>r068HostingPlan(i,o),operatorRelease:()=>'R068',live:(i,o)=>verifyR068LivePackage(i,o)},
+ {kind:'hosting-only',match:i=>Object.hasOwn(hostingOnlyReleases,i.release??'')&&i.schemaVersion===hostingOnlyReleases[i.release].schemaVersion,plan:i=>hostingOnlyPlan(i),operatorRelease:i=>i.release,live:(i,o)=>verifyHostingOnlyLivePackage(i,o)},
+ {kind:'R064',match:i=>i.schemaVersion===6&&i.release==='R064',plan:(i,o)=>waveHostingPlan(i,o),operatorRelease:()=>'R064',live:(i,o)=>verifyWaveLivePackage(i,o)},
+ {kind:'R063',match:i=>i.schemaVersion===5&&i.release==='R063',plan:(i,o)=>runtimeHostingPlan(i,o),operatorRelease:()=>'R063',live:(i,o)=>verifyRuntimeLivePackage(i,o)},
+ {kind:'R062',match:i=>i.schemaVersion===4&&i.release==='R062',plan:(i,o)=>settingsHostingPlan(i,o),operatorRelease:()=>'R062',live:(i,o)=>verifySettingsLivePackage(i,o)},
+ {kind:'R061',match:i=>i.schemaVersion===3&&i.release==='R061',plan:i=>frontendOnlyHostingPlan(i),operatorRelease:()=>undefined,live:i=>verifyFrontendOnlyLivePackage(i)},
+ {kind:'R059',match:i=>i.schemaVersion===2&&i.release==='R059',plan:(i,o)=>appOnlyHostingPlan(i,o),operatorRelease:()=>undefined,live:(i,o)=>verifyAppOnlyLivePackage(i,o)},
+].map(row=>Object.freeze(row)));
+export function hostingKind(inputs){return HOSTING_KINDS.find(row=>row.match(inputs))??null;}
+
 if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.filename)){
  const args=process.argv.slice(2),options={};
  for(let i=0;i<args.length;i++){if(['--apply','--check'].includes(args[i]))options[args[i]]=true;else if(['--inputs','--approval-reference','--output'].includes(args[i])&&args[i+1])options[args[i]]=args[++i];else throw Error('Unknown or incomplete Hosting option');}
  if(Boolean(options['--apply'])===Boolean(options['--check'])||!options['--inputs']||!path.isAbsolute(options['--inputs']))throw Error('Choose --check or --apply with absolute private --inputs');
  const read=async file=>JSON.parse((await readFile(file,'utf8')).replace(/^\uFEFF/,''));
  const inputs=await read(options['--inputs']);
- const settings=inputs.schemaVersion===4&&inputs.release==='R062';
- const frontend=inputs.schemaVersion===3&&inputs.release==='R061';
- const runtime=inputs.schemaVersion===5&&inputs.release==='R063';
- const wave=inputs.schemaVersion===6&&inputs.release==='R064';
- const hostingOnly=Object.hasOwn(hostingOnlyReleases,inputs.release??'')&&inputs.schemaVersion===hostingOnlyReleases[inputs.release].schemaVersion;
- const r068=inputs.schemaVersion===9&&inputs.release==='R068';
- const r069=inputs.schemaVersion===10&&inputs.release==='R069';
- const r075=inputs.schemaVersion===17&&inputs.release==='R075';
- const r076=inputs.schemaVersion===18&&inputs.release==='R076';
- const r077=inputs.schemaVersion===19&&inputs.release==='R077';
- const r078=inputs.schemaVersion===20&&inputs.release==='R078';
- const r079=inputs.schemaVersion===21&&inputs.release==='R079';
- const r080=inputs.schemaVersion===22&&inputs.release==='R080';
- const r081=inputs.schemaVersion===23&&inputs.release==='R081';
- const r089=inputs.schemaVersion===25&&inputs.release==='R089';
- const r090=inputs.schemaVersion===26&&inputs.release==='R090';
- const r091=inputs.schemaVersion===27&&inputs.release==='R091';
- const r095=inputs.schemaVersion===28&&inputs.release==='R095';
- const r096=inputs.schemaVersion===29&&inputs.release==='R096';
- const r097=inputs.schemaVersion===30&&inputs.release==='R097';
- const r100=inputs.schemaVersion===31&&inputs.release==='R100';
- const r101=inputs.schemaVersion===32&&inputs.release==='R101';
- const r102=inputs.schemaVersion===33&&inputs.release==='R102';
- const r104=inputs.schemaVersion===35&&inputs.release==='R104';
- const current=r104||r102||r101||r100||r097||r096||r095||r091||r090||r089||r081||r080||r079||r078||r077||r076||r075||r069||r068||hostingOnly||wave||runtime||settings||frontend||(inputs.schemaVersion===2&&inputs.release==='R059');
- const plan=r104?await r104HostingPlan(inputs,{requireApplied:!!options['--apply']}):r102?await r102HostingPlan(inputs,{requireApplied:!!options['--apply']}):r101?await r101HostingPlan(inputs,{requireApplied:!!options['--apply']}):r100?await r100HostingPlan(inputs,{requireApplied:!!options['--apply']}):r097?await r097HostingPlan(inputs,{requireApplied:!!options['--apply']}):r096?await r096HostingPlan(inputs,{requireApplied:!!options['--apply']}):r095?await r095HostingPlan(inputs,{requireApplied:!!options['--apply']}):r091?await r091HostingPlan(inputs,{requireApplied:!!options['--apply']}):r090?await r090HostingPlan(inputs,{requireApplied:!!options['--apply']}):r089?await r089HostingPlan(inputs,{requireApplied:!!options['--apply']}):r081?await r081HostingPlan(inputs,{requireApplied:!!options['--apply']}):r080?await r080HostingPlan(inputs,{requireApplied:!!options['--apply']}):r079?await r079HostingPlan(inputs,{requireApplied:!!options['--apply']}):r078?await r078HostingPlan(inputs,{requireApplied:!!options['--apply']}):r077?await r077HostingPlan(inputs,{requireApplied:!!options['--apply']}):r076?await r076HostingPlan(inputs,{requireApplied:!!options['--apply']}):r075?await r075HostingPlan(inputs,{requireApplied:!!options['--apply']}):r069?await r069HostingPlan(inputs,{requireApplied:!!options['--apply']}):r068?await r068HostingPlan(inputs,{requireApplied:!!options['--apply']}):hostingOnly?await hostingOnlyPlan(inputs):wave?await waveHostingPlan(inputs,{requireApplied:!!options['--apply']}):runtime?await runtimeHostingPlan(inputs,{requireApplied:!!options['--apply']}):settings?await settingsHostingPlan(inputs,{requireApplied:!!options['--apply']}):frontend?await frontendOnlyHostingPlan(inputs):current?await appOnlyHostingPlan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
+ const kind=hostingKind(inputs),current=kind!==null;
+ const plan=kind?await kind.plan(inputs,{requireApplied:!!options['--apply']}):await businessHostingPlan(await read(inputs.preparedManifestFile),await read(inputs.appliedManifestFile),await read(inputs.receiptsFile),{preparedOptions:inputs.preparedOptions,appliedOptions:inputs.appliedOptions});
  if(options['--check'])console.log(JSON.stringify({dryRun:true,site:plan.site,fileCount:Object.keys(plan.files).length,sourceCommit:plan.sourceCommit,publicVersion:plan.publicVersion}));
  else{
   if(!options['--approval-reference']||!options['--output']||!path.isAbsolute(options['--output']))throw Error('Owner approval and absolute private output required');
@@ -1212,7 +1221,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===path.resolve(import.meta.fil
   try{await lstat(output);throw Error('Hosting receipt already exists');}catch(error){if(error.code!=='ENOENT')throw error;}
   const token=process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
   delete process.env.GOOGLE_OAUTH_ACCESS_TOKEN;
-  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;await verifyAppOnlyOperator({token,impersonationToken,...(r104?{release:'R104'}:r102?{release:'R102'}:r101?{release:'R101'}:r100?{release:'R100'}:r097?{release:'R097'}:r096?{release:'R096'}:r095?{release:'R095'}:r091?{release:'R091'}:r090?{release:'R090'}:r089?{release:'R089'}:r081?{release:'R081'}:r080?{release:'R080'}:r079?{release:'R079'}:r078?{release:'R078'}:r077?{release:'R077'}:r076?{release:'R076'}:r075?{release:'R075'}:r069?{release:'R069'}:r068?{release:'R068'}:hostingOnly?{release:inputs.release}:wave?{release:'R064'}:runtime?{release:'R063'}:settings?{release:'R062'}:{})});if(r102)await verifyR102LivePackage(inputs,{token});else if(r101)await verifyR101LivePackage(inputs,{token});else if(r100)await verifyR100LivePackage(inputs,{token});else if(r097)await verifyR097LivePackage(inputs,{token});else if(r096)await verifyR096LivePackage(inputs,{token});else if(r095)await verifyR095LivePackage(inputs,{token});else if(r091)await verifyR091LivePackage(inputs,{token});else if(r090)await verifyR090LivePackage(inputs,{token});else if(r089)await verifyR089LivePackage(inputs,{token});else if(r081)await verifyR081LivePackage(inputs,{token});else if(r080)await verifyR080LivePackage(inputs,{token});else if(r079)await verifyR079LivePackage(inputs,{token});else if(r078)await verifyR078LivePackage(inputs,{token});else if(r077)await verifyR077LivePackage(inputs,{token});else if(r076)await verifyR076LivePackage(inputs,{token});else if(r075)await verifyR075LivePackage(inputs,{token});else if(r069)await verifyR069LivePackage(inputs,{token});else if(r068)await verifyR068LivePackage(inputs,{token});else if(hostingOnly)await verifyHostingOnlyLivePackage(inputs,{token});else if(wave)await verifyWaveLivePackage(inputs,{token});else if(runtime)await verifyRuntimeLivePackage(inputs,{token});else if(settings)await verifySettingsLivePackage(inputs,{token});else if(frontend)await verifyFrontendOnlyLivePackage(inputs);else await verifyAppOnlyLivePackage(inputs,{token});}else await verifyOperatorCredential({token});
+  if(current){const impersonationToken=process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;delete process.env.GOOGLE_IMPERSONATION_SOURCE_TOKEN;const release=kind.operatorRelease(inputs);await verifyAppOnlyOperator({token,impersonationToken,...(release?{release}:{})});await kind.live(inputs,{token});}else await verifyOperatorCredential({token});
   const request=async(url,method,body,raw=false)=>{if(!['firebasehosting.googleapis.com','upload-firebasehosting.googleapis.com'].includes(new URL(url).hostname))throw Error('Unexpected Hosting API host');const response=await fetch(url,{method,redirect:'error',headers:{Authorization:'Bearer '+token,'x-goog-user-project':'clever-oasis-508610-n7','Content-Type':raw?'application/octet-stream':'application/json'},...(method==='GET'?{}:{body:raw?body:JSON.stringify(body)})});if(!response.ok)throw Error('Hosting API failed with status '+response.status);const text=await response.text();return text?JSON.parse(text):{};};
   const packageSha256=current?sha(await readFile(options['--inputs'])):undefined;
   if(current){await writeFile(output,JSON.stringify({schemaVersion:1,status:'pending-reconciliation',sourceCommit:plan.sourceCommit,packageSha256,site:plan.site,approvalReference:options['--approval-reference'],instruction:'Do not retry. Reconcile the live Hosting release before recovery.'},null,2),{flag:'wx'});persistReceipt();}
