@@ -87,6 +87,62 @@ Source: PR #177 head `c3c74df28af386177aaa9ae694c7eb40154a8d16` (check, lint and
 | --- | --- | --- | --- |
 | DEV Hosting | Same route (temporary 0600 `.env.live-dev`, deleted after the build). `MW_RELEASE_NUMBER=R102 npm run build:live-dev` at `c3c74df` (clean checkout) exit 0; `--check` passed (15 files); deploy 06:54:43Z to 06:54:49Z | Version `18ff0ae926b872e9`, release `1793170488940000`. Live `build-version.json`: R102, version `487b26542279005c3f7298c1`, entry `/assets/index-YKhHZ33O.js`. `build-version.json` carries no commit field; the served entry bundle embeds source commit `c3c74df`. `/health` 200 on read, command and chat | Redeploy version `f60e05997c6f5998` (second R102 deploy) |
 
+## PROD promotion (28 October 2026, UTC)
+
+### Metabase (PROD) (Byte, 28 October 2026, UTC)
+Authority: the owner's "promote to production", after Forge confirmed V114 in PROD (guarded Flyway apply 07:41:42Z to 07:43:31Z, head 115). Source: Metabase `reports.mw-credit.com`, database 2 (`loan_manager_prod` as `metabase_borrower_reader`). The admin key came from Secret Manager `mw-metabase-admin-api-key`, read by the scripts and never printed.
+
+The first `--prepare` refused because tab 19 is now named "10 · Collection Monitor", and model 162 and card 122 are stored in Metabase's newer query format (MBQL 5). Before any write, the script was changed:
+- It matches tab 19 by its id.
+- It parses and re-renders both query formats structurally.
+- It refuses anything else and refuses a replay.
+- A read-only `--plan` prints the change per object.
+- Unit tests in `tests/unit/metabase-long-overdue-lane.test.mjs` use the live shapes.
+
+| Object | Change | Id |
+| --- | --- | --- |
+| Model 162 (Collection Status Summary) | Zero-filled status list adds `Long Overdue` after `Overdue` | 162 |
+| Card 248 (Collection detail) | Row highlights add `Long Overdue` (`#ECEFF1`) | 248 |
+| Card 122 ("Not paid / overdue", remaining pages) | Its "or" filter adds a `Long Overdue` clause | 122 |
+| Card 251 ("Unclassified people · expected 0") | Not-equals list adds `Long Overdue` (follow-up step `--apply-unclassified`) | 251 |
+| Dashboard 3 filter `collection-detail-status` | Values add `Long Overdue` | dashboard 3 |
+| Dashboard 3 tab 19 | Five lanes on rows 6 and 8, widths 5/5/5/5/4 | dashboard 3, tab 19 |
+| New "⚫ Long overdue · people" | Created | 412 |
+| New "⚫ Long overdue · borrowers" | Created | 413 |
+| Dashboard 32 (Loan Reports · proposed) board | Five lanes (`--refine`) | 396 |
+| Dashboard 32 new lane question | Created; collection tab rebuilt | 414 |
+
+Dashboard 32 refine:
+- Dashboard 3 changes on purpose with this lane, so `ProposedLoanReports.mjs --rebaseline-dashboard3=R102` renewed its guard baseline from live dashboard 3 first. The new step only runs once lane cards 412 and 413 are placed on tab 19.
+- Then `--refine --only=collection.board,collection.lane-long-overdue,collection`: the dry run passed (board 5 rows, lane 11 rows), then the refine ran.
+
+Before-state copies (private, outside Git), in `gs://mw-credit-operator-private-737787224638/promotion-receipts/r102-metabase/`:
+- `r102-long-overdue-lane/before.json`: dashboard 3 and cards 248, 162 and 122 before `--apply`.
+- `r102-long-overdue-lane/before-251.json`
+- `state.json` and `unclassified-state.json`
+- `dashboard-32/`: the dashboard 3 baselines, `proposed-before-refine.json` and `question-before-refine-396.json`.
+
+The session copy is under `~/.mw-private/MW-Credit-App/metabase`.
+
+| Check | Result |
+| --- | --- |
+| `AddLongOverdueLane.mjs --plan` and `--plan-unclassified` (read-only) | Exactly the intended change per object; other query keys unchanged |
+| `AddLongOverdueLane.mjs --verify` (post-apply read-back) | Passed: five lanes in order and widths, other placements unchanged, filter and highlights, model 162 statuses, card 122 statuses; evidence `project/outputs/r102-long-overdue-lane/verification.json` |
+| `AddLongOverdueLane.mjs --verify-unclassified` | Passed; card 251 returns 0 (it returned 11 after the first apply, which is why the follow-up step was added) |
+| `ProposedLoanReports.mjs --verify` after the refine | 27 of 27 checks passed (`project/outputs/loan-reports-redesign-20261026/verification.json`) |
+| Read-only reconciliation (counts only) | Card 412 = 11, equal to the PROD view's `Long Overdue` count of 11. Card 122 = 17, equal to the view's Not Paid + Overdue + Long Overdue count of 17 (it was 18 at 07:55Z; live data moved). Card 251 = 0; the view has 0 statuses outside the five |
+| `node --test tests/unit/metabase-long-overdue-lane.test.mjs` | 7 of 7 passed |
+
+Not run: `Verify-CollectionMonitor.mjs` and `Verify-RemainingPages.mjs`. Both read private baselines that exist only on VM-01 (the R025 and R016 Windows paths); the reconciliation above replaces them, as the orchestrator decided.
+
+Recovery (remove the lane). Restore from the private copies above, using the admin API:
+1. `PUT card/251`, `card/162`, `card/122` and `card/248` with the `dataset_query` and `visualization_settings` from the before copies.
+2. `PUT dashboard/3` with the parameter values from `before.json`.
+3. `PUT dashboard/3/cards` with the tab 19 placements from `before.json` (this drops 412 and 413 from the dashboard); then archive cards 412 and 413.
+4. Dashboard 32: `PUT card/396` from `question-before-refine-396.json`, archive 414, then restore the collection tab from `proposed-before-refine.json` (or `--refine --only=collection` with the four-lane layout from Git).
+
+The lane depends on V114: if V114 is rolled back, remove the lane first.
+
 ## Recovery
 - Git baseline: the commit before the R102 package. Product code, Terraform and documents revert with the pull request.
 - V114 and V115 are forward migrations, not edited in place once applied. Roll back by a later migration that restores the V113 view bodies (V114) and the V114 CHECK and function bodies (V115). Both are definition-only, so a PROD backup stays the safety net.

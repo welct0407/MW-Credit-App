@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-27T17:40:11.159Z",
+  "at": "2026-10-28T08:00:15.729Z",
   "passed": true,
   "checks": [
     {
@@ -8,11 +8,11 @@
       "detail": {
         "want": {
           "tabs": 12,
-          "placements": 227,
+          "placements": 228,
           "parameters": 22
         },
         "tabs": 12,
-        "placements": 227,
+        "placements": 228,
         "parameters": 22,
         "parameterIdsMatch": true,
         "unmatched": 0
@@ -38,7 +38,7 @@
       "name": "execution",
       "passed": true,
       "detail": {
-        "dashcards": 182,
+        "dashcards": 183,
         "errors": 0,
         "failed": []
       }
@@ -265,7 +265,7 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 9,
+            "rows": 4,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
@@ -279,14 +279,21 @@
           },
           {
             "key": "collection.lane-overdue",
-            "rows": 13,
+            "rows": 2,
+            "sameRowsAsOrigin": true,
+            "sortedBy": "Overdue Amount",
+            "sorted": true
+          },
+          {
+            "key": "collection.lane-long-overdue",
+            "rows": 11,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-paid",
-            "rows": 0,
+            "rows": 6,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true
@@ -307,7 +314,7 @@
       "name": "links target the proposed dashboard",
       "passed": true,
       "detail": {
-        "links": 18,
+        "links": 19,
         "toDashboard3": 0
       }
     },
@@ -315,7 +322,7 @@
       "name": "dashboard 3 preserved",
       "passed": true,
       "detail": {
-        "dashcards": 272,
+        "dashcards": 274,
         "tabs": 12,
         "parameters": 28
       }
