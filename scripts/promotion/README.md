@@ -23,6 +23,23 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R104 read, command, chat, SQL and frontend promotion with V116 and V117
+
+`schemaVersion: 35`, `release: R104`, `scope: runtime-workers-frontend`, `status: prepared|applied`. This is R102's chat-era kind (shared code path) for recording a loan's future charges from Upcoming Charges (V116, operation `loan.book-projected-charge`) in schedule order (V117), with new read, command and chat images and no chat configuration change.
+
+- **Source.** The source must descend from the R103 package `f576665` (PR #180; the source PROD runs at 115). It adds exactly two migrations, each pinned to its reviewed SHA-256 (the bytes applied to DEV, merged as `4e5ba9d`):
+  - `database/migrations/V116__book_projected_charge.sql`: `6da3abfe…a7f18`
+  - `database/migrations/V117__sequential_projected_charge_booking.sql`: `778bbfe8…f297f`
+
+  A later delivery-tool commit may carry only the runner, its unit test, this README, the R101 database delivery files and documents. Record the runner's unit test as `deliveryToolChecks`.
+- **SQL.** `V115 to V117` runs as two migrations in one grouped release transaction. It needs a verified backup at 115 and a read-only 117-row readback, as R102.
+  - Owner window: `mw_app_prod_journal_owner` only. V116 replaces `pwa_submit_operation_v2`, which the journal owner owns; `pwa_apply_loan_source_v2` (replaced by V116 and V117) and the new `pwa_next_bookable_charge_v1` are owned by `postgres`.
+  - The runner does not gate the owner window.
+- **Order.** SQL first, then the images: `applied.sqlVersion` is 117, and `applied.appliedAt` is no earlier than `sql.applied.finishedAt`. The command image submits `loan.book-projected-charge` (V116) and reads `bookable` (V117).
+- **Plan.** `{add:0, change:3, destroy:0}` with exactly `read.image`, `command.image`, `chat.image`, in this order (`R104_PLAN_ACTIONS`). Recovery pins Hosting and all five services; the applied readback names the five services: read, command and chat on the new image with a new revision, notify and jobs exactly on their pinned image and revision.
+- **Live readback.** As R102, with the chat checks unchanged: the R102 `CHAT_MODELS_JSON` (Claude Opus 5.5 default and the three Gemini models), the relay URL and private-range VPC egress on chat only.
+- **Artifact and operator.** The marker and the entry bundle carry `"R104"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r104`.
+
 ## R103 Hosting-only promotion on the R102 runtime
 
 `schemaVersion: 34`, `release: R103`, `scope: frontend-only`, `status: prepared`: R083's Hosting-only kind (shared code path) on the unchanged R102 runtime and V115. R103's only PROD change is the PWA chat progress row ("Looking up data…" with elapsed seconds); there is no SQL, image or Terraform change.
