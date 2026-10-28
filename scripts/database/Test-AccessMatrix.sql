@@ -86,6 +86,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_payment_head_v2(text)'),
   ('mw_app_dev','forecast_schedule_v1(jsonb,jsonb,date,date)'),
   ('mw_app_dev','pwa_next_projected_charge_v1(text,date)'),
+  ('mw_app_dev','pwa_next_bookable_charge_v1(text,date)'),
   ('mw_app_dev','pwa_payment_version_v2(text)'),
   ('mw_app_dev','pwa_preference_version_v2(text)'),
   ('mw_app_dev','sync_cash_ledger(text,text)'),
