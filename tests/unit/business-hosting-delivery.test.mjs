@@ -2223,3 +2223,25 @@ test('R102 operator audience and live verification: chat-era checks plus Claude 
  // The older chat-era kinds keep their three-Gemini rule: an R101 readback with the R102 models is still refused.
  {const r101=await r101Package(t);await assert.rejects(verifyR101LivePackage(r101.m,{token:'t',request:chatLive(r101.m,r101.image).make({image:Object.fromEntries(['notify','jobs'].map(role=>[role,r101.m.rollback.services[role].image])),models:r102Models}),readGithub:r074Readback(r101.m).readGithub,git:r101Git({source:r101.source,tool:r101.tool})}),/R101 live chat models must be three Gemini models/);}
 });
+test('live build readback: regional first, global only on a regional 404, with build id, project, digest and source still exact',async t=>{
+ const {m,source,tool,image}=await r102Package(t),git=r102Git({source,tool}),project='clever-oasis-508610-n7';
+ const {make}=chatLive(m,image),pinned=Object.fromEntries(['notify','jobs'].map(role=>[role,m.rollback.services[role].image]));
+ const good={image:pinned,models:r102Models,env:{chat:[{name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL}]},vpc:{chat:r102ChatVpc}};
+ const regional=`/v1/projects/${project}/locations/asia-southeast1/builds/`,global=`/v1/projects/${project}/locations/global/builds/`;
+ // where: 'regional' answers regionally; 'global' 404s regionally and answers globally; 'none' 404s in both. edit alters the global build.
+ const located=(where,{digest='e',status=404,edit=x=>x}={})=>{const base=make(good,digest),urls=[];const request=async(url,options)=>{
+  if(!url.includes('cloudbuild'))return base(url,options);urls.push(url);
+  if(url.includes(regional))return where==='regional'?base(url,options):{ok:false,status,json:async()=>({})};
+  assert.ok(url.includes(global),url);if(where!=='global')return{ok:false,status:404,json:async()=>({})};
+  const r=await base(url,options),build=await r.json();return{ok:true,json:async()=>edit({...build,id:m.build.id,projectId:project})};};return{request,urls};};
+ const run=located=>verifyR102LivePackage(m,{token:'t',request:located.request,readGithub:r074Readback(m).readGithub,git});
+ {const x=located('regional');await run(x);assert.equal(x.urls.length,1);assert.ok(x.urls[0].includes(regional));}
+ {const x=located('global');await run(x);assert.deepEqual(x.urls.map(url=>url.includes(global)),[false,true]);}
+ await assert.rejects(run(located('none')),/live package readback failed/);
+ for(const status of [403,500])await assert.rejects(run(located('global',{status})),/live package readback failed/,String(status));
+ await assert.rejects(run(located('global',{digest:'f'})),/live build digest mismatch/);
+ await assert.rejects(run(located('global',{edit:b=>({...b,status:'FAILURE'})})),/live build digest mismatch/);
+ await assert.rejects(run(located('global',{edit:b=>({...b,source:{storageSource:{...b.source.storageSource,generation:'other'}}})})),/exact CloudBuild source object required/);
+ await assert.rejects(run(located('global',{edit:b=>({...b,id:'other-build'})})),/live global build identity mismatch/);
+ await assert.rejects(run(located('global',{edit:b=>({...b,projectId:'other-project'})})),/live global build identity mismatch/);
+});
