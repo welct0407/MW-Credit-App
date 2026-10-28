@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
   "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "f9424c714eb92d7dc0bc710bc6f721121ac71ff2"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-borrowers-analytics-2ac154a3.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "relation"
+      "name": "public.olap_borrowers_analytics"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -21,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres,mw_chat_read_prod=r/postgres}"
     "comment": null
     "view_definition": |2-
        SELECT old_view."Row ID",
@@ -154,6 +163,7 @@
                           min(c."Charge Date") FILTER (WHERE c."Charge Date" < ctx.d) AS first_history,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL) AS collection_count,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" < ctx.d AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text) AS collection_overdue,
+                          count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" < (ctx.d - 7) AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text) AS collection_long_overdue,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'รอชำระ'::text) AS collection_pending,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'ชำระบางส่วน'::text) AS collection_partial,
                           count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'ชำระแล้ว'::text) AS collection_paid,
@@ -198,6 +208,10 @@
                           b_1."Has Closed Loan",
                           b_1."Has Active Loan",
                           b_1."Ref Referrer",
+                          b_1."Ref Preferred Receiving Cash Account",
+                          b_1."Payment Request Cash Account",
+                          b_1."Payment Request Token",
+                          b_1."Borrower Note",
                               CASE
                                   WHEN b_1."Total Outstanding Principal" > 0::numeric THEN b_1."Active Loan Interest Earned" / b_1."Total Outstanding Principal"
                                   ELSE 0::numeric
@@ -217,6 +231,7 @@
                           round((COALESCE(lr.gross_days, 0::numeric) - COALESCE(rr.reduction, 0::numeric)) / 30::numeric) AS "30D Average Outstanding Principal",
                               CASE
                                   WHEN COALESCE(cr.collection_count, 0::bigint) = 0 THEN NULL::text
+                                  WHEN cr.collection_long_overdue > 0 THEN 'Long Overdue'::text
                                   WHEN cr.collection_overdue > 0 THEN 'Overdue'::text
                                   WHEN cr.collection_pending = 0 AND cr.collection_partial = 0 THEN 'Fully Paid'::text
                                   WHEN cr.collection_partial > 0 OR cr.collection_paid > 0 AND cr.collection_pending > 0 THEN 'Partially Paid'::text
@@ -301,6 +316,10 @@
                           a."Has Closed Loan",
                           a."Has Active Loan",
                           a."Ref Referrer",
+                          a."Ref Preferred Receiving Cash Account",
+                          a."Payment Request Cash Account",
+                          a."Payment Request Token",
+                          a."Borrower Note",
                           a."Return on Active Principal",
                           a."Profit Last 30 Days",
                           a."Profit Last 10 Days",
@@ -396,6 +415,10 @@
                           b_1."Has Closed Loan",
                           b_1."Has Active Loan",
                           b_1."Ref Referrer",
+                          b_1."Ref Preferred Receiving Cash Account",
+                          b_1."Payment Request Cash Account",
+                          b_1."Payment Request Token",
+                          b_1."Borrower Note",
                           b_1."Return on Active Principal",
                           b_1."Profit Last 30 Days",
                           b_1."Profit Last 10 Days",
@@ -465,6 +488,10 @@
                           c."Has Closed Loan",
                           c."Has Active Loan",
                           c."Ref Referrer",
+                          c."Ref Preferred Receiving Cash Account",
+                          c."Payment Request Cash Account",
+                          c."Payment Request Token",
+                          c."Borrower Note",
                           c."Return on Active Principal",
                           c."Profit Last 30 Days",
                           c."Profit Last 10 Days",
@@ -1910,6 +1937,11 @@
     "relation": "olap_borrowers_analytics"
     "referenced_schema": "public"
     "referenced_relation": "Borrowers"
+    "referenced_column": "Borrower Note"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
     "referenced_column": "City"
   - "schema": "public"
     "relation": "olap_borrowers_analytics"
@@ -2166,16 +2198,3 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Ref Loans"
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Description/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/columns/Row ID/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"

@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {api,assertSource,read,write,privateDir} from './ReportingApi.mjs';
+import {api as rawApi,assertSource,read,write} from './ReportingApi.mjs';import {baselineDir,redactedReads} from './Baselines.mjs';
+const api=redactedReads(rawApi);  // R103: compare the redacted form the baselines hold
+const privateDir=await baselineDir('r016-20260922');  // R103: Baselines.mjs (override or private bucket)
 await assertSource();
 const before=JSON.parse(fs.readFileSync(privateDir+'/income-symbols-before/dashboard.json'));
 const d=await api('GET','dashboard/3'),state=read('income-state.json'),checks=[];
@@ -26,5 +28,5 @@ const removed=await api('GET','card/189');check('Removed question has no dashboa
 await api('PUT','card/189',{archived:true});check('Removed question recoverably archived',(await api('GET','card/189')).archived);
 state.archived_cards['cash-bridge']=189;delete state.cards['cash-bridge'];write('income-state.json',state);
 const m=read('manifest.json');m.dashboard.visuals=d.dashcards.filter(c=>c.card_id).length;m.dashboard.questions=new Set(d.dashcards.filter(c=>c.card_id).map(c=>c.card_id)).size;m.dashboard.heading_and_note_cards=d.dashcards.filter(c=>!c.card_id).length;m.income_presentation_tests='income-symbols-verification.json';write('manifest.json',m);
-write('income-symbols-verification.json',{verified_at:new Date().toISOString(),checks,check_count:checks.length,visuals:m.dashboard.visuals,questions:m.dashboard.questions,income_visuals:active.length,private_rollback:privateDir+'/income-symbols-before',database_changes:false,calculation_changes:false,total_label_limitation:'Metabase v0.63.18.1 hardcodes native Total; chart title explicitly maps Total = Unsettled Profit',cash_equation_note:'Earlier retained profit, advances and reconciliation differences can affect period-end cash; explanatory footnote retained',prior_financial_tests:'income-verification.json (154 checks; unchanged calculations)'});
+write('income-symbols-verification.json',{verified_at:new Date().toISOString(),checks,check_count:checks.length,visuals:m.dashboard.visuals,questions:m.dashboard.questions,income_visuals:active.length,private_rollback:'metabase-baselines/r016-20260922/income-symbols-before',database_changes:false,calculation_changes:false,total_label_limitation:'Metabase v0.63.18.1 hardcodes native Total; chart title explicitly maps Total = Unsettled Profit',cash_equation_note:'Earlier retained profit, advances and reconciliation differences can affect period-end cash; explanatory footnote retained',prior_financial_tests:'income-verification.json (154 checks; unchanged calculations)'});
 console.log(`${checks.length} focused presentation, preservation and query checks passed.`);

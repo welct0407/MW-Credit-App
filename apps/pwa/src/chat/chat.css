@@ -39,6 +39,9 @@
 .chat-table-scroll th{font-weight:600;color:#3c4043}
 .chat-turn{display:flex;flex-direction:column;gap:8px}
 .chat-progress{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--text-meta,14px);color:#565656}
+/* R103: one line on a phone; the tool list ends in an ellipsis and the seconds never wrap. */
+.chat-progress-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-progress-seconds{flex:none;margin-left:-8px;white-space:nowrap}
 .chat-welcome{padding:8px 0;color:#3c4043}
 .chat-welcome>p{margin:0 0 10px}
 .chat-examples{display:flex;flex-wrap:wrap;gap:8px}

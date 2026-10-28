@@ -37,6 +37,11 @@ test('turn reducer: tool_round retract is silent, ungrounded and too_long show t
  const message={id:'r',seq:5,role:'assistant',text:'Total 900',status:'ok'};
  s=applyTurnEvent(s,'message',message);assert.deepEqual(s.message,message);assert.equal(s.provisional,'');
  s=applyTurnEvent(s,'done',{});assert.equal(s.done,true);
+ // R103: startedAt is set by the first accepted and survives round, tool, delta and retract (the seconds never restart).
+ {let x=applyTurnEvent(initialTurn(),'accepted',{seq:1},1000);assert.equal(initialTurn().startedAt,null);assert.equal(x.startedAt,1000);
+  for(const [name,data,now] of [['round',{n:1},2000],['tool',{callId:'a',name:'sql_query',state:'running'},3000],['delta',{text:'x'},4000],['retract',{reason:'tool_round'},5000],['round',{n:2},6000],['retract',{reason:'ungrounded'},7000],['accepted',{seq:1},8000]])x=applyTurnEvent(x,name,data,now);
+  assert.equal(x.startedAt,1000);assert.equal(x.round,2);
+  const failed=applyTurnEvent(x,'error',{code:'MODEL_TIMEOUT'},9000);assert.equal(failed.error,'MODEL_TIMEOUT');assert.equal(failed.provisional,'');}
  assert.equal(applyTurnEvent(initialTurn(),'error',{code:'TURN_TIMEOUT'}).error,'TURN_TIMEOUT');
  assert.equal(applyTurnEvent(initialTurn(),'message',{id:1}).message,null,'a malformed message is ignored');
  assert.deepEqual(applyTurnEvent(s,'unknown',{}),s);
@@ -87,8 +92,18 @@ test('wording: failure reasons, progress row, sources line and placeholder title
  assert.equal(failureText('SOMETHING_NEW',false),failureText('INTERNAL',false));
  assert.equal(failureText('INTERNAL',true),'เกิดข้อผิดพลาด ลองอีกครั้ง');assert.equal(failureText('TURN_TIMEOUT',true),'คำถามนี้ใช้เวลานานเกินไป ลองถามให้เจาะจงขึ้น');
  for(const code of ['MODEL_UNAVAILABLE','MODEL_TIMEOUT','TOOL_ROUNDS_EXCEEDED','GROUNDING_EXCEEDED','TURN_TIMEOUT','PROMPT_BLOCKED','INTERNAL','unavailable','lost'])assert.notEqual(failureText(code,true),failureText(code,false),code);
- assert.equal(progressText(2,[{name:'read_records',state:'ok',summary:'Loans'},{name:'read_records',state:'running'},{name:'sql_query',state:'running'}],false),'Round 2 · checking loans, records, database…');
- assert.equal(progressText(1,[],false),'Round 1 · thinking…');
+ // R103: "Looking up data…" without "Round N"; distinct tool labels (at most three, then "…"); seconds from 5 s on.
+ const lookup=[{name:'read_records',state:'ok',summary:'Loans'},{name:'read_records',state:'running'},{name:'sql_query',state:'running'}];
+ assert.deepEqual({...progressText(2,lookup,false)},{text:'Looking up data · loans, records, database…',seconds:''});
+ assert.deepEqual({...progressText(1,[],false)},{text:'Looking up data…',seconds:''});
+ assert.deepEqual({...progressText(1,[],true)},{text:'กำลังค้นหาข้อมูล…',seconds:''});
+ assert.deepEqual({...progressText(1,lookup,true)},{text:'กำลังค้นหาข้อมูล · loans, ข้อมูล, ฐานข้อมูล…',seconds:''});
+ assert.deepEqual({...progressText(0,[],false,7)},{text:'Preparing a reply…',seconds:' · 7 s'});
+ assert.equal(progressText(3,[...lookup,{name:'loan_payoff',state:'running'},{name:'sum_field',state:'running'}],false).text,'Looking up data · loans, records, database, …');
+ for(const [elapsed,english,thai] of [[0,'',''],[4.99,'',''],[5,' · 5 s',' · 5 วิ'],[12.7,' · 12 s',' · 12 วิ']]){
+  assert.equal(progressText(1,[],false,elapsed).seconds,english,String(elapsed));assert.equal(progressText(1,[],true,elapsed).seconds,thai,String(elapsed));
+ }
+ assert.doesNotMatch(JSON.stringify([progressText(4,lookup,false,30),progressText(4,lookup,true,30)]),/Round|รอบที่/);
  assert.equal(sourcesText([{name:'sql_query',count:2},{name:'loan_payoff',count:1}],false),'Checked: database (2 queries), loan payoff');
  assert.equal(sourcesText([{name:'sql_query',count:2}],true),'ตรวจแล้ว: ฐานข้อมูล (2 คำสั่ง)');
  assert.equal(sourcesText([],false),'');

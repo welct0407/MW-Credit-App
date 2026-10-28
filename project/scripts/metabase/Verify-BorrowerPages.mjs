@@ -1,7 +1,10 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {api,assertSource} from './ReportingApi.mjs';
-import {specs,read,save,shape,priv,parameters} from './BorrowerPages.mjs';
+import {api as rawApi,assertSource} from './ReportingApi.mjs';
+import {specs,read,save,shape,parameters} from './BorrowerPages.mjs';
+import {baselineDir,redactedReads} from './Baselines.mjs';
+const api=redactedReads(rawApi);  // R103: compare the redacted form the baselines hold
+const priv=(await baselineDir('r035-borrower-pages'))+'/metabase';  // R103: Baselines.mjs (override or private bucket)
 await assertSource();
 const state=read('metabase-state'),d=await api('GET','dashboard/3'),checks=[],timings=[];
 const check=(name,value)=>{assert(value,name);checks.push(name);};

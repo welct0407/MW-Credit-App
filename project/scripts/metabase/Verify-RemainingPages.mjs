@@ -1,5 +1,11 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';
-import {api,assertSource,read,write,privateDir} from './ReportingApi.mjs';
+import path from 'node:path';
+import {api as rawApi,assertSource,read,write,output} from './ReportingApi.mjs';import {baselineDir,redactedReads} from './Baselines.mjs';
+const api=redactedReads(rawApi);  // R103: compare the redacted form the baselines hold
+// R103: the install state (installed card ids) was never committed and cannot be derived exactly from live Metabase
+// (9 of 80 question names match several cards; the 10 reused ids differ from the install record): not runnable here.
+if(!fs.existsSync(path.join(output,'remaining-install-state.json'))){console.error('Verify-RemainingPages: not runnable: outputs/r016-20260922/remaining-install-state.json (installed card ids) is missing and cannot be derived exactly from live Metabase');process.exit(2);}
+const privateDir=await baselineDir('r016-20260922');  // R103: Baselines.mjs (override or private bucket)
 await assertSource();const models=read('models.json'),state=read('remaining-install-state.json'),questions=read('remaining-questions.json'),dashboard=await api('GET','dashboard/3'),checks=[];
 async function sql(query){const r=await api('POST','dataset',{database:2,type:'native',native:{query,'template-tags':{}}});if(r.status!=='completed')throw Error('Independent SQL failed');return r.data.rows;}
 async function card(key,parameters){const id=state.cards[key].id,page=state.cards[key].page,tab=dashboard.tabs.find(t=>t.name.startsWith(page+' ·'));const dc=dashboard.dashcards.find(c=>c.card_id===id&&(!tab||c.dashboard_tab_id===tab.id));const r=await api('POST',parameters?`dashboard/3/dashcard/${dc.id}/card/${id}/query`:`card/${id}/query`,parameters?{parameters}:{});if(r.status!=='completed')throw Error('Question failed '+key);return r.data.rows;}

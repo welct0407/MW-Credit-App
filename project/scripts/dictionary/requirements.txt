@@ -1,2 +1,4 @@
 # Installed outside the repository and bundled runtime; see README.md.
 PyYAML==6.0.2
+# R103: capture_postgresql.py (the Auth Proxy route); the same pin as the chart service and the agent lock.
+psycopg[binary]==3.2.10

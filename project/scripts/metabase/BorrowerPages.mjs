@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {api,assertSource,root} from './ReportingApi.mjs';
 export const out=root+'/outputs/r035-borrower-pages';
 export const priv='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r035-borrower-pages/metabase';
-fs.mkdirSync(out,{recursive:true});fs.mkdirSync(priv,{recursive:true});
+fs.mkdirSync(out,{recursive:true});  // R103: priv is created only by the commands that write it (no Windows path on import)
 export const save=(n,x)=>fs.writeFileSync(out+'/'+n+'.json',JSON.stringify(x,null,2)+'\n');
 export const read=n=>JSON.parse(fs.readFileSync(out+'/'+n+'.json'));
 const number={number_style:'decimal',decimals:0,number_separators:'.,',compact:false};
@@ -116,14 +116,14 @@ export function layout(state){
 }
 if(process.argv.includes('--plan')){save('metabase-plan',{specs});console.log(`Prepared ${specs.length} questions`);}
 if(process.argv.includes('--prepare')){
- await assertSource();assert(!fs.existsSync(priv+'/dashboard-before.json'),'Baseline exists; do not overwrite');
+ await assertSource();assert(!fs.existsSync(priv+'/dashboard-before.json'),'Baseline exists; do not overwrite');fs.mkdirSync(priv,{recursive:true});
  const d=await api('GET','dashboard/3');fs.writeFileSync(priv+'/dashboard-before.json',JSON.stringify(d));fs.writeFileSync(priv+'/permissions-before.json',JSON.stringify(await api('GET','collection/graph')));
  // Copy has existing collection access; full definitions stay private because existing iframe carries a secret.
  const backup=await api('POST','dashboard/3/copy',{name:'R035 recovery · before borrower pages',collection_id:5});
  save('metabase-state',{cards:{},tabs:{},backupDashboard:backup.id,startingCommit:'0aa3b25f0b98f6e95f62c538258a053423ed9590'});console.log(JSON.stringify({backupDashboard:backup.id,originalTabs:d.tabs.length,originalPlacements:d.dashcards.length}));
 }
 if(process.argv.includes('--preflight')){
- await assertSource();const checks=[];for(const s of specs){const r=await api('POST','dataset',s.dataset_query);if(r.status!=='completed'){fs.writeFileSync(priv+'/query-error.json',JSON.stringify(r));throw Error('Query failed '+s.key+'; private diagnostic saved');}assert(!r.data.rows_truncated,s.key);checks.push({key:s.key,rows:r.data.rows.length,duration:r.running_time});}
+ await assertSource();const checks=[];for(const s of specs){const r=await api('POST','dataset',s.dataset_query);if(r.status!=='completed'){fs.mkdirSync(priv,{recursive:true});fs.writeFileSync(priv+'/query-error.json',JSON.stringify(r));throw Error('Query failed '+s.key+'; private diagnostic saved');}assert(!r.data.rows_truncated,s.key);checks.push({key:s.key,rows:r.data.rows.length,duration:r.running_time});}
  save('metabase-preflight',{at:new Date().toISOString(),checks});console.log(`Passed ${checks.length} report queries`);
 }
 if(process.argv.includes('--refine')){

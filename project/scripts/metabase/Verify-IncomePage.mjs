@@ -1,5 +1,8 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';
-import {api,assertSource,read,write,privateDir,root} from './ReportingApi.mjs';import {definitions} from './IncomePage.mjs';
+import {api as rawApi,assertSource,read,write,root} from './ReportingApi.mjs';import {baselineDir,redactedReads} from './Baselines.mjs';
+import {definitions} from './IncomePage.mjs';
+const api=redactedReads(rawApi);  // R103: compare the redacted form the baselines hold
+const privateDir=await baselineDir('r016-20260922');  // R103: Baselines.mjs (override or private bucket)
 await assertSource();const models=read('models.json'),state=read('income-state.json'),dashboard=await api('GET','dashboard/3'),checks=[];
 const check=(name,ok)=>{if(!ok)throw Error(name+' failed');checks.push({check:name,passed:true});};
 async function sql(query){const r=await api('POST','dataset',{database:2,type:'native',native:{query}});if(r.status!=='completed')throw Error('Verification source query failed');return r;}

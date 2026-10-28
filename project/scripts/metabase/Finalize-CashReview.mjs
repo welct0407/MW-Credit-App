@@ -2,7 +2,8 @@ import './LegacyStatementGuard.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,read,write,privateDir} from './ReportingApi.mjs';
-import {assertPreserved,parameters,layout,project} from './CashReviewPages.mjs';
+import {assertPreserved,parameters,layout,project,useBaseline} from './CashReviewPages.mjs';
+await useBaseline();  // R103: the baseline is resolved lazily
 const state=read('cash-review-state.json'),d=await api('GET','dashboard/3'),v=read('cash-review-verification.json');
 assertPreserved(d);
 const ids=state.tabs.map(t=>t.id),actual=d.dashcards.filter(c=>ids.includes(c.dashboard_tab_id));

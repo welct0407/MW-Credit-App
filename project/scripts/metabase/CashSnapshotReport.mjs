@@ -1,8 +1,12 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {api,assertSource,privateDir,root,read,write} from './ReportingApi.mjs';
-export const backup=privateDir+'/cash-snapshot-report-before';
-export const prior=n=>JSON.parse(fs.readFileSync(`${backup}/${n}.json`,'utf8'));
+import {api,assertSource,root,read,write} from './ReportingApi.mjs';
+import {baselineDir} from './Baselines.mjs';
+// R103: the R016 baseline from Baselines.mjs (override or private bucket), resolved only by useBaseline() (as
+// CollectionMonitor.mjs does), so importing this module runs no gcloud; writes below stay in that local copy.
+export let backup;
+export async function useBaseline(){return backup??=(await baselineDir('r016-20260922'))+'/cash-snapshot-report-before';}
+export const prior=n=>{if(!backup)throw Error('CashSnapshotReport: await useBaseline() first');return JSON.parse(fs.readFileSync(`${backup}/${n}.json`,'utf8'));};
 export const projection=c=>Object.fromEntries(['id','card_id','dashboard_tab_id','col','row','size_x','size_y','series','parameter_mappings','visualization_settings'].map(k=>[k,c[k]]));
 export const modelSpecs=[
  ['daily-cash-snapshot','Daily Cash Snapshots','One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates.'],
@@ -34,6 +38,7 @@ export function layout(d,state){
  return cards;
 }
 if(process.argv.includes('--layout-only')){
+ await useBaseline();
  await assertSource();const d=await api('GET','dashboard/3'),state=read('cash-snapshot-report-state.json');
  await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards:[...d.dashcards.filter(c=>c.dashboard_tab_id!==14),...layout(d,state)]});
  const after=await api('GET','dashboard/3'),sort=a=>a.map(projection).sort((a,b)=>a.id-b.id);
@@ -44,6 +49,7 @@ if(process.argv.includes('--layout-only')){
  fs.writeFileSync(backup+'/completed-dashboard.json',JSON.stringify(after,null,2));console.log('Layout-only refinement verified; all queries and other tabs preserved.');
 }
 if(process.argv.includes('--install')){
+ await useBaseline();
  if(fs.existsSync(new URL('../../outputs/r016-20260922/statement-cleanup-state.json',import.meta.url)))throw Error('Canonical cash pages now exist. Use StatementCleanup.mjs and preserve the current Cash Position page; this old installation baseline is retired.');
  await assertSource();const baseline=prior('dashboard');let d=await api('GET','dashboard/3');
  assert.equal(d.tabs.find(t=>t.id===14)?.name,'2R · Cash Position');

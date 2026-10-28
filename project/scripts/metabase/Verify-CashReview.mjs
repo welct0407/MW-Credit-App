@@ -1,12 +1,15 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {api,read,write,privateDir,assertSource} from './ReportingApi.mjs';
-import {original,prior,assertPreserved,backup,specs} from './CashReviewPages.mjs';
+import {api as rawApi,read,write,assertSource} from './ReportingApi.mjs';
+import {diagnosticsDir,redactedReads} from './Baselines.mjs';
+import {useBaseline,prior,assertPreserved,backup,specs} from './CashReviewPages.mjs';
+await useBaseline();  // R103: resolve the baseline (override or private bucket) before any read
+const api=redactedReads(rawApi);  // R103: compare the redacted form the baselines hold
 await assertSource();
 const state=read('cash-review-state.json'),d=await api('GET','dashboard/3'),checks=[];
 const check=(name,ok)=>{assert.ok(ok,name);checks.push(name);};
 const near=(a,b)=>a===null||b===null?a===b:Math.abs(Number(a)-Number(b))<0.005;
-const result=async(route,body)=>{const r=await api('POST',route,body);if(r.status!=='completed'){fs.writeFileSync(privateDir+'/cash-review-query-error.json',JSON.stringify(r));throw Error('Query failed; private diagnostic: '+route);}assert.ok(!r.data.rows_truncated);return r.data;};
+const result=async(route,body)=>{const r=await api('POST',route,body);if(r.status!=='completed'){const dir=diagnosticsDir('r016-20260922');fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(dir+'/cash-review-query-error.json',JSON.stringify(r));throw Error('Query failed; private diagnostic: '+route);}assert.ok(!r.data.rows_truncated);return r.data;};
 const sql=q=>result('dataset',{database:2,type:'native',native:{query:q}});
 const today=(await sql("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date" )).rows[0][0].slice(0,10);
 assertPreserved(d);checks.push('All original ten page layouts, ordering and filter definitions preserved');
