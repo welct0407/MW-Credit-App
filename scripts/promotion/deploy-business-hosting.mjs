@@ -344,11 +344,25 @@ export async function verifyWaveLivePackage(m,{token,request=fetch,readGithub,gi
 // read back live). The source descends from the R081 release, which is also the runtime compared; CI is R074's per-job
 // gate and the artifact carries the R083 release marker.
 const r064Release='9420c8599ce593eeeaafc1e68a235ab3d1d08d8c',r069Release='9c4a4cb753c7874206b6b1d1e9d28fa87d66002c',r070Release='038b5c9f9f7d1ed368f8197973a523bb0cf5eab2',r071Release='cb333f5c0024f51c197a2b5527d833605ba5fb03',r072Release='378c34825501534e9ada30a4b1e78dce0ed6c7a3',r073Release='042359b585e132cb20e3f0785320c285addc7a1e',r074Release='b88653d4b84860b7eab622d0edfb472d851c03ce',r081Release='b36dce97224b803a364efba90bcbce1c68caeea7';
+// R103: the Hosting-only kind on the unchanged R102 runtime (b216968, the R102 package) and V115: the PWA chat progress row
+// only, no SQL, image or Terraform change. The chat service exists since R090, so the runtime pins and the live readback
+// cover five services, each pinned exactly to its R102 PROD revision and image (read, command and chat on 599e19b6…,
+// notify and jobs on their unchanged 50953149… revisions), and the R102 live chat check holds (four models, Claude Opus
+// 5.5 default, relay URL, private-range VPC egress on chat only). The artifact carries the R103 marker and the R090 chat
+// origin; CI is R074's per-job gate.
+const r102Release='b216968ad45f2228d88a6f53ba9bc07f813636db';
+const r102Image=digest=>`asia-southeast1-docker.pkg.dev/${project}/mw-credit-app-prod/api@sha256:${digest}`;
+export const R103_RUNTIME=Object.freeze({
+ read:{revision:'mw-credit-app-read-prod-00029-tzt',image:r102Image('599e19b64600b94720f6ef803fdc1f1f494b1d525c62e3430487abfd9717ff26')},
+ command:{revision:'mw-credit-app-command-prod-00034-8m8',image:r102Image('599e19b64600b94720f6ef803fdc1f1f494b1d525c62e3430487abfd9717ff26')},
+ notify:{revision:'mw-credit-app-notify-prod-00022-4lt',image:r102Image('5095314936dcbb0e41716bc97cda0e2a3dd09bdf11730d820c6b24bd62450468')},
+ jobs:{revision:'mw-credit-app-jobs-prod-00022-42m',image:r102Image('5095314936dcbb0e41716bc97cda0e2a3dd09bdf11730d820c6b24bd62450468')},
+ chat:{revision:'mw-credit-app-chat-prod-00012-7lz',image:r102Image('599e19b64600b94720f6ef803fdc1f1f494b1d525c62e3430487abfd9717ff26')}});
 // R071 to R074: package.json may differ from the runtime in `scripts` alone (the image runs `npm ci --omit=dev`, no npm script),
 // and database/ may change only in Markdown outside database/migrations.
-const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R072:{schemaVersion:13,baseline:r071Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R073:{schemaVersion:14,baseline:r072Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R074:{schemaVersion:15,baseline:r073Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true},R083:{schemaVersion:24,baseline:r081Release,runtime:r081Release,runtimeLabel:'R081',sqlVersion:100,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true,releaseInArtifact:true}};
+const hostingOnlyReleases={R065:{schemaVersion:7,baseline:r064Release,runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R066:{schemaVersion:8,baseline:'74ad26b57dcfb9effea86d638b7d112cffe042c5',runtime:r064Release,runtimeLabel:'R064',sqlVersion:93},R070:{schemaVersion:11,baseline:r069Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95},R071:{schemaVersion:12,baseline:r070Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R072:{schemaVersion:13,baseline:r071Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R073:{schemaVersion:14,baseline:r072Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true},R074:{schemaVersion:15,baseline:r073Release,runtime:r069Release,runtimeLabel:'R069',sqlVersion:95,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true},R083:{schemaVersion:24,baseline:r081Release,runtime:r081Release,runtimeLabel:'R081',sqlVersion:100,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true,releaseInArtifact:true},R103:{schemaVersion:34,baseline:r102Release,runtime:r102Release,runtimeLabel:'R102',sqlVersion:115,scriptsOnlyPackageJson:true,docsOnlyDatabaseMarkdown:true,perJobCi:true,releaseInArtifact:true,chatRuntime:R103_RUNTIME}};
 // From R070 the delivery-tool commit may also carry this runner's README (as for R069).
-const hostingOnlyDeliveryAllowed=L=>['R070','R071','R072','R073','R074','R083'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
+const hostingOnlyDeliveryAllowed=L=>['R070','R071','R072','R073','R074','R083','R103'].includes(L)?file=>runtimeDeliveryAllowed(file)||file==='scripts/promotion/README.md':runtimeDeliveryAllowed;
 const r065RuntimeInputs=['services','database','Dockerfile','.dockerignore','.gcloudignore','cloudbuild-command.yaml','cloudbuild-business.yaml','package.json','package-lock.json','infrastructure/production','infrastructure/modules'];
 const withoutScripts=(git,root,commit)=>{let p;try{p=JSON.parse(git(root,['show',commit+':package.json']));}catch{p=null;}if(!p||typeof p!=='object'||Array.isArray(p))return null;const {scripts:_scripts,...rest}=p;return rest;};
 // R074: per-job CI evidence. Each required job cites its own run; that run's head is the delivery-tool commit
@@ -426,10 +440,13 @@ export async function hostingOnlyPlan(m,{git=sourceGit,release=m?.release}={}){
  const v=m.sql?.verified,V=hostingOnlyReleases[L].sqlVersion;
  requireValue(m.sql?.baselineVersion===V&&m.sql.targetVersion===V&&exact(m.sql.migrations,[])&&v?.database==='loan_manager_prod'&&v.latestVersion===String(V)&&v.allSuccessful===true&&typeof v.verifiedAt==='string'&&v.verifiedAt.endsWith('Z')&&Number.isFinite(Date.parse(v.verifiedAt)),L+' requires verified V'+V+' with no migration');
  if(hostingOnlyReleases[L].perJobCi)validateR074Ci(m.applicationCi,m,git,L,hostingOnlyDeliveryAllowed(L));else validateWaveCi(m.applicationCi,m,git,L,hostingOnlyDeliveryAllowed(L));
+ const chat=hostingOnlyReleases[L].chatRuntime;
  for(const role of runtimeRoles)requireValue(imagePattern.test(m.runtime?.services?.[role]?.image??'')&&new RegExp('^mw-credit-app-'+role+'-prod-[0-9]+-[a-z0-9]+$').test(m.runtime.services[role].revision??''),L+' unchanged runtime pins required');
+ // R103: exactly the five R102 PROD services, each on its pinned revision and image.
+ if(chat)requireValue(plainObject(m.runtime?.services)&&exact(Object.keys(m.runtime.services).sort(),Object.keys(chat).sort())&&Object.entries(chat).every(([role,pin])=>isDeepStrictEqual(m.runtime.services[role],pin)),L+' unchanged runtime pins required: the five '+hostingOnlyReleases[L].runtimeLabel+' services on their PROD revisions and images');
  const recovery=m.rollback;
  requireValue(/^sites\/mw-credit-prod-737787224638\/versions\/[A-Za-z0-9_-]+$/.test(recovery?.hostingVersion??'')&&/^sites\/mw-credit-prod-737787224638\/releases\/[0-9]+$/.test(recovery?.hostingRelease??''),'Hosting recovery pins required');
- return validatedHostingArtifact(m,recovery,{release:hostingOnlyReleases[L].releaseInArtifact?L:undefined});
+ return validatedHostingArtifact(m,recovery,{release:hostingOnlyReleases[L].releaseInArtifact?L:undefined,...(chat?{chatOrigin:R090_CHAT_ORIGIN}:{})});
 }
 export async function verifyR065LivePackage(m,options={}){return verifyHostingOnlyLivePackage(m,{...options,release:'R065'});}
 // R074 per-job CI at apply: each distinct cited run is read once (run and jobs) and the package's job map is validated
@@ -452,11 +469,20 @@ export async function verifyHostingOnlyLivePackage(m,{token,request=fetch,readGi
   const live={};for(const kind of Object.keys(runtimeCiKinds)){const id=m.applicationCi?.[kind]?.run?.id;requireValue(Number.isSafeInteger(id)&&id>0,'actual CI run id required');live[kind]={run:await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}`]),jobs:(await gh(['api',`repos/welct0407/MW-Credit-App/actions/runs/${id}/jobs?per_page=100`])).jobs};}
   validateWaveCi(live,m,git,L,hostingOnlyDeliveryAllowed(L));
  }
- // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070 to R074, R081 for R083).
- for(const role of runtimeRoles){
+ // The live runtime must still be exactly the pinned services (R064 for R065/R066, R069 for R070 to R074, R081 for R083,
+ // the five R102 services for R103).
+ const chat=hostingOnlyReleases[L].chatRuntime,live={};
+ for(const role of chat?[...runtimeRoles,'chat']:runtimeRoles){
   const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');
-  const s=await r.json(),pin=m.runtime.services[role];
+  const s=await r.json(),pin=chat?chat[role]:m.runtime.services[role];live[role]=s;
   requireValue(s.template?.containers?.[0]?.image===pin.image&&s.latestReadyRevision?.endsWith('/'+pin.revision)&&s.terminalCondition?.state==='CONDITION_SUCCEEDED',L+' live runtime differs from the pinned services');
+  if(chat)requireValue(s.trafficStatuses?.length===1&&s.trafficStatuses[0].percent===100&&s.trafficStatuses[0].revision===pin.revision,L+' live '+role+' traffic must be 100% on its pinned revision');
+ }
+ if(chat){
+  // R103: the R102 live chat check still holds (Claude Opus 5.5 default and the three Gemini models, relay URL, VPC egress).
+  const env=Object.fromEntries((live.chat.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value]));let models;try{models=JSON.parse(env.CHAT_MODELS_JSON);}catch{models=null;}
+  requireValue(live.chat.template?.serviceAccount===`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`,L+' live chat identity drift');
+  verifyR102LiveChat(live,env,models,L);
  }
 }
 
@@ -1048,7 +1074,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095','R096','R097','R100','R101','R102'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095','R096','R097','R100','R101','R102','R103'].includes(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }

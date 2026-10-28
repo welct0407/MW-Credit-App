@@ -30,6 +30,15 @@ R103 closes three R102 follow-ups under the owner's "do 2, 3 and 4 in R103": a P
 - The device pass for the new waiting row.
 - A DEV capture of the dictionary (the dictionary records PROD only).
 
+## DEV deployment (Forge, 28 October 2026, UTC): Hosting only, `d544950`
+- **Source:** PR #180 head `d544950567de8d976e4ba71ed9e3b52658534148`. Its CI is green: check, lint, e2e ×3, database ×4, guards and agent tests.
+- **Scope:** the only runtime change is the PWA chat progress row. There is no service, SQL or Terraform change, so the DEV images and Cloud Run revisions stay as they are.
+- **Authority:** the orchestrator's DEV deploy for the owner's review. DEV only; nothing in PROD.
+
+| Step | What ran | Result | Recovery |
+| --- | --- | --- | --- |
+| DEV Hosting | Clean clone at `d544950`. Built with a temporary 0600 `.env.live-dev`: the Firebase values come from `mw-credit-app-dev-firebase-web`, with the DEV project, auth domain and app id asserted. The service origins, `VITE_COMMAND_MODE=dev-owner-testing`, `VITE_NOTIFICATIONS=enabled` and the chat origin are the live R102 bundle's settings. The file was deleted after the build. `MW_RELEASE_NUMBER=R103 npm run build:live-dev` exited 0. `deploy-hosting.mjs --live-dev --check` passed (15 files). Deploy 14:36:17Z to 14:36:24Z | Version `10189f82a6043d36`, release `1793198184174000`. The live `build-version.json` on `dev-lm.mw-credit.com` shows release R103, version `6d61ecad45b377c37f06b5da` and entry `/assets/index-Dy0UqhaZ.js`. The served entry bundle embeds `d544950` and `"R103"`. The chat chunk carries "Looking up data". `no-store` on `build-version.json` and `sw.js`. `/health` returns 200 on read, command and chat | Redeploy version `18ff0ae926b872e9` (R102 DEV, release `1793170488940000`) |
+
 ## Recovery
 - Git baseline `f9424c7`; the dictionary entries and scripts revert with the pull request.
 - Baselines: bucket soft delete keeps deleted objects for 7 days; after that, `node scripts/metabase/Baselines.mjs --refresh` rebuilds them from live Metabase. Nothing in PROD was changed by this batch.

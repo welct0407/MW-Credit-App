@@ -23,6 +23,18 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
 
+## R103 Hosting-only promotion on the R102 runtime
+
+`schemaVersion: 34`, `release: R103`, `scope: frontend-only`, `status: prepared`: R083's Hosting-only kind (shared code path) on the unchanged R102 runtime and V115. R103's only PROD change is the PWA chat progress row ("Looking up data…" with elapsed seconds); there is no SQL, image or Terraform change.
+
+- **Source.** The source (`sourceCommit`, equal to `artifactSourceCommit`) must descend from the R102 package `b216968` (`sourceBaseline`), and the runtime, SQL and infrastructure inputs are compared with `b216968` in R074's strict name form (`package.json` in `scripts` only, `database/` only in `.md` outside `database/migrations/`). The delivery-tool commit may carry only the runner, its unit test, this README and documents, with the runner's unit test recorded as `deliveryToolChecks`.
+- **No runtime or SQL change.** No `build`, `plan`, `applied` or `activation`. `sql` is baseline and target 115 with no migrations, plus `sql.verified` (`loan_manager_prod`, latest `115`, all successful, a UTC `verifiedAt`). `runtime.services` must be exactly the five R102 PROD services as pinned in the runner (`R103_RUNTIME`): read `00029-tzt`, command `00034-8m8` and chat `00012-7lz` on `599e19b6…`, notify `00022-4lt` and jobs `00022-42m` on `50953149…`. `rollback` pins the current Hosting version and release.
+- **Live readback at apply.** Each of the five services must read back on its pinned image and revision with 100% traffic, and the R102 live chat check holds: Claude Opus 5.5 as the default plus the three Gemini models (all available, `maxRounds` 16), `CHAT_RELAY_URL` the VM relay, private-range VPC egress on chat (none on read or notify), the chat service account.
+- **CI.** R074's per-job gate, with stage-hash evidence allowed.
+- **Artifact and operator proof.** The marker and the entry bundle carry `"R103"`; `chatOrigin` stays the R090 PROD chat origin (public config, bundle and CSP). The audience is `https://lm.mw-credit.com/promotion/r103`.
+- **Run.** `--check --inputs ABSOLUTE_PRIVATE_PACKAGE` validates offline; `--apply` as in [Linux cloud sessions](#linux-cloud-sessions).
+- **Not covered.** The R103 dictionary capture and the Metabase baselines (operator tooling, no PROD runtime).
+
 ## R102 read, command, chat, SQL and frontend promotion with V114 and V115
 
 `schemaVersion: 33`, `release: R102`, `scope: runtime-workers-frontend`, `status: prepared|applied`. This is R101's chat-era kind (shared code path) for two changes: the Collection "Long overdue" status (V114) and Claude Opus 5.5 in the chat through the keyless VM relay (V115). Read, command and chat get new images; the chat change also carries its relay wiring.
