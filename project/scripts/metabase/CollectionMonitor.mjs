@@ -1,7 +1,11 @@
 // R025 additive collection review. No database writes or shared-card edits.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
 import {api,assertSource} from './ReportingApi.mjs';
+// R102: the command flags act only when this file is run directly (AddLongOverdueLane.mjs imports it and shares --prepare).
+const main=!!process.argv[1]&&fileURLToPath(import.meta.url)===path.resolve(process.argv[1]),flag=name=>main&&process.argv.includes(name);
 export const out='outputs/r025-20260924';
 export const backup='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor';
 export const save=(name,value)=>{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(`${out}/${name}.json`,JSON.stringify(value,null,2)+'\n');};
@@ -15,6 +19,8 @@ export const lanes=[
  {key:'unpaid',status:'Not Paid',title:'🔴 Not paid',color:'#B42318',pale:'#FEE4E2'},
  {key:'partial',status:'Partially Paid',title:'🟠 Partially paid',color:'#B54708',pale:'#FFF1D6'},
  {key:'overdue',status:'Overdue',title:'🟣 Overdue',color:'#6941C6',pale:'#EDE9FE'},
+ // R102 (V114): oldest unpaid collection charge more than 7 days past due; AddLongOverdueLane.mjs installs it.
+ {key:'long',status:'Long Overdue',title:'⚫ Long overdue',color:'#37474f',pale:'#ECEFF1'},
  {key:'paid',status:'Fully Paid',title:'🟢 Fully paid',color:'#067647',pale:'#ECFDF3'}
 ];
 export const parameters=[
@@ -67,7 +73,9 @@ export function layout(state){
  note('Received = receipts today · Left includes older dues. Refresh every minute using the clock. Detail filters do not hide people above.',1,3,0,12);
  place('freshness',12,1,12,3);
  ['receipts','remaining','completion','today-charge-paid'].forEach((k,i)=>place(k,i*6,4,6,2));
- lanes.forEach((l,i)=>{place(`${l.key}-count`,i*6,6,6,2);place(`${l.key}-list`,i*6,8,6,9);});
+ // R102: five lanes share the 24 columns (5,5,5,5,4).
+ const laneWidth=i=>Math.floor(24/lanes.length)+(i<24%lanes.length?1:0),laneCol=i=>Array.from({length:i},(_,j)=>laneWidth(j)).reduce((a,b)=>a+b,0);
+ lanes.forEach((l,i)=>{place(`${l.key}-count`,laneCol(i),6,laneWidth(i),2);place(`${l.key}-list`,laneCol(i),8,laneWidth(i),9);});
  note('Zero people = empty group. A payment today can still leave a borrower Overdue. People can move groups after refresh.',17,2);
  note('Collection detail · filters apply here only',19);
  place('detail',0,20,24,10);
@@ -76,7 +84,7 @@ export function layout(state){
  return cards;
 }
 export async function runQuery(route,body){const r=await api('POST',route,body);if(r.status!=='completed'){fs.mkdirSync(backup,{recursive:true});fs.writeFileSync(`${backup}/query-error.json`,JSON.stringify(r));throw Error(`Query failed ${route}; private diagnostic saved`);}assert.ok(!r.data.rows_truncated,'No truncation');return r.data;}
-if(process.argv.includes('--prepare')){
+if(flag('--prepare')){
  await assertSource();fs.mkdirSync(backup,{recursive:true});
  if(!fs.existsSync(`${backup}/dashboard.json`)){
   const d=await api('GET','dashboard/3');assert.equal(d.tabs.find(t=>t.id===9)?.name,'8 · Daily Collection');
@@ -88,7 +96,7 @@ if(process.argv.includes('--prepare')){
  const checks=[];for(const s of specs){const start=Date.now();await runQuery('dataset',s.dataset_query);checks.push({key:s.key,ms:Date.now()-start,completed:true});}
  save('preflight',{at:new Date().toISOString(),checks});console.log(`Rollback captured privately; ${checks.length} queries passed preflight`);
 }
-if(process.argv.includes('--install')){
+if(flag('--install')){
  await assertSource();const before=JSON.parse(fs.readFileSync(`${backup}/dashboard.json`));
  const state=fs.existsSync(`${out}/state.json`)?read('state'):{cards:{},backup,baselineCommit:'f4b8ffd86a73667b0d30c429a7b6d85da6151a5b'};
  let d=await api('GET','dashboard/3');assert.deepEqual(shape(d.dashcards.filter(c=>c.dashboard_tab_id!==state.tab)),shape(before.dashcards));
@@ -103,7 +111,7 @@ if(process.argv.includes('--install')){
  save('plan',{dashboard:3,tab:state.tab,questions:specs.map(s=>({...s,id:state.cards[s.key]})),parameters,layout:shape(d.dashcards.filter(c=>c.dashboard_tab_id===state.tab))});
  console.log(`Installed tab ${state.tab}; ${before.dashcards.length} original placements preserved`);
 }
-if(process.argv.includes('--refine')){
+if(flag('--refine')){
  const state=read('state'),before=JSON.parse(fs.readFileSync(`${backup}/dashboard.json`));
  let d=await api('GET','dashboard/3');assert.deepEqual(shape(d.dashcards.filter(c=>c.dashboard_tab_id!==state.tab)),shape(before.dashcards));
  fs.writeFileSync(`${backup}/before-refinement-${Date.now()}.json`,JSON.stringify(d));

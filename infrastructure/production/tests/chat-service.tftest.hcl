@@ -208,3 +208,35 @@ run "chat_dispatch_prod_off_by_default" {
     error_message = "PROD chat carries no dispatch keys unless chat dispatch is enabled."
   }
 }
+
+run "chat_relay_prod_gated" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat] }
+  override_resource {
+    target          = google_service_account.chat[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-chat-prod@clever-oasis-508610-n7.iam.gserviceaccount.com" }
+  }
+  variables {
+    foundation_authorized              = true
+    runtime_authorized                 = true
+    business_infrastructure_authorized = true
+    business_runtime_authorized        = true
+    chat_authorized                    = true
+    chat_relay                         = { enabled = true }
+    owner_secret_version               = "1"
+    foundation_image                   = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    business_image                     = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    capability_policy_version          = "2"
+    capability_policy_sha256           = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    business_registered_creators       = ["postgres"]
+  }
+  assert {
+    condition = (google_cloud_run_v2_service.chat[0].template[0].vpc_access[0].egress == "PRIVATE_RANGES_ONLY"
+      && google_cloud_run_v2_service.chat[0].template[0].vpc_access[0].network_interfaces[0].subnetwork == "default"
+      && one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_RELAY_URL"]) == "http://10.148.0.2:8791/v1/chat/messages"
+      && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models[0].id == "claude-opus-5-5"
+    && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "gemini-4-argon")
+    error_message = "R102: the PROD relay gate adds private-range egress, CHAT_RELAY_URL and Claude Opus 5.5 first; the default stays gemini-4-argon."
+  }
+}

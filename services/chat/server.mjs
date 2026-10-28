@@ -4,6 +4,7 @@ import {initializeApp,applicationDefault} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
 import {createChatRuntime} from './runtime.mjs';
 import {createVertexTransport} from './gemini.mjs';
+import {createRelayTransport} from './claude.mjs';
 import {createIamPool} from '../lib/pool.mjs';
 import {BUDGET} from '../lib/budget.mjs';
 import {log,logRecord} from '../lib/log.mjs';
@@ -16,6 +17,7 @@ const runtime=await createChatRuntime(process.env,{initializeApp,applicationDefa
   // Modules load and the connector starts only after the complete configuration validated.
   const {pool,close}=await createIamPool({...config,max:BUDGET.chat.poolMax});closeConnector=close;return pool;
  },
+ createClaudeTransport:config=>createRelayTransport({url:config.chatRelay.url}),
  async createVertexTransport(config){
   const {GoogleAuth}=await import('google-auth-library');
   const auth=new GoogleAuth({scopes:['https://www.googleapis.com/auth/cloud-platform']});

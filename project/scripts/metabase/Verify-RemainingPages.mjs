@@ -14,7 +14,7 @@ const scalars={
  'c-due-count':'SELECT count(*) FROM public.olap_borrowers_analytics WHERE "Daily Collection Status" IS NOT NULL',
  'c-paid-count':`SELECT count(*) FROM public.olap_borrowers_analytics WHERE "Daily Collection Status"='Fully Paid'`,
  'c-partial-count':`SELECT count(*) FROM public.olap_borrowers_analytics WHERE "Daily Collection Status"='Partially Paid'`,
- 'c-unpaid-count':`SELECT count(*) FROM public.olap_borrowers_analytics WHERE "Daily Collection Status" IN ('Not Paid','Overdue')`,
+ 'c-unpaid-count':`SELECT count(*) FROM public.olap_borrowers_analytics WHERE "Daily Collection Status" IN ('Not Paid','Overdue','Long Overdue')`,
  'f-remaining':'SELECT "Projected Monthly Profit"-"Realized Profit MTD" FROM public.olap_portfolio_summary',
  'f-realization':'SELECT "Realized Profit MTD"/NULLIF("Projected Monthly Profit",0) FROM public.olap_portfolio_summary'
 };

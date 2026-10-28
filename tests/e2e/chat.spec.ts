@@ -85,7 +85,7 @@ async function launch({seed=false,denied=false,width,path='',target,configure}:{
    if(method!=='GET')return route.abort('failed');
    if(u.pathname.startsWith('/api/operations/'))return route.fulfill({json:{ok:true,kind:'unresolved'}});
    if(target&&/^\/api\/notifications\/[0-9a-f-]{36}$/.test(u.pathname))return route.fulfill({json:target});
-   if(u.pathname==='/api/dashboard')return route.fulfill({json:{collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]}});
+   if(u.pathname==='/api/dashboard')return route.fulfill({json:{collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]}});
    if(u.pathname==='/api/preferences')return route.fulfill({json:{item:{id:'C-partner',version:'a'.repeat(64),language:'English',statementAccountId:null,statementDate:null},accounts:[],dates:[]}});
    return route.fulfill({json:{ok:true,items:[],nextCursor:null}});
   }

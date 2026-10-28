@@ -44,7 +44,7 @@ export function nativeVirtualSql(resource,field){
   Borrowers:{
    'Active Profit After Principal Coverage':'b."Active Loan Interest Earned"-b."Total Outstanding Principal"',
    'Borrower Activity Group':`CASE WHEN b."Has Active Loan" THEN 'Active / มีสินเชื่อ' ELSE 'Inactive / ไม่ใช้งาน' END`,
-   'Daily Collection Status - Order':`CASE (SELECT a."Daily Collection Status" FROM public.olap_borrowers_analytics a WHERE a."Row ID"=b."Row ID") WHEN 'Not Paid' THEN '1 - ยังไม่ชำระ Not Paid' WHEN 'Partially Paid' THEN '2 - ชำระบางส่วน Partially Paid' WHEN 'Overdue' THEN '3 - เกินกำหนด Overdue' WHEN 'Fully Paid' THEN '4 - ชำระครบ Fully Paid' ELSE '' END`,
+   'Daily Collection Status - Order':`CASE (SELECT a."Daily Collection Status" FROM public.olap_borrowers_analytics a WHERE a."Row ID"=b."Row ID") WHEN 'Not Paid' THEN '1 - ยังไม่ชำระ Not Paid' WHEN 'Partially Paid' THEN '2 - ชำระบางส่วน Partially Paid' WHEN 'Overdue' THEN '3 - เกินกำหนด Overdue' WHEN 'Long Overdue' THEN '4 - เกินกำหนดนาน Long Overdue' WHEN 'Fully Paid' THEN '5 - ชำระครบ Fully Paid' ELSE '' END`,
   },
   Loans:{
    // Native original-rate label is shared with receipt planning and the PWA.

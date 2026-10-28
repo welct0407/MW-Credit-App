@@ -39,6 +39,9 @@ def build_parser() -> argparse.ArgumentParser:
     recognition = sub.add_parser("serve-receipt-recognition", help="run the VPC-only receipt recognition API")
     recognition.add_argument("--config", required=True)
     recognition.add_argument("--catalogue", required=True)
+    relay = sub.add_parser("serve-chat-relay", help="run the VPC-only keyless chat relay (R102)")
+    relay.add_argument("--config", required=True)
+    relay.add_argument("--catalogue", required=True)
     ready = sub.add_parser("receiver-ready", help="wait until the local receiver reports ready")
     ready.add_argument("--config", required=True)
     ready.add_argument("--wait", type=float, default=0, help="seconds to keep polling once per second")
@@ -77,7 +80,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 # Long-running services, local checks and the monitoring/read probes run outside audit.job(): no
 # service owner to fence and nothing to record (the probes touch no journal and leave no audit tree).
-UNWRAPPED_COMMANDS = ('serve-webhook','serve-receipt-recognition','receiver-ready','status','check','instagram-probe','messages')
+UNWRAPPED_COMMANDS = ('serve-webhook','serve-receipt-recognition','serve-chat-relay','receiver-ready','status','check','instagram-probe','messages')
 
 
 def main() -> int:
@@ -152,6 +155,7 @@ def execute(args, outcome=None) -> int:
                 "receipt_summary": config.get('receipt_summary_enabled',False),
                 "receipt_extraction_provider": config.get('receipt_extraction_provider','codex'),
                 "receipt_recognition": config.get('receipt_recognition_enabled',False),
+                "chat_relay": config.get('chat_relay_enabled',False),
                 "generic_sending": config["sending_enabled"],
                 "processing": config["processing_enabled"], "writes": config["writes_enabled"]}}))
             return 0
@@ -170,6 +174,10 @@ def execute(args, outcome=None) -> int:
         if args.command == "serve-receipt-recognition":
             from .receipt_recognition_api import serve as serve_recognition
             serve_recognition(args.config, args.catalogue)
+            return 0
+        if args.command == "serve-chat-relay":
+            from .chat_relay_api import serve as serve_chat_relay
+            serve_chat_relay(args.config, args.catalogue)
             return 0
         if args.command == "receiver-ready":
             try:

@@ -70,5 +70,19 @@
   ],
   "gemini_project": "clever-oasis-508610-n7",
   "gemini_location": "global",
-  "gemini_model": "gemini-3.5-flash-lite"
+  "gemini_model": "gemini-3.5-flash-lite",
+  "chat_relay_enabled": false,
+  "chat_relay_listen_host": "10.148.0.2",
+  "chat_relay_listen_port": 8791,
+  "chat_relay_audience": "http://10.148.0.2:8791/v1/chat/messages",
+  "chat_relay_upstream_timeout_seconds": 110,
+  "chat_relay_callers": [
+    {"email": "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com", "subject": "110567525407665876362", "environment": "dev"},
+    {"email": "mw-credit-app-chat-prod@clever-oasis-508610-n7.iam.gserviceaccount.com", "subject": "109821788246551148361", "environment": "prod"}
+  ],
+  "chat_relay_wif_organization_id": "",
+  "chat_relay_wif": {
+    "dev": {"federation_rule_id": "", "service_account_id": "", "workspace_id": "", "audience": "https://api.anthropic.com/mw-credit-chat-dev"},
+    "prod": {"federation_rule_id": "", "service_account_id": "", "workspace_id": "", "audience": "https://api.anthropic.com/mw-credit-chat-prod"}
+  }
 }

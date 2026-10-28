@@ -20,7 +20,7 @@ async function setup(page:Page,signIn=true){
   if(path.includes('payment-drafts')){if(path.endsWith('/review')){const b=r.request().postDataJSON();const rows=charges.filter(x=>b.allocations.some((line:any)=>line.chargeId===x.id));return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges:rows,nextCursor:null})})}return r.fulfill({contentType:'application/json',body:JSON.stringify({...draft,charges,nextCursor:null})})}
   if(path==='/api/notifications/status'){state.statusReads++;return r.fulfill({contentType:'application/json',body:JSON.stringify({enabled:true,deviceRegistered:false,subscriptionId:null})})}
   if(/^\/api\/notifications\/[a-f0-9-]{36}$/.test(path)){state.notificationReads.push(path);return r.fulfill({contentType:'application/json',body:JSON.stringify({kind:'payment',id:'w5-payment'})})}
-  if(path==='/api/dashboard')return r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})});
+  if(path==='/api/dashboard')return r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})});
   if(r.request().method()==='POST'){state.posts.push(r.request().postDataJSON());return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'w5-payment',code:null,recordedAt:draft.asOf}})})}
   return r.fulfill({contentType:'application/json',body:'{"ok":true,"items":[],"nextCursor":null}'});
  });

@@ -60,7 +60,7 @@ table('r-monitor',5,'Borrower risk monitor','borrowers',riskFields,active);
 scalar('c-due-count',6,'Borrowers due today','collections',null,'count');
 scalar('c-paid-count',6,'Fully paid','collections',null,'count',eq('collections','Daily Collection Status','Fully Paid'));
 scalar('c-partial-count',6,'Partially paid','collections',null,'count',eq('collections','Daily Collection Status','Partially Paid'));
-scalar('c-unpaid-count',6,'Not paid / overdue','collections',null,'count',['or',eq('collections','Daily Collection Status','Not Paid'),eq('collections','Daily Collection Status','Overdue')]);
+scalar('c-unpaid-count',6,'Not paid / overdue','collections',null,'count',['or',eq('collections','Daily Collection Status','Not Paid'),eq('collections','Daily Collection Status','Overdue'),eq('collections','Daily Collection Status','Long Overdue')]);
 for(const [k,f,title]of [['due','Amount Due Today','Amount due'],['collected','Amount Collected Today','Collected'],['remaining','Amount Outstanding Today','Outstanding'],['rate','Amount Collection Rate Today','Collection rate']])scalar('c-'+k,6,title,'portfolio',f);
 for(const [key,status]of [['paid','Fully Paid'],['partial','Partially Paid'],['unpaid','Not Paid'],['overdue','Overdue']]){
  const filter=eq('collections','Daily Collection Status',status),summaryFilter=eq('collection-summary','Collection Status',status);

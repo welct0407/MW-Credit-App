@@ -483,5 +483,22 @@ END $$;
 SELECT pg_temp.expect('SELECT count(*) FROM public.pwa_chat_messages','42501');
 SELECT pg_temp.expect('SELECT count(*) FROM public.pwa_chat_tool_calls','42501');
 RESET ROLE;
+
+-- J. V115 (R102): Claude model ids (claude-<family>-<major>[-<minor>]) on threads; date-suffixed and other ids refused.
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); r jsonb; t6 uuid:='66666666-6666-4666-8666-666666666666'; t7 uuid:='77777777-7777-4777-8777-777777777777';
+BEGIN
+ r:=public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',t6,'model','claude-opus-5-5'));
+ IF r->>'created'<>'true' OR r#>>'{item,model}'<>'claude-opus-5-5' THEN RAISE EXCEPTION 'V115 claude thread %',r; END IF;
+ r:=public.pwa_chat_thread_update_v1(a,t6,'{"model":"gemini-4-argon"}');
+ r:=public.pwa_chat_thread_update_v1(a,t6,'{"model":"claude-opus-5"}');
+ IF r#>>'{item,model}'<>'claude-opus-5' THEN RAISE EXCEPTION 'V115 update to claude %',r; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_thread_create_v1(%L::jsonb,%L::jsonb)',a,jsonb_build_object('id',t7,'model','claude-opus-5-5-20260401')),'22023','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_thread_create_v1(%L::jsonb,%L::jsonb)',a,jsonb_build_object('id',t7,'model','claude_opus_5_5')),'22023','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_thread_update_v1(%L::jsonb,%L::uuid,%L::jsonb)',a,t6,'{"model":"claude-Opus-5"}'),'22023','invalid_request');
+END $$;
+RESET SESSION AUTHORIZATION;
+SELECT pg_temp.expect($q$INSERT INTO public.pwa_chat_threads(id,partner_id,title,model) VALUES('88888888-8888-4888-8888-888888888888','CH-A','x','claude-opus-5-5-20260401')$q$,'23514');
 SELECT 'Chat regression passed' AS result;
 ROLLBACK;

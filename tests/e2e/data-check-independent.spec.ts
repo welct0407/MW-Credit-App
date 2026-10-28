@@ -1,7 +1,7 @@
 import {test,expect,type Page} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
-const dashboard={collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]};
+const dashboard={collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]};
 // UX-RECON-01..07 (owner, 19 October 2026): a reconciliation mismatch that persists after its single heal shows a
 // line above Full sync, a header indicator on every screen, a dot on "All synced" and one toast; it survives a
 // reload and clears after a Full sync followed by a matching check. A mismatch the heal resolves shows nothing.

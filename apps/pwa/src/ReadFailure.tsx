@@ -1,5 +1,6 @@
 import { useState } from 'react';
-export type ReadFailure<Code extends string = string> = { code: Code; reference?: string };
+/** status: the HTTP status of a local read failure, when the answer had one (R102: a stale cursor answers 400). */
+export type ReadFailure<Code extends string = string> = { code: Code; reference?: string; status?: number };
 export function responseReference(response: Response): string | undefined {
   const value = response.headers.get('X-Request-ID');
   return value && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ? value : undefined;

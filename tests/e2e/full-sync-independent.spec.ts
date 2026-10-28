@@ -1,7 +1,7 @@
 import {test,expect,type Page} from '@playwright/test';
 import {spawn,type ChildProcess} from 'node:child_process';
 import {encodeDeltaChunk} from '../../services/api/offline-dataset-delta.mjs';
-const dashboard={collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]};
+const dashboard={collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]};
 // UX-FULL-01..06 (owner, 19 October 2026; moved the same day): "Full sync" is the last section of the Saved changes page
 // (opened by "All synced" / "Waiting to sync"), shows with or without saved changes, is disabled offline with the reason as
 // its title, confirms once, sends saved changes first and then walks every domain from the start (no source version)

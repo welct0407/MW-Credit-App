@@ -71,7 +71,7 @@ function App() {
   const dueTotal = collection.some(b => b.remaining === null) ? null : collection.reduce((s, b) => s + (b.remaining ?? 0), 0);
   const dueCount = collection.filter(b => b.remaining !== null && b.remaining > 0).length;
   const routeInfo = routes.find(r => r[0] === route)!;
-  const status = (b: Borrower) => b.collectionStatus === 'overdue' ? t('Overdue', 'เลยกำหนด') : b.collectionStatus === 'not_paid' ? t('Not paid', 'ยังไม่ชำระ') : b.collectionStatus === 'partially_paid' ? t('Partially paid', 'ชำระบางส่วน') : b.collectionStatus === 'fully_paid' ? t('Fully paid', 'ชำระครบแล้ว') : t('No collection status', 'ไม่มีสถานะติดตาม');
+  const status = (b: Borrower) => b.collectionStatus === 'overdue' ? t('Overdue', 'เลยกำหนด') : b.collectionStatus === 'long_overdue' ? t('Long overdue', 'เกินกำหนดนาน') : b.collectionStatus === 'not_paid' ? t('Not paid', 'ยังไม่ชำระ') : b.collectionStatus === 'partially_paid' ? t('Partially paid', 'ชำระบางส่วน') : b.collectionStatus === 'fully_paid' ? t('Fully paid', 'ชำระครบแล้ว') : t('No collection status', 'ไม่มีสถานะติดตาม');
   const renderCard = (b: Borrower) => <button type="button" key={b.id} className={'borrower-card ' + (current?.id === b.id ? 'selected' : '')} onClick={() => setSelected(b.id)} aria-pressed={current?.id === b.id} data-testid={'borrower-' + b.id}>
     <span className="avatar">
       {b.initials}
@@ -244,7 +244,7 @@ function App() {
                     {t('Filter borrowers', 'กรองผู้กู้')}
                   </span>
                   <select value={filter} onChange={e => { setFilter(e.target.value); setSelected(null); }}>
-                    {(route === 'collection' ? [['all', 'All statuses', 'ทุกสถานะ'], ['not_paid', 'Not paid', 'ยังไม่ชำระ'], ['partially_paid', 'Partially paid', 'ชำระบางส่วน'], ['overdue', 'Overdue', 'เลยกำหนด'], ['fully_paid', 'Fully paid', 'ชำระครบแล้ว']] : [['all', 'All borrowers', 'ผู้กู้ทั้งหมด'], ['active', 'Active loans', 'มีสัญญาที่ใช้งาน'], ['inactive', 'No active loan', 'ไม่มีสัญญาที่ใช้งาน']]).map(o => <option key={o[0]} value={o[0]}>
+                    {(route === 'collection' ? [['all', 'All statuses', 'ทุกสถานะ'], ['not_paid', 'Not paid', 'ยังไม่ชำระ'], ['partially_paid', 'Partially paid', 'ชำระบางส่วน'], ['overdue', 'Overdue', 'เลยกำหนด'], ['long_overdue', 'Long overdue', 'เกินกำหนดนาน'], ['fully_paid', 'Fully paid', 'ชำระครบแล้ว']] : [['all', 'All borrowers', 'ผู้กู้ทั้งหมด'], ['active', 'Active loans', 'มีสัญญาที่ใช้งาน'], ['inactive', 'No active loan', 'ไม่มีสัญญาที่ใช้งาน']]).map(o => <option key={o[0]} value={o[0]}>
                       {o[locale === 'en' ? 1 : 2]}
                     </option>)}
                   </select>

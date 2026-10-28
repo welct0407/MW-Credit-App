@@ -23,7 +23,9 @@ export function createReadHandler({ config, verifyPrincipal, store, completionLo
   return async (req, res) => {
     let completionCode = 'unknown_error';let diagnostic={};
     const operation = req.method === 'OPTIONS' ? 'preflight' : operationFor(req.url);
-    const boundary = beginRequest(req, res, { origins: config.origins, methods: ['GET'], headers: ['Authorization'], logger: completionLogger,
+    // R102-DEV-01: the PWA sends X-MW-Wake-Deadline on every read (read-cache.ts); the read service accepts it in the
+    // preflight and ignores its value, since reads start no post-commit wake (the command service bounds its wakes with it).
+    const boundary = beginRequest(req, res, { origins: config.origins, methods: ['GET'], headers: ['Authorization', 'X-MW-Wake-Deadline'], logger: completionLogger,
       record: ({ requestId, status }) => ({ event: 'read_request', requestId, operation, method: ['GET', 'OPTIONS'].includes(req.method) ? req.method : 'OTHER', status, code: completionCode, ...diagnostic, durationMs: boundary.durationMs() }) });
     const send = (status, value) => { completionCode = status < 400 ? 'ok' : resultCodes.has(value?.code) ? value.code : 'unknown_error'; res.statusCode = status; res.end(JSON.stringify(value)); };
     if (boundary.originDenied) return send(403, { ok: false, code: 'origin_denied' });

@@ -29,7 +29,7 @@ test('F12 actual Firebase SDK mixed-domain drafts and pending survive offline bo
    if(url.hostname==='mw-credit-app-command-dev-test.run.app'){
     if(['/api/operations','/api/payment-commands'].includes(url.pathname)&&route.request().method()==='POST')posts++;
     if(url.pathname==='/api/operations/ec7d0be2-2607-49c7-8bc7-5cda99485710'){statusGets++;return route.fulfill({status:503,json:{ok:false,code:'status_unavailable'}})}
-    return route.fulfill({contentType:'application/json',body:JSON.stringify(url.pathname==='/api/dashboard'?{collection:{notPaid:0,partiallyPaid:0,overdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]} :url.pathname.includes('borrower-options')?{ok:true,accounts:[],referrers:[]}:url.pathname.includes('payment-drafts')?draft:{ok:true,items:[],nextCursor:null})});
+    return route.fulfill({contentType:'application/json',body:JSON.stringify(url.pathname==='/api/dashboard'?{collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]} :url.pathname.includes('borrower-options')?{ok:true,accounts:[],referrers:[]}:url.pathname.includes('payment-drafts')?draft:{ok:true,items:[],nextCursor:null})});
    }
    return route.abort();
   });return context.newPage();

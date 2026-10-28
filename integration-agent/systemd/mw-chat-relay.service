@@ -1,0 +1,31 @@
+[Unit]
+Description=MW Integration Agent keyless chat relay (VPC only, R102)
+After=network-online.target cloud-sql-auth-proxy.service
+Wants=network-online.target cloud-sql-auth-proxy.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=mwagent
+Group=mwagent
+UMask=0077
+Environment=HOME=/var/lib/mw-integration-agent
+WorkingDirectory=/var/lib/mw-integration-agent
+# Binds only to chat_relay_listen_host (the VM's private VPC address); installed disabled.
+ExecStart=/opt/mw-integration-agent/.venv/bin/mw-integration-agent serve-chat-relay --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/mw-integration-agent
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

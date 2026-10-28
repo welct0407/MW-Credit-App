@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource,root} from './ReportingApi.mjs';
+import {longLaneCards} from './AddLongOverdueLane.mjs';
 export const out=root+'/outputs/loan-reports-redesign-20261026';
 export const priv=process.env.MW_METABASE_PRIVATE_DIR||'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/loan-reports-redesign-20261026';
 fs.mkdirSync(priv,{recursive:true});
@@ -301,7 +302,7 @@ if(args.includes('--verify')){
   const want=p.params.filter(k=>q.mappings[k]).map(k=>JSON.stringify([k,q.mappings[k]])).sort(),got=c.parameter_mappings.map(m=>JSON.stringify([m.parameter_id,m.target])).sort();
   if(JSON.stringify(want)!==JSON.stringify(got))newBad.push({key:q.key,want,got});
  }
- const unmappedKeys=['today.attention','collection.board','collection.people','collection.lane-not-paid','collection.lane-partial','collection.lane-overdue','collection.lane-paid'];
+ const unmappedKeys=['today.attention','collection.board','collection.people','collection.lane-not-paid','collection.lane-partial','collection.lane-overdue','collection.lane-long-overdue','collection.lane-paid'];
  const mappedAnyway=d.dashcards.filter(c=>(unmappedKeys.map(k=>state.questions[k]).includes(c.card_id)||c.card_id===64)&&c.parameter_mappings.length).map(c=>c.card_id);
  (newBad.length||mappedAnyway.length?fail:pass)('new-question mappings; attention, board, people, lanes and 64 map nothing',{mismatched:newBad,mappedAnyway});
  // Execution with default filters
@@ -409,8 +410,11 @@ if(args.includes('--verify')){
  const ppl=String(resultRows('collection.people')[0]?.[0]),[x,n]=(ppl.match(/^(\d+) of (\d+) paid$/)??[]).slice(1).map(Number),q239=await one(239);
  const pplOk={format:x!==undefined,firstEquals246:near(x,await one(246)),ratioEquals239:n?near(x/n,q239):q239==null};
  (Object.values(pplOk).every(Boolean)?pass:fail)('collection.people',pplOk);
- const board=objs(results.get(dc('collection.board').id).data),lanes=[['🔴 Not paid',242,'collection.lane-not-paid',243],['🟠 Partially paid',244,'collection.lane-partial',245],['🟣 Overdue',240,'collection.lane-overdue',241],['🟢 Fully paid',246,'collection.lane-paid',247]];
- const boardOk={order:JSON.stringify(board.slice(0,4).map(r=>r.Lane))===JSON.stringify(lanes.map(l=>l[0])),people242_244_240_246:true,unclassifiedEquals251:near(board.filter(r=>r.Lane.startsWith('⚪')).reduce((t,r)=>t+Number(r.People),0),(await one(251))??0),leftEqualsLaneSums:true};
+ const long=longLaneCards();assert(long?.count&&long?.list,'run AddLongOverdueLane.mjs --apply before verifying the Long overdue lane');
+ const board=objs(results.get(dc('collection.board').id).data),lanes=[['🔴 Not paid',242,'collection.lane-not-paid',243],['🟠 Partially paid',244,'collection.lane-partial',245],['🟣 Overdue',240,'collection.lane-overdue',241],
+  // R102: the Long overdue lane compares with the two dashboard 3 questions AddLongOverdueLane.mjs --apply created.
+  ['⚫ Long overdue',long.count,'collection.lane-long-overdue',long.list],['🟢 Fully paid',246,'collection.lane-paid',247]];
+ const boardOk={order:JSON.stringify(board.slice(0,lanes.length).map(r=>r.Lane))===JSON.stringify(lanes.map(l=>l[0])),people242_244_240_246:true,unclassifiedEquals251:near(board.filter(r=>r.Lane.startsWith('⚪')).reduce((t,r)=>t+Number(r.People),0),(await one(251))??0),leftEqualsLaneSums:true};
  for(const [label,id,key] of lanes){
   const row=board.find(r=>r.Lane===label),lane=objs(results.get(dc(key).id).data);boardOk.people242_244_240_246&&=near(row?.People,await one(id));
   if(lane[0]&&'Amount Remaining' in lane[0])boardOk.leftEqualsLaneSums&&=near(row?.['Left ฿'],lane.reduce((t,r)=>t+Number(r['Amount Remaining']??0),0));

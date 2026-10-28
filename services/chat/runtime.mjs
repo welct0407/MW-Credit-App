@@ -4,7 +4,7 @@
 import {createProductionBusinessRuntime} from '../production/business-runtime.mjs';
 
 /** Entry for services/chat/server.mjs. dependencies: those of createProductionBusinessRuntime plus
- * createVertexTransport(config) and log(record). */
+ * createVertexTransport(config), createClaudeTransport(config) (R102, used when CHAT_RELAY_URL is set) and log(record). */
 export async function createChatRuntime(env,dependencies){
  if(env.FOUNDATION_ROLE!=='chat')throw Error('Invalid chat service configuration');
  const runtime=await createProductionBusinessRuntime(env,dependencies);

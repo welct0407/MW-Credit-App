@@ -29,6 +29,18 @@ export function body({system,contents,declarations,thinkingLevel,maxOutputTokens
  return {systemInstruction:system,contents,tools:[{functionDeclarations:declarations}],toolConfig:{functionCallingConfig:{mode:'AUTO'}},
   generationConfig:{maxOutputTokens,candidateCount:1,thinkingConfig:{thinkingLevel}}};
 }
+/** R102: the Gemini dialect hooks used by engine.mjs (the Claude counterpart is claude.mjs claudeDialect). */
+export const geminiDialect=Object.freeze({
+ provider:'gemini',
+ declarations:tools=>tools.declarations(),
+ user:texts=>({role:'user',parts:texts.map(text=>({text}))}),
+ toolResults:results=>({role:'user',parts:results.map(r=>({functionResponse:r.call.id
+  ?{name:r.call.name,id:r.call.id,response:r.error?{error:r.value}:{result:r.value}}
+  :{name:r.call.name,response:r.error?{error:r.value}:{result:r.value}}}))}),
+ store:message=>({role:message.role,content:JSON.stringify(message.parts)}),
+ replay:row=>({role:row.role,parts:JSON.parse(row.content)}),
+ body:({system,contents,declarations,thinkingLevel,maxOutputTokens})=>body({system,contents,declarations,thinkingLevel,maxOutputTokens}),
+});
 const plainText=part=>typeof part.text==='string'&&part.thought!==true&&part.thoughtSignature===undefined&&part.functionCall===undefined;
 
 /** Merges the SSE chunks of one round. push() returns the non-thought text the chunk added (for delta events). */

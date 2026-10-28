@@ -43,6 +43,8 @@ export function vertexSchema(value){
  return result;
 }
 export const declarations=(tools=TOOLS)=>tools.map(t=>({name:t.name,description:t.description,parameters:vertexSchema(t.inputSchema)}));
+/** R102: the same tools as Anthropic Messages API tool definitions (the host JSON schema, lowercase types). */
+export const anthropicTools=(tools=TOOLS)=>tools.map(t=>({name:t.name,description:t.description,input_schema:structuredClone(t.inputSchema)}));
 
 /** Python str() of an observed value. */
 export function pyStr(value){
@@ -186,7 +188,7 @@ export function createChatTools({readProvider,sqlTool,actor,signal,now=Date.now,
  }
  const errorText=error=>error instanceof ToolError?error.message:'TOOL_FAILED_INSPECT_BEFORE_RETRY';
  return {
-  observations,journal,declarations:()=>declarations(tools),
+  observations,journal,declarations:()=>declarations(tools),specs:()=>anthropicTools(tools),
   /** One model round of calls [{name,args,id}] -> [{call,value,error,journalId}] in call order.
    * @param {{name:string,args:any,id:string|null}[]} calls
    * @param {{deadline:number,round:number,emit?:(name:string,data:any)=>void}} options */

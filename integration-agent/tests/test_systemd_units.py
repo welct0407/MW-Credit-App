@@ -8,7 +8,7 @@ PROXY = 'cloud-sql-auth-proxy.service'
 OAUTH = '/etc/mw-integration-agent/secrets/outlook-email-oauth.json'
 RECEIVER = 'mw-instagram-webhook'
 WORKERS = {'mw-receipt-summary', 'mw-audit-relay', 'mw-cash-statement', 'mw-cash-statement-email-retry',
-           'mw-conversation-poll', 'mw-audit-retention', 'mw-receipt-recognition', RECEIVER}
+           'mw-conversation-poll', 'mw-audit-retention', 'mw-receipt-recognition', 'mw-chat-relay', RECEIVER}
 # R091: the Instagram Partner conversation's units are gone from the repository (the VM deploy removes them).
 RETIRED = ('mw-partner-conversation.service', 'mw-partner-conversation.timer', 'mw-conversation-wake.path')
 

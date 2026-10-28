@@ -4,7 +4,7 @@ import {DEV_RECEIPT_MAPPING,PROD_RECEIPT_MAPPING} from '../receipts/dev-receipt-
 import {recognizerUrl} from '../receipts/recognizer-client.mjs';
 import {PROJECT_ID,PROJECT_NUMBER,INSTANCE_CONNECTION_NAME,isSharedInstanceConnection} from '../lib/identity.mjs';
 import { parseBusinessPolicy } from './business-policy.mjs';
-import {parseChatModels} from '../chat/config.mjs';
+import {parseChatModels,parseChatRelay} from '../chat/config.mjs';
 export const BUSINESS_PROJECT=PROJECT_ID;
 export const BUSINESS_INSTANCE=INSTANCE_CONNECTION_NAME;
 /**
@@ -46,6 +46,9 @@ export function loadBusinessConfig(env) {
   if(serviceRole==='chat'&&Object.keys(env).some(k=>env[k]!==undefined&&chatForbidden(k,profile.prefix)))fail();
   // CHAT_MODELS_JSON is parsed only for the chat role; the reader and command services ignore it.
   const chat=serviceRole==='chat'?parseChatModels(env.CHAT_MODELS_JSON):null;
+  // R102: the VM chat relay URL for claude-* models; only the chat role may carry it.
+  if(serviceRole!=='chat'&&env.CHAT_RELAY_URL!==undefined)fail();
+  const chatRelay=chat?parseChatRelay(chat,env.CHAT_RELAY_URL):null;
   if(env.PWA_NOTIFICATIONS!==undefined&&!['disabled','enabled'].includes(env.PWA_NOTIFICATIONS)||env.WEB_PUSH_PRIVATE_KEY!==undefined||env.WEB_PUSH_VAPID_JSON!==undefined)fail();
   if(env.PWA_NOTIFICATIONS==='enabled'&&(!/^[A-Za-z0-9_-]{87}$/.test(env.WEB_PUSH_PUBLIC_KEY??'')||env.FOUNDATION_ROLE!=='command'))fail();
   const site=env.HOSTING_SITE_ID;
@@ -85,7 +88,7 @@ export function loadBusinessConfig(env) {
   if(prefixed('SQL_APPLICATION_ROLE')!==applicationRole||prefixed('SQL_JOURNAL_OWNER_ROLE')!==journalOwnerRole)fail();
   let registeredCreators;try{registeredCreators=JSON.parse(prefixed('SQL_REGISTERED_CREATORS'));}catch{fail();}
   if(!Array.isArray(registeredCreators)||!registeredCreators.length||registeredCreators.length>50||new Set(registeredCreators).size!==registeredCreators.length||registeredCreators.some(v=>typeof v!=='string'||!v||v.length>63||/[\u0000-\u001f]/.test(v)))fail();
-  return Object.freeze({chat,receiptCatalog,receiptCompatibility,nativeReceiptDescriptors,receiptRecognition,notificationsEnabled:env.PWA_NOTIFICATIONS==='enabled',pushPublicKey:env.WEB_PUSH_PUBLIC_KEY,environment,mode:'business-candidate',serviceRole,projectId:PROJECT_ID,issuer:`https://securetoken.google.com/${PROJECT_ID}`,database:env.DB_NAME,instance:env.INSTANCE_CONNECTION_NAME,dbUser,origins:Object.freeze(origins),canonicalOrigin:profile.canonicalOrigin,hostingSite:site,policy,registeredCreators:Object.freeze(registeredCreators),applicationRole,journalOwnerRole});
+  return Object.freeze({chat,chatRelay,receiptCatalog,receiptCompatibility,nativeReceiptDescriptors,receiptRecognition,notificationsEnabled:env.PWA_NOTIFICATIONS==='enabled',pushPublicKey:env.WEB_PUSH_PUBLIC_KEY,environment,mode:'business-candidate',serviceRole,projectId:PROJECT_ID,issuer:`https://securetoken.google.com/${PROJECT_ID}`,database:env.DB_NAME,instance:env.INSTANCE_CONNECTION_NAME,dbUser,origins:Object.freeze(origins),canonicalOrigin:profile.canonicalOrigin,hostingSite:site,policy,registeredCreators:Object.freeze(registeredCreators),applicationRole,journalOwnerRole});
 }
 /** Retained name for existing build smoke checks and promotion tooling. */
 export const loadProductionBusinessConfig=loadBusinessConfig;
