@@ -1354,6 +1354,16 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/proposed-collection-lane-long-overdue.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "⚫ Long overdue · lane / 414",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/proposed-collection-lane-not-paid.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",

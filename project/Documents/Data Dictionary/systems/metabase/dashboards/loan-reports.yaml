@@ -12,7 +12,7 @@
   "dashboard_id": 3
   "database_id": 2
   "collection_id": 5
-  "parallel_review": "Dashboard 32 Loan Reports · proposed (26 October 2026) is a parallel review copy for owner comparison; this dashboard 3 stays canonical and unchanged. Record: dashboards/loan-reports-proposed.yaml"
+  "parallel_review": "Dashboard 32 Loan Reports · proposed (26 October 2026) is a parallel review copy and, since 30 October 2026, the Metabase landing dashboard; this dashboard 3 is unchanged, reachable by link and stays the recovery and canonical copy until the cutover is formally closed. Record: dashboards/loan-reports-proposed.yaml"
   "tabs":
   - "id": 4
     "dashboard_id": 3
