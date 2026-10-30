@@ -17,7 +17,7 @@ import {storeError} from './store.mjs';
 import {runTurn,failureText} from './engine.mjs';
 import {ToolError} from './errors.mjs';
 import {createCommandClient} from './command-client.mjs';
-import {loadCatalogue,catalogueView,createProposalPlanner,executeProposal,reconcileProposal,publicProposal} from './proposals.mjs';
+import {loadCatalogue,catalogueView,createProposalPlanner,executeGroup,reconcileGroup,cancelGroup,loadGroup,assertIdle,publicProposal} from './proposals.mjs';
 
 export const BODY_LIMIT=65536;
 export const PING_MS=15000;
@@ -66,21 +66,22 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   const planner=createProposalPlanner({client:commandClient(authorization,wake),actor:{partnerId:writer.partnerId}});
   return {
    catalogue:operation=>catalogueView(catalogue,operation),
-   async propose(input){
-    const planned=await planner.propose(input);
+   /** D12: the turn's changes as one group (one card). */
+   async propose({changes}){
+    const planned=await planner.proposeGroup(changes);
     let stored;
-    try{stored=await store.createProposal(principal,thread,{id:planned.id,messageId:claim.message.id,kind:planned.kind,operation:planned.operation,command:planned.command,card:planned.card});}
+    try{stored=await store.createProposal(principal,thread,{group:planned.map(line=>({id:line.id,messageId:claim.message.id,kind:line.kind,operation:line.operation,command:line.command,card:line.card}))});}
     catch(error){
      const mapped=storeError(error);
      if(mapped.error==='one_proposal_per_turn')throw new ToolError('ONE_PROPOSAL_PER_TURN');
      if(mapped.status===403)throw new ToolError('NOT_PERMITTED');
      throw error;
     }
-    const proposal=publicProposal(stored);
-    log({event:'chat_proposal_created',thread,messageId:claim.message.id,proposal:proposal.id,operation:proposal.operation});
-    emit('proposal',{proposal});
-    return {proposal:{id:proposal.id,operation:proposal.operation,state:proposal.state,expiresAt:proposal.expiresAt,card:proposal.card},
-     note:'Shown to the Partner as a confirmation card. Nothing has changed: the change runs only when the Partner taps Confirm. Do not ask them to type yes.'};
+    const proposals=(Array.isArray(stored)?stored:[stored]).map(publicProposal);
+    log({event:'chat_proposal_created',thread,messageId:claim.message.id,proposal:proposals[0].id,lines:proposals.length,operations:[...new Set(proposals.map(p=>p.operation))]});
+    emit('proposal',{proposals});
+    return {proposals:proposals.map(p=>({id:p.id,operation:p.operation,state:p.state,expiresAt:p.expiresAt,card:p.card})),
+     note:'Shown to the Partner as one confirmation card with every change. Nothing has changed: the changes run only when the Partner taps Confirm. Do not ask them to type yes.'};
    },
   };
  }
@@ -262,9 +263,21 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
     if(!writer?.reviewer)return reply(403,{error:'reviewer_required'});
     if(!writer.command)return reply(403,{error:'command_required'});
     const client=commandClient(authorization,wake);
-    if(route==='proposal_cancel')return reply(200,{item:publicProposal(await store.cancelProposal(principal,thread,id))});
-    if(route==='proposal_confirm')return reply(200,{item:await executeProposal({store,principal,thread,id,client,log,now})});
-    return reply(200,{item:await reconcileProposal({store,principal,thread,proposal:await store.proposal(principal,thread,id),client,now,log})});
+    // D12: the id is the group's head; the answer is the group {id, state, lines}.
+    if(route==='proposal_cancel')return reply(200,{item:await cancelGroup({store,principal,thread,id})});
+    if(route==='proposal')return reply(200,{item:await reconcileGroup({store,principal,thread,id,client,now,log})});
+    const lines=await loadGroup({store,principal,thread,id});
+    assertIdle(lines,now);
+    if(!/text\/event-stream/i.test(req.headers.accept??''))return reply(200,{item:await executeGroup({store,principal,thread,id,client,log,now,lines})});
+    // Confirm as Server-Sent Events: line after each line, then group and done (the request runs to its end).
+    res.statusCode=200;res.setHeader('Content-Type','text/event-stream; charset=utf-8');res.setHeader('Cache-Control','no-store');res.setHeader('X-Accel-Buffering','no');res.flushHeaders?.();
+    const write=text=>{if(!res.destroyed&&!res.writableEnded)res.write(text);};
+    const event=(name,data)=>write(`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`);
+    const ping=setInterval(()=>write(': ping\n\n'),pingMs);
+    try{const group=await executeGroup({store,principal,thread,id,client,log,now,lines,onLine:line=>event('line',line)});event('group',{state:group.state,group});}
+    catch(error){log({event:'chat_proposal_group_failed',thread,proposal:id,reason:error?.name});event('error',{code:error?.message==='proposal_executing'?'proposal_executing':'unavailable'});}
+    finally{clearInterval(ping);event('done',{});if(!res.writableEnded)res.end();}
+    return;
    }
    if(route==='message'){
     query(url,[]);

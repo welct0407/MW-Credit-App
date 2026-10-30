@@ -28,6 +28,12 @@ export function defaultModel(models:ChatModels|null){
 }
 const codeOf=(error:unknown)=>error instanceof ChatHttpError?error.code==='model_unavailable'?'MODEL_UNAVAILABLE':error.detail==='thread_full'?'thread_full':'unavailable':'unavailable';
 
+/** R106 D12: an assistant reply's proposal lines (one card), each merged with this screen's newer local copy. */
+function linesOf(item:ChatMessage,local:Record<string,ChatProposal>):ChatProposal[]{
+ if(item.role!=='assistant'||!item.proposals?.length)return [];
+ return item.proposals.map(row=>mergeProposal(row,local[row.id])??row);
+}
+
 export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord,canOpenRecord}:{access:ChatAccess;thai:boolean;onTitle?:(title:string)=>void;openRequest?:{threadId:string;nonce:number}|null;onOpenRecord?:(record:ProposalRecord)=>void;canOpenRecord?:(record:ProposalRecord)=>boolean}){
  const t=(en:string,th:string)=>thai?th:en,online=useOnline();
  const accessRef=useRef(access);accessRef.current=access;
@@ -65,11 +71,12 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
  function scrollToEnd(force=true){
   requestAnimationFrame(()=>{
    const last=itemsRef.current.at(-1);
-   if(!force&&last?.role==='assistant'&&mergeProposal(last.proposal,last.proposal?proposalsRef.current[last.proposal.id]:undefined)?.state==='pending')return;
+   if(!force&&last?.role==='assistant'&&linesOf(last,proposalsRef.current).some(line=>line.state==='pending'))return;
    const list=listRef.current;if(!list)return;
    if(getComputedStyle(list).overflowY==='auto'&&list.scrollHeight>list.clientHeight){if(force||list.scrollHeight-list.scrollTop-list.clientHeight<160)list.scrollTop=list.scrollHeight;return}
    const page=document.scrollingElement??document.documentElement;
-   if(force||page.scrollHeight-scrollY-innerHeight<200)endRef.current?.scrollIntoView({block:'end'});
+   // CW3-03: the page's own end, so the sticky composer sits below the last message instead of over it.
+   if(force||page.scrollHeight-scrollY-innerHeight<200)page.scrollTo({top:page.scrollHeight});
   });
  }
  async function loadModels(){
@@ -203,7 +210,7 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
   }
   const thread=target;
   // D7: a new message cancels the thread's pending proposals (the service records it when the turn begins).
-  setProposals(previous=>{const next={...previous};for(const item of itemsRef.current){const p=mergeProposal(item.proposal,previous[item.proposal?.id??'']);if(p?.state==='pending'&&p.threadId===thread.id)next[p.id]={...p,state:'cancelled'}}return next});
+  setProposals(previous=>{const next={...previous};for(const item of itemsRef.current)for(const p of linesOf(item,previous))if(p.state==='pending'&&p.threadId===thread.id)next[p.id]={...p,state:'cancelled'};return next});
   setDrafts(previous=>({...previous,[NEW]:'',[thread.id]:''}));
   setItems(previous=>[...previous,{id:messageId,role:'user',text,status:'pending',local:true}]);scrollToEnd();
   let state=initialTurn();
@@ -287,6 +294,15 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
  // after a tool-round retract); a one-second tick re-renders only while the status row shows (no text yet).
  const lookup=activeTurn&&!progress?progressText(activeTurn.state.round,activeTurn.state.tools,thai,activeTurn.state.startedAt===null?0:(Date.now()-activeTurn.state.startedAt)/1000):null;
  const ticking=!!lookup&&!activeTurn?.state.provisional;
+ // CW3-03: a newly shown confirmation card that is the last item is scrolled fully into view once (its action row
+ // would otherwise sit under the composer on a phone); later automatic scrolls leave it in place (CWR-01).
+ const cardsShown=useRef(new Set<string>());
+ // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the items change; scrollToEnd reads refs only.
+ useEffect(()=>{
+  const last=items.at(-1);if(!last)return;
+  const lines=linesOf(last,proposalsRef.current);if(!lines.length||!lines.some(line=>line.state==='pending'))return;
+  if(cardsShown.current.has(lines[0].id))return;cardsShown.current.add(lines[0].id);scrollToEnd(true);
+ },[items]);
  useEffect(()=>{if(!ticking)return;const timer=setInterval(()=>setTick(tick=>tick+1),1000);return()=>clearInterval(timer)},[ticking]);
  const composerNote=!online?t('You are offline. Connect to send a message.','ขณะนี้ออฟไลน์ เชื่อมต่ออินเทอร์เน็ตเพื่อส่งข้อความ'):readOnly?t('This thread is archived. Unarchive it to continue.','แชทนี้เก็บถาวรแล้ว เลิกเก็บถาวรเพื่อคุยต่อ'):modelNote?t('Applies to your next message','ใช้กับข้อความถัดไป'):null;
  const actionDisabled=(action:FailureAction)=>action==='retry'?!!turn||!online||readOnly:action==='edit'?!!turn||readOnly:action==='model'?!models||readOnly:false;
@@ -325,10 +341,10 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
      const next=items[index+1];
      // A turn the service gave up on (stale claim, no reply) shows as not received, with Retry.
      const orphan=item.role==='user'&&item.status==='failed'&&!item.local&&next?.role!=='assistant';
-     const proposal=item.role==='assistant'?mergeProposal(item.proposal,item.proposal?proposals[item.proposal.id]:undefined):null;
+     const lines=linesOf(item,proposals);
      return <React.Fragment key={item.id}>
       <ChatMessageView item={item} thai={thai} modelLabel={modelLabel} actionDisabled={actionDisabled} onAction={item.role==='assistant'&&(item.status==='failed'||item.failure)?action=>act(item,index,action):undefined}/>
-      {proposal&&<ChatProposalCard proposal={proposal} access={access} thai={thai} online={online} onAskAgain={readOnly?undefined:()=>{const asked=items.find(row=>row.id===proposal.messageId&&row.role==='user');if(!asked)return;setDrafts(previous=>({...previous,[key]:asked.text}));requestAnimationFrame(()=>composer.current?.focus())}} onOpenRecord={proposal.record&&onOpenRecord&&(canOpenRecord?.(proposal.record)??true)?onOpenRecord:undefined} onChange={next=>setProposals(previous=>({...previous,[next.id]:next}))}/>}
+      {lines.length>0&&<ChatProposalCard lines={lines} access={access} thai={thai} online={online} onAskAgain={readOnly?undefined:()=>{const asked=items.find(row=>row.id===lines[0].messageId&&row.role==='user');if(!asked)return;setDrafts(previous=>({...previous,[key]:asked.text}));requestAnimationFrame(()=>composer.current?.focus())}} onOpenRecord={onOpenRecord} canOpenRecord={canOpenRecord} onChange={next=>setProposals(previous=>({...previous,...Object.fromEntries(next.map(line=>[line.id,line]))}))}/>}
       {orphan&&<ChatMessageView item={{id:'lost:'+item.id,role:'assistant',text:'',status:'failed',failure:'lost'}} thai={thai} actionDisabled={actionDisabled} onAction={action=>act({id:'lost:'+item.id,role:'assistant',text:'',status:'failed',retryOf:item.id},index,action)}/>}
      </React.Fragment>;
     })}

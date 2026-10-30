@@ -39,10 +39,24 @@ export const TOOLS=Object.freeze([
 /** R106: the write proposal tools (one generic proposal over the static command catalogue). */
 export const WRITE_TOOLS=Object.freeze([
  spec('action_catalogue','The app write commands the Partner can confirm. Empty operation lists them; an operation name returns its fields (type, allowed values, required, host-filled).',{operation:STR}),
- spec('propose_action','Propose exactly one change for the Partner to confirm on a card; nothing changes until they tap Confirm. Only on an explicit instruction in the current message. '
-  +'target_id is the record Row ID (empty for a create; the borrower for payment.record). values is a JSON object with only the fields the Partner gave (decimal strings for amounts, YYYY-MM-DD dates); '
-  +'never give ids, versions, splits or other host-filled fields. One proposal per turn.',{operation:STR,target_id:STR,values:STR}),
+ spec('propose_action','Propose every change the Partner asked for in this message, in ONE call (1 to 20 changes); they appear on one card and nothing changes until the Partner taps Confirm. '
+  +'Only on an explicit instruction in the current message. Each change: operation, target_id (the record Row ID; empty for a create; the borrower for payment.record) and inputs, a JSON object '
+  +'with only the fields the Partner gave (decimal strings for amounts, YYYY-MM-DD dates); never give ids, versions, splits or other host-filled fields. One call per turn; never split a request across turns. '
+  +'A payment or loan close must be the only change for its borrower in a call.',
+  {changes:{type:'array',items:{type:'object',properties:{operation:STR,target_id:STR,inputs:STR},required:['operation','target_id','inputs'],additionalProperties:false}}}),
 ]);
+/** D12: the model's changes[] -> [{operation,target,values}], 1..20, each inputs a JSON object of at most 16 KB. */
+export function parseChanges(changes){
+ if(!Array.isArray(changes)||changes.length<1)throw new ToolError('NO_CHANGES');
+ if(changes.length>20)throw new ToolError('TOO_MANY_CHANGES');
+ return changes.map(change=>{
+  if(!plainObject(change)||Object.keys(change).sort().join(',')!=='inputs,operation,target_id'||typeof change.operation!=='string'||typeof change.target_id!=='string'||typeof change.inputs!=='string'
+   ||Buffer.byteLength(change.inputs)>16384)throw new ToolError('INVALID_CHANGES');
+  let values;try{values=change.inputs===''?{}:JSON.parse(change.inputs);}catch{throw new ToolError('INVALID_VALUES');}
+  if(!plainObject(values))throw new ToolError('INVALID_VALUES');
+  return {operation:change.operation,target:change.target_id,values};
+ });
+}
 /** CWR-05 (owner decision via the coordinator): with chat writes switched on, a Partner who may not propose (not an AI
  * Reviewer, or without 'command') still has propose_action, which runs nothing (no read, no record) and returns this
  * fixed observation; the prompt has the model relay its text verbatim. action_catalogue stays absent for them. */
@@ -202,13 +216,12 @@ export function createChatTools({readProvider,sqlTool,actor,signal,now=Date.now,
   if(writes?.refuse&&name==='propose_action')return REVIEWER_REQUIRED;
   if(writes&&!writes.refuse&&name==='action_catalogue')return writes.catalogue(a.operation);
   if(writes&&!writes.refuse&&name==='propose_action'){
-   // One proposal per turn (D9): the second call fails before any read, even within the same round.
+   // One group per turn (D9, D12): a second call fails before any read, even within the same round.
    if(proposed)throw new ToolError('ONE_PROPOSAL_PER_TURN');
    proposed=true;
-   let values;
-   try{values=a.values===''?{}:JSON.parse(a.values);}catch{proposed=false;throw new ToolError('INVALID_VALUES');}
-   if(values===null||typeof values!=='object'||Array.isArray(values)||Buffer.byteLength(a.values)>16384){proposed=false;throw new ToolError('INVALID_VALUES');}
-   try{return await writes.propose({operation:a.operation,target:a.target_id,values});}
+   let changes;
+   try{changes=parseChanges(a.changes);}catch(error){proposed=false;throw error;}
+   try{return await writes.propose({changes});}
    catch(error){if(!(error instanceof ToolError&&error.message==='ONE_PROPOSAL_PER_TURN'))proposed=false;throw error;}
   }
   throw new ToolError('TOOL_NOT_PERMITTED');

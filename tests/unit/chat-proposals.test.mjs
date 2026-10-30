@@ -169,25 +169,28 @@ test('host reads: loan default date, next charge booking, settle-all amount, pre
  await assert.rejects(createProposalPlanner({client,actor:{partnerId:'P9'},newId:ids()}).propose({operation:'preference.update',target:'',values:{language:'ไทย'}}),/TARGET_NOT_FOUND/);
 });
 
-test('tool bridge: write tools only with writes; one proposal per turn; the proposal is an observation',async()=>{
+test('tool bridge: write tools only with writes; one group per turn; the proposal is an observation; changes[] shape',async()=>{
  const actor={issuer:'iss',subject:'s',partnerId:'P1'};
  const readOnly=createChatTools({readProvider:{},sqlTool:{},actor});
  assert.deepEqual(readOnly.specs().map(t=>t.name),TOOLS.map(t=>t.name));
- let proposals=0;
- const writes={catalogue:op=>({operations:[op]}),propose:async input=>{proposals++;if(input.operation==='bad')throw new ToolError('NO_CHANGE');return {proposal:{id:'p',card:{values:[{value:'1500'}]}}};}};
+ let proposals=0;const seen=[];
+ const writes={catalogue:op=>({operations:[op]}),propose:async input=>{proposals++;seen.push(input);if(input.changes[0].operation==='bad')throw new ToolError('NO_CHANGE');return {proposals:[{id:'p',card:{values:[{value:'1500'}]}}]};}};
  const tools=createChatTools({readProvider:{},sqlTool:{},actor,writes});
  assert.deepEqual(tools.specs().map(t=>t.name),[...TOOLS,...WRITE_TOOLS].map(t=>t.name));
- const call=(name,args,id)=>({name,args,id});
- // A failed proposal does not use the turn's one proposal; two in one round: the second is refused.
- let results=await tools.runRound([call('propose_action',{operation:'bad',target_id:'X',values:'{}'},'1')],{deadline:Date.now()+5000,round:1});
+ assert.deepEqual(Object.keys(WRITE_TOOLS[1].inputSchema.properties),['changes']);
+ const call=(name,args,id)=>({name,args,id}),change=(operation,inputs='{}')=>({operation,target_id:'L1',inputs});
+ // A failed proposal does not use the turn's one group; malformed changes are refused before any read.
+ let results=await tools.runRound([call('propose_action',{changes:[change('bad')]},'1')],{deadline:Date.now()+5000,round:1});
  assert.deepEqual(results.map(r=>r.value),['NO_CHANGE']);
- results=await tools.runRound([call('propose_action',{operation:'x',target_id:'X',values:'not json'},'2'),call('propose_action',{operation:'x',target_id:'X',values:'[1]'},'2b')],{deadline:Date.now()+5000,round:1});
- assert.deepEqual(results.map(r=>r.value),['INVALID_VALUES','INVALID_VALUES']);
- results=await tools.runRound([call('propose_action',{operation:'loan.update',target_id:'L1',values:'{"principal":"1500"}'},'3'),call('propose_action',{operation:'loan.update',target_id:'L1',values:'{}'},'4')],{deadline:Date.now()+5000,round:2});
+ results=await tools.runRound([call('propose_action',{changes:[change('x','not json')]},'2'),call('propose_action',{changes:[change('x','[1]')]},'2b'),call('propose_action',{changes:[]},'2c'),
+  call('propose_action',{changes:Array.from({length:21},()=>change('loan.update'))},'2d'),call('propose_action',{changes:[{operation:'x',target_id:'L1'}]},'2e')],{deadline:Date.now()+5000,round:1});
+ assert.deepEqual(results.map(r=>r.value),['INVALID_VALUES','INVALID_VALUES','NO_CHANGES','TOO_MANY_CHANGES','INVALID_CHANGES']);
+ results=await tools.runRound([call('propose_action',{changes:[change('loan.update','{"principal":"1500"}'),change('charge.update','{"notes":"x"}')]},'3'),call('propose_action',{changes:[change('loan.update')]},'4')],{deadline:Date.now()+5000,round:2});
  assert.equal(results[0].error,false);assert.equal(results[0].value.observation,'observation-1');assert.equal(results[1].value,'ONE_PROPOSAL_PER_TURN');
+ assert.deepEqual(seen.at(-1),{changes:[{operation:'loan.update',target:'L1',values:{principal:'1500'}},{operation:'charge.update',target:'L1',values:{notes:'x'}}]});
  results=await tools.runRound([call('action_catalogue',{operation:''},'5')],{deadline:Date.now()+5000,round:3});
  assert.deepEqual(results[0].value,{operations:['']});
- assert.equal(proposals,2);assert.ok(tools.observations['observation-1'].proposal);
+ assert.equal(proposals,2);assert.ok(tools.observations['observation-1'].proposals);
 });
 
 test('opening request: recent_actions only for a turn that may propose (D10); the prompt keeps one system text',async()=>{
@@ -197,7 +200,7 @@ test('opening request: recent_actions only for a turn that may propose (D10); th
  const rows=[{operation:'expense.create',target:null,state:'done',code:null,settled_at:'2026-10-30T03:00:00.000Z'}];
  assert.deepEqual(JSON.parse(openingRequest({...base,recentActions:rows})).recent_actions,rows);
  assert.match(ASSISTANT_INSTRUCTIONS,/I can only read records for you; use the app screens\./);
- assert.match(ASSISTANT_INSTRUCTIONS,/explicitly asks for it/);assert.match(ASSISTANT_INSTRUCTIONS,/never a split/);assert.match(ASSISTANT_INSTRUCTIONS,/One proposal per turn/);
+ assert.match(ASSISTANT_INSTRUCTIONS,/explicitly asks for it/);assert.match(ASSISTANT_INSTRUCTIONS,/never a split/);assert.match(ASSISTANT_INSTRUCTIONS,/ONE propose_action call/);assert.match(ASSISTANT_INSTRUCTIONS,/only change for its borrower/);
 });
 
 test('CWR-05: a Partner who may not propose has propose_action only, answering REVIEWER_REQUIRED without any read',async()=>{
@@ -205,7 +208,7 @@ test('CWR-05: a Partner who may not propose has propose_action only, answering R
  const reads=[];const readProvider={catalogue:async()=>{reads.push('catalogue');return {}},query:async()=>{reads.push('query');return {rows:[]}}};
  const tools=createChatTools({readProvider,sqlTool:{query:async()=>{reads.push('sql');return {}}},actor:{issuer:'i',subject:'s',partnerId:'P2'},writes:{refuse:true}});
  assert.deepEqual(tools.specs().map(t=>t.name),[...TOOLS.map(t=>t.name),'propose_action']);
- const [result,catalogue]=await tools.runRound([{name:'propose_action',args:{operation:'loan.delete',target_id:'L1',values:'{}'},id:'1'},{name:'action_catalogue',args:{operation:''},id:'2'}],{deadline:Date.now()+5000,round:1});
+ const [result,catalogue]=await tools.runRound([{name:'propose_action',args:{changes:[{operation:'loan.delete',target_id:'L1',inputs:'{}'}]},id:'1'},{name:'action_catalogue',args:{operation:''},id:'2'}],{deadline:Date.now()+5000,round:1});
  assert.equal(result.error,false);assert.equal(result.value.code,'REVIEWER_REQUIRED');assert.equal(result.value.changed,false);
  assert.deepEqual(result.value.message,REVIEWER_REQUIRED.message);assert.ok(REVIEWER_REQUIRED.message.th.length>10);
  assert.equal(catalogue.value,'UNSUPPORTED_TOOL_OR_ARGUMENTS');assert.deepEqual(reads,[]);
@@ -215,3 +218,59 @@ test('CWR-05: a Partner who may not propose has propose_action only, answering R
 });
 import {confirmLabel} from '../../services/chat/proposals.mjs';
 const confirmLabelOf=(operation,values)=>confirmLabel(loadCatalogue().entries.get(operation),values);
+
+// D12: groups ("One card, Confirm all"). Oum's six loans each have one charge to edit (synthetic ids).
+const oumCharges=Object.fromEntries([1,2,3,4,5,6].map(n=>[`GET /api/charge-records/C${n}`,ok({item:{id:`C${n}`,loanId:`L${n}`,chargeDate:'2026-10-29',principalDue:'0.00',interestDue:'100.00',
+ notes:'Carry-forward note '.repeat(20).trim(),borrowerId:'B-OUM',borrowerName:'Oum',borrowerDescription:null,version:V}})]));
+const sixEdits=()=>[1,2,3,4,5,6].map(n=>({operation:'charge.update',target:`C${n}`,values:{interestDue:'150'}}));
+test('D12: six charge edits become one group of six lines with card.group indexes; only changed fields are changes',async()=>{
+ const {client}=service({...base,...oumCharges});
+ const lines=await createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()}).proposeGroup(sixEdits());
+ assert.equal(lines.length,6);
+ const head=lines[0].id;
+ lines.forEach((line,index)=>{
+  assert.deepEqual(line.card.group,{id:head,index,count:6,ids:lines.map(l=>l.id)});
+  const command=JSON.parse(line.command);assert.equal(command.requestId,line.id);assert.equal(command.targetId,`C${index+1}`);assert.equal(command.expectedVersion,V);
+  assert.deepEqual(line.card.changes.map(c=>[c.field,c.before,c.after]),[['interestDue','100','150']]);
+  assert.equal(line.card.changes.some(c=>c.field==='notes'),false,'the unchanged long note is not a change');
+ });
+ assert.equal(new Set(lines.map(l=>l.id)).size,6);assert.equal('scope' in lines[0],false);
+});
+test('CW3-01: destructive lines come first in the group; the rest keep their order',async()=>{
+ const {client}=service({...base,...oumCharges});
+ const lines=await createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()}).proposeGroup([sixEdits()[0],sixEdits()[1],{operation:'charge.delete',target:'C3',values:{}},sixEdits()[3]]);
+ assert.deepEqual(lines.map(l=>[l.operation,l.card.target.id,l.card.destructive,l.card.group.index]),
+  [['charge.delete','C3',true,0],['charge.update','C1',false,1],['charge.update','C2',false,2],['charge.update','C4',false,3]]);
+ assert.equal(lines[0].card.group.id,lines[0].id);assert.deepEqual(lines[1].card.group.ids,lines.map(l=>l.id));
+});
+test('D12: refusals: 21 lines, the same target twice, a line using a record another line creates, a payment or close with edits for its borrower',async()=>{
+ const drafts={'POST /api/payment-drafts/B-OUM/select-all':ok({businessDate:'2026-10-30',borrower:{id:'B-OUM',displayName:'Oum'},charges:[{id:'C1',chargeDate:'2026-10-29',loanDisplayKey:'k',principalRemaining:'0',interestRemaining:'100',amountRemaining:'100'}],accounts:[{id:'CA1',label:'Cash box'}],preferredReceivingAccountId:'CA1'}),
+  'POST /api/payment-drafts/B-OUM/auto-assign':ok({charges:[],allocations:[{chargeId:'C1',principal:'0',interest:'100',expectedPrincipalRemaining:'0',expectedInterestRemaining:'100',chargeDate:'2026-10-29'}],unallocated:'0'}),
+  'POST /api/payment-drafts/B-OUM/review':ok({}),
+  'GET /api/loan-records/L1/close-preview':ok({sourceVersion:W,businessDate:'2026-10-30',amount:'10300',planHash:'c'.repeat(64),plan:{borrowerId:'B-OUM'}})};
+ const planner=()=>createProposalPlanner({client:service({...base,...oumCharges,...drafts}).client,actor:{partnerId:'P1'},newId:ids()});
+ await assert.rejects(planner().proposeGroup(Array.from({length:21},(_,i)=>({operation:'charge.update',target:`C${i%6+1}`,values:{interestDue:'150'}}))),/^ToolError: TOO_MANY_CHANGES$/);
+ await assert.rejects(planner().proposeGroup([]),/NO_CHANGES/);
+ await assert.rejects(planner().proposeGroup([sixEdits()[0],{operation:'charge.update',target:'C1',values:{notes:null}}]),/DUPLICATE_TARGET:2/);
+ await assert.rejects(planner().proposeGroup([{operation:'payment.record',target:'B-OUM',values:{amountReceived:'100',paymentMethod:'Cash'}},sixEdits()[1]]),/PAYMENT_LINE_ALONE:1/);
+ await assert.rejects(planner().proposeGroup([sixEdits()[0],{operation:'loan.close',target:'L1',values:{cashAccountId:'CA1',paymentMethod:'Cash'}}]),/PAYMENT_LINE_ALONE:2/);
+ await assert.rejects(planner().proposeGroup([{operation:'payment.record',target:'B-OUM',values:{amountReceived:'100',paymentMethod:'Cash'}},{operation:'payment.record',target:'B-OUM',values:{amountReceived:'100',paymentMethod:'Cash'}}]),/DUPLICATE_TARGET:2/);
+ // ids(): line 1 takes request id 1 and creates loan id 2; line 2 names that loan.
+ const newLoan='00000000-0000-4000-8000-000000000002';
+ await assert.rejects(planner().proposeGroup([{operation:'loan.create',target:'',values:{borrowerId:'B1',loanDate:'2026-10-30',principal:'1000',disbursingAccountId:'CA1',type:'ดอกเบี้ยรายวัน'}},
+  {operation:'charge.create',target:'',values:{loanId:newLoan,chargeDate:'2026-10-31',principalDue:'0',interestDue:'10'}}]),/DEPENDS_ON_NEW_RECORD:2/);
+ await assert.rejects(planner().proposeGroup([sixEdits()[0],{operation:'charge.update',target:'C9',values:{interestDue:'1'}}]),/LINE_2:TARGET_NOT_FOUND/);
+ // Fail closed: with a payment or close in the group, a line whose borrower cannot be read (lookup failed or absent) is refused.
+ const unreadable=()=>createProposalPlanner({client:service({...base,...oumCharges,...drafts,'GET /api/loan-records/L-DOWN':()=>{throw new Error('lookup down')},
+  'GET /api/loan-records/L2':ok({item:{...loanItem,id:'L2',borrowerId:undefined}}),'GET /api/loan-records/L2/close-preview':ok({sourceVersion:W,businessDate:'2026-10-30',amount:'500',planHash:'d'.repeat(64),plan:{}})}).client,actor:{partnerId:'P1'},newId:ids()});
+ const pay={operation:'payment.record',target:'B-OUM',values:{amountReceived:'100',paymentMethod:'Cash'}};
+ for(const loanId of ['L-DOWN','L-GONE'])
+  await assert.rejects(unreadable().proposeGroup([pay,{operation:'charge.create',target:'',values:{loanId,chargeDate:'2026-10-31',principalDue:'0',interestDue:'10'}}]),/^ToolError: LINE_2:BORROWER_UNRESOLVED$/,loanId);
+ await assert.rejects(unreadable().proposeGroup([sixEdits()[0],{operation:'loan.close',target:'L2',values:{cashAccountId:'CA1',paymentMethod:'Cash'}}]),/^ToolError: LINE_2:BORROWER_UNRESOLVED$/);
+ // Without a payment or close the same line is fine (no borrower rule to apply), and a close alone needs no borrower.
+ assert.equal((await unreadable().proposeGroup([sixEdits()[0],{operation:'charge.create',target:'',values:{loanId:'L-DOWN',chargeDate:'2026-10-31',principalDue:'0',interestDue:'10'}}])).length,2);
+ assert.equal((await unreadable().proposeGroup([{operation:'loan.close',target:'L2',values:{cashAccountId:'CA1',paymentMethod:'Cash'}}])).length,1);
+ // A payment alone, and edits of other borrowers mixed, are fine.
+ assert.equal((await planner().proposeGroup([{operation:'payment.record',target:'B-OUM',values:{amountReceived:'100',paymentMethod:'Cash'}}])).length,1);
+ assert.equal((await planner().proposeGroup([sixEdits()[0],{operation:'loan.update',target:'L1',values:{currentDailyInterest:'120'}}])).length,2);
+});

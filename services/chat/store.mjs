@@ -13,6 +13,8 @@ export function storeError(error){
  if(message==='reviewer_required')return {status:403,error:'reviewer_required'};
  if(message==='proposal_executing')return {status:409,error:'proposal_executing'};
  if(message==='one_proposal_per_turn')return {status:409,error:'one_proposal_per_turn'};
+ // D12: confirm, read and cancel take the group's head id.
+ if(message==='not_head')return {status:400,error:'invalid_request',detail:'not_head'};
  if(code==='55006'||message==='turn_in_progress')return {status:409,error:'turn_in_progress'};
  if(code==='54000'||message==='thread_full')return {status:400,error:'invalid_request',detail:'thread_full'};
  if(code==='22023'||message==='invalid_request')return {status:400,error:'invalid_request'};
@@ -86,6 +88,10 @@ export function createChatStore({pool,guardConnection,resolveActor,issuer,readRo
   proposal:(p,thread,id)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposals_v1($1::jsonb,$2::uuid,$3::uuid,NULL) AS value',[a,thread,id]),true),
   claimProposal:(p,thread,id)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposal_claim_v1($1::jsonb,$2::uuid,$3::uuid) AS value',[a,thread,id])),
   settleProposal:(p,thread,id,settlement)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposal_settle_v1($1::jsonb,$2::uuid,$3::uuid,$4::jsonb) AS value',[a,thread,id,settlement])),
+  /** D12: the lines of one group by id, in one read-only transaction (V118 per-line read). */
+  group:(p,thread,ids)=>run(p,async(c,a)=>{const lines=[];for(const id of ids)lines.push(await one(c,'SELECT public.pwa_chat_proposals_v1($1::jsonb,$2::uuid,$3::uuid,NULL) AS value',[a,thread,id]));return lines;},true),
+  /** D12: cancel every pending line of a group in one transaction (V118 per-line cancel; others answer unchanged). */
+  cancelGroup:(p,thread,ids)=>run(p,async(c,a)=>{const lines=[];for(const id of ids)lines.push(await one(c,'SELECT public.pwa_chat_proposal_cancel_v1($1::jsonb,$2::uuid,$3::uuid,\'cancelled\') AS value',[a,thread,id]));return lines;}),
   cancelProposal:(p,thread,id)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposal_cancel_v1($1::jsonb,$2::uuid,$3::uuid,\'cancelled\') AS value',[a,thread,id])),
   /**
    * The asking device's presence on its running turn (batch 2c, V106): 'hidden' (the PWA left: beacon) or 'visible'.

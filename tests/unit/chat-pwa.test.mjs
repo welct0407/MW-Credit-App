@@ -6,9 +6,9 @@ import {runInNewContext} from 'node:vm';
 import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environment.ts';
 // R090 PWA chat: the pure protocol, markdown and wording modules (no imports, so each transpiles on its own).
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
-const {createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS}=await load('chat-protocol.ts');
+const {createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup,seenThrough}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
-const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons}=await load('chat-text.ts');
+const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText,armHintText}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
 
 test('SSE parser reads events across chunk boundaries, CRLF, multi-line data and pings',()=>{
@@ -152,12 +152,13 @@ const proposal=(patch={})=>({id:'p1',threadId:'t1',messageId:'m1',kind:'operatio
 const T0=Date.parse('2026-10-30T03:00:00.000Z');
 test('turn reducer: the proposal event precedes the reply, and the reply keeps it',()=>{
  let s=applyTurnEvent(initialTurn(),'accepted',{messageId:'m1',seq:1,model:'x'});
- assert.equal(initialTurn().proposal,null);
- s=applyTurnEvent(s,'proposal',{proposal:{id:'bad'}});assert.equal(s.proposal,null,'a malformed proposal is ignored');
- s=applyTurnEvent(s,'proposal',{proposal:proposal()});assert.equal(s.proposal.id,'p1');
- s=applyTurnEvent(s,'message',{id:'r1',role:'assistant',text:'Card ready.',status:'ok'});assert.equal(s.message.proposal.id,'p1');
- const row={id:'r2',role:'assistant',text:'x',status:'ok',proposal:null};
- assert.equal(applyTurnEvent(s,'message',row).message.proposal,null,'the stored row wins');
+ assert.deepEqual(initialTurn().proposals,[]);
+ s=applyTurnEvent(s,'proposal',{proposals:[{id:'bad'}]});assert.deepEqual(s.proposals,[],'a malformed proposal is ignored');
+ s=applyTurnEvent(s,'proposal',{proposals:[proposal(),proposal({id:'p2'})]});assert.deepEqual(s.proposals.map(p=>p.id),['p1','p2']);
+ s=applyTurnEvent(s,'message',{id:'r1',role:'assistant',text:'Card ready.',status:'ok'});assert.deepEqual(s.message.proposals.map(p=>p.id),['p1','p2']);
+ const row={id:'r2',role:'assistant',text:'x',status:'ok',proposals:[]};
+ assert.deepEqual(applyTurnEvent(s,'message',row).message.proposals,[],'the stored row wins');
+ assert.deepEqual(applyTurnEvent(initialTurn(),'proposal',{proposal:proposal()}).proposals.map(p=>p.id),['p1'],'the single form still reads');
  assert.equal(isProposal(proposal({state:'weird'})),false);assert.equal(isProposal(proposal()),true);
 });
 test('card states: pending counts down and expires; Confirm needs a connection; unknown polls; settled is final',()=>{
@@ -208,4 +209,67 @@ test('CWR-02/07: the server Confirm label or plain Confirm; the saved time in Ba
 test('CW2-01: the card dismisses with "Don\'t do this", never a catalogue-like Cancel',()=>{
  assert.deepEqual([...proposalButtons.cancel],["Don't do this",'ไม่ทำรายการ']);
  assert.equal(/cancel|ยกเลิก/i.test(proposalButtons.cancel.join(' ')),false);
+});
+
+// R106 D12: one card for a group of lines.
+const line=(index,patch={})=>proposal({id:'g'+index,card:{...card,group:{id:'g0',index,count:3,ids:['g0','g1','g2']}},...patch});
+test('D12 group state: derived from the lines like the service',()=>{
+ assert.equal(groupState(['pending','pending']),'pending');
+ assert.equal(groupState(['done','executing','pending']),'executing');
+ assert.equal(groupState(['done','unknown','pending']),'unknown');
+ assert.equal(groupState(['done','done']),'done');
+ assert.equal(groupState(['done','pending']),'partial','pending lines left: not done');
+ for(const rest of ['expired','failed','cancelled'])assert.equal(groupState(['done',rest]),'partial',rest);
+ assert.equal(groupState(['done','failed','pending']),'partial');assert.equal(groupState(['failed','pending']),'failed');
+ assert.equal(groupState(['expired','expired']),'expired');assert.equal(groupState(['cancelled','expired']),'cancelled');
+});
+test('D12 group view: Confirm all, then N remaining; skipped lines; unknown polls and never confirms',()=>{
+ let v=groupView([line(0),line(1),line(2)],{now:T0+60000});
+ assert.deepEqual([v.state,v.pending,v.remaining,v.canConfirm,v.canCancel,v.poll,v.remainingSeconds],['pending',3,false,true,true,false,840]);
+ v=groupView([line(0,{state:'done'}),line(1,{state:'failed',outcome:{code:'source_conflict'}}),line(2)],{now:T0});
+ assert.deepEqual(v.lines,['done','failed','notrun']);assert.deepEqual([v.state,v.pending,v.remaining,v.canConfirm],['partial',1,true,true]);
+ v=groupView([line(0,{state:'done'}),line(1,{state:'unknown'}),line(2)],{now:T0});
+ assert.deepEqual([v.state,v.canConfirm,v.canCancel,v.poll],['unknown',false,false,true]);
+ assert.equal(groupView([line(0,{state:'done'}),line(1,{state:'executing'}),line(2)],{now:T0,busy:true}).poll,false,'own confirm in flight');
+ v=groupView([line(0,{state:'done'}),line(1),line(2)],{now:T0+15*60000});
+ assert.deepEqual([v.lines,v.canConfirm,v.remaining],[['done','skipped','skipped'],false,false],'expired leftovers are skipped, not offered');
+ assert.equal(groupView([line(0),line(1)],{now:T0,online:false}).canConfirm,false);
+ assert.equal(groupView([line(0),line(1)],{now:T0,seen:false}).canConfirm,false);
+ assert.equal(isGroup({id:'g0',state:'pending',lines:[line(0)]}),true);assert.equal(isGroup({id:'g0',lines:[]}),false);assert.equal(isGroup({id:'g0',lines:[{id:'x'}]}),false);
+});
+test('D12 group polling: until no line is unknown or executing',async()=>{
+ let clock=0,reads=0;const answers=[[line(0,{state:'done'}),line(1,{state:'unknown'})],[line(0,{state:'done'}),line(1,{state:'done'})]];
+ const value=await pollGroup(async()=>answers[reads++],{now:()=>clock,sleep:async ms=>{clock+=ms}});
+ assert.deepEqual(value.map(l=>l.state),['done','done']);assert.equal(reads,2);
+});
+test('D12 group wording: Confirm 6 changes, Confirm N remaining, line chips, unchanged count',()=>{
+ assert.equal(groupConfirmText({count:6,pending:6,remaining:false},false),'Confirm 6 changes');assert.equal(groupConfirmText({count:6,pending:6,remaining:false},true),'ยืนยัน 6 รายการ');
+ assert.equal(groupConfirmText({count:6,pending:2,remaining:true},false),'Confirm 2 remaining');assert.equal(groupConfirmText({count:6,pending:2,remaining:true},true),'ยืนยันอีก 2 รายการ');
+ assert.equal(groupConfirmText({count:1,pending:1,remaining:false,label:{en:'Record ฿700',th:'บันทึก ฿700'}},false),'Record ฿700');
+ assert.equal(groupConfirmText({count:1,pending:1,remaining:false,label:null},false),'Confirm change');assert.equal(groupConfirmText({count:1,pending:1,remaining:false,label:null},true),'ยืนยันรายการ');
+ for(const state of ['pending','executing','done','failed','expired','cancelled','unknown','skipped'])assert.ok(lineChipText(state,false)&&lineChipText(state,true)&&lineChipText(state,false)!==lineChipText(state,true),state);
+ assert.equal(/cancel|ยกเลิก/i.test(lineChipText('cancelled',false)+lineChipText('cancelled',true)),false);
+ assert.deepEqual([lineChipText('notrun',false),lineChipText('notrun',true),lineChipText('skipped',false),lineChipText('skipped',true)],['Not run yet','ยังไม่ทำ','Skipped','ข้าม']);
+ assert.equal(groupSummaryText({done:4,failed:0,notRun:2},false),'4 done · 2 not run');assert.equal(groupSummaryText({done:4,failed:0,notRun:2},true),'สำเร็จ 4 · ไม่ได้ทำ 2');
+ assert.equal(groupSummaryText({done:2,failed:1,notRun:3},false),'2 done · 1 not saved · 3 not run');assert.equal(groupSummaryText({done:0,failed:2,notRun:0},false),'2 not saved');
+ assert.equal(armHintText(false),'Scroll through all changes to confirm');assert.equal(armHintText(true),'เลื่อนดูทุกรายการก่อนยืนยัน');
+ assert.equal(unchangedText(4,false),'+4 unchanged');assert.equal(groupProgressText(2,6,false),'Saving 2 of 6…');
+});
+test('CWR-01/D12: a card is seen once every part has been in view, at once or scrolled through',()=>{
+ assert.equal(seenThrough([[0,400]],400),true);
+ assert.equal(seenThrough([[0,700]],1400),false,'a tall card half in view');
+ assert.equal(seenThrough([[0,700],[650,1400]],1400),true,'scrolled through');
+ assert.equal(seenThrough([[700,1400],[0,500]],1400),false,'a gap is not seen');
+ assert.equal(seenThrough([],400),false);
+});
+test('CW3-01: destructive lines are named by kind, counted in the warning and in Confirm',()=>{
+ assert.deepEqual(['charge.delete','settlement.reverse','settlement.cancel','loan.default','charge.update'].map(destructiveKind),['delete','reverse','cancel','default','other']);
+ assert.deepEqual([destructiveTagText('charge.delete',false),destructiveTagText('charge.delete',true),destructiveTagText('settlement.reverse',false),destructiveTagText('settlement.reverse',true)],['Deletes','ลบ','Reverses','ย้อนกลับ']);
+ const one=destructiveCounts(['charge.delete']);
+ assert.equal(destructiveWarningText(one,false),'1 change deletes data');assert.equal(destructiveWarningText(one,true),'1 รายการจะลบข้อมูล');
+ assert.equal(destructiveWarningText(destructiveCounts(['charge.delete','expense.delete','settlement.reverse']),false),'2 changes delete data; 1 change reverses a record');
+ assert.equal(groupConfirmText({count:6,pending:6,remaining:false,destructive:one},false),'Confirm 6 changes (1 delete)');
+ assert.equal(groupConfirmText({count:6,pending:6,remaining:false,destructive:one},true),'ยืนยัน 6 รายการ (ลบ 1)');
+ assert.equal(groupConfirmText({count:6,pending:2,remaining:true,destructive:{}},false),'Confirm 2 remaining');
+ assert.equal(groupConfirmText({count:6,pending:6,remaining:false},false),'Confirm 6 changes');
 });

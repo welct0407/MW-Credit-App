@@ -149,4 +149,24 @@
 .chat-nowrap{white-space:nowrap}
 .chat-proposal-countdown{margin:4px 0 0;font-size:var(--text-meta,14px);color:#565656;font-variant-numeric:tabular-nums}
 .chat-proposal-again{min-height:44px;margin-top:8px}
+/* R106 D12: one card for several changes; each line has its own status chip and record link. */
+.chat-proposal-lines{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.chat-proposal-line{min-width:0;padding:8px 0 0;border-top:1px solid #eceff1}
+.chat-proposal-line:first-child{border-top:0;padding-top:0}
+.chat-proposal-line .chat-proposal-fields{margin-top:6px}
+.chat-proposal-line-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 8px}
+.chat-proposal-line-title{min-width:0;font-weight:600;font-size:var(--text-meta,14px)}
+.chat-proposal-chip{flex:0 0 auto;padding:1px 8px;border-radius:999px;border:1px solid #bfc3c7;background:#f5f5f5;color:#3c4043;font-size:var(--text-meta,14px);white-space:nowrap}
+.chat-proposal-chip[data-state=done]{border-color:#1e7a34;background:#eef7f0;color:#14532a}
+.chat-proposal-chip[data-state=failed]{border-color:#b3261e;background:#fdf0ef;color:#8e1b1b}
+.chat-proposal-chip[data-state=executing],.chat-proposal-chip[data-state=unknown]{border-color:#713c00;background:#fff4e5;color:#5a3000}
+.chat-proposal-line-failure{margin:4px 0 0;color:#8e1b1b;font-size:var(--text-meta,14px)}
+.chat-proposal-unchanged{margin:6px 0 0;font-size:var(--text-meta,14px);color:#565656}
+.chat-proposal-unchanged summary{cursor:pointer;min-height:24px}
+.chat-proposal-unchanged p{margin:4px 0 0}
+.chat-proposal-line[data-destructive=true]{border-left:4px solid #b3261e;padding-left:8px}
+.chat-proposal-line-icon{width:16px;height:16px;margin-right:4px;vertical-align:-2px;color:#b3261e}
+.chat-proposal-line-tags{display:inline-flex;flex-wrap:wrap;gap:4px}
+.chat-proposal-tag{padding:1px 8px;border-radius:999px;border:1px solid #b3261e;background:#b3261e;color:#fff;font-size:var(--text-meta,14px);font-weight:600;white-space:nowrap}
+.chat-proposal-arm-hint{margin:6px 0 0;font-size:var(--text-meta,14px);color:#565656}
 .chat-record-view{display:contents}

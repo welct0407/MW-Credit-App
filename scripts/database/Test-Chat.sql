@@ -7,7 +7,7 @@
 -- thread_full (54000), the append-only triggers (55000), the capability boundary (no EXECUTE without
 -- mw_chat_api_dev; mw_chat_read_dev reads no chat table and calls no chat RPC) and the Cost page function.
 -- G covers V105 (chat reply event, job status); H covers V106 (turn presence, the completion's detached flag); I covers
--- V108 (the Cost page's turn and usage reads).
+-- V108 (the Cost page's turn and usage reads); K covers V118 (proposals), L V119 (proposal groups).
 \set ON_ERROR_STOP on
 BEGIN;
 DO $$ BEGIN
@@ -549,9 +549,11 @@ BEGIN
  -- The reply carries the turn's proposal; the user row does not.
  PERFORM public.pwa_chat_turn_complete_v1(a,f1,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
  r:=public.pwa_chat_message_v1(a,k1,f1);
- IF r#>>'{assistant,proposal,id}' IS DISTINCT FROM p1::text OR r#>>'{assistant,proposal,state}' IS DISTINCT FROM 'pending' OR r->'user' ? 'proposal' THEN RAISE EXCEPTION 'message carries proposal %',r; END IF;
- IF (public.pwa_chat_messages_v1(a,k1,NULL,10)->0)#>>'{proposal,id}' IS DISTINCT FROM p1::text THEN RAISE EXCEPTION 'messages page carries proposal'; END IF;
- IF (public.pwa_chat_message_v1(a,'11111111-1111-4111-8111-111111111111','a1111111-1111-4111-8111-111111111111')->'assistant'->'proposal') IS DISTINCT FROM 'null'::jsonb THEN RAISE EXCEPTION 'an older reply carries proposal null'; END IF;
+ -- V119 (D12): the reply carries its turn's group as "proposals" (the single-line form is a group of one).
+ IF r#>>'{assistant,proposals,0,id}' IS DISTINCT FROM p1::text OR r#>>'{assistant,proposals,0,state}' IS DISTINCT FROM 'pending' OR jsonb_array_length(r#>'{assistant,proposals}') IS DISTINCT FROM 1
+  OR r->'user' ? 'proposals' OR r->'assistant' ? 'proposal' THEN RAISE EXCEPTION 'message carries proposals %',r; END IF;
+ IF (public.pwa_chat_messages_v1(a,k1,NULL,10)->0)#>>'{proposals,0,id}' IS DISTINCT FROM p1::text THEN RAISE EXCEPTION 'messages page carries proposals'; END IF;
+ IF (public.pwa_chat_message_v1(a,'11111111-1111-4111-8111-111111111111','a1111111-1111-4111-8111-111111111111')->'assistant'->'proposals') IS DISTINCT FROM '[]'::jsonb THEN RAISE EXCEPTION 'an older reply carries proposals []'; END IF;
  PERFORM pg_temp.expect(format(create_sql,a,k1,pg_temp.proposal(p2,f1)),'22023','invalid_request');
  -- A new message supersedes the pending proposal.
  PERFORM public.pwa_chat_turn_begin_v1(a,k1,jsonb_build_object('id',f2,'text','Actually record 200'));
@@ -644,6 +646,50 @@ RESET SESSION AUTHORIZATION;
 SET SESSION AUTHORIZATION v104_chat_other;
 SELECT pg_temp.expect(format('SELECT public.pwa_chat_proposal_claim_v1(%L::jsonb,%L::uuid,%L::uuid)',pg_temp.actor('a'),'91111111-1111-4111-8111-111111111111','a0000006-0000-4000-8000-000000000006'),'42501');
 RESET SESSION AUTHORIZATION;
+-- L. V119 (R106 D12): groups of 1..20 lines in one transaction, one time; 21 lines, duplicate ids, a broken group index
+-- and mixed messages refused; one group per turn (23505); a new group supersedes the earlier pending one; the reply
+-- carries "proposals" ordered by index; the V118 single-line form still works.
+CREATE FUNCTION pg_temp.group_lines(head_prefix text,message uuid,n integer,break_at integer DEFAULT -1) RETURNS jsonb LANGUAGE sql VOLATILE AS $$
+ SELECT jsonb_build_object('group',jsonb_agg(jsonb_set(jsonb_set(pg_temp.proposal(x.id,message),'{card,group}',
+  jsonb_build_object('id',(head_prefix||'-0000-4000-8000-000000000000')::uuid,'index',CASE WHEN x.i=break_at THEN 99 ELSE x.i END,'count',n,'ids','[]'::jsonb)),'{operation}','"charge.update"') ORDER BY x.i))
+ FROM (SELECT i,(head_prefix||'-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid AS id FROM generate_series(0,n-1) i) x $$;
+GRANT EXECUTE ON FUNCTION pg_temp.group_lines(text,uuid,integer,integer) TO PUBLIC;
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); r jsonb; k4 uuid:='94444444-4444-4444-8444-444444444444';
+ g1 uuid:='e5111111-1111-4111-8111-111111111111'; g2 uuid:='e5222222-2222-4222-8222-222222222222'; g3 uuid:='e5333333-3333-4333-8333-333333333333';
+ create_sql text:='SELECT public.pwa_chat_proposal_create_v1(%L::jsonb,%L::uuid,%L::jsonb)';
+BEGIN
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',k4,'model','gemini-4-argon'));
+ PERFORM public.pwa_chat_turn_begin_v1(a,k4,jsonb_build_object('id',g1,'text','Edit the six charges'));
+ PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000021',g1,21)),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000003',g1,3,2)),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,jsonb_build_object('group',(pg_temp.group_lines('b0000002',g1,2)->'group')||jsonb_build_array(pg_temp.group_lines('b0000002',g1,2)->'group'->0))),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,jsonb_set(pg_temp.group_lines('b0000004',g1,2),'{group,1,messageId}',to_jsonb(g2::text))),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,'{"group":[]}'),'22023','invalid_request');
+ r:=public.pwa_chat_proposal_create_v1(a,k4,pg_temp.group_lines('b0000020',g1,20));
+ IF jsonb_typeof(r) IS DISTINCT FROM 'array' OR jsonb_array_length(r) IS DISTINCT FROM 20 OR r#>>'{0,id}' IS DISTINCT FROM 'b0000020-0000-4000-8000-000000000000'
+  OR r#>>'{19,card,group,index}' IS DISTINCT FROM '19' OR EXISTS(SELECT 1 FROM jsonb_array_elements(r) x WHERE x->>'state' IS DISTINCT FROM 'pending' OR x->>'createdAt' IS DISTINCT FROM r#>>'{0,createdAt}' OR x->>'expiresAt' IS DISTINCT FROM r#>>'{0,expiresAt}') THEN
+  RAISE EXCEPTION 'group of 20 %',r; END IF;
+ PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000001',g1,1)),'23505','one_proposal_per_turn');
+ PERFORM public.pwa_chat_turn_complete_v1(a,g1,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
+ r:=public.pwa_chat_message_v1(a,k4,g1)->'assistant'->'proposals';
+ IF jsonb_array_length(r) IS DISTINCT FROM 20 OR (SELECT string_agg(y.x->'card'->'group'->>'index',',' ORDER BY y.o) FROM jsonb_array_elements(r) WITH ORDINALITY y(x,o)) IS DISTINCT FROM (SELECT string_agg(i::text,',' ORDER BY i) FROM generate_series(0,19) i) THEN
+  RAISE EXCEPTION 'reply proposals in index order %',r; END IF;
+ -- A new group supersedes the earlier pending one; a group of one; the V118 single-line form in a later turn.
+ PERFORM public.pwa_chat_turn_begin_v1(a,k4,jsonb_build_object('id',g2,'text','Only one'));
+ r:=public.pwa_chat_proposal_create_v1(a,k4,pg_temp.group_lines('b0000010',g2,1));
+ IF jsonb_array_length(r) IS DISTINCT FROM 1 OR (SELECT count(*) FROM jsonb_array_elements(public.pwa_chat_proposals_v1(a,k4,NULL,20)) x WHERE x->>'state'='cancelled') IS DISTINCT FROM 19 THEN RAISE EXCEPTION 'superseded group %',r; END IF;
+ PERFORM public.pwa_chat_turn_complete_v1(a,g2,pg_temp.assistant('ok'),pg_temp.history(0,2,2),'[]');
+ PERFORM public.pwa_chat_turn_begin_v1(a,k4,jsonb_build_object('id',g3,'text','Single form'));
+ r:=public.pwa_chat_proposal_create_v1(a,k4,pg_temp.proposal('b0000030-0000-4000-8000-000000000000',g3));
+ IF jsonb_typeof(r) IS DISTINCT FROM 'object' OR r->>'state' IS DISTINCT FROM 'pending' THEN RAISE EXCEPTION 'single form %',r; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT count(DISTINCT created_at) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000020-%') IS DISTINCT FROM 1
+  OR (SELECT count(*) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000020-%') IS DISTINCT FROM 20 THEN RAISE EXCEPTION 'one group of 20 rows with one created_at'; END IF;
+END $$;
 DO $$ BEGIN
  IF (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.proname LIKE 'pwa\_chat\_proposal%' AND has_function_privilege('mw_chat_api_dev',p.oid,'EXECUTE')) IS DISTINCT FROM 5
   OR has_function_privilege('mw_chat_api_dev','public.pwa_chat_proposal_json_v1(public.pwa_chat_proposals)','EXECUTE')

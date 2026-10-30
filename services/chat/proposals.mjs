@@ -107,6 +107,16 @@ export function confirmLabel(entry,values){
  return [...label.en].length<=32&&[...label.th].length<=32&&!label.en.includes('{')?label:null;
 }
 
+/** D12: a group holds 1..20 lines. */
+export const MAX_GROUP=20;
+/** Every id-like string a command refers to (its target and input values, nested), for DEPENDS_ON_NEW_RECORD. */
+function refsOf(command,own=null){
+ const refs=new Set();
+ const walk=value=>{if(typeof value==='string'&&ID(value))refs.add(value);else if(Array.isArray(value))value.forEach(walk);else if(plain(value))Object.values(value).forEach(walk);};
+ walk(command.inputs??command.allocations??null);walk(command.targetId??null);walk(command.borrowerId??null);
+ if(own)refs.delete(own);
+ return refs;
+}
 /** Maps a non-200 command-service read to the tool error the model sees. */
 export function readError(status,data){
  if(status===404)return new ToolError('TARGET_NOT_FOUND');
@@ -121,7 +131,7 @@ export function readError(status,data){
  * @param {{client:{get:Function,post:Function},actor:{partnerId:string},catalogue?:any,newId?:()=>string}} options
  */
 export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),newId=randomUUID}){
- const reads=new Map();
+ const reads=new Map(),createdIds=new Set();
  async function get(path){
   if(!reads.has(path))reads.set(path,(async()=>{
    let answer;try{answer=await client.get(path);}catch(error){if(error instanceof CommandUnavailable)throw new ToolError('COMMAND_UNAVAILABLE');throw error;}
@@ -169,7 +179,7 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
    .filter(([,value])=>value!==null).map(([name,value,label])=>({field:name,label:field(name).label,type:field(name).type,value,...(label?{display:label}:{})}));
   const card={version:1,operation:entry.operation,label:entry.label,confirmLabel:confirmLabel(entry,command),destructive:false,target:{type:'borrower',id:target,label:plan.borrowerLabel},values:values_,changes:[],
    split:plan.split,consequences:plan.settlesAllDue?[{code:'settles_all_due'}]:[]};
-  return {id:requestId,kind:'payment',operation:entry.operation,command:JSON.stringify(command),card};
+  return {id:requestId,kind:'payment',operation:entry.operation,command:JSON.stringify(command),card,scope:{key:'payment.record:'+target,borrowerId:target,created:null,refs:refsOf(command)}};
  }
 
  return {
@@ -249,7 +259,53 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
     target:{type:operation.split('.')[0],id:targetId,label:await title(entry,response,{...values,id:targetId})},
     values:shown,changes:entry.target==='new'?[]:changes,consequences:entry.consequences.map(code=>consequence(code,command.inputs))};
    if(entry.builder==='correction')card.split=inputs.fields.allocations?.map(row=>({chargeId:row.chargeId,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,loanDisplayKey:null,projected:false}))??[];
-   return {id:requestId,kind:'operation',operation,command:JSON.stringify(command),card};
+   // D12: what the group rules need. The borrower a line touches (payments and closes must be alone for theirs).
+   const input=/** @type {Record<string,unknown>} */(command.inputs);
+   let borrowerId=dig(response,'item.borrowerId')??dig(response,'item.source.borrowerId')??dig(response,'plan.borrowerId')??(operation.startsWith('borrower.')&&entry.target!=='new'?targetId:null);
+   if(!borrowerId&&typeof input.borrowerId==='string')borrowerId=input.borrowerId;
+   if(!borrowerId&&typeof input.loanId==='string'&&!createdIds.has(input.loanId)){try{borrowerId=(await get('/api/loan-records/'+encodeURIComponent(input.loanId))).item?.borrowerId??null;}catch{borrowerId=null;}}
+   // A borrower-owned record whose borrower could not be read (a failed lookup included) is unresolved: the group rule
+   // below then fails closed instead of skipping PAYMENT_LINE_ALONE.
+   const unresolved=typeof borrowerId!=='string'&&BORROWER_OWNED.includes(operation.split('.')[0])&&operation!=='borrower.create';
+   const created=entry.target==='new'?targetId:null;
+   if(created)createdIds.add(created);
+   return {id:requestId,kind:'operation',operation,command:JSON.stringify(command),card,
+    scope:{key:created?null:`${operation.split('.')[0]}:${targetId}`,borrowerId:typeof borrowerId==='string'?borrowerId:null,unresolved,created,refs:refsOf(command,created)}};
+  },
+  /**
+   * D12: one turn's changes as one group of 1..20 lines (one card, Confirm all). Each line is planned exactly as a
+   * single proposal; then the group rules: no target twice (DUPLICATE_TARGET), no line using an id another line
+   * creates (DEPENDS_ON_NEW_RECORD), and a payment or loan close is the only line for its borrower
+   * (PAYMENT_LINE_ALONE; fail closed: a group of several with a payment or close refuses any line whose borrower could
+   * not be resolved, LINE_<n>:BORROWER_UNRESOLVED). Errors of a group of several name the line: LINE_<n>:<code> or <code>:<n>.
+   * @param {{operation:string,target:string,values:Record<string,any>}[]} changes
+   */
+  async proposeGroup(changes){
+   if(!Array.isArray(changes)||changes.length<1)throw new ToolError('NO_CHANGES');
+   if(changes.length>MAX_GROUP)throw new ToolError('TOO_MANY_CHANGES');
+   const several=changes.length>1,lines=[];
+   for(const [index,change] of changes.entries()){
+    try{lines.push(await this.propose(change));}
+    catch(error){if(several&&error instanceof ToolError)throw new ToolError(`LINE_${index+1}:${error.message}`);throw error;}
+   }
+   const keys=new Map(),created=new Map(lines.filter(l=>l.scope.created).map((l,i)=>[l.scope.created,i]));
+   lines.forEach((line,index)=>{
+    if(line.scope.key){if(keys.has(line.scope.key))throw new ToolError(`DUPLICATE_TARGET:${index+1}`);keys.set(line.scope.key,index);}
+    for(const ref of line.scope.refs)if(created.has(ref)&&ref!==line.scope.created)throw new ToolError(`DEPENDS_ON_NEW_RECORD:${index+1}`);
+   });
+   const alone=line=>['payment.record','loan.close'].includes(line.operation);
+   if(several&&lines.some(alone))lines.forEach((line,index)=>{
+    if(line.scope.unresolved||(alone(line)&&!line.scope.borrowerId))throw new ToolError(`LINE_${index+1}:BORROWER_UNRESOLVED`);
+   });
+   if(several)lines.forEach((line,index)=>{
+    if(!alone(line))return;
+    if(lines.some((other,at)=>at!==index&&other.scope.borrowerId===line.scope.borrowerId))throw new ToolError(`PAYMENT_LINE_ALONE:${index+1}`);
+   });
+   // CW3-01: destructive lines first (stable otherwise), so the card opens on what deletes or reverses. Refusals
+   // above name the line in the model's order.
+   const ordered=[...lines.filter(line=>line.card.destructive),...lines.filter(line=>!line.card.destructive)];
+   const ids=ordered.map(line=>line.id);
+   return ordered.map(({scope:_scope,...line},index)=>({...line,card:{...line.card,group:{id:ids[0],index,count:ordered.length,ids}}}));
   },
  };
 }
@@ -356,4 +412,84 @@ export async function reconcileProposal({store,principal,thread,proposal,client,
  if(!settlement)return publicProposal(proposal);
  log({event:'chat_proposal_reconciled',thread,proposal:proposal.id,operation:proposal.operation,state:settlement.state,code:settlement.outcome?.code??null});
  return publicProposal(await store.settleProposal(principal,thread,proposal.id,settlement));
+}
+
+/** D12: Confirm all runs at most this long from the confirm start; lines not yet claimed by then stay pending. */
+export const GROUP_DEADLINE_MS=180000;
+const SETTLED=['done','failed'];
+/** D12: operations on records that belong to a borrower (PAYMENT_LINE_ALONE needs the borrower of each). */
+const BORROWER_OWNED=['borrower','loan','charge','payment','assessment'];
+/**
+ * D12 derived group state: executing while any line runs; unknown if any line is unknown; pending while lines are
+ * pending and none settled; done only when every line is done; partial when some lines are done and others pending,
+ * expired, failed or cancelled; failed when lines failed and none is done; a group with no settled line is cancelled
+ * (expired when every line expired).
+ * @param {{state:string}[]} lines
+ */
+export function groupState(lines){
+ if(lines.some(l=>l.state==='executing'))return 'executing';
+ if(lines.some(l=>l.state==='unknown'))return 'unknown';
+ const settled=lines.filter(l=>SETTLED.includes(l.state));
+ if(!settled.length)return lines.some(l=>l.state==='pending')?'pending':lines.every(l=>l.state==='expired')?'expired':'cancelled';
+ const done=lines.filter(l=>l.state==='done').length;
+ return done===lines.length?'done':done?'partial':'failed';
+}
+export const publicGroup=(id,lines)=>({id,state:groupState(lines),lines:lines.map(publicProposal)});
+/** The lines of the group whose head is `id`, in order. A line id that is not its group's head is refused. */
+export async function loadGroup({store,principal,thread,id}){
+ const head=await store.proposal(principal,thread,id);
+ const group=head.card?.group;
+ if(group&&group.id!==id)throw Object.assign(Error('not_head'),{code:'22023'});
+ const ids=Array.isArray(group?.ids)&&group.ids.length?group.ids:[id];
+ const lines=ids.length===1?[head]:await store.group(principal,thread,ids);
+ return lines.toSorted((a,b)=>(a.card?.group?.index??0)-(b.card?.group?.index??0));
+}
+/**
+ * POST .../proposals/:head/confirm (D12): the lines run one after another in proposed order, each through
+ * executeProposal when its turn comes (only a pending line is claimed and posted; unknown and stale lines are
+ * reconciled only; a recorded result wins; settled lines are reported as they are). A failed or unknown line does not
+ * stop the group. Lines not reached within GROUP_DEADLINE_MS stay pending. A confirm while a line of the group runs
+ * (another tab) answers 409 proposal_executing. onLine receives {index,id,state,code?,record?} after each line.
+ * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number,deadlineMs?:number,onLine?:(line:object)=>void,lines?:any[]}} input
+ */
+export async function executeGroup({store,principal,thread,id,client,log=()=>{},now=Date.now,deadlineMs=GROUP_DEADLINE_MS,onLine=()=>{},lines:loaded}){
+ const started=now();
+ const lines=loaded??await loadGroup({store,principal,thread,id});
+ assertIdle(lines,now);
+ const out=lines.map(publicProposal);
+ let claimed=false;
+ for(const [index,line] of lines.entries()){
+  if(line.state==='pending'&&now()-started>=deadlineMs)break;
+  if(['pending','unknown','executing'].includes(line.state)){
+   try{out[index]=await executeProposal({store,principal,thread,id:line.id,client,log,now});}
+   catch(error){
+    // Another confirm took a line between our read and our claim: the first one answers 409, a later one stops here.
+    if(error?.message==='proposal_executing'){if(!claimed)throw error;break;}
+    throw error;
+   }
+   claimed=true;
+  }
+  const item=out[index];
+  onLine({index,id:item.id,state:item.state,...(item.outcome?.code?{code:item.outcome.code}:{}),...(item.record?{record:item.record}:{})});
+ }
+ log({event:'chat_proposal_group',thread,proposal:id,lines:out.length,state:groupState(out)});
+ return publicGroup(id,out);
+}
+/** A line of the group executing on a live claim means another confirm is running it. */
+export function assertIdle(lines,now=Date.now){
+ if(lines.some(l=>l.state==='executing'&&now()-Date.parse(l.claimedAt??'')<STALE_CLAIM_MS))throw Object.assign(Error('proposal_executing'),{code:'55006'});
+}
+/** GET .../proposals/:head (D12): the group, its unknown and stale lines reconciled from the journal (never posted).
+ * @param {{store:any,principal:any,thread:string,id:string,client:any,now?:()=>number,log?:(record:object)=>void}} input */
+export async function reconcileGroup({store,principal,thread,id,client,now=Date.now,log=()=>{}}){
+ const lines=await loadGroup({store,principal,thread,id});
+ const out=[];
+ for(const line of lines)out.push(await reconcileProposal({store,principal,thread,proposal:line,client,now,log}));
+ return publicGroup(id,out);
+}
+/** POST .../proposals/:head/cancel (D12): every pending line of the group is cancelled; others stay as they are. */
+export async function cancelGroup({store,principal,thread,id}){
+ const lines=await loadGroup({store,principal,thread,id});
+ const out=await store.cancelGroup(principal,thread,lines.map(l=>l.id));
+ return publicGroup(id,out);
 }

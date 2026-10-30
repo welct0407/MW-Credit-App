@@ -129,3 +129,52 @@ export function savedAtText(iso:string|null|undefined,thai:boolean){
  return (thai?'บันทึกแล้ว ':'Saved ')+time;
 }
 export const pair=(value:Pair,thai:boolean)=>pick(value,thai);
+
+// R106 D12: one card for a group of changes.
+const PROPOSAL_LINES:Record<string,Pair>={pending:['Waiting','รอ'],executing:['Running…','กำลังทำ…'],done:['Done','เรียบร้อย'],failed:['Not saved','ไม่ได้บันทึก'],
+ expired:['Expired','หมดอายุ'],cancelled:['Not done','ไม่ได้ทำ'],unknown:['Checking…','กำลังตรวจสอบ…'],notrun:['Not run yet','ยังไม่ทำ'],skipped:['Skipped','ข้าม']};
+export const lineChipText=(state:string,thai:boolean)=>pick(PROPOSAL_LINES[state]??PROPOSAL_LINES.failed,thai);
+/** CW3-01: what a destructive line does, from the catalogue operation's verb (the catalogue flags it destructive). */
+export type DestructiveKind='delete'|'reverse'|'cancel'|'default'|'other';
+export function destructiveKind(operation:string):DestructiveKind{
+ const verb=operation.split('.').at(-1)??'';
+ return verb==='delete'||verb==='reverse'||verb==='cancel'||verb==='default'?verb:'other';
+}
+const DESTRUCTIVE_KINDS:DestructiveKind[]=['delete','reverse','cancel','default','other'];
+const DESTRUCTIVE:Record<DestructiveKind,{tag:Pair;warn:[one:string,many:string,th:string];count:[one:string,many:string,th:string]}>={
+ delete:{tag:['Deletes','ลบ'],warn:['deletes data','delete data','จะลบข้อมูล'],count:['delete','deletes','ลบ']},
+ reverse:{tag:['Reverses','ย้อนกลับ'],warn:['reverses a record','reverse records','จะย้อนกลับรายการ'],count:['reversal','reversals','ย้อนกลับ']},
+ cancel:{tag:['Cancels','ยกเลิก'],warn:['cancels a record','cancel records','จะยกเลิกรายการ'],count:['cancellation','cancellations','ยกเลิก']},
+ default:{tag:['Default','ผิดนัด'],warn:['marks a loan in default','mark loans in default','จะตั้งสินเชื่อเป็นผิดนัด'],count:['default','defaults','ผิดนัด']},
+ other:{tag:['Cannot be undone','ย้อนไม่ได้'],warn:['cannot be undone','cannot be undone','ย้อนกลับไม่ได้'],count:['destructive','destructive','มีผลถาวร']},
+};
+export type DestructiveCounts=Partial<Record<DestructiveKind,number>>;
+/** The destructive kinds of some operations, counted. */
+export function destructiveCounts(operations:string[]):DestructiveCounts{
+ const counts:DestructiveCounts={};for(const operation of operations){const kind=destructiveKind(operation);counts[kind]=(counts[kind]??0)+1}return counts;
+}
+const kindsOf=(counts:DestructiveCounts|undefined)=>DESTRUCTIVE_KINDS.filter(kind=>(counts?.[kind]??0)>0);
+export const destructiveTagText=(operation:string,thai:boolean)=>pick(DESTRUCTIVE[destructiveKind(operation)].tag,thai);
+/** "1 change deletes data" / "1 รายการจะลบข้อมูล"; several kinds are joined. */
+export function destructiveWarningText(counts:DestructiveCounts,thai:boolean){
+ return kindsOf(counts).map(kind=>{const n=counts[kind]??0,[one,many,th]=DESTRUCTIVE[kind].warn;return thai?`${n} รายการ${th}`:`${n} ${n===1?'change':'changes'} ${n===1?one:many}`}).join(thai?' · ':'; ');
+}
+const destructiveSuffix=(counts:DestructiveCounts|undefined,thai:boolean)=>{
+ const parts=kindsOf(counts).map(kind=>{const n=counts?.[kind]??0,[one,many,th]=DESTRUCTIVE[kind].count;return thai?`${th} ${n}`:`${n} ${n===1?one:many}`});
+ return parts.length?` (${parts.join(', ')})`:'';
+};
+/** "Confirm 6 changes (1 delete)", "Confirm 2 remaining"; one line: the server's short label (CWR-02), else "Confirm change" (D12). */
+export function groupConfirmText({count,pending,remaining,label,destructive}:{count:number;pending:number;remaining:boolean;label?:{en:string;th:string}|null;destructive?:DestructiveCounts},thai:boolean){
+ if(remaining)return (thai?`ยืนยันอีก ${pending} รายการ`:`Confirm ${pending} remaining`)+destructiveSuffix(destructive,thai);
+ if(count>1)return (thai?`ยืนยัน ${count} รายการ`:`Confirm ${count} changes`)+destructiveSuffix(destructive,thai);
+ return label?.en&&label.th?(thai?label.th:label.en):(thai?'ยืนยันรายการ':'Confirm change');
+}
+export const groupCountText=(count:number,thai:boolean)=>thai?`${count} รายการ`:`${count} changes`;
+export const unchangedText=(count:number,thai:boolean)=>thai?`+ไม่เปลี่ยน ${count} รายการ`:`+${count} unchanged`;
+/** D12: a group that did not fully run: "4 done · 1 not saved · 2 not run" (expired, cancelled and skipped lines are not run). */
+export function groupSummaryText({done,failed,notRun}:{done:number;failed:number;notRun:number},thai:boolean){
+ const parts=thai?[[done,`สำเร็จ ${done}`],[failed,`ไม่ได้บันทึก ${failed}`],[notRun,`ไม่ได้ทำ ${notRun}`]]:[[done,`${done} done`],[failed,`${failed} not saved`],[notRun,`${notRun} not run`]];
+ return parts.filter(([count])=>count).map(([,text])=>text).join(' · ');
+}
+export const armHintText=(thai:boolean)=>thai?'เลื่อนดูทุกรายการก่อนยืนยัน':'Scroll through all changes to confirm';
+export const groupProgressText=(done:number,count:number,thai:boolean)=>thai?`กำลังบันทึก ${done}/${count}…`:`Saving ${done} of ${count}…`;
