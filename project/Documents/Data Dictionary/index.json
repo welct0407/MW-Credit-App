@@ -3701,6 +3701,10 @@
         {
           "subject": "partners_login_email_nonblank",
           "pointer": "/content/constraints/partners_login_email_nonblank"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -5970,6 +5974,205 @@
         {
           "subject": "pwa_chat_messages_thread_id_seq_key",
           "pointer": "/content/constraints/pwa_chat_messages_thread_id_seq_key"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-pwa-chat-proposals-6e92a8ac.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.pwa_chat_proposals",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "id",
+          "pointer": "/content/columns/id"
+        },
+        {
+          "subject": "thread_id",
+          "pointer": "/content/columns/thread_id"
+        },
+        {
+          "subject": "message_id",
+          "pointer": "/content/columns/message_id"
+        },
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "kind",
+          "pointer": "/content/columns/kind"
+        },
+        {
+          "subject": "operation",
+          "pointer": "/content/columns/operation"
+        },
+        {
+          "subject": "command",
+          "pointer": "/content/columns/command"
+        },
+        {
+          "subject": "card",
+          "pointer": "/content/columns/card"
+        },
+        {
+          "subject": "state",
+          "pointer": "/content/columns/state"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "expires_at",
+          "pointer": "/content/columns/expires_at"
+        },
+        {
+          "subject": "claimed_at",
+          "pointer": "/content/columns/claimed_at"
+        },
+        {
+          "subject": "settled_at",
+          "pointer": "/content/columns/settled_at"
+        },
+        {
+          "subject": "attempts",
+          "pointer": "/content/columns/attempts"
+        },
+        {
+          "subject": "outcome",
+          "pointer": "/content/columns/outcome"
+        },
+        {
+          "subject": "record",
+          "pointer": "/content/columns/record"
+        },
+        {
+          "subject": "cancel_reason",
+          "pointer": "/content/columns/cancel_reason"
+        },
+        {
+          "subject": "pwa_chat_proposals_attempts_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_attempts_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_attempts_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_attempts_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_cancel_reason_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_cancel_reason_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_card_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_card_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_card_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_card_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_check1",
+          "pointer": "/content/constraints/pwa_chat_proposals_check1"
+        },
+        {
+          "subject": "pwa_chat_proposals_check2",
+          "pointer": "/content/constraints/pwa_chat_proposals_check2"
+        },
+        {
+          "subject": "pwa_chat_proposals_check3",
+          "pointer": "/content/constraints/pwa_chat_proposals_check3"
+        },
+        {
+          "subject": "pwa_chat_proposals_command_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_command_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_command_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_command_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_created_at_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_created_at_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_expires_at_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_expires_at_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_id_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_id_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_kind_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_kind_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_kind_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_kind_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_message_id_fkey",
+          "pointer": "/content/constraints/pwa_chat_proposals_message_id_fkey"
+        },
+        {
+          "subject": "pwa_chat_proposals_message_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_message_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_operation_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_operation_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_operation_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_operation_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_outcome_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_outcome_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_partner_id_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_partner_id_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_partner_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_partner_id_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_pkey",
+          "pointer": "/content/constraints/pwa_chat_proposals_pkey"
+        },
+        {
+          "subject": "pwa_chat_proposals_record_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_record_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_state_check",
+          "pointer": "/content/constraints/pwa_chat_proposals_state_check"
+        },
+        {
+          "subject": "pwa_chat_proposals_state_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_state_not_null"
+        },
+        {
+          "subject": "pwa_chat_proposals_thread_id_fkey",
+          "pointer": "/content/constraints/pwa_chat_proposals_thread_id_fkey"
+        },
+        {
+          "subject": "pwa_chat_proposals_thread_id_not_null",
+          "pointer": "/content/constraints/pwa_chat_proposals_thread_id_not_null"
         }
       ]
     },
@@ -11134,6 +11337,76 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_chat_models_default_v1(actor jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-proposal-cancel-v1-actor-jsonb-thread-uuid-id-uuid-reason-text-c7aee8b6.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_proposal_cancel_v1(actor jsonb, thread uuid, id uuid, reason text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-proposal-claim-v1-actor-jsonb-thread-uuid-id-uuid-d2a03a2f.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_proposal_claim_v1(actor jsonb, thread uuid, id uuid)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-proposal-create-v1-actor-jsonb-thread-uuid-proposal-jsonb-013ed3f6.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_proposal_create_v1(actor jsonb, thread uuid, proposal jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-proposal-guard-v1-5f4b7fe5.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_proposal_guard_v1()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-proposal-json-v1-p-pwa-chat-proposals-5b8f90e1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_proposal_json_v1(p pwa_chat_proposals)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-proposal-settle-v1-actor-jsonb-thread-uuid-id-uuid-settlement-jsonb-d401dd31.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_proposal_settle_v1(actor jsonb, thread uuid, id uuid, settlement jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-chat-proposals-v1-actor-jsonb-thread-uuid-id-uuid-lim-integer-8036202e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_chat_proposals_v1(actor jsonb, thread uuid, id uuid, lim integer)",
       "scope": "production",
       "status": "documented",
       "lookup": []
