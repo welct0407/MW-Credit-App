@@ -7,7 +7,8 @@
    "description": "Parallel redesign of Loan Reports (dashboard 3) for side-by-side review. Reuses the governed models and saved questions; new questions live here."
   },
   "description": "Parallel redesign of Loan Reports for owner review. Live PROD OLAP · THB · Bangkok dates. Same models, snippets and saved questions as dashboard 3; diagnostics on the Data health tab.",
-  "auto_apply_filters": true
+  "auto_apply_filters": true,
+  "width": "full"
  },
  "parameters": [
   {
@@ -1455,8 +1456,8 @@
       ],
       "type": "single",
       "operator": "=",
-      "value": "Overdue",
-      "color": "#7172AD",
+      "value": "Long Overdue",
+      "color": "#90A4AE",
       "highlight_row": true
      }
     ],

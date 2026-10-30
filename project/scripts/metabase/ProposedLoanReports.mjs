@@ -225,7 +225,7 @@ async function applyTabs(state,baseline,only,specs){
  for(const t of tabs)for(const p of t.placements)if(p.columns){const id=p.reuse_card_id??state.questions[p.new_question];cards[id]??=await api('GET','card/'+id);}
  const keep=d.dashcards.filter(c=>only&&!only.includes(layout.tabs.find(t=>state.tabs[t.key]===c.dashboard_tab_id)?.key));
  const fresh=tabs.flatMap(t=>placements(t,state,baseline,live1501,specs,cards));
- await api('PUT','dashboard/'+state.dashboard,{tabs:d.tabs.map(({id,name,position})=>({id,name,position})),dashcards:[...keep,...fresh]});
+ await api('PUT','dashboard/'+state.dashboard,{width:layout.dashboard.width,tabs:d.tabs.map(({id,name,position})=>({id,name,position})),dashcards:[...keep,...fresh]});
 }
 // State-owned questions the spec no longer names are archived once no proposed dashcard references them.
 async function retire(state){
@@ -255,7 +255,7 @@ if(args.includes('--publish')){
  const {parent_collection_id,...coll}=layout.dashboard.collection;const collection=await api('POST','collection',{...coll,parent_id:parent_collection_id});
  const state={collection:collection.id,questions:{},tabs:{}};save('state',state);
  const dash=await api('POST','dashboard',{name:layout.dashboard.name,description:layout.dashboard.description,collection_id:collection.id});state.dashboard=dash.id;save('state',state);
- await api('PUT','dashboard/'+dash.id,{parameters:parameters(baseline),auto_apply_filters:layout.dashboard.auto_apply_filters,width:'fixed',tabs:layout.tabs.map(t=>({id:-1-t.position,name:t.name,position:t.position})),dashcards:[]});
+ await api('PUT','dashboard/'+dash.id,{parameters:parameters(baseline),auto_apply_filters:layout.dashboard.auto_apply_filters,width:layout.dashboard.width,tabs:layout.tabs.map(t=>({id:-1-t.position,name:t.name,position:t.position})),dashcards:[]});
  const withTabs=await api('GET','dashboard/'+dash.id);for(const t of layout.tabs)state.tabs[t.key]=withTabs.tabs.find(x=>x.name===t.name).id;save('state',state);
  const specs=questions(sources,state,baseline);
  for(const s of specs){const c=await api('POST','card',{...cardBody(s),type:'question',collection_id:collection.id});state.questions[s.key]=c.id;save('state',state);}
@@ -296,7 +296,7 @@ if(args.includes('--verify')){
  let missing=0;for(const t of layout.tabs)for(const p of t.placements){const card=p.reuse_card_id??state.questions[p.new_question]??null;if(!d.dashcards.some(c=>c.dashboard_tab_id===state.tabs[t.key]&&c.row===p.row&&c.col===p.col&&c.size_x===p.size_x&&c.size_y===p.size_y&&c.card_id===card))missing++;}
  const want={tabs:layout.tabs.length,placements:layout.tabs.reduce((n,t)=>n+t.placements.length,0),parameters:layout.parameters.length};
  const sameParams=JSON.stringify(d.parameters.map(p=>p.id))===JSON.stringify(layout.parameters.map(p=>p.id));
- (d.tabs.length===want.tabs&&d.dashcards.length===want.placements&&sameParams&&!missing?pass:fail)('structure',{want,tabs:d.tabs.length,placements:d.dashcards.length,parameters:d.parameters.length,parameterIdsMatch:sameParams,unmatched:missing});
+ (d.tabs.length===want.tabs&&d.dashcards.length===want.placements&&sameParams&&!missing&&d.width===layout.dashboard.width?pass:fail)('structure',{want,tabs:d.tabs.length,placements:d.dashcards.length,parameters:d.parameters.length,parameterIdsMatch:sameParams,unmatched:missing,width:d.width});
  // Mapping parity: reused cards carry the dashboard-3 targets after id substitution
  let parity=0,parityChecked=0;
  for(const c of d.dashcards.filter(c=>c.card_id&&!Object.values(state.questions).includes(c.card_id))){

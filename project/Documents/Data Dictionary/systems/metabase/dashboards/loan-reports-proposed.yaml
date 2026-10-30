@@ -22,8 +22,9 @@
     \ revision 7), Administrators write."
   "removed_cards": "Question 276 (Reporting connection SELECT 1, monitoring) was removed from the Data health tab on 30 October\
     \ 2026 at the owner request; partners could not read it."
-  "open_item": "The long-overdue lane (question 414) copies 241 tint rule (status = Overdue), which never matches its rows,\
-    \ so the lane has no row tint; owner to decide, one-line fix available."
+  "width": "full since 30 October 2026 (was fixed), so the five Collection lanes use the whole screen."
+  "lane_tint": "The long-overdue lane (question 414) tints its rows grey (#90A4AE on status Long Overdue) since 30 October\
+    \ 2026; it had copied question 241's rule (status Overdue), which never matched."
   "canonical_dashboard_id": 3
   "dashboard_id": 32
   "database_id": 2

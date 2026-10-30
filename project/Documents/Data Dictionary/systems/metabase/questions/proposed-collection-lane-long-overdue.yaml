@@ -89,8 +89,8 @@
       - "Daily Collection Status"
       "type": "single"
       "operator": "="
-      "value": "Overdue"
-      "color": "#7172AD"
+      "value": "Long Overdue"
+      "color": "#90A4AE"
       "highlight_row": true
     "column_settings":
       "[\"name\",\"Borrower\"]":

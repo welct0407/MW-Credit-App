@@ -11,6 +11,7 @@ The owner asked to "change the DNS to point the dashboard CNAME to the new dashb
 - Records: the dictionary record `dashboards/loan-reports-proposed.yaml` (landing status, collection parent, access, known gap), the pointer in `dashboards/loan-reports.yaml`, `project/Documents/Environment_Inventory.md`, `project/scripts/metabase/README.md`, `project/Documents/Development_Changes.md`.
 - Follow-up, 30 October 2026: at the owner's request ("remove the SELECT 1 card from dashboard 32") question 276 was removed from the Data health tab (question 257 "Queried at · Bangkok" is now 24 by 3). Before that, the R102 hand edits (long-overdue lane 414, five-lane board, lane re-tile) were ported into `build_design.py` so regeneration reproduces the applied layout. Applied with `--refine --only=data-health`; dashboard 32 has 227 dashcards and no 276; `--verify` passes. Counts are 227 placements, 152 reused questions, 25 new questions.
 - Dashboard 3 guard baseline renewed by hand to the live 274 dashcards, because R102's `--rebaseline-dashboard3=R102` step needs R102's private state, which this session does not have. The difference from the 26 October baseline was limited to tab 19 (lane cards 412 and 413 added, eight lanes re-tiled) and the collection-detail-status filter, i.e. R102 only. The old baseline is kept privately as `dashboard-3-before-pre-r102.json`. For the verifier's lane checks a private reference file gives lane ids 412 and 413 (from `outputs/r025-20260924/state.json`).
+- Follow-up, 30 October 2026, at the owner's request ("fix the long overdue lane's missing row color"; "make the dashboard wider"): the long-overdue lane (question 414) tint rule is now status = 'Long Overdue' with the board's grey `#90A4AE`, and dashboard 32 is full width (`width: full`, was fixed) so the five Collection lanes use the whole screen. `build_design.py` carries both (`DASHBOARD['width']`); the installer sends the layout's width on `--publish` and on every tab refine, and the `structure` check of `--verify` now also compares the width. Applied with `--refine --only=collection.lane-long-overdue,collection`; `--verify` passes; browser renders at 1440 and 1920 px show the grey rows and five lanes across the full width.
 - Dashboard 3 is not changed by this batch. It stays reachable by link and remains the recovery and canonical copy until the cutover in `PLAN.md` section 7 is formally closed.
 
 ## Checks
@@ -19,6 +20,7 @@ The owner asked to "change the DNS to point the dashboard CNAME to the new dashb
 | Administrator API read of the setting | Reads 32 |
 | Browser opening `https://reports.mw-credit.com/` | Lands on `/dashboard/32` |
 | Collection 10 location and permission graph | Location `/5/`; partners read, revision 7 |
+| `--verify` after the lane and width follow-up | Pass (27 checks, width included) |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 
 ## Not run
@@ -28,8 +30,8 @@ No partner sign-in was tested. A private baseline of the settings, collection an
 Set `custom-homepage-dashboard` back to 3. Optionally revoke the partner read on collection 10.
 
 ## Open questions
-- The long-overdue lane (question 414) on dashboard 32 copies question 241's tint rule (status = 'Overdue'), which never matches its rows, so that lane has no row tint. A one-line fix is available; the owner decides.
+- Resolved: the long-overdue lane (question 414) now has the grey row tint (see Changes).
 - Resolved: question 276 (the SELECT 1 card) is removed from dashboard 32. Resolved: the dashboard 3 baseline is renewed to 274 dashcards (see Changes).
 
 ## Remaining work
-The owner's decision on the long-overdue lane tint; the formal cutover closure (rename or retire dashboard 3) is still a separate decision.
+The formal cutover closure (rename or retire dashboard 3) is still a separate decision.

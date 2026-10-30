@@ -2716,13 +2716,13 @@
               [
                 "=",
                 {
-                  "lib/uuid": "7e44aefe-4be3-428d-a54a-71a998d77357"
+                  "lib/uuid": "c3148c10-fd24-46d3-b0f5-e3a2e09c0ed7"
                 },
                 [
                   "field",
                   {
                     "base-type": "type/Text",
-                    "lib/uuid": "f1c89e92-b3e0-41a0-9394-31a1a9f94fc4"
+                    "lib/uuid": "8ca4e73c-1825-4dde-b6bc-d8b1f81550dc"
                   },
                   "Daily Collection Status"
                 ],
@@ -2735,7 +2735,7 @@
                 "field",
                 {
                   "base-type": "type/Text",
-                  "lib/uuid": "bffd5dd7-546a-4b36-8302-e86dabe96a39"
+                  "lib/uuid": "c2e55b6d-27f5-4f41-b14a-08342ac7240d"
                 },
                 "Borrower"
               ],
@@ -2743,7 +2743,7 @@
                 "field",
                 {
                   "base-type": "type/Decimal",
-                  "lib/uuid": "57732287-d2f1-4a4a-a622-cd89f562a2ed"
+                  "lib/uuid": "77d18364-3f1b-4cd4-90c7-7ff48382cb36"
                 },
                 "Overdue Amount"
               ],
@@ -2751,7 +2751,7 @@
                 "field",
                 {
                   "base-type": "type/Decimal",
-                  "lib/uuid": "61a133b2-995c-4c8a-8221-4414a7b77982"
+                  "lib/uuid": "24203a3e-d1ea-481a-893a-f33342a9477a"
                 },
                 "Amount Remaining"
               ],
@@ -2759,7 +2759,7 @@
                 "field",
                 {
                   "base-type": "type/Text",
-                  "lib/uuid": "14e40e18-9073-46f6-9a94-9e9da45c1db8"
+                  "lib/uuid": "124429ed-184c-422a-9264-99cad8820b72"
                 },
                 "Borrower ID"
               ],
@@ -2767,7 +2767,7 @@
                 "field",
                 {
                   "base-type": "type/Text",
-                  "lib/uuid": "e2427a72-6efb-470a-899e-0770417c3185"
+                  "lib/uuid": "151355fe-7fe1-4ae7-af30-daae3177218e"
                 },
                 "Daily Collection Status"
               ]
@@ -2776,13 +2776,13 @@
               [
                 "desc",
                 {
-                  "lib/uuid": "51cce180-7a3d-46c3-84f3-e3d3b94243e7"
+                  "lib/uuid": "088a24c5-d25b-45e8-ae80-d6f7a3db5d78"
                 },
                 [
                   "field",
                   {
                     "base-type": "type/Decimal",
-                    "lib/uuid": "142e4fe4-2e79-4f4b-ae37-431ad5b426cc"
+                    "lib/uuid": "5994655a-c39a-4589-88ce-7e8239639ff7"
                   },
                   "Overdue Amount"
                 ]
@@ -2790,13 +2790,13 @@
               [
                 "asc",
                 {
-                  "lib/uuid": "cbfbded7-403a-4bb2-a675-cd845281af37"
+                  "lib/uuid": "b867f64c-b5c2-4f13-8771-5d4684574279"
                 },
                 [
                   "field",
                   {
                     "base-type": "type/Text",
-                    "lib/uuid": "750530e3-05ea-41b8-9715-08d7283a63df"
+                    "lib/uuid": "91b430fd-aa88-4e70-a70b-0627b0cdd748"
                   },
                   "Borrower"
                 ]
@@ -2845,8 +2845,8 @@
             ],
             "type": "single",
             "operator": "=",
-            "value": "Overdue",
-            "color": "#7172AD",
+            "value": "Long Overdue",
+            "color": "#90A4AE",
             "highlight_row": true
           }
         ],
@@ -9630,418 +9630,6 @@
       }
     },
     {
-      "id": 9168,
-      "card_id": null,
-      "dashboard_tab_id": 383,
-      "row": 0,
-      "col": 0,
-      "size_x": 18,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Collection · today** · live · filters apply to the detail table only.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "**Collection · today** · live · filters apply to the detail table only."
-      }
-    },
-    {
-      "id": 9169,
-      "card_id": 257,
-      "dashboard_tab_id": 383,
-      "row": 0,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "As of · Bangkok"
-      }
-    },
-    {
-      "id": 9170,
-      "card_id": 237,
-      "dashboard_tab_id": 383,
-      "row": 2,
-      "col": 0,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Collected today"
-      }
-    },
-    {
-      "id": 9171,
-      "card_id": 238,
-      "dashboard_tab_id": 383,
-      "row": 2,
-      "col": 6,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Left to collect"
-      }
-    },
-    {
-      "id": 9172,
-      "card_id": 395,
-      "dashboard_tab_id": 383,
-      "row": 2,
-      "col": 12,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "People paid today"
-      }
-    },
-    {
-      "id": 9173,
-      "card_id": 252,
-      "dashboard_tab_id": 383,
-      "row": 2,
-      "col": 18,
-      "size_x": 6,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Today's charges · paid %"
-      }
-    },
-    {
-      "id": 9174,
-      "card_id": 396,
-      "dashboard_tab_id": 383,
-      "row": 5,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Board · people and baht per lane"
-      }
-    },
-    {
-      "id": 9175,
-      "card_id": 397,
-      "dashboard_tab_id": 383,
-      "row": 11,
-      "col": 0,
-      "size_x": 5,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🔴 Not paid",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 9176,
-      "card_id": 398,
-      "dashboard_tab_id": 383,
-      "row": 11,
-      "col": 5,
-      "size_x": 5,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟠 Partially paid",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 9177,
-      "card_id": 399,
-      "dashboard_tab_id": 383,
-      "row": 11,
-      "col": 10,
-      "size_x": 5,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟣 Overdue",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 9178,
-      "card_id": 414,
-      "dashboard_tab_id": 383,
-      "row": 11,
-      "col": 15,
-      "size_x": 5,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "⚫ Long overdue",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 9179,
-      "card_id": 400,
-      "dashboard_tab_id": 383,
-      "row": 11,
-      "col": 20,
-      "size_x": 4,
-      "size_y": 9,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "🟢 Fully paid",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 9180,
-      "card_id": 248,
-      "dashboard_tab_id": 383,
-      "row": 20,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 10,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "collection-borrower",
-          "card_id": 248,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Borrower ID",
-              {
-                "base-type": "type/Text"
-              }
-            ]
-          ]
-        },
-        {
-          "parameter_id": "collection-status",
-          "card_id": 248,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Daily Collection Status",
-              {
-                "base-type": "type/Text"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Collection detail · filters apply here",
-        "table.columns": [
-          {
-            "name": "Borrower",
-            "enabled": true
-          },
-          {
-            "name": "Daily Collection Status",
-            "enabled": true
-          },
-          {
-            "name": "Amount Remaining",
-            "enabled": true
-          },
-          {
-            "name": "Amount Due",
-            "enabled": true
-          },
-          {
-            "name": "Amount Collected",
-            "enabled": true
-          },
-          {
-            "name": "Receipts Today",
-            "enabled": true
-          },
-          {
-            "name": "Overdue Amount",
-            "enabled": true
-          },
-          {
-            "name": "Borrower ID",
-            "enabled": false
-          }
-        ],
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 9181,
-      "card_id": 249,
-      "dashboard_tab_id": 383,
-      "row": 30,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Charges dated today · not board balances",
-        "card.description": "Charges dated today are a separate drill-down, not board balances."
-      }
-    },
-    {
-      "id": 9182,
-      "card_id": 64,
-      "dashboard_tab_id": 383,
-      "row": 33,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "visualization": {
-          "display": "area",
-          "columnValuesMapping": {
-            "COLUMN_1": [
-              {
-                "sourceId": "card:64",
-                "originalName": "Date",
-                "name": "COLUMN_1"
-              }
-            ],
-            "COLUMN_2": [
-              {
-                "sourceId": "card:64",
-                "originalName": "Amount (THB)",
-                "name": "COLUMN_2"
-              }
-            ]
-          },
-          "settings": {
-            "graph.show_trendline": false,
-            "graph.y_axis.title_text": "THB",
-            "graph.show_values": true,
-            "graph.show_legend": false,
-            "graph.x_axis.title_enabled": false,
-            "graph.missing": "zero",
-            "card.title": "Overdue charges · completed days",
-            "graph.metrics": [
-              "COLUMN_2"
-            ],
-            "graph.label_value_formatting": "auto",
-            "graph.colors": [
-              "#D6816B"
-            ],
-            "graph.show_dots": false,
-            "column_settings": {
-              "[\"name\",\"COLUMN_2\"]": {
-                "number_style": "decimal",
-                "decimals": 0,
-                "number_separators": ".,"
-              }
-            },
-            "series_settings": {
-              "COLUMN_2": {
-                "color": "#C8B4DA"
-              }
-            },
-            "graph.y_axis.auto_range": true,
-            "graph.dimensions": [
-              "COLUMN_1"
-            ]
-          }
-        },
-        "card.title": "Overdue charges · completed days"
-      }
-    },
-    {
-      "id": 9183,
-      "card_id": null,
-      "dashboard_tab_id": 383,
-      "row": 39,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "Received = receipts today · Left includes older dues · refresh moves lanes.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "Received = receipts today · Left includes older dues · refresh moves lanes."
-      }
-    },
-    {
       "id": 9184,
       "card_id": null,
       "dashboard_tab_id": 386,
@@ -10870,6 +10458,418 @@
             }
           }
         }
+      }
+    },
+    {
+      "id": 9209,
+      "card_id": null,
+      "dashboard_tab_id": 383,
+      "row": 0,
+      "col": 0,
+      "size_x": 18,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Collection · today** · live · filters apply to the detail table only.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "**Collection · today** · live · filters apply to the detail table only."
+      }
+    },
+    {
+      "id": 9210,
+      "card_id": 257,
+      "dashboard_tab_id": 383,
+      "row": 0,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "As of · Bangkok"
+      }
+    },
+    {
+      "id": 9211,
+      "card_id": 237,
+      "dashboard_tab_id": 383,
+      "row": 2,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Collected today"
+      }
+    },
+    {
+      "id": 9212,
+      "card_id": 238,
+      "dashboard_tab_id": 383,
+      "row": 2,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Left to collect"
+      }
+    },
+    {
+      "id": 9213,
+      "card_id": 395,
+      "dashboard_tab_id": 383,
+      "row": 2,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "People paid today"
+      }
+    },
+    {
+      "id": 9214,
+      "card_id": 252,
+      "dashboard_tab_id": 383,
+      "row": 2,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Today's charges · paid %"
+      }
+    },
+    {
+      "id": 9215,
+      "card_id": 396,
+      "dashboard_tab_id": 383,
+      "row": 5,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Board · people and baht per lane"
+      }
+    },
+    {
+      "id": 9216,
+      "card_id": 397,
+      "dashboard_tab_id": 383,
+      "row": 11,
+      "col": 0,
+      "size_x": 5,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🔴 Not paid",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9217,
+      "card_id": 398,
+      "dashboard_tab_id": 383,
+      "row": 11,
+      "col": 5,
+      "size_x": 5,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟠 Partially paid",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9218,
+      "card_id": 399,
+      "dashboard_tab_id": 383,
+      "row": 11,
+      "col": 10,
+      "size_x": 5,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟣 Overdue",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9219,
+      "card_id": 414,
+      "dashboard_tab_id": 383,
+      "row": 11,
+      "col": 15,
+      "size_x": 5,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "⚫ Long overdue",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9220,
+      "card_id": 400,
+      "dashboard_tab_id": 383,
+      "row": 11,
+      "col": 20,
+      "size_x": 4,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "🟢 Fully paid",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9221,
+      "card_id": 248,
+      "dashboard_tab_id": 383,
+      "row": 20,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "collection-borrower",
+          "card_id": 248,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        },
+        {
+          "parameter_id": "collection-status",
+          "card_id": 248,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Collection detail · filters apply here",
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "enabled": true
+          },
+          {
+            "name": "Daily Collection Status",
+            "enabled": true
+          },
+          {
+            "name": "Amount Remaining",
+            "enabled": true
+          },
+          {
+            "name": "Amount Due",
+            "enabled": true
+          },
+          {
+            "name": "Amount Collected",
+            "enabled": true
+          },
+          {
+            "name": "Receipts Today",
+            "enabled": true
+          },
+          {
+            "name": "Overdue Amount",
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}&period=past30days"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9222,
+      "card_id": 249,
+      "dashboard_tab_id": 383,
+      "row": 30,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Charges dated today · not board balances",
+        "card.description": "Charges dated today are a separate drill-down, not board balances."
+      }
+    },
+    {
+      "id": 9223,
+      "card_id": 64,
+      "dashboard_tab_id": 383,
+      "row": 33,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "visualization": {
+          "display": "area",
+          "columnValuesMapping": {
+            "COLUMN_1": [
+              {
+                "sourceId": "card:64",
+                "originalName": "Date",
+                "name": "COLUMN_1"
+              }
+            ],
+            "COLUMN_2": [
+              {
+                "sourceId": "card:64",
+                "originalName": "Amount (THB)",
+                "name": "COLUMN_2"
+              }
+            ]
+          },
+          "settings": {
+            "graph.show_trendline": false,
+            "graph.y_axis.title_text": "THB",
+            "graph.show_values": true,
+            "graph.show_legend": false,
+            "graph.x_axis.title_enabled": false,
+            "graph.missing": "zero",
+            "card.title": "Overdue charges · completed days",
+            "graph.metrics": [
+              "COLUMN_2"
+            ],
+            "graph.label_value_formatting": "auto",
+            "graph.colors": [
+              "#D6816B"
+            ],
+            "graph.show_dots": false,
+            "column_settings": {
+              "[\"name\",\"COLUMN_2\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,"
+              }
+            },
+            "series_settings": {
+              "COLUMN_2": {
+                "color": "#C8B4DA"
+              }
+            },
+            "graph.y_axis.auto_range": true,
+            "graph.dimensions": [
+              "COLUMN_1"
+            ]
+          }
+        },
+        "card.title": "Overdue charges · completed days"
+      }
+    },
+    {
+      "id": 9224,
+      "card_id": null,
+      "dashboard_tab_id": 383,
+      "row": 39,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Received = receipts today · Left includes older dues · refresh moves lanes.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "Received = receipts today · Left includes older dues · refresh moves lanes."
       }
     }
   ]
