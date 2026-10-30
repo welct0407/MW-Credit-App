@@ -9,8 +9,19 @@
   "status": "documented"
   "source": "outputs/loan-reports-redesign-20261026/saved.json"
 "content":
-  "status": "Parallel review dashboard for owner comparison; not a replacement. Dashboard 3 (Loan Reports) remains the canonical\
-    \ live dashboard and was not changed. No cutover is decided."
+  "status": "Landing dashboard since 30 October 2026: Metabase setting custom-homepage-dashboard is 32 (was 3), so reports.mw-credit.com\
+    \ opens this dashboard for everyone. Dashboard 3 (Loan Reports) is unchanged, stays reachable by link and remains the\
+    \ recovery and canonical copy until the cutover in PLAN.md section 7 is formally closed."
+  "landing":
+    "setting": "custom-homepage-dashboard"
+    "value": 32
+    "previous_value": 3
+    "changed": "2026-10-30"
+    "rollback": "set custom-homepage-dashboard back to 3"
+  "collection_access": "Collection 10 sits under collection 5 (location /5/); Loan Report Partners have read (collection graph\
+    \ revision 7), Administrators write."
+  "known_gap": "Question 276 (Reporting connection SELECT 1, collection 9 monitoring) on the Data health tab is not readable\
+    \ by partners; they see a permission notice on that card. Owner decision open: remove it from dashboard 32 or leave admin-only."
   "canonical_dashboard_id": 3
   "dashboard_id": 32
   "database_id": 2
@@ -31,11 +42,11 @@
   "counts":
     "tabs": 12
     "parameters": 22
-    "placements": 227
+    "placements": 228
     "reused_placements": 158
     "reused_questions": 153
-    "new_questions": 24
-    "new_question_placements": 24
+    "new_questions": 25
+    "new_question_placements": 25
     "text_and_heading_cards": 44
     "iframe_cards": 1
   "new_question_ids":
@@ -63,6 +74,7 @@
     "collection.lane-paid": 400
     "partners.statement": 401
     "today.principal-vs-pool": 402
+    "collection.lane-long-overdue": 414
   "new_question_records":
     "today.principal-smart": "questions/proposed-today-principal-smart.yaml"
     "today.realization": "questions/proposed-today-realization.yaml"
@@ -88,6 +100,7 @@
     "collection.lane-paid": "questions/proposed-collection-lane-paid.yaml"
     "partners.statement": "questions/proposed-partners-statement.yaml"
     "today.principal-vs-pool": "questions/proposed-today-principal-vs-pool.yaml"
+    "collection.lane-long-overdue": "questions/proposed-collection-lane-long-overdue.yaml"
   "tabs":
   - "id": 375
     "name": "Today"
@@ -1878,7 +1891,7 @@
       "virtual": "text"
       "text": "Allocations are not unique receipts · corrections stay signed."
     "collection":
-    - "dashcard_id": 8967
+    - "dashcard_id": 9168
       "row": 0
       "col": 0
       "size_x": 18
@@ -1886,7 +1899,7 @@
       "card_id": null
       "virtual": "text"
       "text": "**Collection · today** · live · filters apply to the detail table only."
-    - "dashcard_id": 8968
+    - "dashcard_id": 9169
       "row": 0
       "col": 18
       "size_x": 6
@@ -1895,7 +1908,7 @@
       "title": "As of · Bangkok"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 8969
+    - "dashcard_id": 9170
       "row": 2
       "col": 0
       "size_x": 6
@@ -1904,7 +1917,7 @@
       "title": "Collected today"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 8970
+    - "dashcard_id": 9171
       "row": 2
       "col": 6
       "size_x": 6
@@ -1913,7 +1926,7 @@
       "title": "Left to collect"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 8971
+    - "dashcard_id": 9172
       "row": 2
       "col": 12
       "size_x": 6
@@ -1923,7 +1936,7 @@
       "source": "new"
       "question_key": "collection.people"
       "parameters": []
-    - "dashcard_id": 8972
+    - "dashcard_id": 9173
       "row": 2
       "col": 18
       "size_x": 6
@@ -1932,7 +1945,7 @@
       "title": "Today's charges · paid %"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 8973
+    - "dashcard_id": 9174
       "row": 5
       "col": 0
       "size_x": 24
@@ -1942,47 +1955,57 @@
       "source": "new"
       "question_key": "collection.board"
       "parameters": []
-    - "dashcard_id": 8974
+    - "dashcard_id": 9175
       "row": 11
       "col": 0
-      "size_x": 6
+      "size_x": 5
       "size_y": 9
       "card_id": 397
       "title": "\U0001F534 Not paid"
       "source": "new"
       "question_key": "collection.lane-not-paid"
       "parameters": []
-    - "dashcard_id": 8975
+    - "dashcard_id": 9176
       "row": 11
-      "col": 6
-      "size_x": 6
+      "col": 5
+      "size_x": 5
       "size_y": 9
       "card_id": 398
       "title": "\U0001F7E0 Partially paid"
       "source": "new"
       "question_key": "collection.lane-partial"
       "parameters": []
-    - "dashcard_id": 8976
+    - "dashcard_id": 9177
       "row": 11
-      "col": 12
-      "size_x": 6
+      "col": 10
+      "size_x": 5
       "size_y": 9
       "card_id": 399
       "title": "\U0001F7E3 Overdue"
       "source": "new"
       "question_key": "collection.lane-overdue"
       "parameters": []
-    - "dashcard_id": 8977
+    - "dashcard_id": 9178
       "row": 11
-      "col": 18
-      "size_x": 6
+      "col": 15
+      "size_x": 5
+      "size_y": 9
+      "card_id": 414
+      "title": "⚫ Long overdue"
+      "source": "new"
+      "question_key": "collection.lane-long-overdue"
+      "parameters": []
+    - "dashcard_id": 9179
+      "row": 11
+      "col": 20
+      "size_x": 4
       "size_y": 9
       "card_id": 400
       "title": "\U0001F7E2 Fully paid"
       "source": "new"
       "question_key": "collection.lane-paid"
       "parameters": []
-    - "dashcard_id": 8978
+    - "dashcard_id": 9180
       "row": 20
       "col": 0
       "size_x": 24
@@ -1993,7 +2016,7 @@
       "parameters":
       - "collection-borrower"
       - "collection-status"
-    - "dashcard_id": 8979
+    - "dashcard_id": 9181
       "row": 30
       "col": 0
       "size_x": 24
@@ -2002,7 +2025,7 @@
       "title": "Charges dated today · not board balances"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 8980
+    - "dashcard_id": 9182
       "row": 33
       "col": 0
       "size_x": 24
@@ -2011,7 +2034,7 @@
       "title": "Overdue charges · completed days"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 8981
+    - "dashcard_id": 9183
       "row": 39
       "col": 0
       "size_x": 24
