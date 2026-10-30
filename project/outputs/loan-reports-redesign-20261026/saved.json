@@ -6359,851 +6359,6 @@
       }
     },
     {
-      "id": 9004,
-      "card_id": null,
-      "dashboard_tab_id": 386,
-      "row": 0,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 2,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "text.align_vertical": "top",
-        "virtual_card": {
-          "display": "text",
-          "visualization_settings": {
-            "text": "**Data health** · freshness, coverage and source checks per page.",
-            "text.align_vertical": "top"
-          }
-        },
-        "text": "**Data health** · freshness, coverage and source checks per page."
-      }
-    },
-    {
-      "id": 9005,
-      "card_id": 276,
-      "dashboard_tab_id": 386,
-      "row": 2,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Reporting connection · SELECT 1"
-      }
-    },
-    {
-      "id": 9006,
-      "card_id": 257,
-      "dashboard_tab_id": 386,
-      "row": 2,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.title": "Queried at · Bangkok"
-      }
-    },
-    {
-      "id": 9007,
-      "card_id": null,
-      "dashboard_tab_id": 386,
-      "row": 5,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Cash Position"
-          }
-        },
-        "text": "Cash Position"
-      }
-    },
-    {
-      "id": 9008,
-      "card_id": 209,
-      "dashboard_tab_id": 386,
-      "row": 6,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "position-date",
-          "card_id": 209,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "position_date"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Cash position · source and freshness"
-      }
-    },
-    {
-      "id": 9009,
-      "card_id": null,
-      "dashboard_tab_id": 386,
-      "row": 12,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Income"
-          }
-        },
-        "text": "Income"
-      }
-    },
-    {
-      "id": 9010,
-      "card_id": 184,
-      "dashboard_tab_id": 386,
-      "row": 13,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 184,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "table.pivot": false,
-        "card.title": "Income period and freshness"
-      }
-    },
-    {
-      "id": 9011,
-      "card_id": 214,
-      "dashboard_tab_id": 386,
-      "row": 13,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 6,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 214,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "statement_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Profit trend snapshot freshness"
-      }
-    },
-    {
-      "id": 9012,
-      "card_id": null,
-      "dashboard_tab_id": 386,
-      "row": 19,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Cashflow"
-          }
-        },
-        "text": "Cashflow"
-      }
-    },
-    {
-      "id": 9013,
-      "card_id": 198,
-      "dashboard_tab_id": 386,
-      "row": 20,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 198,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 198,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Cashflow period and freshness"
-      }
-    },
-    {
-      "id": 9014,
-      "card_id": 216,
-      "dashboard_tab_id": 386,
-      "row": 20,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 8,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "statement-period",
-          "card_id": 216,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "cashflow_period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "account",
-          "card_id": 216,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cash_account"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Cash trend snapshot freshness"
-      }
-    },
-    {
-      "id": 9015,
-      "card_id": null,
-      "dashboard_tab_id": 386,
-      "row": 28,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Performance"
-          }
-        },
-        "text": "Performance"
-      }
-    },
-    {
-      "id": 9016,
-      "card_id": 221,
-      "dashboard_tab_id": 386,
-      "row": 29,
-      "col": 0,
-      "size_x": 8,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 221,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Live period and source"
-      }
-    },
-    {
-      "id": 9017,
-      "card_id": 228,
-      "dashboard_tab_id": 386,
-      "row": 29,
-      "col": 8,
-      "size_x": 16,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 228,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Snapshot coverage and generation times"
-      }
-    },
-    {
-      "id": 9018,
-      "card_id": 231,
-      "dashboard_tab_id": 386,
-      "row": 36,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 231,
-          "target": [
-            "dimension",
-            [
-              "field",
-              "Date",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Rolling-average coverage"
-      }
-    },
-    {
-      "id": 9019,
-      "card_id": null,
-      "dashboard_tab_id": 386,
-      "row": 40,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Borrowers and Borrower Detail"
-          }
-        },
-        "text": "Borrowers and Borrower Detail"
-      }
-    },
-    {
-      "id": 9020,
-      "card_id": 284,
-      "dashboard_tab_id": 386,
-      "row": 41,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 284,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "population",
-          "card_id": 284,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Period, population and source"
-      }
-    },
-    {
-      "id": 9021,
-      "card_id": 315,
-      "dashboard_tab_id": 386,
-      "row": 41,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 4,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "population",
-          "card_id": 315,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "population"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Overall charts · dates and availability"
-      }
-    },
-    {
-      "id": 9022,
-      "card_id": 300,
-      "dashboard_tab_id": 386,
-      "row": 45,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 5,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "period",
-          "card_id": 300,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "period"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "borrower",
-          "card_id": 300,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "borrower_id"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Activity dates and lifetime context"
-      }
-    },
-    {
-      "id": 9023,
-      "card_id": null,
-      "dashboard_tab_id": 386,
-      "row": 50,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Partners"
-          }
-        },
-        "text": "Partners"
-      }
-    },
-    {
-      "id": 9024,
-      "card_id": 332,
-      "dashboard_tab_id": 386,
-      "row": 51,
-      "col": 0,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "partner",
-          "card_id": 332,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "partner"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "How net available is calculated"
-      }
-    },
-    {
-      "id": 9025,
-      "card_id": 343,
-      "dashboard_tab_id": 386,
-      "row": 51,
-      "col": 12,
-      "size_x": 12,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "partner",
-          "card_id": 343,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "partner"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Source and balance checks"
-      }
-    },
-    {
-      "id": 9026,
-      "card_id": null,
-      "dashboard_tab_id": 386,
-      "row": 58,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 1,
-      "series": [],
-      "parameter_mappings": [],
-      "visualization_settings": {
-        "card.background": false,
-        "virtual_card": {
-          "display": "heading",
-          "visualization_settings": {
-            "text": "Forecast"
-          }
-        },
-        "text": "Forecast"
-      }
-    },
-    {
-      "id": 9027,
-      "card_id": 363,
-      "dashboard_tab_id": 386,
-      "row": 59,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 7,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 363,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 363,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 363,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 363,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 363,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 363,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Forecast coverage and exceptions"
-      }
-    },
-    {
-      "id": 9028,
-      "card_id": 361,
-      "dashboard_tab_id": 386,
-      "row": 66,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 10,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 361,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 361,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 361,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 361,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 361,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 361,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Loan forecast detail",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}"
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": 9029,
-      "card_id": 362,
-      "dashboard_tab_id": 386,
-      "row": 76,
-      "col": 0,
-      "size_x": 24,
-      "size_y": 10,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "interest-collected",
-          "card_id": 362,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "ci"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "principal-collected",
-          "card_id": 362,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "cp"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "overdue-recovered",
-          "card_id": 362,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "rr"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "scenario",
-          "card_id": 362,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "scenario"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "loan-kind",
-          "card_id": 362,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "kind"
-            ]
-          ]
-        },
-        {
-          "parameter_id": "target",
-          "card_id": 362,
-          "target": [
-            "variable",
-            [
-              "template-tag",
-              "target"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {
-        "card.title": "Recorded and simulated obligations",
-        "column_settings": {
-          "[\"name\",\"Borrower\"]": {
-            "click_behavior": {
-              "type": "link",
-              "linkType": "url",
-              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}"
-            }
-          }
-        }
-      }
-    },
-    {
       "id": 9044,
       "card_id": null,
       "dashboard_tab_id": 380,
@@ -10884,6 +10039,837 @@
           }
         },
         "text": "Received = receipts today · Left includes older dues · refresh moves lanes."
+      }
+    },
+    {
+      "id": 9184,
+      "card_id": null,
+      "dashboard_tab_id": 386,
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "text.align_vertical": "top",
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Data health** · freshness, coverage and source checks per page.",
+            "text.align_vertical": "top"
+          }
+        },
+        "text": "**Data health** · freshness, coverage and source checks per page."
+      }
+    },
+    {
+      "id": 9185,
+      "card_id": 257,
+      "dashboard_tab_id": 386,
+      "row": 2,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Queried at · Bangkok"
+      }
+    },
+    {
+      "id": 9186,
+      "card_id": null,
+      "dashboard_tab_id": 386,
+      "row": 5,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Cash Position"
+          }
+        },
+        "text": "Cash Position"
+      }
+    },
+    {
+      "id": 9187,
+      "card_id": 209,
+      "dashboard_tab_id": 386,
+      "row": 6,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "position-date",
+          "card_id": 209,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cash position · source and freshness"
+      }
+    },
+    {
+      "id": 9188,
+      "card_id": null,
+      "dashboard_tab_id": 386,
+      "row": 12,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Income"
+          }
+        },
+        "text": "Income"
+      }
+    },
+    {
+      "id": 9189,
+      "card_id": 184,
+      "dashboard_tab_id": 386,
+      "row": 13,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 184,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "table.pivot": false,
+        "card.title": "Income period and freshness"
+      }
+    },
+    {
+      "id": 9190,
+      "card_id": 214,
+      "dashboard_tab_id": 386,
+      "row": 13,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 214,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Profit trend snapshot freshness"
+      }
+    },
+    {
+      "id": 9191,
+      "card_id": null,
+      "dashboard_tab_id": 386,
+      "row": 19,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Cashflow"
+          }
+        },
+        "text": "Cashflow"
+      }
+    },
+    {
+      "id": 9192,
+      "card_id": 198,
+      "dashboard_tab_id": 386,
+      "row": 20,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 198,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 198,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cashflow period and freshness"
+      }
+    },
+    {
+      "id": 9193,
+      "card_id": 216,
+      "dashboard_tab_id": 386,
+      "row": 20,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 216,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "cashflow_period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "account",
+          "card_id": 216,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cash_account"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cash trend snapshot freshness"
+      }
+    },
+    {
+      "id": 9194,
+      "card_id": null,
+      "dashboard_tab_id": 386,
+      "row": 28,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Performance"
+          }
+        },
+        "text": "Performance"
+      }
+    },
+    {
+      "id": 9195,
+      "card_id": 221,
+      "dashboard_tab_id": 386,
+      "row": 29,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 221,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Live period and source"
+      }
+    },
+    {
+      "id": 9196,
+      "card_id": 228,
+      "dashboard_tab_id": 386,
+      "row": 29,
+      "col": 8,
+      "size_x": 16,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 228,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Snapshot coverage and generation times"
+      }
+    },
+    {
+      "id": 9197,
+      "card_id": 231,
+      "dashboard_tab_id": 386,
+      "row": 36,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 231,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Rolling-average coverage"
+      }
+    },
+    {
+      "id": 9198,
+      "card_id": null,
+      "dashboard_tab_id": 386,
+      "row": 40,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Borrowers and Borrower Detail"
+          }
+        },
+        "text": "Borrowers and Borrower Detail"
+      }
+    },
+    {
+      "id": 9199,
+      "card_id": 284,
+      "dashboard_tab_id": 386,
+      "row": 41,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 284,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "population",
+          "card_id": 284,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Period, population and source"
+      }
+    },
+    {
+      "id": 9200,
+      "card_id": 315,
+      "dashboard_tab_id": 386,
+      "row": 41,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "population",
+          "card_id": 315,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Overall charts · dates and availability"
+      }
+    },
+    {
+      "id": 9201,
+      "card_id": 300,
+      "dashboard_tab_id": 386,
+      "row": 45,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 5,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "period",
+          "card_id": 300,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "borrower",
+          "card_id": 300,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "borrower_id"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Activity dates and lifetime context"
+      }
+    },
+    {
+      "id": 9202,
+      "card_id": null,
+      "dashboard_tab_id": 386,
+      "row": 50,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Partners"
+          }
+        },
+        "text": "Partners"
+      }
+    },
+    {
+      "id": 9203,
+      "card_id": 332,
+      "dashboard_tab_id": 386,
+      "row": 51,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "partner",
+          "card_id": 332,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "How net available is calculated"
+      }
+    },
+    {
+      "id": 9204,
+      "card_id": 343,
+      "dashboard_tab_id": 386,
+      "row": 51,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "partner",
+          "card_id": 343,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "partner"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Source and balance checks"
+      }
+    },
+    {
+      "id": 9205,
+      "card_id": null,
+      "dashboard_tab_id": 386,
+      "row": 58,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Forecast"
+          }
+        },
+        "text": "Forecast"
+      }
+    },
+    {
+      "id": 9206,
+      "card_id": 363,
+      "dashboard_tab_id": 386,
+      "row": 59,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 363,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 363,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 363,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 363,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 363,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 363,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Forecast coverage and exceptions"
+      }
+    },
+    {
+      "id": 9207,
+      "card_id": 361,
+      "dashboard_tab_id": 386,
+      "row": 66,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 361,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 361,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 361,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 361,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 361,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 361,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Loan forecast detail",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 9208,
+      "card_id": 362,
+      "dashboard_tab_id": 386,
+      "row": 76,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "interest-collected",
+          "card_id": 362,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "ci"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "principal-collected",
+          "card_id": 362,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "cp"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "overdue-recovered",
+          "card_id": 362,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "rr"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "scenario",
+          "card_id": 362,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "scenario"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "loan-kind",
+          "card_id": 362,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "kind"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "target",
+          "card_id": 362,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "target"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Recorded and simulated obligations",
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/32?tab=382&borrower={{Borrower ID}}"
+            }
+          }
+        }
       }
     }
   ]

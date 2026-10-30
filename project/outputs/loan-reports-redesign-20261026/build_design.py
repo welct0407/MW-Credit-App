@@ -101,7 +101,7 @@ PLAN_PARAMS = FORECAST_PARAMS + ['plan-lending', 'plan-expenses', 'plan-withdraw
 # Shared visualization fragments
 BAHT = {'number_style': 'decimal', 'decimals': 0, 'number_separators': '.,', 'compact': False}
 PCT = {'number_style': 'percent', 'decimals': 1, 'number_separators': '.,'}
-STATUS = {'not_paid': '#ED6E6E', 'partial': '#F9A825', 'overdue': '#7172AD', 'paid': '#1E9F5A'}
+STATUS = {'not_paid': '#ED6E6E', 'partial': '#F9A825', 'overdue': '#7172AD', 'long': '#90A4AE', 'paid': '#1E9F5A'}
 BLUE, TEAL, ORANGE = '#509EE3', '#178F8A', '#EB6834'
 
 
@@ -362,12 +362,12 @@ NEW_QUESTIONS = {
     'collection.board': {
         'name': 'Collection board · lanes summary', 'display': 'table', 'kind': 'native',
         'basis': 'model 162 Collection Status Summary', 'origin': 242, 'params': [],
-        'definition': 'One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, 🟢 Fully paid; all four '
-                      'always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and '
+        'definition': 'One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, ⚫ Long overdue (R102, V114), '
+                      '🟢 Fully paid; all five always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and '
                       'Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card.',
-        'sql': "WITH lanes(ord,status,label,tint) AS (VALUES (1,'Not Paid','🔴 Not paid','not_paid'),(2,'Partially Paid','🟠 Partially paid','partial'),(3,'Overdue','🟣 Overdue','overdue'),(4,'Fully Paid','🟢 Fully paid','paid')),\n"
+        'sql': "WITH lanes(ord,status,label,tint) AS (VALUES (1,'Not Paid','🔴 Not paid','not_paid'),(2,'Partially Paid','🟠 Partially paid','partial'),(3,'Overdue','🟣 Overdue','overdue'),(4,'Long Overdue','⚫ Long overdue','long'),(5,'Fully Paid','🟢 Fully paid','paid')),\n"
                " rows AS (SELECT l.ord,l.label,l.tint,coalesce(s.\"Borrower Count\",0) people,coalesce(s.\"Amount Remaining\",0) remaining,coalesce(s.\"Receipts Today\",0) received FROM lanes l LEFT JOIN {{#162}} s ON s.\"Collection Status\"=l.status\n"
-               " UNION ALL SELECT 9,'⚪ '||coalesce(s.\"Collection Status\",'Unclassified'),'',s.\"Borrower Count\",s.\"Amount Remaining\",s.\"Receipts Today\" FROM {{#162}} s WHERE s.\"Collection Status\" IS NULL OR s.\"Collection Status\" NOT IN ('Not Paid','Partially Paid','Overdue','Fully Paid'))\n"
+               " UNION ALL SELECT 9,'⚪ '||coalesce(s.\"Collection Status\",'Unclassified'),'',s.\"Borrower Count\",s.\"Amount Remaining\",s.\"Receipts Today\" FROM {{#162}} s WHERE s.\"Collection Status\" IS NULL OR s.\"Collection Status\" NOT IN ('Not Paid','Partially Paid','Overdue','Long Overdue','Fully Paid'))\n"
                "SELECT label AS \"Lane\",people AS \"People\",remaining AS \"Left ฿\",received AS \"Received ฿\",tint AS \"Tint\" FROM rows ORDER BY ord,label",
         'settings': {'table.pivot': False, 'column_settings': {**titled('Left ฿', 'Left'), **titled('Received ฿', 'Received')}, 'table.column_widths': [110, 75, 69, 86],
                      'table.columns': [{'name': n, 'enabled': n != 'Tint'} for n in ['Lane', 'People', 'Left ฿', 'Received ฿', 'Tint']],
@@ -375,12 +375,21 @@ NEW_QUESTIONS = {
                          {'id': 0, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'not_paid', 'color': STATUS['not_paid'], 'highlight_row': True},
                          {'id': 1, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'partial', 'color': STATUS['partial'], 'highlight_row': True},
                          {'id': 2, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'overdue', 'color': STATUS['overdue'], 'highlight_row': True},
+                         {'id': 4, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'long', 'color': STATUS['long'], 'highlight_row': True},
                          {'id': 3, 'columns': ['Tint'], 'type': 'single', 'operator': '=', 'value': 'paid', 'color': STATUS['paid'], 'highlight_row': True}]},
         'reconcile': 'People per lane equal questions 242, 244, 240, 246; the ⚪ rows\' People sum equals question 251; Left ฿ per lane equals the sum of that lane table\'s Left column.',
     },
     'collection.lane-not-paid': lane('Not Paid', '🔴 Not paid', 'Amount Due', 'Due', 'Amount Remaining', 'Left', 'Amount Remaining', 243, STATUS['not_paid'], [80, 76, 76]),
     'collection.lane-partial': lane('Partially Paid', '🟠 Partially paid', 'Receipts Today', 'Paid', 'Amount Remaining', 'Left', 'Amount Remaining', 245, STATUS['partial'], [80, 76, 76]),
     'collection.lane-overdue': lane('Overdue', '🟣 Overdue', 'Overdue Amount', 'Overdue', 'Amount Remaining', 'Left', 'Overdue Amount', 241, STATUS['overdue'], [72, 90, 70]),
+    # R102 (V114) long-overdue lane, ported from the hand-edited layout.json: settings copied from question 241 as applied,
+    # including its tint rule on status = 'Overdue' (which cannot match this lane's rows; flagged, not changed here).
+    'collection.lane-long-overdue': {**lane('Long Overdue', '⚫ Long overdue', 'Overdue Amount', 'Overdue', 'Amount Remaining', 'Left', 'Overdue Amount', 241, STATUS['overdue'], [72, 90, 70]),
+        'definition': "MBQL on model 77 filtered Daily Collection Status = 'Long Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', "
+                      "'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as the R102 long-overdue "
+                      "list question (AddLongOverdueLane.mjs), resorted; settings copied from question 241. Column titles Name / Overdue / Left; "
+                      "widths [72, 90, 70] px for the three visible columns.",
+        'reconcile': 'Same Borrower set and the same values per borrower as the R102 long-overdue list question (order differs).'},
     'collection.lane-paid': lane('Fully Paid', '🟢 Fully paid', 'Receipts Today', 'Paid', 'Amount Due', 'Due', 'Receipts Today', 247, STATUS['paid'], [80, 76, 76]),
     # ---- Partners ----------------------------------------------------------------------------------------
     'partners.statement': {
@@ -405,6 +414,9 @@ NEW_QUESTIONS = {
         'reconcile': 'Rows equal question 331 (built, verified).',
     },
 }
+
+# Main's layout.json carries question 241's rule verbatim on the long-overdue lane (status = 'Overdue'); reproduced as applied.
+NEW_QUESTIONS['collection.lane-long-overdue']['settings']['table.column_formatting'][0]['value'] = 'Overdue'
 
 # Placement-level column sets for wide reused tables (names are the saved question's result_metadata names).
 COLUMNS_289 = {'order': ['Borrower', 'BCG Matrix category', 'Current health', 'Active loans', 'Principal ฿',
@@ -652,18 +664,19 @@ TABS = [
             [(237, 6, 3, {'title': 'Collected today'}), (238, 6, 3, {'title': 'Left to collect'}),
              ('collection.people', 6, 3, {'title': 'People paid today'}), (252, 6, 3, {'title': "Today's charges · paid %"})],
             [('collection.board', 24, 6, {'title': 'Board · people and baht per lane'})],
-            [('collection.lane-not-paid', 6, 9, {'title': '🔴 Not paid', 'note': 'Due ฿ · Left ฿, sorted by amount left'}),
-             ('collection.lane-partial', 6, 9, {'title': '🟠 Partially paid', 'note': 'Received ฿ · Left ฿, sorted by amount left'}),
-             ('collection.lane-overdue', 6, 9, {'title': '🟣 Overdue', 'note': 'Overdue ฿ · Left ฿, sorted by overdue amount'}),
-             ('collection.lane-paid', 6, 9, {'title': '🟢 Fully paid', 'note': 'Received ฿ · Due ฿, sorted by received'})],
+            [('collection.lane-not-paid', 5, 9, {'title': '🔴 Not paid', 'note': 'Due ฿ · Left ฿, sorted by amount left'}),
+             ('collection.lane-partial', 5, 9, {'title': '🟠 Partially paid', 'note': 'Received ฿ · Left ฿, sorted by amount left'}),
+             ('collection.lane-overdue', 5, 9, {'title': '🟣 Overdue', 'note': 'Overdue ฿ · Left ฿, sorted by overdue amount'}),
+             ('collection.lane-long-overdue', 5, 9, {'title': '⚫ Long overdue', 'note': 'Overdue ฿ · Left ฿, 8+ days, sorted by overdue amount'}),
+             ('collection.lane-paid', 4, 9, {'title': '🟢 Fully paid', 'note': 'Received ฿ · Due ฿, sorted by received'})],
             [(248, 24, 10, {'title': 'Collection detail · filters apply here', 'columns': COLUMNS_248})],
             [(249, 24, 3, {'title': 'Charges dated today · not board balances', 'description': 'Charges dated today are a separate drill-down, not board balances.'})],
             [(64, 24, 6, {'title': 'Overdue charges · completed days', 'params': []})],
             [T('Received = receipts today · Left includes older dues · refresh moves lanes.', 24)],
         ],
         'dropped': [250, 239, 242, 244, 240, 246, 251, 243, 245, 241, 247],
-        'phone': 'Thirteen cards instead of eighteen: As of, four numbers, the board strip, the four lanes in the order '
-                 'Not paid, Partially paid, Overdue, Fully paid, the detail table, charges today, the overdue trend. The lane '
+        'phone': 'Fourteen cards instead of eighteen: As of, four numbers, the board strip, the five lanes in the order '
+                 'Not paid, Partially paid, Overdue, Long overdue, Fully paid, the detail table, charges today, the overdue trend. The lane '
                  'tables carry three visible columns so they fit a phone without a phone-specific column set.',
     },
     {
@@ -725,7 +738,7 @@ TABS = [
         'replaces': 'new tab; cards moved from tabs 14, 16, 15, 18, 104, 105, 249 and 262',
         'rows': [
             [T('**Data health** · freshness, coverage and source checks per page.', 24)],
-            [(276, 12, 3, {'title': 'Reporting connection · SELECT 1'}), (257, 12, 3, {'title': 'Queried at · Bangkok'})],
+            [(257, 24, 3, {'title': 'Queried at · Bangkok'})],
             [H('Cash Position')], [(209, 24, 6, {'title': 'Cash position · source and freshness'})],
             [H('Income')], [(184, 12, 6, {'title': 'Income period and freshness'}), (214, 12, 6, {'title': 'Profit trend snapshot freshness'})],
             [H('Cashflow')], [(198, 12, 8, {'title': 'Cashflow period and freshness'}), (216, 12, 8, {'title': 'Cash trend snapshot freshness'})],
@@ -737,7 +750,7 @@ TABS = [
             [H('Forecast')], [(363, 24, 7, {'title': 'Forecast coverage and exceptions'})],
             [(361, 24, 10, {'title': 'Loan forecast detail'})], [(362, 24, 10, {'title': 'Recorded and simulated obligations'})],
         ],
-        'dropped': [250],
+        'dropped': [250, 276],
         'phone': 'Reference only; tables scroll.',
     },
 ]

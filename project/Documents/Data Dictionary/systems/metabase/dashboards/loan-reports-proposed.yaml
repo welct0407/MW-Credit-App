@@ -20,8 +20,10 @@
     "rollback": "set custom-homepage-dashboard back to 3"
   "collection_access": "Collection 10 sits under collection 5 (location /5/); Loan Report Partners have read (collection graph\
     \ revision 7), Administrators write."
-  "known_gap": "Question 276 (Reporting connection SELECT 1, collection 9 monitoring) on the Data health tab is not readable\
-    \ by partners; they see a permission notice on that card. Owner decision open: remove it from dashboard 32 or leave admin-only."
+  "removed_cards": "Question 276 (Reporting connection SELECT 1, monitoring) was removed from the Data health tab on 30 October\
+    \ 2026 at the owner request; partners could not read it."
+  "open_item": "The long-overdue lane (question 414) copies 241 tint rule (status = Overdue), which never matches its rows,\
+    \ so the lane has no row tint; owner to decide, one-line fix available."
   "canonical_dashboard_id": 3
   "dashboard_id": 32
   "database_id": 2
@@ -42,9 +44,9 @@
   "counts":
     "tabs": 12
     "parameters": 22
-    "placements": 228
-    "reused_placements": 158
-    "reused_questions": 153
+    "placements": 227
+    "reused_placements": 157
+    "reused_questions": 152
     "new_questions": 25
     "new_question_placements": 25
     "text_and_heading_cards": 44
@@ -2576,7 +2578,7 @@
       "virtual": "text"
       "text": "Recorded before simulated · planned lending adds no income · not a minimum."
     "data-health":
-    - "dashcard_id": 9004
+    - "dashcard_id": 9184
       "row": 0
       "col": 0
       "size_x": 24
@@ -2584,25 +2586,16 @@
       "card_id": null
       "virtual": "text"
       "text": "**Data health** · freshness, coverage and source checks per page."
-    - "dashcard_id": 9005
+    - "dashcard_id": 9185
       "row": 2
       "col": 0
-      "size_x": 12
-      "size_y": 3
-      "card_id": 276
-      "title": "Reporting connection · SELECT 1"
-      "source": "reused"
-      "parameters": []
-    - "dashcard_id": 9006
-      "row": 2
-      "col": 12
-      "size_x": 12
+      "size_x": 24
       "size_y": 3
       "card_id": 257
       "title": "Queried at · Bangkok"
       "source": "reused"
       "parameters": []
-    - "dashcard_id": 9007
+    - "dashcard_id": 9186
       "row": 5
       "col": 0
       "size_x": 24
@@ -2610,7 +2603,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Cash Position"
-    - "dashcard_id": 9008
+    - "dashcard_id": 9187
       "row": 6
       "col": 0
       "size_x": 24
@@ -2620,7 +2613,7 @@
       "source": "reused"
       "parameters":
       - "position-date"
-    - "dashcard_id": 9009
+    - "dashcard_id": 9188
       "row": 12
       "col": 0
       "size_x": 24
@@ -2628,7 +2621,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Income"
-    - "dashcard_id": 9010
+    - "dashcard_id": 9189
       "row": 13
       "col": 0
       "size_x": 12
@@ -2638,7 +2631,7 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9011
+    - "dashcard_id": 9190
       "row": 13
       "col": 12
       "size_x": 12
@@ -2648,7 +2641,7 @@
       "source": "reused"
       "parameters":
       - "statement-period"
-    - "dashcard_id": 9012
+    - "dashcard_id": 9191
       "row": 19
       "col": 0
       "size_x": 24
@@ -2656,7 +2649,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Cashflow"
-    - "dashcard_id": 9013
+    - "dashcard_id": 9192
       "row": 20
       "col": 0
       "size_x": 12
@@ -2667,7 +2660,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9014
+    - "dashcard_id": 9193
       "row": 20
       "col": 12
       "size_x": 12
@@ -2678,7 +2671,7 @@
       "parameters":
       - "statement-period"
       - "account"
-    - "dashcard_id": 9015
+    - "dashcard_id": 9194
       "row": 28
       "col": 0
       "size_x": 24
@@ -2686,7 +2679,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Performance"
-    - "dashcard_id": 9016
+    - "dashcard_id": 9195
       "row": 29
       "col": 0
       "size_x": 8
@@ -2696,7 +2689,7 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 9017
+    - "dashcard_id": 9196
       "row": 29
       "col": 8
       "size_x": 16
@@ -2706,7 +2699,7 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 9018
+    - "dashcard_id": 9197
       "row": 36
       "col": 0
       "size_x": 24
@@ -2716,7 +2709,7 @@
       "source": "reused"
       "parameters":
       - "period"
-    - "dashcard_id": 9019
+    - "dashcard_id": 9198
       "row": 40
       "col": 0
       "size_x": 24
@@ -2724,7 +2717,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Borrowers and Borrower Detail"
-    - "dashcard_id": 9020
+    - "dashcard_id": 9199
       "row": 41
       "col": 0
       "size_x": 12
@@ -2735,7 +2728,7 @@
       "parameters":
       - "period"
       - "population"
-    - "dashcard_id": 9021
+    - "dashcard_id": 9200
       "row": 41
       "col": 12
       "size_x": 12
@@ -2745,7 +2738,7 @@
       "source": "reused"
       "parameters":
       - "population"
-    - "dashcard_id": 9022
+    - "dashcard_id": 9201
       "row": 45
       "col": 0
       "size_x": 24
@@ -2756,7 +2749,7 @@
       "parameters":
       - "period"
       - "borrower"
-    - "dashcard_id": 9023
+    - "dashcard_id": 9202
       "row": 50
       "col": 0
       "size_x": 24
@@ -2764,7 +2757,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Partners"
-    - "dashcard_id": 9024
+    - "dashcard_id": 9203
       "row": 51
       "col": 0
       "size_x": 12
@@ -2774,7 +2767,7 @@
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 9025
+    - "dashcard_id": 9204
       "row": 51
       "col": 12
       "size_x": 12
@@ -2784,7 +2777,7 @@
       "source": "reused"
       "parameters":
       - "partner"
-    - "dashcard_id": 9026
+    - "dashcard_id": 9205
       "row": 58
       "col": 0
       "size_x": 24
@@ -2792,7 +2785,7 @@
       "card_id": null
       "virtual": "heading"
       "text": "Forecast"
-    - "dashcard_id": 9027
+    - "dashcard_id": 9206
       "row": 59
       "col": 0
       "size_x": 24
@@ -2807,7 +2800,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 9028
+    - "dashcard_id": 9207
       "row": 66
       "col": 0
       "size_x": 24
@@ -2822,7 +2815,7 @@
       - "scenario"
       - "loan-kind"
       - "target"
-    - "dashcard_id": 9029
+    - "dashcard_id": 9208
       "row": 76
       "col": 0
       "size_x": 24

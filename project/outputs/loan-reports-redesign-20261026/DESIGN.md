@@ -34,7 +34,7 @@ The BCG matrix on Borrower Health is live dashcard 1501 (an iframe with a bearer
 The tables below are generated from `build_design.py`. Positions are grid row/column on Metabase's 24-column grid; sizes are width × height in grid units. "reuse qNNN" is an existing saved question; "new `key`" is defined in the New questions table.
 
 <!-- GENERATED:START -->
-12 tabs, 227 placements, 22 filters, 153 reused saved questions, 24 new questions.
+12 tabs, 227 placements, 22 filters, 152 reused saved questions, 25 new questions.
 
 Metabase renders one column below about 760 px: every card full width, in grid order (row, then column), with a fixed height per display type (numbers and text about 4 units, tables, charts and iframes 6). There is no per-device layout, no side-by-side pair and no phone column set; the design therefore reduces card counts on the daily pages (Today, Collection) and keeps the desktop order as the phone order.
 
@@ -87,10 +87,11 @@ Metabase renders one column below about 760 px: every card full width, in grid o
 | `borrowers.principal-top5` | Principal outstanding by borrower · top five + others | row | q285 | view reporting_borrower_directory_v1 (same query as question 285) | population | Question 285's query with rank<=10 changed to rank<=5 (both occurrences) and the label 'Others' replaced by 'Others ('\|\|(SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(outstanding_principal,0)<>0)\|\|')' (n counts only borrowers with a non-zero amount). Template tag population copied verbatim; maps `population` as 285 maps bp-population. | Sum of bars equals the sum of question 285's bars; the five named bars equal 285's first five, for two Population values. |
 | `borrowers.interest-top5` | Interest received · period by borrower · top five + others | row | q286 | function reporting_borrower_period_v1 (same query as question 286) | period, population | Question 286's query with the same two edits as borrowers.principal-top5, the count being (SELECT count(*) FROM ranked WHERE rank>5 AND coalesce(interest_received,0)<>0). Template tags period and population copied verbatim; maps `period` and `population` as 286 maps bp-period and bp-population. | Sum of bars equals the sum of question 286's bars; named bars equal 286's first five, for two Periods. |
 | `collection.people` | People paid today · x of n | scalar | q239 | model 162 Collection Status Summary | none | Text scalar "<fully paid> of <people with a status today> paid" from model 162 Borrower Count. Replaces the percent card 239 with the prototype's wording. | First number equals question 246; first ÷ second equals question 239. |
-| `collection.board` | Collection board · lanes summary | table | q242 | model 162 Collection Status Summary | none | One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, 🟢 Fully paid; all four always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card. | People per lane equal questions 242, 244, 240, 246; the ⚪ rows' People sum equals question 251; Left ฿ per lane equals the sum of that lane table's Left column. |
+| `collection.board` | Collection board · lanes summary | table | q242 | model 162 Collection Status Summary | none | One row per lane in board order (🔴 Not paid, 🟠 Partially paid, 🟣 Overdue, ⚫ Long overdue (R102, V114), 🟢 Fully paid; all five always present, zero when empty) plus one row per unexpected status (⚪), with People, Left ฿ and Received ฿ from model 162, plus a hidden Tint column that drives an even row tint. Replaces the four count chips and the Unclassified card. | People per lane equal questions 242, 244, 240, 246; the ⚪ rows' People sum equals question 251; Left ฿ per lane equals the sum of that lane table's Left column. |
 | `collection.lane-not-paid` | 🔴 Not paid · lane | table | q243 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Not Paid'; fields ['Borrower', 'Amount Due', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 243, resorted. Column titles Name / Due / Left; widths [80, 76, 76] px for the three visible columns. | Same Borrower set and the same values per borrower as question 243 (order differs). |
 | `collection.lane-partial` | 🟠 Partially paid · lane | table | q245 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Partially Paid'; fields ['Borrower', 'Receipts Today', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Amount Remaining desc, Borrower asc. Same rows as question 245, resorted. Column titles Name / Paid / Left; widths [80, 76, 76] px for the three visible columns. | Same Borrower set and the same values per borrower as question 245 (order differs). |
 | `collection.lane-overdue` | 🟣 Overdue · lane | table | q241 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as question 241, resorted. Column titles Name / Overdue / Left; widths [72, 90, 70] px for the three visible columns. | Same Borrower set and the same values per borrower as question 241 (order differs). |
+| `collection.lane-long-overdue` | ⚫ Long overdue · lane | table | q241 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Long Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', 'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as the R102 long-overdue list question (AddLongOverdueLane.mjs), resorted; settings copied from question 241. Column titles Name / Overdue / Left; widths [72, 90, 70] px for the three visible columns. | Same Borrower set and the same values per borrower as the R102 long-overdue list question (order differs). |
 | `collection.lane-paid` | 🟢 Fully paid · lane | table | q247 | model 77 Collection Worklist | none | MBQL on model 77 filtered Daily Collection Status = 'Fully Paid'; fields ['Borrower', 'Receipts Today', 'Amount Due', 'Borrower ID', 'Daily Collection Status']; ORDER BY Receipts Today desc, Borrower asc. Same rows as question 247, resorted. Column titles Name / Paid / Due; widths [80, 76, 76] px for the three visible columns. | Same Borrower set and the same values per borrower as question 247 (order differs). |
 | `partners.statement` | Partner positions · statement | table | q330 | model 318 Partners · position source (same query as question 330) | partner | Question 330's query as a CTE, unpivoted to (Measure, Partner, Amount ฿) for the five statement measures Net capital, Net earned to date, Completed payouts, Pending settlements, Net available; shown pivoted (measures as rows, partners as columns) with table.pivot. Template tags partner and #318 copied; maps `partner` as 330 maps pt-partner. If table.pivot does not render for a native result on this version, the fallback is question 330 reused with columns limited to Partner and the five measures. | Every (Measure, Partner) cell equals the matching column of question 330 for the same Partner filter. |
 | `partners.capital-share-row` | Capital share · full pool | row | q331 | model 318 Partners · position source (same query as question 331) | partner | Question 331's query with Capital share % (each row's share of the rows) as the plotted value. | Rows equal question 331 (built, verified). |
@@ -353,7 +354,7 @@ Phone: Profile first, then every number card one per row (30 visuals; Metabase c
 
 ### 9 · Collection (`collection`)
 
-Replaces: 10 · Collection Monitor (tab 19). Filters: `collection-borrower`, `collection-status`. Height 41 grid rows, 15 placements (13 visuals).
+Replaces: 10 · Collection Monitor (tab 19). Filters: `collection-borrower`, `collection-status`. Height 41 grid rows, 16 placements (14 visuals).
 
 Today's collection board: progress, the four status lanes, the detail table and today's charges.
 
@@ -366,10 +367,11 @@ Today's collection board: progress, the four status lanes, the detail table and 
 | 2/12 | 6×3 | new `collection.people` | People paid today |  |  |
 | 2/18 | 6×3 | reuse q252 | Today's charges · paid % |  |  |
 | 5/0 | 24×6 | new `collection.board` | Board · people and baht per lane |  |  |
-| 11/0 | 6×9 | new `collection.lane-not-paid` | 🔴 Not paid |  | Due ฿ · Left ฿, sorted by amount left |
-| 11/6 | 6×9 | new `collection.lane-partial` | 🟠 Partially paid |  | Received ฿ · Left ฿, sorted by amount left |
-| 11/12 | 6×9 | new `collection.lane-overdue` | 🟣 Overdue |  | Overdue ฿ · Left ฿, sorted by overdue amount |
-| 11/18 | 6×9 | new `collection.lane-paid` | 🟢 Fully paid |  | Received ฿ · Due ฿, sorted by received |
+| 11/0 | 5×9 | new `collection.lane-not-paid` | 🔴 Not paid |  | Due ฿ · Left ฿, sorted by amount left |
+| 11/5 | 5×9 | new `collection.lane-partial` | 🟠 Partially paid |  | Received ฿ · Left ฿, sorted by amount left |
+| 11/10 | 5×9 | new `collection.lane-overdue` | 🟣 Overdue |  | Overdue ฿ · Left ฿, sorted by overdue amount |
+| 11/15 | 5×9 | new `collection.lane-long-overdue` | ⚫ Long overdue |  | Overdue ฿ · Left ฿, 8+ days, sorted by overdue amount |
+| 11/20 | 4×9 | new `collection.lane-paid` | 🟢 Fully paid |  | Received ฿ · Due ฿, sorted by received |
 | 20/0 | 24×10 | reuse q248 | Collection detail · filters apply here | columns Borrower › Daily Collection Status › Amount Remaining › Amount Due › Amount Collected › Receipts Today › Overdue Amount; hide Borrower ID |  |
 | 30/0 | 24×3 | reuse q249 | Charges dated today · not board balances |  |  |
 | 33/0 | 24×6 | reuse q64 | Overdue charges · completed days | filters none |  |
@@ -377,7 +379,7 @@ Today's collection board: progress, the four status lanes, the detail table and 
 
 Dropped from dashboard 3 (or replaced by a new question): q250, q239, q242, q244, q240, q246, q251, q243, q245, q241, q247 (the saved questions are kept; nothing is deleted).
 
-Phone: Thirteen cards instead of eighteen: As of, four numbers, the board strip, the four lanes in the order Not paid, Partially paid, Overdue, Fully paid, the detail table, charges today, the overdue trend. The lane tables carry three visible columns so they fit a phone without a phone-specific column set.
+Phone: Fourteen cards instead of eighteen: As of, four numbers, the board strip, the five lanes in the order Not paid, Partially paid, Overdue, Long overdue, Fully paid, the detail table, charges today, the overdue trend. The lane tables carry three visible columns so they fit a phone without a phone-specific column set.
 
 
 ### 10 · Partners (`partners`)
@@ -452,15 +454,14 @@ Phone: Assumptions, four numbers, cumulative chart first among charts, watchlist
 
 ### 12 · Data health (`data-health`)
 
-Replaces: new tab; cards moved from tabs 14, 16, 15, 18, 104, 105, 249 and 262. Filters: `statement-period`, `account`, `period`, `position-date`, `population`, `borrower`, `partner`, `scenario`, `interest-collected`, `principal-collected`, `overdue-recovered`, `loan-kind`, `target`. Height 86 grid rows, 26 placements (18 visuals).
+Replaces: new tab; cards moved from tabs 14, 16, 15, 18, 104, 105, 249 and 262. Filters: `statement-period`, `account`, `period`, `position-date`, `population`, `borrower`, `partner`, `scenario`, `interest-collected`, `principal-collected`, `overdue-recovered`, `loan-kind`, `target`. Height 86 grid rows, 25 placements (17 visuals).
 
 Freshness, coverage, source and calculation checks for every page, in page order, so the business pages stay clean and the checks stay one click away.
 
 | Row/col | Size | Source | Title on the page | Placement settings | Notes |
 | --- | --- | --- | --- | --- | --- |
 | 0/0 | 24×2 | text card | **Data health** · freshness, coverage and source checks per page. | vs text.align_vertical=top |  |
-| 2/0 | 12×3 | reuse q276 | Reporting connection · SELECT 1 |  |  |
-| 2/12 | 12×3 | reuse q257 | Queried at · Bangkok |  |  |
+| 2/0 | 24×3 | reuse q257 | Queried at · Bangkok |  |  |
 | 5/0 | 24×1 | heading card | Cash Position |  |  |
 | 6/0 | 24×6 | reuse q209 | Cash position · source and freshness |  |  |
 | 12/0 | 24×1 | heading card | Income |  |  |
@@ -485,7 +486,7 @@ Freshness, coverage, source and calculation checks for every page, in page order
 | 66/0 | 24×10 | reuse q361 | Loan forecast detail |  |  |
 | 76/0 | 24×10 | reuse q362 | Recorded and simulated obligations |  |  |
 
-Dropped from dashboard 3 (or replaced by a new question): q250 (the saved questions are kept; nothing is deleted).
+Dropped from dashboard 3 (or replaced by a new question): q250, q276 (the saved questions are kept; nothing is deleted).
 
 Phone: Reference only; tables scroll.
 

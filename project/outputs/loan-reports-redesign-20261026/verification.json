@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-28T08:00:15.729Z",
+  "at": "2026-10-30T09:11:00.379Z",
   "passed": true,
   "checks": [
     {
@@ -8,11 +8,11 @@
       "detail": {
         "want": {
           "tabs": 12,
-          "placements": 228,
+          "placements": 227,
           "parameters": 22
         },
         "tabs": 12,
-        "placements": 228,
+        "placements": 227,
         "parameters": 22,
         "parameterIdsMatch": true,
         "unmatched": 0
@@ -22,7 +22,7 @@
       "name": "mapping parity",
       "passed": true,
       "detail": {
-        "checked": 158,
+        "checked": 157,
         "mismatched": 0
       }
     },
@@ -38,7 +38,7 @@
       "name": "execution",
       "passed": true,
       "detail": {
-        "dashcards": 183,
+        "dashcards": 182,
         "errors": 0,
         "failed": []
       }
@@ -100,7 +100,7 @@
       "detail": {
         "thisEquals168to171": true,
         "previousEqualsPrecedingRange": true,
-        "days": 28
+        "days": 30
       }
     },
     {
@@ -109,7 +109,7 @@
       "detail": {
         "months": 3,
         "equalsModel186MonthSums": true,
-        "question213Rows": 27
+        "question213Rows": 29
       }
     },
     {
@@ -265,35 +265,35 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 4,
+            "rows": 3,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-partial",
-            "rows": 1,
+            "rows": 0,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-overdue",
-            "rows": 2,
+            "rows": 4,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-long-overdue",
-            "rows": 11,
+            "rows": 12,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-paid",
-            "rows": 6,
+            "rows": 5,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true

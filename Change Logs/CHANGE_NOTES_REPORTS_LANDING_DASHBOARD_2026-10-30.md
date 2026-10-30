@@ -9,6 +9,8 @@ The owner asked to "change the DNS to point the dashboard CNAME to the new dashb
 - Loan Report Partners (2 members) were granted read on collection 10, as they have on collections 5 and 8 (collection graph revision 6 to 7). Administrators keep write.
 - `project/scripts/metabase/ProposedLoanReports.mjs`: `--publish` now sends `parent_id`.
 - Records: the dictionary record `dashboards/loan-reports-proposed.yaml` (landing status, collection parent, access, known gap), the pointer in `dashboards/loan-reports.yaml`, `project/Documents/Environment_Inventory.md`, `project/scripts/metabase/README.md`, `project/Documents/Development_Changes.md`.
+- Follow-up, 30 October 2026: at the owner's request ("remove the SELECT 1 card from dashboard 32") question 276 was removed from the Data health tab (question 257 "Queried at · Bangkok" is now 24 by 3). Before that, the R102 hand edits (long-overdue lane 414, five-lane board, lane re-tile) were ported into `build_design.py` so regeneration reproduces the applied layout. Applied with `--refine --only=data-health`; dashboard 32 has 227 dashcards and no 276; `--verify` passes. Counts are 227 placements, 152 reused questions, 25 new questions.
+- Dashboard 3 guard baseline renewed by hand to the live 274 dashcards, because R102's `--rebaseline-dashboard3=R102` step needs R102's private state, which this session does not have. The difference from the 26 October baseline was limited to tab 19 (lane cards 412 and 413 added, eight lanes re-tiled) and the collection-detail-status filter, i.e. R102 only. The old baseline is kept privately as `dashboard-3-before-pre-r102.json`. For the verifier's lane checks a private reference file gives lane ids 412 and 413 (from `outputs/r025-20260924/state.json`).
 - Dashboard 3 is not changed by this batch. It stays reachable by link and remains the recovery and canonical copy until the cutover in `PLAN.md` section 7 is formally closed.
 
 ## Checks
@@ -26,8 +28,8 @@ No partner sign-in was tested. A private baseline of the settings, collection an
 Set `custom-homepage-dashboard` back to 3. Optionally revoke the partner read on collection 10.
 
 ## Open questions
-- Question 276 ("Reporting connection · SELECT 1", collection 9 monitoring) on the Data health tab is not readable by partners, who see a permission notice on that card. Remove it from dashboard 32 or leave it admin-only?
-- Dashboard 3 has 274 dashcards against the 272 baseline of 26 October 2026: the R102 Long overdue lane (28 October 2026, lane cards 412/413 on dashboard 3 and lane 414 on dashboard 32; [R102 change note](https://github.com/welct0407/MW-Credit-App/blob/cf01602/Change%20Logs/CHANGE_NOTES_R102_AGED_OVERDUE_AND_CLAUDE_CHAT_2026-10-27.md)) added them, and `ProposedLoanReports.mjs` gained a rebaseline step then. Use that step before the next `--refine` or `--verify`.
+- The long-overdue lane (question 414) on dashboard 32 copies question 241's tint rule (status = 'Overdue'), which never matches its rows, so that lane has no row tint. A one-line fix is available; the owner decides.
+- Resolved: question 276 (the SELECT 1 card) is removed from dashboard 32. Resolved: the dashboard 3 baseline is renewed to 274 dashcards (see Changes).
 
 ## Remaining work
-Re-capture the dashboard 3 baseline; the owner's decision on question 276; the formal cutover closure (rename or retire dashboard 3) is still a separate decision.
+The owner's decision on the long-overdue lane tint; the formal cutover closure (rename or retire dashboard 3) is still a separate decision.
