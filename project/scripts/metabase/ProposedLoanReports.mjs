@@ -251,7 +251,8 @@ if(args.includes('--publish')){
  await assertSource();assert(!fs.existsSync(out+'/state.json'),'Already published: use --refine, never replay --publish');
  const {baseline}=await guardDashboard3(),sources=await liveSources();
  await dryRun(questions(sources,{},baseline));
- const collection=await api('POST','collection',{...layout.dashboard.collection});
+ // Metabase nests a collection by parent_id; the layout's parent_collection_id was ignored on 26 Oct (moved under 5 on 30 Oct).
+ const {parent_collection_id,...coll}=layout.dashboard.collection;const collection=await api('POST','collection',{...coll,parent_id:parent_collection_id});
  const state={collection:collection.id,questions:{},tabs:{}};save('state',state);
  const dash=await api('POST','dashboard',{name:layout.dashboard.name,description:layout.dashboard.description,collection_id:collection.id});state.dashboard=dash.id;save('state',state);
  await api('PUT','dashboard/'+dash.id,{parameters:parameters(baseline),auto_apply_filters:layout.dashboard.auto_apply_filters,width:'fixed',tabs:layout.tabs.map(t=>({id:-1-t.position,name:t.name,position:t.position})),dashcards:[]});
