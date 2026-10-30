@@ -1,7 +1,7 @@
 # Change notes — Config-only change helper, 28 October 2026
 
 ## Purpose
-During R102 an ad hoc config-only script restored `config.json` with `cp -p` from a backup that had just been made 0600, so `mwagent` could not read it and the agent was down for 2.5 minutes ([VM incident](../../Change%20Logs/CHANGE_NOTES_R102_AGED_OVERDUE_AND_CLAUDE_CHAT_2026-10-27.md)). R103 replaces the hand-run route with a repository script that always sets owner and mode explicitly.
+During R102 an ad hoc config-only script restored `config.json` with `cp -p` from a backup that had just been made 0600, so `mwagent` could not read it and the agent was down for 2.5 minutes ([VM incident](https://github.com/welct0407/MW-Credit-App/blob/cf01602/Change%20Logs/CHANGE_NOTES_R102_AGED_OVERDUE_AND_CLAUDE_CHAT_2026-10-27.md)). R103 replaces the hand-run route with a repository script that always sets owner and mode explicitly.
 
 ## Changes
 - `integration-agent/scripts/config-only-change.py` (new, root only on `vm-mw-credit-agent`):
