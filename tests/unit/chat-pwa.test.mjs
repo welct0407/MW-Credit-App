@@ -8,7 +8,7 @@ import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environmen
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
 const {createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
-const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText}=await load('chat-text.ts');
+const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
 
 test('SSE parser reads events across chunk boundaries, CRLF, multi-line data and pings',()=>{
@@ -203,4 +203,9 @@ test('CWR-02/07: the server Confirm label or plain Confirm; the saved time in Ba
  assert.equal(confirmText({en:'Record ฿700',th:'บันทึก ฿700'},false),'Record ฿700');assert.equal(confirmText({en:'Record ฿700',th:'บันทึก ฿700'},true),'บันทึก ฿700');
  assert.equal(confirmText(null,false),'Confirm');assert.equal(confirmText(undefined,true),'ยืนยัน');assert.equal(confirmText({en:'',th:''},false),'Confirm');
  assert.equal(savedAtText('2026-10-30T07:05:00.000Z',false),'Saved 14:05');assert.equal(savedAtText('2026-10-30T07:05:00.000Z',true),'บันทึกแล้ว 14:05');assert.equal(savedAtText(null,false),null);
+});
+
+test('CW2-01: the card dismisses with "Don\'t do this", never a catalogue-like Cancel',()=>{
+ assert.deepEqual([...proposalButtons.cancel],["Don't do this",'ไม่ทำรายการ']);
+ assert.equal(/cancel|ยกเลิก/i.test(proposalButtons.cancel.join(' ')),false);
 });

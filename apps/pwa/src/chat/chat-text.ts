@@ -90,7 +90,8 @@ export const EXAMPLES:readonly Pair[]=[
 ];
 export const MAX_TEXT=4000,COUNTER_FROM=3500;
 
-// R106 chat write proposals: the card's wording (D7 codes, D8 consequences). The command service's own rejection
+// R106 chat write proposals: the card's wording (CW2-01: the card's dismiss button is "Don't do this", never "Cancel",
+// which the catalogue uses for actions such as Cancel settlement) (D7 codes, D8 consequences). The command service's own rejection
 // codes are localized by the PWA's existing table (savedRejectionMessage) in ChatProposalCard.
 const PROPOSAL_CODES:Record<string,Pair>={
  reviewer_required:['Only an AI Reviewer Partner can confirm changes from chat.','เฉพาะหุ้นส่วนที่เป็นผู้ตรวจสอบ AI เท่านั้นที่ยืนยันการเปลี่ยนแปลงจากแชทได้'],
@@ -118,7 +119,7 @@ export function consequenceText(item:{code:string},thai:boolean,amount?:string){
  if(item.code==='destructive')return thai?'การเปลี่ยนแปลงนี้ลบหรือย้อนกลับข้อมูล และยกเลิกจากแชทไม่ได้':'This deletes or reverses records and cannot be undone from chat.';
  return '';
 }
-export const proposalButtons={confirm:['Confirm','ยืนยัน'] as Pair,cancel:['Cancel','ยกเลิก'] as Pair,open:['Open record','เปิดรายการ'] as Pair,offline:['Connect to confirm or cancel.','เชื่อมต่ออินเทอร์เน็ตเพื่อยืนยันหรือยกเลิก'] as Pair,askAgain:['Ask again','ถามใหม่'] as Pair};
+export const proposalButtons={confirm:['Confirm','ยืนยัน'] as Pair,cancel:["Don't do this",'ไม่ทำรายการ'] as Pair,open:['Open record','เปิดรายการ'] as Pair,offline:['Connect to confirm or cancel.','เชื่อมต่ออินเทอร์เน็ตเพื่อยืนยันหรือยกเลิก'] as Pair,askAgain:['Ask again','ถามใหม่'] as Pair};
 /** CWR-02: the server card's short Confirm label ("Record ฿700"), or plain Confirm. */
 export const confirmText=(label:{en:string;th:string}|null|undefined,thai:boolean)=>label?.en&&label.th?(thai?label.th:label.en):pick(proposalButtons.confirm,thai);
 /** CWR-07: "Saved 14:05" (Bangkok) from the journal's recordedAt or the settled time; null when neither parses. */

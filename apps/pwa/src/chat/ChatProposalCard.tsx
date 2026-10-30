@@ -121,7 +121,7 @@ export function ChatProposalCard({proposal,access,thai,online,onChange,onOpenRec
     {!online&&<span className="chat-proposal-offline">{pair(proposalButtons.offline,thai)}</span>}
    </div>}
    {(view.state==='failed'||view.state==='expired')&&onAskAgain&&<button type="button" className="secondary-button chat-proposal-again" onClick={onAskAgain}>{pair(proposalButtons.askAgain,thai)}</button>}
-   {view.state==='done'&&proposal.record&&onOpenRecord&&<button type="button" className="text-action chat-proposal-open" onClick={()=>onOpenRecord(proposal.record as ProposalRecord)}>{pair(proposalButtons.open,thai)}</button>}
+   {view.state==='done'&&proposal.record&&onOpenRecord&&<button type="button" data-proposal-id={proposal.id} className="text-action chat-proposal-open" onClick={()=>onOpenRecord(proposal.record as ProposalRecord)}>{pair(proposalButtons.open,thai)}</button>}
   </footer>
  </section>;
 }

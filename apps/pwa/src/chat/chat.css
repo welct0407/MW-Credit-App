@@ -149,3 +149,4 @@
 .chat-nowrap{white-space:nowrap}
 .chat-proposal-countdown{margin:4px 0 0;font-size:var(--text-meta,14px);color:#565656;font-variant-numeric:tabular-nums}
 .chat-proposal-again{min-height:44px;margin-top:8px}
+.chat-record-view{display:contents}

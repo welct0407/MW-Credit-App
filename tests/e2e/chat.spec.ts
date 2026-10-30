@@ -424,7 +424,9 @@ test('R106: the confirmation card shows the server fields; Confirm is disabled o
   // CWR-04: allocation dates and amounts never wrap.
   await expect(card.locator('.chat-proposal-split .chat-nowrap')).toHaveCount(6);
   // CWR-02/01: the server's short label; armed once the card has been in view.
-  const confirm=card.getByRole('button',{name:'Record ฿700',exact:true}),cancel=card.getByRole('button',{name:'Cancel',exact:true});
+  // CW2-01: the card's dismiss button never reads like a catalogue Cancel action.
+  const confirm=card.getByRole('button',{name:'Record ฿700',exact:true}),cancel=card.getByRole('button',{name:"Don't do this",exact:true});
+  await expect(card.getByRole('button',{name:/^Cancel/})).toHaveCount(0);
   await card.scrollIntoViewIfNeeded();await expect(card).toHaveAttribute('data-armed','true');await expect(confirm).toBeEnabled();
   // CWR-08: offline disables both buttons; one note covers them.
   await context.setOffline(true);await expect(confirm).toBeDisabled();await expect(cancel).toBeDisabled();await expect(card.getByText('Connect to confirm or cancel.',{exact:true})).toBeVisible();
@@ -435,11 +437,19 @@ test('R106: the confirmation card shows the server fields; Confirm is disabled o
   await expect(card).toHaveAttribute('data-state','done');await expect(card.locator('.chat-proposal-state')).toHaveText(/^Saved \d\d:\d\d$/);await expect(card.locator('.chat-proposal-confirm')).toHaveCount(0);
   expect(s.proposalRequests.filter(r=>r.method==='POST')).toEqual([{method:'POST',path:`/api/chat/threads/${T1}/proposals/${P1}/confirm`,body:'{}',authorization:'present'}]);
   await card.scrollIntoViewIfNeeded();await page.screenshot({path:`${shots}/r106-card-done-${project}.png`,fullPage:false});
-  // The record link opens the payment record over the thread; Back returns to the same thread and card.
-  await card.getByRole('button',{name:'Open record',exact:true}).click();
+  // The record link opens the payment record over the thread (CW2-03: "Back to chat"); Back returns to the same
+  // thread and card with the scroll position and focus on Open record (CW2-02).
+  const open=card.getByRole('button',{name:'Open record',exact:true});
+  await open.scrollIntoViewIfNeeded();
+  const where=await page.evaluate(()=>({pageY:Math.round(window.scrollY),listTop:Math.round(document.querySelector('.chat-messages')?.scrollTop??0)}));
+  await open.click();
   await expect(page.locator('.chat-workspace')).toBeHidden();
-  await page.getByRole('button',{name:'Back to payment history',exact:true}).first().click();
-  await expect(page.locator('.chat-proposal')).toHaveAttribute('data-state','done');await expect(page.locator('.chat-user').last()).toHaveText('Record a 700 baht cash payment from Somchai');
+  await expect(page.getByRole('button',{name:'Back to payment history'})).toHaveCount(0);
+  await expect(page.locator('.chat-record-view').locator('h1,h2').first()).toBeFocused();
+  await page.getByRole('button',{name:'Back to chat',exact:true}).first().click();
+  await expect(page.locator('.chat-proposal')).toHaveAttribute('data-state','done');
+  await expect(page.locator('.chat-proposal').getByRole('button',{name:'Open record',exact:true})).toBeFocused();
+  await expect.poll(()=>page.evaluate(()=>({pageY:Math.round(window.scrollY),listTop:Math.round(document.querySelector('.chat-messages')?.scrollTop??0)}))).toEqual(where);await expect(page.locator('.chat-user').last()).toHaveText('Record a 700 baht cash payment from Somchai');
   // The persisted state on reload (any device).
   await page.reload();await openChat(page);await expect(page.locator('.chat-proposal')).toHaveAttribute('data-state','done');
  }finally{await context.close()}
