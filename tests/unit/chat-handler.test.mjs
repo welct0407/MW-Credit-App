@@ -70,7 +70,7 @@ function memoryStore(){
  return store;
 }
 
-async function server({script=[],store=memoryStore(),pingMs=15000,delay=0}={}){
+async function server({script=[],store=memoryStore(),pingMs=15000,delay=0,cfg=config,commandFetch,now}={}){
  const revocation=[];
  const verifyPrincipal=async(authorization,options)=>{revocation.push(options?.checkRevoked!==false);
   // 'token-a' in the header; the beacon's body token is JWT-shaped ('jwt.a.sig').
@@ -81,9 +81,9 @@ async function server({script=[],store=memoryStore(),pingMs=15000,delay=0}={}){
  const transport=createVertexTransport({projectId:'clever-oasis-508610-n7',location:'global',getToken:async()=>'t',sleep:async()=>{},
   fetch:async()=>{await new Promise(r=>setTimeout(r,delay));const next=script.shift();if(!next)throw Error('script exhausted');return next instanceof Response?next:sse(next);}});
  const readProvider={catalogue:async()=>({manifestSha256:'m',resources:[]}),query:async()=>({rows:[{'Row ID':'C1','Amount Remaining':'1000.00'}]})};
- const createTools=actor=>createChatTools({readProvider,sqlTool:{query:async()=>({columns:['due'],rows:[{due:'1000.00'}],row_count:1,complete:true}),payoff:async()=>({})},actor});
+ const createTools=(actor,writes=null)=>createChatTools({readProvider,sqlTool:{query:async()=>({columns:['due'],rows:[{due:'1000.00'}],row_count:1,complete:true}),payoff:async()=>({})},actor,writes});
  const logs=[];
- const handler=createChatHandler({config,verifyPrincipal,store,createTools,transport,log:r=>logs.push(r),pingMs});
+ const handler=createChatHandler({config:cfg,verifyPrincipal,store,createTools,transport,log:r=>logs.push(r),pingMs,commandFetch,sleep:async()=>{},...(now?{now}:{})});
  const srv=http.createServer(handler);await new Promise(r=>srv.listen(0,'127.0.0.1',r));
  const base=`http://127.0.0.1:${srv.address().port}`;
  const call=(path,{method='GET',token='a',body,headers={},raw,signal}={})=>fetch(base+path,{method,signal,headers:{...(token?{Authorization:'Bearer token-'+token}:{}),...(body!==undefined||raw!==undefined?{'Content-Type':'application/json'}:{}),...headers},body:raw??(body===undefined?undefined:JSON.stringify(body))});
@@ -330,4 +330,295 @@ test('message validation, 404, 409 and 503',async t=>{
  r=await post({id:M2,text:'x'});assert.equal(r.status,503);assert.deepEqual(await r.json(),{error:'unavailable'});
  assert.equal((await s.call(`/api/chat/threads/${id(99)}/messages`)).status,404);
  assert.equal((await s.call(`/api/chat/threads/${T1}/messages?before=0`)).status,400);
+});
+
+// R106: chat write proposals (D1, D5, D7, D9). PA is an AI Reviewer with 'command'; PB is not a reviewer; the
+// reviewer c (PC) lacks 'command'. The command service is a fake fetch with the screens' answer shapes.
+const COMMAND_URL='https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app';
+const writeConfig=loadBusinessConfig(chatEnv('dev',{CHAT_COMMAND_URL:COMMAND_URL}));
+const jwt=who=>({Authorization:`Bearer jwt.${who}.sig`});
+const WRITERS={'a@example.invalid':{reviewer:true,command:true},'b@example.invalid':{reviewer:false,command:true},'c@example.invalid':{reviewer:true,command:false}};
+/** memoryStore plus the V118 proposal RPC rules (one per turn, superseding, exactly-once claim, settle); reply rows
+ * carry the turn's proposal as pwa_chat_message_json_v1 does. */
+function proposalStore(){
+ const base=memoryStore(),proposals=new Map();
+ PARTNERS['c@example.invalid']='PC';
+ const {begin,complete,message}=base;
+ const own=(p,thread)=>{const t=base.threadMap.get(thread);if(!t||t.partner!==PARTNERS[p.email])throw Error('not_found');return t;};
+ const view=x=>({id:x.id,threadId:x.threadId,messageId:x.messageId,kind:x.kind,operation:x.operation,state:x.state==='pending'&&x.expiresAt<=new Date().toISOString()?'expired':x.state,card:x.card,
+  expiresAt:x.expiresAt,createdAt:x.createdAt,settledAt:x.settledAt,outcome:x.outcome?{code:x.outcome.code??null}:null,record:x.record,claimedAt:x.claimedAt,attempts:x.attempts});
+ const api=x=>{const {claimedAt:_c,attempts:_a,...rest}=view(x);return rest;};
+ const supersede=thread=>{let n=0;for(const x of proposals.values())if(x.threadId===thread&&x.state==='pending'){x.state='cancelled';x.settledAt=new Date().toISOString();n++;}return n;};
+ const of=messageId=>[...proposals.values()].filter(y=>y.messageId===messageId).sort((x,y)=>(x.card.group?.index??0)-(y.card.group?.index??0)).map(api);
+ return Object.assign(base,{proposals,
+  writer:async p=>WRITERS[p.email]??{reviewer:false,command:false},
+  async begin(p,thread,input,{writes=false}={}){
+   const begun=await begin(p,thread,input);
+   if(writes&&begun.value.state==='claimed'){base.log.push(['superseded',supersede(thread)]);}
+   const w=WRITERS[p.email]??{reviewer:false,command:false};
+   return {...begun,writer:writes?{allowed:w.reviewer&&w.command,...w}:null,recent:writes&&w.reviewer&&w.command?[...proposals.values()].filter(x=>x.threadId===thread).map(api):null};},
+  async complete(p,mid,...rest){const value=await complete(p,mid,...rest);return {...value,message:{...value.message,proposals:of(mid)}};},
+  async message(p,thread,mid){const value=await message(p,thread,mid);return value.assistant?{...value,assistant:{...value.assistant,proposals:of(mid)}}:value;},
+  /** V119: {group:[line, ...]} -> the lines, inserted together. */
+  async createProposal(p,thread,input){own(p,thread);if(!WRITERS[p.email]?.reviewer)throw Object.assign(Error('reviewer_required'),{code:'42501'});
+   const lines=input.group;
+   if([...proposals.values()].some(x=>x.messageId===lines[0].messageId))throw Object.assign(Error('one_proposal_per_turn'),{code:'23505'});
+   supersede(thread);const now=new Date();
+   return lines.map(line=>{const x={...line,threadId:thread,state:'pending',createdAt:now.toISOString(),expiresAt:new Date(now.getTime()+900000).toISOString(),settledAt:null,outcome:null,record:null,claimedAt:null,attempts:0};
+    proposals.set(x.id,x);base.log.push(['proposal',x.id,line.messageId]);return view(x);});},
+  async group(p,thread,ids){own(p,thread);return ids.map(id=>{const x=proposals.get(id);if(!x||x.threadId!==thread)throw Error('not_found');return view(x);});},
+  async cancelGroup(p,thread,ids){const out=[];for(const id of ids)out.push(await this.cancelProposal(p,thread,id));return out;},
+  async proposal(p,thread,id){own(p,thread);const x=proposals.get(id);if(!x||x.threadId!==thread)throw Error('not_found');return view(x);},
+  async claimProposal(p,thread,id){own(p,thread);const x=proposals.get(id);if(!x||x.threadId!==thread)throw Error('not_found');
+   if(x.state==='pending'&&x.expiresAt<=new Date().toISOString()){x.state='expired';x.settledAt=new Date().toISOString();return {claimed:false,proposal:view(x)};}
+   if(x.state==='pending'){x.state='executing';x.attempts++;x.claimedAt=new Date().toISOString();return {claimed:true,proposal:view(x),command:x.command};}
+   if(x.state==='executing'&&Date.now()-Date.parse(x.claimedAt)<180000)throw Object.assign(Error('proposal_executing'),{code:'55006'});
+   return {claimed:false,proposal:view(x)};},
+  async settleProposal(p,thread,id,settlement){own(p,thread);const x=proposals.get(id);
+   if(['executing','unknown'].includes(x.state)){x.state=settlement.state;x.outcome=settlement.outcome;x.record=settlement.record;x.settledAt=['done','failed'].includes(settlement.state)?new Date().toISOString():null;}return view(x);},
+  async cancelProposal(p,thread,id){own(p,thread);const x=proposals.get(id);if(!x||x.threadId!==thread)throw Error('not_found');if(x.state==='pending'){x.state='cancelled';x.settledAt=new Date().toISOString();}return view(x);},
+ });
+}
+/** The fake command service: account labels, then the operation journal (unresolved until the POST records it). */
+function commandService({post=()=>({status:200,data:{kind:'recorded',originalOutcome:{status:'applied',code:null,result:{id:'x'},recordedAt:'2026-10-30T03:00:00.000Z'}}})}={}){
+ const calls=[],journal=new Map();
+ const fetch=async(url,init)=>{
+  const path=url.slice(COMMAND_URL.length);calls.push({path,method:init.method,authorization:init.headers.Authorization,origin:init.headers.Origin});
+  const reply=(status,data)=>new Response(JSON.stringify(data),{status});
+  if(path==='/api/borrower-options')return reply(200,{referrers:[],accounts:[{id:'CA1',label:'Cash box'}]});
+  const status=/^\/api\/operations\/([0-9a-f-]{36})$/.exec(path);
+  if(status)return reply(200,journal.get(status[1])??{kind:'unresolved'});
+  if(path==='/api/operations'&&init.method==='POST'){const body=JSON.parse(init.body);const answer=await post(body);if(answer.data?.kind==='recorded')journal.set(body.requestId,answer.data);return reply(answer.status,answer.data);}
+  return reply(404,{ok:false,code:'not_found'});
+ };
+ return {calls,journal,fetch};
+}
+const expense=amount=>({operation:'expense.create',target_id:'',inputs:JSON.stringify({expenseDate:'2026-10-30',category:'Transportation / ค่าเดินทาง',amount:String(amount),paidByAccountId:'CA1'})});
+const proposeMany=changes=>({functionCall:{name:'propose_action',id:'w1',args:{changes}}});
+const propose=proposeMany([expense(150)]);
+const proposalPath=(thread,pid,suffix='')=>`/api/chat/threads/${thread}/proposals/${pid}${suffix}`;
+
+test('R106: without CHAT_COMMAND_URL the proposal routes do not exist and no write tool is declared',async t=>{
+ const s=await server({script:[reply('I can only read records for you; use the app screens.')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ for(const [path,method] of [[proposalPath(T1,id(50)),'GET'],[proposalPath(T1,id(50),'/confirm'),'POST'],[proposalPath(T1,id(50),'/cancel'),'POST']])
+  assert.equal((await s.call(path,{method,body:method==='POST'?{}:undefined})).status,404,path);
+});
+
+test('R106: a reviewer turn proposes one write; the proposal event precedes the message; ?stream=0 carries it',async t=>{
+ const svc=commandService();
+ const s=await server({cfg:writeConfig,store:proposalStore(),commandFetch:svc.fetch,script:[[chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('The card is ready; confirm it on the card.'),
+  [chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('Prepared again on the card.')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ const r=await s.call(`/api/chat/threads/${T1}/messages`,{method:'POST',body:{id:M1,text:'Record a 150 baht transport expense from the cash box today'},headers:{Accept:'text/event-stream',...jwt('a')}});
+ const {list,names}=await events(r);
+ assert.deepEqual(names,['accepted','round','tool','proposal','tool','round','delta','delta','message','done']);
+ const proposal=list.find(([n])=>n==='proposal')[1].proposals[0];
+ assert.deepEqual([proposal.state,proposal.operation,proposal.kind,proposal.messageId],['pending','expense.create','operation',M1]);
+ assert.equal('command' in proposal||'attempts' in proposal||'claimedAt' in proposal,false,'never the raw command or internals');
+ assert.equal(proposal.card.values.find(v=>v.field==='paidByAccountId').display,'Cash box');
+ assert.deepEqual(list.find(([n])=>n==='message')[1].proposals.map(p=>p.id),[proposal.id]);assert.deepEqual(proposal.card.group,{id:proposal.id,index:0,count:1,ids:[proposal.id]});
+ // The reads went to the command service with the Partner's own token and no Origin; nothing was written.
+ assert.ok(svc.calls.length>0&&svc.calls.every(c=>c.authorization==='Bearer jwt.a.sig'&&c.origin===undefined&&c.method==='GET'));
+ // The opening request of a writer turn carries recent_actions (D10); the stored command is the exact canonical JSON.
+ const stored=s.store.proposals.get(proposal.id);assert.equal(JSON.parse(stored.command).requestId,proposal.id);
+ // ?stream=0: the reply carries its proposal; the new message superseded the first one.
+ const plain=await (await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M2,text:'Record it again'},headers:jwt('a')})).json();
+ assert.equal(plain.assistant.proposals[0].state,'pending');assert.notEqual(plain.assistant.proposals[0].id,proposal.id);
+ assert.equal(s.store.proposals.get(proposal.id).state,'cancelled');
+ assert.ok(s.logs.some(l=>l.event==='chat_proposal_created'&&!('card' in l)));
+});
+
+test('R106: routes refuse a non-reviewer (403 reviewer_required), a reviewer without command (403 command_required), another Partner (404)',async t=>{
+ const svc=commandService();
+ const store=proposalStore();
+ const s=await server({cfg:writeConfig,store,commandFetch:svc.fetch,script:[[chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('Card ready.')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M1,text:'Record a 150 baht transport expense'},headers:jwt('a')});
+ const [pid]=store.proposals.keys();
+ for(const [who,status,error] of [['b',403,'reviewer_required'],['c',403,'command_required']])
+  for(const [suffix,method] of [['','GET'],['/confirm','POST'],['/cancel','POST']]){
+   const r=await s.call(proposalPath(T1,pid,suffix),{method,body:method==='POST'?{}:undefined,headers:jwt(who)});
+   assert.deepEqual([r.status,(await r.json()).error],[status,error],who+suffix);
+  }
+ // Another Partner who may write (b made a writer for this check) gets 404 for a's thread.
+ WRITERS['b@example.invalid']={reviewer:true,command:true};
+ try{assert.equal((await s.call(proposalPath(T1,pid),{headers:jwt('b')})).status,404);}finally{WRITERS['b@example.invalid']={reviewer:false,command:true};}
+ assert.equal((await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body:{x:1},headers:jwt('a')})).status,400);
+ assert.equal((await s.call(proposalPath(T1,pid)+'?x=1',{headers:jwt('a')})).status,400);
+ assert.equal((await s.call(proposalPath(T1,pid,'/confirm'),{headers:jwt('a')})).status,404);
+ // CWR-05: a non-reviewer's turn has propose_action only, answering the fixed refusal with no command-service read.
+ const before=svc.calls.length;
+ const s2=await server({cfg:writeConfig,store:proposalStore(),commandFetch:svc.fetch,script:[[chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('I can only read records for you; use the app screens.')]});t.after(s2.close);
+ await s2.call('/api/chat/threads',{method:'POST',token:'b',body:{id:T1,model:'gemini-4-argon'}});
+ const out=await (await s2.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M1,text:'Record an expense'},headers:jwt('b')})).json();
+ assert.deepEqual(out.assistant.proposals,[]);assert.equal(svc.calls.length,before);
+ const call=s2.store.log.find(x=>x[0]==='complete')[4][0];assert.deepEqual([call.name,call.error,JSON.parse(call.result).code],['propose_action',null,'REVIEWER_REQUIRED']);
+ assert.equal(s2.store.proposals.size,0);
+});
+
+test('R106: confirm executes once through the command service; a repeat answers the stored outcome; cancel; busy and unknown',async t=>{
+ let posts=0;
+ const svc=commandService({post:()=>{posts++;return {status:200,data:{kind:'recorded',originalOutcome:{status:'applied',code:null,result:{id:'x'},recordedAt:'2026-10-30T03:00:00.000Z'}}};}});
+ const store=proposalStore();
+ const s=await server({cfg:writeConfig,store,commandFetch:svc.fetch,script:[[chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('Card ready.'),[chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('Card ready.')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M1,text:'Record a 150 baht transport expense'},headers:jwt('a')});
+ const [pid]=store.proposals.keys();
+ let r=await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body:{},headers:jwt('a')});
+ let item=(await r.json()).item.lines[0];
+ assert.equal(r.status,200);assert.deepEqual([item.state,item.record?.type,item.outcome],['done','expense',{code:null}]);assert.equal(posts,1);
+ const post=svc.calls.find(c=>c.method==='POST');assert.deepEqual([post.path,post.authorization,post.origin],['/api/operations','Bearer jwt.a.sig',undefined]);
+ item=(await (await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body:{},headers:jwt('a')})).json()).item.lines[0];assert.equal(item.state,'done');assert.equal(posts,1);
+ assert.equal((await (await s.call(proposalPath(T1,pid),{headers:jwt('a')})).json()).item.lines[0].state,'done');
+ // A second proposal: cancelled, then a confirm answers cancelled without any POST.
+ await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M2,text:'Another 150 baht expense'},headers:jwt('a')});
+ const second=[...store.proposals.keys()][1];
+ assert.equal((await (await s.call(proposalPath(T1,second,'/cancel'),{method:'POST',body:{},headers:jwt('a')})).json()).item.lines[0].state,'cancelled');
+ assert.equal((await (await s.call(proposalPath(T1,second,'/confirm'),{method:'POST',body:{},headers:jwt('a')})).json()).item.lines[0].state,'cancelled');assert.equal(posts,1);
+ // Executing elsewhere: 409 proposal_executing.
+ store.proposals.get(second).state='executing';store.proposals.get(second).claimedAt=new Date().toISOString();
+ r=await s.call(proposalPath(T1,second,'/confirm'),{method:'POST',body:{},headers:jwt('a')});assert.deepEqual([r.status,(await r.json()).error],[409,'proposal_executing']);
+ // Expired: the claim records it.
+ store.proposals.get(second).state='pending';store.proposals.get(second).expiresAt=new Date(Date.now()-1000).toISOString();
+ assert.equal((await (await s.call(proposalPath(T1,second,'/confirm'),{method:'POST',body:{},headers:jwt('a')})).json()).item.lines[0].state,'expired');
+});
+
+test('R106: a lost answer is unknown and the GET reconciles it from the journal; busy fails command_busy; rejection codes pass through',async t=>{
+ let mode='lost';
+ const svc=commandService({post:body=>{
+  if(mode==='lost'){svc.journal.set(body.requestId,{kind:'recorded',originalOutcome:{status:'applied',code:null,result:{id:'x'},recordedAt:'2026-10-30T03:00:00.000Z'}});return {status:503,data:{ok:false,code:'operation_outcome_unknown'}};}
+  if(mode==='busy')return {status:409,data:{ok:false,code:'command_busy'}};
+  return {status:200,data:{kind:'recorded',originalOutcome:{status:'rejected',code:'source_conflict'}}};}});
+ const store=proposalStore();
+ const s=await server({cfg:writeConfig,store,commandFetch:svc.fetch,script:[1,2,3].flatMap(()=>[[chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('Card ready.')])});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ const next=async n=>{await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:id(60+n),text:'Record a 150 baht transport expense'},headers:jwt('a')});return [...store.proposals.keys()].at(-1);};
+ let pid=await next(1);
+ let item=(await (await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body:{},headers:jwt('a')})).json()).item.lines[0];
+ assert.deepEqual([item.state,item.outcome],['unknown',{code:'outcome_unknown'}]);
+ // A second Confirm on the unknown proposal reconciles from the journal: no second POST.
+ const before=svc.calls.filter(c=>c.method==='POST').length;
+ item=(await (await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body:{},headers:jwt('a')})).json()).item.lines[0];assert.equal(item.state,'done');
+ assert.equal(svc.calls.filter(c=>c.method==='POST').length,before);
+ item=(await (await s.call(proposalPath(T1,pid),{headers:jwt('a')})).json()).item.lines[0];assert.equal(item.state,'done');
+ mode='busy';pid=await next(2);
+ item=(await (await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body:{},headers:jwt('a')})).json()).item.lines[0];
+ assert.deepEqual([item.state,item.outcome],['failed',{code:'command_busy'}]);assert.equal(svc.calls.filter(c=>c.method==='POST').length,1+3);
+ mode='rejected';pid=await next(3);
+ item=(await (await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body:{},headers:jwt('a')})).json()).item.lines[0];
+ assert.deepEqual([item.state,item.outcome],['failed',{code:'source_conflict'}]);
+});
+
+test('R106: an expired session on Confirm (401) is refused before the claim: nothing is claimed or posted, the card may stay pending',async t=>{
+ const svc=commandService();
+ const store=proposalStore();
+ const s=await server({cfg:writeConfig,store,commandFetch:svc.fetch,script:[[chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('Card ready.')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M1,text:'Record a 150 baht transport expense'},headers:jwt('a')});
+ const [pid]=store.proposals.keys(),calls=svc.calls.length;
+ const r=await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body:{},headers:{Authorization:'Bearer jwt.expired.sig'}});
+ assert.equal(r.status,401);assert.equal(store.proposals.get(pid).state,'pending');assert.equal(store.proposals.get(pid).attempts,0);assert.equal(svc.calls.length,calls);
+});
+
+// R106 D12: "One card, Confirm all". Oum's six loans each have one charge to edit (synthetic). The fake command
+// service keeps a journal per request id; per charge it may record a rejection, lose the answer, or advance a clock.
+const VER='a'.repeat(64);
+function groupService({behaviour={},onPost=()=>{}}={}){
+ const calls=[],journal=new Map();
+ const reply=(status,data)=>new Response(JSON.stringify(data),{status});
+ const fetch=async(url,init)=>{
+  const path=url.slice(COMMAND_URL.length);calls.push({path,method:init.method});
+  const charge=/^\/api\/charge-records\/(C\d)$/.exec(path);
+  if(charge)return reply(200,{item:{id:charge[1],loanId:'L'+charge[1].slice(1),chargeDate:'2026-10-29',principalDue:'0.00',interestDue:'100.00',notes:'Carry-forward note',borrowerId:'B-OUM',borrowerName:'Oum',borrowerDescription:null,version:VER}});
+  if(path==='/api/borrower-options')return reply(200,{referrers:[],accounts:[]});
+  const status=/^\/api\/operations\/([0-9a-f-]{36})$/.exec(path);
+  if(status)return reply(200,journal.get(status[1])??{kind:'unresolved'});
+  if(path==='/api/operations'&&init.method==='POST'){
+   const body=JSON.parse(init.body);onPost(body);
+   const mode=behaviour[body.targetId];
+   const recorded={kind:'recorded',originalOutcome:mode==='conflict'?{status:'rejected',code:'source_conflict'}:{status:'applied',code:null,result:{id:body.targetId},recordedAt:'2026-10-30T03:00:00.000Z'}};
+   journal.set(body.requestId,recorded);
+   return mode==='lost'?reply(503,{ok:false,code:'operation_outcome_unknown'}):reply(200,recorded);
+  }
+  return reply(404,{ok:false,code:'not_found'});
+ };
+ return {calls,journal,fetch,posts:()=>calls.filter(c=>c.method==='POST'&&c.path==='/api/operations').length};
+}
+const sixChanges=[1,2,3,4,5,6].map(n=>({operation:'charge.update',target_id:`C${n}`,inputs:JSON.stringify({interestDue:'150'})}));
+async function groupTurn({behaviour,now,onPost}={}){
+ const svc=groupService({behaviour,onPost}),store=proposalStore();
+ const s=await server({cfg:writeConfig,store,commandFetch:svc.fetch,now,script:[[chunk([proposeMany(sixChanges)],{finishReason:'STOP',usage:USAGE})],reply('One card with the six edits is ready.')]});
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ const out=await (await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M1,text:'Raise the interest of the 29-Oct charge on each of Oum\'s six loans to 150'},headers:jwt('a')})).json();
+ return {svc,store,s,out,head:out.assistant.proposals[0].id};
+}
+const confirmGroup=(s,head,headers={})=>s.call(proposalPath(T1,head,'/confirm'),{method:'POST',body:{},headers:{...jwt('a'),...headers}});
+
+test('D12: six charge edits: one card; Confirm all streams line events in order then group and done; six commands and six journal rows',async t=>{
+ const {svc,s,out,head}=await groupTurn();t.after(s.close);
+ assert.equal(out.assistant.proposals.length,6);assert.deepEqual(out.assistant.proposals.map(p=>p.card.group.index),[0,1,2,3,4,5]);
+ assert.ok(out.assistant.proposals.every(p=>p.card.group.id===head&&p.state==='pending'));
+ const {names,list}=await events(await confirmGroup(s,head,{Accept:'text/event-stream'}));
+ assert.deepEqual(names,['line','line','line','line','line','line','group','done']);
+ assert.deepEqual(list.slice(0,6).map(([,d])=>[d.index,d.state,d.record?.id]),[[0,'done','C1'],[1,'done','C2'],[2,'done','C3'],[3,'done','C4'],[4,'done','C5'],[5,'done','C6']]);
+ assert.equal(list[6][1].state,'done');assert.equal(list[6][1].group.lines.length,6);
+ assert.equal(svc.posts(),6);assert.equal(svc.journal.size,6);
+ // A repeat confirm of the finished group answers the same outcome without any POST.
+ const again=(await (await confirmGroup(s,head)).json()).item;
+ assert.deepEqual([again.state,again.lines.map(l=>l.state)],['done',Array(6).fill('done')]);assert.equal(svc.posts(),6);
+ // A non-head id is refused.
+ const r=await confirmGroup(s,out.assistant.proposals[2].id);assert.deepEqual([r.status,(await r.json()).detail],[400,'not_head']);
+});
+
+test('D12: a mid-group source_conflict fails its line while the rest still run',async t=>{
+ const {svc,s,head}=await groupTurn({behaviour:{C3:'conflict'}});t.after(s.close);
+ const group=(await (await confirmGroup(s,head)).json()).item;
+ assert.deepEqual(group.lines.map(l=>l.state),['done','done','failed','done','done','done']);
+ assert.deepEqual(group.lines[2].outcome,{code:'source_conflict'});assert.equal(group.state,'partial');assert.equal(svc.posts(),6);
+});
+
+test('D12: an unknown line mid-group: the others run, the group is unknown, a GET reconciles it from the journal without a POST',async t=>{
+ const {svc,s,head}=await groupTurn({behaviour:{C2:'lost'}});t.after(s.close);
+ let group=(await (await confirmGroup(s,head)).json()).item;
+ assert.deepEqual(group.lines.map(l=>l.state),['done','unknown','done','done','done','done']);assert.equal(group.state,'unknown');assert.equal(svc.posts(),6);
+ // Confirm again: the unknown line is reconciled only (recorded wins), never posted again.
+ group=(await (await confirmGroup(s,head)).json()).item;
+ assert.deepEqual([group.state,group.lines[1].state,svc.posts()],['done','done',6]);
+ group=(await (await s.call(proposalPath(T1,head),{headers:jwt('a')})).json()).item;assert.equal(group.state,'done');
+});
+
+test('D12: the 180 s deadline leaves the remaining lines pending; a second confirm runs only those; a concurrent confirm gets 409',async t=>{
+ let offset=0;const clock=()=>Date.now()+offset;
+ const {svc,store,s,head}=await groupTurn({now:clock,onPost:()=>{offset+=100000;}});t.after(s.close);
+ let group=(await (await confirmGroup(s,head)).json()).item;
+ assert.deepEqual(group.lines.map(l=>l.state),['done','done','pending','pending','pending','pending']);assert.equal(group.state,'partial','pending lines left: not done');assert.equal(svc.posts(),2);
+ // Another confirm while a line of the group runs: 409, nothing posted.
+ const third=[...store.proposals.values()].find(x=>x.card.group.index===2);
+ third.state='executing';third.claimedAt=new Date(clock()).toISOString();
+ const busy=await confirmGroup(s,head);assert.deepEqual([busy.status,(await busy.json()).error],[409,'proposal_executing']);assert.equal(svc.posts(),2);
+ third.state='pending';third.claimedAt=null;
+ offset=0;
+ group=(await (await confirmGroup(s,head)).json()).item;
+ assert.deepEqual(group.lines.map(l=>l.state),['done','done','done','done','pending','pending']);assert.equal(svc.posts(),4);
+ offset=0;group=(await (await confirmGroup(s,head)).json()).item;
+ assert.deepEqual([group.state,svc.posts()],['done',6]);assert.equal(svc.journal.size,6);
+});
+
+test('D12: cancel on the head cancels every pending line and leaves settled lines',async t=>{
+ let offset=0;
+ const {svc,s,head}=await groupTurn({now:()=>Date.now()+offset,onPost:()=>{offset+=200000;}});t.after(s.close);
+ let group=(await (await confirmGroup(s,head)).json()).item;assert.deepEqual(group.lines.map(l=>l.state),['done','pending','pending','pending','pending','pending']);
+ group=(await (await s.call(proposalPath(T1,head,'/cancel'),{method:'POST',body:{},headers:jwt('a')})).json()).item;
+ assert.deepEqual(group.lines.map(l=>l.state),['done','cancelled','cancelled','cancelled','cancelled','cancelled']);assert.equal(svc.posts(),1);
+});
+
+test('D12: the derived group state: done only when every line is done; partial when some are; failed when none is',async()=>{
+ const {groupState}=await import('../../services/chat/proposals.mjs');
+ const of=(...states)=>groupState(states.map(state=>({state})));
+ assert.equal(of('done','done'),'done');
+ for(const rest of ['pending','expired','failed','cancelled'])assert.equal(of('done',rest),'partial',rest);
+ assert.equal(of('failed','pending'),'failed');assert.equal(of('failed','failed'),'failed');
+ assert.equal(of('done','unknown','pending'),'unknown');assert.equal(of('done','executing'),'executing');
+ assert.equal(of('pending','pending'),'pending');assert.equal(of('expired','expired'),'expired');assert.equal(of('expired','cancelled'),'cancelled');
 });

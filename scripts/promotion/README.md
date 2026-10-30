@@ -32,7 +32,7 @@ From R105 a release needs no runner edit when it fits this kind. The package is 
 - a frontend-only package may change no runtime input and no migration;
 - the live readback: the chat-era checks with the current (R102) chat rule, and unchanged services on their pins. The operator audience is `https://lm.mw-credit.com/promotion/rnnn`.
 
-**Still needs a hand-written kind (a code edit):** a new service or role; a Terraform action other than an image (environment, scaling, IAM, VPC, a new resource) or any change under `infrastructure/production` or `infrastructure/modules`; a change to the receipt recognizer wiring; images before SQL (as R091); a new scope; a change to the chat rule; and growing the delivery allow-list.
+**Still needs a hand-written kind (a code edit):** a new service or role; a Terraform action other than an image (environment, scaling, IAM, VPC, a new resource) or any change under `infrastructure/production` or `infrastructure/modules` (R106 is the example: four infrastructure files and an added chat env entry); a change to the receipt recognizer wiring; images before SQL (as R091); a new scope; a change to the chat rule; and growing the delivery allow-list.
 
 ## Linux cloud sessions
 
@@ -45,6 +45,35 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 ```
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
+
+## R106 read, command, chat, SQL, chat configuration and frontend promotion with V118 and V119
+
+`schemaVersion: 37`, `release: R106`, `scope: runtime-workers-frontend`, `status: prepared|applied`. R106 (chat writes: a confirm card in the chat runs a financial change through the command service, one card for several changes) needs a hand-written kind: it carries `infrastructure/production` files and a chat environment change, which the generic kind refuses. It is R104's chat-era kind (shared code path) with three additions: the infrastructure allow-list, the plan JSON readback and the command URL in the live check.
+
+- **Source.** The source must descend from the R105 release `cf01602` (tag R105; the source PROD runs at 117); the package pins the source `e57e77d`. It adds exactly two migrations, each pinned to its reviewed SHA-256 (the bytes at `e57e77d`, applied to DEV):
+  - `database/migrations/V118__chat_proposals.sql`: `07d0ba6c…97f49`
+  - `database/migrations/V119__chat_proposal_groups.sql`: `a55e4fc9…ac25c`
+
+  Between the baseline and the source, the changes under `infrastructure/production` and `infrastructure/modules` must be exactly these four files (`infrastructure` in the runner's R106 row); any other file there, or a missing one, is refused. `infrastructure/dev` is not a PROD input.
+  - `infrastructure/production/chat-service.tf`
+  - `infrastructure/production/tests/chat-service.tftest.hcl`
+  - `infrastructure/production/README.md`
+  - `infrastructure/production/READINESS_INVENTORY.md`
+
+  A later delivery-tool commit may carry only the runner, its unit test, this README, the R101 database delivery files, `database/README.md` (the DEV record commit `4b946bd` touches it) and documents (never an infrastructure file). Record the runner's unit test as `deliveryToolChecks`.
+- **SQL.** `V117 to V119` runs as two migrations in one grouped release transaction. It needs a verified backup at 117 and a read-only 119-row readback.
+  - Owner window: `mw_chat_owner_prod` only. V118 adds `pwa_chat_proposals` and its five RPCs and replaces `pwa_chat_message_json_v1` as the chat owner; V119 replaces `pwa_chat_proposal_create_v1` and `pwa_chat_message_json_v1` in place.
+  - The runner does not gate the owner window.
+- **Order.** SQL first, then the images: `applied.sqlVersion` is 119, and `applied.appliedAt` is no earlier than `sql.applied.finishedAt`. The chat image needs V118 and V119.
+- **Plan.** `{add:0, change:3, destroy:0}` with exactly `read.image`, `command.image`, `chat.image`, `chat.commandUrl`, in this order (`R106_PLAN_ACTIONS`). The saved plan's `terraform show -json` export is read back (`plan.jsonPath`, `plan.jsonSha256`, as the generic kind):
+  - every resource change other than a no-op or a data read is an in-place update of `mw-credit-app-read-prod`, `-command-prod` or `-chat-prod`, each once, and all three are present;
+  - apart from the env list, each changes only `template.0.containers.0.image` (unknown attributes ignored);
+  - the env of read and command is unchanged; chat's env adds exactly `CHAT_COMMAND_URL` with the value `https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app` (no secret reference) and removes or changes nothing.
+
+  Anything else (another env entry, the URL on another service, a different URL, another resource or attribute) is refused. Recovery pins Hosting and all five services; the applied readback shows read, command and chat on the new image with a new revision, and notify and jobs exactly on their pinned image and revision.
+- **Live readback.** As R104 (the R102 chat checks unchanged: Claude Opus 5.5 default and the three Gemini models, the relay URL and private-range VPC egress on chat only), plus `CHAT_COMMAND_URL` on chat exactly the PROD command URL and absent from read, command, notify and jobs.
+- **Artifact and operator.** The marker and the entry bundle carry `"R106"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r106`.
+- **Generic kind.** An R106 package with `kindRule: generic-v1` is refused: a release with a hand-written row never matches the generic kind.
 
 ## R104 read, command, chat, SQL and frontend promotion with V116 and V117
 

@@ -3,7 +3,7 @@
 // without `done` switches to polling the turn's outcome.
 import {readCachedJson} from '../read-cache';
 import type {OwnerOfflineRepository} from '../owner-offline';
-import {createSseParser,classifyOutcome,pollOutcome,type ChatMessage,type Outcome,type PollResult} from './chat-protocol';
+import {createSseParser,classifyOutcome,pollOutcome,isGroup,type ChatMessage,type ChatProposal,type Outcome,type PollResult} from './chat-protocol';
 
 export type ChatAccess={origin:string;offline?:OwnerOfflineRepository;awaitStartup?:()=>Promise<void>;token:()=>Promise<string>;authFailure:(status:number)=>void};
 export type ChatThread={id:string;title:string;model:string;status:'active'|'archived';createdAt?:string;lastMessageAt?:string|null;messageCount?:number};
@@ -20,15 +20,16 @@ export class ChatAccessError extends Error{readonly fatal=true;constructor(){sup
 
 /** Design §3.4: chat requests carry X-MW-Wake-Deadline = now + 250 s. */
 export const WAKE_MS=250000;
-/** `token`: an ID token the caller already holds (the turn keeps the one it was sent with, batch 2c). */
-async function send(access:ChatAccess,path:string,{method='GET',body,signal,accept,token:held}:{method?:string;body?:unknown;signal?:AbortSignal;accept?:string;token?:string}={}){
+/** `token`: an ID token the caller already holds (the turn keeps the one it was sent with, batch 2c). `gate` (R106):
+ * a 403 is the proposal routes' reviewer or capability refusal for this one action, not a lost session. */
+async function send(access:ChatAccess,path:string,{method='GET',body,signal,accept,token:held,gate=false}:{method?:string;body?:unknown;signal?:AbortSignal;accept?:string;token?:string;gate?:boolean}={}){
  let token=held;
  if(token===undefined){if(access.awaitStartup)await access.awaitStartup();token=await access.token()}
  const headers:Record<string,string>={Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(Date.now()+WAKE_MS)};
  if(body!==undefined)headers['Content-Type']='application/json';
  if(accept)headers.Accept=accept;
  const response=await fetch(new URL(path,access.origin).href,{method,headers,body:body===undefined?undefined:JSON.stringify(body),signal,cache:'no-store',credentials:'omit',redirect:'error'});
- if(response.status===401||response.status===403){access.authFailure(response.status);throw new ChatAccessError()}
+ if(response.status===401||(response.status===403&&!gate)){access.authFailure(response.status);throw new ChatAccessError()}
  return response;
 }
 async function failure(response:Response){
@@ -185,4 +186,41 @@ export function waitForOutcome(access:ChatAccess,threadId:string,messageId:strin
   if(!response.ok)throw await failure(response);
   return classifyOutcome(await response.json());
  },{signal});
+}
+
+/** R106 D9/D12: a proposal group by its head id ({id, state, lines}); the service reconciles unknown lines on the read. */
+const proposalPath=(threadId:string,id:string)=>threadPath(threadId)+'/proposals/'+encodeURIComponent(id);
+export type ProposalGroup={id:string;state:string;lines:ChatProposal[]};
+export type GroupLineEvent={index:number;id:string;state:ChatProposal['state'];code?:string;record?:ChatProposal['record']};
+async function groupAnswer(response:Response):Promise<ProposalGroup>{
+ if(!response.ok)throw await failure(response);
+ const value=(await response.json() as {item?:unknown}).item;
+ if(!isGroup(value))throw new ChatHttpError(response.status,'unavailable');
+ return value;
+}
+export async function getProposalGroup(access:ChatAccess,threadId:string,id:string,signal?:AbortSignal){return groupAnswer(await send(access,proposalPath(threadId,id),{signal,gate:true}))}
+export async function cancelProposalGroup(access:ChatAccess,threadId:string,id:string,signal?:AbortSignal){return groupAnswer(await send(access,proposalPath(threadId,id)+'/cancel',{method:'POST',body:{},signal,gate:true}))}
+/**
+ * Confirm all (online only: nothing is queued on the device). The service runs the pending lines in order and streams
+ * `line` after each, then `group` and `done`. Returns the final group, or null when the stream ended without it (the
+ * caller then reads the group, which reconciles; a lost answer is never resent blindly).
+ */
+export async function confirmProposalGroup(access:ChatAccess,threadId:string,id:string,onLine:(line:GroupLineEvent)=>void,signal?:AbortSignal):Promise<ProposalGroup|null>{
+ const response=await send(access,proposalPath(threadId,id)+'/confirm',{method:'POST',body:{},signal,gate:true,accept:'text/event-stream'});
+ if(!response.ok)throw await failure(response);
+ if(!/text\/event-stream/i.test(response.headers.get('Content-Type')??''))return groupAnswer(response);
+ let group:ProposalGroup|null=null,error:string|null=null;
+ const parser=createSseParser((name,data)=>{
+  const value=data as Record<string,unknown>|null;
+  if(name==='line'&&value&&typeof value.id==='string'&&typeof value.state==='string')onLine(value as unknown as GroupLineEvent);
+  else if(name==='group'&&value&&isGroup(value.group))group=value.group;
+  else if(name==='error')error=typeof value?.code==='string'?value.code:'unavailable';
+ });
+ const reader=response.body?.getReader();if(!reader)return null;
+ const decoder=new TextDecoder();
+ try{for(;;){const {value,done}=await reader.read();if(done)break;parser.push(decoder.decode(value,{stream:true}))}}
+ catch{/* a dropped stream: the caller reads the group */}
+ finally{parser.end()}
+ if(error==='proposal_executing')throw new ChatHttpError(409,'proposal_executing');
+ return group;
 }

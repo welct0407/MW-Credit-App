@@ -1,0 +1,3334 @@
+{
+ "version": 1,
+ "excluded": {
+  "partner.create": "Partner records change login and the AI Reviewer flag: Management screen only",
+  "partner.update": "Partner records change login and the AI Reviewer flag: Management screen only",
+  "partner.delete": "Management screen only",
+  "cash-openings.initialize": "Needs the screen's reviewed basis",
+  "analytics.refresh:Full": "Long job: Management screen only",
+  "payment.correct:replace": "Receipt images stay in the app",
+  "loan.close:receipt": "Receipt images stay in the app"
+ },
+ "hostOwned": [
+  "requestId",
+  "targetId",
+  "expectedVersion",
+  "predecessorRequestId",
+  "receiptId",
+  "schemaVersion",
+  "allocations",
+  "materialize"
+ ],
+ "entries": [
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "borrower.create",
+   "kind": "operation",
+   "label": {
+    "en": "New borrower",
+    "th": "เพิ่มผู้กู้"
+   },
+   "description": "Create a borrower.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "name",
+     "type": "text-required",
+     "label": {
+      "en": "Borrower name",
+      "th": "ชื่อผู้กู้"
+     },
+     "required": true
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "label": {
+      "en": "English name",
+      "th": "ชื่อภาษาอังกฤษ"
+     }
+    },
+    {
+     "name": "communicationName",
+     "type": "text",
+     "label": {
+      "en": "Payer names on slips",
+      "th": "ชื่อผู้โอนในสลิป"
+     }
+    },
+    {
+     "name": "instagramUsername",
+     "type": "text",
+     "label": {
+      "en": "Instagram username",
+      "th": "ชื่อผู้ใช้ Instagram"
+     }
+    },
+    {
+     "name": "city",
+     "type": "text",
+     "label": {
+      "en": "City",
+      "th": "จังหวัด"
+     }
+    },
+    {
+     "name": "workingLocation",
+     "type": "text",
+     "label": {
+      "en": "Working location",
+      "th": "สถานที่ทำงาน"
+     }
+    },
+    {
+     "name": "address",
+     "type": "text",
+     "label": {
+      "en": "Address",
+      "th": "ที่อยู่"
+     }
+    },
+    {
+     "name": "hidden",
+     "type": "boolean-null",
+     "label": {
+      "en": "Hidden",
+      "th": "ซ่อน"
+     }
+    },
+    {
+     "name": "referrerId",
+     "type": "borrower",
+     "label": {
+      "en": "Referrer",
+      "th": "ผู้แนะนำ"
+     }
+    },
+    {
+     "name": "preferredReceivingAccountId",
+     "type": "account",
+     "label": {
+      "en": "Preferred receiving account",
+      "th": "บัญชีรับเงินหลัก"
+     }
+    },
+    {
+     "name": "note",
+     "type": "text",
+     "label": {
+      "en": "Borrower note",
+      "th": "หมายเหตุผู้กู้"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "borrower.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "name": "Synthetic Borrower",
+     "description": null,
+     "communicationName": null,
+     "instagramUsername": null,
+     "city": null,
+     "workingLocation": null,
+     "address": null,
+     "hidden": false,
+     "referrerId": null,
+     "preferredReceivingAccountId": null,
+     "note": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "New borrower",
+    "th": "เพิ่มผู้กู้"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "borrower.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit borrower",
+    "th": "แก้ไขผู้กู้"
+   },
+   "description": "Change borrower fields; give only the fields that change.",
+   "target": "record",
+   "read": "/api/borrower-records/{id}",
+   "title": [
+    "item.name",
+    "item.description"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "name",
+     "type": "text-required",
+     "label": {
+      "en": "Borrower name",
+      "th": "ชื่อผู้กู้"
+     },
+     "required": true
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "label": {
+      "en": "English name",
+      "th": "ชื่อภาษาอังกฤษ"
+     }
+    },
+    {
+     "name": "communicationName",
+     "type": "text",
+     "label": {
+      "en": "Payer names on slips",
+      "th": "ชื่อผู้โอนในสลิป"
+     }
+    },
+    {
+     "name": "instagramUsername",
+     "type": "text",
+     "label": {
+      "en": "Instagram username",
+      "th": "ชื่อผู้ใช้ Instagram"
+     }
+    },
+    {
+     "name": "city",
+     "type": "text",
+     "label": {
+      "en": "City",
+      "th": "จังหวัด"
+     }
+    },
+    {
+     "name": "workingLocation",
+     "type": "text",
+     "label": {
+      "en": "Working location",
+      "th": "สถานที่ทำงาน"
+     }
+    },
+    {
+     "name": "address",
+     "type": "text",
+     "label": {
+      "en": "Address",
+      "th": "ที่อยู่"
+     }
+    },
+    {
+     "name": "hidden",
+     "type": "boolean-null",
+     "label": {
+      "en": "Hidden",
+      "th": "ซ่อน"
+     }
+    },
+    {
+     "name": "referrerId",
+     "type": "borrower",
+     "label": {
+      "en": "Referrer",
+      "th": "ผู้แนะนำ"
+     }
+    },
+    {
+     "name": "preferredReceivingAccountId",
+     "type": "account",
+     "label": {
+      "en": "Preferred receiving account",
+      "th": "บัญชีรับเงินหลัก"
+     }
+    },
+    {
+     "name": "note",
+     "type": "text",
+     "label": {
+      "en": "Borrower note",
+      "th": "หมายเหตุผู้กู้"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "borrower.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "name": "Synthetic Borrower",
+     "description": null,
+     "communicationName": null,
+     "instagramUsername": null,
+     "city": null,
+     "workingLocation": null,
+     "address": null,
+     "hidden": false,
+     "referrerId": null,
+     "preferredReceivingAccountId": null,
+     "note": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit borrower",
+    "th": "แก้ไขผู้กู้"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "borrower.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete borrower",
+    "th": "ลบผู้กู้"
+   },
+   "description": "Delete a borrower without loans.",
+   "target": "record",
+   "read": "/api/borrower-records/{id}",
+   "title": [
+    "item.name",
+    "item.description"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "borrower.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete borrower",
+    "th": "ลบผู้กู้"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "loan.create",
+   "kind": "operation",
+   "label": {
+    "en": "New loan",
+    "th": "เพิ่มสินเชื่อ"
+   },
+   "description": "Create a loan for a borrower.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "borrowerId",
+     "type": "borrower",
+     "label": {
+      "en": "Borrower",
+      "th": "ผู้กู้"
+     },
+     "required": true
+    },
+    {
+     "name": "loanDate",
+     "type": "date",
+     "label": {
+      "en": "Loan date",
+      "th": "วันที่กู้"
+     },
+     "required": true
+    },
+    {
+     "name": "principal",
+     "type": "money",
+     "label": {
+      "en": "Principal",
+      "th": "เงินต้น"
+     },
+     "required": true
+    },
+    {
+     "name": "transferFee",
+     "type": "money",
+     "label": {
+      "en": "Transfer fee",
+      "th": "ค่าธรรมเนียมโอน"
+     }
+    },
+    {
+     "name": "disbursingAccountId",
+     "type": "account",
+     "label": {
+      "en": "Disbursed from account",
+      "th": "จ่ายจากบัญชี"
+     },
+     "required": true
+    },
+    {
+     "name": "type",
+     "type": "enum",
+     "label": {
+      "en": "Loan type",
+      "th": "ประเภทสินเชื่อ"
+     },
+     "required": true,
+     "values": [
+      "กำหนดวันชำระ",
+      "ดอกเบี้ยรายวัน",
+      "ผ่อนชำระรายวัน"
+     ]
+    },
+    {
+     "name": "dueDate",
+     "type": "date",
+     "label": {
+      "en": "Due date",
+      "th": "วันครบกำหนด"
+     }
+    },
+    {
+     "name": "dailyPayment",
+     "type": "money",
+     "label": {
+      "en": "Daily payment",
+      "th": "ยอดผ่อนรายวัน"
+     }
+    },
+    {
+     "name": "fixedInterest",
+     "type": "money",
+     "label": {
+      "en": "Fixed interest",
+      "th": "ดอกเบี้ยคงที่"
+     }
+    },
+    {
+     "name": "currentDailyInterest",
+     "type": "money",
+     "label": {
+      "en": "Daily interest",
+      "th": "ดอกเบี้ยรายวัน"
+     }
+    },
+    {
+     "name": "paymentInterval",
+     "type": "integer",
+     "label": {
+      "en": "Interest payment interval (days)",
+      "th": "รอบชำระดอกเบี้ย (วัน)"
+     }
+    },
+    {
+     "name": "arrangement",
+     "type": "text",
+     "label": {
+      "en": "Loan arrangement",
+      "th": "ข้อตกลงสินเชื่อ"
+     }
+    },
+    {
+     "name": "autoChargeEnabled",
+     "type": "boolean-null",
+     "label": {
+      "en": "Automatic charges",
+      "th": "สร้างรายการเรียกเก็บอัตโนมัติ"
+     }
+    },
+    {
+     "name": "scheduleAnchor",
+     "type": "date",
+     "label": {
+      "en": "Interest schedule anchor date",
+      "th": "วันที่เริ่มรอบดอกเบี้ย"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "loan.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "borrowerId": "b:syn",
+     "loanDate": "2026-10-01",
+     "principal": "10000",
+     "transferFee": null,
+     "disbursingAccountId": "ca:syn",
+     "type": "ดอกเบี้ยรายวัน",
+     "dueDate": null,
+     "dailyPayment": null,
+     "fixedInterest": null,
+     "currentDailyInterest": "100",
+     "paymentInterval": 1,
+     "arrangement": null,
+     "autoChargeEnabled": true,
+     "scheduleAnchor": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "New loan",
+    "th": "เพิ่มสินเชื่อ"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "loan.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit loan",
+    "th": "แก้ไขสินเชื่อ"
+   },
+   "description": "Change loan fields; give only the fields that change.",
+   "target": "record",
+   "read": "/api/loan-records/{id}",
+   "title": [
+    "item.borrowerDisplayName"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "borrowerId",
+     "type": "borrower",
+     "label": {
+      "en": "Borrower",
+      "th": "ผู้กู้"
+     },
+     "required": true
+    },
+    {
+     "name": "loanDate",
+     "type": "date",
+     "label": {
+      "en": "Loan date",
+      "th": "วันที่กู้"
+     },
+     "required": true
+    },
+    {
+     "name": "principal",
+     "type": "money",
+     "label": {
+      "en": "Principal",
+      "th": "เงินต้น"
+     },
+     "required": true
+    },
+    {
+     "name": "transferFee",
+     "type": "money",
+     "label": {
+      "en": "Transfer fee",
+      "th": "ค่าธรรมเนียมโอน"
+     }
+    },
+    {
+     "name": "disbursingAccountId",
+     "type": "account",
+     "label": {
+      "en": "Disbursed from account",
+      "th": "จ่ายจากบัญชี"
+     },
+     "required": true
+    },
+    {
+     "name": "type",
+     "type": "enum",
+     "label": {
+      "en": "Loan type",
+      "th": "ประเภทสินเชื่อ"
+     },
+     "required": true,
+     "values": [
+      "กำหนดวันชำระ",
+      "ดอกเบี้ยรายวัน",
+      "ผ่อนชำระรายวัน"
+     ]
+    },
+    {
+     "name": "dueDate",
+     "type": "date",
+     "label": {
+      "en": "Due date",
+      "th": "วันครบกำหนด"
+     }
+    },
+    {
+     "name": "dailyPayment",
+     "type": "money",
+     "label": {
+      "en": "Daily payment",
+      "th": "ยอดผ่อนรายวัน"
+     }
+    },
+    {
+     "name": "fixedInterest",
+     "type": "money",
+     "label": {
+      "en": "Fixed interest",
+      "th": "ดอกเบี้ยคงที่"
+     }
+    },
+    {
+     "name": "currentDailyInterest",
+     "type": "money",
+     "label": {
+      "en": "Daily interest",
+      "th": "ดอกเบี้ยรายวัน"
+     }
+    },
+    {
+     "name": "paymentInterval",
+     "type": "integer",
+     "label": {
+      "en": "Interest payment interval (days)",
+      "th": "รอบชำระดอกเบี้ย (วัน)"
+     }
+    },
+    {
+     "name": "arrangement",
+     "type": "text",
+     "label": {
+      "en": "Loan arrangement",
+      "th": "ข้อตกลงสินเชื่อ"
+     }
+    },
+    {
+     "name": "autoChargeEnabled",
+     "type": "boolean-null",
+     "label": {
+      "en": "Automatic charges",
+      "th": "สร้างรายการเรียกเก็บอัตโนมัติ"
+     }
+    },
+    {
+     "name": "scheduleAnchor",
+     "type": "date",
+     "label": {
+      "en": "Interest schedule anchor date",
+      "th": "วันที่เริ่มรอบดอกเบี้ย"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "loan.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "borrowerId": "b:syn",
+     "loanDate": "2026-10-01",
+     "principal": "10000",
+     "transferFee": null,
+     "disbursingAccountId": "ca:syn",
+     "type": "ดอกเบี้ยรายวัน",
+     "dueDate": null,
+     "dailyPayment": null,
+     "fixedInterest": null,
+     "currentDailyInterest": "100",
+     "paymentInterval": 1,
+     "arrangement": null,
+     "autoChargeEnabled": true,
+     "scheduleAnchor": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit loan",
+    "th": "แก้ไขสินเชื่อ"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "loan.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete loan",
+    "th": "ลบสินเชื่อ"
+   },
+   "description": "Delete a loan.",
+   "target": "record",
+   "read": "/api/loan-records/{id}",
+   "title": [
+    "item.borrowerDisplayName"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "loan.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete loan",
+    "th": "ลบสินเชื่อ"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "loan.default",
+   "kind": "operation",
+   "label": {
+    "en": "Default loan",
+    "th": "บันทึกผิดนัด"
+   },
+   "description": "Record an open loan as defaulted today (writes off its principal).",
+   "target": "record",
+   "read": "/api/loan-records/{id}",
+   "title": [
+    "item.borrowerDisplayName"
+   ],
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "businessDate",
+     "type": "date",
+     "label": {
+      "en": "Business date",
+      "th": "วันที่ทำรายการ"
+     },
+     "host": {
+      "read": "/api/loan-options",
+      "path": "businessDate"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "loan.default",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "businessDate": "2026-10-02"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Default loan",
+    "th": "บันทึกผิดนัด"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "loan.undo-default",
+   "kind": "operation",
+   "label": {
+    "en": "Undo default",
+    "th": "ยกเลิกการผิดนัด"
+   },
+   "description": "Undo a loan default.",
+   "target": "record",
+   "read": "/api/loan-records/{id}",
+   "title": [
+    "item.borrowerDisplayName"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "loan.undo-default",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Undo default",
+    "th": "ยกเลิกการผิดนัด"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "loan.generate-charge",
+   "kind": "operation",
+   "label": {
+    "en": "Generate charges",
+    "th": "สร้างรายการเรียกเก็บ"
+   },
+   "description": "Generate the loan's charges due up to today.",
+   "target": "record",
+   "read": "/api/loan-records/{id}",
+   "title": [
+    "item.borrowerDisplayName"
+   ],
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "businessDate",
+     "type": "date",
+     "label": {
+      "en": "Business date",
+      "th": "วันที่ทำรายการ"
+     },
+     "host": {
+      "read": "/api/loan-options",
+      "path": "businessDate"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "loan.generate-charge",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "businessDate": "2026-10-02"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Generate charges",
+    "th": "สร้างรายการเรียกเก็บ"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "loan.book-projected-charge",
+   "kind": "operation",
+   "label": {
+    "en": "Record next charge",
+    "th": "บันทึกรายการเรียกเก็บถัดไป"
+   },
+   "description": "Record the loan's next charge from Upcoming Charges (date and amounts come from the system).",
+   "target": "record",
+   "read": "/api/loan-records/{id}",
+   "title": [
+    "item.borrowerDisplayName"
+   ],
+   "builder": "book",
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "chargeDate",
+     "type": "date",
+     "label": {
+      "en": "Charge date",
+      "th": "วันที่เรียกเก็บ"
+     },
+     "host": {}
+    },
+    {
+     "name": "principalDue",
+     "type": "whole",
+     "label": {
+      "en": "Principal due",
+      "th": "เงินต้นที่ต้องชำระ"
+     },
+     "host": {}
+    },
+    {
+     "name": "interestDue",
+     "type": "whole",
+     "label": {
+      "en": "Interest due",
+      "th": "ดอกเบี้ยที่ต้องชำระ"
+     },
+     "host": {}
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "loan.book-projected-charge",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "chargeDate": "2026-10-09",
+     "principalDue": "0",
+     "interestDue": "700"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Record next charge",
+    "th": "บันทึกรายการเรียกเก็บถัดไป"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [
+    "loan_close_payoff"
+   ],
+   "operation": "loan.close",
+   "kind": "operation",
+   "label": {
+    "en": "Close loan",
+    "th": "ปิดสินเชื่อ"
+   },
+   "description": "Close an open Daily Interest loan today with its payoff (amount and plan come from the system; no receipt).",
+   "target": "record",
+   "read": "/api/loan-records/{id}/close-preview",
+   "version": "sourceVersion",
+   "title": [
+    "item.borrowerDisplayName"
+   ],
+   "titleRead": "/api/loan-records/{id}",
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "paymentDate",
+     "type": "date",
+     "label": {
+      "en": "Payment date",
+      "th": "วันที่รับชำระ"
+     },
+     "host": {
+      "path": "businessDate"
+     }
+    },
+    {
+     "name": "cashAccountId",
+     "type": "account",
+     "label": {
+      "en": "Receiving account",
+      "th": "บัญชีรับเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "paymentMethod",
+     "type": "enum",
+     "label": {
+      "en": "Payment method",
+      "th": "วิธีรับชำระ"
+     },
+     "required": true,
+     "values": [
+      "Bank Transfer",
+      "Cash",
+      "Net-off at Disbursement"
+     ]
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    },
+    {
+     "name": "expectedAmount",
+     "type": "whole",
+     "label": {
+      "en": "Payoff amount",
+      "th": "ยอดปิด"
+     },
+     "host": {
+      "path": "amount"
+     }
+    },
+    {
+     "name": "expectedPlanHash",
+     "type": "hash",
+     "label": {
+      "en": "Plan",
+      "th": "แผนการจัดสรร"
+     },
+     "host": {
+      "path": "planHash"
+     },
+     "hidden": true
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "loan.close",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "paymentDate": "2026-10-02",
+     "cashAccountId": "ca:syn",
+     "paymentMethod": "Cash",
+     "notes": null,
+     "expectedAmount": "10100",
+     "expectedPlanHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Close for {amount}",
+    "th": "ปิดยอด {amount}",
+    "amount": "expectedAmount"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "charge.create",
+   "kind": "operation",
+   "label": {
+    "en": "New charge",
+    "th": "เพิ่มรายการเรียกเก็บ"
+   },
+   "description": "Create a charge on a loan.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "loanId",
+     "type": "loan",
+     "label": {
+      "en": "Loan",
+      "th": "สินเชื่อ"
+     },
+     "required": true
+    },
+    {
+     "name": "chargeDate",
+     "type": "date",
+     "label": {
+      "en": "Charge date",
+      "th": "วันที่เรียกเก็บ"
+     },
+     "required": true
+    },
+    {
+     "name": "principalDue",
+     "type": "signed-money",
+     "label": {
+      "en": "Principal due",
+      "th": "เงินต้นที่ต้องชำระ"
+     },
+     "required": true
+    },
+    {
+     "name": "interestDue",
+     "type": "signed-money",
+     "label": {
+      "en": "Interest due",
+      "th": "ดอกเบี้ยที่ต้องชำระ"
+     },
+     "required": true
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "charge.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "loanId": "l:syn",
+     "chargeDate": "2026-10-02",
+     "principalDue": "0",
+     "interestDue": "100",
+     "notes": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "New charge",
+    "th": "เพิ่มรายการเรียกเก็บ"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "charge.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit charge",
+    "th": "แก้ไขรายการเรียกเก็บ"
+   },
+   "description": "Change charge fields; give only the fields that change.",
+   "target": "record",
+   "read": "/api/charge-records/{id}",
+   "title": [
+    "item.borrowerName",
+    "item.borrowerDescription"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "loanId",
+     "type": "loan",
+     "label": {
+      "en": "Loan",
+      "th": "สินเชื่อ"
+     },
+     "required": true
+    },
+    {
+     "name": "chargeDate",
+     "type": "date",
+     "label": {
+      "en": "Charge date",
+      "th": "วันที่เรียกเก็บ"
+     },
+     "required": true
+    },
+    {
+     "name": "principalDue",
+     "type": "signed-money",
+     "label": {
+      "en": "Principal due",
+      "th": "เงินต้นที่ต้องชำระ"
+     },
+     "required": true
+    },
+    {
+     "name": "interestDue",
+     "type": "signed-money",
+     "label": {
+      "en": "Interest due",
+      "th": "ดอกเบี้ยที่ต้องชำระ"
+     },
+     "required": true
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "charge.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "loanId": "l:syn",
+     "chargeDate": "2026-10-02",
+     "principalDue": "0",
+     "interestDue": "100",
+     "notes": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit charge",
+    "th": "แก้ไขรายการเรียกเก็บ"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "charge.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete charge",
+    "th": "ลบรายการเรียกเก็บ"
+   },
+   "description": "Delete a charge.",
+   "target": "record",
+   "read": "/api/charge-records/{id}",
+   "title": [
+    "item.borrowerName",
+    "item.borrowerDescription"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "charge.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete charge",
+    "th": "ลบรายการเรียกเก็บ"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [
+    "replaces_plan"
+   ],
+   "operation": "payment.correct",
+   "kind": "operation",
+   "label": {
+    "en": "Correct payment",
+    "th": "แก้ไขรายการรับชำระ"
+   },
+   "description": "Change a payment's date, method, receiving account or notes, keeping its allocation; receiptMode preserve (default) or remove.",
+   "target": "record",
+   "read": "/api/payment-records/{id}/correction-preview",
+   "version": "item.sourceVersion",
+   "predecessor": "item.predecessorRequestId",
+   "title": [
+    "item.proposedBorrowerLabel"
+   ],
+   "builder": "correction",
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "paymentDate",
+     "type": "date",
+     "label": {
+      "en": "Payment date",
+      "th": "วันที่รับชำระ"
+     }
+    },
+    {
+     "name": "paymentMethod",
+     "type": "enum",
+     "label": {
+      "en": "Payment method",
+      "th": "วิธีรับชำระ"
+     },
+     "values": [
+      "Bank Transfer",
+      "Cash",
+      "Net-off at Disbursement"
+     ]
+    },
+    {
+     "name": "cashAccountId",
+     "type": "account",
+     "label": {
+      "en": "Receiving account",
+      "th": "บัญชีรับเงิน"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    },
+    {
+     "name": "receiptMode",
+     "type": "enum",
+     "label": {
+      "en": "Receipt",
+      "th": "หลักฐาน"
+     },
+     "values": [
+      "preserve",
+      "remove"
+     ]
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "payment.correct",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": "a1b2c3d4-0000-4000-8000-000000000003",
+    "inputs": {
+     "kind": "pwa-plan",
+     "fields": {
+      "borrowerId": "b:syn",
+      "amountReceived": "100",
+      "paymentDate": "2026-10-02",
+      "paymentMethod": "Cash",
+      "cashAccountId": "ca:syn",
+      "notes": null,
+      "allocationMethod": "Selected Charges",
+      "targetChargeId": null,
+      "targetLoanId": null,
+      "allocations": [
+       {
+        "chargeId": "c:syn",
+        "principal": "0",
+        "interest": "100",
+        "expectedPrincipalRemaining": "0",
+        "expectedInterestRemaining": "100",
+        "chargeDate": "2026-10-02"
+       }
+      ]
+     },
+     "receiptMode": "preserve",
+     "closePreparationHash": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Correct payment",
+    "th": "แก้ไขรายการรับชำระ"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "payment.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete payment",
+    "th": "ลบรายการรับชำระ"
+   },
+   "description": "Delete a payment and its allocations.",
+   "target": "record",
+   "read": "/api/payment-records/{id}/correction-preview",
+   "version": "item.sourceVersion",
+   "predecessor": "item.predecessorRequestId",
+   "title": [
+    "item.proposedBorrowerLabel"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "payment.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": "a1b2c3d4-0000-4000-8000-000000000003",
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete payment",
+    "th": "ลบรายการรับชำระ"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "payment.move-interest",
+   "kind": "operation",
+   "label": {
+    "en": "Move interest",
+    "th": "ย้ายดอกเบี้ย"
+   },
+   "description": "Move one interest allocation of a payment to another charge of the same loan.",
+   "target": "record",
+   "read": "/api/payment-records/{id}/correction-preview",
+   "version": "item.sourceVersion",
+   "predecessor": "item.predecessorRequestId",
+   "title": [
+    "item.proposedBorrowerLabel"
+   ],
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "allocationId",
+     "type": "allocation",
+     "label": {
+      "en": "Interest allocation",
+      "th": "รายการจัดสรรดอกเบี้ย"
+     },
+     "required": true
+    },
+    {
+     "name": "targetChargeId",
+     "type": "charge",
+     "label": {
+      "en": "Target charge",
+      "th": "รายการเรียกเก็บปลายทาง"
+     },
+     "required": true
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "payment.move-interest",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": "a1b2c3d4-0000-4000-8000-000000000003",
+    "inputs": {
+     "allocationId": "pa:syn",
+     "targetChargeId": "c:syn"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Move interest",
+    "th": "ย้ายดอกเบี้ย"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "expense.create",
+   "kind": "operation",
+   "label": {
+    "en": "New expense",
+    "th": "เพิ่มค่าใช้จ่าย"
+   },
+   "description": "Record a business expense.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "expenseDate",
+     "type": "date",
+     "label": {
+      "en": "Expense date",
+      "th": "วันที่ค่าใช้จ่าย"
+     },
+     "required": true
+    },
+    {
+     "name": "category",
+     "type": "enum",
+     "label": {
+      "en": "Category",
+      "th": "หมวดหมู่"
+     },
+     "required": true,
+     "values": [
+      "Collection Cost / ค่าใช้จ่ายติดตามหนี้",
+      "Transportation / ค่าเดินทาง",
+      "Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน",
+      "Software / Subscription / ค่าซอฟต์แวร์และสมาชิก",
+      "Other / อื่น ๆ",
+      "Referral Rebate / เงินคืนค่าแนะนำลูกค้า"
+     ]
+    },
+    {
+     "name": "amount",
+     "type": "signed-whole",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "payeeName",
+     "type": "text",
+     "label": {
+      "en": "Payee",
+      "th": "ผู้รับเงิน"
+     }
+    },
+    {
+     "name": "relatedBorrowerId",
+     "type": "borrower",
+     "label": {
+      "en": "Related borrower",
+      "th": "ผู้กู้ที่เกี่ยวข้อง"
+     }
+    },
+    {
+     "name": "relatedLoanId",
+     "type": "loan",
+     "label": {
+      "en": "Related loan",
+      "th": "สินเชื่อที่เกี่ยวข้อง"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    },
+    {
+     "name": "paidByAccountId",
+     "type": "account",
+     "label": {
+      "en": "Paid by account",
+      "th": "จ่ายจากบัญชี"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "expense.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "expenseDate": "2026-10-02",
+     "category": "Transportation / ค่าเดินทาง",
+     "amount": "150",
+     "payeeName": null,
+     "relatedBorrowerId": null,
+     "relatedLoanId": null,
+     "notes": null,
+     "paidByAccountId": "ca:syn"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Record {amount}",
+    "th": "บันทึก {amount}",
+    "amount": "amount"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "expense.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit expense",
+    "th": "แก้ไขค่าใช้จ่าย"
+   },
+   "description": "Change expense fields; give only the fields that change.",
+   "target": "record",
+   "read": "/api/expense-records/{id}",
+   "title": [
+    "item.category"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "expenseDate",
+     "type": "date",
+     "label": {
+      "en": "Expense date",
+      "th": "วันที่ค่าใช้จ่าย"
+     },
+     "required": true
+    },
+    {
+     "name": "category",
+     "type": "text-required",
+     "label": {
+      "en": "Category",
+      "th": "หมวดหมู่"
+     },
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "signed-whole",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "payeeName",
+     "type": "text",
+     "label": {
+      "en": "Payee",
+      "th": "ผู้รับเงิน"
+     }
+    },
+    {
+     "name": "relatedBorrowerId",
+     "type": "borrower",
+     "label": {
+      "en": "Related borrower",
+      "th": "ผู้กู้ที่เกี่ยวข้อง"
+     }
+    },
+    {
+     "name": "relatedLoanId",
+     "type": "loan",
+     "label": {
+      "en": "Related loan",
+      "th": "สินเชื่อที่เกี่ยวข้อง"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    },
+    {
+     "name": "paidByAccountId",
+     "type": "account",
+     "label": {
+      "en": "Paid by account",
+      "th": "จ่ายจากบัญชี"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "expense.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "expenseDate": "2026-10-02",
+     "category": "Transportation / ค่าเดินทาง",
+     "amount": "150",
+     "payeeName": null,
+     "relatedBorrowerId": null,
+     "relatedLoanId": null,
+     "notes": null,
+     "paidByAccountId": "ca:syn"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit expense",
+    "th": "แก้ไขค่าใช้จ่าย"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "expense.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete expense",
+    "th": "ลบค่าใช้จ่าย"
+   },
+   "description": "Delete a manual expense.",
+   "target": "record",
+   "read": "/api/expense-records/{id}",
+   "title": [
+    "item.category"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "expense.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete expense",
+    "th": "ลบค่าใช้จ่าย"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "preference.update",
+   "kind": "operation",
+   "label": {
+    "en": "Update preferences",
+    "th": "อัปเดตการตั้งค่า"
+   },
+   "description": "Change the signed-in Partner's language or cash statement selection; target_id is ignored.",
+   "target": "self",
+   "read": "/api/preferences",
+   "title": [],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "language",
+     "type": "enum",
+     "label": {
+      "en": "Language",
+      "th": "ภาษา"
+     },
+     "required": true,
+     "values": [
+      "English",
+      "ไทย"
+     ]
+    },
+    {
+     "name": "statementAccountId",
+     "type": "account",
+     "label": {
+      "en": "Statement account",
+      "th": "บัญชีรายการเดินบัญชี"
+     }
+    },
+    {
+     "name": "statementDate",
+     "type": "date",
+     "label": {
+      "en": "Statement date",
+      "th": "วันที่รายการเดินบัญชี"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "preference.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "language": "English",
+     "statementAccountId": null,
+     "statementDate": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Update preferences",
+    "th": "อัปเดตการตั้งค่า"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "cash-holder.create",
+   "kind": "operation",
+   "label": {
+    "en": "New cash holder",
+    "th": "เพิ่มผู้ถือเงิน"
+   },
+   "description": "Create a cash holder.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "holderName",
+     "type": "text-required",
+     "label": {
+      "en": "Holder name",
+      "th": "ชื่อผู้ถือเงิน"
+     },
+     "required": true,
+     "from": "label"
+    },
+    {
+     "name": "active",
+     "type": "boolean",
+     "label": {
+      "en": "Active",
+      "th": "ใช้งาน"
+     },
+     "required": true,
+     "default": true
+    },
+    {
+     "name": "sortOrder",
+     "type": "integer",
+     "label": {
+      "en": "Sort order",
+      "th": "ลำดับ"
+     },
+     "required": true,
+     "default": 1
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-holder.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "holderName": "Synthetic",
+     "active": true,
+     "sortOrder": 1
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "New cash holder",
+    "th": "เพิ่มผู้ถือเงิน"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "cash-holder.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit cash holder",
+    "th": "แก้ไขผู้ถือเงิน"
+   },
+   "description": "Change a cash holder; give only the fields that change.",
+   "target": "record",
+   "read": "/api/management/cash-holders/{id}",
+   "title": [
+    "item.label"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "holderName",
+     "type": "text-required",
+     "label": {
+      "en": "Holder name",
+      "th": "ชื่อผู้ถือเงิน"
+     },
+     "required": true,
+     "from": "label"
+    },
+    {
+     "name": "active",
+     "type": "boolean",
+     "label": {
+      "en": "Active",
+      "th": "ใช้งาน"
+     },
+     "required": true,
+     "default": true
+    },
+    {
+     "name": "sortOrder",
+     "type": "integer",
+     "label": {
+      "en": "Sort order",
+      "th": "ลำดับ"
+     },
+     "required": true,
+     "default": 1
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-holder.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "holderName": "Synthetic",
+     "active": true,
+     "sortOrder": 1
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit cash holder",
+    "th": "แก้ไขผู้ถือเงิน"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "cash-holder.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete cash holder",
+    "th": "ลบผู้ถือเงิน"
+   },
+   "description": "Delete a cash holder.",
+   "target": "record",
+   "read": "/api/management/cash-holders/{id}",
+   "title": [
+    "item.label"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-holder.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete cash holder",
+    "th": "ลบผู้ถือเงิน"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "cash-account.create",
+   "kind": "operation",
+   "label": {
+    "en": "New cash account",
+    "th": "เพิ่มบัญชีเงินสด"
+   },
+   "description": "Create a cash account for a holder.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "cashHolderId",
+     "type": "holder",
+     "label": {
+      "en": "Cash holder",
+      "th": "ผู้ถือเงิน"
+     },
+     "required": true,
+     "from": "holderId"
+    },
+    {
+     "name": "accountLabel",
+     "type": "text-required",
+     "label": {
+      "en": "Account label",
+      "th": "ชื่อบัญชี"
+     },
+     "required": true,
+     "from": "label"
+    },
+    {
+     "name": "bankName",
+     "type": "text-required",
+     "label": {
+      "en": "Bank name",
+      "th": "ชื่อธนาคาร"
+     },
+     "required": true
+    },
+    {
+     "name": "accountNumber",
+     "type": "text",
+     "label": {
+      "en": "Account number",
+      "th": "เลขบัญชี"
+     }
+    },
+    {
+     "name": "alternativeAccountNumber",
+     "type": "text",
+     "label": {
+      "en": "Alternative account number",
+      "th": "เลขบัญชีทางเลือก"
+     }
+    },
+    {
+     "name": "defaultAccount",
+     "type": "boolean",
+     "label": {
+      "en": "Default account",
+      "th": "บัญชีเริ่มต้น"
+     },
+     "required": true,
+     "default": false,
+     "from": "isDefault"
+    },
+    {
+     "name": "active",
+     "type": "boolean",
+     "label": {
+      "en": "Active",
+      "th": "ใช้งาน"
+     },
+     "required": true,
+     "default": true
+    },
+    {
+     "name": "sortOrder",
+     "type": "integer",
+     "label": {
+      "en": "Sort order",
+      "th": "ลำดับ"
+     },
+     "required": true,
+     "default": 1
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-account.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "cashHolderId": "ch:syn",
+     "accountLabel": "Synthetic",
+     "bankName": "Bank",
+     "accountNumber": null,
+     "alternativeAccountNumber": null,
+     "defaultAccount": false,
+     "active": true,
+     "sortOrder": 1
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "New cash account",
+    "th": "เพิ่มบัญชีเงินสด"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "cash-account.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit cash account",
+    "th": "แก้ไขบัญชีเงินสด"
+   },
+   "description": "Change a cash account; give only the fields that change.",
+   "target": "record",
+   "read": "/api/management/cash-accounts/{id}",
+   "title": [
+    "item.label"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "accountLabel",
+     "type": "text-required",
+     "label": {
+      "en": "Account label",
+      "th": "ชื่อบัญชี"
+     },
+     "required": true,
+     "from": "label"
+    },
+    {
+     "name": "bankName",
+     "type": "text-required",
+     "label": {
+      "en": "Bank name",
+      "th": "ชื่อธนาคาร"
+     },
+     "required": true
+    },
+    {
+     "name": "accountNumber",
+     "type": "text",
+     "label": {
+      "en": "Account number",
+      "th": "เลขบัญชี"
+     }
+    },
+    {
+     "name": "alternativeAccountNumber",
+     "type": "text",
+     "label": {
+      "en": "Alternative account number",
+      "th": "เลขบัญชีทางเลือก"
+     }
+    },
+    {
+     "name": "defaultAccount",
+     "type": "boolean",
+     "label": {
+      "en": "Default account",
+      "th": "บัญชีเริ่มต้น"
+     },
+     "required": true,
+     "default": false,
+     "from": "isDefault"
+    },
+    {
+     "name": "active",
+     "type": "boolean",
+     "label": {
+      "en": "Active",
+      "th": "ใช้งาน"
+     },
+     "required": true,
+     "default": true
+    },
+    {
+     "name": "sortOrder",
+     "type": "integer",
+     "label": {
+      "en": "Sort order",
+      "th": "ลำดับ"
+     },
+     "required": true,
+     "default": 1
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-account.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "accountLabel": "Synthetic",
+     "bankName": "Bank",
+     "accountNumber": null,
+     "alternativeAccountNumber": null,
+     "defaultAccount": false,
+     "active": true,
+     "sortOrder": 1
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit cash account",
+    "th": "แก้ไขบัญชีเงินสด"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "cash-account.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete cash account",
+    "th": "ลบบัญชีเงินสด"
+   },
+   "description": "Delete a cash account.",
+   "target": "record",
+   "read": "/api/management/cash-accounts/{id}",
+   "title": [
+    "item.label"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-account.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete cash account",
+    "th": "ลบบัญชีเงินสด"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "capital-contribution.create",
+   "kind": "operation",
+   "label": {
+    "en": "New capital contribution",
+    "th": "เพิ่มเงินลงทุน"
+   },
+   "description": "Record a Partner capital contribution or withdrawal.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "partnerId",
+     "type": "partner",
+     "label": {
+      "en": "Partner",
+      "th": "หุ้นส่วน"
+     },
+     "required": true
+    },
+    {
+     "name": "contributionDate",
+     "type": "date",
+     "label": {
+      "en": "Contribution date",
+      "th": "วันที่ลงทุน"
+     },
+     "required": true,
+     "from": "date"
+    },
+    {
+     "name": "transactionType",
+     "type": "enum",
+     "label": {
+      "en": "Transaction type",
+      "th": "ประเภทรายการ"
+     },
+     "required": true,
+     "values": [
+      "Contribution",
+      "Withdrawal"
+     ]
+    },
+    {
+     "name": "amount",
+     "type": "money",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "capital-contribution.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "partnerId": "p:syn",
+     "contributionDate": "2026-10-02",
+     "transactionType": "Contribution",
+     "amount": "1000",
+     "notes": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Record {amount}",
+    "th": "บันทึก {amount}",
+    "amount": "amount"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "capital-contribution.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit capital contribution",
+    "th": "แก้ไขเงินลงทุน"
+   },
+   "description": "Change a capital contribution; give only the fields that change.",
+   "target": "record",
+   "read": "/api/management/contributions/{id}",
+   "title": [
+    "item.partnerLabel"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "partnerId",
+     "type": "partner",
+     "label": {
+      "en": "Partner",
+      "th": "หุ้นส่วน"
+     },
+     "required": true
+    },
+    {
+     "name": "contributionDate",
+     "type": "date",
+     "label": {
+      "en": "Contribution date",
+      "th": "วันที่ลงทุน"
+     },
+     "required": true,
+     "from": "date"
+    },
+    {
+     "name": "transactionType",
+     "type": "enum",
+     "label": {
+      "en": "Transaction type",
+      "th": "ประเภทรายการ"
+     },
+     "required": true,
+     "values": [
+      "Contribution",
+      "Withdrawal"
+     ]
+    },
+    {
+     "name": "amount",
+     "type": "money",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "capital-contribution.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "partnerId": "p:syn",
+     "contributionDate": "2026-10-02",
+     "transactionType": "Contribution",
+     "amount": "1000",
+     "notes": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit capital contribution",
+    "th": "แก้ไขเงินลงทุน"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "capital-contribution.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete capital contribution",
+    "th": "ลบเงินลงทุน"
+   },
+   "description": "Delete a capital contribution.",
+   "target": "record",
+   "read": "/api/management/contributions/{id}",
+   "title": [
+    "item.partnerLabel"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "capital-contribution.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete capital contribution",
+    "th": "ลบเงินลงทุน"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "settlement.create",
+   "kind": "operation",
+   "label": {
+    "en": "New settlement",
+    "th": "เพิ่มการจัดสรรกำไร"
+   },
+   "description": "Record a Partner profit settlement (payout).",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "settlementDate",
+     "type": "date",
+     "label": {
+      "en": "Settlement date",
+      "th": "วันที่จัดสรร"
+     },
+     "required": true,
+     "from": "date"
+    },
+    {
+     "name": "partnerId",
+     "type": "partner",
+     "label": {
+      "en": "Partner",
+      "th": "หุ้นส่วน"
+     },
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "money",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "status",
+     "type": "enum",
+     "label": {
+      "en": "Status",
+      "th": "สถานะ"
+     },
+     "required": true,
+     "values": [
+      "Pending",
+      "Completed",
+      "Cancelled"
+     ]
+    },
+    {
+     "name": "transferDate",
+     "type": "date",
+     "label": {
+      "en": "Transfer date",
+      "th": "วันที่โอน"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    },
+    {
+     "name": "cashAccountId",
+     "type": "account",
+     "label": {
+      "en": "Cash account",
+      "th": "บัญชีเงินสด"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "settlement.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "settlementDate": "2026-10-02",
+     "partnerId": "p:syn",
+     "amount": "1000",
+     "status": "Pending",
+     "transferDate": null,
+     "notes": null,
+     "cashAccountId": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "New settlement",
+    "th": "เพิ่มการจัดสรรกำไร"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "settlement.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit settlement",
+    "th": "แก้ไขการจัดสรรกำไร"
+   },
+   "description": "Change a settlement; give only the fields that change.",
+   "target": "record",
+   "read": "/api/management/settlements/{id}",
+   "title": [
+    "item.partnerLabel"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "settlementDate",
+     "type": "date",
+     "label": {
+      "en": "Settlement date",
+      "th": "วันที่จัดสรร"
+     },
+     "required": true,
+     "from": "date"
+    },
+    {
+     "name": "partnerId",
+     "type": "partner",
+     "label": {
+      "en": "Partner",
+      "th": "หุ้นส่วน"
+     },
+     "required": true
+    },
+    {
+     "name": "amount",
+     "type": "money",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "status",
+     "type": "enum",
+     "label": {
+      "en": "Status",
+      "th": "สถานะ"
+     },
+     "required": true,
+     "values": [
+      "Pending",
+      "Completed",
+      "Cancelled"
+     ]
+    },
+    {
+     "name": "transferDate",
+     "type": "date",
+     "label": {
+      "en": "Transfer date",
+      "th": "วันที่โอน"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    },
+    {
+     "name": "cashAccountId",
+     "type": "account",
+     "label": {
+      "en": "Cash account",
+      "th": "บัญชีเงินสด"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "settlement.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "settlementDate": "2026-10-02",
+     "partnerId": "p:syn",
+     "amount": "1000",
+     "status": "Pending",
+     "transferDate": null,
+     "notes": null,
+     "cashAccountId": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit settlement",
+    "th": "แก้ไขการจัดสรรกำไร"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "settlement.complete",
+   "kind": "operation",
+   "label": {
+    "en": "Complete settlement",
+    "th": "ยืนยันการจัดสรร"
+   },
+   "description": "Complete a pending settlement from a cash account.",
+   "target": "record",
+   "read": "/api/management/settlements/{id}",
+   "title": [
+    "item.partnerLabel"
+   ],
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "cashAccountId",
+     "type": "account",
+     "label": {
+      "en": "Cash account",
+      "th": "บัญชีเงินสด"
+     },
+     "required": true
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "settlement.complete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "cashAccountId": "ca:syn"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Complete settlement",
+    "th": "ยืนยันการจัดสรร"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "settlement.reverse",
+   "kind": "operation",
+   "label": {
+    "en": "Return settlement to Pending",
+    "th": "คืนสถานะเป็นรอจัดสรร"
+   },
+   "description": "Return a completed settlement to Pending.",
+   "target": "record",
+   "read": "/api/management/settlements/{id}",
+   "title": [
+    "item.partnerLabel"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "settlement.reverse",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Return to Pending",
+    "th": "คืนเป็นรอจัดสรร"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "settlement.cancel",
+   "kind": "operation",
+   "label": {
+    "en": "Cancel settlement",
+    "th": "ยกเลิกการจัดสรร"
+   },
+   "description": "Cancel a settlement.",
+   "target": "record",
+   "read": "/api/management/settlements/{id}",
+   "title": [
+    "item.partnerLabel"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "settlement.cancel",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Cancel settlement",
+    "th": "ยกเลิกการจัดสรร"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "settlement.settle-all",
+   "kind": "operation",
+   "label": {
+    "en": "Settle all available",
+    "th": "จัดสรรกำไรที่มีทั้งหมด"
+   },
+   "description": "Settle a Partner's whole available profit (the amount comes from the system); target_id is the Partner.",
+   "target": "new",
+   "targetAs": "partnerId",
+   "title": [
+    "item.label"
+   ],
+   "titleRead": "/api/management/partners/{partnerId}",
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "partnerId",
+     "type": "partner",
+     "label": {
+      "en": "Partner",
+      "th": "หุ้นส่วน"
+     },
+     "required": true
+    },
+    {
+     "name": "reviewedAmount",
+     "type": "money",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "host": {
+      "read": "/api/management/partners/{partnerId}",
+      "path": "item.netAvailableToSettle"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "settlement.settle-all",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "partnerId": "p:syn",
+     "reviewedAmount": "1000",
+     "notes": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Settle {amount}",
+    "th": "จัดสรร {amount}",
+    "amount": "reviewedAmount"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "cash-movement.create",
+   "kind": "operation",
+   "label": {
+    "en": "New cash movement",
+    "th": "เพิ่มรายการเงินสด"
+   },
+   "description": "Record a cash handover or expense reimbursement between accounts.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "movementDate",
+     "type": "date",
+     "label": {
+      "en": "Movement date",
+      "th": "วันที่รายการ"
+     },
+     "required": true,
+     "from": "date"
+    },
+    {
+     "name": "movementType",
+     "type": "enum",
+     "label": {
+      "en": "Movement type",
+      "th": "ประเภทรายการ"
+     },
+     "required": true,
+     "values": [
+      "Cash Handover",
+      "Expense Reimbursement"
+     ]
+    },
+    {
+     "name": "amount",
+     "type": "whole",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "fromAccountId",
+     "type": "account",
+     "label": {
+      "en": "From account",
+      "th": "จากบัญชี"
+     },
+     "required": true
+    },
+    {
+     "name": "toAccountId",
+     "type": "account",
+     "label": {
+      "en": "To account",
+      "th": "ไปยังบัญชี"
+     },
+     "required": true
+    },
+    {
+     "name": "businessExpenseId",
+     "type": "expense",
+     "label": {
+      "en": "Related expense",
+      "th": "ค่าใช้จ่ายที่เกี่ยวข้อง"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-movement.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "movementDate": "2026-10-02",
+     "movementType": "Cash Handover",
+     "amount": "500",
+     "fromAccountId": "ca:a",
+     "toAccountId": "ca:b",
+     "businessExpenseId": null,
+     "notes": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Record {amount}",
+    "th": "บันทึก {amount}",
+    "amount": "amount"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "cash-movement.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit cash movement",
+    "th": "แก้ไขรายการเงินสด"
+   },
+   "description": "Change a cash movement; give only the fields that change.",
+   "target": "record",
+   "read": "/api/management/cash-movements/{id}",
+   "title": [
+    "item.movementType"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "movementDate",
+     "type": "date",
+     "label": {
+      "en": "Movement date",
+      "th": "วันที่รายการ"
+     },
+     "required": true,
+     "from": "date"
+    },
+    {
+     "name": "movementType",
+     "type": "enum",
+     "label": {
+      "en": "Movement type",
+      "th": "ประเภทรายการ"
+     },
+     "required": true,
+     "values": [
+      "Cash Handover",
+      "Expense Reimbursement"
+     ]
+    },
+    {
+     "name": "amount",
+     "type": "whole",
+     "label": {
+      "en": "Amount",
+      "th": "จำนวนเงิน"
+     },
+     "required": true
+    },
+    {
+     "name": "fromAccountId",
+     "type": "account",
+     "label": {
+      "en": "From account",
+      "th": "จากบัญชี"
+     },
+     "required": true
+    },
+    {
+     "name": "toAccountId",
+     "type": "account",
+     "label": {
+      "en": "To account",
+      "th": "ไปยังบัญชี"
+     },
+     "required": true
+    },
+    {
+     "name": "businessExpenseId",
+     "type": "expense",
+     "label": {
+      "en": "Related expense",
+      "th": "ค่าใช้จ่ายที่เกี่ยวข้อง"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-movement.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "movementDate": "2026-10-02",
+     "movementType": "Cash Handover",
+     "amount": "500",
+     "fromAccountId": "ca:a",
+     "toAccountId": "ca:b",
+     "businessExpenseId": null,
+     "notes": null
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit cash movement",
+    "th": "แก้ไขรายการเงินสด"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "cash-movement.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete cash movement",
+    "th": "ลบรายการเงินสด"
+   },
+   "description": "Delete a cash movement.",
+   "target": "record",
+   "read": "/api/management/cash-movements/{id}",
+   "title": [
+    "item.movementType"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "cash-movement.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete cash movement",
+    "th": "ลบรายการเงินสด"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "assessment.create",
+   "kind": "operation",
+   "label": {
+    "en": "New loan assessment",
+    "th": "เพิ่มการประเมินสินเชื่อ"
+   },
+   "description": "Create a loan assessment.",
+   "target": "new",
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "assessmentId",
+     "type": "text",
+     "label": {
+      "en": "Assessment ID",
+      "th": "รหัสการประเมิน"
+     }
+    },
+    {
+     "name": "borrowerId",
+     "type": "borrower",
+     "label": {
+      "en": "Borrower",
+      "th": "ผู้กู้"
+     }
+    },
+    {
+     "name": "proposedLoanAmount",
+     "type": "money",
+     "label": {
+      "en": "Proposed loan amount",
+      "th": "วงเงินที่เสนอ"
+     }
+    },
+    {
+     "name": "minimumDailyProfitRate",
+     "type": "decimal",
+     "label": {
+      "en": "Minimum daily profit rate",
+      "th": "อัตรากำไรขั้นต่ำต่อวัน"
+     }
+    },
+    {
+     "name": "forecastStart",
+     "type": "date",
+     "label": {
+      "en": "Forecast start",
+      "th": "เริ่มประมาณการ"
+     },
+     "required": true
+    },
+    {
+     "name": "forecastEnd",
+     "type": "date",
+     "label": {
+      "en": "Forecast end",
+      "th": "สิ้นสุดประมาณการ"
+     },
+     "required": true
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "assessment.create",
+    "targetId": "b1b2c3d4-0000-4000-8000-000000000002",
+    "expectedVersion": null,
+    "predecessorRequestId": null,
+    "inputs": {
+     "assessmentId": null,
+     "borrowerId": "b:syn",
+     "proposedLoanAmount": "10000",
+     "minimumDailyProfitRate": null,
+     "forecastStart": "2026-10-02",
+     "forecastEnd": "2026-11-02"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "New loan assessment",
+    "th": "เพิ่มการประเมินสินเชื่อ"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "assessment.update",
+   "kind": "operation",
+   "label": {
+    "en": "Edit loan assessment",
+    "th": "แก้ไขการประเมินสินเชื่อ"
+   },
+   "description": "Change a loan assessment; give only the fields that change.",
+   "target": "record",
+   "read": "/api/management/assessments/{id}",
+   "title": [
+    "item.borrowerLabel"
+   ],
+   "inputs": "merge",
+   "fields": [
+    {
+     "name": "assessmentId",
+     "type": "text",
+     "label": {
+      "en": "Assessment ID",
+      "th": "รหัสการประเมิน"
+     }
+    },
+    {
+     "name": "borrowerId",
+     "type": "borrower",
+     "label": {
+      "en": "Borrower",
+      "th": "ผู้กู้"
+     }
+    },
+    {
+     "name": "proposedLoanAmount",
+     "type": "money",
+     "label": {
+      "en": "Proposed loan amount",
+      "th": "วงเงินที่เสนอ"
+     }
+    },
+    {
+     "name": "minimumDailyProfitRate",
+     "type": "decimal",
+     "label": {
+      "en": "Minimum daily profit rate",
+      "th": "อัตรากำไรขั้นต่ำต่อวัน"
+     }
+    },
+    {
+     "name": "forecastStart",
+     "type": "date",
+     "label": {
+      "en": "Forecast start",
+      "th": "เริ่มประมาณการ"
+     },
+     "required": true
+    },
+    {
+     "name": "forecastEnd",
+     "type": "date",
+     "label": {
+      "en": "Forecast end",
+      "th": "สิ้นสุดประมาณการ"
+     },
+     "required": true
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "assessment.update",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "assessmentId": null,
+     "borrowerId": "b:syn",
+     "proposedLoanAmount": "10000",
+     "minimumDailyProfitRate": null,
+     "forecastStart": "2026-10-02",
+     "forecastEnd": "2026-11-02"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Edit loan assessment",
+    "th": "แก้ไขการประเมินสินเชื่อ"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "assessment.refresh",
+   "kind": "operation",
+   "label": {
+    "en": "Refresh loan assessment",
+    "th": "คำนวณการประเมินใหม่"
+   },
+   "description": "Recalculate a loan assessment.",
+   "target": "record",
+   "read": "/api/management/assessments/{id}",
+   "title": [
+    "item.borrowerLabel"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "assessment.refresh",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Refresh loan assessment",
+    "th": "คำนวณการประเมินใหม่"
+   }
+  },
+  {
+   "destructive": true,
+   "consequences": [
+    "destructive"
+   ],
+   "operation": "assessment.delete",
+   "kind": "operation",
+   "label": {
+    "en": "Delete loan assessment",
+    "th": "ลบการประเมินสินเชื่อ"
+   },
+   "description": "Delete a loan assessment.",
+   "target": "record",
+   "read": "/api/management/assessments/{id}",
+   "title": [
+    "item.borrowerLabel"
+   ],
+   "inputs": "none",
+   "fields": [],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "assessment.delete",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {},
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Delete loan assessment",
+    "th": "ลบการประเมินสินเชื่อ"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [],
+   "operation": "analytics.refresh",
+   "kind": "operation",
+   "label": {
+    "en": "Recalculate recent analytics",
+    "th": "คำนวณข้อมูลวิเคราะห์ล่าสุด"
+   },
+   "description": "Recalculate the recent daily analytics (Recent only); target_id is ignored.",
+   "target": "read",
+   "read": "/api/management/analytics-overview",
+   "targetPath": "refreshTarget.id",
+   "version": "refreshTarget.version",
+   "title": [],
+   "inputs": "model",
+   "fields": [
+    {
+     "name": "mode",
+     "type": "enum",
+     "label": {
+      "en": "Mode",
+      "th": "รูปแบบ"
+     },
+     "values": [
+      "Recent"
+     ],
+     "default": "Recent"
+    }
+   ],
+   "sample": {
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "operation": "analytics.refresh",
+    "targetId": "x:syn",
+    "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
+    "predecessorRequestId": null,
+    "inputs": {
+     "mode": "Recent"
+    },
+    "receiptId": null
+   },
+   "confirm": {
+    "en": "Recalculate recent analytics",
+    "th": "คำนวณข้อมูลวิเคราะห์ล่าสุด"
+   }
+  },
+  {
+   "destructive": false,
+   "consequences": [
+    "settles_all_due"
+   ],
+   "operation": "payment.record",
+   "kind": "payment",
+   "label": {
+    "en": "Record payment",
+    "th": "บันทึกรับชำระ"
+   },
+   "description": "Record a payment received from a borrower (target_id = borrower). Give the amount; the system splits it like the Payments screen's Auto-assign (due charges, newest first, interest before principal), or pays named charges in full (chargeIds), or a loan's next projected charge in full (nextChargeOf). Never give a split.",
+   "target": "payment",
+   "fields": [
+    {
+     "name": "amountReceived",
+     "type": "whole",
+     "label": {
+      "en": "Amount received",
+      "th": "ยอดรับชำระ"
+     },
+     "required": true
+    },
+    {
+     "name": "paymentDate",
+     "type": "date",
+     "label": {
+      "en": "Payment date",
+      "th": "วันที่รับชำระ"
+     }
+    },
+    {
+     "name": "paymentMethod",
+     "type": "enum",
+     "label": {
+      "en": "Payment method",
+      "th": "วิธีรับชำระ"
+     },
+     "required": true,
+     "values": [
+      "Bank Transfer",
+      "Cash",
+      "Net-off at Disbursement"
+     ]
+    },
+    {
+     "name": "cashAccountId",
+     "type": "account",
+     "label": {
+      "en": "Receiving account",
+      "th": "บัญชีรับเงิน"
+     }
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "label": {
+      "en": "Notes",
+      "th": "หมายเหตุ"
+     }
+    },
+    {
+     "name": "chargeIds",
+     "type": "charge-list",
+     "label": {
+      "en": "Charges to pay in full",
+      "th": "รายการที่ชำระเต็มจำนวน"
+     }
+    },
+    {
+     "name": "nextChargeOf",
+     "type": "loan-list",
+     "label": {
+      "en": "Pay next projected charge of loans",
+      "th": "ชำระรายการถัดไปของสินเชื่อ"
+     }
+    }
+   ],
+   "sample": {
+    "schemaVersion": 8,
+    "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "borrowerId": "b:syn",
+    "allocations": [
+     {
+      "chargeId": "c:syn",
+      "principal": "0",
+      "interest": "100",
+      "expectedPrincipalRemaining": "0",
+      "expectedInterestRemaining": "100",
+      "chargeDate": "2026-10-02"
+     }
+    ],
+    "cashAccountId": "ca:syn",
+    "paymentDate": "2026-10-02",
+    "amountReceived": "100",
+    "paymentMethod": "Cash",
+    "notes": null,
+    "receiptId": null,
+    "bankReference": null,
+    "transferTime": null,
+    "payerLines": null
+   },
+   "confirm": {
+    "en": "Record {amount}",
+    "th": "บันทึก {amount}",
+    "amount": "amountReceived"
+   }
+  }
+ ]
+}

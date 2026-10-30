@@ -35,6 +35,7 @@ INSERT INTO am_expected_tables VALUES
   ('mw_changes_owner_dev','public.pwa_row_changes','DELETE,INSERT,SELECT'),
   ('mw_chat_owner_dev','public.pwa_chat_history','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_chat_owner_dev','public.pwa_chat_messages','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
+  ('mw_chat_owner_dev','public.pwa_chat_proposals','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_chat_owner_dev','public.pwa_chat_threads','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_chat_owner_dev','public.pwa_chat_tool_calls','DELETE,INSERT,MAINTAIN,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE'),
   ('mw_app_dev','public.pwa_row_changes','SELECT'),
@@ -123,6 +124,11 @@ INSERT INTO am_expected_routines VALUES
   ('mw_chat_read_dev','pwa_job_status_v1(integer)'),
   ('mw_chat_api_dev','pwa_chat_messages_v1(jsonb,uuid,integer,integer)'),
   ('mw_chat_api_dev','pwa_chat_models_default_v1(jsonb)'),
+  ('mw_chat_api_dev','pwa_chat_proposal_cancel_v1(jsonb,uuid,uuid,text)'),
+  ('mw_chat_api_dev','pwa_chat_proposal_claim_v1(jsonb,uuid,uuid)'),
+  ('mw_chat_api_dev','pwa_chat_proposal_create_v1(jsonb,uuid,jsonb)'),
+  ('mw_chat_api_dev','pwa_chat_proposal_settle_v1(jsonb,uuid,uuid,jsonb)'),
+  ('mw_chat_api_dev','pwa_chat_proposals_v1(jsonb,uuid,uuid,integer)'),
   ('mw_chat_api_dev','pwa_chat_thread_create_v1(jsonb,jsonb)'),
   ('mw_chat_api_dev','pwa_chat_thread_update_v1(jsonb,uuid,jsonb)'),
   ('mw_chat_api_dev','pwa_chat_threads_v1(jsonb,text,timestamp with time zone,integer)'),
@@ -136,6 +142,13 @@ INSERT INTO am_expected_routines VALUES
   ('mw_chat_owner_dev','pwa_chat_message_v1(jsonb,uuid,uuid)'),
   ('mw_chat_owner_dev','pwa_chat_messages_v1(jsonb,uuid,integer,integer)'),
   ('mw_chat_owner_dev','pwa_chat_models_default_v1(jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_proposal_cancel_v1(jsonb,uuid,uuid,text)'),
+  ('mw_chat_owner_dev','pwa_chat_proposal_claim_v1(jsonb,uuid,uuid)'),
+  ('mw_chat_owner_dev','pwa_chat_proposal_create_v1(jsonb,uuid,jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_proposal_guard_v1()'),
+  ('mw_chat_owner_dev','pwa_chat_proposal_json_v1(pwa_chat_proposals)'),
+  ('mw_chat_owner_dev','pwa_chat_proposal_settle_v1(jsonb,uuid,uuid,jsonb)'),
+  ('mw_chat_owner_dev','pwa_chat_proposals_v1(jsonb,uuid,uuid,integer)'),
   ('mw_chat_owner_dev','pwa_chat_thread_create_v1(jsonb,jsonb)'),
   ('mw_chat_owner_dev','pwa_chat_thread_json_v1(pwa_chat_threads)'),
   ('mw_chat_owner_dev','pwa_chat_thread_update_v1(jsonb,uuid,jsonb)'),
@@ -258,7 +271,7 @@ DO $$ BEGIN
  IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname IN ('mw_chat_owner_dev','mw_chat_api_dev','mw_chat_read_dev') AND (rolcanlogin OR rolsuper OR rolbypassrls))
   OR EXISTS(SELECT 1 FROM pg_auth_members WHERE member='mw_chat_owner_dev'::regrole OR roleid='mw_chat_owner_dev'::regrole) THEN RAISE EXCEPTION 'chat owner must be closed, holding and granting no membership'; END IF;
  IF EXISTS(SELECT 1 FROM unnest(ARRAY['mw_chat_api_dev','mw_chat_read_dev','mw-credit-app-chat-dev@clever-oasis-508610-n7.iam']) r
-   CROSS JOIN unnest(ARRAY['public.pwa_chat_threads','public.pwa_chat_messages','public.pwa_chat_history','public.pwa_chat_tool_calls']) t
+   CROSS JOIN unnest(ARRAY['public.pwa_chat_threads','public.pwa_chat_messages','public.pwa_chat_history','public.pwa_chat_tool_calls','public.pwa_chat_proposals']) t
    CROSS JOIN unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p WHERE has_table_privilege(r,t,p)) THEN RAISE EXCEPTION 'no direct chat table privilege outside the chat owner'; END IF;
  IF EXISTS(SELECT 1 FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.proname LIKE 'pwa\_chat\_%' AND (has_function_privilege('mw_chat_read_dev',p.oid,'EXECUTE')
    OR (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_integration_agent') AND has_function_privilege('mw_integration_agent',p.oid,'EXECUTE')))) THEN RAISE EXCEPTION 'the SQL-tool and agent roles must not execute a chat routine'; END IF;
@@ -271,8 +284,13 @@ DO $$ BEGIN
    IS DISTINCT FROM ARRAY['id','partner_id','status','title'] OR has_table_privilege('mw_notify_owner_dev','public.pwa_chat_threads','SELECT')
    OR EXISTS(SELECT 1 FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_chat_threads'::regclass AND x.grantee<>'mw_notify_owner_dev'::regrole) THEN
   RAISE EXCEPTION 'pwa_chat_threads column grants must be the notify owner''s four columns only'; END IF;
- IF (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_api_dev')<>11 OR (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_read_dev')<>1 THEN
-  RAISE EXCEPTION 'chat API role must execute 11 routines and the SQL-tool role 1 from the migration chain'; END IF;
+ -- V118 (R106): five proposal RPCs more (16); the SQL-tool role still only the job status.
+ IF (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_api_dev')<>16 OR (SELECT count(*) FROM am_actual_routines WHERE grantee='mw_chat_read_dev')<>1 THEN
+  RAISE EXCEPTION 'chat API role must execute 16 routines and the SQL-tool role 1 from the migration chain'; END IF;
+ -- V118: the chat owner reads Partners by column grant only ("AI Reviewer" added for the reviewer gate).
+ IF NOT (SELECT bool_and(has_column_privilege('mw_chat_owner_dev','public."Partners"',c,'SELECT')) FROM unnest(ARRAY['Row ID','Login Email','Language Preference','AI Reviewer']) c)
+  OR has_table_privilege('mw_chat_owner_dev','public."Partners"','SELECT') OR has_column_privilege('mw_chat_owner_dev','public."Partners"','Partner Role','SELECT') THEN
+  RAISE EXCEPTION 'the chat owner must read exactly its Partners columns'; END IF;
  IF (SELECT array_agg(a.attname::text ORDER BY a.attname) FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) x WHERE a.attrelid='public.pwa_chat_messages'::regclass AND x.grantee='mw_notify_owner_dev'::regrole AND x.privilege_type='SELECT')
    IS DISTINCT FROM ARRAY['id','thread_id'] OR has_table_privilege('mw_notify_owner_dev','public.pwa_chat_messages','SELECT') THEN
   RAISE EXCEPTION 'the notify owner must read exactly pwa_chat_messages (id, thread_id) by column grant'; END IF;

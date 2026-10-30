@@ -37,11 +37,12 @@ export function seedText(seed,seedChars){
  try{return transcript(seed??[],seedChars).text;}catch{return SEED_FAILED_NOTE;}
 }
 
-/** One turn.
+/** One turn. recentActions (R106 D10): the thread's last proposals, for a turn that may propose; it travels in the
+ * opening JSON as recent_actions, so the replay journal stays untouched.
  * @param {{chat:any,model:string,transport:{request:Function},tools:any,history:{epoch:number,rows:any[]}|null,seed:any[],
- *  partnerLanguage:string|null,text:string,emit?:(name:string,data:any)=>void,now?:()=>number,started?:number}} options
+ *  partnerLanguage:string|null,text:string,emit?:(name:string,data:any)=>void,now?:()=>number,started?:number,recentActions?:any[]}} options
  * @returns {Promise<any>} */
-export async function runTurn({chat,model,transport,tools,history,seed,partnerLanguage,text,emit=()=>{},now=Date.now,started=now()}){
+export async function runTurn({chat,model,transport,tools,history,seed,partnerLanguage,text,emit=()=>{},now=Date.now,started=now(),recentActions}){
  const deadline=started+chat.turnTimeoutSeconds*1000;
  const dialect=dialectFor(model),channel=transportFor(transport,dialect.provider);
  const declarations=dialect.declarations(tools);
@@ -56,7 +57,7 @@ export async function runTurn({chat,model,transport,tools,history,seed,partnerLa
   if(!channel)throw new TurnError('MODEL_UNAVAILABLE',`${dialect.provider.toUpperCase()}_TRANSPORT_UNCONFIGURED`);
   const replay=selected.rows.map(dialect.replay);
   const prefix=replay.length?null:seedText(seed,chat.seedChars);
-  const messages=[...replay,dialect.user([...(prefix?[prefix]:[]),openingRequest({partnerLanguage,asOf:bangkokIso(now()),text})])];
+  const messages=[...replay,dialect.user([...(prefix?[prefix]:[]),openingRequest({partnerLanguage,asOf:bangkokIso(now()),text,recentActions})])];
   const start=replay.length,system=systemInstruction();
   const request=async()=>{
    let resent=false;

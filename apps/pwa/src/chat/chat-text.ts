@@ -89,3 +89,92 @@ export const EXAMPLES:readonly Pair[]=[
  ['Profit this month','กำไรเดือนนี้'],
 ];
 export const MAX_TEXT=4000,COUNTER_FROM=3500;
+
+// R106 chat write proposals: the card's wording (CW2-01: the card's dismiss button is "Don't do this", never "Cancel",
+// which the catalogue uses for actions such as Cancel settlement) (D7 codes, D8 consequences). The command service's own rejection
+// codes are localized by the PWA's existing table (savedRejectionMessage) in ChatProposalCard.
+const PROPOSAL_CODES:Record<string,Pair>={
+ reviewer_required:['Only an AI Reviewer Partner can confirm changes from chat.','เฉพาะหุ้นส่วนที่เป็นผู้ตรวจสอบ AI เท่านั้นที่ยืนยันการเปลี่ยนแปลงจากแชทได้'],
+ command_required:['Your account cannot record changes.','บัญชีของคุณบันทึกการเปลี่ยนแปลงไม่ได้'],
+ proposal_expired:['This proposal expired. Ask again to get a new card.','ข้อเสนอนี้หมดอายุแล้ว ถามใหม่เพื่อรับการ์ดใหม่'],
+ proposal_cancelled:['Cancelled. Nothing was changed.','ยกเลิกแล้ว ไม่มีการเปลี่ยนแปลง'],
+ proposal_executing:['This change is already being saved.','กำลังบันทึกการเปลี่ยนแปลงนี้อยู่แล้ว'],
+ command_busy:['Busy. Nothing was applied. Ask again in a moment.','ระบบกำลังยุ่ง ยังไม่มีการบันทึก ถามใหม่อีกครั้งในไม่ช้า'],
+ command_unavailable:['The change was not saved: the app could not record it. Nothing was applied.','ไม่ได้บันทึกการเปลี่ยนแปลง: ระบบบันทึกรายการไม่ได้ ยังไม่มีการเปลี่ยนแปลง'],
+ outcome_unknown:['Checking whether the change was saved…','กำลังตรวจสอบว่าบันทึกการเปลี่ยนแปลงแล้วหรือไม่…'],
+};
+/** A chat-layer code's text, or null when the code is the command service's (the caller uses the app's table). */
+export const proposalCodeText=(code:string|null|undefined,thai:boolean)=>code&&PROPOSAL_CODES[code]?pick(PROPOSAL_CODES[code],thai):null;
+const PROPOSAL_STATES:Record<string,Pair>={pending:['Waiting for your confirmation','รอการยืนยันของคุณ'],executing:['Saving…','กำลังบันทึก…'],done:['Done','เรียบร้อยแล้ว'],
+ failed:['Not saved','ไม่ได้บันทึก'],expired:['Expired','หมดอายุแล้ว'],cancelled:['Cancelled','ยกเลิกแล้ว'],unknown:['Checking the result…','กำลังตรวจสอบผล…']};
+export const proposalStateText=(state:string,thai:boolean)=>pick(PROPOSAL_STATES[state]??PROPOSAL_STATES.failed,thai);
+/** Unknown past the 5-minute poll: still never "failed", and no retry (reconcile in the app first). */
+export const proposalUnresolvedText=(thai:boolean)=>thai?'ยังยืนยันผลไม่ได้ ตรวจสอบในแอปก่อนถามใหม่':'The result is not confirmed yet. Check the app before asking again.';
+export const proposalCountdown=(seconds:number,thai:boolean)=>{const m=Math.floor(seconds/60),s=String(seconds%60).padStart(2,'0');return (thai?'หมดอายุใน ':'Expires in ')+m+':'+s};
+/** D8 consequences, bounded: amounts arrive formatted by the caller. */
+export function consequenceText(item:{code:string},thai:boolean,amount?:string){
+ if(item.code==='settles_all_due')return thai?'ชำระรายการเรียกเก็บที่ครบกำหนดทั้งหมดของผู้กู้รายนี้':'Settles every due charge of this borrower.';
+ if(item.code==='loan_close_payoff')return (thai?'ปิดสินเชื่อด้วยยอดปิด ':'Closes the loan with the payoff of ')+(amount??'');
+ if(item.code==='replaces_plan')return thai?'แทนที่รายการรับชำระและการจัดสรรเดิม':'Replaces the recorded payment and its allocation.';
+ if(item.code==='destructive')return thai?'การเปลี่ยนแปลงนี้ลบหรือย้อนกลับข้อมูล และยกเลิกจากแชทไม่ได้':'This deletes or reverses records and cannot be undone from chat.';
+ return '';
+}
+export const proposalButtons={confirm:['Confirm','ยืนยัน'] as Pair,cancel:["Don't do this",'ไม่ทำรายการ'] as Pair,open:['Open record','เปิดรายการ'] as Pair,offline:['Connect to confirm or cancel.','เชื่อมต่ออินเทอร์เน็ตเพื่อยืนยันหรือยกเลิก'] as Pair,askAgain:['Ask again','ถามใหม่'] as Pair};
+/** CWR-02: the server card's short Confirm label ("Record ฿700"), or plain Confirm. */
+export const confirmText=(label:{en:string;th:string}|null|undefined,thai:boolean)=>label?.en&&label.th?(thai?label.th:label.en):pick(proposalButtons.confirm,thai);
+/** CWR-07: "Saved 14:05" (Bangkok) from the journal's recordedAt or the settled time; null when neither parses. */
+export function savedAtText(iso:string|null|undefined,thai:boolean){
+ const at=iso?Date.parse(iso):Number.NaN;if(!Number.isFinite(at))return null;
+ const time=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(at);
+ return (thai?'บันทึกแล้ว ':'Saved ')+time;
+}
+export const pair=(value:Pair,thai:boolean)=>pick(value,thai);
+
+// R106 D12: one card for a group of changes.
+const PROPOSAL_LINES:Record<string,Pair>={pending:['Waiting','รอ'],executing:['Running…','กำลังทำ…'],done:['Done','เรียบร้อย'],failed:['Not saved','ไม่ได้บันทึก'],
+ expired:['Expired','หมดอายุ'],cancelled:['Not done','ไม่ได้ทำ'],unknown:['Checking…','กำลังตรวจสอบ…'],notrun:['Not run yet','ยังไม่ทำ'],skipped:['Skipped','ข้าม']};
+export const lineChipText=(state:string,thai:boolean)=>pick(PROPOSAL_LINES[state]??PROPOSAL_LINES.failed,thai);
+/** CW3-01: what a destructive line does, from the catalogue operation's verb (the catalogue flags it destructive). */
+export type DestructiveKind='delete'|'reverse'|'cancel'|'default'|'other';
+export function destructiveKind(operation:string):DestructiveKind{
+ const verb=operation.split('.').at(-1)??'';
+ return verb==='delete'||verb==='reverse'||verb==='cancel'||verb==='default'?verb:'other';
+}
+const DESTRUCTIVE_KINDS:DestructiveKind[]=['delete','reverse','cancel','default','other'];
+const DESTRUCTIVE:Record<DestructiveKind,{tag:Pair;warn:[one:string,many:string,th:string];count:[one:string,many:string,th:string]}>={
+ delete:{tag:['Deletes','ลบ'],warn:['deletes data','delete data','จะลบข้อมูล'],count:['delete','deletes','ลบ']},
+ reverse:{tag:['Reverses','ย้อนกลับ'],warn:['reverses a record','reverse records','จะย้อนกลับรายการ'],count:['reversal','reversals','ย้อนกลับ']},
+ cancel:{tag:['Cancels','ยกเลิก'],warn:['cancels a record','cancel records','จะยกเลิกรายการ'],count:['cancellation','cancellations','ยกเลิก']},
+ default:{tag:['Default','ผิดนัด'],warn:['marks a loan in default','mark loans in default','จะตั้งสินเชื่อเป็นผิดนัด'],count:['default','defaults','ผิดนัด']},
+ other:{tag:['Cannot be undone','ย้อนไม่ได้'],warn:['cannot be undone','cannot be undone','ย้อนกลับไม่ได้'],count:['destructive','destructive','มีผลถาวร']},
+};
+export type DestructiveCounts=Partial<Record<DestructiveKind,number>>;
+/** The destructive kinds of some operations, counted. */
+export function destructiveCounts(operations:string[]):DestructiveCounts{
+ const counts:DestructiveCounts={};for(const operation of operations){const kind=destructiveKind(operation);counts[kind]=(counts[kind]??0)+1}return counts;
+}
+const kindsOf=(counts:DestructiveCounts|undefined)=>DESTRUCTIVE_KINDS.filter(kind=>(counts?.[kind]??0)>0);
+export const destructiveTagText=(operation:string,thai:boolean)=>pick(DESTRUCTIVE[destructiveKind(operation)].tag,thai);
+/** "1 change deletes data" / "1 รายการจะลบข้อมูล"; several kinds are joined. */
+export function destructiveWarningText(counts:DestructiveCounts,thai:boolean){
+ return kindsOf(counts).map(kind=>{const n=counts[kind]??0,[one,many,th]=DESTRUCTIVE[kind].warn;return thai?`${n} รายการ${th}`:`${n} ${n===1?'change':'changes'} ${n===1?one:many}`}).join(thai?' · ':'; ');
+}
+const destructiveSuffix=(counts:DestructiveCounts|undefined,thai:boolean)=>{
+ const parts=kindsOf(counts).map(kind=>{const n=counts?.[kind]??0,[one,many,th]=DESTRUCTIVE[kind].count;return thai?`${th} ${n}`:`${n} ${n===1?one:many}`});
+ return parts.length?` (${parts.join(', ')})`:'';
+};
+/** "Confirm 6 changes (1 delete)", "Confirm 2 remaining"; one line: the server's short label (CWR-02), else "Confirm change" (D12). */
+export function groupConfirmText({count,pending,remaining,label,destructive}:{count:number;pending:number;remaining:boolean;label?:{en:string;th:string}|null;destructive?:DestructiveCounts},thai:boolean){
+ if(remaining)return (thai?`ยืนยันอีก ${pending} รายการ`:`Confirm ${pending} remaining`)+destructiveSuffix(destructive,thai);
+ if(count>1)return (thai?`ยืนยัน ${count} รายการ`:`Confirm ${count} changes`)+destructiveSuffix(destructive,thai);
+ return label?.en&&label.th?(thai?label.th:label.en):(thai?'ยืนยันรายการ':'Confirm change');
+}
+export const groupCountText=(count:number,thai:boolean)=>thai?`${count} รายการ`:`${count} changes`;
+export const unchangedText=(count:number,thai:boolean)=>thai?`+ไม่เปลี่ยน ${count} รายการ`:`+${count} unchanged`;
+/** D12: a group that did not fully run: "4 done · 1 not saved · 2 not run" (expired, cancelled and skipped lines are not run). */
+export function groupSummaryText({done,failed,notRun}:{done:number;failed:number;notRun:number},thai:boolean){
+ const parts=thai?[[done,`สำเร็จ ${done}`],[failed,`ไม่ได้บันทึก ${failed}`],[notRun,`ไม่ได้ทำ ${notRun}`]]:[[done,`${done} done`],[failed,`${failed} not saved`],[notRun,`${notRun} not run`]];
+ return parts.filter(([count])=>count).map(([,text])=>text).join(' · ');
+}
+export const armHintText=(thai:boolean)=>thai?'เลื่อนดูทุกรายการก่อนยืนยัน':'Scroll through all changes to confirm';
+export const groupProgressText=(done:number,count:number,thai:boolean)=>thai?`กำลังบันทึก ${done}/${count}…`:`Saving ${done} of ${count}…`;

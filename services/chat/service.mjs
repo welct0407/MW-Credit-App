@@ -33,7 +33,8 @@ export function createChatServiceHandler({config,verifyPrincipal,membership,pool
  const store=createChatStore({pool,guardConnection,resolveActor:membership.resolveActor,issuer:config.issuer,readRole,afterCommit,log});
  const sqlTool=createSqlTool({pool,guardConnection,dbUser:config.dbUser,readRole,database:config.database});
  const readGuard=readRoleGuard(guardConnection,readRole);
- const createTools=actor=>createChatTools({readProvider:chatReadProvider({pool,guardConnection:readGuard,actor}),sqlTool,actor});
+ // R106: writes is the turn's proposal bridge (handler.mjs), null unless the Partner may propose.
+ const createTools=(actor,writes=null)=>createChatTools({readProvider:chatReadProvider({pool,guardConnection:readGuard,actor}),sqlTool,actor,writes});
  return createChatHandler({config,verifyPrincipal,store,createTools,transport,completionLogger,log});
 }
 

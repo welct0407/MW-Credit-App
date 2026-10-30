@@ -7,7 +7,7 @@
 -- thread_full (54000), the append-only triggers (55000), the capability boundary (no EXECUTE without
 -- mw_chat_api_dev; mw_chat_read_dev reads no chat table and calls no chat RPC) and the Cost page function.
 -- G covers V105 (chat reply event, job status); H covers V106 (turn presence, the completion's detached flag); I covers
--- V108 (the Cost page's turn and usage reads).
+-- V108 (the Cost page's turn and usage reads); K covers V118 (proposals), L V119 (proposal groups).
 \set ON_ERROR_STOP on
 BEGIN;
 DO $$ BEGIN
@@ -500,5 +500,200 @@ BEGIN
 END $$;
 RESET SESSION AUTHORIZATION;
 SELECT pg_temp.expect($q$INSERT INTO public.pwa_chat_threads(id,partner_id,title,model) VALUES('88888888-8888-4888-8888-888888888888','CH-A','x','claude-opus-5-5-20260401')$q$,'23514');
+
+-- K. V118 (R106): chat write proposals. CH-A and CH-B are AI Reviewers, CH-C is not. A proposal belongs to the
+-- thread's running turn, one per turn; a new one (or a new message) supersedes the pending ones; the claim is
+-- exactly once (expired, executing 55006, stale and unknown re-claims, settled answers); settle only from executing
+-- or unknown; cancel; another Partner's thread is not found; the non-reviewer gets 42501; assistant rows carry the
+-- proposal; the lifecycle guard refuses DELETE, TRUNCATE, immutable-column and illegal-state changes (55000); the
+-- SQL-tool role and a non-API login reach nothing.
+INSERT INTO "Partners"("Row ID","Partner Role","Partner Name","Login Email","Email","Language Preference") VALUES ('CH-C','B','Chat C','ch-c@example.invalid','ch-c@example.invalid','English');
+UPDATE "Partners" SET "AI Reviewer"=true WHERE "Row ID" IN ('CH-A','CH-B');
+CREATE FUNCTION pg_temp.proposal(id uuid,message uuid,amount text DEFAULT '100') RETURNS jsonb LANGUAGE sql VOLATILE AS $$
+ SELECT jsonb_build_object('id',id,'messageId',message,'kind','operation','operation','expense.create',
+  'command',jsonb_build_object('requestId',id,'operation','expense.create','targetId',gen_random_uuid(),'expectedVersion',NULL,'predecessorRequestId',NULL,'receiptId',NULL,'inputs',jsonb_build_object('amount',amount))::text,
+  'card',jsonb_build_object('version',1,'operation','expense.create','label',jsonb_build_object('en','New expense','th','เพิ่มค่าใช้จ่าย'),'destructive',false,'values','[]'::jsonb,'changes','[]'::jsonb,'consequences','[]'::jsonb)) $$;
+GRANT EXECUTE ON FUNCTION pg_temp.proposal(uuid,uuid,text) TO PUBLIC;
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); b jsonb:=pg_temp.actor('b'); c jsonb:=pg_temp.actor('c'); r jsonb;
+ k1 uuid:='91111111-1111-4111-8111-111111111111'; k2 uuid:='92222222-2222-4222-8222-222222222222'; k3 uuid:='93333333-3333-4333-8333-333333333333';
+ f1 uuid:='f1111111-1111-4111-8111-111111111111'; f2 uuid:='f2222222-2222-4222-8222-222222222222'; f3 uuid:='f3333333-3333-4333-8333-333333333333'; fb uuid:='fb111111-1111-4111-8111-111111111111'; fc uuid:='fc111111-1111-4111-8111-111111111111';
+ p1 uuid:='a0000001-0000-4000-8000-000000000001'; p2 uuid:='a0000002-0000-4000-8000-000000000002'; p3 uuid:='a0000003-0000-4000-8000-000000000003'; p4 uuid:='a0000004-0000-4000-8000-000000000004';
+ create_sql text:='SELECT public.pwa_chat_proposal_create_v1(%L::jsonb,%L::uuid,%L::jsonb)';
+BEGIN
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',k1,'model','gemini-4-argon'));
+ PERFORM public.pwa_chat_thread_create_v1(b,jsonb_build_object('id',k2,'model','gemini-4-argon'));
+ PERFORM public.pwa_chat_thread_create_v1(c,jsonb_build_object('id',k3,'model','gemini-4-argon'));
+ PERFORM public.pwa_chat_turn_begin_v1(a,k1,jsonb_build_object('id',f1,'text','Record an expense of 100'));
+ PERFORM public.pwa_chat_turn_begin_v1(b,k2,jsonb_build_object('id',fb,'text','Mine'));
+ PERFORM public.pwa_chat_turn_begin_v1(c,k3,jsonb_build_object('id',fc,'text','Not a reviewer'));
+ -- The non-reviewer may neither propose, read, claim nor cancel; the superseding cancel of a new message still runs.
+ PERFORM pg_temp.expect(format(create_sql,c,k3,pg_temp.proposal(p4,fc)),'42501','reviewer_required');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposals_v1(%L::jsonb,%L::uuid,NULL,5)',c,k3),'42501','reviewer_required');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_claim_v1(%L::jsonb,%L::uuid,%L::uuid)',c,k3,p4),'42501','reviewer_required');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_cancel_v1(%L::jsonb,%L::uuid,%L::uuid,''cancelled'')',c,k3,p4),'42501','reviewer_required');
+ IF public.pwa_chat_proposal_cancel_v1(c,k3,NULL,'superseded') IS DISTINCT FROM '{"cancelled":0}' THEN RAISE EXCEPTION 'superseding cancel for a non-reviewer'; END IF;
+ -- Shape and turn checks.
+ PERFORM pg_temp.expect(format(create_sql,a,k1,pg_temp.proposal(p1,f1)-'card'),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k1,jsonb_set(pg_temp.proposal(p1,f1),'{command}',to_jsonb(jsonb_build_object('requestId',p2)::text))),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k1,jsonb_set(pg_temp.proposal(p1,f1),'{command}','"not json"')),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k1,jsonb_set(pg_temp.proposal(p1,f1),'{kind}','"sql"')),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k1,pg_temp.proposal(p1,fb)),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,b,k1,pg_temp.proposal(p1,f1)),'P0002','not_found');
+ r:=public.pwa_chat_proposal_create_v1(a,k1,pg_temp.proposal(p1,f1));
+ IF r->>'state' IS DISTINCT FROM 'pending' OR r->>'id' IS DISTINCT FROM p1::text OR r->>'threadId' IS DISTINCT FROM k1::text OR r->>'messageId' IS DISTINCT FROM f1::text OR r->>'kind' IS DISTINCT FROM 'operation' OR r ? 'command'
+  OR r->'outcome' IS DISTINCT FROM 'null'::jsonb OR r->'record' IS DISTINCT FROM 'null'::jsonb OR r->'settledAt' IS DISTINCT FROM 'null'::jsonb OR (r->>'expiresAt')::timestamptz-(r->>'createdAt')::timestamptz IS DISTINCT FROM interval '15 minutes'
+  OR r#>>'{card,label,en}' IS DISTINCT FROM 'New expense' THEN RAISE EXCEPTION 'created proposal %',r; END IF;
+ PERFORM pg_temp.expect(format(create_sql,a,k1,pg_temp.proposal(p2,f1)),'23505','one_proposal_per_turn');
+ -- The reply carries the turn's proposal; the user row does not.
+ PERFORM public.pwa_chat_turn_complete_v1(a,f1,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
+ r:=public.pwa_chat_message_v1(a,k1,f1);
+ -- V119 (D12): the reply carries its turn's group as "proposals" (the single-line form is a group of one).
+ IF r#>>'{assistant,proposals,0,id}' IS DISTINCT FROM p1::text OR r#>>'{assistant,proposals,0,state}' IS DISTINCT FROM 'pending' OR jsonb_array_length(r#>'{assistant,proposals}') IS DISTINCT FROM 1
+  OR r->'user' ? 'proposals' OR r->'assistant' ? 'proposal' THEN RAISE EXCEPTION 'message carries proposals %',r; END IF;
+ IF (public.pwa_chat_messages_v1(a,k1,NULL,10)->0)#>>'{proposals,0,id}' IS DISTINCT FROM p1::text THEN RAISE EXCEPTION 'messages page carries proposals'; END IF;
+ IF (public.pwa_chat_message_v1(a,'11111111-1111-4111-8111-111111111111','a1111111-1111-4111-8111-111111111111')->'assistant'->'proposals') IS DISTINCT FROM '[]'::jsonb THEN RAISE EXCEPTION 'an older reply carries proposals []'; END IF;
+ PERFORM pg_temp.expect(format(create_sql,a,k1,pg_temp.proposal(p2,f1)),'22023','invalid_request');
+ -- A new message supersedes the pending proposal.
+ PERFORM public.pwa_chat_turn_begin_v1(a,k1,jsonb_build_object('id',f2,'text','Actually record 200'));
+ IF public.pwa_chat_proposal_cancel_v1(a,k1,NULL,'superseded') IS DISTINCT FROM '{"cancelled":1}' THEN RAISE EXCEPTION 'superseded count'; END IF;
+ r:=public.pwa_chat_proposals_v1(a,k1,p1,NULL);
+ IF r->>'state' IS DISTINCT FROM 'cancelled' OR r->'settledAt'='null'::jsonb OR (r->>'attempts')::int IS DISTINCT FROM 0 THEN RAISE EXCEPTION 'superseded %',r; END IF;
+ -- Claim: executing with the exact command, a second tap 55006, settle done, then the stored outcome.
+ r:=public.pwa_chat_proposal_create_v1(a,k1,pg_temp.proposal(p2,f2,'200'));
+ -- Settling a pending proposal changes nothing (only executing or unknown settle).
+ IF public.pwa_chat_proposal_settle_v1(a,k1,p2,'{"state":"done","outcome":{"status":"applied","code":null},"record":null}')->>'state' IS DISTINCT FROM 'pending' THEN RAISE EXCEPTION 'settle of pending'; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_claim_v1(%L::jsonb,%L::uuid,%L::uuid)',b,k1,p2),'P0002','not_found');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposals_v1(%L::jsonb,%L::uuid,%L::uuid,NULL)',b,k1,p2),'P0002','not_found');
+ r:=public.pwa_chat_proposal_claim_v1(a,k1,p2);
+ IF r->>'claimed' IS DISTINCT FROM 'true' OR r#>>'{proposal,state}' IS DISTINCT FROM 'executing' OR (r#>>'{proposal,attempts}')::int IS DISTINCT FROM 1 OR r#>'{proposal,claimedAt}'='null'::jsonb
+  OR (r->>'command')::jsonb->>'requestId' IS DISTINCT FROM p2::text OR (r->>'command')::jsonb#>>'{inputs,amount}' IS DISTINCT FROM '200' THEN RAISE EXCEPTION 'claim %',r; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_claim_v1(%L::jsonb,%L::uuid,%L::uuid)',a,k1,p2),'55006','proposal_executing');
+ IF public.pwa_chat_proposal_cancel_v1(a,k1,p2,'cancelled')->>'state' IS DISTINCT FROM 'executing' THEN RAISE EXCEPTION 'cancel of executing'; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_settle_v1(%L::jsonb,%L::uuid,%L::uuid,%L::jsonb)',a,k1,p2,'{"state":"done","outcome":null,"record":null}'),'22023','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_settle_v1(%L::jsonb,%L::uuid,%L::uuid,%L::jsonb)',a,k1,p2,'{"state":"pending","outcome":null,"record":null}'),'22023','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_settle_v1(%L::jsonb,%L::uuid,%L::uuid,%L::jsonb)',a,k1,p2,'{"state":"failed","outcome":{"code":"x"},"record":{"type":"expense"}}'),'22023','invalid_request');
+ r:=public.pwa_chat_proposal_settle_v1(a,k1,p2,'{"state":"unknown","outcome":{"status":"unknown","code":"outcome_unknown"},"record":null}');
+ IF r->>'state' IS DISTINCT FROM 'unknown' OR r->'settledAt' IS DISTINCT FROM 'null'::jsonb OR r#>>'{outcome,code}' IS DISTINCT FROM 'outcome_unknown' THEN RAISE EXCEPTION 'unknown %',r; END IF;
+ -- An unknown outcome is never claimed again (no second POST): Confirm answers it unchanged for reconciliation.
+ r:=public.pwa_chat_proposal_claim_v1(a,k1,p2);
+ IF r->>'claimed' IS DISTINCT FROM 'false' OR r#>>'{proposal,state}' IS DISTINCT FROM 'unknown' OR (r#>>'{proposal,attempts}')::int IS DISTINCT FROM 1 OR r ? 'command'
+  OR r#>'{proposal,claimedAt}' IS NULL OR r#>'{proposal,claimedAt}'='null'::jsonb THEN RAISE EXCEPTION 'unknown claim %',r; END IF;
+ r:=public.pwa_chat_proposal_settle_v1(a,k1,p2,'{"state":"done","outcome":{"status":"applied","code":null,"result":{"id":"e1"},"recordedAt":"2026-10-30T03:00:00.000Z"},"record":{"type":"expense","id":"e1","paymentId":null}}');
+ IF r->>'state' IS DISTINCT FROM 'done' OR r->'settledAt'='null'::jsonb OR r->'outcome' IS DISTINCT FROM '{"code":null,"recordedAt":"2026-10-30T03:00:00.000Z"}'::jsonb OR r->'record' IS DISTINCT FROM '{"type":"expense","id":"e1","paymentId":null}'::jsonb THEN RAISE EXCEPTION 'done %',r; END IF;
+ -- A repeat tap or a second settler gets the stored outcome.
+ r:=public.pwa_chat_proposal_claim_v1(a,k1,p2);
+ IF r->>'claimed' IS DISTINCT FROM 'false' OR r#>>'{proposal,state}' IS DISTINCT FROM 'done' OR r ? 'command' THEN RAISE EXCEPTION 'settled claim %',r; END IF;
+ IF public.pwa_chat_proposal_settle_v1(a,k1,p2,'{"state":"failed","outcome":{"status":"rejected","code":"source_conflict"},"record":null}')->>'state' IS DISTINCT FROM 'done' THEN RAISE EXCEPTION 'second settler overwrote'; END IF;
+ -- Explicit cancel, idempotent; invalid combinations.
+ PERFORM public.pwa_chat_turn_complete_v1(a,f2,pg_temp.assistant('ok'),pg_temp.history(0,2,2),'[]');
+ PERFORM public.pwa_chat_turn_begin_v1(a,k1,jsonb_build_object('id',f3,'text','And another'));
+ PERFORM public.pwa_chat_proposal_create_v1(a,k1,pg_temp.proposal(p3,f3));
+ r:=public.pwa_chat_proposal_cancel_v1(a,k1,p3,'cancelled');
+ IF r->>'state' IS DISTINCT FROM 'cancelled' OR public.pwa_chat_proposal_cancel_v1(a,k1,p3,'cancelled')->>'state' IS DISTINCT FROM 'cancelled' THEN RAISE EXCEPTION 'cancel %',r; END IF;
+ IF public.pwa_chat_proposal_claim_v1(a,k1,p3)->>'claimed' IS DISTINCT FROM 'false' THEN RAISE EXCEPTION 'cancelled claim'; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_cancel_v1(%L::jsonb,%L::uuid,NULL,''cancelled'')',a,k1),'22023','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_cancel_v1(%L::jsonb,%L::uuid,%L::uuid,''superseded'')',a,k1,p3),'22023','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_cancel_v1(%L::jsonb,%L::uuid,%L::uuid,''cancelled'')',b,k1,p3),'P0002','not_found');
+ -- Recent actions, newest first; the read's argument rules.
+ r:=public.pwa_chat_proposals_v1(a,k1,NULL,5);
+ IF jsonb_array_length(r) IS DISTINCT FROM 3 OR r#>>'{0,id}' IS DISTINCT FROM p3::text OR r#>>'{2,id}' IS DISTINCT FROM p1::text OR r->0 ? 'claimedAt' OR r#>>'{1,state}' IS DISTINCT FROM 'done' THEN RAISE EXCEPTION 'recent %',r; END IF;
+ IF jsonb_array_length(public.pwa_chat_proposals_v1(a,k1,NULL,1)) IS DISTINCT FROM 1 OR public.pwa_chat_proposals_v1(b,k2,NULL,5) IS DISTINCT FROM '[]'::jsonb THEN RAISE EXCEPTION 'recent limit'; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposals_v1(%L::jsonb,%L::uuid,%L::uuid,5)',a,k1,p3),'22023','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposals_v1(%L::jsonb,%L::uuid,NULL,21)',a,k1),'22023','invalid_request');
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposals_v1(%L::jsonb,%L::uuid,NULL,5)',b,k1),'P0002','not_found');
+END $$;
+RESET SESSION AUTHORIZATION;
+-- Expiry and dead-instance claims: rows written by the test owner (the guard allows INSERT) with past times.
+INSERT INTO public.pwa_chat_proposals(id,thread_id,message_id,partner_id,kind,operation,command,card,state,created_at,expires_at,claimed_at,attempts)
+SELECT x.id,'91111111-1111-4111-8111-111111111111','f3333333-3333-4333-8333-333333333333','CH-A','operation','expense.create',jsonb_build_object('requestId',x.id)::text,'{}',x.state,
+ clock_timestamp()-x.age,clock_timestamp()-x.age+interval '15 minutes',CASE WHEN x.state='pending' THEN NULL ELSE clock_timestamp()-x.claimed END,CASE WHEN x.state='pending' THEN 0 ELSE 1 END
+FROM (VALUES ('a0000005-0000-4000-8000-000000000005'::uuid,'pending',interval '16 minutes',NULL::interval),('a0000006-0000-4000-8000-000000000006'::uuid,'executing',interval '5 minutes',interval '4 minutes'),
+ ('a0000007-0000-4000-8000-000000000007'::uuid,'executing',interval '1 minute',interval '30 seconds')) x(id,state,age,claimed);
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); r jsonb; k1 uuid:='91111111-1111-4111-8111-111111111111';
+BEGIN
+ IF public.pwa_chat_proposals_v1(a,k1,'a0000005-0000-4000-8000-000000000005',NULL)->>'state' IS DISTINCT FROM 'expired' THEN RAISE EXCEPTION 'an expired pending one reads as expired'; END IF;
+ r:=public.pwa_chat_proposal_claim_v1(a,k1,'a0000005-0000-4000-8000-000000000005');
+ IF r->>'claimed' IS DISTINCT FROM 'false' OR r#>>'{proposal,state}' IS DISTINCT FROM 'expired' OR r#>'{proposal,settledAt}'='null'::jsonb THEN RAISE EXCEPTION 'expired claim %',r; END IF;
+ IF public.pwa_chat_proposal_cancel_v1(a,k1,'a0000005-0000-4000-8000-000000000005','cancelled')->>'state' IS DISTINCT FROM 'expired' THEN RAISE EXCEPTION 'cancel after expiry'; END IF;
+ -- A dead instance's claim (over 3 minutes) is answered unchanged for reconciliation, never claimed again.
+ r:=public.pwa_chat_proposal_claim_v1(a,k1,'a0000006-0000-4000-8000-000000000006');
+ IF r->>'claimed' IS DISTINCT FROM 'false' OR r#>>'{proposal,state}' IS DISTINCT FROM 'executing' OR (r#>>'{proposal,attempts}')::int IS DISTINCT FROM 1 OR r ? 'command' THEN RAISE EXCEPTION 'stale executing claim %',r; END IF;
+ PERFORM pg_temp.expect(format('SELECT public.pwa_chat_proposal_claim_v1(%L::jsonb,%L::uuid,%L::uuid)',a,k1,'a0000007-0000-4000-8000-000000000007'),'55006','proposal_executing');
+ PERFORM pg_temp.expect('SELECT count(*) FROM public.pwa_chat_proposals','42501');
+END $$;
+RESET SESSION AUTHORIZATION;
+-- The lifecycle guard, even for the owner; the CHECKs.
+SELECT pg_temp.expect($q$DELETE FROM public.pwa_chat_proposals$q$,'55000');
+SELECT pg_temp.expect($q$TRUNCATE public.pwa_chat_proposals$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_proposals SET card='{"x":1}' WHERE id='a0000006-0000-4000-8000-000000000006'$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_proposals SET command='{}' WHERE id='a0000006-0000-4000-8000-000000000006'$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_proposals SET state='executing',claimed_at=now(),settled_at=NULL WHERE id='a0000002-0000-4000-8000-000000000002'$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_proposals SET state='pending',claimed_at=NULL WHERE id='a0000006-0000-4000-8000-000000000006'$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_proposals SET claimed_at=now(),attempts=2 WHERE id='a0000006-0000-4000-8000-000000000006'$q$,'55000');
+SELECT pg_temp.expect($q$UPDATE public.pwa_chat_proposals SET state='done' WHERE id='a0000007-0000-4000-8000-000000000007'$q$,'23514');
+SELECT pg_temp.expect($q$INSERT INTO public.pwa_chat_proposals(id,thread_id,message_id,partner_id,kind,operation,command,card,expires_at) VALUES('a0000008-0000-4000-8000-000000000008','91111111-1111-4111-8111-111111111111','f3333333-3333-4333-8333-333333333333','CH-A','sql','expense.create','{}','{}',now()+interval '1 minute')$q$,'23514');
+-- The SQL-tool role reads no proposal and calls no proposal RPC; a login without the API role calls none.
+SET SESSION AUTHORIZATION "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam";
+SET LOCAL ROLE mw_chat_read_dev;
+SELECT pg_temp.expect('SELECT count(*) FROM public.pwa_chat_proposals','42501');
+SELECT pg_temp.expect(format('SELECT public.pwa_chat_proposals_v1(%L::jsonb,%L::uuid,NULL,5)',pg_temp.actor('a'),'91111111-1111-4111-8111-111111111111'),'42501');
+RESET ROLE;
+RESET SESSION AUTHORIZATION;
+SET SESSION AUTHORIZATION v104_chat_other;
+SELECT pg_temp.expect(format('SELECT public.pwa_chat_proposal_claim_v1(%L::jsonb,%L::uuid,%L::uuid)',pg_temp.actor('a'),'91111111-1111-4111-8111-111111111111','a0000006-0000-4000-8000-000000000006'),'42501');
+RESET SESSION AUTHORIZATION;
+-- L. V119 (R106 D12): groups of 1..20 lines in one transaction, one time; 21 lines, duplicate ids, a broken group index
+-- and mixed messages refused; one group per turn (23505); a new group supersedes the earlier pending one; the reply
+-- carries "proposals" ordered by index; the V118 single-line form still works.
+CREATE FUNCTION pg_temp.group_lines(head_prefix text,message uuid,n integer,break_at integer DEFAULT -1) RETURNS jsonb LANGUAGE sql VOLATILE AS $$
+ SELECT jsonb_build_object('group',jsonb_agg(jsonb_set(jsonb_set(pg_temp.proposal(x.id,message),'{card,group}',
+  jsonb_build_object('id',(head_prefix||'-0000-4000-8000-000000000000')::uuid,'index',CASE WHEN x.i=break_at THEN 99 ELSE x.i END,'count',n,'ids','[]'::jsonb)),'{operation}','"charge.update"') ORDER BY x.i))
+ FROM (SELECT i,(head_prefix||'-0000-4000-8000-'||lpad(i::text,12,'0'))::uuid AS id FROM generate_series(0,n-1) i) x $$;
+GRANT EXECUTE ON FUNCTION pg_temp.group_lines(text,uuid,integer,integer) TO PUBLIC;
+SET SESSION AUTHORIZATION v104_chat_api;
+DO $$
+DECLARE a jsonb:=pg_temp.actor('a'); r jsonb; k4 uuid:='94444444-4444-4444-8444-444444444444';
+ g1 uuid:='e5111111-1111-4111-8111-111111111111'; g2 uuid:='e5222222-2222-4222-8222-222222222222'; g3 uuid:='e5333333-3333-4333-8333-333333333333';
+ create_sql text:='SELECT public.pwa_chat_proposal_create_v1(%L::jsonb,%L::uuid,%L::jsonb)';
+BEGIN
+ PERFORM public.pwa_chat_thread_create_v1(a,jsonb_build_object('id',k4,'model','gemini-4-argon'));
+ PERFORM public.pwa_chat_turn_begin_v1(a,k4,jsonb_build_object('id',g1,'text','Edit the six charges'));
+ PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000021',g1,21)),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000003',g1,3,2)),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,jsonb_build_object('group',(pg_temp.group_lines('b0000002',g1,2)->'group')||jsonb_build_array(pg_temp.group_lines('b0000002',g1,2)->'group'->0))),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,jsonb_set(pg_temp.group_lines('b0000004',g1,2),'{group,1,messageId}',to_jsonb(g2::text))),'22023','invalid_request');
+ PERFORM pg_temp.expect(format(create_sql,a,k4,'{"group":[]}'),'22023','invalid_request');
+ r:=public.pwa_chat_proposal_create_v1(a,k4,pg_temp.group_lines('b0000020',g1,20));
+ IF jsonb_typeof(r) IS DISTINCT FROM 'array' OR jsonb_array_length(r) IS DISTINCT FROM 20 OR r#>>'{0,id}' IS DISTINCT FROM 'b0000020-0000-4000-8000-000000000000'
+  OR r#>>'{19,card,group,index}' IS DISTINCT FROM '19' OR EXISTS(SELECT 1 FROM jsonb_array_elements(r) x WHERE x->>'state' IS DISTINCT FROM 'pending' OR x->>'createdAt' IS DISTINCT FROM r#>>'{0,createdAt}' OR x->>'expiresAt' IS DISTINCT FROM r#>>'{0,expiresAt}') THEN
+  RAISE EXCEPTION 'group of 20 %',r; END IF;
+ PERFORM pg_temp.expect(format(create_sql,a,k4,pg_temp.group_lines('b0000001',g1,1)),'23505','one_proposal_per_turn');
+ PERFORM public.pwa_chat_turn_complete_v1(a,g1,pg_temp.assistant('ok'),pg_temp.history(0,0,2),'[]');
+ r:=public.pwa_chat_message_v1(a,k4,g1)->'assistant'->'proposals';
+ IF jsonb_array_length(r) IS DISTINCT FROM 20 OR (SELECT string_agg(y.x->'card'->'group'->>'index',',' ORDER BY y.o) FROM jsonb_array_elements(r) WITH ORDINALITY y(x,o)) IS DISTINCT FROM (SELECT string_agg(i::text,',' ORDER BY i) FROM generate_series(0,19) i) THEN
+  RAISE EXCEPTION 'reply proposals in index order %',r; END IF;
+ -- A new group supersedes the earlier pending one; a group of one; the V118 single-line form in a later turn.
+ PERFORM public.pwa_chat_turn_begin_v1(a,k4,jsonb_build_object('id',g2,'text','Only one'));
+ r:=public.pwa_chat_proposal_create_v1(a,k4,pg_temp.group_lines('b0000010',g2,1));
+ IF jsonb_array_length(r) IS DISTINCT FROM 1 OR (SELECT count(*) FROM jsonb_array_elements(public.pwa_chat_proposals_v1(a,k4,NULL,20)) x WHERE x->>'state'='cancelled') IS DISTINCT FROM 19 THEN RAISE EXCEPTION 'superseded group %',r; END IF;
+ PERFORM public.pwa_chat_turn_complete_v1(a,g2,pg_temp.assistant('ok'),pg_temp.history(0,2,2),'[]');
+ PERFORM public.pwa_chat_turn_begin_v1(a,k4,jsonb_build_object('id',g3,'text','Single form'));
+ r:=public.pwa_chat_proposal_create_v1(a,k4,pg_temp.proposal('b0000030-0000-4000-8000-000000000000',g3));
+ IF jsonb_typeof(r) IS DISTINCT FROM 'object' OR r->>'state' IS DISTINCT FROM 'pending' THEN RAISE EXCEPTION 'single form %',r; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ IF (SELECT count(DISTINCT created_at) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000020-%') IS DISTINCT FROM 1
+  OR (SELECT count(*) FROM public.pwa_chat_proposals WHERE id::text LIKE 'b0000020-%') IS DISTINCT FROM 20 THEN RAISE EXCEPTION 'one group of 20 rows with one created_at'; END IF;
+END $$;
+DO $$ BEGIN
+ IF (SELECT count(*) FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.proname LIKE 'pwa\_chat\_proposal%' AND has_function_privilege('mw_chat_api_dev',p.oid,'EXECUTE')) IS DISTINCT FROM 5
+  OR has_function_privilege('mw_chat_api_dev','public.pwa_chat_proposal_json_v1(public.pwa_chat_proposals)','EXECUTE')
+  OR has_function_privilege('mw_notify_api_dev','public.pwa_chat_proposal_claim_v1(jsonb,uuid,uuid)','EXECUTE') THEN RAISE EXCEPTION 'V118 routines reach the wrong capability'; END IF;
+END $$;
 SELECT 'Chat regression passed' AS result;
 ROLLBACK;

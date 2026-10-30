@@ -157,3 +157,26 @@ test('store: a detached stream completion records the reply event under a savepo
  t=setup();assert.deepEqual(await t.store.presence({},'T1','m1','hidden'),{state:'claimed',detached:true});
  assert.deepEqual([t.sql[0],t.sql.find(q=>q.includes('presence')),t.sql.at(-1)],['BEGIN','SELECT public.pwa_chat_turn_presence_v1($1::jsonb,$2::uuid,$3::uuid,$4::text) AS value','COMMIT']);
 });
+
+test('R106 D11: CHAT_COMMAND_URL is pinned per environment for role chat and refused on the reader and command roles',()=>{
+ const urls={dev:'https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app',prod:'https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app'};
+ for(const environment of ['dev','prod']){
+  assert.equal(loadBusinessConfig(chatEnv(environment)).chatCommandUrl,null);
+  assert.equal(loadBusinessConfig(chatEnv(environment,{CHAT_COMMAND_URL:urls[environment]})).chatCommandUrl,urls[environment]);
+  const other=urls[environment==='dev'?'prod':'dev'];
+  for(const value of [other,urls[environment]+'/',urls[environment]+'/api/operations','http://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app',
+   runUrl(`mw-credit-app-read-${environment}`),runUrl(`mw-credit-app-chat-${environment}`),'',' '+urls[environment]])
+   assert.throws(()=>loadBusinessConfig(chatEnv(environment,{CHAT_COMMAND_URL:value})),undefined,value);
+  for(const role of ['reader','command'])assert.throws(()=>loadBusinessConfig({...businessEnv(environment,role),CHAT_COMMAND_URL:urls[environment]}),undefined,role);
+ }
+});
+
+test('R106 D1 regression: the chat login must never be a member of mw_app_<env> (model-written SQL runs on it)',async()=>{
+ for(const environment of ['dev','prod']){
+  const config=loadBusinessConfig(chatEnv(environment,{CHAT_COMMAND_URL:runUrl(`mw-credit-app-command-${environment}`)}));
+  const guard=createChatConnectionGuard(config),probe=client(identity(config,{app_member:true}));
+  await assert.rejects(guard(probe),/Database identity unavailable/);
+  assert.equal(probe.calls[0].args[3],`mw_app_${environment}`);
+  assert.match(probe.calls[0].sql,/pg_has_role\(session_user,\$4,'MEMBER'\) AS app_member/);
+ }
+});

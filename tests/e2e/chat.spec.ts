@@ -36,7 +36,28 @@ const seeded=()=>({
   {id:'aaaaaaaa-0000-4000-8000-000000000004',seq:3,role:'assistant',text:'I could not complete this request. Check the app before asking again.',status:'failed',errorCode:'TURN_TIMEOUT',model:'gemini-a',createdAt:iso(5)},
  ],[T2]:[{id:'bbbbbbbb-0000-4000-8000-000000000001',seq:0,role:'user',text:'Profit this month',status:'ok'},{id:'bbbbbbbb-0000-4000-8000-000000000002',seq:1,role:'assistant',text:'Profit this month is **8,200** baht.',status:'ok',model:'gemini-0-retired',tools:[{name:'sql_query',count:1}]}],[T3]:[]} as Record<string,any[]>,
 });
-type Stub={threads:any[];messages:Record<string,any[]>;creates:any[];patches:any[];polls:string[];outcomes:any[];presence:string[];presenceStatus:number|null;denied:boolean;patchStatus:number|null};
+type Stub={threads:any[];messages:Record<string,any[]>;creates:any[];patches:any[];polls:string[];outcomes:any[];presence:string[];presenceStatus:number|null;denied:boolean;patchStatus:number|null;
+ proposalRequests:{method:string;path:string;body:string|null;authorization:string|null}[];confirmAnswer:any;proposalReads:any[]};
+// R106: a reply that proposed a payment (server-built card; synthetic borrower and amounts), pending for 15 minutes.
+const P1='dddddddd-0000-4000-8000-000000000001';
+const paymentProposal=(patch:Record<string,unknown>={})=>({id:P1,threadId:T1,messageId:'aaaaaaaa-0000-4000-8000-000000000005',kind:'payment',operation:'payment.record',state:'pending',
+ expiresAt:new Date(Date.now()+15*60000).toISOString(),createdAt:new Date().toISOString(),settledAt:null,outcome:null,record:null,
+ card:{version:1,operation:'payment.record',label:{en:'Record payment',th:'บันทึกรับชำระ'},confirmLabel:{en:'Record ฿700',th:'บันทึก ฿700'},destructive:false,target:{type:'borrower',id:'B1',label:'Somchai'},changes:[],
+  values:[{field:'amountReceived',label:{en:'Amount received',th:'ยอดรับชำระ'},type:'whole',value:'700'},{field:'paymentDate',label:{en:'Payment date',th:'วันที่รับชำระ'},type:'date',value:'2026-10-30'},
+   {field:'paymentMethod',label:{en:'Payment method',th:'วิธีรับชำระ'},type:'enum',value:'Cash'},{field:'cashAccountId',label:{en:'Receiving account',th:'บัญชีรับเงิน'},type:'account',value:'CA1',display:'Cash box'}],
+  split:[{chargeId:'C2',loanDisplayKey:'Somchai-฿10,000-01/10-1%',chargeDate:'2026-10-29',principal:'0',interest:'100',projected:false},{chargeId:'C1',loanDisplayKey:'Somchai-฿10,000-01/10-1%',chargeDate:'2026-10-28',principal:'500',interest:'100',projected:false}],
+  consequences:[{code:'settles_all_due'}]},...patch});
+// D12: a group of charge edits (one card, Confirm all); each line shows its changed field only, never the long note.
+const G='eeeeeeee-0000-4000-8000-000000000000';
+const chargeGroup=(count:number)=>Array.from({length:count},(_,index)=>{const id=G.slice(0,-1)+index,ids=Array.from({length:count},(_,i)=>G.slice(0,-1)+i);return {id,threadId:T1,messageId:'aaaaaaaa-0000-4000-8000-000000000007',kind:'operation',operation:'charge.update',state:'pending',
+ expiresAt:new Date(Date.now()+15*60000).toISOString(),createdAt:new Date().toISOString(),settledAt:null,outcome:null,record:null,
+ card:{version:1,operation:'charge.update',label:{en:'Edit charge',th:'แก้ไขรายการเรียกเก็บ'},confirmLabel:null,destructive:false,target:{type:'charge',id:'C'+index,label:`Somchai · ${20+index}-Oct-2026`},
+  group:{id:ids[0],index,count,ids},
+  values:[{field:'interestAmount',label:{en:'Interest',th:'ดอกเบี้ย'},type:'money',value:'90.00'},{field:'principalAmount',label:{en:'Principal',th:'เงินต้น'},type:'money',value:'0.00'},
+   {field:'notes',label:{en:'Notes',th:'หมายเหตุ'},type:'text',value:'A long synthetic note that must never be repeated on the card. '.repeat(4)}],
+  changes:[{field:'interestAmount',label:{en:'Interest',th:'ดอกเบี้ย'},type:'money',before:'100.00',after:'90.00'}],consequences:[]}}}).map((line,index)=>index?line:
+ // CW3-01: the group's destructive line (the service puts it first): a charge delete.
+ {...line,operation:'charge.delete',card:{...line.card,operation:'charge.delete',label:{en:'Delete charge',th:'ลบรายการเรียกเก็บ'},destructive:true,values:[],changes:[],consequences:[{code:'destructive'}]}});
 const ev=(name:string,data:unknown)=>`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`;
 async function feed(page:Page,...chunks:string[]){for(const chunk of chunks)await page.evaluate(text=>(window as any).__chatStreams.at(-1).push(text),chunk)}
 const streams=(page:Page)=>page.evaluate(()=>(window as any).__chatStreams.map((entry:any)=>({url:entry.url,body:entry.body,headers:entry.headers})));
@@ -46,14 +67,18 @@ const hide=(page:Page,event:'visibilitychange'|'pagehide'='visibilitychange')=>p
  if(name==='pagehide')window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));else document.dispatchEvent(new Event('visibilitychange'))},event);
 const show=(page:Page)=>page.evaluate(()=>{delete (document as any).visibilityState;document.dispatchEvent(new Event('visibilitychange'))});
 
-async function launch({seed=false,denied=false,width,path='',target,configure}:{seed?:boolean;denied?:boolean;width?:number;path?:string;target?:{kind:string;id:string};configure?:(context:BrowserContext)=>Promise<void>}={}){
+async function launch({seed=false,denied=false,width,path='',target,configure,proposal=false,group=false}:{seed?:boolean;denied?:boolean;width?:number;path?:string;target?:{kind:string;id:string};configure?:(context:BrowserContext)=>Promise<void>;proposal?:boolean;group?:boolean}={}){
  const device=mobile?devices['Pixel 7']:devices['Desktop Chrome'];
  const context=await chromium.launchPersistentContext('',{headless:true,...device,viewport:width?{width,height:mobile?915:900}:mobile?device.viewport:{width:1440,height:900},args:fixtureLaunchArgs(fixture.port,[],host)});
  context.setDefaultTimeout(5000);
  const page=await context.newPage();page.on('pageerror',error=>console.log('chat synthetic pageerror: '+error.message));
  const now=Math.floor(Date.now()/1000),token=[{alg:'none',typ:'JWT'},{sub:uid,user_id:uid,aud:'clever-oasis-508610-n7',iss:'https://securetoken.google.com/clever-oasis-508610-n7',iat:now,exp:now+3600,auth_time:now,email:'synthetic@example.test',email_verified:true,firebase:{sign_in_provider:'custom'}}].map(part=>Buffer.from(JSON.stringify(part)).toString('base64url')).join('.')+'.synthetic';
  const data=seed?seeded():{threads:[],messages:{}};
- const s:Stub={...data,creates:[],patches:[],polls:[],outcomes:[],presence:[],presenceStatus:null,denied,patchStatus:null};
+ if(proposal)data.messages[T1].push({id:'aaaaaaaa-0000-4000-8000-000000000005',seq:4,role:'user',text:'Record a 700 baht cash payment from Somchai',status:'ok',createdAt:iso(2)},
+  {id:'aaaaaaaa-0000-4000-8000-000000000006',seq:5,role:'assistant',text:'The card is ready: confirm it on the card.',status:'ok',model:'gemini-a',createdAt:iso(1),proposals:[paymentProposal()]});
+ if(group)data.messages[T1].push({id:'aaaaaaaa-0000-4000-8000-000000000007',seq:4,role:'user',text:'Set the six October charges of Somchai to ฿90 interest',status:'ok',createdAt:iso(2)},
+  {id:'aaaaaaaa-0000-4000-8000-000000000008',seq:5,role:'assistant',text:'One card for the six charges: confirm it on the card.',status:'ok',model:'gemini-a',createdAt:iso(1),proposals:chargeGroup(6)});
+ const s:Stub={...data,creates:[],patches:[],polls:[],outcomes:[],presence:[],presenceStatus:null,denied,patchStatus:null,proposalRequests:[],confirmAnswer:null,proposalReads:[]};
  await context.addInitScript(({chat})=>{
   const original=window.fetch.bind(window),encoder=new TextEncoder();(window as any).__chatStreams=[];(window as any).__chatLog=[];
   window.fetch=(input:RequestInfo|URL,init?:RequestInit)=>{
@@ -99,6 +124,12 @@ async function launch({seed=false,denied=false,width,path='',target,configure}:{
  await expect(page.locator(mobile||(width??1440)<=1050?'.live-bottom-nav':'#live-desktop-navigation nav')).toBeVisible({timeout:15000});
  return {context,page,s};
 }
+function stubGroupState(states:string[]){
+ if(states.includes('executing'))return 'executing';if(states.includes('unknown'))return 'unknown';
+ const settled=states.filter(state=>state==='done'||state==='failed');
+ if(!settled.length)return states.includes('pending')?'pending':states.every(state=>state==='expired')?'expired':'cancelled';
+ return settled.every(state=>state==='done')?'done':'failed';
+}
 async function chatRoute(route:any,s:Stub){
  const request=route.request(),u=new URL(request.url()),method=request.method(),path=u.pathname;
  if(s.denied)return route.fulfill({status:403,json:{error:'access_denied',code:'no_partner'}});
@@ -111,6 +142,26 @@ async function chatRoute(route:any,s:Stub){
  match=/^\/api\/chat\/threads\/([^/]+)\/messages$/.exec(path);
  if(match&&method==='GET')return route.fulfill({json:{items:s.messages[match[1]]??[],nextCursor:null}});
  if(/^\/api\/chat\/threads\/[^/]+\/messages\/[^/]+\/presence$/.test(path)&&method==='POST'){s.presence.push(request.postData()??'');return s.presenceStatus?route.fulfill({status:s.presenceStatus,json:{error:'unauthorized',code:'session_invalid'}}):route.fulfill({status:204,body:''})}
+ match=/^\/api\/chat\/threads\/([^/]+)\/proposals\/([^/]+)(\/confirm|\/cancel)?$/.exec(path);
+ if(match){
+  s.proposalRequests.push({method,path,body:request.postData(),authorization:request.headers().authorization?'present':null});
+  // D12: the id is the group's head; the answer is the group {id, state, lines}. An object answer applies to every
+  // pending (or unknown) line; an array answer is per line (null leaves the line as it is) and streams `line` events.
+  const row=s.messages[match[1]]?.find(item=>item.proposals?.some((line:any)=>line.id===match![2]));if(!row)return route.fulfill({status:404,json:{error:'not_found'}});
+  if(row.proposals[0].id!==match[2])return route.fulfill({status:400,json:{error:'invalid_request',detail:'not_head'}});
+  const settled=new Date().toISOString(),open=(line:any)=>['pending','unknown','executing'].includes(line.state);
+  const apply=(answer:any,only:(line:any)=>boolean)=>{row.proposals=row.proposals.map((line:any,index:number)=>{const patch=Array.isArray(answer)?answer[index]:answer;return patch&&only(line)?{...line,...patch}:line})};
+  const group=()=>({id:row.proposals[0].id,state:stubGroupState(row.proposals.map((line:any)=>line.state)),lines:row.proposals});
+  if(match[3]==='/confirm'){
+   const answer=s.confirmAnswer;if(answer==='abort')return route.abort('failed');
+   const before=row.proposals.map((line:any)=>line.state);apply(answer,line=>line.state==='pending');
+   if(!Array.isArray(answer))return route.fulfill({json:{item:group()}});
+   const lines=row.proposals.map((line:any,index:number)=>({line,index})).filter(({line,index}:any)=>line.state!==before[index]).map(({line,index}:any)=>ev('line',{index,id:line.id,state:line.state,...(line.outcome?.code?{code:line.outcome.code}:{}),...(line.record?{record:line.record}:{})}));
+   return route.fulfill({status:200,headers:{'Content-Type':'text/event-stream; charset=utf-8'},body:lines.join('')+ev('group',{state:group().state,group:group()})+ev('done',{})});
+  }
+  if(match[3]==='/cancel'){apply({state:'cancelled',settledAt:settled},line=>line.state==='pending');return route.fulfill({json:{item:group()}})}
+  const next=s.proposalReads.shift();if(next)apply(next,open);return route.fulfill({json:{item:group()}});
+ }
  match=/^\/api\/chat\/threads\/([^/]+)\/messages\/([^/]+)$/.exec(path);
  if(match&&method==='GET'){s.polls.push(match[2]);const next=s.outcomes.shift();return next?route.fulfill({json:next}):route.fulfill({status:404,json:{error:'not_found'}})}
  return route.fulfill({status:404,json:{error:'not_found'}});
@@ -385,6 +436,131 @@ test('batch 2: a notification for a thread that is gone explains it and shows th
    await expect(r.page.getByText('This thread is archived. Unarchive it to continue.',{exact:true})).toBeVisible();await expect(notice).toHaveCount(0);
   }finally{await r.context.close()}
  }finally{fixture.setBuildRoot(join(root,'chat'))}
+});
+
+test('R106: the confirmation card shows the server fields; Confirm is disabled offline; confirm settles done and survives a reload',async()=>{
+ const {context,page,s}=await launch({seed:true,proposal:true});
+ try{
+  await openChat(page);
+  const card=page.locator('.chat-proposal');
+  await expect(card).toHaveCount(1);await expect(card).toHaveAttribute('data-state','pending');
+  await expect(card.getByRole('heading',{name:'Record payment'})).toBeVisible();await expect(card.locator('.chat-proposal-target')).toHaveText('Somchai');
+  await expect(card.locator('.chat-proposal-fields dd')).toHaveText(['฿700','30-Oct-2026','Cash','Cash box']);
+  await expect(card.locator('.chat-proposal-split li')).toHaveCount(2);await expect(card.locator('.chat-proposal-split h4')).toHaveText('Allocation · ฿700');
+  await expect(card.locator('.chat-proposal-split li').nth(1)).toContainText('Principal ฿500 · Interest ฿100');
+  await expect(card.locator('.chat-proposal-consequence')).toHaveText('Settles every due charge of this borrower.');
+  // CWR-03: the live region holds the state only; the countdown sits outside it.
+  await expect(card.locator('.chat-proposal-state')).toHaveText('Waiting for your confirmation');await expect(card.locator('[aria-live] .chat-proposal-countdown, .chat-proposal-state .chat-proposal-countdown')).toHaveCount(0);
+  await expect(card.locator('.chat-proposal-countdown')).toHaveText(/^Expires in 1[45]:\d\d$/);
+  // CWR-04: allocation dates and amounts never wrap.
+  await expect(card.locator('.chat-proposal-split .chat-nowrap')).toHaveCount(6);
+  // CWR-02/01: the server's short label; armed once the card has been in view.
+  // CW2-01: the card's dismiss button never reads like a catalogue Cancel action.
+  const confirm=card.getByRole('button',{name:'Record ฿700',exact:true}),cancel=card.getByRole('button',{name:"Don't do this",exact:true});
+  await expect(card.getByRole('button',{name:/^Cancel/})).toHaveCount(0);
+  await card.scrollIntoViewIfNeeded();await expect(card).toHaveAttribute('data-armed','true');await expect(confirm).toBeEnabled();
+  // CWR-08: offline disables both buttons; one note covers them.
+  await context.setOffline(true);await expect(confirm).toBeDisabled();await expect(cancel).toBeDisabled();await expect(card.getByText('Connect to confirm or cancel.',{exact:true})).toBeVisible();
+  await context.setOffline(false);await expect(confirm).toBeEnabled();await expect(cancel).toBeEnabled();
+  s.confirmAnswer={state:'done',settledAt:new Date().toISOString(),outcome:{code:null},record:{type:'payment',id:'PM1',paymentId:'PM1'}};
+  await confirm.click();
+  // CWR-07: the Done card shows the saved time (Bangkok).
+  await expect(card).toHaveAttribute('data-state','done');await expect(card.locator('.chat-proposal-state')).toHaveText(/^Saved \d\d:\d\d$/);await expect(card.locator('.chat-proposal-confirm')).toHaveCount(0);
+  expect(s.proposalRequests.filter(r=>r.method==='POST')).toEqual([{method:'POST',path:`/api/chat/threads/${T1}/proposals/${P1}/confirm`,body:'{}',authorization:'present'}]);
+  await card.scrollIntoViewIfNeeded();await page.screenshot({path:`${shots}/r106-card-done-${project}.png`,fullPage:false});
+  // The record link opens the payment record over the thread (CW2-03: "Back to chat"); Back returns to the same
+  // thread and card with the scroll position and focus on Open record (CW2-02).
+  const open=card.getByRole('button',{name:'Open record',exact:true});
+  await open.scrollIntoViewIfNeeded();
+  const where=await page.evaluate(()=>({pageY:Math.round(window.scrollY),listTop:Math.round(document.querySelector('.chat-messages')?.scrollTop??0)}));
+  await open.click();
+  await expect(page.locator('.chat-workspace')).toBeHidden();
+  await expect(page.getByRole('button',{name:'Back to payment history'})).toHaveCount(0);
+  await expect(page.locator('.chat-record-view').locator('h1,h2').first()).toBeFocused();
+  await page.getByRole('button',{name:'Back to chat',exact:true}).first().click();
+  await expect(page.locator('.chat-proposal')).toHaveAttribute('data-state','done');
+  await expect(page.locator('.chat-proposal').getByRole('button',{name:'Open record',exact:true})).toBeFocused();
+  await expect.poll(()=>page.evaluate(()=>({pageY:Math.round(window.scrollY),listTop:Math.round(document.querySelector('.chat-messages')?.scrollTop??0)}))).toEqual(where);await expect(page.locator('.chat-user').last()).toHaveText('Record a 700 baht cash payment from Somchai');
+  // The persisted state on reload (any device).
+  await page.reload();await openChat(page);await expect(page.locator('.chat-proposal')).toHaveAttribute('data-state','done');
+ }finally{await context.close()}
+});
+
+test('R106: a lost confirm answer polls as unknown (never failed) until it resolves; a rejection shows the app wording; a new message cancels a pending card',async()=>{
+ const {context,page,s}=await launch({seed:true,proposal:true});
+ try{
+  await openChat(page);
+  const card=page.locator('.chat-proposal');
+  await expect(card).toHaveAttribute('data-state','pending');await card.scrollIntoViewIfNeeded();
+  await page.screenshot({path:`${shots}/r106-card-pending-${project}.png`,fullPage:false});
+  s.confirmAnswer='abort';s.proposalReads=[{state:'unknown',outcome:{code:'outcome_unknown'}},{state:'done',outcome:{code:null},settledAt:new Date().toISOString(),record:{type:'payment',id:'PM1',paymentId:'PM1'}}];
+  await card.scrollIntoViewIfNeeded();await card.locator('.chat-proposal-confirm').click();
+  await expect(card).toHaveAttribute('data-state','unknown');await expect(card.locator('.chat-proposal-state')).toHaveText('Checking whether the change was saved…');
+  await expect(card.getByRole('button',{name:/Confirm|Record|Retry|Ask again/})).toHaveCount(0);
+  await expect(card).toHaveAttribute('data-state','done',{timeout:15000});
+  expect(s.proposalRequests.filter(r=>r.method==='GET').length).toBeGreaterThanOrEqual(2);
+  // A rejection from the command service: the app's localized table.
+  const row=s.messages[T1].at(-1);row.proposals=[paymentProposal({id:'dddddddd-0000-4000-8000-000000000002'})];
+  await page.reload();await openChat(page);
+  s.confirmAnswer={state:'failed',outcome:{code:'source_conflict'},settledAt:new Date().toISOString()};
+  await page.locator('.chat-proposal').scrollIntoViewIfNeeded();await page.locator('.chat-proposal .chat-proposal-confirm').click();
+  await expect(page.locator('.chat-proposal .chat-proposal-state')).toHaveText('Could not apply: The record changed since it was opened. (source_conflict)');
+  // CWR-06: Ask again puts the original question back in the composer.
+  await page.locator('.chat-proposal').getByRole('button',{name:'Ask again',exact:true}).click();await expect(composer(page)).toHaveValue('Record a 700 baht cash payment from Somchai');await composer(page).fill('');
+  // A pending card is cancelled by the next message.
+  row.proposals=[paymentProposal({id:'dddddddd-0000-4000-8000-000000000003'})];
+  await page.reload();await openChat(page);await expect(page.locator('.chat-proposal')).toHaveAttribute('data-state','pending');
+  await composer(page).fill('Actually make it 600');await page.getByRole('button',{name:'Send',exact:true}).click();
+  await expect(page.locator('.chat-proposal')).toHaveAttribute('data-state','cancelled');await expect(page.locator('.chat-proposal .chat-proposal-state')).toHaveText('Cancelled. Nothing was changed.');
+ }finally{await context.close()}
+});
+
+test('R106 D12: one card for six changes at 320 px; the delete is marked; Confirm all streams each line; a failed line shows; Confirm N remaining after a partial run',async()=>{
+ const {context,page,s}=await launch({seed:true,group:true,width:mobile?undefined:320});
+ try{
+  await openChat(page);
+  const card=page.locator('.chat-proposal'),lines=card.locator('.chat-proposal-line');
+  await expect(card).toHaveCount(1);await expect(card).toHaveAttribute('data-lines','6');await expect(lines).toHaveCount(6);
+  await expect(card.getByRole('heading',{name:'6 changes'})).toBeVisible();
+  // Chase: only the changed field per line; the unchanged long note is never repeated, just counted.
+  await expect(card.locator('.chat-proposal-change')).toHaveCount(5);await expect(lines.nth(1).locator('.chat-proposal-change dd')).toContainText('฿90.00');
+  // CW3-01: the delete line carries the warning icon, the red edge and its tag; the card warning and Confirm count it.
+  await expect(lines.first()).toHaveAttribute('data-destructive','true');await expect(lines.first().locator('.chat-proposal-tag')).toHaveText('Deletes');
+  await expect(lines.first().locator('.chat-proposal-line-icon')).toHaveCount(1);await expect(lines.nth(1).locator('.chat-proposal-tag')).toHaveCount(0);
+  expect(await lines.first().evaluate(element=>getComputedStyle(element).borderLeftColor)).toBe('rgb(179, 38, 30)');
+  await expect(card.locator('.chat-proposal-destructive')).toHaveText('1 change deletes data');
+  await expect(card.getByText(/A long synthetic note/)).toHaveCount(0);await expect(card.locator('.chat-proposal-unchanged summary').first()).toHaveText('+2 unchanged');
+  await expect(lines.locator('.chat-proposal-chip')).toHaveText(Array(6).fill('Waiting'));
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+  const confirm=card.getByRole('button',{name:'Confirm 6 changes (1 delete)',exact:true});
+  // CW3-03: opened at the thread's end, the action row sits above the composer, not under it.
+  const actions=await card.locator('.chat-proposal-actions').boundingBox(),composerBox=await page.locator('.chat-composer').boundingBox();
+  expect(actions!.y+actions!.height).toBeLessThanOrEqual(composerBox!.y+1);
+  // CW3-04: until armed, the hint says why Confirm waits.
+  await expect(card.locator('.chat-proposal-arm-hint')).toHaveText('Scroll through all changes to confirm');
+  // CWR-01: a card taller than the pane arms once the Partner has scrolled through it.
+  await card.evaluate(element=>element.scrollIntoView({block:'start'}));await page.waitForTimeout(150);
+  await confirm.scrollIntoViewIfNeeded();await expect(card).toHaveAttribute('data-armed','true');await expect(confirm).toBeEnabled();await expect(card.locator('.chat-proposal-arm-hint')).toHaveCount(0);
+  await page.screenshot({path:`${shots}/r106-group-pending-${mobile?'pixel7':320}.png`,fullPage:true});
+  // A partial run: lines 1-2 done, line 3 rejected, lines 4-6 left pending (the 180 s deadline).
+  const done=(index:number)=>({state:'done',settledAt:new Date().toISOString(),outcome:{code:null},record:{type:'charge',id:'C'+index,chargeId:'C'+index}});
+  s.confirmAnswer=[done(0),done(1),{state:'failed',outcome:{code:'source_conflict'},settledAt:new Date().toISOString()},null,null,null];
+  await confirm.click();
+  // CW3-02: lines a Confirm can still run read "Not run yet"; the summary counts them.
+  await expect(lines.locator('.chat-proposal-chip')).toHaveText(['Done','Done','Not saved','Not run yet','Not run yet','Not run yet']);
+  await expect(lines.nth(2).locator('.chat-proposal-line-failure')).toHaveText('Could not apply: The record changed since it was opened. (source_conflict)');
+  await expect(lines.nth(0).getByRole('button',{name:'Open record',exact:true})).toBeVisible();await expect(lines.nth(3).getByRole('button',{name:'Open record',exact:true})).toHaveCount(0);
+  await expect(card).toHaveAttribute('data-state','partial');await expect(card.locator('.chat-proposal-state')).toHaveText('2 done · 1 not saved · 3 not run');
+  const rest=card.getByRole('button',{name:'Confirm 3 remaining',exact:true});await expect(rest).toBeEnabled();
+  s.confirmAnswer=[null,null,null,done(3),done(4),done(5)];
+  await rest.click();
+  await expect(lines.locator('.chat-proposal-chip')).toHaveText(['Done','Done','Not saved','Done','Done','Done']);await expect(card.locator('.chat-proposal-confirm')).toHaveCount(0);
+  await expect(card.locator('.chat-proposal-state')).toHaveText('5 done · 1 not saved');
+  expect(s.proposalRequests.filter(r=>r.method==='POST').map(r=>r.path)).toEqual(Array(2).fill(`/api/chat/threads/${T1}/proposals/${G.slice(0,-1)}0/confirm`));
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+  await page.screenshot({path:`${shots}/r106-group-settled-${mobile?'pixel7':320}.png`,fullPage:true});
+  await page.reload();await openChat(page);await expect(page.locator('.chat-proposal-line .chat-proposal-chip')).toHaveText(['Done','Done','Not saved','Done','Done','Done']);
+ }finally{await context.close()}
 });
 
 test('a 403 from the chat service shows the access denied card',async()=>{

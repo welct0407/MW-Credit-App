@@ -9,6 +9,12 @@ export function storeError(error){
  const message=error?.message,code=error?.code;
  if(message==='not_found')return {status:404,error:'not_found'};
  if(message==='access_denied')return {status:403,error:'access_denied'};
+ // R106 (V118): the reviewer gate in SQL, a second tap while another one executes, one proposal per turn.
+ if(message==='reviewer_required')return {status:403,error:'reviewer_required'};
+ if(message==='proposal_executing')return {status:409,error:'proposal_executing'};
+ if(message==='one_proposal_per_turn')return {status:409,error:'one_proposal_per_turn'};
+ // D12: confirm, read and cancel take the group's head id.
+ if(message==='not_head')return {status:400,error:'invalid_request',detail:'not_head'};
  if(code==='55006'||message==='turn_in_progress')return {status:409,error:'turn_in_progress'};
  if(code==='54000'||message==='thread_full')return {status:400,error:'invalid_request',detail:'thread_full'};
  if(code==='22023'||message==='invalid_request')return {status:400,error:'invalid_request'};
@@ -22,7 +28,11 @@ export function storeError(error){
  * @param {{pool:any,guardConnection:(client:any)=>Promise<void>,resolveActor:(client:any,principal:any,capability:string)=>Promise<any>,issuer:string,readRole?:string,afterCommit?:(wake?:{deadline?:number})=>Promise<void>,log?:(record:object)=>void}} options */
 export function createChatStore({pool,guardConnection,resolveActor,issuer,readRole,afterCommit=async()=>{},log=()=>{}}){
  const asReader=readRole?`SET LOCAL ROLE "${readRole.replaceAll('"','""')}"`:null;
- async function run(principal,action,readonly=false){
+ /**
+  * writer (R106 D5): also resolve, in the same transaction and under the read role, whether the actor may propose and
+  * confirm writes: Partners."AI Reviewer" and the 'command' capability of the policy, both for the same Partner.
+  */
+ async function run(principal,action,readonly=false,{writer:withWriter=false}={}){
   const c=await pool.connect();let healthy=false;
   try{
    await c.query(readonly?'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY':'BEGIN');
@@ -30,9 +40,15 @@ export function createChatStore({pool,guardConnection,resolveActor,issuer,readRo
    await guardConnection(c);
    if(asReader)await c.query(asReader);
    const actor=await resolveActor(c,principal,'read');
+   let writer=null;
+   if(withWriter&&actor){
+    const command=await resolveActor(c,principal,'command');
+    const reviewer=(await c.query('SELECT "AI Reviewer" AS reviewer FROM public."Partners" WHERE "Row ID"=$1',[actor.partnerId])).rows[0]?.reviewer===true;
+    writer={reviewer,command:!!command&&command.partnerId===actor.partnerId&&command.subject===actor.subject};
+   }
    if(asReader)await c.query('RESET ROLE');
    if(!actor||actor.issuer!==issuer)throw Error('access_denied');
-   const value=await action(c,actor);
+   const value=await action(c,actor,writer);
    await c.query('COMMIT');healthy=true;
    return value;
   }catch(error){try{await c.query('ROLLBACK');healthy=true;}catch{/* quarantined below */}throw error;}
@@ -51,14 +67,32 @@ export function createChatStore({pool,guardConnection,resolveActor,issuer,readRo
    * Claims the turn. A model override applies to the thread only when this call claims it (same transaction); a re-POST
    * of a finished message returns its outcome and leaves the thread's model alone. Returns {actor, value}.
    */
-  begin:(p,thread,{id,text,model})=>run(p,async(c,a)=>{
+  begin:(p,thread,{id,text,model},{writes=false}={})=>run(p,async(c,a,writer)=>{
    const value=await one(c,'SELECT public.pwa_chat_turn_begin_v1($1::jsonb,$2::uuid,$3::jsonb) AS value',[a,thread,{id,text}]);
    if(value?.state==='claimed'&&model!==undefined&&model!==value.thread.model){
     await c.query('SELECT public.pwa_chat_thread_update_v1($1::jsonb,$2::uuid,$3::jsonb)',[a,thread,{model}]);
     value.thread={...value.thread,model};
    }
-   return {actor:a,value};
-  }),
+   // R106 D7/D10: a new user message cancels the thread's pending proposals; a writer's turn sees its recent actions.
+   let recent=null;
+   if(writes&&value?.state==='claimed'){
+    await c.query('SELECT public.pwa_chat_proposal_cancel_v1($1::jsonb,$2::uuid,NULL,\'superseded\')',[a,thread]);
+    if(writer?.reviewer&&writer.command)recent=await one(c,'SELECT public.pwa_chat_proposals_v1($1::jsonb,$2::uuid,NULL,5) AS value',[a,thread]);
+   }
+   return {actor:a,value,writer:writes?{allowed:!!(writer?.reviewer&&writer.command),...writer}:null,recent};
+  },false,{writer:writes}),
+  /** R106 D5: whether the Partner may use the proposal routes ({reviewer, command}). */
+  writer:p=>run(p,async(_c,_a,writer)=>writer,true,{writer:true}),
+  /** R106 V118 proposal RPCs; the reviewer gate is enforced in SQL as well (42501 reviewer_required). */
+  createProposal:(p,thread,proposal)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposal_create_v1($1::jsonb,$2::uuid,$3::jsonb) AS value',[a,thread,proposal])),
+  proposal:(p,thread,id)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposals_v1($1::jsonb,$2::uuid,$3::uuid,NULL) AS value',[a,thread,id]),true),
+  claimProposal:(p,thread,id)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposal_claim_v1($1::jsonb,$2::uuid,$3::uuid) AS value',[a,thread,id])),
+  settleProposal:(p,thread,id,settlement)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposal_settle_v1($1::jsonb,$2::uuid,$3::uuid,$4::jsonb) AS value',[a,thread,id,settlement])),
+  /** D12: the lines of one group by id, in one read-only transaction (V118 per-line read). */
+  group:(p,thread,ids)=>run(p,async(c,a)=>{const lines=[];for(const id of ids)lines.push(await one(c,'SELECT public.pwa_chat_proposals_v1($1::jsonb,$2::uuid,$3::uuid,NULL) AS value',[a,thread,id]));return lines;},true),
+  /** D12: cancel every pending line of a group in one transaction (V118 per-line cancel; others answer unchanged). */
+  cancelGroup:(p,thread,ids)=>run(p,async(c,a)=>{const lines=[];for(const id of ids)lines.push(await one(c,'SELECT public.pwa_chat_proposal_cancel_v1($1::jsonb,$2::uuid,$3::uuid,\'cancelled\') AS value',[a,thread,id]));return lines;}),
+  cancelProposal:(p,thread,id)=>run(p,(c,a)=>one(c,'SELECT public.pwa_chat_proposal_cancel_v1($1::jsonb,$2::uuid,$3::uuid,\'cancelled\') AS value',[a,thread,id])),
   /**
    * The asking device's presence on its running turn (batch 2c, V106): 'hidden' (the PWA left: beacon) or 'visible'.
    * Returns {state:'claimed',detached} | {state:'idle'} | {state:'completed'}; another Partner's message is not_found.
