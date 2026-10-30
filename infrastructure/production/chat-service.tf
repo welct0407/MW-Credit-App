@@ -8,6 +8,10 @@
 # to the VM chat relay (http://10.148.0.2:8791; firewall and the PROD Anthropic key secret in
 # ../ecosystem-debian), CHAT_RELAY_URL and the claude-* models in CHAT_MODELS_JSON. Enable it
 # at promotion only, with a chat image that understands claude-* models.
+# R106 (prepared, default off): chat_commands.enabled adds CHAT_COMMAND_URL, the exact PROD
+# command service URL; the chat service calls it with the Partner's own Firebase ID token. No new
+# IAM, secret, SQL grant or egress. Enable it at promotion only, with a chat image that
+# understands the variable.
 variable "chat_authorized" {
   description = "Owner-gated PROD chat service (R090). Requires the business runtime gates."
   type        = bool
@@ -16,6 +20,14 @@ variable "chat_authorized" {
 
 variable "chat_relay" {
   description = "R102 PROD chat relay wiring (promotion-gated): enabled adds Direct VPC egress, CHAT_RELAY_URL and the claude-* models (otherwise filtered out of CHAT_MODELS_JSON)."
+  type = object({
+    enabled = optional(bool, false)
+  })
+  default = {}
+}
+
+variable "chat_commands" {
+  description = "R106 PROD chat writes (promotion-gated): enabled adds CHAT_COMMAND_URL (the exact PROD command service URL); absent, the chat service offers no proposal tool or routes."
   type = object({
     enabled = optional(bool, false)
   })
@@ -86,6 +98,8 @@ locals {
   }))
   # VM (vm-mw-credit-agent) pinned network_ip; the ID-token audience is exactly this URL.
   chat_relay_url = "http://10.148.0.2:8791/v1/chat/messages"
+  # R106: deterministic Cloud Run URL of mw-credit-app-command-prod (pinned again by business-config.mjs).
+  chat_command_url = "https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app"
 }
 
 resource "google_service_account" "chat" {
@@ -212,6 +226,8 @@ resource "google_cloud_run_v2_service" "chat" {
           CHAT_MODELS_JSON                      = local.chat_models_json
           }, var.chat_relay.enabled ? {
           CHAT_RELAY_URL = local.chat_relay_url
+          } : {}, var.chat_commands.enabled ? {
+          CHAT_COMMAND_URL = local.chat_command_url
           } : {}, var.workers.chat_dispatch_enabled ? {
           NOTIFICATION_DISPATCH_ENABLED  = "true"
           NOTIFICATION_DISPATCH_URL      = "https://mw-credit-app-notify-prod-737787224638.asia-southeast1.run.app/internal/dispatch"

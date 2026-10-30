@@ -51,6 +51,7 @@ Inactive business infrastructure/runtime/secret-reference/receipt-IAM definition
 | Gate | Default | Proposes when enabled | Prerequisites |
 | --- | --- | --- | --- |
 | `chat_authorized` (R090, `chat-service.tf`) | `false` | `mw-credit-app-chat-prod` identity, Cloud SQL client/instance user, Vertex AI user, auth-status role, IAM DB user, capability-policy accessor, Cloud Run `mw-credit-app-chat-prod` (`services/chat/server.mjs`, 300 s, max 2) | Foundation, runtime and business gates; tested `business_image`; V104 applied with a verified backup; operator grants `mw_chat_api_prod`/`mw_chat_read_prod`; owner promotion instruction |
+| `chat_commands.enabled` (R106, `chat-service.tf`) | `false` | Env `CHAT_COMMAND_URL` = the exact PROD command service URL on `mw-credit-app-chat-prod`; no IAM, secret, SQL grant, egress or Hosting change | `chat_authorized`; chat image that understands the variable; V118 applied with a verified backup; owner promotion instruction |
 
 ## Applied plan evidence
 

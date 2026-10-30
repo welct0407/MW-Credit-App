@@ -278,3 +278,35 @@ run "reject_bad_claude_id" {
   }
   expect_failures = [var.chat_models]
 }
+
+run "chat_commands_off_by_default" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  assert {
+    condition     = alltrue([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.name != "CHAT_COMMAND_URL"])
+    error_message = "R106: without chat_commands.enabled the DEV chat service carries no CHAT_COMMAND_URL."
+  }
+}
+
+run "chat_commands_enabled_exact_url" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables {
+    chat_commands = { enabled = true }
+    command_image = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+  assert {
+    condition = (one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_COMMAND_URL"]) == "https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app"
+      && length(google_cloud_run_v2_service.chat_api[0].template[0].vpc_access) == 0
+      && google_cloud_run_v2_service.chat_api[0].invoker_iam_disabled == true
+    && alltrue([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : !contains(["PWA_NOTIFICATIONS", "WEB_PUSH_PUBLIC_KEY"], e.name) && !startswith(e.name, "AGENT_") && !startswith(e.name, "RECEIPT_") && !startswith(e.name, "NOTIFICATION_")]))
+    error_message = "R106: chat commands add only CHAT_COMMAND_URL for the DEV command service; no egress, receipt, notification or agent keys."
+  }
+}
+
+run "reject_chat_commands_without_command_service" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables { chat_commands = { enabled = true } }
+  expect_failures = [google_cloud_run_v2_service.chat_api]
+}

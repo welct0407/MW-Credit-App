@@ -7,6 +7,11 @@
 # (http://10.148.0.2:8791, firewall and Anthropic key secrets in ../ecosystem-debian), the
 # CHAT_RELAY_URL env and the claude-* models in CHAT_MODELS_JSON. Enable it only together with
 # a chat image that understands claude-* models (an older image rejects them at start).
+# R106: chat_commands.enabled adds CHAT_COMMAND_URL, the exact DEV command service URL. On a
+# Confirm tap the chat service calls the command service over its public URL with the Partner's
+# own Firebase ID token; no new IAM, secret, SQL grant or egress (the command service keeps
+# invoker_iam_disabled and checks the token, capability policy and actor itself). Requires the
+# DEV command service (command_image) and a chat image that understands the variable.
 variable "chat_image" {
   description = "Tested immutable image digest for the DEV chat service (same API image as the other services)."
   type        = string
@@ -20,6 +25,14 @@ variable "chat_image" {
 
 variable "chat_relay" {
   description = "R102 DEV chat relay wiring: enabled adds Direct VPC egress, CHAT_RELAY_URL and the claude-* models (otherwise filtered out of CHAT_MODELS_JSON)."
+  type = object({
+    enabled = optional(bool, false)
+  })
+  default = {}
+}
+
+variable "chat_commands" {
+  description = "R106 DEV chat writes: enabled adds CHAT_COMMAND_URL (the exact DEV command service URL); absent, the chat service offers no proposal tool or routes."
   type = object({
     enabled = optional(bool, false)
   })
@@ -92,6 +105,8 @@ locals {
   }))
   # VM (vm-mw-credit-agent) pinned network_ip; the ID-token audience is exactly this URL.
   chat_relay_url = "http://10.148.0.2:8791/v1/chat/messages"
+  # R106: deterministic Cloud Run URL of mw-credit-app-command-dev (pinned again by business-config.mjs).
+  chat_command_url = "https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app"
 }
 
 resource "google_service_account" "chat_runtime" {
@@ -149,6 +164,10 @@ resource "google_cloud_run_v2_service" "chat_api" {
       condition     = contains([for m in local.chat_models_list : m.id if m.available], var.chat_models.default)
       error_message = "The chat default must be an available listed model; a claude-* default needs chat_relay.enabled."
     }
+    precondition {
+      condition     = !var.chat_commands.enabled || var.command_image != null
+      error_message = "Chat commands require the DEV command service (command_image)."
+    }
   }
   template {
     service_account = google_service_account.chat_runtime[0].email
@@ -188,6 +207,8 @@ resource "google_cloud_run_v2_service" "chat_api" {
           CHAT_MODELS_JSON        = local.chat_models_json
           }, var.chat_relay.enabled ? {
           CHAT_RELAY_URL = local.chat_relay_url
+          } : {}, var.chat_commands.enabled ? {
+          CHAT_COMMAND_URL = local.chat_command_url
           } : {}, var.workers.chat_dispatch_enabled ? {
           NOTIFICATION_DISPATCH_ENABLED  = "true"
           NOTIFICATION_DISPATCH_URL      = "https://mw-credit-app-notify-dev-737787224638.asia-southeast1.run.app/internal/dispatch"
