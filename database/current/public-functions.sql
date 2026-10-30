@@ -3378,7 +3378,9 @@ CREATE FUNCTION public.pwa_chat_message_json_v1(m public.pwa_chat_messages) RETU
    'thoughtsTokens',coalesce(m.thoughts_tokens,0),'cachedTokens',coalesce(m.cached_tokens,0),'rounds',coalesce(m.rounds,0),'latencyMs',coalesce(m.latency_ms,0)) END,
   'tools',CASE WHEN m.role='assistant' THEN (SELECT jsonb_agg(jsonb_build_object('name',x.name,'count',x.n) ORDER BY x.first_round,x.name)
    FROM (SELECT c.name,count(*) AS n,min(c.round) AS first_round FROM public.pwa_chat_tool_calls c WHERE c.message_id=m.id GROUP BY c.name) x) END,
-  'errorCode',m.error_code))
+  'errorCode',m.error_code))||CASE WHEN m.role='assistant' THEN jsonb_build_object('proposal',coalesce((SELECT public.pwa_chat_proposal_json_v1(p)
+  FROM public.pwa_chat_proposals p JOIN public.pwa_chat_messages q ON q.id=p.message_id WHERE q.thread_id=m.thread_id AND q.seq=m.seq-1 AND q.role='user'
+  ORDER BY p.created_at DESC,p.id DESC LIMIT 1),'null'::jsonb)) ELSE '{}'::jsonb END
 $$;
 
 
@@ -3457,6 +3459,236 @@ END $$;
 --
 
 COMMENT ON FUNCTION public.pwa_chat_models_default_v1(actor jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_proposal_cancel_v1(jsonb, uuid, uuid, text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_proposal_cancel_v1(actor jsonb, thread uuid, id uuid, reason text) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); p public.pwa_chat_proposals; n integer;
+BEGIN
+ IF reason IS NULL OR NOT ((reason='cancelled' AND id IS NOT NULL) OR (reason='superseded' AND id IS NULL)) THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner) THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ IF reason='superseded' THEN
+  UPDATE public.pwa_chat_proposals x SET state=CASE WHEN x.expires_at<=clock_timestamp() THEN 'expired' ELSE 'cancelled' END,
+   cancel_reason=CASE WHEN x.expires_at<=clock_timestamp() THEN NULL ELSE 'superseded' END,settled_at=clock_timestamp()
+  WHERE x.thread_id=thread AND x.partner_id=partner AND x.state='pending';
+  GET DIAGNOSTICS n=ROW_COUNT;
+  RETURN jsonb_build_object('cancelled',n);
+ END IF;
+ IF NOT EXISTS(SELECT 1 FROM public."Partners" x WHERE x."Row ID"=partner AND x."AI Reviewer" IS TRUE) THEN RAISE EXCEPTION 'reviewer_required' USING ERRCODE='42501'; END IF;
+ SELECT x.* INTO p FROM public.pwa_chat_proposals x WHERE x.id=$3 AND x.thread_id=thread AND x.partner_id=partner FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ IF p.state='pending' THEN
+  UPDATE public.pwa_chat_proposals x SET state=CASE WHEN x.expires_at<=clock_timestamp() THEN 'expired' ELSE 'cancelled' END,
+   cancel_reason=CASE WHEN x.expires_at<=clock_timestamp() THEN NULL ELSE 'cancelled' END,settled_at=clock_timestamp()
+  WHERE x.id=p.id RETURNING * INTO p;
+ END IF;
+ RETURN public.pwa_chat_proposal_json_v1(p);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_proposal_cancel_v1(actor jsonb, thread uuid, id uuid, reason text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_proposal_cancel_v1(actor jsonb, thread uuid, id uuid, reason text) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_proposal_claim_v1(jsonb, uuid, uuid); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_proposal_claim_v1(actor jsonb, thread uuid, id uuid) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); p public.pwa_chat_proposals;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM public."Partners" x WHERE x."Row ID"=partner AND x."AI Reviewer" IS TRUE) THEN RAISE EXCEPTION 'reviewer_required' USING ERRCODE='42501'; END IF;
+ SELECT x.* INTO p FROM public.pwa_chat_proposals x JOIN public.pwa_chat_threads t ON t.id=x.thread_id
+ WHERE x.id=$3 AND x.thread_id=thread AND t.partner_id=partner AND x.partner_id=partner FOR UPDATE OF x;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ IF p.state='pending' AND p.expires_at<=clock_timestamp() THEN
+  UPDATE public.pwa_chat_proposals x SET state='expired',settled_at=clock_timestamp() WHERE x.id=p.id RETURNING * INTO p;
+ ELSIF p.state='pending' THEN
+  UPDATE public.pwa_chat_proposals x SET state='executing',claimed_at=clock_timestamp(),attempts=x.attempts+1 WHERE x.id=p.id RETURNING * INTO p;
+  RETURN jsonb_build_object('claimed',true,'proposal',public.pwa_chat_proposal_json_v1(p)||jsonb_build_object('claimedAt',public.pwa_chat_iso_v1(p.claimed_at),'attempts',p.attempts),'command',p.command);
+ ELSIF p.state='executing' AND p.claimed_at>clock_timestamp()-interval '3 minutes' THEN
+  RAISE EXCEPTION 'proposal_executing' USING ERRCODE='55006';
+ END IF;
+ RETURN jsonb_build_object('claimed',false,'proposal',public.pwa_chat_proposal_json_v1(p)||jsonb_build_object('claimedAt',public.pwa_chat_iso_v1(p.claimed_at),'attempts',p.attempts));
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_proposal_claim_v1(actor jsonb, thread uuid, id uuid); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_proposal_claim_v1(actor jsonb, thread uuid, id uuid) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_proposal_create_v1(jsonb, uuid, jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_proposal_create_v1(actor jsonb, thread uuid, proposal jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); t public.pwa_chat_threads; u public.pwa_chat_messages; p public.pwa_chat_proposals; command_value jsonb; created timestamptz;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM public."Partners" x WHERE x."Row ID"=partner AND x."AI Reviewer" IS TRUE) THEN RAISE EXCEPTION 'reviewer_required' USING ERRCODE='42501'; END IF;
+ IF proposal IS NULL OR jsonb_typeof(proposal)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(proposal) key) IS DISTINCT FROM ARRAY['card','command','id','kind','messageId','operation']::text[]
+  OR jsonb_typeof(proposal->'id') IS DISTINCT FROM 'string' OR proposal->>'id' !~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+  OR jsonb_typeof(proposal->'messageId') IS DISTINCT FROM 'string' OR proposal->>'messageId' !~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+  OR proposal->>'kind' NOT IN ('operation','payment') OR jsonb_typeof(proposal->'operation') IS DISTINCT FROM 'string'
+  OR jsonb_typeof(proposal->'command') IS DISTINCT FROM 'string' OR octet_length(proposal->>'command') NOT BETWEEN 2 AND 65536
+  OR jsonb_typeof(proposal->'card') IS DISTINCT FROM 'object' THEN
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ BEGIN command_value:=(proposal->>'command')::jsonb; EXCEPTION WHEN others THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END;
+ IF jsonb_typeof(command_value)<>'object' OR command_value->>'requestId' IS DISTINCT FROM proposal->>'id' THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ SELECT * INTO t FROM public.pwa_chat_threads x WHERE x.id=thread AND x.partner_id=partner FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ SELECT m.* INTO u FROM public.pwa_chat_messages m WHERE m.id=(proposal->>'messageId')::uuid AND m.thread_id=t.id AND m.role='user'
+  AND m.claimed_at>clock_timestamp()-interval '5 minutes' AND NOT EXISTS(SELECT 1 FROM public.pwa_chat_messages r WHERE r.thread_id=m.thread_id AND r.seq=m.seq+1)
+ FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ IF EXISTS(SELECT 1 FROM public.pwa_chat_proposals x WHERE x.message_id=u.id AND x.created_at>=u.claimed_at) THEN RAISE EXCEPTION 'one_proposal_per_turn' USING ERRCODE='23505'; END IF;
+ -- A new proposal replaces the thread's earlier pending ones (D9); one past its expiry is recorded as expired.
+ UPDATE public.pwa_chat_proposals x SET state=CASE WHEN x.expires_at<=clock_timestamp() THEN 'expired' ELSE 'cancelled' END,
+  cancel_reason=CASE WHEN x.expires_at<=clock_timestamp() THEN NULL ELSE 'superseded' END,settled_at=clock_timestamp()
+ WHERE x.thread_id=t.id AND x.state='pending';
+ -- clock_timestamp(): created after the claim of its turn (the one-per-turn rule compares the two).
+ created:=clock_timestamp();
+ INSERT INTO public.pwa_chat_proposals(id,thread_id,message_id,partner_id,kind,operation,command,card,created_at,expires_at)
+ VALUES((proposal->>'id')::uuid,t.id,u.id,partner,proposal->>'kind',proposal->>'operation',proposal->>'command',proposal->'card',created,created+interval '15 minutes')
+ RETURNING * INTO p;
+ RETURN public.pwa_chat_proposal_json_v1(p);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_proposal_create_v1(actor jsonb, thread uuid, proposal jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_proposal_create_v1(actor jsonb, thread uuid, proposal jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_proposal_guard_v1(); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_proposal_guard_v1() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE lifecycle text[]:=ARRAY['state','claimed_at','settled_at','attempts','outcome','record','cancel_reason'];
+BEGIN
+ IF TG_OP='UPDATE' AND (to_jsonb(NEW)-lifecycle)=(to_jsonb(OLD)-lifecycle)
+  AND ((OLD.state='pending' AND NEW.state IN ('executing','expired','cancelled'))
+   OR (OLD.state IN ('executing','unknown') AND NEW.state IN ('done','failed','unknown'))) THEN RETURN NEW; END IF;
+ RAISE EXCEPTION '% on % is not allowed (chat proposal lifecycle)',TG_OP,TG_TABLE_NAME USING ERRCODE='55000';
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_chat_proposal_guard_v1(); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_proposal_guard_v1() IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_proposal_json_v1(public.pwa_chat_proposals); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_proposal_json_v1(p public.pwa_chat_proposals) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+ SELECT jsonb_build_object('id',p.id,'threadId',p.thread_id,'messageId',p.message_id,'kind',p.kind,'operation',p.operation,
+  'state',CASE WHEN p.state='pending' AND p.expires_at<=clock_timestamp() THEN 'expired' ELSE p.state END,
+  'card',p.card,'expiresAt',public.pwa_chat_iso_v1(p.expires_at),'createdAt',public.pwa_chat_iso_v1(p.created_at),
+  'settledAt',public.pwa_chat_iso_v1(p.settled_at),
+  'outcome',CASE WHEN p.outcome IS NULL THEN NULL ELSE jsonb_build_object('code',coalesce(p.outcome->'code','null'::jsonb),'recordedAt',coalesce(p.outcome->'recordedAt','null'::jsonb)) END,
+  'record',p.record)
+$$;
+
+
+--
+-- Name: FUNCTION pwa_chat_proposal_json_v1(p public.pwa_chat_proposals); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_proposal_json_v1(p public.pwa_chat_proposals) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_proposal_settle_v1(jsonb, uuid, uuid, jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_proposal_settle_v1(actor jsonb, thread uuid, id uuid, settlement jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); p public.pwa_chat_proposals;
+BEGIN
+ IF settlement IS NULL OR jsonb_typeof(settlement)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(settlement) key) IS DISTINCT FROM ARRAY['outcome','record','state']::text[]
+  OR settlement->>'state' NOT IN ('done','failed','unknown') OR jsonb_typeof(settlement->'outcome') NOT IN ('object','null') OR jsonb_typeof(settlement->'record') NOT IN ('object','null')
+  OR (settlement->>'state' IN ('done','failed') AND jsonb_typeof(settlement->'outcome')<>'object') OR (settlement->>'state'<>'done' AND jsonb_typeof(settlement->'record')<>'null') THEN
+  RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ SELECT x.* INTO p FROM public.pwa_chat_proposals x JOIN public.pwa_chat_threads t ON t.id=x.thread_id
+ WHERE x.id=$3 AND x.thread_id=thread AND t.partner_id=partner AND x.partner_id=partner FOR UPDATE OF x;
+ IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ IF p.state IN ('executing','unknown') THEN
+  UPDATE public.pwa_chat_proposals x SET state=settlement->>'state',outcome=CASE WHEN jsonb_typeof(settlement->'outcome')='object' THEN settlement->'outcome' END,
+   record=CASE WHEN jsonb_typeof(settlement->'record')='object' THEN settlement->'record' END,
+   settled_at=CASE WHEN settlement->>'state' IN ('done','failed') THEN clock_timestamp() END
+  WHERE x.id=p.id RETURNING * INTO p;
+ END IF;
+ RETURN public.pwa_chat_proposal_json_v1(p)||jsonb_build_object('claimedAt',public.pwa_chat_iso_v1(p.claimed_at),'attempts',p.attempts);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_proposal_settle_v1(actor jsonb, thread uuid, id uuid, settlement jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_proposal_settle_v1(actor jsonb, thread uuid, id uuid, settlement jsonb) IS 'mw-access:governance fixed chat boundary; explicit capability only';
+
+
+--
+-- Name: pwa_chat_proposals_v1(jsonb, uuid, uuid, integer); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_chat_proposals_v1(actor jsonb, thread uuid, id uuid, lim integer) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE partner text:=public.pwa_chat_actor_v1(actor); p public.pwa_chat_proposals;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM public."Partners" x WHERE x."Row ID"=partner AND x."AI Reviewer" IS TRUE) THEN RAISE EXCEPTION 'reviewer_required' USING ERRCODE='42501'; END IF;
+ IF (id IS NULL)=(lim IS NULL) OR (lim IS NOT NULL AND lim NOT BETWEEN 1 AND 20) THEN RAISE EXCEPTION 'invalid_request' USING ERRCODE='22023'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.pwa_chat_threads t WHERE t.id=thread AND t.partner_id=partner) THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+ IF id IS NOT NULL THEN
+  SELECT * INTO p FROM public.pwa_chat_proposals x WHERE x.id=$3 AND x.thread_id=thread AND x.partner_id=partner;
+  IF NOT FOUND THEN RAISE EXCEPTION 'not_found' USING ERRCODE='P0002'; END IF;
+  RETURN public.pwa_chat_proposal_json_v1(p)||jsonb_build_object('claimedAt',public.pwa_chat_iso_v1(p.claimed_at),'attempts',p.attempts);
+ END IF;
+ RETURN coalesce((SELECT jsonb_agg(public.pwa_chat_proposal_json_v1(z.y) ORDER BY (z.y).created_at DESC,(z.y).id DESC)
+  FROM (SELECT y FROM public.pwa_chat_proposals y WHERE y.thread_id=thread AND y.partner_id=partner ORDER BY y.created_at DESC,y.id DESC LIMIT lim) z),'[]'::jsonb);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_chat_proposals_v1(actor jsonb, thread uuid, id uuid, lim integer); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_chat_proposals_v1(actor jsonb, thread uuid, id uuid, lim integer) IS 'mw-access:governance fixed chat boundary; explicit capability only';
 
 
 --

@@ -89,3 +89,42 @@ export const EXAMPLES:readonly Pair[]=[
  ['Profit this month','กำไรเดือนนี้'],
 ];
 export const MAX_TEXT=4000,COUNTER_FROM=3500;
+
+// R106 chat write proposals: the card's wording (D7 codes, D8 consequences). The command service's own rejection
+// codes are localized by the PWA's existing table (savedRejectionMessage) in ChatProposalCard.
+const PROPOSAL_CODES:Record<string,Pair>={
+ reviewer_required:['Only an AI Reviewer Partner can confirm changes from chat.','เฉพาะหุ้นส่วนที่เป็นผู้ตรวจสอบ AI เท่านั้นที่ยืนยันการเปลี่ยนแปลงจากแชทได้'],
+ command_required:['Your account cannot record changes.','บัญชีของคุณบันทึกการเปลี่ยนแปลงไม่ได้'],
+ proposal_expired:['This proposal expired. Ask again to get a new card.','ข้อเสนอนี้หมดอายุแล้ว ถามใหม่เพื่อรับการ์ดใหม่'],
+ proposal_cancelled:['Cancelled. Nothing was changed.','ยกเลิกแล้ว ไม่มีการเปลี่ยนแปลง'],
+ proposal_executing:['This change is already being saved.','กำลังบันทึกการเปลี่ยนแปลงนี้อยู่แล้ว'],
+ command_busy:['Busy. Nothing was applied. Ask again in a moment.','ระบบกำลังยุ่ง ยังไม่มีการบันทึก ถามใหม่อีกครั้งในไม่ช้า'],
+ command_unavailable:['The change was not saved: the app could not record it. Nothing was applied.','ไม่ได้บันทึกการเปลี่ยนแปลง: ระบบบันทึกรายการไม่ได้ ยังไม่มีการเปลี่ยนแปลง'],
+ outcome_unknown:['Checking whether the change was saved…','กำลังตรวจสอบว่าบันทึกการเปลี่ยนแปลงแล้วหรือไม่…'],
+};
+/** A chat-layer code's text, or null when the code is the command service's (the caller uses the app's table). */
+export const proposalCodeText=(code:string|null|undefined,thai:boolean)=>code&&PROPOSAL_CODES[code]?pick(PROPOSAL_CODES[code],thai):null;
+const PROPOSAL_STATES:Record<string,Pair>={pending:['Waiting for your confirmation','รอการยืนยันของคุณ'],executing:['Saving…','กำลังบันทึก…'],done:['Done','เรียบร้อยแล้ว'],
+ failed:['Not saved','ไม่ได้บันทึก'],expired:['Expired','หมดอายุแล้ว'],cancelled:['Cancelled','ยกเลิกแล้ว'],unknown:['Checking the result…','กำลังตรวจสอบผล…']};
+export const proposalStateText=(state:string,thai:boolean)=>pick(PROPOSAL_STATES[state]??PROPOSAL_STATES.failed,thai);
+/** Unknown past the 5-minute poll: still never "failed", and no retry (reconcile in the app first). */
+export const proposalUnresolvedText=(thai:boolean)=>thai?'ยังยืนยันผลไม่ได้ ตรวจสอบในแอปก่อนถามใหม่':'The result is not confirmed yet. Check the app before asking again.';
+export const proposalCountdown=(seconds:number,thai:boolean)=>{const m=Math.floor(seconds/60),s=String(seconds%60).padStart(2,'0');return (thai?'หมดอายุใน ':'Expires in ')+m+':'+s};
+/** D8 consequences, bounded: amounts arrive formatted by the caller. */
+export function consequenceText(item:{code:string},thai:boolean,amount?:string){
+ if(item.code==='settles_all_due')return thai?'ชำระรายการเรียกเก็บที่ครบกำหนดทั้งหมดของผู้กู้รายนี้':'Settles every due charge of this borrower.';
+ if(item.code==='loan_close_payoff')return (thai?'ปิดสินเชื่อด้วยยอดปิด ':'Closes the loan with the payoff of ')+(amount??'');
+ if(item.code==='replaces_plan')return thai?'แทนที่รายการรับชำระและการจัดสรรเดิม':'Replaces the recorded payment and its allocation.';
+ if(item.code==='destructive')return thai?'การเปลี่ยนแปลงนี้ลบหรือย้อนกลับข้อมูล และยกเลิกจากแชทไม่ได้':'This deletes or reverses records and cannot be undone from chat.';
+ return '';
+}
+export const proposalButtons={confirm:['Confirm','ยืนยัน'] as Pair,cancel:['Cancel','ยกเลิก'] as Pair,open:['Open record','เปิดรายการ'] as Pair,offline:['Connect to confirm or cancel.','เชื่อมต่ออินเทอร์เน็ตเพื่อยืนยันหรือยกเลิก'] as Pair,askAgain:['Ask again','ถามใหม่'] as Pair};
+/** CWR-02: the server card's short Confirm label ("Record ฿700"), or plain Confirm. */
+export const confirmText=(label:{en:string;th:string}|null|undefined,thai:boolean)=>label?.en&&label.th?(thai?label.th:label.en):pick(proposalButtons.confirm,thai);
+/** CWR-07: "Saved 14:05" (Bangkok) from the journal's recordedAt or the settled time; null when neither parses. */
+export function savedAtText(iso:string|null|undefined,thai:boolean){
+ const at=iso?Date.parse(iso):Number.NaN;if(!Number.isFinite(at))return null;
+ const time=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(at);
+ return (thai?'บันทึกแล้ว ':'Saved ')+time;
+}
+export const pair=(value:Pair,thai:boolean)=>pick(value,thai);

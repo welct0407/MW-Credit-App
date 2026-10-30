@@ -4,12 +4,20 @@
  * message, then Server-Sent Events until done; a dropped connection does not abort the turn, which is journaled
  * and read back with GET .../messages/:messageId. Batch 2c: the PWA reports leaving a running turn with
  * POST .../messages/:messageId/presence (a text/plain beacon carrying the ID token, or JSON with Authorization); the
- * completion reads that mark in its transaction and a stream whose device left records the chat reply push. */
+ * completion reads that mark in its transaction and a stream whose device left records the chat reply push.
+ * R106 (D1, D5, D7, D9): with CHAT_COMMAND_URL configured, a turn of an AI Reviewer holding 'command' may propose one
+ * write (the proposal SSE event precedes message), and three routes answer: GET .../proposals/:id (reconciles an
+ * unknown outcome), POST .../proposals/:id/confirm (executes through the command service with the Partner's own
+ * token) and POST .../proposals/:id/cancel. Without the URL the routes answer 404 and no write tool exists; without
+ * the reviewer flag or the capability they answer 403 reviewer_required / command_required. */
 import {beginRequest} from '../lib/http-boundary.mjs';
 import {UUID_V4} from '../lib/ids.mjs';
 import {availableModel,providerFor} from './config.mjs';
 import {storeError} from './store.mjs';
 import {runTurn,failureText} from './engine.mjs';
+import {ToolError} from './errors.mjs';
+import {createCommandClient} from './command-client.mjs';
+import {loadCatalogue,catalogueView,createProposalPlanner,executeProposal,reconcileProposal,publicProposal} from './proposals.mjs';
 
 export const BODY_LIMIT=65536;
 export const PING_MS=15000;
@@ -19,6 +27,9 @@ const THREAD=/^\/api\/chat\/threads\/([0-9a-f-]{36})$/;
 const MESSAGES=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/messages$/;
 const MESSAGE=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/messages\/([0-9a-f-]{36})$/;
 const PRESENCE=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/messages\/([0-9a-f-]{36})\/presence$/;
+const PROPOSAL=/^\/api\/chat\/threads\/([0-9a-f-]{36})\/proposals\/([0-9a-f-]{36})(?:\/(confirm|cancel))?$/;
+/** The turn's recent actions for the model (D10): operation, target label, state, outcome code, settled time. */
+const recentActions=rows=>Array.isArray(rows)?rows.map(p=>({operation:p.operation,target:p.card?.target?.label??null,state:p.state,code:p.outcome?.code??null,settled_at:p.settledAt??null})):undefined;
 const JSON_TYPE=/^application\/json(?:;|$)/i,TEXT_TYPE=/^text\/plain(?:;|$)/i;
 const plain=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 /** Well-formed text without C0 controls other than newline and tab, 1..max characters. */
@@ -39,11 +50,40 @@ function limitParam(value,fallback){
 }
 const stripCursor=({sortAt:_sortAt,...item})=>item;
 
-/** @param {{config:any,verifyPrincipal:Function,store:ReturnType<import('./store.mjs').createChatStore>,createTools:(actor:any)=>any,transport:any,
- *  completionLogger?:(record:object)=>void,log?:(record:object)=>void,now?:()=>number,pingMs?:number}} options */
-export function createChatHandler({config,verifyPrincipal,store,createTools,transport,completionLogger=()=>{},log=()=>{},now=Date.now,pingMs=PING_MS}){
+/** @param {{config:any,verifyPrincipal:Function,store:ReturnType<import('./store.mjs').createChatStore>,createTools:(actor:any,writes?:any)=>any,transport:any,
+ *  completionLogger?:(record:object)=>void,log?:(record:object)=>void,now?:()=>number,pingMs?:number,commandFetch?:typeof globalThis.fetch,sleep?:(ms:number)=>Promise<void>}} options */
+export function createChatHandler({config,verifyPrincipal,store,createTools,transport,completionLogger=()=>{},log=()=>{},now=Date.now,pingMs=PING_MS,commandFetch,sleep}){
  const chat=config.chat;
  if(!chat||!Array.isArray(config.origins)||config.origins.length<1)throw Error('Invalid chat handler configuration');
+ // R106 D11: the catalogue loads only when the switch is on.
+ const commandUrl=config.chatCommandUrl??null,catalogue=commandUrl?loadCatalogue():null;
+ const commandClient=(authorization,wake)=>createCommandClient({baseUrl:commandUrl,authorization,wakeDeadline:wake,...(commandFetch?{fetch:commandFetch}:{}),...(sleep?{sleep}:{})});
+ /** The turn's write bridge (D5): only for a writer; the proposal is stored, then announced before the reply. */
+ function writesFor({principal,thread,claim,writer,authorization,wake,emit}){
+  if(!commandUrl||!writer)return null;
+  // CWR-05: a Partner who may not propose gets the fixed refusal tool; no planner, client or store write exists.
+  if(!writer.allowed)return {refuse:true};
+  const planner=createProposalPlanner({client:commandClient(authorization,wake),actor:{partnerId:writer.partnerId}});
+  return {
+   catalogue:operation=>catalogueView(catalogue,operation),
+   async propose(input){
+    const planned=await planner.propose(input);
+    let stored;
+    try{stored=await store.createProposal(principal,thread,{id:planned.id,messageId:claim.message.id,kind:planned.kind,operation:planned.operation,command:planned.command,card:planned.card});}
+    catch(error){
+     const mapped=storeError(error);
+     if(mapped.error==='one_proposal_per_turn')throw new ToolError('ONE_PROPOSAL_PER_TURN');
+     if(mapped.status===403)throw new ToolError('NOT_PERMITTED');
+     throw error;
+    }
+    const proposal=publicProposal(stored);
+    log({event:'chat_proposal_created',thread,messageId:claim.message.id,proposal:proposal.id,operation:proposal.operation});
+    emit('proposal',{proposal});
+    return {proposal:{id:proposal.id,operation:proposal.operation,state:proposal.state,expiresAt:proposal.expiresAt,card:proposal.card},
+     note:'Shown to the Partner as a confirmation card. Nothing has changed: the change runs only when the Partner taps Confirm. Do not ask them to type yes.'};
+   },
+  };
+ }
  const models=()=>({version:1,default:chat.default,models:chat.models.map(m=>({id:m.id,label:m.label,available:m.available,...(m.reason?{reason:m.reason}:{})}))});
  /** A JSON body (type: the accepted Content-Type; the presence beacon sends JSON text as text/plain). */
  async function readBody(req,{type=JSON_TYPE,limit=BODY_LIMIT}={}){
@@ -64,14 +104,16 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   * was a stream, so a completion whose device reported leaving (detached in the database, batch 2c) records the chat
   * reply push; ?stream=0 never does.
   */
- async function turn({principal,actor,thread,claim,text,emit,stream=false}){
+ async function turn({principal,actor,thread,claim,text,emit,stream=false,writer=null,recent=null,authorization,wake}){
   const started=now();
   const model=claim.thread.model,messageId=claim.message.id;
   let outcome;
   const none={usage:{promptTokens:0,outputTokens:0,thoughtsTokens:0,cachedTokens:0},rounds:0,attempts:0,toolCalls:[]};
   if(!availableModel(chat,model))outcome={ok:false,code:'MODEL_UNAVAILABLE',detail:'model not listed or unavailable',...none};
   else{
-   try{outcome=await runTurn({chat,model,transport,tools:createTools(actor),history:claim.history,seed:claim.seed,partnerLanguage:claim.partnerLanguage,text,emit,now,started});}
+   const writes=writesFor({principal,thread,claim,writer:writer?{...writer,partnerId:actor.partnerId}:null,authorization,wake,emit});
+   try{outcome=await runTurn({chat,model,transport,tools:createTools(actor,writes),history:claim.history,seed:claim.seed,partnerLanguage:claim.partnerLanguage,text,emit,now,started,
+    ...(writes&&!writes.refuse?{recentActions:recentActions(recent)??[]}:{})});}
    catch(error){outcome={ok:false,code:'INTERNAL',detail:String(error?.name??'INTERNAL').slice(0,200),...none};}
   }
   const assistant={status:outcome.ok?'ok':'failed',text:outcome.ok?outcome.text:failureText(claim.partnerLanguage),model,thinkingLevel:thinkingLevel(model),
@@ -116,10 +158,12 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
   const reply=(status,value)=>{code=status<400?'ok':value?.error??'unavailable';if(!res.headersSent)res.statusCode=status;res.end(JSON.stringify(value));};
   if(boundary.originDenied)return reply(403,{error:'access_denied'});
   const path=url.pathname;
-  route=path==='/api/chat/models'?'models':path==='/api/chat/threads'?'threads':THREAD.test(path)?'thread':MESSAGES.test(path)?'messages':MESSAGE.test(path)?'message':PRESENCE.test(path)?'presence':'unknown';
+  const proposalMatch=commandUrl?PROPOSAL.exec(path):null;
+  route=path==='/api/chat/models'?'models':path==='/api/chat/threads'?'threads':THREAD.test(path)?'thread':MESSAGES.test(path)?'messages':MESSAGE.test(path)?'message':PRESENCE.test(path)?'presence'
+   :proposalMatch?(proposalMatch[3]?'proposal_'+proposalMatch[3]:'proposal'):'unknown';
   if(route==='unknown')return reply(404,{error:'not_found'});
   if(req.method==='OPTIONS')return boundary.preflight()?reply(204,{}):reply(403,{error:'access_denied'});
-  const allowed={models:['GET'],threads:['GET','POST'],thread:['GET','PATCH'],messages:['GET','POST'],message:['GET'],presence:['POST']}[route];
+  const allowed={models:['GET'],threads:['GET','POST'],thread:['GET','PATCH'],messages:['GET','POST'],message:['GET'],presence:['POST'],proposal:['GET'],proposal_confirm:['POST'],proposal_cancel:['POST']}[route];
   if(!allowed.includes(req.method))return reply(404,{error:'not_found'});
   // Batch 2c presence: the body comes first, because the hidden beacon carries the ID token in it. The beacon form
   // (text/plain {token, state}, no Authorization) is a CORS simple request: no preflight, which Safari does not
@@ -209,6 +253,19 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
     log({event:'chat_turn_presence',thread,messageId:id,state:presence.state,form:presence.form,result:value?.state,detached:value?.detached});
     code='ok';if(!res.headersSent)res.statusCode=204;res.removeHeader('Content-Type');return res.end();
    }
+   if(route.startsWith('proposal')){
+    query(url,[]);
+    const [,thread,id]=proposalMatch;if(!UUID_V4.test(thread)||!UUID_V4.test(id))throw invalid();
+    if(req.method==='POST'){const body=await readBody(req);if(!plain(body)||Object.keys(body).length)throw invalid();}
+    // D5: the reviewer flag and the capability, fresh for every request; SQL enforces the flag again.
+    const writer=await store.writer(principal);
+    if(!writer?.reviewer)return reply(403,{error:'reviewer_required'});
+    if(!writer.command)return reply(403,{error:'command_required'});
+    const client=commandClient(authorization,wake);
+    if(route==='proposal_cancel')return reply(200,{item:publicProposal(await store.cancelProposal(principal,thread,id))});
+    if(route==='proposal_confirm')return reply(200,{item:await executeProposal({store,principal,thread,id,client,log,now})});
+    return reply(200,{item:await reconcileProposal({store,principal,thread,proposal:await store.proposal(principal,thread,id),client,now,log})});
+   }
    if(route==='message'){
     query(url,[]);
     const [,thread,id]=MESSAGE.exec(path);if(!UUID_V4.test(thread)||!UUID_V4.test(id))throw invalid();
@@ -220,13 +277,13 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
    const body=await readBody(req);
    if(!plain(body)||Object.keys(body).some(k=>!['id','text','model'].includes(k))||typeof body.id!=='string'||!UUID_V4.test(body.id)||!validText(body.text,4000))throw invalid();
    if(body.model!==undefined)modelOrFail(body.model);
-   const begun=await store.begin(principal,thread,{id:body.id,text:body.text,model:body.model});
+   const begun=await store.begin(principal,thread,{id:body.id,text:body.text,model:body.model},{writes:!!commandUrl});
    const claim=begun.value;
    if(claim.state==='completed')return reply(200,{user:claim.user,assistant:claim.assistant});
    const stream=q.stream!=='0'&&/text\/event-stream/i.test(req.headers.accept??'');
    if(!stream){
     let failure=null;
-    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit:(name,data)=>{if(name==='error')failure=data.code;},stream:false});
+    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit:(name,data)=>{if(name==='error')failure=data.code;},stream:false,writer:begun.writer,recent:begun.recent,authorization,wake});
     const outcome=await store.message(principal,thread,body.id);
     if(failure)code=failure;
     return reply(200,outcome);
@@ -244,7 +301,7 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
    const ping=setInterval(()=>write(': ping\n\n'),pingMs);
    try{
     emit('accepted',{messageId:claim.message.id,seq:claim.message.seq,model:claim.thread.model});
-    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit,stream:true});
+    await turn({principal,actor:begun.actor,thread,claim,text:body.text,emit,stream:true,writer:begun.writer,recent:begun.recent,authorization,wake});
    }catch(error){
     log({event:'chat_turn_failed',thread,messageId:claim.message.id,reason:error?.name});
     await release({principal,thread,claim,started:now(),cause:error,stream:true});

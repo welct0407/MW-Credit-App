@@ -3,7 +3,7 @@
 // without `done` switches to polling the turn's outcome.
 import {readCachedJson} from '../read-cache';
 import type {OwnerOfflineRepository} from '../owner-offline';
-import {createSseParser,classifyOutcome,pollOutcome,type ChatMessage,type Outcome,type PollResult} from './chat-protocol';
+import {createSseParser,classifyOutcome,pollOutcome,isProposal,type ChatMessage,type ChatProposal,type Outcome,type PollResult} from './chat-protocol';
 
 export type ChatAccess={origin:string;offline?:OwnerOfflineRepository;awaitStartup?:()=>Promise<void>;token:()=>Promise<string>;authFailure:(status:number)=>void};
 export type ChatThread={id:string;title:string;model:string;status:'active'|'archived';createdAt?:string;lastMessageAt?:string|null;messageCount?:number};
@@ -20,15 +20,16 @@ export class ChatAccessError extends Error{readonly fatal=true;constructor(){sup
 
 /** Design §3.4: chat requests carry X-MW-Wake-Deadline = now + 250 s. */
 export const WAKE_MS=250000;
-/** `token`: an ID token the caller already holds (the turn keeps the one it was sent with, batch 2c). */
-async function send(access:ChatAccess,path:string,{method='GET',body,signal,accept,token:held}:{method?:string;body?:unknown;signal?:AbortSignal;accept?:string;token?:string}={}){
+/** `token`: an ID token the caller already holds (the turn keeps the one it was sent with, batch 2c). `gate` (R106):
+ * a 403 is the proposal routes' reviewer or capability refusal for this one action, not a lost session. */
+async function send(access:ChatAccess,path:string,{method='GET',body,signal,accept,token:held,gate=false}:{method?:string;body?:unknown;signal?:AbortSignal;accept?:string;token?:string;gate?:boolean}={}){
  let token=held;
  if(token===undefined){if(access.awaitStartup)await access.awaitStartup();token=await access.token()}
  const headers:Record<string,string>={Authorization:'Bearer '+token,'X-MW-Wake-Deadline':String(Date.now()+WAKE_MS)};
  if(body!==undefined)headers['Content-Type']='application/json';
  if(accept)headers.Accept=accept;
  const response=await fetch(new URL(path,access.origin).href,{method,headers,body:body===undefined?undefined:JSON.stringify(body),signal,cache:'no-store',credentials:'omit',redirect:'error'});
- if(response.status===401||response.status===403){access.authFailure(response.status);throw new ChatAccessError()}
+ if(response.status===401||(response.status===403&&!gate)){access.authFailure(response.status);throw new ChatAccessError()}
  return response;
 }
 async function failure(response:Response){
@@ -186,3 +187,16 @@ export function waitForOutcome(access:ChatAccess,threadId:string,messageId:strin
   return classifyOutcome(await response.json());
  },{signal});
 }
+
+/** R106 D9: one proposal's current state (the service reconciles an unknown outcome on this read), network only. */
+const proposalPath=(threadId:string,id:string)=>threadPath(threadId)+'/proposals/'+encodeURIComponent(id);
+async function proposalAnswer(response:Response):Promise<ChatProposal>{
+ if(!response.ok)throw await failure(response);
+ const value=(await response.json() as {item?:unknown}).item;
+ if(!isProposal(value))throw new ChatHttpError(response.status,'unavailable');
+ return value;
+}
+export async function getProposal(access:ChatAccess,threadId:string,id:string,signal?:AbortSignal){return proposalAnswer(await send(access,proposalPath(threadId,id),{signal,gate:true}))}
+/** Confirm (online only: nothing is queued on the device). A lost answer is reconciled by getProposal, never resent blindly. */
+export async function confirmProposal(access:ChatAccess,threadId:string,id:string,signal?:AbortSignal){return proposalAnswer(await send(access,proposalPath(threadId,id)+'/confirm',{method:'POST',body:{},signal,gate:true}))}
+export async function cancelProposal(access:ChatAccess,threadId:string,id:string,signal?:AbortSignal){return proposalAnswer(await send(access,proposalPath(threadId,id)+'/cancel',{method:'POST',body:{},signal,gate:true}))}

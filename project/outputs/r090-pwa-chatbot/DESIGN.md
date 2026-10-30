@@ -345,6 +345,8 @@ Keep: the webhook receiver, `instagram.py` delivery, the receipt cycle, the rece
 
 ## 13. Later batch: writes
 
+**Superseded by R106 (30 October 2026):** the writes batch is designed and implemented as a proposal and confirm card that executes through the command service with the Partner's own token, not as `api_action` and `verify_operation` tools in process; see the [R106 change note](../../../Change%20Logs/CHANGE_NOTES_R106_CHAT_WRITES_2026-10-30.md). The text below is the original plan.
+
 When the owner opens it: the write tools `api_action` and `verify_operation` are ported from `conversation_write.py` onto the existing command contracts (`services/agent-conversations/command-provider.mjs` logic in process, the actor being the signed-in Partner who holds `command`), the reviewer check becomes `Partners."AI Reviewer"` as today, a write needs the Partner's explicit instruction in the current message, and the UI shows a confirmation card before the turn may call a write tool (the model proposes, the Partner confirms, the tool runs). The reviewer DML tools are not ported; a demonstrated API gap gets a native command instead.
 
 ## 14. Implementation notes and open items (not owner decisions)

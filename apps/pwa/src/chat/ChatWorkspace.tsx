@@ -6,13 +6,18 @@ import {useOnline} from '../online-status';
 import {ChatThreads} from './ChatThreads';
 import {ChatMessageView,ProvisionalMessage} from './ChatMessage';
 import {ChatComposer} from './ChatComposer';
-import {applyTurnEvent,initialTurn,type ChatMessage,type TurnState} from './chat-protocol';
+import {applyTurnEvent,initialTurn,mergeProposal,type ChatMessage,type ChatProposal,type TurnState} from './chat-protocol';
+import {ChatProposalCard,type ProposalRecord} from './ChatProposalCard';
 import {ChatAccessError,ChatHttpError,createThread,getThread,listMessages,listModels,listThreads,streamTurn,turnPresence,updateThread,waitForOutcome,whenVisible,type ChatAccess,type ChatModels,type ChatThread,type Page} from './chat-client';
 import {EXAMPLES,failureText,progressText,threadTitle,type FailureAction} from './chat-text';
 
 // R090 chat screen (design §6.2): thread list (left pane on desktop, a sheet on phones), the conversation and the
 // composer. One turn runs at a time; its SSE events drive the progress row and the provisional text, and a stream
 // that drops before `done` waits for the outcome by polling (every 3 s, up to 5 minutes).
+// R106: a reply that proposed a change shows its confirmation card (ChatProposalCard) under it; the card's newer
+// local state (confirm, cancel, poll) overrides the row until the next load; sending a new message cancels pending
+// cards locally as the service does. onOpenRecord, when the host passes it, opens the written record (only types
+// canOpenRecord accepts get the link); the host keeps this workspace mounted behind it, so Back returns to the thread.
 type Item=ChatMessage&{failure?:string;local?:boolean;retryOf?:string};
 type Turn={threadId:string;messageId:string;phase:'sending'|'streaming'|'polling';state:TurnState};
 const NEW='new';
@@ -23,7 +28,7 @@ export function defaultModel(models:ChatModels|null){
 }
 const codeOf=(error:unknown)=>error instanceof ChatHttpError?error.code==='model_unavailable'?'MODEL_UNAVAILABLE':error.detail==='thread_full'?'thread_full':'unavailable':'unavailable';
 
-export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:ChatAccess;thai:boolean;onTitle?:(title:string)=>void;openRequest?:{threadId:string;nonce:number}|null}){
+export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord,canOpenRecord}:{access:ChatAccess;thai:boolean;onTitle?:(title:string)=>void;openRequest?:{threadId:string;nonce:number}|null;onOpenRecord?:(record:ProposalRecord)=>void;canOpenRecord?:(record:ProposalRecord)=>boolean}){
  const t=(en:string,th:string)=>thai?th:en,online=useOnline();
  const accessRef=useRef(access);accessRef.current=access;
  const [models,setModels]=useState<ChatModels|null>(null),[modelsError,setModelsError]=useState(false);
@@ -33,6 +38,7 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
  const [items,setItems]=useState<Item[]>([]),[itemsCursor,setItemsCursor]=useState<string|null>(null),[itemsBusy,setItemsBusy]=useState(false),[itemsError,setItemsError]=useState(false);
  const [drafts,setDrafts]=useState<Record<string,string>>({});
  const [turn,setTurn]=useState<Turn|null>(null);
+ const [proposals,setProposals]=useState<Record<string,ChatProposal>>({});
  const [recordFailed,setRecordFailed]=useState<string|null>(null);
  const [newModel,setNewModel]=useState<string|null>(null),[modelNote,setModelNote]=useState(false),[notice,setNotice]=useState<string|null>(null),[sheet,setSheet]=useState(false),[announce,setAnnounce]=useState('');
  // Phones keep the header to "Chat"; the thread title moves into the Threads button (desktop shows it in the header).
@@ -43,6 +49,8 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
  const turnRef=useRef(turn);turnRef.current=turn;
  const thaiRef=useRef(thai);thaiRef.current=thai;
  const draftsRef=useRef(drafts);draftsRef.current=drafts;
+ const itemsRef=useRef(items);itemsRef.current=items;
+ const proposalsRef=useRef(proposals);proposalsRef.current=proposals;
  const threadsGen=useRef(0),itemsGen=useRef(0),picked=useRef(false),turnAbort=useRef<AbortController|null>(null);
  const listRef=useRef<HTMLElement|null>(null),endRef=useRef<HTMLDivElement|null>(null),composer=useRef<HTMLTextAreaElement|null>(null),picker=useRef<HTMLSelectElement|null>(null),sheetToggle=useRef<HTMLButtonElement|null>(null),sheetClose=useRef<HTMLButtonElement|null>(null);
 
@@ -52,9 +60,12 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
  // biome-ignore lint/correctness/useExhaustiveDependencies: cleared once, when the screen closes.
  useEffect(()=>()=>{onTitle?.('')},[]);
 
- /** Keeps the newest message in view: the message pane scrolls on a desktop, the page scrolls on a phone. */
+ /** Keeps the newest message in view: the message pane scrolls on a desktop, the page scrolls on a phone. CWR-01: an
+  * automatic (unforced) scroll never moves a pending confirmation card that is the last item. */
  function scrollToEnd(force=true){
   requestAnimationFrame(()=>{
+   const last=itemsRef.current.at(-1);
+   if(!force&&last?.role==='assistant'&&mergeProposal(last.proposal,last.proposal?proposalsRef.current[last.proposal.id]:undefined)?.state==='pending')return;
    const list=listRef.current;if(!list)return;
    if(getComputedStyle(list).overflowY==='auto'&&list.scrollHeight>list.clientHeight){if(force||list.scrollHeight-list.scrollTop-list.clientHeight<160)list.scrollTop=list.scrollHeight;return}
    const page=document.scrollingElement??document.documentElement;
@@ -191,6 +202,8 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
    setTurn({threadId:created.id,messageId,phase:'sending',state:initialTurn()});
   }
   const thread=target;
+  // D7: a new message cancels the thread's pending proposals (the service records it when the turn begins).
+  setProposals(previous=>{const next={...previous};for(const item of itemsRef.current){const p=mergeProposal(item.proposal,previous[item.proposal?.id??'']);if(p?.state==='pending'&&p.threadId===thread.id)next[p.id]={...p,state:'cancelled'}}return next});
   setDrafts(previous=>({...previous,[NEW]:'',[thread.id]:''}));
   setItems(previous=>[...previous,{id:messageId,role:'user',text,status:'pending',local:true}]);scrollToEnd();
   let state=initialTurn();
@@ -312,8 +325,10 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null}:{access:Cha
      const next=items[index+1];
      // A turn the service gave up on (stale claim, no reply) shows as not received, with Retry.
      const orphan=item.role==='user'&&item.status==='failed'&&!item.local&&next?.role!=='assistant';
+     const proposal=item.role==='assistant'?mergeProposal(item.proposal,item.proposal?proposals[item.proposal.id]:undefined):null;
      return <React.Fragment key={item.id}>
       <ChatMessageView item={item} thai={thai} modelLabel={modelLabel} actionDisabled={actionDisabled} onAction={item.role==='assistant'&&(item.status==='failed'||item.failure)?action=>act(item,index,action):undefined}/>
+      {proposal&&<ChatProposalCard proposal={proposal} access={access} thai={thai} online={online} onAskAgain={readOnly?undefined:()=>{const asked=items.find(row=>row.id===proposal.messageId&&row.role==='user');if(!asked)return;setDrafts(previous=>({...previous,[key]:asked.text}));requestAnimationFrame(()=>composer.current?.focus())}} onOpenRecord={proposal.record&&onOpenRecord&&(canOpenRecord?.(proposal.record)??true)?onOpenRecord:undefined} onChange={next=>setProposals(previous=>({...previous,[next.id]:next}))}/>}
       {orphan&&<ChatMessageView item={{id:'lost:'+item.id,role:'assistant',text:'',status:'failed',failure:'lost'}} thai={thai} actionDisabled={actionDisabled} onAction={action=>act({id:'lost:'+item.id,role:'assistant',text:'',status:'failed',retryOf:item.id},index,action)}/>}
      </React.Fragment>;
     })}

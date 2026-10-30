@@ -6,9 +6,9 @@ import {runInNewContext} from 'node:vm';
 import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environment.ts';
 // R090 PWA chat: the pure protocol, markdown and wording modules (no imports, so each transpiles on its own).
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
-const {createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome}=await load('chat-protocol.ts');
+const {createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
-const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime}=await load('chat-text.ts');
+const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
 
 test('SSE parser reads events across chunk boundaries, CRLF, multi-line data and pings',()=>{
@@ -144,4 +144,63 @@ test('read-cache keeps the thread list, a thread\'s messages and the models offl
  for(const path of ['/api/chat/models','/api/chat/threads?status=active&limit=20',`/api/chat/threads/${T}/messages?limit=50`,`/api/chat/threads/${T}/messages/${M}`,`/api/chat/threads/${T}`])await exports.readCachedJson(access,path,{wakeMs:250000});
  assert.deepEqual(saved.map(key=>key.replace('json:'+origin,'')),['/api/chat/models','/api/chat/threads?status=active&limit=20',`/api/chat/threads/${T}/messages?limit=50`]);
  assert.ok(wake.every(ms=>ms>249000&&ms<=250000),String(wake));
+});
+
+// R106: the proposal event, the card state machine and its wording.
+const card={version:1,operation:'expense.create',label:{en:'New expense',th:'เพิ่มค่าใช้จ่าย'},destructive:false,target:{type:'expense',id:'E1',label:null},values:[],changes:[],consequences:[]};
+const proposal=(patch={})=>({id:'p1',threadId:'t1',messageId:'m1',kind:'operation',operation:'expense.create',state:'pending',card,expiresAt:'2026-10-30T03:15:00.000Z',createdAt:'2026-10-30T03:00:00.000Z',settledAt:null,outcome:null,record:null,...patch});
+const T0=Date.parse('2026-10-30T03:00:00.000Z');
+test('turn reducer: the proposal event precedes the reply, and the reply keeps it',()=>{
+ let s=applyTurnEvent(initialTurn(),'accepted',{messageId:'m1',seq:1,model:'x'});
+ assert.equal(initialTurn().proposal,null);
+ s=applyTurnEvent(s,'proposal',{proposal:{id:'bad'}});assert.equal(s.proposal,null,'a malformed proposal is ignored');
+ s=applyTurnEvent(s,'proposal',{proposal:proposal()});assert.equal(s.proposal.id,'p1');
+ s=applyTurnEvent(s,'message',{id:'r1',role:'assistant',text:'Card ready.',status:'ok'});assert.equal(s.message.proposal.id,'p1');
+ const row={id:'r2',role:'assistant',text:'x',status:'ok',proposal:null};
+ assert.equal(applyTurnEvent(s,'message',row).message.proposal,null,'the stored row wins');
+ assert.equal(isProposal(proposal({state:'weird'})),false);assert.equal(isProposal(proposal()),true);
+});
+test('card states: pending counts down and expires; Confirm needs a connection; unknown polls; settled is final',()=>{
+ let v=proposalView(proposal(),{now:T0+60000});
+ assert.deepEqual(v,{state:'pending',canConfirm:true,canCancel:true,poll:false,remainingSeconds:840,code:null});
+ // CWR-08: both buttons need a connection; CWR-01: Confirm waits until the card was seen.
+ assert.equal(proposalView(proposal(),{now:T0,online:false}).canConfirm,false);assert.equal(proposalView(proposal(),{now:T0,online:false}).canCancel,false);
+ assert.deepEqual([proposalView(proposal(),{now:T0,seen:false}).canConfirm,proposalView(proposal(),{now:T0,seen:false}).canCancel],[false,true]);
+ assert.equal(proposalView(proposal(),{now:T0,busy:true}).canConfirm,false);
+ v=proposalView(proposal(),{now:T0+15*60000});assert.deepEqual([v.state,v.canConfirm,v.code,v.remainingSeconds],['expired',false,'proposal_expired',0]);
+ assert.deepEqual([proposalView(proposal({state:'unknown'}),{now:T0}).poll,proposalView(proposal({state:'unknown'}),{now:T0}).code],[true,'outcome_unknown']);
+ assert.equal(proposalView(proposal({state:'executing'}),{now:T0,busy:true}).poll,false,'own confirm in flight');
+ assert.equal(proposalView(proposal({state:'executing'}),{now:T0}).poll,true,'executing after a reload');
+ for(const state of ['done','failed','cancelled'])assert.deepEqual([proposalView(proposal({state}),{now:T0}).canConfirm,proposalView(proposal({state}),{now:T0}).poll],[false,false],state);
+ assert.equal(proposalView(proposal({state:'failed',outcome:{code:'source_conflict'}}),{now:T0}).code,'source_conflict');
+ assert.equal(proposalView(proposal({state:'cancelled'}),{now:T0}).code,'proposal_cancelled');
+});
+test('card merge: the newer local state wins until the row is final',()=>{
+ assert.equal(mergeProposal(proposal(),proposal({state:'executing'})).state,'executing');
+ assert.equal(mergeProposal(proposal({state:'done'}),proposal({state:'unknown'})).state,'done');
+ assert.equal(mergeProposal(proposal(),proposal({id:'other',state:'done'})).state,'pending');
+ assert.equal(mergeProposal(null,undefined),null);
+});
+test('unknown polling: every 3 s up to 5 minutes, read errors keep waiting, a settled answer ends it',async()=>{
+ assert.equal(PROPOSAL_POLL_MS,3000);assert.equal(PROPOSAL_POLL_LIMIT_MS,300000);
+ let clock=0,reads=0;const answers=[()=>{throw Error('offline')},()=>proposal({state:'unknown'}),()=>proposal({state:'done'})];
+ const value=await pollProposal(async()=>answers[reads++](),{now:()=>clock,sleep:async ms=>{clock+=ms}});
+ assert.equal(value.state,'done');assert.equal(reads,3);assert.equal(clock,9000);
+ clock=0;reads=0;
+ assert.equal(await pollProposal(async()=>{reads++;return proposal({state:'unknown'})},{now:()=>clock,sleep:async ms=>{clock+=ms}}),null);assert.equal(reads,100);
+ await assert.rejects(pollProposal(async()=>{throw Object.assign(Error('denied'),{fatal:true})},{now:()=>0,sleep:async()=>{}}),/denied/);
+});
+test('card wording: chat-layer codes in both languages, command-service codes left to the app table',()=>{
+ for(const code of ['reviewer_required','command_required','proposal_expired','proposal_cancelled','proposal_executing','command_busy','command_unavailable','outcome_unknown'])
+  assert.ok(proposalCodeText(code,false)&&proposalCodeText(code,true)&&proposalCodeText(code,false)!==proposalCodeText(code,true),code);
+ assert.equal(proposalCodeText('source_conflict',false),null);assert.equal(proposalCodeText(null,false),null);
+ assert.equal(proposalCountdown(840,false),'Expires in 14:00');assert.equal(proposalCountdown(65,true),'หมดอายุใน 1:05');
+ assert.equal(proposalStateText('executing',false),'Saving…');assert.match(proposalUnresolvedText(false),/not confirmed/);assert.doesNotMatch(proposalUnresolvedText(false),/fail/i);
+ assert.match(consequenceText({code:'loan_close_payoff'},false,'฿10,300'),/฿10,300/);assert.match(consequenceText({code:'settles_all_due'},true),/ทั้งหมด/);
+});
+
+test('CWR-02/07: the server Confirm label or plain Confirm; the saved time in Bangkok',()=>{
+ assert.equal(confirmText({en:'Record ฿700',th:'บันทึก ฿700'},false),'Record ฿700');assert.equal(confirmText({en:'Record ฿700',th:'บันทึก ฿700'},true),'บันทึก ฿700');
+ assert.equal(confirmText(null,false),'Confirm');assert.equal(confirmText(undefined,true),'ยืนยัน');assert.equal(confirmText({en:'',th:''},false),'Confirm');
+ assert.equal(savedAtText('2026-10-30T07:05:00.000Z',false),'Saved 14:05');assert.equal(savedAtText('2026-10-30T07:05:00.000Z',true),'บันทึกแล้ว 14:05');assert.equal(savedAtText(null,false),null);
 });
