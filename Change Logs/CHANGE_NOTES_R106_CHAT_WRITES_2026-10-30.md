@@ -1,7 +1,7 @@
 # Change notes — R106 chat writes (proposal and confirm), 2026-10-30
 
 ## Purpose
-The in-app chatbot (read-only since R090) may modify data: the model proposes one exact command, the PWA shows a confirmation card, and nothing executes until the Partner taps Confirm. Owner decisions of 30 October 2026 (fixed): every existing write command of the PWA screens is in scope; writes go through the existing command contracts and command service with the same authorization, idempotency, audit and reconciliation (no raw DML, no reviewer DML tools); a confirm card every time; only Partners flagged `Partners."AI Reviewer"` who also hold the `command` capability may propose or confirm; one tested migration for chat proposal records is approved (DEV first; PROD on a later owner instruction). This note holds the design (Archie) and the implemented changes (below). Status: released to DEV for testing on 30 October 2026, with a Hosting-only follow-up redeploy and the D12 deploy (V119) ([DEV deployment](#dev-deployment-forge-30-october-2026-utc)); not deployed to PROD.
+The in-app chatbot (read-only since R090) may modify data: the model proposes one exact command, the PWA shows a confirmation card, and nothing executes until the Partner taps Confirm. Owner decisions of 30 October 2026 (fixed): every existing write command of the PWA screens is in scope; writes go through the existing command contracts and command service with the same authorization, idempotency, audit and reconciliation (no raw DML, no reviewer DML tools); a confirm card every time; only Partners flagged `Partners."AI Reviewer"` who also hold the `command` capability may propose or confirm; one tested migration for chat proposal records is approved (DEV first; PROD on a later owner instruction). This note holds the design (Archie) and the implemented changes (below). Status: Released to DEV and PROD on 30 October 2026 (see the promotion record and closure below); owner PROD acceptance pending. DEV history: Hosting-only follow-up redeploy and the D12 deploy (V119) ([DEV deployment](#dev-deployment-forge-30-october-2026-utc)); not deployed to PROD.
 
 ## Changes
 
@@ -152,10 +152,47 @@ Owner instruction: "Open the PR and test it in Dev". DEV only; PROD is not deplo
 Proof: Chase's D12 DEV proof is in Checks above.
 
 ## Recovery
-Git baseline: the merge base of `claude/chat-financial-writes` on `main`. Runtime: set `chat_commands.enabled=false` (DEV) or leave it unset (PROD) and apply; the routes and the tool disappear. Database: V118 is additive and stays; a backup at V117 precedes the DEV apply. V119 (D12) replaces two functions in place; a backup at V118 precedes it, and rolling the service back to the single-line build still works against V119 (the single-line create form is kept), but the previous PWA (`e361c3d`) reads `proposal` and shows no cards for messages under V119, so roll back the service and Hosting together.
+Git baseline: the merge base of `claude/chat-financial-writes` on `main`. Runtime: set `chat_commands.enabled=false` and apply; the routes and the tool disappear. PROD: see the promotion record's rollback. Database: V118 is additive and stays; a backup at V117 precedes the DEV apply. V119 (D12) replaces two functions in place; a backup at V118 precedes it, and rolling the service back to the single-line build still works against V119 (the single-line create form is kept), but the previous PWA (`e361c3d`) reads `proposal` and shows no cards for messages under V119, so roll back the service and Hosting together.
 
 ## Open questions
 None. Owner answers of 30 October 2026: partial payments included with the screen's allocation rule (D3; v9 next-charge booking joins through the command service, no new grant); receipt images stay out; `partner.*` stays excluded (D4); destructive actions stay included with the destructive warning (D4).
 
 ## Remaining work
-Owner review on `dev-lm.mw-credit.com`. Then a PROD promotion, only on a separate owner instruction: V118 and V119 in one PROD window (verified backup at V117 first), `chat_commands` enabled on PROD, and the Data Dictionary capture of the V118 table and functions. Optional: a live `unknown`-outcome proof in a Forge window.
+Owner acceptance of R106 in PROD (the first real chat confirmation) is written into the next closure or product pull request. Optional: a live `unknown`-outcome proof in a Forge window (the reconcile path is covered by unit and database tests only).
+
+## Promotion record (Forge, 30 October 2026, UTC)
+Pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R106 to PROD: V118 and V119 (one grouped migration), read, command and chat images with `chat_commands` enabled (chat only receives `CHAT_COMMAND_URL`), and Hosting. Notify, jobs and the VM unchanged.
+- **Authority:** the owner's instructions of 30 October 2026: DEV "Open the PR and test it in Dev"; DEV acceptance "I tested and it's fine"; PROD "Move to prod if you're ready"; merge answered "Merge it".
+- **Freeze:** 2026-10-30T18:08:43Z. Package `e57e77d` (PR #192 head, tested on DEV); delivery tool `b0bdce8` (R106 hand-written kind, schemaVersion 37); baseline R105 `cf01602`. Next unused number R107.
+
+| Item | Result |
+| --- | --- |
+| Backup at V117 | 18:08:57Z to 18:11:23Z, `prod-promotion-675ffadd1ffb41a38b07bf928342feb8`, dump sha256 `21b16ada22b388e824665fd8edf3a3904cbb008a78e1b812754b327c136b9578`; listing and restore passed; 37 table fingerprints match |
+| SQL package | `release-r106-v119-e57e77d.json` sha256 `cbe5dcf1…9784` (V118 `07d0ba6c…`, V119 `a55e4fc9…`); connect preflight 117 to 119; `check` 0 writes, pending 118 and 119 |
+| Owner window | `mw_chat_owner_prod` only (4 statements), applied 18:14:53Z to 18:15:00Z, restored 18:17:57Z. The first restore attempt was refused at argument validation (it never connected): PROD restore also needs `--baseline-version`, `--approval-reference`, `--source-commit` and `--backup-proof`, so the window stayed open about 80 s longer than needed; nothing else ran in that time |
+| Flyway | `Invoke-CloudFlyway.py apply`, one transaction 18:15:08Z to 18:16:37Z: V118 6.3 s, V119 2.6 s, both installed 18:15:51Z; head 119; `verify --target prod` clean |
+| Readback | Matches DEV apart from `_prod` role names: table and API functions owned by `mw_chat_owner_prod`; EXECUTE only for `mw_chat_api_prod` (11 to 16); `pwa_chat_message_json_v1` owner-only; the chat owner gains only `"AI Reviewer"` on `Partners`; read role and agent get nothing; all owners closed |
+| Image | Cloud Build `0a1c1c0e-1cf0-48d3-abca-7289cf0dfaa8` (`cloudbuild-business.yaml`, PROD builder), tag `keep-r106-runtime` |
+| Terraform | Settings generation `1793384469780863` (previous `1793207922383830`): three image pins and `chat_commands={enabled=true}`. Plan 0 add, 3 change, 0 destroy (images plus `CHAT_COMMAND_URL` on chat), plan binary sha256 `8935db3a…df1b`, JSON `8b1fde0a…79d2`; applied 18:21:13Z to 18:21:50Z; re-plan clean |
+| Revisions | read `00031-4fm`, command `00036-xct`, chat `00014-x2z`; notify `00022-4lt` and jobs `00022-42m` unchanged |
+| Runner | `--check` passed, reusing input-equivalent CI receipts: check and e2e from run 41095471969, terraform from 41074341357, database from 41095460386; `deliveryToolChecks` 129 of 129. `--apply` 18:22:23Z to 18:23:05Z. The first `--apply` was refused because the receipt directory was missing (nothing written), so the gap between the services and Hosting was 33 s |
+| Hosting | Version `142a1d8e3cbf1152`, release `1793384580702000`, build-version R106 `f83bac2a9118f433102fb892`, entry `/assets/index-Wy2jdQul.js`, bundle embeds `e57e77d` |
+| Private records | Package sha256 `677aa538…7b64`; records at `gs://mw-credit-operator-private-737787224638/promotion-packages/r106/`, outside Git |
+| Smoke (read-only) | Health 200; unauthenticated requests 401; preflight from `lm.mw-credit.com` 204; `CHAT_COMMAND_URL` on chat only; `no-store`; CSP byte-identical to R105; no ERROR logs. No proposal, command, payment or notification was made in PROD |
+| PROD Partner flags | Unchanged: owner `7gR2…` AI Reviewer true, `k_udnyec…` false |
+| Rollback | Hosting `14575436ca11fbc7` (release `1793292590012000`, R105) together with settings generation `1793207922383830` (image `3817878a…`, no `CHAT_COMMAND_URL`): roll the runtime and Hosting back together, because the old PWA cannot read `proposals`. Database: the V117 backup, or a forward migration |
+| Data Dictionary | Targeted PROD capture (read-only, `codex-cloud-read`, Flyway 119) reconciled for `public.pwa_chat_proposals`, its five API functions and two helpers, `pwa_chat_message_json_v1`, and the `Partners` ACL (the `"AI Reviewer"` column grant; the record also moved from the old closure evidence to this capture). Evidence: [metadata observations](../project/outputs/dictionary-r106-20261030/production-postgresql-observations.json); `dictionary.py index` and `validate` pass |
+
+Applied and verified. Owner acceptance is not yet given: the first real PROD chat confirmation is pending.
+
+## Closure (30 October 2026)
+Tag record: the annotated tag `R106` (object `f3201e7f7bfbe0a28d69bb04759e1fe8e3584de8`) points at the package commit `e57e77d764cdd3c4a9e21dd71d342e7628adb423` (PR #192 on `main`), created by the Release tag workflow run 41109409280 (success, dispatched from `main` at `8268894`), which also published the GitHub Release. Baseline R105 `cf01602`. R107 is opened in this closure; the next unused number is R108.
+
+Open follow-ups:
+- Owner acceptance: the first real PROD chat confirmation.
+- The previous PWA cannot show cards under V119, so never roll back Hosting without the runtime.
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R103_DICTIONARY_BASELINES_CHAT_STATUS_2026-10-28.md` (R103 left the retention window: R107 Open; R106, R105, R104 Released). Its links in the Release tracker (two) and Development Changes now point to the commit permalink `8268894`, the last commit where it exists. Development Changes lost the R106 Open row (replaced by the R106 follow-up row). Stale text fixed: `database/README.md` V114 to V117 now read as applied, and the Solution Design R102 and R106 status lines. No other change note or evidence file is outside the window or uncited.

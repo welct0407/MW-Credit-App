@@ -7,12 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "database/migrations/V104__pwa_chat.sql"
-  "coverage": "R090 definition (V104 with V106 batch 2c changes applied: pwa_chat_messages.detached_at, the widened immutability\
-    \ rule, the replaced turn_begin and turn_complete, and pwa_chat_turn_presence_v1; 23 October 2026), reviewed from the\
-    \ migration source and applied to a disposable PostgreSQL 18 rebuild with stub roles and a stub \"Partners\" table; not\
-    \ captured from DEV or PROD (DEV has V104 and V105 only; V106 is pending). Owner mw_chat_owner_<env>; the ACL shown is\
-    \ the rebuild. "
+  "source": "outputs/dictionary-r106-20261030/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "8268894e7318ad29b519f0e9a6a9976ab14dd65d"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-chat-message-json-v1-m-pwa-chat-messages-9ce8b272.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.pwa_chat_message_json_v1(m pwa_chat_messages)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -35,7 +40,9 @@
          'thoughtsTokens',coalesce(m.thoughts_tokens,0),'cachedTokens',coalesce(m.cached_tokens,0),'rounds',coalesce(m.rounds,0),'latencyMs',coalesce(m.latency_ms,0)) END,
         'tools',CASE WHEN m.role='assistant' THEN (SELECT jsonb_agg(jsonb_build_object('name',x.name,'count',x.n) ORDER BY x.first_round,x.name)
          FROM (SELECT c.name,count(*) AS n,min(c.round) AS first_round FROM public.pwa_chat_tool_calls c WHERE c.message_id=m.id GROUP BY c.name) x) END,
-        'errorCode',m.error_code))
+        'errorCode',m.error_code))||CASE WHEN m.role='assistant' THEN jsonb_build_object('proposals',coalesce((SELECT jsonb_agg(public.pwa_chat_proposal_json_v1(p) ORDER BY coalesce((p.card->'group'->>'index')::integer,0),p.id)
+        FROM public.pwa_chat_proposals p JOIN public.pwa_chat_messages q ON q.id=p.message_id WHERE q.thread_id=m.thread_id AND q.seq=m.seq-1 AND q.role='user'
+        AND p.created_at=(SELECT max(r.created_at) FROM public.pwa_chat_proposals r WHERE r.message_id=q.id)),'[]'::jsonb)) ELSE '{}'::jsonb END
       $function$
     "owner": "mw_chat_owner_prod"
     "language": "sql"
@@ -44,6 +51,8 @@
     "security_definer": false
     "leakproof": false
     "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
     "settings":
     - "search_path=pg_catalog, public"
     "acl": "{mw_chat_owner_prod=X/mw_chat_owner_prod}"
