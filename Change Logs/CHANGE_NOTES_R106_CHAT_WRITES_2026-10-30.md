@@ -1,7 +1,7 @@
 # Change notes — R106 chat writes (proposal and confirm), 2026-10-30
 
 ## Purpose
-The in-app chatbot (read-only since R090) may modify data: the model proposes one exact command, the PWA shows a confirmation card, and nothing executes until the Partner taps Confirm. Owner decisions of 30 October 2026 (fixed): every existing write command of the PWA screens is in scope; writes go through the existing command contracts and command service with the same authorization, idempotency, audit and reconciliation (no raw DML, no reviewer DML tools); a confirm card every time; only Partners flagged `Partners."AI Reviewer"` who also hold the `command` capability may propose or confirm; one tested migration for chat proposal records is approved (DEV first; PROD on a later owner instruction). This note holds the design (Archie) and the implemented changes (below). Status: released to DEV for testing on 30 October 2026 ([DEV deployment](#dev-deployment-forge-30-october-2026-utc)); not deployed to PROD.
+The in-app chatbot (read-only since R090) may modify data: the model proposes one exact command, the PWA shows a confirmation card, and nothing executes until the Partner taps Confirm. Owner decisions of 30 October 2026 (fixed): every existing write command of the PWA screens is in scope; writes go through the existing command contracts and command service with the same authorization, idempotency, audit and reconciliation (no raw DML, no reviewer DML tools); a confirm card every time; only Partners flagged `Partners."AI Reviewer"` who also hold the `command` capability may propose or confirm; one tested migration for chat proposal records is approved (DEV first; PROD on a later owner instruction). This note holds the design (Archie) and the implemented changes (below). Status: released to DEV for testing on 30 October 2026, with a Hosting-only follow-up redeploy ([DEV deployment](#dev-deployment-forge-30-october-2026-utc)); not deployed to PROD.
 
 ## Changes
 
@@ -99,7 +99,18 @@ Proof: Chase's DEV end-to-end results are in Checks above; the rows of the Envir
 - CW2-01: the card's dismiss button reads "Don't do this / ไม่ทำรายการ".
 - CW2-02: scroll position and focus are restored on Back from a record opened from chat.
 - CW2-03: "Back to chat / กลับแชท" on records opened from chat; PaymentRecord, LoanRecord, BorrowerRecord, SharedBorrowerDetail and ExpenseRecords gain an optional `backLabel`.
-- Checks (Byte): `npm test` 1026 pass, typecheck, lint, R106 e2e 4 pass. Not in the DEV Hosting version above; a Hosting-only DEV redeploy follows after this push's checks pass (to be recorded then).
+- Checks (Byte): `npm test` 1026 pass, typecheck, lint, R106 e2e 4 pass. Not in the first Hosting version above; deployed by the redeploy below.
+
+### Follow-up Hosting-only redeploy (Forge, 30 October 2026, UTC)
+
+| Item | Result |
+| --- | --- |
+| Source | Clean clone at `e361c3d2dc30285954febdc2492f25355a795f6d`; PR #192 Development checks run 41083634778 green; GitGuardian green |
+| Build and deploy | `MW_RELEASE_NUMBER=R106 npm run build:live-dev`, deployed 16:02:42Z to 16:02:49Z |
+| Hosting | Version `0fe620f30fad1cd4`, release `1793376169142000`; `build-version.json` R106 `0a4aa37754dac9721f191258`; entry `/assets/index-DG_zf_61.js` embeds `e361c3d` |
+| Headers | `build-version.json` and `sw.js` `no-store`; CSP `connect-src` unchanged |
+| Unchanged | Services, database and Terraform stay as deployed from `b713430` |
+| Rollback | Hosting `53a22c555beb1f09` |
 
 ## Recovery
 Git baseline: the merge base of `claude/chat-financial-writes` on `main`. Runtime: set `chat_commands.enabled=false` (DEV) or leave it unset (PROD) and apply; the routes and the tool disappear. Database: V118 is additive and stays; a backup at V117 precedes the DEV apply.
@@ -108,4 +119,4 @@ Git baseline: the merge base of `claude/chat-financial-writes` on `main`. Runtim
 None. Owner answers of 30 October 2026: partial payments included with the screen's allocation rule (D3; v9 next-charge booking joins through the command service, no new grant); receipt images stay out; `partner.*` stays excluded (D4); destructive actions stay included with the destructive warning (D4).
 
 ## Remaining work
-Hosting-only DEV redeploy of the follow-up batch after the push's checks; owner review on `dev-lm.mw-credit.com`. PROD needs a later owner instruction; after V118 reaches PROD, add its table and functions to the Data Dictionary by targeted capture.
+Owner review on `dev-lm.mw-credit.com`. Then a PROD promotion, only on a separate owner instruction: the V118 PROD window (verified backup at V117 first), `chat_commands` enabled on PROD, and the Data Dictionary capture of the V118 table and functions. Optional: a live `unknown`-outcome proof in a Forge window (the reconcile path is covered by unit and database tests only).
