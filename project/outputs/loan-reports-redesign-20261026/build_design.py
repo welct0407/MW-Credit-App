@@ -44,6 +44,8 @@ DASHBOARD = {
     'description': 'Parallel redesign of Loan Reports for owner review. Live PROD OLAP · THB · Bangkok dates. '
                    'Same models, snippets and saved questions as dashboard 3; diagnostics on the Data health tab.',
     'auto_apply_filters': True,
+    # Full width (30 Oct): the five Collection lanes were cramped in Metabase's fixed-width grid on wide screens.
+    'width': 'full',
 }
 
 # New parameter id -> definition. `replaces` lists the dashboard-3 parameter ids whose card mappings the
@@ -382,9 +384,9 @@ NEW_QUESTIONS = {
     'collection.lane-not-paid': lane('Not Paid', '🔴 Not paid', 'Amount Due', 'Due', 'Amount Remaining', 'Left', 'Amount Remaining', 243, STATUS['not_paid'], [80, 76, 76]),
     'collection.lane-partial': lane('Partially Paid', '🟠 Partially paid', 'Receipts Today', 'Paid', 'Amount Remaining', 'Left', 'Amount Remaining', 245, STATUS['partial'], [80, 76, 76]),
     'collection.lane-overdue': lane('Overdue', '🟣 Overdue', 'Overdue Amount', 'Overdue', 'Amount Remaining', 'Left', 'Overdue Amount', 241, STATUS['overdue'], [72, 90, 70]),
-    # R102 (V114) long-overdue lane, ported from the hand-edited layout.json: settings copied from question 241 as applied,
-    # including its tint rule on status = 'Overdue' (which cannot match this lane's rows; flagged, not changed here).
-    'collection.lane-long-overdue': {**lane('Long Overdue', '⚫ Long overdue', 'Overdue Amount', 'Overdue', 'Amount Remaining', 'Left', 'Overdue Amount', 241, STATUS['overdue'], [72, 90, 70]),
+    # R102 (V114) long-overdue lane, ported from the hand-edited layout.json; its tint rule (copied from question 241 as
+    # status = 'Overdue', which never matched) is the board's grey on status = 'Long Overdue' since 30 Oct.
+    'collection.lane-long-overdue': {**lane('Long Overdue', '⚫ Long overdue', 'Overdue Amount', 'Overdue', 'Amount Remaining', 'Left', 'Overdue Amount', 241, STATUS['long'], [72, 90, 70]),
         'definition': "MBQL on model 77 filtered Daily Collection Status = 'Long Overdue'; fields ['Borrower', 'Overdue Amount', 'Amount Remaining', "
                       "'Borrower ID', 'Daily Collection Status']; ORDER BY Overdue Amount desc, Borrower asc. Same rows as the R102 long-overdue "
                       "list question (AddLongOverdueLane.mjs), resorted; settings copied from question 241. Column titles Name / Overdue / Left; "
@@ -415,8 +417,6 @@ NEW_QUESTIONS = {
     },
 }
 
-# Main's layout.json carries question 241's rule verbatim on the long-overdue lane (status = 'Overdue'); reproduced as applied.
-NEW_QUESTIONS['collection.lane-long-overdue']['settings']['table.column_formatting'][0]['value'] = 'Overdue'
 
 # Placement-level column sets for wide reused tables (names are the saved question's result_metadata names).
 COLUMNS_289 = {'order': ['Borrower', 'BCG Matrix category', 'Current health', 'Active loans', 'Principal ฿',

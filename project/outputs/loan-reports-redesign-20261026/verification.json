@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-30T09:11:00.379Z",
+  "at": "2026-10-30T10:21:32.887Z",
   "passed": true,
   "checks": [
     {
@@ -15,7 +15,8 @@
         "placements": 227,
         "parameters": 22,
         "parameterIdsMatch": true,
-        "unmatched": 0
+        "unmatched": 0,
+        "width": "full"
       }
     },
     {
@@ -265,14 +266,14 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 3,
+            "rows": 1,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-partial",
-            "rows": 0,
+            "rows": 1,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
@@ -293,7 +294,7 @@
           },
           {
             "key": "collection.lane-paid",
-            "rows": 5,
+            "rows": 7,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true
