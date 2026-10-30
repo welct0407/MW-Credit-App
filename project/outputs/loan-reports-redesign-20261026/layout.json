@@ -4555,30 +4555,7 @@
     {
      "row": 2,
      "col": 0,
-     "size_x": 12,
-     "size_y": 3,
-     "reuse_card_id": 276,
-     "title": "Reporting connection · SELECT 1",
-     "params": [
-      "statement-period",
-      "account",
-      "period",
-      "position-date",
-      "population",
-      "borrower",
-      "partner",
-      "scenario",
-      "interest-collected",
-      "principal-collected",
-      "overdue-recovered",
-      "loan-kind",
-      "target"
-     ]
-    },
-    {
-     "row": 2,
-     "col": 12,
-     "size_x": 12,
+     "size_x": 24,
      "size_y": 3,
      "reuse_card_id": 257,
      "title": "Queried at · Bangkok",
@@ -5032,7 +5009,8 @@
    ],
    "height_rows": 86,
    "dropped_from_dashboard_3": [
-    250
+    250,
+    276
    ]
   }
  ],
@@ -5114,7 +5092,6 @@
    271,
    272,
    275,
-   276,
    278,
    279,
    280,
@@ -5201,6 +5178,7 @@
    "cash.principal-selected",
    "cashflow.by-type-row",
    "collection.board",
+   "collection.lane-long-overdue",
    "collection.lane-not-paid",
    "collection.lane-overdue",
    "collection.lane-paid",
