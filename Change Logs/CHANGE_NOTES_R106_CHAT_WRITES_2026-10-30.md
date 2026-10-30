@@ -1,7 +1,7 @@
 # Change notes — R106 chat writes (proposal and confirm), 2026-10-30
 
 ## Purpose
-The in-app chatbot (read-only since R090) may modify data: the model proposes one exact command, the PWA shows a confirmation card, and nothing executes until the Partner taps Confirm. Owner decisions of 30 October 2026 (fixed): every existing write command of the PWA screens is in scope; writes go through the existing command contracts and command service with the same authorization, idempotency, audit and reconciliation (no raw DML, no reviewer DML tools); a confirm card every time; only Partners flagged `Partners."AI Reviewer"` who also hold the `command` capability may propose or confirm; one tested migration for chat proposal records is approved (DEV first; PROD on a later owner instruction). This note holds the design (Archie) and the implemented changes (below). Status: released to DEV for testing on 30 October 2026, with a Hosting-only follow-up redeploy ([DEV deployment](#dev-deployment-forge-30-october-2026-utc)); not deployed to PROD.
+The in-app chatbot (read-only since R090) may modify data: the model proposes one exact command, the PWA shows a confirmation card, and nothing executes until the Partner taps Confirm. Owner decisions of 30 October 2026 (fixed): every existing write command of the PWA screens is in scope; writes go through the existing command contracts and command service with the same authorization, idempotency, audit and reconciliation (no raw DML, no reviewer DML tools); a confirm card every time; only Partners flagged `Partners."AI Reviewer"` who also hold the `command` capability may propose or confirm; one tested migration for chat proposal records is approved (DEV first; PROD on a later owner instruction). This note holds the design (Archie) and the implemented changes (below). Status: released to DEV for testing on 30 October 2026, with a Hosting-only follow-up redeploy and the D12 deploy (V119) ([DEV deployment](#dev-deployment-forge-30-october-2026-utc)); not deployed to PROD.
 
 ## Changes
 
@@ -88,7 +88,8 @@ DEV end to end (one pass after the DEV deploy, synthetic data, reviewer Partner)
 | D12 batch (Byte): disposable database V117 to V118 to V119, `Test-Chat.sql` and `Test-AccessMatrix.sql` | pass |
 | D12 batch: Chase verification and adversarial review (uncommitted tree on `2a82b31`, 30 Oct 2026) | Accepted. `node --test` on `chat-proposals`, `chat-handler`, `chat-pwa`: 61 pass, 0 fail (run now); Byte's `npm test` 1041, typecheck, lint and `chat.spec.ts` 36/36 reused; V119 disposable DB run reused from Byte (no SQL changed in the last round). Read, not executed: per-line exactly-once under concurrent confirm, cancel race, expiry and deadline (claims stay per line under the V118 row lock; the deadline is checked only before a claim); non-head ids refused (`not_head`); no re-POST of unknown or stale lines; `partial` state identical on server and PWA; `BORROWER_UNRESOLVED` fails closed for a payment or close in a group of several; destructive-first reorder applied before the rows are created (head id, `card.group.index` and `ids` match execution order; only refusal numbering uses the model's order); PWA hides Confirm while any line is executing or unknown, and the server refuses a live executing line (409). Not run: browsers by Chase, SQL CI groups (CI), live DEV pass of D12 (after the V119 window) |
 | D12 batch: Echo review of the group card (320 px EN/TH, Pixel 7, 1440 px) | Done: Echo reviewed 6- and 20-line cards (320 and 412 px Thai, 1440 px EN/TH) against the stub; CW3-01 (destructive line unmarked, blocking) and CW3-02 to CW3-04 applied by Byte and covered by `chat.spec.ts` (36/36); Echo's look at the applied fixes is with the DEV pass |
-| D12 batch: `Test-CI.ps1` and Development checks on the pushed commit | PENDING (CI) |
+| D12 DEV proof (Chase, 30 Oct 2026 17:2x-17:4x UTC; `e57e77d`, V119, chat `00020-7xc`, command `00068-njr`; test Partner `claude-dev-test`; synthetic loan `1a119514-e48e-4361-a8f2-7f48beb67e4b`) | Pass for 1, 2, 3, 5, 6; 4 partly. (1) Six-line `charge.update` group (thread `R106 D12 six updates`, head `82b727bb-4e64-4efc-8489-a14b2c0f1b0d`): one group, indexes 0-5, every line's `group.id` = head and `group.ids` = the six line ids in order; one Confirm gave 6 commands, 6 journal rows, actor `claude-dev-test`, all `applied`, `attempts` 1; a repeated Confirm posted nothing (journal count +6 only); setup used a six-line `charge.create` group confirmed over SSE (six `line` events, then `group`, `done`). (2) Stale line: three-line group, line 2 changed by another thread first; line 2 `failed source_conflict`, lines 1 and 3 `done`, group `partial`. (3) Delete group: the model asked update, update, delete; the server put `charge.delete` at index 0 (`destructive:true`, consequence `destructive`), journal order delete, update, update. (4) Duplicate target refused live (`DUPLICATE_TARGET:2` in `pwa_chat_tool_calls`). Not reached live: the 21-line limit and the payment-mixed-with-edit refusal, because the model declined or split before calling the tool on three tries (unit tests only: `chat-proposals.test.mjs`). (5) Three simultaneous group Confirms: one 200 `done`, two 409 `proposal_executing`. (6) Readback: 24 journal rows for 24 executed lines, 24 distinct request ids, none duplicated, no payment journal rows after 17:00, payments still the 2 of the earlier proof. Code-verified, not seen in a browser: the card label 'Confirm 6 changes' and '(1 delete)' come from `groupConfirmText` in the PWA. |
+| D12 batch: `Test-CI.ps1` and Development checks on the pushed commit | Pass on `e57e77d` (PR #192): Development checks result run 41095471969 (check, lint, e2e shards 1 to 3; terraform skipped, unchanged), test and lab run 41095472117, database rebuild migrations/phase5/phase8/receiving and guards run 41095460386 (includes V119) |
 | `npm run check:docs` | Pass: 0 failures, 0 warnings, run after the final document edits |
 
 ## Not run
@@ -130,6 +131,26 @@ Proof: Chase's DEV end-to-end results are in Checks above; the rows of the Envir
 | Unchanged | Services, database and Terraform stay as deployed from `b713430` |
 | Rollback | Hosting `53a22c555beb1f09` |
 
+## DEV deployment, D12 (Forge, 30 October 2026, UTC)
+
+Owner instruction: "Open the PR and test it in Dev". DEV only; PROD is not deployed.
+
+| Item | Result |
+| --- | --- |
+| Source | `e57e77d` (PR #192). Development checks run 41095471969, test/lab 41095472117, database 41095460386, all green |
+| Backup at V118, 17:14:00Z to 17:16:29Z | Dump sha256 `204eabd5704a0808858d50a50f17f26f873729db9fb44268f6a8a4c0f613fada`; listing and restore passed; 38 table fingerprints match; `gs://mw-credit-operator-private-737787224638/dev-backups/dev-refresh-12e044e5b45b4170a0a156619628ec4d/` |
+| Owner window | The same 5 owners, opened 17:16:52Z, restored 17:24:47Z |
+| V119 | Installed 17:17:24Z (2.70 s), head 119; role check 534 statements, 0 violations; `info` and `validate` clean |
+| Readback | Both functions match the baseline except their bodies; `pwa_chat_proposal_create_v1` is SECURITY DEFINER with EXECUTE for `mw_chat_api_dev`; `pwa_chat_message_json_v1` is owner-only and not SECURITY DEFINER; API EXECUTE count 16 |
+| Image | Cloud Build `35716298-45e8-490d-b117-4e001732ad7a`, `api@sha256:dc8048cd02ed52e5e69e102dbdbba52d3b53acf1c813f2df17677a5ac421084a` |
+| Terraform DEV | 0 add, 3 change, 0 destroy, images only, applied 17:26:43Z to 17:27:21Z, re-plan clean; settings generation `1793381200450112` (previous `1793372933931622`); read `00051-w8x`, command `00068-njr`, chat `00020-7xc` |
+| Hosting | Version `9884ad3ab5d37a16`, release `1793381249032000`, deployed 8 s after the services; build-version R106 `2ff38b88a17d32624fac6ae1` |
+| Smoke | Health 200, unauthenticated 401, preflight 204, `no-store`, CSP unchanged, no errors |
+| Test Partner flag | `claude-dev-test` `"AI Reviewer"` set true at 17:24:58Z for the proof; reverted to false, committed 17:40:55Z (Forge readback); the other two Partners are unchanged and the temporary credential is deleted |
+| Rollback | Settings generation `1793372933931622` together with Hosting `0fe620f30fad1cd4` (roll back the service and Hosting together), plus the V118 backup |
+
+Proof: Chase's D12 DEV proof is in Checks above.
+
 ## Recovery
 Git baseline: the merge base of `claude/chat-financial-writes` on `main`. Runtime: set `chat_commands.enabled=false` (DEV) or leave it unset (PROD) and apply; the routes and the tool disappear. Database: V118 is additive and stays; a backup at V117 precedes the DEV apply. V119 (D12) replaces two functions in place; a backup at V118 precedes it, and rolling the service back to the single-line build still works against V119 (the single-line create form is kept), but the previous PWA (`e361c3d`) reads `proposal` and shows no cards for messages under V119, so roll back the service and Hosting together.
 
@@ -137,4 +158,4 @@ Git baseline: the merge base of `claude/chat-financial-writes` on `main`. Runtim
 None. Owner answers of 30 October 2026: partial payments included with the screen's allocation rule (D3; v9 next-charge booking joins through the command service, no new grant); receipt images stay out; `partner.*` stays excluded (D4); destructive actions stay included with the destructive warning (D4).
 
 ## Remaining work
-D12: the V119 DEV window (verified backup at V118, chat owner window, guarded runner on the exact tested commit, `restore`); then a DEV redeploy of chat and Hosting together; then Chase's six-line DEV proof. Then owner review on `dev-lm.mw-credit.com`. PROD promotion only on a separate owner instruction: V118 and V119 together in one PROD window (verified backup at V117 first), `chat_commands` enabled on PROD, and the Data Dictionary capture of the V118 table and functions. Optional: a live `unknown`-outcome proof in a Forge window.
+Owner review on `dev-lm.mw-credit.com`. Then a PROD promotion, only on a separate owner instruction: V118 and V119 in one PROD window (verified backup at V117 first), `chat_commands` enabled on PROD, and the Data Dictionary capture of the V118 table and functions. Optional: a live `unknown`-outcome proof in a Forge window.
