@@ -7,6 +7,7 @@ import http from 'node:http';
 import {readFileSync} from 'node:fs';
 import {createChatHandler,BODY_LIMIT,PRESENCE_LIMIT} from '../../services/chat/handler.mjs';
 import {createVertexTransport} from '../../services/chat/gemini.mjs';
+import {createRelayTransport} from '../../services/chat/claude.mjs';
 import {createChatTools} from '../../services/chat/tools.mjs';
 import {loadBusinessConfig} from '../../services/production/business-config.mjs';
 import {chatEnv,MODELS} from './chat-fixture.mjs';
@@ -70,7 +71,7 @@ function memoryStore(){
  return store;
 }
 
-async function server({script=[],store=memoryStore(),pingMs=15000,delay=0,cfg=config,commandFetch,now}={}){
+async function server({script=[],store=memoryStore(),pingMs=15000,delay=0,cfg=config,commandFetch,now,transport:custom}={}){
  const revocation=[];
  const verifyPrincipal=async(authorization,options)=>{revocation.push(options?.checkRevoked!==false);
   // 'token-a' in the header; the beacon's body token is JWT-shaped ('jwt.a.sig').
@@ -78,7 +79,7 @@ async function server({script=[],store=memoryStore(),pingMs=15000,delay=0,cfg=co
   const who=m[1]??m[2];
   if(who==='expired')return {ok:false,status:401,code:'session_invalid'};
   return {ok:true,subject:'sub-'+who,email:`${who}@example.invalid`};};
- const transport=createVertexTransport({projectId:'clever-oasis-508610-n7',location:'global',getToken:async()=>'t',sleep:async()=>{},
+ const transport=custom??createVertexTransport({projectId:'clever-oasis-508610-n7',location:'global',getToken:async()=>'t',sleep:async()=>{},
   fetch:async()=>{await new Promise(r=>setTimeout(r,delay));const next=script.shift();if(!next)throw Error('script exhausted');return next instanceof Response?next:sse(next);}});
  const readProvider={catalogue:async()=>({manifestSha256:'m',resources:[]}),query:async()=>({rows:[{'Row ID':'C1','Amount Remaining':'1000.00'}]})};
  const createTools=(actor,writes=null)=>createChatTools({readProvider,sqlTool:{query:async()=>({columns:['due'],rows:[{due:'1000.00'}],row_count:1,complete:true}),payoff:async()=>({})},actor,writes});
@@ -621,4 +622,31 @@ test('D12: the derived group state: done only when every line is done; partial w
  assert.equal(of('failed','pending'),'failed');assert.equal(of('failed','failed'),'failed');
  assert.equal(of('done','unknown','pending'),'unknown');assert.equal(of('done','executing'),'executing');
  assert.equal(of('pending','pending'),'pending');assert.equal(of('expired','expired'),'expired');assert.equal(of('expired','cancelled'),'cancelled');
+});
+
+// R108: the chat lists Claude Opus 5.5 only. A thread still on a Gemini model is refused a turn (MODEL_UNAVAILABLE, as
+// before) unless the turn carries a listed model: the PWA sends the default, the claim applies it to the thread and the
+// turn runs on Claude. A Gemini body model is refused up front.
+test('R108: a Gemini thread runs its turn on Claude when the body carries the listed model; without it MODEL_UNAVAILABLE',async t=>{
+ const relayUrl='http://10.148.0.2:8791/v1/chat/messages',claude='claude-opus-5-5';
+ const cfg=loadBusinessConfig(chatEnv('dev',{CHAT_MODELS_JSON:JSON.stringify({...MODELS,default:claude,models:[{id:claude,label:'Claude Opus 5.5',available:true}]}),CHAT_RELAY_URL:relayUrl}));
+ const anthropic=text=>[{type:'message_start',message:{id:'msg_1',type:'message',role:'assistant',content:[],usage:{input_tokens:5,output_tokens:1}}},
+  {type:'content_block_start',index:0,content_block:{type:'text',text:''}},{type:'content_block_delta',index:0,delta:{type:'text_delta',text}},{type:'content_block_stop',index:0},
+  {type:'message_delta',delta:{stop_reason:'end_turn',stop_sequence:null},usage:{output_tokens:3}},{type:'message_stop'}];
+ const relayed=[];
+ const transport={claude:createRelayTransport({url:relayUrl,mintToken:async()=>'aaa.bbb.ccc',sleep:async()=>{},fetch:async(_url,init)=>{relayed.push(JSON.parse(init.body).model);
+  return new Response(anthropic('On Claude').map(e=>`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join(''),{status:200,headers:{'content-type':'text/event-stream'}});}})};
+ const s=await server({cfg,transport});t.after(s.close);
+ await s.store.createThread({email:'a@example.invalid',subject:'sub-a'},{id:T1,model:'gemini-4-argon'});
+ // No body model: the thread's Gemini model is no longer listed; the turn fails MODEL_UNAVAILABLE (unchanged).
+ let body=await (await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M1,text:'Hi'}})).json();
+ assert.deepEqual([body.assistant.status,body.assistant.model],['failed','gemini-4-argon']);
+ assert.equal(s.store.log.filter(x=>x[0]==='complete').at(-1)[2].errorCode,'MODEL_UNAVAILABLE');assert.equal(relayed.length,0);
+ // A Gemini body model is refused before any claim.
+ const refused=await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M2,text:'Hi',model:'gemini-4-argon'}});
+ assert.equal(refused.status,400);assert.deepEqual(await refused.json(),{error:'model_unavailable'});
+ // The listed model in the body: claimed, applied to the thread, answered on Claude through the relay.
+ body=await (await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M2,text:'Hi again',model:claude}})).json();
+ assert.deepEqual([body.assistant.status,body.assistant.model,body.assistant.text],['ok',claude,'On Claude']);
+ assert.deepEqual(relayed,[claude]);assert.equal(s.store.threadMap.get(T1).model,claude);
 });

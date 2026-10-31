@@ -6,9 +6,9 @@ import {runInNewContext} from 'node:vm';
 import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environment.ts';
 // R090 PWA chat: the pure protocol, markdown and wording modules (no imports, so each transpiles on its own).
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
-const {createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup,seenThrough}=await load('chat-protocol.ts');
+const {listedDefault,threadModel,createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup,seenThrough}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
-const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText,armHintText}=await load('chat-text.ts');
+const {modelFallbackText,failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText,armHintText}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
 
 test('SSE parser reads events across chunk boundaries, CRLF, multi-line data and pings',()=>{
@@ -272,4 +272,31 @@ test('CW3-01: destructive lines are named by kind, counted in the warning and in
  assert.equal(groupConfirmText({count:6,pending:6,remaining:false,destructive:one},true),'ยืนยัน 6 รายการ (ลบ 1)');
  assert.equal(groupConfirmText({count:6,pending:2,remaining:true,destructive:{}},false),'Confirm 2 remaining');
  assert.equal(groupConfirmText({count:6,pending:6,remaining:false},false),'Confirm 6 changes');
+});
+
+// R108: Gemini left the chat model menu (Claude only). A thread still on an unlisted or unavailable model shows the
+// default in the picker with the "applies to your next message" note, and its next turn carries the default as the
+// body model (the service applies it to the thread when it claims the turn).
+test('R108: a thread on an unlisted model falls back to the default, which its next turn carries',()=>{
+ const claudeOnly={version:1,default:'claude-opus-5-5',models:[{id:'claude-opus-5-5',label:'Claude Opus 5.5',available:true}]};
+ assert.equal(listedDefault(claudeOnly),'claude-opus-5-5');assert.equal(listedDefault(null),null);
+ assert.equal(listedDefault({default:'x',models:[{id:'x',available:false},{id:'y',available:true}]}),'y');
+ assert.deepEqual(threadModel(claudeOnly,'claude-opus-5-5'),{model:'claude-opus-5-5',override:null});
+ assert.deepEqual(threadModel(claudeOnly,'gemini-3.5-flash'),{model:'claude-opus-5-5',override:'claude-opus-5-5'},'unlisted model: the default, sent with the turn');
+ assert.deepEqual(threadModel({...claudeOnly,models:[...claudeOnly.models,{id:'gemini-3.5-flash',available:false}]},'gemini-3.5-flash'),{model:'claude-opus-5-5',override:'claude-opus-5-5'},'listed but unavailable');
+ assert.deepEqual(threadModel(null,'gemini-3.5-flash'),{model:'gemini-3.5-flash',override:null},'before the list loads nothing changes');
+ assert.deepEqual(threadModel({...claudeOnly,models:[{id:'claude-opus-5-5',available:false}]},'gemini-3.5-flash'),{model:'gemini-3.5-flash',override:null},'no available model: no override');
+ // The workspace wires it: the picker value, the note and the turn body (a React component; checked in its source).
+ const source=readFileSync(new URL('../../apps/pwa/src/chat/ChatWorkspace.tsx',import.meta.url),'utf8');
+ assert.match(source,/const override=thread\.model\?threadModel\(models,thread\.model\)\.override:null;/);
+ assert.match(source,/streamTurn\(accessRef\.current,thread\.id,\{id:messageId,text,\.\.\.\(override\?\{model:override\}:\{\}\)\}/);
+ assert.match(source,/const currentModel=resolved\?\.model\|\|newModel\|\|defaultModel\(models\);/);
+ // UX-R108-01: a manual pick keeps "Applies to your next message"; the fallback alone names the model it now uses.
+ assert.match(source,/modelNote\?t\('Applies to your next message','ใช้กับข้อความถัดไป'\):resolved\?\.override&&thread\?modelFallbackText\(thread\.model,modelLabel\(resolved\.override\),thai\):null;/);
+ assert.equal(modelFallbackText('gemini-3.5-flash','Claude Opus 5.5',false),'Gemini is no longer available. Your next message uses Claude Opus 5.5.');
+ assert.equal(modelFallbackText('gemini-3.5-flash','Claude Opus 5.5',true),'Gemini ไม่มีให้ใช้แล้ว ข้อความถัดไปจะใช้ Claude Opus 5.5');
+ assert.equal(modelFallbackText('claude-opus-4','Claude Opus 5.5',false),'This model is no longer available. Your next message uses Claude Opus 5.5.');
+ assert.equal(modelFallbackText('claude-opus-4','Claude Opus 5.5',true),'โมเดลนี้ไม่มีให้ใช้แล้ว ข้อความถัดไปจะใช้ Claude Opus 5.5');
+ // The thread list badge shows the model's label when listed, the raw id otherwise.
+ assert.match(readFileSync(new URL('../../apps/pwa/src/chat/ChatThreads.tsx',import.meta.url),'utf8'),/const modelLabel=\(id:string\)=>models\.find\(model=>model\.id===id\)\?\.label\?\?id;[\s\S]*chat-model-badge">\{modelLabel\(thread\.model\)\}/);
 });

@@ -69,6 +69,12 @@ export function sourcesText(tools:{name:string;count:number}[]|undefined,thai:bo
 /** The line under an assistant reply: the sources and the answering model, e.g. "Checked: database (2 queries) · Gemini 4 Argon". */
 export const metaLine=(...parts:(string|null|undefined)[])=>parts.filter(part=>!!part).join(' · ');
 /** The service stores the literal "New chat" until the first message names the thread (Archie resolution 12). */
+/** R108 (UX-R108-01): the note for a thread whose model left the menu, so its next turn uses `label` (the default). */
+export function modelFallbackText(previous:string,label:string,thai:boolean){
+ const gemini=previous.startsWith('gemini-');
+ if(thai)return (gemini?'Gemini ':'โมเดลนี้')+'ไม่มีให้ใช้แล้ว ข้อความถัดไปจะใช้ '+label;
+ return (gemini?'Gemini':'This model')+' is no longer available. Your next message uses '+label+'.';
+}
 export const threadTitle=(title:string|undefined,thai:boolean)=>!title||title==='New chat'?(thai?'แชทใหม่':'New chat'):title;
 /** Short relative time for the thread list ("5 minutes ago", "yesterday"); null past a week (the caller shows the date). */
 export function relativeTime(iso:string|undefined|null,thai:boolean,now=Date.now()){

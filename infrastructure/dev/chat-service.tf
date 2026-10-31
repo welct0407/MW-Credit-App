@@ -24,7 +24,7 @@ variable "chat_image" {
 }
 
 variable "chat_relay" {
-  description = "R102 DEV chat relay wiring: enabled adds Direct VPC egress, CHAT_RELAY_URL and the claude-* models (otherwise filtered out of CHAT_MODELS_JSON)."
+  description = "R102 DEV chat relay wiring: enabled adds Direct VPC egress, CHAT_RELAY_URL and the claude-* models (otherwise filtered out of CHAT_MODELS_JSON). R108: the chat menu is Claude only, so disabling the relay leaves no chat model and the default precondition fails the plan."
   type = object({
     enabled = optional(bool, false)
   })
@@ -62,7 +62,7 @@ variable "chat_models" {
   default = {
     version               = 1
     location              = "global"
-    default               = "gemini-4-argon"
+    default               = "claude-opus-5-5"
     thinkingLevel         = "MEDIUM"
     maxRounds             = 16
     requestTimeoutSeconds = 120
@@ -71,11 +71,9 @@ variable "chat_models" {
     seedChars             = 40000
     maxOutputTokens       = 16384
     models = [
-      # R102: listed only while chat_relay.enabled (filtered in local.chat_models_list).
+      # R108: Claude only (owner decision; Gemini stays for receipt OCR on the VM). Served through the
+      # VM relay, so listed only while chat_relay.enabled (filtered in local.chat_models_list).
       { id = "claude-opus-5-5", label = "Claude Opus 5.5", available = true },
-      { id = "gemini-4-argon", label = "Gemini 4 Argon", available = true },
-      { id = "gemini-3.8-flash", label = "Gemini 3.8 Flash", available = true },
-      { id = "gemini-3.5-flash", label = "Gemini 3.5 Flash", available = true },
     ]
   }
   validation {

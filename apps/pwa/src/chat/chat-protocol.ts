@@ -10,6 +10,25 @@ export type ProposalCard={version:number;operation:string;label:{en:string;th:st
 export type ChatProposal={id:string;threadId:string;messageId:string;kind:'operation'|'payment';operation:string;state:ProposalState;card:ProposalCard;expiresAt:string;createdAt:string;settledAt?:string|null;outcome?:{code:string|null;recordedAt?:string|null}|null;record?:{type:string;id:string;paymentId?:string|null}|null};
 export type ChatMessage={id:string;seq?:number;role:'user'|'assistant';text:string;status:'ok'|'failed'|'pending';model?:string;createdAt?:string;usage?:Record<string,number>;tools?:{name:string;count:number}[];errorCode?:string;proposals?:ChatProposal[]};
 export type TurnState={accepted:boolean;seq:number|null;model:string|null;round:number;tools:ChatTool[];provisional:string;checking:boolean;message:ChatMessage|null;error:string|null;done:boolean;startedAt:number|null;proposals:ChatProposal[]};
+/** R108: a models list as the service returns it (structural, so this module needs no import). */
+export type ModelList={default:string;models:{id:string;available:boolean}[]};
+/** The listed default when it is available, else the first available model (null when none is). */
+export function listedDefault(models:ModelList|null):string|null{
+ if(!models)return null;
+ const usable=models.models.filter(model=>model.available);
+ return usable.find(model=>model.id===models.default)?.id??usable[0]?.id??null;
+}
+/**
+ * R108: the model a thread's next turn runs on. A thread whose model is no longer an available listed model (a Gemini
+ * thread after Gemini left the chat menu) shows and sends the default instead: `override` is the model the turn body
+ * carries, and the service applies it to the thread when it claims the turn. Before the list loads, or when no listed
+ * model is available, the thread's own model stays and nothing is overridden.
+ */
+export function threadModel(models:ModelList|null,model:string):{model:string;override:string|null}{
+ if(!models||models.models.some(listed=>listed.id===model&&listed.available))return {model,override:null};
+ const fallback=listedDefault(models);
+ return fallback?{model:fallback,override:fallback}:{model,override:null};
+}
 export const initialTurn=():TurnState=>({accepted:false,seq:null,model:null,round:0,tools:[],provisional:'',checking:false,message:null,error:null,done:false,startedAt:null,proposals:[]});
 
 /**

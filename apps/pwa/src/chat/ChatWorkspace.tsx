@@ -6,10 +6,10 @@ import {useOnline} from '../online-status';
 import {ChatThreads} from './ChatThreads';
 import {ChatMessageView,ProvisionalMessage} from './ChatMessage';
 import {ChatComposer} from './ChatComposer';
-import {applyTurnEvent,initialTurn,mergeProposal,type ChatMessage,type ChatProposal,type TurnState} from './chat-protocol';
+import {applyTurnEvent,initialTurn,listedDefault,mergeProposal,threadModel,type ChatMessage,type ChatProposal,type TurnState} from './chat-protocol';
 import {ChatProposalCard,type ProposalRecord} from './ChatProposalCard';
 import {ChatAccessError,ChatHttpError,createThread,getThread,listMessages,listModels,listThreads,streamTurn,turnPresence,updateThread,waitForOutcome,whenVisible,type ChatAccess,type ChatModels,type ChatThread,type Page} from './chat-client';
-import {EXAMPLES,failureText,progressText,threadTitle,type FailureAction} from './chat-text';
+import {EXAMPLES,failureText,modelFallbackText,progressText,threadTitle,type FailureAction} from './chat-text';
 
 // R090 chat screen (design §6.2): thread list (left pane on desktop, a sheet on phones), the conversation and the
 // composer. One turn runs at a time; its SSE events drive the progress row and the provisional text, and a stream
@@ -21,11 +21,7 @@ import {EXAMPLES,failureText,progressText,threadTitle,type FailureAction} from '
 type Item=ChatMessage&{failure?:string;local?:boolean;retryOf?:string};
 type Turn={threadId:string;messageId:string;phase:'sending'|'streaming'|'polling';state:TurnState};
 const NEW='new';
-export function defaultModel(models:ChatModels|null){
- if(!models)return null;
- const usable=models.models.filter(model=>model.available);
- return usable.find(model=>model.id===models.default)?.id??usable[0]?.id??null;
-}
+export const defaultModel=(models:ChatModels|null)=>listedDefault(models);
 const codeOf=(error:unknown)=>error instanceof ChatHttpError?error.code==='model_unavailable'?'MODEL_UNAVAILABLE':error.detail==='thread_full'?'thread_full':'unavailable':'unavailable';
 
 /** R106 D12: an assistant reply's proposal lines (one card), each merged with this screen's newer local copy. */
@@ -209,6 +205,8 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
    setTurn({threadId:created.id,messageId,phase:'sending',state:initialTurn()});
   }
   const thread=target;
+  // R108: a thread on a model no longer listed (a Gemini thread) runs this turn on the default; the claim applies it.
+  const override=thread.model?threadModel(models,thread.model).override:null;
   // D7: a new message cancels the thread's pending proposals (the service records it when the turn begins).
   setProposals(previous=>{const next={...previous};for(const item of itemsRef.current)for(const p of linesOf(item,previous))if(p.state==='pending'&&p.threadId===thread.id)next[p.id]={...p,state:'cancelled'};return next});
   setDrafts(previous=>({...previous,[NEW]:'',[thread.id]:''}));
@@ -218,13 +216,14 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
    state=applyTurnEvent(state,name,data);if(controller.signal.aborted)return;
    setTurn(current=>current&&current.messageId===messageId?{...current,phase:'streaming',state}:current);
    if(name==='accepted'&&state.seq!==null){const seq=state.seq;setItems(previous=>previous.map(item=>item.id===messageId?{...item,seq}:item))}
+   if(name==='accepted'&&override){setThread(current=>current?.id===thread.id?{...current,model:override}:current);setThreads(previous=>previous.map(row=>row.id===thread.id?{...row,model:override}:row))}
    if(name==='delta')scrollToEnd(false);
   };
   // Batch 2c: while this turn runs (stream, then the outcome poll), hiding the app marks it so the reply is pushed.
   const presence=turnPresence(accessRef.current,thread.id,messageId,controller.signal);
   try{
    try{
-    const result=await streamTurn(accessRef.current,thread.id,{id:messageId,text},update,{signal:controller.signal,presence});
+    const result=await streamTurn(accessRef.current,thread.id,{id:messageId,text,...(override?{model:override}:{})},update,{signal:controller.signal,presence});
     if(controller.signal.aborted)return;
     if(result.kind==='completed'){finish(messageId,result.user,result.assistant);return}
     if(state.message){finish(messageId,null,state.message);return}
@@ -283,7 +282,9 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
 
  const key=thread?.id??NEW,draft=drafts[key]??'';
  // A thread opened from a notification before the list arrived has no model yet (''): show the default meanwhile.
- const currentModel=thread?.model||newModel||defaultModel(models);
+ // R108: a thread whose model is no longer listed (a Gemini thread) shows the default, which its next turn carries.
+ const resolved=thread?.model?threadModel(models,thread.model):null;
+ const currentModel=resolved?.model||newModel||defaultModel(models);
  const modelOptions=models?.models??[];
  // The answering model under each reply: its label, or the raw id for a model no longer listed.
  const modelLabel=(id:string)=>modelOptions.find(model=>model.id===id)?.label??id;
@@ -304,7 +305,7 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
   if(cardsShown.current.has(lines[0].id))return;cardsShown.current.add(lines[0].id);scrollToEnd(true);
  },[items]);
  useEffect(()=>{if(!ticking)return;const timer=setInterval(()=>setTick(tick=>tick+1),1000);return()=>clearInterval(timer)},[ticking]);
- const composerNote=!online?t('You are offline. Connect to send a message.','ขณะนี้ออฟไลน์ เชื่อมต่ออินเทอร์เน็ตเพื่อส่งข้อความ'):readOnly?t('This thread is archived. Unarchive it to continue.','แชทนี้เก็บถาวรแล้ว เลิกเก็บถาวรเพื่อคุยต่อ'):modelNote?t('Applies to your next message','ใช้กับข้อความถัดไป'):null;
+ const composerNote=!online?t('You are offline. Connect to send a message.','ขณะนี้ออฟไลน์ เชื่อมต่ออินเทอร์เน็ตเพื่อส่งข้อความ'):readOnly?t('This thread is archived. Unarchive it to continue.','แชทนี้เก็บถาวรแล้ว เลิกเก็บถาวรเพื่อคุยต่อ'):modelNote?t('Applies to your next message','ใช้กับข้อความถัดไป'):resolved?.override&&thread?modelFallbackText(thread.model,modelLabel(resolved.override),thai):null;
  const actionDisabled=(action:FailureAction)=>action==='retry'?!!turn||!online||readOnly:action==='edit'?!!turn||readOnly:action==='model'?!models||readOnly:false;
  const empty=!itemsBusy&&!itemsError&&items.length===0&&!activeTurn;
  return <section className="chat-workspace" data-sheet={sheet?'open':undefined} aria-label={t('Chat','แชท')}>
