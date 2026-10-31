@@ -195,8 +195,8 @@ resource "google_cloud_run_v2_service" "chat_api" {
       args    = ["services/chat/server.mjs"]
       resources {
         limits = { cpu = "1", memory = "512Mi" }
-        # Instance-based CPU: a turn keeps running and is journaled after the client drops the stream.
-        cpu_idle          = false
+        # R107: request-based CPU (billed only while serving); the post-commit wake no longer relies on CPU after the response.
+        cpu_idle          = true
         startup_cpu_boost = true
       }
       dynamic "env" {

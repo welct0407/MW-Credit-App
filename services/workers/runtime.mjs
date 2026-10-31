@@ -27,7 +27,8 @@ export async function createWorkerRuntime(env,dependencies){
   // R090 batch 2: a dispatch wake that arrives while a dispatch runs is not lost: it is queued (202) and the running
   // dispatch runs once more for it, within the later of the two deadlines (and its own request's 110 s cap).
   let active=false,pending=0;
-  const wake=createPostCommitWake(config.dispatch??null,{log:record=>dependencies.log?.(record),...(dependencies.fetch?{fetch:dependencies.fetch}:{})});
+  // R107: the jobs service already runs with request-based CPU, so its wake keeps the full in-request wait (no handoff).
+  const wake=createPostCommitWake(config.dispatch??null,{handoffMs:null,log:record=>dependencies.log?.(record),...(dependencies.fetch?{fetch:dependencies.fetch}:{})});
   const handler=async(req,res)=>{
    if(req.method==='GET'&&req.url==='/health')return respond(res,200,{status:'ok',enabled:true});
    const path=req.url,job=path==='/internal/jobs/daily-charges'?'daily-charges':path==='/internal/jobs/recent-analytics'?'recent-analytics':null;

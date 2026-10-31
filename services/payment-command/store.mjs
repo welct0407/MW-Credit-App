@@ -98,15 +98,16 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       try { client?.release(quarantine); } catch { /* Cleanup must not mask the intended unavailable/unknown outcome. */ }
     }
     // Outside the transaction catch and after releasing its client: a failed hint
-    // must never turn an acknowledged COMMIT into an unknown financial outcome.
-    // The response is sent first; the wake runs in the next check phase without the
-    // response-bound abort signal (res 'close' fires on finish). R090 batch 2: the wake has
-    // the post-commit budget (30 s), not the browser's request deadline or the former 1.5 s
-    // cap: the reply is already sent, and the notify worker enqueues only with 11 s left
-    // after its cold start, so a shorter budget made the wake a no-op.
+    // must never turn an acknowledged COMMIT into an unknown financial outcome; committedResult
+    // is already fixed and the wake cannot change it.
+    // R107: the command service runs with request-based CPU, so the wake is handed off before the
+    // response (CPU is throttled after it) and holds the reply at most HANDOFF_MS (2 s); a slower
+    // wake keeps running to its own deadline. It has the post-commit budget (30 s, R090 batch 2),
+    // not the browser's request deadline, and no response-bound abort signal: the notify worker
+    // enqueues only with 11 s left after its cold start and cancels its pass if its caller hangs up.
     // The minute recovery worker owns any wake that still misses.
     if (!readonly && afterCommit) {
-      setImmediate(() => { Promise.resolve().then(() => afterCommit({deadline: Date.now() + WAKE_MS})).catch(() => { /* Recovery owns a missed wake. */ }); });
+      try { await afterCommit({deadline: Date.now() + WAKE_MS}); } catch { /* Recovery owns a missed wake. */ }
     }
     return committedResult;
   }

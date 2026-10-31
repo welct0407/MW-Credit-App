@@ -25,8 +25,8 @@
   - "PUT /api/notifications/preference"
   - "GET /api/notifications/offline-dataset (DEV and PROD)"
   - "POST /api/notifications/offline-dataset?protocol=3 (DEV/PROD read-only)"
-  "dispatch": "Command service performs authenticated post-commit wake to /internal/dispatch. Wake failure defers to recovery\
-    \ without changing the committed payment result."
+  "dispatch": "Command service performs authenticated post-commit wake to /internal/dispatch, awaited in the request for up to\
+    \ 2 s and then left running (never aborted). Wake failure defers to recovery without changing the committed payment result."
   "schedules":
   - "name": "notifications"
     "cron": "* * * * *"
