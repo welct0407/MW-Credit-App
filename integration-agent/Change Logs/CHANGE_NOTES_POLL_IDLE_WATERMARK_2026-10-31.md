@@ -15,16 +15,24 @@ Owner request of 31 October 2026 ("review the cloud sql db size … is the size 
 | `PYTHONPATH=src python3 -m unittest tests.test_conversation_poll` (in `integration-agent/`) | 30 OK; the two new idle tests fail on the previous code |
 | `PYTHONPATH=src python3 -m unittest discover -s tests` | 570 run; 22 errors (database-driver imports, no locked venv in the cloud session) and the `test_server` startup failure, the same as on `HEAD` without the change; CI runs the full suite |
 | `ruff check --no-cache` on the two changed files | Clean |
+| Pull request [#198](https://github.com/welct0407/MW-Credit-App/pull/198) on `69d0868` | `Development checks result` success (stages reused), Agent tests `test` and `lab` success; merged as `232a4bc` |
+
+## Deployment
+| Item | Value |
+| --- | --- |
+| Target | `vm-mw-credit-agent`, project `clever-oasis-508610-n7`; checkout updated by `update-from-github.sh` to `232a4bc` |
+| Dry run | Only `conversation_poll.py` changed; units unchanged; agent schema shipped and applied through V11, no gap or drift (temporary root-only operator connection file, `codex-cloud` IAM user with a one-hour token, removed after the deploy) |
+| `deploy-runtime.py` | Freeze 19:01:59Z (rollback `/var/lib/mw-integration-agent/rollback/runtime-20261031T190159822784Z`, metadata sha256 `890b233f…e939`); install 19:02:06Z to 19:02:11Z (no file removed, no unit changed); activate 19:02:11Z to 19:02:16Z, probe `4eae82c7-c741-4812-9e42-cbe00f7a5658`, six timers and path units resumed |
+| After the deploy | First poll run 19:02:37Z; readback below |
 
 ## Not run
 - The PostgreSQL lab suites (no locked venv in the cloud session): the change only skips one journal statement, no SQL or translation changed; CI's Agent tests cover them.
 
 ## Recovery
-Revert the commit and redeploy the previous package with `deploy-runtime.py rollback`. No schema, configuration or data change; existing watermarks stay valid for either version.
+`sudo python3 integration-agent/scripts/deploy-runtime.py rollback --commit 232a4bcefc3ee34073f5eed91cbd3f0e8d6ed714` restores the freeze above (package `49f6044`); then revert the merge commit. No schema, configuration or data change; existing watermarks stay valid for either version.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Deploy the merged commit to `vm-mw-credit-agent` and record it here and in the environment inventory.
 - After a week, confirm the daily `audit-retention` deletions and `mw_agent` live rows fell to roughly a tenth.
