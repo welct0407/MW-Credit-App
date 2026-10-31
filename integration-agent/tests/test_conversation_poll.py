@@ -56,6 +56,43 @@ class PollTests(unittest.TestCase):
         self.assertEqual(self.j.db.execute('SELECT checked_through FROM conversation_poll_state').fetchone()[0],self.now+10000)
         self.assertEqual(scan(self.c,api,self.master,self.j,self.now,day='2026-09-21')['image_jobs'],0)
         with self.assertRaises(ConfigurationError):scan(self.c,api,self.master,self.j,self.now,day='2026-09-20')
+    def cursor(self):
+        return self.j.db.execute('SELECT checked_through FROM conversation_poll_state').fetchone()[0]
+
+    def test_idle_group_keeps_cursor_and_still_captures_later_messages(self):
+        api=self.api([self.message()])
+        scan(self.c,api,self.master,self.j,self.now)
+        self.assertEqual(self.cursor(),self.now)
+        # Idle rescans (the same message is re-read and deduped) write nothing.
+        writes=[]
+        self.j.db.set_trace_callback(lambda s:writes.append(s) if 'conversation_poll_state' in s and 'INSERT' in s.upper() else None)
+        for later in (60,3600,86400):
+            self.assertEqual(scan(self.c,api,self.master,self.j,self.now+later)['new_messages'],0)
+        self.j.db.set_trace_callback(None)
+        self.assertEqual(writes,[]);self.assertEqual(self.cursor(),self.now)
+        # A day later the old cursor still bounds the read and a new message is captured once, then advances it.
+        late=self.now+86400
+        api=self.api([self.message('next',time='2026-09-22T00:59:00+00:00'),self.message()])
+        self.assertEqual(scan(self.c,api,self.master,self.j,late)['image_jobs'],1)
+        self.assertEqual(self.cursor(),late)
+        self.assertEqual(scan(self.c,api,self.master,self.j,late+60)['image_jobs'],0)
+
+    def test_empty_group_records_cursor_once(self):
+        scan(self.c,self.api([]),self.master,self.j,self.now)
+        scan(self.c,self.api([]),self.master,self.j,self.now+600)
+        self.assertEqual(self.cursor(),self.now)
+
+    def test_full_first_page_of_known_messages_advances_cursor(self):
+        # A today backfill captures messages without moving the cursor; once the known window fills the first
+        # page, the next scheduled scan moves the cursor so later reads stay one page.
+        scan(self.c,self.api([]),self.master,self.j,self.now-3000)
+        known=[self.message(f'k{i}',time=f'2026-09-21T00:{58-i:02d}:00+00:00') for i in range(20)]
+        scan(self.c,self.api(known),self.master,self.j,self.now,day='2026-09-21')
+        self.assertEqual(self.cursor(),self.now-3000)
+        known.append(self.message('old',time='2026-09-20T23:00:00+00:00'))
+        self.assertEqual(scan(self.c,self.api(known),self.master,self.j,self.now)['new_messages'],0)
+        self.assertEqual(self.cursor(),self.now)
+
     def test_pagination_cycle_rejected(self):
         api=Mock(request=Mock(return_value={'data':[],'paging':{'next':'unused','cursors':{'after':'a'}}}))
         with self.assertRaises(ConfigurationError):list(pages(api,'999/conversations',{}))
