@@ -195,7 +195,12 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
                   (id,message_id,sender_id,url,status,created_at,result,source) VALUES (?,?,?,?,'PENDING',?,?,?)''',
                   (key,message['id'],sender,url,now,forwarding_evidence,
                    source('poll',message['id'],index,sender,ts,now,cid,item.get('id')))).rowcount
-        if not day:db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(cid,now))
+        # Every cursor write is a journal PROCESS audit row and makes the run effectful (no lazy heartbeat), so an
+        # idle group keeps its cursor: everything newer than it was captured by the run that wrote it, and the
+        # re-read overlap is deduped by message id. Advance on a new message, a first sight, or a window that no
+        # longer fits the first page (for example after a today backfill, which never moves the cursor).
+        if not day and (added or prior is None or len(found)>=FIRST_PAGE_MESSAGES):
+            db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(cid,now))
     return added,images,True
 
 
