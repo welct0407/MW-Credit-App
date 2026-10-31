@@ -278,7 +278,9 @@ test('R108: a thread on an unlisted model falls back to the default, notes it an
   s.threads[0]={...s.threads[0],model:'gemini-gone'};
   await openChat(page);
   const picker=page.getByRole('combobox',{name:'Model',exact:true});
-  await expect(picker).toHaveValue('gemini-a');await expect(page.getByText('Applies to your next message',{exact:true})).toBeVisible();
+  // UX-R108-01: the fallback note names the model the next message uses (the default's label), not the manual-pick note.
+  await expect(picker).toHaveValue('gemini-a');await expect(page.getByText('Gemini is no longer available. Your next message uses Gemini A.',{exact:true})).toBeVisible();
+  await expect(page.getByText('Applies to your next message',{exact:true})).toHaveCount(0);
   await composer(page).fill('Still there?');await page.getByRole('button',{name:'Send',exact:true}).click();
   await expect.poll(async()=>(await streams(page)).length).toBe(1);
   const [post]=await streams(page);expect(post.body).toEqual({id:expect.stringMatching(/^[0-9a-f-]{36}$/),text:'Still there?',model:'gemini-a'});

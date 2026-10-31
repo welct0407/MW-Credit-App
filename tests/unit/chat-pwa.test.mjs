@@ -8,7 +8,7 @@ import {chatOriginAllowed,liveConfiguration} from '../../apps/pwa/src/environmen
 const load=async file=>import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(readFileSync(new URL('../../apps/pwa/src/chat/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
 const {listedDefault,threadModel,createSseParser,applyTurnEvent,initialTurn,classifyOutcome,pollOutcome,isProposal,proposalView,mergeProposal,pollProposal,PROPOSAL_POLL_MS,PROPOSAL_POLL_LIMIT_MS,groupState,groupView,isGroup,pollGroup,seenThrough}=await load('chat-protocol.ts');
 const {parseMarkdown,parseInline,tableCells}=await load('markdown.ts');
-const {failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText,armHintText}=await load('chat-text.ts');
+const {modelFallbackText,failureText,failureAction,failureActionLabel,metaLine,progressText,sourcesText,threadTitle,relativeTime,proposalCodeText,proposalStateText,proposalCountdown,consequenceText,proposalUnresolvedText,confirmText,savedAtText,proposalButtons,lineChipText,groupConfirmText,unchangedText,groupProgressText,groupSummaryText,destructiveKind,destructiveCounts,destructiveTagText,destructiveWarningText,armHintText}=await load('chat-text.ts');
 const sse=(chunks,end=true)=>{const events=[];const parser=createSseParser((name,data)=>events.push([name,data]));for(const chunk of chunks)parser.push(chunk);if(end)parser.end();return events};
 
 test('SSE parser reads events across chunk boundaries, CRLF, multi-line data and pings',()=>{
@@ -291,7 +291,12 @@ test('R108: a thread on an unlisted model falls back to the default, which its n
  assert.match(source,/const override=thread\.model\?threadModel\(models,thread\.model\)\.override:null;/);
  assert.match(source,/streamTurn\(accessRef\.current,thread\.id,\{id:messageId,text,\.\.\.\(override\?\{model:override\}:\{\}\)\}/);
  assert.match(source,/const currentModel=resolved\?\.model\|\|newModel\|\|defaultModel\(models\);/);
- assert.match(source,/modelNote\|\|resolved\?\.override\?t\('Applies to your next message'/);
+ // UX-R108-01: a manual pick keeps "Applies to your next message"; the fallback alone names the model it now uses.
+ assert.match(source,/modelNote\?t\('Applies to your next message','ใช้กับข้อความถัดไป'\):resolved\?\.override&&thread\?modelFallbackText\(thread\.model,modelLabel\(resolved\.override\),thai\):null;/);
+ assert.equal(modelFallbackText('gemini-3.5-flash','Claude Opus 5.5',false),'Gemini is no longer available. Your next message uses Claude Opus 5.5.');
+ assert.equal(modelFallbackText('gemini-3.5-flash','Claude Opus 5.5',true),'Gemini ไม่มีให้ใช้แล้ว ข้อความถัดไปจะใช้ Claude Opus 5.5');
+ assert.equal(modelFallbackText('claude-opus-4','Claude Opus 5.5',false),'This model is no longer available. Your next message uses Claude Opus 5.5.');
+ assert.equal(modelFallbackText('claude-opus-4','Claude Opus 5.5',true),'โมเดลนี้ไม่มีให้ใช้แล้ว ข้อความถัดไปจะใช้ Claude Opus 5.5');
  // The thread list badge shows the model's label when listed, the raw id otherwise.
  assert.match(readFileSync(new URL('../../apps/pwa/src/chat/ChatThreads.tsx',import.meta.url),'utf8'),/const modelLabel=\(id:string\)=>models\.find\(model=>model\.id===id\)\?\.label\?\?id;[\s\S]*chat-model-badge">\{modelLabel\(thread\.model\)\}/);
 });

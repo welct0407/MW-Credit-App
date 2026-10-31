@@ -9,7 +9,7 @@ import {ChatComposer} from './ChatComposer';
 import {applyTurnEvent,initialTurn,listedDefault,mergeProposal,threadModel,type ChatMessage,type ChatProposal,type TurnState} from './chat-protocol';
 import {ChatProposalCard,type ProposalRecord} from './ChatProposalCard';
 import {ChatAccessError,ChatHttpError,createThread,getThread,listMessages,listModels,listThreads,streamTurn,turnPresence,updateThread,waitForOutcome,whenVisible,type ChatAccess,type ChatModels,type ChatThread,type Page} from './chat-client';
-import {EXAMPLES,failureText,progressText,threadTitle,type FailureAction} from './chat-text';
+import {EXAMPLES,failureText,modelFallbackText,progressText,threadTitle,type FailureAction} from './chat-text';
 
 // R090 chat screen (design §6.2): thread list (left pane on desktop, a sheet on phones), the conversation and the
 // composer. One turn runs at a time; its SSE events drive the progress row and the provisional text, and a stream
@@ -305,7 +305,7 @@ export function ChatWorkspace({access,thai,onTitle,openRequest=null,onOpenRecord
   if(cardsShown.current.has(lines[0].id))return;cardsShown.current.add(lines[0].id);scrollToEnd(true);
  },[items]);
  useEffect(()=>{if(!ticking)return;const timer=setInterval(()=>setTick(tick=>tick+1),1000);return()=>clearInterval(timer)},[ticking]);
- const composerNote=!online?t('You are offline. Connect to send a message.','ขณะนี้ออฟไลน์ เชื่อมต่ออินเทอร์เน็ตเพื่อส่งข้อความ'):readOnly?t('This thread is archived. Unarchive it to continue.','แชทนี้เก็บถาวรแล้ว เลิกเก็บถาวรเพื่อคุยต่อ'):modelNote||resolved?.override?t('Applies to your next message','ใช้กับข้อความถัดไป'):null;
+ const composerNote=!online?t('You are offline. Connect to send a message.','ขณะนี้ออฟไลน์ เชื่อมต่ออินเทอร์เน็ตเพื่อส่งข้อความ'):readOnly?t('This thread is archived. Unarchive it to continue.','แชทนี้เก็บถาวรแล้ว เลิกเก็บถาวรเพื่อคุยต่อ'):modelNote?t('Applies to your next message','ใช้กับข้อความถัดไป'):resolved?.override&&thread?modelFallbackText(thread.model,modelLabel(resolved.override),thai):null;
  const actionDisabled=(action:FailureAction)=>action==='retry'?!!turn||!online||readOnly:action==='edit'?!!turn||readOnly:action==='model'?!models||readOnly:false;
  const empty=!itemsBusy&&!itemsError&&items.length===0&&!activeTurn;
  return <section className="chat-workspace" data-sheet={sheet?'open':undefined} aria-label={t('Chat','แชท')}>
