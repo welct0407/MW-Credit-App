@@ -83,3 +83,37 @@ Wake failure behaviour is unchanged: a failed or slow wake never changes the com
 - Environment inventory DEV rows are updated for the apply (new R107 row, line 71 and the chat service row); PROD rows stay until the PROD promotion.
 - PROD source batch is written (Forge and Byte, see Production approval). Left: Chase review, push, PR CI, merge, PROD build, runner deploy and verify, the PROD inventory rows and promotion record, and the closure pull request with the `R107` tag.
 - Follow-up: redeploy notify and jobs on an image with the lockfile audit fix in a later release.
+
+## Promotion record (Forge, 31 October 2026, UTC)
+Pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R107 to PROD: read image, command and chat images with `cpu_idle` false to true on command and chat (request-based CPU), and Hosting. No SQL, no VM; notify and jobs unchanged.
+- **Authority:** the owner's instruction "Let's move it to prod too" (31 October 2026), given before the owner's device check and the 48 h billing readback finished (both remain open).
+- **Freeze:** the package is pinned at the PROD build (start 11:40:13Z, 31 October 2026) on `1befbb8` (PR #194 merge on `main`, descends from the R106 tag `e57e77d`); delivery tool: the R107 hand-written kind in `scripts/promotion/deploy-business-hosting.mjs` (schemaVersion 38); baseline R106 `e57e77d`. Next unused number R108.
+
+| Item | Result |
+| --- | --- |
+| Baseline (read-only, before) | read `00031-4fm`, command `00036-xct`, chat `00014-x2z` on `9786f91c…`; notify `00022-4lt`, jobs `00022-42m` on `50953149…`; settings generation `1793384469780863`; Hosting `142a1d8e3cbf1152` (R106 release `1793384580702000`) |
+| SQL | None. V119 readback only (read-only, 11:42:36Z): 119 history rows, latest 119, all successful |
+| Image | Cloud Build `bc1da6f0-2ac9-484d-9750-6660afe6d49a`, SUCCESS 11:40:13Z to 11:40:48Z, PROD builder `mw-credit-app-build-prod`, `cloudbuild-business.yaml`, `git archive` of `1befbb8`, tag `keep-r107-runtime` |
+| Terraform | Plan 0 add, 3 change, 0 destroy (read image; command and chat image and `cpu_idle` false to true), plan sha256 `2b02ec70…`, JSON `3ed72c2b…`; applied 11:43:47Z to 11:44:23Z; re-plan no changes; settings generation `1793447075020076` (previous `1793384469780863`) |
+| Runner | The R107 kind `--check` passed before the apply, citing CI per job: check and terraform run 41197337977 (`75aa6c2`); e2e shards run 41185900531 (`aea6a7c`); guards and rebuilds run 41185896777 (`aea6a7c`). `--apply` 11:45:27Z to 11:46:10Z: live readback passed (`cpu_idle` true on command and chat; notify and jobs pinned on the R091 image) |
+| Hosting | Version `6477338972a89aae`, release `1793447163231000`, 16 files; `lm.mw-credit.com` serves build-version R107 (version `e698dbafba6fa5ad0be3d255`). The R106 frontend was served against the R107 API from 11:44:23Z to 11:46:10Z (the API change is compatible) |
+| Revisions after | read `00032-4rw`, command `00037-qns`, chat `00015-vmr` (cpu-throttling true, image `b45cb7c9…`); notify and jobs unchanged |
+| Smoke (read-only) | `/health` 200 on the three services; `/api/session` 401 on read and command; no ERROR logs from 11:43:47Z to 11:46:51Z. No PROD save, payment or notification was forced |
+| Private records | Receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R107-HOSTING-RECEIPT.json`; package and records under `gs://mw-credit-operator-private-737787224638/promotion-packages/r107/`, outside Git |
+| Rollback | Restore the activation copy `production.activation.before-r107-1793384469780863.tfvars` (images), revert the `cpu_idle` source for command and chat, plan 0/3/0, apply, `-PublishActivation`; the R106 revisions can also take traffic. The runner readback requires true, so a rollback needs a hand-written kind or a manual check. Hosting: redeploy version `142a1d8e3cbf1152` |
+
+Applied and verified. Not owner-accepted: the device check and the billing readback are open.
+
+## Closure (31 October 2026)
+Tag record: the annotated tag `R107` (object `97ec40945549e6f8fbc54f19a17e678d950bd993`) points at the package commit `1befbb87fa4604262d799b13529a954c004c3ff3` (PR #194 on `main`), created by the Release tag workflow (checked with `git ls-remote origin refs/tags/R107`, peeled to the package commit). Baseline R106 `e57e77d`. R108 is opened in this closure and is the next unused number.
+
+Open follow-ups (visible, not blocking Released: DEV proofs passed and the PROD readback is clean):
+- Owner device check: a real-device save push, and chat close-app then `chat.reply` push on the installed PWA.
+- 48 h billing readback, scheduled for about 2026-11-02T09:45Z (DEV started 2026-10-31T09:39:40Z; PROD from the 11:44Z apply): the Cloud Run Instance-based CPU cost of command and chat should fall to request time only.
+- Redeploy notify and jobs in a later release (the lockfile audit fix).
+- Rolling back needs a hand-written kind or a manual check, because the runner readback requires `cpu_idle` true.
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R104_RECORD_PROJECTED_CHARGE_2026-10-28.md` (R104 left the retention window: R108 Open; R107, R106, R105 Released). Its links in the Release tracker (two), Development Changes and the Environment inventory now point to the commit permalink `1befbb8`, the last commit where it exists. No other change note or evidence file is outside the window or uncited.
