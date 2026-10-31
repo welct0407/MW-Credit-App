@@ -49,6 +49,7 @@ Wake failure behaviour is unchanged: a failed or slow wake never changes the com
 | Measured notify wake latency, PROD, 3 days | p50 0.06 s, p90 1.3 s, max 2.6 s |
 | PR `Development checks`, first run on `68bb384` | `check` failed at `npm audit` (new upstream advisories, above); fixed by the lockfile change |
 | Orchestrator after the lockfile fix: `npm audit --omit=dev`, lint, typecheck, `npm test` | Pass: 0 vulnerabilities; lint and typecheck exit 0; 1049 pass, 0 fail, 1 skip |
+| PR `Development checks`, run on `14ef7a8` | `rebuild (phase8)` failed: `r053-worker-http-independent` generated a random VAPID key whose private key can be 31 bytes (about 0.4% of keys, 17 of 4,000 locally), which the worker config rejects. Pre-existing fixture flaw; fixed with the 32-byte loop the unit tests already use |
 | PR `Development checks` | To fill |
 | DEV `terraform apply` (command and chat, new image) | To fill |
 | DEV proof 1: command wake with the app closed | To fill |
