@@ -20,6 +20,8 @@ Implemented (one writer per path):
 - Forge, `infrastructure/dev/command-service.tf` and `chat-service.tf`: `cpu_idle=true`; DEV tftests updated. DEV plan 0 add, 2 change, 0 destroy saved, not applied (apply after the PR CI passes, carrying the new image).
 - Dewey, records: this note, `docs/Development.md` (service description), the Release tracker R107 scope line, the notifications-jobs dictionary dispatch text.
 
+Dependency fix (orchestrator, CI `check` failed on `npm audit --omit=dev`, new moderate advisories GHSA-3g3m-2fjr-6pw4 glob and GHSA-g3hv-75wg-m249 minimatch, not caused by this diff): `npm audit fix` changed `package-lock.json` only. `google-gax` 5.0.8 to 5.0.4 and its `gcp-metadata` 8.1.4 to 8.1.2 (both inside `@google-cloud/sql`'s range, under `@google-cloud/cloud-sql-connector`), which drops the `rimraf`/`glob`/`minimatch` chain; production audit 0 vulnerabilities.
+
 Wake failure behaviour is unchanged: a failed or slow wake never changes the committed payment result; the notifications schedule (every minute) recovers it.
 
 ## Test plan
@@ -45,6 +47,8 @@ Wake failure behaviour is unchanged: a failed or slow wake never changes the com
 | Chase: `git diff --check` | Pass |
 | Chase: adversarial review | 5/5 pass, 0 defects, 3 notes: N1 fixed (chat wake wording); N2 throttling risk, covered by the DEV proofs; N3 PROD follow-ups (listed under Remaining work) |
 | Measured notify wake latency, PROD, 3 days | p50 0.06 s, p90 1.3 s, max 2.6 s |
+| PR `Development checks`, first run on `68bb384` | `check` failed at `npm audit` (new upstream advisories, above); fixed by the lockfile change |
+| Orchestrator after the lockfile fix: `npm audit --omit=dev`, lint, typecheck, `npm test` | Pass: 0 vulnerabilities; lint and typecheck exit 0; 1049 pass, 0 fail, 1 skip |
 | PR `Development checks` | To fill |
 | DEV `terraform apply` (command and chat, new image) | To fill |
 | DEV proof 1: command wake with the app closed | To fill |
