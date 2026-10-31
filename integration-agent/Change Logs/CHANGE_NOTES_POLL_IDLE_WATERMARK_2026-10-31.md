@@ -23,7 +23,7 @@ Owner request of 31 October 2026 ("review the cloud sql db size … is the size 
 | Target | `vm-mw-credit-agent`, project `clever-oasis-508610-n7`; checkout updated by `update-from-github.sh` to `232a4bc` |
 | Dry run | Only `conversation_poll.py` changed; units unchanged; agent schema shipped and applied through V11, no gap or drift (temporary root-only operator connection file, `codex-cloud` IAM user with a one-hour token, removed after the deploy) |
 | `deploy-runtime.py` | Freeze 19:01:59Z (rollback `/var/lib/mw-integration-agent/rollback/runtime-20261031T190159822784Z`, metadata sha256 `890b233f…e939`); install 19:02:06Z to 19:02:11Z (no file removed, no unit changed); activate 19:02:11Z to 19:02:16Z, probe `4eae82c7-c741-4812-9e42-cbe00f7a5658`, six timers and path units resumed |
-| After the deploy | First poll run 19:02:37Z; readback below |
+| After the deploy | First poll run 19:02:37Z. Readback 19:07:53Z (`codex-cloud-read`): 5 poll runs in the 6 minutes before activation wrote 125 `journal PROCESS` operations; 5 runs after it wrote none (each run now writes its JOB and the Instagram READ only, 2 operations instead of 27). Heartbeats `conversation-poll` and `receipt-cycle` report `code_version` `232a4bc` |
 
 ## Not run
 - The PostgreSQL lab suites (no locked venv in the cloud session): the change only skips one journal statement, no SQL or translation changed; CI's Agent tests cover them.
