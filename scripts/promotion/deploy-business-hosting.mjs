@@ -767,6 +767,8 @@ const r102Baseline='10d543d16cd83e6baeaf480edd03719160b8588d';
 const r104Baseline='f5766653139155c2bf53372bd408e51e85732cfa';
 // R106 baseline: cf01602, the R105 release (tag R105; the source PROD runs at 117); R106 adds V118 and V119 (PROD 117 to 119).
 const r106Baseline='cf0160229829ec3caf02bbbfd307d226c4b5d1b3';
+// R107 baseline: e57e77d, the R106 release (tag R106, peeled; the source PROD runs at 119); R107 adds no migration.
+const r107Baseline='e57e77d764cdd3c4a9e21dd71d342e7628adb423';
 const sqlRuntimeReleases={
  R078:{schemaVersion:20,baseline:r077Release,baselineLabel:'R077',migrations:['V97__pwa_row_changes.sql'],sqlBaseline:96,sqlTarget:97,
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py']},
@@ -807,6 +809,11 @@ const sqlRuntimeReleases={
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py','database/README.md'],
   hashes:{'V118__chat_proposals.sql':'07d0ba6c5bd243789fac278bf15b0b1e50b5139282a30945af1dbe62a8497f49','V119__chat_proposal_groups.sql':'a55e4fc948ebc726b6e75d67f646af7a0766559aaa77c459047f0c31256ac25c'},
   infrastructure:['infrastructure/production/READINESS_INVENTORY.md','infrastructure/production/README.md','infrastructure/production/chat-service.tf','infrastructure/production/tests/chat-service.tftest.hcl']},
+ // R107 (request-based CPU for command and chat): no migration (a read-only V119 readback) and exactly these
+ // infrastructure/production files (cpu_idle true on command in runtime.tf and on chat in chat-service.tf, with their tests).
+ R107:{schemaVersion:38,baseline:r107Baseline,baselineLabel:'R106',migrations:[],sqlBaseline:119,sqlTarget:119,
+  delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py'],
+  infrastructure:['infrastructure/production/chat-service.tf','infrastructure/production/runtime.tf','infrastructure/production/tests/chat-service.tftest.hcl','infrastructure/production/tests/inert.tftest.hcl']},
 };
 const sqlRuntimeDeliveryAllowed=L=>file=>runtimeDeliveryAllowed(file)||sqlRuntimeReleases[L].delivery.includes(file);
 function validateSqlRuntimeSource(m,git,L){
@@ -912,6 +919,9 @@ export async function validateR090Sql(m,git=sourceGit){return validateSqlRuntime
 // R104 changes the three images only after V116 and V117; the chat configuration stays R102's and is read back with the R102 check.
 // R106 changes the same three images after V118 and V119 and adds CHAT_COMMAND_URL on chat; its plan JSON is read back
 // (`readPlan`) and its live readback is R102's plus the command URL on chat only (`liveChat: 'r106'`).
+// R107 changes the read, command and chat images with no migration (`noSql`; notify and jobs stay on their pins) and moves
+// command and chat to request-based CPU (cpu_idle true); its plan JSON is read back (`readPlan`) and its live readback is
+// R106's with command and chat cpuIdle exactly true (`requestCpu`).
 const chatRuntimeKinds={
  R090:{counts:{add:10,change:4,destroy:0},actions:()=>R090_PLAN_ACTIONS,planLabel:'reviewed chat and four-service plan required',recoveryRoles:runtimeRoles,recoveryLabel:'recovery pins exactly the four existing services',newRoles:['chat'],imageFirst:false},
  R091:{counts:{add:0,change:5,destroy:0},actions:()=>R091_PLAN_ACTIONS,planLabel:'reviewed five-service plan required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],imageFirst:true},
@@ -923,6 +933,7 @@ const chatRuntimeKinds={
  R102:{counts:{add:0,change:3,destroy:0},actions:()=>R102_PLAN_ACTIONS,planLabel:'reviewed read and command image, chat image, models, relay and VPC plan required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['read','command','chat'],imageFirst:false,liveChat:'r102'},
  R104:{counts:{add:0,change:3,destroy:0},actions:()=>R104_PLAN_ACTIONS,planLabel:'reviewed read, command and chat image plan required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['read','command','chat'],imageFirst:false,liveChat:'r102'},
  R106:{counts:{add:0,change:3,destroy:0},actions:()=>R106_PLAN_ACTIONS,planLabel:'reviewed read, command and chat image plan with CHAT_COMMAND_URL on chat required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['read','command','chat'],imageFirst:false,liveChat:'r106',readPlan:(m,L)=>readR106Plan(m,L)},
+ R107:{counts:{add:0,change:3,destroy:0},actions:()=>R107_PLAN_ACTIONS,planLabel:'reviewed read, command and chat image plan with request-based CPU on command and chat required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['read','command','chat'],imageFirst:false,noSql:true,liveChat:'r106',requestCpu:true,readPlan:(m,L)=>readR107Plan(m,L)},
 };
 async function chatRuntimeHostingPlan(m,{requireApplied,git},L){
  const rule=sqlRuntimeReleases[L],kind=chatRuntimeKinds[L],roles=[...runtimeRoles,'chat'];
@@ -957,22 +968,25 @@ export async function r090HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
 // revision, 300 s timeout, cpu_idle false, dispatch wake, three Gemini models with maxRounds 16). Returns the five live
 // service documents for release-specific checks.
 // The generic kind passes its delivery allow-list and the current (R102) chat rule.
-async function verifyChatRuntimeLive(m,options,L,{allowed,liveChat=chatRuntimeKinds[L]?.liveChat}={}){
+// `requestCpu` (R107 onwards: the R107 kind and the generic kind): command and chat run with request-based CPU, so their
+// cpuIdle must be exactly true; an absent (false) or explicit false value is refused.
+async function verifyChatRuntimeLive(m,options,L,{allowed,liveChat=chatRuntimeKinds[L]?.liveChat,requestCpu=chatRuntimeKinds[L]?.requestCpu===true}={}){
  const {token,request=fetch}=options;
  await verifySqlRuntimeLivePackage(m,options,L,...(allowed?[allowed]:[]));
  const get=async role=>{const r=await request(`https://run.googleapis.com/v2/projects/${project}/locations/asia-southeast1/services/mw-credit-app-${role}-prod`,{redirect:'error',headers:{Authorization:'Bearer '+token}});requireValue(r.ok,'live package readback failed');return r.json();};
  const live={};for(const role of [...runtimeRoles,'chat'])live[role]=await get(role);
  const envOf=s=>Object.fromEntries((s.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value]));
  const dispatch=env=>Object.entries(R090_DISPATCH).every(([name,value])=>env[name]===value);
- // The v2 API omits a false boolean (proto3 JSON): an absent cpuIdle is false; only an explicit true is refused.
- requireValue(live.command.template?.containers?.[0]?.resources?.cpuIdle!==true,L+' live command cpu_idle must be false');
+ // The v2 API omits a false boolean (proto3 JSON): an absent cpuIdle is false. Before R107 only an explicit true is refused.
+ const cpuIdle=s=>s.template?.containers?.[0]?.resources?.cpuIdle===true;
+ requireValue(cpuIdle(live.command)===requestCpu,L+' live command cpu_idle must be '+requestCpu);
  requireValue(dispatch(envOf(live.jobs)),L+' live jobs dispatch wake drift');
  let subjects;try{subjects=JSON.parse(envOf(live.notify).WORKER_CALLER_SUBJECTS_JSON);}catch{subjects=null;}
  requireValue(plainObject(subjects)&&[`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`,`mw-credit-app-jobs-prod@${project}.iam.gserviceaccount.com`].every(email=>/^[0-9]{10,30}$/.test(subjects[email]??'')),L+' live notify callers must include chat and jobs');
  const s=live.chat,env=envOf(s),expected=m.applied.services.chat;
  requireValue(s.name===`projects/${project}/locations/asia-southeast1/services/mw-credit-app-chat-prod`&&s.template?.serviceAccount===`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`&&s.template.containers?.[0]?.image===expected.image&&s.latestReadyRevision?.endsWith('/'+expected.revision)&&s.terminalCondition?.state==='CONDITION_SUCCEEDED'&&s.trafficStatuses?.length===1&&s.trafficStatuses[0].percent===100&&s.trafficStatuses[0].revision===expected.revision,L+' live chat revision/identity drift');
  requireValue(env.DB_NAME==='loan_manager_prod'&&env.INSTANCE_CONNECTION_NAME===m.target.connectionName&&env.DB_USER===`mw-credit-app-chat-prod@${project}.iam`,L+' live chat database binding drift');
- requireValue(s.template.timeout==='300s'&&s.template.containers[0].resources?.cpuIdle!==true,L+' live chat timeout 300s and cpu_idle false required');
+ requireValue(s.template.timeout==='300s'&&cpuIdle(s)===requestCpu,L+' live chat timeout 300s and cpu_idle '+requestCpu+' required');
  requireValue(dispatch(env),L+' live chat dispatch wake drift');
  let models;try{models=JSON.parse(env.CHAT_MODELS_JSON);}catch{models=null;}
  if(liveChat==='r102'||liveChat==='r106'){verifyR102LiveChat(live,env,models,L);if(liveChat==='r106')verifyR106LiveCommandUrl(live,env,L);return live;}
@@ -1155,6 +1169,43 @@ export async function r106HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
 /** Live: as R104 (the R102 chat check) plus CHAT_COMMAND_URL on chat only. */
 export async function verifyR106LivePackage(m,options={}){await verifyChatRuntimeLive(m,options,'R106');}
 
+// R107 (request-based CPU for the command and chat services; the post-commit notification wake is handed off before the
+// reply, at most 2 s): no migration (a read-only V119 readback), then new read, command and chat images
+// (runtime_image_overrides); notify and jobs stay on their pinned image and revision (business_image unchanged; the jobs
+// wake keeps its full in-request wait, as the R106 image already does). The source descends from the R106 release
+// e57e77d and carries no migration and exactly four infrastructure/production files (runtime.tf and chat-service.tf with
+// their tests). Plan {add:0, change:3, destroy:0}: the three images and, on command and chat, cpu_idle false to true; the
+// saved plan's JSON export is read back and anything else is refused. Live readback as R106 (the R102 chat check and
+// CHAT_COMMAND_URL on chat only) with command and chat cpuIdle exactly true. The artifact carries the R107 marker and the
+// R090 chat origin.
+// The plan labels are Forge's reading of the reviewed saved PROD plan; edit them here only.
+export const R107_PLAN_ACTIONS=Object.freeze(['read.image','command.image','command.cpuIdle','chat.image','chat.cpuIdle']);
+const R107_ROLES=['read','command','chat'],R107_CPU_ROLES=['command','chat'],R107_IMAGE='template.0.containers.0.image',R107_CPU_IDLE='template.0.containers.0.resources.0.cpu_idle';
+/** The R107 plan, read back from its JSON export: read, command and chat updated in place, once each; each changes its
+ * image only, and command and chat also change cpu_idle from false to true. */
+async function readR107Plan(m,L){
+ const json=await readPlanExport(m,L),seen=new Set();
+ for(const rc of json.resource_changes){
+  const actions=rc?.change?.actions;
+  if(exact(actions,['no-op'])||exact(actions,['read']))continue;
+  const role=/^mw-credit-app-(read|command|notify|jobs|chat)-prod$/.exec(rc?.change?.after?.name??'')?.[1];
+  requireValue(rc.type==='google_cloud_run_v2_service'&&exact(actions,['update'])&&R107_ROLES.includes(role)&&rc.change.before?.name===rc.change.after.name&&!seen.has(role),L+' plan may update only the read, command and chat services, once each: '+(rc?.address??'unknown resource'));
+  seen.add(role);
+  const {before,after,after_unknown:unknown}=rc.change,diffs=planDiffs(before,after,unknown).sort(),cpu=R107_CPU_ROLES.includes(role);
+  // planDiffs skips a subtree Terraform marks unknown, so the container (its env and resources, any part) must be known.
+  const t=unknown?.template,c=t?.[0]?.containers?.[0];
+  requireValue(![t,t?.[0],t?.[0]?.containers,c].includes(true)&&!anyTrue(c?.env)&&!anyTrue(c?.resources),L+' plan env or resources unknown on '+role);
+  requireValue(exact(diffs,cpu?[R107_IMAGE,R107_CPU_IDLE].sort():[R107_IMAGE]),L+' plan may change only the image (and cpu_idle on command and chat): '+rc.address+' changes '+(diffs.join(', ')||'nothing'));
+  if(cpu){const resources=x=>x?.template?.[0]?.containers?.[0]?.resources?.[0];requireValue(resources(before)?.cpu_idle===false&&resources(after)?.cpu_idle===true,L+' plan must move '+role+' cpu_idle from false to true');}
+ }
+ requireValue(R107_ROLES.every(role=>seen.has(role)),L+' plan JSON must change read, command and chat (it changes '+([...seen].join(', ')||'nothing')+')');
+}
+export function validateR107Source(m,git=sourceGit){return validateSqlRuntimeSource(m,git,'R107');}
+export async function validateR107Sql(m,git=sourceGit){return validateSqlRuntimeSql(m,git,'R107');}
+export async function r107HostingPlan(m,{requireApplied=true,git=sourceGit}={}){return chatRuntimeHostingPlan(m,{requireApplied,git},'R107');}
+/** Live: as R106 (the R102 chat check and CHAT_COMMAND_URL on chat only) with command and chat cpuIdle exactly true. */
+export async function verifyR107LivePackage(m,options={}){await verifyChatRuntimeLive(m,options,'R107');}
+
 /** Verify the supplied token itself and a signed, audience-bound impersonation proof. */
 export async function verifyAppOnlyOperator({token,impersonationToken=token,release='R059',request=fetch,verifyIdToken=async(idToken,audience)=>(await new OAuth2Client().verifyIdToken({idToken,audience})).getPayload()}){
  requireValue(typeof token==='string'&&token.length>0,'operator token required');
@@ -1162,7 +1213,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095','R096','R097','R100','R101','R102','R103','R104','R106'].includes(release)||genericRelease(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095','R096','R097','R100','R101','R102','R103','R104','R106','R107'].includes(release)||genericRelease(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }
@@ -1425,7 +1476,8 @@ export async function genericHostingPlan(m,{requireApplied=true,git=sourceGit}={
 /** Live: the chat-era readback with the current (R102) chat check; a frontend-only package re-reads CI and the five pins. */
 export async function verifyGenericLivePackage(m,options={}){
  const L=m.release;
- if(m.scope!=='frontend-only'){await verifyChatRuntimeLive(m,options,L,{allowed:genericDeliveryAllowed,liveChat:'r102'});return;}
+ // R107 moved command and chat to request-based CPU; the generic kind cannot change that (no infrastructure changes).
+ if(m.scope!=='frontend-only'){await verifyChatRuntimeLive(m,options,L,{allowed:genericDeliveryAllowed,liveChat:'r102',requestCpu:true});return;}
  const {token,request=fetch,readGithub,git=sourceGit}=options;
  const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
  await verifyPerJobCiLive(m,gh,git,L,genericDeliveryAllowed);
@@ -1445,6 +1497,7 @@ export async function verifyGenericLivePackage(m,options={}){
 // verifier (the R104 apply was refused because the old if-chain had no R104 live branch). R061 and R059 keep the default
 // operator audience (R059); a package no row matches is the legacy business package.
 export const HOSTING_KINDS=Object.freeze([
+ {kind:'R107',match:i=>i.schemaVersion===38&&i.release==='R107',plan:(i,o)=>r107HostingPlan(i,o),operatorRelease:()=>'R107',live:(i,o)=>verifyR107LivePackage(i,o)},
  {kind:'R106',match:i=>i.schemaVersion===37&&i.release==='R106',plan:(i,o)=>r106HostingPlan(i,o),operatorRelease:()=>'R106',live:(i,o)=>verifyR106LivePackage(i,o)},
  {kind:'R104',match:i=>i.schemaVersion===35&&i.release==='R104',plan:(i,o)=>r104HostingPlan(i,o),operatorRelease:()=>'R104',live:(i,o)=>verifyR104LivePackage(i,o)},
  {kind:'R102',match:i=>i.schemaVersion===33&&i.release==='R102',plan:(i,o)=>r102HostingPlan(i,o),operatorRelease:()=>'R102',live:(i,o)=>verifyR102LivePackage(i,o)},

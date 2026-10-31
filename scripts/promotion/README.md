@@ -30,7 +30,7 @@ From R105 a release needs no runner edit when it fits this kind. The package is 
 - the plan, read back from the files: the saved plan must still hash to `plan.sha256` and the JSON export to `plan.jsonSha256`. Every resource change other than a no-op or a data read must be an in-place update of a `mw-credit-app-<role>-prod` Cloud Run service whose only configured difference is the container image (attributes Terraform marks unknown are ignored); anything else is refused (`generic plan may change images only`). The services it changes must be exactly the changed services, and `plan.actions` and `plan.counts` must say the same (`{add:0, change:n, destroy:0}`, `.image` actions in the order read, command, notify, jobs, chat);
 - the order: SQL first, then the images (`applied.sqlVersion` is the target; `appliedAt` no earlier than the SQL apply or, without a migration, the readback); unchanged services must read back on their pinned image and revision;
 - a frontend-only package may change no runtime input and no migration;
-- the live readback: the chat-era checks with the current (R102) chat rule, and unchanged services on their pins. The operator audience is `https://lm.mw-credit.com/promotion/rnnn`.
+- the live readback: the chat-era checks with the current (R102) chat rule, command and chat `cpuIdle` exactly `true` (request-based CPU since R107; an absent or `false` value is refused), and unchanged services on their pins. A later generic release therefore requires `cpu_idle = true` on command and chat: if PROD is ever rolled back to `cpu_idle = false`, the generic live readback fails by design, and that rollback needs a hand-written kind. The operator audience is `https://lm.mw-credit.com/promotion/rnnn`.
 
 **Still needs a hand-written kind (a code edit):** a new service or role; a Terraform action other than an image (environment, scaling, IAM, VPC, a new resource) or any change under `infrastructure/production` or `infrastructure/modules` (R106 is the example: four infrastructure files and an added chat env entry); a change to the receipt recognizer wiring; images before SQL (as R091); a new scope; a change to the chat rule; and growing the delivery allow-list.
 
@@ -45,6 +45,29 @@ node scripts/promotion/deploy-business-hosting.mjs --apply --inputs ABSOLUTE_PRI
 ```
 
 The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); each receipt write is also copied to `gs://mw-credit-operator-private-737787224638/promotion-receipts/`. Keep packages there too, since the session disk is discarded.
+
+## R107 read, command, chat and frontend promotion with request-based CPU on command and chat
+
+`schemaVersion: 38`, `release: R107`, `scope: runtime-workers-frontend`, `status: prepared|applied`. R107 (Cloud Run cost: command and chat move to request-based CPU, `cpu_idle = true`; the post-commit notification wake is now handed off before the reply, at most 2 s) needs a hand-written kind: it carries `infrastructure/production` files and a non-image plan change (`cpu_idle`), which the generic kind refuses. It is R106's chat-era kind (shared code path) with no migration, its own plan JSON readback and request-based CPU in the live check.
+
+- **Source.** The source must descend from the R106 release `e57e77d` (tag R106, peeled; PROD runs at 119) and adds no migration. Between the baseline and the source, the changes under `infrastructure/production` and `infrastructure/modules` must be exactly these four files (`infrastructure` in the runner's R107 row); any other file there, or a missing one, is refused. `infrastructure/dev` is not a PROD input.
+  - `infrastructure/production/runtime.tf`
+  - `infrastructure/production/chat-service.tf`
+  - `infrastructure/production/tests/inert.tftest.hcl`
+  - `infrastructure/production/tests/chat-service.tftest.hcl`
+
+  A later delivery-tool commit may carry only the runner, its unit test, this README, the R101 database delivery files and documents (never an infrastructure file). Record the runner's unit test as `deliveryToolChecks`.
+- **SQL.** None: a read-only V119 readback (`sql.verified`, 119 successful history rows), no owner window.
+- **Order.** The readback first, then the images: `applied.sqlVersion` is 119 and `applied.appliedAt` is no earlier than `sql.verified.verifiedAt`.
+- **Plan.** `{add:0, change:3, destroy:0}` with exactly `read.image`, `command.image`, `command.cpuIdle`, `chat.image`, `chat.cpuIdle`, in this order (`R107_PLAN_ACTIONS`): the new image on read, command and chat through `runtime_image_overrides`; notify and jobs stay on `business_image`. The saved plan's `terraform show -json` export is read back (`plan.jsonPath`, `plan.jsonSha256`):
+  - every resource change other than a no-op or a data read is an in-place update of `mw-credit-app-read-prod`, `-command-prod` or `-chat-prod`, each once, and all three are present;
+  - read changes only `template.0.containers.0.image`; command and chat change only that and `template.0.containers.0.resources.0.cpu_idle`, from `false` to `true` (other unknown attributes ignored);
+  - the container, its env and its resources must be fully known (no part marked unknown after apply), since an unknown subtree would hide its changes.
+
+  Anything else (an env entry, another resource attribute, notify or jobs, another resource) is refused. Recovery pins Hosting and all five services; the applied readback shows read, command and chat on the new image with a new revision, and notify and jobs exactly on their pinned image and revision.
+- **Live readback.** As R106 (the R102 chat checks and `CHAT_COMMAND_URL` on chat only), with command and chat `cpuIdle` exactly `true`: the v2 API omits a false boolean, so an absent `cpuIdle` reads as `false` and is refused, as is an explicit `false`. The older kinds (R090 to R106) keep their own rule (`cpuIdle` not `true`), and the generic kind expects `true` from R107 onwards.
+- **Artifact and operator.** The marker and the entry bundle carry `"R107"`; `chatOrigin` stays the R090 PROD chat origin. The operator audience is `https://lm.mw-credit.com/promotion/r107`.
+- **Generic kind.** An R107 package with `kindRule: generic-v1` is refused: a release with a hand-written row never matches the generic kind.
 
 ## R106 read, command, chat, SQL, chat configuration and frontend promotion with V118 and V119
 
@@ -203,7 +226,7 @@ The private root is `MW_PRIVATE_ROOT/MW-Credit-App` (default `~/.mw-private`); e
   - added: `chat.serviceAccount` (`google_service_account.chat[0]`), `chat.projectRole.cloudsqlClient`, `chat.projectRole.cloudsqlInstanceUser`, `chat.projectRole.aiplatformUser` (`google_project_iam_member.chat[...]`), `chat.authStatusRole` (`google_project_iam_member.chat_auth[0]`), `chat.databaseUser` (`google_sql_user.chat[0]`), `chat.capabilityPolicyAccessor` (`google_secret_manager_secret_iam_member.chat_policy[0]`), `chat.service` (`google_cloud_run_v2_service.chat[0]`), `notify.chatInvoker` and `notify.jobsInvoker` (`module.workers.google_cloud_run_v2_service_iam_member.chat_dispatch[0]` and `.jobs_dispatch[0]`);
   - changed (one new image on each): `read.image`; `command.image` and `command.cpuIdle` (`cpu_idle = false`); `notify.image` and `notify.callerSubjects` (chat and jobs callers); `jobs.image` and `jobs.dispatchWake` (`NOTIFICATION_DISPATCH_*`).
   The enabled recognizer wiring and the R077 timeouts stay. `rollback.services` pins the four live R089 services only (the chat service is new); `applied.services` holds the five services, chat included, each on the build image at 100% traffic.
-- **Live readback.** As R089 for the four services (Cloud Build digest, identities, database bindings, recognizer wiring, worker subjects, timeouts), plus: command `cpuIdle` not true (the v2 API omits a false boolean, so an absent `cpuIdle` is false and only an explicit `true` is refused); jobs `NOTIFICATION_DISPATCH_ENABLED/URL/AUDIENCE` naming the PROD notify service; notify `WORKER_CALLER_SUBJECTS_JSON` with the chat and jobs service accounts; and the chat service (identity `mw-credit-app-chat-prod@…`, image, ready revision at 100%, database binding, timeout `300s`, `cpuIdle` not true (absent or false), the three dispatch variables, `CHAT_MODELS_JSON` with three Gemini models and `maxRounds` 16).
+- **Live readback.** As R089 for the four services (Cloud Build digest, identities, database bindings, recognizer wiring, worker subjects, timeouts), plus (the R090 to R106 kinds; R107 and the generic kind require `true` instead): command `cpuIdle` not true (the v2 API omits a false boolean, so an absent `cpuIdle` is false and only an explicit `true` is refused); jobs `NOTIFICATION_DISPATCH_ENABLED/URL/AUDIENCE` naming the PROD notify service; notify `WORKER_CALLER_SUBJECTS_JSON` with the chat and jobs service accounts; and the chat service (identity `mw-credit-app-chat-prod@…`, image, ready revision at 100%, database binding, timeout `300s`, `cpuIdle` not true (absent or false), the three dispatch variables, `CHAT_MODELS_JSON` with three Gemini models and `maxRounds` 16).
 - **Artifact and operator proof.** The marker and the entry bundle carry `"R090"`; `chatOrigin` in `production-public-config.json` is `https://mw-credit-app-chat-prod-pvrgvyg3oq-as.a.run.app`, and the compiled entry bundle and the Hosting CSP `connect-src` (`scripts/hosting-headers.mjs`) name it. The audience is `https://lm.mw-credit.com/promotion/r090`. R090 refuses the other kinds' packages, and they refuse R090's.
 - **Not covered.** The integration agent and the Grafana collector.
 

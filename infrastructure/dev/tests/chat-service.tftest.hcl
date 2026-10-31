@@ -67,11 +67,11 @@ run "chat_service_runtime" {
     condition = (google_cloud_run_v2_service.chat_api[0].name == "mw-credit-app-chat-dev" && google_cloud_run_v2_service.chat_api[0].ingress == "INGRESS_TRAFFIC_ALL" && google_cloud_run_v2_service.chat_api[0].invoker_iam_disabled
       && google_cloud_run_v2_service.chat_api[0].template[0].timeout == "300s" && google_cloud_run_v2_service.chat_api[0].template[0].max_instance_request_concurrency == 10
       && google_cloud_run_v2_service.chat_api[0].template[0].scaling[0].min_instance_count == 0 && google_cloud_run_v2_service.chat_api[0].template[0].scaling[0].max_instance_count == 2
-      && google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].limits == tomap({ cpu = "1", memory = "512Mi" }) && google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].startup_cpu_boost && !google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].cpu_idle
+      && google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].limits == tomap({ cpu = "1", memory = "512Mi" }) && google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].startup_cpu_boost && google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].cpu_idle
       && google_cloud_run_v2_service.chat_api[0].template[0].service_account == "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"
       && one(google_cloud_run_v2_service.chat_api[0].template[0].containers[0].args) == "services/chat/server.mjs"
     && length(google_cloud_run_v2_service.chat_api[0].template[0].vpc_access) == 0)
-    error_message = "Chat runs services/chat/server.mjs as mw-credit-app-chat-dev, 300 s, concurrency 10, min 0/max 2, 1 CPU/512Mi with boost, CPU always allocated (cpu_idle false) and no VPC egress."
+    error_message = "Chat runs services/chat/server.mjs as mw-credit-app-chat-dev, 300 s, concurrency 10, min 0/max 2, 1 CPU/512Mi with boost, request-based CPU (cpu_idle true, R107) and no VPC egress."
   }
   assert {
     condition = (one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "FOUNDATION_ROLE"]) == "chat"

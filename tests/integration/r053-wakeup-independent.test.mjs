@@ -5,7 +5,7 @@ const project='clever-oasis-508610-n7',issuer='https://securetoken.google.com/'+
 function base(){const e=process.env;assert.equal(e.PHASE8_TEST_DISPOSABLE,'1');assert.equal(e.PHASE8_TEST_HOST,'127.0.0.1');assert.equal(e.PHASE8_TEST_DATABASE,'loan_manager_dev');return{host:e.PHASE8_TEST_HOST,port:Number(e.PHASE8_TEST_PORT),database:e.PHASE8_TEST_DATABASE};}
 test('real SQL DEV and production composition preserve acknowledged commit across failed wake hints',async()=>{
  const conn=base(),admin=new pg.Pool({...conn,user:'postgres'}),user=`mw-credit-app-command-dev@${project}.iam`,sql=new pg.Pool({...conn,user});let hold=null,releaseCommit,lost=false,released=false,wakes=0,mode='success',atCommit,lastWake=Promise.resolve();const assertions=[];
- // APP-PAY-02: the wake runs after store.operation resolves (setImmediate). Let it start and finish before reading counters or reusing the pool.
+ // APP-PAY-02 (R107): store.operation awaits the wake before it resolves, for at most HANDOFF_MS; a slower wake keeps running. Let it finish before reading counters or reusing the pool.
  const drain=async()=>{for(let i=0;i<2;i++)await new Promise(r=>setImmediate(r));await lastWake.catch(()=>{});};
  const pool={connect:async()=>{released=false;const c=await sql.connect();return{query:async(q,a)=>{if(q==='COMMIT'&&hold){atCommit();await hold;}const r=await c.query(q,a);if(q==='COMMIT'&&lost)throw Error('lost_commit_ack');return r;},release:bad=>{released=true;c.release(bad);}};}};
  try{

@@ -28,7 +28,6 @@ export function createAgentReceiptHandler({next,policy,pool,guardConnection,afte
   const match=receiptRoute.exec(req.url??'');
   if(!req.url?.startsWith('/internal/agent/'))return next(req,res);
   if(!policy||!match||req.method!==(match[1]?'GET':'POST'))return send(res,404,{error:'not_found'});
-  const controller=new AbortController();res.once?.('close',()=>controller.abort());
   const received=now();let claims;
   try{
    const token=/^Bearer ([^\s]+)$/.exec(req.headers.authorization??'');if(!token)throw Error();
@@ -59,7 +58,8 @@ export function createAgentReceiptHandler({next,policy,pool,guardConnection,afte
   }finally{try{client?.release(quarantine);}catch{}}
   if(!match[1]&&value?.kind==='recorded'&&value.originalOutcome?.status==='posted'){
    const raw=req.headers['x-mw-wake-deadline'];const deadline=typeof raw==='string'&&/^\d{13}$/.test(raw)?Math.min(received+14000,Number(raw)-1000):received;
-   try{await afterCommit?.({deadline,signal:controller.signal});}catch{ /* Commit is already acknowledged. */ }
+   // R107: no response-close signal: a closed response must not cancel notify's pass; the ≤14 s deadline bounds the wake.
+   try{await afterCommit?.({deadline});}catch{ /* Commit is already acknowledged. */ }
   }
   return send(res,value?.kind==='conflict'?409:value?.originalOutcome?.status==='rejected'?422:200,value);
  };

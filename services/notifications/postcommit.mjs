@@ -1,6 +1,8 @@
 import {runUrl} from '../lib/identity.mjs';
 export const wakeContext = Symbol('notification-wake-context');
 export const WAKE_MS = 30000;
+/** R107: how long a caller holds its reply for the wake before handing it off (PROD wake latency p90 1.3 s, max 2.6 s). */
+export const HANDOFF_MS = 2000;
 /** A wake is only a hint. Financial success never depends on its delivery. */
 export function loadDispatchConfig(env, environment) {
   if (env.NOTIFICATION_DISPATCH_ENABLED === undefined || env.NOTIFICATION_DISPATCH_ENABLED === 'false') return null;
@@ -10,13 +12,30 @@ export function loadDispatchConfig(env, environment) {
   return Object.freeze({audience, url: audience + '/internal/dispatch'});
 }
 
-/** @param {{audience:string,url:string}|null} config @param {{fetch?:typeof globalThis.fetch,log?:(record:object)=>void,now?:()=>number}} [options] */
-export function createPostCommitWake(config, {fetch: request = globalThis.fetch, log = () => {}, now = Date.now} = {}) {
+/**
+ * handoffMs: how long a caller holds its reply for the wake (default HANDOFF_MS); null or Infinity awaits the full
+ * answer (the jobs worker, which already runs with request-based CPU and must not leave a wake running after its reply).
+ * @param {{audience:string,url:string}|null} config @param {{fetch?:typeof globalThis.fetch,log?:(record:object)=>void,now?:()=>number,handoffMs?:number|null}} [options]
+ */
+export function createPostCommitWake(config, {fetch: request = globalThis.fetch, log = () => {}, now = Date.now, handoffMs = HANDOFF_MS} = {}) {
+  const capped = handoffMs !== null && Number.isFinite(handoffMs);
+  // The notify worker caps a producer wake at 30 s from its arrival and enqueues only with 11 s left, so a wake sent
+  // with a short deadline is a no-op on a cold worker: callers give up to 30 s, and the worker's own cap governs.
+  // R107: command and chat run with request-based CPU, so the wake is sent before the reply. The caller waits at most
+  // HANDOFF_MS; a slower wake is left running, never aborted (notify cancels its pass when its caller hangs up), and
+  // still ends at its own deadline. The race never rejects: delivery catches every failure and logs the deferral.
   /** @param {{deadline?:number,signal?:AbortSignal}} [wake] */
-  // The notify worker caps a wake at 15 s from its arrival and enqueues only with 11 s left, so a wake sent with a
-  // short deadline is a no-op on a cold worker: callers give up to 30 s, and the worker's own cap governs.
   return async ({deadline = now() + WAKE_MS, signal} = {}) => {
     if (!config) return;
+    const delivery = deliver(deadline, signal);
+    if (!capped) return delivery;
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    let handoff;
+    await Promise.race([delivery, new Promise(resolve => { handoff = setTimeout(resolve, Number(handoffMs)); handoff.unref?.(); })]);
+    clearTimeout(handoff);
+  };
+  /** @param {number} deadline @param {AbortSignal|undefined} signal */
+  async function deliver(deadline, signal) {
     const until = Math.min(deadline, now() + WAKE_MS);
     const controller = new AbortController();
     const abort = () => controller.abort();
@@ -37,5 +56,5 @@ export function createPostCommitWake(config, {fetch: request = globalThis.fetch,
     } catch {
       try { log({component: 'notification-wake', event: 'deferred_to_recovery'}); } catch { /* Logging cannot alter a committed result. */ }
     } finally { clearTimeout(timer); signal?.removeEventListener('abort', abort); }
-  };
+  }
 }

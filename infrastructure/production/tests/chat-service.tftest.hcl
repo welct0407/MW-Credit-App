@@ -84,9 +84,9 @@ run "chat_authorized_exact_prod_service" {
     condition = (google_cloud_run_v2_service.chat[0].name == "mw-credit-app-chat-prod" && google_cloud_run_v2_service.chat[0].template[0].timeout == "300s"
       && google_cloud_run_v2_service.chat[0].template[0].max_instance_request_concurrency == 10 && google_cloud_run_v2_service.chat[0].template[0].scaling[0].max_instance_count == 2
       && google_cloud_run_v2_service.chat[0].template[0].containers[0].image == var.business_image && one(google_cloud_run_v2_service.chat[0].template[0].containers[0].args) == "services/chat/server.mjs"
-      && !google_cloud_run_v2_service.chat[0].template[0].containers[0].resources[0].cpu_idle && google_cloud_run_v2_service.chat[0].template[0].containers[0].resources[0].startup_cpu_boost
+      && google_cloud_run_v2_service.chat[0].template[0].containers[0].resources[0].cpu_idle && google_cloud_run_v2_service.chat[0].template[0].containers[0].resources[0].startup_cpu_boost
     && length(google_cloud_run_v2_service.chat[0].template[0].vpc_access) == 0)
-    error_message = "PROD chat runs the business image's services/chat/server.mjs, 300 s, concurrency 10, max 2, CPU always allocated (cpu_idle false), no VPC egress."
+    error_message = "PROD chat runs the business image's services/chat/server.mjs, 300 s, concurrency 10, max 2, request-based CPU (cpu_idle true, R107), no VPC egress."
   }
   assert {
     condition = (one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "FOUNDATION_ROLE"]) == "chat"
