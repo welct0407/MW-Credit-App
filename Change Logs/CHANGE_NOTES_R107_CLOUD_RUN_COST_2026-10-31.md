@@ -50,13 +50,14 @@ Wake failure behaviour is unchanged: a failed or slow wake never changes the com
 | PR `Development checks`, first run on `68bb384` | `check` failed at `npm audit` (new upstream advisories, above); fixed by the lockfile change |
 | Orchestrator after the lockfile fix: `npm audit --omit=dev`, lint, typecheck, `npm test` | Pass: 0 vulnerabilities; lint and typecheck exit 0; 1049 pass, 0 fail, 1 skip |
 | PR `Development checks`, run on `14ef7a8` | `rebuild (phase8)` failed: `r053-worker-http-independent` generated a random VAPID key whose private key can be 31 bytes (about 0.4% of keys, 17 of 4,000 locally), which the worker config rejects. Pre-existing fixture flaw; fixed with the 32-byte loop the unit tests already use |
-| PR `Development checks` | To fill |
-| DEV `terraform apply` (command and chat, new image) | To fill |
-| DEV proof 1: command wake with the app closed | To fill |
-| DEV proof 2: chat reply with the app closed | To fill |
-| 48 h billing readback (DEV command and chat) | To fill |
+| PR #194 `Development checks` | Pass on `aea6a7c` (run 41185900531). Earlier runs failed on new npm audit advisories (fixed by the lockfile) and a pre-existing VAPID fixture flake (fixed) |
+| DEV `terraform apply` (Forge, 31 October 2026, 09:33:38Z to 09:34:15Z) | Pass: image built by Cloud Build from `aea6a7c` (SUCCESS, 09:31:39Z to 09:32:13Z); `read_image`, `command_image`, `chat_image` set to it, `workers.image` unchanged; plan 0 add, 3 change, 0 destroy (chat and command image and `cpu_idle` false to true, reader image only); re-plan no changes; revisions at 100%, cpu-throttling true on all three, `/health` 200, no ERROR logs since 09:33Z. Revisions, digest, build id and generations are in the [environment inventory](../project/Documents/Environment_Inventory.md) |
+| DEV proof 1 (Chase, 31 October 2026): command save and wake | Pass. Six synthetic `preference.update` saves (reversible English and Thai, restored) on the new DEV command revision, all 200 applied; server p50 0.336 s, p95 about 0.57 s (the first likely cold) against the prior 7 days of the same operation at p50 about 0.31 s, p95 about 0.5 s, so no regression. The notify `/internal/dispatch` call from command arrived 0.31 to 0.46 s after each save, all 200; no `deferred_to_recovery`, no ERROR logs since 09:34Z |
+| DEV proof 2 (Chase, 31 October 2026): chat open and with the client dropped | Pass. Open: short turn 200 in 4.54 s (first byte 1.1 s), attended long turn 200 in 13.93 s. Client dropped: presence `hidden` 204 (`detached` true), connection destroyed about 6 s in; request log 200 with 15.40 s latency (full turn, baseline 13.93 s); reply row completed; the reply-push wake reached notify-dev in 18 ms, 200, at completion. The chat fallback is not needed |
+| 48 h billing readback (DEV command and chat) | To fill: window starts 2026-10-31T09:39:40Z; read at about 2026-11-02T09:40Z |
 
 ## Not run
+- Echo: the device check is deferred to the owner (Echo cannot drive the owner's iPhone): a real-device save push, and chat close-app then `chat.reply` push on the installed PWA.
 - `payment-command-api-independent`: Windows-only harness whose path does not pass `afterCommit`.
 - PROD apply, PROD readback and the PROD billing readback: PROD waits for "promote R107".
 
@@ -69,11 +70,8 @@ Wake failure behaviour is unchanged: a failed or slow wake never changes the com
 - None for batch 1. The owner decides the PROD promotion ("promote R107") after the DEV proofs and the billing readback.
 
 ## Remaining work
-- Apply the DEV plan after PR CI passes, run both DEV proofs, then the 48 h billing readback; fill the Checks table.
-- Environment inventory edits after the DEV apply (the inventory records live facts, so nothing is changed before the apply):
-  - Line 40, DEV chat row: replace `cpu_idle=false` with `cpu_idle=true` and add the new revision, image digest and apply time and plan 0/2/0.
-  - DEV command row: same (new revision, image, `cpu_idle=true`); the DEV notify and jobs rows move to the new image only if their images change.
-  - Line 71 (R090 batch 2 text "command `cpu_idle=false` in DEV and PROD"): append that R107 returned DEV command and chat to `cpu_idle=true` (history stays; PROD still `cpu_idle=false`).
-  - Line 152, R090 chat service row: DEV `cpu_idle=false` becomes `cpu_idle=true` (request-based CPU); keep PROD `cpu_idle=false` until the PROD promotion.
-  - Line 55 (PROD chat) and the PROD command row: unchanged until the PROD promotion.
+- Read the 48 h billing readback at about 2026-11-02T09:40Z and fill that Checks row.
+- DEV cleanup done: 5 synthetic chat threads archived (the app has no delete); 6 immutable `preference.update` command rows remain; preferences restored.
+- Owner device check pending: a real-device save push, and chat close-app then `chat.reply` push on the installed PWA.
+- Environment inventory DEV rows are updated for the apply (new R107 row, line 71 and the chat service row); PROD rows stay until the PROD promotion.
 - PROD batch (after "promote R107"): `scripts/promotion/deploy-business-hosting.mjs` (about L889, 955 to 975: the readback requires `cpu_idle` false); `tests/unit/business-hosting-delivery.test.mjs` (about 1720, 1723, 1826); `scripts/promotion/README.md:204`; `infrastructure/production/tests/inert.tftest.hcl:155` and `chat-service.tftest.hcl:87-89`; then the PROD command and chat `cpu_idle=true`, the inventory PROD rows and the promotion record.
