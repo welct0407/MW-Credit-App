@@ -2,7 +2,7 @@
 // (services/production/business-config.mjs) and the chat connection guard (services/chat/guard.mjs).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseChatModels,availableModel} from '../../services/chat/config.mjs';
+import {parseChatModels,availableModel,parseChatRelay} from '../../services/chat/config.mjs';
 import {loadBusinessConfig} from '../../services/production/business-config.mjs';
 import {createChatConnectionGuard} from '../../services/chat/guard.mjs';
 import {BUDGET} from '../../services/lib/budget.mjs';
@@ -179,4 +179,16 @@ test('R106 D1 regression: the chat login must never be a member of mw_app_<env> 
   assert.equal(probe.calls[0].args[3],`mw_app_${environment}`);
   assert.match(probe.calls[0].sql,/pg_has_role\(session_user,\$4,'MEMBER'\) AS app_member/);
  }
+});
+
+// R108: Gemini left the chat model menu; the chat lists Claude Opus 5.5 only (Gemini stays for receipt OCR, a separate
+// service). A one-model list parses as any other; that model is claude-*, so the relay URL is required on start.
+test('R108: a Claude-only one-model list parses, and its claude model requires the relay URL',()=>{
+ const claudeOnly={...MODELS,default:'claude-opus-5-5',models:[{id:'claude-opus-5-5',label:'Claude Opus 5.5',available:true}]};
+ const chat=parseChatModels(JSON.stringify(claudeOnly));
+ assert.equal(chat.default,'claude-opus-5-5');assert.deepEqual(chat.models.map(m=>m.id),['claude-opus-5-5']);
+ assert.equal(availableModel(chat,'claude-opus-5-5').label,'Claude Opus 5.5');assert.equal(availableModel(chat,'gemini-4-argon'),null,'an old Gemini thread model is no longer available');
+ assert.throws(()=>parseChatRelay(chat,undefined),/Invalid chat configuration/,'claude without a relay fails start');
+ assert.deepEqual(parseChatRelay(chat,'http://10.148.0.2:8791/v1/chat/messages'),{url:'http://10.148.0.2:8791/v1/chat/messages',audience:'http://10.148.0.2:8791/v1/chat/messages'});
+ assert.throws(()=>parseChatModels(JSON.stringify({...claudeOnly,default:'gemini-4-argon'})),/Invalid CHAT_MODELS_JSON/,'the default must be the listed model');
 });

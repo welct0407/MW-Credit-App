@@ -270,6 +270,25 @@ test('model switch PATCHes the thread, updates the badge and reverts on failure'
  }finally{await context.close()}
 });
 
+// R108: a thread on a model no longer listed (a Gemini thread once Gemini left the menu) shows the default with the note,
+// sends it as the turn body's model, and the local thread follows once the turn is accepted; a listed thread sends none.
+test('R108: a thread on an unlisted model falls back to the default, notes it and sends it with the turn',async()=>{
+ const {context,page,s}=await launch({seed:true});
+ try{
+  s.threads[0]={...s.threads[0],model:'gemini-gone'};
+  await openChat(page);
+  const picker=page.getByRole('combobox',{name:'Model',exact:true});
+  await expect(picker).toHaveValue('gemini-a');await expect(page.getByText('Applies to your next message',{exact:true})).toBeVisible();
+  await composer(page).fill('Still there?');await page.getByRole('button',{name:'Send',exact:true}).click();
+  await expect.poll(async()=>(await streams(page)).length).toBe(1);
+  const [post]=await streams(page);expect(post.body).toEqual({id:expect.stringMatching(/^[0-9a-f-]{36}$/),text:'Still there?',model:'gemini-a'});
+  expect(s.patches).toEqual([]);
+  await feed(page,ev('accepted',{messageId:post.body.id,seq:4,model:'gemini-a'}));
+  await expect(picker).toHaveValue('gemini-a');
+  await openThreads(page);await expect(page.locator('.chat-thread.current .chat-model-badge')).toHaveText('Gemini A');
+ }finally{await context.close()}
+});
+
 test('offline keeps the thread readable and disables the composer',async()=>{
  const {context,page}=await launch({seed:true});
  try{

@@ -7,6 +7,8 @@ variables {
   application_project_number = "737787224638"
   region                     = "asia-southeast1"
   hosting_site_id            = "mw-credit-prod-737787224638"
+  # R108: the default menu is Claude only, served through the VM relay; without it the plan fails (run chat_relay_off_fails_with_default_models).
+  chat_relay = { enabled = true }
 }
 
 run "chat_default_off" {
@@ -85,19 +87,20 @@ run "chat_authorized_exact_prod_service" {
       && google_cloud_run_v2_service.chat[0].template[0].max_instance_request_concurrency == 10 && google_cloud_run_v2_service.chat[0].template[0].scaling[0].max_instance_count == 2
       && google_cloud_run_v2_service.chat[0].template[0].containers[0].image == var.business_image && one(google_cloud_run_v2_service.chat[0].template[0].containers[0].args) == "services/chat/server.mjs"
       && google_cloud_run_v2_service.chat[0].template[0].containers[0].resources[0].cpu_idle && google_cloud_run_v2_service.chat[0].template[0].containers[0].resources[0].startup_cpu_boost
-    && length(google_cloud_run_v2_service.chat[0].template[0].vpc_access) == 0)
-    error_message = "PROD chat runs the business image's services/chat/server.mjs, 300 s, concurrency 10, max 2, request-based CPU (cpu_idle true, R107), no VPC egress."
+    && google_cloud_run_v2_service.chat[0].template[0].vpc_access[0].egress == "PRIVATE_RANGES_ONLY")
+    error_message = "PROD chat runs the business image's services/chat/server.mjs, 300 s, concurrency 10, max 2, request-based CPU (cpu_idle true, R107), only the relay's private-range egress."
   }
   assert {
     condition = (one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "FOUNDATION_ROLE"]) == "chat"
       && one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "DB_NAME"]) == "loan_manager_prod"
       && one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "DB_USER"]) == "mw-credit-app-chat-prod@clever-oasis-508610-n7.iam"
       && one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value_source[0].secret_key_ref[0].version if e.name == "PROD_CAPABILITY_POLICY_JSON"]) == "2"
-      && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "gemini-4-argon"
+      && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "claude-opus-5-5"
+      && [for m in jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.id] == ["claude-opus-5-5"]
       && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).maxRounds == 16
       && alltrue([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : !startswith(e.name, "DEV_") && !startswith(e.name, "AGENT_") && !startswith(e.name, "NOTIFICATION_") && !startswith(e.name, "WEB_PUSH_") && !startswith(e.name, "PROD_RECEIPT") && !startswith(e.name, "RECEIPT_") && !strcontains(e.name, "RECEIPT")
     && !contains(["PWA_NOTIFICATIONS", "WEB_PUSH_PUBLIC_KEY", "OWNER_IDENTITY_MODE", "OWNER_IDENTITY_SECRET_VERSION", "PROD_OWNER_FIREBASE_UID", "FOUNDATION_MODE"], e.name)]))
-    error_message = "PROD chat carries the PROD business environment with role chat and no DEV, receipt, notification, agent or owner-identity settings."
+    error_message = "PROD chat carries the PROD business environment with role chat, the Claude-only menu (R108) and no DEV, receipt, notification, agent or owner-identity settings."
   }
   assert {
     condition     = alltrue([for role, service in google_cloud_run_v2_service.foundation : one(service.template[0].containers[0].args) == "services/production/business-server.mjs" && service.template[0].timeout == (role == "command" ? "55s" : "15s")])
@@ -239,9 +242,9 @@ run "chat_relay_prod_gated" {
     condition = (google_cloud_run_v2_service.chat[0].template[0].vpc_access[0].egress == "PRIVATE_RANGES_ONLY"
       && google_cloud_run_v2_service.chat[0].template[0].vpc_access[0].network_interfaces[0].subnetwork == "default"
       && one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_RELAY_URL"]) == "http://10.148.0.2:8791/v1/chat/messages"
-      && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models[0].id == "claude-opus-5-5"
-    && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "gemini-4-argon")
-    error_message = "R102: the PROD relay gate adds private-range egress, CHAT_RELAY_URL and Claude Opus 5.5 first; the default stays gemini-4-argon."
+      && [for m in jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.id] == ["claude-opus-5-5"]
+    && jsondecode(one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "claude-opus-5-5")
+    error_message = "R102/R108: the PROD relay gate adds private-range egress and CHAT_RELAY_URL; the menu is Claude Opus 5.5 only, also the default."
   }
 }
 
@@ -269,8 +272,34 @@ run "chat_commands_prod_gated" {
   }
   assert {
     condition = (one([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : e.value if e.name == "CHAT_COMMAND_URL"]) == "https://mw-credit-app-command-prod-737787224638.asia-southeast1.run.app"
-      && length(google_cloud_run_v2_service.chat[0].template[0].vpc_access) == 0
+      && google_cloud_run_v2_service.chat[0].template[0].vpc_access[0].egress == "PRIVATE_RANGES_ONLY"
     && alltrue([for e in google_cloud_run_v2_service.chat[0].template[0].containers[0].env : !startswith(e.name, "DEV_") && !startswith(e.name, "RECEIPT_") && !startswith(e.name, "AGENT_") && !startswith(e.name, "NOTIFICATION_")]))
-    error_message = "R106: the PROD chat commands gate adds only CHAT_COMMAND_URL for the PROD command service; no egress, DEV, receipt, notification or agent keys."
+    error_message = "R106: the PROD chat commands gate adds only CHAT_COMMAND_URL for the PROD command service; no egress beyond the relay's, no DEV, receipt, notification or agent keys."
   }
+}
+
+run "chat_relay_off_fails_with_default_models" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat] }
+  override_resource {
+    target          = google_service_account.chat[0]
+    override_during = plan
+    values          = { email = "mw-credit-app-chat-prod@clever-oasis-508610-n7.iam.gserviceaccount.com" }
+  }
+  variables {
+    foundation_authorized              = true
+    runtime_authorized                 = true
+    business_infrastructure_authorized = true
+    business_runtime_authorized        = true
+    chat_authorized                    = true
+    chat_relay                         = { enabled = false }
+    owner_secret_version               = "1"
+    foundation_image                   = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    business_image                     = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app-prod/api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    capability_policy_version          = "2"
+    capability_policy_sha256           = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    business_registered_creators       = ["postgres"]
+  }
+  # R108: with the Claude-only default menu, disabling the relay leaves no chat model and the plan fails.
+  expect_failures = [google_cloud_run_v2_service.chat]
 }

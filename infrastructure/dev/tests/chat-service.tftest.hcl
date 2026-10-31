@@ -34,6 +34,8 @@ variables {
   capability_policy_version = "1"
   capability_policy_sha256  = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   chat_image                = "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  # R108: the default menu is Claude only, served through the VM relay; without it the plan fails (run chat_relay_off_fails_with_default_models).
+  chat_relay = { enabled = true }
 }
 
 run "chat_absent_without_image" {
@@ -70,8 +72,8 @@ run "chat_service_runtime" {
       && google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].limits == tomap({ cpu = "1", memory = "512Mi" }) && google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].startup_cpu_boost && google_cloud_run_v2_service.chat_api[0].template[0].containers[0].resources[0].cpu_idle
       && google_cloud_run_v2_service.chat_api[0].template[0].service_account == "mw-credit-app-chat-dev@clever-oasis-508610-n7.iam.gserviceaccount.com"
       && one(google_cloud_run_v2_service.chat_api[0].template[0].containers[0].args) == "services/chat/server.mjs"
-    && length(google_cloud_run_v2_service.chat_api[0].template[0].vpc_access) == 0)
-    error_message = "Chat runs services/chat/server.mjs as mw-credit-app-chat-dev, 300 s, concurrency 10, min 0/max 2, 1 CPU/512Mi with boost, request-based CPU (cpu_idle true, R107) and no VPC egress."
+    && google_cloud_run_v2_service.chat_api[0].template[0].vpc_access[0].egress == "PRIVATE_RANGES_ONLY")
+    error_message = "Chat runs services/chat/server.mjs as mw-credit-app-chat-dev, 300 s, concurrency 10, min 0/max 2, 1 CPU/512Mi with boost, request-based CPU (cpu_idle true, R107) and only the relay's private-range egress."
   }
   assert {
     condition = (one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "FOUNDATION_ROLE"]) == "chat"
@@ -89,12 +91,12 @@ run "chat_service_runtime" {
     error_message = "The chat service fails closed on any DEV_RECEIPT*, RECEIPT_*, AGENT_*, NOTIFICATION_*, WEB_PUSH_* or PWA_NOTIFICATIONS key; none may reach it (nor PROD, retired owner/fixture or API-key names)."
   }
   assert {
-    condition = (jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "gemini-4-argon"
+    condition = (jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "claude-opus-5-5"
       && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).location == "global"
       && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).maxRounds == 16
-      && [for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.id] == ["gemini-4-argon", "gemini-3.8-flash", "gemini-3.5-flash"]
+      && [for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.id] == ["claude-opus-5-5"]
     && alltrue([for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.available && !can(m.reason)]))
-    error_message = "CHAT_MODELS_JSON lists the three approved models, default gemini-4-argon on global, 16 rounds, with no null reason keys."
+    error_message = "R108: CHAT_MODELS_JSON lists only Claude Opus 5.5 (the default) on global, 16 rounds, with no null reason keys."
   }
 }
 
@@ -208,9 +210,23 @@ run "chat_turn_metrics" {
   }
 }
 
+run "chat_relay_off_fails_with_default_models" {
+  command = plan
+  plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables { chat_relay = { enabled = false } }
+  expect_failures = [google_cloud_run_v2_service.chat_api]
+}
+
 run "chat_relay_off_lists_no_claude" {
   command = plan
   plan_options { target = [google_cloud_run_v2_service.chat_api] }
+  variables {
+    chat_relay = { enabled = false }
+    chat_models = {
+      version = 1, location = "global", default = "gemini-4-argon", thinkingLevel = "MEDIUM", maxRounds = 16, requestTimeoutSeconds = 120, turnTimeoutSeconds = 240, historyTokenLimit = 150000, seedChars = 40000, maxOutputTokens = 16384
+      models  = [{ id = "claude-opus-5-5", label = "Claude Opus 5.5", available = true }, { id = "gemini-4-argon", label = "Gemini 4 Argon", available = true }]
+    }
+  }
   assert {
     condition = (length(google_cloud_run_v2_service.chat_api[0].template[0].vpc_access) == 0
       && alltrue([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.name != "CHAT_RELAY_URL"])
@@ -231,10 +247,10 @@ run "chat_relay_enabled_wiring" {
     error_message = "R102: the relay adds private-range egress on the default subnet and CHAT_RELAY_URL for the VM relay on 8791."
   }
   assert {
-    condition = ([for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.id] == ["claude-opus-5-5", "gemini-4-argon", "gemini-3.8-flash", "gemini-3.5-flash"]
+    condition = ([for m in jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models : m.id] == ["claude-opus-5-5"]
       && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).models[0].label == "Claude Opus 5.5"
-    && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "gemini-4-argon")
-    error_message = "R102: with the relay, Claude Opus 5.5 is listed first and the default stays gemini-4-argon until the DEV proof."
+    && jsondecode(one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_MODELS_JSON"])).default == "claude-opus-5-5")
+    error_message = "R108: with the relay, the menu is Claude Opus 5.5 only, also the default."
   }
 }
 
@@ -258,6 +274,7 @@ run "reject_claude_default_without_relay" {
   command = plan
   plan_options { target = [google_cloud_run_v2_service.chat_api] }
   variables {
+    chat_relay = { enabled = false }
     chat_models = {
       version = 1, location = "global", default = "claude-opus-5-5", thinkingLevel = "MEDIUM", maxRounds = 16, requestTimeoutSeconds = 120, turnTimeoutSeconds = 240, historyTokenLimit = 150000, seedChars = 40000, maxOutputTokens = 16384
       models  = [{ id = "claude-opus-5-5", label = "Claude Opus 5.5", available = true }, { id = "gemini-4-argon", label = "Gemini 4 Argon", available = true }]
@@ -297,10 +314,10 @@ run "chat_commands_enabled_exact_url" {
   }
   assert {
     condition = (one([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : e.value if e.name == "CHAT_COMMAND_URL"]) == "https://mw-credit-app-command-dev-737787224638.asia-southeast1.run.app"
-      && length(google_cloud_run_v2_service.chat_api[0].template[0].vpc_access) == 0
+      && google_cloud_run_v2_service.chat_api[0].template[0].vpc_access[0].egress == "PRIVATE_RANGES_ONLY"
       && google_cloud_run_v2_service.chat_api[0].invoker_iam_disabled == true
     && alltrue([for e in google_cloud_run_v2_service.chat_api[0].template[0].containers[0].env : !contains(["PWA_NOTIFICATIONS", "WEB_PUSH_PUBLIC_KEY"], e.name) && !startswith(e.name, "AGENT_") && !startswith(e.name, "RECEIPT_") && !startswith(e.name, "NOTIFICATION_")]))
-    error_message = "R106: chat commands add only CHAT_COMMAND_URL for the DEV command service; no egress, receipt, notification or agent keys."
+    error_message = "R106: chat commands add only CHAT_COMMAND_URL for the DEV command service; no egress beyond the relay's, no receipt, notification or agent keys."
   }
 }
 

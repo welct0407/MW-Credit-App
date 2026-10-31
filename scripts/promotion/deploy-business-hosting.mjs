@@ -769,6 +769,8 @@ const r104Baseline='f5766653139155c2bf53372bd408e51e85732cfa';
 const r106Baseline='cf0160229829ec3caf02bbbfd307d226c4b5d1b3';
 // R107 baseline: e57e77d, the R106 release (tag R106, peeled; the source PROD runs at 119); R107 adds no migration.
 const r107Baseline='e57e77d764cdd3c4a9e21dd71d342e7628adb423';
+// R108 baseline: 1befbb8, the R107 release (tag R107, peeled; the source PROD runs at 119); R108 adds no migration.
+const r108Baseline='1befbb87fa4604262d799b13529a954c004c3ff3';
 const sqlRuntimeReleases={
  R078:{schemaVersion:20,baseline:r077Release,baselineLabel:'R077',migrations:['V97__pwa_row_changes.sql'],sqlBaseline:96,sqlTarget:97,
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py']},
@@ -814,6 +816,11 @@ const sqlRuntimeReleases={
  R107:{schemaVersion:38,baseline:r107Baseline,baselineLabel:'R106',migrations:[],sqlBaseline:119,sqlTarget:119,
   delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py'],
   infrastructure:['infrastructure/production/chat-service.tf','infrastructure/production/runtime.tf','infrastructure/production/tests/chat-service.tftest.hcl','infrastructure/production/tests/inert.tftest.hcl']},
+ // R108 (Claude-only chat menu): no migration (a read-only V119 readback) and exactly these infrastructure/production
+ // files (the chat_models default in chat-service.tf and its test).
+ R108:{schemaVersion:39,baseline:r108Baseline,baselineLabel:'R107',migrations:[],sqlBaseline:119,sqlTarget:119,
+  delivery:['scripts/promotion/README.md','scripts/database/Backup-ProductionPromotion.py','scripts/database/R053_OPERATOR.md','scripts/database/connect_preflight.py','scripts/database/test_connect_preflight.py'],
+  infrastructure:['infrastructure/production/chat-service.tf','infrastructure/production/tests/chat-service.tftest.hcl']},
 };
 const sqlRuntimeDeliveryAllowed=L=>file=>runtimeDeliveryAllowed(file)||sqlRuntimeReleases[L].delivery.includes(file);
 function validateSqlRuntimeSource(m,git,L){
@@ -922,6 +929,8 @@ export async function validateR090Sql(m,git=sourceGit){return validateSqlRuntime
 // R107 changes the read, command and chat images with no migration (`noSql`; notify and jobs stay on their pins) and moves
 // command and chat to request-based CPU (cpu_idle true); its plan JSON is read back (`readPlan`) and its live readback is
 // R106's with command and chat cpuIdle exactly true (`requestCpu`).
+// R108 changes the chat image and its CHAT_MODELS_JSON (Claude Opus 5.5 only) with no migration; the other four stay on
+// their pins. Its plan JSON is read back (`readPlan`) and its live readback is R107's with the Claude-only menu (`liveChat: 'r108'`).
 const chatRuntimeKinds={
  R090:{counts:{add:10,change:4,destroy:0},actions:()=>R090_PLAN_ACTIONS,planLabel:'reviewed chat and four-service plan required',recoveryRoles:runtimeRoles,recoveryLabel:'recovery pins exactly the four existing services',newRoles:['chat'],imageFirst:false},
  R091:{counts:{add:0,change:5,destroy:0},actions:()=>R091_PLAN_ACTIONS,planLabel:'reviewed five-service plan required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],imageFirst:true},
@@ -934,6 +943,7 @@ const chatRuntimeKinds={
  R104:{counts:{add:0,change:3,destroy:0},actions:()=>R104_PLAN_ACTIONS,planLabel:'reviewed read, command and chat image plan required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['read','command','chat'],imageFirst:false,liveChat:'r102'},
  R106:{counts:{add:0,change:3,destroy:0},actions:()=>R106_PLAN_ACTIONS,planLabel:'reviewed read, command and chat image plan with CHAT_COMMAND_URL on chat required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['read','command','chat'],imageFirst:false,liveChat:'r106',readPlan:(m,L)=>readR106Plan(m,L)},
  R107:{counts:{add:0,change:3,destroy:0},actions:()=>R107_PLAN_ACTIONS,planLabel:'reviewed read, command and chat image plan with request-based CPU on command and chat required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['read','command','chat'],imageFirst:false,noSql:true,liveChat:'r106',requestCpu:true,readPlan:(m,L)=>readR107Plan(m,L)},
+ R108:{counts:{add:0,change:1,destroy:0},actions:()=>R108_PLAN_ACTIONS,planLabel:'reviewed chat image and Claude-only CHAT_MODELS_JSON plan required',recoveryRoles:[...runtimeRoles,'chat'],recoveryLabel:'recovery pins exactly the five services',newRoles:[],changedRoles:['chat'],imageFirst:false,noSql:true,liveChat:'r108',requestCpu:true,readPlan:(m,L)=>readR108Plan(m,L)},
 };
 async function chatRuntimeHostingPlan(m,{requireApplied,git},L){
  const rule=sqlRuntimeReleases[L],kind=chatRuntimeKinds[L],roles=[...runtimeRoles,'chat'];
@@ -967,7 +977,7 @@ export async function r090HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
 // API omits false), the jobs dispatch wake, the chat and jobs callers on notify, and the chat service (identity, image,
 // revision, 300 s timeout, cpu_idle false, dispatch wake, three Gemini models with maxRounds 16). Returns the five live
 // service documents for release-specific checks.
-// The generic kind passes its delivery allow-list and the current (R102) chat rule.
+// The generic kind passes its delivery allow-list and the current chat rule (R102, with the R108 Claude-only menu).
 // `requestCpu` (R107 onwards: the R107 kind and the generic kind): command and chat run with request-based CPU, so their
 // cpuIdle must be exactly true; an absent (false) or explicit false value is refused.
 async function verifyChatRuntimeLive(m,options,L,{allowed,liveChat=chatRuntimeKinds[L]?.liveChat,requestCpu=chatRuntimeKinds[L]?.requestCpu===true}={}){
@@ -989,7 +999,8 @@ async function verifyChatRuntimeLive(m,options,L,{allowed,liveChat=chatRuntimeKi
  requireValue(s.template.timeout==='300s'&&cpuIdle(s)===requestCpu,L+' live chat timeout 300s and cpu_idle '+requestCpu+' required');
  requireValue(dispatch(env),L+' live chat dispatch wake drift');
  let models;try{models=JSON.parse(env.CHAT_MODELS_JSON);}catch{models=null;}
- if(liveChat==='r102'||liveChat==='r106'){verifyR102LiveChat(live,env,models,L);if(liveChat==='r106')verifyR106LiveCommandUrl(live,env,L);return live;}
+ // R108 onwards ('r108', and 'current' for the generic kind): the chat menu is Claude Opus 5.5 only.
+ if(['r102','r106','r108','current'].includes(liveChat)){verifyR102LiveChat(live,env,models,L,['r108','current'].includes(liveChat)?R108_CHAT_MODEL_IDS:R102_CHAT_MODEL_IDS);if(liveChat==='r106'||liveChat==='r108')verifyR106LiveCommandUrl(live,env,L);return live;}
  requireValue(plainObject(models)&&models.maxRounds===16&&Array.isArray(models.models)&&models.models.length===3&&models.models.every(x=>/^gemini-[0-9]+(?:\.[0-9]+)?-[a-z0-9-]+$/.test(x?.id??'')),L+' live chat models must be three Gemini models with maxRounds 16');
  return live;
 }
@@ -1088,11 +1099,15 @@ export async function verifyR101LivePackage(m,options={}){await verifyChatRuntim
 export const R102_PLAN_ACTIONS=Object.freeze(['read.image','command.image','chat.image','chat.modelsJson','chat.relayUrl','chat.vpcAccess']);
 export const R102_CHAT_MODEL_IDS=Object.freeze(['claude-opus-5-5','gemini-4-argon','gemini-3.8-flash','gemini-3.5-flash']);
 export const R102_CHAT_RELAY_URL='http://10.148.0.2:8791/v1/chat/messages';
-function verifyR102LiveChat(live,env,models,L){
+/** The chat models of an era: version 1, global, MEDIUM, maxRounds 16, Claude Opus 5.5 default, exactly `expected`, all available. */
+function chatModelsAre(models,expected){
  const ids=Array.isArray(models?.models)?models.models.map(x=>x?.id):[];
- requireValue(plainObject(models)&&models.version===1&&models.location==='global'&&models.thinkingLevel==='MEDIUM'&&models.maxRounds===16&&models.default==='claude-opus-5-5'
-  &&exact(ids,[...R102_CHAT_MODEL_IDS])&&models.models.every(x=>x.available===true&&(/^claude-[a-z]+-[0-9]+(?:-[0-9]+)?$/.test(x.id)||/^gemini-[0-9]+(?:\.[0-9]+)?-[a-z0-9-]+$/.test(x.id))),
-  L+' live chat models must be Claude Opus 5.5 (default) and the three Gemini models, all available, with maxRounds 16');
+ return plainObject(models)&&models.version===1&&models.location==='global'&&models.thinkingLevel==='MEDIUM'&&models.maxRounds===16&&models.default==='claude-opus-5-5'
+  &&exact(ids,[...expected])&&models.models.every(x=>x.available===true&&(/^claude-[a-z]+-[0-9]+(?:-[0-9]+)?$/.test(x.id)||/^gemini-[0-9]+(?:\.[0-9]+)?-[a-z0-9-]+$/.test(x.id)));
+}
+// `ids`: R102 to R107 list Claude Opus 5.5 and the three Gemini models; R108 onwards Claude Opus 5.5 only.
+function verifyR102LiveChat(live,env,models,L,ids=R102_CHAT_MODEL_IDS){
+ requireValue(chatModelsAre(models,ids),L+' live chat models must be Claude Opus 5.5 '+(ids===R108_CHAT_MODEL_IDS?'only (default), available,':'(default) and the three Gemini models, all available,')+' with maxRounds 16');
  requireValue(env.CHAT_RELAY_URL===R102_CHAT_RELAY_URL,L+' live chat relay URL drift');
  const vpc=live.chat.template?.vpcAccess;
  requireValue(vpc?.egress==='PRIVATE_RANGES_ONLY'&&Array.isArray(vpc.networkInterfaces)&&vpc.networkInterfaces.length===1&&vpc.networkInterfaces[0]?.network==='default'&&vpc.networkInterfaces[0]?.subnetwork==='default',L+' live chat private-range VPC egress required');
@@ -1206,6 +1221,49 @@ export async function r107HostingPlan(m,{requireApplied=true,git=sourceGit}={}){
 /** Live: as R106 (the R102 chat check and CHAT_COMMAND_URL on chat only) with command and chat cpuIdle exactly true. */
 export async function verifyR107LivePackage(m,options={}){await verifyChatRuntimeLive(m,options,'R107');}
 
+// R108 (the chat model menu is Claude only; Gemini stays only for receipt OCR on the VM): no migration (a read-only V119
+// readback), then a new chat image (runtime_image_overrides, rebuilt from the R108 source) with CHAT_MODELS_JSON listing
+// exactly Claude Opus 5.5 (default); read, command, notify and jobs stay on their pinned image and revision. The source
+// descends from the R107 release 1befbb8 and carries no migration and exactly two infrastructure/production files
+// (chat-service.tf and its test). Plan {add:0, change:1, destroy:0}: on chat the image and the CHAT_MODELS_JSON value; the
+// saved plan's JSON export is read back and anything else is refused. Live readback as R107 with the Claude-only menu. The
+// PWA falls back to the default model for a thread still on a Gemini model. The artifact carries the R108 marker and the
+// R090 chat origin.
+// The plan labels are Forge's reading of the reviewed saved PROD plan; edit them here only.
+export const R108_PLAN_ACTIONS=Object.freeze(['chat.image','chat.modelsJson']);
+export const R108_CHAT_MODEL_IDS=Object.freeze(['claude-opus-5-5']);
+/** The R108 plan, read back from its JSON export: chat updated in place once, changing its image and, in its env, only the
+ * CHAT_MODELS_JSON value, which must list exactly Claude Opus 5.5 (default); the container must be fully known. */
+async function readR108Plan(m,L){
+ const json=await readPlanExport(m,L);let chat=false;
+ for(const rc of json.resource_changes){
+  const actions=rc?.change?.actions;
+  if(exact(actions,['no-op'])||exact(actions,['read']))continue;
+  requireValue(rc.type==='google_cloud_run_v2_service'&&exact(actions,['update'])&&rc.change.after?.name==='mw-credit-app-chat-prod'&&rc.change.before?.name===rc.change.after.name&&!chat,L+' plan may update only the chat service, once: '+(rc?.address??'unknown resource'));
+  chat=true;
+  const {before,after,after_unknown:unknown}=rc.change,t=unknown?.template,c=t?.[0]?.containers?.[0];
+  requireValue(![t,t?.[0],t?.[0]?.containers,c].includes(true)&&!anyTrue(c?.env)&&!anyTrue(c?.resources),L+' plan env or resources unknown on chat');
+  const diffs=planDiffs(withoutEnv(before),withoutEnv(after),withoutEnv(unknown));
+  requireValue(exact(diffs,['template.0.containers.0.image']),L+' plan may change only the chat image and CHAT_MODELS_JSON: '+rc.address+' changes '+(diffs.join(', ')||'no image'));
+  const was=envByName(envList(before)),now=envByName(envList(after));
+  requireValue(was&&now,L+' plan env unreadable on chat');
+  const added=[...now.keys()].filter(name=>!was.has(name)),removed=[...was.keys()].filter(name=>!now.has(name)),edited=[...now.keys()].filter(name=>was.has(name)&&!isDeepStrictEqual(now.get(name),was.get(name)));
+  requireValue(added.length===0&&removed.length===0&&exact(edited,['CHAT_MODELS_JSON']),L+' plan may change only CHAT_MODELS_JSON in the chat env: adds '+(added.join(', ')||'nothing')+', removes '+(removed.join(', ')||'nothing')+', changes '+(edited.join(', ')||'nothing'));
+  const entry=now.get('CHAT_MODELS_JSON'),json=value=>{try{return JSON.parse(value);}catch{return null;}},models=json(entry.value),previous=json(was.get('CHAT_MODELS_JSON').value);
+  requireValue((entry.value_source==null||(Array.isArray(entry.value_source)&&entry.value_source.length===0))&&chatModelsAre(models,R108_CHAT_MODEL_IDS),L+' plan CHAT_MODELS_JSON must list exactly Claude Opus 5.5 (default)');
+  // Only the model list and the default change: every other CHAT_MODELS_JSON field (timeouts, history and seed limits,
+  // output tokens, rounds, thinking level, location, version) must equal the value before.
+  const rest=value=>{if(!plainObject(value))return null;const {models:_m,default:_d,...other}=value;return other;},kept=rest(previous);
+  requireValue(kept!==null&&isDeepStrictEqual(rest(models),kept),L+' plan CHAT_MODELS_JSON may change only models and default (other fields must equal the previous value)');
+ }
+ requireValue(chat,L+' plan JSON must change the chat service');
+}
+export function validateR108Source(m,git=sourceGit){return validateSqlRuntimeSource(m,git,'R108');}
+export async function validateR108Sql(m,git=sourceGit){return validateSqlRuntimeSql(m,git,'R108');}
+export async function r108HostingPlan(m,{requireApplied=true,git=sourceGit}={}){return chatRuntimeHostingPlan(m,{requireApplied,git},'R108');}
+/** Live: as R107 (request-based CPU, CHAT_COMMAND_URL on chat only) with the chat menu exactly Claude Opus 5.5. */
+export async function verifyR108LivePackage(m,options={}){await verifyChatRuntimeLive(m,options,'R108');}
+
 /** Verify the supplied token itself and a signed, audience-bound impersonation proof. */
 export async function verifyAppOnlyOperator({token,impersonationToken=token,release='R059',request=fetch,verifyIdToken=async(idToken,audience)=>(await new OAuth2Client().verifyIdToken({idToken,audience})).getPayload()}){
  requireValue(typeof token==='string'&&token.length>0,'operator token required');
@@ -1213,7 +1271,7 @@ export async function verifyAppOnlyOperator({token,impersonationToken=token,rele
  const identity=await call('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token));requireValue(Number(identity.expires_in)>0,'expired access token');
  const service=await call(`https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${admin}`);requireValue(service.email===admin&&service.projectId===project&&/^\d+$/.test(service.uniqueId??''),'wrong impersonated service account');
  requireValue(identity.email===admin||(!identity.email&&identity.aud===service.oauth2ClientId&&identity.azp===service.oauth2ClientId&&service.oauth2ClientId===service.uniqueId),'wrong access-token principal');
- requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095','R096','R097','R100','R101','R102','R103','R104','R106','R107'].includes(release)||genericRelease(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
+ requireValue(['R059','R061','R062','R063','R064','R065','R066','R068','R069','R070','R071','R072','R073','R074','R075','R076','R077','R078','R079','R080','R081','R083','R089','R090','R091','R095','R096','R097','R100','R101','R102','R103','R104','R106','R107','R108'].includes(release)||genericRelease(release),'unsupported operator release');const audience='https://lm.mw-credit.com/promotion/'+release.toLowerCase();const signed=await call(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${admin}:generateIdToken`,{audience,includeEmail:true});const proof=await verifyIdToken(signed.token,audience);requireValue(proof?.email===admin&&proof.email_verified===true&&proof.sub===service.uniqueId&&proof.aud===audience,'wrong signed impersonation proof');
  for(const site of [prodSite,'mw-credit-app-dev-737787224638'])requireValue((await call(`https://firebasehosting.googleapis.com/v1beta1/projects/${project}/sites/${site}`)).name===`projects/${project}/sites/${site}`,'wrong live Hosting target');
  return {operator:admin,verification:'token principal and signed impersonation proof'};
 }
@@ -1292,8 +1350,8 @@ export async function executeBusinessHosting(plan,{request,approvalReference}){
 // - roles: the services whose image changes: the services whose entry points reach a changed file (GENERIC_ROLE_ENTRIES);
 // - plan: read back from the saved plan and its JSON export: image-only updates of exactly the changed services;
 // - tags: from origin; the release itself must not be tagged yet.
-// Order: SQL first, then the images. The live readback is the chat-era one with the current (R102) chat check; unchanged
-// services must read back on their pinned image and revision. Anything the derivation cannot express (a new service, a
+// Order: SQL first, then the images. The live readback is the chat-era one with the current chat check (R102's, with
+// the R108 Claude-only menu); unchanged services must read back on their pinned image and revision. Anything the derivation cannot express (a new service, a
 // non-image Terraform action, infrastructure changes, recognizer wiring, images before SQL, a new scope) still needs a
 // hand-written kind.
 const GENERIC_SCHEMA=36,GENERIC_RULE='generic-v1',GENERIC_FIRST=105;
@@ -1473,11 +1531,11 @@ export async function genericHostingPlan(m,{requireApplied=true,git=sourceGit}={
  }
  return validatedHostingArtifact(m,recovery,{release:L,chatOrigin:R090_CHAT_ORIGIN});
 }
-/** Live: the chat-era readback with the current (R102) chat check; a frontend-only package re-reads CI and the five pins. */
+/** Live: the chat-era readback with the current chat check (R108 menu); a frontend-only package re-reads CI and the five pins. */
 export async function verifyGenericLivePackage(m,options={}){
  const L=m.release;
  // R107 moved command and chat to request-based CPU; the generic kind cannot change that (no infrastructure changes).
- if(m.scope!=='frontend-only'){await verifyChatRuntimeLive(m,options,L,{allowed:genericDeliveryAllowed,liveChat:'r102',requestCpu:true});return;}
+ if(m.scope!=='frontend-only'){await verifyChatRuntimeLive(m,options,L,{allowed:genericDeliveryAllowed,liveChat:'current',requestCpu:true});return;}
  const {token,request=fetch,readGithub,git=sourceGit}=options;
  const gh=readGithub??(args=>{const r=spawnSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024});requireValue(r.status===0,'actual GitHub CI readback failed');return JSON.parse(r.stdout)});
  await verifyPerJobCiLive(m,gh,git,L,genericDeliveryAllowed);
@@ -1489,7 +1547,7 @@ export async function verifyGenericLivePackage(m,options={}){
  }
  const env=Object.fromEntries((live.chat.template?.containers?.[0]?.env??[]).map(x=>[x.name,x.value]));let models;try{models=JSON.parse(env.CHAT_MODELS_JSON);}catch{models=null;}
  requireValue(live.chat.template?.serviceAccount===`mw-credit-app-chat-prod@${project}.iam.gserviceaccount.com`,L+' live chat identity drift');
- verifyR102LiveChat(live,env,models,L);
+ verifyR102LiveChat(live,env,models,L,R108_CHAT_MODEL_IDS);
 }
 
 // Every current package kind in one row: its matcher (first match wins, in this order), its plan, its operator audience
@@ -1497,6 +1555,7 @@ export async function verifyGenericLivePackage(m,options={}){
 // verifier (the R104 apply was refused because the old if-chain had no R104 live branch). R061 and R059 keep the default
 // operator audience (R059); a package no row matches is the legacy business package.
 export const HOSTING_KINDS=Object.freeze([
+ {kind:'R108',match:i=>i.schemaVersion===39&&i.release==='R108',plan:(i,o)=>r108HostingPlan(i,o),operatorRelease:()=>'R108',live:(i,o)=>verifyR108LivePackage(i,o)},
  {kind:'R107',match:i=>i.schemaVersion===38&&i.release==='R107',plan:(i,o)=>r107HostingPlan(i,o),operatorRelease:()=>'R107',live:(i,o)=>verifyR107LivePackage(i,o)},
  {kind:'R106',match:i=>i.schemaVersion===37&&i.release==='R106',plan:(i,o)=>r106HostingPlan(i,o),operatorRelease:()=>'R106',live:(i,o)=>verifyR106LivePackage(i,o)},
  {kind:'R104',match:i=>i.schemaVersion===35&&i.release==='R104',plan:(i,o)=>r104HostingPlan(i,o),operatorRelease:()=>'R104',live:(i,o)=>verifyR104LivePackage(i,o)},

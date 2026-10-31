@@ -7,7 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {hashEntries,evidenceName,variantOf,loadStages} from '../../scripts/ci/reuse-evidence.mjs';
 import {migrationHead} from '../migration-head.mjs';
-import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage,r080HostingPlan,validateR080Source,validateR080Sql,verifyR080LivePackage,r081HostingPlan,validateR081Source,validateR081Sql,verifyR081LivePackage,validateR089Source,validateR089Sql,r089HostingPlan,verifyR089LivePackage,validateR090Source,validateR090Sql,r090HostingPlan,verifyR090LivePackage,R090_CHAT_ORIGIN,R090_PLAN_ACTIONS,R090_DISPATCH,validateR091Source,validateR091Sql,r091HostingPlan,verifyR091LivePackage,R091_PLAN_ACTIONS,validateR095Source,validateR095Sql,r095HostingPlan,verifyR095LivePackage,R095_PLAN_ACTIONS,validateR096Source,validateR096Sql,r096HostingPlan,verifyR096LivePackage,R096_PLAN_ACTIONS,validateR097Source,validateR097Sql,validateR100Source,validateR100Sql,r100HostingPlan,verifyR100LivePackage,R100_PLAN_ACTIONS,validateR101Source,validateR101Sql,r101HostingPlan,verifyR101LivePackage,R101_PLAN_ACTIONS,r102HostingPlan,validateR102Source,validateR102Sql,verifyR102LivePackage,R102_PLAN_ACTIONS,R102_CHAT_RELAY_URL,R103_RUNTIME,r097HostingPlan,verifyR097LivePackage,R097_PLAN_ACTIONS,R104_PLAN_ACTIONS,validateR104Source,validateR104Sql,r104HostingPlan,verifyR104LivePackage,R106_PLAN_ACTIONS,R106_CHAT_COMMAND_URL,validateR106Source,validateR106Sql,r106HostingPlan,verifyR106LivePackage,R107_PLAN_ACTIONS,validateR107Source,validateR107Sql,r107HostingPlan,verifyR107LivePackage,HOSTING_KINDS,hostingKind,GENERIC_ROLES,GENERIC_ROLE_ENTRIES,genericRoleClosures,genericChangedRoles,genericKindMatches,deriveGenericRelease,genericHostingPlan,verifyGenericLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
+import {executeBusinessHosting,appOnlyHostingPlan,verifyAppOnlyOperator,validateFrontendSource,validateFrontendCi,frontendOnlyHostingPlan,verifyFrontendOnlyLivePackage,validateSettingsSource,settingsHostingPlan,verifySettingsLivePackage,runtimeHostingPlan,validateRuntimeSource,validateRuntimeCi,verifyRuntimeLivePackage,waveHostingPlan,validateWaveSource,validateWaveCi,verifyWaveLivePackage,r065HostingPlan,validateR065Source,verifyR065LivePackage,hostingOnlyPlan,validateHostingOnlySource,verifyHostingOnlyLivePackage,r068HostingPlan,validateR068Source,verifyR068LivePackage,r069HostingPlan,validateR069Source,verifyR069LivePackage,validateR074Ci,r075HostingPlan,validateR075Source,validateR075Sql,verifyR075LivePackage,R075_RECOGNIZER_URL,r076HostingPlan,validateR076Source,verifyR076LivePackage,r077HostingPlan,validateR077Source,verifyR077LivePackage,R077_SERVICE_TIMEOUTS,r078HostingPlan,validateR078Source,validateR078Sql,verifyR078LivePackage,r079HostingPlan,validateR079Source,verifyR079LivePackage,r080HostingPlan,validateR080Source,validateR080Sql,verifyR080LivePackage,r081HostingPlan,validateR081Source,validateR081Sql,verifyR081LivePackage,validateR089Source,validateR089Sql,r089HostingPlan,verifyR089LivePackage,validateR090Source,validateR090Sql,r090HostingPlan,verifyR090LivePackage,R090_CHAT_ORIGIN,R090_PLAN_ACTIONS,R090_DISPATCH,validateR091Source,validateR091Sql,r091HostingPlan,verifyR091LivePackage,R091_PLAN_ACTIONS,validateR095Source,validateR095Sql,r095HostingPlan,verifyR095LivePackage,R095_PLAN_ACTIONS,validateR096Source,validateR096Sql,r096HostingPlan,verifyR096LivePackage,R096_PLAN_ACTIONS,validateR097Source,validateR097Sql,validateR100Source,validateR100Sql,r100HostingPlan,verifyR100LivePackage,R100_PLAN_ACTIONS,validateR101Source,validateR101Sql,r101HostingPlan,verifyR101LivePackage,R101_PLAN_ACTIONS,r102HostingPlan,validateR102Source,validateR102Sql,verifyR102LivePackage,R102_PLAN_ACTIONS,R102_CHAT_RELAY_URL,R103_RUNTIME,r097HostingPlan,verifyR097LivePackage,R097_PLAN_ACTIONS,R104_PLAN_ACTIONS,validateR104Source,validateR104Sql,r104HostingPlan,verifyR104LivePackage,R106_PLAN_ACTIONS,R106_CHAT_COMMAND_URL,validateR106Source,validateR106Sql,r106HostingPlan,verifyR106LivePackage,R107_PLAN_ACTIONS,validateR107Source,validateR107Sql,r107HostingPlan,verifyR107LivePackage,R108_PLAN_ACTIONS,R108_CHAT_MODEL_IDS,validateR108Source,validateR108Sql,r108HostingPlan,verifyR108LivePackage,HOSTING_KINDS,hostingKind,GENERIC_ROLES,GENERIC_ROLE_ENTRIES,genericRoleClosures,genericChangedRoles,genericKindMatches,deriveGenericRelease,genericHostingPlan,verifyGenericLivePackage} from '../../scripts/promotion/deploy-business-hosting.mjs';
 const site='mw-credit-prod-737787224638',version=`sites/${site}/versions/abc123`,release=`sites/${site}/releases/xyz123`;
 const plan=()=>({site,files:{'/index.html':'a'.repeat(64)},contents:new Map([['a'.repeat(64),Buffer.from('compressed')]]),headers:[],sourceCommit:'b'.repeat(40),publicVersion:'marker'});
 function transport({target=version,hash='a'.repeat(64),upload='https://upload-firebasehosting.googleapis.com/upload/'+version+'/files',failFinalize=false}={}){const calls=[];return {calls,request:async(url,method,body)=>{calls.push({url,method,body});if(url.endsWith('/versions'))return {name:target};if(url.endsWith(':populateFiles'))return {uploadRequiredHashes:[hash],uploadUrl:upload};if(method==='PATCH'){if(failFinalize)throw Error('Finalize failed');return {name:version,status:'FINALIZED'};}if(url.includes('/releases?'))return {name:release,version:{name:version}};return {};}};}
@@ -2146,6 +2146,8 @@ const r102Git=(options={})=>r090Git({migration:r102Added,files:r102Files,baselin
 const r102Marker=(m,extra={})=>JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release:'R102',...extra});
 const r102Models={version:1,location:'global',default:'claude-opus-5-5',thinkingLevel:'MEDIUM',maxRounds:16,requestTimeoutSeconds:120,turnTimeoutSeconds:240,historyTokenLimit:150000,seedChars:40000,maxOutputTokens:16384,
  models:[{id:'claude-opus-5-5',label:'Claude Opus 5.5',available:true},{id:'gemini-4-argon',label:'Gemini 4 Argon',available:true},{id:'gemini-3.8-flash',label:'Gemini 3.8 Flash',available:true},{id:'gemini-3.5-flash',label:'Gemini 3.5 Flash',available:true}]};
+// R108: the chat menu is Claude Opus 5.5 only (the R102 settings otherwise unchanged).
+const r108Models={...r102Models,models:r102Models.models.slice(0,1)};
 const r102ChatVpc={egress:'PRIVATE_RANGES_ONLY',networkInterfaces:[{network:'default',subnetwork:'default'}]};
 async function r102Package(t){
  const p=await r101Package(t),m=p.m,hash=value=>createHash('sha256').update(value).digest('hex');
@@ -2533,36 +2535,38 @@ test('generic R105 refuses non-contiguous or edited migrations and infrastructur
  {const {m}=await genericRuntimePackage(t,{r105:{'database/migrations/V117__b.sql':'-- edited\n'}});await assert.rejects(genericHostingPlan(m),/R105 may only add new versioned migrations/);}
  {const {m}=await genericRuntimePackage(t,{r105:{'infrastructure/production/runtime.tf':'# x\n'}});await assert.rejects(genericHostingPlan(m),/R105 generic kind cannot carry infrastructure changes: infrastructure\/production\/runtime.tf/);}
 });
-test('generic R105 live readback: chat-era checks with the current chat rule and request-based CPU (R107); unchanged services on their pins',async t=>{
+test('generic R105 live readback: chat-era checks with the current chat rule (R108 Claude-only menu) and request-based CPU (R107); unchanged services on their pins',async t=>{
  const {m,image}=await genericRuntimePackage(t);
  const {make}=chatLive(m,image),pinned=Object.fromEntries(['notify','jobs'].map(role=>[role,m.rollback.services[role].image]));
- const relay=[{name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL}],good={image:pinned,models:r102Models,env:{chat:relay},vpc:{chat:r102ChatVpc},commandCpuIdle:true,chatCpuIdle:true};
+ const relay=[{name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL}],good={image:pinned,models:r108Models,env:{chat:relay},vpc:{chat:r102ChatVpc},commandCpuIdle:true,chatCpuIdle:true};
  const live=r074Readback(m);await hostingKind(m).live(m,{token:'t',request:make(good),readGithub:live.readGithub});assert.equal(live.calls.length,10);
- for(const [edit,pattern] of [[{...good,image:{...pinned,notify:image}},/live service revision\/identity drift/],[{...good,models:{...r102Models,default:'gemini-4-argon'}},/R105 live chat models must be Claude Opus 5.5/],[{...good,env:{}},/R105 live chat relay URL drift/],
+ for(const [edit,pattern] of [[{...good,image:{...pinned,notify:image}},/live service revision\/identity drift/],[{...good,models:{...r108Models,default:'gemini-4-argon'}},/R105 live chat models must be Claude Opus 5.5/],
+  // R108: the Gemini models left the chat menu; the R102 four-model list is refused from then on.
+  [{...good,models:r102Models},/R105 live chat models must be Claude Opus 5.5 only \(default\)/],[{...good,env:{}},/R105 live chat relay URL drift/],
   // R107 moved command and chat to request-based CPU: cpuIdle must be exactly true (absent reads as false).
   [{...good,commandCpuIdle:undefined},/R105 live command cpu_idle must be true/],[{...good,commandCpuIdle:false},/R105 live command cpu_idle must be true/],
   [{...good,chatCpuIdle:undefined},/R105 live chat timeout 300s and cpu_idle true required/],[{...good,chatCpuIdle:false},/R105 live chat timeout 300s and cpu_idle true required/]])
   await assert.rejects(verifyGenericLivePackage(m,{token:'t',request:make(edit),readGithub:r074Readback(m).readGithub}),pattern,JSON.stringify(edit));
 });
-// R106 and R107 have hand-written kinds, so the synthetic third release here is R108 (the repository's third commit).
-test('generic R108 frontend-only on origin\'s R105 tag: no runtime or SQL change, five pins read back live',async t=>{
- const repo=await genericRepo(t,{tagR105:true}),p=await genericBase(t,'R108'),m=p.m,source=repo.r106Source;repo.checkout(source);
+// R106 to R108 have hand-written kinds, so the synthetic third release here is R109 (the repository's third commit).
+test('generic R109 frontend-only on origin\'s R105 tag: no runtime or SQL change, five pins read back live',async t=>{
+ const repo=await genericRepo(t,{tagR105:true}),p=await genericBase(t,'R109'),m=p.m,source=repo.r106Source;repo.checkout(source);
  for(const key of ['build','plan','applied','activation','recognition'])delete m[key];
  const pins=Object.fromEntries(GENERIC_ROLES.map(role=>[role,{...m.rollback.services[role]}]));
- Object.assign(m,{schemaVersion:36,kindRule:'generic-v1',release:'R108',scope:'frontend-only',status:'prepared',repoRoot:repo.root,sourceCommit:source,artifactSourceCommit:source,sourceBaseline:repo.r105Source,applicationCi:r074Ci(source),ownerWindows:[],runtime:{services:pins},
+ Object.assign(m,{schemaVersion:36,kindRule:'generic-v1',release:'R109',scope:'frontend-only',status:'prepared',repoRoot:repo.root,sourceCommit:source,artifactSourceCommit:source,sourceBaseline:repo.r105Source,applicationCi:r074Ci(source),ownerWindows:[],runtime:{services:pins},
   sql:{baselineVersion:118,targetVersion:118,migrations:[],verified:{database:'loan_manager_prod',latestVersion:'118',historyRows:118,allSuccessful:true,verifiedAt:'2026-10-31T03:00:00Z'}}});
  assert.equal(deriveGenericRelease(m).tag,'R105','the annotated tag is peeled to its commit');assert.deepEqual(deriveGenericRelease(m).changedRoles,[],'a scripts-only package.json change changes no image');
  assert.equal(hostingKind(m)?.kind,'generic');assert.equal((await genericHostingPlan(m)).site,site);
- for(const [mutate,pattern] of [[x=>{x.sourceBaseline=repo.r104},/R108 source baseline must be the previous release tag R105/],[x=>{x.sql.targetVersion=117},/R108 read-only V118 readback/],
-  [x=>{x.ownerWindows=['mw_chat_owner_prod']},/R108 declared PROD owner windows/],[x=>{x.plan={actions:['read.image']}},/R108 frontend-only package must not apply/],
-  [x=>{delete x.runtime.services.chat},/R108 unchanged runtime pins required/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(genericHostingPlan(candidate),pattern,String(mutate));}
- {const other=await genericRepo(t,{tagR105:true,r106:{'services/api/read.mjs':"import {x} from '../lib/x.mjs';\nexport const a=2;\n"}});other.checkout(other.r106Source);const x={...structuredClone(m),repoRoot:other.root,sourceCommit:other.r106Source,artifactSourceCommit:other.r106Source,sourceBaseline:other.r105Source,applicationCi:r074Ci(other.r106Source)};await assert.rejects(genericHostingPlan(x),/R108 frontend-only must not change runtime inputs or SQL: services\/api\/read.mjs/);}
+ for(const [mutate,pattern] of [[x=>{x.sourceBaseline=repo.r104},/R109 source baseline must be the previous release tag R105/],[x=>{x.sql.targetVersion=117},/R109 read-only V118 readback/],
+  [x=>{x.ownerWindows=['mw_chat_owner_prod']},/R109 declared PROD owner windows/],[x=>{x.plan={actions:['read.image']}},/R109 frontend-only package must not apply/],
+  [x=>{delete x.runtime.services.chat},/R109 unchanged runtime pins required/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(genericHostingPlan(candidate),pattern,String(mutate));}
+ {const other=await genericRepo(t,{tagR105:true,r106:{'services/api/read.mjs':"import {x} from '../lib/x.mjs';\nexport const a=2;\n"}});other.checkout(other.r106Source);const x={...structuredClone(m),repoRoot:other.root,sourceCommit:other.r106Source,artifactSourceCommit:other.r106Source,sourceBaseline:other.r105Source,applicationCi:r074Ci(other.r106Source)};await assert.rejects(genericHostingPlan(x),/R109 frontend-only must not change runtime inputs or SQL: services\/api\/read.mjs/);}
  const project='clever-oasis-508610-n7',relay=[{name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL}];
  const make=(edit={})=>async url=>{const role=url.split('/services/mw-credit-app-')[1].replace('-prod',''),pin=pins[role],revision=edit.revision?.[role]??pin.revision;
-  const env=role==='chat'?[{name:'CHAT_MODELS_JSON',value:JSON.stringify(r102Models)},...relay]:[];const vpc=role==='chat'||role==='command'?r102ChatVpc:undefined;
+  const env=role==='chat'?[{name:'CHAT_MODELS_JSON',value:JSON.stringify(r108Models)},...relay]:[];const vpc=role==='chat'||role==='command'?r102ChatVpc:undefined;
   return {ok:true,json:async()=>({latestReadyRevision:'x/'+revision,terminalCondition:{state:'CONDITION_SUCCEEDED'},trafficStatuses:[{percent:100,revision}],template:{serviceAccount:`mw-credit-app-${role}-prod@${project}.iam.gserviceaccount.com`,containers:[{image:edit.image?.[role]??pin.image,env}],...(vpc?{vpcAccess:vpc}:{})}})};};
  await verifyGenericLivePackage(m,{token:'t',request:make(),readGithub:r074Readback(m).readGithub});
- await assert.rejects(verifyGenericLivePackage(m,{token:'t',request:make({revision:{notify:'mw-credit-app-notify-prod-00099-new'}}),readGithub:r074Readback(m).readGithub}),/R108 live notify differs from its pinned image and revision/);
+ await assert.rejects(verifyGenericLivePackage(m,{token:'t',request:make({revision:{notify:'mw-credit-app-notify-prod-00099-new'}}),readGithub:r074Readback(m).readGithub}),/R109 live notify differs from its pinned image and revision/);
 });
 
 // R106 (chat writes): V118 and V119 (PROD 117 to 119, one grouped transaction, owner window mw_chat_owner_prod), SQL first,
@@ -2784,4 +2788,112 @@ test('R107 live readback: R106\'s checks with command and chat cpuIdle exactly t
  const r106Options=edit=>({token:'t',request:chatLive(r106.m,r106.image).make(edit),readGithub:r074Readback(r106.m).readGithub,git:r106Git({source:r106.source,tool:r106.tool})});
  await verifyR106LivePackage(r106.m,r106Options(r106Good));
  await assert.rejects(verifyR106LivePackage(r106.m,r106Options({...r106Good,commandCpuIdle:true})),/R106 live command cpu_idle must be false/);
+});
+
+// R108 (Claude-only chat menu): no migration (a read-only V119 readback), then a new chat image with CHAT_MODELS_JSON
+// listing exactly Claude Opus 5.5 (default); read, command, notify and jobs stay on their pins. The release carries exactly
+// two infrastructure/production files. The plan JSON export is read back; the live readback is R107's with the
+// Claude-only menu.
+const r108Baseline='1befbb87fa4604262d799b13529a954c004c3ff3';
+const r108Infra=['infrastructure/production/chat-service.tf','infrastructure/production/tests/chat-service.tftest.hcl'];
+function r108Git({infra=r108Infra.join('\n'),migration='',...options}={}){
+ const base=r090Git({migration,files:r106Files,baseline:r108Baseline,...options});
+ return (root,args)=>{
+  if(args[0]==='diff'&&args[2]===r108Baseline&&args[3]===options.source){
+   const at=args.indexOf('--'),spec=at<0?null:args.slice(at+1);
+   return nulNames(args,[...migration.split('\n'),...infra.split('\n')].filter(Boolean).filter(name=>!spec||spec.some(prefix=>name===prefix||name.startsWith(prefix+'/'))).join('\n'));
+  }
+  return base(root,args);
+ };
+}
+const r108Marker=(m,extra={})=>JSON.stringify({schemaVersion:1,version:m.frontend.publicVersion,entry:m.frontend.entry,release:'R108',...extra});
+// The reviewed plan's JSON export: chat changes its image and its CHAT_MODELS_JSON value (the R102 list to Claude only).
+const r108PlanJson=(edit=json=>json)=>edit({format_version:'1.2',resource_changes:[
+ {address:'data.google_project.current',type:'google_project',change:{actions:['read'],before:null,after:{}}},
+ ...['read','command','notify','jobs','chat'].map(role=>{
+  const name=`mw-credit-app-${role}-prod`,address=role==='chat'?'google_cloud_run_v2_service.chat[0]':['notify','jobs'].includes(role)?`module.workers.google_cloud_run_v2_service.worker["${role}"]`:`google_cloud_run_v2_service.foundation["${role}"]`;
+  if(role!=='chat')return {address,type:'google_cloud_run_v2_service',change:{actions:['no-op'],before:{name},after:{name}}};
+  const env=models=>[{name:'DB_NAME',value:'loan_manager_prod',value_source:[]},{name:'CHAT_MODELS_JSON',value:JSON.stringify(models),value_source:[]},{name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL,value_source:[]}];
+  const template=(image,models)=>[{containers:[{image,env:env(models),resources:[{cpu_idle:true,limits:{cpu:'1',memory:'512Mi'},startup_cpu_boost:true}]}],timeout:'300s'}];
+  return {address,type:'google_cloud_run_v2_service',change:{actions:['update'],before:{name,etag:'1',template:template('old',r102Models)},after:{name,etag:null,template:template('new',r108Models)},after_unknown:{etag:true}}};
+ })]});
+const r108Chat=json=>json.resource_changes.find(x=>x.change.after?.name==='mw-credit-app-chat-prod').change;
+async function r108Package(t){
+ const p=await r107Package(t),m=p.m;
+ Object.assign(m,{schemaVersion:39,release:'R108',sourceBaseline:r108Baseline,
+  sql:{baselineVersion:119,targetVersion:119,migrations:[],verified:{database:'loan_manager_prod',latestVersion:'119',historyRows:119,allSuccessful:true,verifiedAt:'2026-11-02T03:01:00Z'}}});
+ m.plan.counts={add:0,change:1,destroy:0};m.plan.actions=[...R108_PLAN_ACTIONS];await writePlanJson(m,p.root,r108PlanJson(),'r108-plan.json');
+ // Only chat changes: the other four read back on their pinned image and revision.
+ for(const role of ['read','command'])m.applied.services[role]={...m.applied.services[role],image:m.rollback.services[role].image,revision:m.rollback.services[role].revision};
+ m.applied.sqlVersion=119;m.applied.appliedAt='2026-11-02T03:20:00Z';
+ await setArtifact(m,'build-version.json',r108Marker(m));
+ const bundle=await readFile(path.join(m.artifactRoot,'assets/test.js'),'utf8');await setArtifact(m,'assets/test.js',bundle.replace('"R107"','"R108"'));
+ return p;
+}
+test('R108 package validates: no migration, the chat image and Claude-only CHAT_MODELS_JSON read back from the plan JSON, ordering and kind',async t=>{
+ const {m,source,tool,root}=await r108Package(t),git=r108Git({source,tool});
+ assert.equal((await r108HostingPlan(m,{git})).site,site);
+ assert.deepEqual([...R108_PLAN_ACTIONS],['chat.image','chat.modelsJson']);assert.deepEqual([...R108_CHAT_MODEL_IDS],['claude-opus-5-5']);
+ for(const [mutate,pattern] of [
+  [x=>x.sql.verified.latestVersion='118',/R108 requires a read-only V119 readback/],[x=>x.sql.migrations.push({name:'V120__x.sql',sha256:'0'.repeat(64)}),/R108 requires a read-only V119/],
+  [x=>x.applied.sqlVersion=118,/R108 applied source/],[x=>x.applied.appliedAt='2026-11-02T03:00:59Z',/R108 applied source/],
+  [x=>x.plan.counts={add:0,change:3,destroy:0},/R108 reviewed chat image and Claude-only CHAT_MODELS_JSON plan/],[x=>x.plan.actions=['chat.image'],/R108 reviewed/],[x=>x.plan.actions.reverse(),/R108 reviewed/],
+  [x=>x.plan.jsonSha256='0'.repeat(64),/R108 plan JSON export changed/],[x=>{delete x.plan.jsonPath},/R108 reviewed plan and its JSON export required/],
+  [x=>x.applied.services.read.image=x.build.image,/R108 unchanged read must read back/],[x=>x.applied.services.command.revision='mw-credit-app-command-prod-00099-new',/R108 unchanged command must read back/],
+  [x=>x.applied.services.chat.image=x.rollback.services.chat.image,/R108 ready service/],
+  [x=>x.release='R107',/package kind/],[x=>x.schemaVersion=38,/package kind/],[x=>x.schemaVersion=36,/package kind/]]){const candidate=structuredClone(m);mutate(candidate);await assert.rejects(r108HostingPlan(candidate,{git}),pattern,String(mutate));}
+ {const x=structuredClone(m);await setArtifact(x,'build-version.json',r108Marker(m,{release:'R107'}));await assert.rejects(r108HostingPlan(x,{git}),/R108 artifact release mismatch/);await setArtifact(m,'build-version.json',r108Marker(m));}
+ const prepared={...structuredClone(m),status:'prepared'};await assert.rejects(r108HostingPlan(prepared,{git}),/R108 runtime apply\/readback/);assert.equal((await r108HostingPlan(prepared,{git,requireApplied:false})).site,site);
+ await assert.rejects(r107HostingPlan(m,{git}),/wrong R107 package kind/);assert.equal(await validateR108Sql(m,git),undefined);
+ assert.equal(hostingKind(m)?.kind,'R108');assert.equal(genericKindMatches({schemaVersion:36,kindRule:'generic-v1',release:'R108',scope:'runtime-workers-frontend'}),false);
+ // Anything in the plan JSON beyond the chat image and a Claude-only CHAT_MODELS_JSON is refused.
+ const env=(j,name)=>r108Chat(j).after.template[0].containers[0].env.find(x=>x.name===name);
+ for(const [edit,pattern] of [
+  [j=>{env(j,'CHAT_MODELS_JSON').value=JSON.stringify(r102Models);return j;},/R108 plan may change only CHAT_MODELS_JSON in the chat env: adds nothing, removes nothing, changes nothing/],
+  [j=>{env(j,'CHAT_MODELS_JSON').value=JSON.stringify({...r108Models,models:[...r108Models.models,{id:'gemini-4-argon',label:'Gemini 4 Argon',available:true}]});return j;},/R108 plan CHAT_MODELS_JSON must list exactly Claude Opus 5.5/],
+  [j=>{env(j,'CHAT_MODELS_JSON').value=JSON.stringify({...r108Models,maxRounds:12});return j;},/R108 plan CHAT_MODELS_JSON must list exactly Claude Opus 5.5/],
+  // Only models and default may change: any other field differing from the value before is refused.
+  [j=>{env(j,'CHAT_MODELS_JSON').value=JSON.stringify({...r108Models,historyTokenLimit:200000});return j;},/R108 plan CHAT_MODELS_JSON may change only models and default/],
+  [j=>{env(j,'CHAT_MODELS_JSON').value=JSON.stringify({...r108Models,requestTimeoutSeconds:90});return j;},/R108 plan CHAT_MODELS_JSON may change only models and default/],
+  [j=>{const c=r108Chat(j),before=c.before.template[0].containers[0].env.find(x=>x.name==='CHAT_MODELS_JSON');before.value=JSON.stringify({...r102Models,seedChars:20000});return j;},/R108 plan CHAT_MODELS_JSON may change only models and default/],
+  [j=>{r108Chat(j).before.template[0].containers[0].env.find(x=>x.name==='CHAT_MODELS_JSON').value='not json';return j;},/R108 plan CHAT_MODELS_JSON may change only models and default/],
+  [j=>{env(j,'CHAT_MODELS_JSON').value_source=[{secret_key_ref:[{secret:'x',version:'1'}]}];return j;},/R108 plan CHAT_MODELS_JSON must list exactly/],
+  [j=>{env(j,'CHAT_RELAY_URL').value='http://10.148.0.9:8791/v1/chat/messages';return j;},/R108 plan may change only CHAT_MODELS_JSON in the chat env: adds nothing, removes nothing, changes CHAT_MODELS_JSON, CHAT_RELAY_URL/],
+  [j=>{r108Chat(j).after.template[0].containers[0].env.push({name:'CHAT_FEATURE',value:'on',value_source:[]});return j;},/R108 plan may change only CHAT_MODELS_JSON in the chat env: adds CHAT_FEATURE/],
+  [j=>{r108Chat(j).after.template[0].containers[0].resources[0].cpu_idle=false;return j;},/R108 plan may change only the chat image and CHAT_MODELS_JSON: .*resources.0.cpu_idle/],
+  [j=>{r108Chat(j).after.template[0].containers[0].image='old';return j;},/R108 plan may change only the chat image .*changes no image/],
+  [j=>{r108Chat(j).after_unknown.template=[{containers:[{env:[{},{value:true}]}]}];return j;},/R108 plan env or resources unknown on chat/],
+  [j=>{const c=j.resource_changes.find(x=>x.change.after?.name==='mw-credit-app-read-prod').change;Object.assign(c,{actions:['update'],before:{name:c.before.name,template:[{containers:[{image:'old',env:[]}]}]},after:{name:c.after.name,template:[{containers:[{image:'new',env:[]}]}]}});return j;},/R108 plan may update only the chat service, once: google_cloud_run_v2_service.foundation\["read"\]/],
+  [j=>{j.resource_changes=j.resource_changes.filter(x=>x.change.after?.name!=='mw-credit-app-chat-prod');return j;},/R108 plan JSON must change the chat service/]]){
+  const x=structuredClone(m);await writePlanJson(x,root,r108PlanJson(edit),'r108-edited.json');await assert.rejects(r108HostingPlan(x,{git}),pattern,String(edit));}
+});
+test('R108 source descends from the R107 release with no migration and exactly the two infrastructure/production files',async t=>{
+ const {m,source,tool}=await r108Package(t);
+ assert.doesNotThrow(()=>validateR108Source(m,r108Git({source,tool})));
+ assert.doesNotThrow(()=>validateR108Source(m,r108Git({source,tool,infra:[...r108Infra,'infrastructure/dev/chat-service.tf','infrastructure/dev/tests/chat-service.tftest.hcl'].join('\n')})));
+ for(const infra of [[...r108Infra,'infrastructure/production/runtime.tf'],r108Infra.slice(1),[]])
+  assert.throws(()=>validateR108Source(m,r108Git({source,tool,infra:infra.join('\n')})),/R108 infrastructure changes must be exactly/,infra.join(','));
+ for(const file of ['scripts/promotion/README.md','scripts/promotion/deploy-business-hosting.mjs','tests/unit/business-hosting-delivery.test.mjs','project/Documents/Release_Tracker.md'])assert.doesNotThrow(()=>validateR108Source(m,r108Git({source,tool,delivery:file})),file);
+ for(const file of ['infrastructure/production/chat-service.tf','services/chat/config.mjs','apps/pwa/src/chat/ChatWorkspace.tsx'])assert.throws(()=>validateR108Source(m,r108Git({source,tool,delivery:file})),/R108 unverified delivery/,file);
+ assert.throws(()=>validateR108Source(m,r108Git({source,tool,migration:'database/migrations/V120__x.sql'})),/R108 carries no migration/);
+ assert.throws(()=>validateR108Source(m,r108Git({source,tool,ancestors:{[r108Baseline]:r107Baseline}})),/R108 source must descend from the R107 release/);
+});
+test('R108 live readback: R107\'s checks with the chat menu exactly Claude Opus 5.5; R107 keeps its four-model rule',async t=>{
+ const {m,source,tool,image}=await r108Package(t),git=r108Git({source,tool});
+ const {make}=chatLive(m,image),pinned=Object.fromEntries(['read','command','notify','jobs'].map(role=>[role,m.rollback.services[role].image]));
+ const relay={name:'CHAT_RELAY_URL',value:R102_CHAT_RELAY_URL},url={name:'CHAT_COMMAND_URL',value:R106_CHAT_COMMAND_URL};
+ const good={image:pinned,models:r108Models,env:{chat:[relay,url]},vpc:{chat:r102ChatVpc},commandCpuIdle:true,chatCpuIdle:true};
+ const live=r074Readback(m);await verifyR108LivePackage(m,{token:'t',request:make(good),readGithub:live.readGithub,git});assert.equal(live.calls.length,10);
+ const row=hostingKind(m);assert.equal(row.operatorRelease(m),'R108');await row.live(m,{token:'t',request:make(good),readGithub:r074Readback(m).readGithub,git});
+ for(const [edit,pattern] of [
+  [{...good,models:r102Models},/R108 live chat models must be Claude Opus 5.5 only \(default\), available, with maxRounds 16/],
+  [{...good,models:{...r108Models,models:[{...r108Models.models[0],available:false}]}},/R108 live chat models must be Claude Opus 5.5 only/],
+  [{...good,env:{chat:[relay]}},/R108 live chat CHAT_COMMAND_URL must be/],[{...good,env:{chat:[url]}},/R108 live chat relay URL drift/],
+  [{...good,chatCpuIdle:undefined},/R108 live chat timeout 300s and cpu_idle true required/],[{...good,image:{...pinned,read:image}},/live service revision\/identity drift/]])
+  await assert.rejects(verifyR108LivePackage(m,{token:'t',request:make(edit),readGithub:r074Readback(m).readGithub,git}),pattern,JSON.stringify(edit));
+ // R107 described its own release: the R102 four-model menu; the Claude-only menu is refused there.
+ const r107=await r107Package(t),r107Good={image:Object.fromEntries(['notify','jobs'].map(role=>[role,r107.m.rollback.services[role].image])),models:r102Models,env:{chat:[relay,url]},vpc:{chat:r102ChatVpc},commandCpuIdle:true,chatCpuIdle:true};
+ const r107Options=edit=>({token:'t',request:chatLive(r107.m,r107.image).make(edit),readGithub:r074Readback(r107.m).readGithub,git:r107Git({source:r107.source,tool:r107.tool})});
+ await verifyR107LivePackage(r107.m,r107Options(r107Good));
+ await assert.rejects(verifyR107LivePackage(r107.m,r107Options({...r107Good,models:r108Models})),/R107 live chat models must be Claude Opus 5.5 \(default\) and the three Gemini models/);
 });
