@@ -1,7 +1,7 @@
 # Change notes — R107 Cloud Run cost cut (request-based CPU for command and chat), 2026-10-31
 
 ## Purpose
-Cut the Cloud Run bill by returning the command and chat services to request-based CPU (`cpu_idle=true`). R090 batch 2 set `cpu_idle=false` so a post-commit wake could finish after the response; the 2-minute MW-Resource-Monitor `/health` probe then keeps each instance alive 24/7. Batch 1 is DEV only (owner-approved). PROD stays unchanged until the owner says "promote R107".
+Cut the Cloud Run bill by returning the command and chat services to request-based CPU (`cpu_idle=true`). R090 batch 2 set `cpu_idle=false` so a post-commit wake could finish after the response; the 2-minute MW-Resource-Monitor `/health` probe then keeps each instance alive 24/7. Batch 1 was DEV only; PROD is now approved (see Production approval).
 
 ## Changes
 Cost evidence (billing export, read 31 October 2026):
@@ -23,6 +23,13 @@ Implemented (one writer per path):
 Dependency fix (orchestrator, CI `check` failed on `npm audit --omit=dev`, new moderate advisories GHSA-3g3m-2fjr-6pw4 glob and GHSA-g3hv-75wg-m249 minimatch, not caused by this diff): `npm audit fix` changed `package-lock.json` only. `google-gax` 5.0.8 to 5.0.4 and its `gcp-metadata` 8.1.4 to 8.1.2 (both inside `@google-cloud/sql`'s range, under `@google-cloud/cloud-sql-connector`), which drops the `rimraf`/`glob`/`minimatch` chain; production audit 0 vulnerabilities.
 
 Wake failure behaviour is unchanged: a failed or slow wake never changes the committed payment result; the notifications schedule (every minute) recovers it.
+
+### Production approval and PROD source batch (31 October 2026)
+- Scoped production approval: the owner said "Let's move it to prod too" on 31 October 2026, approving the R107 promotion to PROD (per [Release workflow, Promotion](../project/Documents/Rules/Release_Workflow.md#promotion)). It was given before the owner's iPhone device check and the 48 h billing readback completed; both remain open and still run.
+- Forge: `infrastructure/production/runtime.tf` (command `cpu_idle` true), `chat-service.tf` (chat `cpu_idle` true), `tests/inert.tftest.hcl` and `tests/chat-service.tftest.hcl`. `terraform fmt` and `validate` pass, `terraform test` 23/23. The PROD baseline was captured read-only; its pins go to the inventory only at promotion. The preview plan 0 add, 2 change, 0 destroy (`cpu_idle` only, current images) is review-only and must not be applied: the old R106 code relies on CPU after the response.
+- Byte: a hand-written R107 promotion kind in `scripts/promotion/deploy-business-hosting.mjs` (the generic kind refuses infrastructure and non-image changes): schemaVersion 38, baseline `e57e77d` (the R106 tag), no migration (V119 readback only), an infrastructure allow-list of the four Forge files, plan exactly 0 add, 3 change, 0 destroy (read image; command image and `cpu_idle` false to true; chat image and `cpu_idle` false to true), notify and jobs pinned on the R091 business image, and a live readback that requires `cpu_idle` true on command and chat. The generic kind now also requires true. `scripts/promotion/README.md` has an R107 section. Checks: lint and typecheck exit 0; business-hosting-delivery 132/132; `npm test` 1052 pass, 0 fail, 1 skip; `check:docs` 0.
+- Decision: notify and jobs are not redeployed. Their code does not need R107; the lockfile audit fix reaches them in a later release (follow-up).
+- Next: Chase review, push, PR CI, merge, PROD build (`cloudbuild-business.yaml`, `mw-credit-app-build-prod`, keep tag `keep-r107-runtime`), runner deploy, verify, closure pull request with the `R107` tag.
 
 ## Test plan
 - Unit: the wake returns within about `HANDOFF_MS` when the notify call is slow, leaves it running, and does not abort it; a fast wake is awaited fully; a wake failure does not change the commit result or the response; the jobs worker still waits without a cap; the command store awaits the wake; the receipts runtime passes no abort signal.
@@ -59,7 +66,7 @@ Wake failure behaviour is unchanged: a failed or slow wake never changes the com
 ## Not run
 - Echo: the device check is deferred to the owner (Echo cannot drive the owner's iPhone): a real-device save push, and chat close-app then `chat.reply` push on the installed PWA.
 - `payment-command-api-independent`: Windows-only harness whose path does not pass `afterCommit`.
-- PROD apply, PROD readback and the PROD billing readback: PROD waits for "promote R107".
+- PROD apply, PROD readback and the PROD billing readback: approved but not yet run; they follow Chase's review, PR CI, merge and the PROD build.
 
 ## Recovery
 - Git: revert the batch commit; the baseline is `main` at the R106 closure.
@@ -67,11 +74,12 @@ Wake failure behaviour is unchanged: a failed or slow wake never changes the com
 - Fallback if the DEV proof of chat with the app closed fails: chat back to `cpu_idle=false`, and remove the chat `/health` probe from `project/scripts/monitoring/debian-health.py` so the instance is no longer held warm for nothing.
 
 ## Open questions
-- None for batch 1. The owner decides the PROD promotion ("promote R107") after the DEV proofs and the billing readback.
+- None. The owner's device check and the 48 h billing readback stay open after the PROD approval; a bad result would be handled as a follow-up or a revert of `cpu_idle`.
 
 ## Remaining work
 - Read the 48 h billing readback at about 2026-11-02T09:40Z and fill that Checks row.
 - DEV cleanup done: 5 synthetic chat threads archived (the app has no delete); 6 immutable `preference.update` command rows remain; preferences restored.
 - Owner device check pending: a real-device save push, and chat close-app then `chat.reply` push on the installed PWA.
 - Environment inventory DEV rows are updated for the apply (new R107 row, line 71 and the chat service row); PROD rows stay until the PROD promotion.
-- PROD batch (after "promote R107"): `scripts/promotion/deploy-business-hosting.mjs` (about L889, 955 to 975: the readback requires `cpu_idle` false); `tests/unit/business-hosting-delivery.test.mjs` (about 1720, 1723, 1826); `scripts/promotion/README.md:204`; `infrastructure/production/tests/inert.tftest.hcl:155` and `chat-service.tftest.hcl:87-89`; then the PROD command and chat `cpu_idle=true`, the inventory PROD rows and the promotion record.
+- PROD source batch is written (Forge and Byte, see Production approval). Left: Chase review, push, PR CI, merge, PROD build, runner deploy and verify, the PROD inventory rows and promotion record, and the closure pull request with the `R107` tag.
+- Follow-up: redeploy notify and jobs on an image with the lockfile audit fix in a later release.

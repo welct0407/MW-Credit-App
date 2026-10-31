@@ -152,8 +152,8 @@ run "business_candidate_has_exact_bounded_receipt_authority" {
     error_message = "Business candidate must use its exact image/entrypoint with unchanged bounded runtime sizing."
   }
   assert {
-    condition     = !google_cloud_run_v2_service.foundation["command"].template[0].containers[0].resources[0].cpu_idle && google_cloud_run_v2_service.foundation["read"].template[0].containers[0].resources[0].cpu_idle
-    error_message = "The PROD command service keeps CPU allocated (post-commit wake); the reader stays request-based."
+    condition     = google_cloud_run_v2_service.foundation["command"].template[0].containers[0].resources[0].cpu_idle && google_cloud_run_v2_service.foundation["read"].template[0].containers[0].resources[0].cpu_idle
+    error_message = "R107: the PROD command service and the reader use request-based CPU (cpu_idle true)."
   }
   assert {
     condition     = alltrue([for role, service in google_cloud_run_v2_service.foundation : one([for env in service.template[0].containers[0].env : env.value if env.name == "PWA_NOTIFICATIONS"]) == "disabled" && one([for env in service.template[0].containers[0].env : env.value if env.name == "PROD_RECEIPTS"]) == (role == "command" ? "enabled" : "disabled")]) && length([for env in google_cloud_run_v2_service.foundation["read"].template[0].containers[0].env : env if env.name == "PROD_RECEIPT_NATIVE_CATALOG_JSON"]) == 0

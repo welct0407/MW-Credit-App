@@ -120,8 +120,8 @@ resource "google_cloud_run_v2_service" "foundation" {
       args    = [var.business_runtime_authorized ? "services/production/business-server.mjs" : "services/production/server.mjs"]
       resources {
         limits = { cpu = "1", memory = "512Mi" }
-        # R090 batch 2: the command service keeps CPU after the response for its post-commit wake.
-        cpu_idle          = each.key == "command" ? false : true
+        # R107: request-based CPU (billed only while serving); the post-commit wake no longer relies on CPU after the response.
+        cpu_idle          = true
         startup_cpu_boost = true
       }
       dynamic "env" {
