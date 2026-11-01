@@ -61,7 +61,8 @@ Echo: pre-build review and built-UI pass at 390 and 1440 px, English and Thai. R
 | --- | --- |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 | Chat unit tests and `business-hosting-delivery.test.mjs` after the section 8 business-rules addition | 304 passed, 0 failed |
-| PR `Development checks` | Pending (no push yet) |
+| PR `Development checks`, run 41276600949 on f8b3f4f | Failed: e2e, 5 tests per project waited for Close Loan; the new hide-at-zero rule treated a read without `outstandingPrincipal` as 0. Fixed in `LoanRecord.tsx` (hide only when the figure is present and 0); the 5 tests 10/10 on both projects, R109 specs 8 passed, lint and typecheck pass |
+| PR `Development checks` after the fix | Pending |
 
 ## Not run
 Skipped and not verified, so not a pass:
