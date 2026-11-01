@@ -25,16 +25,56 @@ import {canonicalOperation,operationIdentity} from '../contracts/operation-comma
 import {readLoanRecord} from '../business/loans.mjs';
 import {readBorrowerRecord,mutateBorrowerRecord,validBorrowerId,borrowerNameMissing,loanBorrowerNameMissing} from '../business/borrowers.mjs';
 import {readCommandResult,readBorrowerPaymentHistory} from './result.mjs';
-import { readPaymentDraft, readOwnerPaymentDraft } from './draft.mjs';
+import { readPaymentDraft, readOwnerPaymentDraft, paymentLoanDisplayKey } from './draft.mjs';
+import { borrowerDisplayName } from '../api/loan-read-contract.mjs';
 import { applicationConnectionGuard } from './application-target.mjs';
 import { evaluateSlip } from '../receipts/recognizer-rules.mjs';
-import { canonicalCommand, canonicalAllocationPlan, canonicalMaterializePlan, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
+import { canonicalCommand, canonicalAllocationPlan, canonicalMaterializePlan, canonicalPrincipalPlan, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
 import { PROJECT_ID, OWNER_EMAIL } from '../lib/identity.mjs';
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
 import { statementTimeoutSql, lockTimeoutSql } from '../lib/budget.mjs';
 const issuer = `https://securetoken.google.com/${PROJECT_ID}`;
 const failure = (status, code) => ({ ok: false, status, code });
 const borrowerOptionLimit = 1000;
+// R110: Auto-assign previews the principal option of at most this many loans (one plan read each).
+const PRINCIPAL_PREVIEW_LIMIT = 5;
+const WHOLE = /^[1-9][0-9]{0,16}$/;
+/** R110: a pay-forward purpose {forward, principal:[{loanId, amount}], loans} as the plan read accepts it, or null. */
+export function payForwardPurpose(value){
+  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='forward,loans,principal'||typeof value.forward!=='boolean')return null;
+  if(!Array.isArray(value.principal)||value.principal.length>20||value.principal.some(row=>!row||typeof row!=='object'||Array.isArray(row)||Object.keys(row).sort().join(',')!=='amount,loanId'||!validBorrowerId(row.loanId)||typeof row.amount!=='string'||!WHOLE.test(row.amount)||BigInt(row.amount)>92233720368547758n))return null;
+  if(new Set(value.principal.map(row=>row.loanId)).size!==value.principal.length)return null;
+  if(value.loans!==null&&(!Array.isArray(value.loans)||value.loans.length>100||value.loans.some(id=>!validBorrowerId(id))))return null;
+  return {forward:value.forward,principal:value.principal.map(row=>({loanId:row.loanId,amount:row.amount})),loans:value.loans===null?null:[...value.loans]};
+}
+/** R110: the server's pay-forward plan for today (Bangkok), or null before V121. 22023 is a malformed request. */
+async function readPayForwardPlan(client,borrowerId,amountReceived,purpose){
+  if(!(await client.query(`SELECT to_regprocedure('public.pwa_pay_forward_plan_v1(text,numeric,date,jsonb)') IS NOT NULL AS present`)).rows[0].present)return null;
+  return (await client.query(`SELECT public.pwa_pay_forward_plan_v1($1,$2::numeric,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date,$3::jsonb) AS plan`,[borrowerId,amountReceived,JSON.stringify(purpose)])).rows[0].plan;
+}
+/** R110: the receiving label of each loan of the borrower ({loanId: label}), for plan rows that are not recorded charges. */
+async function loanLabels(client,borrowerId){
+  const rows=(await client.query(`SELECT l."Row ID" AS id,l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate,b."Borrower Name" AS name,b."Description" AS description
+   FROM public."Loans" l JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers" WHERE b."Row ID"=$1 AND l."Loan Status"='ยังไม่ปิดยอด' ORDER BY l."Row ID" COLLATE "C"`,[borrowerId])).rows;
+  return Object.fromEntries(rows.map(row=>[row.id,paymentLoanDisplayKey({...row,name:borrowerDisplayName(row.name,row.description)})]));
+}
+/** R110: the purpose a v10 command carries, as the command derives it: its principal entries, and forward for the loans of
+ * the lines dated after the business date (a materialize entry names its loan; a recorded charge's loan is read). */
+async function commandPurpose(client,businessDate,allocations,materialize,principal){
+  const future=allocations.filter(line=>line.chargeDate>businessDate),named=new Map(materialize.map(row=>[row.chargeId,row.loanId]));
+  const unknown=future.filter(line=>!named.has(line.chargeId)).map(line=>line.chargeId);
+  const recorded=unknown.length?new Map((await client.query('SELECT "Row ID" AS id,"Ref Loans" AS loan FROM public."Charges" WHERE "Row ID"=ANY($1::text[])',[unknown])).rows.map(row=>[row.id,row.loan])):new Map();
+  const loans=new Set(future.map(line=>named.get(line.chargeId)??recorded.get(line.chargeId)??null));
+  if(loans.has(null))return null;
+  return {forward:loans.size>0,principal:principal.map(row=>({loanId:row.loanId,amount:row.amount})),loans:loans.size?[...loans].sort((a,b)=>Buffer.compare(Buffer.from(a),Buffer.from(b))):null};
+}
+// jsonb answers come back with their own key order; compare in the canonical command order.
+const planLine=row=>({chargeId:row.chargeId,principal:row.principal,interest:row.interest,expectedPrincipalRemaining:row.expectedPrincipalRemaining,expectedInterestRemaining:row.expectedInterestRemaining,chargeDate:row.chargeDate});
+const planEntry=row=>({loanId:row.loanId,chargeId:row.chargeId,chargeDate:row.chargeDate,principalDue:row.principalDue,interestDue:row.interestDue});
+const planPrincipal=row=>({loanId:row.loanId,kind:row.kind,chargeId:row.chargeId,chargeDate:row.chargeDate,amount:row.amount,accruedInterest:row.accruedInterest,principalDue:row.principalDue});
+const samePlan=(plan,allocations,materialize,principal)=>!!plan&&plan.uncovered==='0'&&Array.isArray(plan.settles)&&plan.settles.length===0
+  &&JSON.stringify(plan.allocations.map(planLine))===JSON.stringify(allocations.map(planLine))&&JSON.stringify(plan.materialize.map(planEntry))===JSON.stringify(materialize.map(planEntry))
+  &&JSON.stringify(plan.principal.map(planPrincipal))===JSON.stringify(principal.map(planPrincipal));
 // R075: one recognizer call per uploaded slip for a form session; rules are never cached.
 const RECOGNITION_TTL_MS = 15 * 60 * 1000, RECOGNITION_CACHE_LIMIT = 64;
 /** Retryable busy failures: lock codes, or the SQL try-lock RAISE texts (every current form grepped from database/migrations). */
@@ -236,8 +276,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
           let candidate;try{candidate=commandIdentity(command,actor,receipt)}catch{return failure(400,'invalid_request')}
           if (candidate.canonicalJson !== existing.canonical_json) return failure(409, 'command_conflict');
         } else {
-          // R101: the synthetic fixture route never books a projected charge (v9).
-          if (fixture && (command.schemaVersion===9 || command.borrowerId!==fixture.borrowerId || !fixture.cashAccountIds.includes(command.cashAccountId)
+          // R101/R110: the synthetic fixture route never books a projected charge (v9) or a pay-forward plan (v10).
+          if (fixture && (command.schemaVersion===9 || command.schemaVersion===10 || command.borrowerId!==fixture.borrowerId || !fixture.cashAccountIds.includes(command.cashAccountId)
             || (command.schemaVersion>=6?command.allocations.map(row=>row.chargeId):command.selectedChargeIds).some(id=>!fixture.chargeIds.includes(id)))) return failure(403,'access_denied');
         }
         if (!existing && command.receiptId !== null) {
@@ -283,10 +323,54 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         if(principal+interest>0n)allocations.push({chargeId:row.id,principal:principal.toString(),interest:interest.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate});
       }
       allocations.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId),Buffer.from(b.chargeId)));
-      return {...result,allocations,amountReceived:input.amountReceived,allocated:(BigInt(input.amountReceived)-remaining).toString(),unallocated:remaining.toString()};
+      // R110: money beyond what is due gets previews of the remainder choices (nothing is chosen): pay forward, and repay
+      // principal per eligible loan with the whole remainder (after a booked charge's accrued interest).
+      const remainder=remaining>0n&&ownerTesting?await this.remainderPreview(principal,borrowerId,input.amountReceived):undefined;
+      return {...result,allocations,amountReceived:input.amountReceived,allocated:(BigInt(input.amountReceived)-remaining).toString(),unallocated:remaining.toString(),...(remainder?{remainder}:{})};
+    },
+    async remainderPreview(principal,borrowerId,amountReceived){
+      const result=await run(principal,async client=>{
+        const forward=await readPayForwardPlan(client,borrowerId,amountReceived,{forward:true,principal:[],loans:null});
+        if(!forward)return {ok:true,value:null};
+        const options=[];
+        for(const option of (forward.options??[]).slice(0,PRINCIPAL_PREVIEW_LIMIT)){
+          const amount=BigInt(forward.remainder)-BigInt(option.accruedInterest);if(amount<=0n)continue;
+          const plan=await readPayForwardPlan(client,borrowerId,amountReceived,{forward:false,principal:[{loanId:option.loanId,amount:amount.toString()}],loans:null});
+          options.push({loanId:option.loanId,amount:amount.toString(),settles:plan.settles.includes(option.loanId),entry:plan.principal[0]??null});
+        }
+        return {ok:true,value:{amount:forward.remainder,loans:await loanLabels(client,borrowerId),forward:{rows:forward.forward,paidThrough:forward.paidThrough,uncovered:forward.uncovered,blocked:forward.blocked},principal:options}};
+      },true);
+      return result.ok?result.value??undefined:undefined;
+    },
+    async plan(principal,borrowerId,input){
+      if(!ownerTesting)return failure(403,'access_denied');
+      if(!validBorrowerId(borrowerId)||!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).sort().join(',')!=='amountReceived,purpose'||typeof input.amountReceived!=='string'||!WHOLE.test(input.amountReceived)||BigInt(input.amountReceived)>92233720368547758n)return failure(400,'invalid_request');
+      const purpose=payForwardPurpose(input.purpose);if(!purpose)return failure(400,'invalid_request');
+      return run(principal,async client=>{
+        const blocked=(await client.query(`SELECT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"=$1 AND "Status" IN ('Processing','Error')) AS blocked`,[borrowerId])).rows[0].blocked;
+        if(blocked)return failure(409,'payment_requires_reconciliation');
+        if(!(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=$1',[borrowerId])).rowCount)return failure(404,'not_found');
+        const businessDate=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;
+        let plan;try{plan=await readPayForwardPlan(client,borrowerId,input.amountReceived,purpose)}catch(error){if(error?.code==='22023')return failure(400,'invalid_request');throw error}
+        return {ok:true,value:{businessDate,purpose,plan,loans:plan?await loanLabels(client,borrowerId):{}}};
+      },true);
     },
     async review(principal,borrowerId,input){
       const planKeys=input&&!Array.isArray(input)&&typeof input==='object'?Object.keys(input).sort().join(','):'';
+      if(planKeys==='allocations,amountReceived,materialize,principal'){
+        // R110 v10: the whole plan is recomputed with the purpose the command will derive and must be equal (else plan_changed).
+        if(!ownerTesting)return failure(403,'access_denied');
+        let allocations,materialize,lines;try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);materialize=canonicalMaterializePlan(input.materialize,allocations,{several:true});lines=canonicalPrincipalPlan(input.principal,allocations);if(!materialize.length&&!lines.length)throw Error()}catch{return failure(400,'invalid_request')}
+        const result=await this.draft(principal,borrowerId,{selectedChargeIds:allocations.map(row=>row.chargeId),limit:100,scope:'all'});if(!result.ok)return result;
+        const fresh=await run(principal,async client=>{
+          const purpose=await commandPurpose(client,result.businessDate,allocations,materialize,lines);
+          const plan=purpose?await readPayForwardPlan(client,borrowerId,input.amountReceived,purpose):null;
+          return {ok:true,value:{purpose,plan,businessDate:(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day}};
+        },true);
+        if(!fresh.ok)return fresh;
+        if(fresh.businessDate!==result.businessDate||!samePlan(fresh.plan,allocations,materialize,lines))return {...failure(409,'plan_changed'),charges:result.charges,upcoming:result.upcoming??[],businessDate:result.businessDate,purpose:fresh.purpose,plan:fresh.plan};
+        return {...result,allocations,materialize,principal:lines,plan:fresh.plan,total:input.amountReceived,nextCursor:null};
+      }
       if(planKeys==='allocations,amountReceived'||planKeys==='allocations,amountReceived,materialize'){
         // R101: materialize names the lines that pay a loan's next projected charge; those compare against `upcoming`.
         let allocations,materialize=[];try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);if(planKeys.endsWith('materialize'))materialize=canonicalMaterializePlan(input.materialize,allocations)}catch{return failure(400,'invalid_request')}

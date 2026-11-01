@@ -62,3 +62,30 @@ test('R101 v9 = v8 plus materialize, set last: entries bound to a whole-charge l
  const {materialize:_,...missing}=v9;assert.throws(()=>canonicalCommand(missing),'v9 needs materialize');
  assert.throws(()=>canonicalCommand({...v9,schemaVersion:8}),'v8 refuses materialize');
 });
+test('R110 v10 = v8 plus materialize (several per loan, may be empty) and principal, set last; at least one entry',()=>{
+ const due={...line,chargeId:'C1',principal:'10',interest:'2',expectedPrincipalRemaining:'10',expectedInterestRemaining:'2'};
+ const first={chargeId:'cg8:5:L-ไทย:2026-10-09',principal:'0',interest:'70',expectedPrincipalRemaining:'0',expectedInterestRemaining:'70',chargeDate:'2026-10-09'};
+ const second={...first,chargeId:'cg8:5:L-ไทย:2026-10-10',interest:'30',chargeDate:'2026-10-10'};
+ const today={chargeId:'pf121:3:L-2:2026-10-08',principal:'500',interest:'40',expectedPrincipalRemaining:'500',expectedInterestRemaining:'40',chargeDate:'2026-10-08'};
+ const e1={loanId:'L-ไทย',chargeId:first.chargeId,chargeDate:'2026-10-09',principalDue:'0',interestDue:'70'},e2={...e1,chargeId:second.chargeId,chargeDate:'2026-10-10'};
+ const book={loanId:'L-2',kind:'book',chargeId:today.chargeId,chargeDate:'2026-10-08',amount:'500',accruedInterest:'40',principalDue:'500'};
+ const v10={...command,schemaVersion:10,allocations:[second,today,due,first],amountReceived:'652',paymentMethod:'Bank Transfer',bankReference:null,transferTime:null,payerLines:null,materialize:[e2,e1],principal:[book]};
+ const value=canonicalCommand(v10);
+ assert.deepEqual(Object.keys(value),['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId','bankReference','transferTime','payerLines','materialize','principal']);
+ assert.deepEqual(value.materialize.map(row=>row.chargeDate),['2026-10-09','2026-10-10'],'a loan\'s entries in date (chargeId byte) order');
+ assert.deepEqual(Object.keys(value.principal[0]),['loanId','kind','chargeId','chargeDate','amount','accruedInterest','principalDue']);
+ assert.ok(Object.isFrozen(value.principal[0]));assert.deepEqual(canonicalCommand(value),value,'canonical form is a fixed point');
+ assert.match(commandIdentity(v10,actor,null).canonicalJson,/"payerLines":null,"materialize":\[\{"loanId":"L-ไทย","chargeId":"cg8:5:L-ไทย:2026-10-09",.*\],"principal":\[\{"loanId":"L-2","kind":"book","chargeId":"pf121:3:L-2:2026-10-08","chargeDate":"2026-10-08","amount":"500","accruedInterest":"40","principalDue":"500"\}\]\},"actor"/);
+ // Principal only (empty materialize), a raise of today's charge.
+ const raise={loanId:'L-2',kind:'raise',chargeId:'C1',chargeDate:'2026-10-08',amount:'8',accruedInterest:'0',principalDue:'10'};
+ assert.equal(canonicalCommand({...v10,allocations:[due],amountReceived:'12',materialize:[],principal:[raise]}).principal[0].kind,'raise');
+ // Forward only (empty principal).
+ assert.equal(canonicalCommand({...v10,allocations:[first,second],amountReceived:'100',principal:[]}).materialize.length,2);
+ for(const bad of [{materialize:[],principal:[]},{principal:null},{materialize:null},{principal:[{...book,kind:'add'}]},{principal:[{...book,chargeId:'pf121:4:L-2:2026-10-08'}]},{principal:[{...book,principalDue:'499'}]},
+   {principal:[{...book,amount:'0',principalDue:'0'}]},{principal:[{...book,amount:'501',principalDue:'501'}]},{principal:[book,book]},{principal:[{...book,extra:'1'}]},{principal:[{...book,amount:500}]},
+   {principal:[{...raise,chargeId:today.chargeId,accruedInterest:'40'}]},{materialize:[e1,e1]},{materialize:[{...e1,interestDue:'69'}]}])
+  assert.throws(()=>canonicalCommand({...v10,...bad}),undefined,JSON.stringify(bad));
+ const {principal:_,...missing}=v10;assert.throws(()=>canonicalCommand(missing),'v10 needs principal');
+ assert.throws(()=>canonicalCommand({...v10,schemaVersion:9}),'v9 refuses principal');
+ assert.throws(()=>canonicalCommand({...missing,schemaVersion:9,materialize:[e1,e2],allocations:[first,second],amountReceived:'100'}),'v9 keeps one entry per loan');
+});

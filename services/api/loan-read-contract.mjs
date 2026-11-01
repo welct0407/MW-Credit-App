@@ -13,6 +13,9 @@ export const loanColumns = [
   // R109: a principal loss on a loan that is open (charges kept) or Defaulted.
   'l."Default Loss Amount"::numeric::text AS "defaultLossAmount"',
 ].join(', ');
+/** R110 BD-1: the latest charge dated after the Bangkok business date that is fully paid ("Paid through"), or null. Borrower
+ * detail's loan list only (the offline dataset keeps loanColumns); charges are booked in schedule order. */
+export const loanPaidThroughColumn = `(SELECT max(pc."Charge Date") FROM public."Charges" pc WHERE pc."Ref Loans" = l."Row ID" AND pc."Charge Date" > (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date AND pc."Payment Status" = 'ชำระแล้ว' AND NOT starts_with(pc."Row ID", 'df10:'))::text AS "paidThrough"`;
 export const loanRankSql = `CASE WHEN l."Loan Status" = 'ยังไม่ปิดยอด' THEN 0 WHEN l."Loan Status" = 'ปิดยอดแล้ว' THEN 1 ELSE 2 END`;
 export const loanRank = status => status === 'ยังไม่ปิดยอด' ? 0 : status === 'ปิดยอดแล้ว' ? 1 : 2;
 export const borrowerDisplayName = (name, description) => `${typeof name === 'string' ? name : ''} - ${typeof description === 'string' ? description : ''}`;
@@ -35,6 +38,7 @@ export function projectLoan(row, borrowerId) {
     defaulted: typeof row.defaulted === 'boolean' ? row.defaulted : null,
     autoChargeEnabled: typeof row.autoChargeEnabled === 'boolean' ? row.autoChargeEnabled : null,
     defaultLossAmount: amount(row.defaultLossAmount ?? null),
+    ...(row.paidThrough !== undefined ? { paidThrough: validDate(row.paidThrough) ? row.paidThrough : null } : {}),
   };
 }
 export function encodeLoanCursor(borrowerId, row) {
