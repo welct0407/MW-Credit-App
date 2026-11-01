@@ -17,7 +17,7 @@ COLUMNS = {
     'Partners': ['Row ID', 'Login Email', 'Partner Role'],
     'Charges': ['Row ID', 'Ref Loans', 'Charge Date', 'Payment Status', 'Payment Date', 'Amount Remaining', 'Total Paid'],
     'Repayments': ['Ref Charges', 'Payment Date', 'Principal Paid', 'Interest Paid'],
-    'Loans': ['Row ID', 'Ref Borrowers', 'Loan Date', 'Due Date', 'Close Date', 'Loan Type', 'Loan Status', 'Principal Amount', 'Outstanding Principal', 'Total Principal Received', 'Total Interest Received', 'Total Amount Received', 'Defaulted', 'Auto Charge Enabled', 'Original Daily Interest Rate'],
+    'Loans': ['Row ID', 'Ref Borrowers', 'Loan Date', 'Due Date', 'Close Date', 'Loan Type', 'Loan Status', 'Principal Amount', 'Outstanding Principal', 'Total Principal Received', 'Total Interest Received', 'Total Amount Received', 'Defaulted', 'Auto Charge Enabled', 'Original Daily Interest Rate', 'Default Loss Amount'],
 }
 VIEW_COLUMNS = {
     'oltp_upcoming_charge_summary_v2': ['Row ID', 'Ref Borrower', 'Due Date', 'Total Charge', 'As Of Date'],
