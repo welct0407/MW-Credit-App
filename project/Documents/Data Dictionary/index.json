@@ -5354,6 +5354,10 @@
         {
           "subject": "Borrowers with Long Overdue Payment",
           "pointer": "/content/columns/Borrowers with Long Overdue Payment"
+        },
+        {
+          "subject": "Total Principal Loss",
+          "pointer": "/content/columns/Total Principal Loss"
         }
       ]
     },
@@ -11012,11 +11016,11 @@
       "lookup": []
     },
     {
-      "file": "systems/postgresql/routines/public-post-loan-default-p-loan-loans-p-date-date-p-actor-text-abc4c670.yaml",
+      "file": "systems/postgresql/routines/public-post-loan-default-p-loan-loans-p-date-date-p-actor-text-p-amount-numeric-p-keep-boolean-a165fa8e.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
       "kind": "routine",
-      "name": "public.post_loan_default(p_loan \"Loans\", p_date date, p_actor text)",
+      "name": "public.post_loan_default(p_loan \"Loans\", p_date date, p_actor text, p_amount numeric, p_keep boolean)",
       "scope": "production",
       "status": "documented",
       "lookup": []

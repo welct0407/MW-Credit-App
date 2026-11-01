@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "f9424c714eb92d7dc0bc710bc6f721121ac71ff2"
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-borrowers-analytics-2ac154a3.yaml"
     "identity":
       "system": "postgresql"
@@ -113,10 +113,10 @@
                        SELECT l."Ref Borrowers" AS id,
                           count(*) FILTER (WHERE l."Loan Status" = 'ยังไม่ปิดยอด'::text) AS active,
                           max(l."Loan Age Days") FILTER (WHERE l."Loan Status" = 'ยังไม่ปิดยอด'::text) AS oldest,
-                          GREATEST(0::numeric, max(l."Principal Amount"::numeric) FILTER (WHERE l."Loan Status" = 'ปิดยอดแล้ว'::text AND l."Defaulted" = false)) AS largest,
-                          COALESCE(avg(l."Principal Amount"::numeric) FILTER (WHERE l."Loan Status" = 'ปิดยอดแล้ว'::text AND l."Defaulted" = false), 0::numeric) AS average_success,
-                          count(*) FILTER (WHERE l."Defaulted" = true) AS defaults,
-                          COALESCE(sum(l."Default Loss Amount"::numeric) FILTER (WHERE l."Defaulted" = true), 0::numeric) AS loss,
+                          GREATEST(0::numeric, max(l."Principal Amount"::numeric) FILTER (WHERE l."Loan Status" = 'ปิดยอดแล้ว'::text AND l."Defaulted" = false AND COALESCE(l."Default Loss Amount"::numeric, 0::numeric) = 0::numeric)) AS largest,
+                          COALESCE(avg(l."Principal Amount"::numeric) FILTER (WHERE l."Loan Status" = 'ปิดยอดแล้ว'::text AND l."Defaulted" = false AND COALESCE(l."Default Loss Amount"::numeric, 0::numeric) = 0::numeric), 0::numeric) AS average_success,
+                          count(*) FILTER (WHERE l."Defaulted" = true OR COALESCE(l."Default Loss Amount"::numeric, 0::numeric) > 0::numeric) AS defaults,
+                          COALESCE(sum(l."Default Loss Amount"::numeric), 0::numeric) AS loss,
                           COALESCE(sum(l."30D Principal Days"), 0::numeric) AS gross_days,
                           COALESCE(sum(l."Expected Interest This Month"), 0::numeric) AS forecast,
                           bool_or(l."Defaulted" = true AND l."Outstanding Principal" > 0::numeric) AS current_default

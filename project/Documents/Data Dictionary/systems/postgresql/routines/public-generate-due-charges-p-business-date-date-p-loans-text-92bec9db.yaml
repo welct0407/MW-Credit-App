@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-generate-due-charges-p-business-date-date-p-loans-text-92bec9db.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.generate_due_charges(p_business_date date, p_loans text[])"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -32,7 +41,7 @@
             AND (p_loans IS NULL OR "Row ID"=ANY(p_loans))
           ORDER BY "Ref Borrowers" COLLATE "C","Row ID" COLLATE "C"
         LOOP
-          IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=l."Row ID" AND "Charge Date"=p_business_date) THEN CONTINUE; END IF;
+          IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=l."Row ID" AND "Charge Date"=p_business_date AND NOT starts_with("Row ID",'df10:')) THEN CONTINUE; END IF;
           result:=public.generate_loan_charge(l."Row ID",p_business_date);
           IF result IS NOT NULL THEN generated:=generated+1; END IF;
         END LOOP;
@@ -52,8 +61,3 @@
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres,mw_jobs_owner_prod=X/postgres}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"

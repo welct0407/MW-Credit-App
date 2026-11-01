@@ -7,7 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-undo-loan-default-p-loans-b7ace212.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.undo_loan_default(p \"Loans\")"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -23,38 +33,64 @@
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
       #variable_conflict use_column
-      DECLARE posting text:='df10:'||length(p."Row ID")||':'||p."Row ID";
-       c record; evidence jsonb; prefix text; prior text:=current_setting('business_crud.default',true);
+      DECLARE posting text; pair_count integer; c record; evidence jsonb; prefix text; prior text:=current_setting('business_crud.default',true);
       BEGIN
        IF pg_trigger_depth()=0 THEN RAISE EXCEPTION 'Undo default through Loans.Defaulted'; END IF;
        PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=p."Ref Borrowers" FOR UPDATE NOWAIT;
        PERFORM 1 FROM public."Charges" WHERE "Ref Loans"=p."Row ID" ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
-       IF NOT EXISTS(SELECT 1 FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges"
-         WHERE r."Row ID"=posting AND c."Row ID"=posting AND r."Ref Loans"=p."Row ID" AND c."Ref Loans"=p."Row ID"
-          AND r."Ref Payment" IS NULL AND r."Principal Paid"=p."Default Loss Amount" AND r."Interest Paid"=(-p."Default Loss Amount"::numeric)::money
-          AND c."Principal Due"=p."Default Loss Amount" AND c."Interest Due"=(-p."Default Loss Amount"::numeric)::money) THEN
-        RAISE EXCEPTION 'Default loss posting no longer matches; reconcile its components before undo'; END IF;
+       IF coalesce(p."Defaulted",false) THEN
+        -- The write-off event: the posting key every written-down charge records (legacy write-offs carry the undated id).
+        FOR c IN SELECT ch."Notes" FROM public."Charges" ch WHERE ch."Ref Loans"=p."Row ID" AND NOT starts_with(ch."Row ID",'df10:')
+          AND coalesce(ch."Notes",'') LIKE '%Default write-off %' ORDER BY ch."Row ID" COLLATE "C" LOOP
+         BEGIN evidence:=substring(c."Notes" from 'Default write-off (\{[^\n]*\})$')::jsonb;
+         EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default charge evidence is malformed; reconcile before undo'; END;
+         IF evidence->>'posting' IS NULL OR (posting IS NOT NULL AND posting<>evidence->>'posting') THEN
+          RAISE EXCEPTION 'Default charge changed since write-off; reconcile before undo'; END IF;
+         posting:=evidence->>'posting';
+        END LOOP;
+       END IF;
+       IF posting IS NULL THEN
+        SELECT c."Row ID" INTO posting FROM public."Charges" c JOIN public."Repayments" r ON r."Row ID"=c."Row ID"
+         WHERE c."Ref Loans"=p."Row ID" AND starts_with(c."Row ID",'df10:')
+         ORDER BY c."Charge Date" DESC,c."Row ID" COLLATE "C" DESC LIMIT 1;
+        IF posting IS NULL THEN
+         IF coalesce(p."Defaulted",false) THEN RAISE EXCEPTION 'Default loss posting no longer matches; reconcile its components before undo'; END IF;
+         RAISE EXCEPTION 'Undo Default requires a recorded default loss';
+        END IF;
+       END IF;
+       -- Verify the event's pair on its own. Only a write-off of a fully lost loan (amount 0) has no pair of its own.
+       SELECT count(*) INTO pair_count FROM public."Charges" WHERE "Row ID"=posting;
+       IF pair_count>0 OR NOT coalesce(p."Defaulted",false) OR NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=p."Row ID" AND starts_with("Row ID",'df10:')) THEN
+        IF NOT EXISTS(SELECT 1 FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges"
+          WHERE r."Row ID"=posting AND c."Row ID"=posting AND r."Ref Loans"=p."Row ID" AND c."Ref Loans"=p."Row ID"
+           AND r."Ref Payment" IS NULL AND c."Principal Due"::numeric>0 AND r."Principal Paid"=c."Principal Due"
+           AND r."Interest Paid"::numeric=-c."Principal Due"::numeric AND c."Interest Due"::numeric=-c."Principal Due"::numeric)
+         OR (SELECT count(*) FROM public."Repayments" WHERE "Ref Charges"=posting)<>1 THEN
+         RAISE EXCEPTION 'Default loss posting no longer matches; reconcile its components before undo'; END IF;
+       END IF;
        PERFORM set_config('business_crud.default',p."Row ID",true);
        DELETE FROM public."Repayments" WHERE "Row ID"=posting;
        DELETE FROM public."Charges" WHERE "Row ID"=posting;
-       FOR c IN SELECT * FROM public."Charges" WHERE "Ref Loans"=p."Row ID" LOOP
-        IF coalesce(c."Notes",'') NOT LIKE '%Default write-off %' THEN
-         IF c."Principal Due"::numeric+c."Interest Due"::numeric>0 AND
-          c."Principal Due"::numeric=(SELECT coalesce(sum("Principal Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") AND
-          c."Interest Due"::numeric=(SELECT coalesce(sum("Interest Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") THEN CONTINUE; END IF;
-         RAISE EXCEPTION 'Default charge has no original component evidence; reconcile before undo';
-        END IF;
-        prefix:=substring(c."Notes" from '(?s)^(.*)Default write-off \{[^\n]*\}$');
-        BEGIN evidence:=substring(c."Notes" from 'Default write-off (\{[^\n]*\})$')::jsonb;
-        EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default charge evidence is malformed; reconcile before undo'; END;
-        IF evidence IS NULL OR evidence->>'posting' IS DISTINCT FROM posting OR
-         c."Principal Due"::numeric IS DISTINCT FROM (evidence->>'original_principal')::numeric-(evidence->>'written_off_principal')::numeric OR
-         c."Interest Due"::numeric IS DISTINCT FROM (evidence->>'original_interest')::numeric-(evidence->>'written_off_interest')::numeric THEN
-         RAISE EXCEPTION 'Default charge changed since write-off; reconcile before undo'; END IF;
-        UPDATE public."Charges" SET "Principal Due"=(evidence->>'original_principal')::numeric::money,
-         "Interest Due"=(evidence->>'original_interest')::numeric::money,"Notes"=nullif(regexp_replace(prefix,E'\n$',''),'')
-         WHERE "Row ID"=c."Row ID";
-       END LOOP;
+       IF coalesce(p."Defaulted",false) THEN
+        FOR c IN SELECT * FROM public."Charges" WHERE "Ref Loans"=p."Row ID" AND NOT starts_with("Row ID",'df10:') LOOP
+         IF coalesce(c."Notes",'') NOT LIKE '%Default write-off %' THEN
+          IF c."Principal Due"::numeric+c."Interest Due"::numeric>0 AND
+           c."Principal Due"::numeric=(SELECT coalesce(sum("Principal Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") AND
+           c."Interest Due"::numeric=(SELECT coalesce(sum("Interest Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") THEN CONTINUE; END IF;
+          RAISE EXCEPTION 'Default charge has no original component evidence; reconcile before undo';
+         END IF;
+         prefix:=substring(c."Notes" from '(?s)^(.*)Default write-off \{[^\n]*\}$');
+         BEGIN evidence:=substring(c."Notes" from 'Default write-off (\{[^\n]*\})$')::jsonb;
+         EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default charge evidence is malformed; reconcile before undo'; END;
+         IF evidence IS NULL OR evidence->>'posting' IS DISTINCT FROM posting OR
+          c."Principal Due"::numeric IS DISTINCT FROM (evidence->>'original_principal')::numeric-(evidence->>'written_off_principal')::numeric OR
+          c."Interest Due"::numeric IS DISTINCT FROM (evidence->>'original_interest')::numeric-(evidence->>'written_off_interest')::numeric THEN
+          RAISE EXCEPTION 'Default charge changed since write-off; reconcile before undo'; END IF;
+         UPDATE public."Charges" SET "Principal Due"=(evidence->>'original_principal')::numeric::money,
+          "Interest Due"=(evidence->>'original_interest')::numeric::money,"Notes"=nullif(regexp_replace(prefix,E'\n$',''),'')
+          WHERE "Row ID"=c."Row ID";
+        END LOOP;
+       END IF;
        PERFORM set_config('business_crud.default',coalesce(prior,''),true);
       END $function$
     "owner": "postgres"
@@ -71,8 +107,3 @@
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"

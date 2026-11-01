@@ -1,0 +1,126 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.post_loan_default(p_loan \"Loans\", p_date date, p_actor text, p_amount numeric, p_keep boolean)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "post_loan_default"
+    "arguments": "p_loan \"Loans\", p_date date, p_actor text, p_amount numeric, p_keep boolean"
+    "kind": "f"
+    "arguments_with_defaults": "p_loan \"Loans\", p_date date, p_actor text, p_amount numeric, p_keep boolean"
+    "result": "numeric"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.post_loan_default(p_loan "Loans", p_date date, p_actor text, p_amount numeric, p_keep boolean)
+       RETURNS numeric
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE prior text:=current_setting('business_crud.default',true); outstanding numeric; amount numeric; c record; posting text;
+      BEGIN
+        IF pg_trigger_depth()=0 THEN RAISE EXCEPTION 'Confirm default through the Loans state transition'; END IF;
+        -- The originating Loans UPDATE already owns its row lock. Never wait for a
+        -- borrower held by a payment/generator that could be waiting for this loan.
+        BEGIN
+          PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=p_loan."Ref Borrowers" FOR UPDATE NOWAIT;
+          IF NOT FOUND THEN RAISE EXCEPTION 'Default requires an existing borrower'; END IF;
+        EXCEPTION WHEN lock_not_available THEN
+          RAISE EXCEPTION 'Borrower is busy; sync and retry Default Loan';
+        END;
+        IF p_date IS DISTINCT FROM (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date
+          OR nullif(btrim(p_actor),'') IS NULL THEN
+          RAISE EXCEPTION 'Default requires today confirmation date and actor; sync and confirm again';
+        END IF;
+        IF p_loan."Loan Status" IS DISTINCT FROM 'ยังไม่ปิดยอด'
+          OR coalesce(p_loan."Defaulted",false) OR NOT coalesce(p_loan."Auto Charge Enabled",false)
+          OR p_loan."Principal Amount" IS NULL THEN
+          RAISE EXCEPTION 'Default requires an open auto-enabled nondefaulted loan';
+        END IF;
+        IF p_keep IS NULL THEN RAISE EXCEPTION 'Default request does not match this loan'; END IF;
+        -- R109: kept charges go on generating at the reduced daily interest, which only a daily-interest loan has.
+        IF p_keep AND p_loan."Loan Type" IS DISTINCT FROM 'ดอกเบี้ยรายวัน' THEN
+          RAISE EXCEPTION 'Keeping unpaid charges requires a daily-interest loan';
+        END IF;
+        IF EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"=p_loan."Ref Borrowers" AND "Status" IN ('Processing','Error')) THEN
+          RAISE EXCEPTION 'Resolve processing or error payments before default';
+        END IF;
+        PERFORM 1 FROM public."Charges" WHERE "Ref Loans"=p_loan."Row ID" ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
+        SELECT p_loan."Principal Amount"::numeric-coalesce(sum("Principal Paid"::numeric),0)
+          INTO outstanding FROM public."Repayments" WHERE "Ref Loans"=p_loan."Row ID";
+        -- A fully lost loan (outstanding 0 after an earlier posting) may still be written off and closed, with no new pair.
+        IF outstanding<=0 AND (p_keep OR coalesce(p_loan."Default Loss Amount"::numeric,0)<=0 OR outstanding<0) THEN
+          RAISE EXCEPTION 'Default requires outstanding principal'; END IF;
+        amount:=coalesce(p_amount,outstanding);
+        IF p_amount IS NOT NULL AND (amount<>trunc(amount) OR amount<0 OR amount>outstanding OR (amount=0 AND (p_keep OR outstanding>0))) THEN
+          RAISE EXCEPTION 'Default loss amount must be a whole baht amount between 1 and the outstanding principal'; END IF;
+        IF amount<outstanding AND NOT p_keep THEN RAISE EXCEPTION 'Partial default loss must keep unpaid charges'; END IF;
+        -- R109 (Chase D1): a full loss that keeps charges needs an unpaid charge to keep; otherwise the loan would stay open at 0
+        -- with nothing left to close it. Write off and close instead. A partial loss keeps its principal and stays allowed.
+        IF p_keep AND amount>=outstanding AND NOT EXISTS(SELECT 1 FROM public."Charges" ch WHERE ch."Ref Loans"=p_loan."Row ID" AND NOT starts_with(ch."Row ID",'df10:')
+          AND coalesce(ch."Principal Due"::numeric,0)+coalesce(ch."Interest Due"::numeric,0)
+           >(SELECT coalesce(sum(coalesce(r."Principal Paid"::numeric,0)+coalesce(r."Interest Paid"::numeric,0)),0) FROM public."Repayments" r WHERE r."Ref Charges"=ch."Row ID")) THEN
+          RAISE EXCEPTION 'A full default loss with no unpaid charge must write off and close'; END IF;
+        posting:='df10:'||length(p_loan."Row ID")||':'||p_loan."Row ID"||':'||p_date::text;
+        IF amount>0 AND (EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=posting) OR EXISTS(SELECT 1 FROM public."Repayments" WHERE "Row ID"=posting)) THEN
+          RAISE EXCEPTION 'One default loss posting per loan per day'; END IF;
+        PERFORM set_config('business_crud.default',p_loan."Row ID",true);
+        IF NOT p_keep THEN
+          FOR c IN SELECT ch.*,coalesce(r.p,0) AS paid_p,coalesce(r.i,0) AS paid_i
+            FROM public."Charges" ch LEFT JOIN LATERAL
+              (SELECT sum("Principal Paid"::numeric) p,sum("Interest Paid"::numeric) i
+               FROM public."Repayments" WHERE "Ref Charges"=ch."Row ID") r ON true
+            WHERE ch."Ref Loans"=p_loan."Row ID" AND NOT starts_with(ch."Row ID",'df10:') ORDER BY ch."Row ID" COLLATE "C"
+          LOOP
+            IF c."Principal Due" IS NULL OR c."Interest Due" IS NULL OR c.paid_p<0 OR c.paid_i<0
+              OR c."Principal Due"::numeric<c.paid_p OR c."Interest Due"::numeric<c.paid_i THEN
+              RAISE EXCEPTION 'Charge components require reconciliation before default';
+            END IF;
+            IF c."Charge Date"=p_date AND c.paid_p+c.paid_i<>0
+              AND c."Principal Due"::numeric+c."Interest Due"::numeric<=c.paid_p+c.paid_i THEN
+              RAISE EXCEPTION 'A paid charge today prevents Default Loan';
+            END IF;
+            -- Record all original components so later undo can prove completeness.
+            UPDATE public."Charges" SET "Principal Due"=c.paid_p::money,"Interest Due"=c.paid_i::money,
+              "Notes"=concat_ws(E'\n',nullif(c."Notes",''),'Default write-off '||jsonb_build_object(
+                'posting',posting,'date',p_date,'actor',p_actor,
+                'original_principal',c."Principal Due"::numeric,'original_interest',c."Interest Due"::numeric,
+                'written_off_principal',c."Principal Due"::numeric-c.paid_p,
+                'written_off_interest',c."Interest Due"::numeric-c.paid_i)::text)
+              WHERE "Row ID"=c."Row ID";
+          END LOOP;
+        END IF;
+        IF amount>0 THEN
+          INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes")
+            VALUES(posting,p_loan."Row ID",p_date,amount::money,(-amount)::money,
+              CASE WHEN p_keep THEN 'Loan default - principal loss recorded, unpaid charges kept; zero cash'
+               ELSE 'Loan default - outstanding principal recorded as loss; zero cash' END);
+          INSERT INTO public."Repayments"("Row ID","Payment Date","Principal Paid","Interest Paid","Notes","Ref Loans","Ref Charges","Created By")
+            VALUES(posting,p_date,amount::money,(-amount)::money,
+              CASE WHEN p_keep THEN 'หนี้สูญเงินต้น - เก็บรายการเรียกเก็บค้างชำระไว้ติดตาม / Loan default - principal loss recorded, unpaid charges kept'
+               ELSE 'หนี้สูญ - บันทึกเงินต้นคงเหลือเป็นขาดทุน / Loan default - outstanding principal recorded as loss' END,
+              p_loan."Row ID",posting,p_actor);
+        END IF;
+        PERFORM set_config('business_crud.default',coalesce(prior,''),true);
+        RETURN amount;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,=X/postgres,mw_app_prod=X/postgres}"
+    "comment": null
+    "extension": null

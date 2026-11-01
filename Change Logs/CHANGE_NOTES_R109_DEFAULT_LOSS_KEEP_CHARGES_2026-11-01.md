@@ -36,7 +36,7 @@ Changed (from `git status`, uncommitted):
 - Notifications: `services/notifications/content.mjs` needs no change. The loan event (V86) fires only when `Loan Status` becomes closed with no closing payment; the kept-charges path leaves the loan open and a payment auto-close carries a closing payment.
 
 ## Checks
-Byte, tree on base `232a4bc` (uncommitted; no commit or CI run yet):
+Byte, tree on base `232a4bc` (before the first push):
 | Command | Result |
 | --- | --- |
 | `mw-db-ci` migrations, receiving, phase5 | Exit 0 |
@@ -78,7 +78,7 @@ DEV left in place: the 70 receipt on `7577b9b2` (`pwa:730eea04-…`), synthetic 
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 | Chat unit tests and `business-hosting-delivery.test.mjs` after the section 8 business-rules addition | 304 passed, 0 failed |
 | PR `Development checks`, run 41276600949 on f8b3f4f | Failed: e2e, 5 tests per project waited for Close Loan; the new hide-at-zero rule treated a read without `outstandingPrincipal` as 0. Fixed in `LoanRecord.tsx` (hide only when the figure is present and 0); the 5 tests 10/10 on both projects, R109 specs 8 passed, lint and typecheck pass |
-| PR `Development checks` after the fix | Pending |
+| PR `Development checks` after the fix | Pass on the merged tree: check run 41284741173 (`4cfa780`), e2e run 41277596818 (`e8dd230`), terraform run 41203206026 (`cb875ea`), database guards and rebuilds run 41276582403 (`f8b3f4f`), each input-equivalent to `8ced324` (see the promotion record) |
 
 ## Not run
 Skipped and not verified, so not a pass:
@@ -87,7 +87,6 @@ Skipped and not verified, so not a pass:
 - A concurrent loss race (also not covered on DEV).
 - A closing-payment correction on a loss loan.
 - On DEV: the chat `loan.default` proposal (the test Partner is not an AI Reviewer and the flag was not changed), Thai wording in the browser, and the unpaid-charges sheet variants in the browser (covered through the API).
-- The Data Dictionary PROD capture for the V120-affected routines, views and `loans` (due after the PROD promotion below; not run).
 - An authenticated PROD read of a loan record, `/api/loan-options`, a borrower loan list and the Dashboard: no PROD Partner token is available to the operator (the test account is DEV-only by rule), so the promotion smoke is unauthenticated plus a privilege readback (see the promotion record).
 
 ## DEV deployment (Forge, 1 November 2026, UTC)
@@ -161,7 +160,17 @@ Applied and verified. Not owner-accepted: the first authenticated PROD use of th
 None for the owner. Settled in the build session without an owner decision: hand-off by setting, the paid-charge-today rule on the kept path, a partial loss with no unpaid charge is allowed; a full-amount keep with no unpaid charge is refused (Chase D1, overriding UX-00 for the full amount).
 
 ## Remaining work
-- Record the PR `Development checks` result after the push.
-- Owner: DEV acceptance, including the iPhone pass of the sheet and Default Loan in the chat with an AI Reviewer account.
-- Done in the promotion below: the PROD read-role grant `GRANT SELECT ("Default Loss Amount") ON public."Loans"` (applied before the R109 read image; no automatic path applies `scripts/production/reader-capability-contract.json`), the PROD backup, V120, the images and Hosting.
-- Still due after the promotion: the Data Dictionary PROD capture and the `native-manifest.json` rebuild if needed; the owner's first authenticated PROD look at a loan record and the Dashboard.
+- Owner: first authenticated PROD look at a loan record and the Dashboard; DEV acceptance including the iPhone pass of the sheet and Default Loan in the chat with an AI Reviewer account.
+- Not verified: a Processing-payment refusal, a concurrent loss race, a closing-payment correction on a loss loan, Thai wording in a browser.
+- DEV leftovers: the 70 receipt on loan `7577b9b2` (`pwa:730eea04-…`), synthetic loan `5fcd483b` (delete refused) and chat thread `c9c93e7a-…`.
+- `services/agent-conversations/native-manifest.json` is built by `scripts/agent-conversations/build-native-manifest.mjs` from the retired AppSheet source, not from the database, so V120 does not require a rebuild; no test failed on it.
+- Done: PROD backup, V120, read-role grant, images, Hosting (promotion record) and the Data Dictionary PROD capture (closure below).
+
+## Closure (1 November 2026)
+Tag record: the annotated tag `R109` (object `727487623bd442c0329aa95132fa53899e2a65d7`) points at the package commit `8ced3240ed77421903d4fea3ce0556fd6a706149` (PR #200 on `main`), created by the Release tag workflow run 41292754585 (checked with `git ls-remote origin refs/tags/R109`, peeled to the package commit). Freeze 2026-11-01T08:57:22Z, baseline R108 `16b8f5a`. R110 is opened in this closure and R111 is the next unused number.
+
+Data Dictionary (R103 procedure, read-only): `capture_postgresql.py production` as `codex-cloud-read` through the Auth Proxy tunnel on `loan_manager_prod` (flyway head 120, 221 routines, 99 relations), output under a private root outside the repository. Targeted reconciliation with `--only` regenerated 12 existing entries: the routines `default_loan_transition`, `undo_loan_default`, `business_source_delete`, `pwa_apply_loan_source_v2`, `pwa_submit_operation_v2`, `generate_loan_charge`, `generate_due_charges`, `forecast_schedule_v1` and `loan_close_calculation_v83` (three-argument), and the views `olap_borrowers_analytics`, `olap_portfolio_summary` and `reporting_borrower_payment_health_v1`. The five-argument `post_loan_default` replaced the deleted three-argument entry. `loans` was not changed (V120 adds no column). `pwa_next_projected_charge_v1` and `pwa_next_bookable_charge_v1` have no dictionary entry (since R104) and were not added, because a new entry needs owner approval. `dictionary.py index` and `validate` pass (472 documents, 0 errors). Evidence: [plan](../project/outputs/dictionary-r109-20261101/plan.json), [coverage](../project/outputs/dictionary-r109-20261101/coverage.json) and [observations](../project/outputs/dictionary-r109-20261101/production-postgresql-observations.json).
+
+Open follow-ups (visible, not blocking Released: DEV proofs and the PROD readback are clean): see Remaining work.
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R106_CHAT_WRITES_2026-10-30.md` (R106 left the retention window: R110 Open; R109, R108, R107 Released). Its links in the Release tracker (two), Development Changes, the Environment inventory (five), Solution Design, `database/README.md` and `project/outputs/r090-pwa-chatbot/DESIGN.md` now point to the commit permalink `8ced324`, the last commit where it exists; the path string in `tests/unit/business-hosting-delivery.test.mjs` is a mocked file name, not a link. Also deleted the uncited `project/outputs/dictionary-r106-20261030/` evidence. No other change note or evidence file is outside the window or uncited.

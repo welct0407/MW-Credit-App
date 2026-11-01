@@ -1,0 +1,254 @@
+{
+  "status": "in progress",
+  "targets": {
+    "postgresql-production": {
+      "identity": {
+        "instance": "mw-credit-pg-20261017",
+        "database": "loan_manager_prod",
+        "route": "cloud-sql-auth-proxy",
+        "host": "127.0.0.1",
+        "port": 15432
+      },
+      "version_or_hash": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "counts": {
+        "schemas": 4,
+        "relations": 99,
+        "columns": 1519,
+        "constraints": 450,
+        "indexes": 90,
+        "routines": 221,
+        "triggers": 426,
+        "sequences": 2,
+        "types": 0,
+        "policies": 0,
+        "extensions": 2,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 7,
+        "role_dependencies": 40,
+        "relevant_roles": 52,
+        "role_memberships": 51,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 120,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 1198,
+        "jobs": 0
+      },
+      "captured_utc": "2026-11-01T09:21:56.849592+00:00"
+    }
+  },
+  "objects": [
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "relation",
+      "object_name": "public.olap_borrowers_analytics",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-borrowers-analytics-2ac154a3.yaml",
+      "status": "updated",
+      "expected_properties": 1518,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "relation",
+      "object_name": "public.olap_portfolio_summary",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-portfolio-summary-3be1193e.yaml",
+      "status": "updated",
+      "expected_properties": 1084,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "relation",
+      "object_name": "public.reporting_borrower_payment_health_v1",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/reporting-borrower-payment-health-v1.yaml",
+      "status": "updated",
+      "expected_properties": 913,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.business_source_delete()",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-business-source-delete-0cb3a7c6.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.default_loan_transition()",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-default-loan-transition-9ca8869c.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/forecast-schedule-v1.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.generate_due_charges(p_business_date date, p_loans text[])",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-generate-due-charges-p-business-date-date-p-loans-text-92bec9db.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.generate_loan_charge(p_loan text, p_business_date date, p_manual_request boolean)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-generate-loan-charge-p-loan-text-p-business-date-date-p-manual-request-boolean-6438ed0d.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.loan_close_calculation_v83(p_loan text, p_day date, p_exclude_payment text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-loan-close-calculation-v83-p-loan-text-p-day-date-p-exclude-payment-text-4dbe26e4.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.post_loan_default(p_loan \"Loans\", p_date date, p_actor text, p_amount numeric, p_keep boolean)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-post-loan-default-p-loan-loans-p-date-date-p-actor-text-p-amount-numeric-p-keep-boolean-a165fa8e.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.pwa_apply_loan_source_v2(canonical text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-apply-loan-source-v2-canonical-text-a646c61b.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.pwa_submit_operation_v2(canonical_json text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "a2297c3fee7018f73436dc00fc9d11a0f3e5e073047f073f9a763ec442ac2a2f",
+      "object_kind": "routine",
+      "object_name": "public.undo_loan_default(p \"Loans\")",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-undo-loan-default-p-loans-b7ace212.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    }
+  ]
+}

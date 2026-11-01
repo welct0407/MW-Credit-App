@@ -7,7 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-business-source-delete-0cb3a7c6.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.business_source_delete()"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -25,7 +35,9 @@
       DECLARE expected_source text:=CASE TG_TABLE_NAME WHEN 'Loans' THEN 'Loan' WHEN 'Business Expenses' THEN 'Business Expense' WHEN 'Settlements' THEN 'Settlement' END;
       BEGIN
        IF TG_TABLE_NAME='Loans' THEN
-        IF coalesce((to_jsonb(OLD)->>'Defaulted')::boolean,false) THEN RAISE EXCEPTION 'Undo Default before deleting this loan'; END IF;
+        IF coalesce((to_jsonb(OLD)->>'Defaulted')::boolean,false)
+         OR EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=OLD."Row ID" AND starts_with("Row ID",'df10:')) THEN
+         RAISE EXCEPTION 'Undo Default before deleting this loan'; END IF;
         IF EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Loans"=OLD."Row ID") THEN
          RAISE EXCEPTION 'Loan has receipts; delete or reassign those receipts first'; END IF;
         DELETE FROM public."Charges" WHERE "Ref Loans"=OLD."Row ID";
@@ -48,8 +60,3 @@
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"

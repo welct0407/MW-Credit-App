@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-production/README.md"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
   "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-default-loan-transition-9ca8869c.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.default_loan_transition()"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -23,16 +32,59 @@
        LANGUAGE plpgsql
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
+      DECLARE req jsonb; keep boolean; loss_date date; actor text; amount numeric; ledger money;
       BEGIN
         IF TG_OP='INSERT' THEN
           IF coalesce(NEW."Defaulted",false) THEN RAISE EXCEPTION 'Create the loan before confirming default'; END IF;
           RETURN NEW;
         END IF;
-        IF coalesce(OLD."Defaulted",false) AND NEW."Defaulted"=false THEN
+        -- R109 (V120): the request of pwa_apply_loan_source_v2, read and cleared once, so it never reaches another row or statement.
+        BEGIN req:=nullif(current_setting('business_crud.default_request',true),'')::jsonb;
+        EXCEPTION WHEN OTHERS THEN req:='{}'::jsonb; END;
+        IF req IS NOT NULL THEN
+          PERFORM set_config('business_crud.default_request','',true);
+          IF jsonb_typeof(req) IS DISTINCT FROM 'object' OR req->>'loan' IS DISTINCT FROM OLD."Row ID" OR NEW."Row ID" IS DISTINCT FROM OLD."Row ID"
+            OR req->>'op' IS NULL OR req->>'op' NOT IN ('post','undo') THEN
+            RAISE EXCEPTION 'Default request does not match this loan';
+          END IF;
+        END IF;
+        -- Undo Default: the request (an open loan with a loss, or a Defaulted loan), or the legacy Defaulted true -> false.
+        IF req->>'op'='undo' OR (req IS NULL AND coalesce(OLD."Defaulted",false) AND NEW."Defaulted"=false) THEN
           IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers" THEN
             RAISE EXCEPTION 'Undo default before changing loan inputs'; END IF;
+          IF NOT coalesce(OLD."Defaulted",false) AND OLD."Loan Status" IS DISTINCT FROM 'ยังไม่ปิดยอด' THEN
+            RAISE EXCEPTION 'Undo Default requires an open or Defaulted loan'; END IF;
           PERFORM public.undo_loan_default(OLD);
-          NEW."Default Loss Amount":=NULL; NEW."Loan Status":='ยังไม่ปิดยอด'; NEW."Close Date":=NULL; NEW."Closed By":=NULL;
+          IF coalesce(OLD."Defaulted",false) THEN
+            NEW."Defaulted":=false; NEW."Loan Status":='ยังไม่ปิดยอด'; NEW."Close Date":=NULL; NEW."Closed By":=NULL;
+          ELSE
+            NEW."Defaulted":=OLD."Defaulted"; NEW."Loan Status":=OLD."Loan Status"; NEW."Close Date":=OLD."Close Date"; NEW."Closed By":=OLD."Closed By";
+          END IF;
+          NEW."Default Loss Amount":=(SELECT nullif(coalesce(sum(c."Principal Due"::numeric),0),0)::money FROM public."Charges" c
+            WHERE c."Ref Loans"=NEW."Row ID" AND starts_with(c."Row ID",'df10:'));
+          RETURN NEW;
+        END IF;
+        -- Default Loan: the request, or the legacy ordinary-source Defaulted false -> true (whole outstanding, write off and close).
+        IF req->>'op'='post' OR (req IS NULL AND NOT coalesce(OLD."Defaulted",false) AND coalesce(NEW."Defaulted",false)) THEN
+          IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers"
+            OR NEW."Auto Charge Enabled" IS DISTINCT FROM OLD."Auto Charge Enabled" THEN
+            RAISE EXCEPTION 'Do not change loan inputs while confirming default';
+          END IF;
+          IF req IS NULL THEN
+            keep:=false; loss_date:=NEW."Close Date"; actor:=NEW."Closed By";
+          ELSE
+            BEGIN keep:=(req->>'keepCharges')::boolean; loss_date:=(req->>'date')::date; actor:=req->>'actor'; amount:=(req->>'amount')::numeric;
+            EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default request does not match this loan'; END;
+            IF keep IS NULL OR amount IS NULL OR (keep AND (coalesce(NEW."Defaulted",false) IS DISTINCT FROM coalesce(OLD."Defaulted",false)
+                OR NEW."Loan Status" IS DISTINCT FROM OLD."Loan Status" OR NEW."Close Date" IS DISTINCT FROM OLD."Close Date" OR NEW."Closed By" IS DISTINCT FROM OLD."Closed By"))
+              OR (NOT keep AND (NOT coalesce(NEW."Defaulted",false) OR NEW."Close Date" IS DISTINCT FROM loss_date OR NEW."Closed By" IS DISTINCT FROM actor)) THEN
+              RAISE EXCEPTION 'Default request does not match this loan';
+            END IF;
+          END IF;
+          PERFORM public.post_loan_default(OLD,loss_date,actor,amount,keep);
+          IF NOT keep THEN NEW."Loan Status":='ปิดยอดแล้ว'; END IF;
+          NEW."Default Loss Amount":=(SELECT nullif(coalesce(sum(c."Principal Due"::numeric),0),0)::money FROM public."Charges" c
+            WHERE c."Ref Loans"=NEW."Row ID" AND starts_with(c."Row ID",'df10:'));
           RETURN NEW;
         END IF;
         IF coalesce(OLD."Defaulted",false) THEN
@@ -44,13 +96,14 @@
           END IF;
           RETURN NEW;
         END IF;
-        IF NOT coalesce(NEW."Defaulted",false) THEN RETURN NEW; END IF;
-        IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers"
-          OR NEW."Auto Charge Enabled" IS DISTINCT FROM OLD."Auto Charge Enabled" THEN
-          RAISE EXCEPTION 'Do not change loan inputs while confirming default';
+        -- Any other change of the column must equal the ledger (a reviewed fixture or repair seeds the pair first).
+        IF NEW."Default Loss Amount" IS DISTINCT FROM OLD."Default Loss Amount" THEN
+          ledger:=(SELECT nullif(coalesce(sum(c."Principal Due"::numeric),0),0)::money FROM public."Charges" c
+            WHERE c."Ref Loans"=NEW."Row ID" AND starts_with(c."Row ID",'df10:'));
+          IF NEW."Default Loss Amount" IS DISTINCT FROM ledger THEN
+            RAISE EXCEPTION 'Default loss amount changes only through Default Loan or Undo Default';
+          END IF;
         END IF;
-        NEW."Default Loss Amount":=public.post_loan_default(OLD,NEW."Close Date",NEW."Closed By")::money;
-        NEW."Loan Status":='ปิดยอดแล้ว';
         RETURN NEW;
       END $function$
     "owner": "postgres"
@@ -67,8 +120,3 @@
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
