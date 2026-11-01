@@ -66,12 +66,34 @@ Echo: pre-build review and built-UI pass at 390 and 1440 px, English and Thai. R
 
 ## Not run
 Skipped and not verified, so not a pass:
-- The read-only count of open loans without a frozen Original Daily Interest Rate in DEV and PROD (promotion).
+- The read-only count of open loans without a frozen Original Daily Interest Rate in PROD (promotion). DEV: 0, see the DEV deployment below.
 - The iPhone Home Screen device pass (the owner on DEV).
 - A Processing payment through the API.
 - A concurrent loss race.
 - A closing-payment correction on a loss loan.
 - The Data Dictionary PROD capture, after PROD promotion. No PROD action is part of this batch.
+
+## DEV deployment (Forge, 1 November 2026, UTC)
+
+Owner instruction of 1 November 2026: "Merge and test in dev." DEV only; PROD is not deployed and no PROD action of any kind was taken, reads included.
+
+| Item | Result |
+| --- | --- |
+| Source | `0f7c829` (PR #199 merge on `main`; PR head `e8dd230`). Development checks run 41277596818 green. Clean checkout for the migration; the image from a `git archive` of the same commit |
+| Target check | `loan_manager_dev`, cluster identifier of `mw-credit-pg-20261017`, head 119 (119 rows, 0 failed), no active sessions; services `mw-credit-app-{read,command,chat}-dev` in `clever-oasis-508610-n7`, `asia-southeast1`, on the R108 baseline |
+| Backup at V119, 06:33:19Z to 06:35:50Z | Dump sha256 `1b78f6ca389e3dbf273c0c84eb100b348197dca6bd5d273642f44f21a792b9a0`; archive listing and restore passed; 38 table fingerprints match; `gs://mw-credit-operator-private-737787224638/dev-backups/dev-refresh-de44b4e27182454ebff60b34b89956d2/` |
+| Owner window | 5 owners (`mw_chat_owner_dev`, `mw_notify_owner_dev`, `mw_jobs_owner_dev`, `mw_changes_owner_dev`, `mw_app_dev_journal_owner`; the journal owner for `pwa_submit_operation_v2`, the others for the post-migrate reconcile), 20 statements, opened 06:36:47Z, restored 06:44:45Z; readback all closed (inherit, set, admin false, no CREATE on `public`) |
+| V120 | Installed 06:37:03Z (5.18 s, checksum -688192923), head 120; role check 534 statements, 0 violations; `info` and `validate` clean |
+| Readback | The 3-argument `post_loan_default` is gone; the 5-argument one is owned by `postgres` with its predecessor's ACL (the migration's self-check); the other 11 replaced functions keep their owners; PUBLIC cannot execute `pwa_submit_operation_v2`; `mw_app_dev` can execute `pwa_next_bookable_charge_v1`; `olap_portfolio_summary` ends with "Total Principal Loss" |
+| Image | Cloud Build `7796b744-d72e-4ea4-ae91-fdeb6b0e1cf1` as `mw-credit-app-build`, SUCCESS 06:45:19Z to 06:45:56Z, `api@sha256:2e7599631d88f00c8d03af3fd898bdadc720ff1b8fee384f1a821d0e62028e73` |
+| Terraform DEV | 0 add, 3 change, 0 destroy, images only, applied 06:47:21Z to 06:47:59Z, re-plan clean; settings generation `1793515690898680` (previous `1793452089356705`); read `00054-b7k`, command `00071-2c4`, chat `00023-bdg`; notify and jobs unchanged |
+| Smoke | Health 200, unauthenticated 401 (`/api/session` on read and command, `/api/chat/models` on chat), preflight from `https://dev-lm.mw-credit.com` 204, no ERROR logs from 06:47Z |
+| Hosting | `MW_RELEASE_NUMBER=R109 npm run build:live-dev` with `.env.live-dev` written from Secret Manager and the R108 bundle's settings (identical keys and values), deleted after the build; deployed 06:50:23Z to 06:50:30Z; version `7edb5522c9789e82`, release `1793515830213000`; build-version R109 `d8e8e35f5617ee5bc547bc42`, entry `/assets/index-BnzP6zfM.js` embeds `0f7c829`; `build-version.json` and `sw.js` `no-store`, CSP `connect-src` unchanged |
+| Frozen-rate check (read-only, 06:51:27Z) | 0 open daily-interest loans with NULL "Original Daily Interest Rate" (49 open daily-interest loans; no NULL rate on any loan) |
+| Credentials | The temporary admin credential file and the read token are deleted; no secret value was printed |
+| Rollback | Settings generation `1793452089356705` (image `2ff7d396…`, R108) together with Hosting `b7a29798d12b056b`, plus the V119 backup above. V120 stays on a service rollback (functions and views only); its schema rollback is a later migration (see Recovery) |
+
+Proof: Chase's DEV pass follows; the rows of the Environment Inventory carry the pins.
 
 ## Recovery
 - Before release: revert the pull request (Git baseline R108 `16b8f5a` plus later main commits).
