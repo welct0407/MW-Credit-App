@@ -50,7 +50,8 @@
       "Total Amount Received",
       "Defaulted",
       "Auto Charge Enabled",
-      "Original Daily Interest Rate"
+      "Original Daily Interest Rate",
+      "Default Loss Amount"
     ],
     "oltp_upcoming_charge_summary_v2": [
       "Row ID",

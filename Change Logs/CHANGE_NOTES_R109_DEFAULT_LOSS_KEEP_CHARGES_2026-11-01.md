@@ -93,6 +93,16 @@ Owner instruction of 1 November 2026: "Merge and test in dev." DEV only; PROD is
 | Credentials | The temporary admin credential file and the read token are deleted; no secret value was printed |
 | Rollback | Settings generation `1793452089356705` (image `2ff7d396…`, R108) together with Hosting `b7a29798d12b056b`, plus the V119 backup above. V120 stays on a service rollback (functions and views only); its schema rollback is a later migration (see Recovery) |
 
+Read-role column grant (Forge, 07:17Z). Chase found the DEV loan list and detail failing: the read service answered 503 (42501), because the DEV read login `mw-credit-app-read-dev@clever-oasis-508610-n7.iam` had no SELECT on `public."Loans"."Default Loss Amount"`, which the R109 read contract selects. Byte added the column to `scripts/configure-dev-read-role.py` (working tree).
+
+| Item | Result |
+| --- | --- |
+| Plan (read-only, target `loan_manager_dev` checked by the script) | One statement: `GRANT SELECT ("Default Loss Amount") ON TABLE public."Loans" TO "mw-credit-app-read-dev@clever-oasis-508610-n7.iam"` |
+| Apply | 07:17:38Z to 07:17:48Z; 58 approved columns readable, function EXECUTE present; private pre-change record `read-role-before-20261101T071743614204Z.json` (outside Git) |
+| Readback (read identity) | Column privilege true, no table-level SELECT; column ACL `"mw-credit-app-read-dev@clever-oasis-508610-n7.iam"=r/postgres`; re-plan empty |
+| API (test token `claude-dev-test`, 07:18Z, no restart) | `GET /api/borrowers/c449128f-23cc-4001-b098-ba8f7414bb7c/loans` 200 (3 loans); `GET .../loans/929ddf3f-125c-4e78-8241-360c9d39cfd2` and `.../loans/5fcd483b-5f2f-4e39-8506-537970dceba5` 200, `defaultLossAmount` null (no loss posted yet; the column is NULL); token file deleted |
+| Rollback | `REVOKE SELECT ("Default Loss Amount") ON public."Loans" FROM` the DEV read login `RESTRICT` (the R108 image does not read the column) |
+
 Proof: Chase's DEV pass follows; the rows of the Environment Inventory carry the pins.
 
 ## Recovery
@@ -107,4 +117,5 @@ None for the owner. Settled in the build session without an owner decision: hand
 ## Remaining work
 - Record the PR `Development checks` result after the push.
 - Owner: test on DEV with the test account, including the iPhone pass of the sheet.
+- PROD needs `GRANT SELECT ("Default Loss Amount") ON public."Loans"` for the PROD read role before the R109 read image is deployed: no automatic path applies `scripts/production/reader-capability-contract.json`, and without the grant the PROD loan list and detail answer 503 (42501), as DEV did.
 - Promotion (Forge, owner instruction only): PROD backup, V120, then the Data Dictionary capture and the `native-manifest.json` rebuild if needed.
