@@ -38,9 +38,10 @@ export const collectionCte = `WITH today_repayments AS (
   SELECT borrower_id AS id, borrower_name, borrower_description,
     CASE WHEN count(*) FILTER (WHERE charge_date < $1::date - ${LONG_OVERDUE_DAYS} AND payment_status <> 'ชำระแล้ว') > 0 THEN 3
       WHEN count(*) FILTER (WHERE charge_date < $1::date AND payment_status <> 'ชำระแล้ว') > 0 THEN 2
-      WHEN count(*) FILTER (WHERE payment_status IN ('รอชำระ', 'ชำระบางส่วน')) = 0 THEN 4
-      WHEN count(*) FILTER (WHERE payment_status = 'ชำระบางส่วน') > 0
-        OR (count(*) FILTER (WHERE payment_status = 'ชำระแล้ว') > 0 AND count(*) FILTER (WHERE payment_status = 'รอชำระ') > 0) THEN 1
+      -- R110: a future charge part-paid today (pay forward) is not due yet, so it never makes the tile partly paid.
+      WHEN count(*) FILTER (WHERE charge_date <= $1::date AND payment_status IN ('รอชำระ', 'ชำระบางส่วน')) = 0 THEN 4
+      WHEN count(*) FILTER (WHERE charge_date <= $1::date AND payment_status = 'ชำระบางส่วน') > 0
+        OR (count(*) FILTER (WHERE charge_date <= $1::date AND payment_status = 'ชำระแล้ว') > 0 AND count(*) FILTER (WHERE charge_date <= $1::date AND payment_status = 'รอชำระ') > 0) THEN 1
       ELSE 0 END AS rank,
     ($1::date - min(charge_date) FILTER (WHERE charge_date < $1::date AND payment_status <> 'ชำระแล้ว'))::integer AS overdue_days,
     CASE WHEN count(*) FILTER (WHERE charge_date <= $1::date AND amount_remaining IS NULL) > 0 THEN NULL
