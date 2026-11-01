@@ -82,13 +82,13 @@ DEV left in place: the 70 receipt on `7577b9b2` (`pwa:730eea04-…`), synthetic 
 
 ## Not run
 Skipped and not verified, so not a pass:
-- The read-only count of open loans without a frozen Original Daily Interest Rate in PROD (promotion). DEV: 0, see the DEV deployment below.
 - The iPhone Home Screen device pass (the owner on DEV).
 - A Processing payment refusal (also not covered on DEV).
 - A concurrent loss race (also not covered on DEV).
 - A closing-payment correction on a loss loan.
 - On DEV: the chat `loan.default` proposal (the test Partner is not an AI Reviewer and the flag was not changed), Thai wording in the browser, and the unpaid-charges sheet variants in the browser (covered through the API).
-- The Data Dictionary PROD capture, after PROD promotion. No PROD action is part of this batch.
+- The Data Dictionary PROD capture for the V120-affected routines, views and `loans` (due after the PROD promotion below; not run).
+- An authenticated PROD read of a loan record, `/api/loan-options`, a borrower loan list and the Dashboard: no PROD Partner token is available to the operator (the test account is DEV-only by rule), so the promotion smoke is unauthenticated plus a privilege readback (see the promotion record).
 
 ## DEV deployment (Forge, 1 November 2026, UTC)
 
@@ -122,6 +122,35 @@ Read-role column grant (Forge, 07:17Z). Chase found the DEV loan list and detail
 
 Proof: Chase's DEV pass follows; the rows of the Environment Inventory carry the pins.
 
+## Promotion record (Forge, 1 November 2026, UTC)
+Pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R109 to PROD: V120, the PROD read-role column grant, read, command and chat images (images only) and Hosting. Notify, jobs and the VM unchanged. No live financial write, no test default, no notification in PROD.
+- **Authority:** the owner's instructions of 1 November 2026: DEV "Merge and test in dev"; PROD "Merge PR 200 and promote to prod". PR #200 was merged under it.
+- **Freeze:** 2026-11-01T08:57:22Z. Package `8ced324` (PR #200 merge on `main`; R109 = PR #199 merge `0f7c829` plus PR #200); generic release kind (schemaVersion 36, `generic-v1`, no runner edit); baseline R108 `16b8f5a`. Next unused number R110.
+
+| Item | Result |
+| --- | --- |
+| Baseline (PROD, before) | read `00032-4rw`, command `00037-qns` on `b45cb7c9…`; chat `00016-9rj` on `4cb59866…`; notify `00022-4lt` and jobs `00022-42m` on `50953149…`; settings generation `1793456070015817`; Hosting `cf2b76bb37fc1862`; `loan_manager_prod` head 119 (119 rows, 0 failed) on the `mw-credit-pg-20261017` cluster |
+| Frozen-rate check (read-only, 08:58:09Z) | 0 open daily-interest loans with NULL "Original Daily Interest Rate" (55 open daily-interest loans; no NULL rate on any loan); no loan ids to report |
+| Backup at V119 | 08:58:15Z to 09:00:47Z, `prod-promotion-a4271b4141ea40a8af129ced842cde43`, dump sha256 `660bc880b9b67491ba4fb1e475e9f6852cb28cdaabc605ff9573abf68c0e9e48`; listing and restore passed; 38 table fingerprints match |
+| SQL package | `release-r109-v120-8ced324.json` sha256 `7b60bcb6…72b8` (prepared from DEV at 120; `database/` identical at `0f7c829` and `8ced324`); connect preflight 119 to 120 sha256 `c348e406…1a5b`; `check` 0 writes, pending 120 |
+| Owner window | `mw_app_prod_journal_owner` only (4 statements; it owns `pwa_submit_operation_v2`), opened 09:03:21Z, restored 09:04:51Z (PROD restore with the production flags, first attempt) |
+| Flyway | `Invoke-CloudFlyway.py apply`, one grouped transaction (09:03:21Z to 09:04:45Z): V120 5.19 s, installed 09:04:05Z, checksum -688192923 (as DEV); head 120; `verify --target prod` clean |
+| Readback | Matches DEV apart from the `_prod` role names: the 3-argument `post_loan_default` gone, the new one with its predecessor's ACL; the replaced functions keep their owners (`pwa_submit_operation_v2` the journal owner, the others `postgres`); PUBLIC cannot execute `pwa_submit_operation_v2`; `mw_app_prod` can execute `pwa_next_bookable_charge_v1`; `olap_portfolio_summary` ends with "Total Principal Loss"; all owners closed |
+| Read-role grant | `GRANT SELECT ("Default Loss Amount") ON TABLE public."Loans"` to `mw-credit-app-read-prod@clever-oasis-508610-n7.iam`, one transaction as `postgres` (target, V120 and absent-grant checks first), committed 09:05:49Z, before the new read image; column ACL `=r/postgres` for that login only, no table-level SELECT; all 16 Loans columns of the R109 read contract readable |
+| Image | Cloud Build `93853370-038b-49e0-9c89-b5086d34d884` (`cloudbuild-business.yaml`, PROD builder `mw-credit-app-build-prod`, `git archive` of `8ced324`), SUCCESS 09:06:23Z to 09:06:58Z, tag `keep-r109-runtime` |
+| Terraform | Settings generation `1793524495680317` (previous `1793456070015817`): three image overrides. Plan 0 add, 3 change, 0 destroy (images only), plan sha256 `fbec397f…1c3c`, JSON `5f49b50b…3ef9`; applied 09:14:06Z to 09:14:43Z; re-plan no changes |
+| Revisions | read `00033-5mp`, command `00038-748`, chat `00017-5zd`; notify `00022-4lt` and jobs `00022-42m` unchanged |
+| Runner | Generic kind `--check` passed before and after the apply. CI cited per job: check run 41284741173 (`4cfa780`), e2e run 41277596818 (`e8dd230`), terraform run 41203206026 (`cb875ea`), database guards and rebuilds run 41276582403 (`f8b3f4f`), each input-equivalent to `8ced324`. The first `--apply` (09:15:43Z) was refused at the live readback before any write (the package listed the Cloud Build source object fields in gcloud's order, not the API's); Hosting stayed on R108. Fixed in the package only; `--apply` 09:16:15Z to 09:17:02Z, live readback passed |
+| Hosting | Version `d83bf14bfa8be549`, release `1793524616086000`, 16 files; `lm.mw-credit.com` build-version R109 (version `72ca28a39fe7021ab6007c15`), entry `/assets/index-D-ciCRJG.js`, bundle embeds `8ced324`; public config input identical to R108's |
+| Smoke (read-only) | `/health` 200 on read, command and chat; `/api/session`, `/api/chat/models` and `/api/loan-options` 401 without a token; preflight from `https://lm.mw-credit.com` 204; `sw.js` `no-store`; no ERROR logs from 09:14Z. The Dashboard read (command service as `mw_app_prod`) can read `olap_portfolio_summary` (Total Principal Loss 14000). Not run: an authenticated loan record, loan options, borrower loan list or Dashboard call (no PROD Partner token for the operator); the owner's first PROD look covers them |
+| Private records | Package sha256 `df3e1267…06f7`; receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R109-HOSTING-RECEIPT.json`; package, release manifest, preflight, owner-window record, plans and both rollback activation copies under `.../promotion-packages/r109/`, outside Git |
+| Rollback | PROD: restore `production.activation.before-r109-1793456070015817.tfvars` (read and command to `b45cb7c9…`, chat to `4cb59866…`), plan 0/3/0, apply, publish, together with Hosting `cf2b76bb37fc1862` (release `1793456154215000`). The read grant stays (the R108 image does not read the column). Database: V120 stays on a service rollback (functions and views only); schema rollback is a later migration (see Recovery), or the V119 backup above |
+
+Applied and verified. Not owner-accepted: the first authenticated PROD use of the loan screens and the Dashboard is pending. Due: the Data Dictionary PROD capture.
+
 ## Recovery
 - Before release: revert the pull request (Git baseline R108 `16b8f5a` plus later main commits).
 - Data: Undo Default reverses the most recent loss posting and can be repeated, one loss at a time. On a Defaulted loan it also restores the written-off charges from their Notes; on an open loan with a loss it removes only the pair and leaves the charges. It is refused on a kept-charges loan that a payment auto-closed.
@@ -134,5 +163,5 @@ None for the owner. Settled in the build session without an owner decision: hand
 ## Remaining work
 - Record the PR `Development checks` result after the push.
 - Owner: DEV acceptance, including the iPhone pass of the sheet and Default Loan in the chat with an AI Reviewer account.
-- PROD needs `GRANT SELECT ("Default Loss Amount") ON public."Loans"` for the PROD read role before the R109 read image is deployed: no automatic path applies `scripts/production/reader-capability-contract.json`, and without the grant the PROD loan list and detail answer 503 (42501), as DEV did.
-- Promotion (Forge, owner instruction only): PROD backup, V120, then the Data Dictionary capture and the `native-manifest.json` rebuild if needed.
+- Done in the promotion below: the PROD read-role grant `GRANT SELECT ("Default Loss Amount") ON public."Loans"` (applied before the R109 read image; no automatic path applies `scripts/production/reader-capability-contract.json`), the PROD backup, V120, the images and Hosting.
+- Still due after the promotion: the Data Dictionary PROD capture and the `native-manifest.json` rebuild if needed; the owner's first authenticated PROD look at a loan record and the Dashboard.
