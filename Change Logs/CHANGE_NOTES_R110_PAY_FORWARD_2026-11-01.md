@@ -100,6 +100,7 @@ Setup: `POST /api/borrower-records`, `loan.create` (daily interest, principal 1,
 Findings, none blocking:
 - The Collection tile of loan A read "Partially paid" with 0 remaining and 55 collected, because its future charge of 7 Nov is partly paid.
 - Fixed in `4e3e632`, to be redeployed to DEV: the Collection status now counts only charges dated by today, so the loan A tile no longer reads "Partially paid" with 0 remaining (real-query case in `collection-postgres.test.mjs`: red on the old query, green on the new).
+- DEV re-check of the fix (read `00056-k79`, command `00073-png`, chat `00025-jdg`, 2 November, loan A with its partial 7 Nov charge): the Collection read now gives `fully_paid`, due 55, collected 55, remaining 0 (was `partially_paid`); D, F and G unchanged. Token file deleted.
 - After Confirm the phone form still read "Saved on this device. Will sync when connected." 4 s later although the server had already posted the payment (60 Posted). It looks like proxy latency in this session, but it was not repeated; worth a look on a real phone.
 - "Paid in advance" with its payment date (`prepaidPaymentDate`) was not reached: the tile appears only for prepaid charges paid on an earlier day, so D, F and G (all prepaid today) show it from 3 November. The path is covered by the unit and Playwright tests only.
 
