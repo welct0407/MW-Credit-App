@@ -59,6 +59,27 @@ Defects found and fixed:
 - Race window assessed: every charge insert takes the borrower lock, so no change. There is no concurrency `.ps1` script; the race is covered in the integration test.
 - The Pay ahead e2e tests are retired and replaced by `pay-forward-independent`.
 
+## DEV deployment record
+
+Forge, 1 November 2026, UTC. Owner instruction of 1 November 2026: "When done, open the PR and test it in Dev". DEV only; no PROD action of any kind, reads included; no merge.
+
+| Item | Result |
+| --- | --- |
+| Source | `d8380f4` (PR #202 head, branch `claude/r110-pay-forward`). Development checks run 41350125802 and database rebuild run 41350100319 passed. Clean checkout for the migration; the image from a `git archive` of the same commit |
+| Target check | `loan_manager_dev` on `mw-credit-pg-20261017`, head 120 (120 rows, 0 failed), no active sessions; services `mw-credit-app-{read,command,chat}-dev` in `clever-oasis-508610-n7`, `asia-southeast1`, on the R109 baseline (read `00054-b7k`, command `00071-2c4`, chat `00023-bdg`, image `2e759963…`) |
+| Backup at V120, 21:16:02Z to 21:18:30Z | Dump sha256 `a9c1cf6afc8dd723a84989c7250311a279a982f07c018372c9e753efd2422b38`; archive listing and restore passed; 38 table fingerprints match; `gs://mw-credit-operator-private-737787224638/dev-backups/dev-refresh-f3184c9e277c45b7b923fd5fb88a3db3/` |
+| Owner window | 5 owners (`mw_chat_owner_dev`, `mw_notify_owner_dev`, `mw_jobs_owner_dev`, `mw_changes_owner_dev`, `mw_app_dev_journal_owner`; the journal owner owns `pwa_submit_selected_charges_v1`, the others for the post-migrate reconcile), 20 statements, opened 21:18:47Z, restored 21:27:14Z; readback all closed (inherit, set and admin false, no CREATE on `public`) |
+| V121 | `Invoke-Flyway.ps1 -Environment development migrate`: installed 21:19:14Z (63.6 s, checksum 1044840148), head 121 (121 rows, 0 failed); role check 536 statements, 0 violations |
+| Readback | `pwa_submit_selected_charges_v1` keeps owner `mw_app_dev_journal_owner`, its ACL and SECURITY DEFINER; `pwa_effective_payment_plan_v2` keeps owner `postgres` and its ACL; new `pwa_pay_forward_plan_v1(text,numeric,date,jsonb)` owned by `postgres`, ACL `{postgres=X/postgres,mw_app_dev=X/postgres}`: `mw_app_dev` can execute, PUBLIC cannot |
+| Image | Cloud Build `8c65f9bb-d703-47da-8541-b77395c83957` (`cloudbuild-command.yaml`) as `mw-credit-app-build`, SUCCESS 21:28:03Z to 21:28:40Z, `api@sha256:7c4064c79f23274549eb8e9c77d8cecad36da8536ed3ba42def194b8cb158db6` |
+| Terraform DEV | Plan 0 add, 3 change, 0 destroy, image attribute only on `read_api`, `command_api`, `chat_api`; applied 21:30:18Z to 21:30:54Z; re-plan no changes; settings generation `1793568660802353` (previous `1793515690898680`); read `00055-5gq`, command `00072-rsw`, chat `00024-wvq`, 100% traffic; notify `00022-mjg` and jobs `00022-c97` unchanged on `ef7beb4b…` |
+| Smoke | `/health` 200 on read, command and chat; unauthenticated 401 (`/api/session` on read and command, `/api/chat/models` on chat, `POST /api/payment-drafts/x/plan` on command); preflight from `https://dev-lm.mw-credit.com` 204; no ERROR logs from 21:30Z |
+| Hosting | `MW_RELEASE_NUMBER=R110 npm run build:live-dev` with `.env.live-dev` written from Secret Manager and the R109 bundle's settings (9 settings; the built settings object is identical to R109's), deleted after the build; `deploy-hosting.mjs --live-dev --check` passed; deployed 21:33:10Z to 21:33:18Z; version `f81a4d9275bfd59e`, release `1793568797384000`; build-version R110 `b84f517bc15245040b7668f8`, entry `/assets/index-D_xhGMXA.js` embeds `d8380f4`; `build-version.json` identical on `dev-lm.mw-credit.com` and `web.app`; `sw.js` `no-store`; CSP `connect-src` unchanged |
+| Credentials | The temporary admin and read credential files are deleted; no secret value was printed |
+| Rollback | Settings generation `1793515690898680` (image `2e759963…`, R109) with Hosting `7edb5522c9789e82` (release `1793515830213000`), plus the V120 backup above. V121 is functions only and the R109 image does not call `pwa_pay_forward_plan_v1`, so a service rollback can stay on V121; a schema rollback is a later migration (see Recovery) |
+
+Proof of behavior: Chase's DEV business smoke follows. The Environment Inventory DEV rows carry the pins.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - WebKit and a real iPhone pass (Echo checked Chromium only).
