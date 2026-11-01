@@ -294,7 +294,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         }
         let identity;try{identity=commandIdentity(command,actor,receipt)}catch{return failure(400,'invalid_request')}
         // R110: a v10 plan books and pays on the business day only (the SQL command refuses other days as 22023 too).
-        if(!existing&&!payForwardDayAllowed(command,(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day))return failure(400,'invalid_request');
+        if(!existing&&command.schemaVersion===10&&!payForwardDayAllowed(command,(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day))return failure(400,'invalid_request');
         markAttempted();
         const value = (await client.query('SELECT public.pwa_submit_selected_charges_v1($1) AS result', [identity.canonicalJson])).rows[0].result;
         return { ok: true, value };
