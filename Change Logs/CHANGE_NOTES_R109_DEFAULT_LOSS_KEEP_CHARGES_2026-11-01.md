@@ -57,6 +57,22 @@ Chase (disposable clusters): pass. Real-SQL scenarios S1 to S13 and legacy LEG1 
 
 Echo: pre-build review and built-UI pass at 390 and 1440 px, English and Thai. Re-check of the fixes at 390 and 1440 px, English and Thai: pass (V01 to V03, P01, P02, P04 to P06 and the D1 reason text); P03 remains as polish in the shared input style.
 
+Chase, DEV end to end (1 November 2026, Partner `claude-dev-test`, synthetic borrowers `54e259f5-…` and `c449128f-…`, loans `7577b9b2`, `929ddf3f`, `1a119514` and new `5fcd483b`):
+| Check | Result |
+| --- | --- |
+| Partial loss 400 on `7577b9b2` (request `9776f03f-eec3-4ca9-beef-7edbcbcc4f18`) | Outstanding 600, daily interest 6, loss 400; undo `fd25d1cf-…` restored it |
+| Full loss, charges kept (`db8dd7de-…`) | Loan open, outstanding 0, daily interest 0 |
+| Payment 70 on a kept charge (`730eea04-…`) | Accepted as interest; undo after it (`2c88c58d-…`) kept the receipt |
+| Write-off and close on `929ddf3f` (`513263f9-…`), undo (`5815280f-…`) | Closed as Defaulted, then reopened with charges restored |
+| Next charge after a partial loss (`5fcd483b`) | 9.00 for 3 days at the reduced daily interest; close preview reduced |
+| Refusals | All 422: same-day second loss, loss on a Defaulted loan, fixed-term keep or partial, full keep with nothing unpaid (`record_requires_reconciliation`), wrong date (`invalid_date`), delete with a posting (`dependency_conflict`), undo with no loss |
+| Dashboard `principalLoss` | 10000, 10400, 11000, back to 10000 |
+| Browser at 390 and 1440 px after the read-grant fix (loan `5fcd483b`) | Prefill 500 with numeric keypad; full amount with nothing unpaid shows the switch off with its reason; partial 200 forces the switch on with the summary; review; badge "Principal loss ฿200 · 01-Nov", Loss Date row, daily interest 3; borrower list chip; Undo confirm text and readback to 500 and 5; Dashboard back to 10000 |
+
+Defect found on DEV: the read service returned 503 (42501) on the loan list and detail because the read role lacked the `Default Loss Amount` column grant. Fixed with the grant script, the PROD reader-capability contract and the new `tests/unit/reader-capability-columns.test.mjs`; Forge recorded the DEV grant (commit `9e409d6`).
+
+DEV left in place: the 70 receipt on `7577b9b2` (`pwa:730eea04-…`), synthetic loan `5fcd483b` (delete is refused; it has a first-day receipt) and chat thread `c9c93e7a-…`.
+
 | Command | Result |
 | --- | --- |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
@@ -68,9 +84,10 @@ Echo: pre-build review and built-UI pass at 390 and 1440 px, English and Thai. R
 Skipped and not verified, so not a pass:
 - The read-only count of open loans without a frozen Original Daily Interest Rate in PROD (promotion). DEV: 0, see the DEV deployment below.
 - The iPhone Home Screen device pass (the owner on DEV).
-- A Processing payment through the API.
-- A concurrent loss race.
+- A Processing payment refusal (also not covered on DEV).
+- A concurrent loss race (also not covered on DEV).
 - A closing-payment correction on a loss loan.
+- On DEV: the chat `loan.default` proposal (the test Partner is not an AI Reviewer and the flag was not changed), Thai wording in the browser, and the unpaid-charges sheet variants in the browser (covered through the API).
 - The Data Dictionary PROD capture, after PROD promotion. No PROD action is part of this batch.
 
 ## DEV deployment (Forge, 1 November 2026, UTC)
@@ -116,6 +133,6 @@ None for the owner. Settled in the build session without an owner decision: hand
 
 ## Remaining work
 - Record the PR `Development checks` result after the push.
-- Owner: test on DEV with the test account, including the iPhone pass of the sheet.
+- Owner: DEV acceptance, including the iPhone pass of the sheet and Default Loan in the chat with an AI Reviewer account.
 - PROD needs `GRANT SELECT ("Default Loss Amount") ON public."Loans"` for the PROD read role before the R109 read image is deployed: no automatic path applies `scripts/production/reader-capability-contract.json`, and without the grant the PROD loan list and detail answer 503 (42501), as DEV did.
 - Promotion (Forge, owner instruction only): PROD backup, V120, then the Data Dictionary capture and the `native-manifest.json` rebuild if needed.
