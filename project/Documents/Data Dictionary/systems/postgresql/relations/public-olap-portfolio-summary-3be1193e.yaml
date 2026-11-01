@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r103-20261028/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "f9424c714eb92d7dc0bc710bc6f721121ac71ff2"
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-portfolio-summary-3be1193e.yaml"
     "identity":
       "system": "postgresql"
@@ -44,7 +44,8 @@
                   COALESCE(sum(olap_loans_analytics."Expected Interest This Month"), 0::numeric) AS forecast,
                   COALESCE(sum(olap_loans_analytics."Principal Days MTD"), 0::numeric) AS days,
                   COALESCE(sum(olap_loans_analytics."Expected Daily Interest Amount"), 0::numeric) AS daily,
-                  COALESCE(sum(olap_loans_analytics."Total Interest Received") FILTER (WHERE olap_loans_analytics."Loan Status" = 'ยังไม่ปิดยอด'::text), 0::numeric) AS active_profit
+                  COALESCE(sum(olap_loans_analytics."Total Interest Received") FILTER (WHERE olap_loans_analytics."Loan Status" = 'ยังไม่ปิดยอด'::text), 0::numeric) AS active_profit,
+                  COALESCE(sum(olap_loans_analytics."Default Loss Amount"::numeric), 0::numeric) AS principal_loss
                  FROM olap_loans_analytics
               ), rr AS (
                SELECT COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric), 0::numeric) AS profit,
@@ -198,7 +199,8 @@
                   pool.total - lr.principal + earned.total - settled.total - er.total AS "Net Expected Loan Account Balance",
                   rr.mtd AS "Operating Income MTD",
                   - er.mtd AS "Income Statement Expenses MTD",
-                  br.long_overdue_count AS "Borrowers with Long Overdue Payment"
+                  br.long_overdue_count AS "Borrowers with Long Overdue Payment",
+                  lr.principal_loss AS "Total Principal Loss"
                  FROM "Statistics" s
                    CROSS JOIN ctx
                    CROSS JOIN lr
@@ -255,6 +257,7 @@
                   a."Operating Income MTD",
                   a."Income Statement Expenses MTD",
                   a."Borrowers with Long Overdue Payment",
+                  a."Total Principal Loss",
                       CASE
                           WHEN a."Forecast Average Daily Outstanding Principal" > 0::numeric THEN a."Projected Monthly Profit" / a."Forecast Average Daily Outstanding Principal"
                           ELSE 0::numeric
@@ -303,7 +306,8 @@
           round("Net Expected Loan Account Balance", 0) AS "Net Expected Loan Account Balance",
           round("Income Statement Expenses MTD", 0) AS "Income Statement Expenses MTD",
           round("Operating Income MTD", 0) AS "Operating Income MTD",
-          "Borrowers with Long Overdue Payment"
+          "Borrowers with Long Overdue Payment",
+          round("Total Principal Loss", 0) AS "Total Principal Loss"
          FROM final x;
     "partition_key": null
     "partition_bound": null
@@ -1084,6 +1088,24 @@
       "collation": null
       "acl": null
       "comment": null
+    "Total Principal Loss":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Total Principal Loss"
+      "ordinal": 44
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
   "indexes": {}
   "triggers": {}
@@ -1344,6 +1366,11 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_charges_analytics"
     "referenced_column": "Total Paid"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Default Loss Amount"
   - "schema": "public"
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"

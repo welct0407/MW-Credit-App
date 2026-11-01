@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-generate-loan-charge-p-loan-text-p-business-date-date-p-manual-request-boolean-6438ed0d.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.generate_loan_charge(p_loan text, p_business_date date, p_manual_request boolean)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -44,8 +53,9 @@
         END IF;
         SELECT * INTO STRICT l FROM public."Loans" WHERE "Row ID"=p_loan FOR UPDATE;
         IF l."Ref Borrowers" IS DISTINCT FROM borrower THEN RAISE EXCEPTION 'Loan borrower changed; retry generation'; END IF;
+        -- R109 (V120): a default loss posting (df10:) is not a charge of the schedule.
         SELECT min("Row ID") INTO existing FROM public."Charges"
-          WHERE "Ref Loans"=p_loan AND "Charge Date"=p_business_date;
+          WHERE "Ref Loans"=p_loan AND "Charge Date"=p_business_date AND NOT starts_with("Row ID",'df10:');
         IF existing IS NOT NULL THEN RETURN NULL; END IF;
         IF NOT coalesce(l."Auto Charge Enabled",false) OR l."Loan Status" IS DISTINCT FROM 'ยังไม่ปิดยอด'
           OR l."Loan Date" IS NULL OR p_business_date<l."Loan Date" THEN RETURN NULL; END IF;
@@ -57,7 +67,7 @@
           IF mod(p_business_date-anchor,l."Interest Payment Interval")<>0 THEN RETURN NULL; END IF;
           -- AppSheet Last Interest Charge Date excludes future charges.
           SELECT max("Charge Date") INTO latest FROM public."Charges"
-            WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_business_date;
+            WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_business_date AND NOT starts_with("Row ID",'df10:');
           interest:=l."Current Daily Interest"::numeric*greatest(0,p_business_date-coalesce(latest,l."Loan Date"));
           IF interest<=0 THEN RETURN NULL; END IF;
         ELSIF l."Loan Type"='กำหนดวันชำระ' THEN
@@ -103,8 +113,3 @@
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres,mw_jobs_owner_prod=X/postgres}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"

@@ -7,7 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-loan-close-calculation-v83-p-loan-text-p-day-date-p-exclude-payment-text-4dbe26e4.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.loan_close_calculation_v83(p_loan text, p_day date, p_exclude_payment text)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -25,6 +35,8 @@
       AS $function$
       DECLARE l public."Loans"%ROWTYPE; outstanding numeric;scheduled numeric;missing numeric;interest numeric:=0;
        target text;today_count integer;latest date;mutation jsonb:='null'::jsonb;lines jsonb;total numeric;context jsonb;
+       trail_pattern text:='(^|\n)Interest Due lowered from [0-9.]+ by Loan Close ([1-9][0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]))($|\n)';
+       opening date;trail_day date;has_future boolean;future jsonb;future_due jsonb;
       BEGIN
        SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan;
        IF NOT FOUND THEN RAISE EXCEPTION 'Target loan must belong to the payment borrower';END IF;
@@ -37,19 +49,35 @@
        SELECT coalesce(sum(c."Principal Due"::numeric-(SELECT coalesce(sum(r."Principal Paid"::numeric),0) FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID" AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment))),0) INTO scheduled FROM public."Charges" c WHERE c."Ref Loans"=p_loan;
        missing:=outstanding-scheduled;
        IF missing<0 THEN RAISE EXCEPTION 'Principal already due exceeds outstanding loan principal';END IF;
-       SELECT count(*),min("Row ID") INTO today_count,target FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=p_day;
+       -- V113: charges dated after the day. A charge an earlier close lowered (its trail line, written by the apply) keeps its
+       -- due, and the days up to that close's date T are billed; the first other one (F1) carries the days from the later of
+       -- latest and T up to the day, capped by its stored due; later ones keep their paid interest.
+       -- R109 (V120): a default loss posting (df10:) is never today's, the latest or the target charge.
+       SELECT max("Charge Date") INTO opening FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day AND NOT starts_with("Row ID",'df10:');
+       -- A trail line counts only with a real calendar date (a hand-edited 2026-02-31 or 2026-99-99 does not), so no cast can fail.
+       WITH s AS(SELECT c."Row ID" id,c."Charge Date" charge_day,c."Interest Due"::numeric due,d.trail,d.trail IS NOT NULL settled FROM public."Charges" c
+         LEFT JOIN LATERAL(SELECT (regexp_match(c."Notes",trail_pattern))[2] t) m ON true
+         LEFT JOIN LATERAL(SELECT CASE WHEN m.t IS NOT NULL THEN CASE WHEN substr(m.t,9,2)::integer<=extract(day FROM make_date(substr(m.t,1,4)::integer,substr(m.t,6,2)::integer,1)+interval '1 month'-interval '1 day') THEN m.t::date END END trail) d ON true
+         WHERE c."Ref Loans"=p_loan AND c."Charge Date">p_day),
+        f AS(SELECT s.*,paid.i,row_number() OVER(PARTITION BY s.settled ORDER BY s.charge_day,s.id COLLATE "C") n,max(s.trail) OVER() trail_all FROM s
+         LEFT JOIN LATERAL(SELECT coalesce(sum(r."Interest Paid"::numeric),0) i FROM public."Repayments" r WHERE r."Ref Charges"=s.id AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment)) paid ON true),
+        v AS(SELECT id,due,settled,CASE WHEN settled THEN due WHEN n>1 THEN i ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(opening,trail_all),l."Loan Date")))) END due_new,trail FROM f)
+       SELECT coalesce(bool_or(NOT settled),false),jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new),max(trail)
+        INTO has_future,future,future_due,trail_day FROM v;
+       SELECT count(*),min("Row ID") INTO today_count,target FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=p_day AND NOT starts_with("Row ID",'df10:');
        IF today_count>1 THEN RAISE EXCEPTION 'Multiple charges today require reconciliation before closing';END IF;
        IF today_count=0 THEN
-        SELECT max("Charge Date") INTO latest FROM public."Charges" WHERE "Ref Loans"=p_loan;
-        interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(latest,l."Loan Date"));
+        SELECT max("Charge Date") INTO latest FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day AND NOT starts_with("Row ID",'df10:');
+        IF NOT has_future THEN interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(latest,trail_day),l."Loan Date"));END IF;
         IF missing+interest>0 THEN
          target:='lc7:'||length(p_loan)||':'||p_loan||':'||p_day::text;
          mutation:=jsonb_build_object('kind','insert','chargeId',target,'principal',missing::text,'interest',interest::text);
         END IF;
        ELSIF missing>0 THEN mutation:=jsonb_build_object('kind','increase','chargeId',target,'principal',missing::text,'interest','0');END IF;
-       IF target IS NULL THEN SELECT "Row ID" INTO target FROM public."Charges" WHERE "Ref Loans"=p_loan ORDER BY "Charge Date" DESC,"Row ID" COLLATE "C" DESC LIMIT 1;END IF;
+       IF future IS NOT NULL THEN mutation:=CASE WHEN mutation='null'::jsonb THEN jsonb_build_object('kind','adjust') ELSE mutation END||jsonb_build_object('futureInterest',future);END IF;
+       IF target IS NULL THEN SELECT "Row ID" INTO target FROM public."Charges" WHERE "Ref Loans"=p_loan AND NOT starts_with("Row ID",'df10:') ORDER BY "Charge Date" DESC,"Row ID" COLLATE "C" DESC LIMIT 1;END IF;
        WITH paid AS(SELECT r."Ref Charges" id,sum(r."Principal Paid"::numeric) p,sum(r."Interest Paid"::numeric) i FROM public."Repayments" r WHERE r."Ref Loans"=p_loan AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment) GROUP BY r."Ref Charges"),
-       projected AS(SELECT c."Row ID" id,c."Charge Date" AS charge_day,c."Principal Due"::numeric-coalesce(paid.p,0)+CASE WHEN mutation->>'kind'='increase' AND c."Row ID"=target THEN missing ELSE 0 END p,c."Interest Due"::numeric-coalesce(paid.i,0) i FROM public."Charges" c LEFT JOIN paid ON paid.id=c."Row ID" WHERE c."Ref Loans"=p_loan
+       projected AS(SELECT c."Row ID" id,c."Charge Date" AS charge_day,c."Principal Due"::numeric-coalesce(paid.p,0)+CASE WHEN mutation->>'kind'='increase' AND c."Row ID"=target THEN missing ELSE 0 END p,CASE WHEN c."Charge Date">p_day THEN (future_due->>c."Row ID")::numeric ELSE c."Interest Due"::numeric END-coalesce(paid.i,0) i FROM public."Charges" c LEFT JOIN paid ON paid.id=c."Row ID" WHERE c."Ref Loans"=p_loan
        UNION ALL SELECT target,p_day,missing,interest WHERE mutation->>'kind'='insert')
        SELECT coalesce(jsonb_agg(jsonb_build_object('chargeId',id,'principal',trim_scale(p)::text,'interest',trim_scale(i)::text,'expectedPrincipalRemaining',trim_scale(p)::text,'expectedInterestRemaining',trim_scale(i)::text,'chargeDate',charge_day::text) ORDER BY id COLLATE "C") FILTER(WHERE p+i>0),'[]'::jsonb),sum(p+i) INTO lines,total FROM projected;
        IF total IS NULL OR total<=0 OR total<>trunc(total) THEN RAISE EXCEPTION 'Final receipt must be a positive whole-baht amount';END IF;
@@ -71,10 +99,3 @@
     "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}"
     "comment": null
     "extension": null
-"evidence":
-  "/content/definition/definition":
-    "reference": "pg_get_functiondef on a disposable PostgreSQL 18 rebuild through database/migrations/V101__loan_close_counts_unlinked_repayments.sql\
-      \ (scripts/database/Test-MigrationsCloud.py, 21 October 2026); PROD still runs the V83 body until V101 is applied"
-    "reason": "R086 V101: repayments without a \"Ref Payment\" count again when no payment is excluded (p_exclude_payment\
-      \ IS NULL OR ...); signature, volatility, settings, owner and ACL unchanged"
-    "state": "value"

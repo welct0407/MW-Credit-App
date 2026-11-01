@@ -7,8 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r027-payment-health/dictionary-catalog.json"
-  "coverage": "Exact scoped catalog metadata"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/reporting-borrower-payment-health-v1.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "relation"
+      "name": "public.reporting_borrower_payment_health_v1"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -21,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=r/postgres,mw_chat_read_prod=r/postgres}"
     "comment": "R027: payment-health-v1; 45/15/15/25; due-today excluded; unresolved default history suppresses rating; no\
       \ financial writes."
     "view_definition": |2-
@@ -56,8 +65,8 @@
                 GROUP BY reporting_charge_payment_health_v1.borrower_id
               ), defaults AS (
                SELECT l."Ref Borrowers" AS borrower_id,
-                  count(*) FILTER (WHERE l."Defaulted")::integer AS default_count,
-                  COALESCE(sum(l."Default Loss Amount"::numeric) FILTER (WHERE l."Defaulted"), 0::numeric) AS recorded_default_loss,
+                  count(*) FILTER (WHERE l."Defaulted" OR COALESCE(l."Default Loss Amount"::numeric, 0::numeric) > 0::numeric)::integer AS default_count,
+                  COALESCE(sum(l."Default Loss Amount"::numeric), 0::numeric) AS recorded_default_loss,
                   bool_or(COALESCE(l."Defaulted", false) AND l."Loan Date" <= ctx.d AND (l."Close Date" IS NULL OR l."Close Date" > ctx.d)) AS active_default,
                   bool_or(COALESCE(l."Defaulted", false) AND l."Close Date" >= (ctx.d - 90) AND l."Close Date" <= ctx.d) AS recent_default,
                   bool_or(l."Loan Date" IS NULL OR l."Close Date" IS NOT NULL AND l."Close Date" < l."Loan Date") AS invalid
@@ -1303,8 +1312,3 @@
     "referenced_schema": "public"
     "referenced_relation": "reporting_charge_payment_health_v1"
     "referenced_column": "reporting_date"
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"

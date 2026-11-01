@@ -7,7 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
+  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-apply-loan-source-v2-canonical-text-a646c61b.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.pwa_apply_loan_source_v2(canonical text)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -19,12 +29,12 @@
     "definition": "CREATE OR REPLACE FUNCTION public.pwa_apply_loan_source_v2(canonical text)\n RETURNS jsonb\n LANGUAGE plpgsql\n\
       \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE e jsonb:=canonical::jsonb;i jsonb:=e#>'{command,inputs}';a\
       \ jsonb:=e->'actor';target text:=e#>>'{command,targetId}';op text:=e#>>'{command,operation}';\r\n parent text;l public.\"\
-      Loans\"%ROWTYPE;message text;\r\nBEGIN\r\n IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod')\
+      Loans\"%ROWTYPE;message text;booked text;\r\nBEGIN\r\n IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod')\
       \ OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner'\
-      \ END) OR op NOT IN('loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge') THEN RAISE\
-      \ EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;\r\n SELECT \"Ref Borrowers\" INTO parent\
-      \ FROM public.\"Loans\" WHERE \"Row ID\"=target;\r\n IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;\r\
-      \n PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=parent OR (op='loan.update' AND \"Row ID\"=i->>'borrowerId')\
+      \ END) OR op NOT IN('loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge')\
+      \ THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;\r\n SELECT \"Ref Borrowers\"\
+      \ INTO parent FROM public.\"Loans\" WHERE \"Row ID\"=target;\r\n IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END\
+      \ IF;\r\n PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=parent OR (op='loan.update' AND \"Row ID\"=i->>'borrowerId')\
       \ ORDER BY \"Row ID\" COLLATE \"C\" FOR UPDATE;\r\n IF op='loan.update' AND NOT EXISTS(SELECT 1 FROM public.\"Borrowers\"\
       \ WHERE \"Row ID\"=i->>'borrowerId') THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;\r\n SELECT * INTO l FROM public.\"\
       Loans\" WHERE \"Row ID\"=target FOR UPDATE;\r\n IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;\r\n\
@@ -32,12 +42,29 @@
       \ public.\"Charges\" WHERE \"Ref Loans\"=target ORDER BY \"Row ID\" COLLATE \"C\" FOR UPDATE;\r\n IF public.pwa_loan_version_v2(target)\
       \ IS DISTINCT FROM e#>>'{command,expectedVersion}' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;\r\n IF op IN('loan.default','loan.generate-charge')\
       \ AND (i->>'businessDate')::date IS DISTINCT FROM (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN RAISE\
-      \ EXCEPTION USING ERRCODE='P5B08';END IF;\r\n\r\n BEGIN\r\n CASE op\r\n WHEN 'loan.delete' THEN DELETE FROM public.\"\
-      Loans\" WHERE \"Row ID\"=target;\r\n WHEN 'loan.default' THEN UPDATE public.\"Loans\" SET \"Defaulted\"=true,\"Close\
-      \ Date\"=(i->>'businessDate')::date,\"Closed By\"=a->>'loginEmail' WHERE \"Row ID\"=target;\r\n WHEN 'loan.undo-default'\
-      \ THEN UPDATE public.\"Loans\" SET \"Defaulted\"=false WHERE \"Row ID\"=target;\r\n WHEN 'loan.generate-charge' THEN\
-      \ UPDATE public.\"Loans\" SET \"Charge Generation Request\"=(i->>'businessDate')||'|'||(e->>'requestId') WHERE \"Row\
-      \ ID\"=target;\r\n WHEN 'loan.update' THEN\r\n IF i ? 'scheduleAnchor' AND (i->>'scheduleAnchor')::date<(i->>'loanDate')::date\
+      \ EXCEPTION USING ERRCODE='P5B08';END IF;\n -- R104: a projected charge is booked only for a date after today (Bangkok).\n\
+      \ IF op='loan.book-projected-charge' AND (i->>'chargeDate')::date<=(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date\
+      \ THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;\r\n\r\n BEGIN\r\n CASE op\r\n WHEN 'loan.delete' THEN DELETE FROM\
+      \ public.\"Loans\" WHERE \"Row ID\"=target;\r\n WHEN 'loan.default' THEN\r\n  -- R109 (V120): the request carries the\
+      \ loss amount and keep-charges choice to default_loan_transition (no new column).\r\n  -- The one-key form (no amount)\
+      \ is the ordinary write off and close of the whole outstanding principal, as before.\r\n  IF i ? 'amount' THEN PERFORM\
+      \ set_config('business_crud.default_request',jsonb_build_object('loan',target,'op','post','date',i->>'businessDate','amount',i->>'amount','keepCharges',i->'keepCharges','actor',a->>'loginEmail')::text,true);END\
+      \ IF;\r\n  IF (i->'keepCharges')='true'::jsonb THEN UPDATE public.\"Loans\" SET \"Default Loss Amount\"=(coalesce(\"\
+      Default Loss Amount\"::numeric,0)+(i->>'amount')::numeric)::money WHERE \"Row ID\"=target;\r\n  ELSE UPDATE public.\"\
+      Loans\" SET \"Defaulted\"=true,\"Close Date\"=(i->>'businessDate')::date,\"Closed By\"=a->>'loginEmail' WHERE \"Row\
+      \ ID\"=target;END IF;\r\n  PERFORM set_config('business_crud.default_request','',true);\r\n WHEN 'loan.undo-default'\
+      \ THEN\r\n  PERFORM set_config('business_crud.default_request',jsonb_build_object('loan',target,'op','undo','actor',a->>'loginEmail')::text,true);\r\
+      \n  UPDATE public.\"Loans\" SET \"Defaulted\"=false WHERE \"Row ID\"=target;\r\n  PERFORM set_config('business_crud.default_request','',true);\r\
+      \n WHEN 'loan.generate-charge' THEN UPDATE public.\"Loans\" SET \"Charge Generation Request\"=(i->>'businessDate')||'|'||(e->>'requestId')\
+      \ WHERE \"Row ID\"=target;\r\n WHEN 'loan.book-projected-charge' THEN\n  -- R104: still this loan's next projected charge\
+      \ (V112 read, same day) with the reviewed date and amounts.\n  IF NOT EXISTS(SELECT 1 FROM public.pwa_next_bookable_charge_v1(parent,(statement_timestamp()\
+      \ AT TIME ZONE 'Asia/Bangkok')::date) p\n    WHERE p.loan_id=target AND p.charge_date=(i->>'chargeDate')::date AND p.principal_due=(i->>'principalDue')::numeric\
+      \ AND p.interest_due=(i->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P5B11';END IF;\n  BEGIN\n   booked:=public.generate_loan_charge(target,(i->>'chargeDate')::date);\n\
+      \  EXCEPTION WHEN SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P5B11';\n  END;\n  IF booked IS DISTINCT FROM\
+      \ 'cg8:'||length(target)||':'||target||':'||(i->>'chargeDate') OR NOT EXISTS(SELECT 1 FROM public.\"Charges\" WHERE\
+      \ \"Row ID\"=booked AND \"Ref Loans\"=target AND \"Charge Date\"=(i->>'chargeDate')::date\n    AND \"Principal Due\"\
+      ::numeric=(i->>'principalDue')::numeric AND \"Interest Due\"::numeric=(i->>'interestDue')::numeric) THEN RAISE EXCEPTION\
+      \ USING ERRCODE='P5B11';END IF;\n WHEN 'loan.update' THEN\r\n IF i ? 'scheduleAnchor' AND (i->>'scheduleAnchor')::date<(i->>'loanDate')::date\
       \ THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;\r\n UPDATE public.\"Loans\" SET \"Ref Borrowers\"=i->>'borrowerId',\"\
       Loan Date\"=(i->>'loanDate')::date,\"Principal Amount\"=(i->>'principal')::numeric::money,\"Transfer Fee\"=(i->>'transferFee')::numeric::money,\"\
       Ref Disbursed From Cash Account\"=i->>'disbursingAccountId',\"Loan Type\"=i->>'type',\"Due Date\"=(i->>'dueDate')::date,\"\
@@ -57,8 +84,13 @@
       \ before default','Default requires outstanding principal','Charge components require reconciliation before default','A\
       \ paid charge today prevents Default Loan',\r\n   'Default loss posting no longer matches; reconcile its components\
       \ before undo','Default charge has no original component evidence; reconcile before undo','Default charge evidence is\
-      \ malformed; reconcile before undo','Default charge changed since write-off; reconcile before undo'\r\n  ]) THEN RAISE\
-      \ EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;\r\n END;\r\n RETURN jsonb_build_object('operation',op,'targetType','loan','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);\r\
+      \ malformed; reconcile before undo','Default charge changed since write-off; reconcile before undo',\r\n   'Default\
+      \ loss amount must be a whole baht amount between 1 and the outstanding principal','Partial default loss must keep unpaid\
+      \ charges','One default loss posting per loan per day','Default loss amount changes only through Default Loan or Undo\
+      \ Default',\r\n   'Undo Default requires a recorded default loss','Undo Default requires an open or Defaulted loan','Default\
+      \ request does not match this loan','Keeping unpaid charges requires a daily-interest loan','A full default loss with\
+      \ no unpaid charge must write off and close'\r\n  ]) THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;\r\
+      \n END;\r\n RETURN jsonb_build_object('operation',op,'targetType','loan','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);\r\
       \nEND $function$\n"
     "owner": "postgres"
     "language": "plpgsql"
