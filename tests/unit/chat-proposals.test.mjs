@@ -150,14 +150,19 @@ test('payment.correct keeps the plan and replaces it with the stated changes; pa
  assert.equal(deletion.predecessorRequestId,'11111111-1111-4111-8111-111111111111');assert.equal(deletion.expectedVersion,W);
 });
 
-test('host reads: loan default date, next charge booking, settle-all amount, preferences and recent analytics',async()=>{
- const {client}=service({...base,'GET /api/loan-options':ok({businessDate:'2026-10-30',accounts:[]}),
+test('host reads: loan default date and loss amount, next charge booking, settle-all amount, preferences and recent analytics',async()=>{
+ const {client}=service({...base,'GET /api/loan-records/L1':ok({item:{...loanItem,outstandingPrincipal:'7500.40'}}),'GET /api/loan-options':ok({businessDate:'2026-10-30',accounts:[]}),
   'GET /api/payment-drafts/B1?scope=all':ok({charges:[],bookable:[{id:'cg8:2:L1:2026-11-06',loanId:'L1',chargeDate:'2026-11-06',principalRemaining:'0',interestRemaining:'700',bookVersion:W}]}),
   'GET /api/management/partners/P2':ok({item:{id:'P2',label:'Partner Two',netAvailableToSettle:'2500.00'}}),
   'GET /api/preferences':ok({item:{id:'P1',language:'English',statementAccountId:null,statementDate:null,version:V}}),
   'GET /api/management/analytics-overview':ok({refreshTarget:{id:'stat-1',version:W}})});
  const planner=createProposalPlanner({client,actor:{partnerId:'P1'},newId:ids()});
- assert.deepEqual(JSON.parse((await planner.propose({operation:'loan.default',target:'L1',values:{}})).command).inputs,{businessDate:'2026-10-30'});
+ // R109: the loss amount defaults to the outstanding principal in whole baht (truncated) and keeps the unpaid charges.
+ const loss=await planner.propose({operation:'loan.default',target:'L1',values:{}});
+ assert.deepEqual(JSON.parse(loss.command).inputs,{businessDate:'2026-10-30',amount:'7500',keepCharges:true});
+ assert.deepEqual(loss.card.confirmLabel,{en:'Record loss ฿7,500',th:'บันทึกหนี้สูญ ฿7,500'});
+ assert.deepEqual(JSON.parse((await planner.propose({operation:'loan.default',target:'L1',values:{amount:'2000',keepCharges:false}})).command).inputs,{businessDate:'2026-10-30',amount:'2000',keepCharges:false});
+ await assert.rejects(planner.propose({operation:'loan.default',target:'L1',values:{amount:'20.5'}}),/INVALID_FIELD:amount/);
  const book=JSON.parse((await planner.propose({operation:'loan.book-projected-charge',target:'L1',values:{}})).command);
  assert.deepEqual([book.expectedVersion,book.inputs],[W,{chargeDate:'2026-11-06',principalDue:'0',interestDue:'700'}]);
  const settle=await planner.propose({operation:'settlement.settle-all',target:'P2',values:{}});

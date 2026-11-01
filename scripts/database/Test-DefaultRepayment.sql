@@ -56,7 +56,7 @@ DO $$ BEGIN
  ASSERT (SELECT to_jsonb(t) FROM "Loans" t WHERE "Row ID"='DR70-L')=(SELECT r FROM dr_loan),'Undo restores paid outstanding90';
  ASSERT (SELECT to_jsonb(t) FROM "Charges" t WHERE "Row ID"='DR70-L-C')=(SELECT r FROM dr_charge);
  ASSERT NOT EXISTS((SELECT r FROM dr_cash EXCEPT SELECT to_jsonb(t) FROM "Cash Ledger" t) UNION ALL (SELECT to_jsonb(t) FROM "Cash Ledger" t EXCEPT SELECT r FROM dr_cash));
- ASSERT NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Row ID"='df10:6:DR70-L');
+ ASSERT NOT EXISTS(SELECT 1 FROM "Repayments" WHERE starts_with("Row ID",'df10:6:DR70-L'));
 END $$;
 UPDATE "Repayments" SET "Notes"='ordinary after Undo',"Principal Paid"=11::money WHERE "Row ID"='DR70-R';
 UPDATE "Repayments" SET "Ref Loans"='DR70-OTHER',"Ref Charges"='DR70-OTHER-C' WHERE "Row ID"='DR70-R';

@@ -684,6 +684,11 @@ html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-beha
 
 /* R101: the next-charge pill in Receive payment (same pill as the collection group count). */
 .next-charge-badge{background:#dfe3e6;border-radius:10px;padding:1px 7px;font-size:13px;display:inline-block;width:fit-content}
+/* R109-UX-B01, L01: a principal loss on a loan (open with kept charges, or Defaulted in the closed list). */
+.loan-loss-badge{background:#fdecea;color:#b3261e;border-radius:10px;padding:1px 7px;font-size:13px;display:inline-block;width:fit-content}
+.loan-loss-line{margin:4px 0 8px}.nowrap{white-space:nowrap}
+/* R109-UX-P02: the Default Loan sheet's position box has no total; every figure reads the same size. */
+.loan-default .close-summary dl>div:last-child dd{font-size:inherit}
 /* The Pay ahead help sits with the rows (8px sides, 12px left like the heading), close above them; on a review line the
    badge is its own line after the text, so a wrapped line never ends in a dangling separator. */
 .selected-payment .payment-charge-scroll .next-charge-help{padding:0 8px 0 12px;margin-bottom:4px}
@@ -692,3 +697,6 @@ html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-beha
 .upcoming-charges .upcoming-record-charge{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin-top:8px;white-space:normal}
 .upcoming-charges .upcoming-record-charge svg{width:21px;height:21px}
 .upcoming-charges .upcoming-record-help{margin:6px 0 0}
+/* R109-UX-V01: the loan record's actions take their own line under the title and wrap within the card at every width. */
+main .borrower-record>.related-loans-heading:has(>.loan-direct-actions){flex-wrap:wrap}
+main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;flex-basis:100%;min-width:0;max-width:100%;flex-wrap:wrap;justify-content:flex-end;margin-left:0}

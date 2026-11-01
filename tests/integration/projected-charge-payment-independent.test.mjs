@@ -209,7 +209,7 @@ test('V117: future charges are recorded in schedule order for daily-interest and
 // the fixture cashpool) with two booked
 // future charges. Loan Close (V113) bills only the days up to today on the first future charge and lowers the second to
 // the interest paid on it (0); Default writes every charge, future ones included, down to its paid components, as it does
-// with one future charge.
+// with one future charge (R109 V120: write off and close is the full amount with keepCharges false; the posting id is dated).
 async function loanWithFutureCharges(loan,count){
  await admin.query(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval")
   VALUES($1,$2,$3,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-3,100::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money,7)`,[loan,fixture.borrowerId,fixture.lendingAccountId]);
@@ -242,11 +242,11 @@ test('V117: Default with two booked future charges writes both down as it does w
  const results={};
  for(const [loan,count] of [['R117-F1',1],['R117-F2',2]]){
   const ids=await loanWithFutureCharges(loan,count),version=(await admin.query('SELECT public.pwa_loan_version_v2($1) AS v',[loan])).rows[0].v;
-  const applied=await store.operation(principal,{requestId:randomUUID(),operation:'loan.default',targetId:loan,expectedVersion:version,predecessorRequestId:null,receiptId:null,inputs:{businessDate:today}});
+  const applied=await store.operation(principal,{requestId:randomUUID(),operation:'loan.default',targetId:loan,expectedVersion:version,predecessorRequestId:null,receiptId:null,inputs:{businessDate:today,amount:'100',keepCharges:false}});
   assert.equal(applied.originalOutcome?.status,'applied',JSON.stringify(applied));
   const rows=(await admin.query(`SELECT "Principal Due"::numeric::text AS p,"Interest Due"::numeric::text AS i,("Notes" LIKE 'Default write-off %') AS noted,("Notes")::text AS notes FROM "Charges" WHERE "Row ID"=ANY($1::text[]) ORDER BY "Charge Date"`,[ids])).rows;
   for(const row of rows){assert.deepEqual([row.p,row.i,row.noted],['0.00','0.00',true],loan+' future charge written down to its paid components');const note=JSON.parse(row.notes.slice('Default write-off '.length));assert.deepEqual([note.original_interest,note.written_off_interest,note.date],[70,70,today]);}
-  const loss=(await admin.query(`SELECT c."Principal Due"::numeric::text AS p,c."Interest Due"::numeric::text AS i,l."Defaulted" AS defaulted FROM "Charges" c JOIN "Loans" l ON l."Row ID"=c."Ref Loans" WHERE c."Row ID"=$1`,['df10:'+Array.from(loan).length+':'+loan])).rows[0];
+  const loss=(await admin.query(`SELECT c."Principal Due"::numeric::text AS p,c."Interest Due"::numeric::text AS i,l."Defaulted" AS defaulted FROM "Charges" c JOIN "Loans" l ON l."Row ID"=c."Ref Loans" WHERE c."Row ID"=$1`,['df10:'+Array.from(loan).length+':'+loan+':'+today])).rows[0];
   results[count]={written:rows.length,loss};
  }
  assert.deepEqual(results[2].loss,results[1].loss,'the same loss posting with two future charges as with one');

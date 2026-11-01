@@ -90,7 +90,7 @@ Invoke-OriginalChargeRace 'original-undo-first' ("SET TIME ZONE 'Asia/Bangkok'; 
 UPDATE "Charges" SET "Notes"='ordinary edit after concurrent undo' WHERE "Row ID"='DF69-CON-C';
 DO $$ BEGIN
  ASSERT (SELECT "Interest Due"=12::money AND "Principal Due"=100::money FROM "Charges" WHERE "Row ID"='DF69-CON-C'),'undo restored committed pre-default correction';
- ASSERT NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Row ID"='df10:10:DF69-CON-L'),'no loss residue';
+ ASSERT NOT EXISTS(SELECT 1 FROM "Repayments" WHERE starts_with("Row ID",'df10:10:DF69-CON-L')),'no loss residue';
 END $$;
 '@ ''
 Invoke-OriginalChargeRace 'original-stale-repeatable-read' @'
@@ -183,7 +183,7 @@ SELECT pg_sleep(2); COMMIT;
 @'
 DO $$ BEGIN
  ASSERT (SELECT "Principal Paid"=11::money AND "Notes"='after undo' FROM "Repayments" WHERE "Row ID"='DR70-CON-R');
- ASSERT NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Row ID"='df10:10:DR70-CON-L');
+ ASSERT NOT EXISTS(SELECT 1 FROM "Repayments" WHERE starts_with("Row ID",'df10:10:DR70-CON-L'));
 END $$;
 DELETE FROM "Repayments" WHERE "Row ID"='DR70-CON-R';
 DO $$ BEGIN ASSERT (SELECT "Outstanding Principal"=100 FROM "Loans" WHERE "Row ID"='DR70-CON-L'); END $$;

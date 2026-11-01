@@ -47,7 +47,7 @@ SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.vc_assert((SELECT "Total Principal Received"=100 AND "Total Interest Received"=-70 AND "Total Amount Received"=30 AND "Outstanding Principal"=0 FROM "Loans" WHERE "Row ID"='VC12-L1'),'default nested posting flush preserves zero cash loss');
 SELECT pg_temp.vc_assert((SELECT bool_and("Payment Status"='ชำระแล้ว' AND "Amount Remaining"=0) FROM "Charges" WHERE "Ref Loans"='VC12-L1'),'all defaulted charges refreshed');
 DO $$ BEGIN
- BEGIN UPDATE "Charges" SET "Interest Due"=0::money WHERE "Row ID" LIKE 'df10:%VC12-L1'; RAISE EXCEPTION 'guard did not reject';
+ BEGIN UPDATE "Charges" SET "Interest Due"=0::money WHERE "Row ID" LIKE 'df10:%VC12-L1%'; RAISE EXCEPTION 'guard did not reject';
  EXCEPTION WHEN OTHERS THEN IF SQLERRM NOT LIKE '%immutable%' THEN RAISE; END IF; END;
 END $$;
 SELECT 'Materialized balance regression passed' AS result;

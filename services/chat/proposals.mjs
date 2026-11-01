@@ -54,7 +54,7 @@ export function catalogueView(catalogue,operation){
  const entry=catalogue.entries.get(operation);
  if(!entry)throw new ToolError(Object.hasOwn(catalogue.excluded,operation)?'UNSUPPORTED_OPERATION':'UNKNOWN_OPERATION');
  return {operation,label:entry.label.en,description:entry.description,destructive:entry.destructive,target:entry.target,
-  fields:entry.fields.filter(f=>!f.hidden).map(f=>({name:f.name,type:f.type,...(f.values?{values:f.values}:{}),...(f.required&&!f.host?{required:true}:{}),...(f.host?{host:true}:{}),...(f.default!==undefined?{default:f.default}:{}),label:f.label.en}))};
+  fields:entry.fields.filter(f=>!f.hidden).map(f=>({name:f.name,type:f.type,...(f.values?{values:f.values}:{}),...(f.required&&!f.host?{required:true}:{}),...(f.host?{host:true}:{}),...(f.default!==undefined?{default:f.default}:f.defaultFrom?{default:f.defaultFrom.note}:{}),label:f.label.en}))};
 }
 
 /** Canonical form of a money-like decimal text (trailing fraction zeros dropped), or null when it is not one. */
@@ -89,6 +89,13 @@ export function fieldValue(field,value,{fromItem=false}={}){
  return bad();
 }
 const dig=(value,path)=>path.split('.').reduce((v,k)=>plain(v)&&Object.hasOwn(v,k)?v[k]:undefined,value);
+/** R109: a default the record read supplies when the Partner names no value (loan.default amount: the outstanding
+ * principal, whole baht by truncation, as the PWA sheet prefills it). */
+function defaultFromRead(field,response){
+ let value=dig(response,field.defaultFrom.path);
+ if(field.defaultFrom.whole&&typeof value==='string'&&/^-?[0-9]+(\.[0-9]+)?$/.test(value))value=value.split('.')[0].replace(/^-0$/,'0');
+ const result=fieldValue(field,value,{fromItem:true});if(result===null)throw new ToolError(`FIELD_UNREADABLE:${field.name}`);return result;
+}
 const template=(path,vars)=>path.replace(/\{([A-Za-z]+)\}/g,(_,key)=>{if(!ID(vars[key]))throw new ToolError(`MISSING_FIELD:${key}`);return encodeURIComponent(vars[key]);});
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 /** ฿ with grouping (two decimals only when the amount has a fraction), the same in both languages. */
@@ -243,7 +250,7 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
        if(!Object.hasOwn(item,key))throw new ToolError(`FIELD_UNREADABLE:${field.name}`);
        before[field.name]=fieldValue(field,item[key],{fromItem:true});
       }
-      value=Object.hasOwn(values,field.name)?fieldValue(field,values[field.name]):merge?before[field.name]:field.default??null;
+      value=Object.hasOwn(values,field.name)?fieldValue(field,values[field.name]):merge?before[field.name]:field.defaultFrom?defaultFromRead(field,response):field.default??null;
      }
      if(value===null&&field.required)throw new ToolError(`MISSING_FIELD:${field.name}`);
      inputs[field.name]=value;

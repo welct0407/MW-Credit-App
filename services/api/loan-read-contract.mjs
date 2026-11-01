@@ -10,6 +10,8 @@ export const loanColumns = [
   'l."Total Interest Received"::text AS "totalInterestReceived"',
   'l."Total Amount Received"::text AS "totalAmountReceived"',
   'l."Defaulted" AS defaulted', 'l."Auto Charge Enabled" AS "autoChargeEnabled"',
+  // R109: a principal loss on a loan that is open (charges kept) or Defaulted.
+  'l."Default Loss Amount"::numeric::text AS "defaultLossAmount"',
 ].join(', ');
 export const loanRankSql = `CASE WHEN l."Loan Status" = 'ยังไม่ปิดยอด' THEN 0 WHEN l."Loan Status" = 'ปิดยอดแล้ว' THEN 1 ELSE 2 END`;
 export const loanRank = status => status === 'ยังไม่ปิดยอด' ? 0 : status === 'ปิดยอดแล้ว' ? 1 : 2;
@@ -32,6 +34,7 @@ export function projectLoan(row, borrowerId) {
     totalPrincipalReceived: amount(row.totalPrincipalReceived), totalInterestReceived: amount(row.totalInterestReceived), totalAmountReceived: amount(row.totalAmountReceived),
     defaulted: typeof row.defaulted === 'boolean' ? row.defaulted : null,
     autoChargeEnabled: typeof row.autoChargeEnabled === 'boolean' ? row.autoChargeEnabled : null,
+    defaultLossAmount: amount(row.defaultLossAmount ?? null),
   };
 }
 export function encodeLoanCursor(borrowerId, row) {
