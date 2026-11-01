@@ -89,3 +89,12 @@ test('R110 v10 = v8 plus materialize (several per loan, may be empty) and princi
  assert.throws(()=>canonicalCommand({...v10,schemaVersion:9}),'v9 refuses principal');
  assert.throws(()=>canonicalCommand({...missing,schemaVersion:9,materialize:[e1,e2],allocations:[first,second],amountReceived:'100'}),'v9 keeps one entry per loan');
 });
+test('R110 v10 with entries is dated the business day only; other versions are not restricted by this rule',async()=>{
+ const {payForwardDayAllowed}=await import('../../services/contracts/payment-command.mjs');
+ const first={chargeId:'cg8:5:L-ไทย:2026-10-09',principal:'0',interest:'70',expectedPrincipalRemaining:'0',expectedInterestRemaining:'70',chargeDate:'2026-10-09'};
+ const v10=canonicalCommand({...command,schemaVersion:10,allocations:[first],amountReceived:'70',paymentMethod:'Bank Transfer',bankReference:null,transferTime:null,payerLines:null,
+  materialize:[{loanId:'L-ไทย',chargeId:first.chargeId,chargeDate:'2026-10-09',principalDue:'0',interestDue:'70'}],principal:[]});
+ assert.equal(payForwardDayAllowed(v10,'2026-10-08'),true);
+ assert.equal(payForwardDayAllowed(canonicalCommand({...v10,paymentDate:'2026-10-07'}),'2026-10-08'),false,'yesterday refused');
+ assert.equal(payForwardDayAllowed(canonicalCommand(command),'2026-10-09'),true,'v6 is left to the SQL date rule');
+});

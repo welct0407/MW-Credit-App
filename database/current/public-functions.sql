@@ -5778,6 +5778,9 @@ BEGIN
      END LOOP;
      SELECT array_agg(x ORDER BY x COLLATE "C") INTO sorted_ids FROM (SELECT DISTINCT unnest(principal_loans) x) q;
      IF principal_loans IS DISTINCT FROM coalesce(sorted_ids,ARRAY[]::text[]) THEN RAISE EXCEPTION 'principal order';END IF;
+     -- The plan is the business day's: a command that books or raises charges is dated today (an invalid command otherwise).
+     IF jsonb_array_length(c->'principal')+jsonb_array_length(c->'materialize')>0
+      AND c->>'paymentDate' IS DISTINCT FROM to_char((transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date,'YYYY-MM-DD') THEN RAISE EXCEPTION 'pay forward day';END IF;
      slip_text:=slip_text||',"principal":['||principal_text||']';
     END IF;
    END IF;

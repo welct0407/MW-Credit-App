@@ -18,7 +18,8 @@
 --    loan) and principal (0 to 20 entries), at least one entry. Under the borrower -> loans -> charges locks it recomputes
 --    the plan and requires the command to equal it (else selection_unavailable, P4C05, everything rolled back); then per
 --    loan raises or books today's charge, sets the anchor to today and books the forward charges through
---    generate_loan_charge. Current Daily Interest is recomputed by the existing calculation trigger only when the principal
+--    generate_loan_charge. A v10 command with entries must be dated the business day (else 22023, invalid command).
+--    Current Daily Interest is recomputed by the existing calculation trigger only when the principal
 --    repayment posts, so a forward charge of a loan repaying principal gets the plan's (server-recomputed) Interest Due, and
 --    after posting the existing loan refresh runs early and the recomputed daily amount must equal the plan's. No trigger is
 --    disabled. Replay, journal, cash ledger and versions 3 to 9 are unchanged.
@@ -405,6 +406,9 @@ BEGIN
      END LOOP;
      SELECT array_agg(x ORDER BY x COLLATE "C") INTO sorted_ids FROM (SELECT DISTINCT unnest(principal_loans) x) q;
      IF principal_loans IS DISTINCT FROM coalesce(sorted_ids,ARRAY[]::text[]) THEN RAISE EXCEPTION 'principal order';END IF;
+     -- The plan is the business day's: a command that books or raises charges is dated today (an invalid command otherwise).
+     IF jsonb_array_length(c->'principal')+jsonb_array_length(c->'materialize')>0
+      AND c->>'paymentDate' IS DISTINCT FROM to_char((transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date,'YYYY-MM-DD') THEN RAISE EXCEPTION 'pay forward day';END IF;
      slip_text:=slip_text||',"principal":['||principal_text||']';
     END IF;
    END IF;

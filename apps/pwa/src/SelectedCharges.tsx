@@ -127,7 +127,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const referenceText=normalizedReference(bankReference),bankTransfer=paymentMethod==='Bank Transfer';
  const slipFieldsValid=!bankTransfer||((referenceText===''||/^[A-Z0-9]{6,100}$/.test(referenceText))&&(transferTime===''||/^([01]\d|2[0-3]):[0-5]\d$/.test(transferTime)));
  // The slip date is the payment date only within {business date, the day before}; otherwise the business date.
- const paymentDate=draft?(slipDate&&slipDays(draft.businessDate).includes(slipDate)?slipDate:draft.businessDate):'';
+ // R110: a remainder plan is the business day's, so its payment is dated today whatever the slip date.
+ const paymentDate=draft?(!plan&&slipDate&&slipDays(draft.businessDate).includes(slipDate)?slipDate:draft.businessDate):'';
  const recognized=recognition?.phase==='done'?recognition:null;
  const amountMismatch=!!recognized?.slipAmount&&received!==''&&received!==recognized.slipAmount;
  const accountMismatch=!!recognized?.slipAccountId&&account!==''&&account!==recognized.slipAccountId;

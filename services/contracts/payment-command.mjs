@@ -84,6 +84,14 @@ export function canonicalPrincipalPlan(input,allocations){
   entries.sort((a,b)=>Buffer.compare(Buffer.from(a.loanId,'utf8'),Buffer.from(b.loanId,'utf8')));
   return freeze(entries);
 }
+/**
+ * R110: a v10 command with a materialize or principal entry is dated the business day (the plan is today's); other
+ * commands are not restricted here. Pure: the caller supplies the business date.
+ */
+export function payForwardDayAllowed(command,businessDate){
+  if(command?.schemaVersion!==10)return true;
+  return (command.materialize.length===0&&command.principal.length===0)||command.paymentDate===businessDate;
+}
 /** R075 v7 slip fields (also v8 to v10): printed bank reference (spaces/dashes removed, upper case) or null. */
 function bankReference(value) {
   if (value === null) return null;

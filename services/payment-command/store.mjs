@@ -29,7 +29,7 @@ import { readPaymentDraft, readOwnerPaymentDraft, paymentLoanDisplayKey } from '
 import { borrowerDisplayName } from '../api/loan-read-contract.mjs';
 import { applicationConnectionGuard } from './application-target.mjs';
 import { evaluateSlip } from '../receipts/recognizer-rules.mjs';
-import { canonicalCommand, canonicalAllocationPlan, canonicalMaterializePlan, canonicalPrincipalPlan, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
+import { canonicalCommand, canonicalAllocationPlan, canonicalMaterializePlan, canonicalPrincipalPlan, payForwardDayAllowed, canonicalActor, canonicalReceipt, commandIdentity } from '../contracts/payment-command.mjs';
 import { PROJECT_ID, OWNER_EMAIL } from '../lib/identity.mjs';
 import { UUID_V4_ANY_CASE as uuid } from '../lib/ids.mjs';
 import { statementTimeoutSql, lockTimeoutSql } from '../lib/budget.mjs';
@@ -293,6 +293,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
           } catch { return failure(422, 'receipt_unavailable'); }
         }
         let identity;try{identity=commandIdentity(command,actor,receipt)}catch{return failure(400,'invalid_request')}
+        // R110: a v10 plan books and pays on the business day only (the SQL command refuses other days as 22023 too).
+        if(!existing&&!payForwardDayAllowed(command,(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day))return failure(400,'invalid_request');
         markAttempted();
         const value = (await client.query('SELECT public.pwa_submit_selected_charges_v1($1) AS result', [identity.canonicalJson])).rows[0].result;
         return { ok: true, value };
@@ -340,7 +342,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         }
         return {ok:true,value:{amount:forward.remainder,loans:await loanLabels(client,borrowerId),forward:{rows:forward.forward,paidThrough:forward.paidThrough,uncovered:forward.uncovered,blocked:forward.blocked},principal:options}};
       },true);
-      return result.ok?result.value??undefined:undefined;
+      // run() spreads the operation's value into its result: unwrap it (an empty value is no preview, e.g. before V121).
+      if(!result.ok)return undefined;const {ok:_ok,status:_status,...value}=result;return Object.keys(value).length?value:undefined;
     },
     async plan(principal,borrowerId,input){
       if(!ownerTesting)return failure(403,'access_denied');
