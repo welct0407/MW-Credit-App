@@ -121,7 +121,7 @@ Before release: revert the pull request (Git baseline R109 `8ced324` plus later 
 None for the owner at this point.
 
 ## Remaining work
-- Done: DEV deployment and end-to-end test. The Collection finding was fixed in `703d552` and redeployed; Chase's DEV re-check result is being added.
+- Done: DEV deployment and end-to-end test. The Collection finding was fixed in `703d552` and redeployed; Chase's DEV re-check confirmed it (fully paid, remaining 0).
 - Pull request `Development checks` (the one broad run).
 - Owner: DEV review. Merge and PROD promotion need a separate scoped owner instruction.
 - Open: the "Saved on this device" 4 s lag seen once on Confirm (not repeated); the "Paid in advance" tile date, visible on DEV only from 2 November.
