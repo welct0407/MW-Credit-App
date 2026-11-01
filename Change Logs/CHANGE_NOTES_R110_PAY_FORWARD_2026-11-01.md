@@ -80,11 +80,35 @@ Forge, 1 November 2026, UTC. Owner instruction of 1 November 2026: "When done, o
 
 Proof of behavior: Chase's DEV business smoke follows. The Environment Inventory DEV rows carry the pins.
 
+## DEV end-to-end record
+
+Chase, 1 and 2 November 2026 (Bangkok business day 2026-11-02), on R110 as deployed above (command `00072-rsw`, Hosting `f81a4d9275bfd59e`). Owner instruction: "test it in Dev". Partner `claude-dev-test` through `scripts/dev/claude-test-token.mjs` (ID token in a 0700 directory, deleted afterwards; no secret printed). Synthetic borrowers only, all named "R110 SYNTHETIC PAY FORWARD A to G" and funded from the synthetic account `R052-4G-ACCOUNT`; no real DEV borrower was changed. As in the R109 record, payments were posted normally; no notification delivery was checked or forced.
+
+Setup: `POST /api/borrower-records`, `loan.create` (daily interest, principal 1,000, 10 a day, original rate 1%) and `loan.generate-charge` for today where a due charge was needed.
+
+| Case | Result |
+| --- | --- |
+| (a) Loan A (`895e0cdb`): due 10, amount 55, Pay forward | Auto-assign returned `remainder` 45 with 5 forward rows and one principal option. `POST .../plan` returned due 10, remainder 45, uncovered 0, paid through 6 Nov. Review 200, v10 submit `posted` (`ffa4d95b-…`). Charges booked 3 to 7 Nov at 10; the 7 Nov charge has 5 remaining (partial) and "paid through" stops at 6 Nov. Borrower detail read: "Paid through" 2026-11-06 |
+| (b) Loan B (`1f70d112`): raise on a schedule day | A v7 payment of 6 on the due 10 posted as before (4 left). Plan for 104 with principal 100: `raise`, outstanding 1,000 to 900, daily interest 10 to 9, next charge 3 Nov for 9. Posted. Loan record after: outstanding 900, daily interest 9, schedule anchor 2026-11-02 (today); today's charge 100 principal and 10 interest, remaining 0; next offer 3 Nov for 9 |
+| (c) Loan C (`ff195fe4`, interval 7, loan date three days ago, no charge today) | Auto-assign offered principal 100 as `book` with accrued interest 30. Plan: accrued 30, principal 100, outstanding 900, daily interest 9, next charge 9 Nov for 63. Posted. Today's charge `pf121:` 100 principal and 30 interest, paid; anchor today; one charge today; next offer 9 Nov for 63 |
+| (d) At or below due | Auto-assign of 6 on a due 10 returned no `remainder`; the v7 payment posted as before (case b) |
+| (e) Replay | The same v10 command for A returned `posted` with the same payment id; charges stayed 7 and payments 2 (first-day receipt and the payment) |
+| Collection and Borrower detail, API and 390 px browser | Loan D, F and G tiles read "Fully paid" with the prepaid amount counted (D 60, F 40, G 70). Borrower detail of A shows "Paid through 6 Nov" on the loan line |
+| Phone pass, 390 px, loan D (`3d907df3`, amount 60) | Auto-assign opened "Remainder ฿50" with Pay forward "3-7 Nov (10 x 5), paid through 7 Nov", Repay principal "1,000 to 950, new interest 10/day" and Split; nothing preselected, Review disabled with "Choose how to use the remainder before review." Pay forward collapsed to "Remainder ฿50: Pay forward" with Change, one run "3-7 Nov · 10 x 5", summary "Paid through 7 Nov"; Review showed the same summary; Confirm posted (D: 60 Posted, 7 charges). No horizontal scroll |
+
+Findings, none blocking:
+- The Collection tile of loan A reads "Partially paid" with 0 remaining and 55 collected, because its future charge of 7 Nov is partly paid; consider counting only charges due by today.
+- After Confirm the phone form still read "Saved on this device. Will sync when connected." 4 s later although the server had already posted the payment (60 Posted). It looks like proxy latency in this session, but it was not repeated; worth a look on a real phone.
+- "Paid in advance" with its payment date (`prepaidPaymentDate`) was not reached: the tile appears only for prepaid charges paid on an earlier day, so D, F and G (all prepaid today) show it from 3 November. The path is covered by the unit and Playwright tests only.
+
+DEV left in place, as in R109: the seven synthetic loans A to G, their borrowers and payments (loan delete is refused once a receipt exists). Each loan's `autoChargeEnabled` was switched off with `loan.update` so the daily jobs add no charges; the loans keep their prepaid charges and the changed daily interest (B and C 9) and anchor. The token file was deleted.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - WebKit and a real iPhone pass (Echo checked Chromium only).
 - Thai wording on screen.
-- Any DEV deployment test (Forge, pending) and anything in PROD.
+- Anything in PROD.
+- A real iPhone or Safari run and Thai wording of the Remainder block on DEV.
 
 ## Recovery
 Before release: revert the pull request (Git baseline R109 `8ced324` plus later main commits). Schema: V121 is functions only; rollback is a later migration that restores the replaced bodies. To be completed at hand-off.
