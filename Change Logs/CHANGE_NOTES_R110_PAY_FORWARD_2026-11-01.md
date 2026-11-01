@@ -97,7 +97,8 @@ Setup: `POST /api/borrower-records`, `loan.create` (daily interest, principal 1,
 | Phone pass, 390 px, loan D (`3d907df3`, amount 60) | Auto-assign opened "Remainder ฿50" with Pay forward "3-7 Nov (10 x 5), paid through 7 Nov", Repay principal "1,000 to 950, new interest 10/day" and Split; nothing preselected, Review disabled with "Choose how to use the remainder before review." Pay forward collapsed to "Remainder ฿50: Pay forward" with Change, one run "3-7 Nov · 10 x 5", summary "Paid through 7 Nov"; Review showed the same summary; Confirm posted (D: 60 Posted, 7 charges). No horizontal scroll |
 
 Findings, none blocking:
-- The Collection tile of loan A reads "Partially paid" with 0 remaining and 55 collected, because its future charge of 7 Nov is partly paid; consider counting only charges due by today.
+- The Collection tile of loan A read "Partially paid" with 0 remaining and 55 collected, because its future charge of 7 Nov is partly paid.
+- Fixed in `4e3e632`, to be redeployed to DEV: the Collection status now counts only charges dated by today, so the loan A tile no longer reads "Partially paid" with 0 remaining (real-query case in `collection-postgres.test.mjs`: red on the old query, green on the new).
 - After Confirm the phone form still read "Saved on this device. Will sync when connected." 4 s later although the server had already posted the payment (60 Posted). It looks like proxy latency in this session, but it was not repeated; worth a look on a real phone.
 - "Paid in advance" with its payment date (`prepaidPaymentDate`) was not reached: the tile appears only for prepaid charges paid on an earlier day, so D, F and G (all prepaid today) show it from 3 November. The path is covered by the unit and Playwright tests only.
 
