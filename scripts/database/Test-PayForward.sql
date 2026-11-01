@@ -30,7 +30,7 @@ INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES
  ('PF-B1','SYNTHETIC PF DAILY'),('PF-BT','SYNTHETIC PF DAILY TWIN'),('PF-BI','SYNTHETIC PF INSTALLMENT'),('PF-BIT','SYNTHETIC PF INSTALLMENT TWIN'),
  ('PF-BF','SYNTHETIC PF FIXED'),('PF-BFT','SYNTHETIC PF FIXED TWIN'),('PF-BP1','SYNTHETIC PF PRINCIPAL BOOK'),('PF-BP2','SYNTHETIC PF PRINCIPAL RAISE'),
  ('PF-BP3','SYNTHETIC PF SPLIT'),('PF-BH','SYNTHETIC PF HORIZON'),('PF-BS','SYNTHETIC PF SETTLE'),('PF-BG','SYNTHETIC PF GATES'),
- ('PF-BM','SYNTHETIC PF TWO LOANS'),('PF-BD','SYNTHETIC PF DRIFT'),('PF-BL','SYNTHETIC PF LEGACY');
+ ('PF-BM','SYNTHETIC PF TWO LOANS'),('PF-BD','SYNTHETIC PF DRIFT'),('PF-BY','SYNTHETIC PF YESTERDAY'),('PF-BL','SYNTHETIC PF LEGACY');
 -- Loans are inserted with Auto Charge Enabled off (no first-day charge), then switched on, as Test-ProjectedChargePayment.sql does.
 INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Fixed Interest","Daily Payment Amount","Interest Payment Interval","Due Date","Defaulted")
  SELECT 'CI-LISA',v.id,v.b,(SELECT d FROM pf_day)+v.start,v.pa::money,v.kind,v.status,false,v.cdi::money,v.fixed::money,v.dpa::money,v.n,(SELECT d FROM pf_day)+v.due,false
@@ -64,6 +64,7 @@ INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borro
   ('PF-M2','PF-BM',-3,1000,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',10,0,0,1,NULL),
   -- drift, legacy versions
   ('PF-X1','PF-BD',-3,1000,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',10,0,0,1,NULL),
+  ('PF-Y1','PF-BY',-3,1000,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',10,0,0,1,NULL),
   ('PF-L1','PF-BL',-3,1000,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',10,0,0,7,NULL),
   ('PF-L2','PF-BL',-3,1000,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',10,0,0,7,NULL)
  ) v(id,b,start,pa,kind,status,cdi,fixed,dpa,n,due);
@@ -78,7 +79,7 @@ INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due",
   ('PF-S1-today','PF-S1',0,0,1),
   ('PF-G-PRIN-today','PF-G-PRIN',0,5,10),('PF-G-OFF-today','PF-G-OFF',0,0,10),('PF-G-CLOSED-today','PF-G-CLOSED',0,0,10),
   ('PF-M1-today','PF-M1',0,0,10),('PF-M2-today','PF-M2',0,0,10),
-  ('PF-X1-today','PF-X1',0,0,10),
+  ('PF-X1-today','PF-X1',0,0,10),('PF-Y1-today','PF-Y1',0,0,10),
   ('PF-L1-today','PF-L1',0,0,70),('PF-L2-today','PF-L2',0,0,70)
  ) v(id,loan,day,p,i);
 UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" LIKE 'PF-%' AND "Row ID" NOT IN ('PF-G-OFF','PF-G-CLOSED');
@@ -138,9 +139,12 @@ SELECT set_config('pf.fwd',pg_temp.pf_cmd('c1111111-1111-4111-8111-111111111111'
  set_config('pf.split',pg_temp.pf_cmd('c3333333-3333-4333-8333-333333333331','PF-BP3',128,pg_temp.pf_purpose(true,'[{"loanId":"PF-P3","amount":"100"}]',NULL)),true),
  set_config('pf.settle',pg_temp.pf_cmd('c4444444-4444-4444-8444-444444444441','PF-BS',101,pg_temp.pf_purpose(false,'[{"loanId":"PF-S1","amount":"100"}]',NULL)),true),
  set_config('pf.drift',pg_temp.pf_cmd('c5555555-5555-4555-8555-555555555551','PF-BD',30,pg_temp.pf_purpose(true,NULL,NULL)),true),
+ -- The day rule: a v10 command with entries is dated the business day (a slip date of yesterday is not accepted).
+ set_config('pf.yday_fwd',replace(pg_temp.pf_cmd('c8888888-8888-4888-8888-888888888881','PF-BY',30,pg_temp.pf_purpose(true,NULL,NULL)),'"paymentDate":"'||to_char((SELECT d FROM pf_day),'YYYY-MM-DD')||'"','"paymentDate":"'||to_char((SELECT d FROM pf_day)-1,'YYYY-MM-DD')||'"'),true),
+ set_config('pf.yday_prin',replace(pg_temp.pf_cmd('c8888888-8888-4888-8888-888888888882','PF-BY',130,pg_temp.pf_purpose(false,'[{"loanId":"PF-Y1","amount":"120"}]',NULL)),'"paymentDate":"'||to_char((SELECT d FROM pf_day),'YYYY-MM-DD')||'"','"paymentDate":"'||to_char((SELECT d FROM pf_day)-1,'YYYY-MM-DD')||'"'),true),
  set_config('pf.v9',pg_temp.pf_legacy('c6666666-6666-4666-8666-666666666661',true),true),
  set_config('pf.v7',pg_temp.pf_legacy('c6666666-6666-4666-8666-666666666662',false),true);
--- Invalid v10 shapes (22023, nothing journalled), made by editing the canonical text: neither list, an extra key, a number where
+-- Invalid v10 shapes (22023, nothing journalled; the yesterday-dated commands are the day rule), made by editing the canonical text: neither list, an extra key, a number where
 -- a string belongs, an unknown kind.
 SELECT set_config('pf.bad_empty',regexp_replace(pf.c,'"materialize":\[.*\],"principal":\[.*\]\},"actor"','"materialize":[],"principal":[]},"actor"'),true),
  set_config('pf.bad_extra',replace(pf.c,'"interestDue":"10"}','"interestDue":"10","x":"1"}'),true),
@@ -273,7 +277,7 @@ END $$;
 DO $$
 DECLARE k text;
 BEGIN
- FOREACH k IN ARRAY ARRAY['pf.bad_empty','pf.bad_extra','pf.bad_number','pf.bad_kind','pf.bad_principal_extra','pf.bad_principal_number'] LOOP
+ FOREACH k IN ARRAY ARRAY['pf.yday_fwd','pf.yday_prin','pf.bad_empty','pf.bad_extra','pf.bad_number','pf.bad_kind','pf.bad_principal_extra','pf.bad_principal_number'] LOOP
   BEGIN
    PERFORM public.pwa_submit_selected_charges_v1(current_setting(k));
    RAISE EXCEPTION 'accepted %',k;
@@ -331,11 +335,11 @@ BEGIN
  PERFORM pg_temp.pf_assert(public.generate_due_charges(day+3,ARRAY['PF-P3'])=1,'the generator books PF-P3 on day+3');
  PERFORM pg_temp.pf_assert((SELECT "Interest Due"::numeric=9 FROM public."Charges" WHERE "Ref Loans"='PF-P3' AND "Charge Date"=day+3),'split: the schedule continues at 9');
  -- Rejections left nothing behind.
- PERFORM pg_temp.pf_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower" IN ('PF-BS','PF-BD')),'rejected commands posted nothing');
+ PERFORM pg_temp.pf_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower" IN ('PF-BS','PF-BD','PF-BY')),'rejected commands posted nothing');
  PERFORM pg_temp.pf_assert((SELECT "Principal Due"::numeric=0 FROM public."Charges" WHERE "Row ID"='PF-S1-today') AND (SELECT "Outstanding Principal"::numeric=100 FROM public."Loans" WHERE "Row ID"='PF-S1'),'a settling plan changed nothing');
  PERFORM pg_temp.pf_assert((SELECT count(*)=1 FROM public."Charges" WHERE "Ref Loans"='PF-X1' AND "Charge Date">day),'drift: only the charge booked meanwhile exists, unpaid');
  PERFORM pg_temp.pf_assert((SELECT count(*)=2 FROM public.pwa_payment_commands WHERE outcome='rejected' AND rejection_code='selection_unavailable' AND request_id::text LIKE 'c%'),'tampering and drift rejections journalled');
- PERFORM pg_temp.pf_assert(NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id::text LIKE 'c7777777-%'),'invalid commands left no journal row');
+ PERFORM pg_temp.pf_assert(NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id::text LIKE 'c7777777-%' OR request_id::text LIKE 'c8888888-%'),'invalid commands left no journal row');
  PERFORM pg_temp.pf_assert((SELECT count(*)=2 FROM public."Payments" WHERE "Ref Borrower"='PF-BL' AND "Status"='Posted'),'v9 and v7 posted');
 END $$;
 

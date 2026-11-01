@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect} from '@playwright/test';
 import {chooseLanguagePreservingForm,routeSyntheticPreferences} from './live-controls';
 import {spawn,type ChildProcess} from 'node:child_process';
 let server:ChildProcess,base:string;
@@ -8,10 +8,7 @@ test.afterAll(()=>server?.kill());test.setTimeout(45000);
 const auth=`let listener;const user={uid:'projected-independent-owner',getIdToken:async()=>'synthetic-bearer'};export const browserLocalPersistence='local',inMemoryPersistence='memory',browserPopupRedirectResolver={};export function initializeAuth(){return {}};export function onAuthStateChanged(a,fn){listener=fn;fn(localStorage.getItem('projected-owner')?user:null);return()=>{}};export class GoogleAuthProvider{setCustomParameters(){}};export async function signInWithPopup(){localStorage.setItem('projected-owner','1');listener(user)};export async function signOut(){localStorage.removeItem('projected-owner');listener(null)};`;
 // R104 Upcoming Charges: record a loan's next projected charge (R101's Pay ahead UI moved to pay-forward-independent.spec.ts). Synthetic seams only.
 const borrower={id:'pc-B',displayName:'Projected ผู้กู้จำลอง / Synthetic borrower',borrowerDisplayName:'Projected ผู้กู้จำลอง / Synthetic borrower',status:'not_paid',amountDue:'60',amountCollected:'0',amountRemaining:'60',hasActiveLoan:true,outstandingPrincipal:'1000',totalProfitEarned:'0'};
-const due=[{id:'pc-due',chargeDate:'2026-10-08',loanDisplayKey:'Due loan / เงินกู้จำลอง',principalRemaining:'50',interestRemaining:'10',amountRemaining:'60'}];
 const nextA={id:'cg8:5:pc-LA:2026-10-12',loanId:'pc-LA',chargeDate:'2026-10-12',loanDisplayKey:'Next A / เงินกู้จำลอง',principalRemaining:'0',interestRemaining:'70',amountRemaining:'70'};
-const nextB={id:'cg8:5:pc-LB:2026-10-10',loanId:'pc-LB',chargeDate:'2026-10-10',loanDisplayKey:'Next B / เงินกู้จำลอง',principalRemaining:'20',interestRemaining:'10',amountRemaining:'30'};
-const upcoming=[nextB,nextA];
 const draft={ok:true,mode:'dev-owner-testing',scope:'all',businessDate:'2026-10-08',asOf:'2026-10-08T05:00:00Z',borrower:{id:borrower.id,displayName:borrower.displayName},accounts:[{id:'pc-A',label:'Synthetic receiving account'}]};
 // R110: the Pay ahead rows, their v9 posting and offline queue were replaced by the Remainder block (pay-forward-independent.spec.ts).
 // What remains here is Upcoming Charges (R104), which is unchanged.
