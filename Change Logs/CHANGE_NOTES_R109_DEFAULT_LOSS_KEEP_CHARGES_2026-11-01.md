@@ -1,0 +1,87 @@
+# Change notes — R109 Default Loan with a loss amount and kept charges, 2026-11-01
+
+## Purpose
+The owner wants to take principal as a loss on a long-overdue loan while the unpaid charges stay collectable. Today Default Loan writes every charge down, posts the whole outstanding principal as loss and closes the loan. R109 adds a loss amount and a "keep unpaid charges" switch to the same action. Design record: the owner-approved [plan artifact](https://claude.ai/artifact/LefAYnDUAL3qpz8tdzfqQr) (drafted 31 October 2026, Dashboard row added 1 November 2026); no new design document.
+
+## Changes
+Team (six-agent process): Archie designed (hand-off, totals, tests), Byte builds code only, Chase verifies once on a disposable cluster, Echo reviews the sheet, Dewey keeps records, Forge is not involved until promotion.
+
+Owner decisions (locked):
+- One action. Default Loan gains a loss amount and a "Keep unpaid charges for collection" switch; no new menu item.
+- Interest after a loss shrinks with principal through the existing recompute (V68). A full loss takes daily interest to zero.
+- A loan with kept charges stays in Overdue and Long Overdue.
+- The loss date is today only. Undo reverses the most recent loss posting only.
+- Payments on kept charges are interest income on the payment date; there is no recovery type.
+- `Defaulted` keeps its meaning (charges written off and loan closed). A kept-charges loan has Default Loss Amount above 0 and Defaulted false.
+- Lifetime Default Loss and Default Count cover every loan with a loss. The Dashboard shows a "Principal Loss Recognized" money row (lifetime sum of Default Loss Amount).
+
+Orchestrator rulings in the build session:
+- Hand-off is a transaction-local setting `business_crud.default_request`; no new column or table (Archie recommendation, accepted).
+- Undo is refused on a kept-charges loan that a payment auto-closed (`Undo Default requires an open or Defaulted loan`), because it would reopen a closed loan with unpaid principal.
+- A loan with Default Loss Amount above 0 is excluded from the two "successful loan" view filters (`largest`, `average_success` in `olap_borrowers_analytics`).
+- No "Defaulted" chip. Only the open-loss state gets a badge.
+
+Three outcomes: write off and close (full amount, switch off: today's behaviour, now with a dated posting id); full loss with charges kept; partial loss (switch forced on, repeatable, one posting per loan per day). A fully lost loan can be written off and closed later with amount 0. The kept path drops the "A paid charge today prevents Default Loan" rule; the write-off path keeps it.
+
+Further rulings beyond the plan: six schedule, close and forecast functions skip `df10:` rows; keep-charges is limited to Daily interest loans; a legacy one-field request still means a full write-off; the Dashboard reads "Total Principal Loss" by name and hides the row when absent; a full-amount keep is refused when nothing is unpaid (Chase finding D1, a stuck open loan; this overrides UX-00 for the full amount, a partial loss is unaffected).
+
+Changed (from `git status`, uncommitted):
+- Database: `database/migrations/V120__default_loss_keep_charges.sql` (functions and views only), `database/current/public-functions.sql`, `database/README.md` (V120 paragraph, Byte), and the SQL and PowerShell tests `scripts/database/Test-DefaultInspection.sql`, `Test-DefaultLoan.sql`, `Test-DefaultLoanConcurrency.ps1`, `Test-DefaultRepayment.sql`, `Test-LongOverdue.sql`, `Test-MaterializedBalances.sql`.
+- Command path and reads: `services/contracts/operation-command.mjs`, `services/chat/proposals.mjs`, `services/chat/assets/command-catalogue.json`, `services/chat/assets/conversation-business-rules.md`, `services/chat/assets/schema-digest.json`, `services/api/loan-read-contract.mjs`, `services/business/loans.mjs` (`defaultLossDate`), `services/business/dashboard.mjs` (`principalLoss`).
+- PWA: new `apps/pwa/src/LoanDefault.tsx` and `default-loss.ts`; `LoanRecord.tsx`, `LoanRecords.tsx`, `OfflineViewedRecord.tsx`, `viewed-snapshot.ts`, `Dashboard.tsx`, `live-style.css`. Echo's blocking findings V01 (action row overflow), V02 and V03 and polish P01, P02, P04 to P06 are fixed; P03 (shared input style) is left.
+- Tests: new `tests/integration/default-loss-independent.test.mjs` (registered in `Run-UnifiedReceiving.ps1`), `tests/unit/default-loss.test.mjs`, `tests/unit/dashboard-read.test.mjs`; edited `projected-charge-payment-independent.test.mjs`, `chat-proposals.test.mjs`, `loan-read.test.mjs`, `phase5-borrower-independent.spec.ts`, `phase5-final-ui-independent.spec.ts`.
+- Not changed: `services/business/offline-dataset-delta.mjs` and the Metabase baseline test (no edit needed).
+- Records (Dewey): this note, the Release tracker R109 scope paragraph, the Development Changes row, PWA Data Model Overview (Default row), Solution Design paragraph.
+- Data Dictionary: entries for the V120-affected routines, views and `loans` carry body hashes and are regenerated by the R103 PROD capture after V120 reaches PROD, not hand-edited. It needs the Auth Proxy tunnel to PROD, so it cannot run offline. Due at promotion, with a possible rebuild of `services/agent-conversations/native-manifest.json`.
+- Notifications: `services/notifications/content.mjs` needs no change. The loan event (V86) fires only when `Loan Status` becomes closed with no closing payment; the kept-charges path leaves the loan open and a payment auto-close carries a closing payment.
+
+## Checks
+Byte, tree on base `232a4bc` (uncommitted; no commit or CI run yet):
+| Command | Result |
+| --- | --- |
+| `mw-db-ci` migrations, receiving, phase5 | Exit 0 |
+| `npm test` | 1065 passed, 0 failed |
+| `npm run lint`, typecheck, `npm run check:docs` | Pass |
+| Focused R109 Playwright | 10 passed |
+
+Byte, after the fix round:
+| Command | Result |
+| --- | --- |
+| Focused node tests | 34 passed, 0 failed |
+| Lint, typecheck, schema digest | Pass, digest current |
+| `mw-db-ci` receiving and migrations | Exit 0 |
+| Playwright R109 | 8 passed |
+| Playwright F6 and runtime | 6 passed |
+
+Chase (disposable clusters): pass. Real-SQL scenarios S1 to S13 and legacy LEG1 to LEG3 cover the three outcomes, both undos, totals, a payment correction, Loan Close after a partial loss, unchanged overdue counting and the `df10:` skip. Finding D1 is fixed in SQL and the sheet.
+
+Echo: pre-build review and built-UI pass at 390 and 1440 px, English and Thai. Re-check of the fixes at 390 and 1440 px, English and Thai: pass (V01 to V03, P01, P02, P04 to P06 and the D1 reason text); P03 remains as polish in the shared input style.
+
+| Command | Result |
+| --- | --- |
+| `npm run check:docs` | Pass, 0 failures, 0 warnings |
+| Chat unit tests and `business-hosting-delivery.test.mjs` after the section 8 business-rules addition | 304 passed, 0 failed |
+| PR `Development checks` | Pending (no push yet) |
+
+## Not run
+Skipped and not verified, so not a pass:
+- The read-only count of open loans without a frozen Original Daily Interest Rate in DEV and PROD (promotion).
+- The iPhone Home Screen device pass (the owner on DEV).
+- A Processing payment through the API.
+- A concurrent loss race.
+- A closing-payment correction on a loss loan.
+- The Data Dictionary PROD capture, after PROD promotion. No PROD action is part of this batch.
+
+## Recovery
+- Before release: revert the pull request (Git baseline R108 `16b8f5a` plus later main commits).
+- Data: Undo Default reverses the most recent loss posting and can be repeated, one loss at a time. On a Defaulted loan it also restores the written-off charges from their Notes; on an open loan with a loss it removes only the pair and leaves the charges. It is refused on a kept-charges loan that a payment auto-closed.
+- Schema: V120 is functions and views only. Rollback is a later migration (V121 or higher) that restores the V120-replaced bodies of `default_loan_transition`, `post_loan_default`, `undo_loan_default`, `business_source_delete` and the two V83 command functions from their prior text (V60, V69, V83 as patched by V116 and V117), and the three views from V114 and V41. Applied migrations are never edited. Loss postings written under the dated id must be undone first, or the old functions would not recognise them; the old Undo accepts only an undated pair.
+- PROD needs the verified restorable backup before V120 is applied, under the promotion runbook.
+
+## Open questions
+None for the owner. Settled in the build session without an owner decision: hand-off by setting, the paid-charge-today rule on the kept path, a partial loss with no unpaid charge is allowed; a full-amount keep with no unpaid charge is refused (Chase D1, overriding UX-00 for the full amount).
+
+## Remaining work
+- Record the PR `Development checks` result after the push.
+- Owner: test on DEV with the test account, including the iPhone pass of the sheet.
+- Promotion (Forge, owner instruction only): PROD backup, V120, then the Data Dictionary capture and the `native-manifest.json` rebuild if needed.

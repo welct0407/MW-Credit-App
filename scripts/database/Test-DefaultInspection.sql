@@ -25,11 +25,11 @@ UPDATE "Loans" SET "Defaulted"=true,"Close Date"=current_date,"Closed By"='synth
 UPDATE "Loans" SET "Auto Charge Enabled"=false WHERE "Row ID"='INSPECT69-L';
 SELECT pg_temp.inspect_assert((SELECT "Defaulted" AND NOT "Auto Charge Enabled" AND "Default Loss Amount"=100::money AND "Outstanding Principal"=0 AND "Closed By"='synthetic@example.invalid' AND "Close Date"=current_date FROM "Loans" WHERE "Row ID"='INSPECT69-L'),'defaulted auto-false state/actor/date');
 SELECT pg_temp.inspect_assert((SELECT (substring("Notes" from 'Default write-off (\{[^\n]*\})$')::jsonb->>'actor')='synthetic@example.invalid' AND "Principal Due"=0::money AND "Interest Due"=0::money FROM "Charges" WHERE "Row ID"='INSPECT69-C'),'original restoration evidence carries actor');
-SELECT pg_temp.inspect_assert((SELECT "Principal Due"=100::money AND "Interest Due"=(-100)::money AND "Charge Date"=current_date AND "Notes"='Loan default - outstanding principal recorded as loss; zero cash' FROM "Charges" WHERE "Row ID"='df10:11:INSPECT69-L'),'loss charge generic note is not an actor field');
-SELECT pg_temp.inspect_assert((SELECT "Principal Paid"=100::money AND "Interest Paid"=(-100)::money AND "Created By"='synthetic@example.invalid' AND "Payment Date"=current_date FROM "Repayments" WHERE "Row ID"='df10:11:INSPECT69-L'),'loss repayment carries actor/date');
+SELECT pg_temp.inspect_assert((SELECT "Principal Due"=100::money AND "Interest Due"=(-100)::money AND "Charge Date"=current_date AND "Notes"='Loan default - outstanding principal recorded as loss; zero cash' FROM "Charges" WHERE starts_with("Row ID",'df10:11:INSPECT69-L')),'loss charge generic note is not an actor field');
+SELECT pg_temp.inspect_assert((SELECT "Principal Paid"=100::money AND "Interest Paid"=(-100)::money AND "Created By"='synthetic@example.invalid' AND "Payment Date"=current_date FROM "Repayments" WHERE starts_with("Row ID",'df10:11:INSPECT69-L')),'loss repayment carries actor/date');
 SELECT pg_temp.inspect_reject($q$DELETE FROM "Loans" WHERE "Row ID"='INSPECT69-L'$q$,'Undo Default');
 SELECT pg_temp.inspect_reject($q$DELETE FROM "Charges" WHERE "Row ID"='INSPECT69-C'$q$,'Undo Default');
-SELECT pg_temp.inspect_reject($q$DELETE FROM "Repayments" WHERE "Row ID"='df10:11:INSPECT69-L'$q$,'immutable');
+SELECT pg_temp.inspect_reject($q$DELETE FROM "Repayments" WHERE starts_with("Row ID",'df10:11:INSPECT69-L')$q$,'immutable');
 UPDATE "Loans" SET "Defaulted"=false WHERE "Row ID"='INSPECT69-L';
 SELECT pg_temp.inspect_assert((SELECT to_jsonb(l) FROM "Loans" l WHERE "Row ID"='INSPECT69-L')=(SELECT row FROM inspect_loan),'Undo exactly restores auto-false source');
 SELECT pg_temp.inspect_assert((SELECT to_jsonb(c) FROM "Charges" c WHERE "Row ID"='INSPECT69-C')=(SELECT row FROM inspect_charge),'Undo exactly restores original charge');

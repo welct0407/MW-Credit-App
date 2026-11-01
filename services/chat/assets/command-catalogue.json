@@ -695,7 +695,7 @@
     "en": "Default loan",
     "th": "บันทึกผิดนัด"
    },
-   "description": "Record an open loan as defaulted today (writes off its principal).",
+   "description": "Record a principal loss on an open loan today. amount (whole baht, default the outstanding principal) is the loss; keepCharges true (default) keeps the unpaid charges collectable and the loan open, with daily interest recomputed on the lower principal (0 after a full loss); keepCharges false with the full amount writes the unpaid charges off and closes the loan as Defaulted. A partial amount must keep the charges. One loss per loan per day; amount 0 only writes off and closes a loan whose principal is already fully lost.",
    "target": "record",
    "read": "/api/loan-records/{id}",
    "title": [
@@ -714,6 +714,30 @@
       "read": "/api/loan-options",
       "path": "businessDate"
      }
+    },
+    {
+     "name": "amount",
+     "type": "whole",
+     "label": {
+      "en": "Principal loss amount",
+      "th": "จำนวนเงินต้นที่ตัดเป็นหนี้สูญ"
+     },
+     "required": true,
+     "defaultFrom": {
+      "path": "item.outstandingPrincipal",
+      "whole": true,
+      "note": "the loan's outstanding principal (whole baht)"
+     }
+    },
+    {
+     "name": "keepCharges",
+     "type": "boolean",
+     "label": {
+      "en": "Keep unpaid charges for collection",
+      "th": "เก็บรายการเรียกเก็บค้างชำระไว้ติดตาม"
+     },
+     "required": true,
+     "default": true
     }
    ],
    "sample": {
@@ -723,13 +747,16 @@
     "expectedVersion": "0000000000000000000000000000000000000000000000000000000000000000",
     "predecessorRequestId": null,
     "inputs": {
-     "businessDate": "2026-10-02"
+     "businessDate": "2026-10-02",
+     "amount": "10000",
+     "keepCharges": true
     },
     "receiptId": null
    },
    "confirm": {
-    "en": "Default loan",
-    "th": "บันทึกผิดนัด"
+    "en": "Record loss {amount}",
+    "th": "บันทึกหนี้สูญ {amount}",
+    "amount": "amount"
    }
   },
   {
@@ -741,7 +768,7 @@
     "en": "Undo default",
     "th": "ยกเลิกการผิดนัด"
    },
-   "description": "Undo a loan default.",
+   "description": "Undo the latest default: a Defaulted loan reopens with its written-off charges restored; an open loan with a principal loss has its most recent loss reversed (run again for an earlier one). Refused on a loan its last payment closed.",
    "target": "record",
    "read": "/api/loan-records/{id}",
    "title": [

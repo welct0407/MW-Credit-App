@@ -42,12 +42,16 @@ SELECT pg_temp.check_long((SELECT s."Borrowers Not Paid Today"+s."Borrowers Part
  +s."Borrowers with Long Overdue Payment"+s."Borrowers Fully Paid Today"
  =(SELECT count(*) FROM public.olap_borrowers_analytics WHERE "Daily Collection Status" IS NOT NULL) FROM public.olap_portfolio_summary s),
  'the five status counts partition the Collection borrowers');
--- Column contract: the borrower view keeps 71 columns in place; the summary appends exactly one at the end.
+-- Column contract: the borrower view keeps 71 columns in place; V114 appended the long overdue count at the end of the
+-- summary, and V120 (R109) appended "Total Principal Loss" after it.
 SELECT pg_temp.check_long((SELECT count(*)=71 AND max(attnum)=71 FROM pg_attribute WHERE attrelid='public.olap_borrowers_analytics'::regclass AND attnum>0 AND NOT attisdropped),
  'olap_borrowers_analytics column count unchanged');
 SELECT pg_temp.check_long((SELECT attname='Borrowers with Long Overdue Payment' AND format_type(atttypid,atttypmod)='bigint'
+ FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum=(SELECT max(attnum)-1 FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum>0)),
+ 'olap_portfolio_summary keeps the long overdue count after the V114 columns');
+SELECT pg_temp.check_long((SELECT attname='Total Principal Loss' AND format_type(atttypid,atttypmod)='numeric'
  FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum=(SELECT max(attnum) FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum>0)),
- 'olap_portfolio_summary appends the long overdue count last');
+ 'olap_portfolio_summary appends the principal loss last (V120)');
 SELECT pg_temp.check_long((SELECT attnum=29 FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attname='Borrowers with Overdue Payment'),
  'existing summary columns keep their position');
 SELECT pg_temp.check_long((SELECT "Ref Preferred Receiving Cash Account" IS NULL AND "Payment Request Token" IS NULL FROM public.olap_borrowers_analytics WHERE "Row ID"='LO-8'),

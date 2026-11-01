@@ -259,7 +259,9 @@ CREATE FUNCTION public.business_source_delete() RETURNS trigger
 DECLARE expected_source text:=CASE TG_TABLE_NAME WHEN 'Loans' THEN 'Loan' WHEN 'Business Expenses' THEN 'Business Expense' WHEN 'Settlements' THEN 'Settlement' END;
 BEGIN
  IF TG_TABLE_NAME='Loans' THEN
-  IF coalesce((to_jsonb(OLD)->>'Defaulted')::boolean,false) THEN RAISE EXCEPTION 'Undo Default before deleting this loan'; END IF;
+  IF coalesce((to_jsonb(OLD)->>'Defaulted')::boolean,false)
+   OR EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=OLD."Row ID" AND starts_with("Row ID",'df10:')) THEN
+   RAISE EXCEPTION 'Undo Default before deleting this loan'; END IF;
   IF EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Loans"=OLD."Row ID") THEN
    RAISE EXCEPTION 'Loan has receipts; delete or reassign those receipts first'; END IF;
   DELETE FROM public."Charges" WHERE "Ref Loans"=OLD."Row ID";
@@ -554,16 +556,59 @@ CREATE FUNCTION public.default_loan_transition() RETURNS trigger
     LANGUAGE plpgsql
     SET search_path TO 'pg_catalog', 'public'
     AS $$
+DECLARE req jsonb; keep boolean; loss_date date; actor text; amount numeric; ledger money;
 BEGIN
   IF TG_OP='INSERT' THEN
     IF coalesce(NEW."Defaulted",false) THEN RAISE EXCEPTION 'Create the loan before confirming default'; END IF;
     RETURN NEW;
   END IF;
-  IF coalesce(OLD."Defaulted",false) AND NEW."Defaulted"=false THEN
+  -- R109 (V120): the request of pwa_apply_loan_source_v2, read and cleared once, so it never reaches another row or statement.
+  BEGIN req:=nullif(current_setting('business_crud.default_request',true),'')::jsonb;
+  EXCEPTION WHEN OTHERS THEN req:='{}'::jsonb; END;
+  IF req IS NOT NULL THEN
+    PERFORM set_config('business_crud.default_request','',true);
+    IF jsonb_typeof(req) IS DISTINCT FROM 'object' OR req->>'loan' IS DISTINCT FROM OLD."Row ID" OR NEW."Row ID" IS DISTINCT FROM OLD."Row ID"
+      OR req->>'op' IS NULL OR req->>'op' NOT IN ('post','undo') THEN
+      RAISE EXCEPTION 'Default request does not match this loan';
+    END IF;
+  END IF;
+  -- Undo Default: the request (an open loan with a loss, or a Defaulted loan), or the legacy Defaulted true -> false.
+  IF req->>'op'='undo' OR (req IS NULL AND coalesce(OLD."Defaulted",false) AND NEW."Defaulted"=false) THEN
     IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers" THEN
       RAISE EXCEPTION 'Undo default before changing loan inputs'; END IF;
+    IF NOT coalesce(OLD."Defaulted",false) AND OLD."Loan Status" IS DISTINCT FROM 'ยังไม่ปิดยอด' THEN
+      RAISE EXCEPTION 'Undo Default requires an open or Defaulted loan'; END IF;
     PERFORM public.undo_loan_default(OLD);
-    NEW."Default Loss Amount":=NULL; NEW."Loan Status":='ยังไม่ปิดยอด'; NEW."Close Date":=NULL; NEW."Closed By":=NULL;
+    IF coalesce(OLD."Defaulted",false) THEN
+      NEW."Defaulted":=false; NEW."Loan Status":='ยังไม่ปิดยอด'; NEW."Close Date":=NULL; NEW."Closed By":=NULL;
+    ELSE
+      NEW."Defaulted":=OLD."Defaulted"; NEW."Loan Status":=OLD."Loan Status"; NEW."Close Date":=OLD."Close Date"; NEW."Closed By":=OLD."Closed By";
+    END IF;
+    NEW."Default Loss Amount":=(SELECT nullif(coalesce(sum(c."Principal Due"::numeric),0),0)::money FROM public."Charges" c
+      WHERE c."Ref Loans"=NEW."Row ID" AND starts_with(c."Row ID",'df10:'));
+    RETURN NEW;
+  END IF;
+  -- Default Loan: the request, or the legacy ordinary-source Defaulted false -> true (whole outstanding, write off and close).
+  IF req->>'op'='post' OR (req IS NULL AND NOT coalesce(OLD."Defaulted",false) AND coalesce(NEW."Defaulted",false)) THEN
+    IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers"
+      OR NEW."Auto Charge Enabled" IS DISTINCT FROM OLD."Auto Charge Enabled" THEN
+      RAISE EXCEPTION 'Do not change loan inputs while confirming default';
+    END IF;
+    IF req IS NULL THEN
+      keep:=false; loss_date:=NEW."Close Date"; actor:=NEW."Closed By";
+    ELSE
+      BEGIN keep:=(req->>'keepCharges')::boolean; loss_date:=(req->>'date')::date; actor:=req->>'actor'; amount:=(req->>'amount')::numeric;
+      EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default request does not match this loan'; END;
+      IF keep IS NULL OR amount IS NULL OR (keep AND (coalesce(NEW."Defaulted",false) IS DISTINCT FROM coalesce(OLD."Defaulted",false)
+          OR NEW."Loan Status" IS DISTINCT FROM OLD."Loan Status" OR NEW."Close Date" IS DISTINCT FROM OLD."Close Date" OR NEW."Closed By" IS DISTINCT FROM OLD."Closed By"))
+        OR (NOT keep AND (NOT coalesce(NEW."Defaulted",false) OR NEW."Close Date" IS DISTINCT FROM loss_date OR NEW."Closed By" IS DISTINCT FROM actor)) THEN
+        RAISE EXCEPTION 'Default request does not match this loan';
+      END IF;
+    END IF;
+    PERFORM public.post_loan_default(OLD,loss_date,actor,amount,keep);
+    IF NOT keep THEN NEW."Loan Status":='ปิดยอดแล้ว'; END IF;
+    NEW."Default Loss Amount":=(SELECT nullif(coalesce(sum(c."Principal Due"::numeric),0),0)::money FROM public."Charges" c
+      WHERE c."Ref Loans"=NEW."Row ID" AND starts_with(c."Row ID",'df10:'));
     RETURN NEW;
   END IF;
   IF coalesce(OLD."Defaulted",false) THEN
@@ -575,13 +620,14 @@ BEGIN
     END IF;
     RETURN NEW;
   END IF;
-  IF NOT coalesce(NEW."Defaulted",false) THEN RETURN NEW; END IF;
-  IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers"
-    OR NEW."Auto Charge Enabled" IS DISTINCT FROM OLD."Auto Charge Enabled" THEN
-    RAISE EXCEPTION 'Do not change loan inputs while confirming default';
+  -- Any other change of the column must equal the ledger (a reviewed fixture or repair seeds the pair first).
+  IF NEW."Default Loss Amount" IS DISTINCT FROM OLD."Default Loss Amount" THEN
+    ledger:=(SELECT nullif(coalesce(sum(c."Principal Due"::numeric),0),0)::money FROM public."Charges" c
+      WHERE c."Ref Loans"=NEW."Row ID" AND starts_with(c."Row ID",'df10:'));
+    IF NEW."Default Loss Amount" IS DISTINCT FROM ledger THEN
+      RAISE EXCEPTION 'Default loss amount changes only through Default Loan or Undo Default';
+    END IF;
   END IF;
-  NEW."Default Loss Amount":=public.post_loan_default(OLD,NEW."Close Date",NEW."Closed By")::money;
-  NEW."Loan Status":='ปิดยอดแล้ว';
   RETURN NEW;
 END $$;
 
@@ -847,6 +893,8 @@ DECLARE c jsonb; d date; latest date; anchor date; n integer; elapsed integer; t
  blocked boolean:=false; scheduled_principal numeric:=0; found_today boolean:=false; today_principal numeric:=0; simulated_principal numeric:=0;
 BEGIN
  IF t IS NULL OR e<t OR e>t+93 THEN RAISE EXCEPTION 'Forecast window invalid'; END IF;
+ -- R109 (V120): a default loss posting (df10:) is not an obligation; a loan with kept charges forecasts as an open loan.
+ charges:=(SELECT coalesce(jsonb_agg(value),'[]'::jsonb) FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb)) WHERE NOT starts_with(coalesce(value->>'id',''),'df10:'));
  active:=coalesce(l->>'status'='ยังไม่ปิดยอด' AND NOT (l->>'defaulted')::boolean AND (l->>'start')::date<=t
   AND ((l->>'close') IS NULL OR (l->>'close')::date>t),false);
  balance:=(l->>'balance')::numeric;daily_rate:=(l->>'daily')::numeric;
@@ -964,7 +1012,7 @@ BEGIN
       AND (p_loans IS NULL OR "Row ID"=ANY(p_loans))
     ORDER BY "Ref Borrowers" COLLATE "C","Row ID" COLLATE "C"
   LOOP
-    IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=l."Row ID" AND "Charge Date"=p_business_date) THEN CONTINUE; END IF;
+    IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=l."Row ID" AND "Charge Date"=p_business_date AND NOT starts_with("Row ID",'df10:')) THEN CONTINUE; END IF;
     result:=public.generate_loan_charge(l."Row ID",p_business_date);
     IF result IS NOT NULL THEN generated:=generated+1; END IF;
   END LOOP;
@@ -1001,8 +1049,9 @@ BEGIN
   END IF;
   SELECT * INTO STRICT l FROM public."Loans" WHERE "Row ID"=p_loan FOR UPDATE;
   IF l."Ref Borrowers" IS DISTINCT FROM borrower THEN RAISE EXCEPTION 'Loan borrower changed; retry generation'; END IF;
+  -- R109 (V120): a default loss posting (df10:) is not a charge of the schedule.
   SELECT min("Row ID") INTO existing FROM public."Charges"
-    WHERE "Ref Loans"=p_loan AND "Charge Date"=p_business_date;
+    WHERE "Ref Loans"=p_loan AND "Charge Date"=p_business_date AND NOT starts_with("Row ID",'df10:');
   IF existing IS NOT NULL THEN RETURN NULL; END IF;
   IF NOT coalesce(l."Auto Charge Enabled",false) OR l."Loan Status" IS DISTINCT FROM 'ยังไม่ปิดยอด'
     OR l."Loan Date" IS NULL OR p_business_date<l."Loan Date" THEN RETURN NULL; END IF;
@@ -1014,7 +1063,7 @@ BEGIN
     IF mod(p_business_date-anchor,l."Interest Payment Interval")<>0 THEN RETURN NULL; END IF;
     -- AppSheet Last Interest Charge Date excludes future charges.
     SELECT max("Charge Date") INTO latest FROM public."Charges"
-      WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_business_date;
+      WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_business_date AND NOT starts_with("Row ID",'df10:');
     interest:=l."Current Daily Interest"::numeric*greatest(0,p_business_date-coalesce(latest,l."Loan Date"));
     IF interest<=0 THEN RETURN NULL; END IF;
   ELSIF l."Loan Type"='กำหนดวันชำระ' THEN
@@ -1695,7 +1744,8 @@ BEGIN
  -- V113: charges dated after the day. A charge an earlier close lowered (its trail line, written by the apply) keeps its
  -- due, and the days up to that close's date T are billed; the first other one (F1) carries the days from the later of
  -- latest and T up to the day, capped by its stored due; later ones keep their paid interest.
- SELECT max("Charge Date") INTO opening FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
+ -- R109 (V120): a default loss posting (df10:) is never today's, the latest or the target charge.
+ SELECT max("Charge Date") INTO opening FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day AND NOT starts_with("Row ID",'df10:');
  -- A trail line counts only with a real calendar date (a hand-edited 2026-02-31 or 2026-99-99 does not), so no cast can fail.
  WITH s AS(SELECT c."Row ID" id,c."Charge Date" charge_day,c."Interest Due"::numeric due,d.trail,d.trail IS NOT NULL settled FROM public."Charges" c
    LEFT JOIN LATERAL(SELECT (regexp_match(c."Notes",trail_pattern))[2] t) m ON true
@@ -1706,10 +1756,10 @@ BEGIN
   v AS(SELECT id,due,settled,CASE WHEN settled THEN due WHEN n>1 THEN i ELSE least(due,greatest(i,l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(opening,trail_all),l."Loan Date")))) END due_new,trail FROM f)
  SELECT coalesce(bool_or(NOT settled),false),jsonb_agg(jsonb_build_object('chargeId',id,'interestDue',trim_scale(due_new)::text) ORDER BY id COLLATE "C") FILTER(WHERE due_new<>due),jsonb_object_agg(id,due_new),max(trail)
   INTO has_future,future,future_due,trail_day FROM v;
- SELECT count(*),min("Row ID") INTO today_count,target FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=p_day;
+ SELECT count(*),min("Row ID") INTO today_count,target FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=p_day AND NOT starts_with("Row ID",'df10:');
  IF today_count>1 THEN RAISE EXCEPTION 'Multiple charges today require reconciliation before closing';END IF;
  IF today_count=0 THEN
-  SELECT max("Charge Date") INTO latest FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day;
+  SELECT max("Charge Date") INTO latest FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"<=p_day AND NOT starts_with("Row ID",'df10:');
   IF NOT has_future THEN interest:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(greatest(latest,trail_day),l."Loan Date"));END IF;
   IF missing+interest>0 THEN
    target:='lc7:'||length(p_loan)||':'||p_loan||':'||p_day::text;
@@ -1717,7 +1767,7 @@ BEGIN
   END IF;
  ELSIF missing>0 THEN mutation:=jsonb_build_object('kind','increase','chargeId',target,'principal',missing::text,'interest','0');END IF;
  IF future IS NOT NULL THEN mutation:=CASE WHEN mutation='null'::jsonb THEN jsonb_build_object('kind','adjust') ELSE mutation END||jsonb_build_object('futureInterest',future);END IF;
- IF target IS NULL THEN SELECT "Row ID" INTO target FROM public."Charges" WHERE "Ref Loans"=p_loan ORDER BY "Charge Date" DESC,"Row ID" COLLATE "C" DESC LIMIT 1;END IF;
+ IF target IS NULL THEN SELECT "Row ID" INTO target FROM public."Charges" WHERE "Ref Loans"=p_loan AND NOT starts_with("Row ID",'df10:') ORDER BY "Charge Date" DESC,"Row ID" COLLATE "C" DESC LIMIT 1;END IF;
  WITH paid AS(SELECT r."Ref Charges" id,sum(r."Principal Paid"::numeric) p,sum(r."Interest Paid"::numeric) i FROM public."Repayments" r WHERE r."Ref Loans"=p_loan AND (p_exclude_payment IS NULL OR r."Ref Payment" IS DISTINCT FROM p_exclude_payment) GROUP BY r."Ref Charges"),
  projected AS(SELECT c."Row ID" id,c."Charge Date" AS charge_day,c."Principal Due"::numeric-coalesce(paid.p,0)+CASE WHEN mutation->>'kind'='increase' AND c."Row ID"=target THEN missing ELSE 0 END p,CASE WHEN c."Charge Date">p_day THEN (future_due->>c."Row ID")::numeric ELSE c."Interest Due"::numeric END-coalesce(paid.i,0) i FROM public."Charges" c LEFT JOIN paid ON paid.id=c."Row ID" WHERE c."Ref Loans"=p_loan
  UNION ALL SELECT target,p_day,missing,interest WHERE mutation->>'kind'='insert')
@@ -2266,14 +2316,14 @@ END $$;
 
 
 --
--- Name: post_loan_default(public."Loans", date, text); Type: FUNCTION
+-- Name: post_loan_default(public."Loans", date, text, numeric, boolean); Type: FUNCTION
 --
 
-CREATE FUNCTION public.post_loan_default(p_loan public."Loans", p_date date, p_actor text) RETURNS numeric
+CREATE FUNCTION public.post_loan_default(p_loan public."Loans", p_date date, p_actor text, p_amount numeric, p_keep boolean) RETURNS numeric
     LANGUAGE plpgsql
     SET search_path TO 'pg_catalog', 'public'
     AS $$
-DECLARE prior text:=current_setting('business_crud.default',true); outstanding numeric; c record; posting text:='df10:'||length(p_loan."Row ID")||':'||p_loan."Row ID";
+DECLARE prior text:=current_setting('business_crud.default',true); outstanding numeric; amount numeric; c record; posting text;
 BEGIN
   IF pg_trigger_depth()=0 THEN RAISE EXCEPTION 'Confirm default through the Loans state transition'; END IF;
   -- The originating Loans UPDATE already owns its row lock. Never wait for a
@@ -2293,29 +2343,50 @@ BEGIN
     OR p_loan."Principal Amount" IS NULL THEN
     RAISE EXCEPTION 'Default requires an open auto-enabled nondefaulted loan';
   END IF;
+  IF p_keep IS NULL THEN RAISE EXCEPTION 'Default request does not match this loan'; END IF;
+  -- R109: kept charges go on generating at the reduced daily interest, which only a daily-interest loan has.
+  IF p_keep AND p_loan."Loan Type" IS DISTINCT FROM 'ดอกเบี้ยรายวัน' THEN
+    RAISE EXCEPTION 'Keeping unpaid charges requires a daily-interest loan';
+  END IF;
   IF EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"=p_loan."Ref Borrowers" AND "Status" IN ('Processing','Error')) THEN
     RAISE EXCEPTION 'Resolve processing or error payments before default';
   END IF;
   PERFORM 1 FROM public."Charges" WHERE "Ref Loans"=p_loan."Row ID" ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
   SELECT p_loan."Principal Amount"::numeric-coalesce(sum("Principal Paid"::numeric),0)
     INTO outstanding FROM public."Repayments" WHERE "Ref Loans"=p_loan."Row ID";
-  IF outstanding<=0 THEN RAISE EXCEPTION 'Default requires outstanding principal'; END IF;
+  -- A fully lost loan (outstanding 0 after an earlier posting) may still be written off and closed, with no new pair.
+  IF outstanding<=0 AND (p_keep OR coalesce(p_loan."Default Loss Amount"::numeric,0)<=0 OR outstanding<0) THEN
+    RAISE EXCEPTION 'Default requires outstanding principal'; END IF;
+  amount:=coalesce(p_amount,outstanding);
+  IF p_amount IS NOT NULL AND (amount<>trunc(amount) OR amount<0 OR amount>outstanding OR (amount=0 AND (p_keep OR outstanding>0))) THEN
+    RAISE EXCEPTION 'Default loss amount must be a whole baht amount between 1 and the outstanding principal'; END IF;
+  IF amount<outstanding AND NOT p_keep THEN RAISE EXCEPTION 'Partial default loss must keep unpaid charges'; END IF;
+  -- R109 (Chase D1): a full loss that keeps charges needs an unpaid charge to keep; otherwise the loan would stay open at 0
+  -- with nothing left to close it. Write off and close instead. A partial loss keeps its principal and stays allowed.
+  IF p_keep AND amount>=outstanding AND NOT EXISTS(SELECT 1 FROM public."Charges" ch WHERE ch."Ref Loans"=p_loan."Row ID" AND NOT starts_with(ch."Row ID",'df10:')
+    AND coalesce(ch."Principal Due"::numeric,0)+coalesce(ch."Interest Due"::numeric,0)
+     >(SELECT coalesce(sum(coalesce(r."Principal Paid"::numeric,0)+coalesce(r."Interest Paid"::numeric,0)),0) FROM public."Repayments" r WHERE r."Ref Charges"=ch."Row ID")) THEN
+    RAISE EXCEPTION 'A full default loss with no unpaid charge must write off and close'; END IF;
+  posting:='df10:'||length(p_loan."Row ID")||':'||p_loan."Row ID"||':'||p_date::text;
+  IF amount>0 AND (EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=posting) OR EXISTS(SELECT 1 FROM public."Repayments" WHERE "Row ID"=posting)) THEN
+    RAISE EXCEPTION 'One default loss posting per loan per day'; END IF;
   PERFORM set_config('business_crud.default',p_loan."Row ID",true);
-  FOR c IN SELECT ch.*,coalesce(r.p,0) AS paid_p,coalesce(r.i,0) AS paid_i
-    FROM public."Charges" ch LEFT JOIN LATERAL
-      (SELECT sum("Principal Paid"::numeric) p,sum("Interest Paid"::numeric) i
-       FROM public."Repayments" WHERE "Ref Charges"=ch."Row ID") r ON true
-    WHERE ch."Ref Loans"=p_loan."Row ID" ORDER BY ch."Row ID" COLLATE "C"
-  LOOP
-    IF c."Principal Due" IS NULL OR c."Interest Due" IS NULL OR c.paid_p<0 OR c.paid_i<0
-      OR c."Principal Due"::numeric<c.paid_p OR c."Interest Due"::numeric<c.paid_i THEN
-      RAISE EXCEPTION 'Charge components require reconciliation before default';
-    END IF;
-    IF c."Charge Date"=p_date AND c.paid_p+c.paid_i<>0
-      AND c."Principal Due"::numeric+c."Interest Due"::numeric<=c.paid_p+c.paid_i THEN
-      RAISE EXCEPTION 'A paid charge today prevents Default Loan';
-    END IF;
-    IF true THEN -- Record all original components so later undo can prove completeness.
+  IF NOT p_keep THEN
+    FOR c IN SELECT ch.*,coalesce(r.p,0) AS paid_p,coalesce(r.i,0) AS paid_i
+      FROM public."Charges" ch LEFT JOIN LATERAL
+        (SELECT sum("Principal Paid"::numeric) p,sum("Interest Paid"::numeric) i
+         FROM public."Repayments" WHERE "Ref Charges"=ch."Row ID") r ON true
+      WHERE ch."Ref Loans"=p_loan."Row ID" AND NOT starts_with(ch."Row ID",'df10:') ORDER BY ch."Row ID" COLLATE "C"
+    LOOP
+      IF c."Principal Due" IS NULL OR c."Interest Due" IS NULL OR c.paid_p<0 OR c.paid_i<0
+        OR c."Principal Due"::numeric<c.paid_p OR c."Interest Due"::numeric<c.paid_i THEN
+        RAISE EXCEPTION 'Charge components require reconciliation before default';
+      END IF;
+      IF c."Charge Date"=p_date AND c.paid_p+c.paid_i<>0
+        AND c."Principal Due"::numeric+c."Interest Due"::numeric<=c.paid_p+c.paid_i THEN
+        RAISE EXCEPTION 'A paid charge today prevents Default Loan';
+      END IF;
+      -- Record all original components so later undo can prove completeness.
       UPDATE public."Charges" SET "Principal Due"=c.paid_p::money,"Interest Due"=c.paid_i::money,
         "Notes"=concat_ws(E'\n',nullif(c."Notes",''),'Default write-off '||jsonb_build_object(
           'posting',posting,'date',p_date,'actor',p_actor,
@@ -2323,17 +2394,21 @@ BEGIN
           'written_off_principal',c."Principal Due"::numeric-c.paid_p,
           'written_off_interest',c."Interest Due"::numeric-c.paid_i)::text)
         WHERE "Row ID"=c."Row ID";
-    END IF;
-  END LOOP;
-  INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes")
-    VALUES(posting,p_loan."Row ID",p_date,outstanding::money,(-outstanding)::money,
-      'Loan default - outstanding principal recorded as loss; zero cash');
-  INSERT INTO public."Repayments"("Row ID","Payment Date","Principal Paid","Interest Paid","Notes","Ref Loans","Ref Charges","Created By")
-    VALUES(posting,p_date,outstanding::money,(-outstanding)::money,
-      'หนี้สูญ - บันทึกเงินต้นคงเหลือเป็นขาดทุน / Loan default - outstanding principal recorded as loss',
-      p_loan."Row ID",posting,p_actor);
+    END LOOP;
+  END IF;
+  IF amount>0 THEN
+    INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes")
+      VALUES(posting,p_loan."Row ID",p_date,amount::money,(-amount)::money,
+        CASE WHEN p_keep THEN 'Loan default - principal loss recorded, unpaid charges kept; zero cash'
+         ELSE 'Loan default - outstanding principal recorded as loss; zero cash' END);
+    INSERT INTO public."Repayments"("Row ID","Payment Date","Principal Paid","Interest Paid","Notes","Ref Loans","Ref Charges","Created By")
+      VALUES(posting,p_date,amount::money,(-amount)::money,
+        CASE WHEN p_keep THEN 'หนี้สูญเงินต้น - เก็บรายการเรียกเก็บค้างชำระไว้ติดตาม / Loan default - principal loss recorded, unpaid charges kept'
+         ELSE 'หนี้สูญ - บันทึกเงินต้นคงเหลือเป็นขาดทุน / Loan default - outstanding principal recorded as loss' END,
+        p_loan."Row ID",posting,p_actor);
+  END IF;
   PERFORM set_config('business_crud.default',coalesce(prior,''),true);
-  RETURN outstanding;
+  RETURN amount;
 END $$;
 
 
@@ -2927,8 +3002,17 @@ BEGIN
  BEGIN
  CASE op
  WHEN 'loan.delete' THEN DELETE FROM public."Loans" WHERE "Row ID"=target;
- WHEN 'loan.default' THEN UPDATE public."Loans" SET "Defaulted"=true,"Close Date"=(i->>'businessDate')::date,"Closed By"=a->>'loginEmail' WHERE "Row ID"=target;
- WHEN 'loan.undo-default' THEN UPDATE public."Loans" SET "Defaulted"=false WHERE "Row ID"=target;
+ WHEN 'loan.default' THEN
+  -- R109 (V120): the request carries the loss amount and keep-charges choice to default_loan_transition (no new column).
+  -- The one-key form (no amount) is the ordinary write off and close of the whole outstanding principal, as before.
+  IF i ? 'amount' THEN PERFORM set_config('business_crud.default_request',jsonb_build_object('loan',target,'op','post','date',i->>'businessDate','amount',i->>'amount','keepCharges',i->'keepCharges','actor',a->>'loginEmail')::text,true);END IF;
+  IF (i->'keepCharges')='true'::jsonb THEN UPDATE public."Loans" SET "Default Loss Amount"=(coalesce("Default Loss Amount"::numeric,0)+(i->>'amount')::numeric)::money WHERE "Row ID"=target;
+  ELSE UPDATE public."Loans" SET "Defaulted"=true,"Close Date"=(i->>'businessDate')::date,"Closed By"=a->>'loginEmail' WHERE "Row ID"=target;END IF;
+  PERFORM set_config('business_crud.default_request','',true);
+ WHEN 'loan.undo-default' THEN
+  PERFORM set_config('business_crud.default_request',jsonb_build_object('loan',target,'op','undo','actor',a->>'loginEmail')::text,true);
+  UPDATE public."Loans" SET "Defaulted"=false WHERE "Row ID"=target;
+  PERFORM set_config('business_crud.default_request','',true);
  WHEN 'loan.generate-charge' THEN UPDATE public."Loans" SET "Charge Generation Request"=(i->>'businessDate')||'|'||(e->>'requestId') WHERE "Row ID"=target;
  WHEN 'loan.book-projected-charge' THEN
   -- R104: still this loan's next projected charge (V112 read, same day) with the reviewed date and amounts.
@@ -2952,7 +3036,9 @@ BEGIN
   IF message=ANY(ARRAY[
    'Loan principal must cover its posted principal and recorded principal charges','Undo default before changing loan inputs','Original daily interest rate unavailable; review original loan terms before principal repayment','Original daily interest rate unavailable; review original loan terms before daily conversion','Automatic daily conversion requires a loan date and positive interest payment interval',
    'Default requires an open auto-enabled nondefaulted loan','Resolve processing or error payments before default','Default requires outstanding principal','Charge components require reconciliation before default','A paid charge today prevents Default Loan',
-   'Default loss posting no longer matches; reconcile its components before undo','Default charge has no original component evidence; reconcile before undo','Default charge evidence is malformed; reconcile before undo','Default charge changed since write-off; reconcile before undo'
+   'Default loss posting no longer matches; reconcile its components before undo','Default charge has no original component evidence; reconcile before undo','Default charge evidence is malformed; reconcile before undo','Default charge changed since write-off; reconcile before undo',
+   'Default loss amount must be a whole baht amount between 1 and the outstanding principal','Partial default loss must keep unpaid charges','One default loss posting per loan per day','Default loss amount changes only through Default Loan or Undo Default',
+   'Undo Default requires a recorded default loss','Undo Default requires an open or Defaulted loan','Default request does not match this loan','Keeping unpaid charges requires a daily-interest loan','A full default loss with no unpaid charge must write off and close'
   ]) THEN RAISE EXCEPTION USING ERRCODE='P5B06';ELSE RAISE;END IF;
  END;
  RETURN jsonb_build_object('operation',op,'targetType','loan','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);
@@ -4361,7 +4447,7 @@ BEGIN
   IF d<=(SELECT max(c."Charge Date") FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID") THEN CONTINUE; END IF;
   -- The amounts are generate_loan_charge's own arithmetic for that date.
   IF l."Loan Type"='ดอกเบี้ยรายวัน' THEN
-   SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date"<=d;
+   SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date"<=d AND NOT starts_with(c."Row ID",'df10:');
    p:=0;i:=l."Current Daily Interest"::numeric*greatest(0,d-coalesce(latest,l."Loan Date"));
   ELSE
    SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID";
@@ -4427,7 +4513,7 @@ BEGIN
   IF blocked OR d IS NULL THEN CONTINUE; END IF;
   -- The amounts are generate_loan_charge's own arithmetic for that date.
   IF l."Loan Type"='ดอกเบี้ยรายวัน' THEN
-   SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date"<=d;
+   SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date"<=d AND NOT starts_with(c."Row ID",'df10:');
    p:=0;i:=l."Current Daily Interest"::numeric*greatest(0,d-coalesce(latest,l."Loan Date"));
   ELSE
    SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID";
@@ -5256,6 +5342,11 @@ BEGIN
   input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');
  END LOOP;input_text:=input_text||'}';
  IF i->>'paymentDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paymentDate')::date)::text<>i->>'paymentDate' OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]' OR i->>'paymentMethod' NOT IN('Bank Transfer','Cash','Net-off at Disbursement') OR i->>'expectedAmount'!~'^[1-9][0-9]*$' OR (i->>'expectedAmount')::numeric>92233720368547758 OR i->>'expectedPlanHash'!~'^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'close input';END IF;
+ ELSIF op='loan.default' AND (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['businessDate'] THEN
+ -- R109 (V120): the loss amount (whole baht, 0 only for a fully lost loan, which SQL decides) and the keep-charges choice.
+ -- The one-key form {businessDate} stays valid (requests saved by an earlier PWA): write off and close the whole principal.
+ IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['amount','businessDate','keepCharges'] OR jsonb_typeof(i->'businessDate') IS DISTINCT FROM 'string' OR i->>'businessDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'businessDate')::date)::text<>i->>'businessDate' OR jsonb_typeof(i->'amount') IS DISTINCT FROM 'string' OR i->>'amount'!~'^(0|[1-9][0-9]{0,16})$' OR (i->>'amount')::numeric>92233720368547758 OR jsonb_typeof(i->'keepCharges') IS DISTINCT FROM 'boolean' THEN RAISE EXCEPTION 'default input';END IF;
+ input_text:='{"businessDate":'||to_json(i->>'businessDate')::text||',"amount":'||to_json(i->>'amount')::text||',"keepCharges":'||(i->'keepCharges')::text||'}';
  ELSIF op IN('loan.default','loan.generate-charge') THEN
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['businessDate'] OR jsonb_typeof(i->'businessDate') IS DISTINCT FROM 'string' OR i->>'businessDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'businessDate')::date)::text<>i->>'businessDate' THEN RAISE EXCEPTION 'business date';END IF;
  input_text:='{"businessDate":'||to_json(i->>'businessDate')::text||'}';
@@ -6570,38 +6661,64 @@ CREATE FUNCTION public.undo_loan_default(p public."Loans") RETURNS void
     SET search_path TO 'pg_catalog', 'public'
     AS $_$
 #variable_conflict use_column
-DECLARE posting text:='df10:'||length(p."Row ID")||':'||p."Row ID";
- c record; evidence jsonb; prefix text; prior text:=current_setting('business_crud.default',true);
+DECLARE posting text; pair_count integer; c record; evidence jsonb; prefix text; prior text:=current_setting('business_crud.default',true);
 BEGIN
  IF pg_trigger_depth()=0 THEN RAISE EXCEPTION 'Undo default through Loans.Defaulted'; END IF;
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=p."Ref Borrowers" FOR UPDATE NOWAIT;
  PERFORM 1 FROM public."Charges" WHERE "Ref Loans"=p."Row ID" ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
- IF NOT EXISTS(SELECT 1 FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges"
-   WHERE r."Row ID"=posting AND c."Row ID"=posting AND r."Ref Loans"=p."Row ID" AND c."Ref Loans"=p."Row ID"
-    AND r."Ref Payment" IS NULL AND r."Principal Paid"=p."Default Loss Amount" AND r."Interest Paid"=(-p."Default Loss Amount"::numeric)::money
-    AND c."Principal Due"=p."Default Loss Amount" AND c."Interest Due"=(-p."Default Loss Amount"::numeric)::money) THEN
-  RAISE EXCEPTION 'Default loss posting no longer matches; reconcile its components before undo'; END IF;
+ IF coalesce(p."Defaulted",false) THEN
+  -- The write-off event: the posting key every written-down charge records (legacy write-offs carry the undated id).
+  FOR c IN SELECT ch."Notes" FROM public."Charges" ch WHERE ch."Ref Loans"=p."Row ID" AND NOT starts_with(ch."Row ID",'df10:')
+    AND coalesce(ch."Notes",'') LIKE '%Default write-off %' ORDER BY ch."Row ID" COLLATE "C" LOOP
+   BEGIN evidence:=substring(c."Notes" from 'Default write-off (\{[^\n]*\})$')::jsonb;
+   EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default charge evidence is malformed; reconcile before undo'; END;
+   IF evidence->>'posting' IS NULL OR (posting IS NOT NULL AND posting<>evidence->>'posting') THEN
+    RAISE EXCEPTION 'Default charge changed since write-off; reconcile before undo'; END IF;
+   posting:=evidence->>'posting';
+  END LOOP;
+ END IF;
+ IF posting IS NULL THEN
+  SELECT c."Row ID" INTO posting FROM public."Charges" c JOIN public."Repayments" r ON r."Row ID"=c."Row ID"
+   WHERE c."Ref Loans"=p."Row ID" AND starts_with(c."Row ID",'df10:')
+   ORDER BY c."Charge Date" DESC,c."Row ID" COLLATE "C" DESC LIMIT 1;
+  IF posting IS NULL THEN
+   IF coalesce(p."Defaulted",false) THEN RAISE EXCEPTION 'Default loss posting no longer matches; reconcile its components before undo'; END IF;
+   RAISE EXCEPTION 'Undo Default requires a recorded default loss';
+  END IF;
+ END IF;
+ -- Verify the event's pair on its own. Only a write-off of a fully lost loan (amount 0) has no pair of its own.
+ SELECT count(*) INTO pair_count FROM public."Charges" WHERE "Row ID"=posting;
+ IF pair_count>0 OR NOT coalesce(p."Defaulted",false) OR NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=p."Row ID" AND starts_with("Row ID",'df10:')) THEN
+  IF NOT EXISTS(SELECT 1 FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges"
+    WHERE r."Row ID"=posting AND c."Row ID"=posting AND r."Ref Loans"=p."Row ID" AND c."Ref Loans"=p."Row ID"
+     AND r."Ref Payment" IS NULL AND c."Principal Due"::numeric>0 AND r."Principal Paid"=c."Principal Due"
+     AND r."Interest Paid"::numeric=-c."Principal Due"::numeric AND c."Interest Due"::numeric=-c."Principal Due"::numeric)
+   OR (SELECT count(*) FROM public."Repayments" WHERE "Ref Charges"=posting)<>1 THEN
+   RAISE EXCEPTION 'Default loss posting no longer matches; reconcile its components before undo'; END IF;
+ END IF;
  PERFORM set_config('business_crud.default',p."Row ID",true);
  DELETE FROM public."Repayments" WHERE "Row ID"=posting;
  DELETE FROM public."Charges" WHERE "Row ID"=posting;
- FOR c IN SELECT * FROM public."Charges" WHERE "Ref Loans"=p."Row ID" LOOP
-  IF coalesce(c."Notes",'') NOT LIKE '%Default write-off %' THEN
-   IF c."Principal Due"::numeric+c."Interest Due"::numeric>0 AND
-    c."Principal Due"::numeric=(SELECT coalesce(sum("Principal Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") AND
-    c."Interest Due"::numeric=(SELECT coalesce(sum("Interest Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") THEN CONTINUE; END IF;
-   RAISE EXCEPTION 'Default charge has no original component evidence; reconcile before undo';
-  END IF;
-  prefix:=substring(c."Notes" from '(?s)^(.*)Default write-off \{[^\n]*\}$');
-  BEGIN evidence:=substring(c."Notes" from 'Default write-off (\{[^\n]*\})$')::jsonb;
-  EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default charge evidence is malformed; reconcile before undo'; END;
-  IF evidence IS NULL OR evidence->>'posting' IS DISTINCT FROM posting OR
-   c."Principal Due"::numeric IS DISTINCT FROM (evidence->>'original_principal')::numeric-(evidence->>'written_off_principal')::numeric OR
-   c."Interest Due"::numeric IS DISTINCT FROM (evidence->>'original_interest')::numeric-(evidence->>'written_off_interest')::numeric THEN
-   RAISE EXCEPTION 'Default charge changed since write-off; reconcile before undo'; END IF;
-  UPDATE public."Charges" SET "Principal Due"=(evidence->>'original_principal')::numeric::money,
-   "Interest Due"=(evidence->>'original_interest')::numeric::money,"Notes"=nullif(regexp_replace(prefix,E'\n$',''),'')
-   WHERE "Row ID"=c."Row ID";
- END LOOP;
+ IF coalesce(p."Defaulted",false) THEN
+  FOR c IN SELECT * FROM public."Charges" WHERE "Ref Loans"=p."Row ID" AND NOT starts_with("Row ID",'df10:') LOOP
+   IF coalesce(c."Notes",'') NOT LIKE '%Default write-off %' THEN
+    IF c."Principal Due"::numeric+c."Interest Due"::numeric>0 AND
+     c."Principal Due"::numeric=(SELECT coalesce(sum("Principal Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") AND
+     c."Interest Due"::numeric=(SELECT coalesce(sum("Interest Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") THEN CONTINUE; END IF;
+    RAISE EXCEPTION 'Default charge has no original component evidence; reconcile before undo';
+   END IF;
+   prefix:=substring(c."Notes" from '(?s)^(.*)Default write-off \{[^\n]*\}$');
+   BEGIN evidence:=substring(c."Notes" from 'Default write-off (\{[^\n]*\})$')::jsonb;
+   EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'Default charge evidence is malformed; reconcile before undo'; END;
+   IF evidence IS NULL OR evidence->>'posting' IS DISTINCT FROM posting OR
+    c."Principal Due"::numeric IS DISTINCT FROM (evidence->>'original_principal')::numeric-(evidence->>'written_off_principal')::numeric OR
+    c."Interest Due"::numeric IS DISTINCT FROM (evidence->>'original_interest')::numeric-(evidence->>'written_off_interest')::numeric THEN
+    RAISE EXCEPTION 'Default charge changed since write-off; reconcile before undo'; END IF;
+   UPDATE public."Charges" SET "Principal Due"=(evidence->>'original_principal')::numeric::money,
+    "Interest Due"=(evidence->>'original_interest')::numeric::money,"Notes"=nullif(regexp_replace(prefix,E'\n$',''),'')
+    WHERE "Row ID"=c."Row ID";
+  END LOOP;
+ END IF;
  PERFORM set_config('business_crud.default',coalesce(prior,''),true);
 END $_$;
 

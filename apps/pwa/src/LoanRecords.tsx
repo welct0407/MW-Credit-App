@@ -9,6 +9,8 @@ export type LoanRecord = {
   loanType: string | null; status: string | null; principalAmount: string | null; outstandingPrincipal: string | null;
   totalPrincipalReceived: string | null; totalInterestReceived: string | null; totalAmountReceived: string | null;
   defaulted: boolean | null; autoChargeEnabled: boolean | null;
+  /** R109: absent in a response cached before R109. */
+  defaultLossAmount?: string | null;
 };
 export type LoanPageResult = { ok: true; source: 'dev'; borrowerId: string; items: LoanRecord[]; nextCursor: string | null; asOf: string };
 export type LoanDetailResult = { ok: true; source: 'dev'; item: LoanRecord; asOf: string };
@@ -34,6 +36,8 @@ export function LoanRecords(props: Props) {
   const date = (value: string | null) => value === null ? unavailable : displayDate(value);
   const yesNo = (value: boolean | null) => value === null ? unavailable : value ? t('Yes', 'ใช่') : t('No', 'ไม่ใช่');
   const status = (value: string | null) => value === 'ยังไม่ปิดยอด' ? t('Open', 'ยังไม่ปิดยอด') : value === 'ปิดยอดแล้ว' ? t('Closed', 'ปิดยอดแล้ว') : value === null ? unavailable : `${t('Other status', 'สถานะอื่น')}: ${value}`;
+  // R109-UX-L01: the open group says "Principal loss ฿X"; a Defaulted closed loan says "Defaulted · loss ฿X".
+  const lossChip = (loan: LoanRecord) => Number(loan.defaultLossAmount ?? 0) > 0 ? <span className="loan-loss-badge">{loan.defaulted ? t('Defaulted · loss ', 'ผิดนัด · หนี้สูญ ') : t('Principal loss ', 'หนี้สูญเงินต้น ')}{money(loan.defaultLossAmount ?? null)}</span> : null;
   const type = (value: string | null) => value === 'กำหนดวันชำระ' ? t('Fixed due date', 'กำหนดวันชำระ') : value === 'ดอกเบี้ยรายวัน' ? t('Daily interest', 'ดอกเบี้ยรายวัน') : value === 'ผ่อนชำระรายวัน' ? t('Daily instalment', 'ผ่อนชำระรายวัน') : value === null ? unavailable : `${t('Other type', 'ประเภทอื่น')}: ${value}`;
   return <section className="related-loans" aria-label={t('Related loans', 'สัญญาที่เกี่ยวข้อง')}>
     <div className="related-loans-heading"><h3>{t('Related loans', 'สัญญาที่เกี่ยวข้อง')}</h3></div><p className="list-meaning-legend">{t('Principal · Interest received · Interest covering principal (%)','เงินต้น · ดอกเบี้ยรับแล้ว · ดอกเบี้ยครอบคลุมเงินต้น (%)')}</p>
@@ -54,13 +58,14 @@ export function LoanRecords(props: Props) {
         <div><dt>{t('Interest received', 'ดอกเบี้ยที่ได้รับ')}</dt><dd>{money(props.selected.totalInterestReceived)}</dd></div>
         <div><dt>{t('Total received', 'ยอดที่ได้รับรวม')}</dt><dd>{money(props.selected.totalAmountReceived)}</dd></div>
         <div><dt>{t('Defaulted', 'ผิดนัดชำระ')}</dt><dd>{yesNo(props.selected.defaulted)}</dd></div>
+        {Number(props.selected.defaultLossAmount ?? 0) > 0 && <div><dt>{t('Default loss', 'หนี้สูญเงินต้น')}</dt><dd>{money(props.selected.defaultLossAmount ?? null)}</dd></div>}
         <div><dt>{t('Automatic charges enabled', 'เปิดเรียกเก็บอัตโนมัติ')}</dt><dd>{yesNo(props.selected.autoChargeEnabled)}</dd></div>
       </dl>
     </article> : <>
 
       {!props.loading && !props.error && props.items.length === 0 && <p>{t('No loans for this borrower.', 'ผู้กู้รายนี้ไม่มีสัญญา')}</p>}
       <div className="loan-record-list">{props.items.map((loan, index) => <React.Fragment key={loan.id}>{(index === 0 || loanGroup(props.items[index - 1].status) !== loanGroup(loan.status)) && <h4 className={'record-group-heading ' + (loanGroup(loan.status) === 0 ? 'group-active' : loanGroup(loan.status) === 1 ? 'group-inactive' : 'group-unknown')}>{loanGroup(loan.status) === 0 ? t('Open loans', 'สัญญาที่ยังเปิด') : loanGroup(loan.status) === 1 ? t('Closed loans', 'สัญญาที่ปิดแล้ว') : t('Other / unavailable status', 'สถานะอื่น / ไม่มีข้อมูล')}</h4>}<button type="button" className={'loan-record ' + (loanGroup(loan.status) === 1 ? 'closed' : '')} onClick={() => props.onSelect(loan.id)} disabled={props.busy}>
-        <span className="loan-record-main"><strong>{loanDisplayKey(loan)}</strong><span title={t('Original principal','เงินต้นเริ่มต้น')}>{money(loan.principalAmount)}</span></span>
+        <span className="loan-record-main"><strong>{loanDisplayKey(loan)}</strong>{lossChip(loan)}<span title={t('Original principal','เงินต้นเริ่มต้น')}>{money(loan.principalAmount)}</span></span>
         <span className="loan-record-amount"><strong className={loan.totalInterestReceived!==null&&Number(loan.totalInterestReceived)>0?'profit-positive':''} title={t('Total Interest Received','ดอกเบี้ยรับรวม')}>{money(loan.totalInterestReceived)}</strong><span className={loanRecoveryClass(loan)} title={t('Principal Recovered by Interest','เงินต้นที่ครอบคลุมด้วยดอกเบี้ย')}>{loanRecoveryRatio(loan)===null?'—':new Intl.NumberFormat('en-US',{style:'percent',maximumFractionDigits:2}).format(loanRecoveryRatio(loan)!)}</span></span>
       </button></React.Fragment>)}</div>
       <CompactPager busy={props.busy} previous={props.onPrevious} next={props.nextCursor?props.onNext:undefined} previousLabel={t('Previous loans page','หน้าก่อนของสัญญา')} nextLabel={t('Next loans page','หน้าถัดไปของสัญญา')}/>
