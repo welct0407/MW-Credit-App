@@ -111,6 +111,7 @@ Skipped and not verified, so not a pass:
 - WebKit and a real iPhone pass (Echo checked Chromium only).
 - Thai wording on screen.
 - Anything in PROD.
+- The "Paid in advance" tile date: it can only be seen from 2 November on DEV.
 - A real iPhone or Safari run and Thai wording of the Remainder block on DEV.
 
 ## Recovery
@@ -120,6 +121,8 @@ Before release: revert the pull request (Git baseline R109 `8ced324` plus later 
 None for the owner at this point.
 
 ## Remaining work
+- Done: DEV deployment and end-to-end test. The Collection finding was fixed in `703d552` and redeployed; Chase's DEV re-check result is being added.
 - Pull request `Development checks` (the one broad run).
-- Forge: DEV deployment and test (authorized, after the PR is open); PROD promotion and merge need a separate scoped owner instruction.
+- Owner: DEV review. Merge and PROD promotion need a separate scoped owner instruction.
+- Open: the "Saved on this device" 4 s lag seen once on Confirm (not repeated); the "Paid in advance" tile date, visible on DEV only from 2 November.
 - Releases 2 and 3 of the plan.
