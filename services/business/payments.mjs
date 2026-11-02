@@ -19,7 +19,7 @@ export async function readPaymentRecord(client,id){
  // through to_jsonb(e), so a database before V122 reads none.
  const rebate=(await client.query(`SELECT l."Row ID" AS "loanId",e."Amount"::numeric::text AS amount,coalesce(rb."Borrower Name",'')||' - '||coalesce(rb."Description",'') AS "referrerLabel",
   o."Row ID" AS "offsetPaymentId",o."Amount Received"::numeric::text AS "offsetAmount",ol."Row ID" AS "offsetLoanId",ol."Principal Amount"::numeric::text AS principal,ol."Loan Date"::text AS "loanDate",ol."Original Daily Interest Rate"::text AS rate,
-  (SELECT max(c."Charge Date") FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=o."Row ID" AND c."Amount Remaining"=0::money)::text AS "paidThrough"
+  (SELECT max(c."Charge Date") FROM public."Repayments" r JOIN public."Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=o."Row ID" AND c."Amount Remaining"=0)::text AS "paidThrough"
   FROM public."Loans" l JOIN public."Business Expenses" e ON e."Ref Related Loan"=l."Row ID" AND e."Source Type"='Referral Rebate'
   LEFT JOIN public."Borrowers" rb ON rb."Row ID"=e."Ref Payee Borrower" LEFT JOIN public."Payments" o ON o."Row ID"=to_jsonb(e)->>'Ref Offset Payment'
   LEFT JOIN LATERAL (SELECT r."Ref Loans" AS loan FROM public."Repayments" r WHERE r."Ref Payment"=o."Row ID" ORDER BY r."Ref Loans" COLLATE "C" LIMIT 1) orl ON true

@@ -6,7 +6,7 @@ function client(rebate){return {query:async sql=>{
  if(sql.includes('FROM public."Payments" p'))return {rows:[{id:'pwa:close'}]};
  if(sql.includes('pwa_payment_version'))return {rows:[{version:'a'.repeat(64)}]};
  if(sql.includes('pwa_effective_payment_plan_v2'))return {rows:[{value:null}]};
- if(sql.includes('l."Ref Closing Payment"=$1')){assert.match(sql,/to_jsonb\(e\)->>'Ref Offset Payment'/);assert.doesNotMatch(sql,/e\."Ref Offset Payment"/);return {rows:rebate?[rebate]:[]};}
+ if(sql.includes('l."Ref Closing Payment"=$1')){assert.match(sql,/to_jsonb\(e\)->>'Ref Offset Payment'/);assert.doesNotMatch(sql,/e\."Ref Offset Payment"/);assert.doesNotMatch(sql,/::money/,'no money literal: "Amount Remaining" is numeric');assert.match(sql,/c\."Amount Remaining"=0\)/);return {rows:rebate?[rebate]:[]};}
  return {rows:[]};
 }};}
 test('a closing payment with a default offset gives the offset, its loan key, paid-through day and the payable rest',async()=>{
