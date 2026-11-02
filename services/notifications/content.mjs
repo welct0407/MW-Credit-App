@@ -30,10 +30,11 @@ const clean=value=>typeof value==='string'?value.replace(/[\p{Cc}\p{Zl}\p{Zp}\s]
 const cut=(text,keep)=>graphemes(text).slice(0,keep).join('').trimEnd()+'…';
 /** The generic push when nothing reliable is known (RPC failure, unknown type); English unless Thai is known. */
 export function genericNotification(language){return{title:APP,body:TEXT[language==='th'?'th':'en'].activity};}
-/** R111 NT-1: the rebate a Loan close leaves to pay out, "Rebate ฿300 to <referrer>, transfer from Lisa"; none when the
- * whole rebate settled the referrer's loan (payable 0) or the facts predate V122. */
+/** R111 NT-1/NT-2: the rebate a Loan close (loan.closed) or the payment that closed a referred loan (payment.posted, V124)
+ * leaves to pay out, "Rebate ฿300 to <referrer>, transfer from Lisa"; none when the whole rebate settled the referrer's
+ * loan (payable 0) or the facts predate V122/V124. */
 function rebateLine(language,facts){
- const amount=baht(facts.rebatePayable);if(facts.eventType!=='loan.closed'||!amount||!(Number(facts.rebatePayable)>0))return null;
+ const amount=baht(facts.rebatePayable);if(!['loan.closed','payment.posted'].includes(facts.eventType??'')||!amount||!(Number(facts.rebatePayable)>0))return null;
  return payee=>language==='th'?`ค่าแนะนำ ${amount}${payee?' ให้ '+payee:''} โอนจาก Lisa`:`Rebate ${amount}${payee?' to '+payee:''}, transfer from Lisa`;
 }
 /** R111: a Referral Rebate Offset payment is not cash from the referrer: "Rebate offset ฿300 · <referrer> · from loan <key>". */
@@ -66,7 +67,9 @@ export function renderNotification(facts){
  const rebate=rebateLine(language,facts);
  if(rebate){
   const payee=clean(facts.rebatePayee),sep=' · ',fixed=graphemeLength(rebate(payee?'_':''))-(payee?1:0);
-  const room=BODY_BUDGET-fixed-(name?graphemeLength(sep+name):0);
+  // NT-1 (loan.closed) shortens the referrer first; NT-2 (payment.posted) the borrower first, the referrer only as far as
+  // the line needs (at least 8 kept); the amount and "Lisa" are never cut.
+  const room=BODY_BUDGET-fixed-(name?(facts.eventType==='payment.posted'?graphemeLength(sep)+2:graphemeLength(sep+name)):0);
   let body=rebate(payee&&graphemeLength(payee)>room?cut(payee,Math.max(8,room-1)):payee);
   if(graphemeLength(body)>BODY_BUDGET)body=cut(body,BODY_BUDGET-1);
   const rest=BODY_BUDGET-graphemeLength(body)-graphemeLength(sep);
