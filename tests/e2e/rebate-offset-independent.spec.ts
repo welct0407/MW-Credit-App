@@ -123,3 +123,34 @@ test('Expenses: an offset-settled rebate reads "Settled by offset" with the refe
  await expect(page.getByRole('button',{name:'Delete expense',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Edit expense',exact:true})).toHaveCount(0);
  await expect(page.locator('main')).toContainText('Remove through the closing payment');expect(s.writes).toHaveLength(0);
 });
+
+// R111 extension (V124): a loan closed by Receive payment shows, on the closing payment, what became of its rebate (Echo RP-11).
+// The record field `closeRebate` and its keys are Byte's contract to align; the wording is Echo's.
+const closeRebate=(over:any={})=>({loanId:'C-loan',amount:'300',referrerLabel:'ผู้แนะนำจำลอง',offsetPaymentId:'ro122:pwa:C-closing',offsetAmount:'300',payableAmount:'0',offsetLoanId:'C-referrer-loan',offsetLoanLabel:'L-0398',paidThrough:'2026-10-12',...over});
+async function openClosingPayment(page:Page,rebateLine:any){
+ const row={id:'C-closing',paymentDate:'2026-10-09',month:'2026-10',borrowerId:record.id,borrowerDisplayName:'SYNTHETIC closing borrower',status:'Posted',amountReceived:'1300',postedAmount:'1300',createdAt:null,groupAmountReceived:'1300'};
+ await page.route('https://mw-credit-app-command-dev-test.run.app/api/payment-records**',r=>{const u=new URL(r.request().url());
+  if(u.pathname==='/api/payment-records'){const month=u.searchParams.get('month');const result=month?{level:'payments',items:[row],nextCursor:null}:u.searchParams.has('borrowerId')?{level:'months',items:[{month:'2026-10',amountReceived:'1300',count:1}],nextCursor:null}:{level:'borrowers',items:[{id:record.id,borrowerId:record.id,borrowerDisplayName:'SYNTHETIC closing borrower'}],nextCursor:null};return r.fulfill({contentType:'application/json',body:JSON.stringify(result)})}
+  return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,asOf:new Date().toISOString(),businessDate:'2026-10-09',item:{id:'C-closing',version:'e'.repeat(64),borrowerName:'SYNTHETIC closing borrower',paymentDate:'2026-10-09',amountReceived:'1300',postedAmount:'1300',status:'Posted',notes:null,allocations:[],repayments:[],cashMovements:[],agentReceiptPresent:false,receiptReference:null,...(rebateLine?{closeRebate:rebateLine}:{})}})})});
+ const nav=page.locator(page.viewportSize()!.width<=1050?'.live-bottom-nav':'#live-desktop-navigation');
+ await nav.getByRole('button',{name:'Payments',exact:true}).click();
+ const list=page.getByRole('region',{name:'Payments list',exact:true});await expect(list.locator('.payment-borrower-group')).toHaveCount(1);
+ for(const group of await list.locator('.payment-borrower-group').all()){if(await group.getAttribute('open')===null)await group.locator(':scope > summary').click();await expect(group.locator('.payment-month-group').first()).toBeVisible();for(const month of await group.locator('.payment-month-group').all())if(await month.getAttribute('open')===null)await month.locator(':scope > summary').click()}
+ await expect(list.locator('.borrower-card')).toHaveCount(1);await list.locator('.borrower-card').first().click();return page.getByRole('region',{name:'Full payment details',exact:true});
+}
+test('the closing payment shows the rebate offset line (nothing payable when fully offset)',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,closeRebate());
+ await expect(detail).toContainText('Loan closed · rebate ฿300 offset to L-0398, paid through 12 Oct');await expect(detail).not.toContainText('stays payable');
+});
+test('the closing payment shows the transfer from Lisa when the rebate is paid out, and nothing when the loan has no rebate',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,closeRebate({offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,offsetLoanLabel:null,paidThrough:null,payableAmount:'300'}));
+ await expect(detail).toContainText('Loan closed · rebate ฿300 to ผู้แนะนำจำลอง, transfer from Lisa');
+});
+test('a partly offset rebate adds the payable suffix; a payment without a rebate shows no rebate line',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,closeRebate({offsetAmount:'200',payableAmount:'100'}));
+ await expect(detail).toContainText('rebate ฿200 offset to L-0398, paid through 12 Oct · ฿100 stays payable');
+});
+test('an ordinary payment has no Loan closed rebate line',async({page})=>{
+ await setup(page);const detail=await openClosingPayment(page,null);
+ await expect(detail).not.toContainText('Loan closed');await expect(detail).not.toContainText('rebate');
+});
