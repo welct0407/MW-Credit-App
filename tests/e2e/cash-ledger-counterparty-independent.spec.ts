@@ -24,3 +24,16 @@ test('Thai: the Thai name, else the English name as fallback',async({page})=>{
  await expect(counterparty(page,0)).toHaveAttribute('title','ผู้กู้จำลอง → SYNTHETIC Dad TTB');
  await expect(counterparty(page,1)).toHaveAttribute('title','SYNTHETIC Dad SCB → English Only Borrower');
 });
+test('a ledger cursor refused with 400 restarts once from the first page, without an error',async({page})=>{
+ const reads:string[]=[];let refuse=true;
+ await page.route('http://127.0.0.1:4173/',r=>r.fulfill({contentType:'text/html',body:html}));
+ await page.route('**/api/**',r=>{const u=new URL(r.request().url());if(u.pathname!=='/api/management/cash-movements')return r.fulfill({contentType:'application/json',body:JSON.stringify({items:[],nextCursor:null})});reads.push(u.search);
+  if(u.searchParams.has('cursor')&&refuse)return r.fulfill({status:400,contentType:'application/json',body:JSON.stringify({ok:false,code:'invalid_request'})});
+  return r.fulfill({contentType:'application/json',body:JSON.stringify({items:u.searchParams.has('cursor')?[items[2]]:items.slice(0,2),nextCursor:u.searchParams.has('cursor')?null:'pre-r116-cursor'})})});
+ await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);await expect(page.locator('.cash-ledger-row')).toHaveCount(2);
+ reads.length=0;await page.getByRole('button',{name:'Next transactions',exact:true}).click();
+ await expect.poll(()=>reads).toEqual(['?limit=20&cursor=pre-r116-cursor','?limit=20']);
+ await expect(page.locator('.cash-ledger-row')).toHaveCount(2);await expect(page.getByText('Transactions unavailable.')).toHaveCount(0);await expect(page.getByRole('button',{name:'Previous transactions',exact:true})).toHaveCount(0);
+ // A fresh cursor then pages normally.
+ refuse=false;await page.getByRole('button',{name:'Next transactions',exact:true}).click();await expect(page.locator('.cash-ledger-row')).toHaveCount(1);
+});
