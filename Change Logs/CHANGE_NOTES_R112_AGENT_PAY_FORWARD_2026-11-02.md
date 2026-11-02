@@ -78,20 +78,72 @@ Chase, 2 November 2026 (business day 2026-11-02), on R112 as deployed above (hea
 
 DEV left in place: the three synthetic borrowers (G and H unpaid with an open due charge, R paid through 7 Nov); the daily jobs may add charges to G and H unless auto-charge is switched off.
 
+## Promotion record (Forge, 2 November 2026, UTC)
+Pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R112 to PROD: V125 (functions and two EXECUTE grants), the R112 image on read, command and chat (images only), Hosting, then the agent VM deploy of the merged commit with `pay_forward_options_enabled` left absent (off). No PROD payment, slip, DM or chat write; no forced notification or job.
+- **Authority:** the owner's instruction of 2 November 2026: "Then start release 3, test it and promote to prod too". PR #206 was merged under it.
+- **Freeze:** 2026-11-02T10:53:17Z. Package `adcf610b` (PR #206 merge on `main`; tree identical to `ebfe35dc`; services, apps, database and agent code identical to the DEV-tested `e6e147a1`); generic release kind (schemaVersion 36, `generic-v1`, no runner edit); baseline R111 `a5dddfa7`. Next unused number R113.
+
+| Item | Result |
+| --- | --- |
+| Baseline (PROD, before) | read `00035-2g8`, command `00040-xk5`, notify `00024-ssq`, jobs `00024-fdp`, chat `00019-kgx`, all on `b1e36704…` (R111); settings generation `1793610001956440`; Hosting `1e4b43ffb817273c` (release `1793610089197000`); `loan_manager_prod` head 124 (124 rows, 0 failed), no active sessions; project `clever-oasis-508610-n7`, instance `mw-credit-pg-20261017`, site `mw-credit-prod-737787224638`; agent VM `code_version` `232a4bce`, catalogue revision 33, `pay_forward_options_enabled` absent |
+| Backup at V124 | 10:53:47Z to 10:56:22Z, `prod-promotion-eb660d785d5c4805880e1a90868a7b1f`, dump sha256 `ef7c60276ff579f84dccbf33c5ad093353ef286924d9f429b1e136e40006d6cd`; listing and restore passed; 38 table fingerprints match |
+| SQL package | `release-r112-v125-adcf610b.json` sha256 `b52765f7…0b59` (prepared from DEV at 125; `database/` identical at `e6e147a1` and `adcf610b`); connect preflight 124 to 125 sha256 `8a27d329…26a`; `check` 0 writes, pending 125 |
+| Owner window | `mw_app_prod_journal_owner` only (4 statements; V125 replaces `pwa_submit_agent_receipt_v1` and `pwa_agent_receipt_status_v1`), opened 10:57:50Z, restored 10:59:36Z; readback closed |
+| Flyway | `Invoke-CloudFlyway.py apply`, one grouped transaction (10:57:58Z to 10:59:19Z): V125 3.7 s, installed 10:58:40Z, checksum -1717556698 (as DEV); head 125 (125 rows, 0 failed); `verify --target prod` clean (11:00:10Z) |
+| Readback | `pwa_pay_forward_plan_v1` and `forecast_schedule_v1` gain `mw_integration_agent` EXECUTE (other grantees unchanged; PUBLIC cannot execute the plan); `pwa_submit_agent_receipt_v1` and `pwa_agent_receipt_status_v1` keep owner `mw_app_prod_journal_owner`, SECURITY DEFINER, EXECUTE for the PROD command identity only (`mw_integration_agent` cannot); `pwa_apply_pay_forward_v1` `{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres}` (`mw_app_prod`, the agent and PUBLIC cannot). Before V125 the agent already had table SELECT on Loans, Charges, Repayments and Borrowers (33 columns the plan reads) |
+| Image | Cloud Build `1a23b6c4-0314-44f5-9fb6-fed45042d70d` (`cloudbuild-business.yaml`, PROD builder `mw-credit-app-build-prod`, `git archive` of `adcf610b`), SUCCESS 11:00:26Z to 11:01:04Z, `mw-credit-app-prod/api@sha256:913fa731f3eb369148709594a6dc5a9ed448dd46c94b7481db2e3c3d31e835ac`, tag `keep-r112-runtime` |
+| Halt 1 (runner, 11:02Z) | The first package planned all five images (0/5/0, as instructed). The generic runner `--check` refused it before any apply: R112 changes reach read, command and chat only, so the plan must change exactly those three. Orchestrator decision: the runner is right; apply 0/3/0 with notify and jobs on the R111 image. The five-image plan is kept under `records/superseded/` |
+| Terraform | Settings generation `1793617518810095` (previous `1793610001956440`): `runtime_image_overrides` read, command and chat. Plan 0 add, 3 change, 0 destroy (images only), plan sha256 `50ab1d01…bd92`, JSON `60bb8ebd…6145`; runner `--check` passed; applied 11:04:35Z to 11:05:12Z; re-plan no changes |
+| Revisions | read `00036-6bk`, command `00041-gqr`, chat `00020-g9g` on `913fa731…`; notify `00024-ssq` and jobs `00024-fdp` unchanged on `b1e36704…` (R111); each Ready at 100% |
+| Runner | Generic kind `--check` passed before and after the apply. CI cited per job: check run 41431437422 (`ebfe35dc`), e2e run 41426803050 (`e6e147a1`), terraform run 41203206026 (`cb875ea`), database guards and rebuilds run 41431429500 (`ebfe35dc`), each input-equivalent to `adcf610b`. Agent tests run 41426803233 (`e6e147a1`) cover the agent code. `--apply` 11:06:07Z to 11:06:52Z, live readback passed on the first attempt |
+| Hosting | Version `2e5f470454e4fd11`, release `1793617605071000`, 16 files; `lm.mw-credit.com` build-version R112 (version `9a4fb14fbff56f93e009c285`), entry `/assets/index-DFLLburz.js`, bundle embeds `adcf610`; public config input identical to R111's |
+| Smoke (read-only) | `/health` 200 on read, command and chat; `/api/session` and `/api/chat/models` 401 without a token; preflight from `https://lm.mw-credit.com` 204; notify and jobs Ready on R111; scheduled notify dispatches at 11:06:02Z and 11:07:02Z 200 (observed, not triggered); `sw.js` `no-store`; no ERROR logs from 11:04Z; About reads R112 |
+| Tag | Release tag workflow run 41434260158 (success): annotated `R112` (object `042503c6e33d574328ff710b8252581a3d22df92`) peels to `adcf610b70ced05ba3bb133abd7fdcc58c4cbcbc`; GitHub Release R112 published |
+| Agent VM: fast-forward and dry-run | `update-from-github.sh`: checkout `232a4bce` to `adcf610b` (clean). Dry-run: 6 modules changed (`cli.py`, `config.py`, `partner_review.py`, `receipt_api.py`, `review_cycle.py`, `review_proposal.py`), units unchanged, agent schema shipped through V11 |
+| Agent VM: operator connection | `install` needs a `mw_agent` operator file that can `SET ROLE mw_agent_owner` (absent on the VM, as in R094). A read-only `codex-cloud-read` file read the history but could not set that role (first `install` 11:09:50Z refused before any change); a temporary root-only directory with the `postgres` operator file (password over stdin, never printed) was used and deleted at 11:11Z |
+| Agent VM: freeze, install | Freeze 11:09:43Z, rollback directory `/var/lib/mw-integration-agent/rollback/runtime-20261102T110943407459Z`; install 11:10:17Z to 11:10:22Z (no removed files, no unit change); `check` with the new package `ok`, `activation.pay_forward_options` false against both the live and the candidate catalogue |
+| Halt 2 (agent activate, 11:10:50Z) | `activate` (probe `d330f98c-08da-42e3-9d88-d8e5b32fc18e`) refused in preparation, before the probe or any write: "R112 catalogue must keep every switch". Cause, a defect in the R112 transition of `deploy-runtime.py`: it compares the live catalogue's switches with the repository's, but the live catalogue has `shared_receipt_payment_api`, `receipt_recognition_api` and `chat_messages_relay` enabled while the repository carries them disabled (default deny), so a live host can never pass. As instructed for anything unexpected: `rollback` 11:11:02Z to 11:11:06Z to the freeze directory, timers resumed |
+| Agent VM: after rollback | `/ready` true, `code_version` `232a4bce` (R111-era package; the installed `cli.py` has no pay-forward code), new receiver start 11:11:04Z; configuration 89 keys, `pay_forward_options_enabled` absent; catalogue revision 33; `check` ok; `mw-instagram-webhook`, `mw-receipt-recognition`, `mw-receipt-wake.path`, `mw-receipt-summary.timer`, `mw-conversation-poll.timer` active; no failed units; workers paused 11:09:43Z to 11:11:06Z (about 1.5 minutes). The checkout stays at `adcf610b` (ahead of the deployed `code_version`) |
+| Private records | Package sha256 `56a6587a…8988`; receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R112-HOSTING-RECEIPT.json`; package, release manifest, preflight, owner-window record, plans (including the superseded five-image plan) and the rollback activation copy under `.../promotion-packages/r112/`, outside Git |
+| Credentials | The temporary admin and read credential files (session and VM) are deleted; no secret value was printed |
+| Rollback | PROD: restore `production.activation.before-r112-1793610001956440.tfvars` (read, command and chat to `b1e36704…`), plan 0/3/0, apply, publish, together with Hosting `1e4b43ffb817273c` (release `1793610089197000`). Database: V125 stays on a service rollback (functions and grants only), or the V124 backup above |
+| Agent VM: deploy fix | PR #207 merged as `a0cfabca` (tree `adcf610b` plus the `deploy-runtime.py` R112 transition fix, its test and the note); agent tests run 41435168345 (`d03ffaf4`) green |
+| Agent VM: deploy `a0cfabca` | Fast-forward `adcf610b` to `a0cfabca`; dry-run clean; freeze 11:18:23Z (rollback `/var/lib/mw-integration-agent/rollback/runtime-20261102T111824156344Z`); install 11:18:24Z to 11:18:29Z; activate 11:18:36Z to 11:18:40Z (probe `ca81b020-f05e-4b1e-9684-35aba6a2fd21`). `/ready` true on `a0cfabca`, catalogue revision 34 with the same 14 services enabled as before, `check` ok with `activation.pay_forward_options` false, no failed units. Temporary root-only `postgres` operator file deleted at 11:19Z |
+| Agent VM: activation | Owner, 2 November 2026: "Enable the agent as well". Prerequisites true (`partner_review_execution_enabled`, `database_enabled`, `receipt_summary_enabled`); prior value absent (off). `config-only-change.py apply --tag r112-pay-forward-options` 11:19:11Z to 11:19:23Z, only `pay_forward_options_enabled` changed (to true), backup `/root/config.json.pre-r112-pay-forward-options`. `check` ok with `activation.pay_forward_options` true, `/ready` true, no failed units, triggers resumed. Rollback: `config-only-change.py restore --tag r112-pay-forward-options` (absent, off). No DM, slip, replay or cutover |
+
+Applied and verified: API, SQL and Hosting, and the agent VM on `a0cfabca` with the pay-forward options on (owner authority above). The first live options exchange is pending.
+
 ## Not run
 Skipped and not verified, so not a pass:
-- Live Instagram and any DEV test of the agent loop: there is no DEV agent, no Instagram send was made, and the switch is off.
-- `Run-ProductionAgentReceiptsIndependent.ps1` (a pre-existing Windows cleanup that does not run on Linux).
-- The agent loop in PROD: the switch stays off.
+- Live Instagram: not testable before PROD (no DEV agent); the first real options exchange is the PROD acceptance.
+- The chat purpose card on DEV (no AI Reviewer test Partner); it is covered by CI (`chat.spec` 44/44) and the real-API planner test.
+- `Run-ProductionAgentReceiptsIndependent.ps1` (a pre-existing Windows cleanup that fails on Linux).
 - Thai wording on screen, WebKit and a real iPhone for the chat card.
-- Anything in PROD until the owner's promotion.
+- An authenticated PROD payment or chat write (no PROD Partner token for the operator; none made by rule).
 
 ## Recovery
 Before release: revert the pull request (Git baseline R111 `a5dddfa7` plus later main commits). Agent: while off, nothing to do; after activation set `pay_forward_options_enabled` to false by the configuration-only route (see the integration-agent note). Schema: V125 is functions and two EXECUTE grants; rollback is a later migration restoring the V124 bodies of `pwa_submit_agent_receipt_v1`, `pwa_agent_receipt_status_v1` and `pwa_effective_payment_plan_v2` and revoking the two grants from `mw_integration_agent`. Posted v9 payments are ordinary payments.
 
 ## Open questions
-Owner: when to activate `pay_forward_options_enabled` after PROD has V125 (a separate step and decision).
+None for the owner. The agent switch was activated under "Enable the agent as well".
 
 ## Remaining work
-- Forge: DEV deployment of V125 and the images; PROD promotion under the owner's instruction after DEV proof.
-- Owner: activation of the agent switch after PROD has V125.
+- Owner: PROD acceptance, the first real options exchange and chat purpose card.
+- Open: an email-only Partner stays held (email is informational only); the items in Not run.
+- Data Dictionary, due with owner approval: new entries for the routines `pwa_pay_forward_plan_v1` (since R110), `pwa_apply_pay_forward_v1`, `pwa_notify_content_v2` and `pwa_referral_rebate_projection_v1` (R111).
+- R113 (Settle and close loans from Receive payment) is open.
+- Done: DEV deployment and test, merge, PROD promotion, the agent deploy and activation, and the Data Dictionary PROD capture (closure below).
+
+## Closure (2 November 2026)
+Owner instructions: "Then start release 3, test it and promote to prod too" (PR #206 merged and promoted) and "Enable the agent as well" (agent switch, 11:19Z). DEV proof preceded PROD (DEV record above).
+
+Tag record: the annotated tag `R112` (object `042503c6e33d574328ff710b8252581a3d22df92`) points at the package commit `adcf610b70ced05ba3bb133abd7fdcc58c4cbcbc` (PR #206 on `main`), created by the Release tag workflow run 41434260158 (GitHub Release R112 published). The agent deploy correction `a0cfabca` (PR #207) came after the tag and is deployed on the VM. Freeze 2026-11-02T10:53:17Z, baseline R111 `a5dddfa7`. R113 is opened in this closure and R114 is the next unused number.
+
+Technical access recorded in the Environment inventory: V125 applied to PROD (EXECUTE on `pwa_pay_forward_plan_v1` and `forecast_schedule_v1` for `mw_integration_agent`; the agent already read the tables the plan uses), the agent code `a0cfabca` with catalogue revision 34, and the switch `pay_forward_options_enabled` on.
+
+Data Dictionary (R103 procedure, read-only): `capture_postgresql.py production` as `codex-cloud-read` through the Auth Proxy tunnel on `loan_manager_prod` (flyway head 125, 225 routines, 99 relations), output under a private root outside the repository. Targeted reconciliation with `--only` regenerated four existing entries: the routines `pwa_submit_agent_receipt_v1`, `pwa_agent_receipt_status_v1`, `pwa_effective_payment_plan_v2` and `forecast_schedule_v1`. V125 adds no routine, table or column, so nothing new is needed for it; the earlier new routines remain due (see Remaining work). `dictionary.py index` and `validate` pass. Evidence: [plan](../project/outputs/dictionary-r112-20261102/plan.json), [coverage](../project/outputs/dictionary-r112-20261102/coverage.json) and [observations](../project/outputs/dictionary-r112-20261102/production-postgresql-observations.json).
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R109_DEFAULT_LOSS_KEEP_CHARGES_2026-11-01.md` (R109 left the retention window: R113 Open; R112, R111, R110 Released) and its uncited evidence `project/outputs/dictionary-r109-20261101/`. The links to the note in the Release tracker, Development Changes, the Environment inventory and Solution Design now point to the commit permalink `a0cfabca`, the last commit where it exists. No other change note or evidence file is outside the window or uncited.

@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "commit": "2a158a68b274e4ba7f661b9d77c06f6565bb5500"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/forecast-schedule-v1.yaml"
     "identity":
       "system": "postgresql"
@@ -103,6 +103,6 @@
     "settings":
     - "search_path=pg_catalog, public"
     "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres,mw_app_prod=X/postgres,\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\
-      \"=X/postgres\",mw_chat_read_prod=X/postgres}"
+      \"=X/postgres\",mw_chat_read_prod=X/postgres,mw_integration_agent=X/postgres}"
     "comment": null
     "extension": null
