@@ -12,7 +12,7 @@ import {CompactPager} from './CompactPager';
 import {displayDate,displayTimestamp} from './display-date';
 import {borrowerLabel} from './borrower-label';
 const chartDefinitions=[['distribution','Loan Distribution','สัดส่วนสินเชื่อ'],['profit30','Profit Contribution 30D','สัดส่วนกำไร 30 วัน'],['dailyInterest','Daily Interest Contribution','สัดส่วนดอกเบี้ยรายวัน'],['projected','Projected Monthly Profit Contribution','สัดส่วนประมาณการกำไรรายเดือน'],['daily','Daily Profit','กำไรรายวัน'],['weekly','Weekly Profit','กำไรรายสัปดาห์'],['monthly','Monthly Profit','กำไรรายเดือน'],['outstanding30','Daily Outstanding Principal 30D','เงินต้นคงค้างรายวัน 30 วัน'],['profit30Line','Daily Profit Last 30D','กำไรรายวัน 30 วัน']] as const;
-// R116: the write-off rows (principalWriteOffs lifetime from "Total Principal Loss", principalWriteOffsMtd from V128) sit
+// R116: the write-off rows (principalWriteOffs lifetime ledger from V129, principalWriteOffsMtd from V128) sit
 // between expenses and net profit and are hidden only when a cached or older overview lacks the field; an explicit null
 // reads Unavailable. ANL-4: expenses and write-offs are red like the Dashboard (#222 at ฿0).
 const writeOffKeys=['principalWriteOffs','principalWriteOffsMtd'],costKeys=['totalBusinessExpenses','expensesMtd',...writeOffKeys];

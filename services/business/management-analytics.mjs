@@ -13,11 +13,12 @@ export async function readManagementAnalytics(client,{id=null,limit=25,cursor=nu
 export async function readAnalyticsOverview(client){
  const projection=Object.entries(metrics).map(([key,column])=>`"${column}"::text AS "${key}"`).join(',');
  // R116: the principal write-offs are read by name like the Dashboard's principalLoss: "Principal Write-offs MTD" (V128) and
- // the lifetime "Total Principal Loss" (V120, so Total Profit - Total Business Expenses - write-offs = Net Profit). A database
+ // the lifetime ledger "Principal Write-offs" (V129, the df10: pairs Net Profit subtracts, so Total Profit - Total Business
+ // Expenses - write-offs = Net Profit; not "Total Principal Loss", which also counts legacy losses with no pair). A database
  // without the column omits the metric (the PWA hides the row) instead of failing the overview; a present column carries its
  // value, null as null (shown Unavailable; both columns are coalesced, so never null from V128), and a present non-null value
  // must be numeric.
- const optional={principalWriteOffsMtd:'Principal Write-offs MTD',principalWriteOffs:'Total Principal Loss'};
+ const optional={principalWriteOffsMtd:'Principal Write-offs MTD',principalWriteOffs:'Principal Write-offs'};
  const rows=(await client.query(`SELECT DISTINCT ${projection},${Object.entries(optional).map(([key,column])=>`to_jsonb(s)->>'${column}' AS "${key}",to_jsonb(s) ? '${column}' AS "${key}Present"`).join(',')} FROM public.olap_portfolio_summary s LIMIT 2`)).rows;if(rows.length!==1)throw Error('Analytics provider unavailable');
  for(const key of Object.keys(optional)){const present=rows[0][key+'Present']===true,value=rows[0][key];delete rows[0][key+'Present'];
   if(!present)delete rows[0][key];else if(value!==null&&(typeof value!=='string'||!/^-?[0-9]+(?:\.[0-9]+)?$/.test(value)))throw Error('Analytics provider unavailable');}

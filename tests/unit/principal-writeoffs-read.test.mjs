@@ -7,7 +7,8 @@ import {readAnalyticsOverview} from '../../services/business/management-analytic
 // string (0 included, the PWA shows ฿0); a database before V128 has no such column, so the field is omitted (the PWA hides
 // the row), never fabricated as zero; a present column with a null value is carried as null (the PWA shows Unavailable; the
 // presence flag tells the two apart, since ->> is NULL for both); a present non-numeric value is refused like any other figure. Management Analytics
-// also carries the lifetime write-offs ("Total Principal Loss", V120) as principalWriteOffs, under the same rules.
+// also carries the lifetime ledger write-offs ("Principal Write-offs", V129) as principalWriteOffs, under the same rules; it
+// never falls back to "Total Principal Loss" (the Loans column, which also counts legacy losses with no df10: pair).
 const income={operatingIncomeMtd:'30',expensesMtd:'-5',netProfitMtd:'-15',tommyWithdrawnMtd:'0',lisaWithdrawnMtd:'0',unsettledProfitMtd:'-15',cashPoolRemaining:'1000',businessCashHeld:null};
 const summary={pendingPaymentAmount:'27',todayProfit:'30',yesterdayProfit:'3',netProfit:'-15',notPaid:'1',partiallyPaid:'0',overdue:'2',longOverdue:'1',fullyPaid:'0',
  expectedDailyInterest:'180',realizedProfitMtd:'30',forecastRemainingInterest:'900',projectedMonthlyProfit:'930',totalCashPool:'500000',activeLoanProfit:'-4000',profitCoverageRatio:'0',principalLoss:'40'};
@@ -38,11 +39,12 @@ test('present: the month and lifetime write-offs reach the Management Analytics 
  const c=client({overview:{...analytics,principalWriteOffsMtd:'40',principalWriteOffs:'40'}});
  const value=await readAnalyticsOverview(c);
  assert.equal(value.metrics.principalWriteOffsMtd,'40');assert.equal(value.metrics.principalWriteOffs,'40');assert.equal(value.metrics.realizedProfitMtd,'30');assert.deepEqual(value.refreshTarget,{id:'ST',version:'v'});
- assert.match(c.queries.find(sql=>sql.includes('olap_portfolio_summary')),/to_jsonb\(s\)->>'Principal Write-offs MTD' AS "principalWriteOffsMtd",to_jsonb\(s\) \? 'Principal Write-offs MTD' AS "principalWriteOffsMtdPresent",to_jsonb\(s\)->>'Total Principal Loss' AS "principalWriteOffs",to_jsonb\(s\) \? 'Total Principal Loss' AS "principalWriteOffsPresent" FROM public\.olap_portfolio_summary s LIMIT 2/);
+ assert.match(c.queries.find(sql=>sql.includes('olap_portfolio_summary')),/to_jsonb\(s\)->>'Principal Write-offs MTD' AS "principalWriteOffsMtd",to_jsonb\(s\) \? 'Principal Write-offs MTD' AS "principalWriteOffsMtdPresent",to_jsonb\(s\)->>'Principal Write-offs' AS "principalWriteOffs",to_jsonb\(s\) \? 'Principal Write-offs' AS "principalWriteOffsPresent" FROM public\.olap_portfolio_summary s LIMIT 2/);
  const zero=(await readAnalyticsOverview(client({overview:{...analytics,principalWriteOffsMtd:'0',principalWriteOffs:'0'}}))).metrics;
  assert.deepEqual([zero.principalWriteOffsMtd,zero.principalWriteOffs],['0','0'],'zero is carried; the PWA shows ฿0');
- const lifetimeOnly=(await readAnalyticsOverview(client({overview:{...analytics,principalWriteOffs:'40'}}))).metrics;
- assert.equal('principalWriteOffsMtd' in lifetimeOnly,false,'a V120-V127 database carries only the lifetime figure');assert.equal(lifetimeOnly.principalWriteOffs,'40');
+ const v128=(await readAnalyticsOverview(client({overview:{...analytics,principalWriteOffsMtd:'40'}}))).metrics;
+ assert.equal('principalWriteOffs' in v128,false,'a V128 database (before V129) omits the lifetime row');assert.equal(v128.principalWriteOffsMtd,'40');
+ assert.doesNotMatch(c.queries.find(sql=>sql.includes('olap_portfolio_summary')),/Total Principal Loss/,'no fallback to the Loans column');
 });
 test('omitted before V128: an absent column omits the field, never zero, and the other figures are unchanged',async()=>{
  const overview=await readCashOverview(client({cash:{...income}}));

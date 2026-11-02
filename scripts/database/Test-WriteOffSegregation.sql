@@ -15,6 +15,9 @@
 --   the cash identity: "Business Cash Held" and "Cash Reconciliation Difference" keep their pre-write-off values, and
 --   "Cash Pool Remaining" + "Unsettled Profit MTD" keeps its pre-write-off value (no cash moves; the pool regains the
 --   written-off principal that unsettled profit loses).
+-- V129: the lifetime ledger "Principal Write-offs" of the portfolio summary moves with every posting and keeps
+-- "Total Profit" - "Total Business Expenses" - "Principal Write-offs" = "Net Profit"; a legacy loan whose "Default Loss
+-- Amount" has no df10: repayment (the DEV finding) raises "Total Principal Loss" but not the ledger column or net profit.
 -- Then the column positions: every existing column in place, the write-off column last. Rolled back.
 BEGIN;
 \ir Test-CashAccountFixtures.sql
@@ -28,6 +31,7 @@ CREATE FUNCTION pg_temp.wo_snapshot() RETURNS jsonb LANGUAGE sql AS $$
   'cd_unsettled',c."Unsettled Profit MTD",'cd_draws',c."Tommy Withdrawn MTD"+c."Lisa Withdrawn MTD",'cd_pool',c."Cash Pool Remaining",'cd_held',c."Business Cash Held",
   'ps_total',p."Total Profit",'ps_today',p."Today's Profit",'ps_realized',p."Realized Profit MTD",'ps_income',p."Operating Income MTD",
   'ps_net',p."Net Profit",'ps_net_mtd',p."Net Profit MTD",'ps_expenses',p."Expenses MTD",'ps_writeoff',p."Principal Write-offs MTD",'ps_loss',p."Total Principal Loss",
+  'ps_writeoffs',p."Principal Write-offs",'ps_expenses_total',p."Total Business Expenses",
   'st_income',s."Operating Income MTD",'st_net',s."Net Profit MTD",'st_writeoff',s."Principal Write-offs MTD",'st_unsettled',s."Unsettled Profit MTD",
   'st_difference',s."Cash Reconciliation Difference",
   'mo_income',m."Operating Income",'mo_expenses',m."Expenses",'mo_net',m."Net Profit",'mo_writeoff',m."Principal Write-offs",
@@ -48,7 +52,8 @@ INSERT INTO wo_snapshots VALUES ('base',pg_temp.wo_snapshot());
 -- no write-off (the views coalesce to 0), so the PWA's Unavailable for an explicit null cannot come from V128.
 SELECT pg_temp.wo_assert((SELECT to_jsonb(d) ? 'Principal Write-offs MTD' AND to_jsonb(d)->>'Principal Write-offs MTD' IS NOT NULL FROM public."Cash Dashboard" d)
  AND (SELECT bool_and(to_jsonb(s) ? 'Principal Write-offs MTD' AND to_jsonb(s)->>'Principal Write-offs MTD' IS NOT NULL AND to_jsonb(s) ? 'Total Principal Loss'
-  AND to_jsonb(s)->>'Total Principal Loss' IS NOT NULL) FROM public.olap_portfolio_summary s),'the API write-off projections are present and never null');
+  AND to_jsonb(s)->>'Total Principal Loss' IS NOT NULL AND to_jsonb(s) ? 'Principal Write-offs' AND to_jsonb(s)->>'Principal Write-offs' IS NOT NULL)
+  FROM public.olap_portfolio_summary s),'the API write-off projections are present and never null');
 -- Every figure of a phase against the base, plus the cash identity against the phase before the write-off.
 CREATE FUNCTION pg_temp.wo_phase(label text,gross numeric,writeoff numeric,loss numeric,compare_to text DEFAULT NULL) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE b jsonb:=(SELECT value FROM wo_snapshots WHERE wo_snapshots.label='base'); v jsonb:=pg_temp.wo_snapshot(); k text; want numeric; bad text:='';
@@ -57,14 +62,18 @@ BEGIN
  INSERT INTO wo_snapshots VALUES (label,v);
  FOR k,want IN SELECT key,value FROM jsonb_each_text(jsonb_build_object(
    'cd_income',gross,'ps_total',gross,'ps_today',gross,'ps_realized',gross,'ps_income',gross,'st_income',gross,'mo_income',gross,'da_income',gross,'ev_income',gross,
-   'cd_writeoff',writeoff,'ps_writeoff',writeoff,'st_writeoff',writeoff,'mo_writeoff',writeoff,'da_writeoff',writeoff,'ev_writeoff',writeoff,
+   'cd_writeoff',writeoff,'ps_writeoff',writeoff,'ps_writeoffs',writeoff,'st_writeoff',writeoff,'mo_writeoff',writeoff,'da_writeoff',writeoff,'ev_writeoff',writeoff,
    'cd_net',gross-5-writeoff,'ps_net',gross-5-writeoff,'ps_net_mtd',gross-5-writeoff,'st_net',gross-5-writeoff,'mo_net',gross-5-writeoff,
    'da_net',gross-5-writeoff,'da_through',gross-5-writeoff,
-   'cd_expenses',-5,'ps_expenses',5,'mo_expenses',5,'da_expenses',5,'ev_expenses',5,'ps_loss',loss,'df10',loss)) AS x(key,value) LOOP
+   'cd_expenses',-5,'ps_expenses',5,'ps_expenses_total',5,'mo_expenses',5,'da_expenses',5,'ev_expenses',5,'ps_loss',loss,'df10',loss)) AS x(key,value) LOOP
   delta:=(v->>k)::numeric-(b->>k)::numeric;
   IF delta IS DISTINCT FROM want THEN bad:=bad||format(' %s=%s (want %s)',k,delta,want); END IF;
  END LOOP;
  IF bad<>'' THEN RAISE EXCEPTION 'Write-off segregation %:%',label,bad; END IF;
+ -- On deltas: each summary column is rounded to whole baht on its own, so rows other suites leave could differ by a fraction.
+ PERFORM pg_temp.wo_assert(((v->>'ps_total')::numeric-(b->>'ps_total')::numeric)-((v->>'ps_expenses_total')::numeric-(b->>'ps_expenses_total')::numeric)
+   -((v->>'ps_writeoffs')::numeric-(b->>'ps_writeoffs')::numeric)=(v->>'ps_net')::numeric-(b->>'ps_net')::numeric,
+  label||': Total Profit - Total Business Expenses - Principal Write-offs = Net Profit (V129)');
  PERFORM pg_temp.wo_assert((v->>'cd_unsettled')::numeric=(v->>'cd_net')::numeric+(v->>'cd_draws')::numeric
    AND (v->>'st_unsettled')::numeric=(v->>'cd_unsettled')::numeric,label||': unsettled profit = net profit MTD less the FIFO draws');
  IF compare_to IS NOT NULL THEN
@@ -113,13 +122,31 @@ SELECT pg_temp.wo_assert((SELECT "Defaulted" AND "Loan Status"='ปิดยอ�
 SELECT pg_temp.wo_phase('write off and close 60',30,60,60,'before write-off');
 UPDATE "Loans" SET "Defaulted"=false WHERE "Row ID"='WO-2';
 SELECT pg_temp.wo_phase('write-off undo',30,0,0,'before write-off');
+-- The DEV finding (V129): a legacy loan defaulted before the dated postings carries a "Default Loss Amount" with no df10:
+-- repayment. Modelled without touching any trigger: the loss charge of the old shape alone, then the amount, which the
+-- transition accepts because it equals the charge ledger. "Total Principal Loss" rises by 25; the ledger write-offs,
+-- gross and net profit do not, and the lifetime identity still holds on the ledger column.
+INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest")
+VALUES('CI-LISA','WO-LEGACY','WO-B',current_date-40,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,0::money);
+INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes")
+VALUES('df10:9:WO-LEGACY','WO-LEGACY',current_date-30,25::money,(-25)::money,'Synthetic legacy loss without its repayment');
+UPDATE "Loans" SET "Default Loss Amount"=25::money WHERE "Row ID"='WO-LEGACY';
+SELECT pg_temp.wo_assert((SELECT "Default Loss Amount"=25::money FROM "Loans" WHERE "Row ID"='WO-LEGACY')
+ AND NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Ref Loans"='WO-LEGACY'),'legacy fixture: a recorded loss with no ledger pair');
+SELECT pg_temp.wo_assert((SELECT (s."Total Principal Loss"-(b.value->>'ps_loss')::numeric)=25 AND (s."Principal Write-offs"-(b.value->>'ps_writeoffs')::numeric)=0
+  AND s."Total Profit"-(b.value->>'ps_total')::numeric=30 AND s."Net Profit"-(b.value->>'ps_net')::numeric=25
+  AND (s."Total Profit"-(b.value->>'ps_total')::numeric)-(s."Total Business Expenses"-(b.value->>'ps_expenses_total')::numeric)
+   -(s."Principal Write-offs"-(b.value->>'ps_writeoffs')::numeric)=s."Net Profit"-(b.value->>'ps_net')::numeric
+  AND s."Total Principal Loss"-s."Principal Write-offs"<>(b.value->>'ps_loss')::numeric-(b.value->>'ps_writeoffs')::numeric
+ FROM (SELECT * FROM public.olap_portfolio_summary LIMIT 1) s,wo_snapshots b WHERE b.label='base'),
+ 'legacy loss: Total Principal Loss +25, ledger Principal Write-offs and net unchanged, the identity holds on the ledger column');
 -- Column positions: the existing columns in place, the write-off column appended last.
 SELECT pg_temp.wo_assert((SELECT array_agg(attname::text ORDER BY attnum DESC) FROM (SELECT attname,attnum FROM pg_attribute
   WHERE attrelid=r.rel::regclass AND attnum>0 AND NOT attisdropped ORDER BY attnum DESC LIMIT 2) a)=ARRAY[r.appended,r.previous]
   AND (SELECT count(*) FROM pg_attribute WHERE attrelid=r.rel::regclass AND attnum>0 AND NOT attisdropped)=r.width
   AND (SELECT attnum FROM pg_attribute WHERE attrelid=r.rel::regclass AND attname=r.income)=r.income_position,r.rel||' column positions')
 FROM (VALUES ('public."Cash Dashboard"','Principal Write-offs MTD','Business Cash Held',10,'Operating Income MTD',2),
- ('public.olap_portfolio_summary','Principal Write-offs MTD','Total Principal Loss',45,'Operating Income MTD',42),
+ ('public.olap_portfolio_summary','Principal Write-offs','Principal Write-offs MTD',46,'Operating Income MTD',42),
  ('public.reporting_income_statement','Principal Write-offs MTD','Cash Reconciliation Status',19,'Operating Income MTD',5),
  ('public.reporting_income_monthly','Principal Write-offs','In Last 12 Months',10,'Operating Income',2),
  ('public.reporting_income_daily','Principal Write-offs','Net Profit Through Date',14,'Operating Income',3),
