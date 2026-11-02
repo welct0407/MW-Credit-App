@@ -1,0 +1,58 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r114-20261102/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_referral_rebate_projection_v1"
+    "arguments": "p_loan text, p_calculation jsonb"
+    "kind": "f"
+    "arguments_with_defaults": "p_loan text, p_calculation jsonb"
+    "result": "jsonb"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb)
+       RETURNS jsonb
+       LANGUAGE plpgsql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE l public."Loans"%ROWTYPE; referrer public."Borrowers"%ROWTYPE; principal numeric; profit numeric; rebate numeric;
+      BEGIN
+       SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan;
+       IF NOT FOUND OR coalesce(l."Defaulted",false) OR jsonb_typeof(p_calculation->'allocations') IS DISTINCT FROM 'array' THEN RETURN NULL; END IF;
+       IF EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Source Key"='REFERRAL_REBATE:'||p_loan) THEN RETURN NULL; END IF;
+       SELECT b.* INTO referrer FROM public."Borrowers" own JOIN public."Borrowers" b ON b."Row ID"=own."Ref Referrer" WHERE own."Row ID"=l."Ref Borrowers";
+       IF NOT FOUND THEN RETURN NULL; END IF;
+       -- create_referral_rebate's rule on the state after the close posts: principal fully repaid, 10% of interest, at most 1,000.
+       SELECT coalesce(sum("Principal Paid"::numeric),0),coalesce(sum("Interest Paid"::numeric),0) INTO principal,profit FROM public."Repayments" WHERE "Ref Loans"=p_loan;
+       SELECT principal+coalesce(sum((x->>'principal')::numeric),0),profit+coalesce(sum((x->>'interest')::numeric),0) INTO principal,profit FROM jsonb_array_elements(p_calculation->'allocations') x;
+       IF principal<l."Principal Amount"::numeric OR profit<=0 THEN RETURN NULL; END IF;
+       rebate:=least(round(profit*0.10),1000);
+       IF rebate<=0 THEN RETURN NULL; END IF;
+       RETURN jsonb_build_object('amount',trunc(rebate)::text,'referrerId',referrer."Row ID",'referrerName',referrer."Borrower Name",'referrerDescription',referrer."Description",
+        'selfReferral',referrer."Row ID"=l."Ref Borrowers",
+        'hasOpenLoan',EXISTS(SELECT 1 FROM public."Loans" x WHERE x."Ref Borrowers"=referrer."Row ID" AND x."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(x."Defaulted",false)));
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod=X/postgres}"
+    "comment": "R111: the referral rebate a Loan Close with this calculation creates (create_referral_rebate rule), its referrer\
+      \ and whether the referrer has an open loan; null when none. Read only."
+    "extension": null

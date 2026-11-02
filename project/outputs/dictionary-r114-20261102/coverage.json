@@ -1,0 +1,110 @@
+{
+  "status": "in progress",
+  "targets": {
+    "postgresql-production": {
+      "identity": {
+        "instance": "mw-credit-pg-20261017",
+        "database": "loan_manager_prod",
+        "route": "cloud-sql-auth-proxy",
+        "host": "127.0.0.1",
+        "port": 15432
+      },
+      "version_or_hash": "d70471a1284263cd9c0f58901f7e2edc9f585d3b2ab9fef5afd7b2a765f75409",
+      "counts": {
+        "schemas": 4,
+        "relations": 99,
+        "columns": 1520,
+        "constraints": 451,
+        "indexes": 91,
+        "routines": 225,
+        "triggers": 430,
+        "sequences": 2,
+        "types": 0,
+        "policies": 0,
+        "extensions": 2,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 7,
+        "role_dependencies": 40,
+        "relevant_roles": 52,
+        "role_memberships": 51,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 126,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 1198,
+        "jobs": 0
+      },
+      "captured_utc": "2026-11-02T13:00:48.208651+00:00"
+    }
+  },
+  "objects": [
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "d70471a1284263cd9c0f58901f7e2edc9f585d3b2ab9fef5afd7b2a765f75409",
+      "object_kind": "routine",
+      "object_name": "public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-apply-pay-forward-v1-p-principal-jsonb-p-materialize-jsonb-p-today-date-2e1bffa9.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r114-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "d70471a1284263cd9c0f58901f7e2edc9f585d3b2ab9fef5afd7b2a765f75409",
+      "object_kind": "routine",
+      "object_name": "public.pwa_notify_content_v2(delivery uuid, generation bigint)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-notify-content-v2-delivery-uuid-generation-bigint-9584b973.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r114-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "d70471a1284263cd9c0f58901f7e2edc9f585d3b2ab9fef5afd7b2a765f75409",
+      "object_kind": "routine",
+      "object_name": "public.pwa_pay_forward_plan_v1(p_borrower text, p_amount numeric, p_day date, p_purpose jsonb)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-pay-forward-plan-v1-p-borrower-text-p-amount-numeric-p-day-date-p-purpose-jsonb-1f8d4769.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r114-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "d70471a1284263cd9c0f58901f7e2edc9f585d3b2ab9fef5afd7b2a765f75409",
+      "object_kind": "routine",
+      "object_name": "public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-referral-rebate-projection-v1-p-loan-text-p-calculation-jsonb-11d6997c.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r114-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    }
+  ]
+}

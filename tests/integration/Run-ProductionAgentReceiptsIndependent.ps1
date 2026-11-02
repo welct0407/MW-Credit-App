@@ -2,7 +2,6 @@ param([string]$TestNamePattern)
 $ErrorActionPreference='Stop'
 if($env:CI -ne 'true'){. "$PSScriptRoot/../../scripts/Enter-Dev.ps1"}
 . "$PSScriptRoot/../../scripts/database/Common.ps1"
-$pgBin=Get-PgBin
 $token=[guid]::NewGuid().ToString('N')
 $fixtureRoot=Join-Path ([IO.Path]::GetTempPath()) ('mw-phase8-'+$token)
 $data=Join-Path $fixtureRoot 'data';$database='loan_manager_dev'
@@ -14,10 +13,11 @@ $names=@('PHASE8_TEST_DISPOSABLE','PHASE8_TEST_HOST','PHASE8_TEST_PORT','PHASE8_
 Get-ChildItem Env:FLYWAY_* -ErrorAction SilentlyContinue | ForEach-Object {$names+=$_.Name}
 foreach($name in $names){$saved[$name]=[Environment]::GetEnvironmentVariable($name);[Environment]::SetEnvironmentVariable($name,$null)}
 try {
- & (Join-Path $pgBin 'initdb.exe') -D $data -U postgres --auth=trust --encoding=UTF8 --locale=C | Out-Null
+ # R114: Common.ps1's cross-platform tools (initdb/pg_ctl with or without .exe; hidden start on Windows, the socket
+ # inside the owned fixture root on Linux).
+ & (Get-PgTool initdb) -D $data -U postgres --auth=trust --encoding=UTF8 --locale=C | Out-Null
  if($LASTEXITCODE){throw 'Disposable initdb failed'}
- $process=Start-Process -FilePath (Join-Path $pgBin 'pg_ctl.exe') -ArgumentList @('-D',('"'+$data+'"'),'-l',('"'+(Join-Path $fixtureRoot 'postgres.log')+'"'),'-o',('"-h 127.0.0.1 -p '+$fixturePort+'"'),'-w','start') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixtureRoot 'start.out') -RedirectStandardError (Join-Path $fixtureRoot 'start.err')
- $process.WaitForExit();if($process.ExitCode){throw 'Disposable PostgreSQL start failed'};$started=$true
+ Start-PgServer $data (Join-Path $fixtureRoot 'postgres.log') $fixturePort $fixtureRoot;$started=$true
  $env:PHASE8_TEST_DISPOSABLE='1';$env:PHASE8_TEST_HOST='127.0.0.1';$env:PHASE8_TEST_PORT=[string]$fixturePort;$env:PHASE8_TEST_DATABASE=$database;$env:PHASE8_TEST_USER='postgres';$env:PHASE8_TEST_DATA_DIRECTORY=$data
  $env:PHASE8_TEST_FLYWAY_PATH=Get-FlywayPath;$env:PHASE8_TEST_REPOSITORY=$DbRepoRoot
  $arguments=@('--test','--test-concurrency=1');if($TestNamePattern){$arguments+=('--test-name-pattern='+$TestNamePattern)}
@@ -25,9 +25,11 @@ try {
  if($LASTEXITCODE){throw 'Phase8 identity tests failed'}
 } finally {
  foreach($name in (@($names)+@('FLYWAY_URL','FLYWAY_USER','FLYWAY_CONFIG_FILES')|Select-Object -Unique)){[Environment]::SetEnvironmentVariable($name,$saved[$name])}
- if($started){& (Join-Path $pgBin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null;if($LASTEXITCODE){throw "Owned database stop failed; retained $fixtureRoot"}}
+ if($started){Stop-PgServer $data;if($LASTEXITCODE){throw "Owned database stop failed; retained $fixtureRoot"}}
  $resolved=[IO.Path]::GetFullPath($fixtureRoot);$temp=[IO.Path]::GetFullPath([IO.Path]::GetTempPath())
- if((Split-Path $resolved -Parent).TrimEnd('\') -ne $temp.TrimEnd('\') -or (Split-Path $resolved -Leaf) -ne ('mw-phase8-'+$token)){throw 'Cleanup containment failed'}
+ # R114: compare without a trailing separator of either kind (Windows \, Linux /), so /tmp/ and /tmp match as C:\Temp\ did.
+ $separators=[char[]]@([IO.Path]::DirectorySeparatorChar,[IO.Path]::AltDirectorySeparatorChar)
+ if([IO.Path]::GetDirectoryName($resolved).TrimEnd($separators) -ne $temp.TrimEnd($separators) -or [IO.Path]::GetFileName($resolved) -ne ('mw-phase8-'+$token)){throw 'Cleanup containment failed'}
  if((Get-Item -LiteralPath $resolved).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Cleanup root link refused'}
  $ancestor=Split-Path $resolved -Parent
  while($ancestor){if((Get-Item -LiteralPath $ancestor).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Cleanup ancestor link refused'};$next=Split-Path $ancestor -Parent;if($next -eq $ancestor){break};$ancestor=$next}

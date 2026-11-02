@@ -61,6 +61,9 @@ try {
   # R112: the chat service's payment planner and v10 command builder against the real command service (card.purposeOptions numbers, purposes, refusals), same cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/chat-payment-plan-independent.test.mjs"
   if($LASTEXITCODE){throw 'Chat payment plan integration checks failed'}
+  # R114 COL-2: the Collection read's prepaid source with and without the reader's Payments and Repayments."Ref Payment" column grants (R109 guard), same cluster.
+  & node --test --test-concurrency=1 "$PSScriptRoot/collection-prepaid-source-independent.test.mjs"
+  if($LASTEXITCODE){throw 'Collection prepaid source integration checks failed'}
   # R109: Default Loan with a loss amount and kept charges (V120), on the same head cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/default-loss-independent.test.mjs"
   if($LASTEXITCODE){throw 'Default loss integration checks failed'}
