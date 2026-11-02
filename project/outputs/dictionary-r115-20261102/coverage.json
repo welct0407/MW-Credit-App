@@ -9,7 +9,7 @@
         "host": "127.0.0.1",
         "port": 15432
       },
-      "version_or_hash": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "version_or_hash": "dae791cd1346aa91d2b9f781905cf79643ff401730915e4d1802b51a9e305abc",
       "counts": {
         "schemas": 4,
         "relations": 99,
@@ -32,77 +32,77 @@
         "subscriptions": 0,
         "event_triggers": 0,
         "rules": 0,
-        "flyway": 125,
+        "flyway": 127,
         "foreign_tables": 0,
         "aggregates": 0,
         "view_dependencies": 1198,
         "jobs": 0
       },
-      "captured_utc": "2026-11-02T11:21:11.139086+00:00"
+      "captured_utc": "2026-11-02T17:26:53.983448+00:00"
     }
   },
   "objects": [
     {
       "target": "postgresql-production",
       "source_identity": "postgresql-production",
-      "source_version_or_capture": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "source_version_or_capture": "dae791cd1346aa91d2b9f781905cf79643ff401730915e4d1802b51a9e305abc",
       "object_kind": "routine",
-      "object_name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
-      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/forecast-schedule-v1.yaml",
+      "object_name": "public.guard_cash_ledger()",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-guard-cash-ledger-109c85eb.yaml",
       "status": "updated",
       "expected_properties": 20,
       "verified_properties": 0,
       "unknown_properties": [],
       "evidence": [
-        "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+        "outputs/dictionary-r115-20261102/production-postgresql-observations.json"
       ],
       "last_checked_utc": null
     },
     {
       "target": "postgresql-production",
       "source_identity": "postgresql-production",
-      "source_version_or_capture": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "source_version_or_capture": "dae791cd1346aa91d2b9f781905cf79643ff401730915e4d1802b51a9e305abc",
       "object_kind": "routine",
-      "object_name": "public.pwa_agent_receipt_status_v1(request_id uuid, actor_issuer text, actor_subject text)",
-      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-agent-receipt-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-f1658485.yaml",
+      "object_name": "public.pwa_apply_management_financial_v2(payload text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-apply-management-financial-v2-payload-text-69f1b89c.yaml",
       "status": "updated",
       "expected_properties": 20,
       "verified_properties": 0,
       "unknown_properties": [],
       "evidence": [
-        "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+        "outputs/dictionary-r115-20261102/production-postgresql-observations.json"
       ],
       "last_checked_utc": null
     },
     {
       "target": "postgresql-production",
       "source_identity": "postgresql-production",
-      "source_version_or_capture": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "source_version_or_capture": "dae791cd1346aa91d2b9f781905cf79643ff401730915e4d1802b51a9e305abc",
       "object_kind": "routine",
-      "object_name": "public.pwa_effective_payment_plan_v2(p_id text)",
-      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml",
+      "object_name": "public.pwa_management_financial_text_v2(op text, i jsonb)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-management-financial-text-v2-op-text-i-jsonb-034ff4ca.yaml",
       "status": "updated",
       "expected_properties": 20,
       "verified_properties": 0,
       "unknown_properties": [],
       "evidence": [
-        "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+        "outputs/dictionary-r115-20261102/production-postgresql-observations.json"
       ],
       "last_checked_utc": null
     },
     {
       "target": "postgresql-production",
       "source_identity": "postgresql-production",
-      "source_version_or_capture": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "source_version_or_capture": "dae791cd1346aa91d2b9f781905cf79643ff401730915e4d1802b51a9e305abc",
       "object_kind": "routine",
-      "object_name": "public.pwa_submit_agent_receipt_v1(canonical_json text)",
-      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-agent-receipt-v1-canonical-json-text-48231378.yaml",
+      "object_name": "public.pwa_submit_operation_v2(canonical_json text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml",
       "status": "updated",
       "expected_properties": 20,
       "verified_properties": 0,
       "unknown_properties": [],
       "evidence": [
-        "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+        "outputs/dictionary-r115-20261102/production-postgresql-observations.json"
       ],
       "last_checked_utc": null
     }

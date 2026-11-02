@@ -1,7 +1,7 @@
 # Change notes — R115 Daily Cash withdrawal, 2 November 2026
 
 ## Purpose
-The owner asked for a "Daily Cash withdrawal" quick-entry page reached from the Cash Position page. It records the day's cash taken from the SCB and TTB source accounts into Dad's on-hand cash account in one confirmation. Build and test in DEV only; no PROD action in this batch.
+The owner asked for a "Daily Cash withdrawal" quick-entry page reached from the Cash Position page. It records the day's cash taken from the SCB and TTB source accounts into Dad's on-hand cash account in one confirmation. Built and tested in DEV, then promoted to PROD under the owner's "Move R115 to production".
 
 ## Changes
 Outcomes:
@@ -73,15 +73,78 @@ Forge, 2 November 2026, UTC. Owner instruction: build and test in DEV. DEV only:
 
 DEV left in place: one rejected and three applied operation journal entries from the smoke (the withdrawal and the two deletes); no smoke row remains in "Cash Ledger".
 
+## Promotion record (Forge, 2 November 2026, UTC)
+No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R115 to PROD: V127 (functions only), the R115 image on read, command and chat (images only, as the runner derives), Hosting. No agent deploy (no `integration-agent/` change). No PROD payment, withdrawal, close, forced notification or chat write.
+- **Authority:** the owner's instruction of 2 November 2026: "Move R115 to production." PR #213 was merged under it.
+- **Freeze:** 2026-11-02T17:05:48Z. Package `ccc68a7` (PR #213 merge on `main`). Its diff from the DEV-tested `4acea34` is five Markdown records only (this note, `database/README.md`, `Development_Changes.md`, `Environment_Inventory.md`, `Release_Tracker.md`), so the code inputs are identical. Generic release kind (schemaVersion 36, `generic-v1`, no runner edit); baseline R114 `52f56a49`. Next unused number R116.
+
+| Item | Result |
+| --- | --- |
+| Baseline (PROD, before) | read `00038-ng2`, command `00043-94k`, chat `00022-bvm` on `03b9735a…` (R114); notify `00025-8ks` and jobs `00025-g78` on `f73e5c36…` (R113); settings generation `1793628794840417`; Hosting `2a181935875f10ba` (release `1793628882509000`); `loan_manager_prod` head 126 (126 rows, 0 failed) on `mw-credit-pg-20261017`, project `clever-oasis-508610-n7`, no active sessions. Function owners: `guard_cash_ledger`, `pwa_management_financial_text_v2` and `pwa_apply_management_financial_v2` are owned by `postgres`, `pwa_submit_operation_v2` by `mw_app_prod_journal_owner` (closed: inherit and set false) |
+| Backup at V126 | Observed 17:08:13Z (17:08:08Z to 17:10:40Z), `prod-promotion-ff6fa502c01049f09f336fa65f33f8e2`, dump sha256 `69ddfa398a1627255851654081ad25b0b88d41af58925b42786cd65bec7bbb38`; listing and restore passed; 38 table fingerprints match |
+| SQL package | `release-r115-v127-ccc68a7.json` (prepared from DEV at 127 on the clean `ccc68a7`); connect preflight 126 to 127 sha256 `b202967c…d161` (no DEV session on PROD, 18 retained consumers); `check` 0 writes, pending 127 |
+| Owner window | `mw_app_prod_journal_owner` only (4 statements; of the four routines V127 replaces, only `pwa_submit_operation_v2` belongs to it, and the PROD runner runs no role reconcile), opened 17:11:56Z, restored 17:13:39Z to 17:13:44Z. The first restore call at 17:13:28Z was refused by the CLI before any statement because it lacked the production pins; it was rerun with them. Readback closed: inherit, set and admin false, no CREATE on `public` |
+| Flyway | `Invoke-CloudFlyway.py apply`, one grouped transaction (17:12:09Z to 17:13:28Z): V127 installed 17:12:50Z (4.0 s, checksum 2087688833, the same as DEV); head 127 (127 rows, 0 failed); `verify --target prod` clean |
+| Readback | All four routines keep their owners, SECURITY DEFINER flags and ACLs (`guard_cash_ledger` `{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}`; the two management routines `{postgres, mw_app_prod_journal_owner, mw_app_prod}`; `pwa_submit_operation_v2` `{mw_app_prod_journal_owner, mw_app_prod}`), and each body carries the V127 change; no "Daily cash withdrawal" row in PROD |
+| Image | Cloud Build `802171e7-1ddc-436f-98d8-cc562740acfa` (`cloudbuild-business.yaml`, PROD builder `mw-credit-app-build-prod`, `git archive` of `ccc68a7`), SUCCESS 17:14:47Z to 17:15:21Z, `mw-credit-app-prod/api@sha256:868c4d757bb611c419cf43981820368409f4e335acc7689f51cbf73985dec4c6`, tag `keep-r115-runtime` |
+| Terraform | Settings generation `1793639967196628` (previous `1793628794840417`): `runtime_image_overrides` for read, command and chat. Plan 0 add, 3 change, 0 destroy (images only), plan sha256 `e1825ca0…1022`, JSON `7794f449…eafc`; runner `--check` passed; applied 17:18:36Z to 17:19:12Z; re-plan no changes |
+| Revisions | read `00039-rgw`, command `00044-2xt`, chat `00023-hqg` on `868c4d75…`; notify `00025-8ks` and jobs `00025-g78` unchanged on `f73e5c36…`; each Ready at 100% |
+| Runner | Generic kind `--check` passed before the apply and after the Hosting apply. CI cited per job: check and e2e run 41481163177 (`4acea34`), terraform run 41203206026 (`cb875ea`), database guards and rebuilds run 41477426892 (`9ad4081`, the same database inputs), each input-equivalent to `ccc68a7`. The first `--apply` at 17:20:29Z was refused at the live build readback before any Hosting write: the manifest's `build.storageSource` keys were not in the readback's order. They were reordered (same values) and the second `--apply` ran 17:20:56Z to 17:21:40Z; live readback passed |
+| Hosting | Version `c12d32825221f045`, release `1793640093794000`, 16 files; `lm.mw-credit.com` build-version R115 (version `16e24b8bb38b0e434d632bc2`), entry `/assets/index-DAPVgr3B.js`, bundle embeds `ccc68a7`; public config input identical to R114's (sha256 `6eea01ac…7e92`) |
+| Smoke (read-only) | `/health` 200 on read, command and chat; without a token, `/api/session`, `/api/collection`, `/api/borrowers?limit=100`, `/api/management/cash-withdrawal` and `/api/chat/models` return 401; preflight from `https://lm.mw-credit.com` 204; notify and jobs Ready; `sw.js` `no-store`; no ERROR logs on the five PROD services from 17:18Z. Not run: authenticated PROD reads of the withdrawal basis and the borrower lists, because the operator has no PROD Partner token (as in R114). The owner's first views cover them |
+| Tag | Release tag workflow run 41490633949 (success): annotated `R115` (object `6444c6e4bf08efdea58048ca684fc6b867a05eb6`) peels to `ccc68a7c41c9a877080d5b3fc58749cf941fd732`; GitHub Release R115 published |
+| Private records | Package sha256 `ed9e6644…9fb6`; receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R115-HOSTING-RECEIPT.json`; package, release manifest, preflight, owner-window record, plan and the activation copies from before and after under `.../promotion-packages/r115/`, outside Git |
+| Credentials | Temporary admin and read credential files deleted; no secret value printed |
+| Rollback | PROD: restore `production.activation.before-r115-1793628794840417.tfvars` (read, command and chat to `03b9735a…`), plan 0/3/0, apply, publish, together with Hosting `2a181935875f10ba` (release `1793628882509000`). Database: V127 is functions only and can stay under a service rollback (the R114 image does not call the new operation), or restore the V126 backup above |
+
+Applied and verified read-only. Not owner-accepted in PROD: the first real Daily Cash withdrawal and the one-page Collection and Borrowers views. Data Dictionary routine entries for the four V127 routines and the closure records follow (Dewey).
+
+## Promotion record (Forge, 2 November 2026, UTC)
+No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R115 to PROD: V127 (functions only), the R115 image on read, command and chat (images only, as the runner derives), Hosting. No agent deploy (no `integration-agent/` change). No PROD payment, withdrawal, close, forced notification or chat write.
+- **Authority:** the owner's instruction of 2 November 2026: "Move R115 to production." PR #213 was merged under it.
+- **Freeze:** 2026-11-02T17:05:48Z. Package `ccc68a7` (PR #213 merge on `main`). Its diff from the DEV-tested `4acea34` is five Markdown records only (this note, `database/README.md`, `Development_Changes.md`, `Environment_Inventory.md`, `Release_Tracker.md`), so the code inputs are identical. Generic release kind (schemaVersion 36, `generic-v1`, no runner edit); baseline R114 `52f56a49`. Next unused number R116.
+
+| Item | Result |
+| --- | --- |
+| Baseline (PROD, before) | read `00038-ng2`, command `00043-94k`, chat `00022-bvm` on `03b9735a…` (R114); notify `00025-8ks` and jobs `00025-g78` on `f73e5c36…` (R113); settings generation `1793628794840417`; Hosting `2a181935875f10ba` (release `1793628882509000`); `loan_manager_prod` head 126 (126 rows, 0 failed) on `mw-credit-pg-20261017`, project `clever-oasis-508610-n7`, no active sessions. Function owners: `guard_cash_ledger`, `pwa_management_financial_text_v2` and `pwa_apply_management_financial_v2` are owned by `postgres`, `pwa_submit_operation_v2` by `mw_app_prod_journal_owner` (closed: inherit and set false) |
+| Backup at V126 | Observed 17:08:13Z (17:08:08Z to 17:10:40Z), `prod-promotion-ff6fa502c01049f09f336fa65f33f8e2`, dump sha256 `69ddfa398a1627255851654081ad25b0b88d41af58925b42786cd65bec7bbb38`; listing and restore passed; 38 table fingerprints match |
+| SQL package | `release-r115-v127-ccc68a7.json` (prepared from DEV at 127 on the clean `ccc68a7`); connect preflight 126 to 127 sha256 `b202967c…d161` (no DEV session on PROD, 18 retained consumers); `check` 0 writes, pending 127 |
+| Owner window | `mw_app_prod_journal_owner` only (4 statements; of the four routines V127 replaces, only `pwa_submit_operation_v2` belongs to it, and the PROD runner runs no role reconcile), opened 17:11:56Z, restored 17:13:39Z to 17:13:44Z. The first restore call at 17:13:28Z was refused by the CLI before any statement because it lacked the production pins; it was rerun with them. Readback closed: inherit, set and admin false, no CREATE on `public` |
+| Flyway | `Invoke-CloudFlyway.py apply`, one grouped transaction (17:12:09Z to 17:13:28Z): V127 installed 17:12:50Z (4.0 s, checksum 2087688833, the same as DEV); head 127 (127 rows, 0 failed); `verify --target prod` clean |
+| Readback | All four routines keep their owners, SECURITY DEFINER flags and ACLs (`guard_cash_ledger` `{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}`; the two management routines `{postgres, mw_app_prod_journal_owner, mw_app_prod}`; `pwa_submit_operation_v2` `{mw_app_prod_journal_owner, mw_app_prod}`), and each body carries the V127 change; no "Daily cash withdrawal" row in PROD |
+| Image | Cloud Build `802171e7-1ddc-436f-98d8-cc562740acfa` (`cloudbuild-business.yaml`, PROD builder `mw-credit-app-build-prod`, `git archive` of `ccc68a7`), SUCCESS 17:14:47Z to 17:15:21Z, `mw-credit-app-prod/api@sha256:868c4d757bb611c419cf43981820368409f4e335acc7689f51cbf73985dec4c6`, tag `keep-r115-runtime` |
+| Terraform | Settings generation `1793639967196628` (previous `1793628794840417`): `runtime_image_overrides` for read, command and chat. Plan 0 add, 3 change, 0 destroy (images only), plan sha256 `e1825ca0…1022`, JSON `7794f449…eafc`; runner `--check` passed; applied 17:18:36Z to 17:19:12Z; re-plan no changes |
+| Revisions | read `00039-rgw`, command `00044-2xt`, chat `00023-hqg` on `868c4d75…`; notify `00025-8ks` and jobs `00025-g78` unchanged on `f73e5c36…`; each Ready at 100% |
+| Runner | Generic kind `--check` passed before the apply and after the Hosting apply. CI cited per job: check and e2e run 41481163177 (`4acea34`), terraform run 41203206026 (`cb875ea`), database guards and rebuilds run 41477426892 (`9ad4081`, the same database inputs), each input-equivalent to `ccc68a7`. The first `--apply` at 17:20:29Z was refused at the live build readback before any Hosting write: the manifest's `build.storageSource` keys were not in the readback's order. They were reordered (same values) and the second `--apply` ran 17:20:56Z to 17:21:40Z; live readback passed |
+| Hosting | Version `c12d32825221f045`, release `1793640093794000`, 16 files; `lm.mw-credit.com` build-version R115 (version `16e24b8bb38b0e434d632bc2`), entry `/assets/index-DAPVgr3B.js`, bundle embeds `ccc68a7`; public config input identical to R114's (sha256 `6eea01ac…7e92`) |
+| Smoke (read-only) | `/health` 200 on read, command and chat; without a token, `/api/session`, `/api/collection`, `/api/borrowers?limit=100`, `/api/management/cash-withdrawal` and `/api/chat/models` return 401; preflight from `https://lm.mw-credit.com` 204; notify and jobs Ready; `sw.js` `no-store`; no ERROR logs on the five PROD services from 17:18Z. Not run: authenticated PROD reads of the withdrawal basis and the borrower lists, because the operator has no PROD Partner token (as in R114). The owner's first views cover them |
+| Tag | Release tag workflow run 41490633949 (success): annotated `R115` (object `6444c6e4bf08efdea58048ca684fc6b867a05eb6`) peels to `ccc68a7c41c9a877080d5b3fc58749cf941fd732`; GitHub Release R115 published |
+| Private records | Package sha256 `ed9e6644…9fb6`; receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R115-HOSTING-RECEIPT.json`; package, release manifest, preflight, owner-window record, plan and the activation copies from before and after under `.../promotion-packages/r115/`, outside Git |
+| Credentials | Temporary admin and read credential files deleted; no secret value printed |
+| Rollback | PROD: restore `production.activation.before-r115-1793628794840417.tfvars` (read, command and chat to `03b9735a…`), plan 0/3/0, apply, publish, together with Hosting `2a181935875f10ba` (release `1793628882509000`). Database: V127 is functions only and can stay under a service rollback (the R114 image does not call the new operation), or restore the V126 backup above |
+
+Applied and verified read-only. Not owner-accepted in PROD: the first real Daily Cash withdrawal and the one-page Collection and Borrowers views. Data Dictionary routine entries and the closure records follow in the closure record below.
+
 ## Not run
-WebKit and Home Screen (iPhone) rendering of the new pages: not checked.
-PROD deployment and any live PROD write: out of scope for this batch. The Data Dictionary routine entries for the four V127 routines are not updated: the helper reconciles from a PROD capture after the migration reaches PROD, so they follow in the promotion.
+WebKit and Home Screen (iPhone) rendering of the new pages: not checked. Authenticated PROD reads of the withdrawal basis and the borrower lists: not run (no PROD Partner token); the owner's first views cover them. No PROD withdrawal was made.
 
 ## Recovery
-Git baseline is the tip of `main` before the R115 branch `claude/r115-daily-cash-withdrawal`. DEV test transfers are synthetic and disposable. V127 is functions only; the prior function bodies are in the V126 baseline.
+Git baseline is the R114 package `52f56a49`. Service and Hosting rollback and the V126 backup are in the promotion record above. V127 is functions only and can stay under a service rollback.
 
 ## Open questions
-None yet.
+None.
 
 ## Remaining work
-DEV deploy and evidence, owner review, then promotion on request (Data Dictionary routine entries at that point).
+PROD acceptance by the owner: the first real Daily Cash withdrawal and the one-page Collection and Borrowers lists.
+
+## Closure record (Dewey, 2 November 2026)
+- **Tag record:** annotated tag `R115` (object `6444c6e4bf08efdea58048ca684fc6b867a05eb6`) on package `ccc68a7c41c9a877080d5b3fc58749cf941fd732`, Release tag workflow run 41490633949 (success); GitHub Release R115 published.
+- **Data Dictionary:** read-only PROD capture as `codex-cloud-read` at flyway head 127 (225 routines, 99 relations). Targeted reconciliation with `--only` regenerated the four existing routine entries V127 replaced: `guard_cash_ledger`, `pwa_management_financial_text_v2`, `pwa_apply_management_financial_v2` and `pwa_submit_operation_v2`. No new entry. `dictionary.py index` and `validate` pass. Evidence: [plan](../project/outputs/dictionary-r115-20261102/plan.json), [coverage](../project/outputs/dictionary-r115-20261102/coverage.json) and [observations](../project/outputs/dictionary-r115-20261102/production-postgresql-observations.json).
+- **Prune (release closure):** deleted the R112 change note `Change Logs/CHANGE_NOTES_R112_AGENT_PAY_FORWARD_2026-11-02.md` (outside the three-release window; links in the tracker, inventory and Development Changes repointed to commit `ccc68a7c`) and the evidence `project/outputs/dictionary-r112-20261102/` (`plan.json`, `coverage.json`, `production-postgresql-observations.json`). The R115 section of Development Changes became the released follow-up row. Retained notes: R113, R114, R115.
+- **Next number:** R116 opened with no scope; next unused R117.

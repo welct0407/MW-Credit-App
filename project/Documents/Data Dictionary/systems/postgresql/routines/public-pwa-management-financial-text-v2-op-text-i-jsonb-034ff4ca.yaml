@@ -7,7 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
+  "source": "outputs/dictionary-r115-20261102/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "fb46ffe68dcf20b61c078dceaabbf6dc2e3949c8"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-management-financial-text-v2-op-text-i-jsonb-034ff4ca.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.pwa_management_financial_text_v2(op text, i jsonb)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -18,13 +28,32 @@
     "result": "text"
     "definition": "CREATE OR REPLACE FUNCTION public.pwa_management_financial_text_v2(op text, i jsonb)\n RETURNS text\n LANGUAGE\
       \ plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE keys text[];k text;result\
-      \ text:='{';kind text:=split_part(op,'.',1);action text:=split_part(op,'.',2);\r\nBEGIN\r\n IF op NOT IN('capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete')\
-      \ OR jsonb_typeof(i) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n IF action IN('delete','reverse','cancel')\
-      \ THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;RETURN '{}';END IF;\r\n IF action='complete'\
-      \ THEN keys:=ARRAY['cashAccountId'];ELSIF action='settle-all' THEN keys:=ARRAY['partnerId','reviewedAmount','notes'];\r\
-      \n ELSIF kind='capital-contribution' THEN keys:=ARRAY['partnerId','contributionDate','transactionType','amount','notes'];\r\
-      \n ELSIF kind='settlement' THEN keys:=ARRAY['settlementDate','partnerId','amount','status','transferDate','notes','cashAccountId'];\r\
-      \n ELSE keys:=ARRAY['movementDate','movementType','amount','fromAccountId','toAccountId','businessExpenseId','notes'];END\
+      \ text:='{';wd_line jsonb;wd_n integer:=0;kind text:=split_part(op,'.',1);action text:=split_part(op,'.',2);\r\nBEGIN\r\
+      \n IF op NOT IN('capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-withdrawal.create')\
+      \ OR jsonb_typeof(i) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\n IF op='cash-withdrawal.create'\
+      \ THEN\n  -- R115 (V127): {movementDate, movementTime, toAccountId, lines:[{fromAccountId, amount}]}, 1 to 10 positive\
+      \ whole-baht lines.\n  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['lines','movementDate','movementTime','toAccountId']\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\n  IF jsonb_typeof(i->'movementDate') IS DISTINCT FROM 'string'\
+      \ OR i->>'movementDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'movementDate')::date)::text<>i->>'movementDate'\n\
+      \   OR jsonb_typeof(i->'movementTime') IS DISTINCT FROM 'string' OR i->>'movementTime'!~'^([01][0-9]|2[0-3]):[0-5]0$'\n\
+      \   OR jsonb_typeof(i->'toAccountId') IS DISTINCT FROM 'string' OR octet_length(i->>'toAccountId') NOT BETWEEN 1 AND\
+      \ 256 OR i->>'toAccountId'~'[[:cntrl:]]'\n   OR jsonb_typeof(i->'lines') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION\
+      \ USING ERRCODE='22023';END IF;\n  IF jsonb_array_length(i->'lines') NOT BETWEEN 1 AND 10 OR (SELECT count(DISTINCT\
+      \ l->>'fromAccountId') FROM jsonb_array_elements(i->'lines') l)<>jsonb_array_length(i->'lines') THEN RAISE EXCEPTION\
+      \ USING ERRCODE='22023';END IF;\n  result:='{\"movementDate\":'||to_json(i->>'movementDate')::text||',\"movementTime\"\
+      :'||to_json(i->>'movementTime')::text||',\"toAccountId\":'||to_json(i->>'toAccountId')::text||',\"lines\":[';\n  FOR\
+      \ wd_line IN SELECT l FROM jsonb_array_elements(i->'lines') l LOOP\n   wd_n:=wd_n+1;\n   IF jsonb_typeof(wd_line) IS\
+      \ DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(wd_line) key) IS DISTINCT FROM\
+      \ ARRAY['amount','fromAccountId']\n    OR jsonb_typeof(wd_line->'fromAccountId') IS DISTINCT FROM 'string' OR octet_length(wd_line->>'fromAccountId')\
+      \ NOT BETWEEN 1 AND 256 OR wd_line->>'fromAccountId'~'[[:cntrl:]]' OR wd_line->>'fromAccountId'=i->>'toAccountId'\n\
+      \    OR jsonb_typeof(wd_line->'amount') IS DISTINCT FROM 'string' OR wd_line->>'amount'!~'^[1-9][0-9]{0,16}$' OR (wd_line->>'amount')::numeric>92233720368547758\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\n   result:=result||CASE WHEN wd_n>1 THEN ',' ELSE '' END||'{\"\
+      fromAccountId\":'||to_json(wd_line->>'fromAccountId')::text||',\"amount\":'||to_json(wd_line->>'amount')::text||'}';\n\
+      \  END LOOP;\n  RETURN result||']}';\n END IF;\r\n IF action IN('delete','reverse','cancel') THEN IF i<>'{}'::jsonb\
+      \ THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;RETURN '{}';END IF;\r\n IF action='complete' THEN keys:=ARRAY['cashAccountId'];ELSIF\
+      \ action='settle-all' THEN keys:=ARRAY['partnerId','reviewedAmount','notes'];\r\n ELSIF kind='capital-contribution'\
+      \ THEN keys:=ARRAY['partnerId','contributionDate','transactionType','amount','notes'];\r\n ELSIF kind='settlement' THEN\
+      \ keys:=ARRAY['settlementDate','partnerId','amount','status','transferDate','notes','cashAccountId'];\r\n ELSE keys:=ARRAY['movementDate','movementType','amount','fromAccountId','toAccountId','businessExpenseId','notes'];END\
       \ IF;\r\n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key\
       \ ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;\r\n FOREACH k IN ARRAY keys\
       \ LOOP\r\n IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION USING ERRCODE='22023';END\
