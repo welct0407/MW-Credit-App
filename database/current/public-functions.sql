@@ -1283,7 +1283,15 @@ BEGIN
    SELECT coalesce(p."Created At",CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')
     INTO NEW."Created At" FROM public."Payments" p WHERE p."Row ID"=NEW."Ref Payment";
   ELSE
-   NEW."Created At":=CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok';
+   IF NEW."Entry Origin"='Manual' AND current_setting('r115.cash_movement_time',true)='on' THEN
+    -- R115 (V127): Daily cash withdrawal records the chosen transaction time; only its command sets this
+    -- transaction-local setting, around its own inserts. The time must not be in the future.
+    IF NEW."Created At" IS NULL OR NEW."Created At">CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok' THEN
+     RAISE EXCEPTION 'Cash movement time must not be in the future';
+    END IF;
+   ELSE
+    NEW."Created At":=CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok';
+   END IF;
   END IF;
  END IF;
  NEW."Updated At":=clock_timestamp() AT TIME ZONE 'Asia/Bangkok';
@@ -3174,7 +3182,7 @@ CREATE FUNCTION public.pwa_apply_management_financial_v2(payload text) RETURNS j
     LANGUAGE plpgsql
     SET search_path TO 'pg_catalog', 'public'
     AS $$
-DECLARE e jsonb:=payload::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';op text:=c->>'operation';kind text:=split_part(op,'.',1);action text:=split_part(op,'.',2);target text:=c->>'targetId';snapshot jsonb;version text;available numeric;account_id text;from_holder text;to_holder text;day date:=(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date;message text;
+DECLARE e jsonb:=payload::jsonb;c jsonb:=e->'command';i jsonb:=c->'inputs';op text:=c->>'operation';kind text:=split_part(op,'.',1);action text:=split_part(op,'.',2);target text:=c->>'targetId';snapshot jsonb;version text;available numeric;account_id text;from_holder text;to_holder text;day date:=(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date;message text;wd_day date;wd_ts timestamp;wd_line jsonb;wd_n bigint;wd_id text;wd_account text;
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501';END IF;
  PERFORM public.pwa_management_financial_text_v2(op,i);
@@ -3189,6 +3197,41 @@ BEGIN
  IF kind='settlement' AND ((action='complete' AND snapshot->>'Status' IS DISTINCT FROM 'Pending') OR (action='reverse' AND snapshot->>'Status' IS DISTINCT FROM 'Completed') OR (action='cancel' AND coalesce(snapshot->>'Status','') NOT IN('Pending','Completed'))) THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  IF kind='settlement' AND ((action IN('create','update') AND i->>'status'='Cancelled') OR (action='update' AND snapshot->>'Status'='Cancelled')) THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  IF kind='cash-movement' AND snapshot IS NOT NULL AND (snapshot->>'Entry Origin'<>'Manual' OR snapshot->>'Movement Type' NOT IN('Cash Handover','Expense Reimbursement')) THEN RAISE EXCEPTION USING ERRCODE='P5B05';END IF;
+ IF kind='cash-withdrawal' THEN
+  -- R115 (V127): Daily cash withdrawal, one Manual Cash Handover per line from a Dad account into a Dad account, all or none.
+  wd_day:=(i->>'movementDate')::date;wd_ts:=wd_day+(i->>'movementTime')::time;
+  IF wd_ts>(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok') OR wd_day<day-14 THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
+  FOR wd_account IN SELECT a FROM (SELECT i->>'toAccountId' a UNION ALL SELECT l->>'fromAccountId' FROM jsonb_array_elements(i->'lines') l) x GROUP BY a ORDER BY a COLLATE "C" LOOP
+   IF NOT EXISTS(SELECT 1 FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Row ID"=wd_account AND a."Active" AND h."Active" AND h."Row ID"='ch:dad') THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;
+   PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('cash-withdrawal-account',wd_account));
+  END LOOP;
+  IF EXISTS(SELECT 1 FROM public."Cash Ledger" WHERE "Row ID" LIKE 'wd115:'||target||':%') THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
+  FOR wd_line IN SELECT l FROM jsonb_array_elements(i->'lines') l LOOP
+   SELECT d."Opening Balance"+coalesce((SELECT sum(s."Signed Amount") FROM public."Cash Account Statement Recent" s
+     WHERE s."Ref Cash Account"=d."Ref Cash Account" AND s."Statement Date"=d."Statement Date" AND s."Sort Timestamp"<=wd_ts),0)
+    INTO available FROM public."Cash Account Daily Summary Recent" d WHERE d."Ref Cash Account"=wd_line->>'fromAccountId' AND d."Statement Date"=wd_day;
+   IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
+   IF available IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
+   IF (wd_line->>'amount')::numeric>available THEN RAISE EXCEPTION USING ERRCODE='P5B10';END IF;
+  END LOOP;
+  BEGIN
+   PERFORM set_config('r115.cash_movement_time','on',true);
+   FOR wd_line,wd_n IN SELECT l,n FROM jsonb_array_elements(i->'lines') WITH ORDINALITY x(l,n) LOOP
+    wd_id:=CASE WHEN wd_n=1 THEN target ELSE 'wd115:'||target||':'||wd_n END;
+    INSERT INTO public."Cash Ledger"("Row ID","Movement Date","Movement Type","Amount","Ref From Cash Holder","Ref To Cash Holder","Ref From Cash Account","Ref To Cash Account","Ref Business Expense","Entry Origin","Source Type","Source Key","Notes","Created By","Created At")
+     VALUES(wd_id,wd_day,'Cash Handover',(wd_line->>'amount')::numeric,'ch:dad','ch:dad',wd_line->>'fromAccountId',i->>'toAccountId',NULL,'Manual','Manual','MANUAL:'||wd_id,'Daily cash withdrawal',e#>>'{actor,loginEmail}',wd_ts);
+   END LOOP;
+   PERFORM set_config('r115.cash_movement_time','',true);
+  EXCEPTION WHEN foreign_key_violation THEN RAISE EXCEPTION USING ERRCODE='P5B05';
+  WHEN unique_violation THEN RAISE EXCEPTION USING ERRCODE='P5B01';
+  WHEN raise_exception THEN GET STACKED DIAGNOSTICS message=MESSAGE_TEXT;
+   IF message='Cash movement time must not be in the future' THEN RAISE EXCEPTION USING ERRCODE='P5B08';
+   ELSIF message IN('A valid active cash account is required','A cash account is required for this new cash movement') THEN RAISE EXCEPTION USING ERRCODE='P5B07';
+   ELSIF message IN('Cash handover requires Dad/Lisa endpoints or two distinct accounts of one holder','Manual transfers require active cash holders','Cash holder and account disagree') THEN RAISE EXCEPTION USING ERRCODE='P5B04';
+   ELSE RAISE;END IF;
+  END;
+  RETURN jsonb_build_object('operation',op,'targetType',kind,'targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL,'sourceCreatedBy',NULL);
+ END IF;
  IF i ? 'partnerId' AND NOT EXISTS(SELECT 1 FROM public."Partners" WHERE "Row ID"=i->>'partnerId') THEN RAISE EXCEPTION USING ERRCODE='P5B04';END IF;
  IF kind='capital-contribution' AND action<>'delete' AND i->>'transactionType'='Withdrawal' THEN
  SELECT coalesce(sum(CASE WHEN "Transaction Type"='Contribution' THEN "Amount"::numeric ELSE -"Amount"::numeric END),0) INTO available FROM public."Cash Pool Contributions" WHERE "Ref Partner"=i->>'partnerId' AND "Contribution Date"<=(i->>'contributionDate')::date AND "Row ID"<>target;
@@ -4481,9 +4524,27 @@ CREATE FUNCTION public.pwa_management_financial_text_v2(op text, i jsonb) RETURN
     LANGUAGE plpgsql IMMUTABLE
     SET search_path TO 'pg_catalog', 'public'
     AS $_$
-DECLARE keys text[];k text;result text:='{';kind text:=split_part(op,'.',1);action text:=split_part(op,'.',2);
+DECLARE keys text[];k text;result text:='{';wd_line jsonb;wd_n integer:=0;kind text:=split_part(op,'.',1);action text:=split_part(op,'.',2);
 BEGIN
- IF op NOT IN('capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete') OR jsonb_typeof(i) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;
+ IF op NOT IN('capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-withdrawal.create') OR jsonb_typeof(i) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;
+ IF op='cash-withdrawal.create' THEN
+  -- R115 (V127): {movementDate, movementTime, toAccountId, lines:[{fromAccountId, amount}]}, 1 to 10 positive whole-baht lines.
+  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['lines','movementDate','movementTime','toAccountId'] THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;
+  IF jsonb_typeof(i->'movementDate') IS DISTINCT FROM 'string' OR i->>'movementDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'movementDate')::date)::text<>i->>'movementDate'
+   OR jsonb_typeof(i->'movementTime') IS DISTINCT FROM 'string' OR i->>'movementTime'!~'^([01][0-9]|2[0-3]):[0-5]0$'
+   OR jsonb_typeof(i->'toAccountId') IS DISTINCT FROM 'string' OR octet_length(i->>'toAccountId') NOT BETWEEN 1 AND 256 OR i->>'toAccountId'~'[[:cntrl:]]'
+   OR jsonb_typeof(i->'lines') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;
+  IF jsonb_array_length(i->'lines') NOT BETWEEN 1 AND 10 OR (SELECT count(DISTINCT l->>'fromAccountId') FROM jsonb_array_elements(i->'lines') l)<>jsonb_array_length(i->'lines') THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;
+  result:='{"movementDate":'||to_json(i->>'movementDate')::text||',"movementTime":'||to_json(i->>'movementTime')::text||',"toAccountId":'||to_json(i->>'toAccountId')::text||',"lines":[';
+  FOR wd_line IN SELECT l FROM jsonb_array_elements(i->'lines') l LOOP
+   wd_n:=wd_n+1;
+   IF jsonb_typeof(wd_line) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(wd_line) key) IS DISTINCT FROM ARRAY['amount','fromAccountId']
+    OR jsonb_typeof(wd_line->'fromAccountId') IS DISTINCT FROM 'string' OR octet_length(wd_line->>'fromAccountId') NOT BETWEEN 1 AND 256 OR wd_line->>'fromAccountId'~'[[:cntrl:]]' OR wd_line->>'fromAccountId'=i->>'toAccountId'
+    OR jsonb_typeof(wd_line->'amount') IS DISTINCT FROM 'string' OR wd_line->>'amount'!~'^[1-9][0-9]{0,16}$' OR (wd_line->>'amount')::numeric>92233720368547758 THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;
+   result:=result||CASE WHEN wd_n>1 THEN ',' ELSE '' END||'{"fromAccountId":'||to_json(wd_line->>'fromAccountId')::text||',"amount":'||to_json(wd_line->>'amount')::text||'}';
+  END LOOP;
+  RETURN result||']}';
+ END IF;
  IF action IN('delete','reverse','cancel') THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION USING ERRCODE='22023';END IF;RETURN '{}';END IF;
  IF action='complete' THEN keys:=ARRAY['cashAccountId'];ELSIF action='settle-all' THEN keys:=ARRAY['partnerId','reviewedAmount','notes'];
  ELSIF kind='capital-contribution' THEN keys:=ARRAY['partnerId','contributionDate','transactionType','amount','notes'];
@@ -5981,9 +6042,9 @@ BEGIN
  IF jsonb_typeof(c) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c) key) IS DISTINCT FROM ARRAY['expectedVersion','inputs','operation','predecessorRequestId','schemaVersion','targetId','targetType'] OR c->'schemaVersion'<>'1'::jsonb OR c->>'targetType' IS DISTINCT FROM split_part(c->>'operation','.',1) THEN RAISE EXCEPTION 'command';END IF;
  IF e->>'requestId' !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' THEN RAISE EXCEPTION 'id';END IF;request:=(e->>'requestId')::uuid;
  target:=c->>'targetId';op:=c->>'operation';expected:=c->>'expectedVersion';
- IF jsonb_typeof(c->'targetId') IS DISTINCT FROM 'string' OR octet_length(target) NOT BETWEEN 1 AND 256 OR target~'[[:cntrl:]]' OR op NOT IN('borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update','cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete','capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-openings.initialize','assessment.create','assessment.update','assessment.refresh','assessment.delete','analytics.refresh') THEN RAISE EXCEPTION 'target';END IF;
+ IF jsonb_typeof(c->'targetId') IS DISTINCT FROM 'string' OR octet_length(target) NOT BETWEEN 1 AND 256 OR target~'[[:cntrl:]]' OR op NOT IN('borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update','cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete','capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-withdrawal.create','cash-openings.initialize','assessment.create','assessment.update','assessment.refresh','assessment.delete','analytics.refresh') THEN RAISE EXCEPTION 'target';END IF;
  IF split_part(op,'.',1)='payment' THEN IF c->'predecessorRequestId'<>'null'::jsonb AND (jsonb_typeof(c->'predecessorRequestId') IS DISTINCT FROM 'string' OR c->>'predecessorRequestId'!~'^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$') THEN RAISE EXCEPTION 'predecessor';END IF;ELSIF c->'predecessorRequestId'<>'null'::jsonb THEN RAISE EXCEPTION 'predecessor';END IF;
- IF op IN('borrower.create','loan.create','charge.create','expense.create','cash-holder.create','cash-account.create','partner.create','capital-contribution.create','settlement.create','settlement.settle-all','cash-movement.create','assessment.create') THEN IF c->'expectedVersion'<>'null'::jsonb OR target !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' THEN RAISE EXCEPTION 'create';END IF;
+ IF op IN('borrower.create','loan.create','charge.create','expense.create','cash-holder.create','cash-account.create','partner.create','capital-contribution.create','settlement.create','settlement.settle-all','cash-movement.create','cash-withdrawal.create','assessment.create') THEN IF c->'expectedVersion'<>'null'::jsonb OR target !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$' THEN RAISE EXCEPTION 'create';END IF;
  ELSE IF jsonb_typeof(c->'expectedVersion') IS DISTINCT FROM 'string' OR expected !~ '^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'version';END IF;END IF;
  IF jsonb_typeof(a) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(a) key) IS DISTINCT FROM ARRAY['issuer','loginEmail','partnerId','subject'] THEN RAISE EXCEPTION 'actor';END IF;
  FOREACH k IN ARRAY ARRAY['issuer','subject','partnerId','loginEmail'] LOOP v:=a->>k;IF jsonb_typeof(a->k) IS DISTINCT FROM 'string' OR btrim(v)='' OR v~'[[:cntrl:]]' OR octet_length(v)>(CASE k WHEN 'issuer' THEN 1024 WHEN 'subject' THEN 128 WHEN 'partnerId' THEN 256 ELSE 320 END) THEN RAISE EXCEPTION 'actor';END IF;END LOOP;
@@ -5996,7 +6057,7 @@ BEGIN
   receipt_text:='{"receiptId":'||to_json(r->>'receiptId')::text||',"sha256":'||to_json(r->>'sha256')::text||',"mimeType":'||to_json(r->>'mimeType')::text||',"sizeBytes":'||(r->>'sizeBytes')||',"storageReference":'||to_json(r->>'storageReference')::text||'}';
  END IF;
  IF jsonb_typeof(i) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION 'inputs';END IF;
- IF split_part(op,'.',1) IN('cash-openings','assessment','analytics') THEN input_text:=public.pwa_management_tools_text_v2(op,i);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement') THEN input_text:=public.pwa_management_financial_text_v2(op,i);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner') THEN input_text:=public.pwa_management_input_text_v2(op,i);
+ IF split_part(op,'.',1) IN('cash-openings','assessment','analytics') THEN input_text:=public.pwa_management_tools_text_v2(op,i);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement','cash-withdrawal') THEN input_text:=public.pwa_management_financial_text_v2(op,i);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner') THEN input_text:=public.pwa_management_input_text_v2(op,i);
  ELSIF op='preference.update' THEN
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['language','statementAccountId','statementDate'] OR jsonb_typeof(i->'language') IS DISTINCT FROM 'string' OR i->>'language' NOT IN('English','ไทย') OR jsonb_typeof(i->'statementAccountId') NOT IN('string','null') OR jsonb_typeof(i->'statementDate') NOT IN('string','null') THEN RAISE EXCEPTION 'preference fields';END IF;
  IF i->'statementAccountId'<>'null'::jsonb AND (octet_length(i->>'statementAccountId') NOT BETWEEN 1 AND 256 OR i->>'statementAccountId'~'[[:cntrl:]]') THEN RAISE EXCEPTION 'preference account';END IF;
@@ -6081,7 +6142,7 @@ BEGIN
   RETURN public.pwa_operation_status_v2(request,a->>'issuer',a->>'subject');
  END IF;
  BEGIN
- IF split_part(op,'.',1)='analytics' THEN result_value:=public.pwa_apply_analytics_v2($1);ELSIF split_part(op,'.',1)='cash-openings' THEN result_value:=public.pwa_apply_cash_opening_v2($1);ELSIF split_part(op,'.',1)='assessment' THEN result_value:=public.pwa_apply_assessment_v2($1);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement') THEN result_value:=public.pwa_apply_management_financial_v2($1);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner') THEN result_value:=public.pwa_apply_management_v2($1);ELSIF op='preference.update' THEN result_value:=public.pwa_apply_preference_v2($1);ELSIF split_part(op,'.',1)='expense' THEN result_value:=public.pwa_apply_expense_v2($1);ELSIF split_part(op,'.',1)='payment' THEN result_value:=public.pwa_apply_payment_v2($1);ELSIF op='loan.create' THEN result_value:=public.pwa_apply_loan_create_v2($1);ELSIF op='loan.close' THEN result_value:=public.pwa_apply_loan_close_v2($1);ELSIF split_part(op,'.',1)='loan' THEN result_value:=public.pwa_apply_loan_source_v2($1);ELSIF split_part(op,'.',1)='charge' THEN result_value:=public.pwa_apply_charge_v2($1);ELSE
+ IF split_part(op,'.',1)='analytics' THEN result_value:=public.pwa_apply_analytics_v2($1);ELSIF split_part(op,'.',1)='cash-openings' THEN result_value:=public.pwa_apply_cash_opening_v2($1);ELSIF split_part(op,'.',1)='assessment' THEN result_value:=public.pwa_apply_assessment_v2($1);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement','cash-withdrawal') THEN result_value:=public.pwa_apply_management_financial_v2($1);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner') THEN result_value:=public.pwa_apply_management_v2($1);ELSIF op='preference.update' THEN result_value:=public.pwa_apply_preference_v2($1);ELSIF split_part(op,'.',1)='expense' THEN result_value:=public.pwa_apply_expense_v2($1);ELSIF split_part(op,'.',1)='payment' THEN result_value:=public.pwa_apply_payment_v2($1);ELSIF op='loan.create' THEN result_value:=public.pwa_apply_loan_create_v2($1);ELSIF op='loan.close' THEN result_value:=public.pwa_apply_loan_close_v2($1);ELSIF split_part(op,'.',1)='loan' THEN result_value:=public.pwa_apply_loan_source_v2($1);ELSIF split_part(op,'.',1)='charge' THEN result_value:=public.pwa_apply_charge_v2($1);ELSE
  PERFORM pg_advisory_xact_lock(public.pwa_lock_key_v1('borrower',target));
  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=target FOR UPDATE;
  source_version:=public.pwa_borrower_version_v2(target);

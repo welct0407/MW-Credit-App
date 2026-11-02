@@ -1,0 +1,59 @@
+import{test,expect,type Page}from'@playwright/test';
+// R115 Daily cash withdrawal: header action, as-of reload, remaining and overdraw, one atomic command, return to Cash Position.
+const html='<meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="/tests/e2e/fixtures/daily-cash-withdrawal-harness.tsx"></script>';
+async function fixture(page:Page){
+ const reads:string[]=[],posts:any[]=[];
+ await page.route('http://127.0.0.1:4173/',r=>r.fulfill({contentType:'text/html',body:html}));
+ await page.route('**/api/**',async r=>{const u=new URL(r.request().url()),p=u.pathname;let body:any={items:[],nextCursor:null};
+  if(r.request().method()==='POST'&&p==='/api/operations'){posts.push(JSON.parse(r.request().postData()??'null'));body={kind:'recorded',originalOutcome:{status:'applied',code:null,result:{operation:'cash-withdrawal.create',targetType:'cash-withdrawal',targetId:posts.at(-1).targetId},recordedAt:'2026-10-10T05:00:00.000Z'}}}
+  else if(p.startsWith('/api/operations/'))body={kind:'unresolved'};
+  else if(p==='/api/management/cash-withdrawal'){reads.push(u.search);const date=u.searchParams.get('date'),time=u.searchParams.get('time');
+   // SCB as of 2026-10-09 10:00 is 950 (an entry at exactly 10:00 counts); any other time reads 1000.
+   body={date,time,holderId:'ch:dad',today:'2026-10-10',nowTime:'12:00',covered:true,future:false,accounts:[{id:'dad-cash',label:'SYNTHETIC Dad เงินสด',initialized:true,available:'0'},{id:'dad-scb',label:'SYNTHETIC Dad SCB',initialized:true,available:date==='2026-10-09'&&time==='10:00'?'950.00':'1000.00'},{id:'dad-ttb',label:'SYNTHETIC Dad TTB',initialized:true,available:'500.00'}]}}
+  return r.fulfill({contentType:'application/json',body:JSON.stringify(body)})});
+ return {reads,posts};
+}
+test('Daily cash withdrawal reloads as-of balances, blocks an overdraw and confirms one request for both lines',async({page})=>{
+ const {reads,posts}=await fixture(page);await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);
+ const action=page.getByRole('button',{name:'Daily cash withdrawal',exact:true});
+ await expect(action.locator('.record-action-icon svg')).toHaveAttribute('data-icon','cash');
+ await expect(page.locator('.root-record-heading .record-action').last()).toHaveAccessibleName('Daily cash withdrawal');
+ await action.click();
+ // DCW-4: yesterday by default; hour 00-23 and minute 00..50 selects.
+ await expect(page.getByLabel('Date',{exact:true})).toHaveValue('2026-10-09');
+ await expect(page.getByLabel('Minute',{exact:true}).locator('option')).toHaveText(['00','10','20','30','40','50']);
+ await expect(page.getByLabel('Hour',{exact:true}).locator('option')).toHaveCount(24);
+ await page.getByLabel('Hour',{exact:true}).selectOption('10');await page.getByLabel('Minute',{exact:true}).selectOption('00');
+ await expect(page.locator('.dcw-asof')).toHaveText('As of 09-Oct 10:00');
+ await expect.poll(()=>reads.at(-1)).toBe('?date=2026-10-09&time=10%3A00');
+ // DCW-1/destination: Dad's cash account is the destination; the other Dad accounts are the lines.
+ await expect(page.getByRole('combobox',{name:/^To account/})).toHaveValue('dad-cash');
+ const rows=page.locator('.dcw-line');await expect(rows).toHaveCount(2);
+ const scb=rows.filter({hasText:'SYNTHETIC Dad SCB'}),ttb=rows.filter({hasText:'SYNTHETIC Dad TTB'});
+ await expect(scb.locator('td').first()).toContainText('฿950');
+ const confirm=page.getByRole('button',{name:'Confirm withdrawal',exact:true});await expect(confirm).toBeDisabled();
+ // DCW-7: an overdraw shows a red negative remaining and blocks confirm.
+ await scb.getByRole('textbox').fill('951');await expect(scb.locator('td').last()).toContainText('-฿1');await expect(scb.getByText('Exceeds available balance')).toBeVisible();await expect(confirm).toBeDisabled();
+ // DCW-6/8: Withdraw all, an empty line is skipped and the summary counts transfers.
+ await scb.getByRole('button',{name:'Withdraw all',exact:true}).click();await expect(scb.getByRole('textbox')).toHaveValue('950');await expect(scb.locator('td').last()).toContainText('฿0');
+ await expect(page.locator('.dcw-total')).toHaveText('1 transfer · Total ฿950');
+ await ttb.getByRole('textbox').fill('200');await expect(ttb.locator('td').last()).toContainText('฿300');await expect(page.locator('.dcw-total')).toHaveText('2 transfers · Total ฿1,150');
+ // DCW-2: no horizontal page scroll on this viewport.
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await expect(confirm).toBeEnabled();await confirm.click();
+ // DCW-9: the summary names each transfer with its remaining balance and the total.
+ const summary=page.locator('.dcw-summary');await expect(summary).toContainText('09-Oct 10:00');
+ await expect(summary).toContainText('SYNTHETIC Dad SCB → SYNTHETIC Dad เงินสด');await expect(summary).toContainText('฿950 (remaining ฿0)');await expect(summary).toContainText('฿200 (remaining ฿300)');await expect(summary).toContainText('฿1,150');
+ await page.getByRole('button',{name:'Confirm',exact:true}).click();
+ // DCW-10: one request with both lines, then back on Cash Position, refreshed.
+ await expect(page.getByRole('heading',{name:'Cash Position',exact:true})).toBeVisible();await expect(page.locator('#refreshes')).toHaveText('1');
+ expect(posts).toHaveLength(1);
+ expect(posts[0]).toMatchObject({operation:'cash-withdrawal.create',expectedVersion:null,predecessorRequestId:null,receiptId:null,inputs:{movementDate:'2026-10-09',movementTime:'10:00',toAccountId:'dad-cash',lines:[{fromAccountId:'dad-scb',amount:'950'},{fromAccountId:'dad-ttb',amount:'200'}]}});
+ expect(posts[0].targetId).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
+});
+test('Daily cash withdrawal is unavailable offline and reads nothing',async({page})=>{
+ const {reads,posts}=await fixture(page);await page.addInitScript(()=>{(window as any).__dcwOffline=true});await page.goto('/');await page.waitForFunction(()=>(window as any).__dcwReady===true);
+ await page.getByRole('button',{name:'Daily cash withdrawal',exact:true}).click();
+ await expect(page.getByText('Daily cash withdrawal is unavailable offline.')).toBeVisible();await expect(page.getByRole('button',{name:'Confirm withdrawal',exact:true})).toHaveCount(0);
+ expect(reads).toEqual([]);expect(posts).toEqual([]);
+});

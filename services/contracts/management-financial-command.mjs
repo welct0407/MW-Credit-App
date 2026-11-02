@@ -4,11 +4,29 @@ const fields={
  settlement:['settlementDate','partnerId','amount','status','transferDate','notes','cashAccountId'],
  'cash-movement':['movementDate','movementType','amount','fromAccountId','toAccountId','businessExpenseId','notes'],
 };
-export const managementFinancialOperations=Object.freeze([...Object.keys(fields).flatMap(kind=>['create','update','delete'].map(action=>`${kind}.${action}`)).filter(op=>op!=='settlement.delete'),'settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all']);
+export const managementFinancialOperations=Object.freeze([...Object.keys(fields).flatMap(kind=>['create','update','delete'].map(action=>`${kind}.${action}`)).filter(op=>op!=='settlement.delete'),'settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-withdrawal.create']);
 const validMoney=value=>{if(typeof value!=='string'||!/^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$/.test(value))return false;const [whole,fraction='']=value.split('.');const cents=BigInt(whole)*100n+BigInt(fraction.padEnd(2,'0'));return cents>0n&&cents<=9223372036854775807n};
 const day=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&value>='0001-01-01'&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
+const exactKeys=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')===keys;
+/** R115 Daily cash withdrawal: {movementDate, movementTime (HH:MM, minutes a multiple of 10), toAccountId, lines:[{fromAccountId, amount}]}.
+ * Amounts are whole-baht strings; zero lines are dropped here (canonical form), so SQL sees 1 to 10 positive lines.
+ * Duplicate sources, a source equal to the destination and an all-zero request are invalid. */
+export function canonicalCashWithdrawal(input){
+ if(!exactKeys(input,'lines,movementDate,movementTime,toAccountId'))throw Error('invalid_request');
+ const {movementDate,movementTime,toAccountId,lines}=input;
+ if(!day(movementDate)||typeof movementTime!=='string'||!/^([01][0-9]|2[0-3]):[0-5]0$/.test(movementTime)||!validBorrowerId(toAccountId)||!Array.isArray(lines)||lines.length<1||lines.length>10)throw Error('invalid_request');
+ const seen=new Set(),kept=[];
+ for(const line of lines){
+  if(!exactKeys(line,'amount,fromAccountId')||!validBorrowerId(line.fromAccountId)||line.fromAccountId===toAccountId||seen.has(line.fromAccountId))throw Error('invalid_request');
+  if(typeof line.amount!=='string'||!/^(0|[1-9][0-9]{0,16})$/.test(line.amount)||BigInt(line.amount)>92233720368547758n)throw Error('invalid_request');
+  seen.add(line.fromAccountId);if(line.amount!=='0')kept.push(Object.freeze({fromAccountId:line.fromAccountId,amount:line.amount}));
+ }
+ if(!kept.length)throw Error('invalid_request');
+ return {movementDate,movementTime,toAccountId,lines:Object.freeze(kept)};
+}
 export function canonicalManagementFinancialFields(operation,input){
  if(!managementFinancialOperations.includes(operation)||!input||typeof input!=='object'||Array.isArray(input))throw Error('invalid_request');
+ if(operation==='cash-withdrawal.create')return canonicalCashWithdrawal(input);
  const [kind,action]=operation.split('.'),keys=['delete','reverse','cancel'].includes(action)?[]:action==='complete'?['cashAccountId']:action==='settle-all'?['partnerId','reviewedAmount','notes']:fields[kind];
  if(Object.keys(input).sort().join(',')!==keys.slice().sort().join(','))throw Error('invalid_request');
  const result={};for(const key of keys){const value=input[key];if(value!==null&&(typeof value!=='string'||!value.isWellFormed()||value.includes('\0')||Buffer.byteLength(value)>65536))throw Error('invalid_request');
