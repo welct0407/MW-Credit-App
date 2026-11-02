@@ -62,6 +62,20 @@ Forge, 2 November 2026, UTC. Owner instruction of 2 November 2026: "Do all 1-6".
 | Credentials | Temporary admin, read and test-token files deleted; no secret value printed |
 | Rollback | Settings generation `1793622428455043` (read, command and chat back to `87bfaa6f…`) with Hosting `1e83829414dadf0c` (release `1793622493570000`); the grants may stay (the R113 image does not read them), or `REVOKE` the three column grants with the pre-change record |
 
+## DEV end-to-end record
+
+Chase, 2 November 2026, on R114 as deployed (72ab0310: read, command and chat `6ee162f2`, Hosting `c375e3ecf74fd8a3`, reader grants applied first). `claude-dev-test` (now an AI Reviewer on DEV), synthetic borrowers only ("R114 SYNTHETIC SPLIT S", "R114 SYNTHETIC CHAT K", and R113's "SHORT E"), DEV PWA at 390 px, token file deleted. Loans stay small because the DEV cash pool is nearly exhausted (see the R113 record).
+
+| Case | Result |
+| --- | --- |
+| (a) Two-loan Split (loans 20 and 30, slip 60: 20 settles the first, 15 on the second, the rest pays forward) | The two Split parts are stacked (both inputs at x 20, width 350; Apply at x 24, width 342) inside the 390 px viewport, no page overflow, Apply in view and clicked normally. Plan: "Closes <first> · payoff ฿22" and the second loan's outstanding 30 → 15; Review enabled; Confirm posted 60.00, the first loan closed, the second open at 15.00 (payment record reads back) |
+| (a) Blocked Split (loan of 50 with 50 gap interest plus a 20 loan, slip 102, part 60 on the first) | Only the hint "฿40 more closes <loan>."; no "Paid through", no "Closes" lines; Review disabled |
+| (b) "more closes" (same borrower, slip 72) | Repay principal option reads "฿30 more closes <loan>"; the Split part of that loan reads "฿30 more closes <loan>" and the other part "฿20 closes this loan" |
+| (c) Chat purpose card (item 6) | Asked the DEV chat to record 20 baht for K (due 3). The card showed Remainder ฿17 with Pay forward, Repay principal and Split, none selected, Confirm disabled with "Choose how to use the remainder before review." Chose Pay forward (card collapsed to the choice, the forward rows with the Partial badge), Confirm armed and posted: state done, one payment `pwa:<proposal id>` of 20.00 (Selected Charges; due 3 plus 17 forward through 8 Nov). A second Confirm to the same proposal returned 200 with the recorded item (state done), as did one with a different purpose; still one payment. This closes the R112 DEV gap for the chat card |
+| (d) COL-2 prepaid source | Not shown on DEV (no borrower paid in advance by a rebate offset is visible today); covered by `collection-prepaid-source-independent.test.mjs` with and without the reader grants |
+
+DEV left in place: the synthetic borrowers above, S's reopened-free loans (first closed, second open at 15), K's open loan with forward charges to 8 Nov, and an unconfirmed earlier chat card for K (expires). Auto-charge was not switched off.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on a real iPhone, and WebKit.
