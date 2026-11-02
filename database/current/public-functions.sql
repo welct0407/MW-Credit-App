@@ -7018,6 +7018,80 @@ $$;
 
 
 --
+-- Name: reconcile_legacy_default_postings(text, boolean); Type: FUNCTION
+--
+
+CREATE FUNCTION public.reconcile_legacy_default_postings(p_actor text, p_apply boolean) RETURNS TABLE(loan text, close_date date, column_amount numeric, ledger_amount numeric, posting_id text, action text)
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE r record; prior text:=current_setting('business_crud.default',true); difference numeric; k integer;
+ loans text[]:='{}'; dates date[]:='{}'; recorded numeric[]:='{}'; ledgers numeric[]:='{}'; ids text[]:='{}';
+BEGIN
+ IF p_apply IS NULL OR (p_apply AND nullif(btrim(p_actor),'') IS NULL) THEN
+  RAISE EXCEPTION 'Legacy default reconciliation requires p_apply and, to apply, the actor'; END IF;
+ -- To apply, the lock order of the source writers: borrowers, loans, then their charges. A dry run takes no lock and writes
+ -- nothing, so it also runs in a READ ONLY transaction.
+ IF p_apply THEN
+  PERFORM 1 FROM public."Borrowers" b WHERE b."Row ID" IN (SELECT l."Ref Borrowers" FROM public."Loans" l WHERE coalesce(l."Defaulted",false))
+   ORDER BY b."Row ID" COLLATE "C" FOR UPDATE;
+  PERFORM 1 FROM public."Loans" l WHERE coalesce(l."Defaulted",false) ORDER BY l."Row ID" COLLATE "C" FOR UPDATE;
+  PERFORM 1 FROM public."Charges" c WHERE c."Ref Loans" IN (SELECT l."Row ID" FROM public."Loans" l WHERE coalesce(l."Defaulted",false))
+   ORDER BY c."Row ID" COLLATE "C" FOR UPDATE;
+ END IF;
+ FOR r IN SELECT l."Row ID" AS id,l."Close Date" AS closed,coalesce(l."Default Loss Amount"::numeric,0) AS amount,
+   coalesce((SELECT sum(p."Principal Paid"::numeric) FROM public."Repayments" p WHERE p."Ref Loans"=l."Row ID" AND starts_with(p."Row ID",'df10:')),0) AS ledger,
+   l."Principal Amount"::numeric-coalesce((SELECT sum(p."Principal Paid"::numeric) FROM public."Repayments" p WHERE p."Ref Loans"=l."Row ID"),0) AS remaining
+  FROM public."Loans" l WHERE coalesce(l."Defaulted",false) ORDER BY l."Row ID" COLLATE "C"
+ LOOP
+  CONTINUE WHEN r.amount=r.ledger;
+  difference:=r.amount-r.ledger;
+  IF difference<0 THEN RAISE EXCEPTION 'Legacy default %: the recorded loss % is below the ledger %; reconcile by hand',r.id,r.amount,r.ledger; END IF;
+  IF r.remaining IS NULL OR r.remaining<difference THEN
+   RAISE EXCEPTION 'Legacy default %: outstanding principal % is below the unposted loss %; reconcile by hand',r.id,r.remaining,difference; END IF;
+  IF r.closed IS NULL THEN RAISE EXCEPTION 'Legacy default %: no Close Date to date the posting',r.id; END IF;
+  IF EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Row ID"='df10:'||length(r.id)||':'||r.id||':'||r.closed::text)
+   OR EXISTS(SELECT 1 FROM public."Repayments" p WHERE p."Row ID"='df10:'||length(r.id)||':'||r.id||':'||r.closed::text) THEN
+   RAISE EXCEPTION 'Legacy default %: its dated posting id already exists; reconcile by hand',r.id; END IF;
+  loans:=loans||r.id; dates:=dates||r.closed; recorded:=recorded||r.amount; ledgers:=ledgers||r.ledger;
+  ids:=ids||('df10:'||length(r.id)||':'||r.id||':'||r.closed::text);
+ END LOOP;
+ IF p_apply AND cardinality(loans)>0 THEN
+  FOR k IN 1..cardinality(loans) LOOP
+   difference:=recorded[k]-ledgers[k];
+   -- The V120 posting context of post_loan_default (write off and close) and its rows.
+   PERFORM set_config('business_crud.default',loans[k],true);
+   INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes")
+    VALUES(ids[k],loans[k],dates[k],difference::money,(-difference)::money,
+     'Loan default - outstanding principal recorded as loss; zero cash; R116 legacy reconciliation');
+   INSERT INTO public."Repayments"("Row ID","Payment Date","Principal Paid","Interest Paid","Notes","Ref Loans","Ref Charges","Created By")
+    VALUES(ids[k],dates[k],difference::money,(-difference)::money,
+     'หนี้สูญ - บันทึกเงินต้นคงเหลือเป็นขาดทุน / Loan default - outstanding principal recorded as loss; R116 legacy reconciliation',
+     loans[k],ids[k],p_actor);
+   PERFORM set_config('business_crud.default',coalesce(prior,''),true);
+  END LOOP;
+  -- Every listed loan now has its column equal to its ledger, and no negative outstanding principal.
+  IF EXISTS(SELECT 1 FROM public."Loans" l WHERE l."Row ID"=ANY(loans)
+    AND (coalesce(l."Default Loss Amount"::numeric,0)<>coalesce((SELECT sum(p."Principal Paid"::numeric) FROM public."Repayments" p WHERE p."Ref Loans"=l."Row ID" AND starts_with(p."Row ID",'df10:')),0)
+     OR l."Principal Amount"::numeric-coalesce((SELECT sum(p."Principal Paid"::numeric) FROM public."Repayments" p WHERE p."Ref Loans"=l."Row ID"),0)<0)) THEN
+   RAISE EXCEPTION 'Legacy default reconciliation did not reconcile the ledger'; END IF;
+  -- The snapshots from the earliest posting through today, in this transaction (the cached loan totals and the history
+  -- flush are deferred constraint triggers: at commit they refresh the loans and rebuild these snapshots once more).
+  PERFORM public.refresh_daily_analytics((SELECT min(d) FROM unnest(dates) d),(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date);
+ END IF;
+ RETURN QUERY SELECT x.loan,x.close_date,x.column_amount,x.ledger_amount,x.posting_id,CASE WHEN p_apply THEN 'posted' ELSE 'would post' END
+  FROM unnest(loans,dates,recorded,ledgers,ids) x(loan,close_date,column_amount,ledger_amount,posting_id) ORDER BY x.loan COLLATE "C";
+END $$;
+
+
+--
+-- Name: FUNCTION reconcile_legacy_default_postings(p_actor text, p_apply boolean); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.reconcile_legacy_default_postings(p_actor text, p_apply boolean) IS 'R116 (V130): posts the missing df10: pair of a Defaulted loan whose Default Loss Amount exceeds its ledger, dated on its Close Date, then refreshes Daily Analytics. Operator path; owner only.';
+
+
+--
 -- Name: referral_loan_closed(); Type: FUNCTION
 --
 

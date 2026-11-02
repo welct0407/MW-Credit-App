@@ -27,6 +27,8 @@ if (-not $IsWindows -and (Test-Selected 'migrations')) {
     if ($LASTEXITCODE) { throw 'Legacy default repayment upgrade checks failed' }
     & python3 "$PSScriptRoot/Test-MigrationsCloud.py" --pre-target 110 --pre-sql scripts/database/Test-PayerName-Before.sql --sql scripts/database/Test-PayerName.sql --sql-only
     if ($LASTEXITCODE) { throw 'V111 payer name upgrade checks failed' }
+    & python3 "$PSScriptRoot/Test-MigrationsCloud.py" --pre-target 9 --pre-sql scripts/database/Test-LegacyWriteoffReconcile-Before.sql --sql scripts/database/Test-LegacyWriteoffReconcile.sql --sql-only
+    if ($LASTEXITCODE) { throw 'V130 legacy default reconciliation checks failed' }
 }
 
 if ($IsWindows -and (Test-Selected 'migrations')) {
@@ -46,6 +48,8 @@ if ($IsWindows -and (Test-Selected 'migrations')) {
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 69 -PreMigrationSqlFile scripts/database/Test-DefaultRepaymentBeforeV70.sql -TestSqlFile scripts/database/Test-DefaultRepaymentUpgrade.sql
 
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 110 -PreMigrationSqlFile scripts/database/Test-PayerName-Before.sql -TestSqlFile scripts/database/Test-PayerName.sql
+
+& "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 9 -PreMigrationSqlFile scripts/database/Test-LegacyWriteoffReconcile-Before.sql -TestSqlFile scripts/database/Test-LegacyWriteoffReconcile.sql
 }
 
 if (Test-Selected 'receiving') {
