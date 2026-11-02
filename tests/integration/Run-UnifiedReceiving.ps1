@@ -55,6 +55,9 @@ try {
   # R111: the referral rebate offset (V122), on the same head cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/rebate-offset-independent.test.mjs"
   if($LASTEXITCODE){throw 'Rebate offset integration checks failed'}
+  # R112: the agent receipt command v9 (pay forward through the plan) through the real receipt API handler, on the same head cluster.
+  & node --test --test-concurrency=1 "$PSScriptRoot/agent-receipt-pay-forward-independent.test.mjs"
+  if($LASTEXITCODE){throw 'Agent receipt pay forward integration checks failed'}
   # R109: Default Loan with a loss amount and kept charges (V120), on the same head cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/default-loss-independent.test.mjs"
   if($LASTEXITCODE){throw 'Default loss integration checks failed'}

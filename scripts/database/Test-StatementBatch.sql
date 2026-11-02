@@ -180,6 +180,8 @@ END $$;
 \ir Test-PayForward.sql
 -- V122 (R111): the referral rebate offset (offset posting, cash net zero, linked and lone delete, re-close, horizon, several loans, legacy close, notify v2), rolled back.
 \ir Test-RebateOffset.sql
+-- V125 (R112): the agent receipt command v9 (forward, principal, split through the plan, drift rejected, v7 unchanged, referred-loan close offsets), rolled back.
+\ir Test-AgentReceiptPayForward.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).

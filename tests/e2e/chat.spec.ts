@@ -622,3 +622,52 @@ test('review captures: conversation, thread sheet and provisional reply (EN/TH)'
   }finally{await context.close()}
  }
 });
+
+// R112 (Release 3): the chat payment card for a slip above what is due asks the same purpose question as Receive payment: three
+// purposes, none preselected, Confirm unarmed until one is chosen (and, for a split, an amount), a fixed purpose in the confirm body.
+// card.purposeOptions is the server's card (remainder, dueAmount, businessDate, forward, principal, split); the wording is Echo's (CH-2, CH-3, RP-2).
+const purposeCard=(over:Record<string,unknown>={})=>paymentProposal({card:{...paymentProposal().card,confirmLabel:{en:'Record ฿1,500 from Manee',th:'บันทึก ฿1,500 จาก Manee'},
+ values:[{field:'amountReceived',label:{en:'Amount received',th:'ยอดรับชำระ'},type:'whole',value:'1500'},{field:'paymentDate',label:{en:'Payment date',th:'วันที่รับชำระ'},type:'date',value:'2026-10-30'},
+  {field:'paymentMethod',label:{en:'Payment method',th:'วิธีรับชำระ'},type:'enum',value:'Cash'},{field:'cashAccountId',label:{en:'Receiving account',th:'บัญชีรับเงิน'},type:'account',value:'CA1',display:'Cash box'}],
+ split:[{chargeId:'C1',loanDisplayKey:'Manee-฿2,333-25/10-3%',chargeDate:'2026-10-30',principal:'0',interest:'300',projected:false}],consequences:[],
+ purposeOptions:{remainder:'1200',dueAmount:'300',businessDate:'2026-10-30',split:true,
+  forward:{from:'2026-10-31',paidThrough:'2026-11-01',rows:[{chargeId:'cg8:2:L1:2026-10-31',loanId:'L1',chargeDate:'2026-10-31',principalDue:'0',interestDue:'70',principal:'0',interest:'70',partial:false},{chargeId:'cg8:2:L1:2026-11-01',loanId:'L1',chargeDate:'2026-11-01',principalDue:'0',interestDue:'70',principal:'0',interest:'70',partial:false}]},
+  principal:[{loanId:'L1',loanDisplayKey:'L-0398',amount:'1200',outstandingBefore:'2333',outstandingAfter:'1133',dailyAfter:'66'}]}},...over});
+async function openPurposeCard(){
+ const launched=await launch({seed:true,proposal:true});const {page,s}=launched;
+ const row=s.messages[T1].find((item:any)=>item.proposals?.length);row.proposals=[purposeCard()];
+ await openChat(page);const card=page.locator('.chat-proposal');await expect(card).toHaveCount(1);return {...launched,card};
+}
+test('R112: the chat card for a slip above due shows three purposes, none preselected, and Confirm waits for a choice',async()=>{
+ const {context,page,card}=await openPurposeCard();
+ try{
+  const group=card.getByRole('group',{name:/^Remainder ฿1,200/});await expect(group).toBeVisible();
+  for(const name of [/^Pay forward/,/^Repay principal/,/^Split/]){await expect(card.getByRole('radio',{name})).toBeVisible();await expect(card.getByRole('radio',{name})).not.toBeChecked()}
+  await expect(card.locator('label').filter({hasText:/^Pay forward/})).toContainText('paid through 1 Nov');await expect(card.locator('label').filter({hasText:/^Repay principal/})).toContainText('new interest ฿66/day');
+  const confirm=card.getByRole('button',{name:'Record ฿1,500 from Manee',exact:true});await card.scrollIntoViewIfNeeded();
+  await expect(confirm).toBeDisabled();await expect(card.getByText('Choose how to use the remainder before review.',{exact:true})).toBeVisible();
+ }finally{await context.close()}
+});
+test('R112: choosing a purpose arms Confirm; the confirm body carries that purpose once; Change reopens the choice',async()=>{
+ const {context,page,card,s}=await openPurposeCard();
+ try{
+  const confirm=card.getByRole('button',{name:'Record ฿1,500 from Manee',exact:true});
+  await card.getByRole('radio',{name:/^Pay forward/}).click();await expect(card.locator('.chat-proposal-chosen li')).toHaveCount(1);await expect(card.locator('.chat-proposal-chosen li')).toContainText('2 × ฿70');   // identical forward charges collapse into one run row
+  await expect(confirm).toBeEnabled();
+  await card.getByRole('button',{name:'Change',exact:true}).click();await expect(card.getByRole('radio',{name:/^Pay forward/})).toBeChecked();await expect(confirm).toBeDisabled();   // CH-3: the arm timer restarts
+  await card.getByRole('radio',{name:/^Repay principal/}).click();await confirm.scrollIntoViewIfNeeded();await expect(confirm).toBeEnabled({timeout:8000});   // Confirm re-arms once the card has been in view again
+  s.confirmAnswer={state:'done',settledAt:new Date().toISOString(),outcome:{code:null},record:{type:'payment',id:'PM1',paymentId:'PM1'}};
+  await confirm.click();await expect(card).toHaveAttribute('data-state','done');
+  const posts=s.proposalRequests.filter((r:any)=>r.method==='POST');expect(posts).toHaveLength(1);
+  const body=JSON.parse(posts[0].body!);expect(body).toEqual({purpose:{forward:false,principal:[{loanId:'L1',amount:'1200'}]}});
+ }finally{await context.close()}
+});
+test('R112: a split needs the principal part and is used only once it is entered',async()=>{
+ const {context,card}=await openPurposeCard();
+ try{
+  const confirm=card.getByRole('button',{name:'Record ฿1,500 from Manee',exact:true});await card.scrollIntoViewIfNeeded();
+  await card.getByRole('radio',{name:/^Split/}).click();await expect(confirm).toBeDisabled();
+  await card.getByRole('textbox',{name:/^Principal part/}).fill('800');await card.getByRole('button',{name:'Use this split',exact:true}).click();
+  await expect(card.locator('.chat-proposal-remainder')).toContainText('Split · principal ฿800, the rest pays forward');await expect(confirm).toBeEnabled({timeout:8000});
+ }finally{await context.close()}
+});
