@@ -44,6 +44,11 @@ CREATE FUNCTION pg_temp.wo_snapshot() RETURNS jsonb LANGUAGE sql AS $$
 $$;
 CREATE TEMP TABLE wo_snapshots(label text PRIMARY KEY,value jsonb NOT NULL) ON COMMIT DROP;
 INSERT INTO wo_snapshots VALUES ('base',pg_temp.wo_snapshot());
+-- DSH-6: the API projections (cash.mjs, management-analytics.mjs) see each write-off column present and never null, even with
+-- no write-off (the views coalesce to 0), so the PWA's Unavailable for an explicit null cannot come from V128.
+SELECT pg_temp.wo_assert((SELECT to_jsonb(d) ? 'Principal Write-offs MTD' AND to_jsonb(d)->>'Principal Write-offs MTD' IS NOT NULL FROM public."Cash Dashboard" d)
+ AND (SELECT bool_and(to_jsonb(s) ? 'Principal Write-offs MTD' AND to_jsonb(s)->>'Principal Write-offs MTD' IS NOT NULL AND to_jsonb(s) ? 'Total Principal Loss'
+  AND to_jsonb(s)->>'Total Principal Loss' IS NOT NULL) FROM public.olap_portfolio_summary s),'the API write-off projections are present and never null');
 -- Every figure of a phase against the base, plus the cash identity against the phase before the write-off.
 CREATE FUNCTION pg_temp.wo_phase(label text,gross numeric,writeoff numeric,loss numeric,compare_to text DEFAULT NULL) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE b jsonb:=(SELECT value FROM wo_snapshots WHERE wo_snapshots.label='base'); v jsonb:=pg_temp.wo_snapshot(); k text; want numeric; bad text:='';

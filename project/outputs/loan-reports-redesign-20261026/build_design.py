@@ -306,7 +306,7 @@ NEW_QUESTIONS = {
         'reconcile': 'This period equals 168–171; previous equals them with the preceding range (built, verified).',
     },
     'income.monthly': {
-        'name': 'Monthly income, expenses and net profit', 'display': 'bar', 'kind': 'mbql',
+        'name': 'Monthly income, expenses, write-offs and net profit', 'display': 'bar', 'kind': 'mbql',
         'basis': 'model 186 Income Events', 'origin': 213, 'params': [],
         'definition': 'MBQL on model 186: sum Income, sum Expenses, sum Principal Write-offs and sum (Income − Expenses − '
                       'Principal Write-offs) by Date month (R116), the previous '
@@ -524,7 +524,7 @@ TABS = [
              ('income.writeoffs', 6, 3, {'title': '− Write-offs'}), (170, 6, 3, {'title': '= Net profit'})],
             [('income.vs-previous', 16, 6, {'title': 'This period and the previous period', 'note': 'height fits the five measure rows'}),
              (171, 8, 6, {'title': 'Net profit per day · calendar days'})],
-            [('income.monthly', 16, 8, {'title': 'Monthly income, expenses and net profit'}),
+            [('income.monthly', 16, 8, {'title': 'Monthly income, expenses, write-offs and net profit'}),
              (178, 8, 8, {'title': 'Expenses by category · this period'})],
             [(213, 24, 7, {'title': 'Daily income and expenses · snapshots'})],
             [(212, 24, 7, {'title': 'Expense detail · this period'})],

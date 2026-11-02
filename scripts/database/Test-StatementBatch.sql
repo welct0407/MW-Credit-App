@@ -188,6 +188,8 @@ END $$;
 \ir Test-DailyCashWithdrawal.sql
 -- V128 (R116): principal write-offs apart from profit in the six income relations (gross, write-offs, net = gross - expenses - write-offs; partial default, full write-off, undo, cash identity, column positions), rolled back.
 \ir Test-WriteOffSegregation.sql
+-- V128 (R116, Chase): write-off edge cases (earlier months, a legacy undated pair, monthly/daily/events/portfolio lifetime agreement), rolled back.
+\ir Test-WriteOffSegregationEdges.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).

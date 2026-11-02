@@ -634,7 +634,7 @@
    "reconcile": "This period equals 168–171; previous equals them with the preceding range (built, verified)."
   },
   "income.monthly": {
-   "name": "Monthly income, expenses and net profit",
+   "name": "Monthly income, expenses, write-offs and net profit",
    "display": "bar",
    "kind": "mbql",
    "basis": "model 186 Income Events",
@@ -2133,7 +2133,7 @@
      "size_x": 16,
      "size_y": 8,
      "new_question": "income.monthly",
-     "title": "Monthly income, expenses and net profit",
+     "title": "Monthly income, expenses, write-offs and net profit",
      "params": [
       "statement-period"
      ]
