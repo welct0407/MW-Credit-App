@@ -46,6 +46,25 @@ Team (six-agent process, this session): Archie designed, Byte builds the code, C
 | Echo, built UI (`79e9c73f`) | Nothing blocking; CL-1 and CH-6 being fixed |
 | Wide suite | The pull request's `Development checks` run (pending) |
 
+## DEV deployment record
+
+Forge, 2 November 2026, UTC. Owner instruction of 2 November 2026: "Yes, build it, test in dev and promote to prod". DEV only: no PROD action and the agent VM not touched.
+
+| Item | Result |
+| --- | --- |
+| Source | `63b40a4c` (PR #209 head, branch `claude/r113-settle-close`). Development checks run 41441501439, database run 41441475372, agent run 41441501488 passed. Clean checkout for the migration; the image from a `git archive` of the same commit |
+| Target check | `loan_manager_dev` on `mw-credit-pg-20261017`, head 125 (125 rows, 0 failed), no active sessions; all five DEV services on `bd9d94a3…` (R112 `e6e147a1`) |
+| Backup at V125, 12:13:49Z to 12:16:09Z | Dump sha256 `faf3830963b91cf0f70935922a80f08ec0d7f7e720063c56e4a91b5de5836e12`; archive listing and restore passed; 38 table fingerprints match; `gs://mw-credit-operator-private-737787224638/dev-backups/dev-refresh-c2dcc0b52e8d46289bb083b18e0db4b3/` |
+| Owner window | 5 owners (`mw_chat_owner_dev`, `mw_notify_owner_dev`, `mw_jobs_owner_dev`, `mw_changes_owner_dev`, `mw_app_dev_journal_owner`), 20 statements, opened 12:16:16Z, restored 12:24:19Z; readback all closed |
+| V126 | `Invoke-Flyway.ps1 -Environment development migrate`: installed 12:16:37Z (62.7 s, checksum 166581229, self-check passed), head 126 (126 rows, 0 failed); role check 540 statements, 0 violations |
+| Readback | `pwa_submit_selected_charges_v1` keeps owner `mw_app_dev_journal_owner`, SECURITY DEFINER, its ACL; `pwa_pay_forward_plan_v1` keeps `{postgres, mw_integration_agent, mw_app_dev}` EXECUTE; `pwa_apply_pay_forward_v1` still journal-owner only after the reconcile |
+| Image | Cloud Build `89f93c35-c663-412f-abe8-14eb94ca118a` (`cloudbuild-command.yaml`) as `mw-credit-app-build`, SUCCESS 12:24:40Z to 12:25:16Z, `api@sha256:87bfaa6fc6c647ff3479117a951796f525f58d672a22ba6b71dbd6b7f468e0af`; all five services, as the generic runner derives (`services/contracts/payment-command.mjs` reaches the workers) |
+| Terraform DEV | Plan 0 add, 5 change, 0 destroy (image attribute only); applied 12:26:25Z to 12:27:02Z; re-plan no changes; settings generation `1793622428455043` (previous `1793615711898709`); read `00060-62f`, command `00077-m8f`, chat `00029-xdn`, notify `00027-2xq`, jobs `00027-x99`, 100% traffic |
+| Hosting | `npm run build:live-dev` with `MW_RELEASE_NUMBER` unset (labelled R113 from the tracker); settings identical to the previous bundle, env file deleted; `--check` passed; deployed 12:28:07Z to 12:28:14Z; version `1e83829414dadf0c`, release `1793622493570000`; build-version R113 `a28e2bb2ac9bb9cc4754ef43`, entry `/assets/index-D2WPeYMq.js` embeds `63b40a4`, on both origins |
+| Smoke | `/health` 200 on read, command and chat; unauthenticated 401; preflight 204; notify and jobs Ready; scheduled notify dispatches on `00027-2xq` at 12:27:03Z and 12:28:03Z 200 (observed, not triggered); no ERROR logs from 12:26Z |
+| Credentials | Temporary admin and read credential files deleted; no secret value printed |
+| Rollback | Settings generation `1793615711898709` (image `bd9d94a3…`, R112 `e6e147a1`) with Hosting `ad6947853a378bf9` (release `1793615783076000`), plus the V125 backup above |
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on screen, WebKit and a real iPhone.
