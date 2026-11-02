@@ -183,7 +183,7 @@ The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs e
 
 ## Partner receipt review
 
-See [Partner review](PARTNER_REVIEW.md). New ordinary receipts post automatically under the configured owner policy. New overpayments require linked reviewer approval for full-amount Lump Sum; potential closures remain manual. This supersedes earlier statements that all financial writes are unavailable. General commands and direct SQL writes remain disabled.
+See [Partner review](PARTNER_REVIEW.md). New ordinary receipts post automatically under the configured owner policy. New overpayments require linked reviewer approval for full-amount Lump Sum; potential closures remain manual. R112 pay-forward options (revision 34) are off until the owner activates them: activation sets `pay_forward_options_enabled` to true in the live configuration (a configuration-only change, after PROD has V125), rollback sets it back to false; while off, slips above what is due keep the overpayment review, and an approved options review ends MANUAL_REQUIRED. This supersedes earlier statements that all financial writes are unavailable. General commands and direct SQL writes remain disabled.
 
 
 ## Reviewer-only corrections and DML — 22 September 2026

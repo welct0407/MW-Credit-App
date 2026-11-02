@@ -36,7 +36,7 @@ export function createAgentReceiptHandler({next,policy,pool,guardConnection,afte
   }catch{return send(res,401,{error:'unauthorized'});}
   let input,command;
   if(!match[1]){
-   try{const chunks=[];let length=0;for await(const chunk of req){const bytes=Buffer.from(chunk);length+=bytes.length;if(length>16384)throw Error();chunks.push(bytes);}
+   try{const chunks=[];let length=0;for await(const chunk of req){const bytes=Buffer.from(chunk);length+=bytes.length;if(length>65536)throw Error();/* R112: 65536 for schemaVersion 9; SQL keeps 7 and 8 at 16384. */chunks.push(bytes);}
     input=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)));if(!input||Object.keys(input).sort().join(',')!=='actorPartnerId,command')throw Error();
     command=canonicalAgentCommand(input.command);if(command.environment!==policy.environment||(command.mode==='automatic'?input.actorPartnerId!==policy.automaticPartnerId:!policy.reviewerPartnerIds.includes(input.actorPartnerId)))throw Error();
    }catch{return send(res,400,{error:'invalid_receipt_command'});}

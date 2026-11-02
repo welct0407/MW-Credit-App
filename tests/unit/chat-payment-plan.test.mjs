@@ -21,10 +21,24 @@ function autoAssign(amount){
  return {...draft,allocations,amountReceived:amount,allocated:String(BigInt(amount)-remaining),unallocated:String(remaining)};
 }
 const upcoming=[{id:'cg8:2:L1:2026-11-04',loanId:'L1',chargeDate:'2026-11-04',loanDisplayKey:'Somchai-฿10,000-01/10-1%',amountRemaining:'700',principalRemaining:'0',interestRemaining:'700',bookVersion:'a'.repeat(64)}];
-function fake({planChanged=false,reviewCharges=null}={}){
+/** R112: Auto-assign's R110 remainder previews (store.mjs remainderPreview) and the /plan answers for a 1,000 receipt. */
+const remainder={amount:'300',loans:{L1:'Somchai-฿10,000-01/10-1%'},forward:{rows:[
+  {loanId:'L1',chargeId:'cg8:2:L1:2026-10-31',chargeDate:'2026-10-31',principalDue:'0',interestDue:'100',principal:'0',interest:'100',partial:false,booked:true},
+  {loanId:'L1',chargeId:'cg8:2:L1:2026-11-01',chargeDate:'2026-11-01',principalDue:'0',interestDue:'100',principal:'0',interest:'100',partial:false,booked:true},
+  {loanId:'L1',chargeId:'cg8:2:L1:2026-11-02',chargeDate:'2026-11-02',principalDue:'0',interestDue:'100',principal:'0',interest:'100',partial:false,booked:true}],
+ paidThrough:{L1:'2026-11-02'},uncovered:'0',blocked:[]},
+ principal:[{loanId:'L1',amount:'300',settles:false,entry:{loanId:'L1',dailyBefore:'100',dailyAfter:'97',outstandingBefore:'10000',outstandingAfter:'9700'}}]};
+const dueLines=autoAssign('700').allocations;
+const forwardPlan={allocations:[...dueLines,...remainder.forward.rows.map(r=>({chargeId:r.chargeId,principal:r.principal,interest:r.interest,expectedPrincipalRemaining:r.principalDue,expectedInterestRemaining:r.interestDue,chargeDate:r.chargeDate}))].toSorted((a,b)=>a.chargeId.localeCompare(b.chargeId)),
+ materialize:remainder.forward.rows.map(r=>({loanId:'L1',chargeId:r.chargeId,chargeDate:r.chargeDate,principalDue:r.principalDue,interestDue:r.interestDue})),principal:[],uncovered:'0',settles:[],paidThrough:{L1:'2026-11-02'}};
+const principalPlan={allocations:dueLines.map(l=>l.chargeId==='C2'?{...l,principal:'300',expectedPrincipalRemaining:'300'}:l).toSorted((a,b)=>a.chargeId.localeCompare(b.chargeId)),materialize:[],
+ principal:[{loanId:'L1',kind:'raise',chargeId:'C2',chargeDate:'2026-10-29',amount:'300',accruedInterest:'0',principalDue:'300',outstandingBefore:'10000',outstandingAfter:'9700',dailyBefore:'100',dailyAfter:'97'}],uncovered:'0',settles:[],paidThrough:{}};
+function fake({planChanged=false,reviewCharges=null,offer=remainder,planFor=null}={}){
  const calls=[];
  const handle=(method,path,body)=>{
   calls.push([method,path,body]);
+  if(method==='POST'&&path==='/api/payment-drafts/B1/auto-assign'&&body.amountReceived==='1000'&&offer)return {status:200,data:{...autoAssign('1000'),remainder:offer}};
+  if(method==='POST'&&path==='/api/payment-drafts/B1/plan'){const plan=planFor?planFor(body.purpose):body.purpose.forward?forwardPlan:principalPlan;return {status:200,data:{businessDate:'2026-10-30',purpose:body.purpose,plan,loans:remainder.loans}};}
   if(method==='POST'&&path==='/api/payment-drafts/B1/select-all')return {status:200,data:{...draft,total:'700'}};
   if(method==='POST'&&path==='/api/payment-drafts/B1/auto-assign')return {status:200,data:autoAssign(body.amountReceived)};
   if(method==='GET'&&path==='/api/payment-drafts/B1?scope=all')return {status:200,data:{...draft,scope:'all',upcoming}};
@@ -106,4 +120,54 @@ test('payment.record through the planner: the card lists every allocation line a
  assert.deepEqual(value.card.values.map(v=>v.field),['amountReceived','paymentDate','paymentMethod','cashAccountId','notes']);
  assert.equal(value.card.values.find(v=>v.field==='cashAccountId').display,'Cash box');
  await assert.rejects(planner.propose({operation:'payment.record',target:'',values:{amountReceived:'700',paymentMethod:'Cash'}}),/TARGET_REQUIRED/);
+});
+
+test('R112: an amount above what is due waits for the Partner\'s choice: no command, the card\'s choices, nothing preselected',async()=>{
+ const {client,calls}=fake();
+ const {command,plan,draft}=await planPayment({client,borrowerId:'B1',values:{amountReceived:'1000',paymentMethod:'Bank Transfer',cashAccountId:'CA1'},requestId:RID});
+ assert.equal(command,null);assert.deepEqual(draft,{borrowerId:'B1',amountReceived:'1000',paymentDate:'2026-10-30',paymentMethod:'Bank Transfer',cashAccountId:'CA1',notes:null});
+ assert.deepEqual(Object.keys(plan.purposeOptions),['remainder','dueAmount','businessDate','forward','principal','split']);
+ assert.equal(plan.purposeOptions.remainder,'300');assert.equal(plan.purposeOptions.forward.paidThrough,'2026-11-02');assert.equal(plan.purposeOptions.forward.from,'2026-10-31');
+ assert.deepEqual(plan.purposeOptions.principal.map(o=>[o.loanId,o.amount,o.dailyAfter,o.loanDisplayKey]),[['L1','300','97','Somchai-฿10,000-01/10-1%']]);
+ assert.equal(plan.purposeOptions.split,true);assert.deepEqual(plan.split.map(r=>r.chargeId),['C2','C1']);
+ assert.equal(calls.some(([,path])=>path.endsWith('/plan')),false,'no plan is read before a choice');
+ // Not today: the plan is the business day's.
+ await assert.rejects(planPayment({client,borrowerId:'B1',values:{amountReceived:'1000',paymentMethod:'Cash',cashAccountId:'CA1',paymentDate:'2026-10-29'},requestId:RID}),/PAY_FORWARD_TODAY_ONLY/);
+ // Without previews (before V121 or outside owner testing), the refusal stays.
+ await assert.rejects(planPayment({client:fake({offer:null}).client,borrowerId:'B1',values:{amountReceived:'1000',paymentMethod:'Cash',cashAccountId:'CA1'},requestId:RID}),/AMOUNT_EXCEEDS_DUE/);
+ // A settling principal and an uncovered forward are not offered; nothing left -> refusal.
+ await assert.rejects(planPayment({client:fake({offer:{...remainder,forward:{...remainder.forward,uncovered:'50'},principal:[{...remainder.principal[0],settles:true}]}}).client,borrowerId:'B1',values:{amountReceived:'1000',paymentMethod:'Cash',cashAccountId:'CA1'},requestId:RID}),/AMOUNT_EXCEEDS_DUE/);
+});
+
+test('R112: the chosen purpose builds the v10 command from the server plan, re-posted to review; only offered choices',async()=>{
+ const values={amountReceived:'1000',paymentMethod:'Bank Transfer',cashAccountId:'CA1'};
+ let {client,calls}=fake();
+ const forward=await planPayment({client,borrowerId:'B1',values,requestId:RID,purpose:{forward:true,principal:[]}});
+ assert.equal(forward.command.schemaVersion,10);assert.deepEqual(forward.command,canonicalCommand(forward.command));assert.equal(forward.command.requestId,RID);
+ assert.deepEqual(forward.command.materialize,forwardPlan.materialize);assert.deepEqual(forward.command.principal,[]);
+ assert.deepEqual(calls.find(([,path])=>path.endsWith('/plan'))[2],{amountReceived:'1000',purpose:{forward:true,principal:[],loans:null}});
+ assert.deepEqual(calls.at(-1),['POST','/api/payment-drafts/B1/review',{amountReceived:'1000',allocations:forward.command.allocations,materialize:forward.command.materialize,principal:[]}]);
+ assert.equal(forward.plan.split.filter(r=>r.projected).length,3);
+ ({client,calls}=fake());
+ const principal=await planPayment({client,borrowerId:'B1',values,requestId:RID,purpose:{forward:false,principal:[{loanId:'L1',amount:'300'}]}});
+ assert.deepEqual(principal.command.principal,[{loanId:'L1',kind:'raise',chargeId:'C2',chargeDate:'2026-10-29',amount:'300',accruedInterest:'0',principalDue:'300'}]);
+ for(const purpose of [{forward:false,principal:[]},{forward:false,principal:[{loanId:'L1',amount:'299'}]},{forward:true,principal:[{loanId:'L1',amount:'300'}]},{forward:true,principal:[{loanId:'L2',amount:'100'}]},
+  {forward:true,principal:[],loans:null},{forward:'yes',principal:[]},{forward:true,principal:[{loanId:'L1',amount:'0'}]}])
+  await assert.rejects(planPayment({client,borrowerId:'B1',values,requestId:RID,purpose}),/PURPOSE_NOT_OFFERED/,JSON.stringify(purpose));
+ await assert.rejects(planPayment({client,borrowerId:'B1',values:{...values,amountReceived:'700'},requestId:RID,purpose:{forward:true,principal:[]}}),/PURPOSE_NOT_OFFERED/,'no remainder, no purpose');
+ await assert.rejects(planPayment({client:fake({planFor:()=>({...forwardPlan,uncovered:'100'})}).client,borrowerId:'B1',values,requestId:RID,purpose:{forward:true,principal:[]}}),/PAY_FORWARD_UNCOVERED/);
+ await assert.rejects(planPayment({client:fake({planFor:()=>({...principalPlan,settles:['L1']})}).client,borrowerId:'B1',values,requestId:RID,purpose:{forward:false,principal:[{loanId:'L1',amount:'300'}]}}),/PAY_FORWARD_SETTLES/);
+ await assert.rejects(planPayment({client:fake({planChanged:true}).client,borrowerId:'B1',values,requestId:RID,purpose:{forward:true,principal:[]}}),/PLAN_CHANGED/);
+});
+
+test('R112: through the planner the remainder card stores the draft (purposeRequired), never a command; it is alone in its card',async()=>{
+ const {client}=fake();
+ const planner=createProposalPlanner({client,actor:{partnerId:'P1'},newId:()=>RID});
+ const value=await planner.propose({operation:'payment.record',target:'B1',values:{amountReceived:'1000',paymentMethod:'Cash',cashAccountId:'CA1'}});
+ const stored=JSON.parse(value.command);
+ assert.deepEqual(Object.keys(stored),['requestId','purposeRequired','draft']);assert.equal(stored.requestId,RID);assert.equal(stored.purposeRequired,true);
+ assert.throws(()=>canonicalCommand(stored));assert.equal(value.card.purposeOptions.remainder,'300');
+ assert.deepEqual(value.card.confirmLabel,{en:'Record ฿1,000',th:'บันทึก ฿1,000'});
+ let n=0;const many=createProposalPlanner({client,actor:{partnerId:'P1'},newId:()=>`00000000-0000-4000-8000-00000000000${n++}`});
+ await assert.rejects(many.proposeGroup([{operation:'payment.record',target:'B1',values:{amountReceived:'1000',paymentMethod:'Cash',cashAccountId:'CA1'}},{operation:'payment.record',target:'B1',values:{amountReceived:'100',paymentMethod:'Cash',cashAccountId:'CA1'}}]),/PURPOSE_LINE_ALONE:1/);
 });

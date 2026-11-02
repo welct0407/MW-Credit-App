@@ -9,6 +9,9 @@ key. activate writes both while every worker stays paused; the freeze copy (a da
 rollback.
 R102 (VM chat relay): the one accepted change of a live revision 32 to the candidate revision 33 adds exactly the
 chat_messages_relay service, disabled (default deny; activation is a separate owner authorization).
+R112 (pay-forward options reply): the one accepted change of a live revision 33 to the candidate revision 34 changes no
+service, switch or capability (the new behaviour is behind the configuration switch pay_forward_options_enabled, which
+a deploy keeps as it is: absent means off).
 `deploy-shared-receipt-api.py` is the engine; this file supplies the preparation. The probe is the engine's
 read-only receipt-status GET (the native conversation probe left with the conversation)."""
 import copy
@@ -31,6 +34,7 @@ R091_KEYS=frozenset({'partner_conversations_enabled','conversation_writes_enable
 R091_PREFIXES=('gemini_conversation_','claude_','database_dml_')
 R102_REVISIONS=(32,33)
 R102_SERVICES=frozenset({'chat_messages_relay'})
+R112_REVISIONS=(33,34)
 
 
 def retired(key):return key in R091_KEYS or key.startswith(R091_PREFIXES)
@@ -42,11 +46,15 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
     live,wanted=set(catalogue['services']),set(candidate['services'])
     r091=(catalogue.get('revision'),candidate.get('revision'))==R091_REVISIONS
     r102=(catalogue.get('revision'),candidate.get('revision'))==R102_REVISIONS
+    r112=(catalogue.get('revision'),candidate.get('revision'))==R112_REVISIONS
     if r091:
         base.require(live-wanted==R091_SERVICES and wanted<=live,'R091 catalogue must drop exactly the retired conversation services')
     elif r102:
         base.require(wanted-live==R102_SERVICES and live<=wanted,'R102 catalogue must add exactly chat_messages_relay')
         base.require(all(candidate['services'][k]=={'enabled':False,'implemented':True} for k in R102_SERVICES),'R102 chat_messages_relay must arrive disabled')
+    elif r112:
+        base.require(live==wanted,'R112 catalogue must keep every service')
+        base.require(all(catalogue['services'][k]==candidate['services'][k] for k in live),'R112 catalogue must keep every switch')
     else:
         base.require(catalogue.get('revision')==candidate.get('revision'),'Catalogue revision drift')
         base.require(live==wanted,'Service drift')
@@ -58,6 +66,8 @@ def prepare(config,catalogue,candidate,commit,origin,audience,cutoff):
     if r091:
         cat['revision']=candidate['revision']
         for name in R091_SERVICES:del cat['services'][name]
+    if r112:
+        cat['revision']=candidate['revision']
     if r102:
         cat['revision']=candidate['revision']
         for name in R102_SERVICES:cat['services'][name]=dict(candidate['services'][name])

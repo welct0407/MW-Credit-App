@@ -133,6 +133,22 @@ export function readError(status,data){
  return new ToolError('COMMAND_UNAVAILABLE');
 }
 
+/** The command service's draft reads for planPayment: an unreachable service is COMMAND_UNAVAILABLE. */
+const commandReads=client=>({get:async path=>{try{return await client.get(path);}catch(error){if(error instanceof CommandUnavailable)throw new ToolError('COMMAND_UNAVAILABLE');throw error;}},
+ post:async(path,body)=>{try{return await client.post(path,body);}catch(error){if(error instanceof CommandUnavailable)throw new ToolError('COMMAND_UNAVAILABLE');throw error;}}});
+/** R112: whether a stored proposal command is a remainder draft that needs the Partner's purpose at Confirm. */
+export const needsPurpose=line=>line?.kind==='payment'&&!!line.card?.purposeOptions;
+/** R112: the v10 command of a remainder draft for the chosen purpose, planned now from the same draft fields under the
+ * proposal's request id (the choice must be one offered now). Throws ToolError (PURPOSE_NOT_OFFERED, PLAN_CHANGED, ...). */
+export async function paymentCommandFor({client,stored,purpose}){
+ const d=stored?.draft;
+ if(!plain(d)||!stored.purposeRequired)throw new ToolError('INVALID_COMMAND');
+ const {command}=await planPayment({client:commandReads(client),borrowerId:d.borrowerId,requestId:stored.requestId,purpose,
+  values:{amountReceived:d.amountReceived,paymentDate:d.paymentDate,paymentMethod:d.paymentMethod,cashAccountId:d.cashAccountId,notes:d.notes}});
+ if(!command||command.requestId!==stored.requestId)throw new ToolError('INVALID_COMMAND');
+ return command;
+}
+
 /**
  * One turn's proposal planner. client: createCommandClient bound to the Partner's token.
  * @param {{client:{get:Function,post:Function},actor:{partnerId:string},catalogue?:any,newId?:()=>string}} options
@@ -179,14 +195,17 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
 
  async function proposePayment(entry,target,values){
   const requestId=newId();
-  const {command,plan}=await planPayment({client:{get:async path=>{try{return await client.get(path);}catch(error){if(error instanceof CommandUnavailable)throw new ToolError('COMMAND_UNAVAILABLE');throw error;}},
-   post:async(path,body)=>{try{return await client.post(path,body);}catch(error){if(error instanceof CommandUnavailable)throw new ToolError('COMMAND_UNAVAILABLE');throw error;}}},borrowerId:target,values,requestId});
+  const {command,plan,draft}=await planPayment({client:commandReads(client),borrowerId:target,values,requestId});
+  const shown=command??draft;
   const field=name=>entry.fields.find(f=>f.name===name);
-  const values_=[['amountReceived',command.amountReceived],['paymentDate',command.paymentDate],['paymentMethod',command.paymentMethod],['cashAccountId',command.cashAccountId,plan.accountLabel],['notes',command.notes]]
+  const values_=[['amountReceived',shown.amountReceived],['paymentDate',shown.paymentDate],['paymentMethod',shown.paymentMethod],['cashAccountId',shown.cashAccountId,plan.accountLabel],['notes',shown.notes]]
    .filter(([,value])=>value!==null).map(([name,value,label])=>({field:name,label:field(name).label,type:field(name).type,value,...(label?{display:label}:{})}));
-  const card={version:1,operation:entry.operation,label:entry.label,confirmLabel:confirmLabel(entry,command),destructive:false,target:{type:'borrower',id:target,label:plan.borrowerLabel},values:values_,changes:[],
-   split:plan.split,consequences:plan.settlesAllDue?[{code:'settles_all_due'}]:[]};
-  return {id:requestId,kind:'payment',operation:entry.operation,command:JSON.stringify(command),card,scope:{key:'payment.record:'+target,borrowerId:target,created:null,refs:refsOf(command)}};
+  const card={version:1,operation:entry.operation,label:entry.label,confirmLabel:confirmLabel(entry,shown),destructive:false,target:{type:'borrower',id:target,label:plan.borrowerLabel},values:values_,changes:[],
+   split:plan.split,consequences:plan.settlesAllDue?[{code:'settles_all_due'}]:[],...(plan.purposeOptions?{purposeOptions:plan.purposeOptions}:{})};
+  // R112: a remainder waiting for the Partner's choice stores its draft, not a command (purposeRequired); the command is
+  // built at Confirm (paymentCommandFor) under this request id and sent once.
+  const stored=command??{requestId,purposeRequired:true,draft};
+  return {id:requestId,kind:'payment',operation:entry.operation,command:JSON.stringify(stored),card,scope:{key:'payment.record:'+target,borrowerId:target,created:null,refs:refsOf(command??{borrowerId:target})}};
  }
 
  return {
@@ -295,6 +314,8 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
     try{lines.push(await this.propose(change));}
     catch(error){if(several&&error instanceof ToolError)throw new ToolError(`LINE_${index+1}:${error.message}`);throw error;}
    }
+   // R112: a payment waiting for its remainder choice is the only line of its card (Confirm carries one purpose).
+   if(several){const at=lines.findIndex(line=>/** @type {any} */(line.card).purposeOptions);if(at>=0)throw new ToolError(`PURPOSE_LINE_ALONE:${at+1}`);}
    const keys=new Map(),created=new Map(lines.filter(l=>l.scope.created).map((l,i)=>[l.scope.created,i]));
    lines.forEach((line,index)=>{
     if(line.scope.key){if(keys.has(line.scope.key))throw new ToolError(`DUPLICATE_TARGET:${index+1}`);keys.set(line.scope.key,index);}
@@ -370,9 +391,9 @@ const unknown=reason=>({state:'unknown',outcome:{status:'unknown',code:'outcome_
  * A busy refusal settles failed command_busy only on the first attempt: services/payment-command/store.mjs run()
  * answers 409 command_busy only for a lock or try-lock refusal before COMMIT after a confirmed ROLLBACK (no quarantine),
  * so nothing was applied (lines 86-92, DB-LOCK-01); any later attempt settles unknown.
- * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number}} input
+ * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number,purpose?:any}} input
  */
-export async function executeProposal({store,principal,thread,id,client,log=()=>{},now=Date.now}){
+export async function executeProposal({store,principal,thread,id,client,log=()=>{},now=Date.now,purpose=null}){
  const claim=await store.claimProposal(principal,thread,id);
  if(!claim.claimed)return reconcileProposal({store,principal,thread,proposal:claim.proposal,client,now,log});
  const proposal=claim.proposal,first=proposal.attempts===1;
@@ -389,7 +410,14 @@ export async function executeProposal({store,principal,thread,id,client,log=()=>
  if(status.kind==='conflict')return settle(failed('command_conflict'));
  if(status.kind==='refused')return settle(first?failed(status.code):unknown('status_refused'));
  if(!first)return settle(unknown('not_first_attempt'));
- const answer=await client.submit(proposal.kind,claim.command);
+ // R112: a remainder draft becomes its v10 command now, for the purpose of this (the only) claim; nothing was sent yet,
+ // so a refusal or an unreachable service settles failed. The draft itself is never sent.
+ let text=claim.command;
+ if(command?.purposeRequired){
+  try{command=await paymentCommandFor({client,stored:command,purpose});text=JSON.stringify(command);}
+  catch(error){if(error instanceof ToolError)return settle(failed(error.message==='COMMAND_UNAVAILABLE'?'command_unavailable':error.message.toLowerCase().replace(/[^a-z0-9_]/g,'_').slice(0,80)));throw error;}
+ }
+ const answer=await client.submit(proposal.kind,text);
  if(answer.result==='recorded')return settle(recorded(proposal,command,answer.data));
  if(answer.result==='busy')return settle(first?failed('command_busy'):unknown('busy'));
  if(answer.result==='rejected')return settle(failed(answer.code));
@@ -457,9 +485,9 @@ export async function loadGroup({store,principal,thread,id}){
  * reconciled only; a recorded result wins; settled lines are reported as they are). A failed or unknown line does not
  * stop the group. Lines not reached within GROUP_DEADLINE_MS stay pending. A confirm while a line of the group runs
  * (another tab) answers 409 proposal_executing. onLine receives {index,id,state,code?,record?} after each line.
- * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number,deadlineMs?:number,onLine?:(line:object)=>void,lines?:any[]}} input
+ * @param {{store:any,principal:any,thread:string,id:string,client:any,log?:(record:object)=>void,now?:()=>number,deadlineMs?:number,onLine?:(line:object)=>void,lines?:any[],purpose?:any}} input
  */
-export async function executeGroup({store,principal,thread,id,client,log=()=>{},now=Date.now,deadlineMs=GROUP_DEADLINE_MS,onLine=()=>{},lines:loaded}){
+export async function executeGroup({store,principal,thread,id,client,log=()=>{},now=Date.now,deadlineMs=GROUP_DEADLINE_MS,onLine=()=>{},lines:loaded,purpose=null}){
  const started=now();
  const lines=loaded??await loadGroup({store,principal,thread,id});
  assertIdle(lines,now);
@@ -468,7 +496,7 @@ export async function executeGroup({store,principal,thread,id,client,log=()=>{},
  for(const [index,line] of lines.entries()){
   if(line.state==='pending'&&now()-started>=deadlineMs)break;
   if(['pending','unknown','executing'].includes(line.state)){
-   try{out[index]=await executeProposal({store,principal,thread,id:line.id,client,log,now});}
+   try{out[index]=await executeProposal({store,principal,thread,id:line.id,client,log,now,purpose:needsPurpose(line)?purpose:null});}
    catch(error){
     // Another confirm took a line between our read and our claim: the first one answers 409, a later one stops here.
     if(error?.message==='proposal_executing'){if(!claimed)throw error;break;}

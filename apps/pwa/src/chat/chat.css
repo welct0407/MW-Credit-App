@@ -132,6 +132,11 @@
 .chat-proposal-split h4{margin:0 0 4px;font-size:var(--text-meta,14px);font-weight:600}
 .chat-proposal-split ul{margin:0;padding:0;list-style:none;display:grid;gap:4px}
 .chat-proposal-split li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-size:var(--text-meta,14px);border-bottom:1px solid #eceff1;padding-bottom:4px}
+/* R112 CH-2/CH-3: the remainder choice above the Allocation and the rows the chosen use adds below it. */
+.chat-proposal-remainder{margin:10px 0 0}
+.chat-proposal-chosen{margin:4px 0 0;padding:0;list-style:none;display:grid;gap:4px}
+.chat-proposal-badge{margin-left:6px;padding:0 6px;border-radius:999px;border:1px solid currentColor;font-size:12px;white-space:nowrap}
+.chat-proposal-chosen li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-size:var(--text-meta,14px);border-bottom:1px solid #eceff1;padding-bottom:4px}
 .chat-proposal-consequence{margin:8px 0 0;font-size:var(--text-meta,14px);color:#3c4043}
 .chat-proposal-foot{margin-top:10px}
 .chat-proposal-state{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--text-meta,14px);color:#3c4043}

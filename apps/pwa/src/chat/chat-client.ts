@@ -205,8 +205,9 @@ export async function cancelProposalGroup(access:ChatAccess,threadId:string,id:s
  * `line` after each, then `group` and `done`. Returns the final group, or null when the stream ended without it (the
  * caller then reads the group, which reconciles; a lost answer is never resent blindly).
  */
-export async function confirmProposalGroup(access:ChatAccess,threadId:string,id:string,onLine:(line:GroupLineEvent)=>void,signal?:AbortSignal):Promise<ProposalGroup|null>{
- const response=await send(access,proposalPath(threadId,id)+'/confirm',{method:'POST',body:{},signal,gate:true,accept:'text/event-stream'});
+export async function confirmProposalGroup(access:ChatAccess,threadId:string,id:string,onLine:(line:GroupLineEvent)=>void,signal?:AbortSignal,purpose?:{forward:boolean;principal:{loanId:string;amount:string}[]}|null):Promise<ProposalGroup|null>{
+ // R112: a payment card with remainder choices carries the Partner's choice.
+ const response=await send(access,proposalPath(threadId,id)+'/confirm',{method:'POST',body:purpose?{purpose}:{},signal,gate:true,accept:'text/event-stream'});
  if(!response.ok)throw await failure(response);
  if(!/text\/event-stream/i.test(response.headers.get('Content-Type')??''))return groupAnswer(response);
  let group:ProposalGroup|null=null,error:string|null=null;

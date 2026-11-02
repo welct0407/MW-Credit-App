@@ -1,4 +1,12 @@
-"""Build a fixed payment proposal from current balances, never an AI command."""
+"""Build a fixed payment proposal from current balances, never an AI command.
+
+R112 (Pay Forward Release 3): with `pay_forward_options_enabled` (default off, fail closed) a slip dated today above
+what is due, or with nothing due, that is not a loan payoff becomes 'Pay forward options': the numbers come from the
+server's own plan function (pwa_pay_forward_plan_v1, read only) and the proposal keeps planSha256, the hash of the plans
+it shows, so a changed plan is detected before anything posts. With the switch off the proposal is today's
+'Overpayment review' hold."""
+import hashlib
+import json
 from datetime import date,datetime
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from .cash_statement import read_query
@@ -74,13 +82,109 @@ def same_posting_outcome(saved, fresh, automatic):
     def full(proposal):
         return proposal.get('action')=='Lump Sum' or (not automatic and review_posts_overpayment(proposal))
     try:
+        if saved.get('action')==OPTIONS or fresh.get('action')==OPTIONS:
+            # R112: the options keep their approval only while the server's plans are unchanged.
+            return (not automatic and saved['receipt']==fresh['receipt'] and saved['borrower']['id']==fresh['borrower']['id']
+                    and saved.get('action')==fresh.get('action')==OPTIONS
+                    and saved['options']['planSha256']==fresh['options']['planSha256'])
         return (saved['receipt']==fresh['receipt'] and saved['borrower']['id']==fresh['borrower']['id']
                 and full(saved) and full(fresh))
     except (KeyError, TypeError, AttributeError):
         return False
 
 
-def plan(receipt,borrower,current,today=None):
+OPTIONS='Pay forward options'
+# One read-only call of the server's plan; every value goes in as a psql variable.
+PLAN_SQL="SELECT public.pwa_pay_forward_plan_v1(:'borrower',:'amount'::numeric,:'day'::date,:'purpose'::jsonb);"
+MAX_PRINCIPAL_OPTIONS=5
+
+
+def options_enabled(config):
+    return isinstance(config,dict) and config.get('pay_forward_options_enabled') is True
+
+
+def pay_forward_plan(config,borrower_id,amount,day,purpose):
+    """The server's plan for one purpose {forward, principal:[{loanId, amount}], loans: None}."""
+    value=read_query(config,PLAN_SQL,{'borrower':str(borrower_id),'amount':str(amount),'day':day,
+                                      'purpose':json.dumps(purpose,separators=(',',':'),sort_keys=True)})
+    if not isinstance(value,dict):raise ReceiptInvalid('PAY_FORWARD_PLAN_UNAVAILABLE')
+    return value
+
+
+def plan_digest(plans):
+    return hashlib.sha256(json.dumps(plans,sort_keys=True,separators=(',',':'),ensure_ascii=False,default=str).encode()).hexdigest()
+
+
+def pay_forward_options(config,receipt,borrower_id,current,today):
+    """The choices a slip above what is due offers, from the server's plans, or None when none can be offered.
+    1 pay forward: the forward plan covers the whole remainder; 2 repay principal: per eligible daily-interest loan,
+    the remainder after its accrued interest, unless that settles the loan (then Loan Close); 3 split: a principal part
+    of the one principal loan, the rest pays forward (its plan is read when chosen)."""
+    amount=str(int(Decimal(receipt['amount'])))
+    forward=pay_forward_plan(config,borrower_id,amount,today,{'forward':True,'principal':[],'loans':None})
+    plans={'forward':forward}
+    keys={l['id']:l.get('loan_key') for l in current.get('loans',[])}
+    remainder=Decimal(str(forward.get('remainder','0')))
+    if remainder<=0:return None
+    principal,blocked=[],[]
+    for option in sorted(forward.get('options') or [],key=lambda o:str(o.get('loanId')).encode())[:MAX_PRINCIPAL_OPTIONS]:
+        loan=str(option.get('loanId'));part=remainder-Decimal(str(option.get('accruedInterest','0')))
+        if part<=0:blocked.append({'loanId':loan,'reason':'interest'});continue
+        purpose={'forward':False,'principal':[{'loanId':loan,'amount':str(int(part))}],'loans':None}
+        read=pay_forward_plan(config,borrower_id,amount,today,purpose);plans['principal:'+loan]=read
+        entry=(read.get('principal') or [None])[0]
+        if loan in (read.get('settles') or []):blocked.append({'loanId':loan,'reason':'settles'})
+        elif not entry or read.get('uncovered')!='0':
+            reasons=[b.get('reason') for b in read.get('blocked') or [] if b.get('loanId')==loan]
+            blocked.append({'loanId':loan,'reason':str(reasons[0] if reasons else 'unavailable')})
+        else:principal.append({'loanId':loan,'loanKey':keys.get(loan),'amount':str(int(part)),'dailyAfter':str(entry.get('dailyAfter')),
+                               'outstandingAfter':str(entry.get('outstandingAfter'))})
+    rows=[r for r in forward.get('forward') or [] if isinstance(r,dict)]
+    through=max((d for d in (forward.get('paidThrough') or {}).values() if isinstance(d,str)),default=None)
+    uncovered=str(forward.get('uncovered','0'))
+    offered=uncovered=='0' and bool(rows) and not forward.get('settles')
+    if not offered and not principal:return None
+    return {'planSha256':plan_digest(plans),'dueTotal':str(forward.get('dueTotal')),'remainder':str(int(remainder)),
+            'forward':{'first':rows[0].get('chargeDate') if rows else None,'last':rows[-1].get('chargeDate') if rows else None,
+                       'through':through,'uncovered':uncovered} if rows or uncovered!='0' else None,
+            'principal':principal,'blocked':blocked}
+
+
+def forward_offered(options):
+    forward=options.get('forward')
+    return bool(forward) and forward.get('uncovered')=='0' and bool(forward.get('first'))
+
+
+def chosen_purpose(options,choice):
+    """{'kind':'forward'|'principal'|'split','loan':n,'amount':text} -> the plan purpose, or None when not offered."""
+    principal=options.get('principal') or []
+    if choice['kind']=='forward':
+        return {'forward':True,'principal':[],'loans':None} if forward_offered(options) else None
+    index=choice.get('loan')
+    if index is None:
+        if len(principal)!=1:return None
+        index=1
+    if not 1<=index<=len(principal):return None
+    option=principal[index-1]
+    if choice['kind']=='principal':
+        return {'forward':False,'principal':[{'loanId':option['loanId'],'amount':option['amount']}],'loans':None}
+    amount=choice.get('amount')
+    if not forward_offered(options) or len(principal)!=1 or not isinstance(amount,str) or not amount.isdecimal() \
+            or amount.startswith('0') or int(amount)>=int(option['amount']):return None
+    return {'forward':True,'principal':[{'loanId':option['loanId'],'amount':amount}],'loans':None}
+
+
+def chosen_plan(config,proposal,purpose):
+    """The server's plan for the chosen purpose now (the command must equal it); refuses a plan that leaves money
+    uncovered, settles a loan or drops a requested principal."""
+    receipt=proposal['receipt']
+    read=pay_forward_plan(config,proposal['borrower']['id'],str(int(Decimal(receipt['amount']))),receipt['date'],purpose)
+    if read.get('uncovered')!='0' or read.get('settles') or len(read.get('principal') or [])!=len(purpose['principal']) \
+            or not read.get('allocations'):raise ReceiptInvalid('PAY_FORWARD_PLAN_CHANGED')
+    return read
+
+
+def plan(receipt,borrower,current,today=None,config=None):
     today=today or datetime.now(BANGKOK).date().isoformat()
     amount=Decimal(receipt['amount'])
     if amount!=amount.to_integral_value():raise ReceiptInvalid('WHOLE_BAHT_REQUIRED')
@@ -113,6 +217,12 @@ def plan(receipt,borrower,current,today=None):
     relevant={c['loan'] for c in dated}
     loan_keys=[l['loan_key'] for l in current['loans'] if l.get('loan_key') and (l['id']==loan_id if loan_id else l['id'] in relevant)]
     proposal={'receipt':receipt,'borrower':borrower,'action':action,'loan_id':loan_id,'loan_keys':loan_keys,'facts':current,'planned_on':today}
+    # R112: with the switch on, a slip of today above what is due asks which use of the remainder to post.
+    if action=='Overpayment review' and options_enabled(config) and receipt['date']==today:
+        choices=pay_forward_options(config,receipt,borrower['id'],current,today)
+        if choices:
+            proposal.update(action=OPTIONS,options=choices)
+            return proposal
     if action=='Overpayment review':proposal['approved_allocation_method']='Lump Sum'
     return proposal
 

@@ -1,11 +1,26 @@
 """Correlated Partner decisions. No free-form operation or implicit approval."""
 import hashlib
 import json
+import re
 import time
 from .config import ConfigurationError
 from .receipt_rules import username
 
 APPROVE={'yes','approve','approved','อนุมัติ'}
+# R112: the options reply. 1 pay forward; 2 (or "2 <n>" with several loans) repay principal; "3 <amount>" split.
+# Reject words drop the slip; anything else asks again (OPTIONS_REQUIRED) and decides nothing (D7: no default).
+REJECT={'reject','rejected','ปฏิเสธ'}
+OPTIONS_REQUIRED='OPTIONS_REQUIRED'
+CHOICE=re.compile(r'(1)|(2)(?:\s+([1-9]))?|(3)\s+([1-9][0-9]{0,16})')
+
+
+def options_choice(text):
+    """The numbered reply as {'kind', 'loan', 'amount'}, or None when it is not one of the three forms."""
+    match=CHOICE.fullmatch((text or '').strip())
+    if not match:return None
+    if match.group(1):return {'kind':'forward'}
+    if match.group(2):return {'kind':'principal','loan':int(match.group(3)) if match.group(3) else None}
+    return {'kind':'split','loan':None,'amount':match.group(5)}
 
 
 def authorize_reply(event,notice,partners,identity,reviewer_ids):
@@ -28,8 +43,9 @@ def authorize_reply(event,notice,partners,identity,reviewer_ids):
 
 def review_id(event_key):
     parts = event_key.split(':')
+    # R112: review:<id>:options:<sha256 of the unclear reply> re-sends the options after an unclear reply.
     if parts[0] == 'review' and (len(parts) == 2 or
-            (len(parts) == 4 and parts[2] == 'resend' and len(parts[3]) == 64)):
+            (len(parts) == 4 and parts[2] in ('resend', 'options') and len(parts[3]) == 64)):
         return parts[1]
     return None
 
@@ -76,6 +92,19 @@ class ReviewStore:
             elif now>row['expires_at']:
                 outcome='EXPIRED'
                 self.db.execute("UPDATE partner_reviews SET state='EXPIRED' WHERE id=? AND state='PENDING'",(key,))
+            elif json.loads(row['proposal']).get('action')=='Pay forward options':
+                # R112: only a numbered reply naming an offered choice approves; the purpose is the decision's detail.
+                from .review_proposal import chosen_purpose
+                text=event.get('text') or ''
+                choice=options_choice(text)
+                purpose=chosen_purpose(json.loads(row['proposal'])['options'],choice) if choice else None
+                if text.strip().casefold() in REJECT:outcome,detail='REJECTED',''
+                elif purpose:outcome,detail='APPROVED',json.dumps({'purpose':purpose},sort_keys=True,separators=(',',':'))
+                else:outcome,detail=OPTIONS_REQUIRED,None
+                if detail is not None:
+                    changed=self.db.execute("UPDATE partner_reviews SET state=?,deciding_partner=?,decision_message=?,detail=? WHERE id=? AND state='PENDING'",
+                             (outcome,p['id'],event['message_id'],detail,key)).rowcount
+                    if not changed:outcome='ALREADY_DECIDED'
             else:
                 outcome='APPROVED' if event.get('text','').strip().casefold() in APPROVE else 'REJECTED'
                 changed=self.db.execute("UPDATE partner_reviews SET state=?,deciding_partner=?,decision_message=? WHERE id=? AND state='PENDING'",
@@ -85,10 +114,69 @@ class ReviewStore:
             return outcome
 
 
-def request_text(proposal,language):
+MONTHS=('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
+THAI_MONTHS=('ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.')
+
+
+def short_date(day,thai):
+    """'5 Nov' / '5 พ.ย.' (Echo R110 copy dates)."""
+    return str(int(day[8:10]))+' '+(THAI_MONTHS if thai else MONTHS)[int(day[5:7])-1]
+
+
+def date_range(first,last,thai):
+    if first==last:return short_date(first,thai)
+    if first[:7]==last[:7]:return str(int(first[8:10]))+'–'+short_date(last,thai)
+    return short_date(first,thai)+' – '+short_date(last,thai)
+
+
+def baht(value):
+    from decimal import Decimal
+    return '฿'+format(Decimal(str(value)),',.0f')
+
+
+def options_lines(proposal,thai):
+    """Echo AG-1/AG-4: the remainder and the numbered choices; a refused choice is left out with its reason."""
+    o=proposal['options'];receipt=proposal['receipt'];borrower=proposal['borrower']
+    from .review_proposal import forward_offered
+    name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
+    keys=', '.join(proposal.get('loan_keys') or [p['loanKey'] for p in o['principal'] if p.get('loanKey')])
+    f=o.get('forward');choices=[]
+    if forward_offered(o):
+        span=date_range(f['first'],f.get('last') or f['first'],thai)+(((' ชำระถึง ' if thai else ', paid through ')+short_date(f['through'],thai)) if f.get('through') else '')
+        choices.append(('1 ชำระล่วงหน้า (' if thai else '1 pay forward (')+span+')')
+    several=len(o['principal'])>1
+    for n,p in enumerate(o['principal'],1):
+        label=('2 '+str(n)+' ' if several else '2 ')+('ชำระเงินต้น' if thai else 'repay principal')
+        detail=((p.get('loanKey')+' ') if several and p.get('loanKey') else '')+('ดอกเบี้ยใหม่ ' if thai else 'new interest ')+baht(p['dailyAfter'])+('/วัน' if thai else '/day')
+        choices.append(label+' ('+detail+')')
+    if forward_offered(o) and len(o['principal'])==1:choices.append('3 + จำนวน เพื่อแบ่งชำระ' if thai else '3 + amount to split')
+    if thai:
+        head=f"สลิป {baht(receipt['amount'])} จาก {name}"+(f", {keys}" if keys else '')+f" ครบกำหนดวันนี้ {baht(o['dueTotal'])} ยอดคงเหลือ {baht(o['remainder'])} ตอบ: "
+        tail=' · ปฏิเสธ เพื่อยกเลิก'
+    else:
+        head=f"Slip {baht(receipt['amount'])} from {name}"+(f", {keys}" if keys else '')+f". Due today {baht(o['dueTotal'])}. Remainder {baht(o['remainder'])}, reply: "
+        tail='. Reject to drop.'
+    notes=[]
+    if any(b.get('reason')=='settles' for b in o.get('blocked') or []):
+        notes.append('ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ' if thai else 'This settles the loan. Use Close Loan.')
+    if f and f.get('uncovered') not in (None,'0'):
+        notes.append(f"ยอด {baht(f['uncovered'])} เกินช่วง 93 วันข้างหน้า ไม่สามารถจัดสรรได้" if thai else f"{baht(f['uncovered'])} is beyond the next 93 days and cannot be allocated.")
+    return head+' · '.join(choices)+tail+''.join('\n'+n for n in notes)
+
+
+def request_text(proposal,language,unclear=False):
     from .review_proposal import review_posts_overpayment
     thai=language=='ไทย'
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
+    if proposal.get('action')=='Pay forward options':
+        # R112 (Echo AG-1, AG-2): reply with a number; an unclear reply gets the prompt, then the options again.
+        receipt=proposal['receipt']
+        subject='สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'
+        body=(('ตอบ 1, 2 หรือ 3 ตามด้วยจำนวน\n' if thai else 'Reply 1, 2, or 3 and an amount.\n') if unclear else '')+options_lines(proposal,thai)
+        body+=(f"\nเวลาโอน: {receipt['date']} {receipt['time'][:5]} · บัญชีรับ: {receipt['account_label']}\nใช้ Reply ตอบข้อความนี้ ยังไม่ได้บันทึกรายการ" if thai else
+               f"\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok) · Account: {receipt['account_label']}\nUse Reply on THIS message. Nothing has been posted.")
+        if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
+        return subject,body
     receipt=proposal['receipt'];borrower=proposal['borrower']
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
     close=proposal.get('action')=='Loan Close'

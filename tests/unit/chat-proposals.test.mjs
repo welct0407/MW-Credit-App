@@ -279,3 +279,52 @@ test('D12: refusals: 21 lines, the same target twice, a line using a record anot
  assert.equal((await planner().proposeGroup([{operation:'payment.record',target:'B-OUM',values:{amountReceived:'100',paymentMethod:'Cash'}}])).length,1);
  assert.equal((await planner().proposeGroup([sixEdits()[0],{operation:'loan.update',target:'L1',values:{currentDailyInterest:'120'}}])).length,2);
 });
+
+test('R112: Confirm of a remainder draft builds its v10 command for the chosen purpose under the same id, sends it once; a refusal settles failed',async()=>{
+ const {executeProposal}=await import('../../services/chat/proposals.mjs');
+ const RID='00000000-0000-4000-8000-0000000000bb';
+ const draft={borrowerId:'B1',amountReceived:'1000',paymentDate:'2026-10-30',paymentMethod:'Cash',cashAccountId:'CA1',notes:null};
+ const due=[{id:'C1',chargeDate:'2026-10-30',loanDisplayKey:'k',amountRemaining:'700',principalRemaining:'0',interestRemaining:'700'}];
+ const dueLine={chargeId:'C1',principal:'0',interest:'700',expectedPrincipalRemaining:'0',expectedInterestRemaining:'700',chargeDate:'2026-10-30'};
+ const rows=[{loanId:'L1',chargeId:'cg8:2:L1:2026-10-31',chargeDate:'2026-10-31',principalDue:'0',interestDue:'300',principal:'0',interest:'300',partial:false}];
+ const routes=(forwardOffered=true)=>({...base,
+  'POST /api/payment-drafts/B1/select-all':ok({businessDate:'2026-10-30',borrower:{displayName:'สมชาย'},charges:due,accounts:accounts.accounts}),
+  'POST /api/payment-drafts/B1/auto-assign':ok({charges:due,allocations:[dueLine],allocated:'700',unallocated:'300',
+   remainder:{amount:'300',loans:{},forward:forwardOffered?{rows,paidThrough:{L1:'2026-10-31'},uncovered:'0',blocked:[]}:{rows:[],paidThrough:{},uncovered:'300',blocked:[]},principal:[{loanId:'L1',amount:'300',settles:false,entry:{dailyAfter:'90'}}]}}),
+  'POST /api/payment-drafts/B1/plan':ok({businessDate:'2026-10-30',plan:{allocations:[dueLine,{chargeId:rows[0].chargeId,principal:'0',interest:'300',expectedPrincipalRemaining:'0',expectedInterestRemaining:'300',chargeDate:'2026-10-31'}],
+   materialize:[{loanId:'L1',chargeId:rows[0].chargeId,chargeDate:'2026-10-31',principalDue:'0',interestDue:'300'}],principal:[],uncovered:'0',settles:[]}}),
+  'POST /api/payment-drafts/B1/review':ok({})});
+ const run=async({forwardOffered=true,purpose={forward:true,principal:[]},attempts=1,statusKind='unresolved'}={})=>{
+  const {client:reads,calls}=service(routes(forwardOffered));const sent=[];let settled=null;
+  const client={...reads,status:async()=>({kind:statusKind}),submit:async(kind,text)=>{sent.push([kind,JSON.parse(text)]);return {result:'recorded',data:{kind:'recorded',originalOutcome:{status:'posted',code:null,paymentId:'pwa:'+RID,recordedAt:'2026-10-30T03:00:00.000Z'}}};}};
+  const proposal={id:RID,kind:'payment',operation:'payment.record',attempts,card:{purposeOptions:{}}};
+  const store={claimProposal:async()=>({claimed:true,proposal,command:JSON.stringify({requestId:RID,purposeRequired:true,draft})}),settleProposal:async(_p,_t,_id,s)=>{settled=s;return {...proposal,...s};}};
+  await executeProposal({store,principal:{},thread:'T',id:RID,client,purpose});
+  return {sent,settled,calls};
+ };
+ const posted=await run();
+ assert.equal(posted.sent.length,1);const [kind,command]=posted.sent[0];
+ assert.equal(kind,'payment');assert.equal(command.schemaVersion,10);assert.equal(command.requestId,RID);assert.deepEqual(command,canonicalCommand(command));
+ assert.equal(command.materialize.length,1);assert.equal(posted.settled.state,'done');assert.deepEqual(posted.settled.record,{type:'payment',id:'pwa:'+RID,paymentId:'pwa:'+RID});
+ // The choice is no longer offered when Confirm runs: nothing is sent, the line fails.
+ const gone=await run({forwardOffered:false});
+ assert.deepEqual([gone.sent.length,gone.settled.state,gone.settled.outcome.code],[0,'failed','purpose_not_offered']);
+ // A recorded journal answer wins before any planning; a later attempt is only reconciled (never planned or sent).
+ const later=await run({attempts:2});
+ assert.deepEqual([later.sent.length,later.settled.state,later.calls.length],[0,'unknown',0]);
+});
+
+test('R112 PWA: the card\'s choice becomes the Confirm purpose only for a choice the card offers (chat-protocol.ts choicePurpose)',async()=>{
+ const ts=(await import('typescript')).default;
+ const source=readFileSync(new URL('../../apps/pwa/src/chat/chat-protocol.ts',import.meta.url),'utf8');
+ const {choicePurpose}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
+ const options={remainder:'300',dueAmount:'700',businessDate:'2026-10-30',forward:{from:'2026-10-31',paidThrough:'2026-11-02',rows:[]},split:true,
+  principal:[{loanId:'L1',loanDisplayKey:null,amount:'300',dailyBefore:null,dailyAfter:null,outstandingBefore:null,outstandingAfter:null}]};
+ assert.equal(choicePurpose(options,null),null,'nothing preselected');
+ assert.deepEqual(choicePurpose(options,{kind:'forward'}),{forward:true,principal:[]});
+ assert.deepEqual(choicePurpose(options,{kind:'principal',loanId:'L1'}),{forward:false,principal:[{loanId:'L1',amount:'300'}]});
+ assert.deepEqual(choicePurpose(options,{kind:'split',loanId:'L1',amount:'120'}),{forward:true,principal:[{loanId:'L1',amount:'120'}]});
+ for(const choice of [{kind:'split',loanId:'L1',amount:'300'},{kind:'split',loanId:'L1',amount:'0'},{kind:'split',loanId:'L1',amount:'1.5'},{kind:'principal',loanId:'L2'}])assert.equal(choicePurpose(options,choice),null,JSON.stringify(choice));
+ assert.equal(choicePurpose({...options,forward:null,split:false},{kind:'forward'}),null);
+ assert.equal(choicePurpose(undefined,{kind:'forward'}),null);
+});

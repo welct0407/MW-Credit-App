@@ -132,7 +132,7 @@ class RuntimeDeploymentTests(unittest.TestCase):
         self.assertEqual(package.retired_keys(cleaned), [])
         self.assertEqual((package.RETIRED_SERVICES, package.RETIRED_KEYS, package.RETIRED_PREFIXES),
                          (runtime.R091_SERVICES, runtime.R091_KEYS, runtime.R091_PREFIXES))
-        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R102_REVISIONS[1])
+        self.assertEqual(json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))['revision'], runtime.R112_REVISIONS[1])
 
     def test_r102_adds_exactly_the_disabled_chat_relay(self):
         live = dict(self.catalogue, revision=32)
@@ -148,6 +148,18 @@ class RuntimeDeploymentTests(unittest.TestCase):
         other = json.loads(json.dumps(candidate)); other['services']['extra_service'] = {'enabled': False, 'implemented': True}
         dropped = json.loads(json.dumps(candidate)); del dropped['services']['partner_oltp_gui']
         for change, pattern in ((enabled, 'arrive disabled'), (other, 'add exactly'), (dropped, 'add exactly')):
+            with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, pattern):
+                self.prepared(catalogue=live, candidate=change)
+
+    def test_r112_changes_only_the_revision(self):
+        # R112: revision 33 to 34 records behaviour behind pay_forward_options_enabled; no service or switch changes.
+        live = dict(self.catalogue, revision=33)
+        candidate = json.loads(json.dumps(live)); candidate['revision'] = 34
+        config, catalogue = self.prepared(catalogue=live, candidate=candidate)
+        self.assertEqual(catalogue, dict(live, revision=34))
+        switched = json.loads(json.dumps(candidate)); switched['services']['partner_oltp_gui']['enabled'] = not live['services']['partner_oltp_gui']['enabled']
+        other = json.loads(json.dumps(candidate)); other['services']['extra_service'] = {'enabled': False, 'implemented': True}
+        for change, pattern in ((switched, 'keep every switch'), (other, 'keep every service')):
             with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, pattern):
                 self.prepared(catalogue=live, candidate=change)
 
