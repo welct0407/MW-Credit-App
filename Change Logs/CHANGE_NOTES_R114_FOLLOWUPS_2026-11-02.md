@@ -16,7 +16,11 @@ The six items:
 
 Done so far (item 4, Dewey): owner approval for the new dictionary entries is given by "Do all 1-6" (item 4), as the workflow requires for optional new dictionary documents. Read-only PROD capture at flyway head 126 (225 routines, 99 relations) through the Auth Proxy tunnel as `codex-cloud-read`, output under a private root outside the repository. The targeted reconciliation with `--only` created four new routine entries: `pwa_pay_forward_plan_v1`, `pwa_apply_pay_forward_v1`, `pwa_notify_content_v2` and `pwa_referral_rebate_projection_v1`. The column "Ref Offset Payment" is already in the regenerated "Business Expenses" relation entry (R111 closure), so it needed no new file. `dictionary.py index` and `validate` pass (476 documents, 0 errors). Evidence: [plan](../project/outputs/dictionary-r114-20261102/plan.json), [coverage](../project/outputs/dictionary-r114-20261102/coverage.json) and [observations](../project/outputs/dictionary-r114-20261102/production-postgresql-observations.json).
 
-Items 1, 2, 3, 5 and 6: the file list, decisions and checks are filled when the code lands.
+Item 6 (Forge, DEV, 2 November 2026 13:30:42Z, UTC): `Ensure-DevTestPartner.sql -v ai_reviewer=true` ran on `loan_manager_dev`. `claude-dev-test` now has AI Reviewer true and role `Test` (`pwa_row_changes` row 3885); the chat reviewer and command checks pass (404 `not_found`, not 403). The Development Refresh Runbook step 7a now passes `-v ai_reviewer=true` so a refresh keeps it (also noted in `database/README.md`, `docs/Development.md` and the Environment Inventory). DEV only; never PROD.
+
+Echo's must-fix SP-1: the two-loan Split has been unusable on phones since R113; fixed in R114.
+
+Items 1, 2, 3 and 5: the file list, decisions and checks are filled when the code lands.
 
 Team (six-agent process, this session): Archie designs, Byte builds, Chase verifies, Echo reviews, Dewey keeps records, Forge deploys DEV and later PROD.
 
@@ -37,5 +41,5 @@ Before release: revert the pull request (Git baseline R113 `05562375` plus later
 None for the owner.
 
 ## Remaining work
-- Items 1, 2, 3, 5 and 6: build, verification, DEV test and PROD promotion.
+- Items 1, 2, 3 and 5: build, verification, DEV test and PROD promotion. Item 6 is done on DEV.
 - The "Thai wording on a real iPhone" check from R113 stays open.
