@@ -110,3 +110,13 @@ test('R111: the push of a Referral Rebate Offset payment reads as a rebate offse
  // Any other method keeps the payment wording.
  assert.deepEqual(renderNotification(offset({paymentMethod:'Cash'})),{title:'Payment received ฿300',body:'Malee Srisuk'});
 });
+
+test('R111 NT-1 proof: the Loan closed push names the payable rebate on every pay-out path and nothing when fully offset',()=>{
+ const closed=(over={})=>facts({eventType:'loan.closed',amount:'10000',rebatePayee:'Malee Srisuk',...over});
+ // No open loan or pay-out chosen: the whole rebate is payable (v2 rebate_payable = rebate_amount).
+ assert.equal(renderNotification(closed({rebatePayable:'300'})).body,'Rebate ฿300 to Malee Srisuk, transfer from Lisa · Somchai Jaidee');
+ // A partial offset: only the payable part (rebate 300, offset 200).
+ assert.equal(renderNotification(closed({rebatePayable:'100'})).body,'Rebate ฿100 to Malee Srisuk, transfer from Lisa · Somchai Jaidee');
+ // Fully offset: no line.
+ assert.equal(renderNotification(closed({rebatePayable:'0'})).body,'Somchai Jaidee');
+});
