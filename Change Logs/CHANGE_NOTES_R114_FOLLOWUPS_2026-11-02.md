@@ -76,6 +76,32 @@ Chase, 2 November 2026, on R114 as deployed (72ab0310: read, command and chat `6
 
 DEV left in place: the synthetic borrowers above, S's reopened-free loans (first closed, second open at 15), K's open loan with forward charges to 8 Nov, and an unconfirmed earlier chat card for K (expires). Auto-charge was not switched off.
 
+## Promotion record (Forge, 2 November 2026, UTC)
+Pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R114 to PROD: the two reader column grants of the PROD contract, the R114 image on read, command and chat (images only, as the runner derives), Hosting. No SQL migration; no agent deploy (no `integration-agent/` change). No PROD payment, close, DM or chat write.
+- **Authority:** the owner's instruction of 2 November 2026: "Do all 1-6" (build, DEV test, PROD promotion). PR #211 was merged under it.
+- **Freeze:** 2026-11-02T14:08:48Z. Package `52f56a49` (PR #211 merge on `main`; tree identical to `75191eab`; code inputs identical to the DEV-tested `72ab0310`); generic release kind (schemaVersion 36, `generic-v1`, no runner edit); baseline R113 `05562375`. Next unused number R115.
+- **Backup:** none taken. There is no migration and no data change; the only database change is two column grants to the reader login, whose rollback is a `REVOKE` (a dump restore would not replay ACLs anyway). The pre-change column ACLs are recorded below.
+
+| Item | Result |
+| --- | --- |
+| Baseline (PROD, before) | all five services on `f73e5c36…` (R113): read `00037-sfz`, command `00042-bcd`, chat `00021-d2b`, notify `00025-8ks`, jobs `00025-g78`; settings generation `1793624146293112`; Hosting `6d79f8bbb36543e7` (release `1793624233266000`); `loan_manager_prod` head 126 (126 rows, 0 failed) on `mw-credit-pg-20261017`, project `clever-oasis-508610-n7`, site `mw-credit-prod-737787224638`. Column ACLs before: `Payments`."Row ID" and "Payment Method" `{mw_notify_owner_prod=r/postgres}`; `Repayments`."Ref Payment" none; the reader had no table SELECT on Payments |
+| Reader grants (before the image) | One transaction as `postgres` with guards (database `loan_manager_prod`, head 126, grant absent), committed 14:09:23Z to 14:09:26Z: `GRANT SELECT ("Ref Payment") ON TABLE public."Repayments"` and `GRANT SELECT ("Row ID", "Payment Method") ON TABLE public."Payments"` to `mw-credit-app-read-prod@clever-oasis-508610-n7.iam`. Readback: the three column privileges true, no table-level SELECT on Payments, `Payments`."Amount Received" still closed; the notify owner's grants unchanged |
+| Image | Cloud Build `2388934d-b53c-4149-a64f-a47a8bbaf9a3` (`cloudbuild-business.yaml`, PROD builder `mw-credit-app-build-prod`, `git archive` of `52f56a49`), SUCCESS 14:09:45Z to 14:10:12Z, `mw-credit-app-prod/api@sha256:03b9735a7e5b9a5085ff23f43d3a64b072aa3cdbb27cd29dcfed718042aa3341`, tag `keep-r114-runtime` |
+| Terraform | Settings generation `1793628794840417` (previous `1793624146293112`): `runtime_image_overrides` read, command and chat. Plan 0 add, 3 change, 0 destroy (images only; the runner derives read, command and chat from `services/api/collection-read-contract.mjs`), plan sha256 `ddaf5050…7685`, JSON `e125c911…02bb`; runner `--check` passed; applied 14:12:31Z to 14:13:08Z; re-plan no changes |
+| Revisions | read `00038-ng2`, command `00043-94k`, chat `00022-bvm` on `03b9735a…`; notify `00025-8ks` and jobs `00025-g78` unchanged on `f73e5c36…`; each Ready at 100% |
+| Runner | Generic kind `--check` passed before and after the apply (no migration: `sql` is the read-only V126 readback, verified 14:12:00Z; no owner window). CI cited per job: check and e2e run 41455135121 (`72ab0310`), terraform run 41203206026 (`cb875ea`), database guards and rebuilds run 41455129592 (`72ab0310`), each input-equivalent to `52f56a49`. `--apply` 14:14:05Z to 14:14:49Z, live readback passed on the first attempt |
+| Hosting | Version `2a181935875f10ba`, release `1793628882509000`, 16 files; `lm.mw-credit.com` build-version R114 (version `9176901f1d55984cf38a00cc`), entry `/assets/index-CRsiljdF.js`, bundle embeds `52f56a4`; public config input identical to R113's |
+| Smoke (read-only) | `/health` 200 on read, command and chat; `/api/session`, `/api/chat/models` and `/api/collection` 401 without a token; preflight from `https://lm.mw-credit.com` 204; notify and jobs Ready; `sw.js` `no-store`; no ERROR logs from 14:12Z; About reads R114. Not run: an authenticated Collection read in PROD (no PROD Partner token for the operator); the owner's first Collection view covers it |
+| Tag | Release tag workflow run 41460227747 (success): annotated `R114` (object `fcd30b959426469f86adb976400dc184c23d38d6`) peels to `52f56a49b8e09668461b85c495fffac4b1fa89e7`; GitHub Release R114 published |
+| Private records | Package sha256 `f7abdacb…69f3`; receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R114-HOSTING-RECEIPT.json`; package, plan and the rollback activation copy under `.../promotion-packages/r114/`, outside Git |
+| Credentials | Temporary admin and read credential files deleted; no secret value printed |
+| Rollback | PROD: restore `production.activation.before-r114-1793624146293112.tfvars` (read, command and chat to `f73e5c36…`), plan 0/3/0, apply, publish, together with Hosting `6d79f8bbb36543e7` (release `1793624233266000`). The grants may stay (the R113 image does not read the columns) or be revoked: `REVOKE SELECT ("Ref Payment") ON public."Repayments" FROM` and `REVOKE SELECT ("Row ID", "Payment Method") ON public."Payments" FROM` the reader login |
+
+Applied and verified. Not owner-accepted in PROD: the first Collection view with a rebate-offset advance is pending.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on a real iPhone, and WebKit.
