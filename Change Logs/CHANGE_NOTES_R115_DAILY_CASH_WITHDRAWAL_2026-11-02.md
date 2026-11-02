@@ -26,6 +26,8 @@ Deviations and details recorded by Byte:
 - V127 rebuilds the chat schema digest, so each chat thread starts a new history epoch after the chat image is redeployed.
 - Withdrawal rows are ordinary Manual Cash Handovers, each editable or deletable on its own.
 
+Accepted limitation (Chase re-review of 4fd4e00: pass): an entry with exactly the same Sort Timestamp as the withdrawal counts in the as-of balance but not in the later minimum. Statement ties order by `ledger_id`, so with an inflow at the identical minute the new row's own Balance After can show briefly negative while every later row stays at or above zero. It needs an exact timestamp collision and no stored data is wrong; the owner-side decision is to accept it.
+
 Outcome 2 (Collection and Borrowers): the read uses `limit=100`, the pagers are removed, a count line shows the total, a notice appears above 100 borrowers, and Borrowers restores scroll position. COL-2 is phone only.
 
 Files and objects: `apps/pwa/src/DailyCashWithdrawal.tsx`, `ManagementPosition.tsx`, `CollectionRecords.tsx`, `borrower-count.ts`, `live-main.tsx`, `live-style.css`; `services/business/management-position.mjs`, `services/payment-command/*`, `services/chat/assets/schema-digest.json`; `database/migrations/V127__daily_cash_withdrawal.sql`, `database/current/public-functions.sql`; `scripts/database/Test-DailyCashWithdrawal.sql`; unit and Playwright specs. Local commits e25d96e (withdrawal), f19c5c5 (Collection and Borrowers), a09bd34 (type check).
