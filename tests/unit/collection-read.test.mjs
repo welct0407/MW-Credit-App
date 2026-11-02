@@ -17,3 +17,21 @@ test('R110 Collection status counts only charges dated by the business date (a f
  const status=[...rank.matchAll(/FILTER \(WHERE ([^)]*)\)/g)].map(m=>m[1]).filter(where=>/payment_status (?:IN|=|<>)/.test(where));
  assert.ok(status.length===6&&status.every(where=>/charge_date (?:<|<=) \$1::date/.test(where)),'every status test is limited to charges due by today');
 });
+test('R114 COL-2: a borrower paid in advance by a rebate offset gets prepaidSource, only when the reader may read the payment method',async()=>{
+ const {readCollection,prepaidSourceSql,prepaidSourceAllowedSql}=await import('../../services/api/collection-read-contract.mjs');
+ const row=(id,prepaid)=>({id,rank:4,overdue_days:null,borrower_name:id,amount_due:'0',amount_collected:'0',amount_remaining:'0',prepaid_today:prepaid?'100':'0',prepaid_only:prepaid,prepaid_payment_date:prepaid?'2026-11-01':null});
+ const run=async allowed=>{const calls=[];const client={query:async(sql,args)=>{calls.push(sql);
+   if(sql.includes('CURRENT_TIMESTAMP AS "asOf"'))return {rows:[{asOf:'2026-11-02T01:00:00Z',businessDate:'2026-11-02'}]};
+   if(sql.includes('AS invalid'))return {rows:[{invalid:false}]};
+   if(sql===prepaidSourceAllowedSql)return {rows:[{allowed}]};
+   if(sql===prepaidSourceSql){assert.deepEqual(args,['2026-11-02',['a','b']]);return {rows:[{id:'b'}]};}
+   return {rows:[row('a',true),row('b',true),row('c',false)]};}};
+  return {value:await readCollection(client,{limit:10,after:null}),calls};};
+ const granted=await run(true);
+ assert.deepEqual(granted.value.items.map(item=>item.prepaidSource??null),[null,'rebate_offset',null]);
+ assert.equal(granted.value.items[1].prepaidPaymentDate,'2026-11-01','the date stays');
+ const without=await run(false);
+ assert.deepEqual(without.value.items.map(item=>item.prepaidSource??null),[null,null,null],'no grant: the caption falls back to the date');
+ assert.equal(without.calls.includes(prepaidSourceSql),false);
+ assert.match(prepaidSourceSql,/p\."Payment Method"/);assert.match(prepaidSourceSql,/r\."Ref Payment"/);
+});

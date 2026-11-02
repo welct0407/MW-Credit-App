@@ -25,6 +25,21 @@ UPDATE public."Partners" SET "AI Reviewer"=true,"Partner Role"='A',"Email"='x@ex
 DO $$ BEGIN
  IF (SELECT ("Partner Role","AI Reviewer","Email") IS DISTINCT FROM ('Test',false,NULL::text) FROM public."Partners" WHERE "Row ID"='claude-dev-test') THEN RAISE EXCEPTION 'drift kept'; END IF;
 END $$;
+-- R114: -v ai_reviewer=true makes the test Partner an AI Reviewer; run again unchanged; without it (false) it goes back.
+\set ai_reviewer true
+\ir Ensure-DevTestPartner.sql
+CREATE TEMP TABLE dtp_reviewer ON COMMIT DROP AS SELECT (SELECT count(*) FROM public.pwa_row_changes WHERE table_name='Partners') AS changes;
+\ir Ensure-DevTestPartner.sql
+DO $$ BEGIN
+ IF (SELECT ("AI Reviewer","Partner Role","IG Integration Enabled") IS DISTINCT FROM (true,'Test',false) FROM public."Partners" WHERE "Row ID"='claude-dev-test') THEN RAISE EXCEPTION 'ai_reviewer=true must set only the AI Reviewer flag'; END IF;
+ IF (SELECT count(*) FROM public.pwa_row_changes WHERE table_name='Partners')<>(SELECT changes FROM dtp_reviewer) THEN RAISE EXCEPTION 'a second reviewer run must write nothing'; END IF;
+END $$;
+\set ai_reviewer false
+\ir Ensure-DevTestPartner.sql
+DO $$ BEGIN
+ IF (SELECT "AI Reviewer" FROM public."Partners" WHERE "Row ID"='claude-dev-test') IS NOT FALSE THEN RAISE EXCEPTION 'ai_reviewer=false must clear the flag'; END IF;
+END $$;
+\unset ai_reviewer
 -- Refusals, each leaving the row as it is.
 \set ON_ERROR_STOP off
 SAVEPOINT dtp_refusal;
@@ -36,6 +51,12 @@ SELECT :'LAST_ERROR_MESSAGE' = 'Ensure-DevTestPartner: dtp-a@example.invalid alr
 \ir Ensure-DevTestPartner.sql
 ROLLBACK TO SAVEPOINT dtp_refusal;
 SELECT :'LAST_ERROR_MESSAGE' = 'Ensure-DevTestPartner: -v login_email=<address> required' AS dtp_missing \gset
+\set login_email 'claude-test@example.invalid'
+\set ai_reviewer yes
+\ir Ensure-DevTestPartner.sql
+ROLLBACK TO SAVEPOINT dtp_refusal;
+SELECT :'LAST_ERROR_MESSAGE' = 'Ensure-DevTestPartner: -v ai_reviewer=true|false' AS dtp_reviewer_value \gset
+\unset ai_reviewer
 \set ON_ERROR_STOP on
 \if :dtp_taken
 \else
@@ -44,6 +65,10 @@ SELECT 1/0 AS "a login email of another Partner must be refused";
 \if :dtp_missing
 \else
 SELECT 1/0 AS "a missing login email must be refused";
+\endif
+\if :dtp_reviewer_value
+\else
+SELECT 1/0 AS "an ai_reviewer value other than true or false must be refused";
 \endif
 DO $$ BEGIN
  IF (SELECT "Login Email" FROM public."Partners" WHERE "Row ID"='claude-dev-test')<>'claude-test@example.invalid' THEN RAISE EXCEPTION 'a refusal changed the row'; END IF;

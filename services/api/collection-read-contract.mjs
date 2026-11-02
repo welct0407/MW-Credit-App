@@ -62,6 +62,27 @@ export const collectionCte = `WITH today_repayments AS (
     collected::text AS amount_collected, remaining::text AS amount_remaining,
     prepaid::text AS prepaid_today, prepaid_only, prepaid_payment_date FROM grouped
 )`;
+/** R114 COL-2: whether the reader may join a prepaid charge's repayments to their payment (column grants added by the
+ * reader capability contract); without them the source stays unknown and the caption keeps the date. */
+export const prepaidSourceAllowedSql = `SELECT has_column_privilege('public."Payments"','Row ID','SELECT')
+  AND has_column_privilege('public."Payments"','Payment Method','SELECT')
+  AND has_column_privilege('public."Repayments"','Ref Payment','SELECT') AS allowed`;
+/** R114 COL-2: the borrowers (of $2) whose latest advance toward today's charges ($1) was a Referral Rebate Offset payment. */
+export const prepaidSourceSql = `WITH advance AS (
+  SELECT l."Ref Borrowers" AS id, r."Payment Date" AS paid_on, p."Payment Method" AS method
+  FROM public."Charges" c JOIN public."Loans" l ON l."Row ID" = c."Ref Loans"
+  JOIN public."Repayments" r ON r."Ref Charges" = c."Row ID" JOIN public."Payments" p ON p."Row ID" = r."Ref Payment"
+  WHERE c."Charge Date" = $1::date AND r."Payment Date" < $1::date AND l."Ref Borrowers" = ANY($2::text[])
+)
+SELECT id FROM advance a WHERE paid_on = (SELECT max(b.paid_on) FROM advance b WHERE b.id = a.id)
+GROUP BY id HAVING bool_or(method = 'Referral Rebate Offset')`;
+/** R114 COL-2: items paid in advance by a rebate offset get prepaidSource 'rebate_offset' (others are left as they are). */
+async function markPrepaidSource(client, businessDate, items) {
+  const ids = items.filter(item => item.prepaidOnly).map(item => item.id);
+  if (!ids.length || (await client.query(prepaidSourceAllowedSql)).rows[0]?.allowed !== true) return items;
+  const offset = new Set((await client.query(prepaidSourceSql, [businessDate, ids])).rows.map(row => row.id));
+  return items.map(item => offset.has(item.id) ? { ...item, prepaidSource: 'rebate_offset' } : item);
+}
 export function projectCollection(row) {
   if (!validLoanId(row.id) || !collectionStatuses[row.rank] || typeof row.prepaid_only !== 'boolean' || !(row.overdue_days === null || (Number.isSafeInteger(row.overdue_days) && row.overdue_days > 0))) throw new Error('Invalid collection source');
   // R102: overdueDays counts from the oldest overdue unpaid charge (null when none is overdue).
@@ -106,7 +127,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
   if (quality.rows[0]?.invalid !== false) return { collectionError: 'source_unavailable', collectionStatus: 503 };
   if (borrowerId === null) {
     const result = await client.query(`${collectionCte}, filtered AS (SELECT * FROM summaries WHERE ($6::text = '' OR strpos(lower(COALESCE(borrower_name, '')), lower($6)) > 0 OR strpos(lower(COALESCE(borrower_description, '')), lower($6)) > 0)), totals AS (SELECT *, CASE WHEN count(*) FILTER (WHERE amount_remaining IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_remaining::numeric) OVER (PARTITION BY rank)::text END AS group_remaining, CASE WHEN count(*) FILTER (WHERE amount_collected IS NULL) OVER (PARTITION BY rank)>0 THEN NULL ELSE sum(amount_collected::numeric) OVER (PARTITION BY rank)::text END AS group_collected FROM filtered) SELECT * FROM totals WHERE ($3::integer IS NULL OR rank > $3 OR (rank = $3 AND (sort_days > $8::integer OR (sort_days = $8::integer AND (COALESCE(borrower_name, '') COLLATE "C" > $7::text COLLATE "C" OR (COALESCE(borrower_name, '') COLLATE "C" = $7::text COLLATE "C" AND id COLLATE "C" > $4::text COLLATE "C")))))) ORDER BY rank, sort_days, COALESCE(borrower_name, '') COLLATE "C" ASC, id COLLATE "C" ASC LIMIT $5`, [businessDate, null, after?.rank ?? null, after?.id ?? null, limit + 1, query, after?.name ?? null, after?.days ?? null]);
-    const items = result.rows.slice(0, limit).map(projectCollection);
+    const items = await markPrepaidSource(client, businessDate, result.rows.slice(0, limit).map(projectCollection));
     const last = result.rows[Math.min(limit, result.rows.length) - 1];
     return { ...metadata, items, nextCursor: result.rows.length > limit ? encodeCollectionCursor({ kind: 'collection', businessDate, rank: last.rank, days: last.sort_days, name: last.borrower_name ?? '', id: last.id }, query) : null };
   }
@@ -116,5 +137,6 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
     WHERE ($3::date IS NULL OR charge_date < $3::date OR (charge_date = $3::date AND id COLLATE "C" > $4::text COLLATE "C"))
     ORDER BY charge_date DESC, id COLLATE "C" LIMIT $5`, [businessDate, borrowerId, after?.chargeDate ?? null, after?.id ?? null, limit + 1]);
   const items = charges.rows.slice(0, limit).map(projectCollectionCharge);
-  return { ...metadata, borrower: projectCollection(summary.rows[0]), items, nextCursor: charges.rows.length > limit ? encodeCollectionCursor({ kind: 'collection-charges', businessDate, parentId: borrowerId, chargeDate: items.at(-1).chargeDate, id: items.at(-1).id }) : null };
+  const [borrower] = await markPrepaidSource(client, businessDate, [projectCollection(summary.rows[0])]);
+  return { ...metadata, borrower, items, nextCursor: charges.rows.length > limit ? encodeCollectionCursor({ kind: 'collection-charges', businessDate, parentId: borrowerId, chargeDate: items.at(-1).chargeDate, id: items.at(-1).id }) : null };
 }
