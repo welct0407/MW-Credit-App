@@ -184,6 +184,8 @@ END $$;
 \ir Test-AgentReceiptPayForward.sql
 -- V126 (R113): settle and close from Receive payment (Ying's two loans in one payment, gap interest, lowered future charge, V124 offset, planHash drift, blocks, delete reopens), rolled back.
 \ir Test-PayForwardSettle.sql
+-- V127 (R115): Daily cash withdrawal (guard time setting, two-line apply, replay, conflict, overdraw, Dad-only, window, invalid commands), rolled back.
+\ir Test-DailyCashWithdrawal.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).
