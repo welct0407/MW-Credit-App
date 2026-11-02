@@ -7,7 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r052/dictionary-production-closure.json"
+  "source": "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "57e1e09e042f2045812d6ec883797d02a4aad224"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/public-pwa-payment-commands-93248f5b.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "relation"
+      "name": "public.pwa_payment_commands"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -20,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod_journal_owner=ar/postgres,mw_app_prod=r/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_app_prod_journal_owner=ar/postgres,mw_app_prod=r/postgres,mw_chat_read_prod=r/postgres}"
     "comment": null
     "view_definition": null
     "partition_key": null
@@ -660,14 +670,16 @@
         \ OR contract_version = 2 AND payment_id IS NULL AND (outcome = 'applied'::text AND rejection_code IS NULL AND jsonb_typeof(result_json)\
         \ = 'object'::text AND octet_length(result_json::text) <= 524288 AND result_json ?& ARRAY['operation'::text, 'targetType'::text,\
         \ 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text] AND (result_json - ARRAY['operation'::text,\
-        \ 'targetType'::text, 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text, 'sourceCreatedBy'::text])\
-        \ = '{}'::jsonb AND (NOT result_json ? 'sourceCreatedBy'::text OR (jsonb_typeof(result_json -> 'sourceCreatedBy'::text)\
-        \ = ANY (ARRAY['string'::text, 'null'::text]))) AND (result_json ->> 'operation'::text) = (canonical_json::jsonb #>>\
-        \ '{command,operation}'::text[]) AND (result_json ->> 'targetType'::text) = (canonical_json::jsonb #>> '{command,targetType}'::text[])\
-        \ AND (result_json ->> 'targetId'::text) = (canonical_json::jsonb #>> '{command,targetId}'::text[]) OR outcome = 'rejected'::text\
-        \ AND result_json IS NULL AND (rejection_code = ANY (ARRAY['source_conflict'::text, 'not_found'::text, 'invalid_reference'::text,\
-        \ 'borrower_name_exists'::text, 'dependency_conflict'::text, 'insufficient_funds'::text, 'plan_changed'::text, 'invalid_date'::text,\
-        \ 'account_unavailable'::text, 'record_requires_reconciliation'::text])))) IS TRUE)"
+        \ 'targetType'::text, 'targetId'::text, 'paymentId'::text, 'plan'::text, 'predecessorRequestId'::text, 'sourceCreatedBy'::text,\
+        \ 'rebate'::text]) = '{}'::jsonb AND (NOT result_json ? 'rebate'::text OR (result_json ->> 'operation'::text) = 'loan.close'::text\
+        \ AND jsonb_typeof(result_json -> 'rebate'::text) = 'object'::text) AND (NOT result_json ? 'sourceCreatedBy'::text\
+        \ OR (jsonb_typeof(result_json -> 'sourceCreatedBy'::text) = ANY (ARRAY['string'::text, 'null'::text]))) AND (result_json\
+        \ ->> 'operation'::text) = (canonical_json::jsonb #>> '{command,operation}'::text[]) AND (result_json ->> 'targetType'::text)\
+        \ = (canonical_json::jsonb #>> '{command,targetType}'::text[]) AND (result_json ->> 'targetId'::text) = (canonical_json::jsonb\
+        \ #>> '{command,targetId}'::text[]) OR outcome = 'rejected'::text AND result_json IS NULL AND (rejection_code = ANY\
+        \ (ARRAY['source_conflict'::text, 'not_found'::text, 'invalid_reference'::text, 'borrower_name_exists'::text, 'dependency_conflict'::text,\
+        \ 'insufficient_funds'::text, 'plan_changed'::text, 'invalid_date'::text, 'account_unavailable'::text, 'record_requires_reconciliation'::text]))))\
+        \ IS TRUE)"
       "deferrable": false
       "initially_deferred": false
       "validated": true
@@ -822,6 +834,30 @@
       "enabled": "O"
       "internal": false
       "routine": "guard_pwa_payment_commands_immutable()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_change":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "zzzzzzz_pwa_row_change"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_change AFTER INSERT OR DELETE OR UPDATE ON pwa_payment_commands FOR EACH\
+        \ ROW EXECUTE FUNCTION pwa_track_row_change('request_id')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_truncate":
+      "schema": "public"
+      "relation": "pwa_payment_commands"
+      "name": "zzzzzzz_pwa_row_truncate"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_truncate AFTER TRUNCATE ON pwa_payment_commands FOR EACH STATEMENT EXECUTE\
+        \ FUNCTION pwa_track_row_change('request_id')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
       "deferrable": false
       "initially_deferred": false
       "comment": null

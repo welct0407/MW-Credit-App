@@ -1,0 +1,142 @@
+{
+  "status": "in progress",
+  "targets": {
+    "postgresql-production": {
+      "identity": {
+        "instance": "mw-credit-pg-20261017",
+        "database": "loan_manager_prod",
+        "route": "cloud-sql-auth-proxy",
+        "host": "127.0.0.1",
+        "port": 15432
+      },
+      "version_or_hash": "1edf85e336ac52960b71ce2260606542a44bb0ddfa871b5220662f7bb7c2a05b",
+      "counts": {
+        "schemas": 4,
+        "relations": 99,
+        "columns": 1520,
+        "constraints": 451,
+        "indexes": 91,
+        "routines": 225,
+        "triggers": 430,
+        "sequences": 2,
+        "types": 0,
+        "policies": 0,
+        "extensions": 2,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 7,
+        "role_dependencies": 40,
+        "relevant_roles": 52,
+        "role_memberships": 51,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 124,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 1198,
+        "jobs": 0
+      },
+      "captured_utc": "2026-11-02T09:04:26.853463+00:00"
+    }
+  },
+  "objects": [
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "1edf85e336ac52960b71ce2260606542a44bb0ddfa871b5220662f7bb7c2a05b",
+      "object_kind": "relation",
+      "object_name": "public.Business Expenses",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/business-expenses.yaml",
+      "status": "updated",
+      "expected_properties": 1225,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "1edf85e336ac52960b71ce2260606542a44bb0ddfa871b5220662f7bb7c2a05b",
+      "object_kind": "relation",
+      "object_name": "public.pwa_payment_commands",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-pwa-payment-commands-93248f5b.yaml",
+      "status": "updated",
+      "expected_properties": 734,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "1edf85e336ac52960b71ce2260606542a44bb0ddfa871b5220662f7bb7c2a05b",
+      "object_kind": "routine",
+      "object_name": "public.create_referral_rebate(p_loan text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-create-referral-rebate-p-loan-text-dc831aa4.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "1edf85e336ac52960b71ce2260606542a44bb0ddfa871b5220662f7bb7c2a05b",
+      "object_kind": "routine",
+      "object_name": "public.pwa_apply_loan_close_v2(canonical text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-apply-loan-close-v2-canonical-text-533cd12e.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "1edf85e336ac52960b71ce2260606542a44bb0ddfa871b5220662f7bb7c2a05b",
+      "object_kind": "routine",
+      "object_name": "public.pwa_effective_payment_plan_v2(p_id text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "1edf85e336ac52960b71ce2260606542a44bb0ddfa871b5220662f7bb7c2a05b",
+      "object_kind": "routine",
+      "object_name": "public.pwa_submit_selected_charges_v1(canonical_json text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-selected-charges-v1-canonical-json-text-3c7ad2de.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    }
+  ]
+}

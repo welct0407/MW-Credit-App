@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r110-20261102/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "63a469f73bce1d45e76bb5b66398b1bc8edda15d"
+    "commit": "57e1e09e042f2045812d6ec883797d02a4aad224"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-selected-charges-v1-canonical-json-text-3c7ad2de.yaml"
     "identity":
       "system": "postgresql"
@@ -283,35 +283,8 @@
           IF plan->'allocations' IS DISTINCT FROM c->'allocations' OR plan->'materialize' IS DISTINCT FROM c->'materialize' OR plan->>'uncovered' IS DISTINCT FROM '0' OR plan->'settles'<>'[]'::jsonb
            OR (SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',x->'loanId','kind',x->'kind','chargeId',x->'chargeId','chargeDate',x->'chargeDate','amount',x->'amount','accruedInterest',x->'accruedInterest','principalDue',x->'principalDue') ORDER BY x->>'loanId' COLLATE "C"),'[]'::jsonb)
             FROM jsonb_array_elements(plan->'principal') x) IS DISTINCT FROM c->'principal' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-          FOR entry IN SELECT value FROM jsonb_array_elements(c->'principal') LOOP
-           IF entry->>'kind'='raise' THEN
-            -- guard_charge_consistency allows raising a due; the expected old due makes a concurrent change a rejection.
-            UPDATE public."Charges" SET "Principal Due"=(entry->>'principalDue')::numeric::money WHERE "Row ID"=entry->>'chargeId' AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=today
-             AND "Principal Due"::numeric=(entry->>'principalDue')::numeric-(entry->>'amount')::numeric;
-            IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-           ELSE
-            IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=entry->>'chargeId') THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-            INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
-             VALUES(entry->>'chargeId',entry->>'loanId',today,(entry->>'principalDue')::numeric::money,(entry->>'accruedInterest')::numeric::money);
-           END IF;
-           -- D9 interval reset: the first later scheduled charge is today plus the interval (a no-op on a schedule day).
-           UPDATE public."Loans" SET "Interest Schedule Anchor Date"=today WHERE "Row ID"=entry->>'loanId';
-          END LOOP;
-          FOR entry IN SELECT value FROM jsonb_array_elements(c->'materialize') LOOP
-           BEGIN
-            booked:=public.generate_loan_charge(entry->>'loanId',(entry->>'chargeDate')::date);
-           EXCEPTION WHEN SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P4C05';
-           END;
-           IF booked IS DISTINCT FROM entry->>'chargeId' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-           -- Current Daily Interest is recomputed only once the principal repayment posts, so for a loan repaying principal the
-           -- generator priced this charge at the old daily amount; its Interest Due becomes the plan's server-recomputed value
-           -- (new daily amount x days, never from the client), and the new daily amount is verified after posting below.
-           IF entry->>'loanId'=ANY(principal_loans) THEN
-            UPDATE public."Charges" SET "Interest Due"=(entry->>'interestDue')::numeric::money WHERE "Row ID"=booked AND "Interest Due"::numeric<>(entry->>'interestDue')::numeric;
-           END IF;
-           IF NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=booked AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=(entry->>'chargeDate')::date
-             AND "Principal Due"::numeric=(entry->>'principalDue')::numeric AND "Interest Due"::numeric=(entry->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-          END LOOP;
+          -- R111: the booking is the shared writer pwa_apply_pay_forward_v1 (same statements, same P4C05 rejections).
+          PERFORM public.pwa_apply_pay_forward_v1(c->'principal',c->'materialize',today);
          END IF;
          IF EXISTS(
           SELECT 1 FROM jsonb_array_elements(c->'allocations') AS entries(item)
@@ -326,6 +299,7 @@
          INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code)
          VALUES(request,1,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,hash,'posted',payment_key,NULL);
         END IF;
+        SET CONSTRAINTS public.referral_loan_closed DEFERRED; -- R111 V124: fired below, once the payment is Posted.
         INSERT INTO public."Payments"("Row ID","Ref Borrower","Ref Received By Cash Account","Status","Amount Received","Payment Date","Payment Method","Allocation Method","Selected Charge IDs","Ref Target Charge","Created By","Notes","Uploaded Receipt","Bank Reference","Created At")
          VALUES(payment_key,c->>'borrowerId',c->>'cashAccountId','Processing',(c->>'amountReceived')::numeric::money,day,c->>'paymentMethod',CASE WHEN c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN 'Selected Charges' ELSE c->>'allocationMethod' END,CASE WHEN c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) OR c->>'allocationMethod'='Selected Charges' THEN array_to_string(ids,' , ') END,CASE WHEN c->>'allocationMethod'='Single Full' THEN ids[1] END,a->>'loginEmail',c->>'notes',r->>'storageReference',
           CASE WHEN c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN c->>'bankReference' END,
@@ -333,6 +307,9 @@
           CASE WHEN c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) AND c->>'transferTime' IS NOT NULL THEN ((c->>'paymentDate')||' '||(c->>'transferTime')||':00')::timestamp END);
         SELECT "Status","Amount Received"::numeric INTO posted_status,posted_amount FROM public."Payments" WHERE "Row ID"=payment_key;
         IF posted_status IS DISTINCT FROM 'Posted' OR posted_amount IS DISTINCT FROM (c->>'amountReceived')::numeric THEN RAISE EXCEPTION USING ERRCODE='XX000',MESSAGE='Unexpected posting result';END IF;
+        -- R111 V124: a referred loan this payment closed gets its rebate (and default offset) now, inside this command.
+        SET CONSTRAINTS public.referral_loan_closed IMMEDIATE;
+        SET CONSTRAINTS public.referral_loan_closed DEFERRED;
         -- R110 v10: run the existing loan refresh now (the deferred repayment trigger runs it again at commit as a no-op), so the
         -- calculation trigger recomputes Current Daily Interest from the frozen rate; it must equal the plan's new daily amount
         -- that priced the booked forward charges.
