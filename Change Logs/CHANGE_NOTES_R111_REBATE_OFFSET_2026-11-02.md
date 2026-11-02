@@ -127,6 +127,35 @@ Re-check on Hosting `a31e3407` (version `76661ca9a1bf51ee`), phone 390 px, no ho
 
 DEV left in place: the three synthetic pairs, their payments and the offset payments of B; auto-charge is off on the open loans (the referrer loans of A and B and A's reopened referred loan); the token file is deleted.
 
+## Promotion record (Forge, 2 November 2026, UTC)
+Pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R111 to PROD: V122 (new column "Business Expenses"."Ref Offset Payment", authorized under D2; the `pwa_versioned_outcome` CHECK change; functions), V123 and V124 (functions, ACLs and the notify owner's column grant), the R111 image on all five services (images only) and Hosting. No live financial write, no Loan Close, no forced notification or job run, no test payment in PROD.
+- **Authority:** the owner's instructions of 2 November 2026: DEV "start release 2 development, and test it in dev" and "Go ahead with 1 and 2"; PROD "Merge and promote to prod." (also DEV acceptance). PR #204 was merged under it.
+- **Freeze:** 2026-11-02T08:49:17Z. Package `a5dddfa7` (PR #204 merge on `main`; tree identical to `012b0da7`, code inputs identical to the DEV-tested `a31e3407` and, for `database/`, `b1fd5d4a`); generic release kind (schemaVersion 36, `generic-v1`, no runner edit); baseline R110 `2546e64`. Next unused number R112.
+
+| Item | Result |
+| --- | --- |
+| Baseline (PROD, before) | read `00034-9k4`, command `00039-rjp`, notify `00023-lfk`, jobs `00023-mqv`, chat `00018-wbl`, all on `68ad3f3e…` (R110); settings generation `1793591115363787`; Hosting `88b0a1c201a053ee` (release `1793591236681000`); `loan_manager_prod` head 121 (121 rows, 0 failed), no active sessions, no "Ref Offset Payment" column, on `mw-credit-pg-20261017`, project `clever-oasis-508610-n7`, Hosting site `mw-credit-prod-737787224638` |
+| Backup at V121 | 08:49:55Z to 08:52:16Z, `prod-promotion-c27275a4d6ab491b9dceb886218bb112`, dump sha256 `3ae2134b03a7edf4ad10167ddb9618ec88993f8c90c66941f8a72306df304dc3`; listing and restore passed; 38 table fingerprints match |
+| SQL package | `release-r111-v124-a5dddfa7.json` sha256 `1e0f28ec…3f16` (prepared from DEV at 124; `database/` identical at `b1fd5d4a` and `a5dddfa7`); connect preflight 121 to 124 sha256 `2e4cce86…2927`; `check` 0 writes, pending 122, 123, 124 |
+| Owner window | `mw_app_prod_journal_owner` and `mw_notify_owner_prod` (8 statements; V122 to V124 replace journal-owner commands and the notify owner's content function), opened 08:53:55Z, restored 08:55:42Z; readback closed (no SET, no CREATE on `public`) |
+| Flyway | `Invoke-CloudFlyway.py apply`, one grouped transaction (08:54:03Z to 08:55:31Z), installed 08:54:42Z: V122 6.6 s (checksum -2058143545), V123 3.2 s (-1000889740), V124 3.4 s (-1231007578), each as DEV; head 124 (124 rows, 0 failed); `verify --target prod` clean (08:56:22Z) |
+| Readback | "Business Expenses"."Ref Offset Payment" text, nullable, `mw_app_prod` can select it; `pwa_versioned_outcome` validated; `pwa_apply_pay_forward_v1` `{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres}`, SECURITY INVOKER (`mw_app_prod` and PUBLIC cannot execute); `Loans`.`Ref Closing Payment` column ACL `{mw_notify_owner_prod=r/postgres}`; `pwa_notify_content_v2` owned by `mw_notify_owner_prod`, SECURITY DEFINER, EXECUTE for `mw_notify_dispatch_prod` only; `pwa_referral_rebate_projection_v1` `mw_app_prod` EXECUTE; no DEV role can execute it |
+| Image | Cloud Build `59c3ef19-264c-4a72-91d1-eee19bf09966` (`cloudbuild-business.yaml`, PROD builder `mw-credit-app-build-prod`, `git archive` of `a5dddfa7`), SUCCESS 08:56:38Z to 08:57:17Z, tag `keep-r111-runtime`; a separate PROD build, no DEV image relabelled |
+| Terraform | Settings generation `1793610001956440` (previous `1793591115363787`): `runtime_image_overrides` read, command, chat and `workers.image`. Plan 0 add, 5 change, 0 destroy (images only), plan sha256 `d354b390…b7e5`, JSON `83e952f5…5589`; runner `--check` passed; applied 08:59:20Z to 08:59:55Z; re-plan no changes |
+| Revisions | read `00035-2g8`, command `00040-xk5`, notify `00024-ssq`, jobs `00024-fdp`, chat `00019-kgx`, each Ready at 100% |
+| Runner | Generic kind `--check` passed before and after the apply (the runner derived all five services, as expected). CI cited per job: check and e2e run 41412940285 (`a31e3407`), terraform run 41203206026 (`cb875ea`), database guards and rebuilds run 41408680228 (`b1fd5d4a`), each input-equivalent to `a5dddfa7`. `--apply` 09:00:53Z to 09:01:36Z, live readback passed on the first attempt |
+| Hosting | Version `1e4b43ffb817273c`, release `1793610089197000`, 16 files; `lm.mw-credit.com` build-version R111 (version `8689639416a54416a42a696e`), entry `/assets/index-D1rAJzqD.js`, bundle embeds `a5dddfa`; public config input identical to R110's |
+| Smoke (read-only) | `/health` 200 on read, command and chat; `/api/session` and `/api/chat/models` 401 without a token; preflight from `https://lm.mw-credit.com` 204; notify and jobs Ready; scheduled notify dispatches on `00024-ssq` at 09:01:03Z and 09:02:02Z 200 (observed, not triggered); scheduler identity `mw-credit-app-scheduler-prod` unchanged on notifications, daily charges and recent analytics; `sw.js` `no-store`; no ERROR logs from 08:59Z; About reads R111 from `build-version.json`. Not run: an authenticated Loan Close preview, rebate offset or payment record (no PROD Partner token for the operator; no PROD close or payment by rule) |
+| Tag | Release tag workflow run 41417452015 (success): annotated `R111` (object `090bd9870704af1458697e9a019ff19bc60ac0e1`) peels to `a5dddfa75513f7b9990e36975c019ecfa935c981`; GitHub Release R111 published |
+| Private records | Package sha256 `567a2991…b0e6`; receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R111-HOSTING-RECEIPT.json`; package, release manifest, preflight, owner-window record, plan and the rollback activation copy under `.../promotion-packages/r111/`, outside Git |
+| Credentials | The temporary admin and read credential files are deleted; no secret value was printed |
+| Rollback | PROD: restore `production.activation.before-r111-1793591115363787.tfvars` (all five services to `68ad3f3e…`), plan 0/5/0, apply, publish, together with Hosting `88b0a1c201a053ee` (release `1793591236681000`). The R110 image does not read the new column; its behavior on V124 (the replaced close and submit functions) is not tested, so check a service rollback against the Recovery section first. Database: V122 to V124 stay on a service rollback; schema rollback is a later migration (see Recovery), or the V121 backup above |
+
+Applied and verified. Not owner-accepted in PROD: the first Loan Close with a referral rebate (offset or payout) is pending. Due: the Data Dictionary PROD capture of the V122 column and the V122 to V124 routines.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on screen and WebKit or a real iPhone (Echo checked Chromium only).
