@@ -4,34 +4,51 @@
 The owner asked for a "Daily Cash withdrawal" quick-entry page reached from the Cash Position page. It records the day's cash taken from the SCB and TTB source accounts into Dad's on-hand cash account in one confirmation. Build and test in DEV only; no PROD action in this batch.
 
 ## Changes
-Outcome: from Cash Position the user opens a page with a date (default yesterday), a 10-minute time slicer, the available balance of each source account (SCB, TTB) as of that date and time, a withdraw amount box per source, the remaining amount, and a confirm that creates two transfers into Dad's on-hand cash account at the selected time.
+Outcomes:
+1. Daily Cash withdrawal: from Cash Position the user opens a page with a date (default yesterday), a 10-minute time slicer (default now rounded down to 10 minutes), the available balance of each source account (SCB, TTB) as of that date and time, a withdraw amount box per source, the remaining amount, and a confirm that creates two transfers into Dad's on-hand cash account at the selected time.
+2. Owner scope addition: the Collection and Borrowers pages no longer split into pages; each lists all borrowers on one page. Design detail to follow from Archie.
 
 Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo (tests). Forge is not applicable: no infrastructure change.
 
-Design decisions (to be filled by Archie and Byte):
-- Page and route, entry point on Cash Position: pending.
-- Available balance as of date and time (source of the figure, handling of later-dated entries): pending.
-- Transfer creation (existing API or function, idempotency key, audit, one transaction for both transfers, rejection when an amount exceeds the available balance): pending.
-- Schema: pending (no new table or column is assumed; any migration needs owner authority).
-- Authorization and role access: pending.
+Design decisions settled for the withdrawal:
+- Holder `ch:dad`; the destination defaults to Dad's cash account and can be changed.
+- Migration V127 is functions-only (no new table or column): `guard_cash_ledger` honours an explicit Created At for Manual inserts under the transaction setting `r115.cash_movement_time`; new operation `cash-withdrawal.create`.
+- As-of read: `GET /api/management/cash-withdrawal`.
+- One atomic request with `requestId` idempotency; zero-amount lines are skipped; overdraw is hard-blocked (P5B10).
+- Default date yesterday; default time now rounded down to 10 minutes.
+- Echo test codes DCW-1..11.
 
-Files and objects changed: pending.
+Deviations and details recorded by Byte:
+- `pwa_submit_operation_v2` also changed in V127 (closed operation list), alongside `guard_cash_ledger`, `pwa_management_financial_text_v2` and `pwa_apply_management_financial_v2`.
+- A future time, or a date older than 15 days, is rejected as `invalid_date` (P5B08); an uninitialized account is `account_unavailable`.
+- The page's accounts come from the as-of read.
+- V127 rebuilds the chat schema digest, so each chat thread starts a new history epoch after the chat image is redeployed.
+- Withdrawal rows are ordinary Manual Cash Handovers, each editable or deletable on its own.
+
+Outcome 2 (Collection and Borrowers): the read uses `limit=100`, the pagers are removed, a count line shows the total, a notice appears above 100 borrowers, and Borrowers restores scroll position. COL-2 is phone only.
+
+Files and objects: `apps/pwa/src/DailyCashWithdrawal.tsx`, `ManagementPosition.tsx`, `CollectionRecords.tsx`, `borrower-count.ts`, `live-main.tsx`, `live-style.css`; `services/business/management-position.mjs`, `services/payment-command/*`, `services/chat/assets/schema-digest.json`; `database/migrations/V127__daily_cash_withdrawal.sql`, `database/current/public-functions.sql`; `scripts/database/Test-DailyCashWithdrawal.sql`; unit and Playwright specs. Local commits e25d96e (withdrawal), f19c5c5 (Collection and Borrowers), a09bd34 (type check).
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| pending | pending |
+| `npm run lint` | Pass |
+| `npm run build` | Pass at a09bd34 |
+| `npm test` | 1094 of 1096 pass at a09bd34; the two failures were the tracker label test rejecting "R115 — Open, in development" (fixed by restoring the `**R115 — Open**` form; `production-build-environment.test.mjs` re-run: 9 of 9 pass) |
+| `scripts/database/Test-DailyCashWithdrawal.sql` on a disposable PostgreSQL chain to V127 | Pass |
+| Focused Playwright specs (withdrawal, Collection, Borrowers) | Pass |
+| `npm run check:docs` | Pass, 0 failures, 0 warnings |
 
-DEV deploy evidence (Byte and Forge-free path; pins live only in the [Environment inventory](../project/Documents/Environment_Inventory.md)): pending.
+DEV deploy evidence (pins live only in the [Environment inventory](../project/Documents/Environment_Inventory.md)): pending, no DEV deploy yet.
 
 ## Not run
-PROD deployment and any live PROD write: out of scope for this batch. Further entries pending.
+PROD deployment and any live PROD write: out of scope for this batch. The Data Dictionary routine entries for the four V127 routines are not updated: the helper reconciles from a PROD capture after the migration reaches PROD, so they follow in the promotion.
 
 ## Recovery
-Git baseline is the tip of `main` before the R115 branch `claude/r115-daily-cash-withdrawal`. DEV test transfers are synthetic and disposable. Details pending.
+Git baseline is the tip of `main` before the R115 branch `claude/r115-daily-cash-withdrawal`. DEV test transfers are synthetic and disposable. V127 is functions only; the prior function bodies are in the V126 baseline.
 
 ## Open questions
 None yet.
 
 ## Remaining work
-Design, build, tests, DEV deploy, records update and owner review.
+DEV deploy and evidence, owner review, then promotion on request (Data Dictionary routine entries at that point).
