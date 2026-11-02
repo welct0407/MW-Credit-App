@@ -5,3 +5,12 @@ test('expense display keeps parameterized source lookup, bilingual left joins an
  let count=0;const client={query:async(sql,args)=>{count++;assert.deepEqual(args,['synthetic-expense']);if(count===1){assert.match(sql,/LEFT JOIN public\."Borrowers" payee/);assert.match(sql,/coalesce\(payee\."Description"/);assert.match(sql,/coalesce\(b\."Description"/);assert.match(sql,/WHERE e\."Row ID"=\$1/);return {rows:[{id:'synthetic-expense',sourceType:'Manual',payeeBorrowerLabel:'Thai - English',relatedBorrowerLabel:null,relatedLoanId:null}]}}return {rows:[]}}};
  const item=await readExpenseRecord(client,'synthetic-expense');assert.equal(item.payeeBorrowerLabel,'Thai - English');assert.equal(item.relatedBorrowerLabel,null);assert.equal(count,2);assert.deepEqual(item.reimbursements,[]);
 });
+test('R111 a rebate settled by offset names its offset payment, the referrer loan it paid and what stays payable',async()=>{
+ let first=true;const client={query:async sql=>{if(first){first=false;assert.match(sql,/LEFT JOIN public\."Payments" op ON op\."Row ID"=e\."Ref Offset Payment"/);assert.match(sql,/r\."Ref Payment"=e\."Ref Offset Payment"/);
+  return {rows:[{id:'rr1:L-1',sourceType:'Referral Rebate',amount:'1000',offsetPaymentId:'ro122:pwa:x',offsetAmount:'640',offsetLoanId:'L-0398',offsetLoanDate:'2026-10-03',offsetLoanPrincipal:'10000',offsetLoanOriginalRate:'3',offsetLoanBorrowerLabel:'Referrer - English',relatedLoanId:null}]}}return {rows:[]}}};
+ const item=await readExpenseRecord(client,'rr1:L-1');
+ assert.equal(item.offsetLoanLabel,'Referrer - English-฿10,000-03/10-3%');assert.equal(item.payableAmount,'360');assert.equal(item.offsetAmount,'640');
+ assert.equal('offsetLoanDate' in item,false,'the label parts stay internal');assert.equal(item.canDelete,false);
+ first=true;const plain={query:async()=>{if(first){first=false;return {rows:[{id:'rr1:L-2',sourceType:'Referral Rebate',amount:'300',offsetPaymentId:null,offsetAmount:null,offsetLoanId:null,relatedLoanId:null}]}}return {rows:[]}}};
+ const payout=await readExpenseRecord(plain,'rr1:L-2');assert.equal(payout.offsetLoanLabel,null);assert.equal(payout.payableAmount,null);
+});

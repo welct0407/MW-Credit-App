@@ -87,3 +87,15 @@ test('R090 batch 2: chat replies say Reply ready or Reply failed with the thread
  assert.deepEqual(renderNotification({found:false,eventType:'chat.reply:ok',language:'en',borrowerName:null,amount:null}),{title:'Reply ready',body:'Details no longer available'});
  for(const title of ['Reply ready','ตอบแล้ว','Reply failed','ตอบไม่สำเร็จ'])assert.ok(graphemeLength(title)<=TITLE_BUDGET);
 });
+
+test('R111 NT-1: a closed loan with a payable rebate leads with the rebate line, then the borrower, within the body budget',()=>{
+ const closed=(over={})=>facts({eventType:'loan.closed',amount:'10000',rebatePayee:'Malee Srisuk',rebatePayable:'300',...over});
+ assert.deepEqual(renderNotification(closed()),{title:'Loan closed ฿10,000',body:'Rebate ฿300 to Malee Srisuk, transfer from Lisa · Somchai Jaidee'});
+ assert.equal(renderNotification(closed({language:'th',borrowerName:'สมชาย ใจดี',rebatePayee:'มาลี ศรีสุข'})).body,'ค่าแนะนำ ฿300 ให้ มาลี ศรีสุข โอนจาก Lisa · สมชาย ใจดี');
+ // Fully offset (nothing payable), no rebate facts (v1 or before V122) or another event: the body is the borrower name.
+ for(const over of [{rebatePayable:'0'},{rebatePayable:null,rebatePayee:null},{eventType:'payment.posted'}])assert.equal(renderNotification(closed(over)).body,'Somchai Jaidee',JSON.stringify(over));
+ // Long names: the referrer is shortened first, then the borrower; the body stays within the budget.
+ const long=renderNotification(closed({rebatePayable:'1000',rebatePayee:'An extraordinarily long referrer name indeed yes',borrowerName:'A very long borrower name that goes on and on'}));
+ withinBudgets(long);assert.match(long.body,/^Rebate ฿1,000 to An extra…, transfer from Lisa · A very long/);
+ assert.equal(renderNotification(closed({rebatePayee:null})).body,'Rebate ฿300, transfer from Lisa · Somchai Jaidee');
+});

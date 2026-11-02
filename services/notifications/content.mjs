@@ -30,8 +30,14 @@ const clean=value=>typeof value==='string'?value.replace(/[\p{Cc}\p{Zl}\p{Zp}\s]
 const cut=(text,keep)=>graphemes(text).slice(0,keep).join('').trimEnd()+'…';
 /** The generic push when nothing reliable is known (RPC failure, unknown type); English unless Thai is known. */
 export function genericNotification(language){return{title:APP,body:TEXT[language==='th'?'th':'en'].activity};}
+/** R111 NT-1: the rebate a Loan close leaves to pay out, "Rebate ฿300 to <referrer>, transfer from Lisa"; none when the
+ * whole rebate settled the referrer's loan (payable 0) or the facts predate V122. */
+function rebateLine(language,facts){
+ const amount=baht(facts.rebatePayable);if(facts.eventType!=='loan.closed'||!amount||!(Number(facts.rebatePayable)>0))return null;
+ return payee=>language==='th'?`ค่าแนะนำ ${amount}${payee?' ให้ '+payee:''} โอนจาก Lisa`:`Rebate ${amount}${payee?' to '+payee:''}, transfer from Lisa`;
+}
 /**
- * @param {{found?:boolean,eventType?:string,language?:string,borrowerName?:string|null,amount?:unknown}|null|undefined} facts
+ * @param {{found?:boolean,eventType?:string,language?:string,borrowerName?:string|null,amount?:unknown,rebatePayee?:string|null,rebatePayable?:unknown}|null|undefined} facts
  * @returns {{title:string,body:string}}
  */
 export function renderNotification(facts){
@@ -44,5 +50,16 @@ export function renderNotification(facts){
  // Body: the borrower name only (owner decision: no actor), shortened with "…" only beyond the budget. V100 already
  // picked the name for the recipient's language (English: the English name only); none gives an empty body, title only.
  const name=clean(facts.borrowerName);
+ // R111: the rebate line comes first, then the borrower name; the referrer's name is shortened first, then the borrower's.
+ const rebate=rebateLine(language,facts);
+ if(rebate){
+  const payee=clean(facts.rebatePayee),sep=' · ',fixed=graphemeLength(rebate(payee?'_':''))-(payee?1:0);
+  const room=BODY_BUDGET-fixed-(name?graphemeLength(sep+name):0);
+  let body=rebate(payee&&graphemeLength(payee)>room?cut(payee,Math.max(8,room-1)):payee);
+  if(graphemeLength(body)>BODY_BUDGET)body=cut(body,BODY_BUDGET-1);
+  const rest=BODY_BUDGET-graphemeLength(body)-graphemeLength(sep);
+  if(name&&rest>=2)body+=sep+(graphemeLength(name)>rest?cut(name,rest-1):name);
+  return{title,body};
+ }
  return{title,body:graphemeLength(name)>BODY_BUDGET?cut(name,BODY_BUDGET-1):name};
 }

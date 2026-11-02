@@ -19,7 +19,8 @@ function scriptedPool(content){
  const answer=sql=>{
   if(sql.includes('pwa_claim_notifications_v1')){if(claimed)return[];claimed=true;return[{delivery_id:'d1',lease_generation:4,event_id:'12345678-1234-4234-8234-123456789abc'}];}
   if(sql.includes('pwa_notify_prepare_send_v1'))return[{version:2,endpoint:subscription.endpoint,p256dh:subscription.keys.p256dh,auth:subscription.keys.auth,expires_at:null}];
-  if(sql.includes('pwa_notify_content_v1')){if(content instanceof Error)throw content;return content;}
+  // R111: v2 first; a database before V122 (an error) falls back to v1, which answers the same scripted content.
+  if(sql.includes('pwa_notify_content_v2')||sql.includes('pwa_notify_content_v1')){if(content instanceof Error)throw content;return content;}
   if(sql.includes('pwa_notify_start_send_v1'))return[{started:true}];
   if(sql.includes('pwa_notify_complete_v1'))return[{state:'sent'}];
   throw Error('unexpected '+sql);
@@ -31,8 +32,18 @@ test('dispatcher passes rendered content to the transport and keeps the lease, f
  const dispatch=createNotificationDispatcher({pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{sent.push(options.content);return{kind:'accepted'};}});
  assert.deepEqual(await dispatch(),{enabled:true,claimed:1,results:[{state:'sent'}]});
  assert.deepEqual(sent,[{title:'รับชำระแล้ว ฿5,000',body:'สมชาย ใจดี'}]);
- assert.deepEqual(calls.map(c=>c.sql.match(/pwa_\w+_v1/)[0]),['pwa_claim_notifications_v1','pwa_notify_prepare_send_v1','pwa_notify_content_v1','pwa_notify_start_send_v1','pwa_notify_complete_v1','pwa_claim_notifications_v1']);
+ assert.deepEqual(calls.map(c=>c.sql.match(/pwa_\w+_v\d/)[0]),['pwa_claim_notifications_v1','pwa_notify_prepare_send_v1','pwa_notify_content_v2','pwa_notify_start_send_v1','pwa_notify_complete_v1','pwa_claim_notifications_v1']);
  assert.deepEqual(calls[2].args,['d1',4]);
+});
+test('R111: v2 rebate facts reach the push; a missing v2 falls back to v1',async()=>{
+ const {calls,pool}=scriptedPool([{found:true,event_type:'loan.closed',language:'en',borrower_name:'Somchai Jaidee',amount:'10000',rebate_amount:'300',rebate_payee:'Malee Srisuk',rebate_payable:'300'}]);const sent=[];
+ const dispatch=createNotificationDispatcher({pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{sent.push(options.content);return{kind:'accepted'};}});
+ await dispatch();assert.deepEqual(sent,[{title:'Loan closed ฿10,000',body:'Rebate ฿300 to Malee Srisuk, transfer from Lisa · Somchai Jaidee'}]);
+ assert.equal(calls.some(c=>c.sql.includes('pwa_notify_content_v1')),false);
+ const old=scriptedPool([{found:true,event_type:'payment.posted',language:'en',borrower_name:'Somchai Jaidee',amount:'5000'}]);const answer=old.pool.connect;
+ old.pool.connect=async()=>{const c=await answer();const query=c.query;c.query=async(sql,args)=>{if(sql.includes('pwa_notify_content_v2'))throw Error('function public.pwa_notify_content_v2(uuid, bigint) does not exist');return query(sql,args);};return c;};
+ const fallback=[];await createNotificationDispatcher({pool:old.pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{fallback.push(options.content);return{kind:'accepted'};}})();
+ assert.deepEqual(fallback,[{title:'Payment received ฿5,000',body:'Somchai Jaidee'}]);assert.ok(old.calls.some(c=>c.sql.includes('pwa_notify_content_v1')));
 });
 test('content RPC failure or no row still sends once with generic text and never defers',async()=>{
  for(const content of [Error('function public.pwa_notify_content_v1(uuid, bigint) does not exist'),[],[{found:true,event_type:'loan.unknown',language:'en'}]]){
@@ -46,6 +57,6 @@ test('content RPC failure or no row still sends once with generic text and never
 test('ineligible delivery reads no content',async()=>{
  const {calls,pool}=scriptedPool([]);
  const dispatch=createNotificationDispatcher({pool,enabled:true,guardConnection:async()=>{},eligible:async()=>false,transport:async()=>{throw Error('transport touched');}});
- assert.equal((await dispatch()).claimed,1);assert.equal(calls.some(c=>c.sql.includes('pwa_notify_content_v1')),false);
+ assert.equal((await dispatch()).claimed,1);assert.equal(calls.some(c=>c.sql.includes('pwa_notify_content_v')),false);
  assert.equal(calls.find(c=>c.sql.includes('pwa_notify_complete_v1')).args[2],'ineligible');
 });
