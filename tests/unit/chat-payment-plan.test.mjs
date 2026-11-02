@@ -171,3 +171,21 @@ test('R112: through the planner the remainder card stores the draft (purposeRequ
  let n=0;const many=createProposalPlanner({client,actor:{partnerId:'P1'},newId:()=>`00000000-0000-4000-8000-00000000000${n++}`});
  await assert.rejects(many.proposeGroup([{operation:'payment.record',target:'B1',values:{amountReceived:'1000',paymentMethod:'Cash',cashAccountId:'CA1'}},{operation:'payment.record',target:'B1',values:{amountReceived:'100',paymentMethod:'Cash',cashAccountId:'CA1'}}]),/PURPOSE_LINE_ALONE:1/);
 });
+
+test('R113: Repay principal that settles loans is one choice with its per-loan requests; Confirm builds a v10 settle command',async()=>{
+ const settle={...remainder,principal:[{loanId:'L1',amount:'300',settles:true,entry:null,payoffRemainder:'300',settlesWith:{payoff:'1000',gapInterest:'0',charges:'0',planHash:'a'.repeat(64)}}],
+  repay:{purpose:{forward:false,principal:[{loanId:'L1',amount:'300'}],loans:null},settles:['L1'],uncovered:'0'}};
+ const settlePlan={allocations:dueLines.map(l=>l.chargeId==='C2'?{...l,principal:'300',expectedPrincipalRemaining:'300'}:l).toSorted((a,b)=>a.chargeId.localeCompare(b.chargeId)),materialize:[],
+  principal:[{loanId:'L1',kind:'settle',chargeId:'C2',chargeDate:'2026-10-29',amount:'300',accruedInterest:'0',principalDue:'300',payoff:'1000',charges:'0',planHash:'a'.repeat(64)}],uncovered:'0',settles:['L1'],paidThrough:{}};
+ const values={amountReceived:'1000',paymentMethod:'Bank Transfer',cashAccountId:'CA1'};
+ let {client}=fake({offer:settle,planFor:()=>settlePlan});
+ const {plan}=await planPayment({client,borrowerId:'B1',values,requestId:RID});
+ assert.deepEqual(plan.purposeOptions.principal.map(o=>[o.loanId,o.principal,o.closes.map(c=>[c.loanId,c.payoff])]),[['L1',[{loanId:'L1',amount:'300'}],[['L1','1000']]]]);
+ assert.equal(plan.purposeOptions.split,false);
+ const built=await planPayment({client,borrowerId:'B1',values,requestId:RID,purpose:{forward:false,principal:[{loanId:'L1',amount:'300'}]}});
+ assert.equal(built.command.schemaVersion,10);assert.deepEqual(built.command.principal,[{loanId:'L1',kind:'settle',chargeId:'C2',chargeDate:'2026-10-29',amount:'300',accruedInterest:'0',principalDue:'300'}]);
+ assert.deepEqual(built.command,canonicalCommand(built.command));
+ // A request that reaches a loan's principal without settling it (settles without a settle entry) still refuses.
+ ({client}=fake({offer:settle,planFor:()=>({...settlePlan,principal:[]})}));
+ await assert.rejects(planPayment({client,borrowerId:'B1',values,requestId:RID,purpose:{forward:false,principal:[{loanId:'L1',amount:'300'}]}}),/PAY_FORWARD_SETTLES/);
+});

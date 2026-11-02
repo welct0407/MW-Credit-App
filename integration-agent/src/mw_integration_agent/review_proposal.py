@@ -128,12 +128,20 @@ def pay_forward_options(config,receipt,borrower_id,current,today):
     if remainder<=0:return None
     principal,blocked=[],[]
     for option in sorted(forward.get('options') or [],key=lambda o:str(o.get('loanId')).encode())[:MAX_PRINCIPAL_OPTIONS]:
-        loan=str(option.get('loanId'));part=remainder-Decimal(str(option.get('accruedInterest','0')))
+        loan=str(option.get('loanId'))
+        # R113: a loan only a settle can take, or whose payoff the remainder reaches, settles in the app only (the agent
+        # receipt command keeps refusing a settle): the request says "record in the app".
+        payoff=option.get('payoffRemainder')
+        if option.get('kind') is None:
+            if payoff is not None and Decimal(str(payoff))<=remainder:blocked.append({'loanId':loan,'reason':'settles','loanKey':keys.get(loan)})
+            continue
+        part=remainder-Decimal(str(option.get('accruedInterest','0')))
         if part<=0:blocked.append({'loanId':loan,'reason':'interest'});continue
         purpose={'forward':False,'principal':[{'loanId':loan,'amount':str(int(part))}],'loans':None}
         read=pay_forward_plan(config,borrower_id,amount,today,purpose);plans['principal:'+loan]=read
         entry=(read.get('principal') or [None])[0]
-        if loan in (read.get('settles') or []):blocked.append({'loanId':loan,'reason':'settles'})
+        if loan in (read.get('settles') or []) or any(b.get('loanId')==loan and b.get('reason') in ('needs_gap_interest','exceeds') for b in read.get('blocked') or []):
+            blocked.append({'loanId':loan,'reason':'settles','loanKey':keys.get(loan)})
         elif not entry or read.get('uncovered')!='0':
             reasons=[b.get('reason') for b in read.get('blocked') or [] if b.get('loanId')==loan]
             blocked.append({'loanId':loan,'reason':str(reasons[0] if reasons else 'unavailable')})

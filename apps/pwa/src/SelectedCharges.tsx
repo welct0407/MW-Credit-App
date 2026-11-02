@@ -22,13 +22,15 @@ type Draft={preferredReceivingAccountId?:string|null;nextCursor?:string|null;asO
 type Allocation={chargeId:string;principal:string;interest:string;expectedPrincipalRemaining:string;expectedInterestRemaining:string;chargeDate:string};
 type Materialize={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string};
 /** R110 Pay Forward: a v10 principal entry (the plan read adds its effect fields), the server plan and Auto-assign's remainder previews. */
-type PrincipalEntry={loanId:string;kind:'raise'|'book';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string;outstandingBefore?:string;outstandingAfter?:string;dailyAfter?:string;nextChargeDate?:string;nextChargeAmount?:string};
-type Plan={allocations:Allocation[];materialize:Materialize[];principal:PrincipalEntry[];forward:ForwardRow[];paidThrough:Record<string,string>;settles:string[];uncovered:string};
+type PrincipalEntry={loanId:string;kind:'raise'|'book'|'settle';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string;outstandingBefore?:string;outstandingAfter?:string;dailyAfter?:string;nextChargeDate?:string;nextChargeAmount?:string;payoff?:string;charges?:string};
+/** R113: a loan the plan settles: its Loan Close payoff and the referral rebate its close creates (V124 default offset). */
+type Close={payoff?:string;gapInterest?:string;charges?:string;rebate:{amount:string;referrer:string;offset:boolean}|null};
+type Plan={allocations:Allocation[];materialize:Materialize[];principal:PrincipalEntry[];forward:ForwardRow[];paidThrough:Record<string,string>;settles:string[];uncovered:string;blocked:{loanId:string;reason:string;more?:string}[];closes:Record<string,Close>};
 type PlanPurpose={forward:boolean;principal:{loanId:string;amount:string}[];loans:string[]|null};
-type PrincipalOption={loanId:string;amount:string;settles:boolean;entry:PrincipalEntry|null};
-type Remainder={amount:string;forward:{rows:ForwardRow[];paidThrough:Record<string,string>;uncovered:string}|null;principal:PrincipalOption[];loans:Record<string,string>};
+type PrincipalOption={loanId:string;amount:string;settles:boolean;entry:PrincipalEntry|null;payoffRemainder?:string|null;settleOnly?:boolean};
+type Remainder={amount:string;forward:{rows:ForwardRow[];paidThrough:Record<string,string>;uncovered:string}|null;principal:PrincipalOption[];loans:Record<string,string>;repay:{purpose:PlanPurpose;settles:string[];uncovered:string}|null};
 type Purpose='forward'|'principal'|'split';
-type CommandPrincipal={loanId:string;kind:'raise'|'book';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string};
+type CommandPrincipal={loanId:string;kind:'raise'|'book'|'settle';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string};
 type Command={schemaVersion:3|4|5|6|7|8|9|10;requestId:string;borrowerId:string;selectedChargeIds?:string[];allocations?:Allocation[];cashAccountId:string;paymentDate:string;amountReceived:string;paymentMethod:'Bank Transfer'|'Cash'|'Net-off at Disbursement';allocationMethod?:'Selected Charges'|'Single Full'|'Receive All';notes:string|null;receiptId:string|null;bankReference?:string|null;transferTime?:string|null;payerLines?:{before:string|null;after:string}|null;materialize?:Materialize[];principal?:CommandPrincipal[]};
 /** R075 slip recognition for the uploaded receipt; cleared with the receipt. Nothing here writes. */
 type SlipField='amount'|'account'|'reference'|'date';
@@ -78,6 +80,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  // the server plan it produced. Nothing is chosen by default; Review waits for a usable plan.
  const [remainder,setRemainder]=useState<Remainder|null>(null),[dueInfo,setDueInfo]=useState<{total:string;allocations:Allocation[]}|null>(null);
  const [purpose,setPurpose]=useState<Purpose|null>(null),[principalLoan,setPrincipalLoan]=useState(''),[splitAmount,setSplitAmount]=useState('');
+ // R113: the Split's principal part per loan (several loans), each settling at its payoff remainder.
+ const [splitAmounts,setSplitAmounts]=useState<Record<string,string>>({});
  const [plan,setPlan]=useState<Plan|null>(null),[planLoans,setPlanLoans]=useState<Record<string,string>>({}),[planBusy,setPlanBusy]=useState(false),[choosing,setChoosing]=useState(true);
  const focusAfterRender=useRef<'change'|'choice'|null>(null),lastPurpose=useRef<PlanPurpose|null>(null),planOperation=useRef(0),changeButton=useRef<HTMLButtonElement>(null),remainderFieldset=useRef<HTMLFieldSetElement>(null);
  const _allocationMethod=allMode?'Receive All':selected.length===1?'Single Full':'Selected Charges';
@@ -104,7 +108,9 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const projectedAllocated=forwardLines.length>0;
  // Remainder paths are online only; Review waits for a chosen, fully covered plan that does not settle a loan.
  const remainderShown=!!remainder&&online&&!access.offlineOnly;
- const remainderBlocked=(!!remainder&&(!plan||planBusy||plan.uncovered!=='0'||plan.settles.length>0))||(!!plan&&(!online||!!access.offlineOnly));
+ // R113: a loan the plan settles is fine; a request that reaches a loan's principal without settling it blocks Review.
+ const unsettled=plan?plan.settles.filter(loan=>!plan.principal.some(entry=>entry.loanId===loan&&entry.kind==='settle')):[];
+ const remainderBlocked=(!!remainder&&(!plan||planBusy||plan.uncovered!=='0'||unsettled.length>0))||(!!plan&&(!online||!!access.offlineOnly));
  // R110 RP-4: offline, a payment above what is due may still be received as the due amount (Auto-assign's due lines, or the
  // full due charges of a complete first page).
  const dueRows=draft&&!draft.nextCursor?draft.charges.filter(row=>row.chargeDate<=draft.businessDate&&whole(row.principalRemaining)&&whole(row.interestRemaining)):null;
@@ -239,7 +245,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
    if(typeof data.allocated==='string')setDueInfo({total:data.allocated,allocations:data.allocations});
    const extra=typeof data.unallocated==='string'&&whole(data.unallocated)?BigInt(data.unallocated):0n,previews=data.remainder&&typeof data.remainder==='object'?data.remainder:null;
    if(extra>0n&&data.remainder!==undefined){const options:PrincipalOption[]=Array.isArray(previews?.principal)?previews.principal.filter((row:any)=>typeof row?.loanId==='string'&&whole(row?.amount)):[];
-    setRemainder({amount:extra.toString(),forward:previews?.forward&&Array.isArray(previews.forward.rows)?previews.forward:null,principal:options,loans:previews?.loans&&typeof previews.loans==='object'?previews.loans:{}});setPrincipalLoan(options[0]?.loanId??'');}
+    const repay=previews?.repay&&typeof previews.repay==='object'&&Array.isArray(previews.repay.purpose?.principal)&&previews.repay.purpose.principal.length?previews.repay:null;
+    setRemainder({amount:extra.toString(),forward:previews?.forward&&Array.isArray(previews.forward.rows)?previews.forward:null,principal:options,loans:previews?.loans&&typeof previews.loans==='object'?previews.loans:{},repay});setPrincipalLoan(options[0]?.loanId??'');setSplitAmounts({});}
    else setRemainder(null);setSelectionRows(data.charges.filter((row:any)=>data.allocations.some((line:Allocation)=>line.chargeId===row.id)));setSelected(data.allocations.map((line:Allocation)=>line.chargeId));setError('');
    // Auto-assign covers charges due by the business date only; say so instead of leaving ฿0 allocated silently.
    if(!data.allocations.length){setAutoEmpty(true);return 'empty';}return 'assigned';}catch{if(current===generation.current&&operation===reviewOperation.current)setError(t('Unable to auto-assign. Refresh and try again.','จัดสรรอัตโนมัติไม่สำเร็จ กรุณารีเฟรชและลองอีกครั้ง'));return 'failed';}
@@ -263,10 +270,11 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
    if(!response.ok||!value||!Array.isArray(value.allocations)||!value.allocations.every((line:any)=>typeof line?.chargeId==='string'&&[line.principal,line.interest,line.expectedPrincipalRemaining,line.expectedInterestRemaining].every(whole)&&typeof line.chargeDate==='string'))throw Error();
    const next:Plan={allocations:value.allocations.map((line:any)=>({chargeId:line.chargeId,principal:line.principal,interest:line.interest,expectedPrincipalRemaining:line.expectedPrincipalRemaining,expectedInterestRemaining:line.expectedInterestRemaining,chargeDate:line.chargeDate})),
     materialize:Array.isArray(value.materialize)?value.materialize:[],principal:Array.isArray(value.principal)?value.principal:[],forward:Array.isArray(value.forward)?value.forward:[],
-    paidThrough:value.paidThrough&&typeof value.paidThrough==='object'?value.paidThrough:{},settles:Array.isArray(value.settles)?value.settles:[],uncovered:whole(value.uncovered)?value.uncovered:'0'};
+    paidThrough:value.paidThrough&&typeof value.paidThrough==='object'?value.paidThrough:{},settles:Array.isArray(value.settles)?value.settles:[],uncovered:whole(value.uncovered)?value.uncovered:'0',
+    blocked:Array.isArray(value.blocked)?value.blocked:[],closes:data.closes&&typeof data.closes==='object'?data.closes:{}};
    const loans=data.loans&&typeof data.loans==='object'?data.loans:{};
    reviewOperation.current++;legacyDraft.current=false;setUnavailableLines([]);setChangedBalances(null);setPlan(next);setPlanLoans(loans);setAllocations(next.allocations);setSelectionRows(planRows(next,loans));setSelected(next.allocations.map(line=>line.chargeId));
-   if(next.uncovered==='0'&&next.settles.length===0){setChoosing(false);focusAfterRender.current='change';}
+   if(next.uncovered==='0'&&next.settles.every(loan=>next.principal.some(entry=>entry.loanId===loan&&entry.kind==='settle'))){setChoosing(false);focusAfterRender.current='change';}
   }catch{if(operation===planOperation.current&&current===generation.current){setPlan(null);setError(t('Unable to prepare this plan. Refresh and try again.','เตรียมแผนนี้ไม่สำเร็จ กรุณารีเฟรชแล้วลองอีกครั้ง'));}}
   finally{if(operation===planOperation.current&&current===generation.current)setPlanBusy(false);}
  }
@@ -274,10 +282,18 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  function choose(next:Purpose){
   setPurpose(next);
   if(next==='forward')void loadPlan({forward:true,principal:[],loans:null});
+  // R113: Repay principal is the server's purpose over the loans in Row ID order (payoff remainders settle loans).
+  else if(next==='principal'&&remainder?.repay)void loadPlan(remainder.repay.purpose);
   else if(next==='principal'){if(principalOption)void loadPlan({forward:false,principal:[{loanId:principalOption.loanId,amount:principalOption.amount}],loans:null});else{planOperation.current++;setPlan(null);}}
   else{planOperation.current++;setPlan(null);setAllocations(dueInfo?.allocations??[]);}
  }
  function applySplit(){
+  // R113: several loans each take their own principal part (a part equal to a loan's payoff remainder settles it).
+  if(remainder&&remainder.principal.length>1){
+   const parts=remainder.principal.filter(row=>whole(splitAmounts[row.loanId])&&BigInt(splitAmounts[row.loanId])>0n).map(row=>({loanId:row.loanId,amount:splitAmounts[row.loanId]}));
+   if(!parts.length||parts.reduce((sum,row)=>sum+BigInt(row.amount),0n)>=BigInt(remainder.amount))return;
+   void loadPlan({forward:true,principal:parts,loans:null});return;
+  }
   if(!principalOption||!whole(splitAmount)||BigInt(splitAmount)<=0n||!remainder||BigInt(splitAmount)>=BigInt(remainder.amount))return;
   void loadPlan({forward:true,principal:[{loanId:principalOption.loanId,amount:splitAmount}],loans:null});
  }
@@ -454,13 +470,25 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const planLoanCount=plan?new Set([...plan.principal.map(row=>row.loanId),...Object.keys(plan.paidThrough)]).size:0;
  // RP-6 summary: per loan "Paid through <date>", or after a principal repayment "Next charge <date · amount>" with the new
  // outstanding principal and daily interest.
- const planSummary=plan?[...plan.principal.map(entry=>(planLoanCount>1?loanLabel(entry.loanId)+': ':'')+(plan.paidThrough[entry.loanId]?'':t('Next charge ','งวดถัดไป ')+shortDate(entry.nextChargeDate,thai)+' · '+money(entry.nextChargeAmount??'')+' · ')
+ const planSummary=plan?[...plan.principal.filter(entry=>entry.kind!=='settle').map(entry=>(planLoanCount>1?loanLabel(entry.loanId)+': ':'')+(plan.paidThrough[entry.loanId]?'':t('Next charge ','งวดถัดไป ')+shortDate(entry.nextChargeDate,thai)+' · '+money(entry.nextChargeAmount??'')+' · ')
    +t('Outstanding ','เงินต้นคงเหลือ ')+num(entry.outstandingBefore)+' → '+num(entry.outstandingAfter)+' · '+t('new interest ','ดอกเบี้ยใหม่ ')+num(entry.dailyAfter)+t('/day','/วัน')),
   ...Object.entries(plan.paidThrough).sort(([a],[b])=>a.localeCompare(b)).map(([loan,day])=>(planLoanCount>1?loanLabel(loan)+': ':'')+t('Paid through ','ชำระถึง ')+shortDate(day,thai))].join(' · '):'';
+ // R113 (Archie D3): one line per loan the payment closes, with its payoff and the referral rebate its close creates.
+ const settledEntries=plan?plan.principal.filter(entry=>entry.kind==='settle'):[];
+ const closeLines=settledEntries.map(entry=>{const close=plan?.closes[entry.loanId];const payoff=close?.payoff??entry.payoff;
+  const parts=[whole(entry.accruedInterest)&&entry.accruedInterest!=='0'?t('gap interest ','ดอกเบี้ยค้าง ')+money(entry.accruedInterest):'',whole(entry.charges)&&entry.charges!=='0'?t('charges ','รายการเรียกเก็บ ')+money(entry.charges as string):''].filter(Boolean);
+  const rebate=close?.rebate&&whole(close.rebate.amount)?(t('Rebate ','เงินคืน ')+money(close.rebate.amount)+t(' to ',' ให้ ')+close.rebate.referrer+' — '+(close.rebate.offset?t('offset to their loan','หักกับสัญญาของผู้แนะนำ'):t('transfer from Lisa','โอนจาก Lisa'))):'';
+  return {loanId:entry.loanId,text:t('Closes ','ปิด ')+loanLabel(entry.loanId)+(whole(payoff)?' · '+t('payoff ','ยอดปิด ')+money(payoff as string):'')+(parts.length?' ('+parts.join(', ')+')':''),rebate};});
+ const openLoans=remainder?Object.keys(remainder.loans).length:0;
+ const closesSummary=settledEntries.length>1||(settledEntries.length>0&&openLoans>0&&settledEntries.length===openLoans)?t('Closes '+settledEntries.length+(settledEntries.length===1?' loan':' loans'),'ปิด '+settledEntries.length+' สัญญา')+(settledEntries.length===openLoans?' · '+t('outstanding ','เงินต้นคงเหลือ ')+money('0'):''):'';
+ const blockedSettle=plan?plan.blocked.find(row=>unsettled.includes(row.loanId)):undefined;
  const chosenLabel=purpose==='forward'?t('Pay forward','ชำระล่วงหน้า'):purpose==='principal'?t('Repay principal','ชำระเงินต้น'):purpose==='split'?t('Split','แบ่งชำระ'):'';
  // RP-2/RP-3: one hint slot for what still blocks Review.
  const remainderHint=!remainderShown?'':planBusy?t('Preparing the plan…','กำลังเตรียมแผน…'):!purpose?t('Choose how to use the remainder before review.','เลือกวิธีใช้ยอดคงเหลือก่อนตรวจสอบ')
-  :plan&&plan.settles.length>0?t('This settles the loan. Use Close Loan.','ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ')
+  :plan&&unsettled.length>0?(blockedSettle?.reason==='needs_gap_interest'&&whole(blockedSettle.more)?t(money(blockedSettle.more as string)+' more closes '+loanLabel(blockedSettle.loanId)+'.','อีก '+money(blockedSettle.more as string)+' จะปิด '+loanLabel(blockedSettle.loanId))
+   :blockedSettle?.reason==='exceeds'?t('More than '+loanLabel(blockedSettle.loanId)+' needs to close.','เกินยอดที่ใช้ปิด '+loanLabel(blockedSettle.loanId))
+   :blockedSettle?.reason==='date'?t('A loan closes on the business day only.','ปิดสัญญาได้เฉพาะวันทำการปัจจุบัน')
+   :t('This settles the loan. Use Close Loan.','ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ'))
   :plan&&plan.uncovered!=='0'?t(money(plan.uncovered)+' is beyond the next 93 days and cannot be allocated.','ยอด '+money(plan.uncovered)+' เกินช่วง 93 วันข้างหน้า ไม่สามารถจัดสรรได้')
   :purpose!=='forward'&&!principalOption?t('No loan can take a principal repayment.','ไม่มีสัญญาที่รับชำระเงินต้นได้')
   :purpose==='split'&&!plan?t('Enter the principal part, then apply.','กรอกส่วนเงินต้น แล้วกดใช้'):'';
@@ -495,14 +523,17 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  {/* R110 RP-1/RP-5: the Remainder block (nothing preselected), collapsed to the choice and Change once its plan is usable. */}
  {remainderShown&&(choosing||!plan||planBusy)&&<fieldset ref={remainderFieldset} className="loan-type-options remainder-options"><legend>{t('Remainder ','ยอดคงเหลือ ')+money(remainder!.amount)}</legend>
   <label><input type="radio" name="remainder-purpose" value="forward" checked={purpose==='forward'} onChange={()=>choose('forward')}/><span>{t('Pay forward','ชำระล่วงหน้า')}</span>{remainder!.forward&&<small>{forwardPreview(remainder!.forward)}</small>}</label>
-  <label><input type="radio" name="remainder-purpose" value="principal" checked={purpose==='principal'} onChange={()=>choose('principal')}/><span>{t('Repay principal','ชำระเงินต้น')}</span>{remainder!.principal.length>0&&<small>{principalPreview(principalOption)}</small>}</label>
+  <label><input type="radio" name="remainder-purpose" value="principal" checked={purpose==='principal'} onChange={()=>choose('principal')}/><span>{t('Repay principal','ชำระเงินต้น')}</span>{remainder!.principal.length>0&&<small>{remainder!.repay?.settles.length?t('Closes ','ปิด ')+remainder!.repay.settles.map(loanLabel).join(', '):principalPreview(principalOption)}</small>}</label>
   <label><input type="radio" name="remainder-purpose" value="split" checked={purpose==='split'} onChange={()=>choose('split')}/><span>{t('Split','แบ่งชำระ')}</span><small>{t('Enter the principal part; the rest pays forward.','กรอกส่วนเงินต้น ส่วนที่เหลือชำระล่วงหน้า')}</small></label>
-  {(purpose==='principal'||purpose==='split')&&remainder!.principal.length>1&&<label><span className="field-title">{t('Loan','สัญญา')}</span><select value={principalOption?.loanId??''} onChange={event=>{const option=remainder!.principal.find(row=>row.loanId===event.target.value);setPrincipalLoan(event.target.value);if(purpose==='principal'&&option)void loadPlan({forward:false,principal:[{loanId:option.loanId,amount:option.amount}],loans:null});}}>{remainder!.principal.map(row=><option key={row.loanId} value={row.loanId}>{loanLabel(row.loanId)}</option>)}</select></label>}
-  {purpose==='split'&&principalOption&&<div className="remainder-split"><label><span className="field-title">{t('Principal part','ส่วนเงินต้น')}</span><input inputMode="numeric" value={splitAmount} onChange={event=>setSplitAmount(event.target.value)}/></label><button type="button" className="secondary-button" disabled={planBusy||!whole(splitAmount)||BigInt(whole(splitAmount)?splitAmount:'0')<=0n||BigInt(whole(splitAmount)?splitAmount:'0')>=BigInt(remainder!.amount)} onClick={applySplit}>{t('Apply','ใช้')}</button></div>}
+  {((purpose==='principal'&&!remainder!.repay)||(purpose==='split'&&remainder!.principal.length<=1))&&remainder!.principal.length>1&&<label><span className="field-title">{t('Loan','สัญญา')}</span><select value={principalOption?.loanId??''} onChange={event=>{const option=remainder!.principal.find(row=>row.loanId===event.target.value);setPrincipalLoan(event.target.value);if(purpose==='principal'&&option)void loadPlan({forward:false,principal:[{loanId:option.loanId,amount:option.amount}],loans:null});}}>{remainder!.principal.map(row=><option key={row.loanId} value={row.loanId}>{loanLabel(row.loanId)}</option>)}</select></label>}
+  {purpose==='split'&&remainder!.principal.length>1&&<div className="remainder-split">{remainder!.principal.map(row=><label key={row.loanId}><span className="field-title">{t('Principal part · ','ส่วนเงินต้น · ')+loanLabel(row.loanId)}</span><input inputMode="numeric" value={splitAmounts[row.loanId]??''} onChange={event=>setSplitAmounts(old=>({...old,[row.loanId]:event.target.value}))}/>{whole(row.payoffRemainder??undefined)&&<small>{t(money(row.payoffRemainder as string)+' closes this loan','ยอด '+money(row.payoffRemainder as string)+' ปิดสัญญานี้')}</small>}</label>)}<button type="button" className="secondary-button" disabled={planBusy} onClick={applySplit}>{t('Apply','ใช้')}</button></div>}
+  {purpose==='split'&&remainder!.principal.length<=1&&principalOption&&<div className="remainder-split"><label><span className="field-title">{t('Principal part','ส่วนเงินต้น')}</span><input inputMode="numeric" value={splitAmount} onChange={event=>setSplitAmount(event.target.value)}/></label><button type="button" className="secondary-button" disabled={planBusy||!whole(splitAmount)||BigInt(whole(splitAmount)?splitAmount:'0')<=0n||BigInt(whole(splitAmount)?splitAmount:'0')>=BigInt(remainder!.amount)} onClick={applySplit}>{t('Apply','ใช้')}</button></div>}
  </fieldset>}
  {remainderShown&&plan&&!choosing&&!planBusy&&<p className="field-summary remainder-choice">{t('Remainder ','ยอดคงเหลือ ')+money(remainder!.amount)}: <strong className="field-summary-value">{chosenLabel}</strong> <button ref={changeButton} type="button" className="secondary-button" onClick={changeChoice}>{t('Change','เปลี่ยน')}</button></p>}
  {remainderShown&&remainderHint&&<p className="field-help" id="remainder-help" role="status">{remainderHint}</p>}
  {remainderShown&&plan&&planSummary&&<p className="field-summary remainder-summary" aria-live="polite">{planSummary}</p>}
+ {remainderShown&&plan&&closeLines.map(line=><p key={line.loanId} className="field-summary remainder-closes">{line.text}{line.rebate&&<><br/>{line.rebate}</>}</p>)}
+ {remainderShown&&plan&&closesSummary&&<p className="field-summary remainder-closes-summary"><strong className="field-summary-value">{closesSummary}</strong></p>}
 
  {changedBalances&&changedBalances.operation===reviewOperation.current&&changedBalances.generation===generation.current&&!command.current&&<button type="button" className="secondary-button" onClick={useCurrentBalances}>{t('Use current balances','ใช้ยอดคงเหลือปัจจุบัน')}</button>}
  {/* biome-ignore lint/a11y/noNoninteractiveTabindex lint/a11y/useSemanticElements: keyboard-scrollable allocation region; tabIndex lets keyboard users scroll it and the div keeps the existing scroll styling */}<div className="payment-charge-scroll" role="region" tabIndex={0} aria-label={t('Payment allocation','จัดสรรการรับชำระ')}>{plan?<>{presentRows.map(row=>allocationRow(row,false))}{forwardLines.length>0&&<p className="field-help next-charge-help" id="next-charge-help">{nextChargeHelp}</p>}{forwardRuns(forwardLines).map(run=>run.length===1?forwardRow(run[0]):<details className="forward-run" key={run[0].chargeId}><summary>{runText(run)} <small className="next-charge-badge">{nextChargeBadge}</small></summary>{run.map(forwardRow)}</details>)}</>:draft.charges.map(row=>allocationRow(row,false))}{!plan&&staleProjected.length>0&&<>{staleProjected.map(id=>{const line=allocations.find(line=>line.chargeId===id)!;return allocationRow(selectionRows.find(row=>row.id===id)??{id,chargeDate:line.chargeDate,loanDisplayKey:'',amountRemaining:'0',principalRemaining:line.expectedPrincipalRemaining,interestRemaining:line.expectedInterestRemaining},true)})}</>}</div>

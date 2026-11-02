@@ -157,8 +157,11 @@ def options_lines(proposal,thai):
         head=f"Slip {baht(receipt['amount'])} from {name}"+(f", {keys}" if keys else '')+f". Due today {baht(o['dueTotal'])}. Remainder {baht(o['remainder'])}, reply: "
         tail='. Reject to drop.'
     notes=[]
-    if any(b.get('reason')=='settles' for b in o.get('blocked') or []):
-        notes.append('ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ' if thai else 'This settles the loan. Use Close Loan.')
+    settled=[b.get('loanKey') or b['loanId'] for b in o.get('blocked') or [] if b.get('reason')=='settles']
+    if settled:
+        # R113: the remainder closes a loan; closing happens in the app (Receive payment), not by this reply.
+        keys=', '.join(settled)
+        notes.append(f'ยอดคงเหลือปิด {keys} ได้: กรุณาบันทึกในแอป' if thai else f'Remainder settles {keys}: record in the app.')
     if f and f.get('uncovered') not in (None,'0'):
         notes.append(f"ยอด {baht(f['uncovered'])} เกินช่วง 93 วันข้างหน้า ไม่สามารถจัดสรรได้" if thai else f"{baht(f['uncovered'])} is beyond the next 93 days and cannot be allocated.")
     return head+' · '.join(choices)+tail+''.join('\n'+n for n in notes)
