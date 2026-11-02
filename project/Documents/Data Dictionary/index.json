@@ -2083,6 +2083,10 @@
           "pointer": "/content/columns/Ref Paid By Cash Account"
         },
         {
+          "subject": "Ref Offset Payment",
+          "pointer": "/content/columns/Ref Offset Payment"
+        },
+        {
           "subject": "Business Expenses_Allocation Basis_not_null",
           "pointer": "/content/constraints/Business Expenses_Allocation Basis_not_null"
         },
@@ -2129,6 +2133,10 @@
         {
           "subject": "Business Expenses_Partner B Share_not_null",
           "pointer": "/content/constraints/Business Expenses_Partner B Share_not_null"
+        },
+        {
+          "subject": "Business Expenses_Ref Offset Payment_fkey",
+          "pointer": "/content/constraints/Business Expenses_Ref Offset Payment_fkey"
         },
         {
           "subject": "Business Expenses_Ref Paid By Cash Account_fkey",

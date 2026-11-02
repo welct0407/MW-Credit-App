@@ -158,21 +158,32 @@ Applied and verified. Not owner-accepted in PROD: the first Loan Close with a re
 
 ## Not run
 Skipped and not verified, so not a pass:
-- Thai wording on screen and WebKit or a real iPhone (Echo checked Chromium only).
-- The DEV deployment and test (Forge and Chase, pending), including V123 and the notify worker with `pwa_notify_content_v2`; the notification content could not be read on DEV.
-- Anything in PROD.
-- The R110 "Paid in advance" tile date, to be seen on DEV during this test.
+- Thai wording on screen, WebKit and a real iPhone (Echo checked Chromium only).
+- The notification content on DEV (it could not be read there).
+- The R110 "Paid in advance" tile date: to be rechecked from 3 November.
+- Anything authenticated in PROD (no PROD Partner token for the operator; no PROD close or payment by rule): the promotion smoke is unauthenticated.
+- The R110 image against V124: untested (Forge's recovery note).
 
 ## Recovery
-Before release: revert the pull request (Git baseline R110 `2546e64` plus later main commits). Schema: V122 adds a nullable column and functions; rollback is a later migration. To be completed at hand-off.
+Before release: revert the pull request (Git baseline R110 `2546e64` plus later main commits). Released: the PROD rollback is in the promotion record (activation `production.activation.before-r111-1793591115363787.tfvars` for all five services with Hosting `88b0a1c201a053ee`). The R110 image does not read the new column but is untested against the replaced close and submit functions of V124, so check a service rollback against this section first. Schema: V122 to V124 add a nullable column, a constraint change, functions and one column grant; rollback is a later migration (V125 or higher) restoring the V121 bodies of `create_referral_rebate`, `pwa_apply_loan_close_v2`, `pwa_effective_payment_plan_v2`, `pwa_submit_selected_charges_v1` and `pwa_notify_content_v1`, then dropping `pwa_notify_content_v2`, `pwa_apply_pay_forward_v1` and `pwa_referral_rebate_projection_v1`; or the V121 backup in the promotion record. Offset payments already posted (`ro122:` ids) are ordinary payments and are removed by deleting their closing payment.
 
 ## Open questions
 None for the owner at this point.
 
 ## Remaining work
-- Forge: apply V123 to DEV (migration only, no image change), then Chase re-tests the helper's ACL on DEV.
-- Open: the notification content could not be read on DEV; the "Paid in advance" tile (the R110 leftover) is to be rechecked from 3 November.
-- Forge: apply V124 to DEV (functions and one grant) together with the images and Hosting, then Chase re-tests on DEV.
-- Deferred: COL-2, the Collection "rebate offset" caption (needs read-role grants).
-- Open the pull request and deploy to DEV for testing (authorized); PROD promotion and merge need a separate scoped owner instruction.
-- Release 3 of the plan.
+- Owner: PROD acceptance, the first real Loan Close with a referral rebate (offset or payout).
+- Open: COL-2, the Collection "rebate offset" caption (needs read-role grants); the notification content could not be read on DEV; the R110 "Paid in advance" tile is to be rechecked from 3 November; a referrer's in-flight payment can make a referred borrower's closing payment wait or retry (`command_busy`); the R110 image is untested on V124; Thai wording, WebKit and a real iPhone.
+- Data Dictionary, due with owner approval: new entries for the routines `pwa_apply_pay_forward_v1`, `pwa_notify_content_v2` and `pwa_referral_rebate_projection_v1`, and the column "Business Expenses"."Ref Offset Payment" is covered by the regenerated relation (see closure).
+- R112 (Pay Forward Release 3) is open.
+- Done: DEV deployment and test, merge, PROD promotion and the Data Dictionary PROD capture (closure below).
+
+## Closure (2 November 2026)
+Owner DEV acceptance was given implicitly through "Merge and promote to prod". PR #204 was merged and promoted under it (promotion record above).
+
+Tag record: the annotated tag `R111` (object `090bd9870704af1458697e9a019ff19bc60ac0e1`) points at the package commit `a5dddfa75513f7b9990e36975c019ecfa935c981` (PR #204 on `main`), created by the Release tag workflow run 41417452015 (GitHub Release R111 published). Freeze 2026-11-02T08:49:17Z, baseline R110 `2546e64`. R112 is opened in this closure and R113 is the next unused number.
+
+Technical access changes recorded in the Environment inventory: the notify owner's column SELECT on `Loans."Ref Closing Payment"` (V124) and `pwa_apply_pay_forward_v1` executable by the journal owner only (V123).
+
+Data Dictionary (R103 procedure, read-only): `capture_postgresql.py production` as `codex-cloud-read` through the Auth Proxy tunnel on `loan_manager_prod` (flyway head 124, 225 routines, 99 relations), output under a private root outside the repository. Targeted reconciliation with `--only` regenerated six existing entries: the routines `create_referral_rebate`, `pwa_apply_loan_close_v2`, `pwa_effective_payment_plan_v2` and `pwa_submit_selected_charges_v1`, and the relations "Business Expenses" (now with "Ref Offset Payment") and `pwa_payment_commands`. New entries need owner approval and are due: the routines `pwa_apply_pay_forward_v1`, `pwa_notify_content_v2` (the v1 entry stays) and `pwa_referral_rebate_projection_v1` (as for `pwa_pay_forward_plan_v1` since R110). `dictionary.py index` and `validate` pass. Evidence: [plan](../project/outputs/dictionary-r111-20261102/plan.json), [coverage](../project/outputs/dictionary-r111-20261102/coverage.json) and [observations](../project/outputs/dictionary-r111-20261102/production-postgresql-observations.json).
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R108_CHAT_CLAUDE_ONLY_2026-10-31.md` (R108 left the retention window: R112 Open; R111, R110, R109 Released). Its links in the Release tracker, Development Changes and the Environment inventory now point to the commit permalink `a5dddfa7`, the last commit where it exists. No other change note or evidence file is outside the window or uncited.
