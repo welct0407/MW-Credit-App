@@ -12,8 +12,8 @@ from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
 from .statement_delivery import resolve_recipient
-from .partner_review import ReviewStore,request_text,review_id
-from .review_proposal import facts,plan,review_posts_overpayment,same_posting_outcome,unlabelled
+from .partner_review import OPTIONS_REQUIRED,ReviewStore,request_text,review_id
+from .review_proposal import OPTIONS,chosen_plan,facts,options_enabled,plan,review_posts_overpayment,same_posting_outcome,unlabelled
 from .review_execution import readback
 from . import receipt_api
 from .cash_statement import read_query
@@ -103,7 +103,7 @@ class Run:
                     b=receipt_borrower(config,job,journal,live,self.identity_reader)
                     if b['id']!=result['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
                     check(config,result['receipt'],b)
-                    proposal=plan(result['receipt'],b,facts(config,b['id']))
+                    proposal=plan(result['receipt'],b,facts(config,b['id']),config=config)
                     prior=db.execute('SELECT id,proposal FROM partner_reviews WHERE job_id=?',(job['id'],)).fetchone()
                     if prior and json.loads(prior['proposal'])!=proposal:
                         with db:
@@ -175,7 +175,17 @@ class Run:
                 live=masters(config)
                 try:identity=identity_reader(config,event['sender_id'])
                 except ConfigurationError:continue
-                self.reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
+                outcome=self.reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
+                if outcome==OPTIONS_REQUIRED:
+                    # R112 (Echo AG-2): an unclear reply to the options gets the prompt and the options again, to the
+                    # same Reviewer, as its own notice (one per unclear reply); nothing was decided.
+                    import hashlib
+                    row=db.execute('SELECT proposal FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
+                    partner=next((p for p in live['partners'] if p['id']==notice['partner_id']),None)
+                    if row and partner:
+                        key='review:'+review_id(notice['event_key'])+':options:'+hashlib.sha256(event['message_id'].encode()).hexdigest()
+                        subject,body=request_text(json.loads(row['proposal']),partner['language'],unclear=True)
+                        notices.reserve(key,partner,subject,body)
 
     def execute_approved(self):
         config,journal,db,notices,root,failures=self.config,self.journal,self.db,self.notices,self.root,self.failures
@@ -209,7 +219,9 @@ class Run:
                 if not automatic and review['deciding_partner'] not in live.get('reviewer_ids',[]):
                     with db:db.execute("UPDATE partner_reviews SET state='STALE',detail='APPROVING_REVIEWER_REMOVED' WHERE id=?",(review['id'],))
                     continue
-                if proposal['action']!='Lump Sum' and not (not automatic and review_posts_overpayment(proposal)):
+                # R112: approved options post only while the switch is on (fail closed: off means manual).
+                options_review=proposal['action']==OPTIONS
+                if proposal['action']!='Lump Sum' and not (not automatic and (review_posts_overpayment(proposal) or (options_review and options_enabled(config)))):
                     with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED' WHERE id=?",(review['id'],))
                     continue
                 if config.get('partner_review_execution_enabled') is not True:continue
@@ -233,7 +245,7 @@ class Run:
                     else:
                         matches=[p for p in reviewer_partners(live) if p['id']==review['deciding_partner'] and p['enabled'] is True]
                         if len(matches)!=1:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
-                        sent=notices.db.execute("SELECT partner,message_id FROM partner_notices WHERE (event_key=? OR event_key LIKE ?) AND partner_id=? AND ig_status='ACCEPTED'",('review:'+review['id'],'review:'+review['id']+':resend:%',review['deciding_partner'])).fetchall()
+                        sent=notices.db.execute("SELECT partner,message_id FROM partner_notices WHERE (event_key=? OR event_key LIKE ? OR event_key LIKE ?) AND partner_id=? AND ig_status='ACCEPTED'",('review:'+review['id'],'review:'+review['id']+':resend:%','review:'+review['id']+':options:%',review['deciding_partner'])).fetchall()
                         if review['decision_message']:
                             source=state_connect(root/'instagram-ingress.db',config,readonly=True)
                             try:decision=source.execute('SELECT reply_to FROM messages WHERE message_id=?',(review['decision_message'],)).fetchone()
@@ -246,15 +258,26 @@ class Run:
                     if proposal['receipt']['date'] not in (day.isoformat(),(day-timedelta(days=1)).isoformat()):
                         raise ReceiptInvalid('RECEIPT_DATE_TOO_OLD')
                     check(config,proposal['receipt'],b)
-                    fresh=plan(proposal['receipt'],b,facts(config,b['id']))
+                    fresh=plan(proposal['receipt'],b,facts(config,b['id']),config=config if options_review else None)
                     # Owner rule (20 Oct 2026): a charge edit keeps the approval while the
                     # consequence is still "post the full amount as Lump Sum".
                     marker=(AUTO_POLICY+':' if automatic else '')
                     if fresh['action']=='Loan Close':
                         with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED',detail=? WHERE id=?",(marker+LOAN_CLOSE,review['id']))
                         continue
-                    if not same_posting_outcome(proposal,fresh,automatic):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
-                    outcome=SAME_OUTCOME if unlabelled(fresh['facts'])!=unlabelled(proposal['facts']) else None
+                    chosen=None
+                    if options_review:
+                        # R112: the server's plans must be the ones the Reviewer chose from (same planSha256, same
+                        # business day); the chosen purpose's plan is read now and becomes the v9 command's lines.
+                        if proposal['receipt']['date']!=day.isoformat():raise ReceiptInvalid('PAY_FORWARD_DAY_PASSED')
+                        if not same_posting_outcome(proposal,fresh,automatic):raise ReceiptInvalid('PAY_FORWARD_PLAN_CHANGED')
+                        purpose=json.loads(review['detail'] or '{}').get('purpose')
+                        if not isinstance(purpose,dict):raise ReceiptInvalid('PAY_FORWARD_PURPOSE_MISSING')
+                        chosen=dict(chosen_plan(config,proposal,purpose),purpose=purpose)
+                        outcome=None
+                    else:
+                        if not same_posting_outcome(proposal,fresh,automatic):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
+                        outcome=SAME_OUTCOME if unlabelled(fresh['facts'])!=unlabelled(proposal['facts']) else None
                     if not any(a['id']==proposal['receipt']['account_id'] and a['active'] is True for a in live['accounts']):
                         raise ReceiptInvalid('RECEIVING_ACCOUNT_CHANGED')
                     actors=read_query(config,'SELECT coalesce(json_agg("Login Email"),\'[]\'::json) FROM public."Partners" WHERE "Row ID"=:\'pid\';',
@@ -268,7 +291,7 @@ class Run:
                 # The original cutoff remains deployment history, not a legacy fallback.
                 # The payload keeps the hash of the approved proposal (what the reviewer saw).
                 asset=db.execute('SELECT * FROM receipt_assets WHERE job_id=?',(review['job_id'],)).fetchone()
-                api_payload=receipt_api.payload(config,review,proposal,asset,automatic)
+                api_payload=receipt_api.payload(config,review,proposal,asset,automatic,**({'plan':chosen} if chosen else {}))
                 key='pwa:'+api_payload['command']['requestId']
                 with db:
                     claimed=db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",(key,review['id'])).rowcount
@@ -306,6 +329,21 @@ class Run:
             notify(self.config,self.journal,self.notices,self.identity_reader,self.notification_failures,self.resolver,changed)
 
 
+def posted_purpose(proposal,detail,thai):
+    """Echo AG-5: the use of the remainder the Reviewer chose, on the posted result."""
+    from .partner_review import baht,short_date
+    try:purpose=json.loads(detail)['purpose']
+    except (ValueError,TypeError,KeyError):return ''
+    amount=baht(proposal['receipt']['amount']);o=proposal['options'];through=(o.get('forward') or {}).get('through')
+    if purpose['forward'] and not purpose['principal']:
+        return f"บันทึก {amount} · ชำระล่วงหน้า"+(f" ชำระถึง {short_date(through,True)}" if through else '') if thai else \
+            f"Recorded {amount} · pay forward"+(f", paid through {short_date(through,False)}" if through else '')
+    part=baht(purpose['principal'][0]['amount'])
+    if purpose['forward']:
+        return f"บันทึก {amount} · เงินต้น {part} ส่วนที่เหลือชำระล่วงหน้า" if thai else f"Recorded {amount} · principal {part}, the rest pays forward"
+    return f"บันทึก {amount} · ชำระเงินต้น {part}" if thai else f"Recorded {amount} · repay principal {part}"
+
+
 def notice_rank(notice,changed=()):
     """Results reached in this run, other results, reply/command acknowledgements, review requests,
     hold alerts, archive-delay alerts; due() order (retry_after,id) is kept within each group."""
@@ -334,7 +372,9 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     # Opted-out partners get no result of any state (R089: non-POSTED results were
                     # reserved, then held as IG_PREFLIGHT_FAILED and counted as failed deliveries).
                     if p['enabled'] is not True:continue
-                    if review['state']=='POSTED':subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],review['detail'].endswith(SAME_OUTCOME))
+                    if review['state']=='POSTED':
+                        subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'],review['detail'].endswith(SAME_OUTCOME))
+                        if proposal.get('action')==OPTIONS:body+='\n'+posted_purpose(proposal,review['detail'],p['language']=='ไทย')
                     else:
                         thai=p['language']=='ไทย'
                         words={'REJECTED':('Rejected; no payment recorded.','ปฏิเสธแล้ว ยังไม่ได้บันทึกรายการ'),
@@ -392,7 +432,7 @@ def notify(config,journal,notices,identity_reader,failures,resolver=resolve_reci
                     current=facts(config,proposal['borrower']['id'])
                     if current!=proposal['facts']:
                         # A request still goes out after a charge edit when approving it would post the same way.
-                        fresh=plan(proposal['receipt'],proposal['borrower'],current)
+                        fresh=plan(proposal['receipt'],proposal['borrower'],current,config=config if proposal.get('action')==OPTIONS else None)
                         if fresh['action']=='Loan Close' or not same_posting_outcome(proposal,fresh,False):raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
                 except ReceiptInvalid as exc:
                     with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),row['id']))

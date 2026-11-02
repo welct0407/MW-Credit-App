@@ -29,6 +29,28 @@ test('R095 schemaVersion 8 adds payerLines {before,after} after bankReference; 7
  const {payerLines:_,...missing}=v8;assert.throws(()=>canonicalAgentCommand(missing));
  assert.throws(()=>canonicalAgentCommand({...v8,schemaVersion:9}));
 });
+test('R112 schemaVersion 9 adds purpose and the plan lists (v10 shapes) after payerLines; reviewed only; one request id per slip',()=>{
+ const purpose={forward:true,principal:[{loanId:'L-1',amount:'60'}],loans:null};
+ const plan={allocations:[{chargeId:'L-1-today',principal:'60',interest:'10',expectedPrincipalRemaining:'60',expectedInterestRemaining:'10',chargeDate:'2026-10-12'},{chargeId:'cg8:3:L-1:2026-10-13',principal:'0',interest:'30',expectedPrincipalRemaining:'0',expectedInterestRemaining:'30',chargeDate:'2026-10-13'}],
+  materialize:[{loanId:'L-1',chargeId:'cg8:3:L-1:2026-10-13',chargeDate:'2026-10-13',principalDue:'0',interestDue:'30'}],
+  principal:[{loanId:'L-1',kind:'raise',chargeId:'L-1-today',chargeDate:'2026-10-12',amount:'60',accruedInterest:'0',principalDue:'60'}]};
+ const v9={...command,schemaVersion:9,payerLines:null,purpose,...plan};
+ const canonical=canonicalAgentCommand(v9);
+ assert.deepEqual(Object.keys(canonical),['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','payerLines','purpose','allocations','materialize','principal','proposalSha256','archiveEvidence']);
+ assert.equal(canonical.requestId,requestId,'the slip keeps its request id');
+ const json=agentIdentity({...v9,purpose:{loans:null,principal:[{amount:'60',loanId:'L-1'}],forward:true},allocations:plan.allocations.map(l=>({chargeDate:l.chargeDate,...l}))},actor).canonicalJson;
+ assert.match(json,/"payerLines":null,"purpose":\{"forward":true,"principal":\[\{"loanId":"L-1","amount":"60"\}\],"loans":null\},"allocations":\[\{"chargeId":"L-1-today","principal":"60","interest":"10","expectedPrincipalRemaining":"60","expectedInterestRemaining":"10","chargeDate":"2026-10-12"\}/);
+ assert.match(json,/"materialize":\[\{"loanId":"L-1","chargeId":"cg8:3:L-1:2026-10-13","chargeDate":"2026-10-13","principalDue":"0","interestDue":"30"\}\],"principal":\[\{"loanId":"L-1","kind":"raise","chargeId":"L-1-today","chargeDate":"2026-10-12","amount":"60","accruedInterest":"0","principalDue":"60"\}\],"proposalSha256"/);
+ assert.notEqual(agentIdentity(v9,actor).payloadSha256,agentIdentity({...v9,purpose:{...purpose,forward:false},allocations:[plan.allocations[0]],amountReceived:'70',materialize:[]},actor).payloadSha256,'another purpose is another payload under the same id');
+ assert.equal(canonicalAgentCommand({...v9,purpose:{forward:true,principal:[],loans:null},principal:[]}).principal.length,0);
+ for(const patch of [{mode:'automatic'},{purpose:{forward:false,principal:[],loans:null}},{purpose:{...purpose,loans:['L-1']}},{purpose:{...purpose,principal:[{loanId:'L-1',amount:'0'}]}},
+  {purpose:{...purpose,principal:[{loanId:'L-2',amount:'1'},{loanId:'L-1',amount:'1'}]}},{allocations:[]},{allocations:[...plan.allocations].reverse()},{amountReceived:'99'},
+  {allocations:[{...plan.allocations[0],interest:'11'},plan.allocations[1]]},{materialize:[{...plan.materialize[0],chargeId:'cg8:3:L-1:2026-10-14'}]},
+  {principal:[{...plan.principal[0],kind:'move'}]},{principal:[{...plan.principal[0],extra:1}]},{payerLines:undefined},{purpose:undefined}])
+  assert.throws(()=>canonicalAgentCommand({...v9,...patch}),JSON.stringify(patch));
+ const {materialize:_,...missing}=v9;assert.throws(()=>canonicalAgentCommand(missing));
+ assert.throws(()=>canonicalAgentCommand({...command,schemaVersion:8,payerLines:null,purpose}),'v8 refuses purpose');
+});
 test('machine receipt policy stays off by default and pins environment/audience/private numeric version',()=>{
  assert.equal(loadAgentReceiptPolicy({},'dev'),null);
  assert.throws(()=>loadAgentReceiptPolicy({AGENT_RECEIPT_API_ENABLED:'true'},'dev'));

@@ -193,6 +193,12 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigurationError('review execution requires review flow')
     if config.get('partner_review_enabled'):
         aware_cutoff(config, 'partner_review_cutoff', 'partner_review_cutoff required')
+    # R112: the pay-forward options reply (default off). On, it needs the review execution and the business database
+    # it reads the server's plan from; anything but true or false is refused.
+    if type(config.get('pay_forward_options_enabled',False)) is not bool:
+        raise ConfigurationError('pay_forward_options_enabled must be boolean')
+    if config.get('pay_forward_options_enabled') and not (config.get('partner_review_execution_enabled') and config.get('database_enabled')):
+        raise ConfigurationError('pay forward options require review execution and the database')
     if type(config.get('conversation_poll_enabled',False)) is not bool:
         raise ConfigurationError('conversation_poll_enabled must be boolean')
     if config.get('conversation_poll_enabled'):

@@ -6,7 +6,22 @@ export type ChatTool={callId:string;name:string;state:'running'|'ok'|'error';sum
 export type ProposalState='pending'|'executing'|'done'|'failed'|'expired'|'cancelled'|'unknown';
 export type CardField={field:string;label:{en:string;th:string};type:string;value?:unknown;display?:string;before?:unknown;after?:unknown;beforeDisplay?:string;afterDisplay?:string};
 export type ProposalCard={version:number;operation:string;label:{en:string;th:string};confirmLabel?:{en:string;th:string}|null;destructive:boolean;group?:{id:string;index:number;count:number;ids?:string[]};target:{type:string;id:string;label:string|null};values:CardField[];changes:CardField[];
- consequences:{code:string;amount?:string}[];split?:{chargeId:string;loanDisplayKey:string|null;chargeDate:string;principal:string;interest:string;projected:boolean}[]};
+ consequences:{code:string;amount?:string}[];split?:{chargeId:string;loanDisplayKey:string|null;chargeDate:string;principal:string;interest:string;projected:boolean}[];purposeOptions?:PurposeOptions};
+/** R112: a payment card's remainder choices (services/chat/payment-plan.mjs purposeOptions); nothing is preselected. */
+export type PurposeRow={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string;principal:string;interest:string;partial:boolean};
+export type PurposePrincipal={loanId:string;loanDisplayKey:string|null;amount:string;dailyBefore:string|null;dailyAfter:string|null;outstandingBefore:string|null;outstandingAfter:string|null};
+export type PurposeOptions={remainder:string;dueAmount:string|null;businessDate:string;forward:{from:string;paidThrough:string|null;rows:PurposeRow[]}|null;principal:PurposePrincipal[];split:boolean;settles?:boolean;uncovered?:string};
+export type PurposeChoice={kind:'forward'}|{kind:'principal';loanId:string}|{kind:'split';loanId:string;amount:string};
+/** The Confirm body's purpose for a choice the card offers, or null (no choice, a loan not offered, a split amount that is
+ * not a whole number between 1 and the loan's full remainder less 1). The service checks it again against fresh choices. */
+export function choicePurpose(options:PurposeOptions|undefined,choice:PurposeChoice|null):{forward:boolean;principal:{loanId:string;amount:string}[]}|null{
+ if(!options||!choice)return null;
+ if(choice.kind==='forward')return options.forward?{forward:true,principal:[]}:null;
+ const option=options.principal.find(row=>row.loanId===choice.loanId);if(!option)return null;
+ if(choice.kind==='principal')return {forward:false,principal:[{loanId:option.loanId,amount:option.amount}]};
+ if(!options.split||!/^[1-9][0-9]{0,16}$/.test(choice.amount)||BigInt(choice.amount)>=BigInt(option.amount))return null;
+ return {forward:true,principal:[{loanId:option.loanId,amount:choice.amount}]};
+}
 export type ChatProposal={id:string;threadId:string;messageId:string;kind:'operation'|'payment';operation:string;state:ProposalState;card:ProposalCard;expiresAt:string;createdAt:string;settledAt?:string|null;outcome?:{code:string|null;recordedAt?:string|null}|null;record?:{type:string;id:string;paymentId?:string|null}|null};
 export type ChatMessage={id:string;seq?:number;role:'user'|'assistant';text:string;status:'ok'|'failed'|'pending';model?:string;createdAt?:string;usage?:Record<string,number>;tools?:{name:string;count:number}[];errorCode?:string;proposals?:ChatProposal[]};
 export type TurnState={accepted:boolean;seq:number|null;model:string|null;round:number;tools:ChatTool[];provisional:string;checking:boolean;message:ChatMessage|null;error:string|null;done:boolean;startedAt:number|null;proposals:ChatProposal[]};

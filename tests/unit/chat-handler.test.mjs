@@ -650,3 +650,26 @@ test('R108: a Gemini thread runs its turn on Claude when the body carries the li
  assert.deepEqual([body.assistant.status,body.assistant.model,body.assistant.text],['ok',claude,'On Claude']);
  assert.deepEqual(relayed,[claude]);assert.equal(s.store.threadMap.get(T1).model,claude);
 });
+
+test('R112: Confirm of a remainder card needs one offered purpose before any claim; a purpose on another card is refused',async t=>{
+ const svc=commandService();const store=proposalStore();
+ const s=await server({cfg:writeConfig,store,commandFetch:svc.fetch,script:[[chunk([propose],{finishReason:'STOP',usage:USAGE})],reply('Card ready.')]});t.after(s.close);
+ await s.call('/api/chat/threads',{method:'POST',body:{id:T1,model:'gemini-4-argon'}});
+ await s.call(`/api/chat/threads/${T1}/messages?stream=0`,{method:'POST',body:{id:M1,text:'Record a 150 baht transport expense'},headers:jwt('a')});
+ const [plain]=store.proposals.keys();
+ // A purpose for a card without remainder choices: 400, nothing claimed.
+ let r=await s.call(proposalPath(T1,plain,'/confirm'),{method:'POST',body:{purpose:{forward:true,principal:[]}},headers:jwt('a')});
+ assert.equal(r.status,400);assert.equal(store.proposals.get(plain).state,'pending');
+ // A remainder card (as payment-plan.mjs builds it), placed beside it in the thread.
+ const pid=id(77),options={remainder:'300',dueAmount:'700',businessDate:'2026-10-30',forward:{from:'2026-10-31',paidThrough:'2026-10-31',rows:[]},principal:[{loanId:'L1',loanDisplayKey:null,amount:'300',dailyBefore:'100',dailyAfter:'90',outstandingBefore:'10000',outstandingAfter:'9700'}],split:true};
+ const x=store.proposals.get(plain);
+ store.proposals.set(pid,{...x,id:pid,kind:'payment',operation:'payment.record',command:JSON.stringify({requestId:pid,purposeRequired:true,draft:{}}),card:{...x.card,group:undefined,purposeOptions:options},state:'pending',attempts:0});
+ for(const [body,detail] of [[{},'purpose_required'],[{purpose:{forward:false,principal:[{loanId:'L1',amount:'1'}]}},'purpose_not_offered'],[{purpose:{forward:true,principal:[{loanId:'L9',amount:'1'}]}},'purpose_not_offered']]){
+  r=await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body,headers:jwt('a')});
+  assert.deepEqual([r.status,(await r.json()).detail],[400,detail],JSON.stringify(body));
+  assert.equal(store.proposals.get(pid).state,'pending');assert.equal(store.proposals.get(pid).attempts,0);
+ }
+ for(const body of [{purpose:'forward'},{purpose:{forward:true,principal:[]},extra:1}])assert.equal((await s.call(proposalPath(T1,pid,'/confirm'),{method:'POST',body,headers:jwt('a')})).status,400);
+ assert.equal((await s.call(proposalPath(T1,pid,'/cancel'),{method:'POST',body:{purpose:{forward:true,principal:[]}},headers:jwt('a')})).status,400,'Cancel carries nothing');
+ assert.equal(svc.calls.filter(c=>c.method==='POST').length,0,'nothing sent');
+});

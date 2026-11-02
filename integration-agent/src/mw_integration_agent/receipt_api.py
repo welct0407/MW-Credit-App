@@ -44,7 +44,12 @@ def request_id(environment, review_id):
     return uuid_from_sha256(['mw-credit-agent-receipt-v1', environment, review_id])
 
 
-def payload(config, review, proposal, asset, automatic):
+PRINCIPAL_KEYS = ('loanId', 'kind', 'chargeId', 'chargeDate', 'amount', 'accruedInterest', 'principalDue')
+LINE_KEYS = ('chargeId', 'principal', 'interest', 'expectedPrincipalRemaining', 'expectedInterestRemaining', 'chargeDate')
+MATERIALIZE_KEYS = ('loanId', 'chargeId', 'chargeDate', 'principalDue', 'interestDue')
+
+
+def payload(config, review, proposal, asset, automatic, plan=None):
     validate(config)
     if not config.get('receipt_payment_api_enabled') or not asset or asset['archive_state'] != 'ARCHIVED':
         raise ConfigurationError('ARCHIVED_RECEIPT_API_REQUIRED')
@@ -68,7 +73,22 @@ def payload(config, review, proposal, asset, automatic):
     # context or a resolved weak context; the database writes it only while the column still equals `before`).
     # Without one the command stays version 7, so a database without V111 still accepts it during a rolling deploy.
     lines = payer_lines(receipt)
-    if lines is not None:
+    if proposal.get('action') == 'Pay forward options':
+        # R112 schemaVersion 9 = 8 plus the Reviewer's purpose and the server plan's explicit lines for it, in the
+        # manual v10 shapes; the request id stays the slip's (one slip, one key: a later other purpose conflicts).
+        if automatic or not isinstance(plan, dict) or not isinstance(plan.get('purpose'), dict):
+            raise ConfigurationError('PAY_FORWARD_PLAN_REQUIRED')
+        purpose = plan['purpose']
+        command = {**{k: v for k, v in command.items() if k not in ('proposalSha256', 'archiveEvidence')}, 'schemaVersion': 9,
+                   'payerLines': lines,
+                   'purpose': {'forward': purpose['forward'], 'principal': [{'loanId': p['loanId'], 'amount': p['amount']} for p in purpose['principal']], 'loans': None},
+                   'allocations': [{k: line[k] for k in LINE_KEYS} for line in plan['allocations']],
+                   'materialize': [{k: entry[k] for k in MATERIALIZE_KEYS} for entry in plan['materialize']],
+                   'principal': [{k: entry[k] for k in PRINCIPAL_KEYS} for entry in plan['principal']],
+                   'proposalSha256': command['proposalSha256'], 'archiveEvidence': command['archiveEvidence']}
+    elif plan is not None:
+        raise ConfigurationError('PAY_FORWARD_PLAN_UNEXPECTED')
+    elif lines is not None:
         command = {**{k: v for k, v in command.items() if k != 'archiveEvidence'}, 'schemaVersion': 8,
                    'payerLines': lines, 'archiveEvidence': command['archiveEvidence']}
     return {'command': command, 'actorPartnerId': review['deciding_partner']}

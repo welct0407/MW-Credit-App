@@ -9,7 +9,8 @@
  * write (the proposal SSE event precedes message), and three routes answer: GET .../proposals/:id (reconciles an
  * unknown outcome), POST .../proposals/:id/confirm (executes through the command service with the Partner's own
  * token) and POST .../proposals/:id/cancel. Without the URL the routes answer 404 and no write tool exists; without
- * the reviewer flag or the capability they answer 403 reviewer_required / command_required. */
+ * the reviewer flag or the capability they answer 403 reviewer_required / command_required.
+ * R112: Confirm of a payment card with remainder choices carries {purpose} (400 purpose_required / purpose_not_offered). */
 import {beginRequest} from '../lib/http-boundary.mjs';
 import {UUID_V4} from '../lib/ids.mjs';
 import {availableModel,providerFor} from './config.mjs';
@@ -17,7 +18,8 @@ import {storeError} from './store.mjs';
 import {runTurn,failureText} from './engine.mjs';
 import {ToolError} from './errors.mjs';
 import {createCommandClient} from './command-client.mjs';
-import {loadCatalogue,catalogueView,createProposalPlanner,executeGroup,reconcileGroup,cancelGroup,loadGroup,assertIdle,publicProposal} from './proposals.mjs';
+import {loadCatalogue,catalogueView,createProposalPlanner,executeGroup,reconcileGroup,cancelGroup,loadGroup,assertIdle,publicProposal,needsPurpose} from './proposals.mjs';
+import {chosenPurpose} from './payment-plan.mjs';
 
 export const BODY_LIMIT=65536;
 export const PING_MS=15000;
@@ -81,7 +83,9 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
     log({event:'chat_proposal_created',thread,messageId:claim.message.id,proposal:proposals[0].id,lines:proposals.length,operations:[...new Set(proposals.map(p=>p.operation))]});
     emit('proposal',{proposals});
     return {proposals:proposals.map(p=>({id:p.id,operation:p.operation,state:p.state,expiresAt:p.expiresAt,card:p.card})),
-     note:'Shown to the Partner as one confirmation card with every change. Nothing has changed: the changes run only when the Partner taps Confirm. Do not ask them to type yes.'};
+     note:'Shown to the Partner as one confirmation card with every change. Nothing has changed: the changes run only when the Partner taps Confirm. Do not ask them to type yes.'
+      // R112: the remainder choice is the Partner's, made on the card.
+      +(proposals.some(p=>p.card?.purposeOptions)?' The amount is more than is due: the Partner chooses on the card how to use the remainder (pay forward, repay principal or split); do not choose for them.':'')};
    },
   };
  }
@@ -257,7 +261,11 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
    if(route.startsWith('proposal')){
     query(url,[]);
     const [,thread,id]=proposalMatch;if(!UUID_V4.test(thread)||!UUID_V4.test(id))throw invalid();
-    if(req.method==='POST'){const body=await readBody(req);if(!plain(body)||Object.keys(body).length)throw invalid();}
+    // R112: Confirm may carry the Partner's remainder choice {purpose}; Cancel carries nothing.
+    let purpose=null;
+    if(req.method==='POST'){const body=await readBody(req);const keys=plain(body)?Object.keys(body).join():null;
+     if(keys===null||!(keys===''||(route==='proposal_confirm'&&keys==='purpose')))throw invalid();
+     if(keys==='purpose'){if(!plain(body.purpose))throw invalid();purpose=body.purpose;}}
     // D5: the reviewer flag and the capability, fresh for every request; SQL enforces the flag again.
     const writer=await store.writer(principal);
     if(!writer?.reviewer)return reply(403,{error:'reviewer_required'});
@@ -268,13 +276,21 @@ export function createChatHandler({config,verifyPrincipal,store,createTools,tran
     if(route==='proposal')return reply(200,{item:await reconcileGroup({store,principal,thread,id,client,now,log})});
     const lines=await loadGroup({store,principal,thread,id});
     assertIdle(lines,now);
-    if(!/text\/event-stream/i.test(req.headers.accept??''))return reply(200,{item:await executeGroup({store,principal,thread,id,client,log,now,lines})});
+    // R112: a pending remainder payment needs one of the choices its card offers before anything is claimed; a purpose
+    // for a card without choices is refused. A line no longer pending is reconciled as before (its claim fixed the purpose).
+    const choosing=lines.find(line=>needsPurpose(line)&&line.state==='pending');
+    if(purpose!==null&&!lines.some(needsPurpose))throw invalid();
+    if(choosing){
+     if(purpose===null)throw invalid('purpose_required');
+     try{chosenPurpose(choosing.card.purposeOptions,purpose);}catch{throw invalid('purpose_not_offered');}
+    }
+    if(!/text\/event-stream/i.test(req.headers.accept??''))return reply(200,{item:await executeGroup({store,principal,thread,id,client,log,now,lines,purpose})});
     // Confirm as Server-Sent Events: line after each line, then group and done (the request runs to its end).
     res.statusCode=200;res.setHeader('Content-Type','text/event-stream; charset=utf-8');res.setHeader('Cache-Control','no-store');res.setHeader('X-Accel-Buffering','no');res.flushHeaders?.();
     const write=text=>{if(!res.destroyed&&!res.writableEnded)res.write(text);};
     const event=(name,data)=>write(`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`);
     const ping=setInterval(()=>write(': ping\n\n'),pingMs);
-    try{const group=await executeGroup({store,principal,thread,id,client,log,now,lines,onLine:line=>event('line',line)});event('group',{state:group.state,group});}
+    try{const group=await executeGroup({store,principal,thread,id,client,log,now,lines,purpose,onLine:line=>event('line',line)});event('group',{state:group.state,group});}
     catch(error){log({event:'chat_proposal_group_failed',thread,proposal:id,reason:error?.name});event('error',{code:error?.message==='proposal_executing'?'proposal_executing':'unavailable'});}
     finally{clearInterval(ping);event('done',{});if(!res.writableEnded)res.end();}
     return;

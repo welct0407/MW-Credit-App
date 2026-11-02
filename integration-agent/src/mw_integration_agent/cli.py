@@ -156,6 +156,7 @@ def execute(args, outcome=None) -> int:
                 "receipt_extraction_provider": config.get('receipt_extraction_provider','codex'),
                 "receipt_recognition": config.get('receipt_recognition_enabled',False),
                 "chat_relay": config.get('chat_relay_enabled',False),
+                "pay_forward_options": config.get('pay_forward_options_enabled',False),
                 "generic_sending": config["sending_enabled"],
                 "processing": config["processing_enabled"], "writes": config["writes_enabled"]}}))
             return 0

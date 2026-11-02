@@ -108,6 +108,10 @@ const PROPOSAL_CODES:Record<string,Pair>={
  command_busy:['Busy. Nothing was applied. Ask again in a moment.','ระบบกำลังยุ่ง ยังไม่มีการบันทึก ถามใหม่อีกครั้งในไม่ช้า'],
  command_unavailable:['The change was not saved: the app could not record it. Nothing was applied.','ไม่ได้บันทึกการเปลี่ยนแปลง: ระบบบันทึกรายการไม่ได้ ยังไม่มีการเปลี่ยนแปลง'],
  outcome_unknown:['Checking whether the change was saved…','กำลังตรวจสอบว่าบันทึกการเปลี่ยนแปลงแล้วหรือไม่…'],
+ // R112: a remainder choice that could not be planned at Confirm (nothing was sent).
+ purpose_not_offered:['That choice is no longer offered. Nothing was applied. Ask again for a new card.','ไม่มีตัวเลือกนี้แล้ว ยังไม่มีการบันทึก ถามใหม่เพื่อรับการ์ดใหม่'],
+ pay_forward_settles:['This settles the loan. Use Close Loan.','ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ'],
+ pay_forward_uncovered:['Part of the remainder is beyond the next 93 days. Nothing was applied.','ยอดคงเหลือบางส่วนเกินช่วง 93 วันข้างหน้า ยังไม่มีการบันทึก'],
 };
 /** A chat-layer code's text, or null when the code is the command service's (the caller uses the app's table). */
 export const proposalCodeText=(code:string|null|undefined,thai:boolean)=>code&&PROPOSAL_CODES[code]?pick(PROPOSAL_CODES[code],thai):null;

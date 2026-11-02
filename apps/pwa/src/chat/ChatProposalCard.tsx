@@ -3,7 +3,8 @@ import {Icon} from '../Icon';
 import {wholeBaht} from '../display-money';
 import {displayDateWithYear} from '../display-date';
 import {savedRejectionMessage} from '../offline-sync';
-import {groupView,pollGroup,proposalView,seenThrough,type CardField,type ChatProposal,type LineView} from './chat-protocol';
+import {choicePurpose,groupView,pollGroup,proposalView,seenThrough,type CardField,type ChatProposal,type LineView,type PurposeChoice,type PurposeOptions} from './chat-protocol';
+import {dateRange,forwardRuns,runAmount,shortDate} from '../pay-forward-text';
 import {ChatAccessError,ChatHttpError,cancelProposalGroup,confirmProposalGroup,getProposalGroup,type ChatAccess} from './chat-client';
 import {armHintText,consequenceText,destructiveCounts,destructiveTagText,destructiveWarningText,groupConfirmText,groupCountText,groupProgressText,groupSummaryText,lineChipText,pair,proposalButtons,proposalCodeText,proposalCountdown,proposalStateText,proposalUnresolvedText,savedAtText,unchangedText} from './chat-text';
 
@@ -38,6 +39,41 @@ function shown(field:CardField,value:unknown,display:string|undefined,thai:boole
 const failureLine=(code:string|null,thai:boolean)=>proposalCodeText(code,thai)??savedRejectionMessage({code:code??'request_rejected'},thai);
 
 /** One line's body: changed fields (or the values of a create), the unchanged count, the split and consequences. */
+/** R112 CH-2/CH-3: the Remainder choice of a payment card above its Allocation, nothing checked; once chosen it collapses
+ * to the choice and Change (which reopens it and re-arms Confirm). The previews are the server card's. */
+function RemainderChoice({options,choice,choosing,thai,onChoose,onChange}:{options:PurposeOptions;choice:PurposeChoice|null;choosing:boolean;thai:boolean;onChoose:(next:PurposeChoice|null)=>void;onChange:()=>void}){
+ const t=(en:string,th:string)=>thai?th:en;
+ const [loanId,setLoanId]=useState(options.principal[0]?.loanId??''),[amount,setAmount]=useState('');
+ const option=options.principal.find(row=>row.loanId===loanId)??options.principal[0];
+ const forwardText=options.forward?(options.forward.rows.length?dateRange(options.forward.rows[0].chargeDate,options.forward.rows.at(-1)!.chargeDate,thai):'')+(options.forward.paidThrough?(thai?' ชำระถึง ':', paid through ')+shortDate(options.forward.paidThrough,thai):''):null;
+ const principalText=(row:PurposeOptions['principal'][number]|undefined)=>row?(row.loanDisplayKey?row.loanDisplayKey+' · ':'')+money(row.amount)+(row.dailyAfter?t(' · new interest ',' · ดอกเบี้ยใหม่ ')+money(row.dailyAfter)+t('/day','/วัน'):''):'';
+ const chosen=choice?.kind==='forward'?t('Pay forward','ชำระล่วงหน้า')+(forwardText?' ('+forwardText+')':''):choice?.kind==='principal'?t('Repay principal','ชำระเงินต้น')+' · '+principalText(options.principal.find(row=>row.loanId===choice.loanId))
+  :choice?.kind==='split'?t('Split','แบ่งชำระ')+' · '+t('principal ','เงินต้น ')+money(choice.amount)+t(', the rest pays forward',' ส่วนที่เหลือชำระล่วงหน้า'):'';
+ const split=()=>/^[1-9][0-9]{0,16}$/.test(amount)&&option?onChoose({kind:'split',loanId:option.loanId,amount}):onChoose(null);
+ if(choice&&!choosing)return <p className="field-summary remainder-choice chat-proposal-remainder">{t('Remainder ','ยอดคงเหลือ ')+money(options.remainder)}: <strong className="field-summary-value">{chosen}</strong> <button type="button" className="secondary-button" onClick={onChange}>{t('Change','เปลี่ยน')}</button></p>;
+ return <fieldset className="loan-type-options remainder-options chat-proposal-remainder"><legend>{t('Remainder ','ยอดคงเหลือ ')+money(options.remainder)}</legend>
+  {options.forward&&<label><input type="radio" name={'remainder-'+options.businessDate} checked={choice?.kind==='forward'} onChange={()=>onChoose({kind:'forward'})}/><span>{t('Pay forward','ชำระล่วงหน้า')}</span>{forwardText&&<small>{forwardText}</small>}</label>}
+  {options.principal.length>0&&<label><input type="radio" name={'remainder-'+options.businessDate} checked={choice?.kind==='principal'} onChange={()=>option&&onChoose({kind:'principal',loanId:option.loanId})}/><span>{t('Repay principal','ชำระเงินต้น')}</span><small>{principalText(option)}</small></label>}
+  {options.split&&<label><input type="radio" name={'remainder-'+options.businessDate} checked={choice?.kind==='split'} onChange={split}/><span>{t('Split','แบ่งชำระ')}</span><small>{t('Enter the principal part; the rest pays forward.','กรอกส่วนเงินต้น ส่วนที่เหลือชำระล่วงหน้า')}</small></label>}
+  {options.principal.length>1&&<label><span className="field-title">{t('Loan','สัญญา')}</span><select value={option?.loanId??''} onChange={event=>{setLoanId(event.target.value);if(choice?.kind==='principal')onChoose({kind:'principal',loanId:event.target.value});else if(choice?.kind==='split'&&/^[1-9][0-9]{0,16}$/.test(amount))onChoose({kind:'split',loanId:event.target.value,amount});}}>
+   {options.principal.map(row=><option key={row.loanId} value={row.loanId}>{row.loanDisplayKey??row.loanId}</option>)}</select></label>}
+  {options.split&&<label><span className="field-title">{t('Principal part','ส่วนเงินต้น')}</span><input inputMode="numeric" value={amount} onChange={event=>{const next=event.target.value.trim();setAmount(next);if(/^[1-9][0-9]{0,16}$/.test(next)&&option)onChoose({kind:'split',loanId:option.loanId,amount:next});else if(choice?.kind==='split')onChoose(null);}}/></label>}
+  {options.settles&&<p className="field-help" role="status">{t('This settles the loan. Use Close Loan.','ยอดนี้ปิดสินเชื่อได้ กรุณาใช้ ปิดสินเชื่อ')}</p>}
+  {options.uncovered&&<p className="field-help" role="status">{t(money(options.uncovered)+' is beyond the next 93 days and cannot be allocated.','ยอด '+money(options.uncovered)+' เกินช่วง 93 วันข้างหน้า ไม่สามารถจัดสรรได้')}</p>}
+ </fieldset>;
+}
+/** R112: the rows a chosen remainder adds to the Allocation (runs of identical forward charges collapse). */
+function ChosenRows({options,choice,thai}:{options:PurposeOptions;choice:PurposeChoice;thai:boolean}){
+ const t=(en:string,th:string)=>thai?th:en;
+ if(choice.kind==='forward'&&options.forward)return <ul className="chat-proposal-chosen">{forwardRuns(options.forward.rows).map(run=><li key={run[0].chargeId}>
+  <span>{t('Pay forward','ชำระล่วงหน้า')} · <span className="chat-nowrap">{dateRange(run[0].chargeDate,run.at(-1)!.chargeDate,thai)}</span>{run.length>1?' · '+run.length+' × '+money(runAmount(run[0])):''}</span>
+  <span className="chat-nowrap">{money(run.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest),0n).toString())}</span></li>)}</ul>;
+ const option=choice.kind!=='forward'?options.principal.find(row=>row.loanId===choice.loanId):undefined;
+ if(!option)return null;
+ return <ul className="chat-proposal-chosen"><li><span>{t('Principal','เงินต้น')}{option.loanDisplayKey?' · '+option.loanDisplayKey:''}{option.outstandingBefore&&option.outstandingAfter&&choice.kind==='principal'?' · '+money(option.outstandingBefore)+' → '+money(option.outstandingAfter):''}</span>
+  <span className="chat-nowrap">{money(choice.kind==='split'?choice.amount:option.amount)}</span></li>
+  {choice.kind==='split'&&<li><span>{t('Pay forward','ชำระล่วงหน้า')}</span><span className="chat-nowrap">{money((BigInt(options.remainder)-BigInt(choice.amount)).toString())}</span></li>}</ul>;
+}
 function LineBody({line,thai}:{line:ChatProposal;thai:boolean}){
  const t=(en:string,th:string)=>thai?th:en,card=line.card;
  const changed=new Set(card.changes.map(field=>field.field));
@@ -70,7 +106,12 @@ export function ChatProposalCard({lines,access,thai,online,onChange,onOpenRecord
  const changeRef=useRef(onChange);changeRef.current=onChange;
  const linesRef=useRef(lines);linesRef.current=lines;
  const first=lines[0],headId=first.card.group?.id??first.id,threadId=first.threadId,count=lines.length,several=count>1;
- const view=groupView(lines,{online,busy,seen});
+ // R112: a payment card with remainder choices arms only once a choice is made (none is preselected).
+ const options=!several&&first.kind==='payment'?first.card.purposeOptions:undefined;
+ const [choice,setChoice]=useState<PurposeChoice|null>(null),[choosing,setChoosing]=useState(true);
+ const purpose=choicePurpose(options,choice);
+ const baseView=groupView(lines,{online,busy,seen});
+ const view=options&&!purpose?{...baseView,canConfirm:false}:baseView;
  // CW3-04: while a line is checking (unknown) or running, no Confirm and no countdown.
  const waiting=view.pending>0&&view.state!=='unknown'&&view.state!=='executing'&&(view.state==='pending'||view.remaining);
  // CWR-01: armed once every part of the card has been in view (all at once, or scrolled through for a card taller than
@@ -109,7 +150,7 @@ export function ChatProposalCard({lines,access,thai,online,onChange,onOpenRecord
    if(kind==='cancel'){changeRef.current((await cancelProposalGroup(accessRef.current,threadId,headId)).lines);return}
    const group=await confirmProposalGroup(accessRef.current,threadId,headId,line=>{
     changeRef.current(linesRef.current.map(item=>item.id===line.id?{...item,state:line.state,outcome:line.code!==undefined?{code:line.code}:item.outcome,record:line.record??item.record}:item));
-   });
+   },undefined,options?purpose:null);
    if(group)changeRef.current(group.lines);else setRecheck(n=>n+1);
   }catch(error){
    // A ChatAccessError is a 401 answer (these routes keep 403 local): the chat handler verifies the session before any
@@ -152,7 +193,12 @@ export function ChatProposalCard({lines,access,thai,online,onChange,onOpenRecord
    <LineBody line={line} thai={thai}/>
    {state==='failed'&&<p className="chat-proposal-line-failure">{failureLine(line.outcome?.code??null,thai)}</p>}
    {state==='done'&&onOpenRecord&&openable(line.record)&&<button type="button" data-proposal-id={line.id} className="text-action chat-proposal-open" onClick={()=>onOpenRecord(line.record as ProposalRecord)}>{pair(proposalButtons.open,thai)}</button>}
-  </li>})}</ol>:<LineBody line={first} thai={thai}/>}
+  </li>})}</ol>:<>
+   {options&&waiting&&<RemainderChoice options={options} choice={choice} choosing={choosing||!purpose} thai={thai} onChoose={next=>{setChoice(next);if(next&&next.kind!=='split')setChoosing(false);}} onChange={()=>{setChoosing(true);setSeen(typeof IntersectionObserver==='undefined');}}/>}
+   {options&&waiting&&choice?.kind==='split'&&purpose&&choosing&&<button type="button" className="secondary-button" onClick={()=>setChoosing(false)}>{t('Use this split','ใช้การแบ่งนี้')}</button>}
+   <LineBody line={first} thai={thai}/>
+   {options&&purpose&&choice&&<ChosenRows options={options} choice={choice} thai={thai}/>}
+  </>}
   <footer className="chat-proposal-foot">
    <p className="chat-proposal-state" role="status" aria-live="polite">
     {(view.state==='executing'||(view.state==='unknown'&&!unresolved)||busy)&&<span className="collection-spinner" aria-hidden="true"/>}
@@ -166,6 +212,7 @@ export function ChatProposalCard({lines,access,thai,online,onChange,onOpenRecord
     {!online&&<span className="chat-proposal-offline">{pair(proposalButtons.offline,thai)}</span>}
    </div>}
    {waiting&&several&&!seen&&<p className="chat-proposal-arm-hint">{armHintText(thai)}</p>}
+   {waiting&&options&&!purpose&&<p className="chat-proposal-arm-hint field-help">{t('Choose how to use the remainder before review.','เลือกวิธีใช้ยอดคงเหลือก่อนตรวจสอบ')}</p>}
    {(view.state==='failed'||view.state==='partial'||view.state==='expired')&&!waiting&&onAskAgain&&<button type="button" className="secondary-button chat-proposal-again" onClick={onAskAgain}>{pair(proposalButtons.askAgain,thai)}</button>}
    {!several&&single.state==='done'&&onOpenRecord&&openable(first.record)&&<button type="button" data-proposal-id={first.id} className="text-action chat-proposal-open" onClick={()=>onOpenRecord(first.record as ProposalRecord)}>{pair(proposalButtons.open,thai)}</button>}
   </footer>
