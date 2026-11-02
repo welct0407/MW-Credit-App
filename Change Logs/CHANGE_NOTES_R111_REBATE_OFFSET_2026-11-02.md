@@ -69,6 +69,29 @@ Forge, 2 November 2026, UTC. Owner instruction of 2 November 2026: "start releas
 | Credentials | The temporary admin and read credential files are deleted; no secret value was printed |
 | Rollback | Settings generation `1793590945267627` (image `302913d4…`, R110 `703d552`, all five services) with Hosting `f81a4d9275bfd59e` (release `1793568797384000`), plus the V121 backup above. The image tolerates a database before V122 (expense read via `to_jsonb`). Schema: V122 adds a column and a constraint change; its rollback is a later migration or the V121 backup |
 
+## DEV end-to-end record
+
+Chase, 2 November 2026 (Bangkok business day 2026-11-02), on R111 as deployed above (head 122, image `9f26626d` on all five services, Hosting `3be7de4dd5f78b41`). Owner instruction: "test it in dev". Partner `claude-dev-test` through `scripts/dev/claude-test-token.mjs` (ID token in a 0700 directory, deleted afterwards; no secret printed). Synthetic borrowers only ("R111 SYNTHETIC REFERRER/REFERRED A to D"), closed from the synthetic account `R052-4G-ACCOUNT`; the rebate expense and offset receipt use the SQL rule's Lisa default account, as in production. No real DEV borrower was touched, and no notification was forced.
+
+Setup: referred loans of 1,000 at 100 a day (rebate 20 at close), referrer loans of 1,000 at 10 a day with today's charge due (A, B, D), a referrer with no loan (C).
+
+| Case | Result |
+| --- | --- |
+| (a) A, close with offset | Preview: rebate 20, referrer has an open loan, offset covers 20, payable 0. Close `applied`, journal `rebate.path` offset. Expense `rr1:` 20 with `offsetPaymentId` `ro122:pwa:…`; payment on the referrer's loan 20, method "Referral Rebate Offset", notes "Rebate from loan <loan id>", dated today; referrer charges 1 and 2 Nov and a new 3 Nov charge, all paid (due 10 first, then the next charge 10). Lisa's cash statement: one OUT -20 and one IN +20, net 0. Expenses list and detail at 390 px: "Settled by offset · <referrer loan>", detail "Settled by offset — <referrer> · <loan>", no Delete, "Remove through the closing payment" |
+| (b) B, pay out chosen (the referrer has an open loan) | `applied`, path expense, payable 20; expense 20 paid by Lisa, no offset payment, referrer loan untouched. Phone confirmation of the pay-out choice: "฿20 to <referrer>, transfer from Lisa" |
+| (c) C, referrer without an open loan (offset requested) | Preview `hasOpenLoan` false, `offset` null; closed, expense 20 paid by Lisa as before, no offset payment |
+| (d) Corrections on A | A lone delete of the offset payment: 422 `dependency_conflict`, payment still there. Deleting the closing payment: applied; expense gone, offset payment gone, the three referrer charges stay booked and open (10 each), the loan reopens |
+| (e) Re-close A | Preview `previousPath` offset; closing with it: one offset payment (20), the same three charges reused and paid again, no duplicates |
+| (f) Notification content | Not readable: `/api/notifications` is empty for the test Partner and the content RPC is dispatcher-only. Covered by `Test-RebateOffset.sql` and `notification-content.test.mjs` (payee, payable, "Rebate offset" title) |
+| Phone pass, 390 px, loan D (`9a8a427a`) | Loan Close shows "Referral rebate ฿20" with Offset (preselected, "3 Nov (฿10 x 1), paid through 3 Nov") and Pay out as expense (transfer line); method list is Bank Transfer, Cash, Net-off only; no horizontal scroll. Confirmation of the offset reads "Offset to <referrer loan>, paid through 3 Nov"; after Confirm the loan record shows the status line "Rebate: Offset to …" |
+| R110 leftover: Collection "Paid in advance · <date>" | Not yet reachable: the business day is still 2 November, so the R110 borrowers' prepaid charges (paid today) show as fully paid; the tile appears from 3 November. Re-check then |
+
+Findings, none blocking:
+- A close sent without `rebatePath` (an older client) takes the expense path, as intended, but is then recorded as the previous path "expense": the re-close preview preselects Pay out instead of the offset default (D3). Consider treating a missing `rebatePath` as no previous choice.
+- The offset payment's notes name the loan by its id ("Rebate from loan ae4b58ce-…"), which on DEV is a UUID; the readable loan label is only shown in the app.
+
+DEV left in place, as in R109 and R110: the four borrower pairs and their closed loans, the rebate expenses, the offset payments of A and D and the booked referrer charges. `autoChargeEnabled` was switched off on the three open referrer loans so the daily jobs add nothing; the token file was deleted.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on screen and WebKit or a real iPhone (Echo checked Chromium only).
