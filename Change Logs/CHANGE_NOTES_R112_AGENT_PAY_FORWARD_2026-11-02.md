@@ -118,18 +118,32 @@ Applied and verified: API, SQL and Hosting, and the agent VM on `a0cfabca` with 
 
 ## Not run
 Skipped and not verified, so not a pass:
-- Live Instagram and any DEV test of the agent loop: there is no DEV agent, no Instagram send was made, and the switch is off.
-- `Run-ProductionAgentReceiptsIndependent.ps1` (a pre-existing Windows cleanup that does not run on Linux).
-- The agent loop in PROD: the switch stays off.
+- Live Instagram: not testable before PROD (no DEV agent); the first real options exchange is the PROD acceptance.
+- The chat purpose card on DEV (no AI Reviewer test Partner); it is covered by CI (`chat.spec` 44/44) and the real-API planner test.
+- `Run-ProductionAgentReceiptsIndependent.ps1` (a pre-existing Windows cleanup that fails on Linux).
 - Thai wording on screen, WebKit and a real iPhone for the chat card.
-- Anything in PROD until the owner's promotion.
+- An authenticated PROD payment or chat write (no PROD Partner token for the operator; none made by rule).
 
 ## Recovery
 Before release: revert the pull request (Git baseline R111 `a5dddfa7` plus later main commits). Agent: while off, nothing to do; after activation set `pay_forward_options_enabled` to false by the configuration-only route (see the integration-agent note). Schema: V125 is functions and two EXECUTE grants; rollback is a later migration restoring the V124 bodies of `pwa_submit_agent_receipt_v1`, `pwa_agent_receipt_status_v1` and `pwa_effective_payment_plan_v2` and revoking the two grants from `mw_integration_agent`. Posted v9 payments are ordinary payments.
 
 ## Open questions
-Owner: when to activate `pay_forward_options_enabled` after PROD has V125 (a separate step and decision).
+None for the owner. The agent switch was activated under "Enable the agent as well".
 
 ## Remaining work
-- Forge: DEV deployment of V125 and the images; PROD promotion under the owner's instruction after DEV proof.
-- Owner: activation of the agent switch after PROD has V125.
+- Owner: PROD acceptance, the first real options exchange and chat purpose card.
+- Open: an email-only Partner stays held (email is informational only); the items in Not run.
+- Data Dictionary, due with owner approval: new entries for the routines `pwa_pay_forward_plan_v1` (since R110), `pwa_apply_pay_forward_v1`, `pwa_notify_content_v2` and `pwa_referral_rebate_projection_v1` (R111).
+- R113 (Settle and close loans from Receive payment) is open.
+- Done: DEV deployment and test, merge, PROD promotion, the agent deploy and activation, and the Data Dictionary PROD capture (closure below).
+
+## Closure (2 November 2026)
+Owner instructions: "Then start release 3, test it and promote to prod too" (PR #206 merged and promoted) and "Enable the agent as well" (agent switch, 11:19Z). DEV proof preceded PROD (DEV record above).
+
+Tag record: the annotated tag `R112` (object `042503c6e33d574328ff710b8252581a3d22df92`) points at the package commit `adcf610b70ced05ba3bb133abd7fdcc58c4cbcbc` (PR #206 on `main`), created by the Release tag workflow run 41434260158 (GitHub Release R112 published). The agent deploy correction `a0cfabca` (PR #207) came after the tag and is deployed on the VM. Freeze 2026-11-02T10:53:17Z, baseline R111 `a5dddfa7`. R113 is opened in this closure and R114 is the next unused number.
+
+Technical access recorded in the Environment inventory: V125 applied to PROD (EXECUTE on `pwa_pay_forward_plan_v1` and `forecast_schedule_v1` for `mw_integration_agent`; the agent already read the tables the plan uses), the agent code `a0cfabca` with catalogue revision 34, and the switch `pay_forward_options_enabled` on.
+
+Data Dictionary (R103 procedure, read-only): `capture_postgresql.py production` as `codex-cloud-read` through the Auth Proxy tunnel on `loan_manager_prod` (flyway head 125, 225 routines, 99 relations), output under a private root outside the repository. Targeted reconciliation with `--only` regenerated four existing entries: the routines `pwa_submit_agent_receipt_v1`, `pwa_agent_receipt_status_v1`, `pwa_effective_payment_plan_v2` and `forecast_schedule_v1`. V125 adds no routine, table or column, so nothing new is needed for it; the earlier new routines remain due (see Remaining work). `dictionary.py index` and `validate` pass. Evidence: [plan](../project/outputs/dictionary-r112-20261102/plan.json), [coverage](../project/outputs/dictionary-r112-20261102/coverage.json) and [observations](../project/outputs/dictionary-r112-20261102/production-postgresql-observations.json).
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R109_DEFAULT_LOSS_KEEP_CHARGES_2026-11-01.md` (R109 left the retention window: R113 Open; R112, R111, R110 Released) and its uncited evidence `project/outputs/dictionary-r109-20261101/`. The links to the note in the Release tracker, Development Changes, the Environment inventory and Solution Design now point to the commit permalink `a0cfabca`, the last commit where it exists. No other change note or evidence file is outside the window or uncited.
