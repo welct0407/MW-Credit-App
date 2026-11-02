@@ -6,7 +6,8 @@ test('expense display keeps parameterized source lookup, bilingual left joins an
  const item=await readExpenseRecord(client,'synthetic-expense');assert.equal(item.payeeBorrowerLabel,'Thai - English');assert.equal(item.relatedBorrowerLabel,null);assert.equal(count,2);assert.deepEqual(item.reimbursements,[]);
 });
 test('R111 a rebate settled by offset names its offset payment, the referrer loan it paid and what stays payable',async()=>{
- let first=true;const client={query:async sql=>{if(first){first=false;assert.match(sql,/LEFT JOIN public\."Payments" op ON op\."Row ID"=e\."Ref Offset Payment"/);assert.match(sql,/r\."Ref Payment"=e\."Ref Offset Payment"/);
+ let first=true;const client={query:async sql=>{if(first){first=false;assert.match(sql,/to_jsonb\(e\)->>'Ref Offset Payment' AS id\) offset_link/);assert.match(sql,/LEFT JOIN public\."Payments" op ON op\."Row ID"=offset_link\.id/);assert.match(sql,/r\."Ref Payment"=offset_link\.id/);
+  assert.doesNotMatch(sql,/e\."Ref Offset Payment"/,'no direct column reference: a database before V122 still reads');
   return {rows:[{id:'rr1:L-1',sourceType:'Referral Rebate',amount:'1000',offsetPaymentId:'ro122:pwa:x',offsetAmount:'640',offsetLoanId:'L-0398',offsetLoanDate:'2026-10-03',offsetLoanPrincipal:'10000',offsetLoanOriginalRate:'3',offsetLoanBorrowerLabel:'Referrer - English',relatedLoanId:null}]}}return {rows:[]}}};
  const item=await readExpenseRecord(client,'rr1:L-1');
  assert.equal(item.offsetLoanLabel,'Referrer - English-฿10,000-03/10-3%');assert.equal(item.payableAmount,'360');assert.equal(item.offsetAmount,'640');
