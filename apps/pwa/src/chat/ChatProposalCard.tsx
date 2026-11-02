@@ -70,9 +70,9 @@ function ChosenRows({options,choice,thai}:{options:PurposeOptions;choice:Purpose
   <span className="chat-nowrap">{money(run.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest),0n).toString())}</span></li>)}</ul>;
  const option=choice.kind!=='forward'?options.principal.find(row=>row.loanId===choice.loanId):undefined;
  if(!option)return null;
- // R113: Repay principal that settles loans: one "Closes" line per loan with its payoff (the Loan Close consequence).
+ // R113 (Echo CH-6): Repay principal that settles loans: one "Closes <key> · payoff ฿X" line per loan, as on the form.
  if(choice.kind==='principal'&&option.closes?.length)return <ul className="chat-proposal-chosen">{option.closes.map(close=><li key={close.loanId}>
-  <span>{t('Closes ','ปิด ')+(close.loanDisplayKey??close.loanId)}</span><span>{consequenceText({code:'loan_close_payoff'},thai,close.payoff?money(close.payoff):undefined)}</span></li>)}</ul>;
+  <span>{t('Closes ','ปิด ')+(close.loanDisplayKey??close.loanId)+(close.payoff?' · '+t('payoff ','ยอดปิด ')+money(close.payoff):'')}</span></li>)}</ul>;
  return <ul className="chat-proposal-chosen"><li><span>{t('Principal','เงินต้น')}{option.loanDisplayKey?' · '+option.loanDisplayKey:''}{option.outstandingBefore&&option.outstandingAfter&&choice.kind==='principal'?' · '+money(option.outstandingBefore)+' → '+money(option.outstandingAfter):''}</span>
   <span className="chat-nowrap">{money(choice.kind==='split'?choice.amount:option.amount)}</span></li>
   {choice.kind==='split'&&<li><span>{t('Pay forward','ชำระล่วงหน้า')}</span><span className="chat-nowrap">{money((BigInt(options.remainder)-BigInt(choice.amount)).toString())}</span></li>}</ul>;

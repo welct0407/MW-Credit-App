@@ -477,7 +477,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const settledEntries=plan?plan.principal.filter(entry=>entry.kind==='settle'):[];
  const closeLines=settledEntries.map(entry=>{const close=plan?.closes[entry.loanId];const payoff=close?.payoff??entry.payoff;
   const parts=[whole(entry.accruedInterest)&&entry.accruedInterest!=='0'?t('gap interest ','ดอกเบี้ยค้าง ')+money(entry.accruedInterest):'',whole(entry.charges)&&entry.charges!=='0'?t('charges ','รายการเรียกเก็บ ')+money(entry.charges as string):''].filter(Boolean);
-  const rebate=close?.rebate&&whole(close.rebate.amount)?(t('Rebate ','เงินคืน ')+money(close.rebate.amount)+t(' to ',' ให้ ')+close.rebate.referrer+' — '+(close.rebate.offset?t('offset to their loan','หักกับสัญญาของผู้แนะนำ'):t('transfer from Lisa','โอนจาก Lisa'))):'';
+  const rebate=close?.rebate&&whole(close.rebate.amount)?(t('Rebate ','ค่าแนะนำ ')+money(close.rebate.amount)+t(' to ',' ให้ ')+close.rebate.referrer+' — '+(close.rebate.offset?t('offset to their loan','หักกับสัญญาของผู้แนะนำ'):t('transfer from Lisa','โอนจาก Lisa'))):'';
   return {loanId:entry.loanId,text:t('Closes ','ปิด ')+loanLabel(entry.loanId)+(whole(payoff)?' · '+t('payoff ','ยอดปิด ')+money(payoff as string):'')+(parts.length?' ('+parts.join(', ')+')':''),rebate};});
  const openLoans=remainder?Object.keys(remainder.loans).length:0;
  const closesSummary=settledEntries.length>1||(settledEntries.length>0&&openLoans>0&&settledEntries.length===openLoans)?t('Closes '+settledEntries.length+(settledEntries.length===1?' loan':' loans'),'ปิด '+settledEntries.length+' สัญญา')+(settledEntries.length===openLoans?' · '+t('outstanding ','เงินต้นคงเหลือ ')+money('0'):''):'';
