@@ -14,6 +14,8 @@ const day=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&val
  * plus that day's entries of "Cash Account Statement Recent" with Sort Timestamp at or before the time (ties included).
  * The views cover the latest 15 Bangkok days; outside them `covered` is false and every balance is null. An
  * uninitialized account has a null balance. `future` marks a date and time after now (V127 refuses it).
+ * @param {{query:(text:string,values?:any[])=>Promise<{rows:any[]}>}} client
+ * @param {{date?:string,time?:string}} [options]
  */
 export async function readCashWithdrawal(client,{date,time}={}){
  if(!day(date)||typeof time!=='string'||!/^([01][0-9]|2[0-3]):[0-5]0$/.test(time))throw Error('invalid_request');
