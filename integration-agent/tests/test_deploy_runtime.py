@@ -151,17 +151,42 @@ class RuntimeDeploymentTests(unittest.TestCase):
             with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, pattern):
                 self.prepared(catalogue=live, candidate=change)
 
-    def test_r112_changes_only_the_revision(self):
-        # R112: revision 33 to 34 records behaviour behind pay_forward_options_enabled; no service or switch changes.
-        live = dict(self.catalogue, revision=33)
-        candidate = json.loads(json.dumps(live)); candidate['revision'] = 34
+    def r112(self):
+        """The repository revision 34 catalogue as candidate; a live revision 33 shaped like PROD's, with the shared
+        receipt API, the recognizer and the chat relay enabled (the repository template has them off)."""
+        candidate = json.loads((SCRIPTS.parent / 'service-catalogue.json').read_text(encoding='utf-8'))
+        live = json.loads(json.dumps(candidate)); live['revision'] = 33
+        for name in ('shared_receipt_payment_api', 'receipt_recognition_api', 'chat_messages_relay'):
+            self.assertFalse(candidate['services'][name]['enabled'])
+            live['services'][name]['enabled'] = True
+        return live, candidate
+
+    def test_r112_keeps_the_live_switches_of_a_host_with_enabled_services(self):
+        # R112 PROD deploy incident: the live switches were compared with the repository defaults and refused.
+        live, candidate = self.r112()
+        before = json.dumps([self.config, live, candidate], sort_keys=True)
         config, catalogue = self.prepared(catalogue=live, candidate=candidate)
-        self.assertEqual(catalogue, dict(live, revision=34))
-        switched = json.loads(json.dumps(candidate)); switched['services']['partner_oltp_gui']['enabled'] = not live['services']['partner_oltp_gui']['enabled']
-        other = json.loads(json.dumps(candidate)); other['services']['extra_service'] = {'enabled': False, 'implemented': True}
-        for change, pattern in ((switched, 'keep every switch'), (other, 'keep every service')):
-            with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, pattern):
+        self.assertEqual(catalogue, dict(live, revision=34))  # live switches untouched, only the revision moves
+        self.assertEqual(config, dict(self.config, code_version=COMMIT))
+        self.assertEqual(json.dumps([self.config, live, candidate], sort_keys=True), before)
+        self.assertEqual(runtime.services_sha256(candidate['services']), runtime.R112_TEMPLATE_SHA256)
+
+    def test_r112_refuses_a_revision_that_changes_a_service_or_switch(self):
+        live, candidate = self.r112()
+        switched = json.loads(json.dumps(candidate)); switched['services']['partner_receipt_review']['enabled'] = not candidate['services']['partner_receipt_review']['enabled']
+        capability = json.loads(json.dumps(candidate)); capability['services']['chat_messages_relay']['implemented'] = False
+        added = json.loads(json.dumps(candidate)); added['services']['extra_service'] = {'enabled': False, 'implemented': True}
+        dropped = json.loads(json.dumps(candidate)); del dropped['services']['chat_messages_relay']
+        for change in (switched, capability, added, dropped):
+            with self.subTest(change=sorted(change['services'])), self.assertRaisesRegex(RuntimeError, 'R112 candidate must keep'):
                 self.prepared(catalogue=live, candidate=change)
+        # A live host missing a service (or carrying an extra one) is refused too.
+        short = json.loads(json.dumps(live)); del short['services']['chat_messages_relay']
+        with self.assertRaisesRegex(RuntimeError, 'keep every service'):
+            self.prepared(catalogue=short, candidate=candidate)
+        drift = json.loads(json.dumps(live)); drift['services']['chat_messages_relay']['implemented'] = False
+        with self.assertRaisesRegex(RuntimeError, 'Capability drift'):
+            self.prepared(catalogue=drift, candidate=candidate)
 
     def test_r091_refuses_any_other_catalogue_change_and_leftover_keys(self):
         config, live, candidate = self.r091()

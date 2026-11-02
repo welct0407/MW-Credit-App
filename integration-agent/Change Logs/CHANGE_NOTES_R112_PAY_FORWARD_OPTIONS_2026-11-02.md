@@ -13,6 +13,8 @@ Pay Forward Release 3 (owner, 2 November 2026: "start release 3, test it and pro
 - Docs: `PARTNER_REVIEW.md` (new section), `SHARED_RECEIPT_PAYMENT_API.md`, `OPERATIONS.md`.
 - Tests touched for the revision: `test_config.py`, `test_receipt_recognition.py` (revision 34), `test_deploy_runtime.py` (the 33 to 34 rule). The options tests are Chase's files.
 
+- Deploy fix (2 November 2026, after Forge's PROD activate refused "R112 catalogue must keep every switch" and rolled back to `232a4bce`): the 33 to 34 rule compared the live switches with the repository defaults. It now requires the candidate's services to equal the repository revision 33 template (`R112_TEMPLATE_SHA256`), the live service names and capabilities to match, and keeps the live switches unchanged (asserted after the transition); `test_deploy_runtime.py` covers a live host with three services enabled.
+
 ## Checks
 | Command | Result |
 | --- | --- |
