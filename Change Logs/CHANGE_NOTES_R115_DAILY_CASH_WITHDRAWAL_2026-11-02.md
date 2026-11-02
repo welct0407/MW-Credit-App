@@ -44,6 +44,8 @@ Files and objects: `apps/pwa/src/DailyCashWithdrawal.tsx`, `ManagementPosition.t
 | Manual concurrency check on disposable PostgreSQL (two requests of 600 against 1000) | One applied, one `insufficient_funds`, one row; not part of the harness |
 | Echo visual check (DCW-12/13/14, COLL-3 fixed) | Pass at 390 and 1280 px, EN and TH, Chromium |
 | Focused Playwright specs (withdrawal, Collection, Borrowers) | Pass |
+| PR #213 run 41477483620, e2e shard 3 | Failed at `rebate-offset-independent.spec.ts:109`: a timing flake that already fails on `main` 42e2677 (24 of 40 runs at 6 workers). Cause: the fixture `/api/preferences` returned no version, so the Thai save failed and the app reverted to English before the assertion |
+| `rebate-offset-independent.spec.ts` after the fix in ed04e75 (fixture returns a versioned preference row; assertion unchanged) | 40 of 40 pass at 6 workers; whole spec 26 of 26; e2e lint and type check pass |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 
 DEV deploy evidence (pins live only in the [Environment inventory](../project/Documents/Environment_Inventory.md)): pending, no DEV deploy yet.
