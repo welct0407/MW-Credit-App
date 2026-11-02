@@ -141,19 +141,29 @@ Applied and verified. Not owner-accepted in PROD: the first authenticated Pay fo
 Skipped and not verified, so not a pass:
 - WebKit and a real iPhone pass (Echo checked Chromium only).
 - Thai wording on screen.
-- Anything in PROD.
+- Anything authenticated in PROD (no PROD Partner token for the operator; no PROD payment by rule): the promotion smoke is unauthenticated.
 - The "Paid in advance" tile date: it can only be seen from 2 November on DEV.
 - A real iPhone or Safari run and Thai wording of the Remainder block on DEV.
 
 ## Recovery
-Before release: revert the pull request (Git baseline R109 `8ced324` plus later main commits). Schema: V121 is functions only; rollback is a later migration that restores the replaced bodies. To be completed at hand-off.
+Before release: revert the pull request (Git baseline R109 `8ced324` plus later main commits). Released: the PROD rollback is in the promotion record (activation `production.activation.before-r110-1793524495680317.tfvars` with Hosting `d83bf14bfa8be549`; a service rollback can stay on V121, as the R109 image does not call the new function). Schema: V121 is functions only; rollback is a later migration (V122 or higher) that restores the replaced bodies of `pwa_submit_selected_charges_v1` from V117 and drops `pwa_pay_forward_plan_v1`; or the V120 backup in the promotion record. Pay-forward charges already booked stay as ordinary charges.
 
 ## Open questions
 None for the owner at this point.
 
 ## Remaining work
-- Done: DEV deployment and end-to-end test. The Collection finding was fixed in `703d552` and redeployed; Chase's DEV re-check confirmed it (fully paid, remaining 0).
-- Pull request `Development checks` (the one broad run).
-- Owner: DEV review. Merge and PROD promotion need a separate scoped owner instruction.
-- Open: the "Saved on this device" 4 s lag seen once on Confirm (not repeated); the "Paid in advance" tile date, visible on DEV only from 2 November.
-- Releases 2 and 3 of the plan.
+- Owner: PROD acceptance, the first real Pay forward or Repay principal payment.
+- Open: the "Saved on this device" 4 s lag seen once on Confirm (not repeated); the "Paid in advance" tile date, visible on DEV from 2 November and not checked yet; WebKit, a real iPhone and Thai wording of the Remainder block.
+- R111 (Pay Forward Release 2, referral rebate offset) is open; Release 3 (agent) is later.
+- Done: DEV deployment and test, merge, PROD promotion and the Data Dictionary PROD capture (closure below).
+
+## Closure (2 November 2026)
+Owner DEV acceptance: "Yes it works." PR #202 was merged and promoted under "Merge PR 202 and promote to prod." (promotion record above).
+
+Tag record: the annotated tag `R110` (object `3eeb5e1fd2337d69b29130818c5bc874ef63d3b9`) points at the package commit `2546e64ee92d04299759b45dfd6dace2c5d58704` (PR #202 on `main`), created by the Release tag workflow run 41385069550 (GitHub Release R110 published). Freeze 2026-11-02T03:23:50Z, baseline R109 `8ced324`. R111 is opened in this closure and R112 is the next unused number.
+
+Notify and jobs were redeployed with R110 (the runner's input rule reaches the workers through `services/contracts/payment-command.mjs`), which resolves the deferral recorded in R107.
+
+Data Dictionary (R103 procedure, read-only): `capture_postgresql.py production` as `codex-cloud-read` through the Auth Proxy tunnel on `loan_manager_prod` (flyway head 121, 222 routines, 99 relations), output under a private root outside the repository. Targeted reconciliation with `--only` regenerated one existing entry: the routine `pwa_submit_selected_charges_v1`. The new `pwa_pay_forward_plan_v1` has no dictionary entry and was not added, because a new entry needs owner approval (as for `pwa_next_bookable_charge_v1` since R104). No table or column changed. `dictionary.py index` and `validate` pass. Evidence: [plan](../project/outputs/dictionary-r110-20261102/plan.json), [coverage](../project/outputs/dictionary-r110-20261102/coverage.json) and [observations](../project/outputs/dictionary-r110-20261102/production-postgresql-observations.json).
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R107_CLOUD_RUN_COST_2026-10-31.md` (R107 left the retention window: R111 Open; R110, R109, R108 Released). Its links in the Release tracker (two), Development Changes and the Environment inventory now point to the commit permalink `2546e64`, the last commit where it exists. Also deleted the four change notes older than 14 days that no current document links to: `CHANGE_NOTES_CI_EVIDENCE_REUSE_2026-10-18.md`, `CHANGE_NOTES_CLOUD_SESSION_FRICTION_2026-10-18.md`, `CHANGE_NOTES_OFFLINE_DELTA_GAP_2026-10-18.md` and `CHANGE_NOTES_PWA_TEAM_ROSTER_2026-10-18.md` (Git keeps them); the link to the first in `CHANGE_NOTES_CI_STAGE_HASH_EVIDENCE_2026-10-18.md` now points to the permalink `2546e64`. No evidence file is outside the window or uncited.
