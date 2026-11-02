@@ -381,5 +381,21 @@ DO $$ BEGIN
   OR has_function_privilege('public','public.pwa_submit_agent_receipt_v1(text)','EXECUTE') OR has_function_privilege('public','public.pwa_submit_selected_charges_v1(text)','EXECUTE') THEN
   RAISE EXCEPTION 'V111 changed a command function owner or PUBLIC access'; END IF;
 END $$;
+-- V123 (R111): the pay-forward booking helper is the journal owner's only; the application role calling it is refused
+-- (no EXECUTE, and the body's own guard refuses any other current_user, as a reconcile grant would otherwise allow).
+DO $$ BEGIN
+ IF has_function_privilege('mw_app_dev','public.pwa_apply_pay_forward_v1(jsonb,jsonb,date)','EXECUTE') OR has_function_privilege('public','public.pwa_apply_pay_forward_v1(jsonb,jsonb,date)','EXECUTE') THEN RAISE EXCEPTION 'V123: the application role executes the booking helper'; END IF;
+ IF obj_description('public.pwa_apply_pay_forward_v1(jsonb,jsonb,date)'::regprocedure,'pg_proc') NOT LIKE 'mw-access:governance%' THEN RAISE EXCEPTION 'V123: the booking helper must carry the governance comment'; END IF;
+END $$;
+SAVEPOINT v123_probe;
+GRANT EXECUTE ON FUNCTION public.pwa_apply_pay_forward_v1(jsonb,jsonb,date) TO mw_app_dev;
+SET LOCAL ROLE mw_app_dev;
+DO $$ BEGIN
+ PERFORM public.pwa_apply_pay_forward_v1('[]'::jsonb,'[]'::jsonb,current_date);
+ RAISE EXCEPTION 'V123: the application role ran the booking helper';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+RESET ROLE;
+ROLLBACK TO SAVEPOINT v123_probe;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;

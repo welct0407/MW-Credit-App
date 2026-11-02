@@ -3246,6 +3246,8 @@ CREATE FUNCTION public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize
     AS $$
 DECLARE entry jsonb; booked text; principal_loans text[];
 BEGIN
+ -- R111 V123: the booking trusts its plan, so only the governed definer commands (the journal owner) may run it.
+ IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
  IF jsonb_typeof(p_principal) IS DISTINCT FROM 'array' OR jsonb_typeof(p_materialize) IS DISTINCT FROM 'array' OR p_today IS NULL THEN RAISE EXCEPTION USING ERRCODE='P4C05'; END IF;
  SELECT coalesce(array_agg(value->>'loanId'),ARRAY[]::text[]) INTO principal_loans FROM jsonb_array_elements(p_principal);
  FOR entry IN SELECT value FROM jsonb_array_elements(p_principal) LOOP
@@ -3284,7 +3286,7 @@ END $$;
 -- Name: FUNCTION pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date); Type: COMMENT
 --
 
-COMMENT ON FUNCTION public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date) IS 'R111: books a pay-forward plan''s principal and materialize entries (R110 arithmetic) for pwa_submit_selected_charges_v1 v10 and the Loan Close rebate offset; P4C05 on drift. Called under the borrower -> loans -> charges locks.';
+COMMENT ON FUNCTION public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date) IS 'mw-access:governance R111 pay-forward booking of a server-recomputed plan (v10 command and the Loan Close rebate offset); journal owner only, P4C05 on drift.';
 
 
 --
