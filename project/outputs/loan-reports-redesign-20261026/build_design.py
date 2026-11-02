@@ -284,11 +284,23 @@ NEW_QUESTIONS = {
         'settings': {'scalar.field': 'Expenses', 'column_settings': cols(['Expenses'])},
         'reconcile': 'Equals −(question 169) for the same Statement period.',
     },
+    # R116 (V128): the band reads "Income − Expenses − Write-offs = Net profit"; snippet 2 carries "Principal Write-offs"
+    # signed like "Operating Expenses", so the card flips it to a positive magnitude exactly as income.expenses does.
+    'income.writeoffs': {
+        'name': 'Principal write-offs · statement period (positive)', 'display': 'scalar', 'kind': 'native',
+        'basis': 'snippet 2 Income statement period', 'origin': 169, 'params': ['statement-period'],
+        'definition': 'Question 169\'s template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet\'s '
+                      '"Principal Write-offs" (the df10: principal write-offs of the period, R116 V128) with the sign flipped, so the '
+                      'band reads "Income − Expenses − Write-offs = Net profit" with the minus in the title.',
+        'sql': 'WITH statement AS ({{snippet: Income statement period}}) SELECT -"Principal Write-offs" AS "Write-offs" FROM statement',
+        'settings': {'scalar.field': 'Write-offs', 'column_settings': cols(['Write-offs'])},
+        'reconcile': 'Equals −(the dashboard 3 write-off question of Refine-WriteOffSegregation.mjs) for the same Statement period.',
+    },
     'income.vs-previous': {
         'name': 'This period and the previous period', 'display': 'table', 'kind': 'native',
         'basis': 'snippet 2 Income statement period (model 186 Income Events)', 'origin': 168, 'params': ['statement-period'],
         'definition': 'Native: for the selected statement period and the immediately preceding period of equal length, one row '
-                      'per measure (Income, Expenses, Net profit, Net profit per day) with This period, Previous period, Change '
+                      'per measure (Income, Expenses, Write-offs, Net profit, Net profit per day; R116) with This period, Previous period, Change '
                       'and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent.',
         'settings': {'table.column_formatting': 'Change and Change % columns: positive green, negative red'},
         'reconcile': 'This period equals 168–171; previous equals them with the preceding range (built, verified).',
@@ -296,7 +308,8 @@ NEW_QUESTIONS = {
     'income.monthly': {
         'name': 'Monthly income, expenses and net profit', 'display': 'bar', 'kind': 'mbql',
         'basis': 'model 186 Income Events', 'origin': 213, 'params': [],
-        'definition': 'MBQL on model 186: sum Income, sum Expenses and sum (Income − Expenses) by Date month, the previous '
+        'definition': 'MBQL on model 186: sum Income, sum Expenses, sum Principal Write-offs and sum (Income − Expenses − '
+                      'Principal Write-offs) by Date month (R116), the previous '
                       'five complete months plus the current month (partial). One shared y-axis so expenses read at true scale.',
         'settings': {'graph.dimensions': ['Date'], 'graph.metrics': ['Income', 'Expenses', 'Net profit'], 'graph.show_values': True,
                      'graph.y_axis.auto_split': False},
@@ -506,10 +519,10 @@ TABS = [
                    'the previous months, with expense categories and detail.',
         'replaces': '3 · Income Statement (tab 16)',
         'rows': [
-            [T('**Income statement** · live · net profit = gross interest − expenses.', 24)],
-            [(168, 8, 3, {'title': 'Income · gross interest'}), ('income.expenses', 8, 3, {'title': '− Expenses'}),
-             (170, 8, 3, {'title': '= Net profit'})],
-            [('income.vs-previous', 16, 6, {'title': 'This period and the previous period', 'note': 'height fits the four measure rows'}),
+            [T('**Income statement** · live · net profit = income − expenses − write-offs.', 24)],
+            [(168, 6, 3, {'title': 'Income · gross interest'}), ('income.expenses', 6, 3, {'title': '− Expenses'}),
+             ('income.writeoffs', 6, 3, {'title': '− Write-offs'}), (170, 6, 3, {'title': '= Net profit'})],
+            [('income.vs-previous', 16, 6, {'title': 'This period and the previous period', 'note': 'height fits the five measure rows'}),
              (171, 8, 6, {'title': 'Net profit per day · calendar days'})],
             [('income.monthly', 16, 8, {'title': 'Monthly income, expenses and net profit'}),
              (178, 8, 8, {'title': 'Expenses by category · this period'})],

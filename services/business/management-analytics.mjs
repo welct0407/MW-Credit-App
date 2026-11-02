@@ -12,10 +12,12 @@ export async function readManagementAnalytics(client,{id=null,limit=25,cursor=nu
 }
 export async function readAnalyticsOverview(client){
  const projection=Object.entries(metrics).map(([key,column])=>`"${column}"::text AS "${key}"`).join(',');
- // R116: "Principal Write-offs MTD" (V128) is read by name like the Dashboard's principalLoss: a database before V128 omits
- // the metric (the PWA hides the row) instead of failing the overview; a present value must be numeric.
- const rows=(await client.query(`SELECT DISTINCT ${projection},to_jsonb(s)->>'Principal Write-offs MTD' AS "principalWriteOffsMtd" FROM public.olap_portfolio_summary s LIMIT 2`)).rows;if(rows.length!==1)throw Error('Analytics provider unavailable');
- const writeOffs=rows[0].principalWriteOffsMtd;if(writeOffs===null||writeOffs===undefined)delete rows[0].principalWriteOffsMtd;else if(typeof writeOffs!=='string'||!/^-?[0-9]+(?:\.[0-9]+)?$/.test(writeOffs))throw Error('Analytics provider unavailable');
+ // R116: the principal write-offs are read by name like the Dashboard's principalLoss: "Principal Write-offs MTD" (V128) and
+ // the lifetime "Total Principal Loss" (V120, so Total Profit - Total Business Expenses - write-offs = Net Profit). A database
+ // without the column omits the metric (the PWA hides the row) instead of failing the overview; a present value must be numeric.
+ const optional={principalWriteOffsMtd:'Principal Write-offs MTD',principalWriteOffs:'Total Principal Loss'};
+ const rows=(await client.query(`SELECT DISTINCT ${projection},${Object.entries(optional).map(([key,column])=>`to_jsonb(s)->>'${column}' AS "${key}"`).join(',')} FROM public.olap_portfolio_summary s LIMIT 2`)).rows;if(rows.length!==1)throw Error('Analytics provider unavailable');
+ for(const key of Object.keys(optional)){const value=rows[0][key];if(value===null||value===undefined)delete rows[0][key];else if(typeof value!=='string'||!/^-?[0-9]+(?:\.[0-9]+)?$/.test(value))throw Error('Analytics provider unavailable');}
  const statistics=(await client.query(`SELECT "Row ID" id,encode(sha256(convert_to(to_jsonb(s)::text,'UTF8')),'hex') version FROM public."Statistics" s ORDER BY "Row ID" COLLATE "C" LIMIT 2`)).rows;
  return {metrics:rows[0],refreshTarget:statistics.length===1?statistics[0]:null};
 }

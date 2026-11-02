@@ -5,7 +5,8 @@ import {readAnalyticsOverview} from '../../services/business/management-analytic
 // R116: "Principal Write-offs MTD" (V128) on "Cash Dashboard" (the Income MTD of the Dashboard and Cash pages) and on
 // olap_portfolio_summary (Management Analytics) is read by name. Present, it is carried as principalWriteOffsMtd, a numeric
 // string (0 included, the PWA shows ฿0); a database before V128 has no such column, so the field is omitted (the PWA hides
-// the row), never fabricated as zero; a present non-numeric value is refused like any other figure.
+// the row), never fabricated as zero; a present non-numeric value is refused like any other figure. Management Analytics
+// also carries the lifetime write-offs ("Total Principal Loss", V120) as principalWriteOffs, under the same rules.
 const income={operatingIncomeMtd:'30',expensesMtd:'-5',netProfitMtd:'-15',tommyWithdrawnMtd:'0',lisaWithdrawnMtd:'0',unsettledProfitMtd:'-15',cashPoolRemaining:'1000',businessCashHeld:null};
 const summary={pendingPaymentAmount:'27',todayProfit:'30',yesterdayProfit:'3',netProfit:'-15',notPaid:'1',partiallyPaid:'0',overdue:'2',longOverdue:'1',fullyPaid:'0',
  expectedDailyInterest:'180',realizedProfitMtd:'30',forecastRemainingInterest:'900',projectedMonthlyProfit:'930',totalCashPool:'500000',activeLoanProfit:'-4000',profitCoverageRatio:'0',principalLoss:'40'};
@@ -30,11 +31,15 @@ test('present: the Cash Dashboard write-offs reach the cash overview and the Das
  assert.equal(dashboard.incomeMtd.principalWriteOffsMtd,'0','zero is carried; the PWA shows ฿0');assert.equal(dashboard.incomeMtd.operatingIncomeMtd,'30');
  assert.equal(dashboard.principalLoss,'40');assert.equal('principalWriteOffsMtd' in dashboard,false,'the write-offs belong to Income MTD only');
 });
-test('present: the portfolio write-offs reach the Management Analytics overview',async()=>{
- const c=client({overview:{...analytics,principalWriteOffsMtd:'40'}});
+test('present: the month and lifetime write-offs reach the Management Analytics overview',async()=>{
+ const c=client({overview:{...analytics,principalWriteOffsMtd:'40',principalWriteOffs:'40'}});
  const value=await readAnalyticsOverview(c);
- assert.equal(value.metrics.principalWriteOffsMtd,'40');assert.equal(value.metrics.realizedProfitMtd,'30');assert.deepEqual(value.refreshTarget,{id:'ST',version:'v'});
- assert.match(c.queries.find(sql=>sql.includes('olap_portfolio_summary')),/to_jsonb\(s\)->>'Principal Write-offs MTD' AS "principalWriteOffsMtd" FROM public\.olap_portfolio_summary s LIMIT 2/);
+ assert.equal(value.metrics.principalWriteOffsMtd,'40');assert.equal(value.metrics.principalWriteOffs,'40');assert.equal(value.metrics.realizedProfitMtd,'30');assert.deepEqual(value.refreshTarget,{id:'ST',version:'v'});
+ assert.match(c.queries.find(sql=>sql.includes('olap_portfolio_summary')),/to_jsonb\(s\)->>'Principal Write-offs MTD' AS "principalWriteOffsMtd",to_jsonb\(s\)->>'Total Principal Loss' AS "principalWriteOffs" FROM public\.olap_portfolio_summary s LIMIT 2/);
+ const zero=(await readAnalyticsOverview(client({overview:{...analytics,principalWriteOffsMtd:'0',principalWriteOffs:'0'}}))).metrics;
+ assert.deepEqual([zero.principalWriteOffsMtd,zero.principalWriteOffs],['0','0'],'zero is carried; the PWA shows ฿0');
+ const lifetimeOnly=(await readAnalyticsOverview(client({overview:{...analytics,principalWriteOffs:'40'}}))).metrics;
+ assert.equal('principalWriteOffsMtd' in lifetimeOnly,false,'a V120-V127 database carries only the lifetime figure');assert.equal(lifetimeOnly.principalWriteOffs,'40');
 });
 test('omitted before V128: the field is absent, never zero, and the other figures are unchanged',async()=>{
  for(const missing of [undefined,null]){
@@ -42,8 +47,8 @@ test('omitted before V128: the field is absent, never zero, and the other figure
   const overview=await readCashOverview(client({cash}));
   assert.equal('principalWriteOffsMtd' in overview.dashboard,false);assert.deepEqual(overview.dashboard,income);
   const dashboard=await readDashboard(client({cash}));assert.equal('principalWriteOffsMtd' in dashboard.incomeMtd,false);
-  const metrics=(await readAnalyticsOverview(client({overview:missing===undefined?{...analytics}:{...analytics,principalWriteOffsMtd:null}}))).metrics;
-  assert.equal('principalWriteOffsMtd' in metrics,false);assert.deepEqual(metrics,analytics);
+  const metrics=(await readAnalyticsOverview(client({overview:missing===undefined?{...analytics}:{...analytics,principalWriteOffsMtd:null,principalWriteOffs:null}}))).metrics;
+  assert.equal('principalWriteOffsMtd' in metrics,false);assert.equal('principalWriteOffs' in metrics,false);assert.deepEqual(metrics,analytics);
  }
 });
 test('non-numeric: a present write-off value that is not a number makes the provider unavailable',async()=>{
@@ -51,5 +56,6 @@ test('non-numeric: a present write-off value that is not a number makes the prov
   await assert.rejects(readCashOverview(client({cash:{...income,principalWriteOffsMtd:bad}})),/Cash provider unavailable/);
   await assert.rejects(readDashboard(client({cash:{...income,principalWriteOffsMtd:bad}})),/Cash provider unavailable/);
   await assert.rejects(readAnalyticsOverview(client({overview:{...analytics,principalWriteOffsMtd:bad}})),/Analytics provider unavailable/);
+  await assert.rejects(readAnalyticsOverview(client({overview:{...analytics,principalWriteOffs:bad}})),/Analytics provider unavailable/);
  }
 });

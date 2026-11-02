@@ -391,6 +391,7 @@ if(args.includes('--verify')){
  // R116: rows Income, Expenses, Write-offs, Net profit, Net profit per day; Write-offs equals -(the dashboard 3 write-off question).
  const writeOffQuestion=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.writeoffs,iWo=await one(writeOffQuestion,sp('thismonth'));
  const incOk=inc.length===5&&near(inc[0][1],i168)&&near(inc[1][1],-i169)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170)&&near(inc[4][1],i171)&&(inc[0][2]===null||near(inc[0][2],p168))&&(inc[3][2]===null||near(inc[3][2],p170));
+ (near(resultRows('income.writeoffs')[0][0],-iWo)?pass:fail)('income.writeoffs',{equalsMinusDashboard3WriteOffs:near(resultRows('income.writeoffs')[0][0],-iWo)});
  (incOk?pass:fail)('income.vs-previous',{thisEquals168to171AndWriteOffs:near(inc[0][1],i168)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170),previousEqualsPrecedingRange:inc[0][2]===null?'before calendar':near(inc[0][2],p168),days:stmt[2]});
  const monthly=resultRows('income.monthly'),q213=await ref(213,{'review-income':'thismonth'});
  let monthlyOk=monthly.length>0;const q186=(await api('POST','dataset',native(`SELECT date_trunc('month',"Date")::date::text m,sum("Income"),sum("Expenses"),sum("Principal Write-offs") FROM {{#186}} WHERE "Date">=date_trunc('month',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date)-interval '5 months' GROUP BY 1 ORDER BY 1`,[model(186)]))).data.rows;

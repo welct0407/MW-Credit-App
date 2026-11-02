@@ -21,7 +21,9 @@
 //              the waterfall total) for eight periods, current-month parity with "Cash Dashboard", and preservation of every
 //              other placement, the filters, the permissions and the model SQL. Booleans only, no amounts are written.
 // After --apply: ProposedLoanReports.mjs --rebaseline-dashboard3=R116, then
-// ProposedLoanReports.mjs --refine --only=income.vs-previous,income.monthly (dashboard 32's own income questions).
+// ProposedLoanReports.mjs --refine --only=income.writeoffs,income.vs-previous,income.monthly,income (dashboard 32: the new
+// "− Write-offs" card in the Income band, its own income questions and the Income tab layout of layout.json), then
+// ProposedLoanReports.mjs --verify.
 // Rollback: restore the private baseline (snippet 2 content, card 204 query and name, model 186 metadata, dashboard 3
 // cards), archive the new question and remove cards.writeoffs from the state; V128 stays (its columns are additive).
 import fs from 'node:fs';
@@ -131,7 +133,7 @@ if(args.includes('--apply')){
  write('statement-cleanup/writeoff-segregation.json',{date:new Date().toISOString().slice(0,10),release:'R116',migration:'V128',dashboard_id:3,tab_id:TAB,question_id:writeoffs,
   waterfall_question:BRIDGE,snippet_id:SNIPPET,model_id:MODEL,model_sql_unchanged:true,steps:done,other_placements_unchanged:true,filters_unchanged:true,
   rollback:'Private r116-writeoff-segregation baseline (snippet 2, cards 168-171/186/204, dashboard 3, permissions); archive the new question'});
- console.log(JSON.stringify({applied:done,question:writeoffs,next:['ProposedLoanReports.mjs --rebaseline-dashboard3=R116','ProposedLoanReports.mjs --refine --only=income.vs-previous,income.monthly','Refine-WriteOffSegregation.mjs --verify']}));
+ console.log(JSON.stringify({applied:done,question:writeoffs,next:['ProposedLoanReports.mjs --rebaseline-dashboard3=R116','ProposedLoanReports.mjs --refine --only=income.writeoffs,income.vs-previous,income.monthly,income','ProposedLoanReports.mjs --verify','Refine-WriteOffSegregation.mjs --verify']}));
 }
 
 if(args.includes('--verify')){
