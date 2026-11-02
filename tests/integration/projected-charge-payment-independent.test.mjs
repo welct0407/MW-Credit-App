@@ -252,3 +252,98 @@ test('V117: Default with two booked future charges writes both down as it does w
  assert.deepEqual(results[2].loss,results[1].loss,'the same loss posting with two future charges as with one');
  assert.deepEqual(results[1].loss,{p:'100.00',i:'-100.00',defaulted:true});assert.deepEqual([results[1].written,results[2].written],[1,2]);
 });
+
+// R110 V121 Pay Forward (Release 1): the plan read, Auto-assign remainder, the v10 command and its race, on the migration head
+// through the real application role. Assertions are on behaviour (allocations, booked charges, anchor, daily interest,
+// plan_changed), not on incidental field order. Synthetic data only. `store.plan` is the POST /api/payment-drafts/:b/plan seam.
+const r110Loan=(id,borrower,{start=-3,principal=1000,cdi=10,interval=1}={})=>admin.query(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval")
+ VALUES($1,$2,$3,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date+$4::integer,$5::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,$6::money,$7)`,[id,borrower,fixture.lendingAccountId,start,principal,cdi,interval]);
+let r110Capital=false;
+async function r110Borrower(borrower,loans,charges){
+ if(!r110Capital){r110Capital=true;await admin.query(`INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('R110-CAPITAL',$1,current_date,'Contribution',100000::money)`,[fixture.actorId])}
+ await admin.query('INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES($1,$2)',[borrower,'SYNTHETIC '+borrower]);
+ for(const [id,opts] of loans)await r110Loan(id,borrower,opts);
+ for(const [id,loan,offset,p,i] of charges)await admin.query(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date+$3::integer,$4::money,$5::money)`,[id,loan,offset,p,i]);
+ await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Ref Borrowers"=$1`,[borrower]);
+}
+const planOf=value=>{assert.equal(value.status,200,JSON.stringify(value));return value.plan??value};
+const money=text=>Number(text);
+const toCommand=(borrower,amount,plan,principal=[])=>({schemaVersion:10,requestId:randomUUID(),borrowerId:borrower,
+ allocations:plan.allocations.map(l=>({chargeId:l.chargeId,principal:String(l.principal),interest:String(l.interest),expectedPrincipalRemaining:String(l.expectedPrincipalRemaining),expectedInterestRemaining:String(l.expectedInterestRemaining),chargeDate:l.chargeDate})),
+ cashAccountId:fixture.receivingAccountId,paymentDate:today,amountReceived:String(amount),paymentMethod:'Bank Transfer',notes:null,receiptId:null,bankReference:null,transferTime:null,payerLines:null,
+ materialize:(plan.materialize??[]).map(e=>({loanId:e.loanId,chargeId:e.chargeId,chargeDate:e.chargeDate,principalDue:String(e.principalDue),interestDue:String(e.interestDue)})),
+ principal:principal.map(entry=>{const p=plan.principal.find(x=>x.loanId===entry.loanId);return{loanId:p.loanId,kind:p.kind,chargeId:p.chargeId,chargeDate:p.chargeDate,amount:entry.amount,accruedInterest:String(p.accruedInterest),principalDue:String(p.principalDue)}})});
+
+test('R110: Auto-assign above the due amount allocates the due charges only and reports a remainder; the plan books nothing',async()=>{
+ await r110Borrower('R110-BA',[['R110-A1',{}]],[['R110-A1-today','R110-A1',0,0,10]]);
+ const assigned=await store.autoAssign(principal,'R110-BA',{amountReceived:'60'});assert.equal(assigned.status,200,JSON.stringify(assigned));
+ assert.deepEqual(assigned.allocations.map(l=>[l.chargeId,l.principal,l.interest]),[['R110-A1-today','0','10']],'only the due charge is allocated');
+ assert.ok(!JSON.stringify(assigned.allocations).includes('cg8:'),'no future charge is allocated by Auto-assign');
+
+ assert.ok(assigned.remainder,'no remainder');
+ assert.equal(assigned.remainder.amount,'50','the remainder above the due 10 is previewed, nothing is chosen');
+ assert.equal(assigned.remainder.forward.rows.length,5);assert.equal(assigned.remainder.principal[0].loanId,'R110-A1');assert.equal(assigned.remainder.principal[0].settles,false);
+ const plan=planOf(await store.plan(principal,'R110-BA',{amountReceived:'60',purpose:{forward:true,principal:[],loans:null}}));
+ assert.equal(plan.materialize.length,5,'five forward charges for the 50 above the due 10');
+ assert.deepEqual(plan.materialize.map(e=>e.chargeDate),await Promise.all([1,2,3,4,5].map(day)),'one charge per day, in date order');
+ assert.equal((await admin.query('SELECT count(*)::integer AS n FROM "Charges" WHERE "Ref Loans"=$1',['R110-A1'])).rows[0].n,1,'planning booked nothing');
+ assert.equal((await admin.query('SELECT count(*)::integer AS n FROM "Payments" WHERE "Ref Borrower"=$1',['R110-BA'])).rows[0].n,0);
+});
+
+test('R110: a v10 pay-forward payment posts, replays, and two concurrent identical plans post exactly once (the other is plan_changed)',async()=>{
+ await r110Borrower('R110-BR',[['R110-R1',{}]],[['R110-R1-today','R110-R1',0,0,10]]);
+ const plan=planOf(await store.plan(principal,'R110-BR',{amountReceived:'60',purpose:{forward:true,principal:[],loans:null}}));
+ const first=toCommand('R110-BR',60,plan),second={...toCommand('R110-BR',60,plan),requestId:randomUUID()};
+ const reviewed=await store.review(principal,'R110-BR',{amountReceived:'60',allocations:first.allocations,materialize:first.materialize,principal:first.principal});assert.equal(reviewed.status,200,JSON.stringify(reviewed));
+ const [a,b]=await Promise.all([store.submit(principal,first),store.submit(principal,second)]);
+ const outcomes=[a,b].map(x=>x.originalOutcome?.status+(x.originalOutcome?.code?':'+x.originalOutcome.code:''));
+ assert.deepEqual(outcomes.sort(),['posted','rejected:selection_unavailable'],JSON.stringify([a,b]));
+ const winner=a.originalOutcome?.status==='posted'?first:second;
+ assert.deepEqual(await store.submit(principal,winner),a.originalOutcome?.status==='posted'?a:b,'replay returns the recorded outcome');
+ assert.equal((await admin.query('SELECT count(*)::integer AS n FROM "Payments" WHERE "Ref Borrower"=$1',['R110-BR'])).rows[0].n,1,'one payment');
+ const rows=(await admin.query(`SELECT "Charge Date"::text AS d,"Interest Due"::numeric::text AS i,"Amount Remaining"::numeric::text AS r FROM "Charges" WHERE "Ref Loans"='R110-R1' ORDER BY "Charge Date"`)).rows;
+ assert.equal(rows.length,6);assert.ok(rows.every(row=>row.r==='0.00'),'today charge and five forward charges all paid');
+ assert.equal((await admin.query(`SELECT sum("Principal Paid"::numeric+"Interest Paid"::numeric)::text AS paid FROM "Repayments" WHERE "Ref Loans"='R110-R1'`)).rows[0].paid,'60.00','no over-allocation');
+ const after=planOf(await store.plan(principal,'R110-BR',{amountReceived:'60',purpose:{forward:true,principal:[],loans:null}}));
+ assert.ok(after.materialize[0].chargeDate>rows.at(-1).d,'the next plan continues after the last prepaid date');
+});
+
+test('R110: a forecast moved between review and confirm is plan_changed on review and rejected on submit with nothing booked',async()=>{
+ await r110Borrower('R110-BD',[['R110-D1',{}]],[['R110-D1-today','R110-D1',0,0,10]]);
+ const plan=planOf(await store.plan(principal,'R110-BD',{amountReceived:'30',purpose:{forward:true,principal:[],loans:null}}));
+ const command=toCommand('R110-BD',30,plan);
+ assert.equal((await admin.query('SELECT public.generate_loan_charge($1,$2::date) AS id',['R110-D1',await day(1)])).rows[0].id,key('R110-D1',await day(1)));
+ const changed=await store.review(principal,'R110-BD',{amountReceived:'30',allocations:command.allocations,materialize:command.materialize,principal:command.principal});
+ assert.equal(changed.status,409,JSON.stringify(changed));assert.equal(changed.code,'plan_changed');
+ const rejected=await store.submit(principal,command);assert.equal(rejected.originalOutcome?.status,'rejected');assert.equal(rejected.originalOutcome.code,'selection_unavailable');
+ assert.equal((await admin.query('SELECT count(*)::integer AS n FROM "Payments" WHERE "Ref Borrower"=$1',['R110-BD'])).rows[0].n,0);
+ assert.equal((await admin.query(`SELECT count(*)::integer AS n FROM "Charges" WHERE "Ref Loans"='R110-D1'`)).rows[0].n,2,'only today and the charge booked meanwhile');
+});
+
+test('R110: Repay principal on a non-schedule day books today with accrued interest, moves the anchor, and the next charge is daily x interval',async()=>{
+ await r110Borrower('R110-BP',[['R110-P1',{start:-10,interval:7}]],[['R110-P1-last','R110-P1',-3,0,70]]);
+ await admin.query(`INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Amount Received","Payment Date","Allocation Method","Status") VALUES($1,'R110-P1-PAY','R110-BP',70::money,$2::date,'Receive All','Processing')`,[fixture.receivingAccountId,today]);
+ const purpose={forward:false,principal:[{loanId:'R110-P1',amount:'100'}],loans:null};
+ const plan=planOf(await store.plan(principal,'R110-BP',{amountReceived:'130',purpose}));
+ const p=plan.principal[0];assert.deepEqual([p.kind,money(p.accruedInterest),money(p.principalDue),money(p.outstandingAfter),money(p.dailyAfter),p.nextChargeDate,money(p.nextChargeAmount)],['book',30,100,900,9,await day(7),63]);
+ const command=toCommand('R110-BP',130,plan,purpose.principal);
+ const posted=await store.submit(principal,command);assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));
+ const loan=(await admin.query(`SELECT "Interest Schedule Anchor Date"::text AS anchor,"Outstanding Principal"::numeric::text AS o,"Current Daily Interest"::numeric::text AS d FROM "Loans" WHERE "Row ID"='R110-P1'`)).rows[0];
+ assert.deepEqual(loan,{anchor:today,o:'900.00',d:'9.00'},'the loan record shows the new anchor and daily interest');
+ assert.equal((await admin.query(`SELECT count(*)::integer AS n FROM "Charges" WHERE "Ref Loans"='R110-P1' AND "Charge Date"=$1::date`,[today])).rows[0].n,1,'one charge today');
+ assert.equal((await admin.query('SELECT public.generate_due_charges($1::date,ARRAY[\'R110-P1\']) AS n',[await day(7)])).rows[0].n,1);
+ assert.equal((await admin.query(`SELECT "Interest Due"::numeric::text AS i FROM "Charges" WHERE "Ref Loans"='R110-P1' AND "Charge Date"=$1::date`,[await day(7)])).rows[0].i,'63.00');
+});
+
+test('R110: a plan that settles the loan has no principal entry, and a hand-made one is plan_changed (use Close Loan)',async()=>{
+ await r110Borrower('R110-BS',[['R110-S1',{principal:100,cdi:1}]],[['R110-S1-today','R110-S1',0,0,1]]);
+ const plan=planOf(await store.plan(principal,'R110-BS',{amountReceived:'101',purpose:{forward:false,principal:[{loanId:'R110-S1',amount:'100'}],loans:null}}));
+ assert.ok(plan.settles.includes('R110-S1'));assert.deepEqual(plan.principal,[]);
+ const line={chargeId:'R110-S1-today',principal:'100',interest:'1',expectedPrincipalRemaining:'100',expectedInterestRemaining:'1',chargeDate:today};
+ const entry={loanId:'R110-S1',kind:'raise',chargeId:'R110-S1-today',chargeDate:today,amount:'100',accruedInterest:'0',principalDue:'100'};
+ const review=await store.review(principal,'R110-BS',{amountReceived:'101',allocations:[line],materialize:[],principal:[entry]});
+ assert.equal(review.status,409,JSON.stringify(review));assert.equal(review.code,'plan_changed');
+ const refused=await store.submit(principal,{...toCommand('R110-BS',101,{allocations:[line],materialize:[],principal:[]}),principal:[entry]});
+ assert.equal(refused.originalOutcome?.status,'rejected',JSON.stringify(refused));
+ assert.equal((await admin.query('SELECT "Outstanding Principal"::numeric::text AS o FROM "Loans" WHERE "Row ID"=$1',['R110-S1'])).rows[0].o,'100.00');
+});

@@ -53,8 +53,9 @@ function route(raw) {
     if(borrower)return {operation:'borrower_record',borrowerId:decodeURIComponent(borrower[1])};
     const history=/^\/api\/borrowers\/([^/]+)\/payments$/.exec(url.pathname);
     if(history){try{return {operation:'payment_history',borrowerId:decodeURIComponent(history[1]),options:pageOptions}}catch{return {invalid:true,operation:'unknown'}}}
-    const review=/^\/api\/payment-drafts\/([^/]+)\/(review|select-all|auto-assign)$/.exec(url.pathname);
-    if(review){try{return {operation:review[2]==='select-all'?'payment_select_all':review[2]==='auto-assign'?'payment_auto_assign':'payment_review',borrowerId:decodeURIComponent(review[1])}}catch{return {invalid:true,operation:'unknown'}}}
+    // R110: plan is the pay-forward plan read (POST {amountReceived, purpose}).
+    const review=/^\/api\/payment-drafts\/([^/]+)\/(review|select-all|auto-assign|plan)$/.exec(url.pathname);
+    if(review){try{return {operation:review[2]==='select-all'?'payment_select_all':review[2]==='auto-assign'?'payment_auto_assign':review[2]==='plan'?'payment_plan':'payment_review',borrowerId:decodeURIComponent(review[1])}}catch{return {invalid:true,operation:'unknown'}}}
     const detail=/^\/api\/payment-commands\/([^/]+)\/(result|metadata)$/.exec(url.pathname);
     if(detail){if(!uuid.test(detail[1]))return {invalid:true,operation:'unknown'};return {operation:detail[2]==='result'?'command_result':'command_metadata',requestId:detail[1].toLowerCase()};}
     if (url.pathname === '/health') return {operation:'health'};
@@ -133,7 +134,7 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
     if (target.invalid) return reject(400, 'invalid_request');
     if (target.operation === 'unknown') return reject(404, 'not_found');
     if ((target.operation === 'command_submit' && req.method !== 'POST') || (['command_status','command_result','payment_draft','payment_history'].includes(target.operation) && req.method !== 'GET')) return reject(405, 'method_not_allowed');
-    if((['payment_review','payment_auto_assign','payment_select_all'].includes(target.operation)&&req.method!=='POST')||(target.operation==='command_metadata'&&req.method!=='PATCH')||(target.operation==='receipt'&&!['GET','POST'].includes(req.method))||(target.operation==='receipt_recognition'&&req.method!=='POST'))return reject(405,'method_not_allowed');
+    if((['payment_review','payment_auto_assign','payment_select_all','payment_plan'].includes(target.operation)&&req.method!=='POST')||(target.operation==='command_metadata'&&req.method!=='PATCH')||(target.operation==='receipt'&&!['GET','POST'].includes(req.method))||(target.operation==='receipt_recognition'&&req.method!=='POST'))return reject(405,'method_not_allowed');
     if(['borrower_create','operation_submit'].includes(target.operation)&&req.method!=='POST'||['management','record_list','collection_receipts','upcoming','payment_image','dashboard','loan_related','preferences','cash_overview','cash_statement','borrower_options','loan_options','loan_record','charge_record','payment_record','expense_record','expense_options','expense_list','loan_close_preview','operation_status'].includes(target.operation)&&req.method!=='GET'||target.operation==='borrower_record'&&!['GET','PATCH','DELETE'].includes(req.method))return reject(405,'method_not_allowed');
     let result;
     try {
@@ -189,11 +190,11 @@ function buildHandler({ origins, verifyPrincipal, store, completionLogger = () =
       } else if(target.operation==='payment_draft') result=await store.draft(principal,target.borrowerId,target.options);
       else if(target.operation==='payment_history')result=await store.history(principal,target.borrowerId,target.options);
       else if(target.operation==='command_result')result=await store.result(principal,target.requestId);
-      else if(['payment_review','payment_auto_assign','payment_select_all','command_metadata'].includes(target.operation)){
+      else if(['payment_review','payment_auto_assign','payment_select_all','payment_plan','command_metadata'].includes(target.operation)){
         if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']||'')||(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity'))return reject(415,'invalid_request');
         let input;try{input=await readBody(req)}catch(error){return rejectBody(error)}
         if(req.aborted||res.destroyed)return;
-        result=target.operation==='payment_auto_assign'?await store.autoAssign(principal,target.borrowerId,input):target.operation==='payment_select_all'?await store.selectAll(principal,target.borrowerId,input):target.operation==='payment_review'?await store.review(principal,target.borrowerId,input):await store.metadata(principal,target.requestId,input);
+        result=target.operation==='payment_auto_assign'?await store.autoAssign(principal,target.borrowerId,input):target.operation==='payment_plan'?await store.plan(principal,target.borrowerId,input):target.operation==='payment_select_all'?await store.selectAll(principal,target.borrowerId,input):target.operation==='payment_review'?await store.review(principal,target.borrowerId,input):await store.metadata(principal,target.requestId,input);
       }
       else if(target.operation==='receipt') {
         let bytes,mimeType;

@@ -38,9 +38,10 @@ export const collectionCte = `WITH today_repayments AS (
   SELECT borrower_id AS id, borrower_name, borrower_description,
     CASE WHEN count(*) FILTER (WHERE charge_date < $1::date - ${LONG_OVERDUE_DAYS} AND payment_status <> 'ชำระแล้ว') > 0 THEN 3
       WHEN count(*) FILTER (WHERE charge_date < $1::date AND payment_status <> 'ชำระแล้ว') > 0 THEN 2
-      WHEN count(*) FILTER (WHERE payment_status IN ('รอชำระ', 'ชำระบางส่วน')) = 0 THEN 4
-      WHEN count(*) FILTER (WHERE payment_status = 'ชำระบางส่วน') > 0
-        OR (count(*) FILTER (WHERE payment_status = 'ชำระแล้ว') > 0 AND count(*) FILTER (WHERE payment_status = 'รอชำระ') > 0) THEN 1
+      -- R110: a future charge part-paid today (pay forward) is not due yet, so it never makes the tile partly paid.
+      WHEN count(*) FILTER (WHERE charge_date <= $1::date AND payment_status IN ('รอชำระ', 'ชำระบางส่วน')) = 0 THEN 4
+      WHEN count(*) FILTER (WHERE charge_date <= $1::date AND payment_status = 'ชำระบางส่วน') > 0
+        OR (count(*) FILTER (WHERE charge_date <= $1::date AND payment_status = 'ชำระแล้ว') > 0 AND count(*) FILTER (WHERE charge_date <= $1::date AND payment_status = 'รอชำระ') > 0) THEN 1
       ELSE 0 END AS rank,
     ($1::date - min(charge_date) FILTER (WHERE charge_date < $1::date AND payment_status <> 'ชำระแล้ว'))::integer AS overdue_days,
     CASE WHEN count(*) FILTER (WHERE charge_date <= $1::date AND amount_remaining IS NULL) > 0 THEN NULL
@@ -50,20 +51,24 @@ export const collectionCte = `WITH today_repayments AS (
       ELSE COALESCE(sum(total_paid::numeric) FILTER (WHERE charge_date = $1::date AND payment_status = 'ชำระแล้ว' AND payment_date < $1::date), 0::numeric) END AS prepaid,
     (count(*) FILTER (WHERE charge_date = $1::date) > 0
       AND count(*) FILTER (WHERE charge_date = $1::date) = count(*) FILTER (WHERE charge_date = $1::date AND payment_status = 'ชำระแล้ว' AND payment_date < $1::date)
-      AND count(*) FILTER (WHERE payment_status <> 'ชำระแล้ว') = 0) AS prepaid_only
+      AND count(*) FILTER (WHERE payment_status <> 'ชำระแล้ว') = 0) AS prepaid_only,
+    -- R110 COL-1: the latest earlier payment date of today's charges paid in advance (the "Paid in advance" source).
+    max(payment_date) FILTER (WHERE charge_date = $1::date AND payment_status = 'ชำระแล้ว' AND payment_date < $1::date)::text AS prepaid_payment_date
   FROM eligible GROUP BY borrower_id, borrower_name, borrower_description
 ), summaries AS (
   SELECT id, borrower_name, borrower_description, rank, overdue_days,
     -- R102 owner decision: the long overdue group lists the most recently overdue first (fewest days); 0 elsewhere.
     CASE WHEN rank = 3 THEN overdue_days ELSE 0 END AS sort_days, (remaining + collected)::text AS amount_due,
     collected::text AS amount_collected, remaining::text AS amount_remaining,
-    prepaid::text AS prepaid_today, prepaid_only FROM grouped
+    prepaid::text AS prepaid_today, prepaid_only, prepaid_payment_date FROM grouped
 )`;
 export function projectCollection(row) {
   if (!validLoanId(row.id) || !collectionStatuses[row.rank] || typeof row.prepaid_only !== 'boolean' || !(row.overdue_days === null || (Number.isSafeInteger(row.overdue_days) && row.overdue_days > 0))) throw new Error('Invalid collection source');
   // R102: overdueDays counts from the oldest overdue unpaid charge (null when none is overdue).
   // R097: prepaidToday is what was paid on earlier days toward charges dated today (row display only; collected stays cash today).
-  return { id: row.id, displayName: borrowerDisplayName(row.borrower_name, row.borrower_description), status: collectionStatuses[row.rank], overdueDays: row.overdue_days, amountDue: decimal(row.amount_due), amountCollected: decimal(row.amount_collected), amountRemaining: decimal(row.amount_remaining), prepaidToday: decimal(row.prepaid_today), prepaidOnly: row.prepaid_only, ...(row.group_remaining !== undefined ? {groupRemaining:decimal(row.group_remaining),...(row.group_collected!==undefined?{groupCollected:decimal(row.group_collected)}:{})} : {}) };
+  // R110: prepaidPaymentDate names when that advance was paid (null when nothing today was paid earlier).
+  if (row.prepaid_payment_date !== undefined && row.prepaid_payment_date !== null && !validDate(row.prepaid_payment_date)) throw new Error('Invalid collection source');
+  return { id: row.id, displayName: borrowerDisplayName(row.borrower_name, row.borrower_description), status: collectionStatuses[row.rank], overdueDays: row.overdue_days, amountDue: decimal(row.amount_due), amountCollected: decimal(row.amount_collected), amountRemaining: decimal(row.amount_remaining), prepaidToday: decimal(row.prepaid_today), prepaidOnly: row.prepaid_only, ...(row.prepaid_payment_date !== undefined ? { prepaidPaymentDate: row.prepaid_payment_date } : {}), ...(row.group_remaining !== undefined ? {groupRemaining:decimal(row.group_remaining),...(row.group_collected!==undefined?{groupCollected:decimal(row.group_collected)}:{})} : {}) };
 }
 export function projectCollectionCharge(row) {
   if (!validLoanId(row.id) || !validLoanId(row.loan_id) || !validDate(row.charge_date) || !['รอชำระ', 'ชำระบางส่วน', 'ชำระแล้ว'].includes(row.payment_status)) throw new Error('Invalid collection charge');

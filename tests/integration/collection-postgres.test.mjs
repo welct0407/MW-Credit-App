@@ -228,3 +228,16 @@ test('loan-related real SQL pages newest dates before undated ties and preserves
  assert.equal(await readLoanRelated(client,'missing','charges'),null);
  }finally{client.release()}
 });
+
+// R110: a future charge part-paid today (the partial last charge of a pay-forward payment) is received money, not a due
+// amount: with nothing else today the borrower is not "Partially paid", and a charge due today still is.
+test('a future charge part-paid today does not make the borrower Partially paid',async()=>{
+ for(const id of ['forward','duepart'])await borrower(id);
+ await charge('c-forward','forward',partial,'2026-10-08','50','2026-10-07','50');await repayment('c-forward','0','50');
+ await charge('c-duepart','duepart',partial,'2026-10-07','50','2026-10-07','50');await repayment('c-duepart','0','50');
+ const result=await board();assert.equal(result.ok,true);
+ const row=id=>result.items.find(x=>x.id===id);
+ assert.notEqual(row('forward').status,'partially_paid',JSON.stringify(row('forward')));
+ assert.equal(Number(row('forward').amountRemaining),0);assert.equal(Number(row('forward').amountCollected),50);
+ assert.equal(row('duepart').status,'partially_paid');assert.equal(Number(row('duepart').amountRemaining),50);
+});

@@ -4151,12 +4151,12 @@ DECLARE r public.pwa_payment_commands%ROWTYPE; revision public.pwa_payment_comma
  origin uuid; head uuid; source_creator text; origin_actor jsonb; correction_actor jsonb; plan jsonb; c jsonb; matches integer; visited uuid[];
 BEGIN
  SELECT count(*) INTO matches FROM public.pwa_payment_commands j WHERE
-  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR
+  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9','10') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR
   (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create'));
  IF matches=0 THEN RETURN NULL;END IF;
  IF matches<>1 THEN RAISE EXCEPTION 'Ambiguous payment provenance';END IF;
  SELECT * INTO STRICT r FROM public.pwa_payment_commands j WHERE
-  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR
+  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9','10') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR
   (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create'));
  origin:=r.request_id;head:=origin;visited:=ARRAY[head];origin_actor:=r.canonical_json::jsonb->'actor';source_creator:=CASE WHEN r.result_json ? 'sourceCreatedBy' THEN r.result_json->>'sourceCreatedBy' ELSE origin_actor->>'loginEmail' END;
  IF r.contract_version=1 THEN
@@ -5025,6 +5025,236 @@ END $_$;
 
 
 --
+-- Name: pwa_pay_forward_plan_v1(text, numeric, date, jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_pay_forward_plan_v1(p_borrower text, p_amount numeric, p_day date, p_purpose jsonb) RETURNS jsonb
+    LANGUAGE plpgsql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+DECLARE
+ forward boolean; chosen text[]; req jsonb; requests jsonb:='{}'::jsonb; rest numeric; remainder numeric; due_total numeric:=0;
+ ch record; l public."Loans"%ROWTYPE; lines jsonb:='{}'::jsonb; line jsonb; due_ids text[]:=ARRAY[]::text[];
+ p numeric; i numeric; amount numeric; accrued numeric; outstanding numeric; daily_after numeric; daily numeric; latest date;
+ today_id text; today_count integer; today_pr numeric; today_ir numeric; kind text; charge_id text; reason text; s jsonb;
+ principal_out jsonb:='[]'::jsonb; options jsonb:='[]'::jsonb; settles jsonb:='[]'::jsonb; blocked jsonb:='[]'::jsonb; sim jsonb:='{}'::jsonb;
+ loan jsonb; charges jsonb; stop boolean; dates date[]; d date; prev date; recorded_max date; days integer; elapsed integer; rem numeric;
+ cand jsonb:='[]'::jsonb; r jsonb; forward_out jsonb:='[]'::jsonb; materialize jsonb:='[]'::jsonb; paid_through jsonb:='{}'::jsonb;
+BEGIN
+ -- Inputs: whole positive amount; purpose with exactly forward, principal (unique loans, whole positive amounts) and loans.
+ IF p_borrower IS NULL OR p_day IS NULL OR p_amount IS NULL OR p_amount<=0 OR p_amount<>trunc(p_amount) OR p_amount>92233720368547758
+  OR jsonb_typeof(p_purpose) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid pay forward request'; END IF;
+ IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(p_purpose) key) IS DISTINCT FROM ARRAY['forward','loans','principal']
+  OR jsonb_typeof(p_purpose->'forward') IS DISTINCT FROM 'boolean' OR jsonb_typeof(p_purpose->'principal') IS DISTINCT FROM 'array'
+  OR jsonb_array_length(p_purpose->'principal')>20 OR jsonb_typeof(p_purpose->'loans') NOT IN ('null','array') THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid pay forward request'; END IF;
+ FOR req IN SELECT value FROM jsonb_array_elements(p_purpose->'principal') LOOP
+  IF jsonb_typeof(req) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid pay forward request'; END IF;
+  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(req) key) IS DISTINCT FROM ARRAY['amount','loanId'] OR jsonb_typeof(req->'loanId') IS DISTINCT FROM 'string'
+   OR jsonb_typeof(req->'amount') IS DISTINCT FROM 'string' OR req->>'amount' !~ '^[1-9][0-9]{0,16}$' OR requests ? (req->>'loanId') THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid pay forward request'; END IF;
+  requests:=requests||jsonb_build_object(req->>'loanId',req->'amount');
+ END LOOP;
+ forward:=(p_purpose->>'forward')::boolean;
+ IF jsonb_typeof(p_purpose->'loans')='array' THEN
+  IF jsonb_array_length(p_purpose->'loans')>100 OR EXISTS(SELECT 1 FROM jsonb_array_elements(p_purpose->'loans') x WHERE jsonb_typeof(x)<>'string') THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid pay forward request'; END IF;
+  SELECT coalesce(array_agg(x),ARRAY[]::text[]) INTO chosen FROM jsonb_array_elements_text(p_purpose->'loans') x;
+ END IF;
+
+ -- 1. Charges due by the day, in Auto-assign order: newest date first, then id (byte order) descending; interest first.
+ rest:=p_amount;
+ FOR ch IN SELECT c."Row ID" AS id,c."Charge Date" AS d,c."Principal Due"::numeric-coalesce(paid.p,0) AS pr,c."Interest Due"::numeric-coalesce(paid.i,0) AS ir
+   FROM public."Charges" c JOIN public."Loans" x ON x."Row ID"=c."Ref Loans"
+   LEFT JOIN LATERAL (SELECT sum(y."Principal Paid"::numeric) p,sum(y."Interest Paid"::numeric) i FROM public."Repayments" y WHERE y."Ref Charges"=c."Row ID") paid ON true
+   WHERE x."Ref Borrowers"=p_borrower AND c."Charge Date"<=p_day AND c."Amount Remaining">0
+   ORDER BY c."Charge Date" DESC,c."Row ID" COLLATE "C" DESC LOOP
+  IF ch.pr IS NULL OR ch.ir IS NULL OR ch.pr<0 OR ch.ir<0 OR ch.pr<>trunc(ch.pr) OR ch.ir<>trunc(ch.ir) THEN RAISE EXCEPTION 'Pay forward requires reconciled charges'; END IF;
+  due_total:=due_total+ch.pr+ch.ir;
+  i:=least(rest,ch.ir);rest:=rest-i;p:=least(rest,ch.pr);rest:=rest-p;
+  IF p+i>0 THEN
+   lines:=lines||jsonb_build_object(ch.id,jsonb_build_object('principal',p,'interest',i,'expectedPrincipalRemaining',ch.pr,'expectedInterestRemaining',ch.ir,'chargeDate',to_char(ch.d,'YYYY-MM-DD')));
+   due_ids:=array_append(due_ids,ch.id);
+  END IF;
+ END LOOP;
+ remainder:=rest;
+
+ -- 2. Principal repayment (D9). Every open daily-interest loan of the borrower is evaluated (the options a form may
+ -- offer); a requested loan is applied in loan order when eligible, not settling and within what is left.
+ FOR l IN SELECT * FROM public."Loans" x WHERE x."Ref Borrowers"=p_borrower AND x."Loan Status"='ยังไม่ปิดยอด' AND x."Loan Type"='ดอกเบี้ยรายวัน'
+   ORDER BY x."Row ID" COLLATE "C" LOOP
+  reason:=NULL;
+  IF coalesce(l."Defaulted",false) THEN reason:='defaulted';
+  ELSIF l."Original Daily Interest Rate" IS NULL THEN reason:='no_rate';
+  ELSIF NOT coalesce(l."Auto Charge Enabled",false) OR NOT coalesce(l."Interest Payment Interval">=1,false) OR l."Loan Date" IS NULL OR l."Loan Date">p_day
+   OR NOT coalesce(l."Current Daily Interest"::numeric>=0,false) THEN reason:='schedule';
+  ELSIF EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND (c."Charge Date" IS NULL OR starts_with(c."Row ID",'df10:'))) THEN reason:='invalid';
+  ELSIF EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID"
+    AND c."Principal Due"::numeric>coalesce((SELECT sum(y."Principal Paid"::numeric) FROM public."Repayments" y WHERE y."Ref Charges"=c."Row ID"),0)) THEN reason:='principal_due';
+  ELSIF EXISTS(SELECT 1 FROM public."Repayments" y WHERE y."Ref Loans"=l."Row ID" AND (y."Payment Date" IS NULL OR y."Payment Date">p_day)) THEN reason:='later_payment';
+  -- A charge already recorded after the day was priced on the old schedule; the new anchor would not follow it.
+  ELSIF EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date">p_day) THEN reason:='future_charges';
+  END IF;
+  IF reason IS NULL THEN
+   SELECT count(*),min(c."Row ID") INTO today_count,today_id FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date"=p_day;
+   IF today_count>1 THEN reason:='multiple_today';
+   ELSIF today_count=0 AND p_day<=l."Loan Date" THEN reason:='loan_date';
+   END IF;
+  END IF;
+  IF reason IS NULL THEN
+   SELECT l."Principal Amount"::numeric-coalesce(sum(y."Principal Paid"::numeric),0) INTO outstanding FROM public."Repayments" y WHERE y."Ref Loans"=l."Row ID";
+   IF today_count=1 THEN
+    kind:='raise';charge_id:=today_id;accrued:=0;
+   ELSE
+    kind:='book';charge_id:='pf121:'||length(l."Row ID")||':'||l."Row ID"||':'||to_char(p_day,'YYYY-MM-DD');
+    -- generate_loan_charge and loan_close_calculation_v83: daily amount x days since the latest charge on or before the day.
+    SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date"<=p_day AND NOT starts_with(c."Row ID",'df10:');
+    accrued:=l."Current Daily Interest"::numeric*greatest(0,p_day-coalesce(latest,l."Loan Date"));
+   END IF;
+   IF outstanding IS NULL OR outstanding<=0 OR outstanding<>trunc(outstanding) OR accrued<>trunc(accrued) THEN reason:='invalid'; END IF;
+  END IF;
+  IF reason IS NOT NULL THEN
+   IF requests ? l."Row ID" THEN blocked:=blocked||jsonb_build_array(jsonb_build_object('loanId',l."Row ID",'reason',reason)); END IF;
+   CONTINUE;
+  END IF;
+  options:=options||jsonb_build_array(jsonb_build_object('loanId',l."Row ID",'kind',kind,'chargeId',charge_id,'accruedInterest',trunc(accrued)::text,
+   'outstanding',trunc(outstanding)::text,'dailyBefore',trunc(l."Current Daily Interest"::numeric)::text,'interval',l."Interest Payment Interval"));
+  IF NOT requests ? l."Row ID" THEN CONTINUE; END IF;
+  amount:=(requests->>l."Row ID")::numeric;
+  IF amount>=outstanding THEN settles:=settles||to_jsonb(l."Row ID");CONTINUE;END IF;
+  IF amount+accrued>rest THEN blocked:=blocked||jsonb_build_array(jsonb_build_object('loanId',l."Row ID",'reason','exceeds_remainder'));CONTINUE;END IF;
+  -- apply_principal_daily_interest's expression for the new daily amount.
+  daily_after:=round(greatest(0,outstanding-amount)*l."Original Daily Interest Rate"/100.0);
+  IF kind='raise' THEN
+   SELECT c."Principal Due"::numeric,c."Interest Due"::numeric-coalesce((SELECT sum(y."Interest Paid"::numeric) FROM public."Repayments" y WHERE y."Ref Charges"=c."Row ID"),0)
+    INTO today_pr,today_ir FROM public."Charges" c WHERE c."Row ID"=charge_id;
+   line:=coalesce(lines->charge_id,jsonb_build_object('principal',0,'interest',0,'expectedPrincipalRemaining',0,'expectedInterestRemaining',today_ir,'chargeDate',to_char(p_day,'YYYY-MM-DD')));
+   line:=line||jsonb_build_object('principal',(line->>'principal')::numeric+amount,'expectedPrincipalRemaining',(line->>'expectedPrincipalRemaining')::numeric+amount);
+   lines:=lines||jsonb_build_object(charge_id,line);
+  ELSE
+   today_pr:=0;
+   lines:=lines||jsonb_build_object(charge_id,jsonb_build_object('principal',amount,'interest',accrued,'expectedPrincipalRemaining',amount,'expectedInterestRemaining',accrued,'chargeDate',to_char(p_day,'YYYY-MM-DD')));
+  END IF;
+  rest:=rest-amount-accrued;
+  principal_out:=principal_out||jsonb_build_array(jsonb_build_object('loanId',l."Row ID",'kind',kind,'chargeId',charge_id,'chargeDate',to_char(p_day,'YYYY-MM-DD'),
+   'amount',trunc(amount)::text,'accruedInterest',trunc(accrued)::text,'principalDue',trunc(today_pr+amount)::text,
+   'outstandingBefore',trunc(outstanding)::text,'outstandingAfter',trunc(outstanding-amount)::text,'dailyBefore',trunc(l."Current Daily Interest"::numeric)::text,
+   'dailyAfter',trunc(daily_after)::text,'nextChargeDate',to_char(p_day+l."Interest Payment Interval",'YYYY-MM-DD'),'nextChargeAmount',trunc(daily_after*l."Interest Payment Interval")::text));
+  sim:=sim||jsonb_build_object(l."Row ID",jsonb_build_object('balance',outstanding-amount,'daily',daily_after,'kind',kind,'chargeId',charge_id,'principal',amount,'accrued',accrued));
+ END LOOP;
+ SELECT blocked||coalesce(jsonb_agg(jsonb_build_object('loanId',k,'reason','not_found')),'[]'::jsonb) INTO blocked FROM jsonb_object_keys(requests) k
+  WHERE NOT EXISTS(SELECT 1 FROM jsonb_array_elements(blocked) b WHERE b->>'loanId'=k) AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(options) o WHERE o->>'loanId'=k);
+
+ -- 3. Pay forward: future charges of the eligible loans, earliest date first across loans (tie: smaller loan key).
+ IF forward AND rest>0 THEN
+  FOR l IN SELECT * FROM public."Loans" x WHERE x."Ref Borrowers"=p_borrower AND x."Loan Status"='ยังไม่ปิดยอด' AND (chosen IS NULL OR x."Row ID"=ANY(chosen))
+    ORDER BY x."Row ID" COLLATE "C" LOOP
+   s:=sim->l."Row ID";reason:=NULL;
+   IF coalesce(l."Defaulted",false) THEN reason:='defaulted';
+   ELSIF NOT coalesce(l."Auto Charge Enabled",false) THEN reason:='manual';
+   ELSIF l."Loan Type" IS NULL OR l."Loan Type" NOT IN ('ดอกเบี้ยรายวัน','ผ่อนชำระรายวัน','กำหนดวันชำระ') THEN reason:='loan_type';
+   ELSIF l."Loan Date" IS NULL OR l."Loan Date">p_day THEN reason:='not_started';
+   ELSIF EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date" IS NULL) THEN reason:='invalid';
+   ELSIF l."Loan Type"='ดอกเบี้ยรายวัน' AND s IS NULL AND EXISTS(SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID"
+     AND c."Principal Due"::numeric>coalesce((SELECT sum(y."Principal Paid"::numeric) FROM public."Repayments" y WHERE y."Ref Charges"=c."Row ID"),0)) THEN reason:='principal_due';
+   ELSIF l."Loan Type"='กำหนดวันชำระ' AND (l."Due Date" IS NULL OR l."Due Date"<=p_day) THEN reason:='due_date';
+   END IF;
+   IF reason IS NULL THEN
+    -- Forecast inputs as V117 builds them; a loan repaying principal is simulated after it (new balance, daily amount,
+    -- anchor and today's charge paid), so the forecast dates are the generator's dates after this payment.
+    SELECT jsonb_build_object('status',l."Loan Status",'defaulted',coalesce(l."Defaulted",false),'start',l."Loan Date",'close',l."Close Date",
+      'balance',coalesce((s->>'balance')::numeric,l."Principal Amount"::numeric-coalesce(sum(y."Principal Paid"::numeric) FILTER(WHERE y."Payment Date"<=p_day),0)),
+      'daily',coalesce((s->>'daily')::numeric,l."Current Daily Interest"::numeric),'auto',l."Auto Charge Enabled",
+      'interval',l."Interest Payment Interval",'anchor',CASE WHEN s IS NULL THEN l."Interest Schedule Anchor Date" ELSE p_day END,'type',l."Loan Type",'due',l."Due Date",
+      'arrangement',l."Loan Arrangement",'original',l."Principal Amount"::numeric,'payment',l."Daily Payment Amount"::numeric,'fixed',l."Fixed Interest"::numeric,
+      'invalid',l."Loan Date" IS NULL OR l."Principal Amount" IS NULL OR NOT EXISTS(SELECT 1 FROM public."Borrowers" b WHERE b."Row ID"=l."Ref Borrowers")
+       OR coalesce(bool_or(y."Payment Date" IS NULL OR y."Principal Paid" IS NULL OR y."Interest Paid" IS NULL OR y."Payment Date">p_day),false),
+      'original_rate',l."Original Daily Interest Rate")
+     INTO loan FROM public."Repayments" y WHERE y."Ref Loans"=l."Row ID";
+    SELECT coalesce(jsonb_agg(jsonb_build_object('id',c."Row ID",'date',c."Charge Date",
+      'pdue',c."Principal Due"::numeric+CASE WHEN c."Row ID"=s->>'chargeId' THEN (s->>'principal')::numeric ELSE 0 END,'idue',c."Interest Due"::numeric,
+      'ppaid',coalesce(paid.p,0)+CASE WHEN c."Row ID"=s->>'chargeId' THEN (s->>'principal')::numeric ELSE 0 END,'ipaid',coalesce(paid.i,0),
+      'invalid',coalesce(paid.invalid,false) OR c."Charge Date" IS NULL OR c."Principal Due" IS NULL OR c."Interest Due" IS NULL)),'[]'::jsonb)
+     INTO charges FROM public."Charges" c
+     LEFT JOIN LATERAL (SELECT sum(y."Principal Paid"::numeric) FILTER(WHERE y."Payment Date"<=p_day) p,sum(y."Interest Paid"::numeric) FILTER(WHERE y."Payment Date"<=p_day) i,
+       bool_or(y."Payment Date" IS NULL OR y."Principal Paid" IS NULL OR y."Interest Paid" IS NULL OR y."Ref Loans" IS DISTINCT FROM c."Ref Loans") invalid
+      FROM public."Repayments" y WHERE y."Ref Charges"=c."Row ID") paid ON true
+     WHERE c."Ref Loans"=l."Row ID";
+    IF s->>'kind'='book' THEN
+     charges:=charges||jsonb_build_array(jsonb_build_object('id',s->>'chargeId','date',p_day,'pdue',(s->>'principal')::numeric,'idue',(s->>'accrued')::numeric,
+      'ppaid',(s->>'principal')::numeric,'ipaid',(s->>'accrued')::numeric,'invalid',false));
+    END IF;
+    SELECT coalesce(bool_or(f.origin IN ('Exception','Notice')),false),array_agg(f.due_date ORDER BY f.due_date) FILTER(WHERE f.origin='Simulated' AND f.eligible AND f.due_date>p_day AND f.principal+f.interest>0)
+     INTO stop,dates FROM public.forecast_schedule_v1(loan,charges,p_day,p_day+93) f;
+    IF stop THEN reason:='forecast'; END IF;
+   END IF;
+   IF reason IS NOT NULL THEN blocked:=blocked||jsonb_build_array(jsonb_build_object('loanId',l."Row ID",'reason',reason));CONTINUE; END IF;
+   -- Recorded future charges first (an earlier booking), then the next dates after every recorded charge (V117 order).
+   FOR ch IN SELECT c."Row ID" AS id,c."Charge Date" AS d,c."Principal Due"::numeric-coalesce(paid.p,0) AS pr,c."Interest Due"::numeric-coalesce(paid.i,0) AS ir
+     FROM public."Charges" c LEFT JOIN LATERAL (SELECT sum(y."Principal Paid"::numeric) p,sum(y."Interest Paid"::numeric) i FROM public."Repayments" y WHERE y."Ref Charges"=c."Row ID") paid ON true
+     WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date">p_day AND c."Charge Date"<=p_day+93 AND NOT starts_with(c."Row ID",'df10:') AND c."Amount Remaining">0
+     ORDER BY c."Charge Date",c."Row ID" COLLATE "C" LOOP
+    IF ch.pr IS NULL OR ch.ir IS NULL OR ch.pr<0 OR ch.ir<0 OR ch.pr<>trunc(ch.pr) OR ch.ir<>trunc(ch.ir) THEN RAISE EXCEPTION 'Pay forward requires reconciled charges'; END IF;
+    cand:=cand||jsonb_build_array(jsonb_build_object('loan',l."Row ID",'d',ch.d,'id',ch.id,'pr',ch.pr,'ir',ch.ir,'book',false));
+   END LOOP;
+   SELECT max(c."Charge Date") INTO recorded_max FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID";
+   prev:=NULL;
+   FOREACH d IN ARRAY coalesce(dates,ARRAY[]::date[]) LOOP
+    IF d<=greatest(recorded_max,p_day) THEN CONTINUE; END IF;
+    -- generate_loan_charge's arithmetic for that date, the earlier simulated charges counted as booked.
+    IF l."Loan Type"='ดอกเบี้ยรายวัน' THEN
+     SELECT max(c."Charge Date") INTO latest FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID" AND c."Charge Date"<=d AND NOT starts_with(c."Row ID",'df10:');
+     latest:=greatest(latest,prev,CASE WHEN s IS NOT NULL THEN p_day END);
+     daily:=coalesce((s->>'daily')::numeric,l."Current Daily Interest"::numeric);
+     p:=0;i:=daily*greatest(0,d-coalesce(latest,l."Loan Date"));
+    ELSIF l."Loan Type"='ผ่อนชำระรายวัน' THEN
+     latest:=greatest(recorded_max,prev);
+     IF latest IS NULL OR l."Due Date" IS NULL THEN EXIT; END IF;
+     days:=l."Due Date"-l."Loan Date"+1;elapsed:=d-latest;
+     IF days<=0 OR elapsed<=0 THEN EXIT; END IF;
+     rem:=mod(l."Principal Amount"::numeric,days);
+     p:=floor(l."Principal Amount"::numeric/days)*elapsed+greatest(0,least(d-l."Loan Date"+1,rem)-(latest-l."Loan Date"+1));
+     i:=l."Daily Payment Amount"::numeric*elapsed-p;
+    ELSE
+     IF d IS DISTINCT FROM l."Due Date" THEN CONTINUE; END IF;
+     SELECT l."Principal Amount"::numeric-coalesce(sum(y."Principal Paid"::numeric),0) INTO p FROM public."Repayments" y WHERE y."Ref Loans"=l."Row ID";
+     i:=l."Fixed Interest"::numeric;
+    END IF;
+    IF p IS NULL OR i IS NULL OR p<0 OR i<0 OR p+i<=0 OR p<>trunc(p) OR i<>trunc(i) THEN EXIT; END IF;
+    cand:=cand||jsonb_build_array(jsonb_build_object('loan',l."Row ID",'d',d,'id','cg8:'||length(l."Row ID")||':'||l."Row ID"||':'||to_char(d,'YYYY-MM-DD'),'pr',p,'ir',i,'book',true));
+    prev:=d;
+   END LOOP;
+  END LOOP;
+  FOR r IN SELECT value FROM jsonb_array_elements(cand) ORDER BY (value->>'d')::date,value->>'loan' COLLATE "C" LOOP
+   EXIT WHEN rest<=0;
+   i:=least(rest,(r->>'ir')::numeric);rest:=rest-i;p:=least(rest,(r->>'pr')::numeric);rest:=rest-p;
+   lines:=lines||jsonb_build_object(r->>'id',jsonb_build_object('principal',p,'interest',i,'expectedPrincipalRemaining',(r->>'pr')::numeric,'expectedInterestRemaining',(r->>'ir')::numeric,'chargeDate',to_char((r->>'d')::date,'YYYY-MM-DD')));
+   IF (r->>'book')::boolean THEN
+    materialize:=materialize||jsonb_build_array(jsonb_build_object('loanId',r->>'loan','chargeId',r->>'id','chargeDate',to_char((r->>'d')::date,'YYYY-MM-DD'),
+     'principalDue',trunc((r->>'pr')::numeric)::text,'interestDue',trunc((r->>'ir')::numeric)::text));
+   END IF;
+   forward_out:=forward_out||jsonb_build_array(jsonb_build_object('loanId',r->>'loan','chargeId',r->>'id','chargeDate',to_char((r->>'d')::date,'YYYY-MM-DD'),
+    'principalDue',trunc((r->>'pr')::numeric)::text,'interestDue',trunc((r->>'ir')::numeric)::text,'principal',trunc(p)::text,'interest',trunc(i)::text,
+    'partial',p+i<(r->>'pr')::numeric+(r->>'ir')::numeric,'booked',(r->>'book')::boolean));
+   IF p+i=(r->>'pr')::numeric+(r->>'ir')::numeric THEN paid_through:=paid_through||jsonb_build_object(r->>'loan',to_char((r->>'d')::date,'YYYY-MM-DD')); END IF;
+  END LOOP;
+ END IF;
+
+ RETURN jsonb_build_object('day',to_char(p_day,'YYYY-MM-DD'),'amount',trunc(p_amount)::text,'dueTotal',trunc(due_total)::text,'remainder',trunc(remainder)::text,
+  'due',(SELECT coalesce(jsonb_agg(x ORDER BY o),'[]'::jsonb) FROM unnest(due_ids) WITH ORDINALITY u(x,o)),
+  'allocations',(SELECT coalesce(jsonb_agg(jsonb_build_object('chargeId',e.key,'principal',trunc((e.value->>'principal')::numeric)::text,'interest',trunc((e.value->>'interest')::numeric)::text,
+    'expectedPrincipalRemaining',trunc((e.value->>'expectedPrincipalRemaining')::numeric)::text,'expectedInterestRemaining',trunc((e.value->>'expectedInterestRemaining')::numeric)::text,
+    'chargeDate',e.value->>'chargeDate') ORDER BY e.key COLLATE "C"),'[]'::jsonb) FROM jsonb_each(lines) e),
+  'materialize',(SELECT coalesce(jsonb_agg(x ORDER BY x->>'chargeId' COLLATE "C"),'[]'::jsonb) FROM jsonb_array_elements(materialize) x),
+  'principal',principal_out,'forward',forward_out,'uncovered',trunc(rest)::text,'paidThrough',paid_through,'settles',settles,'blocked',blocked,'options',options);
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_pay_forward_plan_v1(p_borrower text, p_amount numeric, p_day date, p_purpose jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_pay_forward_plan_v1(p_borrower text, p_amount numeric, p_day date, p_purpose jsonb) IS 'R110: the pay-forward plan of a borrower for an amount received on a day (due charges first, then principal on today''s charge and/or future charges booked in date order); shown by Receive payment and recomputed by pwa_submit_selected_charges_v1 schemaVersion 10. Read only.';
+
+
+--
 -- Name: pwa_payment_correction_text_v2(jsonb); Type: FUNCTION
 --
 
@@ -5426,6 +5656,8 @@ DECLARE
  payer_before text;payer_after text;
  -- R101 v9 materialize: the next projected charges this payment books before it is posted.
  entry jsonb;materialize_text text:='';loan_ids text[];materialize_ids text[];projected jsonb;booked text;
+ -- R110 v10: the principal entries and the server's own pay-forward plan the command must equal.
+ principal_text text:='';principal_loans text[]:=ARRAY[]::text[];forward_loans text[];plan jsonb;purpose jsonb;today date;
  -- JavaScript whitespace, used only for canonical transport validation, not ID normalization.
  ws text:=chr(9)||chr(10)||chr(11)||chr(12)||chr(13)||chr(32)||chr(160)||chr(5760)||chr(8192)||chr(8193)||chr(8194)||chr(8195)||chr(8196)||chr(8197)||chr(8198)||chr(8199)||chr(8200)||chr(8201)||chr(8202)||chr(8232)||chr(8233)||chr(8239)||chr(8287)||chr(12288)||chr(65279);
 BEGIN
@@ -5434,8 +5666,8 @@ BEGIN
  BEGIN
   e:=$1::jsonb;c:=e->'command';a:=e->'actor';r:=e->'receipt';
   IF jsonb_typeof(e)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(e) key)<>ARRAY['actor','command','contractVersion','receipt'] OR e->'contractVersion'<>'1'::jsonb
-    OR jsonb_typeof(c)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c) key)<>(CASE WHEN c->'schemaVersion'='6'::jsonb THEN ARRAY['allocations','amountReceived','borrowerId','cashAccountId','notes','paymentDate','paymentMethod','receiptId','requestId','schemaVersion'] WHEN c->'schemaVersion'='7'::jsonb THEN ARRAY['allocations','amountReceived','bankReference','borrowerId','cashAccountId','notes','paymentDate','paymentMethod','receiptId','requestId','schemaVersion','transferTime'] WHEN c->'schemaVersion'='8'::jsonb THEN ARRAY['allocations','amountReceived','bankReference','borrowerId','cashAccountId','notes','payerLines','paymentDate','paymentMethod','receiptId','requestId','schemaVersion','transferTime'] WHEN c->'schemaVersion'='9'::jsonb THEN ARRAY['allocations','amountReceived','bankReference','borrowerId','cashAccountId','materialize','notes','payerLines','paymentDate','paymentMethod','receiptId','requestId','schemaVersion','transferTime'] ELSE ARRAY['allocationMethod','amountReceived','borrowerId','cashAccountId','notes','paymentDate','paymentMethod','receiptId','requestId','schemaVersion','selectedChargeIds'] END)
-    OR c->'schemaVersion' NOT IN ('3'::jsonb,'4'::jsonb,'5'::jsonb,'6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb) OR jsonb_typeof(a)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(a) key)<>ARRAY['issuer','loginEmail','partnerId','subject'] THEN RAISE EXCEPTION 'shape'; END IF;
+    OR jsonb_typeof(c)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c) key)<>(CASE WHEN c->'schemaVersion'='6'::jsonb THEN ARRAY['allocations','amountReceived','borrowerId','cashAccountId','notes','paymentDate','paymentMethod','receiptId','requestId','schemaVersion'] WHEN c->'schemaVersion'='7'::jsonb THEN ARRAY['allocations','amountReceived','bankReference','borrowerId','cashAccountId','notes','paymentDate','paymentMethod','receiptId','requestId','schemaVersion','transferTime'] WHEN c->'schemaVersion'='8'::jsonb THEN ARRAY['allocations','amountReceived','bankReference','borrowerId','cashAccountId','notes','payerLines','paymentDate','paymentMethod','receiptId','requestId','schemaVersion','transferTime'] WHEN c->'schemaVersion'='9'::jsonb THEN ARRAY['allocations','amountReceived','bankReference','borrowerId','cashAccountId','materialize','notes','payerLines','paymentDate','paymentMethod','receiptId','requestId','schemaVersion','transferTime'] WHEN c->'schemaVersion'='10'::jsonb THEN ARRAY['allocations','amountReceived','bankReference','borrowerId','cashAccountId','materialize','notes','payerLines','paymentDate','paymentMethod','principal','receiptId','requestId','schemaVersion','transferTime'] ELSE ARRAY['allocationMethod','amountReceived','borrowerId','cashAccountId','notes','paymentDate','paymentMethod','receiptId','requestId','schemaVersion','selectedChargeIds'] END)
+    OR c->'schemaVersion' NOT IN ('3'::jsonb,'4'::jsonb,'5'::jsonb,'6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) OR jsonb_typeof(a)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(a) key)<>ARRAY['issuer','loginEmail','partnerId','subject'] THEN RAISE EXCEPTION 'shape'; END IF;
   FOREACH k IN ARRAY ARRAY['requestId','borrowerId','cashAccountId','paymentDate','amountReceived','paymentMethod'] LOOP
    IF jsonb_typeof(c->k)<>'string' THEN RAISE EXCEPTION 'type'; END IF;
   END LOOP;
@@ -5444,7 +5676,7 @@ BEGIN
   FOREACH k IN ARRAY ARRAY['borrowerId','cashAccountId'] LOOP
    v:=c->>k;IF octet_length(v) NOT BETWEEN 1 AND 256 OR v<>btrim(v,ws) OR v~E'[\\r\\n]' THEN RAISE EXCEPTION 'id';END IF;
   END LOOP;
-  IF c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb) THEN
+  IF c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN
    IF jsonb_typeof(c->'allocations') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'allocations') NOT BETWEEN 1 AND 10000 THEN RAISE EXCEPTION 'plan';END IF;
    ids:=ARRAY[]::text[];plan_text:='';plan_total:=0;
    FOR line IN SELECT value FROM jsonb_array_elements(c->'allocations') LOOP
@@ -5468,12 +5700,13 @@ BEGIN
    -- R075 v7: optional slip bank reference (normalized) and transfer time (HH:MM), bank transfers only.
    -- R095 v8: v7 plus the optional payer-lines change {before, after}, bank transfers only.
    -- R101 v9: v8 plus materialize, the next projected charges (one per loan) that allocation lines pay.
-   IF c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb) THEN
+   -- R110 v10: v8 plus materialize (0 to 200 charges to book, several per loan) and principal (0 to 20 entries).
+   IF c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN
     IF c->'bankReference'<>'null'::jsonb AND (jsonb_typeof(c->'bankReference')<>'string' OR c->>'bankReference' !~ '^[A-Z0-9]{6,100}$') THEN RAISE EXCEPTION 'reference';END IF;
     IF c->'transferTime'<>'null'::jsonb AND (jsonb_typeof(c->'transferTime')<>'string' OR c->>'transferTime' !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$') THEN RAISE EXCEPTION 'transfer time';END IF;
     IF c->>'paymentMethod'<>'Bank Transfer' AND (c->'bankReference'<>'null'::jsonb OR c->'transferTime'<>'null'::jsonb) THEN RAISE EXCEPTION 'slip method';END IF;
     slip_text:=',"bankReference":'||CASE WHEN c->'bankReference'='null'::jsonb THEN 'null' ELSE to_json(c->>'bankReference')::text END||',"transferTime":'||CASE WHEN c->'transferTime'='null'::jsonb THEN 'null' ELSE to_json(c->>'transferTime')::text END;
-    IF c->'schemaVersion' IN ('8'::jsonb,'9'::jsonb) THEN
+    IF c->'schemaVersion' IN ('8'::jsonb,'9'::jsonb,'10'::jsonb) THEN
      IF c->'payerLines'<>'null'::jsonb THEN
       IF c->>'paymentMethod'<>'Bank Transfer' THEN RAISE EXCEPTION 'payer method';END IF;
       IF jsonb_typeof(c->'payerLines')<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c->'payerLines') key)<>ARRAY['after','before']
@@ -5489,8 +5722,8 @@ BEGIN
     END IF;
     -- R101 v9: each entry {loanId, chargeId, chargeDate, principalDue, interestDue} names the generator key of the loan's next
     -- charge (cg8:<len>:<loan>:<date>) and is paid by exactly one allocation line expecting the whole projected charge.
-    IF c->'schemaVersion'='9'::jsonb THEN
-     IF jsonb_typeof(c->'materialize') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'materialize') NOT BETWEEN 1 AND 100 THEN RAISE EXCEPTION 'materialize';END IF;
+    IF c->'schemaVersion' IN ('9'::jsonb,'10'::jsonb) THEN
+     IF jsonb_typeof(c->'materialize') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'materialize') NOT BETWEEN (CASE WHEN c->'schemaVersion'='9'::jsonb THEN 1 ELSE 0 END) AND (CASE WHEN c->'schemaVersion'='9'::jsonb THEN 100 ELSE 200 END) THEN RAISE EXCEPTION 'materialize';END IF;
      loan_ids:=ARRAY[]::text[];materialize_ids:=ARRAY[]::text[];
      FOR entry IN SELECT value FROM jsonb_array_elements(c->'materialize') LOOP
       IF jsonb_typeof(entry) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(entry) key) IS DISTINCT FROM ARRAY['chargeDate','chargeId','interestDue','loanId','principalDue'] THEN RAISE EXCEPTION 'materialize entry';END IF;
@@ -5511,8 +5744,44 @@ BEGIN
        ||',"chargeDate":'||to_json(entry->>'chargeDate')::text||',"principalDue":'||to_json(entry->>'principalDue')::text||',"interestDue":'||to_json(entry->>'interestDue')::text||'}';
      END LOOP;
      SELECT array_agg(x ORDER BY x COLLATE "C") INTO sorted_ids FROM (SELECT DISTINCT unnest(materialize_ids) x) q;
-     IF materialize_ids IS DISTINCT FROM sorted_ids OR (SELECT count(DISTINCT x) FROM unnest(loan_ids) x)<>cardinality(loan_ids) THEN RAISE EXCEPTION 'materialize order';END IF;
+     -- v9: one entry per loan; v10: several per loan (each chargeId once, so a loan's dates stay in order).
+     IF materialize_ids IS DISTINCT FROM coalesce(sorted_ids,ARRAY[]::text[]) OR cardinality(materialize_ids)<>cardinality(coalesce(sorted_ids,ARRAY[]::text[]))
+      OR (c->'schemaVersion'='9'::jsonb AND (SELECT count(DISTINCT x) FROM unnest(loan_ids) x)<>cardinality(loan_ids)) THEN RAISE EXCEPTION 'materialize order';END IF;
      slip_text:=slip_text||',"materialize":['||materialize_text||']';
+    END IF;
+    -- R110 v10: each principal entry {loanId, kind, chargeId, chargeDate, amount, accruedInterest, principalDue} raises
+    -- today's charge (raise) or books today's charge pf121:<len>:<loan>:<date> with the accrued interest (book); one per
+    -- loan, ordered by loanId, each paid by an allocation line. At least one materialize or principal entry.
+    IF c->'schemaVersion'='10'::jsonb THEN
+     IF jsonb_typeof(c->'principal') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'principal')>20
+      OR jsonb_array_length(c->'principal')+jsonb_array_length(c->'materialize')=0 THEN RAISE EXCEPTION 'principal';END IF;
+     FOR entry IN SELECT value FROM jsonb_array_elements(c->'principal') LOOP
+      IF jsonb_typeof(entry) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(entry) key) IS DISTINCT FROM ARRAY['accruedInterest','amount','chargeDate','chargeId','kind','loanId','principalDue'] THEN RAISE EXCEPTION 'principal entry';END IF;
+      FOREACH k IN ARRAY ARRAY['loanId','kind','chargeId','chargeDate','amount','accruedInterest','principalDue'] LOOP
+       IF jsonb_typeof(entry->k) IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'principal type';END IF;
+      END LOOP;
+      v:=entry->>'loanId';IF octet_length(v) NOT BETWEEN 1 AND 256 OR v<>btrim(v,ws) OR v~E'[\\r\\n]' THEN RAISE EXCEPTION 'principal loan';END IF;
+      v:=entry->>'chargeId';IF octet_length(v) NOT BETWEEN 1 AND 256 OR v LIKE '%,%' OR translate(v,ws,'')<>v THEN RAISE EXCEPTION 'principal charge';END IF;
+      v:=entry->>'chargeDate';IF v !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR v<'0001-01-01' OR to_char(v::date,'YYYY-MM-DD')<>v THEN RAISE EXCEPTION 'principal day';END IF;
+      FOREACH k IN ARRAY ARRAY['amount','accruedInterest','principalDue'] LOOP
+       IF entry->>k !~ '^(0|[1-9][0-9]{0,16})$' OR (entry->>k)::numeric>92233720368547758 THEN RAISE EXCEPTION 'principal component';END IF;
+      END LOOP;
+      IF (entry->>'amount')::numeric<=0 OR entry->>'kind' NOT IN ('raise','book')
+       OR (entry->>'kind'='book' AND (entry->>'chargeId' IS DISTINCT FROM 'pf121:'||length(entry->>'loanId')||':'||(entry->>'loanId')||':'||(entry->>'chargeDate') OR entry->>'principalDue'<>entry->>'amount'))
+       OR (entry->>'kind'='raise' AND (entry->>'accruedInterest'<>'0' OR (entry->>'principalDue')::numeric<(entry->>'amount')::numeric)) THEN RAISE EXCEPTION 'principal kind';END IF;
+      IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c->'allocations') lines(item) WHERE item->>'chargeId'=entry->>'chargeId' AND item->>'chargeDate'=entry->>'chargeDate'
+        AND (item->>'principal')::numeric>=(entry->>'amount')::numeric) THEN RAISE EXCEPTION 'principal line';END IF;
+      principal_loans:=array_append(principal_loans,entry->>'loanId');
+      principal_text:=principal_text||CASE WHEN principal_text='' THEN '' ELSE ',' END||'{"loanId":'||to_json(entry->>'loanId')::text||',"kind":'||to_json(entry->>'kind')::text
+       ||',"chargeId":'||to_json(entry->>'chargeId')::text||',"chargeDate":'||to_json(entry->>'chargeDate')::text||',"amount":'||to_json(entry->>'amount')::text
+       ||',"accruedInterest":'||to_json(entry->>'accruedInterest')::text||',"principalDue":'||to_json(entry->>'principalDue')::text||'}';
+     END LOOP;
+     SELECT array_agg(x ORDER BY x COLLATE "C") INTO sorted_ids FROM (SELECT DISTINCT unnest(principal_loans) x) q;
+     IF principal_loans IS DISTINCT FROM coalesce(sorted_ids,ARRAY[]::text[]) THEN RAISE EXCEPTION 'principal order';END IF;
+     -- The plan is the business day's: a command that books or raises charges is dated today (an invalid command otherwise).
+     IF jsonb_array_length(c->'principal')+jsonb_array_length(c->'materialize')>0
+      AND c->>'paymentDate' IS DISTINCT FROM to_char((transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date,'YYYY-MM-DD') THEN RAISE EXCEPTION 'pay forward day';END IF;
+     slip_text:=slip_text||',"principal":['||principal_text||']';
     END IF;
    END IF;
   ELSE
@@ -5549,7 +5818,7 @@ BEGIN
    receipt_id:=to_json(r->>'receiptId')::text;
    receipt_text:='{"receiptId":'||receipt_id||',"sha256":'||to_json(r->>'sha256')::text||',"mimeType":'||to_json(r->>'mimeType')::text||',"sizeBytes":'||(r->>'sizeBytes')||',"storageReference":'||to_json(r->>'storageReference')::text||'}';
   END IF;
-  IF c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb) THEN
+  IF c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN
    command_text:='{"schemaVersion":'||(c->>'schemaVersion')||',"requestId":'||to_json(c->>'requestId')::text||',"borrowerId":'||to_json(c->>'borrowerId')::text||',"allocations":['||plan_text||'],"cashAccountId":'||to_json(c->>'cashAccountId')::text||',"paymentDate":'||to_json(c->>'paymentDate')::text||',"amountReceived":'||to_json(c->>'amountReceived')::text||',"paymentMethod":'||to_json(c->>'paymentMethod')::text||',"notes":'||notes_text||',"receiptId":'||receipt_id||slip_text||'}';
   ELSE
   command_text:='{"schemaVersion":'||(c->>'schemaVersion')||',"requestId":'||to_json(c->>'requestId')::text||',"borrowerId":'||to_json(c->>'borrowerId')::text||',"selectedChargeIds":['||selection_text||'],"cashAccountId":'||to_json(c->>'cashAccountId')::text||',"paymentDate":'||to_json(c->>'paymentDate')::text||',"amountReceived":'||to_json(c->>'amountReceived')::text||',"paymentMethod":'||to_json(c->>'paymentMethod')::text||',"allocationMethod":'||to_json(c->>'allocationMethod')::text||',"notes":'||notes_text||',"receiptId":'||receipt_id||'}';
@@ -5570,8 +5839,8 @@ BEGIN
  END IF;
  payment_key:='pwa:'||request::text;
  BEGIN
-  -- v7 to v9 follow the slip date: today or yesterday in Bangkok, as the agent receipt command; v3-v6 stay today-only.
-  IF day<>(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date AND NOT (c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb) AND day=(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-1) THEN RAISE EXCEPTION USING ERRCODE='P4C01';END IF;
+  -- v7 to v10 follow the slip date: today or yesterday in Bangkok, as the agent receipt command; v3-v6 stay today-only.
+  IF day<>(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date AND NOT (c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) AND day=(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-1) THEN RAISE EXCEPTION USING ERRCODE='P4C01';END IF;
   PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=c->>'borrowerId' FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P4C02';END IF;
   IF NOT EXISTS(SELECT 1 FROM public."Cash Accounts" ca JOIN public."Cash Holders" ch ON ch."Row ID"=ca."Ref Cash Holder" WHERE ca."Row ID"=c->>'cashAccountId' AND ca."Active" AND ch."Active") THEN RAISE EXCEPTION USING ERRCODE='P4C03';END IF;
@@ -5589,7 +5858,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P4C04';
    END IF;
   END IF;
-  IF c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb) THEN
+  IF c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN
    PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers"=c->>'borrowerId' ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
    PERFORM 1 FROM public."Charges" ch JOIN public."Loans" l ON l."Row ID"=ch."Ref Loans" WHERE l."Ref Borrowers"=c->>'borrowerId' ORDER BY ch."Row ID" COLLATE "C" FOR UPDATE OF ch;
    -- R101 v9: under these locks, book each entry only while it is still that loan's next projected charge with the reviewed
@@ -5611,6 +5880,54 @@ BEGIN
        AND "Principal Due"::numeric=(entry->>'principalDue')::numeric AND "Interest Due"::numeric=(entry->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
     END LOOP;
    END IF;
+   -- R110 v10: under the same locks the server recomputes the pay-forward plan for this borrower, amount and business day
+   -- with the purpose the command carries (principal entries; forward for the loans of the lines dated after today) and
+   -- requires the allocations, materialize and principal entries to equal it exactly, with nothing uncovered and no loan
+   -- settled; drift is selection_unavailable (P4C05) and this sub-block rolls every change back. Then, in date order per
+   -- loan: today's charge is raised or booked (the accrued interest is the generator's arithmetic), the loan's Interest
+   -- Schedule Anchor Date becomes today, and the forward charges are booked through generate_loan_charge.
+   IF c->'schemaVersion'='10'::jsonb THEN
+    today:=(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;
+    SELECT array_agg(x ORDER BY x COLLATE "C") INTO forward_loans FROM (SELECT DISTINCT coalesce(m.item->>'loanId',ch."Ref Loans") x
+     FROM jsonb_array_elements(c->'allocations') a(item) LEFT JOIN jsonb_array_elements(c->'materialize') m(item) ON m.item->>'chargeId'=a.item->>'chargeId'
+     LEFT JOIN public."Charges" ch ON ch."Row ID"=a.item->>'chargeId' WHERE (a.item->>'chargeDate')::date>today) q;
+    IF array_position(forward_loans,NULL) IS NOT NULL THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+    purpose:=jsonb_build_object('forward',forward_loans IS NOT NULL,'loans',coalesce(to_jsonb(forward_loans),'null'::jsonb),
+     'principal',(SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',x->>'loanId','amount',x->>'amount') ORDER BY x->>'loanId' COLLATE "C"),'[]'::jsonb) FROM jsonb_array_elements(c->'principal') x));
+    plan:=public.pwa_pay_forward_plan_v1(c->>'borrowerId',(c->>'amountReceived')::numeric,today,purpose);
+    IF plan->'allocations' IS DISTINCT FROM c->'allocations' OR plan->'materialize' IS DISTINCT FROM c->'materialize' OR plan->>'uncovered' IS DISTINCT FROM '0' OR plan->'settles'<>'[]'::jsonb
+     OR (SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',x->'loanId','kind',x->'kind','chargeId',x->'chargeId','chargeDate',x->'chargeDate','amount',x->'amount','accruedInterest',x->'accruedInterest','principalDue',x->'principalDue') ORDER BY x->>'loanId' COLLATE "C"),'[]'::jsonb)
+      FROM jsonb_array_elements(plan->'principal') x) IS DISTINCT FROM c->'principal' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+    FOR entry IN SELECT value FROM jsonb_array_elements(c->'principal') LOOP
+     IF entry->>'kind'='raise' THEN
+      -- guard_charge_consistency allows raising a due; the expected old due makes a concurrent change a rejection.
+      UPDATE public."Charges" SET "Principal Due"=(entry->>'principalDue')::numeric::money WHERE "Row ID"=entry->>'chargeId' AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=today
+       AND "Principal Due"::numeric=(entry->>'principalDue')::numeric-(entry->>'amount')::numeric;
+      IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+     ELSE
+      IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=entry->>'chargeId') THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+      INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+       VALUES(entry->>'chargeId',entry->>'loanId',today,(entry->>'principalDue')::numeric::money,(entry->>'accruedInterest')::numeric::money);
+     END IF;
+     -- D9 interval reset: the first later scheduled charge is today plus the interval (a no-op on a schedule day).
+     UPDATE public."Loans" SET "Interest Schedule Anchor Date"=today WHERE "Row ID"=entry->>'loanId';
+    END LOOP;
+    FOR entry IN SELECT value FROM jsonb_array_elements(c->'materialize') LOOP
+     BEGIN
+      booked:=public.generate_loan_charge(entry->>'loanId',(entry->>'chargeDate')::date);
+     EXCEPTION WHEN SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P4C05';
+     END;
+     IF booked IS DISTINCT FROM entry->>'chargeId' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+     -- Current Daily Interest is recomputed only once the principal repayment posts, so for a loan repaying principal the
+     -- generator priced this charge at the old daily amount; its Interest Due becomes the plan's server-recomputed value
+     -- (new daily amount x days, never from the client), and the new daily amount is verified after posting below.
+     IF entry->>'loanId'=ANY(principal_loans) THEN
+      UPDATE public."Charges" SET "Interest Due"=(entry->>'interestDue')::numeric::money WHERE "Row ID"=booked AND "Interest Due"::numeric<>(entry->>'interestDue')::numeric;
+     END IF;
+     IF NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=booked AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=(entry->>'chargeDate')::date
+       AND "Principal Due"::numeric=(entry->>'principalDue')::numeric AND "Interest Due"::numeric=(entry->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+    END LOOP;
+   END IF;
    IF EXISTS(
     SELECT 1 FROM jsonb_array_elements(c->'allocations') AS entries(item)
     LEFT JOIN public."Charges" ch ON ch."Row ID"=entries.item->>'chargeId'
@@ -5625,12 +5942,21 @@ BEGIN
    VALUES(request,1,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,hash,'posted',payment_key,NULL);
   END IF;
   INSERT INTO public."Payments"("Row ID","Ref Borrower","Ref Received By Cash Account","Status","Amount Received","Payment Date","Payment Method","Allocation Method","Selected Charge IDs","Ref Target Charge","Created By","Notes","Uploaded Receipt","Bank Reference","Created At")
-   VALUES(payment_key,c->>'borrowerId',c->>'cashAccountId','Processing',(c->>'amountReceived')::numeric::money,day,c->>'paymentMethod',CASE WHEN c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb) THEN 'Selected Charges' ELSE c->>'allocationMethod' END,CASE WHEN c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb) OR c->>'allocationMethod'='Selected Charges' THEN array_to_string(ids,' , ') END,CASE WHEN c->>'allocationMethod'='Single Full' THEN ids[1] END,a->>'loginEmail',c->>'notes',r->>'storageReference',
-    CASE WHEN c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb) THEN c->>'bankReference' END,
+   VALUES(payment_key,c->>'borrowerId',c->>'cashAccountId','Processing',(c->>'amountReceived')::numeric::money,day,c->>'paymentMethod',CASE WHEN c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN 'Selected Charges' ELSE c->>'allocationMethod' END,CASE WHEN c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) OR c->>'allocationMethod'='Selected Charges' THEN array_to_string(ids,' , ') END,CASE WHEN c->>'allocationMethod'='Single Full' THEN ids[1] END,a->>'loginEmail',c->>'notes',r->>'storageReference',
+    CASE WHEN c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN c->>'bankReference' END,
     -- Slip date and transfer time become Created At, as the agent receipt command writes it.
-    CASE WHEN c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb) AND c->>'transferTime' IS NOT NULL THEN ((c->>'paymentDate')||' '||(c->>'transferTime')||':00')::timestamp END);
+    CASE WHEN c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) AND c->>'transferTime' IS NOT NULL THEN ((c->>'paymentDate')||' '||(c->>'transferTime')||':00')::timestamp END);
   SELECT "Status","Amount Received"::numeric INTO posted_status,posted_amount FROM public."Payments" WHERE "Row ID"=payment_key;
   IF posted_status IS DISTINCT FROM 'Posted' OR posted_amount IS DISTINCT FROM (c->>'amountReceived')::numeric THEN RAISE EXCEPTION USING ERRCODE='XX000',MESSAGE='Unexpected posting result';END IF;
+  -- R110 v10: run the existing loan refresh now (the deferred repayment trigger runs it again at commit as a no-op), so the
+  -- calculation trigger recomputes Current Daily Interest from the frozen rate; it must equal the plan's new daily amount
+  -- that priced the booked forward charges.
+  IF c->'schemaVersion'='10'::jsonb THEN
+   FOR entry IN SELECT value FROM jsonb_array_elements(plan->'principal') LOOP
+    PERFORM public.vc_refresh_loan(entry->>'loanId');
+    IF (SELECT "Current Daily Interest"::numeric FROM public."Loans" WHERE "Row ID"=entry->>'loanId') IS DISTINCT FROM (entry->>'dailyAfter')::numeric THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+   END LOOP;
+  END IF;
   -- R095 v8: learn the payer lines (row locked above) only while the column still equals what the form read; drift skips it.
   IF payer_after IS NOT NULL THEN
    UPDATE public."Borrowers" SET "Communication Name"=payer_after WHERE "Row ID"=c->>'borrowerId' AND coalesce("Communication Name",'') IS NOT DISTINCT FROM coalesce(payer_before,'');
@@ -5642,7 +5968,7 @@ BEGIN
   WHEN SQLSTATE 'P4C05' THEN outcome_value:='rejected';rejection:='selection_unavailable';
   WHEN SQLSTATE 'P4C04' THEN outcome_value:='rejected';rejection:='selection_unavailable';
  END;
- IF c->'schemaVersion' NOT IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb) OR outcome_value='rejected' THEN
+ IF c->'schemaVersion' NOT IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) OR outcome_value='rejected' THEN
  INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code)
  VALUES(request,1,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,hash,outcome_value,CASE WHEN outcome_value='posted' THEN payment_key ELSE NULL END,rejection);
  END IF;

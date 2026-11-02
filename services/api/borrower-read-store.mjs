@@ -3,7 +3,7 @@ import { businessToday, BUSINESS_TZ } from '../lib/business-date.mjs';
 import { normalizeSearchQuery, searchQueryHash } from './search-query.mjs';
 import { readUpcoming, validUpcomingDate, decodeUpcomingCursor } from './upcoming-read-contract.mjs';
 import { readCollection, decodeCollectionCursor } from './collection-read-contract.mjs';
-import { loanColumns, validLoanId, projectLoan, encodeLoanCursor, decodeLoanCursor, loanRankSql, borrowerDisplayName } from './loan-read-contract.mjs';
+import { loanColumns, loanPaidThroughColumn, validLoanId, projectLoan, encodeLoanCursor, decodeLoanCursor, loanRankSql, borrowerDisplayName } from './loan-read-contract.mjs';
 const borrowerRankSql = 'CASE WHEN "Has Active Loan" IS TRUE THEN 0 WHEN "Has Active Loan" IS FALSE THEN 1 ELSE 2 END';
 const borrowerRank = value => value === true ? 0 : value === false ? 1 : 2;
 const diagnosticCodes = new Set(['57014','53300','57P01','08000','08001','08003','08006','28P01','42501','ETIMEDOUT','ECONNRESET','ECONNREFUSED']);
@@ -136,7 +136,7 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date(), 
       return run(email, async client => {
         const parent = await client.query('SELECT "Row ID" AS id FROM public."Borrowers" WHERE "Hidden Flag" IS NOT TRUE AND "Row ID" = $1 LIMIT 2', [borrowerId]);
         if (parent.rows.length !== 1) return { parentMissing: true };
-        const result = await client.query(`SELECT ${loanColumns} FROM public."Loans" l JOIN public."Borrowers" b ON l."Ref Borrowers" = b."Row ID"
+        const result = await client.query(`SELECT ${loanColumns}, ${loanPaidThroughColumn} FROM public."Loans" l JOIN public."Borrowers" b ON l."Ref Borrowers" = b."Row ID"
           WHERE b."Hidden Flag" IS NOT TRUE AND b."Row ID" = $1
           AND ($2::boolean IS FALSE OR (${loanRankSql}) > $3::integer OR ((${loanRankSql}) = $3::integer AND (
             ($4::date IS NOT NULL AND (l."Loan Date" < $4::date OR l."Loan Date" IS NULL OR (l."Loan Date" = $4::date AND l."Row ID" COLLATE "C" > $5::text COLLATE "C")))

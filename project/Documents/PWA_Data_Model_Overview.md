@@ -6,7 +6,7 @@ Current native ownership, 14 October 2026. Exact definitions belong in the [dict
 | --- | --- |
 | Borrowers | Stable keys referenced by loans, payments and optional assessments |
 | Loans | Original terms/principal/rate; charges are obligations, repayments are allocations |
-| Payments | Original receipt/command; allocations link payments to charges with SQL-owned cash effects |
+| Payments | Original receipt/command; allocations link payments to charges with SQL-owned cash effects. R110: a remainder can book ordinary future charges (key `pf121:`) and raise or book today's Principal Due inside the payment command; deleting the payment leaves those charges, which reopen unpaid. A principal repayment on a Daily interest loan recomputes daily interest from the frozen rate and moves the Interest Schedule Anchor Date to the payment day; no table or column is added |
 | Cash | Holders own accounts; source transactions produce ledger effects; openings/transfers preserve reconciliation |
 | Partners | Sign-in/roles, contributions and settlements; delivery preference is separate from identity |
 | Expenses | Obligations/cash effects; linked reimbursements remain independent where defined |

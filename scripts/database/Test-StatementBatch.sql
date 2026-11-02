@@ -176,6 +176,8 @@ END $$;
 \ir Test-PayerName.sql
 -- V112 (R101): the next projected charge offer and the v9 payment that books it, under the DEV command user (rolled back).
 \ir Test-ProjectedChargePayment.sql
+-- V121 (R110): pay forward plan and the v10 command (parity with the generator, principal book/raise, split, horizon, drift, delete), rolled back.
+\ir Test-PayForward.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).

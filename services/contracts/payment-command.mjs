@@ -47,9 +47,10 @@ export function canonicalAllocationPlan(amountReceived, input) {
  * R101 v9 materialize: the next projected charges this payment books before posting, one per loan. Each entry names the
  * generator key cg8:<length in code points>:<loan>:<date> (SQL length() counts characters) and is paid by exactly one
  * allocation line that expects the whole projected charge. Entries are sorted by chargeId byte order.
+ * R110 v10 ({several:true}): 0 to 200 entries, several per loan (each chargeId once; byte order keeps a loan's dates in order).
  */
-export function canonicalMaterializePlan(input,allocations){
-  if(!Array.isArray(input)||input.length<1||input.length>100||!Array.isArray(allocations))fail();
+export function canonicalMaterializePlan(input,allocations,{several=false}={}){
+  if(!Array.isArray(input)||input.length<(several?0:1)||input.length>(several?200:100)||!Array.isArray(allocations))fail();
   const entries=Array.from(input,row=>{
     exact(row,['loanId','chargeId','chargeDate','principalDue','interestDue']);
     const loanId=id(row.loanId),chargeDate=date(row.chargeDate),principalDue=whole(row.principalDue),interestDue=whole(row.interestDue);
@@ -57,11 +58,41 @@ export function canonicalMaterializePlan(input,allocations){
     if(!allocations.some(line=>line.chargeId===row.chargeId&&line.chargeDate===chargeDate&&line.expectedPrincipalRemaining===principalDue&&line.expectedInterestRemaining===interestDue))fail();
     return {loanId,chargeId:row.chargeId,chargeDate,principalDue,interestDue};
   });
-  if(new Set(entries.map(row=>row.loanId)).size!==entries.length||new Set(entries.map(row=>row.chargeId)).size!==entries.length)fail();
+  if((!several&&new Set(entries.map(row=>row.loanId)).size!==entries.length)||new Set(entries.map(row=>row.chargeId)).size!==entries.length)fail();
   entries.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId,'utf8'),Buffer.from(b.chargeId,'utf8')));
   return freeze(entries);
 }
-/** R075 v7 slip fields (also v8 and v9): printed bank reference (spaces/dashes removed, upper case) or null. */
+/**
+ * R110 v10 principal: 0 to 20 entries {loanId, kind, chargeId, chargeDate, amount, accruedInterest, principalDue}, one per
+ * loan, sorted by loanId byte order. kind "raise" raises the Principal Due of the loan's charge dated chargeDate to
+ * principalDue (accruedInterest "0"); kind "book" books that day's charge pf121:<length in code points>:<loan>:<date> with
+ * principalDue = amount and the accrued interest. Each is paid by an allocation line of that charge with at least the amount
+ * as principal. The server recomputes the whole plan (pwa_pay_forward_plan_v1) and requires this to equal it.
+ */
+export function canonicalPrincipalPlan(input,allocations){
+  if(!Array.isArray(input)||input.length>20||!Array.isArray(allocations))fail();
+  const entries=Array.from(input,row=>{
+    exact(row,['loanId','kind','chargeId','chargeDate','amount','accruedInterest','principalDue']);
+    const loanId=id(row.loanId),chargeId=id(row.chargeId),chargeDate=date(row.chargeDate),amount=whole(row.amount),accruedInterest=whole(row.accruedInterest),principalDue=whole(row.principalDue);
+    if(/[,\s]/u.test(chargeId)||amount==='0'||!['raise','book'].includes(row.kind))fail();
+    if(row.kind==='book'&&(chargeId!=='pf121:'+Array.from(loanId).length+':'+loanId+':'+chargeDate||principalDue!==amount))fail();
+    if(row.kind==='raise'&&(accruedInterest!=='0'||BigInt(principalDue)<BigInt(amount)))fail();
+    if(!allocations.some(line=>line.chargeId===chargeId&&line.chargeDate===chargeDate&&BigInt(line.principal)>=BigInt(amount)))fail();
+    return {loanId,kind:row.kind,chargeId,chargeDate,amount,accruedInterest,principalDue};
+  });
+  if(new Set(entries.map(row=>row.loanId)).size!==entries.length)fail();
+  entries.sort((a,b)=>Buffer.compare(Buffer.from(a.loanId,'utf8'),Buffer.from(b.loanId,'utf8')));
+  return freeze(entries);
+}
+/**
+ * R110: a v10 command with a materialize or principal entry is dated the business day (the plan is today's); other
+ * commands are not restricted here. Pure: the caller supplies the business date.
+ */
+export function payForwardDayAllowed(command,businessDate){
+  if(command?.schemaVersion!==10)return true;
+  return (command.materialize.length===0&&command.principal.length===0)||command.paymentDate===businessDate;
+}
+/** R075 v7 slip fields (also v8 to v10): printed bank reference (spaces/dashes removed, upper case) or null. */
 function bankReference(value) {
   if (value === null) return null;
   if (typeof value !== 'string' || value.length > 400) fail();
@@ -76,11 +107,12 @@ function transferTime(value) {
   return value.slice(0, 5);
 }
 export function canonicalCommand(input) {
-  if(input?.schemaVersion===6||input?.schemaVersion===7||input?.schemaVersion===8||input?.schemaVersion===9){
+  if([6,7,8,9,10].includes(input?.schemaVersion)){
     // R095 v8 = v7 plus payerLines (null or the payer-lines change {before, after}, Bank Transfer only).
     // R101 v9 = v8 plus materialize (the next projected charges to book), set last.
-    const v7=input.schemaVersion>=7,v8=input.schemaVersion>=8,v9=input.schemaVersion===9;
-    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId',...(v7?['bankReference','transferTime']:[]),...(v8?['payerLines']:[]),...(v9?['materialize']:[])]);
+    // R110 v10 = v8 plus materialize (several per loan, may be empty) and principal; at least one entry in the two.
+    const v7=input.schemaVersion>=7,v8=input.schemaVersion>=8,v9=input.schemaVersion===9,v10=input.schemaVersion===10;
+    exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId',...(v7?['bankReference','transferTime']:[]),...(v8?['payerLines']:[]),...(v9||v10?['materialize']:[]),...(v10?['principal']:[])]);
     const allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);
     if(!['Bank Transfer','Cash','Net-off at Disbursement'].includes(input.paymentMethod) || !(input.notes===null || (typeof input.notes==='string'&&input.notes.isWellFormed()&&!input.notes.includes('\0')&&Buffer.byteLength(input.notes,'utf8')<=65536)))fail();
     const command={schemaVersion:input.schemaVersion,requestId:requestId(input.requestId),borrowerId:id(input.borrowerId),allocations,cashAccountId:id(input.cashAccountId),paymentDate:date(input.paymentDate),amountReceived:input.amountReceived,paymentMethod:input.paymentMethod,notes:input.notes===''?null:input.notes,receiptId:input.receiptId===null?null:requestId(input.receiptId)};
@@ -93,6 +125,11 @@ export function canonicalCommand(input) {
         if(!validPayerLines(input.payerLines)||(input.paymentMethod!=='Bank Transfer'&&input.payerLines!==null))fail();
         command.payerLines=input.payerLines===null?null:{before:input.payerLines.before,after:input.payerLines.after};
         if(v9)command.materialize=canonicalMaterializePlan(input.materialize,allocations);
+        if(v10){
+          command.materialize=canonicalMaterializePlan(input.materialize,allocations,{several:true});
+          command.principal=canonicalPrincipalPlan(input.principal,allocations);
+          if(!command.materialize.length&&!command.principal.length)fail();
+        }
       }
     }
     return freeze(command);
