@@ -109,6 +109,21 @@ Findings, none blocking:
 
 DEV left in place, as in R109 and R110: the four borrower pairs and their closed loans, the rebate expenses, the offset payments of A and D and the booked referrer charges. `autoChargeEnabled` was switched off on the three open referrer loans so the daily jobs add nothing; the token file was deleted.
 
+### DEV end-to-end record: the extension (V124)
+
+Chase, 2 November 2026, on V124 as deployed (head 124, image `608cfb53`, Hosting `bc10507c42048484`). Same safeguards as above: `claude-dev-test`, synthetic borrowers "R111X SYNTHETIC REFERRER/REFERRED A to C", no push forced. The referred loans were closed by the real Receive payment command v7 (the due charge raised to carry the principal with `charge.update`, paid in full).
+
+| Case | Result |
+| --- | --- |
+| (a) A, daily-interest loan cleared by a payment of 1,100 | Loan closed; expense 20 linked to `ro122:pwa:…` (payment of 20, method Referral Rebate Offset, "Rebate from loan <key>"); referrer charges 1, 2 and 3 Nov all paid; Lisa's cash for this pair +20 IN and -20 OUT. Payment record API: `closeRebate` amount 20, offset 20, payable 0, paid through 3 Nov |
+| (b) B, last installment (principal 100, due today, payment 60) | Closed; rebate 2 offset (`ro122:`), part-paying the referrer's due charge (8 left), Lisa +2 IN and -2 OUT; `closeRebate` offset 2, no paid-through date |
+| (c) C, referrer with no open loan | Closed; expense 20 paid by Lisa, no offset payment; `closeRebate` payable 20 with no offset (the "transfer from Lisa" line). Push facts not readable: `/api/notifications` is empty for the test Partner and the content RPC is dispatcher-only (covered by `Test-RebateOffset.sql`) |
+| (d) Delete A's closing payment | A lone delete of the offset payment: 422 `dependency_conflict`. Deleting the closing payment: expense and offset payment gone, the three referrer charges stay booked and open, the loan reopens |
+| (e) Collection "Paid in advance · <date>" (R110 leftover) | Skipped: the business day is still 2 November |
+| Phone pass, 390 px, payment record of B and C | **Defect: the "Loan closed · rebate …" line does not appear.** The record API returns `closeRebate` with amounts as two-decimal text ("2.00", "20.00"), and `PaymentRecord.tsx` reads them with `whole()` (integers only), so the line is never drawn. The Playwright specs missed it because their mock sent whole numbers; `rebate-offset-independent.spec.ts` now mocks the API format and fails on the three line cases until the reader accepts the decimals (or the API sends whole baht) |
+
+DEV left in place: the three synthetic pairs, their payments and the offset payments of B; auto-charge is off on the open loans (the referrer loans of A and B and A's reopened referred loan); the token file is deleted.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on screen and WebKit or a real iPhone (Echo checked Chromium only).

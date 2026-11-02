@@ -126,7 +126,8 @@ test('Expenses: an offset-settled rebate reads "Settled by offset" with the refe
 
 // R111 extension (V124): a loan closed by Receive payment shows, on the closing payment, what became of its rebate (Echo RP-11).
 // The record field `closeRebate` and its keys are Byte's contract to align; the wording is Echo's.
-const closeRebate=(over:any={})=>({loanId:'C-loan',amount:'300',referrerLabel:'ผู้แนะนำจำลอง',offsetPaymentId:'ro122:pwa:C-closing',offsetAmount:'300',payableAmount:'0',offsetLoanId:'C-referrer-loan',offsetLoanLabel:'L-0398',paidThrough:'2026-10-12',...over});
+// Amounts as the API sends them (numeric text with two decimals, found on DEV: a whole-number-only reader hid the line).
+const closeRebate=(over:any={})=>({loanId:'C-loan',amount:'300.00',referrerLabel:'ผู้แนะนำจำลอง',offsetPaymentId:'ro122:pwa:C-closing',offsetAmount:'300.00',payableAmount:'0',offsetLoanId:'C-referrer-loan',offsetLoanLabel:'L-0398',paidThrough:'2026-10-12',...over});
 async function openClosingPayment(page:Page,rebateLine:any){
  const row={id:'C-closing',paymentDate:'2026-10-09',month:'2026-10',borrowerId:record.id,borrowerDisplayName:'SYNTHETIC closing borrower',status:'Posted',amountReceived:'1300',postedAmount:'1300',createdAt:null,groupAmountReceived:'1300'};
  await page.route('https://mw-credit-app-command-dev-test.run.app/api/payment-records**',r=>{const u=new URL(r.request().url());
@@ -147,7 +148,7 @@ test('the closing payment shows the transfer from Lisa when the rebate is paid o
  await expect(detail).toContainText('Loan closed · rebate ฿300 to ผู้แนะนำจำลอง, transfer from Lisa');
 });
 test('a partly offset rebate adds the payable suffix; a payment without a rebate shows no rebate line',async({page})=>{
- await setup(page);const detail=await openClosingPayment(page,closeRebate({offsetAmount:'200',payableAmount:'100'}));
+ await setup(page);const detail=await openClosingPayment(page,closeRebate({offsetAmount:'200.00',payableAmount:'100'}));
  await expect(detail).toContainText('rebate ฿200 offset to L-0398, paid through 12 Oct · ฿100 stays payable');
 });
 test('an ordinary payment has no Loan closed rebate line',async({page})=>{
