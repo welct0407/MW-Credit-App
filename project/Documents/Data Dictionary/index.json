@@ -5374,6 +5374,10 @@
         {
           "subject": "Principal Write-offs MTD",
           "pointer": "/content/columns/Principal Write-offs MTD"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/columns/Principal Write-offs"
         }
       ]
     },

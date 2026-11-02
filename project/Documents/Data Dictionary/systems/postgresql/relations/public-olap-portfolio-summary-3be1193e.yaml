@@ -203,7 +203,8 @@
                   - er.mtd AS "Income Statement Expenses MTD",
                   br.long_overdue_count AS "Borrowers with Long Overdue Payment",
                   lr.principal_loss AS "Total Principal Loss",
-                  rr.writeoff_mtd AS "Principal Write-offs MTD"
+                  rr.writeoff_mtd AS "Principal Write-offs MTD",
+                  rr.writeoff AS "Principal Write-offs"
                  FROM "Statistics" s
                    CROSS JOIN ctx
                    CROSS JOIN lr
@@ -262,6 +263,7 @@
                   a."Borrowers with Long Overdue Payment",
                   a."Total Principal Loss",
                   a."Principal Write-offs MTD",
+                  a."Principal Write-offs",
                       CASE
                           WHEN a."Forecast Average Daily Outstanding Principal" > 0::numeric THEN a."Projected Monthly Profit" / a."Forecast Average Daily Outstanding Principal"
                           ELSE 0::numeric
@@ -312,7 +314,8 @@
           round("Operating Income MTD", 0) AS "Operating Income MTD",
           "Borrowers with Long Overdue Payment",
           round("Total Principal Loss", 0) AS "Total Principal Loss",
-          round("Principal Write-offs MTD", 0) AS "Principal Write-offs MTD"
+          round("Principal Write-offs MTD", 0) AS "Principal Write-offs MTD",
+          round("Principal Write-offs", 0) AS "Principal Write-offs"
          FROM final x;
     "partition_key": null
     "partition_bound": null
@@ -1129,6 +1132,24 @@
       "collation": null
       "acl": null
       "comment": null
+    "Principal Write-offs":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Principal Write-offs"
+      "ordinal": 46
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
   "indexes": {}
   "triggers": {}
@@ -1462,6 +1483,6 @@
     "referenced_column": "Row ID"
 "evidence":
   "/content/definition/view_definition":
-    "reference": "database/migrations/V128__principal_writeoff_segregation.sql"
-    "reason": "R116: definition and the appended column Principal Write-offs MTD read from a disposable PostgreSQL chain at V128 (not a PROD capture); refresh by targeted capture after V128 is applied to PROD."
+    "reference": "database/migrations/V129__portfolio_lifetime_writeoffs.sql"
+    "reason": "R116: definition and the appended columns Principal Write-offs MTD (V128) and Principal Write-offs (V129, the lifetime ledger sum of df10: principal) read from a disposable PostgreSQL chain at V129 (not a PROD capture); refresh by targeted capture after V129 is applied to PROD."
     "observedAt": "2026-11-02T18:30:00+00:00"
