@@ -48,13 +48,15 @@
                   COALESCE(sum(olap_loans_analytics."Default Loss Amount"::numeric), 0::numeric) AS principal_loss
                  FROM olap_loans_analytics
               ), rr AS (
-               SELECT COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric), 0::numeric) AS profit,
-                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" = ctx.d), 0::numeric) AS today,
-                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" = (ctx.d - 1)), 0::numeric) AS yesterday,
-                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" >= ctx.ms AND olap_repayments_analytics."Payment Date" <= ctx.me), 0::numeric) AS mtd,
+               SELECT COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS profit,
+                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" = ctx.d AND NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS today,
+                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" = (ctx.d - 1) AND NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS yesterday,
+                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" >= ctx.ms AND olap_repayments_analytics."Payment Date" <= ctx.me AND NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS mtd,
                   COALESCE(sum(olap_repayments_analytics."Principal Returned Days MTD"), 0::numeric) AS returned_days,
                   COALESCE(sum(olap_repayments_analytics."Partner A Profit"), 0::numeric) AS profit_a,
-                  COALESCE(sum(olap_repayments_analytics."Partner B Profit"), 0::numeric) AS profit_b
+                  COALESCE(sum(olap_repayments_analytics."Partner B Profit"), 0::numeric) AS profit_b,
+                  COALESCE(sum(olap_repayments_analytics."Principal Paid"::numeric) FILTER (WHERE starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS writeoff,
+                  COALESCE(sum(olap_repayments_analytics."Principal Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" >= ctx.ms AND olap_repayments_analytics."Payment Date" <= ctx.me AND starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS writeoff_mtd
                  FROM olap_repayments_analytics
                    CROSS JOIN ctx
               ), cr AS (
@@ -192,15 +194,16 @@
                           ELSE cr.paid / cr.due
                       END AS "Amount Collection Rate Today",
                   er.total AS "Total Business Expenses",
-                  rr.profit - er.total AS "Net Profit",
+                  rr.profit - rr.writeoff - er.total AS "Net Profit",
                   er.mtd AS "Expenses MTD",
-                  rr.mtd - er.mtd AS "Net Profit MTD",
+                  rr.mtd - rr.writeoff_mtd - er.mtd AS "Net Profit MTD",
                   earned.total - settled.total - er.total AS "Net Unsettled Profit",
                   pool.total - lr.principal + earned.total - settled.total - er.total AS "Net Expected Loan Account Balance",
                   rr.mtd AS "Operating Income MTD",
                   - er.mtd AS "Income Statement Expenses MTD",
                   br.long_overdue_count AS "Borrowers with Long Overdue Payment",
-                  lr.principal_loss AS "Total Principal Loss"
+                  lr.principal_loss AS "Total Principal Loss",
+                  rr.writeoff_mtd AS "Principal Write-offs MTD"
                  FROM "Statistics" s
                    CROSS JOIN ctx
                    CROSS JOIN lr
@@ -258,6 +261,7 @@
                   a."Income Statement Expenses MTD",
                   a."Borrowers with Long Overdue Payment",
                   a."Total Principal Loss",
+                  a."Principal Write-offs MTD",
                       CASE
                           WHEN a."Forecast Average Daily Outstanding Principal" > 0::numeric THEN a."Projected Monthly Profit" / a."Forecast Average Daily Outstanding Principal"
                           ELSE 0::numeric
@@ -307,7 +311,8 @@
           round("Income Statement Expenses MTD", 0) AS "Income Statement Expenses MTD",
           round("Operating Income MTD", 0) AS "Operating Income MTD",
           "Borrowers with Long Overdue Payment",
-          round("Total Principal Loss", 0) AS "Total Principal Loss"
+          round("Total Principal Loss", 0) AS "Total Principal Loss",
+          round("Principal Write-offs MTD", 0) AS "Principal Write-offs MTD"
          FROM final x;
     "partition_key": null
     "partition_bound": null
@@ -1106,6 +1111,24 @@
       "collation": null
       "acl": null
       "comment": null
+    "Principal Write-offs MTD":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Principal Write-offs MTD"
+      "ordinal": 45
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
   "indexes": {}
   "triggers": {}
@@ -1425,4 +1448,20 @@
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Principal Returned Days MTD"
+
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Row ID"
+"evidence":
+  "/content/definition/view_definition":
+    "reference": "database/migrations/V128__principal_writeoff_segregation.sql"
+    "reason": "R116: definition and the appended column Principal Write-offs MTD read from a disposable PostgreSQL chain at V128 (not a PROD capture); refresh by targeted capture after V128 is applied to PROD."
+    "observedAt": "2026-11-02T18:30:00+00:00"

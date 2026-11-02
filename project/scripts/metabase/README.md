@@ -145,6 +145,26 @@ The `Verify-*` scripts read their baselines through `Baselines.mjs` (`baselineDi
 
 `node scripts/metabase/Baselines.mjs --refresh` (from `project/`, owner-approved, never implicit) is the only command that writes to the bucket: it asserts the PROD reporting source, captures the files with read-only Metabase API calls, refuses a credential-bearing file or an empty or partial capture, then replaces each prefix. `Verify-CollectionMonitor.mjs` runs live against these baselines (41 pass, 1 data-dependent skip, 0 fail on 28 October 2026). `Verify-RemainingPages.mjs` is not runnable because its install state cannot be derived.
 
+## R116 Principal write-off segregation
+
+V128 makes "Operating Income" gross profit and appends a positive write-off column ("Principal Write-offs", "Principal Write-offs MTD") to the Income Statement views; net profit is unchanged. The models stay pass-through (their SQL is unchanged). `Refine-WriteOffSegregation.mjs` (`--plan`, `--prepare`, `--apply`, `--verify`) changes the Income Statement page (dashboard 3, tab 16) and reads PROD only, so it runs at the PROD promotion, after V128 is applied and under the owner's approval:
+
+- snippet 2 "Income statement period" (`live-income-period.sql`) gains the signed column "Principal Write-offs"; Net Profit = Operating Income + Operating Expenses + Principal Write-offs;
+- model 186 Income Events gains "Principal Write-offs" in its result metadata;
+- a new scalar question "Principal write-offs" (the dashboard 32 `income.writeoffs` card is its Loan Reports counterpart) and a "Write-offs" step in the waterfall 204, which ends at Net profit; the scalar row becomes Income, Expenses, Principal write-offs, Net profit, and the formula note and waterfall title name write-offs.
+
+`--prepare` captures the private baseline and refuses to overwrite one; `--apply` refuses unless the source carries V128 and every touched object equals the baseline, and skips steps already done; `--verify` checks period parity against independent SQL on the governed views, parity with "Cash Dashboard" and preservation of every other placement. Rollback: restore the private baseline and archive the new question; V128 stays. `StatementCleanup.mjs` builds the same page from `WriteOffSegregation.mjs`.
+
+PROD promotion order:
+
+1. V128 (guarded migration runner).
+2. `Refine-WriteOffSegregation.mjs --prepare`, then `--apply`.
+3. `ProposedLoanReports.mjs --rebaseline-dashboard3=R116` (renews the dashboard 3 guard baseline once, after the new question is placed).
+4. `ProposedLoanReports.mjs --refine --only=income.vs-previous,income.monthly,income.writeoffs` (dashboard 32's own income questions).
+5. Both `--verify` runs: `Refine-WriteOffSegregation.mjs --verify` and `ProposedLoanReports.mjs --verify`.
+
+After promotion, refresh the Metabase dictionary entry of model 186 and the PostgreSQL view definitions by a targeted PROD capture.
+
 ## R102 Long overdue lane
 
 `AddLongOverdueLane.mjs --prepare`, `--apply`, `--verify` adds the Collection Monitor lane "Long overdue" (status 'Long Overdue', colour `#37474f`) between Overdue and Paid on dashboard 3 tab 19, with its two cards and the matching status selector and color rule, and updates the lane model `models/collection-summary.sql`. It snapshots the current objects privately and refuses to replay. It reads PROD only, so run it right after the PROD promotion that installs V114 (until then the `unclassified` card shows a positive count), then `--verify` and `Verify-CollectionMonitor.mjs`, which now expects five lanes. The Loan Reports proposed dashboard lanes follow the same order. Overdue now means 1 to 7 days.

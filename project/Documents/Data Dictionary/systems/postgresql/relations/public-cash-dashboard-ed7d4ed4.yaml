@@ -31,11 +31,12 @@
                   date_trunc('month'::text, q.d::timestamp with time zone)::date AS ms
                  FROM ( SELECT olap_reporting_date() AS d) q
               ), profit AS (
-               SELECT COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS income,
+               SELECT COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND NOT starts_with(r."Row ID", 'df10:'::text)), 0::numeric) AS income,
                   COALESCE(sum(r."Partner A Profit") FILTER (WHERE r."Payment Date" < ctx.ms), 0::numeric) AS prior_a,
                   COALESCE(sum(r."Partner B Profit") FILTER (WHERE r."Payment Date" < ctx.ms), 0::numeric) AS prior_b,
                   COALESCE(sum(r."Partner A Profit") FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS month_a,
-                  COALESCE(sum(r."Partner B Profit") FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS month_b
+                  COALESCE(sum(r."Partner B Profit") FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS month_b,
+                  COALESCE(sum(r."Principal Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND starts_with(r."Row ID", 'df10:'::text)), 0::numeric) AS writeoff
                  FROM olap_repayments_analytics r
                    CROSS JOIN ctx
                 WHERE r."Payment Date" <= ctx.d
@@ -58,6 +59,7 @@
               ), allocated AS (
                SELECT profit.income,
                   expense.amount,
+                  profit.writeoff,
                   fifo_current_month_settled(profit.prior_a - expense.prior_a, profit.month_a - expense.month_a, settled.a) AS a,
                   fifo_current_month_settled(profit.prior_b - expense.prior_b, profit.month_b - expense.month_b, settled.b) AS b
                  FROM profit
@@ -74,12 +76,13 @@
        SELECT 'cash-dashboard'::text AS "Row ID",
           allocated.income AS "Operating Income MTD",
           - allocated.amount AS "Expenses MTD",
-          allocated.income - allocated.amount AS "Net Profit MTD",
+          allocated.income - allocated.amount - allocated.writeoff AS "Net Profit MTD",
           - allocated.a AS "Tommy Withdrawn MTD",
           - allocated.b AS "Lisa Withdrawn MTD",
-          allocated.income - allocated.amount - allocated.a - allocated.b AS "Unsettled Profit MTD",
+          allocated.income - allocated.amount - allocated.writeoff - allocated.a - allocated.b AS "Unsettled Profit MTD",
           pool."Available Cashpool"::numeric AS "Cash Pool Remaining",
-          cash.held AS "Business Cash Held"
+          cash.held AS "Business Cash Held",
+          allocated.writeoff AS "Principal Write-offs MTD"
          FROM allocated
            CROSS JOIN "Loan Form Context" pool
            CROSS JOIN cash;
@@ -250,6 +253,24 @@
       "collation": null
       "acl": "{metabase_borrower_reader=r/postgres}"
       "comment": null
+    "Principal Write-offs MTD":
+      "schema": "public"
+      "relation": "Cash Dashboard"
+      "name": "Principal Write-offs MTD"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
   "indexes": {}
   "triggers": {}
@@ -340,8 +361,22 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Row ID"
 "evidence":
   "/content/definition/acl":
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/definition/view_definition":
+    "reference": "database/migrations/V128__principal_writeoff_segregation.sql"
+    "reason": "R116: definition and the appended column Principal Write-offs MTD read from a disposable PostgreSQL chain at V128 (not a PROD capture); refresh by targeted capture after V128 is applied to PROD."
+    "observedAt": "2026-11-02T18:30:00+00:00"

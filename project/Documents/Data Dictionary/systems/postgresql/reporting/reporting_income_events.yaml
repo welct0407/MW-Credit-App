@@ -35,15 +35,23 @@
     "view_definition": |2-
        SELECT 'repayment:'::text || olap_repayments_analytics."Row ID" AS "Event ID",
           olap_repayments_analytics."Payment Date" AS "Date",
-          olap_repayments_analytics."Interest Paid"::numeric AS "Income",
-          0::numeric AS "Expenses"
+              CASE
+                  WHEN starts_with(olap_repayments_analytics."Row ID", 'df10:'::text) THEN 0::numeric
+                  ELSE olap_repayments_analytics."Interest Paid"::numeric
+              END AS "Income",
+          0::numeric AS "Expenses",
+              CASE
+                  WHEN starts_with(olap_repayments_analytics."Row ID", 'df10:'::text) THEN olap_repayments_analytics."Principal Paid"::numeric
+                  ELSE 0::numeric
+              END AS "Principal Write-offs"
          FROM olap_repayments_analytics
         WHERE olap_repayments_analytics."Payment Date" <= olap_reporting_date()
       UNION ALL
        SELECT 'expense:'::text || "Business Expenses"."Row ID" AS "Event ID",
           "Business Expenses"."Expense Date" AS "Date",
           0::numeric AS "Income",
-          "Business Expenses"."Amount"::numeric AS "Expenses"
+          "Business Expenses"."Amount"::numeric AS "Expenses",
+          0::numeric AS "Principal Write-offs"
          FROM "Business Expenses"
         WHERE "Business Expenses"."Expense Date" <= olap_reporting_date();
     "partition_key": null
@@ -123,6 +131,24 @@
       "collation": null
       "acl": null
       "comment": null
+    "Principal Write-offs":
+      "schema": "public"
+      "relation": "reporting_income_events"
+      "name": "Principal Write-offs"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
   "indexes": {}
   "triggers": {}
@@ -157,9 +183,18 @@
     "relation": "reporting_income_events"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_income_events"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Row ID"
 "evidence":
   "/content/definition/acl":
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/definition/view_definition":
+    "reference": "database/migrations/V128__principal_writeoff_segregation.sql"
+    "reason": "R116: definition and the appended column Principal Write-offs read from a disposable PostgreSQL chain at V128 (not a PROD capture); refresh by targeted capture after V128 is applied to PROD."
+    "observedAt": "2026-11-02T18:30:00+00:00"

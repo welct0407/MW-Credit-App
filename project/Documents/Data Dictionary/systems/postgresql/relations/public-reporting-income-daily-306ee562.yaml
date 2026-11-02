@@ -27,9 +27,10 @@
     "view_definition": |2-
        WITH income AS (
                SELECT olap_repayments_analytics."Payment Date" AS d,
-                  sum(olap_repayments_analytics."Interest Paid"::numeric) AS income,
+                  sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)) AS income,
                   sum(olap_repayments_analytics."Partner A Profit") AS pa,
-                  sum(olap_repayments_analytics."Partner B Profit") AS pb
+                  sum(olap_repayments_analytics."Partner B Profit") AS pb,
+                  sum(olap_repayments_analytics."Principal Paid"::numeric) FILTER (WHERE starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)) AS writeoff
                  FROM olap_repayments_analytics
                 WHERE olap_repayments_analytics."Payment Date" <= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date
                 GROUP BY olap_repayments_analytics."Payment Date"
@@ -77,7 +78,8 @@
                   COALESCE(i.pa, 0::numeric) - COALESCE(e.pa, 0::numeric) AS pa_net,
                   COALESCE(i.pb, 0::numeric) - COALESCE(e.pb, 0::numeric) AS pb_net,
                   COALESCE(s.pa, 0::numeric) AS pa_settled,
-                  COALESCE(s.pb, 0::numeric) AS pb_settled
+                  COALESCE(s.pb, 0::numeric) AS pb_settled,
+                  COALESCE(i.writeoff, 0::numeric) AS writeoff
                  FROM calendar c
                    LEFT JOIN income i USING (d)
                    LEFT JOIN expenses e USING (d)
@@ -88,14 +90,15 @@
           income AS "Operating Income",
           expense AS "Expenses",
           - expense AS "Signed Expenses",
-          income - expense AS "Net Profit",
+          income - expense - writeoff AS "Net Profit",
           pa_net AS "Partner A Net Profit",
           pb_net AS "Partner B Net Profit",
           COALESCE(sum(pa_net) OVER (ORDER BY d ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0::numeric) AS "Prior Partner A Net",
           COALESCE(sum(pb_net) OVER (ORDER BY d ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0::numeric) AS "Prior Partner B Net",
           sum(pa_settled) OVER (ORDER BY d ROWS UNBOUNDED PRECEDING) AS "Partner A Settled Through Date",
           sum(pb_settled) OVER (ORDER BY d ROWS UNBOUNDED PRECEDING) AS "Partner B Settled Through Date",
-          sum(income - expense) OVER (ORDER BY d ROWS UNBOUNDED PRECEDING) AS "Net Profit Through Date"
+          sum(income - expense - writeoff) OVER (ORDER BY d ROWS UNBOUNDED PRECEDING) AS "Net Profit Through Date",
+          writeoff AS "Principal Write-offs"
          FROM daily;
     "partition_key": null
     "partition_bound": null
@@ -336,6 +339,24 @@
       "collation": null
       "acl": null
       "comment": null
+    "Principal Write-offs":
+      "schema": "public"
+      "relation": "reporting_income_daily"
+      "name": "Principal Write-offs"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
   "indexes": {}
   "triggers": {}
@@ -421,8 +442,22 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_income_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_income_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Row ID"
 "evidence":
   "/content/definition/acl":
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/definition/view_definition":
+    "reference": "database/migrations/V128__principal_writeoff_segregation.sql"
+    "reason": "R116: definition and the appended column Principal Write-offs read from a disposable PostgreSQL chain at V128 (not a PROD capture); refresh by targeted capture after V128 is applied to PROD."
+    "observedAt": "2026-11-02T18:30:00+00:00"

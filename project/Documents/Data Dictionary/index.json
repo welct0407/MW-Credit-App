@@ -4306,6 +4306,10 @@
         {
           "subject": "Business Cash Held",
           "pointer": "/content/columns/Business Cash Held"
+        },
+        {
+          "subject": "Principal Write-offs MTD",
+          "pointer": "/content/columns/Principal Write-offs MTD"
         }
       ]
     },
@@ -5366,6 +5370,10 @@
         {
           "subject": "Total Principal Loss",
           "pointer": "/content/columns/Total Principal Loss"
+        },
+        {
+          "subject": "Principal Write-offs MTD",
+          "pointer": "/content/columns/Principal Write-offs MTD"
         }
       ]
     },
@@ -7649,6 +7657,10 @@
         {
           "subject": "Net Profit Through Date",
           "pointer": "/content/columns/Net Profit Through Date"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/columns/Principal Write-offs"
         }
       ]
     },
@@ -7696,6 +7708,10 @@
         {
           "subject": "In Last 12 Months",
           "pointer": "/content/columns/In Last 12 Months"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/columns/Principal Write-offs"
         }
       ]
     },
@@ -7779,6 +7795,10 @@
         {
           "subject": "Cash Reconciliation Status",
           "pointer": "/content/columns/Cash Reconciliation Status"
+        },
+        {
+          "subject": "Principal Write-offs MTD",
+          "pointer": "/content/columns/Principal Write-offs MTD"
         }
       ]
     },
@@ -10235,6 +10255,10 @@
         {
           "subject": "Expenses",
           "pointer": "/content/columns/Expenses"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/columns/Principal Write-offs"
         }
       ]
     },
