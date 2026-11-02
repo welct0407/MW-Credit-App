@@ -22,6 +22,7 @@ Deviations and details recorded by Byte:
 - `pwa_submit_operation_v2` also changed in V127 (closed operation list), alongside `guard_cash_ledger`, `pwa_management_financial_text_v2` and `pwa_apply_management_financial_v2`.
 - A future time, or a date older than 15 days, is rejected as `invalid_date` (P5B08); an uninitialized account is `account_unavailable`.
 - The page's accounts come from the as-of read.
+- Chase finding 1, decided by the orchestrator (fix commit 4fd4e00): a withdrawal is refused (P5B10) above the smaller of the as-of balance and the lowest later running balance of the source account. The GET returns `availableAsOf` and `maxWithdrawable`; the page shows a "Max ฿X" note.
 - V127 rebuilds the chat schema digest, so each chat thread starts a new history epoch after the chat image is redeployed.
 - Withdrawal rows are ordinary Manual Cash Handovers, each editable or deletable on its own.
 
@@ -32,16 +33,21 @@ Files and objects: `apps/pwa/src/DailyCashWithdrawal.tsx`, `ManagementPosition.t
 ## Checks
 | Command | Result |
 | --- | --- |
-| `npm run lint` | Pass |
-| `npm run build` | Pass at a09bd34 |
+| `npm run lint` | Pass at 4fd4e00 |
+| `npm run build` | Pass at 4fd4e00 |
 | `npm test` | 1094 of 1096 pass at a09bd34; the two failures were the tracker label test rejecting "R115 — Open, in development" (fixed by restoring the `**R115 — Open**` form; `production-build-environment.test.mjs` re-run: 9 of 9 pass) |
-| `scripts/database/Test-DailyCashWithdrawal.sql` on a disposable PostgreSQL chain to V127 | Pass |
+| `npm test` at 4fd4e00 | 1097 of 1098 pass, 0 fail; new unit tests cover GET validation and the non-owner 403 |
+| `scripts/database/Test-DailyCashWithdrawal.sql` on a disposable PostgreSQL chain to V127, at 4fd4e00 | Pass |
+| Withdrawal Playwright spec at 4fd4e00 | 4 of 4 pass |
+| Manual concurrency check on disposable PostgreSQL (two requests of 600 against 1000) | One applied, one `insufficient_funds`, one row; not part of the harness |
+| Echo visual check (DCW-12/13/14, COLL-3 fixed) | Pass at 390 and 1280 px, EN and TH, Chromium |
 | Focused Playwright specs (withdrawal, Collection, Borrowers) | Pass |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 
 DEV deploy evidence (pins live only in the [Environment inventory](../project/Documents/Environment_Inventory.md)): pending, no DEV deploy yet.
 
 ## Not run
+WebKit and Home Screen (iPhone) rendering of the new pages: not checked.
 PROD deployment and any live PROD write: out of scope for this batch. The Data Dictionary routine entries for the four V127 routines are not updated: the helper reconciles from a PROD capture after the migration reaches PROD, so they follow in the promotion.
 
 ## Recovery
