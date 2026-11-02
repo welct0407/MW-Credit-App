@@ -84,6 +84,36 @@ Observations, none blocking:
 
 DEV left in place: the synthetic borrowers above, the closed referred loan, the referrer's offset payment, the reopened Ying loans (open, outstanding 30 and 50), the split borrower's open 20 loan, E's two open loans; auto-charge was not switched off, so the daily jobs may add charges. The R112 "REGRESSION R" loan was closed to free cash.
 
+## Promotion record (Forge, 2 November 2026, UTC)
+Pins are only in the [Environment inventory](../project/Documents/Environment_Inventory.md). No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R113 to PROD: V126 (functions only), the R113 image on all five services (images only, as the runner derives), Hosting, then the agent VM deploy of the merged commit with the live configuration untouched (`pay_forward_options_enabled` stays true). No PROD payment, close, DM or chat write.
+- **Authority:** the owner's instruction of 2 November 2026: "Yes, build it, test in dev and promote to prod". PR #209 was merged under it.
+- **Freeze:** 2026-11-02T12:44:53Z. Package `05562375` (PR #209 merge on `main`; tree identical to `957de9b5`; code inputs identical to the DEV-tested `63b40a4c`); generic release kind (schemaVersion 36, `generic-v1`, no runner edit); baseline R112 `adcf610b`. Next unused number R114.
+
+| Item | Result |
+| --- | --- |
+| Baseline (PROD, before) | read `00036-6bk`, command `00041-gqr`, chat `00020-g9g` on `913fa731…` (R112); notify `00024-ssq` and jobs `00024-fdp` on `b1e36704…` (R111); settings generation `1793617518810095`; Hosting `2e5f470454e4fd11` (release `1793617605071000`); `loan_manager_prod` head 125 (125 rows, 0 failed), no active sessions; agent VM `a0cfabca`, catalogue 34, `pay_forward_options_enabled` true |
+| Backup at V125 | 12:45:14Z to 12:47:37Z, `prod-promotion-187b8a3354794b6a9a4a1dcceb89458e`, dump sha256 `07444ff65e48b4f9b3eacf1c56ee69b3466144ecdcb690d30c6eb9d41efca398`; listing and restore passed; 38 table fingerprints match |
+| SQL package | `release-r113-v126-05562375.json` sha256 `132b189d…b5c1` (prepared from DEV at 126; `database/` identical at `63b40a4c` and `05562375`); connect preflight 125 to 126 sha256 `8779fa9d…93d8`; `check` 0 writes, pending 126 |
+| Owner window | `mw_app_prod_journal_owner` only (4 statements; V126 replaces its `pwa_submit_selected_charges_v1`, and names no other owner; the PROD runner runs no role reconcile, so the DEV 5-owner set was not needed), opened 12:49:06Z, restored 12:51:44Z (the first restore call at 12:51:27Z was refused by the CLI before any statement, because a wrong argument list passed an owner; rerun with the record only); readback closed (inherit, set false; no CREATE on `public`) |
+| Flyway | `Invoke-CloudFlyway.py apply`, one grouped transaction (12:49:13Z to 12:51:27Z): V126 62.7 s, installed 12:49:52Z, checksum 166581229 (as DEV); head 126 (126 rows, 0 failed); `verify --target prod` clean (12:52:16Z) |
+| Readback | `pwa_submit_selected_charges_v1` keeps owner `mw_app_prod_journal_owner`, SECURITY DEFINER and its ACL; `pwa_pay_forward_plan_v1` keeps `{postgres, mw_app_prod, mw_integration_agent}` EXECUTE; `pwa_apply_pay_forward_v1` `{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres}` |
+| Image | Cloud Build `551c2309-1483-4b0b-b0e8-26e4cacd93b6` (`cloudbuild-business.yaml`, PROD builder `mw-credit-app-build-prod`, `git archive` of `05562375`), SUCCESS 12:52:30Z to 12:53:06Z, `mw-credit-app-prod/api@sha256:f73e5c36e4960923c24233e858ded015970d39a46eccd432001a557f719edac1`, tag `keep-r113-runtime` |
+| Terraform | Settings generation `1793624146293112` (previous `1793617518810095`): `runtime_image_overrides` read, command, chat and `workers.image`. Plan 0 add, 5 change, 0 destroy (images only; the runner derives all five because `services/contracts/payment-command.mjs` reaches the workers), plan sha256 `0c06be54…5940`, JSON `1174555f…a75d`; runner `--check` passed; applied 12:55:04Z to 12:55:40Z; re-plan no changes |
+| Revisions | read `00037-sfz`, command `00042-bcd`, notify `00025-8ks`, jobs `00025-g78`, chat `00021-d2b`, each Ready at 100% |
+| Runner | Generic kind `--check` passed before and after the apply. CI cited per job: check and e2e run 41441501439 (`63b40a4c`), terraform run 41203206026 (`cb875ea`), database guards and rebuilds run 41441475372 (`63b40a4c`), each input-equivalent to `05562375`; agent run 41441501488 (`63b40a4c`). `--apply` 12:56:35Z to 12:57:20Z, live readback passed on the first attempt |
+| Hosting | Version `6d79f8bbb36543e7`, release `1793624233266000`, 16 files; `lm.mw-credit.com` build-version R113 (version `35903627e0a486f0972f4455`), entry `/assets/index-CQr_goKa.js`, bundle embeds `0556237`; public config input identical to R112's |
+| Smoke (read-only) | `/health` 200 on read, command and chat; `/api/session` and `/api/chat/models` 401 without a token; preflight from `https://lm.mw-credit.com` 204; notify and jobs Ready; scheduled notify dispatches on `00025-8ks` at 12:56:02Z and 12:57:02Z 200 (observed, not triggered); `sw.js` `no-store`; no ERROR logs from 12:55Z; About reads R113 |
+| Tag | Release tag workflow run 41448964237 (success): annotated `R113` (object `9deba76d76e51c2acb827fcc9afe4369a3608664`) peels to `0556237589bde00df2a3d1aea9ab62ebc04dbf1a`; GitHub Release R113 published |
+| Agent VM | `update-from-github.sh`: `a0cfabca` to `05562375` (clean). Dry-run: `partner_review.py` and `review_proposal.py` changed, units unchanged, agent schema through V11, catalogue stays 34. Freeze 12:58:37Z (rollback `/var/lib/mw-integration-agent/rollback/runtime-20261102T125837278039Z`); install 12:58:37Z to 12:58:42Z (no removed files, no unit change); `check` with the new package ok, `pay_forward_options` true; activate 12:58:43Z to 12:58:47Z (probe `2a59ee9b-a6e3-4c80-abf8-8ea48fc3b6b3`). Readback: `/ready` true on `05562375`, configuration 90 keys unchanged with `pay_forward_options_enabled` true, catalogue 34 with the same 14 services enabled, `check` ok with `activation.pay_forward_options` true, receiver, recognizer, chat relay and every trigger active, no failed units. The schema check used a temporary root-only `postgres` operator file on the VM (password over stdin, never printed), deleted at 12:58:47Z |
+| Private records | Package sha256 `75a0fd04…3788`; receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R113-HOSTING-RECEIPT.json`; package, release manifest, preflight, owner-window record, plan and the rollback activation copy under `.../promotion-packages/r113/`, outside Git |
+| Credentials | The temporary admin and read credential files (session and VM) are deleted; no secret value was printed |
+| Rollback | PROD: restore `production.activation.before-r113-1793617518810095.tfvars` (read, command and chat to `913fa731…`, notify and jobs to `b1e36704…`), plan 0/5/0, apply, publish, together with Hosting `2e5f470454e4fd11` (release `1793617605071000`). Agent: `deploy-runtime.py rollback` to the 12:58:37Z freeze directory (`a0cfabca`). Database: V126 stays on a service rollback (functions only), or the V125 backup above |
+
+Applied and verified, including the agent VM. Not owner-accepted in PROD: the first live settle case is pending.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on screen, WebKit and a real iPhone.
