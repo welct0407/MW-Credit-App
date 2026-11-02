@@ -7,17 +7,17 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r053-notifications-jobs/dictionary-production-closure.json"
-  "coverage": "Actual affected PROD89 catalogue after maintained migration and authority restoration; no business rows."
+  "source": "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
   "previous_record":
-    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "commit": "57e1e09e042f2045812d6ec883797d02a4aad224"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/business-expenses.yaml"
     "identity":
       "system": "postgresql"
-      "component": "unassigned-database"
+      "component": "loan_manager_prod"
       "kind": "relation"
-      "name": "Business Expenses"
-      "scope": "as-recorded"
+      "name": "public.Business Expenses"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
@@ -30,7 +30,7 @@
     "persistence": "p"
     "is_partition": false
     "options": null
-    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=arwd/postgres}"
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arw/postgres,metabase_borrower_reader=r/postgres,mw_app_prod=arwd/postgres,mw_ledger_owner_prod=r/postgres,mw_chat_read_prod=r/postgres}"
     "comment": "Incurred expenses, no payment status. SQL recalculates allocations from historical contributions; referral\
       \ transaction identity is immutable. No historical backfill."
     "view_definition": null
@@ -55,7 +55,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": "{metabase_borrower_reader=r/postgres}"
+      "acl": "{metabase_borrower_reader=r/postgres,mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Expense Date":
       "schema": "public"
@@ -109,7 +109,7 @@
       "compression": ""
       "default_expression": null
       "collation": null
-      "acl": "{metabase_borrower_reader=r/postgres,mw_jobs_owner_prod=r/postgres}"
+      "acl": "{metabase_borrower_reader=r/postgres,mw_jobs_owner_prod=r/postgres,mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Payee Name":
       "schema": "public"
@@ -145,7 +145,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Ref Related Borrower":
       "schema": "public"
@@ -181,7 +181,7 @@
       "compression": ""
       "default_expression": null
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Notes":
       "schema": "public"
@@ -217,7 +217,7 @@
       "compression": ""
       "default_expression": "'Manual'::text"
       "collation": "\"default\""
-      "acl": null
+      "acl": "{mw_notify_owner_prod=r/postgres}"
       "comment": null
     "Source Key":
       "schema": "public"
@@ -435,6 +435,25 @@
       "collation": "\"default\""
       "acl": null
       "comment": null
+    "Ref Offset Payment":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "Ref Offset Payment"
+      "ordinal": 23
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{mw_notify_owner_prod=r/postgres}"
+      "comment": "R111: the Referral Rebate Offset payment that settled this referral rebate on the referrer's loan; null\
+        \ when the rebate is paid out. Set by Loan Close only."
   "constraints":
     "Business Expenses_Allocation Basis_not_null":
       "schema": "public"
@@ -639,6 +658,24 @@
       "update_action": " "
       "delete_action": " "
       "match_type": " "
+      "comment": null
+    "Business Expenses_Ref Offset Payment_fkey":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "Business Expenses_Ref Offset Payment_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Offset Payment\") REFERENCES \"Payments\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 23
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Payments\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
       "comment": null
     "Business Expenses_Ref Paid By Cash Account_fkey":
       "schema": "public"
@@ -966,6 +1003,24 @@
       "options": null
       "access_method": "btree"
       "comment": null
+    "business_expenses_ref_offset_payment":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "business_expenses_ref_offset_payment"
+      "definition": "CREATE INDEX business_expenses_ref_offset_payment ON public.\"Business Expenses\" USING btree (\"Ref\
+        \ Offset Payment\") WHERE (\"Ref Offset Payment\" IS NOT NULL)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "(\"Ref Offset Payment\" IS NOT NULL)"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
   "triggers":
     "RI_ConstraintTrigger_a_21402":
       "schema": "public"
@@ -1105,6 +1160,30 @@
       "name": "RI_ConstraintTrigger_c_17376"
       "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17376\" AFTER UPDATE ON \"Business Expenses\" FROM\
         \ \"Cash Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_37367":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "RI_ConstraintTrigger_c_37367"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_37367\" AFTER INSERT ON \"Business Expenses\" FROM\
+        \ \"Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_37368":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "RI_ConstraintTrigger_c_37368"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_37368\" AFTER UPDATE ON \"Business Expenses\" FROM\
+        \ \"Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
       "enabled": "O"
       "internal": true
       "routine": "\"RI_FKey_check_upd\"()"
@@ -1304,15 +1383,29 @@
       "deferrable": true
       "initially_deferred": true
       "comment": null
+    "zzzzzzz_pwa_row_change":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "zzzzzzz_pwa_row_change"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_change AFTER INSERT OR DELETE OR UPDATE ON \"Business Expenses\" FOR EACH\
+        \ ROW EXECUTE FUNCTION pwa_track_row_change('Row ID')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzzz_pwa_row_truncate":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "zzzzzzz_pwa_row_truncate"
+      "definition": "CREATE TRIGGER zzzzzzz_pwa_row_truncate AFTER TRUNCATE ON \"Business Expenses\" FOR EACH STATEMENT EXECUTE\
+        \ FUNCTION pwa_track_row_change('Row ID')"
+      "enabled": "A"
+      "internal": false
+      "routine": "pwa_track_row_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
   "policies": {}
   "dependencies": []
-"evidence":
-  "/content/definition/acl":
-    "reference": "outputs/r052/dictionary-production-closure.json"
-    "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
-    "observedAt": "2026-10-11T14:01:43.131793+00:00"
-  "/content/triggers/a000_blank_refs":
-    "reference": "Change Logs/CHANGE_NOTES_W4_DATABASE_2026-10-16.md"
-    "reason": "DB-SCHEMA-02: renamed so the blank-reference normalizer fires first; V93 (R064 Wave 4). Applied in DEV (21:13\
-      \ Bangkok) and PROD (22:17 Bangkok) on 16 October 2026; the PROD readback confirms this value"
-    "state": "value"
