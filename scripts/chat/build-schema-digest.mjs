@@ -110,7 +110,6 @@ export const EXCLUDED_NAMES=Object.freeze({
  "request_business_history":"queues a history refresh",
  "sync_cash_ledger":"writes the cash ledger",
  "undo_loan_default":"reverses a default",
- "reconcile_legacy_default_postings":"posts legacy default loss pairs (R116 operator path, owner only)",
  "cash_account_holder":"locks with FOR SHARE, which the read-only transaction rejects",
  "attach_payment_receipt_evidence":"writes receipt evidence onto a payment",
  // R090: routines of the migration chain that the PROD-captured dictionary does not list (same rule: writers away).
