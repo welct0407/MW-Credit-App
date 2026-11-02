@@ -33,7 +33,12 @@
       "Ref Charges",
       "Payment Date",
       "Principal Paid",
-      "Interest Paid"
+      "Interest Paid",
+      "Ref Payment"
+    ],
+    "Payments": [
+      "Row ID",
+      "Payment Method"
     ],
     "Loans": [
       "Row ID",
