@@ -26,15 +26,15 @@ INSERT INTO public."Partners"("Row ID","Partner Name","Partner Role","Login Emai
 INSERT INTO public."Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('AA-CAP','AA-FUND',(SELECT d FROM aa_day)-400,'Contribution',1000000::money);
 INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES('AA-RF','SYNTHETIC AGENT REFERRER');
 INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES
- ('AA-B1','SYNTHETIC AGENT FORWARD'),('AA-B2','SYNTHETIC AGENT PRINCIPAL'),('AA-B3','SYNTHETIC AGENT SPLIT'),('AA-B4','SYNTHETIC AGENT DRIFT'),('AA-B5','SYNTHETIC AGENT DUE'),('AA-B6','SYNTHETIC AGENT TAMPER'),('AA-B8','SYNTHETIC AGENT YESTERDAY');
+ ('AA-B1','SYNTHETIC AGENT FORWARD'),('AA-B2','SYNTHETIC AGENT PRINCIPAL'),('AA-B3','SYNTHETIC AGENT SPLIT'),('AA-B4','SYNTHETIC AGENT DRIFT'),('AA-B5','SYNTHETIC AGENT DUE'),('AA-B6','SYNTHETIC AGENT TAMPER'),('AA-B8','SYNTHETIC AGENT YESTERDAY'),('AA-B9','SYNTHETIC AGENT SETTLE');
 INSERT INTO public."Borrowers"("Row ID","Borrower Name","Ref Referrer") VALUES('AA-B7','SYNTHETIC AGENT CLOSES','AA-RF');
 INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
  SELECT 'CI-LISA',v.id,v.b,(SELECT d FROM aa_day)-3,v.pa::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,v.cdi::money,v.n,false FROM (VALUES
-  ('AA-L1','AA-B1',1000,10,1),('AA-L2','AA-B2',1000,10,7),('AA-L3','AA-B3',1000,10,1),('AA-L4','AA-B4',1000,10,1),('AA-L5','AA-B5',1000,10,1),('AA-L6','AA-B6',1000,10,1),('AA-L8','AA-B8',1000,10,1),
+  ('AA-L1','AA-B1',1000,10,1),('AA-L2','AA-B2',1000,10,7),('AA-L3','AA-B3',1000,10,1),('AA-L4','AA-B4',1000,10,1),('AA-L5','AA-B5',1000,10,1),('AA-L6','AA-B6',1000,10,1),('AA-L8','AA-B8',1000,10,1),('AA-L9','AA-B9',1000,10,1),
   ('AA-RFL','AA-RF',1000,10,1),('AA-L7','AA-B7',1000,100,1),('AA-L0B','AA-B7',1000,10,1)) v(id,b,pa,cdi,n);
 INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
  SELECT v.id,v.loan,(SELECT d FROM aa_day),v.p::money,v.i::money FROM (VALUES
-  ('AA-L1-today','AA-L1',0,10),('AA-L2-today','AA-L2',0,70),('AA-L3-today','AA-L3',0,10),('AA-L4-today','AA-L4',0,10),('AA-L5-today','AA-L5',0,10),('AA-L6-today','AA-L6',0,10),('AA-L8-today','AA-L8',0,10),
+  ('AA-L1-today','AA-L1',0,10),('AA-L2-today','AA-L2',0,70),('AA-L3-today','AA-L3',0,10),('AA-L4-today','AA-L4',0,10),('AA-L5-today','AA-L5',0,10),('AA-L6-today','AA-L6',0,10),('AA-L8-today','AA-L8',0,10),('AA-L9-today','AA-L9',0,10),
   ('AA-RFL-today','AA-RFL',0,10),('AA-L0B-today','AA-L0B',0,10)) v(id,loan,p,i);
 INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('AA-L7-today','AA-L7',(SELECT d FROM aa_day),1000::money,300::money);
 UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" LIKE 'AA-%';
@@ -75,6 +75,8 @@ SELECT set_config('aa.fwd',pg_temp.aa_cmd('aa-review-fwd','AA-B1',60,9,'{"forwar
  -- a v9 dated yesterday is invalid_date
  set_config('aa.yday',pg_temp.aa_cmd('aa-review-yday','AA-B8',30,9,'{"forward":true,"principal":[],"loans":null}','aa-actor@example.invalid','AA-ACT',-1),true),
  -- the slip closes a referred loan (1300 due on AA-L7) and pays 10 forward on its other loan
+ -- R113: a remainder that would settle a loan is a manual (app) action: the agent command refuses it
+ set_config('aa.settle',pg_temp.aa_cmd('aa-review-settle','AA-B9',1010,9,'{"forward":false,"principal":[{"loanId":"AA-L9","amount":"1000"}],"loans":null}'),true),
  set_config('aa.closes',pg_temp.aa_cmd('aa-review-closes','AA-B7',1320,9,'{"forward":true,"principal":[],"loans":null}'),true);
 
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
@@ -113,6 +115,12 @@ BEGIN
  -- Tampered plan lines: selection_unavailable.
  r:=public.pwa_submit_agent_receipt_v1(current_setting('aa.tamper'));
  IF r->'originalOutcome'->>'status'<>'rejected' OR r->'originalOutcome'->>'code'<>'selection_unavailable' THEN RAISE EXCEPTION 'tampered plan: %',r; END IF;
+ -- R113: the agent never settles a loan; the command is refused and nothing is posted (the Partner records it in the app).
+ BEGIN
+  r:=public.pwa_submit_agent_receipt_v1(current_setting('aa.settle'));
+  IF r->'originalOutcome'->>'status'<>'rejected' THEN RAISE EXCEPTION 'the agent settled a loan: %',r; END IF;
+ EXCEPTION WHEN SQLSTATE '22023' THEN NULL;   -- invalid agent receipt command (the command carries a settle entry the agent never sends)
+ END;
  -- Only the AI Reviewer's Partner posts a reviewed slip.
  BEGIN
   PERFORM public.pwa_submit_agent_receipt_v1(current_setting('aa.nonreviewer'));
@@ -151,6 +159,7 @@ BEGIN
  -- Drift and tampering: nothing posted, nothing booked besides the charge booked meanwhile.
  PERFORM pg_temp.aa_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower" IN ('AA-B4','AA-B6')) AND (SELECT count(*)=1 FROM public."Charges" WHERE "Ref Loans"='AA-L4' AND "Charge Date">day) AND NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"='AA-L6' AND "Charge Date">day),'rejected slips posted and booked nothing');
  PERFORM pg_temp.aa_assert((SELECT count(*)=2 FROM public.pwa_payment_commands WHERE outcome='rejected' AND rejection_code='selection_unavailable' AND request_id::text IN (pg_temp.aa_uuid(pg_temp.aa_rid('aa-review-drift')),pg_temp.aa_uuid(pg_temp.aa_rid('aa-review-tamper')))),'drift and tampering are journalled as selection_unavailable');
+ PERFORM pg_temp.aa_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"='AA-B9') AND (SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Outstanding Principal"::numeric=1000 FROM public."Loans" WHERE "Row ID"='AA-L9'),'R113: the refused settle posted nothing and left the loan open');
  -- v7 unchanged: a slip that is due is a Lump Sum, as before.
  PERFORM pg_temp.aa_assert((SELECT "Allocation Method"='Lump Sum' AND "Amount Received"::numeric=10 AND "Status"='Posted' FROM public."Payments" WHERE "Row ID"='pwa:'||pg_temp.aa_uuid(pg_temp.aa_rid('aa-review-due'))),'v7: the due slip posts as a Lump Sum');
  PERFORM pg_temp.aa_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"='pwa:'||pg_temp.aa_uuid(pg_temp.aa_rid('aa-review-plain'))),'the non-reviewer slip posted nothing');

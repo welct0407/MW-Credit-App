@@ -29,6 +29,7 @@ before(async()=>{
  const proof=await attestDisposableApplicationTarget({adminPool:admin,expectedDirectory:process.env.PAYMENT_REHEARSAL_DIRECTORY,runtimeUser:user,expectedVersion:head});
  store=createApplicationRoleCommandStore({pool:app,targetAttestation:proof,ownerTesting:true});
  fixture=await seedPaymentFixture(admin,'R112-CH');await admin.query('UPDATE "Partners" SET "Login Email"=$1 WHERE "Row ID"=$2',[OWNER_EMAIL.toLowerCase(),fixture.actorId]);
+ await admin.query(`INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('R113-CH-CAPITAL',$1,current_date,'Contribution',200000::money)`,[fixture.actorId]);
  let handler;server=createServer((req,res)=>void handler(req,res));await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const origin='http://127.0.0.1:'+server.address().port;
  handler=createPaymentCommandHandler({origins:[origin],verifyPrincipal:async()=>principal,store});
@@ -110,4 +111,49 @@ test('(4) a purpose that is not offered is refused: no command built, nothing bo
  await refuse({forward:true,principal:[],extra:true});                          // not the contract's shape
  await refuse(null,/INVALID_COMMAND/);                                         // no purpose at all: the planner returns a draft, not a command
  assert.equal((await admin.query('SELECT count(*)::int AS n FROM "Payments" WHERE "Ref Borrower" IN ($1,$2)',[s.borrower,other.borrower])).rows[0].n,0);
+});
+
+// R113: settle and close from Receive payment through the chat planner and the real command API. When Repay principal closes loans
+// and covers the remainder it is the one principal choice (option.principal = the per-loan request list, option.closes = the loans).
+// Ying: two daily-interest loans, 1000 at 20 a day and 2000 at 200 a day, today's charges 20 + 200; a 3220 slip with Repay principal closes both.
+async function ying(){
+ const id='R113Y'+(++n),borrower=id+'-B';
+ await admin.query('INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES($1,$2)',[borrower,'SYNTHETIC YING '+id]);
+ const loans=[[id+'-A',1000,20,5],[id+'-B2',2000,200,2]];
+ for(const [loan,principal,daily,age] of loans){
+  await admin.query(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval") VALUES($1,$2,$3,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-$4::integer,$5::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,$6::money,1)`,[loan,borrower,fixture.lendingAccountId,age,principal,daily]);
+  await admin.query(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,$3::date,0::money,$4::money)`,[loan+'-today',loan,today,daily]);
+  await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"=$1`,[loan]);
+ }
+ return {borrower,a:loans[0][0],b:loans[1][0]};
+}
+const calc=async loan=>(await admin.query(`SELECT public.loan_close_calculation_v83($1,$2::date) AS c`,[loan,today])).rows[0].c;
+test('R113 (5) a 3220 slip with Repay principal offers both loans as settling, posts one payment that closes both at the Loan Close quotes, and a second send reads back',async()=>{
+ const y=await ying(),p=await propose({borrower:y.borrower},'3220');
+ assert.equal(p.command,null);const o=p.plan.purposeOptions;
+ assert.equal(o.remainder,'3000');assert.equal(o.dueAmount,'220');
+ const [qa,qb]=[await calc(y.a),await calc(y.b)];assert.equal(Number(qa.amount),1020);assert.equal(Number(qb.amount),2200);
+ assert.equal(o.principal.length,1,'Repay principal is one choice that settles both loans');
+ assert.deepEqual(o.principal[0].principal,[{loanId:y.a,amount:'1000'},{loanId:y.b,amount:'2000'}],'each loan takes its payoff remainder (quote less its due charge), in Row ID order');
+ assert.deepEqual(o.principal[0].closes.map(c=>[c.loanId,c.payoff]),[[y.a,'1020'],[y.b,'2200']],'the card lists both loans with the Loan Close payoffs');
+ assert.equal(o.split,false);
+ const purpose={forward:false,principal:[{loanId:y.a,amount:'1000'},{loanId:y.b,amount:'2000'}]};
+ const command=await paymentCommandFor({client,stored:stored(p),purpose});
+ assert.equal(command.schemaVersion,10);assert.equal(command.amountReceived,'3220');assert.deepEqual(command.principal.map(e=>e.kind),['settle','settle']);
+ const sent=await client.submit('payment',JSON.stringify(command));assert.equal(sent.result,'recorded',JSON.stringify(sent));assert.equal(sent.data.originalOutcome.status,'posted',JSON.stringify(sent));
+ const paymentId=sent.data.originalOutcome.paymentId;
+ const loans=(await admin.query(`SELECT "Row ID" AS id,"Loan Status" AS s,"Close Date"::text AS closed,"Outstanding Principal"::numeric::text AS o FROM "Loans" WHERE "Ref Borrowers"=$1 ORDER BY 1`,[y.borrower])).rows;
+ assert.deepEqual(loans.map(l=>[l.s,l.closed,l.o]),[['ปิดยอดแล้ว',today,'0.00'],['ปิดยอดแล้ว',today,'0.00']],'both loans closed in one payment');
+ assert.equal((await admin.query('SELECT count(*)::int AS n FROM "Payments" WHERE "Ref Borrower"=$1',[y.borrower])).rows[0].n,1);
+ const paid=await admin.query(`SELECT c."Ref Loans" AS loan,sum(r."Principal Paid"::numeric+r."Interest Paid"::numeric)::text AS t FROM "Repayments" r JOIN "Charges" c ON c."Row ID"=r."Ref Charges" WHERE r."Ref Payment"=$1 GROUP BY 1 ORDER BY 1`,[paymentId]);
+ assert.deepEqual(paid.rows.map(r=>[r.loan,Number(r.t)]),[[y.a,Number(qa.amount)],[y.b,Number(qb.amount)]],'each loan paid exactly its Loan Close quote');
+ assert.equal((await client.submit('payment',JSON.stringify(command))).data.originalOutcome.paymentId,paymentId,'a second send reads back');
+ assert.equal((await admin.query('SELECT count(*)::int AS n FROM "Payments" WHERE "Ref Borrower"=$1',[y.borrower])).rows[0].n,1);
+});
+test('R113 (6) a partial amount that is not the offered per-loan request is refused, and a slip dated yesterday never settles',async()=>{
+ const y=await ying(),p=await propose({borrower:y.borrower},'3220');
+ await assert.rejects(()=>paymentCommandFor({client,stored:stored(p),purpose:{forward:false,principal:[{loanId:y.a,amount:'999'}]}}),error=>/PURPOSE_NOT_OFFERED|PLAN_CHANGED|INVALID_COMMAND/.test(String(error.message??error.code)));
+ const old=await day(-1);
+ await assert.rejects(()=>planPayment({client,borrowerId:y.borrower,values:{...values('3220'),paymentDate:old},requestId:randomUUID()}),error=>/PAY_FORWARD_TODAY_ONLY|AMOUNT_EXCEEDS_DUE/.test(String(error.message??error.code)));
+ assert.equal((await admin.query('SELECT count(*)::int AS n FROM "Payments" WHERE "Ref Borrower"=$1',[y.borrower])).rows[0].n,0);
 });

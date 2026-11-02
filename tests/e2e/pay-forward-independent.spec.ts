@@ -134,3 +134,63 @@ test('plan_changed on review reloads the plan; offline the remainder paths are r
  await page.getByRole('button',{name:'Use due amount',exact:true}).click();await expect(amount(page)).toHaveValue('10');await expect(review(page)).toBeEnabled();await expect(block(page)).toHaveCount(0);
 });
 
+
+// R113: settle and close from Receive payment, the owner's Ying case. The server is simulated from V126's shapes: two daily-interest loans,
+// 1,000 at 20 a day and 2,000 at 200 a day, today's charges 20 + 200, a 3,220 slip. Auto-assign's remainder carries repay {purpose, settles,
+// uncovered} and a settle-only option per loan (payoffRemainder); POST /plan returns the settle entries (amount = payoff remainder, accruedInterest =
+// gap interest, payoff, charges) and closes {loan:{payoff,gapInterest,charges,rebate}}; the command entry has the seven keys with kind 'settle'.
+const yingDue=[{id:'y-dueA',chargeDate:'2026-10-08',loanDisplayKey:'Ying-A',principalRemaining:'0',interestRemaining:'20',amountRemaining:'20'},
+ {id:'y-dueB',chargeDate:'2026-10-08',loanDisplayKey:'Ying-B',principalRemaining:'0',interestRemaining:'200',amountRemaining:'200'}];
+const yingLoans={'y-LA':'Ying-A','y-LB':'Ying-B'};
+const yingEntry=(loanId:string,payoff:string,amount:string,principalDue:string,chargeId:string)=>({loanId,kind:'settle',chargeId,chargeDate:'2026-10-08',amount,accruedInterest:'0',principalDue,payoff,charges:payoff==='1020'?'20':'200'});
+const yingAlloc=[{chargeId:'y-dueA',principal:'1000',interest:'20',expectedPrincipalRemaining:'1000',expectedInterestRemaining:'20',chargeDate:'2026-10-08'},
+ {chargeId:'y-dueB',principal:'2000',interest:'200',expectedPrincipalRemaining:'2000',expectedInterestRemaining:'200',chargeDate:'2026-10-08'}];
+const yingPlan=(settles:string[],blocked:any[]=[])=>({day:'2026-10-08',amount:'3220',dueTotal:'220',remainder:'3000',due:['y-dueA','y-dueB'],allocations:yingAlloc,materialize:[],forward:[],uncovered:'0',paidThrough:{},settles,blocked,
+ principal:[yingEntry('y-LA','1020','1000','1000','y-dueA'),yingEntry('y-LB','2200','2000','2000','y-dueB')].filter(entry=>settles.includes(entry.loanId))});
+const yingCloses={'y-LA':{payoff:'1020',gapInterest:'0',charges:'20',rebate:{amount:'30',referrer:'Ying Referrer',offset:true}},'y-LB':{payoff:'2200',gapInterest:'0',charges:'200',rebate:null}};
+async function yingSetup(page:Page){
+ const s=await setup(page);const posts:any[]=[],plans:any[]=[],reviews:any[]=[];
+ await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
+  const u=new URL(r.request().url()),path=u.pathname,json=(body:any,status=200)=>r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+  if(path.endsWith('/auto-assign'))return json({...draft,charges:yingDue,allocations:yingAlloc.map(l=>({...l,principal:'0',interest:l.expectedInterestRemaining})),amountReceived:'3220',allocated:'220',unallocated:'3000',
+   remainder:{amount:'3000',loans:yingLoans,forward:{rows:[],paidThrough:{},uncovered:'3000',blocked:[]},
+    repay:{purpose:{forward:false,principal:[{loanId:'y-LA',amount:'1000'},{loanId:'y-LB',amount:'2000'}],loans:null},settles:['y-LA','y-LB'],uncovered:'0'},
+    principal:[{loanId:'y-LA',amount:'1000',settles:true,entry:null,payoffRemainder:'1000',settleOnly:true},{loanId:'y-LB',amount:'2000',settles:true,entry:null,payoffRemainder:'2000',settleOnly:true}]}});
+  if(path.endsWith('/plan')){const body=r.request().postDataJSON();plans.push(body);
+   const lines=body.purpose.principal as {loanId:string;amount:string}[],A=lines.find(l=>l.loanId==='y-LA');
+   if(A&&A.amount!=='1000')return json({businessDate:draft.businessDate,purpose:body.purpose,plan:{...yingPlan([]),settles:['y-LA'],principal:[],blocked:[{loanId:'y-LA',reason:'needs_gap_interest',more:String(1000-Number(A.amount))}]},loans:yingLoans,closes:{}});
+   return json({businessDate:draft.businessDate,purpose:body.purpose,plan:yingPlan(['y-LA','y-LB'].filter(id=>lines.some(l=>l.loanId===id))),loans:yingLoans,closes:yingCloses});}
+  if(path.endsWith('/review')){const body=r.request().postDataJSON();reviews.push(body);return json({...draft,charges:yingDue,upcoming:[],allocations:body.allocations,materialize:body.materialize,principal:body.principal,total:body.amountReceived,nextCursor:null});}
+  if(path.endsWith('/api/payment-commands')&&r.request().method()==='POST'){posts.push(r.request().postDataJSON());return json({ok:true,kind:'recorded',originalOutcome:{status:'posted',paymentId:'synthetic-ying'}});}
+  return r.fallback();
+ });
+ expect(s.posts).toHaveLength(0);return {s,posts,plans,reviews};
+}
+test('Ying: Repay principal on a 3,220 slip closes both loans, shows the Closes lines and the rebate, keeps Review enabled and posts one v10 command with two settle entries',async({page})=>{
+ const {posts,plans,reviews}=await yingSetup(page);
+ await amount(page).fill('3220');await auto(page).click();
+ await expect(block(page)).toBeVisible();await expect(option(page,/^Repay principal/)).toContainText('Closes Ying-A, Ying-B');await expect(review(page)).toBeDisabled();
+ await choice(page,/^Repay principal/).check();await expect.poll(()=>plans.length).toBe(1);
+ expect(plans[0].purpose).toEqual({forward:false,principal:[{loanId:'y-LA',amount:'1000'},{loanId:'y-LB',amount:'2000'}],loans:null});
+ // The old guard line (use Close Loan) is gone; each loan shows what it closes, the first with its referral rebate (V124 default offset).
+ await expect(page.getByText(/Use Close Loan/)).toHaveCount(0);
+ const lines=page.locator('.remainder-closes');await expect(lines).toHaveCount(2);
+ await expect(lines.nth(0)).toContainText('Closes Ying-A · payoff ฿1,020 (charges ฿20)');await expect(lines.nth(0)).toContainText('Rebate ฿30 to Ying Referrer — offset to their loan');
+ await expect(lines.nth(1)).toContainText('Closes Ying-B · payoff ฿2,200 (charges ฿200)');await expect(lines.nth(1)).not.toContainText('Rebate');
+ await expect(page.locator('.remainder-closes-summary')).toHaveText('Closes 2 loans · outstanding ฿0');
+ await expect(review(page)).toBeEnabled();await review(page).click();
+ expect(reviews.at(-1).principal.map((e:any)=>[e.loanId,e.kind,e.amount])).toEqual([['y-LA','settle','1000'],['y-LB','settle','2000']]);
+ await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect.poll(()=>posts.length).toBe(1);
+ const posted=posts[0];expect(posted.schemaVersion).toBe(10);expect(posted.amountReceived).toBe('3220');expect(posted.materialize).toEqual([]);
+ expect(posted.principal).toEqual([{loanId:'y-LA',kind:'settle',chargeId:'y-dueA',chargeDate:'2026-10-08',amount:'1000',accruedInterest:'0',principalDue:'1000'},
+  {loanId:'y-LB',kind:'settle',chargeId:'y-dueB',chargeDate:'2026-10-08',amount:'2000',accruedInterest:'0',principalDue:'2000'}]);
+ expect(Object.keys(posted.principal[0])).toHaveLength(7);
+});
+test('Ying Split: a part short of a loan\'s payoff remainder keeps Review disabled and says how much more closes it',async({page})=>{
+ const {plans}=await yingSetup(page);
+ await amount(page).fill('3220');await auto(page).click();await choice(page,/^Split/).check();
+ await expect(page.getByText('฿1,000 closes this loan',{exact:true})).toBeVisible();await expect(page.getByText('฿2,000 closes this loan',{exact:true})).toBeVisible();
+ await page.getByRole('textbox',{name:/^Principal part · Ying-A/}).fill('990');await page.getByRole('button',{name:'Apply',exact:true}).evaluate(node=>(node as HTMLElement).click());
+ await expect.poll(()=>plans.length).toBe(1);expect(plans[0].purpose.forward).toBe(true);expect(plans[0].purpose.principal).toEqual([{loanId:'y-LA',amount:'990'}]);
+ await expect(page.locator('#remainder-help')).toHaveText('฿10 more closes Ying-A.');await expect(review(page)).toBeDisabled();
+});

@@ -89,10 +89,14 @@ class OptionsReplyTests(unittest.TestCase):
             body=request_text(PROPOSAL,language,unclear=True)[1]
             self.assertTrue(body.startswith(prompt));self.assertIn('1,500' if language=='English' else '1,500',body);self.assertLessEqual(len(body),1000)
 
-    def test_request_text_omits_a_refused_option_and_points_to_loan_close(self):
-        settled=json.loads(json.dumps(PROPOSAL));settled['options']['principal']=[];settled['options']['blocked']=[{'loanId':'L1','reason':'settles'}]
+    def test_request_text_omits_a_refused_option_and_says_to_record_the_settle_in_the_app(self):
+        # R113: a remainder that settles a loan is recorded in the app (Receive payment), never by this reply.
+        settled=json.loads(json.dumps(PROPOSAL));settled['options']['principal']=[];settled['options']['blocked']=[{'loanId':'L1','reason':'settles','loanKey':'L-0398'}]
         body=request_text(settled,'English')[1]
-        self.assertNotIn('2 repay principal',body.lower());self.assertIn('This settles the loan. Use Close Loan.',body)
+        self.assertNotIn('2 repay principal',body.lower());self.assertIn('Remainder settles L-0398: record in the app.',body);self.assertNotIn('Close Loan',body)
+        self.assertIn('ยอดคงเหลือปิด L-0398 ได้: กรุณาบันทึกในแอป',request_text(settled,'ไทย')[1])
+        unnamed=json.loads(json.dumps(settled));unnamed['options']['blocked']=[{'loanId':'L1','reason':'settles'}]
+        self.assertIn('Remainder settles L1: record in the app.',request_text(unnamed,'English')[1])
 
 
 if __name__=='__main__':unittest.main()
