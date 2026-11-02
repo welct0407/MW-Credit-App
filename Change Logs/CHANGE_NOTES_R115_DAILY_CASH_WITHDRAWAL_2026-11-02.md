@@ -48,7 +48,7 @@ Files and objects: `apps/pwa/src/DailyCashWithdrawal.tsx`, `ManagementPosition.t
 | `rebate-offset-independent.spec.ts` after the fix in ed04e75 (fixture returns a versioned preference row; assertion unchanged) | 40 of 40 pass at 6 workers; whole spec 26 of 26; e2e lint and type check pass |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
 
-DEV deploy evidence: see the [DEV deployment record](#dev-deployment-record) below; the [Environment inventory](../project/Documents/Environment_Inventory.md) DEV rows are not yet updated.
+DEV deploy evidence: see the [DEV deployment record](#dev-deployment-record) below; the [Environment inventory](../project/Documents/Environment_Inventory.md) DEV rows are updated.
 
 ## DEV deployment record
 
