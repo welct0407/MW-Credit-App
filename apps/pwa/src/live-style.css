@@ -492,6 +492,8 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .close-summary{padding:12px;border:1px solid #ccc;border-radius:8px;background:#f7f8f9}
 .close-summary dl{display:flex;flex-wrap:wrap;gap:16px 32px;margin:0}.close-summary dd{margin:4px 0;font-weight:600}.close-summary dl>div:last-child dd{font-size:1.3em}
 .dashboard-secondary>h3,.live-shell .dashboard-section .dashboard-secondary>h3{font-size:1.15rem;font-weight:600;margin-top:1.5rem}
+/* R116: the Monthly Forecast basis note (realized and projected profit are before principal write-offs). */
+.dashboard-note,.live-shell .dashboard-section .dashboard-note{margin:-4px 0 8px;font-size:.85rem;line-height:1.35;color:#555}
 @media(min-width:768px){
  .live-shell .record-action,.live-shell .borrower-record .record-action.icon-action{width:auto;max-width:100%;flex:0 1 auto}.live-shell .record-action:not(#_),.live-shell .borrower-record .record-action.icon-action:not(#_){padding:7px 10px}
  .live-shell .record-action-label{overflow-wrap:normal;word-break:normal}.live-shell .record-action-label:not(#_){display:inline}

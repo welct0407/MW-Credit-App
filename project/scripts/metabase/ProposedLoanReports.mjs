@@ -55,7 +55,9 @@ const perfSql=`WITH clock AS (SELECT public.olap_reporting_date() today),
  GROUP BY v.ord,v.metric
  )
 SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord`;
-// Pattern of snippet 2: selected statement period and the preceding period of equal length on model 186.
+// Pattern of snippet 2: selected statement period and the preceding period of equal length on model 186. R116 (V128): model 186
+// "Income" is gross profit and "Principal Write-offs" the df10: principal write-offs (positive here, like Expenses), so
+// Net profit = Income - Expenses - Write-offs.
 const incomeSql=`WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE true [[AND {{statement_period}}]]),
  available AS (SELECT min("Date") starts FROM public.reporting_statement_calendar),
  bounds AS (SELECT min("Date") starts,max("Date") ends,count(*)::int days FROM selected),
@@ -64,10 +66,11 @@ const incomeSql=`WITH selected AS (SELECT d."Date" FROM public.reporting_stateme
  UNION ALL SELECT 'previous',b.starts-b.days,b.starts-1,b.days,b.starts-b.days>=a.starts FROM bounds b CROSS JOIN available a WHERE b.days>0 AND b.days=b.ends-b.starts+1
  ), totals AS (
  SELECT p.p,p.ok,p.days,coalesce((SELECT sum(e."Income") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) income,
- coalesce((SELECT sum(e."Expenses") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) expenses FROM periods p
+ coalesce((SELECT sum(e."Expenses") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) expenses,
+ coalesce((SELECT sum(e."Principal Write-offs") FROM {{#186}} e WHERE e."Date" BETWEEN p.starts AND p.ends),0) writeoffs FROM periods p
  ), m AS (
  SELECT v.ord,v.metric,max(v.amount) FILTER (WHERE t.p='this') cur,max(v.amount) FILTER (WHERE t.p='previous' AND t.ok) prev
- FROM totals t CROSS JOIN LATERAL (VALUES (1,'Income',t.income),(2,'Expenses',t.expenses),(3,'Net profit',t.income-t.expenses),(4,'Net profit per day',(t.income-t.expenses)/nullif(t.days,0))) v(ord,metric,amount)
+ FROM totals t CROSS JOIN LATERAL (VALUES (1,'Income',t.income),(2,'Expenses',t.expenses),(3,'Write-offs',t.writeoffs),(4,'Net profit',t.income-t.expenses-t.writeoffs),(5,'Net profit per day',(t.income-t.expenses-t.writeoffs)/nullif(t.days,0))) v(ord,metric,amount)
  GROUP BY v.ord,v.metric
  )
 SELECT metric AS "Measure",cur AS "This period",prev AS "Previous period",cur-prev AS "Change",(cur-prev)/nullif(abs(prev),0) AS "Change %" FROM m ORDER BY ord`;
@@ -97,8 +100,8 @@ export function questions(sources={},state={},baseline){
   'cash.pool-selected':{dataset_query:native(positionSql('Total Cash Pool'),[model(205),model(73),dateTag('position_date','Date')]),visualization_settings:{'scalar.field':'Total Cash Pool',column_settings:fmt(['Total Cash Pool'])},mappings:{'position-date':tagTarget('position_date')}},
   'cash.principal-selected':{dataset_query:native(positionSql('Outstanding Principal'),[model(205),model(73),dateTag('position_date','Date')]),visualization_settings:{'scalar.field':'Outstanding Principal',column_settings:fmt(['Outstanding Principal'])},mappings:{'position-date':tagTarget('position_date')}},
   'income.vs-previous':{dataset_query:native(incomeSql,[model(186),dateTag('statement_period','Statement period')]),visualization_settings:compareTable,mappings:{'statement-period':tagTarget('statement_period')}},
-  'income.monthly':{dataset_query:mbql({'source-table':'card__186',aggregation:[['aggregation-options',['sum',f('Income')],{name:'Income','display-name':'Income'}],['aggregation-options',['sum',f('Expenses')],{name:'Expenses','display-name':'Expenses'}],['aggregation-options',['-',['sum',f('Income')],['sum',f('Expenses')]],{name:'Net profit','display-name':'Net profit'}]],breakout:[f('Date','type/Date',{'temporal-unit':'month'})],filter:['time-interval',f('Date','type/Date'),-5,'month',{'include-current':true}]}),
-   visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Income','Expenses','Net profit'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#178F8A','#D6816B','#2a78d6'],'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Income','Expenses','Net profit'])},mappings:{}},
+  'income.monthly':{dataset_query:mbql({'source-table':'card__186',aggregation:[['aggregation-options',['sum',f('Income')],{name:'Income','display-name':'Income'}],['aggregation-options',['sum',f('Expenses')],{name:'Expenses','display-name':'Expenses'}],['aggregation-options',['sum',f('Principal Write-offs')],{name:'Write-offs','display-name':'Write-offs'}],['aggregation-options',['-',['sum',f('Income')],['sum',f('Expenses')],['sum',f('Principal Write-offs')]],{name:'Net profit','display-name':'Net profit'}]],breakout:[f('Date','type/Date',{'temporal-unit':'month'})],filter:['time-interval',f('Date','type/Date'),-5,'month',{'include-current':true}]}),
+   visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':['Income','Expenses','Write-offs','Net profit'],'graph.show_values':true,'graph.label_value_formatting':'compact','graph.colors':['#178F8A','#D6816B','#9B2C2C','#2a78d6'],'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,column_settings:fmt(['Income','Expenses','Write-offs','Net profit'])},mappings:{}},
   'cashflow.by-type-row':{visualization_settings:{'graph.label_value_formatting':'compact',column_settings:fmt(['Money In','Money Out'])}},
   'perf.vs-previous':{dataset_query:native(perfSql,[model(70),model(71),dateTag('performance_period','Performance period')]),visualization_settings:{...compareTable,column_settings:{...compareTable.column_settings}},mappings:{period:tagTarget('performance_period')}},
   'partners.capital-share-row':{dataset_query:q331&&native(`SELECT "Partner","Net capital ฿"/nullif(sum("Net capital ฿") OVER (),0) AS "Capital share %","Net capital ฿" FROM (${sql(q331)}) t`,[{id:'lrp-partner',name:'partner','display-name':'Partner',type:'dimension',dimension:['field',121,null],'widget-type':'string/=',alias:'d.partner_id'},model(318)]),
@@ -274,6 +277,18 @@ if(args.includes('--rebaseline-dashboard3=R102')){
  save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline',{at:new Date().toISOString(),reason:'R102 Long overdue lane (AddLongOverdueLane.mjs)',laneCards:long,dashcards:d.dashcards.length},priv);
  console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,laneCards:long}));
 }
+// R116: Refine-WriteOffSegregation.mjs --apply changes dashboard 3 tab 16 on purpose (the write-off question in the scalar
+// row, the formula note and the waterfall title), so the guard's baseline is renewed once from live dashboard 3, only after
+// that question is placed; the earlier baseline is kept beside it.
+if(args.includes('--rebaseline-dashboard3=R116')){
+ await assertSource();read('state');const writeoffs=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.writeoffs;
+ assert(writeoffs,'run Refine-WriteOffSegregation.mjs --apply first');
+ const d=await api('GET','dashboard/3'),placed=d.dashcards.filter(c=>c.dashboard_tab_id===16&&c.card_id===writeoffs);
+ assert.deepEqual(placed.map(c=>[c.row,c.col,c.size_x,c.size_y]),[[3,12,6,3]],'the write-off question is not placed on dashboard 3 tab 16');
+ if(fs.existsSync(`${priv}/dashboard-3-before.json`))fs.copyFileSync(`${priv}/dashboard-3-before.json`,`${priv}/dashboard-3-before-pre-r116.json`);
+ save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline-r116',{at:new Date().toISOString(),reason:'R116 write-off segregation (Refine-WriteOffSegregation.mjs)',question:writeoffs,dashcards:d.dashcards.length},priv);
+ console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,question:writeoffs}));
+}
 if(args.includes('--refine')){
  await assertSource();assert(only.length,'--refine needs --only=<keys>');const state=read('state'),{baseline}=await guardDashboard3(),specs=questions(await liveSources(),state,baseline);
  const qs=only.filter(k=>layout.new_questions[k]),tabs=only.filter(k=>state.tabs[k]);assert.equal(qs.length+tabs.length,only.length,'unknown key in --only');
@@ -373,11 +388,13 @@ if(args.includes('--verify')){
  const inc=resultRows('income.vs-previous');
  const i168=await one(168,sp('thismonth')),i169=await one(169,sp('thismonth')),i170=await one(170,sp('thismonth')),i171=await one(171,sp('thismonth'));
  const p168=await one(168,sp(prevStmt)),p170=await one(170,sp(prevStmt));
- const incOk=near(inc[0][1],i168)&&near(inc[1][1],-i169)&&near(inc[2][1],i170)&&near(inc[3][1],i171)&&(inc[0][2]===null||near(inc[0][2],p168))&&(inc[2][2]===null||near(inc[2][2],p170));
- (incOk?pass:fail)('income.vs-previous',{thisEquals168to171:near(inc[0][1],i168)&&near(inc[2][1],i170),previousEqualsPrecedingRange:inc[0][2]===null?'before calendar':near(inc[0][2],p168),days:stmt[2]});
+ // R116: rows Income, Expenses, Write-offs, Net profit, Net profit per day; Write-offs equals -(the dashboard 3 write-off question).
+ const writeOffQuestion=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.writeoffs,iWo=await one(writeOffQuestion,sp('thismonth'));
+ const incOk=inc.length===5&&near(inc[0][1],i168)&&near(inc[1][1],-i169)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170)&&near(inc[4][1],i171)&&(inc[0][2]===null||near(inc[0][2],p168))&&(inc[3][2]===null||near(inc[3][2],p170));
+ (incOk?pass:fail)('income.vs-previous',{thisEquals168to171AndWriteOffs:near(inc[0][1],i168)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170),previousEqualsPrecedingRange:inc[0][2]===null?'before calendar':near(inc[0][2],p168),days:stmt[2]});
  const monthly=resultRows('income.monthly'),q213=await ref(213,{'review-income':'thismonth'});
- let monthlyOk=monthly.length>0;const q186=(await api('POST','dataset',native(`SELECT date_trunc('month',"Date")::date::text m,sum("Income"),sum("Expenses") FROM {{#186}} WHERE "Date">=date_trunc('month',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date)-interval '5 months' GROUP BY 1 ORDER BY 1`,[model(186)]))).data.rows;
- for(const [i,row] of monthly.entries())monthlyOk&&=String(row[0]).startsWith(q186[i]?.[0])&&near(row[1],q186[i][1])&&near(row[2],q186[i][2]);
+ let monthlyOk=monthly.length>0;const q186=(await api('POST','dataset',native(`SELECT date_trunc('month',"Date")::date::text m,sum("Income"),sum("Expenses"),sum("Principal Write-offs") FROM {{#186}} WHERE "Date">=date_trunc('month',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date)-interval '5 months' GROUP BY 1 ORDER BY 1`,[model(186)]))).data.rows;
+ for(const [i,row] of monthly.entries())monthlyOk&&=String(row[0]).startsWith(q186[i]?.[0])&&near(row[1],q186[i][1])&&near(row[2],q186[i][2])&&near(row[3],q186[i][3])&&near(row[4],q186[i][1]-q186[i][2]-q186[i][3]);
  (monthlyOk?pass:fail)('income.monthly',{months:monthly.length,equalsModel186MonthSums:monthlyOk,question213Rows:q213.rows.length});
  const cfc=dc('cashflow.by-type-row');let cfOk=true;const cfCases=[];
  for(const [period,account] of [['thismonth','__ALL__'],['past30days','__ALL__'],[prevStmt,'__ALL__']]){
