@@ -12052,6 +12052,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-reconcile-legacy-default-postings-p-actor-text-p-apply-boolean-ee9f4ee3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.reconcile_legacy_default_postings(p_actor text, p_apply boolean)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-referral-loan-closed-ce07b80e.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
