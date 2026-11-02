@@ -44,14 +44,20 @@ Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql
 ## Checks
 | Command | Result |
 | --- | --- |
-| `npx biome lint` | Pass at 3351c7c |
-| Typecheck | Pass at 3351c7c |
-| `npm test` | 1101 of 1102 pass at 3351c7c; the one skipped digest test passed when run separately |
-| `Test-MigrationsCloud --sql-only` | Pass at 3351c7c (128 migrations, second run 0, checksum tampering rejected) |
+| `npx biome lint` | Pass at 84b516c (Byte) |
+| Typecheck | Pass at 84b516c (Byte) |
+| `npm test` | 1102 of 1103 pass at 84b516c, 1 skipped (needs a DB port) (Byte) |
+| `Test-MigrationsCloud --sql-only` | Pass at 84b516c, including `Test-WriteOffSegregation.sql` and Chase's `Test-WriteOffSegregationEdges.sql` (now in `Test-StatementBatch`) (Byte) |
+| Adversarial diff review at 38395b9 | No blocking findings; the edge SQL suite passes (Chase) |
+| e2e "Page7 Dashboard source formats" and the R102/R109 Dashboard tests, desktop-chromium, at 38395b9 | Pass (Chase) |
+| Local UI check at 390x844, EN and TH, present, zero and absent states, at 38395b9 | Pass; ANL-4 and DSH-6 were fixed in 84b516c (Echo) |
+| `npm run check:docs` | Pass, 0 failures, 0 warnings |
 
 ## Not run
-- V128 on DEV and PROD, the Metabase refine, rebaseline and verify runs, and a PROD dictionary capture: they belong to the deploy and promotion steps and are not run yet.
-- Playwright, `check:docs` after Byte's follow-ups (e2e labels, dashboard 32 layout files, `ManagementAnalytics`): to follow.
+- The wide Playwright suite and the mobile project: left to the pull request's CI.
+- Live Metabase (refine, rebaseline and verify runs), the DEV deploy (pending) and the PROD dictionary capture: they belong to the deploy and promotion steps.
+
+Chase info finding: an undated `df10:` pair counts in lifetime portfolio net but not in the dated views. This is unchanged from before V128, and no such rows are known.
 
 ## Recovery
 Git baseline: `main` 80fbf6b (branch `claude/r116-writeoff-segregation`). V128 is views only; a later migration restores the V127 bodies (the appended columns stay, unused). Metabase: restore the private baseline written by `Refine-WriteOffSegregation.mjs --prepare` and archive the new question.
@@ -60,4 +66,4 @@ Git baseline: `main` 80fbf6b (branch `claude/r116-writeoff-segregation`). V128 i
 None yet.
 
 ## Remaining work
-Byte's follow-ups, Chase verification, DEV deploy, then PROD promotion (V128, Metabase order in the Metabase README, PROD dictionary capture) only on the owner's instruction.
+DEV deploy, then PROD promotion (V128, Metabase order in the Metabase README, PROD dictionary capture) only on the owner's instruction.

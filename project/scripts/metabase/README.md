@@ -151,7 +151,7 @@ V128 makes "Operating Income" gross profit and appends a positive write-off colu
 
 - snippet 2 "Income statement period" (`live-income-period.sql`) gains the signed column "Principal Write-offs"; Net Profit = Operating Income + Operating Expenses + Principal Write-offs;
 - model 186 Income Events gains "Principal Write-offs" in its result metadata;
-- a new scalar question "Principal write-offs" (the dashboard 32 `income.writeoffs` card is its Loan Reports counterpart) and a "Write-offs" step in the waterfall 204, which ends at Net profit; the scalar row becomes Income, Expenses, Principal write-offs, Net profit, and the formula note and waterfall title name write-offs.
+- a new scalar question "Principal write-offs" (dashboard 32 has a counterpart card `income.writeoffs`, titled "− Write-offs", in its Income band, the sign flipped like Expenses) and a "Write-offs" step in the waterfall 204, which ends at Net profit; the scalar row becomes Income, Expenses, Principal write-offs, Net profit, and the formula note and waterfall title name write-offs.
 
 `--prepare` captures the private baseline and refuses to overwrite one; `--apply` refuses unless the source carries V128 and every touched object equals the baseline, and skips steps already done; `--verify` checks period parity against independent SQL on the governed views, parity with "Cash Dashboard" and preservation of every other placement. Rollback: restore the private baseline and archive the new question; V128 stays. `StatementCleanup.mjs` builds the same page from `WriteOffSegregation.mjs`.
 
@@ -160,8 +160,8 @@ PROD promotion order:
 1. V128 (guarded migration runner).
 2. `Refine-WriteOffSegregation.mjs --prepare`, then `--apply`.
 3. `ProposedLoanReports.mjs --rebaseline-dashboard3=R116` (renews the dashboard 3 guard baseline once, after the new question is placed).
-4. `ProposedLoanReports.mjs --refine --only=income.vs-previous,income.monthly,income.writeoffs` (dashboard 32's own income questions).
-5. Both `--verify` runs: `Refine-WriteOffSegregation.mjs --verify` and `ProposedLoanReports.mjs --verify`.
+4. `ProposedLoanReports.mjs --refine --only=income.writeoffs,income.vs-previous,income.monthly,income` (dashboard 32: the new "− Write-offs" card, its own income questions and the Income tab layout of `layout.json`).
+5. Both `--verify` runs: `ProposedLoanReports.mjs --verify` and `Refine-WriteOffSegregation.mjs --verify`.
 
 After promotion, refresh the Metabase dictionary entry of model 186 and the PostgreSQL view definitions by a targeted PROD capture.
 
