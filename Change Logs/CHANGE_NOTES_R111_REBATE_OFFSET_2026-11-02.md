@@ -29,6 +29,7 @@ Decisions recorded in the build:
 - The journal CHECK for the rebate key on `loan.close` is widened in V122.
 - Offset push wording: the offset payment's push reads as a rebate offset (`2cec8e99`); the "Loan closed" push carries "Rebate X to <referrer>, transfer from Lisa" for the payable part.
 - The notify owner receives SELECT on Payments "Payment Method" so `pwa_notify_content_v2` can read it.
+- V123 (`pay_forward_helper_governance`): Forge saw the DEV role reconcile grant EXECUTE on `pwa_apply_pay_forward_v1` to `mw_app_dev`. Archie found no privilege escalation (SECURITY INVOKER; the app role already has that DML) but a design breach. V123 adds a governance comment so the reconcile skips the helper, revokes EXECUTE from `mw_app_<env>` and PUBLIC, adds a journal-owner guard and a self-check, and makes the `create_referral_rebate` notes read "Rebate from loan <PWA loan key>". V122 stays unedited because it was already applied to DEV. An older client's close records path=expense, which is intended.
 - Archie's resolutions: the chosen path is the `rebatePath` input and `result_json.rebate`, and a re-close preview defaults to it; the offset is SQL-posted with no command v11; a correction of an offset-bearing closing payment is refused and deletion cascades; the referrer's due charges are paid first (plan rule); mutual referrers can deadlock to `command_busy`, which is accepted.
 
 Team (six-agent process, this session): Archie designed, Byte built the code, Chase verified on a disposable cluster (DEV test pending), Echo reviewed the built UI, Dewey kept records. Forge deploys DEV, including the notify worker, because V122 adds `pwa_notify_content_v2`; PROD is not authorized.
@@ -48,6 +49,8 @@ Carried over from R110: the "Paid in advance" tile date was not yet seen on DEV 
 | e2e `rebate-offset-independent` (Chase, `2cec8e99`) | 18/18, desktop and phone; no defects found |
 | e2e `rebate-offset-independent` (Chase, `50a68db0`, recorded at `799bf157`) | 18/18 with the LC-3 and EX-3 assertions |
 | Echo, built UI at 390 and 320 px (`2cec8e99`) | LC-1, LC-2, LC-3 confirmation, LC-4, EX-1, EX-2 fixed; LC-3 result and EX-3 fixed in `377077c0`; NT-1 proven by a unit test |
+| Chain to 123 with the PROD default-privileges replay; reconcile leaves `mw_app_dev` without EXECUTE; `Test-PayForward`, `Test-RebateOffset`, `Test-AccessMatrix` (new negative case); lint, typecheck, unit (Byte, `ae1f9a04`) | Pass; 1079 passed, 0 failed |
+| `Test-RebateOffset` and integration `rebate-offset-independent` (Chase, `8e394053`) | Pass at head 123; 6/6 |
 | Wide suite | The pull request's `Development checks` run (pending) |
 
 ## DEV deployment record
@@ -95,7 +98,7 @@ DEV left in place, as in R109 and R110: the four borrower pairs and their closed
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on screen and WebKit or a real iPhone (Echo checked Chromium only).
-- The DEV deployment and test (Forge and Chase, pending), including the notify worker with `pwa_notify_content_v2`.
+- The DEV deployment and test (Forge and Chase, pending), including V123 and the notify worker with `pwa_notify_content_v2`; the notification content could not be read on DEV.
 - Anything in PROD.
 - The R110 "Paid in advance" tile date, to be seen on DEV during this test.
 
@@ -106,7 +109,8 @@ Before release: revert the pull request (Git baseline R110 `2546e64` plus later 
 None for the owner at this point.
 
 ## Remaining work
-- Chase's and Echo's verification; fill Not run and Recovery; Forge's DEV deployment including the notify worker.
+- Forge: apply V123 to DEV (migration only, no image change), then Chase re-tests the helper's ACL on DEV.
+- Open: the notification content could not be read on DEV; the "Paid in advance" tile (the R110 leftover) is to be rechecked from 3 November.
 - Deferred: COL-2, the Collection "rebate offset" caption (needs read-role grants).
 - Open the pull request and deploy to DEV for testing (authorized); PROD promotion and merge need a separate scoped owner instruction.
 - Release 3 of the plan.
