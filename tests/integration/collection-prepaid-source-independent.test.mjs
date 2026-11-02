@@ -19,10 +19,11 @@ const day=offset=>q("SELECT ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::da
 const grantAll=async()=>{for(const [table,columns] of Object.entries(contract))await q(`GRANT SELECT(${columns.map(c=>'"'+c+'"').join(',')}) ON public."${table}" TO ${role}`)};
 const revokeSource=async()=>{await q(`REVOKE SELECT("Row ID","Payment Method") ON public."Payments" FROM ${role}; REVOKE SELECT("Ref Payment") ON public."Repayments" FROM ${role}`)};
 const client=async()=>{const c=await reader.connect();return c};
-async function board(){const c=await client();try{return await readCollection(c,{limit:100,after:null});}finally{c.release();}}
+// The cluster may be shared with earlier files (Run-UnifiedReceiving.ps1): every read is scoped to this fixture by name.
+async function board(){const c=await client();try{return await readCollection(c,{limit:100,after:null,query:'SYNTHETIC COL2'});}finally{c.release();}}
 before(async()=>{
  admin=await disposablePool(migrationHead());
- await q(`CREATE ROLE ${role} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);await q(`GRANT USAGE ON SCHEMA public TO ${role}`);
+ await q(`DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='${role}') THEN CREATE ROLE ${role} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; END IF; END $$`);await q(`GRANT USAGE ON SCHEMA public TO ${role}`);
  reader=new pg.Pool({host:'127.0.0.1',port:Number(process.env.PAYMENT_REHEARSAL_PORT),database:'payment_rehearsal',user:role,password:'',max:2});
  fixture=await seedPaymentFixture(admin,'R114-COL');
  await q(`INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('R114-COL-CAPITAL2',$1,current_date,'Contribution',500000::money)`,[fixture.actorId]);
@@ -43,10 +44,10 @@ before(async()=>{
  }
  await q('SET CONSTRAINTS ALL IMMEDIATE');
 });
-after(async()=>{await reader?.end();await admin?.end()});
+after(async()=>{await reader?.end();await admin?.end()});   // the fixture rows stay (prefixed R114-), as the other files' do; the role's grants are reset per test
 const byId=result=>Object.fromEntries(result.items.map(item=>[item.id,item]));
 test('the fixture pays today\'s charge in advance for two borrowers (the date facts the caption uses)',async()=>{
- const rows=(await q(`SELECT l."Ref Borrowers" AS b,r."Payment Date"::text AS d,p."Payment Method" AS m FROM "Repayments" r JOIN "Charges" c ON c."Row ID"=r."Ref Charges" JOIN "Loans" l ON l."Row ID"=c."Ref Loans" JOIN "Payments" p ON p."Row ID"=r."Ref Payment" WHERE c."Charge Date"=(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date ORDER BY 1`)).rows;
+ const rows=(await q(`SELECT l."Ref Borrowers" AS b,r."Payment Date"::text AS d,p."Payment Method" AS m FROM "Repayments" r JOIN "Charges" c ON c."Row ID"=r."Ref Charges" JOIN "Loans" l ON l."Row ID"=c."Ref Loans" JOIN "Payments" p ON p."Row ID"=r."Ref Payment" WHERE c."Charge Date"=(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date AND l."Ref Borrowers" IN ('R114-OFF-B','R114-ORD-B','R114-NONE-B') ORDER BY 1`)).rows;
  assert.deepEqual(rows.map(r=>[r.b,r.m]),[['R114-OFF-B','Referral Rebate Offset'],['R114-ORD-B','Bank Transfer']]);
 });
 test('WITH the reader contract grants the rebate-offset advance shows prepaidSource, an ordinary advance does not, and the date stays',async()=>{
