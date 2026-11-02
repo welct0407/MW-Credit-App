@@ -61,6 +61,8 @@ test('the rebate choice offsets the referrer loan by default (D3), previews the 
  await expect(page.locator('main')).toContainText('Offset to L-0398, paid through 12 Oct');
  await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>s.writes.length).toBe(1);
  expect(s.writes[0].body.operation).toBe('loan.close');expect(sentPath(s)).toBe('offset');
+ // LC-3: the loan record shows the rebate line of the close just applied.
+ await expect(page.getByRole('status').filter({hasText:'Rebate: Offset to L-0398, paid through 12 Oct'})).toBeVisible();
 });
 
 test('choosing Pay out as expense sends rebatePath expense and names the transfer from Lisa',async({page})=>{
@@ -68,6 +70,7 @@ test('choosing Pay out as expense sends rebatePath expense and names the transfe
  await choice(page,/^Pay out as expense/).check();await reviewAndConfirm(page);
  await expect(page.locator('main')).toContainText('฿300 to ผู้แนะนำจำลอง, transfer from Lisa');
  await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>s.writes.length).toBe(1);expect(sentPath(s)).toBe('expense');
+ await expect(page.getByRole('status').filter({hasText:'Rebate: ฿300 to ผู้แนะนำจำลอง, transfer from Lisa'})).toBeVisible();
 });
 
 test('a re-close preselects the previous path instead of the default',async({page})=>{
@@ -116,6 +119,7 @@ test('Expenses: an offset-settled rebate reads "Settled by offset" with the refe
  await page.locator('.borrower-card').click();
  await expect(page.locator('main')).toContainText('Settled by offset');await expect(page.locator('main')).toContainText('ผู้แนะนำจำลอง');await expect(page.locator('main')).toContainText('L-0398');
  await expect(page.locator('main')).not.toContainText('Synthetic Dad paying account');
+ await expect(page.locator('main')).not.toContainText('Paid By Cash Holder');
  await expect(page.getByRole('button',{name:'Delete expense',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Edit expense',exact:true})).toHaveCount(0);
  await expect(page.locator('main')).toContainText('Remove through the closing payment');expect(s.writes).toHaveLength(0);
 });
