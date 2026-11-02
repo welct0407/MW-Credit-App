@@ -18,6 +18,7 @@
 -- V129: the lifetime ledger "Principal Write-offs" of the portfolio summary moves with every posting and keeps
 -- "Total Profit" - "Total Business Expenses" - "Principal Write-offs" = "Net Profit"; a legacy loan whose "Default Loss
 -- Amount" has no df10: repayment (the DEV finding) raises "Total Principal Loss" but not the ledger column or net profit.
+-- V130: a zero-cash loss pair under a random id is a write-off (the predicate's positive and negative cases, below).
 -- Then the column positions: every existing column in place, the write-off column last. Rolled back.
 BEGIN;
 \ir Test-CashAccountFixtures.sql
@@ -140,6 +141,60 @@ SELECT pg_temp.wo_assert((SELECT (s."Total Principal Loss"-(b.value->>'ps_loss')
   AND s."Total Principal Loss"-s."Principal Write-offs"<>(b.value->>'ps_loss')::numeric-(b.value->>'ps_writeoffs')::numeric
  FROM (SELECT * FROM public.olap_portfolio_summary LIMIT 1) s,wo_snapshots b WHERE b.label='base'),
  'legacy loss: Total Principal Loss +25, ledger Principal Write-offs and net unchanged, the identity holds on the ledger column');
+-- V130: the write-off predicate (public.is_principal_writeoff). A zero-cash loss pair under a random 22-character id, as the
+-- AppSheet-era defaults carry, is a write-off on its date in every relation; gross leaves it out and net is the value the
+-- interest-only formula gives (net unchanged by the reclassification). Not classified: an ordinary principal repayment
+-- (interest 0), a partial row whose interest is not -principal, a loan-close (lc7:) charge, a charge with two repayments,
+-- and (on the predicate itself) a payment-linked row and a lump-sum (ls2:) charge of the same shape.
+SET CONSTRAINTS ALL IMMEDIATE;
+INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest")
+VALUES('CI-LISA','WO-LG','WO-B',current_date-20,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,0::money);
+INSERT INTO wo_snapshots VALUES ('pair base',pg_temp.wo_snapshot());
+CREATE TEMP TABLE wo_interest_base ON COMMIT DROP AS SELECT coalesce(sum("Interest Paid"::numeric),0) AS interest FROM "Repayments" WHERE "Ref Loans"='WO-LG';
+INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES
+ ('Xk9qRm2LpT4vWz8BnC1dEf','WO-LG',current_date,50::money,(-50)::money),
+ ('WO-LG-principal','WO-LG',current_date,20::money,0::money),
+ ('WO-LG-partial','WO-LG',current_date,30::money,(-10)::money),
+ ('lc7:5:WO-LG:'||current_date::text,'WO-LG',current_date,15::money,(-15)::money),
+ ('WO-LG-two','WO-LG',current_date,10::money,(-10)::money);
+INSERT INTO "Repayments"("Row ID","Payment Date","Principal Paid","Interest Paid","Notes","Ref Loans","Ref Charges","Created By") VALUES
+ ('Ha7Ld3QwErTy5UiOp9AsDf',current_date,50::money,(-50)::money,'Loan default - outstanding principal recorded as loss; zero cash','WO-LG','Xk9qRm2LpT4vWz8BnC1dEf','synthetic'),
+ ('WO-LG-r-principal',current_date,20::money,0::money,'ordinary principal','WO-LG','WO-LG-principal','synthetic'),
+ ('WO-LG-r-partial',current_date,30::money,(-10)::money,'partial','WO-LG','WO-LG-partial','synthetic'),
+ ('WO-LG-r-lc7',current_date,15::money,(-15)::money,'loan close shape','WO-LG','lc7:5:WO-LG:'||current_date::text,'synthetic'),
+ ('WO-LG-r-two-a',current_date,10::money,(-10)::money,'two repayments','WO-LG','WO-LG-two','synthetic'),
+ ('WO-LG-r-two-b',current_date,0::money,0::money,'two repayments','WO-LG','WO-LG-two','synthetic');
+DO $pair$
+DECLARE b jsonb:=(SELECT value FROM wo_snapshots WHERE label='pair base'); v jsonb:=pg_temp.wo_snapshot(); k text; want numeric; bad text:='';
+ interest numeric:=(SELECT coalesce(sum("Interest Paid"::numeric),0) FROM "Repayments" WHERE "Ref Loans"='WO-LG')-(SELECT interest FROM wo_interest_base);
+BEGIN
+ -- all interest of the new rows -85: the pair -50 (a write-off) and -35 of the unclassified rows (gross).
+ IF interest<>-85 THEN RAISE EXCEPTION 'pair fixture interest %',interest; END IF;
+ FOR k,want IN SELECT key,value::numeric FROM jsonb_each_text(jsonb_build_object(
+   'cd_writeoff',50,'ps_writeoff',50,'ps_writeoffs',50,'st_writeoff',50,'mo_writeoff',50,'da_writeoff',50,'ev_writeoff',50,
+   'cd_income',-35,'ps_total',-35,'ps_today',-35,'ps_realized',-35,'ps_income',-35,'st_income',-35,'mo_income',-35,'da_income',-35,'ev_income',-35,
+   'cd_net',interest,'ps_net',interest,'ps_net_mtd',interest,'st_net',interest,'mo_net',interest,'da_net',interest,'da_through',interest,'ps_loss',0)) AS x(key,value) LOOP
+  IF (v->>k)::numeric-(b->>k)::numeric IS DISTINCT FROM want THEN bad:=bad||format(' %s=%s (want %s)',k,(v->>k)::numeric-(b->>k)::numeric,want); END IF;
+ END LOOP;
+ IF bad<>'' THEN RAISE EXCEPTION 'Write-off segregation random-id pair:%',bad; END IF;
+END $pair$;
+SELECT pg_temp.wo_assert((SELECT array_agg("Event ID"||'='||"Income"::numeric::text||'/'||"Principal Write-offs"::numeric::text ORDER BY "Event ID")
+  FROM public.reporting_income_events WHERE "Event ID" IN (SELECT 'repayment:'||"Row ID" FROM "Repayments" WHERE "Ref Loans"='WO-LG'))
+ =ARRAY['repayment:Ha7Ld3QwErTy5UiOp9AsDf=0/50.00','repayment:WO-LG-r-lc7=-15.00/0','repayment:WO-LG-r-partial=-10.00/0',
+        'repayment:WO-LG-r-principal=0.00/0','repayment:WO-LG-r-two-a=-10.00/0','repayment:WO-LG-r-two-b=0.00/0'],
+ 'events: only the random-id loss pair is a write-off (no income); the other shapes stay income');
+SELECT pg_temp.wo_assert(public.is_principal_writeoff('df10:5:WO-LG:x','x',1,1,NULL,NULL,NULL,NULL)
+ AND public.is_principal_writeoff('Ha7Ld3QwErTy5UiOp9AsDf',NULL,50,-50,'Xk9qRm2LpT4vWz8BnC1dEf',50,-50,1)
+ AND NOT public.is_principal_writeoff('R-pay','PAYMENT-1',50,-50,'C-1',50,-50,1)
+ AND NOT public.is_principal_writeoff('R-ls2',NULL,50,-50,'ls2:P-1:C-1',50,-50,1)
+ AND NOT public.is_principal_writeoff('R-lc7',NULL,50,-50,'lc7:3:L-1:2026-11-01',50,-50,1)
+ AND NOT public.is_principal_writeoff('R-two',NULL,50,-50,'C-1',50,-50,2)
+ AND NOT public.is_principal_writeoff('R-principal',NULL,50,0,'C-1',50,0,1)
+ AND NOT public.is_principal_writeoff('R-partial',NULL,50,-20,'C-1',50,-20,1)
+ AND NOT public.is_principal_writeoff('R-charge',NULL,50,-50,'C-1',60,-60,1)
+ AND NOT public.is_principal_writeoff('R-none',NULL,50,-50,NULL,NULL,NULL,NULL)
+ AND NOT public.is_principal_writeoff(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+ 'the predicate: df10 and the zero-cash loss pair only; payment-linked, ls2:/lc7:, two repayments, interest 0 or not -principal, a charge that differs or is missing are not');
 -- Column positions: the existing columns in place, the write-off column appended last.
 SELECT pg_temp.wo_assert((SELECT array_agg(attname::text ORDER BY attnum DESC) FROM (SELECT attname,attnum FROM pg_attribute
   WHERE attrelid=r.rel::regclass AND attnum>0 AND NOT attisdropped ORDER BY attnum DESC LIMIT 2) a)=ARRAY[r.appended,r.previous]

@@ -165,7 +165,9 @@ if(args.includes('--verify')){
   const [starts,ends,days]=await range(value);
   let gross=null,expense=null,writeoff=null;
   if(days>0){
-   const [g,w]=(await dataset(native(`SELECT coalesce(sum("Interest Paid"::numeric) FILTER(WHERE NOT starts_with("Row ID",'df10:')),0),coalesce(sum("Principal Paid"::numeric) FILTER(WHERE starts_with("Row ID",'df10:')),0) FROM public.olap_repayments_analytics WHERE "Payment Date" BETWEEN DATE '${starts}' AND DATE '${ends}'`))).rows[0].map(Number);
+   // R116 V130: a write-off is public.is_principal_writeoff (df10:, or a zero-cash loss pair on a non-lc7:/ls2: charge of the
+   // same components with one repayment), applied here to the reader's own views of the rows and their charges.
+   const [g,w]=(await dataset(native(`WITH rows AS (SELECT r."Interest Paid"::numeric AS interest,r."Principal Paid"::numeric AS principal,public.is_principal_writeoff(r."Row ID",r."Ref Payment",r."Principal Paid"::numeric,r."Interest Paid"::numeric,r."Ref Charges",c."Principal Due"::numeric,c."Interest Due"::numeric,CASE WHEN r."Ref Payment" IS NULL AND r."Principal Paid"::numeric>0 AND r."Interest Paid"::numeric=-r."Principal Paid"::numeric THEN (SELECT count(*) FROM public.olap_repayments_analytics n WHERE n."Ref Charges"=r."Ref Charges") END) AS writeoff FROM public.olap_repayments_analytics r LEFT JOIN public.olap_charges_analytics c ON c."Row ID"=r."Ref Charges" WHERE r."Payment Date" BETWEEN DATE '${starts}' AND DATE '${ends}') SELECT coalesce(sum(interest) FILTER(WHERE NOT writeoff),0),coalesce(sum(principal) FILTER(WHERE writeoff),0) FROM rows`))).rows[0].map(Number);
    expense=Number((await dataset(native(`SELECT coalesce(sum("Amount"::numeric),0) FROM public."Business Expenses" WHERE "Expense Date" BETWEEN DATE '${starts}' AND DATE '${ends}'`))).rows[0][0]);
    gross=g;writeoff=w;
   }
