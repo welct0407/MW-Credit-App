@@ -105,15 +105,28 @@ Applied and verified. Not owner-accepted in PROD: the first Collection view with
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on a real iPhone, and WebKit.
-- The COL-2 caption in PROD: it appears only after the PROD reader contract grants are applied.
-- The DEV deployment and test of items 1, 2 and 5, and anything in PROD, until the owner's promotion.
+- The COL-2 caption live: it can only be seen a day after a rebate offset and no such borrower exists yet on DEV or PROD; it is covered by the integration test with and without the grants.
+- An authenticated Collection read in PROD (no PROD Partner token for the operator): the promotion smoke is unauthenticated.
 
 ## Recovery
-Before release: revert the pull request (Git baseline R113 `05562375` plus later main commits). The dictionary entries are documents only; Git keeps history.
+Before release: revert the pull request (Git baseline R113 `05562375` plus later main commits). Released: the PROD rollback is in the promotion record (activation `production.activation.before-r114-1793624146293112.tfvars` for read, command and chat with Hosting `6d79f8bbb36543e7`). The reader column grants may stay (the R113 image does not read them) or be revoked with the two `REVOKE` statements in the record. The dictionary entries are documents only; Git keeps history.
 
 ## Open questions
 None for the owner.
 
 ## Remaining work
-- Forge: DEV deployment of items 1, 2 and 5 with the read-role grants (DEV script); then PROD promotion with the reader contract grants. Items 3 and 6 need no deploy (item 6 is done on DEV).
-- The "Thai wording on a real iPhone" check from R113 stays open.
+- Owner: PROD acceptance: the first authenticated Collection view, a two-loan Split on the phone and the chat purpose card.
+- Open: COL-2 can only be seen a day after a rebate offset and has not been seen live; an authenticated PROD Collection read is untested; Thai wording on a real iPhone, and WebKit.
+- R115 is open with no scope yet.
+- Done: DEV deployment and test, merge and PROD promotion. The Data Dictionary entries (item 4) were added before the release.
+
+## Closure (2 November 2026)
+Owner instruction "Do all 1-6": PR #211 was merged and promoted under it (promotion record above); DEV proof preceded PROD.
+
+Tag record: the annotated tag `R114` (object `fcd30b959426469f86adb976400dc184c23d38d6`) points at the package commit `52f56a49b8e09668461b85c495fffac4b1fa89e7` (PR #211 on `main`), created by the Release tag workflow run 41460227747 (GitHub Release R114 published). Freeze 2026-11-02T14:08:48Z, baseline R113 `05562375`. R115 is opened in this closure and R116 is the next unused number.
+
+Technical access recorded in the Environment inventory: the reader login's column SELECT on `Repayments."Ref Payment"` and `Payments("Row ID","Payment Method")` in PROD (14:09:23Z) and DEV (13:52:05Z), and the DEV test Partner as an AI Reviewer.
+
+Data Dictionary: no PROD capture this closure, because R114 changed no schema, routine or view (only the reader's column grants, recorded in the inventory). Item 4 already added the four routine entries before the release (see Changes); none is due.
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R111_REBATE_OFFSET_2026-11-02.md` (R111 left the retention window: R115 Open; R114, R113, R112 Released) and its uncited evidence `project/outputs/dictionary-r111-20261102/`. Its links in the Release tracker, Development Changes, the Environment inventory, the Solution Design and `database/README.md` now point to the commit permalink `52f56a49`, the last commit where it exists. No other change note or evidence file is outside the window or uncited.
