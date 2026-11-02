@@ -123,6 +123,8 @@ Chase, 2 November 2026, on V124 as deployed (head 124, image `608cfb53`, Hosting
 | (e) Collection "Paid in advance · <date>" (R110 leftover) | Skipped: the business day is still 2 November |
 | Phone pass, 390 px, payment record of B and C | **Defect: the "Loan closed · rebate …" line does not appear.** The record API returns `closeRebate` with amounts as two-decimal text ("2.00", "20.00"), and `PaymentRecord.tsx` reads them with `whole()` (integers only), so the line is never drawn. The Playwright specs missed it because their mock sent whole numbers; `rebate-offset-independent.spec.ts` now mocks the API format and fails on the three line cases until the reader accepts the decimals (or the API sends whole baht) |
 
+Re-check on Hosting `a31e3407` (version `76661ca9a1bf51ee`), phone 390 px, no horizontal scroll: the payment record now shows the line. A (re-paid, since its first closing payment was deleted in case d; offset 20 again): "Loan closed · rebate ฿20 offset to <referrer loan>, paid through 3 Nov"; B: "… ฿2 offset to <referrer loan>"; C: "… ฿20 to <referrer>, transfer from Lisa". The defect is fixed.
+
 DEV left in place: the three synthetic pairs, their payments and the offset payments of B; auto-charge is off on the open loans (the referrer loans of A and B and A's reopened referred loan); the token file is deleted.
 
 ## Not run
