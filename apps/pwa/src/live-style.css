@@ -697,6 +697,11 @@ html:has(.live-shell),html:has(.live-shell) body{overflow-x:clip;overscroll-beha
 .remainder-options>label{flex-direction:column;gap:4px}.remainder-options small{font-size:13px;color:#4a5560}
 .remainder-options .field-title{border:0;padding:0;text-align:left;font-weight:700}.remainder-options>label:has(select),.remainder-split{flex-basis:100%}
 .remainder-split{display:flex;gap:6px;align-items:flex-end}.remainder-split input{position:static;opacity:1;width:auto;height:auto}
+/* R114 (Echo): the Remainder fieldset never grows past its container (a fieldset's min-width is its content by default); the
+   Split parts wrap, each part's title, input and hint stack, and on phones every part and Apply take a full row. */
+.remainder-options{min-width:0;max-width:100%}.remainder-split{flex-wrap:wrap;min-width:0}
+.remainder-split>label{flex:1 1 180px;flex-direction:column;align-items:stretch;gap:4px;min-width:0}.remainder-split>label input{width:100%;max-width:100%;box-sizing:border-box}
+@media (max-width:600px){.remainder-split>label,.remainder-split>button{flex-basis:100%}}
 .forward-run>summary{cursor:pointer;padding:6px 0;font-weight:700}
 @media (max-width:600px){.remainder-options>label{flex-basis:100%}}.remainder-options small{overflow-wrap:anywhere}
 .due-only-offline{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.loan-paid-through{font-size:13px;color:#4a5560}

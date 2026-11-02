@@ -466,7 +466,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const throughText=(paidThrough:Record<string,string>)=>{const days=Object.values(paidThrough).sort();return days.length?t('paid through ','ชำระถึง ')+shortDate(days.at(-1),thai):''};
  const forwardPreview=(value:NonNullable<Remainder['forward']>)=>value.rows.length?[forwardRuns(value.rows).map(run=>dateRange(run[0].chargeDate,run.at(-1)!.chargeDate,thai)+' ('+(run[0].partial?num(whole(run[0].principal)&&whole(run[0].interest)?(BigInt(run[0].principal)+BigInt(run[0].interest)).toString():'0')+', '+t('partial','ชำระบางส่วน'):num(runAmount(run[0]))+' × '+run.length)+')').join(', '),throughText(value.paidThrough)].filter(Boolean).join(', '):t('No future charge can be paid','ไม่มีงวดที่ชำระล่วงหน้าได้');
  // R114 (2): the remainder short of a loan's payoff remainder says how much more closes it ("฿<more> more closes <loan>").
- const moreCloses=(loanId:string,more:string)=>t(money(more)+' more closes '+loanLabel(loanId),'อีก '+money(more)+' ปิด '+loanLabel(loanId));
+ const moreCloses=(loanId:string,more:string)=>t(money(more)+' more closes '+loanLabel(loanId),'อีก '+money(more)+' จะปิด '+loanLabel(loanId));
  const shortOfPayoff=(option:PrincipalOption|undefined)=>option&&whole(option.payoffRemainder??undefined)&&remainder&&BigInt(remainder.amount)<BigInt(option.payoffRemainder as string)?(BigInt(option.payoffRemainder as string)-BigInt(remainder.amount)).toString():null;
  // R114 (2): beside each Split part: the plan's "more" for a part that does not settle the loan, else the remainder short of
  // its payoff, else what closes it.
