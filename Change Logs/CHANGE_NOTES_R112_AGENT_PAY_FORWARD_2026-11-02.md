@@ -47,6 +47,25 @@ Team (six-agent process, this session): Archie designed, Byte built the code and
 | Forge, read-only PROD check | `mw_integration_agent` already reads every table the plan uses in PROD; no grant missing |
 | Wide suite | The pull request's `Development checks` run (pending) |
 
+## DEV deployment record
+
+Forge, 2 November 2026, UTC. Owner instruction of 2 November 2026: "start release 3, test it and promote to prod too". DEV only: no PROD action and the agent VM `vm-mw-credit-agent` not touched (it serves PROD only).
+
+| Item | Result |
+| --- | --- |
+| Source | `e6e147a1` (PR #206 head, branch `claude/r112-agent-pay-forward`). Development checks run 41426803050, database run 41426769568, agent run 41426803233 passed. Clean checkout for the migration; the image from a `git archive` of the same commit |
+| Target check | `loan_manager_dev` on `mw-credit-pg-20261017`, head 124 (124 rows, 0 failed), no active sessions; all five DEV services (read `00058-2bl`, command `00075-lq5`, chat `00027-zrx`, notify `00025-f45`, jobs `00025-8vx`) on `608cfb53…` (R111 `b1fd5d4a`) |
+| Backup at V124, 10:21:44Z to 10:24:17Z | Dump sha256 `16dd8de7ee6de5c09b4dbcf18f71ed1a6cf071b1f094bfb8d0502b1c0196c71e`; archive listing and restore passed; 38 table fingerprints match; `gs://mw-credit-operator-private-737787224638/dev-backups/dev-refresh-9720c4bfb3864806a843939f655fbfe9/` |
+| Owner window | 5 owners (`mw_chat_owner_dev`, `mw_notify_owner_dev`, `mw_jobs_owner_dev`, `mw_changes_owner_dev`, `mw_app_dev_journal_owner`), 20 statements, opened 10:24:24Z, restored 10:32:33Z; readback all closed (no SET, no CREATE on `public`) |
+| V125 | `Invoke-Flyway.ps1 -Environment development migrate`: installed 10:24:48Z (33.2 s, checksum -1717556698, self-check passed), head 125 (125 rows, 0 failed); role check 540 statements, 0 violations |
+| Readback | `pwa_pay_forward_plan_v1` ACL `{postgres=X/postgres,mw_integration_agent=X/postgres,mw_app_dev=X/postgres}` (PUBLIC cannot); `forecast_schedule_v1` gains `mw_integration_agent` EXECUTE, its other grantees unchanged; `pwa_submit_agent_receipt_v1` and `pwa_agent_receipt_status_v1` keep owner `mw_app_dev_journal_owner`, SECURITY DEFINER, EXECUTE for the DEV command identity only (`mw_integration_agent` cannot); `pwa_apply_pay_forward_v1` still journal-owner only after the reconcile. In DEV `mw_integration_agent` has no CONNECT on `loan_manager_dev` and no table SELECT, so its new EXECUTE is inert there (the role is instance-wide) |
+| Image | Cloud Build `208fa5f8-a206-42a3-a244-42d0f6fdcaad` (`cloudbuild-command.yaml`) as `mw-credit-app-build`, SUCCESS 10:32:55Z to 10:33:22Z, `api@sha256:bd9d94a3179814d9b6865024aec38411f9a2b24d1f5f49ee3ac22cf045e08a43` |
+| Terraform DEV | Plan 0 add, 5 change, 0 destroy, image attribute only on read, command, chat, notify and jobs; applied 10:34:29Z to 10:35:05Z; re-plan no changes; settings generation `1793615711898709` (previous `1793607109329182`); read `00059-m6x`, command `00076-grt`, chat `00028-msl`, notify `00026-5g6`, jobs `00026-vr8`, 100% traffic |
+| Hosting | `npm run build:live-dev` with `MW_RELEASE_NUMBER` unset (the script labelled it R112 from the tracker's Open release); `.env.live-dev` written from Secret Manager and the previous bundle's settings (identical), deleted after the build; `--check` passed; deployed 10:36:15Z to 10:36:23Z; version `ad6947853a378bf9`, release `1793615783076000`; build-version R112 `5fcfb9f4b51843c1871d21a6`, entry `/assets/index-BOSjto1v.js` embeds `e6e147a`, on `web.app` and `dev-lm.mw-credit.com` |
+| Smoke | `/health` 200 on read, command and chat; unauthenticated 401; preflight from `https://dev-lm.mw-credit.com` 204; notify and jobs Ready; scheduled notify dispatches on `00026-5g6` at 10:35:03Z and 10:36:03Z 200 (observed, not triggered); scheduler identity `mw-credit-app-scheduler-dev` unchanged; no ERROR logs from 10:34Z |
+| Credentials | The temporary admin and read credential files are deleted; no secret value was printed |
+| Rollback | Settings generation `1793607109329182` (image `608cfb53…`, R111 `b1fd5d4a`, all five services) with Hosting `76661ca9a1bf51ee` (release `1793608518983000`), plus the V124 backup above. V125 is functions and grants only; its schema rollback is a later migration or the V124 backup |
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Live Instagram and any DEV test of the agent loop: there is no DEV agent, no Instagram send was made, and the switch is off.
