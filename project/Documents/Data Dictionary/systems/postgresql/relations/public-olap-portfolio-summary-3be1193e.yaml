@@ -48,16 +48,44 @@
                   COALESCE(sum(olap_loans_analytics."Default Loss Amount"::numeric), 0::numeric) AS principal_loss
                  FROM olap_loans_analytics
               ), rr AS (
-               SELECT COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS profit,
-                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" = ctx.d AND NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS today,
-                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" = (ctx.d - 1) AND NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS yesterday,
-                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" >= ctx.ms AND olap_repayments_analytics."Payment Date" <= ctx.me AND NOT starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS mtd,
-                  COALESCE(sum(olap_repayments_analytics."Principal Returned Days MTD"), 0::numeric) AS returned_days,
-                  COALESCE(sum(olap_repayments_analytics."Partner A Profit"), 0::numeric) AS profit_a,
-                  COALESCE(sum(olap_repayments_analytics."Partner B Profit"), 0::numeric) AS profit_b,
-                  COALESCE(sum(olap_repayments_analytics."Principal Paid"::numeric) FILTER (WHERE starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS writeoff,
-                  COALESCE(sum(olap_repayments_analytics."Principal Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" >= ctx.ms AND olap_repayments_analytics."Payment Date" <= ctx.me AND starts_with(olap_repayments_analytics."Row ID", 'df10:'::text)), 0::numeric) AS writeoff_mtd
-                 FROM olap_repayments_analytics
+               SELECT COALESCE(sum(repayments."Interest Paid"::numeric) FILTER (WHERE NOT repayments.loss_pair), 0::numeric) AS profit,
+                  COALESCE(sum(repayments."Interest Paid"::numeric) FILTER (WHERE repayments."Payment Date" = ctx.d AND NOT repayments.loss_pair), 0::numeric) AS today,
+                  COALESCE(sum(repayments."Interest Paid"::numeric) FILTER (WHERE repayments."Payment Date" = (ctx.d - 1) AND NOT repayments.loss_pair), 0::numeric) AS yesterday,
+                  COALESCE(sum(repayments."Interest Paid"::numeric) FILTER (WHERE repayments."Payment Date" >= ctx.ms AND repayments."Payment Date" <= ctx.me AND NOT repayments.loss_pair), 0::numeric) AS mtd,
+                  COALESCE(sum(repayments."Principal Returned Days MTD"), 0::numeric) AS returned_days,
+                  COALESCE(sum(repayments."Partner A Profit"), 0::numeric) AS profit_a,
+                  COALESCE(sum(repayments."Partner B Profit"), 0::numeric) AS profit_b,
+                  COALESCE(sum(repayments."Principal Paid"::numeric) FILTER (WHERE repayments.loss_pair), 0::numeric) AS writeoff,
+                  COALESCE(sum(repayments."Principal Paid"::numeric) FILTER (WHERE repayments."Payment Date" >= ctx.ms AND repayments."Payment Date" <= ctx.me AND repayments.loss_pair), 0::numeric) AS writeoff_mtd
+                 FROM ( SELECT wx."Row ID",
+                          wx."Payment Date",
+                          wx."Principal Paid",
+                          wx."Interest Paid",
+                          wx."Notes",
+                          wx."Ref Loans",
+                          wx."Ref Charges",
+                          wx."Created By",
+                          wx."Ref Payment",
+                          wx."Ref Payment Allocation",
+                          wx."Principal Returned Days MTD",
+                          wx."Pool Total at Payment Date",
+                          wx."Partner A Contribution at Payment Date",
+                          wx."Partner B Contribution at Payment Date",
+                          wx."Partner A Profit Share",
+                          wx."Partner B Profit Share",
+                          wx."Partner A Profit",
+                          wx."Partner B Profit",
+                          wx."30D Principal Reduction Days",
+                          wx."Amount Received",
+                          is_principal_writeoff(wx."Row ID", wx."Ref Payment", wx."Principal Paid"::numeric, wx."Interest Paid"::numeric, wx."Ref Charges", wc.principal, wc.interest, wc.repayments) AS loss_pair
+                         FROM olap_repayments_analytics wx
+                           LEFT JOIN LATERAL ( SELECT c."Principal Due"::numeric AS principal,
+                                  c."Interest Due"::numeric AS interest,
+                                  ( SELECT count(*) AS count
+                                         FROM "Repayments" n
+                                        WHERE n."Ref Charges" = c."Row ID") AS repayments
+                                 FROM "Charges" c
+                                WHERE c."Row ID" = wx."Ref Charges" AND wx."Ref Payment" IS NULL AND wx."Principal Paid"::numeric > 0::numeric AND wx."Interest Paid"::numeric = (- wx."Principal Paid"::numeric)) wc ON true) repayments
                    CROSS JOIN ctx
               ), cr AS (
                SELECT COALESCE(sum(olap_charges_analytics."Amount Remaining") FILTER (WHERE NULLIF(olap_charges_analytics."Ref Loans", ''::text) IS NOT NULL AND olap_charges_analytics."Charge Date" <= ctx.d), 0::numeric) AS pending,
@@ -1183,6 +1211,21 @@
   - "schema": "public"
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Interest Due"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Principal Due"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
     "referenced_relation": "Daily Analytics"
     "referenced_column": "Active Borrowers EOD"
   - "schema": "public"
@@ -1353,6 +1396,11 @@
   - "schema": "public"
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Charges"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
     "referenced_relation": "Settlements"
     "referenced_column": "Amount"
   - "schema": "public"
@@ -1449,7 +1497,32 @@
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "30D Principal Reduction Days"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Amount Received"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Created By"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Notes"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner A Contribution at Payment Date"
   - "schema": "public"
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
@@ -1459,12 +1532,32 @@
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner A Profit Share"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner B Contribution at Payment Date"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Partner B Profit"
   - "schema": "public"
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner B Profit Share"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Pool Total at Payment Date"
   - "schema": "public"
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
@@ -1480,9 +1573,29 @@
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Charges"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Payment"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Payment Allocation"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Row ID"
 "evidence":
   "/content/definition/view_definition":
-    "reference": "database/migrations/V129__portfolio_lifetime_writeoffs.sql"
-    "reason": "R116: definition and the appended columns Principal Write-offs MTD (V128) and Principal Write-offs (V129, the lifetime ledger sum of df10: principal) read from a disposable PostgreSQL chain at V129 (not a PROD capture); refresh by targeted capture after V129 is applied to PROD."
+    "reference": "database/migrations/V130__principal_writeoff_predicate.sql"
+    "reason": "R116: definition read from a disposable PostgreSQL chain at V130 (V128 write-off columns, V129 lifetime column; the write-off test is public.is_principal_writeoff); not a PROD capture. Refresh by targeted capture after V130 is applied to PROD."
     "observedAt": "2026-11-02T18:30:00+00:00"

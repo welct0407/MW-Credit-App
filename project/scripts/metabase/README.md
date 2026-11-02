@@ -147,7 +147,7 @@ The `Verify-*` scripts read their baselines through `Baselines.mjs` (`baselineDi
 
 ## R116 Principal write-off segregation
 
-V128 makes "Operating Income" gross profit and appends a positive write-off column ("Principal Write-offs", "Principal Write-offs MTD") to the Income Statement views; net profit is unchanged. The models stay pass-through (their SQL is unchanged). `Refine-WriteOffSegregation.mjs` (`--plan`, `--prepare`, `--apply`, `--verify`) changes the Income Statement page (dashboard 3, tab 16) and reads PROD only, so it runs at the PROD promotion, after V128 is applied and under the owner's approval:
+V128 makes "Operating Income" gross profit (V130 moves the write-off test onto the shared predicate `public.is_principal_writeoff`, which `--verify` also applies) and appends a positive write-off column ("Principal Write-offs", "Principal Write-offs MTD") to the Income Statement views; net profit is unchanged. The models stay pass-through (their SQL is unchanged). `Refine-WriteOffSegregation.mjs` (`--plan`, `--prepare`, `--apply`, `--verify`) changes the Income Statement page (dashboard 3, tab 16) and reads PROD only, so it runs at the PROD promotion, after V128 is applied and under the owner's approval:
 
 - snippet 2 "Income statement period" (`live-income-period.sql`) gains the signed column "Principal Write-offs"; Net Profit = Operating Income + Operating Expenses + Principal Write-offs;
 - model 186 Income Events gains "Principal Write-offs" in its result metadata;

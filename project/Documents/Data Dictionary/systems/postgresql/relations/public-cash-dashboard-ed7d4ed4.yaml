@@ -31,13 +31,41 @@
                   date_trunc('month'::text, q.d::timestamp with time zone)::date AS ms
                  FROM ( SELECT olap_reporting_date() AS d) q
               ), profit AS (
-               SELECT COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND NOT starts_with(r."Row ID", 'df10:'::text)), 0::numeric) AS income,
+               SELECT COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND NOT r.loss_pair), 0::numeric) AS income,
                   COALESCE(sum(r."Partner A Profit") FILTER (WHERE r."Payment Date" < ctx.ms), 0::numeric) AS prior_a,
                   COALESCE(sum(r."Partner B Profit") FILTER (WHERE r."Payment Date" < ctx.ms), 0::numeric) AS prior_b,
                   COALESCE(sum(r."Partner A Profit") FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS month_a,
                   COALESCE(sum(r."Partner B Profit") FILTER (WHERE r."Payment Date" >= ctx.ms), 0::numeric) AS month_b,
-                  COALESCE(sum(r."Principal Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND starts_with(r."Row ID", 'df10:'::text)), 0::numeric) AS writeoff
-                 FROM olap_repayments_analytics r
+                  COALESCE(sum(r."Principal Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND r.loss_pair), 0::numeric) AS writeoff
+                 FROM ( SELECT wx."Row ID",
+                          wx."Payment Date",
+                          wx."Principal Paid",
+                          wx."Interest Paid",
+                          wx."Notes",
+                          wx."Ref Loans",
+                          wx."Ref Charges",
+                          wx."Created By",
+                          wx."Ref Payment",
+                          wx."Ref Payment Allocation",
+                          wx."Principal Returned Days MTD",
+                          wx."Pool Total at Payment Date",
+                          wx."Partner A Contribution at Payment Date",
+                          wx."Partner B Contribution at Payment Date",
+                          wx."Partner A Profit Share",
+                          wx."Partner B Profit Share",
+                          wx."Partner A Profit",
+                          wx."Partner B Profit",
+                          wx."30D Principal Reduction Days",
+                          wx."Amount Received",
+                          is_principal_writeoff(wx."Row ID", wx."Ref Payment", wx."Principal Paid"::numeric, wx."Interest Paid"::numeric, wx."Ref Charges", wc.principal, wc.interest, wc.repayments) AS loss_pair
+                         FROM olap_repayments_analytics wx
+                           LEFT JOIN LATERAL ( SELECT c."Principal Due"::numeric AS principal,
+                                  c."Interest Due"::numeric AS interest,
+                                  ( SELECT count(*) AS count
+                                         FROM "Repayments" n
+                                        WHERE n."Ref Charges" = c."Row ID") AS repayments
+                                 FROM "Charges" c
+                                WHERE c."Row ID" = wx."Ref Charges" AND wx."Ref Payment" IS NULL AND wx."Principal Paid"::numeric > 0::numeric AND wx."Interest Paid"::numeric = (- wx."Principal Paid"::numeric)) wc ON true) r
                    CROSS JOIN ctx
                 WHERE r."Payment Date" <= ctx.d
               ), expense AS (
@@ -309,6 +337,21 @@
   - "schema": "public"
     "relation": "Cash Dashboard"
     "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Interest Due"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Principal Due"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
     "referenced_relation": "Loan Form Context"
     "referenced_column": "Available Cashpool"
   - "schema": "public"
@@ -321,6 +364,11 @@
     "referenced_schema": "public"
     "referenced_relation": "Partners"
     "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Charges"
   - "schema": "public"
     "relation": "Cash Dashboard"
     "referenced_schema": "public"
@@ -345,7 +393,32 @@
     "relation": "Cash Dashboard"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "30D Principal Reduction Days"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Amount Received"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Created By"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Notes"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner A Contribution at Payment Date"
   - "schema": "public"
     "relation": "Cash Dashboard"
     "referenced_schema": "public"
@@ -355,7 +428,22 @@
     "relation": "Cash Dashboard"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner A Profit Share"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner B Contribution at Payment Date"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Partner B Profit"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner B Profit Share"
   - "schema": "public"
     "relation": "Cash Dashboard"
     "referenced_schema": "public"
@@ -365,7 +453,37 @@
     "relation": "Cash Dashboard"
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Pool Total at Payment Date"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Principal Returned Days MTD"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Charges"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Payment"
+  - "schema": "public"
+    "relation": "Cash Dashboard"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Payment Allocation"
   - "schema": "public"
     "relation": "Cash Dashboard"
     "referenced_schema": "public"
@@ -377,6 +495,6 @@
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
   "/content/definition/view_definition":
-    "reference": "database/migrations/V128__principal_writeoff_segregation.sql"
-    "reason": "R116: definition and the appended column Principal Write-offs MTD read from a disposable PostgreSQL chain at V128 (not a PROD capture); refresh by targeted capture after V128 is applied to PROD."
+    "reference": "database/migrations/V130__principal_writeoff_predicate.sql"
+    "reason": "R116: definition read from a disposable PostgreSQL chain at V130 (V128 write-off columns; the write-off test is public.is_principal_writeoff); not a PROD capture. Refresh by targeted capture after V130 is applied to PROD."
     "observedAt": "2026-11-02T18:30:00+00:00"

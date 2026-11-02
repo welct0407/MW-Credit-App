@@ -14,8 +14,8 @@ Outcomes (owner request, 2 November 2026):
 Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo (UX and tests), Forge (infrastructure impact).
 
 Design decisions (Archie, accepted):
-- Principal write-off = sum of `"Principal Paid"` of the `df10:` loss-pair repayments, recognised on their Payment Date.
-- Gross profit = sum of `"Interest Paid"` of non-`df10:` repayments. It is the same figure as today's "Operating Income MTD", which is relabelled "Gross Profit MTD".
+- Principal write-off = sum of `"Principal Paid"` of the `df10:` loss-pair repayments, recognised on their Payment Date. From V130 the test is the shared predicate (a `df10:` row or any zero-cash loss pair; see below).
+- Gross profit = sum of `"Interest Paid"` of repayments that are not write-offs. It is the same figure as today's "Operating Income MTD", which is relabelled "Gross Profit MTD".
 - Net profit = gross profit - expenses - write-offs. Its value is unchanged, because a loss pair carries interest -amount and principal +amount.
 - Realized, Today's, Yesterday's and Total Profit become gross (write-offs not counted). The Dashboard label is "Realized Profit MTD (before write-offs)".
 - Unsettled Profit MTD, the partner shares and the cash reconciliation are unchanged.
@@ -46,8 +46,10 @@ DEV findings and follow-up (V129, commit 95fc8a0):
 - V129 (views only) appends "Principal Write-offs" (46th and last column) to `olap_portfolio_summary`: the lifetime ledger sum of `df10:` principal, undated pairs included. It is exactly what "Net Profit" subtracts. "Total Principal Loss" is unchanged. Analytics reads the new column (omitted when absent, no fallback to "Total Principal Loss"). The Dashboard "Principal Loss Recognized" is still the loan-level 13,000.
 - Echo DSH-4b: the Expenses MTD sign. Fixed in 95fc8a0: the Dashboard and Cash pages negate the "Cash Dashboard" value, so Expenses MTD shows as a positive cost and a net-refund month shows a minus.
 - Echo also found ANL-6 in the DEV smoke. It is the same issue as Chase's mismatch, fixed by V129 plus the Management Analytics change in 95fc8a0; Chase accepted it with no defects.
-- Owner decisions (2 November 2026) on the legacy defaulted loans: reconcile them with dated `df10:` postings on each loan's Close Date, and refresh Daily Analytics from that date. The same two loans exist in DEV and PROD (ids `5l6eAKGu...` and `9uwkywNb...` only): 5,000 dated 26 August and 1,000 dated 28 August. Effect: August net falls by 6,000 and August partner profit is restated. Any over-draw carries into the current month through FIFO: Withdrawn MTD rises and Unsettled MTD falls by R, and the Cash Reconciliation Difference changes by -X + R (Byte's test). Outstanding Principal falls by 6,000. "Total Principal Loss" then equals "Principal Write-offs".
-- V130 (Byte, 04d3a54) is functions only: it adds the owner-only, idempotent function `reconcile_legacy_default_postings(p_actor, p_apply)`; V130 itself posts nothing. Operator procedure (`scripts/database/Invoke-LegacyWriteoffReconcile.py`): V130 applied; `--environment <dev|prod> --dry-run`, expecting 2 loans; `--apply --expected-count 2 --actor <owner email> [--approval-reference <text>, required on prod]`, which posts the pairs and refreshes Daily Analytics in one transaction, then a read-only dry run must list nothing. PROD needs a verified backup first. The dry run on PROD is the PROD count before promotion.
+- Owner decision (2 November 2026), recorded and then superseded by a finding: reconcile the two legacy defaulted loans (ids `5l6eAKGu...` and `9uwkywNb...` only; 5,000 dated 26 August and 1,000 dated 28 August, the same in DEV and PROD) with dated `df10:` postings on each loan's Close Date, and refresh Daily Analytics from that date. Byte built that reconciliation as V130 (04d3a54).
+- Finding (Chase and Forge, read-only in DEV and PROD): both loans already have loss pairs dated on their Close Dates (5,000 on 26 August and 1,000 on 28 August), under random Row IDs rather than `df10:`. They are the only such rows and together are exactly the 6,000 gap. Posting new pairs would have double-counted, so the reconciliation was reverted in 73b58de before it was ever pushed or applied. The owner's intent (dated write-off postings) is already met by the existing ledger: no data change, no Daily Analytics refresh, no partner or Cash Reconciliation effect. The owner is informed.
+- New V130 (Byte, cb398ec) is views only. It adds the shared predicate `public.is_principal_writeoff`: a row counts as a write-off if it is a `df10:` row, or if all of these hold: a zero-cash loss pair (no Ref Payment, principal X and interest -X); its charge has Principal Due X and Interest Due -X; the charge is not `lc7:` or `ls2:`; the charge has exactly one repayment. It replaces the `df10:` test in `"Cash Dashboard"`, `olap_portfolio_summary` (including the V129 lifetime column), `reporting_income_monthly`, `reporting_income_daily` and `reporting_income_events`; `reporting_income_statement` passes through. No new columns; net values are unchanged. Effect: August gross +6,000 and write-offs 6,000; lifetime "Principal Write-offs" then equals "Total Principal Loss" (DEV 13,000, PROD 17,000). `Refine-WriteOffSegregation.mjs --verify` uses the same predicate.
+- Follow-up, unchanged in R116: the `df10:`-only guards (`undo_loan_default`, `default_posting_guard`, `default_loan_transition` and the schedule exclusions) still key on `df10:`; a later release can move them onto the predicate.
 - V129 needs a second DEV apply (and the read, command and chat images again), because the DEV deployment below stopped at V128.
 
 Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql`; `services/business/cash.mjs`, `management-analytics.mjs`; `services/chat/assets/schema-digest.json`, `conversation-business-rules.md`; `apps/pwa/src/Dashboard.tsx`, `CashWorkspace.tsx`, `ManagementAnalytics.tsx`, `live-style.css`; `project/scripts/metabase/Refine-WriteOffSegregation.mjs`, `WriteOffSegregation.mjs`, `ProposedLoanReports.mjs`, `StatementCleanup.mjs`, `live-income-period.sql`; tests `scripts/database/Test-WriteOffSegregation.sql`, `Test-StatementBatch.sql`, `Test-LongOverdue.sql`, `tests/unit/principal-writeoffs-read.test.mjs`, `tests/integration/default-loss-independent.test.mjs`. Records: this note, `Release_Tracker.md`, `Solution_Design.md`, `PWA_Data_Model_Overview.md`, `database/README.md`, `project/scripts/metabase/README.md` and six `Data Dictionary` relation files with `index.json`.
@@ -68,10 +70,10 @@ Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql
 | `Test-MigrationsCloud --sql-only` through V129 | Pass (Byte) |
 | DEV deploy of V128, images and Hosting | Done (Forge); see the [DEV deployment record](#dev-deployment-record) |
 | Review of 95fc8a0 | Accepted with no defects; the Dashboard and borrower e2e tests pass, 4 tests on desktop-chromium (Chase) |
-| `npx biome lint` and typecheck at 04d3a54 | Pass (Byte) |
-| `npm test` at 04d3a54 | 1102 of 1103 pass, 1 skipped (Byte) |
-| Python unittest at 04d3a54 | 81 OK (Byte) |
-| Statement batch through V130, and the pre-target 9 upgrade test | Pass at 04d3a54 (Byte) |
+| `npx biome lint` and typecheck at cb398ec | Pass (Byte) |
+| `npm test` at cb398ec | 1106 of 1107 pass (Byte) |
+| Python unittest at cb398ec | OK (Byte) |
+| Statement batch through V130, and the pre-V9 `Test-WriteOffLegacyPair` upgrade test | Pass at cb398ec (Byte) |
 | `npx biome lint`, typecheck and the focused unit tests `cash-ledger-list` and `principal-writeoffs-read` after the merge at 7b4dae4 | Pass, 9 of 9 tests (orchestrator) |
 | Review of V130 | Pending (Chase) |
 | DEV smoke, API reads | Pass; the legacy-loan mismatch above found (Chase) |
@@ -92,7 +94,7 @@ Git baseline: `main` 80fbf6b (branch `claude/r116-writeoff-segregation`). V128 i
 None. The owner decided on 2 November 2026 (see Changes).
 
 ## Remaining work
-The second DEV deploy: apply V129 and V130, run the legacy reconcile (`--dry-run`, then `--apply --expected-count 2`), deploy the read, command and chat images and Hosting, and cover the PR #216 smoke steps (Cash Ledger Recent order and borrower names). Chase's review of V130. Then PROD at promotion (V128 to V130 after a verified backup, the PROD reconcile, the Metabase order in the Metabase README, the PROD dictionary capture), only on the owner's instruction.
+The second DEV deploy: apply V129 and V130 (views only; no operator step), deploy the read, command and chat images and Hosting, and cover the PR #216 smoke steps (Cash Ledger Recent order and borrower names). Chase's review of V130. Then PROD at promotion (V128 to V130 after a verified backup, the Metabase order in the Metabase README, the PROD dictionary capture), only on the owner's instruction.
 
 ## DEV deployment record
 Forge, 2 November 2026, UTC. Owner instruction: "deploy to dev and test it". DEV only: no PROD action, no Metabase action (Metabase reads `loan_manager_prod` only), the agent VM used only as the database tunnel.
