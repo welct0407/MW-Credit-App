@@ -50,6 +50,25 @@ Carried over from R110: the "Paid in advance" tile date was not yet seen on DEV 
 | Echo, built UI at 390 and 320 px (`2cec8e99`) | LC-1, LC-2, LC-3 confirmation, LC-4, EX-1, EX-2 fixed; LC-3 result and EX-3 fixed in `377077c0`; NT-1 proven by a unit test |
 | Wide suite | The pull request's `Development checks` run (pending) |
 
+## DEV deployment record
+
+Forge, 2 November 2026, UTC. Owner instruction of 2 November 2026: "start release 2 development, and test it in dev". DEV only; no PROD action of any kind; no merge.
+
+| Item | Result |
+| --- | --- |
+| Source | `720d1cbb` (PR #204 head, branch `claude/r111-rebate-offset`). Development checks run 41389500717 and database run 41389495490 passed. Clean checkout for the migration; the image from a `git archive` of the same commit |
+| Target check | `loan_manager_dev` on `mw-credit-pg-20261017`, head 121 (121 rows, 0 failed), no active sessions, no "Ref Offset Payment" column yet; all five DEV services (read `00056-k79`, command `00073-png`, chat `00025-jdg`, notify `00023-67d`, jobs `00023-97t`) on the R110 DEV image `302913d4…` in `clever-oasis-508610-n7`, `asia-southeast1` |
+| Backup at V121, 04:50:36Z to 04:53:00Z | Dump sha256 `3255396eb4b4c8740ce92cf4a69c233c80371fd668c67703245bffd4e886eb72`; archive listing and restore passed; 38 table fingerprints match; `gs://mw-credit-operator-private-737787224638/dev-backups/dev-refresh-4a8aaeaae3f446e8a627a6a27ab991ba/` |
+| Owner window | 5 owners (`mw_chat_owner_dev`, `mw_notify_owner_dev`, `mw_jobs_owner_dev`, `mw_changes_owner_dev`, `mw_app_dev_journal_owner`), 20 statements, opened 04:53:07Z, restored 05:00:24Z; readback all closed (inherit, set and admin false, no CREATE on `public`) |
+| V122 | `Invoke-Flyway.ps1 -Environment development migrate`: installed 04:53:29Z (7.0 s, checksum -2058143545), head 122 (122 rows, 0 failed); role check 541 statements, 0 violations |
+| Readback | "Business Expenses"."Ref Offset Payment" text, nullable; `mw_app_dev` can select and update it. `pwa_versioned_outcome` re-added and validated. `pwa_notify_content_v2(uuid,bigint)` owned by `mw_notify_owner_dev`, SECURITY DEFINER, EXECUTE for `mw_notify_dispatch_dev` only (PUBLIC cannot). `pwa_referral_rebate_projection_v1` and `create_referral_rebate` owned by `postgres` with `mw_app_dev` EXECUTE. `pwa_apply_pay_forward_v1` owned by `postgres`, SECURITY INVOKER, EXECUTE for `mw_app_dev_journal_owner` and `mw_app_dev`: the migration's self-check passed with the journal owner only, and the guarded runner's post-migrate role reconcile then granted `mw_app_dev` EXECUTE (its rule for application functions; `pwa_apply_loan_close_v2` has the same ACL in PROD). Flagged to Archie; the access matrix and role check pass |
+| Image | Cloud Build `bf93565c-1816-41a1-abd1-ec53d42959a5` (`cloudbuild-command.yaml`) as `mw-credit-app-build`, SUCCESS 05:01:30Z to 05:02:06Z, `api@sha256:9f26626d0a69dfa7891dc6eb118272be1ebd95484a6c8fc6f5bc82570b257834` |
+| Terraform DEV | Plan 0 add, 5 change, 0 destroy, image attribute only on read, command, chat, notify and jobs; applied 05:03:10Z to 05:03:47Z; re-plan no changes; settings generation `1793595833531494` (previous `1793590945267627`); read `00057-9dd`, command `00074-wt9`, chat `00026-skh`, notify `00024-mct`, jobs `00024-s64`, 100% traffic |
+| Smoke | `/health` 200 on read, command and chat; unauthenticated 401 (`/api/session` on read and command, `/api/chat/models` on chat); preflight from `https://dev-lm.mw-credit.com` 204; notify and jobs Ready; scheduled notify dispatches on `00024-mct` at 05:04:03Z and 05:05:03Z returned 200 (observed, not triggered); scheduler identity `mw-credit-app-scheduler-dev` unchanged on notifications, daily charges and recent analytics; no ERROR logs from 05:03Z |
+| Hosting | `MW_RELEASE_NUMBER=R111 npm run build:live-dev` with `.env.live-dev` written from Secret Manager and the R110 bundle's settings (9 settings; the built settings object is identical to R110's), deleted after the build; `deploy-hosting.mjs --live-dev --check` passed; deployed 05:04:58Z to 05:05:05Z; version `3be7de4dd5f78b41`, release `1793595905113000`; build-version R111 `e3194d615a614f4f967bec6b`, entry `/assets/index-wzYofGwI.js` embeds `720d1cb`; `build-version.json` R111 on `web.app` and, seconds later, on `dev-lm.mw-credit.com`; `sw.js` `no-store` |
+| Credentials | The temporary admin and read credential files are deleted; no secret value was printed |
+| Rollback | Settings generation `1793590945267627` (image `302913d4…`, R110 `703d552`, all five services) with Hosting `f81a4d9275bfd59e` (release `1793568797384000`), plus the V121 backup above. The image tolerates a database before V122 (expense read via `to_jsonb`). Schema: V122 adds a column and a constraint change; its rollback is a later migration or the V121 backup |
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on screen and WebKit or a real iPhone (Echo checked Chromium only).
