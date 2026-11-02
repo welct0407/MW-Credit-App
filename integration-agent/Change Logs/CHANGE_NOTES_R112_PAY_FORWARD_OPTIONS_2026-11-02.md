@@ -21,15 +21,17 @@ Pay Forward Release 3 (owner, 2 November 2026: "start release 3, test it and pro
 | Agent tests (`python -m unittest discover -s tests`, 694 tests) | Every existing test passes; the only failures are in Chase's four new options files, written before the shapes were fixed (ALIGN items sent) (Byte) |
 | `ruff check integration-agent` | Byte's files clean (Byte) |
 | `mw-integration-agent check` (example configuration and catalogue) | ok, `pay_forward_options: false` (Byte) |
+| PROD deploy of `a0cfabca` on `vm-mw-credit-agent` (Forge, 2 November 2026, UTC) | `update-from-github.sh` (checkout `adcf610b` to `a0cfabca`, clean); dry-run: 6 modules changed, units unchanged, agent schema through V11; freeze 11:18:23Z (rollback `/var/lib/mw-integration-agent/rollback/runtime-20261102T111824156344Z`); install 11:18:24Z to 11:18:29Z (no removed files, no unit change); activate 11:18:36Z to 11:18:40Z, probe `ca81b020-f05e-4b1e-9684-35aba6a2fd21`. Readback: `/ready` true on `a0cfabca`, catalogue revision 34 with the same 14 services enabled as before, configuration 89 keys with `pay_forward_options_enabled` absent, `check` ok with `activation.pay_forward_options` false, no failed units. The schema check used a temporary root-only `postgres` operator file on the VM (password over stdin, never printed), deleted at 11:19Z |
+| Activation (owner, 2 November 2026: "Enable the agent as well") | Prerequisites verified live: `partner_review_execution_enabled`, `database_enabled` and `receipt_summary_enabled` true (`sending_enabled` stays false; review and options DMs go through `partner_notice.dispatch`, gated by `receipt_summary_enabled`). Prior value: `pay_forward_options_enabled` absent (off). The new file differed from the live one only in that key (89 to 90 keys). `config-only-change.py apply --tag r112-pay-forward-options`, 11:19:11Z to 11:19:23Z, exit 0; backup `/root/config.json.pre-r112-pay-forward-options` (root:mwagent 0640). Readback: `check` ok with `activation.pay_forward_options` true, `/ready` true on `a0cfabca` (receiver restarted 11:19:20Z), every trigger it paused active again, no failed units. No replay, cutover, unit change, other switch change, DM or slip |
 
 ## Not run
-No VM deploy, no live configuration change, no Instagram send. The switch stays off; activation is a separate owner decision.
+No Instagram send, test DM or test slip: the first live options exchange will be a real Partner's slip with money beyond what is due.
 
 ## Recovery
-Before activation: nothing to do (off). After activation: set `pay_forward_options_enabled` to false with the configuration-only route; approved options reviews then end MANUAL_REQUIRED. Code: revert the batch commit; the catalogue returns to revision 33 only with a matching deploy.
+Active since 11:19:23Z, 2 November 2026. Rollback: `sudo python3 integration-agent/scripts/config-only-change.py restore --tag r112-pay-forward-options` (restores the backup, so the key is absent and off); approved options reviews then end MANUAL_REQUIRED. Package: `deploy-runtime.py rollback` to the 11:18:23Z freeze directory. Code: revert the batch commit; the catalogue returns to revision 33 only with a matching deploy.
 
 ## Open questions
 None.
 
 ## Remaining work
-Chase's verification; activation by the owner after PROD has V125.
+Owner: watch the first live options exchange (a slip with money beyond what is due).

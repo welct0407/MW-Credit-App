@@ -1,0 +1,409 @@
+{
+  "writes": [
+    {
+      "path": "Documents/Data Dictionary/systems/postgresql/routines/forecast-schedule-v1.yaml",
+      "expected_sha256": "972a01bc9c4a34a3381a42a8d9166360a8bd6a4c0a93e7290397c53d67520cff",
+      "document": {
+        "format": 1,
+        "identity": {
+          "system": "postgresql",
+          "component": "loan_manager_prod",
+          "kind": "routine",
+          "name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
+          "scope": "production"
+        },
+        "verification": {
+          "status": "documented",
+          "source": "outputs/dictionary-r112-20261102/production-postgresql-observations.json",
+          "coverage": "catalog metadata",
+          "previous_record": {
+            "commit": "2a158a68b274e4ba7f661b9d77c06f6565bb5500",
+            "path": "Documents/Data Dictionary/systems/postgresql/routines/forecast-schedule-v1.yaml",
+            "identity": {
+              "system": "postgresql",
+              "component": "loan_manager_prod",
+              "kind": "routine",
+              "name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
+              "scope": "production"
+            }
+          }
+        },
+        "content": {
+          "definition": {
+            "schema": "public",
+            "name": "forecast_schedule_v1",
+            "arguments": "l jsonb, charges jsonb, t date, e date",
+            "kind": "f",
+            "arguments_with_defaults": "l jsonb, charges jsonb, t date, e date",
+            "result": "TABLE(due_date date, origin text, bucket text, principal numeric, interest numeric, eligible boolean, issue text)",
+            "definition": "CREATE OR REPLACE FUNCTION public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)\n RETURNS TABLE(due_date date, origin text, bucket text, principal numeric, interest numeric, eligible boolean, issue text)\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE c jsonb; d date; latest date; anchor date; n integer; elapsed integer; term integer;\r\n p numeric; i numeric; balance numeric; daily_rate numeric; basis numeric[]; active boolean;\r\n blocked boolean:=false; scheduled_principal numeric:=0; found_today boolean:=false; today_principal numeric:=0; simulated_principal numeric:=0;\r\nBEGIN\r\n IF t IS NULL OR e<t OR e>t+93 THEN RAISE EXCEPTION 'Forecast window invalid'; END IF;\n -- R109 (V120): a default loss posting (df10:) is not an obligation; a loan with kept charges forecasts as an open loan.\n charges:=(SELECT coalesce(jsonb_agg(value),'[]'::jsonb) FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb)) WHERE NOT starts_with(coalesce(value->>'id',''),'df10:'));\r\n active:=coalesce(l->>'status'='ยังไม่ปิดยอด' AND NOT (l->>'defaulted')::boolean AND (l->>'start')::date<=t\r\n  AND ((l->>'close') IS NULL OR (l->>'close')::date>t),false);\r\n balance:=(l->>'balance')::numeric;daily_rate:=(l->>'daily')::numeric;\r\n FOR c IN SELECT value FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb)) ORDER BY (value->>'date')::date,value->>'id' LOOP\r\n  d:=(c->>'date')::date;\r\n  IF d=t THEN found_today:=true; END IF;\r\n  IF coalesce((c->>'invalid')::boolean,false) OR d IS NULL THEN\r\n   due_date:=d;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Invalid charge or allocation';RETURN NEXT;blocked:=true;CONTINUE;\r\n  END IF;\r\n  -- Negative default-accounting obligations are not expected cash receipts.\r\n  IF (c->>'pdue')::numeric<0 OR (c->>'idue')::numeric<0 THEN\r\n   IF NOT coalesce((l->>'defaulted')::boolean,false) THEN\r\n    due_date:=d;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Negative obligation';RETURN NEXT;blocked:=true;\r\n   END IF;CONTINUE;\r\n  END IF;\r\n  IF d>e THEN CONTINUE; END IF;\r\n  p:=greatest((c->>'pdue')::numeric-coalesce((c->>'ppaid')::numeric,0),0);\r\n  i:=greatest((c->>'idue')::numeric-coalesce((c->>'ipaid')::numeric,0),0);\r\n  IF p+i>0 THEN\r\n   due_date:=d;origin:='Recorded';bucket:=CASE WHEN NOT active THEN 'Recovery only' WHEN d<t THEN 'Overdue' WHEN d=t THEN 'Today' ELSE 'Future' END;\r\n   principal:=p;interest:=i;eligible:=active;issue:=NULL;RETURN NEXT;\r\n  END IF;\r\n  scheduled_principal:=scheduled_principal+p;\r\n  IF d=t THEN today_principal:=today_principal+p; END IF;\r\n END LOOP;\r\n IF l->>'status' NOT IN ('ยังไม่ปิดยอด','ปิดยอดแล้ว') OR l->>'status' IS NULL OR coalesce((l->>'invalid')::boolean,true) THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Invalid loan, borrower or repayment';RETURN NEXT;RETURN;\r\n END IF;\r\n IF NOT active THEN RETURN; END IF;\r\n IF balance IS NULL OR balance<0 OR scheduled_principal>balance+0.005 THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Principal obligations do not reconcile';RETURN NEXT;RETURN;\r\n END IF;\r\n IF NOT coalesce((l->>'auto')::boolean,false) THEN\r\n  due_date:=t;origin:='Notice';bucket:='Recorded plan only';principal:=0;interest:=0;eligible:=false;issue:='Manual schedule: only recorded obligations forecast';RETURN NEXT;RETURN;\r\n END IF;\r\n IF blocked THEN RETURN; END IF;\r\n n:=(l->>'interval')::integer;anchor:=coalesce((l->>'anchor')::date,(l->>'start')::date);\r\n IF l->>'type' NOT IN ('ดอกเบี้ยรายวัน','กำหนดวันชำระ','ผ่อนชำระรายวัน')\r\n OR (l->>'type'<>'กำหนดวันชำระ' AND (n IS NULL OR n<1))\r\n OR (l->>'type'='ดอกเบี้ยรายวัน' AND (daily_rate IS NULL OR daily_rate<0 OR anchor<(l->>'start')::date))\r\n OR (l->>'type'<>'ดอกเบี้ยรายวัน' AND ((l->>'due') IS NULL OR (l->>'due')::date<(l->>'start')::date)) THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Unsupported automatic schedule';RETURN NEXT;RETURN;\r\n END IF;\r\n SELECT max((value->>'date')::date) INTO latest FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb))\r\n WHERE l->>'type'='ผ่อนชำระรายวัน' OR (value->>'date')::date<=t;\r\n IF l->>'type'='ผ่อนชำระรายวัน' AND latest IS NULL THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Installment missing initial charge';RETURN NEXT;RETURN;\r\n END IF;\r\n IF NOT found_today AND ((l->>'type'='ดอกเบี้ยรายวัน' AND daily_rate>0 AND t>anchor AND mod(t-anchor,n)=0)\r\n  OR (l->>'type'='กำหนดวันชำระ' AND (l->>'due')::date=t)\r\n  OR (l->>'type'='ผ่อนชำระรายวัน' AND t>(l->>'start')::date AND t<=(l->>'due')::date AND (mod(t-(l->>'start')::date,n)=0 OR t=(l->>'due')::date))) THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Expected today charge missing';RETURN NEXT;\r\n END IF;\r\n IF l->>'type'='ดอกเบี้ยรายวัน' THEN\r\n  IF l ? 'original_rate' THEN\r\n   IF l->>'original_rate' IS NOT NULL THEN basis:=ARRAY[(l->>'original_rate')::numeric,100::numeric]; END IF;\r\n  ELSE\r\n   BEGIN basis:=public.daily_interest_basis(l->>'arrangement'); EXCEPTION WHEN OTHERS THEN basis:=NULL; END;\r\n  END IF;\r\n END IF;\r\n balance:=balance-today_principal;\r\n IF l->>'type'='ดอกเบี้ยรายวัน' AND today_principal>0 THEN\r\n  IF basis IS NULL THEN due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Daily interest basis unavailable after scheduled principal';RETURN NEXT;RETURN;END IF;\r\n  daily_rate:=round(basis[1]*greatest(0,balance)/basis[2],0);\r\n END IF;\r\n term:=(l->>'due')::date-(l->>'start')::date+1;\r\n FOR d IN SELECT generate_series(t+1,e,interval '1 day')::date LOOP\r\n  p:=0;i:=0;\r\n  IF EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb)) WHERE (value->>'date')::date=d) THEN\r\n   SELECT coalesce(sum(greatest((value->>'pdue')::numeric-coalesce((value->>'ppaid')::numeric,0),0)),0) INTO p\r\n    FROM jsonb_array_elements(charges) WHERE (value->>'date')::date=d;\r\n   IF l->>'type'='ดอกเบี้ยรายวัน' THEN latest:=d; END IF;\r\n   balance:=balance-p;\r\n   IF l->>'type'='ดอกเบี้ยรายวัน' AND p>0 THEN\r\n    IF basis IS NULL THEN due_date:=d;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Daily interest basis unavailable after scheduled principal';RETURN NEXT;RETURN;END IF;\r\n    daily_rate:=round(basis[1]*greatest(0,balance)/basis[2],0);\r\n   END IF;\r\n   CONTINUE;\r\n  END IF;\r\n  IF l->>'type'='ดอกเบี้ยรายวัน' THEN\r\n   IF d<=anchor OR mod(d-anchor,n)<>0 OR daily_rate=0 THEN CONTINUE; END IF;\r\n   i:=daily_rate*greatest(0,d-coalesce(latest,(l->>'start')::date));\r\n  ELSIF l->>'type'='กำหนดวันชำระ' THEN\r\n   IF d<>(l->>'due')::date THEN CONTINUE; END IF;\r\n   p:=balance;i:=(l->>'fixed')::numeric;\r\n  ELSE\r\n   IF d<=(l->>'start')::date OR d>(l->>'due')::date OR (mod(d-(l->>'start')::date,n)<>0 AND d<>(l->>'due')::date) THEN CONTINUE; END IF;\r\n   elapsed:=d-latest;IF elapsed<=0 THEN CONTINUE;END IF;\r\n   p:=floor((l->>'original')::numeric/term)*elapsed+greatest(0,least(d-(l->>'start')::date+1,mod((l->>'original')::numeric,term))-(latest-(l->>'start')::date+1));\r\n   i:=(l->>'payment')::numeric*elapsed-p;\r\n  END IF;\r\n  IF p IS NULL OR i IS NULL OR p<0 OR i<0 OR p>balance+0.005 OR scheduled_principal+simulated_principal+p>(l->>'balance')::numeric+0.005 THEN\r\n   due_date:=d;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Simulated components do not reconcile';RETURN NEXT;RETURN;\r\n  END IF;\r\n  due_date:=d;origin:='Simulated';bucket:='Future';principal:=p;interest:=i;eligible:=true;issue:=NULL;RETURN NEXT;\r\n  latest:=d;balance:=balance-p;simulated_principal:=simulated_principal+p;\r\n END LOOP;\r\nEND $function$\n",
+            "owner": "postgres",
+            "language": "plpgsql",
+            "volatility": "i",
+            "strict": false,
+            "security_definer": false,
+            "leakproof": false,
+            "parallel": "u",
+            "cost": 100.0,
+            "rows": 1000.0,
+            "settings": [
+              "search_path=pg_catalog, public"
+            ],
+            "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres,mw_app_prod=X/postgres,\"\\\"mw-credit-app-read-prod@clever-oasis-508610-n7.iam\\\"=X/postgres\",mw_chat_read_prod=X/postgres,mw_integration_agent=X/postgres}",
+            "comment": null,
+            "extension": null
+          }
+        }
+      }
+    },
+    {
+      "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-agent-receipt-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-f1658485.yaml",
+      "expected_sha256": "0a42e1266fc14935702dfc987034f216ee618b66271a660535979a6c15c3e93e",
+      "document": {
+        "format": 1,
+        "identity": {
+          "system": "postgresql",
+          "component": "loan_manager_prod",
+          "kind": "routine",
+          "name": "public.pwa_agent_receipt_status_v1(request_id uuid, actor_issuer text, actor_subject text)",
+          "scope": "production"
+        },
+        "verification": {
+          "status": "documented",
+          "source": "outputs/dictionary-r112-20261102/production-postgresql-observations.json",
+          "coverage": "catalog metadata",
+          "previous_record": {
+            "commit": "2a158a68b274e4ba7f661b9d77c06f6565bb5500",
+            "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-agent-receipt-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-f1658485.yaml",
+            "identity": {
+              "system": "postgresql",
+              "component": "loan_manager_prod",
+              "kind": "routine",
+              "name": "public.pwa_agent_receipt_status_v1(request_id uuid, actor_issuer text, actor_subject text)",
+              "scope": "production"
+            }
+          }
+        },
+        "content": {
+          "definition": {
+            "schema": "public",
+            "name": "pwa_agent_receipt_status_v1",
+            "arguments": "request_id uuid, actor_issuer text, actor_subject text",
+            "kind": "f",
+            "arguments_with_defaults": "request_id uuid, actor_issuer text, actor_subject text",
+            "result": "jsonb",
+            "definition": "CREATE OR REPLACE FUNCTION public.pwa_agent_receipt_status_v1(request_id uuid, actor_issuer text, actor_subject text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE r public.pwa_payment_commands%ROWTYPE; c jsonb; matched boolean; environment text;\nBEGIN\n environment:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;\n IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR session_user<>('mw-credit-app-command-'||environment||'@clever-oasis-508610-n7.iam') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Command session required'; END IF;\n SELECT * INTO r FROM public.pwa_payment_commands p WHERE p.request_id=$1 AND p.actor_issuer=$2 AND p.actor_subject=$3 AND p.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('7','8','9') AND p.canonical_json::jsonb->'command' ? 'reviewId';\n IF NOT FOUND THEN RETURN jsonb_build_object('kind','unresolved'); END IF;\n c:=r.canonical_json::jsonb->'command';\n SELECT EXISTS(SELECT 1 FROM public.\"Payments\" p WHERE p.\"Row ID\"=r.payment_id AND p.\"Status\"='Posted'\n  AND p.\"Ref Borrower\"=(c->>'borrowerId') AND p.\"Ref Received By Cash Account\"=(c->>'cashAccountId')\n  AND p.\"Amount Received\"::numeric=((c->>'amountReceived'))::numeric AND p.\"Payment Date\"=((c->>'paymentDate'))::date\n  AND p.\"Created By\"=r.actor_login_email AND p.\"Payment Method\"='Bank Transfer' AND p.\"Allocation Method\"=CASE WHEN c->>'schemaVersion'='9' THEN 'Selected Charges' ELSE 'Lump Sum' END\n  AND p.\"Bank Reference\"=(c->>'bankReference') AND to_char(p.\"Created At\",'YYYY-MM-DD HH24:MI')=(c->>'paymentDate')||' '||(c->>'transferTime')\n  AND (SELECT coalesce(sum(x.\"Principal Paid\"::numeric+x.\"Interest Paid\"::numeric),0) FROM public.\"Repayments\" x WHERE x.\"Ref Payment\"=p.\"Row ID\")=((c->>'amountReceived'))::numeric) INTO matched;\n RETURN jsonb_build_object('kind','recorded','reviewId',(c->>'reviewId'),'financialMatch',CASE WHEN r.outcome='posted' THEN matched ELSE NULL END,\n  'originalOutcome',jsonb_build_object('status',r.outcome,'paymentId',r.payment_id,'code',r.rejection_code,'recordedAt',to_char(r.recorded_at AT TIME ZONE 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')));\nEND $function$\n",
+            "owner": "mw_app_prod_journal_owner",
+            "language": "plpgsql",
+            "volatility": "v",
+            "strict": false,
+            "security_definer": true,
+            "leakproof": false,
+            "parallel": "u",
+            "cost": 100.0,
+            "rows": 0.0,
+            "settings": [
+              "search_path=pg_catalog, public"
+            ],
+            "acl": "{mw_app_prod_journal_owner=X/mw_app_prod_journal_owner,\"\\\"mw-credit-app-command-prod@clever-oasis-508610-n7.iam\\\"=X/mw_app_prod_journal_owner\"}",
+            "comment": null,
+            "extension": null
+          }
+        }
+      }
+    },
+    {
+      "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml",
+      "expected_sha256": "f1336c36b6102c80ea9a99ddebe9aa6cae9408d59a13305f158d0bced8d4a01b",
+      "document": {
+        "format": 1,
+        "identity": {
+          "system": "postgresql",
+          "component": "loan_manager_prod",
+          "kind": "routine",
+          "name": "public.pwa_effective_payment_plan_v2(p_id text)",
+          "scope": "production"
+        },
+        "verification": {
+          "status": "documented",
+          "source": "outputs/dictionary-r112-20261102/production-postgresql-observations.json",
+          "coverage": "catalog metadata",
+          "previous_record": {
+            "commit": "2a158a68b274e4ba7f661b9d77c06f6565bb5500",
+            "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml",
+            "identity": {
+              "system": "postgresql",
+              "component": "loan_manager_prod",
+              "kind": "routine",
+              "name": "public.pwa_effective_payment_plan_v2(p_id text)",
+              "scope": "production"
+            }
+          }
+        },
+        "content": {
+          "definition": {
+            "schema": "public",
+            "name": "pwa_effective_payment_plan_v2",
+            "arguments": "p_id text",
+            "kind": "f",
+            "arguments_with_defaults": "p_id text",
+            "result": "jsonb",
+            "definition": "CREATE OR REPLACE FUNCTION public.pwa_effective_payment_plan_v2(p_id text)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE r public.pwa_payment_commands%ROWTYPE; revision public.pwa_payment_commands%ROWTYPE;\r\n origin uuid; head uuid; source_creator text; origin_actor jsonb; correction_actor jsonb; plan jsonb; c jsonb; matches integer; visited uuid[];\r\nBEGIN\r\n SELECT count(*) INTO matches FROM public.pwa_payment_commands j WHERE\r\n  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9','10') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR\r\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create','system.rebate-offset')) OR\n  -- R111: the Referral Rebate Offset payment of a Loan Close.\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json#>>'{rebate,offsetPaymentId}'=p_id AND j.canonical_json::jsonb#>>'{command,operation}'='loan.close');\r\n IF matches=0 THEN RETURN NULL;END IF;\r\n IF matches<>1 THEN RAISE EXCEPTION 'Ambiguous payment provenance';END IF;\r\n SELECT * INTO STRICT r FROM public.pwa_payment_commands j WHERE\r\n  (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9','10') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR\r\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create','system.rebate-offset')) OR\n  -- R111: the Referral Rebate Offset payment of a Loan Close.\n  (j.contract_version=2 AND j.outcome='applied' AND j.result_json#>>'{rebate,offsetPaymentId}'=p_id AND j.canonical_json::jsonb#>>'{command,operation}'='loan.close');\r\n origin:=r.request_id;head:=origin;visited:=ARRAY[head];origin_actor:=r.canonical_json::jsonb->'actor';source_creator:=CASE WHEN r.result_json ? 'sourceCreatedBy' THEN r.result_json->>'sourceCreatedBy' ELSE origin_actor->>'loginEmail' END;\r\n IF r.contract_version=1 THEN\r\n  c:=r.canonical_json::jsonb->'command';\r\n  plan:=jsonb_build_object('borrowerId',c->'borrowerId','amountReceived',c->'amountReceived','allocations',c->'allocations','allocationMethod','Selected Charges','targetChargeId',NULL,'targetLoanId',NULL,'cashAccountId',c->'cashAccountId','paymentDate',c->'paymentDate','paymentMethod',CASE WHEN c ? 'reviewId' THEN to_jsonb('Bank Transfer'::text) ELSE c->'paymentMethod' END);\r\n ELSIF r.result_json#>>'{rebate,offsetPaymentId}'=p_id THEN plan:=r.result_json#>'{rebate,offsetPlan}';\n ELSE plan:=r.result_json->'plan';END IF;\r\n LOOP\r\n  SELECT count(*) INTO matches FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied'\r\n   AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct'\r\n   AND j.canonical_json::jsonb#>>'{command,targetType}'='payment' AND j.canonical_json::jsonb#>>'{command,targetId}'=p_id\r\n   AND j.canonical_json::jsonb#>>'{command,predecessorRequestId}'=head::text;\r\n  EXIT WHEN matches=0;\r\n  IF matches<>1 OR cardinality(visited)>=10000 THEN RAISE EXCEPTION 'Invalid payment revision lineage';END IF;\r\n  SELECT * INTO STRICT revision FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied'\r\n   AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct'\r\n   AND j.canonical_json::jsonb#>>'{command,targetType}'='payment' AND j.canonical_json::jsonb#>>'{command,targetId}'=p_id\r\n   AND j.canonical_json::jsonb#>>'{command,predecessorRequestId}'=head::text;\r\n  IF revision.request_id=ANY(visited) OR revision.result_json->>'paymentId' IS DISTINCT FROM p_id THEN RAISE EXCEPTION 'Invalid payment revision identity';END IF;\r\n  head:=revision.request_id;visited:=array_append(visited,head);correction_actor:=revision.canonical_json::jsonb->'actor';plan:=revision.result_json->'plan';\r\n END LOOP;\r\n IF (SELECT count(*) FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied' AND j.canonical_json::jsonb#>>'{command,operation}'='payment.correct' AND j.canonical_json::jsonb#>>'{command,targetType}'='payment' AND j.canonical_json::jsonb#>>'{command,targetId}'=p_id)<>cardinality(visited)-1 THEN RAISE EXCEPTION 'Disconnected payment revision lineage';END IF;\r\n IF jsonb_typeof(plan) IS DISTINCT FROM 'object' OR jsonb_typeof(plan->'allocations') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'Missing payment provenance plan';END IF;\r\n RETURN jsonb_build_object('sourceCreatedBy',source_creator,'originActor',origin_actor,'correctionActor',correction_actor,'plan',plan,'originRequestId',origin,'effectivePlanRequestId',head);\r\nEND $function$\n",
+            "owner": "postgres",
+            "language": "plpgsql",
+            "volatility": "s",
+            "strict": false,
+            "security_definer": false,
+            "leakproof": false,
+            "parallel": "u",
+            "cost": 100.0,
+            "rows": 0.0,
+            "settings": [
+              "search_path=pg_catalog, public"
+            ],
+            "acl": "{=X/postgres,postgres=X/postgres,mw_app_prod=X/postgres}",
+            "comment": null,
+            "extension": null
+          }
+        }
+      }
+    },
+    {
+      "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-agent-receipt-v1-canonical-json-text-48231378.yaml",
+      "expected_sha256": "09553cf65bbfeaf7fc0de8f6d20ce67a6f516a6be1367bc398a388aa02d70ad8",
+      "document": {
+        "format": 1,
+        "identity": {
+          "system": "postgresql",
+          "component": "loan_manager_prod",
+          "kind": "routine",
+          "name": "public.pwa_submit_agent_receipt_v1(canonical_json text)",
+          "scope": "production"
+        },
+        "verification": {
+          "status": "documented",
+          "source": "outputs/dictionary-r112-20261102/production-postgresql-observations.json",
+          "coverage": "catalog metadata",
+          "previous_record": {
+            "commit": "2a158a68b274e4ba7f661b9d77c06f6565bb5500",
+            "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-agent-receipt-v1-canonical-json-text-48231378.yaml",
+            "identity": {
+              "system": "postgresql",
+              "component": "loan_manager_prod",
+              "kind": "routine",
+              "name": "public.pwa_submit_agent_receipt_v1(canonical_json text)",
+              "scope": "production"
+            }
+          }
+        },
+        "content": {
+          "definition": {
+            "schema": "public",
+            "name": "pwa_submit_agent_receipt_v1",
+            "arguments": "canonical_json text",
+            "kind": "f",
+            "arguments_with_defaults": "canonical_json text",
+            "result": "jsonb",
+            "definition": "CREATE OR REPLACE FUNCTION public.pwa_submit_agent_receipt_v1(canonical_json text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE e jsonb;c jsonb;a jsonb;x jsonb;k text;v text;canonical text;part text;hash text;request uuid;derived bytea;environment text;\n prior public.pwa_payment_commands%ROWTYPE;day date;matches integer;outcome_value text:='posted';rejection text;result jsonb;\n command_keys text[]:=ARRAY['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','proposalSha256','archiveEvidence'];\n evidence_keys text[]:=ARRAY['receiptId','objectKey','generation','rawSha256','mimeType','sizeBytes','capturedAt'];\n actor_keys text[]:=ARRAY['issuer','subject','partnerId','loginEmail'];\n text_keys text[]:=ARRAY['requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','proposalSha256'];\n -- R095 v8 payerLines {before, after}: the payer-lines change, written only while the column still equals `before`.\n payer_before text;payer_after text;\n -- R112 v9: the partner's purpose and the plan's explicit lines, booked charges and principal entries (v10 shapes).\n entry jsonb;line jsonb;ids text[]:=ARRAY[]::text[];sorted_ids text[];loans text[];plan jsonb;today date;plan_total numeric:=0;\n purpose_text text:='';plan_text text:='';materialize_text text:='';principal_text text:='';\n posted_status text;posted_amount numeric;\n ws text:=chr(9)||chr(10)||chr(11)||chr(12)||chr(13)||chr(32)||chr(160)||chr(5760)||chr(8192)||chr(8193)||chr(8194)||chr(8195)||chr(8196)||chr(8197)||chr(8198)||chr(8199)||chr(8200)||chr(8201)||chr(8202)||chr(8232)||chr(8233)||chr(8239)||chr(8287)||chr(12288)||chr(65279);\nBEGIN\n environment:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END;\n IF current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR session_user<>('mw-credit-app-command-'||environment||'@clever-oasis-508610-n7.iam') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Command session required'; END IF;\n -- R112: 65536 bytes for schemaVersion 9 only (checked below); 7 and 8 keep 16384.\n IF $1 IS NULL OR octet_length($1)>65536 THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid agent receipt command'; END IF;\n BEGIN\n  e:=$1::jsonb;c:=e->'command';a:=e->'actor';x:=c->'archiveEvidence';\n  -- R095: schemaVersion 8 = 7 plus payerLines after bankReference (an object or null); 7 stays accepted.\n  IF c->'schemaVersion'='8'::jsonb THEN command_keys:=ARRAY['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','payerLines','proposalSha256','archiveEvidence']; END IF;\n  -- R112: schemaVersion 9 = 8 plus purpose, allocations, materialize and principal after payerLines.\n  IF c->'schemaVersion'='9'::jsonb THEN command_keys:=ARRAY['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','payerLines','purpose','allocations','materialize','principal','proposalSha256','archiveEvidence']; END IF;\n  IF octet_length($1)>16384 AND c->'schemaVersion' IS DISTINCT FROM '9'::jsonb THEN RAISE EXCEPTION 'size'; END IF;\n  IF jsonb_typeof(e)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(e) key)<>ARRAY['actor','command','contractVersion','receipt'] OR e->'contractVersion'<>'1'::jsonb OR e->'receipt'<>'null'::jsonb\n   OR jsonb_typeof(c)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c) key)<>(SELECT array_agg(key ORDER BY key) FROM unnest(command_keys) key)\n   OR jsonb_typeof(a)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(a) key)<>(SELECT array_agg(key ORDER BY key) FROM unnest(actor_keys) key)\n   OR jsonb_typeof(x)<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(x) key)<>(SELECT array_agg(key ORDER BY key) FROM unnest(evidence_keys) key)\n   OR c->'schemaVersion' NOT IN ('7'::jsonb,'8'::jsonb,'9'::jsonb) OR (c->>'environment')<>environment OR (c->>'mode') NOT IN ('automatic','reviewed') THEN RAISE EXCEPTION 'shape'; END IF;\n  FOREACH k IN ARRAY text_keys LOOP\n   IF jsonb_typeof(c->k)<>'string' THEN RAISE EXCEPTION 'type'; END IF;\n   v:=(c->>k);IF octet_length(v) NOT BETWEEN 1 AND 256 OR btrim(v)='' OR v~E'[\\\\r\\\\n]' OR (k<>'bankReference' AND v<>btrim(v)) THEN RAISE EXCEPTION 'text'; END IF;\n  END LOOP;\n  IF c->'schemaVersion' IN ('8'::jsonb,'9'::jsonb) AND c->'payerLines'<>'null'::jsonb THEN\n   IF jsonb_typeof(c->'payerLines')<>'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c->'payerLines') key)<>ARRAY['after','before']\n    OR jsonb_typeof(c->'payerLines'->'after')<>'string' OR jsonb_typeof(c->'payerLines'->'before') NOT IN ('string','null') THEN RAISE EXCEPTION 'payer lines';END IF;\n   payer_before:=c->'payerLines'->>'before';payer_after:=c->'payerLines'->>'after';\n   IF octet_length(payer_after) NOT BETWEEN 1 AND 1000 OR payer_after=coalesce(payer_before,'') OR octet_length(coalesce(payer_before,''))>65536 OR NOT payer_after IS NFC NORMALIZED\n    OR cardinality(string_to_array(payer_after,E'\\n')) NOT BETWEEN 1 AND 5 THEN RAISE EXCEPTION 'payer lines';END IF;\n   -- Each line is in payer_name.display form: no control, zero-width or non-space whitespace, single spaces, trimmed, 1..200 bytes.\n   IF EXISTS(SELECT 1 FROM unnest(string_to_array(payer_after,E'\\n')) payer_line WHERE octet_length(payer_line) NOT BETWEEN 1 AND 200 OR payer_line<>btrim(payer_line,' ')\n    OR position('  ' IN payer_line)>0 OR payer_line~'[\\x01-\\x1f\\x7f-\\x9f\\u00a0\\u1680\\u2000-\\u200d\\u2028\\u2029\\u202f\\u205f\\u2060\\u3000\\ufeff]') THEN RAISE EXCEPTION 'payer lines';END IF;\n  END IF;\n  IF (c->>'amountReceived')!~'^[1-9][0-9]{0,16}$' OR ((c->>'amountReceived'))::numeric>92233720368547758 OR (c->>'proposalSha256')!~'^[a-f0-9]{64}$' OR (c->>'paymentDate')!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR (c->>'transferTime')!~'^([01][0-9]|2[0-3]):[0-5][0-9]$' THEN RAISE EXCEPTION 'values'; END IF;\n  day:=((c->>'paymentDate'))::date;IF to_char(day,'YYYY-MM-DD')<>(c->>'paymentDate') THEN RAISE EXCEPTION 'date'; END IF;\n  -- R112 v9: a partner's numbered reply (reviewed mode only). purpose {forward, principal (0 to 20 {loanId, amount},\n  -- ordered by loanId), loans null}, forward or at least one principal entry; allocations (1 to 10000 lines ordered by\n  -- chargeId, totalling the amount), materialize (0 to 200) and principal (0 to 20) as the manual v10 command.\n  IF c->'schemaVersion'='9'::jsonb THEN\n   IF (c->>'mode')<>'reviewed' OR jsonb_typeof(c->'purpose') IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(c->'purpose') key) IS DISTINCT FROM ARRAY['forward','loans','principal']\n    OR jsonb_typeof(c->'purpose'->'forward') IS DISTINCT FROM 'boolean' OR c->'purpose'->'loans' IS DISTINCT FROM 'null'::jsonb OR jsonb_typeof(c->'purpose'->'principal') IS DISTINCT FROM 'array'\n    OR jsonb_array_length(c->'purpose'->'principal')>20 OR (c->'purpose'->'forward'='false'::jsonb AND jsonb_array_length(c->'purpose'->'principal')=0) THEN RAISE EXCEPTION 'purpose'; END IF;\n   loans:=ARRAY[]::text[];\n   FOR entry IN SELECT value FROM jsonb_array_elements(c->'purpose'->'principal') LOOP\n    IF jsonb_typeof(entry) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(entry) key) IS DISTINCT FROM ARRAY['amount','loanId']\n     OR jsonb_typeof(entry->'loanId') IS DISTINCT FROM 'string' OR jsonb_typeof(entry->'amount') IS DISTINCT FROM 'string' OR entry->>'amount' !~ '^[1-9][0-9]{0,16}$' THEN RAISE EXCEPTION 'purpose entry'; END IF;\n    v:=entry->>'loanId';IF octet_length(v) NOT BETWEEN 1 AND 256 OR v<>btrim(v,ws) OR v~E'[\\\\r\\\\n]' THEN RAISE EXCEPTION 'purpose loan'; END IF;\n    loans:=array_append(loans,v);\n    purpose_text:=purpose_text||CASE WHEN purpose_text='' THEN '' ELSE ',' END||'{\"loanId\":'||to_json(v)::text||',\"amount\":'||to_json(entry->>'amount')::text||'}';\n   END LOOP;\n   SELECT array_agg(y ORDER BY y COLLATE \"C\") INTO sorted_ids FROM (SELECT DISTINCT unnest(loans) y) q;\n   IF loans IS DISTINCT FROM coalesce(sorted_ids,ARRAY[]::text[]) THEN RAISE EXCEPTION 'purpose order'; END IF;\n   purpose_text:='{\"forward\":'||(c->'purpose'->>'forward')||',\"principal\":['||purpose_text||'],\"loans\":null}';\n   IF jsonb_typeof(c->'allocations') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'allocations') NOT BETWEEN 1 AND 10000 THEN RAISE EXCEPTION 'plan'; END IF;\n   FOR line IN SELECT value FROM jsonb_array_elements(c->'allocations') LOOP\n    IF jsonb_typeof(line) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(line) key) IS DISTINCT FROM ARRAY['chargeDate','chargeId','expectedInterestRemaining','expectedPrincipalRemaining','interest','principal'] THEN RAISE EXCEPTION 'line'; END IF;\n    FOREACH k IN ARRAY ARRAY['chargeId','principal','interest','expectedPrincipalRemaining','expectedInterestRemaining','chargeDate'] LOOP\n     IF jsonb_typeof(line->k) IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'line type'; END IF;\n    END LOOP;\n    v:=line->>'chargeId';IF octet_length(v) NOT BETWEEN 1 AND 256 OR v LIKE '%,%' OR translate(v,ws,'')<>v THEN RAISE EXCEPTION 'line id'; END IF;ids:=array_append(ids,v);\n    FOREACH k IN ARRAY ARRAY['principal','interest','expectedPrincipalRemaining','expectedInterestRemaining'] LOOP\n     IF line->>k !~ '^(0|[1-9][0-9]{0,16})$' OR (line->>k)::numeric>92233720368547758 THEN RAISE EXCEPTION 'component'; END IF;\n    END LOOP;\n    IF (line->>'principal')::numeric+(line->>'interest')::numeric<=0 OR (line->>'principal')::numeric>(line->>'expectedPrincipalRemaining')::numeric OR (line->>'interest')::numeric>(line->>'expectedInterestRemaining')::numeric THEN RAISE EXCEPTION 'line cap'; END IF;\n    v:=line->>'chargeDate';IF v !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR v<'0001-01-01' OR to_char(v::date,'YYYY-MM-DD')<>v THEN RAISE EXCEPTION 'line day'; END IF;\n    plan_total:=plan_total+(line->>'principal')::numeric+(line->>'interest')::numeric;\n    plan_text:=plan_text||CASE WHEN plan_text='' THEN '' ELSE ',' END||'{\"chargeId\":'||to_json(line->>'chargeId')::text||',\"principal\":'||to_json(line->>'principal')::text||',\"interest\":'||to_json(line->>'interest')::text\n     ||',\"expectedPrincipalRemaining\":'||to_json(line->>'expectedPrincipalRemaining')::text||',\"expectedInterestRemaining\":'||to_json(line->>'expectedInterestRemaining')::text||',\"chargeDate\":'||to_json(line->>'chargeDate')::text||'}';\n   END LOOP;\n   SELECT array_agg(y ORDER BY y COLLATE \"C\") INTO sorted_ids FROM (SELECT DISTINCT unnest(ids) y) q;\n   IF ids IS DISTINCT FROM sorted_ids OR plan_total<>(c->>'amountReceived')::numeric THEN RAISE EXCEPTION 'plan order or total'; END IF;\n   IF jsonb_typeof(c->'materialize') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'materialize')>200 THEN RAISE EXCEPTION 'materialize'; END IF;\n   loans:=ARRAY[]::text[];\n   FOR entry IN SELECT value FROM jsonb_array_elements(c->'materialize') LOOP\n    IF jsonb_typeof(entry) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(entry) key) IS DISTINCT FROM ARRAY['chargeDate','chargeId','interestDue','loanId','principalDue'] THEN RAISE EXCEPTION 'materialize entry'; END IF;\n    FOREACH k IN ARRAY ARRAY['loanId','chargeId','chargeDate','principalDue','interestDue'] LOOP\n     IF jsonb_typeof(entry->k) IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'materialize type'; END IF;\n    END LOOP;\n    v:=entry->>'loanId';IF octet_length(v) NOT BETWEEN 1 AND 256 OR v<>btrim(v,ws) OR v~E'[\\\\r\\\\n]' THEN RAISE EXCEPTION 'materialize loan'; END IF;\n    v:=entry->>'chargeDate';IF v !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR v<'0001-01-01' OR to_char(v::date,'YYYY-MM-DD')<>v THEN RAISE EXCEPTION 'materialize day'; END IF;\n    IF entry->>'chargeId' IS DISTINCT FROM 'cg8:'||length(entry->>'loanId')||':'||(entry->>'loanId')||':'||(entry->>'chargeDate') THEN RAISE EXCEPTION 'materialize key'; END IF;\n    FOREACH k IN ARRAY ARRAY['principalDue','interestDue'] LOOP\n     IF entry->>k !~ '^(0|[1-9][0-9]{0,16})$' OR (entry->>k)::numeric>92233720368547758 THEN RAISE EXCEPTION 'materialize component'; END IF;\n    END LOOP;\n    IF (entry->>'principalDue')::numeric+(entry->>'interestDue')::numeric<=0 THEN RAISE EXCEPTION 'materialize amount'; END IF;\n    loans:=array_append(loans,entry->>'chargeId');\n    materialize_text:=materialize_text||CASE WHEN materialize_text='' THEN '' ELSE ',' END||'{\"loanId\":'||to_json(entry->>'loanId')::text||',\"chargeId\":'||to_json(entry->>'chargeId')::text\n     ||',\"chargeDate\":'||to_json(entry->>'chargeDate')::text||',\"principalDue\":'||to_json(entry->>'principalDue')::text||',\"interestDue\":'||to_json(entry->>'interestDue')::text||'}';\n   END LOOP;\n   SELECT array_agg(y ORDER BY y COLLATE \"C\") INTO sorted_ids FROM (SELECT DISTINCT unnest(loans) y) q;\n   IF loans IS DISTINCT FROM coalesce(sorted_ids,ARRAY[]::text[]) THEN RAISE EXCEPTION 'materialize order'; END IF;\n   IF jsonb_typeof(c->'principal') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'principal')>20 THEN RAISE EXCEPTION 'principal'; END IF;\n   loans:=ARRAY[]::text[];\n   FOR entry IN SELECT value FROM jsonb_array_elements(c->'principal') LOOP\n    IF jsonb_typeof(entry) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(entry) key) IS DISTINCT FROM ARRAY['accruedInterest','amount','chargeDate','chargeId','kind','loanId','principalDue'] THEN RAISE EXCEPTION 'principal entry'; END IF;\n    FOREACH k IN ARRAY ARRAY['loanId','kind','chargeId','chargeDate','amount','accruedInterest','principalDue'] LOOP\n     IF jsonb_typeof(entry->k) IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'principal type'; END IF;\n    END LOOP;\n    v:=entry->>'loanId';IF octet_length(v) NOT BETWEEN 1 AND 256 OR v<>btrim(v,ws) OR v~E'[\\\\r\\\\n]' THEN RAISE EXCEPTION 'principal loan'; END IF;\n    v:=entry->>'chargeId';IF octet_length(v) NOT BETWEEN 1 AND 256 OR v LIKE '%,%' OR translate(v,ws,'')<>v THEN RAISE EXCEPTION 'principal charge'; END IF;\n    v:=entry->>'chargeDate';IF v !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR v<'0001-01-01' OR to_char(v::date,'YYYY-MM-DD')<>v THEN RAISE EXCEPTION 'principal day'; END IF;\n    FOREACH k IN ARRAY ARRAY['amount','accruedInterest','principalDue'] LOOP\n     IF entry->>k !~ '^(0|[1-9][0-9]{0,16})$' OR (entry->>k)::numeric>92233720368547758 THEN RAISE EXCEPTION 'principal component'; END IF;\n    END LOOP;\n    IF entry->>'kind' NOT IN ('raise','book') THEN RAISE EXCEPTION 'principal kind'; END IF;\n    loans:=array_append(loans,entry->>'loanId');\n    principal_text:=principal_text||CASE WHEN principal_text='' THEN '' ELSE ',' END||'{\"loanId\":'||to_json(entry->>'loanId')::text||',\"kind\":'||to_json(entry->>'kind')::text\n     ||',\"chargeId\":'||to_json(entry->>'chargeId')::text||',\"chargeDate\":'||to_json(entry->>'chargeDate')::text||',\"amount\":'||to_json(entry->>'amount')::text\n     ||',\"accruedInterest\":'||to_json(entry->>'accruedInterest')::text||',\"principalDue\":'||to_json(entry->>'principalDue')::text||'}';\n   END LOOP;\n   SELECT array_agg(y ORDER BY y COLLATE \"C\") INTO sorted_ids FROM (SELECT DISTINCT unnest(loans) y) q;\n   IF loans IS DISTINCT FROM coalesce(sorted_ids,ARRAY[]::text[]) THEN RAISE EXCEPTION 'principal order'; END IF;\n  END IF;\n  derived:=substring(sha256(convert_to('[\"mw-credit-agent-receipt-v1\",'||to_json(environment)::text||','||to_json((c->>'reviewId'))::text||']','UTF8')) FROM 1 FOR 16);\n  derived:=set_byte(derived,6,(get_byte(derived,6)&15)|64);derived:=set_byte(derived,8,(get_byte(derived,8)&63)|128);\n  request:=encode(derived,'hex')::uuid;IF request::text<>(c->>'requestId') THEN RAISE EXCEPTION 'request identity'; END IF;\n  FOREACH k IN ARRAY evidence_keys LOOP IF k<>'sizeBytes' AND jsonb_typeof(x->k)<>'string' THEN RAISE EXCEPTION 'evidence type'; END IF;END LOOP;\n  IF (x->>'receiptId')!~'^[a-f0-9]{64}$' OR (x->>'rawSha256')!~'^[a-f0-9]{64}$' OR (x->>'generation')!~'^[1-9][0-9]{0,24}$'\n   OR jsonb_typeof(x->'sizeBytes')<>'number' OR (x->>'sizeBytes')!~'^[1-9][0-9]*$' OR ((x->>'sizeBytes'))::numeric>12000000\n   OR (x->>'capturedAt')!~'^[1-9][0-9]{0,11}(\\.[0-9]{0,8}[1-9])?$' OR (x->>'mimeType') NOT IN ('image/jpeg','image/png','image/webp') THEN RAISE EXCEPTION 'evidence';END IF;\n  v:='receipts/'||environment||'/'||to_char(to_timestamp(((x->>'capturedAt'))::double precision) AT TIME ZONE 'UTC','YYYY/MM/DD')||'/'||(x->>'receiptId')||'/'||(x->>'rawSha256')||CASE (x->>'mimeType') WHEN 'image/jpeg' THEN '.jpg' WHEN 'image/png' THEN '.png' ELSE '.webp' END;\n  IF (x->>'objectKey')<>v THEN RAISE EXCEPTION 'object binding'; END IF;\n  FOREACH k IN ARRAY actor_keys LOOP IF jsonb_typeof(a->k)<>'string' OR octet_length((a->>k)) NOT BETWEEN 1 AND 320 OR (a->>k)<>btrim((a->>k)) OR (a->>k)~E'[\\\\r\\\\n]' THEN RAISE EXCEPTION 'actor'; END IF;END LOOP;\n  IF (a->>'issuer')<>'https://accounts.google.com' OR (a->>'subject')!~'^[0-9]{1,128}$' OR octet_length((a->>'partnerId'))>256 OR (a->>'loginEmail')<>lower((a->>'loginEmail')) THEN RAISE EXCEPTION 'actor'; END IF;\n  canonical:='{\"contractVersion\":1,\"command\":{';\n  FOREACH k IN ARRAY command_keys LOOP\n   IF k='archiveEvidence' THEN\n    part:='{';FOREACH v IN ARRAY evidence_keys LOOP part:=part||CASE WHEN part='{' THEN '' ELSE ',' END||to_json(v)::text||':'||(x->v)::text;END LOOP;part:=part||'}';\n   ELSIF k='payerLines' THEN part:=CASE WHEN payer_after IS NULL THEN 'null' ELSE '{\"before\":'||coalesce(to_json(payer_before)::text,'null')||',\"after\":'||to_json(payer_after)::text||'}' END;\n   ELSIF k='purpose' THEN part:=purpose_text;\n   ELSIF k='allocations' THEN part:='['||plan_text||']';\n   ELSIF k='materialize' THEN part:='['||materialize_text||']';\n   ELSIF k='principal' THEN part:='['||principal_text||']';\n   ELSE part:=(c->k)::text; END IF;\n   canonical:=canonical||CASE WHEN k='schemaVersion' THEN '' ELSE ',' END||to_json(k)::text||':'||part;\n  END LOOP;\n  canonical:=canonical||'},\"actor\":{';\n  FOREACH k IN ARRAY actor_keys LOOP canonical:=canonical||CASE WHEN k='issuer' THEN '' ELSE ',' END||to_json(k)::text||':'||(a->k)::text;END LOOP;\n  canonical:=canonical||'},\"receipt\":null}';IF canonical IS DISTINCT FROM $1 THEN RAISE EXCEPTION 'noncanonical';END IF;\n EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Invalid agent receipt command'; END;\n hash:=encode(sha256(convert_to(canonical,'UTF8')),'hex');\n PERFORM pg_advisory_xact_lock(1347895619,hashtext(request::text));\n SELECT * INTO prior FROM public.pwa_payment_commands p WHERE p.request_id=request;\n IF FOUND THEN\n  IF prior.canonical_json<>canonical OR prior.payload_sha256<>hash THEN RETURN jsonb_build_object('kind','conflict'); END IF;\n  RETURN public.pwa_agent_receipt_status_v1(request,(a->>'issuer'),(a->>'subject'));\n END IF;\n SELECT count(*) INTO matches FROM public.\"Partners\" WHERE lower(btrim(\"Login Email\"))=(a->>'loginEmail');\n IF matches<>1 OR NOT EXISTS(SELECT 1 FROM public.\"Partners\" WHERE \"Row ID\"=(a->>'partnerId') AND lower(btrim(\"Login Email\"))=(a->>'loginEmail') AND ((c->>'mode')='automatic' OR (\"AI Reviewer\" IS TRUE AND \"IG Integration Enabled\" IS TRUE))) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Current actor mapping required';END IF;\n BEGIN\n  IF day NOT IN ((transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date,(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date-1) THEN RAISE EXCEPTION USING ERRCODE='P4C01';END IF;\n  PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=(c->>'borrowerId') FOR UPDATE;IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P4C02';END IF;\n  IF NOT EXISTS(SELECT 1 FROM public.\"Cash Accounts\" ca JOIN public.\"Cash Holders\" ch ON ch.\"Row ID\"=ca.\"Ref Cash Holder\" WHERE ca.\"Row ID\"=(c->>'cashAccountId') AND ca.\"Active\" AND ch.\"Active\") THEN RAISE EXCEPTION USING ERRCODE='P4C03';END IF;\n  PERFORM public.cash_account_holder((c->>'cashAccountId'),true);\n  -- R112 v9: the plan is the business day's (a slip of yesterday is invalid_date). Under the engine's borrower -> loans ->\n  -- charges locks the server recomputes the pay-forward plan for this borrower, amount and purpose and requires the\n  -- command's lines, booked charges and principal entries to equal it, with nothing uncovered, no loan settled and every\n  -- requested principal applied; then the shared writer books it and the explicit plan is journalled before the payment\n  -- is inserted (the posting guard reads it). Drift is selection_unavailable (P4C05) and this sub-block rolls back.\n  IF c->'schemaVersion'='9'::jsonb THEN\n   today:=(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;\n   IF day<>today THEN RAISE EXCEPTION USING ERRCODE='P4C01';END IF;\n   PERFORM 1 FROM public.\"Loans\" WHERE \"Ref Borrowers\"=(c->>'borrowerId') ORDER BY \"Row ID\" COLLATE \"C\" FOR UPDATE;\n   PERFORM 1 FROM public.\"Charges\" ch JOIN public.\"Loans\" l ON l.\"Row ID\"=ch.\"Ref Loans\" WHERE l.\"Ref Borrowers\"=(c->>'borrowerId') ORDER BY ch.\"Row ID\" COLLATE \"C\" FOR UPDATE OF ch;\n   BEGIN\n    plan:=public.pwa_pay_forward_plan_v1((c->>'borrowerId'),((c->>'amountReceived'))::numeric,today,c->'purpose');\n   EXCEPTION WHEN SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P4C05';\n   END;\n   IF plan->'allocations' IS DISTINCT FROM c->'allocations' OR plan->'materialize' IS DISTINCT FROM c->'materialize' OR plan->>'uncovered' IS DISTINCT FROM '0' OR plan->'settles' IS DISTINCT FROM '[]'::jsonb\n    OR jsonb_array_length(plan->'principal') IS DISTINCT FROM jsonb_array_length(c->'purpose'->'principal')\n    OR (SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',y->'loanId','kind',y->'kind','chargeId',y->'chargeId','chargeDate',y->'chargeDate','amount',y->'amount','accruedInterest',y->'accruedInterest','principalDue',y->'principalDue') ORDER BY y->>'loanId' COLLATE \"C\"),'[]'::jsonb)\n     FROM jsonb_array_elements(plan->'principal') y) IS DISTINCT FROM c->'principal' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;\n   PERFORM public.pwa_apply_pay_forward_v1(c->'principal',c->'materialize',today);\n   IF EXISTS(\n    SELECT 1 FROM jsonb_array_elements(c->'allocations') AS entries(item)\n    LEFT JOIN public.\"Charges\" ch ON ch.\"Row ID\"=entries.item->>'chargeId'\n    LEFT JOIN public.\"Loans\" l ON l.\"Row ID\"=ch.\"Ref Loans\"\n    LEFT JOIN (SELECT \"Ref Charges\" charge,sum(\"Principal Paid\"::numeric) principal,sum(\"Interest Paid\"::numeric) interest,count(*) FILTER(WHERE \"Principal Paid\" IS NULL OR \"Interest Paid\" IS NULL) invalid FROM public.\"Repayments\" WHERE \"Ref Charges\"=ANY(ids) GROUP BY \"Ref Charges\") paid ON paid.charge=ch.\"Row ID\"\n    WHERE l.\"Ref Borrowers\" IS DISTINCT FROM (c->>'borrowerId') OR coalesce(paid.invalid,0)>0\n     OR ch.\"Principal Due\"::numeric-coalesce(paid.principal,0) IS DISTINCT FROM (entries.item->>'expectedPrincipalRemaining')::numeric\n     OR ch.\"Interest Due\"::numeric-coalesce(paid.interest,0) IS DISTINCT FROM (entries.item->>'expectedInterestRemaining')::numeric\n     OR ch.\"Charge Date\" IS DISTINCT FROM (entries.item->>'chargeDate')::date\n   ) THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;\n   INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code)\n   VALUES(request,1,(a->>'issuer'),(a->>'subject'),(a->>'partnerId'),(a->>'loginEmail'),canonical,hash,'posted','pwa:'||request::text,NULL);\n  END IF;\n  SET CONSTRAINTS public.referral_loan_closed DEFERRED; -- R111 V124: fired below, once the payment is Posted.\n  INSERT INTO public.\"Payments\"(\"Row ID\",\"Ref Borrower\",\"Ref Received By Cash Account\",\"Status\",\"Amount Received\",\"Payment Date\",\"Created At\",\"Payment Method\",\"Allocation Method\",\"Selected Charge IDs\",\"Bank Reference\",\"Created By\",\"Notes\")\n  VALUES('pwa:'||request::text,(c->>'borrowerId'),(c->>'cashAccountId'),'Processing',((c->>'amountReceived'))::numeric::money,day,((c->>'paymentDate')||' '||(c->>'transferTime')||':00')::timestamp,'Bank Transfer',\n   CASE WHEN c->'schemaVersion'='9'::jsonb THEN 'Selected Charges' ELSE 'Lump Sum' END,CASE WHEN c->'schemaVersion'='9'::jsonb THEN array_to_string(ids,' , ') END,(c->>'bankReference'),(a->>'loginEmail'),\n   CASE (c->>'mode') WHEN 'automatic' THEN 'Automatic Instagram receipt payment ' ELSE 'Approved Instagram receipt review ' END||'igr:'||left((c->>'reviewId'),48));\n  -- R111 V124: a referred loan this receipt closed gets its rebate (and default offset) now, inside this command.\n  SET CONSTRAINTS public.referral_loan_closed IMMEDIATE;\n  SET CONSTRAINTS public.referral_loan_closed DEFERRED;\n  -- R112 v9 (as R110 v10): the loan refresh recomputes Current Daily Interest from the frozen rate now; it must equal the\n  -- plan's new daily amount that priced the booked forward charges.\n  IF c->'schemaVersion'='9'::jsonb THEN\n   SELECT \"Status\",\"Amount Received\"::numeric INTO posted_status,posted_amount FROM public.\"Payments\" WHERE \"Row ID\"='pwa:'||request::text;\n   IF posted_status IS DISTINCT FROM 'Posted' OR posted_amount IS DISTINCT FROM ((c->>'amountReceived'))::numeric THEN RAISE EXCEPTION USING ERRCODE='XX000',MESSAGE='Unexpected receipt posting result';END IF;\n   FOR entry IN SELECT value FROM jsonb_array_elements(plan->'principal') LOOP\n    PERFORM public.vc_refresh_loan(entry->>'loanId');\n    IF (SELECT \"Current Daily Interest\"::numeric FROM public.\"Loans\" WHERE \"Row ID\"=entry->>'loanId') IS DISTINCT FROM (entry->>'dailyAfter')::numeric THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;\n   END LOOP;\n  END IF;\n  -- R095: learn the payer lines (row locked above) only while the column still equals what the agent read; drift skips it\n  -- (the payment still posts). A rejected outcome rolls this sub-block back; a replay returns before reaching it.\n  IF payer_after IS NOT NULL THEN\n   UPDATE public.\"Borrowers\" SET \"Communication Name\"=payer_after WHERE \"Row ID\"=(c->>'borrowerId') AND coalesce(\"Communication Name\",'') IS NOT DISTINCT FROM coalesce(payer_before,'');\n  END IF;\n EXCEPTION WHEN SQLSTATE 'P4C01' THEN outcome_value:='rejected';rejection:='invalid_date';\n  WHEN SQLSTATE 'P4C02' THEN outcome_value:='rejected';rejection:='borrower_unavailable';\n  WHEN SQLSTATE 'P4C03' THEN outcome_value:='rejected';rejection:='account_unavailable';\n  WHEN SQLSTATE 'P4C05' THEN outcome_value:='rejected';rejection:='selection_unavailable';\n  WHEN SQLSTATE 'P0001' THEN\n   IF SQLERRM<>'Payment does not match the current eligible balance' THEN RAISE;END IF;\n   outcome_value:='rejected';rejection:='selection_unavailable';\n END;\n -- R112: a posted v9 command journalled its row inside the sub-block; every other outcome is journalled here.\n IF NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands p WHERE p.request_id=request) THEN\n  INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code)\n  VALUES(request,1,(a->>'issuer'),(a->>'subject'),(a->>'partnerId'),(a->>'loginEmail'),canonical,hash,outcome_value,CASE WHEN outcome_value='posted' THEN 'pwa:'||request::text END,rejection);\n END IF;\n result:=public.pwa_agent_receipt_status_v1(request,(a->>'issuer'),(a->>'subject'));\n IF outcome_value='posted' AND result->'financialMatch' IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION USING ERRCODE='XX000',MESSAGE='Unexpected receipt posting result';END IF;\n RETURN result;\nEND $function$\n",
+            "owner": "mw_app_prod_journal_owner",
+            "language": "plpgsql",
+            "volatility": "v",
+            "strict": false,
+            "security_definer": true,
+            "leakproof": false,
+            "parallel": "u",
+            "cost": 100.0,
+            "rows": 0.0,
+            "settings": [
+              "search_path=pg_catalog, public"
+            ],
+            "acl": "{mw_app_prod_journal_owner=X/mw_app_prod_journal_owner,\"\\\"mw-credit-app-command-prod@clever-oasis-508610-n7.iam\\\"=X/mw_app_prod_journal_owner\"}",
+            "comment": null,
+            "extension": null
+          }
+        }
+      }
+    }
+  ],
+  "sources": {
+    "postgresql-production": {
+      "identity": {
+        "instance": "mw-credit-pg-20261017",
+        "database": "loan_manager_prod",
+        "route": "cloud-sql-auth-proxy",
+        "host": "127.0.0.1",
+        "port": 15432
+      },
+      "version_or_hash": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "counts": {
+        "schemas": 4,
+        "relations": 99,
+        "columns": 1520,
+        "constraints": 451,
+        "indexes": 91,
+        "routines": 225,
+        "triggers": 430,
+        "sequences": 2,
+        "types": 0,
+        "policies": 0,
+        "extensions": 2,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 7,
+        "role_dependencies": 40,
+        "relevant_roles": 52,
+        "role_memberships": 51,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 125,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 1198,
+        "jobs": 0
+      },
+      "captured_utc": "2026-11-02T11:21:11.139086+00:00"
+    }
+  },
+  "coverage": [
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "object_kind": "routine",
+      "object_name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/forecast-schedule-v1.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "object_kind": "routine",
+      "object_name": "public.pwa_agent_receipt_status_v1(request_id uuid, actor_issuer text, actor_subject text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-agent-receipt-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-f1658485.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "object_kind": "routine",
+      "object_name": "public.pwa_effective_payment_plan_v2(p_id text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "e4743e4fac2b35bd783b1bbd028935065211f864fb7a68d0ea2ba7bdce2ee90d",
+      "object_kind": "routine",
+      "object_name": "public.pwa_submit_agent_receipt_v1(canonical_json text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-agent-receipt-v1-canonical-json-text-48231378.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r112-20261102/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    }
+  ],
+  "reconciled_previous_records": [
+    {
+      "path": "Documents/Data Dictionary/systems/postgresql/routines/forecast-schedule-v1.yaml",
+      "previous_identity": {
+        "system": "postgresql",
+        "component": "loan_manager_prod",
+        "kind": "routine",
+        "name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
+        "scope": "production"
+      },
+      "current_identity": {
+        "system": "postgresql",
+        "component": "loan_manager_prod",
+        "kind": "routine",
+        "name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
+        "scope": "production"
+      },
+      "previous_sha256": "972a01bc9c4a34a3381a42a8d9166360a8bd6a4c0a93e7290397c53d67520cff"
+    },
+    {
+      "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-agent-receipt-status-v1-request-id-uuid-actor-issuer-text-actor-subject-text-f1658485.yaml",
+      "previous_identity": {
+        "system": "postgresql",
+        "component": "loan_manager_prod",
+        "kind": "routine",
+        "name": "public.pwa_agent_receipt_status_v1(request_id uuid, actor_issuer text, actor_subject text)",
+        "scope": "production"
+      },
+      "current_identity": {
+        "system": "postgresql",
+        "component": "loan_manager_prod",
+        "kind": "routine",
+        "name": "public.pwa_agent_receipt_status_v1(request_id uuid, actor_issuer text, actor_subject text)",
+        "scope": "production"
+      },
+      "previous_sha256": "0a42e1266fc14935702dfc987034f216ee618b66271a660535979a6c15c3e93e"
+    },
+    {
+      "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-effective-payment-plan-v2-p-id-text-1ecd9952.yaml",
+      "previous_identity": {
+        "system": "postgresql",
+        "component": "loan_manager_prod",
+        "kind": "routine",
+        "name": "public.pwa_effective_payment_plan_v2(p_id text)",
+        "scope": "production"
+      },
+      "current_identity": {
+        "system": "postgresql",
+        "component": "loan_manager_prod",
+        "kind": "routine",
+        "name": "public.pwa_effective_payment_plan_v2(p_id text)",
+        "scope": "production"
+      },
+      "previous_sha256": "f1336c36b6102c80ea9a99ddebe9aa6cae9408d59a13305f158d0bced8d4a01b"
+    },
+    {
+      "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-agent-receipt-v1-canonical-json-text-48231378.yaml",
+      "previous_identity": {
+        "system": "postgresql",
+        "component": "loan_manager_prod",
+        "kind": "routine",
+        "name": "public.pwa_submit_agent_receipt_v1(canonical_json text)",
+        "scope": "production"
+      },
+      "current_identity": {
+        "system": "postgresql",
+        "component": "loan_manager_prod",
+        "kind": "routine",
+        "name": "public.pwa_submit_agent_receipt_v1(canonical_json text)",
+        "scope": "production"
+      },
+      "previous_sha256": "09553cf65bbfeaf7fc0de8f6d20ce67a6f516a6be1367bc398a388aa02d70ad8"
+    }
+  ]
+}
