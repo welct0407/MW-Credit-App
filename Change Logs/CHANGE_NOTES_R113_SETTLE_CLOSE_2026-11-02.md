@@ -65,6 +65,25 @@ Forge, 2 November 2026, UTC. Owner instruction of 2 November 2026: "Yes, build i
 | Credentials | Temporary admin and read credential files deleted; no secret value printed |
 | Rollback | Settings generation `1793615711898709` (image `bd9d94a3…`, R112 `e6e147a1`) with Hosting `ad6947853a378bf9` (release `1793615783076000`), plus the V125 backup above |
 
+## DEV end-to-end record
+
+Chase, 2 November 2026 (business day 2026-11-02), on R113 as deployed above (head 126, image `87bfaa6f` on all five services, Hosting `1e83829414dadf0c`). Partner `claude-dev-test` through `scripts/dev/claude-test-token.mjs` (token file deleted afterwards, no secret printed); synthetic borrowers only ("R113 SYNTHETIC T3 YING A / REFERRED C / SHORT E", plus R112's synthetic G as the split borrower and H as the referrer). The form was driven in the DEV PWA at 390 px (Collection, Receive payment, Auto-assign). Loan sizes are small (30 to 50) because the DEV cash pool was exhausted by earlier synthetic loans: new loans of 300 or more failed as `command_unavailable` (503) until one old synthetic loan (R112 "REGRESSION R", 1,000) was closed with Loan Close to free cash. Loan Close quotes were read with `close-preview` before each payment.
+
+| Case | Result |
+| --- | --- |
+| (a) Ying-like, two daily-interest loans (30 and 50, today's charges 6 + 10), slip 96, Repay principal | Radio text "Closes <both loans>"; lines "Closes <loan> · payoff ฿36" and "… payoff ฿60" (quotes 36 and 60); summary "Closes 2 loans · outstanding ฿0"; Review enabled; review shows principal 30 + interest 6 and 50 + 10. Confirm: one payment of 96.00 ("Selected Charges", Bank Transfer), both loans closed today with outstanding 0.00; the payment record reads back (amount, posted 96.00, method, allocation). 36 + 60 = 96 equals the two quotes |
+| (b) Split, one loan settled (G's 1,000 loan and a 20 loan), slip 1,034, principal part 1,000 on the first | "฿1,000 closes this loan" and "฿20 closes this loan" hints; one Closes line (payoff ฿1,010 = quote); the rest pays forward on the other loan (3–12 Nov, "Not yet due: confirming creates this charge and pays it"). Posted 1,034.00; the 1,000 loan closed, the 20 loan stays open (outstanding 20.00) with its forward charges paid |
+| (c) Referred settled loan (30 at 30 a day, referrer H with an open loan), slip 90 | Closes line with "Rebate ฿9 to <referrer> — offset to their loan"; posted 90.00 and the loan closed. The referrer got `ro122:pwa:…` for 9.00; the rebate expense 9.00 shows offset 9.00, payable 0; the payment record's `closeRebate` carries the offset payment and loan |
+| (d) Delete the Ying payment (96.00) | `payment.delete` applied; both loans reopen (open, outstanding 30.00 and 50.00, no close date) and the Loan Close quotes return to 36 and 60 |
+| (e) Short amount (loan of 50 with 50 gap interest, plus a 20 loan with 2 due), slip 102, Split with 60 on the first | Hints "฿100 closes this loan" and "฿20 closes this loan"; "฿40 more closes <loan>." and Review disabled |
+
+Observations, none blocking:
+- A loan whose payoff remainder the slip cannot reach is not offered at all (a slip of 52 offered only the 20 loan), so "more closes" shows only once the slip reaches its payoff remainder; with a single such loan and a short slip the form gives the ordinary choices.
+- While Split is blocked ("more closes"), the plan summary line still shows the forward "Paid through …" text of the blocked plan; Review is correctly disabled.
+- The Closes line shows only the payoff; the "(gap interest …, charges …)" part did not appear for these loans (today's due charges are paid as ordinary due lines).
+
+DEV left in place: the synthetic borrowers above, the closed referred loan, the referrer's offset payment, the reopened Ying loans (open, outstanding 30 and 50), the split borrower's open 20 loan, E's two open loans; auto-charge was not switched off, so the daily jobs may add charges. The R112 "REGRESSION R" loan was closed to free cash.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Thai wording on screen, WebKit and a real iPhone.
