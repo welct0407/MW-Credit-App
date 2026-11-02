@@ -118,7 +118,7 @@ BEGIN
  -- A: offset. Referrer due 10 paid first, then forward charges; 30 in all.
  SELECT "Row ID" INTO off FROM public."Payments" WHERE "Ref Borrower"='RO-RA' AND "Payment Method"='Referral Rebate Offset';
  PERFORM pg_temp.ro_assert(off IS NOT NULL,'A: an offset payment exists on the referrer');
- PERFORM pg_temp.ro_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=30 AND "Payment Date"=day AND "Ref Received By Cash Holder"='ch:lisa' AND "Notes"='Rebate from loan RO-LA' FROM public."Payments" WHERE "Row ID"=off),'A: posted 30, dated the close date, received by Lisa, notes name the loan');
+ PERFORM pg_temp.ro_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=30 AND "Payment Date"=day AND "Ref Received By Cash Holder"='ch:lisa' AND "Notes" LIKE 'Rebate from loan SYNTHETIC REFERRED OFFSET - -฿1,000-'||to_char(day-3,'DD/MM')||'-%' AND "Notes" NOT LIKE '%RO-LA%' FROM public."Payments" WHERE "Row ID"=off),'A: posted 30, dated the close date, received by Lisa, notes name the loan by its app key (V123)');
  PERFORM pg_temp.ro_assert((SELECT count(*)=1 FROM public."Payments" WHERE "Payment Method"='Referral Rebate Offset' AND "Ref Borrower"='RO-RA'),'A: one offset payment (replay added none)');
  PERFORM pg_temp.ro_assert((SELECT "Amount Remaining"::numeric=0 FROM public."Charges" WHERE "Row ID"='RO-RA-today'),'A: the referrer due charge is paid first');
  PERFORM pg_temp.ro_assert((SELECT count(*)=2 AND bool_and("Amount Remaining"::numeric=0 AND "Interest Due"::numeric=10) FROM public."Charges" WHERE "Ref Loans"='RO-RA-L' AND "Charge Date">day),'A: two next charges of 10 booked and paid');

@@ -65,7 +65,8 @@ test('preview offers the offset when the referrer has an open loan and states th
 test('offset close: the rebate pays the referrer loan, Lisa cash nets to zero, Expenses and Collection show it, the journal keeps the path',async()=>{
  const s=await scenario(),{applied}=await close(s,{rebatePath:'offset'});assert.equal(applied.originalOutcome?.status,'applied',JSON.stringify(applied));
  const off=await offsetPayment(s.referrer);assert.equal(off.length,1,'one offset payment');
- assert.deepEqual([off[0].amount,off[0].d,off[0].holder,off[0].status,off[0].notes],['30.00',today,'ch:lisa','Posted','Rebate from loan '+s.loan]);
+ assert.deepEqual([off[0].amount,off[0].d,off[0].holder,off[0].status],['30.00',today,'ch:lisa','Posted']);
+ assert.match(off[0].notes,new RegExp('^Rebate from loan SYNTHETIC REFERRED '+s.id+' - -฿1,000-\\d\\d/\\d\\d-.+%$'),'the notes name the loan by its app key (V123)');assert.ok(!off[0].notes.includes(s.loan));
  const expense=(await admin.query(`SELECT "Amount"::numeric::text AS amount,"Ref Offset Payment" AS off FROM "Business Expenses" WHERE "Row ID"=$1`,['rr1:'+s.loan])).rows[0];assert.deepEqual(expense,{amount:'30.00',off:off[0].id});
  assert.equal(await lisaNet(off[0].id,'rr1:'+s.loan),0,'Lisa cash nets to zero');
  const charges=(await admin.query(`SELECT "Charge Date"::text AS d,"Amount Remaining"::numeric::text AS r FROM "Charges" WHERE "Ref Loans"=$1 ORDER BY "Charge Date"`,[s.refLoans[0]])).rows;
