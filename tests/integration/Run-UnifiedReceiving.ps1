@@ -58,6 +58,9 @@ try {
   # R112: the agent receipt command v9 (pay forward through the plan) through the real receipt API handler, on the same head cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/agent-receipt-pay-forward-independent.test.mjs"
   if($LASTEXITCODE){throw 'Agent receipt pay forward integration checks failed'}
+  # R112: the chat service's payment planner and v10 command builder against the real command service (card.purposeOptions numbers, purposes, refusals), same cluster.
+  & node --test --test-concurrency=1 "$PSScriptRoot/chat-payment-plan-independent.test.mjs"
+  if($LASTEXITCODE){throw 'Chat payment plan integration checks failed'}
   # R109: Default Loan with a loss amount and kept charges (V120), on the same head cluster.
   & node --test --test-concurrency=1 "$PSScriptRoot/default-loss-independent.test.mjs"
   if($LASTEXITCODE){throw 'Default loss integration checks failed'}
