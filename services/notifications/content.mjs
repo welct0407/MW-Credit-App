@@ -36,8 +36,19 @@ function rebateLine(language,facts){
  const amount=baht(facts.rebatePayable);if(facts.eventType!=='loan.closed'||!amount||!(Number(facts.rebatePayable)>0))return null;
  return payee=>language==='th'?`ค่าแนะนำ ${amount}${payee?' ให้ '+payee:''} โอนจาก Lisa`:`Rebate ${amount}${payee?' to '+payee:''}, transfer from Lisa`;
 }
+/** R111: a Referral Rebate Offset payment is not cash from the referrer: "Rebate offset ฿300 · <referrer> · from loan <key>". */
+const OFFSET={en:{title:'Rebate offset',from:'from loan '},th:{title:'หักค่าแนะนำ',from:'จากสินเชื่อ '}};
+function offsetNotification(language,facts){
+ const words=OFFSET[language],amount=baht(facts.amount),name=clean(facts.borrowerName),loan=clean(facts.rebateLoan),sep=' · ';
+ const head=words.title+(amount?' '+amount:''),tail=loan?sep+words.from+loan:'';
+ // The referrer's name is shortened first, then the loan key.
+ const room=BODY_BUDGET-graphemeLength(head)-graphemeLength(tail)-graphemeLength(sep);
+ let body=head+(name&&room>=4?sep+(graphemeLength(name)>room?cut(name,room-1):name):'')+tail;
+ if(graphemeLength(body)>BODY_BUDGET)body=cut(body,BODY_BUDGET-1);
+ return{title:words.title,body};
+}
 /**
- * @param {{found?:boolean,eventType?:string,language?:string,borrowerName?:string|null,amount?:unknown,rebatePayee?:string|null,rebatePayable?:unknown}|null|undefined} facts
+ * @param {{found?:boolean,eventType?:string,language?:string,borrowerName?:string|null,amount?:unknown,rebatePayee?:string|null,rebatePayable?:unknown,paymentMethod?:string|null,rebateLoan?:string|null}|null|undefined} facts
  * @returns {{title:string,body:string}}
  */
 export function renderNotification(facts){
@@ -46,6 +57,7 @@ export function renderNotification(facts){
  if(!facts||!activity)return genericNotification(language);
  const words=TEXT[language];
  if(facts.found!==true)return{title:activity,body:words.gone};
+ if(facts.eventType==='payment.posted'&&facts.paymentMethod==='Referral Rebate Offset')return offsetNotification(language,facts);
  const amount=baht(facts.amount),title=amount?activity+' '+amount:activity;
  // Body: the borrower name only (owner decision: no actor), shortened with "…" only beyond the budget. V100 already
  // picked the name for the recipient's language (English: the English name only); none gives an empty body, title only.

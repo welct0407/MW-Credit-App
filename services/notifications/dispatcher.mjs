@@ -20,7 +20,7 @@ export function createNotificationDispatcher({pool,transport,eligible,guardConne
     // R111 (V122): v2 adds a closed loan's rebate facts; before V122 the v1 read answers (no rebate line).
     try{const args=[delivery.delivery_id,delivery.lease_generation];let facts;
      try{facts=(await query('SELECT * FROM public.pwa_notify_content_v2($1::uuid,$2::bigint)',args)).rows[0];}catch{facts=(await query('SELECT * FROM public.pwa_notify_content_v1($1::uuid,$2::bigint)',args)).rows[0];}
-     content=facts?renderNotification({found:facts.found,eventType:facts.event_type,language:facts.language,borrowerName:facts.borrower_name,amount:facts.amount,rebatePayee:facts.rebate_payee??null,rebatePayable:facts.rebate_payable??null}):genericNotification();}
+     content=facts?renderNotification({found:facts.found,eventType:facts.event_type,language:facts.language,borrowerName:facts.borrower_name,amount:facts.amount,rebatePayee:facts.rebate_payee??null,rebatePayable:facts.rebate_payable??null,paymentMethod:facts.payment_method??null,rebateLoan:facts.rebate_loan??null}):genericNotification();}
     catch{content=genericNotification();}
     const started=(await query('SELECT public.pwa_notify_start_send_v1($1::uuid,$2::bigint,$3::bigint) AS started',[delivery.delivery_id,delivery.lease_generation,row.version])).rows[0].started;
     if(!started){results.push({state:'fenced'});continue;}

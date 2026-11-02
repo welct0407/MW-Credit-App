@@ -23,7 +23,7 @@
 --    stay, D4); correcting a closing payment that has an offset, or changing or deleting the offset payment itself, is
 --    refused ("Remove through the closing payment"; dependency_conflict in the operations).
 -- 7. pwa_notify_content_v2: v1's facts plus the rebate amount, payee and payable part of a closed loan, for the
---    "Loan closed" push (content only). V99 boundary: notify owner's pinned definer, EXECUTE only for the dispatcher.
+--    "Loan closed" push, and a payment's method with the closed loan of a rebate offset (content only). V99 boundary: notify owner's pinned definer, EXECUTE only for the dispatcher.
 -- No other table, column or constraint. CREATE OR REPLACE and counted text replacements keep owners and privileges; the self-check
 -- proves them, the new functions' ACLs and the column.
 
@@ -392,7 +392,7 @@ END $crud$;
 
 -- 11. Push content facts with the rebate of a closed loan (v1 is unchanged and stays for a dispatcher before R111).
 CREATE FUNCTION public.pwa_notify_content_v2(delivery uuid,generation bigint)
-RETURNS TABLE(found boolean,event_type text,language text,borrower_name text,amount numeric,rebate_amount numeric,rebate_payee text,rebate_payable numeric)
+RETURNS TABLE(found boolean,event_type text,language text,borrower_name text,amount numeric,rebate_amount numeric,rebate_payee text,rebate_payable numeric,payment_method text,rebate_loan text)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
 BEGIN
  PERFORM public.pwa_worker_guard_v1('dispatch');
@@ -407,17 +407,21 @@ BEGIN
   rb.rebate_amount,
   -- (an English recipient falls back to the Thai name when the referrer has no English name: the line names a payee).
   CASE WHEN rb.rebate_amount IS NULL THEN NULL WHEN recipient."Language Preference"='ไทย' THEN pb."Borrower Name" ELSE coalesce(nullif(btrim(pb."Description",E' \t\r\n\f\v'),''),pb."Borrower Name") END,
-  rb.rebate_payable
+  rb.rebate_payable,
+  -- R111: a posted payment's method, and for a Referral Rebate Offset the closed loan whose rebate it is (the push then
+  -- reads as a rebate offset, not as cash received from the referrer).
+  src.payment_method,
+  (SELECT x."Ref Related Loan" FROM public."Business Expenses" x WHERE e.source_kind='payment' AND x."Ref Offset Payment"=e.source_id ORDER BY x."Row ID" COLLATE "C" LIMIT 1)
  FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
  LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
  LEFT JOIN LATERAL (
-  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title,p."Payment Method" AS payment_method FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
   UNION ALL
-  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
   UNION ALL
-  SELECT true,NULL::text,NULL::numeric,t.title FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=d.recipient_partner_id
+  SELECT true,NULL::text,NULL::numeric,t.title,NULL::text FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=d.recipient_partner_id
  ) source_row ON true
- CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title) src
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title,source_row.payment_method) src
  LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
  LEFT JOIN LATERAL (
   SELECT x."Amount"::numeric AS rebate_amount,x."Ref Payee Borrower" AS payee_id,x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0) AS rebate_payable
@@ -443,6 +447,7 @@ BEGIN
  EXECUTE format('GRANT EXECUTE ON FUNCTION public.pwa_notify_content_v2(uuid,bigint) TO %I',dispatcher);
  -- Exactly the added source columns (V99 and V100 grant the rest; "Payments" "Row ID" and "Amount Received" included).
  EXECUTE format('GRANT SELECT ("Row ID","Amount","Ref Payee Borrower","Ref Related Loan","Source Type","Ref Offset Payment") ON public."Business Expenses" TO %I',notify_owner);
+ EXECUTE format('GRANT SELECT ("Payment Method") ON public."Payments" TO %I',notify_owner);
  EXECUTE format('ALTER FUNCTION public.pwa_notify_content_v2(uuid,bigint) OWNER TO %I',notify_owner);
  IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)=notify_owner AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_content_v2(uuid,bigint)'::regprocedure)
   OR EXISTS(SELECT 1 FROM pg_proc p CROSS JOIN LATERAL aclexplode(p.proacl) a WHERE p.oid='public.pwa_notify_content_v2(uuid,bigint)'::regprocedure AND a.privilege_type='EXECUTE' AND a.grantee NOT IN (p.proowner,dispatcher::regrole))

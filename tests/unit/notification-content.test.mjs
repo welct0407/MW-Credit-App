@@ -99,3 +99,14 @@ test('R111 NT-1: a closed loan with a payable rebate leads with the rebate line,
  withinBudgets(long);assert.match(long.body,/^Rebate ฿1,000 to An extra…, transfer from Lisa · A very long/);
  assert.equal(renderNotification(closed({rebatePayee:null})).body,'Rebate ฿300, transfer from Lisa · Somchai Jaidee');
 });
+
+test('R111: the push of a Referral Rebate Offset payment reads as a rebate offset, not as cash received, within budget',()=>{
+ const offset=(over={})=>facts({eventType:'payment.posted',amount:'300',borrowerName:'Malee Srisuk',paymentMethod:'Referral Rebate Offset',rebateLoan:'L-0412',...over});
+ assert.deepEqual(renderNotification(offset()),{title:'Rebate offset',body:'Rebate offset ฿300 · Malee Srisuk · from loan L-0412'});
+ assert.deepEqual(renderNotification(offset({language:'th',borrowerName:'มาลี ศรีสุข'})),{title:'หักค่าแนะนำ',body:'หักค่าแนะนำ ฿300 · มาลี ศรีสุข · จากสินเชื่อ L-0412'});
+ const long=renderNotification(offset({borrowerName:'An extraordinarily long referrer name that keeps going on and on and on',rebateLoan:'L-VERY-LONG-LOAN-KEY-2026'}));
+ withinBudgets(long);assert.match(long.body,/^Rebate offset ฿300 · An extra.*… · from loan L-VERY-LONG-LOAN-KEY-2026$/);
+ assert.equal(renderNotification(offset({rebateLoan:null})).body,'Rebate offset ฿300 · Malee Srisuk');
+ // Any other method keeps the payment wording.
+ assert.deepEqual(renderNotification(offset({paymentMethod:'Cash'})),{title:'Payment received ฿300',body:'Malee Srisuk'});
+});

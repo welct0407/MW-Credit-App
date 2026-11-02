@@ -45,6 +45,11 @@ test('R111: v2 rebate facts reach the push; a missing v2 falls back to v1',async
  const fallback=[];await createNotificationDispatcher({pool:old.pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{fallback.push(options.content);return{kind:'accepted'};}})();
  assert.deepEqual(fallback,[{title:'Payment received ฿5,000',body:'Somchai Jaidee'}]);assert.ok(old.calls.some(c=>c.sql.includes('pwa_notify_content_v1')));
 });
+test('R111: an offset payment push carries the method and closed loan from v2',async()=>{
+ const {pool}=scriptedPool([{found:true,event_type:'payment.posted',language:'en',borrower_name:'Malee Srisuk',amount:'300',payment_method:'Referral Rebate Offset',rebate_loan:'L-0412'}]);const sent=[];
+ await createNotificationDispatcher({pool,enabled:true,guardConnection:async()=>{},eligible:async()=>true,transport:async(_s,_id,options)=>{sent.push(options.content);return{kind:'accepted'};}})();
+ assert.deepEqual(sent,[{title:'Rebate offset',body:'Rebate offset ฿300 · Malee Srisuk · from loan L-0412'}]);
+});
 test('content RPC failure or no row still sends once with generic text and never defers',async()=>{
  for(const content of [Error('function public.pwa_notify_content_v1(uuid, bigint) does not exist'),[],[{found:true,event_type:'loan.unknown',language:'en'}]]){
   const {calls,pool}=scriptedPool(content);const sent=[];
