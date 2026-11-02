@@ -152,6 +152,10 @@ async function yingSetup(page:Page){
  const s=await setup(page);const posts:any[]=[],plans:any[]=[],reviews:any[]=[];
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
   const u=new URL(r.request().url()),path=u.pathname,json=(body:any,status=200)=>r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+  if(path.endsWith('/auto-assign')&&r.request().postDataJSON().amountReceived==='720')return json({...draft,charges:yingDue,allocations:yingAlloc.map(l=>({...l,principal:'0',interest:l.expectedInterestRemaining})),amountReceived:'720',allocated:'220',unallocated:'500',
+   remainder:{amount:'500',loans:yingLoans,forward:{rows:[],paidThrough:{},uncovered:'500',blocked:[]},repay:null,
+    principal:[{loanId:'y-LA',amount:'500',settles:false,entry:{loanId:'y-LA',kind:'raise',chargeId:'y-dueA',chargeDate:'2026-10-08',amount:'500',accruedInterest:'0',principalDue:'500',outstandingBefore:'1000',outstandingAfter:'500',dailyAfter:'10'},payoffRemainder:'1000'},
+     {loanId:'y-LB',amount:'500',settles:false,entry:{loanId:'y-LB',kind:'raise',chargeId:'y-dueB',chargeDate:'2026-10-08',amount:'500',accruedInterest:'0',principalDue:'500',outstandingBefore:'2000',outstandingAfter:'1500',dailyAfter:'150'},payoffRemainder:'2000'}]}});
   if(path.endsWith('/auto-assign'))return json({...draft,charges:yingDue,allocations:yingAlloc.map(l=>({...l,principal:'0',interest:l.expectedInterestRemaining})),amountReceived:'3220',allocated:'220',unallocated:'3000',
    remainder:{amount:'3000',loans:yingLoans,forward:{rows:[],paidThrough:{},uncovered:'3000',blocked:[]},
     repay:{purpose:{forward:false,principal:[{loanId:'y-LA',amount:'1000'},{loanId:'y-LB',amount:'2000'}],loans:null},settles:['y-LA','y-LB'],uncovered:'0'},
@@ -178,6 +182,7 @@ test('Ying: Repay principal on a 3,220 slip closes both loans, shows the Closes 
  await expect(lines.nth(0)).toContainText('Closes Ying-A · payoff ฿1,020 (charges ฿20)');await expect(lines.nth(0)).toContainText('Rebate ฿30 to Ying Referrer — offset to their loan');
  await expect(lines.nth(1)).toContainText('Closes Ying-B · payoff ฿2,200 (charges ฿200)');await expect(lines.nth(1)).not.toContainText('Rebate');
  await expect(page.locator('.remainder-closes-summary')).toHaveText('Closes 2 loans · outstanding ฿0');
+ await expect(page.locator('#remainder-help')).toHaveCount(0);   // nothing blocks Review (the hint slot exists only while a hint is shown)
  await expect(review(page)).toBeEnabled();await review(page).click();
  expect(reviews.at(-1).principal.map((e:any)=>[e.loanId,e.kind,e.amount])).toEqual([['y-LA','settle','1000'],['y-LB','settle','2000']]);
  await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect.poll(()=>posts.length).toBe(1);
@@ -193,4 +198,38 @@ test('Ying Split: a part short of a loan\'s payoff remainder keeps Review disabl
  await page.getByRole('textbox',{name:/^Principal part · Ying-A/}).fill('990');await page.getByRole('button',{name:'Apply',exact:true}).evaluate(node=>(node as HTMLElement).click());
  await expect.poll(()=>plans.length).toBe(1);expect(plans[0].purpose.forward).toBe(true);expect(plans[0].purpose.principal).toEqual([{loanId:'y-LA',amount:'990'}]);
  await expect(page.locator('#remainder-help')).toHaveText('฿10 more closes Ying-A.');await expect(review(page)).toBeDisabled();
+ // R114 (1): a blocked plan shows only its hint, never the plan's Paid through or Closes lines.
+ await expect(page.locator('#remainder-help')).toHaveAttribute('data-remainder-state','blocked');
+ await expect(page.locator('.remainder-summary')).toHaveCount(0);await expect(page.locator('.remainder-closes')).toHaveCount(0);await expect(page.locator('.remainder-closes-summary')).toHaveCount(0);
+});
+
+test('R114 (2): a remainder short of a loan\'s payoff says how much more closes it, on Repay principal and on each Split part',async({page})=>{
+ await yingSetup(page);
+ await amount(page).fill('720');await auto(page).click();await expect(block(page)).toBeVisible();
+ await expect(option(page,/^Repay principal/)).toContainText('฿500 more closes Ying-A');
+ await choice(page,/^Split/).check();
+ await expect(page.locator('.remainder-split small').nth(0)).toHaveText('฿500 more closes Ying-A');await expect(page.locator('.remainder-split small').nth(1)).toHaveText('฿1,500 more closes Ying-B');
+ await expect(review(page)).toBeDisabled();
+});
+test('R114 Echo: a two-loan Split at 390 px does not overflow horizontally and Apply is inside the viewport and clickable',async({page},info)=>{
+ test.skip(info.project.name!=='mobile-chromium','phone layout only');
+ // The real loan keys are long ("<borrower> - <description>-฿1,000-27/10-10%"): the overflow Echo found at 745 px came from those labels.
+ const short={...yingLoans};Object.assign(yingLoans,{'y-LA':'R113 SYNTHETIC YING A - R113 DEV end-to-end, synthetic-฿1,000-27/10-10%','y-LB':'R113 SYNTHETIC YING A - R113 DEV end-to-end, synthetic-฿2,000-31/10-10%'});
+ try{
+ const {plans}=await yingSetup(page);
+ await amount(page).fill('3220');await auto(page).click();await choice(page,/^Split/).check();
+ const split=page.locator('.remainder-split');await expect(split).toBeVisible();await expect(page.locator('.remainder-split input')).toHaveCount(2);
+ const viewport=page.viewportSize()!;
+ // The fieldset and the page do not scroll sideways, and every split part sits inside the viewport width.
+ const overflow=await page.evaluate(()=>{const f=document.querySelector('.remainder-options') as HTMLElement,s=document.querySelector('.remainder-split') as HTMLElement;
+  return {fieldset:f.scrollWidth-f.clientWidth,split:s.scrollWidth-s.clientWidth,page:document.documentElement.scrollWidth-document.documentElement.clientWidth}});
+ expect(overflow).toEqual({fieldset:0,split:0,page:0});
+ for(const input of await page.locator('.remainder-split input').all()){const box=(await input.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width)}
+ const apply=page.getByRole('button',{name:'Apply',exact:true});await apply.scrollIntoViewIfNeeded();
+ const box=(await apply.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width);
+ await expect(apply).toBeInViewport({ratio:1});
+ await page.getByRole('textbox',{name:/^Principal part · .*฿1,000/}).fill('1000');
+ await apply.click();   // a real click, not a scripted one
+ await expect.poll(()=>plans.length).toBe(1);expect(plans[0].purpose.principal).toEqual([{loanId:'y-LA',amount:'1000'}]);
+ }finally{Object.assign(yingLoans,short)}
 });
