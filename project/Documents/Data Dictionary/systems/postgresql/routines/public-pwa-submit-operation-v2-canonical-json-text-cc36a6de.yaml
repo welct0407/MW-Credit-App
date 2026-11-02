@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r115-20261102/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "commit": "fb46ffe68dcf20b61c078dceaabbf6dc2e3949c8"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-operation-v2-canonical-json-text-cc36a6de.yaml"
     "identity":
       "system": "postgresql"
@@ -43,11 +43,11 @@
       \ EXCEPTION 'command';END IF;\r\n IF e->>'requestId' !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$'\
       \ THEN RAISE EXCEPTION 'id';END IF;request:=(e->>'requestId')::uuid;\r\n target:=c->>'targetId';op:=c->>'operation';expected:=c->>'expectedVersion';\r\
       \n IF jsonb_typeof(c->'targetId') IS DISTINCT FROM 'string' OR octet_length(target) NOT BETWEEN 1 AND 256 OR target~'[[:cntrl:]]'\
-      \ OR op NOT IN('borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update','cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete','capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-openings.initialize','assessment.create','assessment.update','assessment.refresh','assessment.delete','analytics.refresh')\
+      \ OR op NOT IN('borrower.create','borrower.update','borrower.delete','loan.create','loan.update','loan.delete','loan.default','loan.undo-default','loan.generate-charge','loan.book-projected-charge','loan.close','charge.create','charge.update','charge.delete','payment.correct','payment.delete','payment.move-interest','expense.create','expense.update','expense.delete','preference.update','cash-holder.create','cash-holder.update','cash-holder.delete','cash-account.create','cash-account.update','cash-account.delete','partner.create','partner.update','partner.delete','capital-contribution.create','capital-contribution.update','capital-contribution.delete','settlement.create','settlement.update','settlement.complete','settlement.reverse','settlement.cancel','settlement.settle-all','cash-movement.create','cash-movement.update','cash-movement.delete','cash-withdrawal.create','cash-openings.initialize','assessment.create','assessment.update','assessment.refresh','assessment.delete','analytics.refresh')\
       \ THEN RAISE EXCEPTION 'target';END IF;\r\n IF split_part(op,'.',1)='payment' THEN IF c->'predecessorRequestId'<>'null'::jsonb\
       \ AND (jsonb_typeof(c->'predecessorRequestId') IS DISTINCT FROM 'string' OR c->>'predecessorRequestId'!~'^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$')\
       \ THEN RAISE EXCEPTION 'predecessor';END IF;ELSIF c->'predecessorRequestId'<>'null'::jsonb THEN RAISE EXCEPTION 'predecessor';END\
-      \ IF;\r\n IF op IN('borrower.create','loan.create','charge.create','expense.create','cash-holder.create','cash-account.create','partner.create','capital-contribution.create','settlement.create','settlement.settle-all','cash-movement.create','assessment.create')\
+      \ IF;\r\n IF op IN('borrower.create','loan.create','charge.create','expense.create','cash-holder.create','cash-account.create','partner.create','capital-contribution.create','settlement.create','settlement.settle-all','cash-movement.create','cash-withdrawal.create','assessment.create')\
       \ THEN IF c->'expectedVersion'<>'null'::jsonb OR target !~ '^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$'\
       \ THEN RAISE EXCEPTION 'create';END IF;\r\n ELSE IF jsonb_typeof(c->'expectedVersion') IS DISTINCT FROM 'string' OR\
       \ expected !~ '^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'version';END IF;END IF;\r\n IF jsonb_typeof(a) IS DISTINCT FROM\
@@ -68,7 +68,7 @@
       :'||to_json(r->>'receiptId')::text||',\"sha256\":'||to_json(r->>'sha256')::text||',\"mimeType\":'||to_json(r->>'mimeType')::text||',\"\
       sizeBytes\":'||(r->>'sizeBytes')||',\"storageReference\":'||to_json(r->>'storageReference')::text||'}';\r\n END IF;\r\
       \n IF jsonb_typeof(i) IS DISTINCT FROM 'object' THEN RAISE EXCEPTION 'inputs';END IF;\r\n IF split_part(op,'.',1) IN('cash-openings','assessment','analytics')\
-      \ THEN input_text:=public.pwa_management_tools_text_v2(op,i);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement')\
+      \ THEN input_text:=public.pwa_management_tools_text_v2(op,i);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement','cash-withdrawal')\
       \ THEN input_text:=public.pwa_management_financial_text_v2(op,i);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner')\
       \ THEN input_text:=public.pwa_management_input_text_v2(op,i);\r\n ELSIF op='preference.update' THEN\r\n IF (SELECT array_agg(key\
       \ ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['language','statementAccountId','statementDate']\
@@ -124,40 +124,42 @@
       \ OR ((i->>'chargeDate')::date)::text<>i->>'chargeDate' OR i->>'principalDue'!~'^-?(0|[1-9][0-9]*)(\\.[0-9]{1,2})?$'\
       \ OR i->>'interestDue'!~'^-?(0|[1-9][0-9]*)(\\.[0-9]{1,2})?$' OR abs((i->>'principalDue')::numeric)>92233720368547758.07\
       \ OR abs((i->>'interestDue')::numeric)>92233720368547758.07 THEN RAISE EXCEPTION 'charge input';END IF;\r\n ELSIF op='loan.close'\
-      \ THEN\r\n keys:=ARRAY['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash'];\r\
-      \n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key ORDER\
-      \ BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION 'close keys';END IF;\r\n input_text:='{';FOREACH k IN ARRAY keys\
-      \ LOOP\r\n  IF (k='notes' AND jsonb_typeof(i->k) NOT IN('string','null')) OR (k<>'notes' AND jsonb_typeof(i->k) IS DISTINCT\
-      \ FROM 'string') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION 'close input';END IF;\r\n  input_text:=input_text||CASE\
-      \ WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');\r\n END LOOP;input_text:=input_text||'}';\r\
-      \n IF i->>'paymentDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paymentDate')::date)::text<>i->>'paymentDate' OR octet_length(i->>'cashAccountId')\
+      \ THEN\r\n keys:=ARRAY['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash']||CASE\
+      \ WHEN i ? 'rebatePath' THEN ARRAY['rebatePath'] ELSE ARRAY[]::text[] END;\r\n IF (SELECT array_agg(key ORDER BY key)\
+      \ FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key ORDER BY key) FROM unnest(keys) key) THEN RAISE\
+      \ EXCEPTION 'close keys';END IF;\r\n input_text:='{';FOREACH k IN ARRAY keys LOOP\r\n  IF (k='notes' AND jsonb_typeof(i->k)\
+      \ NOT IN('string','null')) OR (k<>'notes' AND jsonb_typeof(i->k) IS DISTINCT FROM 'string') OR octet_length(i->>k)>65536\
+      \ THEN RAISE EXCEPTION 'close input';END IF;\r\n  input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ','\
+      \ END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');\r\n END LOOP;input_text:=input_text||'}';\r\n IF\
+      \ i->>'paymentDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paymentDate')::date)::text<>i->>'paymentDate' OR octet_length(i->>'cashAccountId')\
       \ NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]' OR i->>'paymentMethod' NOT IN('Bank Transfer','Cash','Net-off\
       \ at Disbursement') OR i->>'expectedAmount'!~'^[1-9][0-9]*$' OR (i->>'expectedAmount')::numeric>92233720368547758 OR\
-      \ i->>'expectedPlanHash'!~'^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'close input';END IF;\r\n ELSIF op='loan.default' AND\
-      \ (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['businessDate'] THEN\n --\
-      \ R109 (V120): the loss amount (whole baht, 0 only for a fully lost loan, which SQL decides) and the keep-charges choice.\n\
-      \ -- The one-key form {businessDate} stays valid (requests saved by an earlier PWA): write off and close the whole principal.\n\
-      \ IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['amount','businessDate','keepCharges']\
-      \ OR jsonb_typeof(i->'businessDate') IS DISTINCT FROM 'string' OR i->>'businessDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'\
-      \ OR ((i->>'businessDate')::date)::text<>i->>'businessDate' OR jsonb_typeof(i->'amount') IS DISTINCT FROM 'string' OR\
-      \ i->>'amount'!~'^(0|[1-9][0-9]{0,16})$' OR (i->>'amount')::numeric>92233720368547758 OR jsonb_typeof(i->'keepCharges')\
-      \ IS DISTINCT FROM 'boolean' THEN RAISE EXCEPTION 'default input';END IF;\n input_text:='{\"businessDate\":'||to_json(i->>'businessDate')::text||',\"\
-      amount\":'||to_json(i->>'amount')::text||',\"keepCharges\":'||(i->'keepCharges')::text||'}';\n ELSIF op IN('loan.default','loan.generate-charge')\
-      \ THEN\r\n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['businessDate']\
-      \ OR jsonb_typeof(i->'businessDate') IS DISTINCT FROM 'string' OR i->>'businessDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'\
-      \ OR ((i->>'businessDate')::date)::text<>i->>'businessDate' THEN RAISE EXCEPTION 'business date';END IF;\r\n input_text:='{\"\
-      businessDate\":'||to_json(i->>'businessDate')::text||'}';\r\n ELSIF op='loan.book-projected-charge' THEN\n -- R104:\
-      \ the reviewed next projected charge of the loan; the generator key is derived, never sent.\n IF (SELECT array_agg(key\
-      \ ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['chargeDate','interestDue','principalDue'] OR\
-      \ jsonb_typeof(i->'chargeDate') IS DISTINCT FROM 'string' OR jsonb_typeof(i->'principalDue') IS DISTINCT FROM 'string'\
-      \ OR jsonb_typeof(i->'interestDue') IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'projected charge keys';END IF;\n\
-      \ IF i->>'chargeDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'chargeDate')::date)::text<>i->>'chargeDate' OR i->>'principalDue'!~'^(0|[1-9][0-9]{0,16})$'\
-      \ OR i->>'interestDue'!~'^(0|[1-9][0-9]{0,16})$' OR (i->>'principalDue')::numeric>92233720368547758 OR (i->>'interestDue')::numeric>92233720368547758\
-      \ OR (i->>'principalDue')::numeric+(i->>'interestDue')::numeric<=0 THEN RAISE EXCEPTION 'projected charge input';END\
-      \ IF;\n input_text:='{\"chargeDate\":'||to_json(i->>'chargeDate')::text||',\"principalDue\":'||to_json(i->>'principalDue')::text||',\"\
-      interestDue\":'||to_json(i->>'interestDue')::text||'}';\n ELSIF op IN('borrower.delete','loan.delete','loan.undo-default','charge.delete','payment.delete','expense.delete')\
-      \ THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION 'delete';END IF;input_text:='{}';\r\n ELSE\r\n IF (SELECT array_agg(key\
-      \ ORDER BY key) FROM jsonb_object_keys(i-'aiCollectionEnabled') key) IS DISTINCT FROM ARRAY['address','city','communicationName','description','hidden','instagramUsername','name','note','preferredReceivingAccountId','referrerId','workingLocation']\
+      \ i->>'expectedPlanHash'!~'^[a-f0-9]{64}$' OR (i ? 'rebatePath' AND i->>'rebatePath' NOT IN('offset','expense')) THEN\
+      \ RAISE EXCEPTION 'close input';END IF;\r\n ELSIF op='loan.default' AND (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i)\
+      \ key) IS DISTINCT FROM ARRAY['businessDate'] THEN\n -- R109 (V120): the loss amount (whole baht, 0 only for a fully\
+      \ lost loan, which SQL decides) and the keep-charges choice.\n -- The one-key form {businessDate} stays valid (requests\
+      \ saved by an earlier PWA): write off and close the whole principal.\n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i)\
+      \ key) IS DISTINCT FROM ARRAY['amount','businessDate','keepCharges'] OR jsonb_typeof(i->'businessDate') IS DISTINCT\
+      \ FROM 'string' OR i->>'businessDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'businessDate')::date)::text<>i->>'businessDate'\
+      \ OR jsonb_typeof(i->'amount') IS DISTINCT FROM 'string' OR i->>'amount'!~'^(0|[1-9][0-9]{0,16})$' OR (i->>'amount')::numeric>92233720368547758\
+      \ OR jsonb_typeof(i->'keepCharges') IS DISTINCT FROM 'boolean' THEN RAISE EXCEPTION 'default input';END IF;\n input_text:='{\"\
+      businessDate\":'||to_json(i->>'businessDate')::text||',\"amount\":'||to_json(i->>'amount')::text||',\"keepCharges\"\
+      :'||(i->'keepCharges')::text||'}';\n ELSIF op IN('loan.default','loan.generate-charge') THEN\r\n IF (SELECT array_agg(key\
+      \ ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['businessDate'] OR jsonb_typeof(i->'businessDate')\
+      \ IS DISTINCT FROM 'string' OR i->>'businessDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'businessDate')::date)::text<>i->>'businessDate'\
+      \ THEN RAISE EXCEPTION 'business date';END IF;\r\n input_text:='{\"businessDate\":'||to_json(i->>'businessDate')::text||'}';\r\
+      \n ELSIF op='loan.book-projected-charge' THEN\n -- R104: the reviewed next projected charge of the loan; the generator\
+      \ key is derived, never sent.\n IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM\
+      \ ARRAY['chargeDate','interestDue','principalDue'] OR jsonb_typeof(i->'chargeDate') IS DISTINCT FROM 'string' OR jsonb_typeof(i->'principalDue')\
+      \ IS DISTINCT FROM 'string' OR jsonb_typeof(i->'interestDue') IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'projected\
+      \ charge keys';END IF;\n IF i->>'chargeDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'chargeDate')::date)::text<>i->>'chargeDate'\
+      \ OR i->>'principalDue'!~'^(0|[1-9][0-9]{0,16})$' OR i->>'interestDue'!~'^(0|[1-9][0-9]{0,16})$' OR (i->>'principalDue')::numeric>92233720368547758\
+      \ OR (i->>'interestDue')::numeric>92233720368547758 OR (i->>'principalDue')::numeric+(i->>'interestDue')::numeric<=0\
+      \ THEN RAISE EXCEPTION 'projected charge input';END IF;\n input_text:='{\"chargeDate\":'||to_json(i->>'chargeDate')::text||',\"\
+      principalDue\":'||to_json(i->>'principalDue')::text||',\"interestDue\":'||to_json(i->>'interestDue')::text||'}';\n ELSIF\
+      \ op IN('borrower.delete','loan.delete','loan.undo-default','charge.delete','payment.delete','expense.delete') THEN\
+      \ IF i<>'{}'::jsonb THEN RAISE EXCEPTION 'delete';END IF;input_text:='{}';\r\n ELSE\r\n IF (SELECT array_agg(key ORDER\
+      \ BY key) FROM jsonb_object_keys(i-'aiCollectionEnabled') key) IS DISTINCT FROM ARRAY['address','city','communicationName','description','hidden','instagramUsername','name','note','preferredReceivingAccountId','referrerId','workingLocation']\
       \ THEN RAISE EXCEPTION 'inputs';END IF;\r\n input_text:='{';FOREACH k IN ARRAY ARRAY['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note']||CASE\
       \ WHEN i?'aiCollectionEnabled' THEN ARRAY['aiCollectionEnabled'] ELSE ARRAY[]::text[] END LOOP\r\n  IF k IN('hidden','aiCollectionEnabled')\
       \ THEN IF jsonb_typeof(i->k) NOT IN('boolean','null') THEN RAISE EXCEPTION 'boolean';END IF;\r\n  ELSE IF jsonb_typeof(i->k)\
@@ -180,7 +182,7 @@
       \ OR old.actor_subject<>a->>'subject' THEN RETURN jsonb_build_object('kind','conflict');END IF;\r\n  RETURN public.pwa_operation_status_v2(request,a->>'issuer',a->>'subject');\r\
       \n END IF;\r\n BEGIN\r\n IF split_part(op,'.',1)='analytics' THEN result_value:=public.pwa_apply_analytics_v2($1);ELSIF\
       \ split_part(op,'.',1)='cash-openings' THEN result_value:=public.pwa_apply_cash_opening_v2($1);ELSIF split_part(op,'.',1)='assessment'\
-      \ THEN result_value:=public.pwa_apply_assessment_v2($1);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement')\
+      \ THEN result_value:=public.pwa_apply_assessment_v2($1);ELSIF split_part(op,'.',1) IN('capital-contribution','settlement','cash-movement','cash-withdrawal')\
       \ THEN result_value:=public.pwa_apply_management_financial_v2($1);ELSIF split_part(op,'.',1) IN('cash-holder','cash-account','partner')\
       \ THEN result_value:=public.pwa_apply_management_v2($1);ELSIF op='preference.update' THEN result_value:=public.pwa_apply_preference_v2($1);ELSIF\
       \ split_part(op,'.',1)='expense' THEN result_value:=public.pwa_apply_expense_v2($1);ELSIF split_part(op,'.',1)='payment'\
