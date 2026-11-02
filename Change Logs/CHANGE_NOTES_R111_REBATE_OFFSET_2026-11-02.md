@@ -31,7 +31,7 @@ Decisions recorded in the build:
 - The notify owner receives SELECT on Payments "Payment Method" so `pwa_notify_content_v2` can read it.
 - Archie's resolutions: the chosen path is the `rebatePath` input and `result_json.rebate`, and a re-close preview defaults to it; the offset is SQL-posted with no command v11; a correction of an offset-bearing closing payment is refused and deletion cascades; the referrer's due charges are paid first (plan rule); mutual referrers can deadlock to `command_busy`, which is accepted.
 
-Team (six-agent process, this session): Archie designs, Byte builds the code, Chase verifies on a disposable cluster and on DEV, Echo reviews the built UI, Dewey keeps records. Forge deploys DEV, including the notify worker, because V122 adds `pwa_notify_content_v2`; PROD is not authorized.
+Team (six-agent process, this session): Archie designed, Byte built the code, Chase verified on a disposable cluster (DEV test pending), Echo reviewed the built UI, Dewey kept records. Forge deploys DEV, including the notify worker, because V122 adds `pwa_notify_content_v2`; PROD is not authorized.
 
 Carried over from R110: the "Paid in advance" tile date was not yet seen on DEV (it appears only from 2 November). Chase checks it during the R111 DEV test.
 
@@ -42,11 +42,20 @@ Carried over from R110: the "Paid in advance" tile date was not yet seen on DEV 
 | Unit tests (Byte, `2cec8e99`) | 1078 passed, 0 failed |
 | Migration chain to 122 with the PROD default-privileges replay (Byte, `2cec8e99`) | Self-check passed, rerun a no-op, checksum tamper rejected |
 | `Test-NotifyContent`, `Test-AccessMatrix`, `Test-PayForward`, `Test-ProjectedChargePayment` (Byte, `2cec8e99`) | Pass |
-
-Chase (disposable cluster, DEV) and Echo (built UI) results follow.
+| Lint, typecheck, focused unit (Byte, `377077c0`, LC-3, EX-3 and NT-1 proof) | Clean; 27 passed, 0 failed |
+| `Test-StatementBatch.sql` including `Test-RebateOffset.sql` (Chase, `2cec8e99`, recorded at `c2d2200d`) | Pass at head 122 |
+| Integration `rebate-offset-independent`, `projected-charge-payment-independent` (Chase, `2cec8e99`) | 6/6 and 15/15 |
+| e2e `rebate-offset-independent` (Chase, `2cec8e99`) | 18/18, desktop and phone; no defects found |
+| e2e `rebate-offset-independent` (Chase, `50a68db0`, recorded at `799bf157`) | 18/18 with the LC-3 and EX-3 assertions |
+| Echo, built UI at 390 and 320 px (`2cec8e99`) | LC-1, LC-2, LC-3 confirmation, LC-4, EX-1, EX-2 fixed; LC-3 result and EX-3 fixed in `377077c0`; NT-1 proven by a unit test |
+| Wide suite | The pull request's `Development checks` run (pending) |
 
 ## Not run
-To be filled at hand-off. A skipped check is not a pass.
+Skipped and not verified, so not a pass:
+- Thai wording on screen and WebKit or a real iPhone (Echo checked Chromium only).
+- The DEV deployment and test (Forge and Chase, pending), including the notify worker with `pwa_notify_content_v2`.
+- Anything in PROD.
+- The R110 "Paid in advance" tile date, to be seen on DEV during this test.
 
 ## Recovery
 Before release: revert the pull request (Git baseline R110 `2546e64` plus later main commits). Schema: V122 adds a nullable column and functions; rollback is a later migration. To be completed at hand-off.
