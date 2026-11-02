@@ -14,6 +14,7 @@ import {useOnline} from './online-status';
 import {RECOGNITION_DEADLINE_MS} from './recognition-timing';
 import type {OwnerOfflineRepository} from './owner-offline';
 import {useEffect,useRef,useState} from 'react';
+import {shortDate,dateRange,whole,forwardRuns,runAmount,type ForwardRow} from './pay-forward-text';
 type ChargeRow={id:string;chargeDate:string;loanDisplayKey:string;amountRemaining:string;principalRemaining:string;interestRemaining:string};
 /** R101: a loan's next projected charge, not yet booked: the charge row shape plus its loan (the payment books it). */
 type UpcomingRow=ChargeRow&{loanId:string};
@@ -22,7 +23,6 @@ type Allocation={chargeId:string;principal:string;interest:string;expectedPrinci
 type Materialize={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string};
 /** R110 Pay Forward: a v10 principal entry (the plan read adds its effect fields), the server plan and Auto-assign's remainder previews. */
 type PrincipalEntry={loanId:string;kind:'raise'|'book';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string;outstandingBefore?:string;outstandingAfter?:string;dailyAfter?:string;nextChargeDate?:string;nextChargeAmount?:string};
-type ForwardRow={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string;principal:string;interest:string;partial:boolean};
 type Plan={allocations:Allocation[];materialize:Materialize[];principal:PrincipalEntry[];forward:ForwardRow[];paidThrough:Record<string,string>;settles:string[];uncovered:string};
 type PlanPurpose={forward:boolean;principal:{loanId:string;amount:string}[];loans:string[]|null};
 type PrincipalOption={loanId:string;amount:string;settles:boolean;entry:PrincipalEntry|null};
@@ -40,18 +40,6 @@ const payerLinesText=(value:unknown)=>{if(typeof value!=='string')return null;co
 const previousDay=(day:string)=>{const value=new Date(day+'T00:00:00Z');value.setUTCDate(value.getUTCDate()-1);return value.toISOString().slice(0,10)};
 const slipDays=(businessDate:string)=>[businessDate,previousDay(businessDate)];
 const normalizedReference=(value:string)=>value.replace(/[\s-]/g,'').toUpperCase();
-const thaiMonthsShort=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],monthsShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-/** R110 copy dates: "3 Nov" / "3 พ.ย."; a run "2–3 Nov", or "30 Oct – 2 Nov" across months. */
-const shortDate=(day:string|undefined,thai:boolean)=>typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)?Number(day.slice(8,10))+' '+(thai?thaiMonthsShort:monthsShort)[Number(day.slice(5,7))-1]:'—';
-const dateRange=(first:string,last:string,thai:boolean)=>first===last?shortDate(first,thai):first.slice(0,7)===last.slice(0,7)?Number(first.slice(8,10))+'–'+shortDate(last,thai):shortDate(first,thai)+' – '+shortDate(last,thai);
-const whole=(value:unknown)=>typeof value==='string'&&/^(0|[1-9][0-9]{0,16})$/.test(value);
-/** R110 D6: consecutive future charges of one loan with identical amounts, each paid in full, collapse into one run. */
-function forwardRuns(rows:ForwardRow[]){
- const runs:ForwardRow[][]=[];
- for(const row of rows){const last=runs.at(-1)?.at(-1);if(last&&last.loanId===row.loanId&&!last.partial&&!row.partial&&last.principalDue===row.principalDue&&last.interestDue===row.interestDue)runs.at(-1)!.push(row);else runs.push([row]);}
- return runs;
-}
-const runAmount=(row:ForwardRow)=>whole(row.principalDue)&&whole(row.interestDue)?(BigInt(row.principalDue)+BigInt(row.interestDue)).toString():'0';
 type Outcome={status:'posted'|'rejected';paymentId:string|null;code:string|null;recordedAt:string};
 export type CommandAccess={origin:string;fixtureBorrowerId:string;ownerTesting?:boolean;offline?:OwnerOfflineRepository;offlineOnly?:boolean;prepareSync?:()=>Promise<void>;awaitStartup?:()=>Promise<void>;onPosted?:(requestId:string)=>void;openSaved?:()=>void;token:()=>Promise<string>;authFailure:(status:number)=>void};
 const pendingKey='mw-credit.pending-command';

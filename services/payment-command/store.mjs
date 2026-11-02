@@ -58,6 +58,26 @@ async function loanLabels(client,borrowerId){
    FROM public."Loans" l JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers" WHERE b."Row ID"=$1 AND l."Loan Status"='ยังไม่ปิดยอด' ORDER BY l."Row ID" COLLATE "C"`,[borrowerId])).rows;
   return Object.fromEntries(rows.map(row=>[row.id,paymentLoanDisplayKey({...row,name:borrowerDisplayName(row.name,row.description)})]));
 }
+/**
+ * R111: the referral rebate this close creates and the offset choice (SQL rule pwa_referral_rebate_projection_v1; the offset
+ * preview is the same pay-forward plan the close command books). null before V122 or when the close creates no rebate.
+ * previousPath is the path of the loan's latest close (a re-close after a deleted closing payment defaults to it).
+ */
+async function readCloseRebate(client,loanId,calculation,businessDate){
+  if(!(await client.query(`SELECT to_regprocedure('public.pwa_referral_rebate_projection_v1(text,jsonb)') IS NOT NULL AS present`)).rows[0].present)return null;
+  const projection=(await client.query('SELECT public.pwa_referral_rebate_projection_v1($1,$2::jsonb) AS value',[loanId,JSON.stringify(calculation)])).rows[0].value;
+  if(!projection)return null;
+  const previousPath=(await client.query(`SELECT result_json#>>'{rebate,path}' AS path FROM public.pwa_payment_commands WHERE contract_version=2 AND outcome='applied'
+   AND canonical_json::jsonb#>>'{command,operation}'='loan.close' AND canonical_json::jsonb#>>'{command,targetId}'=$1 ORDER BY recorded_at DESC LIMIT 1`,[loanId])).rows[0]?.path??null;
+  const offerable=projection.hasOpenLoan===true&&projection.selfReferral!==true;
+  let offset=null;
+  if(offerable){
+    const plan=await readPayForwardPlan(client,projection.referrerId,projection.amount,{forward:true,principal:[],loans:null});
+    if(plan){const covered=(BigInt(projection.amount)-BigInt(plan.uncovered)).toString();offset={rows:plan.forward,paidThrough:plan.paidThrough,covered,payable:plan.uncovered,loans:await loanLabels(client,projection.referrerId)};}
+  }
+  return {amount:projection.amount,referrer:{id:projection.referrerId,displayName:borrowerDisplayName(projection.referrerName,projection.referrerDescription)},hasOpenLoan:offerable,
+   previousPath:['offset','expense'].includes(previousPath)?previousPath:null,offset,businessDate};
+}
 /** R110: the purpose a v10 command carries, as the command derives it: its principal entries, and forward for the loans of
  * the lines dated after the business date (a materialize entry names its loan; a recorded charge's loan is read). */
 async function commandPurpose(client,businessDate,allocations,materialize,principal){
@@ -198,7 +218,8 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         }
         const accounts=(await client.query(`SELECT a."Row ID" id,a."Account Label" label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
         const {sourceVersion,businessDate,amount,planHash}=calculation;
-        return {ok:true,value:{sourceVersion,businessDate,amount,planHash,...closeSummary(calculation),accounts,plan:{borrowerId:calculation.borrowerId,amountReceived:amount,allocations:calculation.allocations,allocationMethod:'Loan Close',targetChargeId:calculation.targetChargeId,targetLoanId:id,cashAccountId:null,paymentDate:businessDate,paymentMethod:null}}};
+        const rebate=await readCloseRebate(client,id,calculation,businessDate);
+        return {ok:true,value:{sourceVersion,businessDate,amount,planHash,...closeSummary(calculation),accounts,rebate,plan:{borrowerId:calculation.borrowerId,amountReceived:amount,allocations:calculation.allocations,allocationMethod:'Loan Close',targetChargeId:calculation.targetChargeId,targetLoanId:id,cashAccountId:null,paymentDate:businessDate,paymentMethod:null}}};
       },true);
     },
     async preferences(principal){if(!ownerTesting)return failure(403,'access_denied');return run(principal,async(client,actor)=>({ok:true,value:await readPreferences(client,actor)}),true)},

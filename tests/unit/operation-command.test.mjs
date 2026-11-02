@@ -32,3 +32,12 @@ test('R104 loan.book-projected-charge: a versioned loan target, closed date and 
  for(const value of bad)assert.throws(()=>canonicalOperation(value),/invalid_request/,JSON.stringify(value.inputs));
  assert.doesNotThrow(()=>canonicalOperation({...book,inputs:{chargeDate:'2026-11-01',principalDue:'16',interestDue:'0'}}),'one component may be zero');
 });
+
+test('R111 loan.close takes an optional rebatePath (offset | expense) as its last input; without it the close is unchanged',()=>{
+ const inputs={paymentDate:'2026-11-02',cashAccountId:'CI-LISA',paymentMethod:'Cash',notes:null,expectedAmount:'1000',expectedPlanHash:'a'.repeat(64)};
+ const close={requestId:'22345678-1234-4234-8234-123456789abc',operation:'loan.close',targetId:'L-1',expectedVersion:'b'.repeat(64),predecessorRequestId:null,inputs,receiptId:null};
+ const legacy=canonicalOperation(close);assert.deepEqual(Object.keys(legacy.inputs),['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash']);
+ for(const rebatePath of ['offset','expense']){const value=canonicalOperation({...close,inputs:{rebatePath,...inputs}});assert.deepEqual(Object.keys(value.inputs).at(-1),'rebatePath');assert.equal(value.inputs.rebatePath,rebatePath);
+  assert.match(operationIdentity({...close,inputs:{...inputs,rebatePath}},actor).canonicalJson,new RegExp('"expectedPlanHash":"a{64}","rebatePath":"'+rebatePath+'"\\}'));}
+ for(const rebatePath of ['Offset','payout',null,1])assert.throws(()=>canonicalOperation({...close,inputs:{...inputs,rebatePath}}),undefined,String(rebatePath));
+});

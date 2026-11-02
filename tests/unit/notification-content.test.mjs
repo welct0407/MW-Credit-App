@@ -87,3 +87,49 @@ test('R090 batch 2: chat replies say Reply ready or Reply failed with the thread
  assert.deepEqual(renderNotification({found:false,eventType:'chat.reply:ok',language:'en',borrowerName:null,amount:null}),{title:'Reply ready',body:'Details no longer available'});
  for(const title of ['Reply ready','ตอบแล้ว','Reply failed','ตอบไม่สำเร็จ'])assert.ok(graphemeLength(title)<=TITLE_BUDGET);
 });
+
+test('R111 NT-1: a closed loan with a payable rebate leads with the rebate line, then the borrower, within the body budget',()=>{
+ const closed=(over={})=>facts({eventType:'loan.closed',amount:'10000',rebatePayee:'Malee Srisuk',rebatePayable:'300',...over});
+ assert.deepEqual(renderNotification(closed()),{title:'Loan closed ฿10,000',body:'Rebate ฿300 to Malee Srisuk, transfer from Lisa · Somchai Jaidee'});
+ assert.equal(renderNotification(closed({language:'th',borrowerName:'สมชาย ใจดี',rebatePayee:'มาลี ศรีสุข'})).body,'ค่าแนะนำ ฿300 ให้ มาลี ศรีสุข โอนจาก Lisa · สมชาย ใจดี');
+ // Fully offset (nothing payable), no rebate facts (v1 or before V122) or another event: the body is the borrower name.
+ for(const over of [{rebatePayable:'0'},{rebatePayable:null,rebatePayee:null},{eventType:'loan.created'}])assert.equal(renderNotification(closed(over)).body,'Somchai Jaidee',JSON.stringify(over));
+ // Long names: the referrer is shortened first, then the borrower; the body stays within the budget.
+ const long=renderNotification(closed({rebatePayable:'1000',rebatePayee:'An extraordinarily long referrer name indeed yes',borrowerName:'A very long borrower name that goes on and on'}));
+ withinBudgets(long);assert.match(long.body,/^Rebate ฿1,000 to An extra…, transfer from Lisa · A very long/);
+ assert.equal(renderNotification(closed({rebatePayee:null})).body,'Rebate ฿300, transfer from Lisa · Somchai Jaidee');
+});
+
+test('R111: the push of a Referral Rebate Offset payment reads as a rebate offset, not as cash received, within budget',()=>{
+ const offset=(over={})=>facts({eventType:'payment.posted',amount:'300',borrowerName:'Malee Srisuk',paymentMethod:'Referral Rebate Offset',rebateLoan:'L-0412',...over});
+ assert.deepEqual(renderNotification(offset()),{title:'Rebate offset',body:'Rebate offset ฿300 · Malee Srisuk · from loan L-0412'});
+ assert.deepEqual(renderNotification(offset({language:'th',borrowerName:'มาลี ศรีสุข'})),{title:'หักค่าแนะนำ',body:'หักค่าแนะนำ ฿300 · มาลี ศรีสุข · จากสินเชื่อ L-0412'});
+ const long=renderNotification(offset({borrowerName:'An extraordinarily long referrer name that keeps going on and on and on',rebateLoan:'L-VERY-LONG-LOAN-KEY-2026'}));
+ withinBudgets(long);assert.match(long.body,/^Rebate offset ฿300 · An extra.*… · from loan L-VERY-LONG-LOAN-KEY-2026$/);
+ assert.equal(renderNotification(offset({rebateLoan:null})).body,'Rebate offset ฿300 · Malee Srisuk');
+ // Any other method keeps the payment wording.
+ assert.deepEqual(renderNotification(offset({paymentMethod:'Cash'})),{title:'Payment received ฿300',body:'Malee Srisuk'});
+});
+
+test('R111 NT-1 proof: the Loan closed push names the payable rebate on every pay-out path and nothing when fully offset',()=>{
+ const closed=(over={})=>facts({eventType:'loan.closed',amount:'10000',rebatePayee:'Malee Srisuk',...over});
+ // No open loan or pay-out chosen: the whole rebate is payable (v2 rebate_payable = rebate_amount).
+ assert.equal(renderNotification(closed({rebatePayable:'300'})).body,'Rebate ฿300 to Malee Srisuk, transfer from Lisa · Somchai Jaidee');
+ // A partial offset: only the payable part (rebate 300, offset 200).
+ assert.equal(renderNotification(closed({rebatePayable:'100'})).body,'Rebate ฿100 to Malee Srisuk, transfer from Lisa · Somchai Jaidee');
+ // Fully offset: no line.
+ assert.equal(renderNotification(closed({rebatePayable:'0'})).body,'Somchai Jaidee');
+});
+
+test('R111 NT-2: the Payment received push of the payment that closed a referred loan carries the payable rebate',()=>{
+ const paid=(over={})=>facts({eventType:'payment.posted',amount:'1300',rebatePayee:'Malee Srisuk',rebatePayable:'300',...over});
+ assert.deepEqual(renderNotification(paid()),{title:'Payment received ฿1,300',body:'Rebate ฿300 to Malee Srisuk, transfer from Lisa · Somchai Jaidee'});
+ assert.equal(renderNotification(paid({language:'th',borrowerName:'สมชาย ใจดี',rebatePayee:'มาลี ศรีสุข'})).body,'ค่าแนะนำ ฿300 ให้ มาลี ศรีสุข โอนจาก Lisa · สมชาย ใจดี');
+ // Fully offset (its own Rebate offset push), no rebate or a payment before V124: the body is the borrower name.
+ for(const over of [{rebatePayable:'0'},{rebatePayable:null,rebatePayee:null}])assert.equal(renderNotification(paid(over)).body,'Somchai Jaidee',JSON.stringify(over));
+ // Over budget: the borrower is shortened first; the referrer keeps its name while the line fits.
+ const long=renderNotification(paid({borrowerName:'A very long borrower name that goes on and on and on',rebatePayee:'Malee Srisuk'}));
+ withinBudgets(long);assert.match(long.body,/^Rebate ฿300 to Malee Srisuk, transfer from Lisa · A very long.*…$/);
+ const longer=renderNotification(paid({borrowerName:'Somchai Jaidee',rebatePayee:'An extraordinarily long referrer name that keeps going and going'}));
+ withinBudgets(longer);assert.match(longer.body,/^Rebate ฿300 to An extraordinarily.*…, transfer from Lisa · S/);
+});

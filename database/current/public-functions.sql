@@ -472,6 +472,9 @@ CREATE FUNCTION public.create_referral_rebate(p_loan text) RETURNS void
     SET search_path TO 'pg_catalog', 'public'
     AS $$
 DECLARE l public."Loans"%ROWTYPE; referrer text; payee text; principal numeric; profit numeric; rebate numeric;
+ r jsonb; offset_id text; ids text; actual public."Payments"%ROWTYPE; loan_key text;
+ -- R111 V124: the automatic offset outside the Loan Close command.
+ plan jsonb; offset_plan jsonb; covered numeric; creator text; h text; request uuid; canonical text;
 BEGIN
  IF pg_trigger_depth()<1 THEN RAISE EXCEPTION 'Referral creation is only supported by loan-close trigger'; END IF;
  SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan FOR UPDATE;
@@ -487,10 +490,71 @@ BEGIN
  SELECT "Borrower Name" INTO payee FROM public."Borrowers" WHERE "Row ID"=referrer;
  rebate:=least(round(profit*0.10),1000);
  IF rebate<=0 THEN RETURN; END IF;
+ -- R111 V123: the notes name the closed loan by the key the app shows (paymentLoanDisplayKey: borrower - English name,
+ -- principal, loan day/month, original rate), not its Row ID.
+ SELECT coalesce(b."Borrower Name",'')||' - '||coalesce(b."Description",'')||'-'||coalesce('฿'||to_char(round(l."Principal Amount"::numeric),'FM999,999,999,999,990'),'')
+   ||'-'||coalesce(to_char(l."Loan Date",'DD/MM'),'')||'-'||coalesce(l."Original Daily Interest Rate"::text||'%','Unavailable')
+  INTO loan_key FROM public."Borrowers" b WHERE b."Row ID"=l."Ref Borrowers";
+ -- R111: inside the closing command, a chosen offset books the stored plan's charges and posts the offset payment on the
+ -- referrer's loans (its plan is result_json.rebate.offsetPlan); drift is P4C05 and rolls the close back.
+ IF current_setting('pwa.rebate_offset',true) IS NOT DISTINCT FROM l."Ref Closing Payment" THEN
+  SELECT j.result_json->'rebate' INTO r FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied'
+   AND j.result_json->>'paymentId'=l."Ref Closing Payment" AND j.canonical_json::jsonb#>>'{command,operation}'='loan.close';
+  IF r->>'offsetPaymentId' IS NOT NULL THEN
+   IF (r->>'amount')::numeric IS DISTINCT FROM rebate OR r->>'referrerId' IS DISTINCT FROM referrer OR r->>'offsetPaymentId' IS DISTINCT FROM 'ro122:'||l."Ref Closing Payment" THEN RAISE EXCEPTION USING ERRCODE='P4C05'; END IF;
+   offset_id:=r->>'offsetPaymentId';
+   PERFORM public.pwa_apply_pay_forward_v1('[]'::jsonb,r->'materialize',l."Close Date");
+   SELECT string_agg(value->>'chargeId',' , ' ORDER BY (value->>'chargeId') COLLATE "C") INTO ids FROM jsonb_array_elements(r#>'{offsetPlan,allocations}');
+   INSERT INTO public."Payments"("Row ID","Ref Borrower","Payment Date","Amount Received","Payment Method","Allocation Method","Selected Charge IDs","Ref Received By Cash Account","Notes","Created By","Status")
+    VALUES(offset_id,referrer,l."Close Date",(r->>'offsetAmount')::numeric::money,'Referral Rebate Offset','Selected Charges',ids,r#>>'{offsetPlan,cashAccountId}','Rebate from loan '||coalesce(loan_key,p_loan),
+     (SELECT "Created By" FROM public."Payments" WHERE "Row ID"=l."Ref Closing Payment"),'Processing');
+   SELECT * INTO actual FROM public."Payments" WHERE "Row ID"=offset_id;
+   IF actual."Status" IS DISTINCT FROM 'Posted' OR actual."Amount Received"::numeric IS DISTINCT FROM (r->>'offsetAmount')::numeric THEN RAISE EXCEPTION USING ERRCODE='P4C05'; END IF;
+  END IF;
+ -- R111 V124: a referred loan closed today by an ordinary payment (the manual command or the agent receipt command, run by
+ -- the journal owner) settles the rebate on the referrer's open loans by default: the pay-forward plan (forward only) under
+ -- the referrer's borrower -> loans -> charges locks (after the closing borrower's), its charges booked by the shared
+ -- writer, and the offset payment ro122:<closing payment> posted with an explicit plan journalled as system.rebate-offset.
+ -- A refused schedule (P0001, P4C05) leaves the rebate payable as before and never fails the closing payment; other
+ -- errors (a deadlock, a lock timeout) propagate. A historical re-post (close date not today) stays expense only.
+ ELSIF (current_user=CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END
+   AND l."Close Date"=(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date AND referrer IS DISTINCT FROM l."Ref Borrowers"
+   AND EXISTS(SELECT 1 FROM public."Loans" x WHERE x."Ref Borrowers"=referrer AND x."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(x."Defaulted",false))) THEN
+  BEGIN
+   PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=referrer FOR UPDATE;
+   PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers"=referrer ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
+   PERFORM 1 FROM public."Charges" ch JOIN public."Loans" x ON x."Row ID"=ch."Ref Loans" WHERE x."Ref Borrowers"=referrer ORDER BY ch."Row ID" COLLATE "C" FOR UPDATE OF ch;
+   plan:=public.pwa_pay_forward_plan_v1(referrer,rebate,l."Close Date",'{"forward":true,"principal":[],"loans":null}'::jsonb);
+   covered:=rebate-(plan->>'uncovered')::numeric;
+   IF covered>0 THEN
+    offset_id:='ro122:'||l."Ref Closing Payment";
+    creator:=coalesce(nullif(btrim((SELECT "Created By" FROM public."Payments" WHERE "Row ID"=l."Ref Closing Payment")),''),'SQL:loan-close');
+    offset_plan:=jsonb_build_object('borrowerId',referrer,'amountReceived',trunc(covered)::text,'allocations',plan->'allocations','allocationMethod','Selected Charges',
+     'targetChargeId',NULL,'targetLoanId',NULL,'cashAccountId',public.default_cash_account('ch:lisa'),'paymentDate',l."Close Date"::text,'paymentMethod','Referral Rebate Offset');
+    IF offset_plan->>'cashAccountId' IS NULL THEN RAISE EXCEPTION USING ERRCODE='P4C05'; END IF;
+    -- One documented derivation: request id = md5('mw-credit-rebate-offset-v1:'||offset payment id) with the UUID v4 bits.
+    h:=md5('mw-credit-rebate-offset-v1:'||offset_id);
+    request:=(substr(h,1,8)||'-'||substr(h,9,4)||'-4'||substr(h,14,3)||'-'||substr('89ab',(get_byte(decode(substr(h,17,2),'hex'),0)%4)+1,1)||substr(h,18,3)||'-'||substr(h,21,12))::uuid;
+    canonical:=jsonb_build_object('contractVersion',2,'requestId',request::text,
+     'actor',jsonb_build_object('issuer','SQL','subject','loan-close','partnerId','SQL:loan-close','loginEmail',creator),
+     'command',jsonb_build_object('operation','system.rebate-offset','targetType','loan','targetId',p_loan))::text;
+    INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code,result_json)
+    VALUES(request,2,'SQL','loan-close','SQL:loan-close',creator,canonical,encode(sha256(convert_to(canonical,'UTF8')),'hex'),'applied',NULL,NULL,
+     jsonb_build_object('operation','system.rebate-offset','targetType','loan','targetId',p_loan,'paymentId',offset_id,'plan',offset_plan,'predecessorRequestId',NULL,'sourceCreatedBy',creator));
+    PERFORM public.pwa_apply_pay_forward_v1('[]'::jsonb,plan->'materialize',l."Close Date");
+    SELECT string_agg(value->>'chargeId',' , ' ORDER BY (value->>'chargeId') COLLATE "C") INTO ids FROM jsonb_array_elements(plan->'allocations');
+    INSERT INTO public."Payments"("Row ID","Ref Borrower","Payment Date","Amount Received","Payment Method","Allocation Method","Selected Charge IDs","Ref Received By Cash Account","Notes","Created By","Status")
+     VALUES(offset_id,referrer,l."Close Date",covered::money,'Referral Rebate Offset','Selected Charges',ids,offset_plan->>'cashAccountId','Rebate from loan '||coalesce(loan_key,p_loan),creator,'Processing');
+    SELECT * INTO actual FROM public."Payments" WHERE "Row ID"=offset_id;
+    IF actual."Status" IS DISTINCT FROM 'Posted' OR actual."Amount Received"::numeric IS DISTINCT FROM covered THEN RAISE EXCEPTION USING ERRCODE='P4C05'; END IF;
+   END IF;
+  EXCEPTION WHEN SQLSTATE 'P0001' OR SQLSTATE 'P4C05' THEN offset_id:=NULL;
+  END;
+ END IF;
  INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name",
-  "Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By")
+  "Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Ref Offset Payment")
  VALUES('rr1:'||p_loan,l."Close Date",'Referral Rebate / เงินคืนค่าแนะนำลูกค้า',rebate::money,payee,referrer,l."Ref Borrowers",p_loan,
-  'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V1','SQL:loan-close')
+  'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V1','SQL:loan-close',offset_id)
  ON CONFLICT ("Source Key") WHERE nullif(btrim("Source Key"),'') IS NOT NULL DO NOTHING;
 END $$;
 
@@ -2159,9 +2223,11 @@ CREATE FUNCTION public.payment_crud_prepare_core_v83(p_old public."Payments", p_
     SET search_path TO 'pg_catalog', 'public'
     AS $$
 #variable_conflict use_column
-DECLARE b text; l public."Loans"%ROWTYPE; context_before text; owned jsonb; parents_before text:=current_setting('payment_crud.parents',true); cleanup_before text:=current_setting('payment_crud.id',true); actual public."Payments"%ROWTYPE;
+DECLARE offset_ids text[]; offset_id text; b text; l public."Loans"%ROWTYPE; context_before text; owned jsonb; parents_before text:=current_setting('payment_crud.parents',true); cleanup_before text:=current_setting('payment_crud.id',true); actual public."Payments"%ROWTYPE;
 BEGIN
  IF pg_trigger_depth()=0 AND NOT public.pwa_native_inverse_permitted_v2(p_old."Row ID") THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Protected correction context required';END IF;
+ -- R111: an offset payment changes or goes only with its closing payment.
+ IF p_old."Payment Method"='Referral Rebate Offset' AND current_setting('payment_crud.offset',true) IS DISTINCT FROM p_old."Row ID" THEN RAISE EXCEPTION 'Remove through the closing payment'; END IF;
  SELECT * INTO actual FROM public."Payments" WHERE "Row ID"=p_old."Row ID" FOR UPDATE;
  IF NOT FOUND OR to_jsonb(actual) IS DISTINCT FROM to_jsonb(p_old) THEN RAISE EXCEPTION USING ERRCODE='P5B01',MESSAGE='Source changed';END IF;
  IF NOT pg_try_advisory_xact_lock(9162026,2) THEN RAISE EXCEPTION 'Cash pool is busy; retry'; END IF;
@@ -2199,7 +2265,17 @@ BEGIN
   DELETE FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Business Expense'
    AND "Ref Business Expense" IN (SELECT "Row ID" FROM public."Business Expenses"
     WHERE "Ref Related Loan"=l."Row ID" AND "Source Type"='Referral Rebate');
+  -- R111: a rebate settled by offset: a correction is refused; a deletion removes the offset payment after the expense
+  -- (its booked charges stay, D4).
+  SELECT array_agg("Ref Offset Payment" ORDER BY "Ref Offset Payment" COLLATE "C") INTO offset_ids FROM public."Business Expenses"
+   WHERE "Ref Related Loan"=l."Row ID" AND "Source Type"='Referral Rebate' AND "Ref Offset Payment" IS NOT NULL;
+  IF offset_ids IS NOT NULL AND operation<>'DELETE' THEN RAISE EXCEPTION 'Remove through the closing payment: delete it and close again'; END IF;
   DELETE FROM public."Business Expenses" WHERE "Ref Related Loan"=l."Row ID" AND "Source Type"='Referral Rebate';
+  FOREACH offset_id IN ARRAY coalesce(offset_ids,ARRAY[]::text[]) LOOP
+   PERFORM set_config('payment_crud.offset',offset_id,true);
+   DELETE FROM public."Payments" WHERE "Row ID"=offset_id;
+   PERFORM set_config('payment_crud.offset','',true);
+  END LOOP;
   -- Only the receipt which owns the closure is reopened before reposting.
   -- A later receipt's closure is checked against final balances in finish().
   IF l."Ref Closing Payment"=p_old."Row ID" THEN
@@ -2899,6 +2975,8 @@ CREATE FUNCTION public.pwa_apply_loan_close_v2(canonical text) RETURNS jsonb
     AS $_$
 DECLARE e jsonb:=canonical::jsonb;i jsonb:=e#>'{command,inputs}';a jsonb:=e->'actor';target text:=e#>>'{command,targetId}';
  parent text;day date:=(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;calculation jsonb;plan jsonb;result_value jsonb;payment text:='pwa:'||(e->>'requestId');message text;actual public."Payments"%ROWTYPE;
+ -- R111: the projected rebate, the chosen path and, for an offset, the referrer's plan.
+ rebate jsonb;path text:=coalesce(i->>'rebatePath','expense');forward jsonb;covered numeric:=0;offset_id text;offset_plan jsonb;expense public."Business Expenses"%ROWTYPE;
 BEGIN
  IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) OR e#>>'{command,operation}'<>'loan.close' THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
  SELECT "Ref Borrowers" INTO parent FROM public."Loans" WHERE "Row ID"=target;
@@ -2915,15 +2993,58 @@ BEGIN
  END;
  IF calculation->>'planHash' IS DISTINCT FROM i->>'expectedPlanHash' OR calculation->>'amount' IS DISTINCT FROM i->>'expectedAmount' THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;
  IF EXISTS(SELECT 1 FROM jsonb_array_elements(calculation->'allocations') line WHERE line->>'principal'!~'^(0|[1-9][0-9]*)$' OR line->>'interest'!~'^(0|[1-9][0-9]*)$' OR line->>'chargeDate' IS NULL) THEN RAISE EXCEPTION USING ERRCODE='P5B06';END IF;
+ -- R111: the rebate this close creates, and for a chosen offset on a referrer with an open loan the pay-forward plan
+ -- (forward only, amount = rebate) under the referrer's borrower -> loans -> charges locks, taken after this borrower's.
+ rebate:=public.pwa_referral_rebate_projection_v1(target,calculation);
+ IF rebate IS NOT NULL AND path='offset' AND (rebate->>'hasOpenLoan')::boolean AND NOT (rebate->>'selfReferral')::boolean THEN
+  PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=rebate->>'referrerId' FOR UPDATE;
+  PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers"=rebate->>'referrerId' ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
+  PERFORM 1 FROM public."Charges" ch JOIN public."Loans" l ON l."Row ID"=ch."Ref Loans" WHERE l."Ref Borrowers"=rebate->>'referrerId' ORDER BY ch."Row ID" COLLATE "C" FOR UPDATE OF ch;
+  forward:=public.pwa_pay_forward_plan_v1(rebate->>'referrerId',(rebate->>'amount')::numeric,day,'{"forward":true,"principal":[],"loans":null}'::jsonb);
+  covered:=(rebate->>'amount')::numeric-(forward->>'uncovered')::numeric;
+  IF covered>0 THEN
+   offset_id:='ro122:'||payment;
+   offset_plan:=jsonb_build_object('borrowerId',rebate->>'referrerId','amountReceived',trunc(covered)::text,'allocations',forward->'allocations','allocationMethod','Selected Charges',
+    'targetChargeId',NULL,'targetLoanId',NULL,'cashAccountId',public.default_cash_account('ch:lisa'),'paymentDate',day::text,'paymentMethod','Referral Rebate Offset');
+   IF offset_plan->>'cashAccountId' IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
+  END IF;
+ END IF;
  PERFORM public.apply_loan_close_calculation_v83(target,day,i->>'expectedPlanHash');
  plan:=jsonb_build_object('borrowerId',parent,'amountReceived',calculation->>'amount','allocations',calculation->'allocations','allocationMethod','Loan Close','targetChargeId',calculation->>'targetChargeId','targetLoanId',target,'cashAccountId',i->>'cashAccountId','paymentDate',day::text,'paymentMethod',i->>'paymentMethod');
  result_value:=jsonb_build_object('operation','loan.close','targetType','loan','targetId',target,'paymentId',payment,'plan',plan,'predecessorRequestId',NULL,'sourceCreatedBy',a->>'loginEmail');
+ -- R111: the stored choice and outcome (a re-close preview defaults to path); absent when the close creates no rebate.
+ IF rebate IS NOT NULL THEN
+  result_value:=result_value||jsonb_build_object('rebate',jsonb_build_object('path',path,'amount',rebate->>'amount','referrerId',rebate->>'referrerId',
+   'offsetPaymentId',offset_id,'offsetAmount',trunc(covered)::text,'payable',trunc((rebate->>'amount')::numeric-covered)::text,'offsetPlan',offset_plan,
+   'materialize',CASE WHEN offset_id IS NULL THEN '[]'::jsonb ELSE forward->'materialize' END,'paidThrough',CASE WHEN offset_id IS NULL THEN '{}'::jsonb ELSE forward->'paidThrough' END));
+ END IF;
  INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code,result_json)
  VALUES((e->>'requestId')::uuid,2,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,encode(sha256(convert_to(canonical,'UTF8')),'hex'),'applied',NULL,NULL,result_value);
+ -- R111: the referral trigger must fire after the closing payment is Posted, so it is deferred here even when the caller
+ -- made constraints immediate, and fired below.
+ IF rebate IS NOT NULL THEN
+  PERFORM set_config('pwa.rebate_offset',payment,true);
+  SET CONSTRAINTS public.referral_loan_closed DEFERRED;
+ END IF;
  INSERT INTO public."Payments"("Row ID","Ref Borrower","Payment Date","Amount Received","Payment Method","Allocation Method","Ref Target Charge","Ref Target Loan","Ref Received By Cash Account","Notes","Uploaded Receipt","Created By","Status")
  VALUES(payment,parent,day,(calculation->>'amount')::numeric::money,i->>'paymentMethod','Loan Close',calculation->>'targetChargeId',target,i->>'cashAccountId',i->>'notes',e#>>'{receipt,storageReference}',a->>'loginEmail','Processing');
  SELECT * INTO actual FROM public."Payments" WHERE "Row ID"=payment;
  IF NOT FOUND OR actual."Status" IS DISTINCT FROM 'Posted' OR actual."Amount Received"::numeric IS DISTINCT FROM (calculation->>'amount')::numeric THEN RAISE EXCEPTION 'Close receipt differs from immutable plan';END IF;
+ -- R111: run the deferred referral trigger now (its own function; nothing disabled), so the rebate and any offset are made
+ -- and verified inside this command; at commit it finds the rebate and returns.
+ IF rebate IS NOT NULL THEN
+  BEGIN
+   SET CONSTRAINTS public.referral_loan_closed IMMEDIATE;
+  EXCEPTION WHEN SQLSTATE 'P4C05' THEN PERFORM set_config('pwa.rebate_offset','',true);RAISE EXCEPTION USING ERRCODE='P5B09';
+  END;
+  SET CONSTRAINTS public.referral_loan_closed DEFERRED;
+  PERFORM set_config('pwa.rebate_offset','',true);
+  SELECT * INTO expense FROM public."Business Expenses" WHERE "Source Key"='REFERRAL_REBATE:'||target;
+  IF NOT FOUND OR expense."Amount"::numeric IS DISTINCT FROM (rebate->>'amount')::numeric OR expense."Ref Offset Payment" IS DISTINCT FROM offset_id
+   OR (offset_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"=offset_id AND "Status"='Posted' AND "Amount Received"::numeric=covered)) THEN
+   RAISE EXCEPTION 'Referral rebate differs from immutable plan';
+  END IF;
+ END IF;
  RETURN result_value;
 END $_$;
 
@@ -3162,6 +3283,59 @@ END $$;
 
 
 --
+-- Name: pwa_apply_pay_forward_v1(jsonb, jsonb, date); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date) RETURNS void
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE entry jsonb; booked text; principal_loans text[];
+BEGIN
+ -- R111 V123: the booking trusts its plan, so only the governed definer commands (the journal owner) may run it.
+ IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
+ IF jsonb_typeof(p_principal) IS DISTINCT FROM 'array' OR jsonb_typeof(p_materialize) IS DISTINCT FROM 'array' OR p_today IS NULL THEN RAISE EXCEPTION USING ERRCODE='P4C05'; END IF;
+ SELECT coalesce(array_agg(value->>'loanId'),ARRAY[]::text[]) INTO principal_loans FROM jsonb_array_elements(p_principal);
+ FOR entry IN SELECT value FROM jsonb_array_elements(p_principal) LOOP
+  IF entry->>'kind'='raise' THEN
+   -- guard_charge_consistency allows raising a due; the expected old due makes a concurrent change a rejection.
+   UPDATE public."Charges" SET "Principal Due"=(entry->>'principalDue')::numeric::money WHERE "Row ID"=entry->>'chargeId' AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=p_today
+    AND "Principal Due"::numeric=(entry->>'principalDue')::numeric-(entry->>'amount')::numeric;
+   IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+  ELSE
+   IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=entry->>'chargeId') THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+   INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+    VALUES(entry->>'chargeId',entry->>'loanId',p_today,(entry->>'principalDue')::numeric::money,(entry->>'accruedInterest')::numeric::money);
+  END IF;
+  -- D9 interval reset: the first later scheduled charge is today plus the interval (a no-op on a schedule day).
+  UPDATE public."Loans" SET "Interest Schedule Anchor Date"=p_today WHERE "Row ID"=entry->>'loanId';
+ END LOOP;
+ FOR entry IN SELECT value FROM jsonb_array_elements(p_materialize) LOOP
+  BEGIN
+   booked:=public.generate_loan_charge(entry->>'loanId',(entry->>'chargeDate')::date);
+  EXCEPTION WHEN SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P4C05';
+  END;
+  IF booked IS DISTINCT FROM entry->>'chargeId' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+  -- Current Daily Interest is recomputed only once the principal repayment posts, so for a loan repaying principal the
+  -- generator priced this charge at the old daily amount; its Interest Due becomes the plan's server-recomputed value
+  -- (new daily amount x days, never from the client), and the new daily amount is verified after posting.
+  IF entry->>'loanId'=ANY(principal_loans) THEN
+   UPDATE public."Charges" SET "Interest Due"=(entry->>'interestDue')::numeric::money WHERE "Row ID"=booked AND "Interest Due"::numeric<>(entry->>'interestDue')::numeric;
+  END IF;
+  IF NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=booked AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=(entry->>'chargeDate')::date
+    AND "Principal Due"::numeric=(entry->>'principalDue')::numeric AND "Interest Due"::numeric=(entry->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+ END LOOP;
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date) IS 'mw-access:governance R111 pay-forward booking of a server-recomputed plan (v10 command and the Loan Close rebate offset); journal owner only, P4C05 on drift.';
+
+
+--
 -- Name: pwa_apply_payment_v2(text); Type: FUNCTION
 --
 
@@ -3180,7 +3354,7 @@ BEGIN
  SELECT * INTO old FROM public."Payments" WHERE "Row ID"=target FOR UPDATE;IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B02';END IF;
  IF public.pwa_payment_version_v2(target) IS DISTINCT FROM c->>'expectedVersion' THEN RAISE EXCEPTION USING ERRCODE='P5B01';END IF;
  head:=public.pwa_payment_head_v2(target);IF head::text IS DISTINCT FROM c->>'predecessorRequestId' THEN RAISE EXCEPTION USING ERRCODE='P5B09';END IF;
- provenance:=public.pwa_effective_payment_plan_v2(target);
+ provenance:=public.pwa_effective_payment_plan_v2(target);IF old."Payment Method"='Referral Rebate Offset' THEN RAISE EXCEPTION USING ERRCODE='P5B05';END IF;
  IF op='payment.correct' THEN
  IF (provenance IS NOT NULL) IS DISTINCT FROM (i->>'kind'='pwa-plan') THEN RAISE EXCEPTION USING ERRCODE='P5B06';END IF;
  IF (f->>'paymentDate')::date>(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
@@ -3240,7 +3414,7 @@ BEGIN
  IF op='payment.move-interest' AND message='Interest move requires an eligible charge on the same open loan' THEN RAISE EXCEPTION USING ERRCODE='P5B04';
  ELSIF op='payment.move-interest' AND message='Target charge capacity conflict' THEN RAISE EXCEPTION USING ERRCODE='P5B09';
  ELSIF op='payment.move-interest' AND message IN('Only a posted Lump Sum whole-interest allocation can move','Change receipt amounts through Payments; allocation move only changes Ref Charge') THEN RAISE EXCEPTION USING ERRCODE='P5B06';
- ELSIF message IN('Payment has a later loan default/write-off; reconcile that default first','Manually closed loan must be reopened explicitly before its receipt changes','Corrected payment has a default dependency; undo default first') THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSE RAISE;END IF;END;
+ ELSIF message IN('Payment has a later loan default/write-off; reconcile that default first','Manually closed loan must be reopened explicitly before its receipt changes','Corrected payment has a default dependency; undo default first','Remove through the closing payment','Remove through the closing payment: delete it and close again') THEN RAISE EXCEPTION USING ERRCODE='P5B05';ELSE RAISE;END IF;END;
  RETURN result_value;
 EXCEPTION WHEN OTHERS THEN PERFORM set_config('pwa.native_inverse_request','',true);RAISE;
 END $$;
@@ -4152,16 +4326,21 @@ DECLARE r public.pwa_payment_commands%ROWTYPE; revision public.pwa_payment_comma
 BEGIN
  SELECT count(*) INTO matches FROM public.pwa_payment_commands j WHERE
   (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9','10') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR
-  (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create'));
+  (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create','system.rebate-offset')) OR
+  -- R111: the Referral Rebate Offset payment of a Loan Close.
+  (j.contract_version=2 AND j.outcome='applied' AND j.result_json#>>'{rebate,offsetPaymentId}'=p_id AND j.canonical_json::jsonb#>>'{command,operation}'='loan.close');
  IF matches=0 THEN RETURN NULL;END IF;
  IF matches<>1 THEN RAISE EXCEPTION 'Ambiguous payment provenance';END IF;
  SELECT * INTO STRICT r FROM public.pwa_payment_commands j WHERE
   (j.contract_version=1 AND j.payment_id=p_id AND j.outcome='posted' AND j.canonical_json::jsonb#>>'{command,schemaVersion}' IN ('6','7','8','9','10') AND jsonb_typeof(j.canonical_json::jsonb#>'{command,allocations}')='array') OR
-  (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create'));
+  (j.contract_version=2 AND j.outcome='applied' AND j.result_json->>'paymentId'=p_id AND j.canonical_json::jsonb#>>'{command,operation}' IN('loan.create','loan.close','charge.create','system.rebate-offset')) OR
+  -- R111: the Referral Rebate Offset payment of a Loan Close.
+  (j.contract_version=2 AND j.outcome='applied' AND j.result_json#>>'{rebate,offsetPaymentId}'=p_id AND j.canonical_json::jsonb#>>'{command,operation}'='loan.close');
  origin:=r.request_id;head:=origin;visited:=ARRAY[head];origin_actor:=r.canonical_json::jsonb->'actor';source_creator:=CASE WHEN r.result_json ? 'sourceCreatedBy' THEN r.result_json->>'sourceCreatedBy' ELSE origin_actor->>'loginEmail' END;
  IF r.contract_version=1 THEN
   c:=r.canonical_json::jsonb->'command';
   plan:=jsonb_build_object('borrowerId',c->'borrowerId','amountReceived',c->'amountReceived','allocations',c->'allocations','allocationMethod','Selected Charges','targetChargeId',NULL,'targetLoanId',NULL,'cashAccountId',c->'cashAccountId','paymentDate',c->'paymentDate','paymentMethod',c->'paymentMethod');
+ ELSIF r.result_json#>>'{rebate,offsetPaymentId}'=p_id THEN plan:=r.result_json#>'{rebate,offsetPlan}';
  ELSE plan:=r.result_json->'plan';END IF;
  LOOP
   SELECT count(*) INTO matches FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied'
@@ -4702,6 +4881,63 @@ END $_$;
 --
 
 COMMENT ON FUNCTION public.pwa_notify_content_v1(delivery uuid, generation bigint) IS 'mw-access:governance fixed notification boundary; explicit capability only';
+
+
+--
+-- Name: pwa_notify_content_v2(uuid, bigint); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_notify_content_v2(delivery uuid, generation bigint) RETURNS TABLE(found boolean, event_type text, language text, borrower_name text, amount numeric, rebate_amount numeric, rebate_payee text, rebate_payable numeric, payment_method text, rebate_loan text)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $_$
+BEGIN
+ PERFORM public.pwa_worker_guard_v1('dispatch');
+ RETURN QUERY SELECT src.source_found,
+  -- A chat reply carries its outcome ('chat.reply:ok' / 'chat.reply:failed', from source_version 'ok:<message>').
+  CASE WHEN e.event_type='chat.reply' THEN 'chat.reply:'||split_part(e.source_version,':',1) ELSE e.event_type END,
+  CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
+  -- Chat: the thread title. Thai: the Thai name. English: the English name only ("Description"); none when blank.
+  CASE WHEN e.source_kind='chat' THEN src.source_title WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  src.source_amount,
+  -- R111: a closed loan's referral rebate, its payee (the v1 name rule) and the part not settled by offset
+  rb.rebate_amount,
+  -- (an English recipient falls back to the Thai name when the referrer has no English name: the line names a payee).
+  CASE WHEN rb.rebate_amount IS NULL THEN NULL WHEN recipient."Language Preference"='ไทย' THEN pb."Borrower Name" ELSE coalesce(nullif(btrim(pb."Description",E' \t\r\n\f\v'),''),pb."Borrower Name") END,
+  rb.rebate_payable,
+  -- R111: a posted payment's method, and for a Referral Rebate Offset the closed loan whose rebate it is (the push then
+  -- reads as a rebate offset, not as cash received from the referrer).
+  src.payment_method,
+  (SELECT x."Ref Related Loan" FROM public."Business Expenses" x WHERE e.source_kind='payment' AND x."Ref Offset Payment"=e.source_id ORDER BY x."Row ID" COLLATE "C" LIMIT 1)
+ FROM public.pwa_notification_deliveries d JOIN public.pwa_notification_events e ON e.event_id=d.event_id
+ LEFT JOIN public."Partners" recipient ON recipient."Row ID"=d.recipient_partner_id
+ LEFT JOIN LATERAL (
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title,p."Payment Method" AS payment_method FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,NULL::text,NULL::numeric,t.title,NULL::text FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=d.recipient_partner_id
+ ) source_row ON true
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title,source_row.payment_method) src
+ LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
+ LEFT JOIN LATERAL (
+  SELECT x."Amount"::numeric AS rebate_amount,x."Ref Payee Borrower" AS payee_id,x."Amount"::numeric-coalesce(o."Amount Received"::numeric,0) AS rebate_payable
+  FROM public."Business Expenses" x LEFT JOIN public."Payments" o ON o."Row ID"=x."Ref Offset Payment"
+  WHERE x."Source Type"='Referral Rebate' AND ((e.event_type='loan.closed' AND e.source_kind='loan' AND x."Ref Related Loan"=e.source_id)
+   -- R111 V124: the payment that closed a referred loan carries that loan's rebate (its "Payment received" push).
+   OR (e.event_type='payment.posted' AND e.source_kind='payment' AND x."Ref Related Loan" IN (SELECT y."Row ID" FROM public."Loans" y WHERE y."Ref Closing Payment"=e.source_id)))
+  ORDER BY x."Row ID" COLLATE "C" LIMIT 1
+ ) rb ON true
+ LEFT JOIN public."Borrowers" pb ON pb."Row ID"=rb.payee_id
+ WHERE d.delivery_id=$1 AND d.lease_generation=$2 AND d.state='leased' AND d.lease_expires_at>clock_timestamp();
+END $_$;
+
+
+--
+-- Name: FUNCTION pwa_notify_content_v2(delivery uuid, generation bigint); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_notify_content_v2(delivery uuid, generation bigint) IS 'mw-access:governance fixed notification boundary; explicit capability only';
 
 
 --
@@ -5365,6 +5601,40 @@ $_$;
 
 
 --
+-- Name: pwa_referral_rebate_projection_v1(text, jsonb); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb) RETURNS jsonb
+    LANGUAGE plpgsql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE l public."Loans"%ROWTYPE; referrer public."Borrowers"%ROWTYPE; principal numeric; profit numeric; rebate numeric;
+BEGIN
+ SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan;
+ IF NOT FOUND OR coalesce(l."Defaulted",false) OR jsonb_typeof(p_calculation->'allocations') IS DISTINCT FROM 'array' THEN RETURN NULL; END IF;
+ IF EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Source Key"='REFERRAL_REBATE:'||p_loan) THEN RETURN NULL; END IF;
+ SELECT b.* INTO referrer FROM public."Borrowers" own JOIN public."Borrowers" b ON b."Row ID"=own."Ref Referrer" WHERE own."Row ID"=l."Ref Borrowers";
+ IF NOT FOUND THEN RETURN NULL; END IF;
+ -- create_referral_rebate's rule on the state after the close posts: principal fully repaid, 10% of interest, at most 1,000.
+ SELECT coalesce(sum("Principal Paid"::numeric),0),coalesce(sum("Interest Paid"::numeric),0) INTO principal,profit FROM public."Repayments" WHERE "Ref Loans"=p_loan;
+ SELECT principal+coalesce(sum((x->>'principal')::numeric),0),profit+coalesce(sum((x->>'interest')::numeric),0) INTO principal,profit FROM jsonb_array_elements(p_calculation->'allocations') x;
+ IF principal<l."Principal Amount"::numeric OR profit<=0 THEN RETURN NULL; END IF;
+ rebate:=least(round(profit*0.10),1000);
+ IF rebate<=0 THEN RETURN NULL; END IF;
+ RETURN jsonb_build_object('amount',trunc(rebate)::text,'referrerId',referrer."Row ID",'referrerName',referrer."Borrower Name",'referrerDescription',referrer."Description",
+  'selfReferral',referrer."Row ID"=l."Ref Borrowers",
+  'hasOpenLoan',EXISTS(SELECT 1 FROM public."Loans" x WHERE x."Ref Borrowers"=referrer."Row ID" AND x."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(x."Defaulted",false)));
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb) IS 'R111: the referral rebate a Loan Close with this calculation creates (create_referral_rebate rule), its referrer and whether the referrer has an open loan; null when none. Read only.';
+
+
+--
 -- Name: pwa_row_changes_prune_v1(); Type: FUNCTION
 --
 
@@ -5466,8 +5736,12 @@ BEGIN
   PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=(c->>'borrowerId') FOR UPDATE;IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P4C02';END IF;
   IF NOT EXISTS(SELECT 1 FROM public."Cash Accounts" ca JOIN public."Cash Holders" ch ON ch."Row ID"=ca."Ref Cash Holder" WHERE ca."Row ID"=(c->>'cashAccountId') AND ca."Active" AND ch."Active") THEN RAISE EXCEPTION USING ERRCODE='P4C03';END IF;
   PERFORM public.cash_account_holder((c->>'cashAccountId'),true);
+  SET CONSTRAINTS public.referral_loan_closed DEFERRED; -- R111 V124: fired below, once the payment is Posted.
   INSERT INTO public."Payments"("Row ID","Ref Borrower","Ref Received By Cash Account","Status","Amount Received","Payment Date","Created At","Payment Method","Allocation Method","Bank Reference","Created By","Notes")
   VALUES('pwa:'||request::text,(c->>'borrowerId'),(c->>'cashAccountId'),'Processing',((c->>'amountReceived'))::numeric::money,day,((c->>'paymentDate')||' '||(c->>'transferTime')||':00')::timestamp,'Bank Transfer','Lump Sum',(c->>'bankReference'),(a->>'loginEmail'),CASE (c->>'mode') WHEN 'automatic' THEN 'Automatic Instagram receipt payment ' ELSE 'Approved Instagram receipt review ' END||'igr:'||left((c->>'reviewId'),48));
+  -- R111 V124: a referred loan this receipt closed gets its rebate (and default offset) now, inside this command.
+  SET CONSTRAINTS public.referral_loan_closed IMMEDIATE;
+  SET CONSTRAINTS public.referral_loan_closed DEFERRED;
   -- R095: learn the payer lines (row locked above) only while the column still equals what the agent read; drift skips it
   -- (the payment still posts). A rejected outcome rolls this sub-block back; a replay returns before reaching it.
   IF payer_after IS NOT NULL THEN
@@ -5565,13 +5839,13 @@ BEGIN
  END LOOP;input_text:=input_text||'}';
  IF octet_length(i->>'loanId') NOT BETWEEN 1 AND 256 OR i->>'loanId'~'[[:cntrl:]]' OR i->>'chargeDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'chargeDate')::date)::text<>i->>'chargeDate' OR i->>'principalDue'!~'^-?(0|[1-9][0-9]*)(\.[0-9]{1,2})?$' OR i->>'interestDue'!~'^-?(0|[1-9][0-9]*)(\.[0-9]{1,2})?$' OR abs((i->>'principalDue')::numeric)>92233720368547758.07 OR abs((i->>'interestDue')::numeric)>92233720368547758.07 THEN RAISE EXCEPTION 'charge input';END IF;
  ELSIF op='loan.close' THEN
- keys:=ARRAY['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash'];
+ keys:=ARRAY['paymentDate','cashAccountId','paymentMethod','notes','expectedAmount','expectedPlanHash']||CASE WHEN i ? 'rebatePath' THEN ARRAY['rebatePath'] ELSE ARRAY[]::text[] END;
  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM (SELECT array_agg(key ORDER BY key) FROM unnest(keys) key) THEN RAISE EXCEPTION 'close keys';END IF;
  input_text:='{';FOREACH k IN ARRAY keys LOOP
   IF (k='notes' AND jsonb_typeof(i->k) NOT IN('string','null')) OR (k<>'notes' AND jsonb_typeof(i->k) IS DISTINCT FROM 'string') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION 'close input';END IF;
   input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||coalesce(to_json(i->>k)::text,'null');
  END LOOP;input_text:=input_text||'}';
- IF i->>'paymentDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paymentDate')::date)::text<>i->>'paymentDate' OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]' OR i->>'paymentMethod' NOT IN('Bank Transfer','Cash','Net-off at Disbursement') OR i->>'expectedAmount'!~'^[1-9][0-9]*$' OR (i->>'expectedAmount')::numeric>92233720368547758 OR i->>'expectedPlanHash'!~'^[a-f0-9]{64}$' THEN RAISE EXCEPTION 'close input';END IF;
+ IF i->>'paymentDate'!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' OR ((i->>'paymentDate')::date)::text<>i->>'paymentDate' OR octet_length(i->>'cashAccountId') NOT BETWEEN 1 AND 256 OR i->>'cashAccountId'~'[[:cntrl:]]' OR i->>'paymentMethod' NOT IN('Bank Transfer','Cash','Net-off at Disbursement') OR i->>'expectedAmount'!~'^[1-9][0-9]*$' OR (i->>'expectedAmount')::numeric>92233720368547758 OR i->>'expectedPlanHash'!~'^[a-f0-9]{64}$' OR (i ? 'rebatePath' AND i->>'rebatePath' NOT IN('offset','expense')) THEN RAISE EXCEPTION 'close input';END IF;
  ELSIF op='loan.default' AND (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i) key) IS DISTINCT FROM ARRAY['businessDate'] THEN
  -- R109 (V120): the loss amount (whole baht, 0 only for a fully lost loan, which SQL decides) and the keep-charges choice.
  -- The one-key form {businessDate} stays valid (requests saved by an earlier PWA): write off and close the whole principal.
@@ -5898,35 +6172,8 @@ BEGIN
     IF plan->'allocations' IS DISTINCT FROM c->'allocations' OR plan->'materialize' IS DISTINCT FROM c->'materialize' OR plan->>'uncovered' IS DISTINCT FROM '0' OR plan->'settles'<>'[]'::jsonb
      OR (SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',x->'loanId','kind',x->'kind','chargeId',x->'chargeId','chargeDate',x->'chargeDate','amount',x->'amount','accruedInterest',x->'accruedInterest','principalDue',x->'principalDue') ORDER BY x->>'loanId' COLLATE "C"),'[]'::jsonb)
       FROM jsonb_array_elements(plan->'principal') x) IS DISTINCT FROM c->'principal' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-    FOR entry IN SELECT value FROM jsonb_array_elements(c->'principal') LOOP
-     IF entry->>'kind'='raise' THEN
-      -- guard_charge_consistency allows raising a due; the expected old due makes a concurrent change a rejection.
-      UPDATE public."Charges" SET "Principal Due"=(entry->>'principalDue')::numeric::money WHERE "Row ID"=entry->>'chargeId' AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=today
-       AND "Principal Due"::numeric=(entry->>'principalDue')::numeric-(entry->>'amount')::numeric;
-      IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-     ELSE
-      IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=entry->>'chargeId') THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-      INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
-       VALUES(entry->>'chargeId',entry->>'loanId',today,(entry->>'principalDue')::numeric::money,(entry->>'accruedInterest')::numeric::money);
-     END IF;
-     -- D9 interval reset: the first later scheduled charge is today plus the interval (a no-op on a schedule day).
-     UPDATE public."Loans" SET "Interest Schedule Anchor Date"=today WHERE "Row ID"=entry->>'loanId';
-    END LOOP;
-    FOR entry IN SELECT value FROM jsonb_array_elements(c->'materialize') LOOP
-     BEGIN
-      booked:=public.generate_loan_charge(entry->>'loanId',(entry->>'chargeDate')::date);
-     EXCEPTION WHEN SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P4C05';
-     END;
-     IF booked IS DISTINCT FROM entry->>'chargeId' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-     -- Current Daily Interest is recomputed only once the principal repayment posts, so for a loan repaying principal the
-     -- generator priced this charge at the old daily amount; its Interest Due becomes the plan's server-recomputed value
-     -- (new daily amount x days, never from the client), and the new daily amount is verified after posting below.
-     IF entry->>'loanId'=ANY(principal_loans) THEN
-      UPDATE public."Charges" SET "Interest Due"=(entry->>'interestDue')::numeric::money WHERE "Row ID"=booked AND "Interest Due"::numeric<>(entry->>'interestDue')::numeric;
-     END IF;
-     IF NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=booked AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=(entry->>'chargeDate')::date
-       AND "Principal Due"::numeric=(entry->>'principalDue')::numeric AND "Interest Due"::numeric=(entry->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
-    END LOOP;
+    -- R111: the booking is the shared writer pwa_apply_pay_forward_v1 (same statements, same P4C05 rejections).
+    PERFORM public.pwa_apply_pay_forward_v1(c->'principal',c->'materialize',today);
    END IF;
    IF EXISTS(
     SELECT 1 FROM jsonb_array_elements(c->'allocations') AS entries(item)
@@ -5941,6 +6188,7 @@ BEGIN
    INSERT INTO public.pwa_payment_commands(request_id,contract_version,actor_issuer,actor_subject,actor_partner_id,actor_login_email,canonical_json,payload_sha256,outcome,payment_id,rejection_code)
    VALUES(request,1,a->>'issuer',a->>'subject',a->>'partnerId',a->>'loginEmail',canonical,hash,'posted',payment_key,NULL);
   END IF;
+  SET CONSTRAINTS public.referral_loan_closed DEFERRED; -- R111 V124: fired below, once the payment is Posted.
   INSERT INTO public."Payments"("Row ID","Ref Borrower","Ref Received By Cash Account","Status","Amount Received","Payment Date","Payment Method","Allocation Method","Selected Charge IDs","Ref Target Charge","Created By","Notes","Uploaded Receipt","Bank Reference","Created At")
    VALUES(payment_key,c->>'borrowerId',c->>'cashAccountId','Processing',(c->>'amountReceived')::numeric::money,day,c->>'paymentMethod',CASE WHEN c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN 'Selected Charges' ELSE c->>'allocationMethod' END,CASE WHEN c->'schemaVersion' IN ('6'::jsonb,'7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) OR c->>'allocationMethod'='Selected Charges' THEN array_to_string(ids,' , ') END,CASE WHEN c->>'allocationMethod'='Single Full' THEN ids[1] END,a->>'loginEmail',c->>'notes',r->>'storageReference',
     CASE WHEN c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) THEN c->>'bankReference' END,
@@ -5948,6 +6196,9 @@ BEGIN
     CASE WHEN c->'schemaVersion' IN ('7'::jsonb,'8'::jsonb,'9'::jsonb,'10'::jsonb) AND c->>'transferTime' IS NOT NULL THEN ((c->>'paymentDate')||' '||(c->>'transferTime')||':00')::timestamp END);
   SELECT "Status","Amount Received"::numeric INTO posted_status,posted_amount FROM public."Payments" WHERE "Row ID"=payment_key;
   IF posted_status IS DISTINCT FROM 'Posted' OR posted_amount IS DISTINCT FROM (c->>'amountReceived')::numeric THEN RAISE EXCEPTION USING ERRCODE='XX000',MESSAGE='Unexpected posting result';END IF;
+  -- R111 V124: a referred loan this payment closed gets its rebate (and default offset) now, inside this command.
+  SET CONSTRAINTS public.referral_loan_closed IMMEDIATE;
+  SET CONSTRAINTS public.referral_loan_closed DEFERRED;
   -- R110 v10: run the existing loan refresh now (the deferred repayment trigger runs it again at commit as a no-op), so the
   -- calculation trigger recomputes Current Daily Interest from the frozen rate; it must equal the plan's new daily amount
   -- that priced the booked forward charges.

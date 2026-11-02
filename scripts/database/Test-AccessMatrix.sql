@@ -89,10 +89,12 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_next_projected_charge_v1(text,date)'),
   ('mw_app_dev','pwa_next_bookable_charge_v1(text,date)'),
   ('mw_app_dev','pwa_pay_forward_plan_v1(text,numeric,date,jsonb)'),
+  ('mw_app_dev','pwa_referral_rebate_projection_v1(text,jsonb)'),
   ('mw_app_dev','pwa_payment_version_v2(text)'),
   ('mw_app_dev','pwa_preference_version_v2(text)'),
   ('mw_app_dev','sync_cash_ledger(text,text)'),
   ('mw_app_dev_journal_owner','pwa_agent_receipt_status_v1(uuid,text,text)'),
+  ('mw_app_dev_journal_owner','pwa_apply_pay_forward_v1(jsonb,jsonb,date)'),
   ('mw_app_dev_journal_owner','pwa_apply_analytics_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_assessment_v2(text)'),
   ('mw_app_dev_journal_owner','pwa_apply_cash_opening_v2(text)'),
@@ -176,6 +178,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_dispatch_dev','pwa_notify_candidates_v1(integer)'),
   ('mw_notify_dispatch_dev','pwa_notify_complete_v1(uuid,bigint,text)'),
   ('mw_notify_dispatch_dev','pwa_notify_content_v1(uuid,bigint)'),
+  ('mw_notify_dispatch_dev','pwa_notify_content_v2(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_enqueue_v1(uuid,uuid,bigint,boolean)'),
   ('mw_notify_dispatch_dev','pwa_notify_prepare_send_v1(uuid,bigint)'),
   ('mw_notify_dispatch_dev','pwa_notify_start_send_v1(uuid,bigint,bigint)'),
@@ -186,6 +189,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_notify_owner_dev','pwa_notify_chat_reply_v1(jsonb,uuid,uuid,text)'),
   ('mw_notify_owner_dev','pwa_notify_complete_v1(uuid,bigint,text)'),
   ('mw_notify_owner_dev','pwa_notify_content_v1(uuid,bigint)'),
+  ('mw_notify_owner_dev','pwa_notify_content_v2(uuid,bigint)'),
   ('mw_notify_owner_dev','pwa_notify_eligible_v1(uuid,uuid)'),
   ('mw_notify_owner_dev','pwa_notify_enqueue_v1(uuid,uuid,bigint,boolean)'),
   ('mw_notify_owner_dev','pwa_notify_history_content_v1(jsonb,uuid[])'),
@@ -377,5 +381,21 @@ DO $$ BEGIN
   OR has_function_privilege('public','public.pwa_submit_agent_receipt_v1(text)','EXECUTE') OR has_function_privilege('public','public.pwa_submit_selected_charges_v1(text)','EXECUTE') THEN
   RAISE EXCEPTION 'V111 changed a command function owner or PUBLIC access'; END IF;
 END $$;
+-- V123 (R111): the pay-forward booking helper is the journal owner's only; the application role calling it is refused
+-- (no EXECUTE, and the body's own guard refuses any other current_user, as a reconcile grant would otherwise allow).
+DO $$ BEGIN
+ IF has_function_privilege('mw_app_dev','public.pwa_apply_pay_forward_v1(jsonb,jsonb,date)','EXECUTE') OR has_function_privilege('public','public.pwa_apply_pay_forward_v1(jsonb,jsonb,date)','EXECUTE') THEN RAISE EXCEPTION 'V123: the application role executes the booking helper'; END IF;
+ IF obj_description('public.pwa_apply_pay_forward_v1(jsonb,jsonb,date)'::regprocedure,'pg_proc') NOT LIKE 'mw-access:governance%' THEN RAISE EXCEPTION 'V123: the booking helper must carry the governance comment'; END IF;
+END $$;
+SAVEPOINT v123_probe;
+GRANT EXECUTE ON FUNCTION public.pwa_apply_pay_forward_v1(jsonb,jsonb,date) TO mw_app_dev;
+SET LOCAL ROLE mw_app_dev;
+DO $$ BEGIN
+ PERFORM public.pwa_apply_pay_forward_v1('[]'::jsonb,'[]'::jsonb,current_date);
+ RAISE EXCEPTION 'V123: the application role ran the booking helper';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+RESET ROLE;
+ROLLBACK TO SAVEPOINT v123_probe;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;
