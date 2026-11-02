@@ -66,6 +66,18 @@ Forge, 2 November 2026, UTC. Owner instruction of 2 November 2026: "start releas
 | Credentials | The temporary admin and read credential files are deleted; no secret value was printed |
 | Rollback | Settings generation `1793607109329182` (image `608cfb53…`, R111 `b1fd5d4a`, all five services) with Hosting `76661ca9a1bf51ee` (release `1793608518983000`), plus the V124 backup above. V125 is functions and grants only; its schema rollback is a later migration or the V124 backup |
 
+## DEV end-to-end record
+
+Chase, 2 November 2026 (business day 2026-11-02), on R112 as deployed above (head 125, image `bd9d94a3` on all five services, Hosting `ad6947853a378bf9`). Partner `claude-dev-test` through `scripts/dev/claude-test-token.mjs` (token file deleted afterwards, no secret printed); synthetic borrowers "R112 SYNTHETIC CHAT FORWARD G", "CHAT PRINCIPAL H" and "REGRESSION R" (loans of 1,000 at 10 a day, today's charge due 10, account `R052-4G-ACCOUNT`). The agent VM and the agent-receipts route (`agent_receipt_api.enabled` false) were not touched or enabled; no real Instagram send.
+
+| Case | Result |
+| --- | --- |
+| (a) Chat purpose card at 390 px (Pay forward, Repay principal, second Confirm read-back) | **Not reachable with this identity.** The DEV PWA chat (Claude Opus 5.5) answered a payment request with "Only an AI Reviewer Partner can make changes from chat. Nothing was changed; use the app screens." and proposed nothing: `claude-dev-test` is a Partner but not an AI Reviewer, and the role was not changed (a permission change needs the owner). No card was drawn, so the card, the Confirm claim with a purpose, and the single-claim read-back were not exercised on DEV. Covered by `chat.spec.ts` (3 purposeOptions cases plus focus, hint and badge, 44/44 desktop and phone, `2ec6d164`), `chat-handler.test.mjs`, `chat-proposals.test.mjs` and `chat-payment-plan.test.mjs` in CI. G and H stay unpaid for a re-run once an AI Reviewer test Partner exists |
+| (b) Agent v9 command on DEV in SQL | **Not run; covered by CI and the local disposable cluster only.** It needs the journal owner role of `loan_manager_dev` and a reviewer Partner with `partner_review_execution_enabled`; no sanctioned session credential for that owner is available to this role, and the route is deliberately off. `Test-AgentReceiptPayForward.sql` (forward, principal, split, drift and tamper rejected, replay, conflict) and `agent-receipt-pay-forward-independent.test.mjs` 7/7 ran on the disposable cluster (`50ad8457`) |
+| (c) R110/R111 regression, ordinary Receive payment pay-forward on R | Plan v10 (`purpose.forward`, amount 60): due 10, remainder 50, paid through 7 Nov, 5 charges to materialize. Command v10: `posted`, payment `pwa:e1fd3ca8-…`, 60.00 "Selected Charges", dated today, charges 2 to 7 Nov all selected; the same request again: 200 `posted`, the same payment id (replay only). Payment record API reads it back. No defect |
+
+DEV left in place: the three synthetic borrowers (G and H unpaid with an open due charge, R paid through 7 Nov); the daily jobs may add charges to G and H unless auto-charge is switched off.
+
 ## Not run
 Skipped and not verified, so not a pass:
 - Live Instagram and any DEV test of the agent loop: there is no DEV agent, no Instagram send was made, and the switch is off.
