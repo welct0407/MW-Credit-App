@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r111-20261102/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r113-20261102/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "57e1e09e042f2045812d6ec883797d02a4aad224"
+    "commit": "b3458e4d4241fb554105df2d6f05f10242a58f05"
     "path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-selected-charges-v1-canonical-json-text-3c7ad2de.yaml"
     "identity":
       "system": "postgresql"
@@ -43,6 +43,8 @@
        entry jsonb;materialize_text text:='';loan_ids text[];materialize_ids text[];projected jsonb;booked text;
        -- R110 v10: the principal entries and the server's own pay-forward plan the command must equal.
        principal_text text:='';principal_loans text[]:=ARRAY[]::text[];forward_loans text[];plan jsonb;purpose jsonb;today date;
+       -- R113: the loans the command settles (principal kind settle).
+       settle_loans text[]:=ARRAY[]::text[];
        -- JavaScript whitespace, used only for canonical transport validation, not ID normalization.
        ws text:=chr(9)||chr(10)||chr(11)||chr(12)||chr(13)||chr(32)||chr(160)||chr(5760)||chr(8192)||chr(8193)||chr(8194)||chr(8195)||chr(8196)||chr(8197)||chr(8198)||chr(8199)||chr(8200)||chr(8201)||chr(8202)||chr(8232)||chr(8233)||chr(8239)||chr(8287)||chr(12288)||chr(65279);
       BEGIN
@@ -151,11 +153,14 @@
             FOREACH k IN ARRAY ARRAY['amount','accruedInterest','principalDue'] LOOP
              IF entry->>k !~ '^(0|[1-9][0-9]{0,16})$' OR (entry->>k)::numeric>92233720368547758 THEN RAISE EXCEPTION 'principal component';END IF;
             END LOOP;
-            IF (entry->>'amount')::numeric<=0 OR entry->>'kind' NOT IN ('raise','book')
+            IF (entry->>'amount')::numeric<=0 OR entry->>'kind' NOT IN ('raise','book','settle')
              OR (entry->>'kind'='book' AND (entry->>'chargeId' IS DISTINCT FROM 'pf121:'||length(entry->>'loanId')||':'||(entry->>'loanId')||':'||(entry->>'chargeDate') OR entry->>'principalDue'<>entry->>'amount'))
              OR (entry->>'kind'='raise' AND (entry->>'accruedInterest'<>'0' OR (entry->>'principalDue')::numeric<(entry->>'amount')::numeric)) THEN RAISE EXCEPTION 'principal kind';END IF;
-            IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c->'allocations') lines(item) WHERE item->>'chargeId'=entry->>'chargeId' AND item->>'chargeDate'=entry->>'chargeDate'
+            -- R113: settle {chargeId: the quote's target charge, amount: payoff remainder, accruedInterest: gap interest, principalDue:
+            -- the outstanding principal}; its lines are the quote's, so no single line carries the amount.
+            IF entry->>'kind'<>'settle' AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c->'allocations') lines(item) WHERE item->>'chargeId'=entry->>'chargeId' AND item->>'chargeDate'=entry->>'chargeDate'
               AND (item->>'principal')::numeric>=(entry->>'amount')::numeric) THEN RAISE EXCEPTION 'principal line';END IF;
+            IF entry->>'kind'='settle' THEN settle_loans:=array_append(settle_loans,entry->>'loanId');END IF;
             principal_loans:=array_append(principal_loans,entry->>'loanId');
             principal_text:=principal_text||CASE WHEN principal_text='' THEN '' ELSE ',' END||'{"loanId":'||to_json(entry->>'loanId')::text||',"kind":'||to_json(entry->>'kind')::text
              ||',"chargeId":'||to_json(entry->>'chargeId')::text||',"chargeDate":'||to_json(entry->>'chargeDate')::text||',"amount":'||to_json(entry->>'amount')::text
@@ -275,16 +280,20 @@
           today:=(transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date;
           SELECT array_agg(x ORDER BY x COLLATE "C") INTO forward_loans FROM (SELECT DISTINCT coalesce(m.item->>'loanId',ch."Ref Loans") x
            FROM jsonb_array_elements(c->'allocations') a(item) LEFT JOIN jsonb_array_elements(c->'materialize') m(item) ON m.item->>'chargeId'=a.item->>'chargeId'
-           LEFT JOIN public."Charges" ch ON ch."Row ID"=a.item->>'chargeId' WHERE (a.item->>'chargeDate')::date>today) q;
+           LEFT JOIN public."Charges" ch ON ch."Row ID"=a.item->>'chargeId' WHERE (a.item->>'chargeDate')::date>today) q
+           WHERE x IS NULL OR x<>ALL(settle_loans); -- R113: a settled loan's later charges are its quote's lines, not pay forward.
           IF array_position(forward_loans,NULL) IS NOT NULL THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
           purpose:=jsonb_build_object('forward',forward_loans IS NOT NULL,'loans',coalesce(to_jsonb(forward_loans),'null'::jsonb),
            'principal',(SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',x->>'loanId','amount',x->>'amount') ORDER BY x->>'loanId' COLLATE "C"),'[]'::jsonb) FROM jsonb_array_elements(c->'principal') x));
           plan:=public.pwa_pay_forward_plan_v1(c->>'borrowerId',(c->>'amountReceived')::numeric,today,purpose);
-          IF plan->'allocations' IS DISTINCT FROM c->'allocations' OR plan->'materialize' IS DISTINCT FROM c->'materialize' OR plan->>'uncovered' IS DISTINCT FROM '0' OR plan->'settles'<>'[]'::jsonb
+          IF plan->'allocations' IS DISTINCT FROM c->'allocations' OR plan->'materialize' IS DISTINCT FROM c->'materialize' OR plan->>'uncovered' IS DISTINCT FROM '0'
            OR (SELECT coalesce(jsonb_agg(jsonb_build_object('loanId',x->'loanId','kind',x->'kind','chargeId',x->'chargeId','chargeDate',x->'chargeDate','amount',x->'amount','accruedInterest',x->'accruedInterest','principalDue',x->'principalDue') ORDER BY x->>'loanId' COLLATE "C"),'[]'::jsonb)
             FROM jsonb_array_elements(plan->'principal') x) IS DISTINCT FROM c->'principal' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
           -- R111: the booking is the shared writer pwa_apply_pay_forward_v1 (same statements, same P4C05 rejections).
-          PERFORM public.pwa_apply_pay_forward_v1(c->'principal',c->'materialize',today);
+          -- R113: the plan's own entries (a settle entry carries its planHash); settling is switched on for this call only.
+          PERFORM set_config('pwa.pay_forward_settle','on',true);
+          PERFORM public.pwa_apply_pay_forward_v1(plan->'principal',c->'materialize',today);
+          PERFORM set_config('pwa.pay_forward_settle','',true);
          END IF;
          IF EXISTS(
           SELECT 1 FROM jsonb_array_elements(c->'allocations') AS entries(item)
@@ -314,10 +323,13 @@
         -- calculation trigger recomputes Current Daily Interest from the frozen rate; it must equal the plan's new daily amount
         -- that priced the booked forward charges.
         IF c->'schemaVersion'='10'::jsonb THEN
-         FOR entry IN SELECT value FROM jsonb_array_elements(plan->'principal') LOOP
+         FOR entry IN SELECT value FROM jsonb_array_elements(plan->'principal') WHERE value->>'kind'<>'settle' LOOP
           PERFORM public.vc_refresh_loan(entry->>'loanId');
           IF (SELECT "Current Daily Interest"::numeric FROM public."Loans" WHERE "Row ID"=entry->>'loanId') IS DISTINCT FROM (entry->>'dailyAfter')::numeric THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
          END LOOP;
+         -- R113: the payment closed every loan it settles (close_payment_loans, unchanged), else nothing posts.
+         IF EXISTS(SELECT 1 FROM jsonb_array_elements(plan->'principal') e JOIN public."Loans" x ON x."Row ID"=e.value->>'loanId'
+           WHERE e.value->>'kind'='settle' AND x."Loan Status" IS DISTINCT FROM 'ปิดยอดแล้ว') THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
         END IF;
         -- R095 v8: learn the payer lines (row locked above) only while the column still equals what the form read; drift skips it.
         IF payer_after IS NOT NULL THEN

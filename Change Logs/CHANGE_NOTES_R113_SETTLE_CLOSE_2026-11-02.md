@@ -118,15 +118,28 @@ Applied and verified, including the agent VM. Not owner-accepted in PROD: the fi
 Skipped and not verified, so not a pass:
 - Thai wording on screen, WebKit and a real iPhone.
 - The agent settling a loan: the agent keeps the guard by design.
-- The DEV deployment and test (Forge and Chase, pending).
-- Anything in PROD until the owner's promotion.
+- An authenticated PROD payment (no PROD Partner token for the operator; none made by rule): the promotion smoke is unauthenticated.
 
 ## Recovery
-Before release: revert the pull request (Git baseline R112 `adcf610b`/`a0cfabca` plus later main commits). Schema: V126 is functions only; rollback is a later migration restoring the V125 bodies of `pwa_pay_forward_plan_v1`, `pwa_submit_selected_charges_v1` and `pwa_apply_pay_forward_v1` (the guard returns). Loans already closed by a settling payment are ordinary closed loans; deleting the payment reopens them.
+Before release: revert the pull request (Git baseline R112 `adcf610b` plus later main commits). Released: the PROD rollback is in the promotion record (activation `production.activation.before-r113-1793617518810095.tfvars` for all five services with Hosting `2e5f470454e4fd11`; the agent by `deploy-runtime.py rollback` to the 12:58:37Z freeze). Schema: V126 is functions only; rollback is a later migration (V127 or higher) restoring the V125 bodies of `pwa_pay_forward_plan_v1`, `pwa_submit_selected_charges_v1` and `pwa_apply_pay_forward_v1` (the guard returns), or the V125 backup in the promotion record. Loans already closed by a settling payment are ordinary closed loans; deleting the payment reopens them.
 
 ## Open questions
 None for the owner.
 
 ## Remaining work
-- Byte's two copy fixes (CL-1, CH-6); Chase and Echo re-check.
-- Forge: DEV deployment of V126 and the images; PROD promotion under the owner's instruction after DEV proof.
+- Owner: PROD acceptance, the first real settle-and-close payment.
+- Open: a blocked Split still shows a stale "Paid through" summary (minor); a loan the slip cannot fully reach is not offered for settle, so "more closes" shows only once the slip reaches its payoff remainder; the DEV cash pool ran low during testing and Chase closed one old synthetic loan (R112 "REGRESSION R"); Thai wording on a real iPhone.
+- Data Dictionary, due with owner approval: new entries for the routines `pwa_pay_forward_plan_v1` (since R110), `pwa_apply_pay_forward_v1`, `pwa_notify_content_v2` and `pwa_referral_rebate_projection_v1` (R111).
+- R114 is open with no scope yet.
+- Done: DEV deployment and test, merge, PROD promotion, the agent deploy and the Data Dictionary PROD capture (closure below).
+
+## Closure (2 November 2026)
+Owner instruction "Yes, build it, test in dev and promote to prod": PR #209 was merged and promoted under it (promotion record above); DEV proof preceded PROD.
+
+Tag record: the annotated tag `R113` (object `9deba76d76e51c2acb827fcc9afe4369a3608664`) points at the package commit `0556237589bde00df2a3d1aea9ab62ebc04dbf1a` (PR #209 on `main`), created by the Release tag workflow run 41448964237 (GitHub Release R113 published). Freeze 2026-11-02T12:44:53Z, baseline R112 `adcf610b`. R114 is opened in this closure and R115 is the next unused number.
+
+Technical access recorded in the Environment inventory: V126 applied to PROD (functions only, no new grant); the owner window was `mw_app_prod_journal_owner` only, because V126 replaces only its function; the agent VM runs `05562375` with `pay_forward_options_enabled` still true.
+
+Data Dictionary (R103 procedure, read-only): `capture_postgresql.py production` as `codex-cloud-read` through the Auth Proxy tunnel on `loan_manager_prod` (flyway head 126, 225 routines, 99 relations), output under a private root outside the repository. Targeted reconciliation with `--only` regenerated one existing entry: the routine `pwa_submit_selected_charges_v1`. V126 also replaced `pwa_pay_forward_plan_v1` and `pwa_apply_pay_forward_v1`, which have no dictionary entry; new entries need owner approval and stay due (see Remaining work). `dictionary.py index` and `validate` pass. Evidence: [plan](../project/outputs/dictionary-r113-20261102/plan.json), [coverage](../project/outputs/dictionary-r113-20261102/coverage.json) and [observations](../project/outputs/dictionary-r113-20261102/production-postgresql-observations.json).
+
+Prune (this closure): deleted `Change Logs/CHANGE_NOTES_R110_PAY_FORWARD_2026-11-01.md` (R110 left the retention window: R114 Open; R113, R112, R111 Released) and its uncited evidence `project/outputs/dictionary-r110-20261102/`. Its links in the Release tracker, Development Changes, the Environment inventory and Solution Design now point to the commit permalink `05562375`, the last commit where it exists. No other change note or evidence file is outside the window or uncited.

@@ -9,15 +9,15 @@
         "host": "127.0.0.1",
         "port": 15432
       },
-      "version_or_hash": "330ee68d7714ef121a33a22be3cb9f303da45fac719414d8c5f733102299ee7b",
+      "version_or_hash": "d70471a1284263cd9c0f58901f7e2edc9f585d3b2ab9fef5afd7b2a765f75409",
       "counts": {
         "schemas": 4,
         "relations": 99,
-        "columns": 1519,
-        "constraints": 450,
-        "indexes": 90,
-        "routines": 222,
-        "triggers": 426,
+        "columns": 1520,
+        "constraints": 451,
+        "indexes": 91,
+        "routines": 225,
+        "triggers": 430,
         "sequences": 2,
         "types": 0,
         "policies": 0,
@@ -32,20 +32,20 @@
         "subscriptions": 0,
         "event_triggers": 0,
         "rules": 0,
-        "flyway": 121,
+        "flyway": 126,
         "foreign_tables": 0,
         "aggregates": 0,
         "view_dependencies": 1198,
         "jobs": 0
       },
-      "captured_utc": "2026-11-02T03:51:21.601914+00:00"
+      "captured_utc": "2026-11-02T13:00:48.208651+00:00"
     }
   },
   "objects": [
     {
       "target": "postgresql-production",
       "source_identity": "postgresql-production",
-      "source_version_or_capture": "330ee68d7714ef121a33a22be3cb9f303da45fac719414d8c5f733102299ee7b",
+      "source_version_or_capture": "d70471a1284263cd9c0f58901f7e2edc9f585d3b2ab9fef5afd7b2a765f75409",
       "object_kind": "routine",
       "object_name": "public.pwa_submit_selected_charges_v1(canonical_json text)",
       "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-pwa-submit-selected-charges-v1-canonical-json-text-3c7ad2de.yaml",
@@ -54,7 +54,7 @@
       "verified_properties": 0,
       "unknown_properties": [],
       "evidence": [
-        "outputs/dictionary-r110-20261102/production-postgresql-observations.json"
+        "outputs/dictionary-r113-20261102/production-postgresql-observations.json"
       ],
       "last_checked_utc": null
     }
