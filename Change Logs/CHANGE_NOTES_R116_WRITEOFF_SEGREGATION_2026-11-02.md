@@ -47,7 +47,7 @@ DEV findings and follow-up (V129, commit 95fc8a0):
 - Chase's mismatch: two legacy DEV loans carry a Default Loss Amount of 6,000 between them, with no `df10:` pair. "Total Principal Loss" is 13,000 against a ledger figure of 7,000, so Total Profit - Total Business Expenses - write-offs did not equal Net Profit in Management Analytics.
 - V129 (views only) appends "Principal Write-offs" (46th and last column) to `olap_portfolio_summary`: the lifetime ledger sum of `df10:` principal, undated pairs included. It is exactly what "Net Profit" subtracts. "Total Principal Loss" is unchanged. Analytics reads the new column (omitted when absent, no fallback to "Total Principal Loss"). The Dashboard "Principal Loss Recognized" is still the loan-level 13,000.
 - Echo DSH-4b: the Expenses MTD sign. Fixed in 95fc8a0: the Dashboard and Cash pages negate the "Cash Dashboard" value, so Expenses MTD shows as a positive cost and a net-refund month shows a minus.
-- Echo also found ANL-6 in the DEV smoke; its fix is not recorded here yet (Byte).
+- Echo also found ANL-6 in the DEV smoke. It is the same issue as Chase's mismatch, fixed by V129 plus the Management Analytics change in 95fc8a0; Chase accepted it with no defects.
 - V129 needs a second DEV apply (and the read, command and chat images again), because the DEV deployment below stopped at V128.
 
 Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql`; `services/business/cash.mjs`, `management-analytics.mjs`; `services/chat/assets/schema-digest.json`, `conversation-business-rules.md`; `apps/pwa/src/Dashboard.tsx`, `CashWorkspace.tsx`, `ManagementAnalytics.tsx`, `live-style.css`; `project/scripts/metabase/Refine-WriteOffSegregation.mjs`, `WriteOffSegregation.mjs`, `ProposedLoanReports.mjs`, `StatementCleanup.mjs`, `live-income-period.sql`; tests `scripts/database/Test-WriteOffSegregation.sql`, `Test-StatementBatch.sql`, `Test-LongOverdue.sql`, `tests/unit/principal-writeoffs-read.test.mjs`, `tests/integration/default-loss-independent.test.mjs`. Records: this note, `Release_Tracker.md`, `Solution_Design.md`, `PWA_Data_Model_Overview.md`, `database/README.md`, `project/scripts/metabase/README.md` and six `Data Dictionary` relation files with `index.json`.
@@ -67,6 +67,7 @@ Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql
 | Chat schema digest test at V129 | 4 of 4 pass (Byte) |
 | `Test-MigrationsCloud --sql-only` through V129 | Pass (Byte) |
 | DEV deploy of V128, images and Hosting | Done (Forge); see the [DEV deployment record](#dev-deployment-record) |
+| Review of 95fc8a0 | Accepted with no defects; the Dashboard and borrower e2e tests pass, 4 tests on desktop-chromium (Chase) |
 | DEV smoke, API reads | Pass; the legacy-loan mismatch above found (Chase) |
 | DEV smoke, UI at 390x844 | Pass; DSH-4b and ANL-6 found (Echo) |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
