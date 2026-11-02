@@ -50,7 +50,7 @@ DEV findings and follow-up (V129, commit 95fc8a0):
 - Finding (Chase and Forge, read-only in DEV and PROD): both loans already have loss pairs dated on their Close Dates (5,000 on 26 August and 1,000 on 28 August), under random Row IDs rather than `df10:`. They are the only such rows and together are exactly the 6,000 gap. Posting new pairs would have double-counted, so the reconciliation was reverted in 73b58de before it was ever pushed or applied. The owner's intent (dated write-off postings) is already met by the existing ledger: no data change, no Daily Analytics refresh, no partner or Cash Reconciliation effect. The owner is informed.
 - New V130 (Byte, cb398ec) is views only. It adds the shared predicate `public.is_principal_writeoff`: a row counts as a write-off if it is a `df10:` row, or if all of these hold: a zero-cash loss pair (no Ref Payment, principal X and interest -X); its charge has Principal Due X and Interest Due -X; the charge is not `lc7:` or `ls2:`; the charge has exactly one repayment. It replaces the `df10:` test in `"Cash Dashboard"`, `olap_portfolio_summary` (including the V129 lifetime column), `reporting_income_monthly`, `reporting_income_daily` and `reporting_income_events`; `reporting_income_statement` passes through. No new columns; net values are unchanged. Effect: August gross +6,000 and write-offs 6,000; lifetime "Principal Write-offs" then equals "Total Principal Loss" (DEV 13,000, PROD 17,000). `Refine-WriteOffSegregation.mjs --verify` uses the same predicate.
 - Follow-up, unchanged in R116: the `df10:`-only guards (`undo_loan_default`, `default_posting_guard`, `default_loan_transition` and the schedule exclusions) still key on `df10:`; a later release can move them onto the predicate.
-- V129 needs a second DEV apply (and the read, command and chat images again), because the DEV deployment below stopped at V128.
+- The first DEV deployment stopped at V128; the second DEV deployment (pinned to 515c1bb) applied V129 and V130, the images and Hosting.
 
 Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql`; `services/business/cash.mjs`, `management-analytics.mjs`; `services/chat/assets/schema-digest.json`, `conversation-business-rules.md`; `apps/pwa/src/Dashboard.tsx`, `CashWorkspace.tsx`, `ManagementAnalytics.tsx`, `live-style.css`; `project/scripts/metabase/Refine-WriteOffSegregation.mjs`, `WriteOffSegregation.mjs`, `ProposedLoanReports.mjs`, `StatementCleanup.mjs`, `live-income-period.sql`; tests `scripts/database/Test-WriteOffSegregation.sql`, `Test-StatementBatch.sql`, `Test-LongOverdue.sql`, `tests/unit/principal-writeoffs-read.test.mjs`, `tests/integration/default-loss-independent.test.mjs`. Records: this note, `Release_Tracker.md`, `Solution_Design.md`, `PWA_Data_Model_Overview.md`, `database/README.md`, `project/scripts/metabase/README.md` and six `Data Dictionary` relation files with `index.json`.
 
@@ -69,13 +69,16 @@ Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql
 | Chat schema digest test at V129 | 4 of 4 pass (Byte) |
 | `Test-MigrationsCloud --sql-only` through V129 | Pass (Byte) |
 | DEV deploy of V128, images and Hosting | Done (Forge); see the [DEV deployment record](#dev-deployment-record) |
+| Second DEV deploy of V129, V130, images and Hosting, pinned to 515c1bb | Done (Forge); see the [second DEV deployment](#second-dev-deployment-v129-v130-pr-216) |
+| Review of V130 at cb398ec | Accepted; the reader-only role test `Test-WriteOffPredicateReaders.sql` passed on a disposable database (Chase) |
+| CI on 515c1bb | Development checks run 41522489884 green |
+| Final DEV UI pass at 390x844 | No findings (Echo): DSH-4b 151 baht shown red; lifetime 428,386 - 7,191 - 13,000 = 408,195; PR #216 order; names in EN and TH; paging |
 | Review of 95fc8a0 | Accepted with no defects; the Dashboard and borrower e2e tests pass, 4 tests on desktop-chromium (Chase) |
 | `npx biome lint` and typecheck at cb398ec | Pass (Byte) |
 | `npm test` at cb398ec | 1106 of 1107 pass (Byte) |
 | Python unittest at cb398ec | OK (Byte) |
 | Statement batch through V130, and the pre-V9 `Test-WriteOffLegacyPair` upgrade test | Pass at cb398ec (Byte) |
 | `npx biome lint`, typecheck and the focused unit tests `cash-ledger-list` and `principal-writeoffs-read` after the merge at 7b4dae4 | Pass, 9 of 9 tests (orchestrator) |
-| Review of V130 | Pending (Chase) |
 | DEV smoke, API reads | Pass; the legacy-loan mismatch above found (Chase) |
 | DEV smoke, UI at 390x844 | Pass; DSH-4b and ANL-6 found (Echo) |
 | `npm run check:docs` | Pass, 0 failures, 0 warnings |
@@ -83,7 +86,6 @@ Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql
 ## Not run
 - The wide Playwright suite and the mobile project: left to the pull request's CI.
 - Live Metabase (refine, rebaseline and verify runs) and the PROD dictionary capture: they belong to the promotion step (Metabase reads PROD only).
-- V129 on DEV: not applied yet; the DEV deployment record covers V128 only.
 
 Chase info finding: an undated `df10:` pair counts in lifetime portfolio net but not in the dated views. This is unchanged from before V128, and no such rows are known.
 
@@ -94,7 +96,18 @@ Git baseline: `main` 80fbf6b (branch `claude/r116-writeoff-segregation`). V128 i
 None. The owner decided on 2 November 2026 (see Changes).
 
 ## Remaining work
-The second DEV deploy: apply V129 and V130 (views only; no operator step), deploy the read, command and chat images and Hosting, and cover the PR #216 smoke steps (Cash Ledger Recent order and borrower names). Chase's review of V130. Then PROD at promotion (V128 to V130 after a verified backup, the Metabase order in the Metabase README, the PROD dictionary capture), only on the owner's instruction.
+The PROD promotion, only on the owner's instruction, in this order:
+1. A verified restorable backup.
+2. V128 to V130 (views only).
+3. The read, command and chat images, and Hosting.
+4. Metabase: `Refine-WriteOffSegregation.mjs --prepare`, then `--apply`.
+5. `ProposedLoanReports.mjs --rebaseline-dashboard3=R116`, then `--refine --only=income.writeoffs,income.vs-previous,income.monthly,income`.
+6. Both `--verify` runs.
+7. The PROD dictionary capture (targeted).
+
+Follow-ups for a later release: the reconcile-skip comment in the predicate, and moving the `df10:`-only guards (`undo_loan_default`, `default_posting_guard`, `default_loan_transition`, the schedule exclusions) onto the predicate.
+
+Pointer: the observation at the end of the first DEV record below (13,000 against 7,000) is resolved by V130 (see Changes) and the [second DEV deployment](#second-dev-deployment-v129-v130-pr-216).
 
 ## DEV deployment record
 Forge, 2 November 2026, UTC. Owner instruction: "deploy to dev and test it". DEV only: no PROD action, no Metabase action (Metabase reads `loan_manager_prod` only), the agent VM used only as the database tunnel.
