@@ -32,15 +32,25 @@ Team (six-agent process, this session): Archie designed, Byte built the code and
 ## Checks
 | Command | Result |
 | --- | --- |
-| Agent tests, `python -m unittest discover -s tests` (694 tests; Byte, `e53a48f9`) | Every existing test passes; the only failures are in Chase's four new options files, written before the shapes were fixed (alignment items sent) |
-| `ruff check integration-agent` (Byte, `e53a48f9`) | Byte's files clean |
-| `mw-integration-agent check` with the example configuration and catalogue (Byte, `e53a48f9`) | ok, `pay_forward_options: false` |
-| Root checks (lint, typecheck, unit, migration chain to 125, `Test-AgentReceiptPayForward.sql`) | To be filled with Byte's and Chase's results |
+| Migration chain to V125 with the PROD default-privileges replay (Byte, `e53a48f9`) | Pass; reconcile 0 violations |
+| `Test-PayForward`, `Test-ProjectedChargePayment`, `Test-RebateOffset`, `Test-NotifyContent`, `Test-PayerName`, `Test-AccessMatrix` (Byte, `e53a48f9`) | Pass |
+| Lab smoke (Byte, `e53a48f9`) | Forward, principal and split post; tamper rejected; replay and conflict as designed; v7 Lump Sum unchanged |
+| Biome lint, typecheck, unit (Byte, `e53a48f9`) | Clean; exit 0; 1089 passed, 0 failed |
+| Agent `unittest`, `ruff check integration-agent`, `mw-integration-agent check` (Byte, `e53a48f9`) | OK; clean; ok with `pay_forward_options: false` (694 agent tests: every existing test passes; only Chase's four then-new options files failed before alignment) |
+| Biome lint, typecheck, unit (Byte, `3fa1995d`, Echo's CH-3, CH-4, CH-5) | Clean; exit 0; 1089 passed, 0 failed |
+| Full `Test-StatementBatch.sql` including `Test-AgentReceiptPayForward.sql` at V125 (Chase, `50ad8457`) | Pass |
+| Integration `agent-receipt-pay-forward`, `rebate-offset`, `projected-charge-payment` (Chase, `50ad8457`) | 7/7, 13/13, 15/15 |
+| Python agent tests (Chase, `50ad8457`) | 40 OK |
+| Agent lab (Chase, `50ad8457`) | 69 OK, 10 skipped (empty-server and Thai renderer); no blocking defects |
+| e2e `chat.spec` (Chase, `2ec6d164`) | 44/44, desktop and phone, with the aligned mock and the focus, hint and badge assertions |
+| Echo, built UI and message texts (`e53a48f9`, `3fa1995d`) | CH-2 and AG-1, AG-2, AG-4, AG-5 fixed; the CH-3 focus must-fix and CH-4, CH-5 fixed in `3fa1995d` |
+| Forge, read-only PROD check | `mw_integration_agent` already reads every table the plan uses in PROD; no grant missing |
 | Wide suite | The pull request's `Development checks` run (pending) |
 
 ## Not run
 Skipped and not verified, so not a pass:
-- Any DEV test of the agent loop: there is no DEV agent, and no Instagram send was made.
+- Live Instagram and any DEV test of the agent loop: there is no DEV agent, no Instagram send was made, and the switch is off.
+- `Run-ProductionAgentReceiptsIndependent.ps1` (a pre-existing Windows cleanup that does not run on Linux).
 - The agent loop in PROD: the switch stays off.
 - Thai wording on screen, WebKit and a real iPhone for the chat card.
 - Anything in PROD until the owner's promotion.
@@ -52,6 +62,5 @@ Before release: revert the pull request (Git baseline R111 `a5dddfa7` plus later
 Owner: when to activate `pay_forward_options_enabled` after PROD has V125 (a separate step and decision).
 
 ## Remaining work
-- Chase's and Echo's verification; fill the root checks and Not run.
 - Forge: DEV deployment of V125 and the images; PROD promotion under the owner's instruction after DEV proof.
 - Owner: activation of the agent switch after PROD has V125.
