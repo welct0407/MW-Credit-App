@@ -11214,6 +11214,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-apply-pay-forward-v1-p-principal-jsonb-p-materialize-jsonb-p-today-date-2e1bffa9.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-apply-payment-v2-canonical-text-61771881.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -11674,6 +11684,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-notify-content-v2-delivery-uuid-generation-bigint-9584b973.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_notify_content_v2(delivery uuid, generation bigint)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-notify-eligible-v1-event-uuid-subscription-uuid-8cc1a59f.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -11794,6 +11814,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-pwa-pay-forward-plan-v1-p-borrower-text-p-amount-numeric-p-day-date-p-purpose-jsonb-1f8d4769.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_pay_forward_plan_v1(p_borrower text, p_amount numeric, p_day date, p_purpose jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-pwa-payment-correction-text-v2-i-jsonb-91c6f1f4.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -11839,6 +11869,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.pwa_preference_version_v2(id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-pwa-referral-rebate-projection-v1-p-loan-text-p-calculation-jsonb-11d6997c.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb)",
       "scope": "production",
       "status": "documented",
       "lookup": []

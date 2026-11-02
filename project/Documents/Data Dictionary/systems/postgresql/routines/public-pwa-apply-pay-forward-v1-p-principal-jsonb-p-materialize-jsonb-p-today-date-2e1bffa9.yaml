@@ -1,0 +1,86 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-r114-20261102/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "pwa_apply_pay_forward_v1"
+    "arguments": "p_principal jsonb, p_materialize jsonb, p_today date"
+    "kind": "f"
+    "arguments_with_defaults": "p_principal jsonb, p_materialize jsonb, p_today date"
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.pwa_apply_pay_forward_v1(p_principal jsonb, p_materialize jsonb, p_today date)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE entry jsonb; booked text; principal_loans text[];
+      BEGIN
+       -- R111 V123: the booking trusts its plan, so only the governed definer commands (the journal owner) may run it.
+       IF (current_database() NOT IN ('loan_manager_dev','payment_rehearsal','loan_manager_prod') OR current_user<>CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END) THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='Governed operation required';END IF;
+       IF jsonb_typeof(p_principal) IS DISTINCT FROM 'array' OR jsonb_typeof(p_materialize) IS DISTINCT FROM 'array' OR p_today IS NULL THEN RAISE EXCEPTION USING ERRCODE='P4C05'; END IF;
+       SELECT coalesce(array_agg(value->>'loanId'),ARRAY[]::text[]) INTO principal_loans FROM jsonb_array_elements(p_principal) WHERE value->>'kind' IS DISTINCT FROM 'settle';
+       FOR entry IN SELECT value FROM jsonb_array_elements(p_principal) LOOP
+        -- R113: a settle entry (the manual receiving command only: its transaction-local switch) applies the Loan Close
+        -- mutation of the quote the plan priced (same planHash, else P4C05) through the Loan Close writer; anchor untouched.
+        IF entry->>'kind'='settle' THEN
+         IF current_setting('pwa.pay_forward_settle',true) IS DISTINCT FROM 'on' OR entry->>'planHash' IS NULL THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+         BEGIN
+          PERFORM public.apply_loan_close_calculation_v83(entry->>'loanId',p_today,entry->>'planHash');
+         EXCEPTION WHEN SQLSTATE 'P5B09' OR SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P4C05';
+         END;
+         CONTINUE;
+        END IF;
+        IF entry->>'kind'='raise' THEN
+         -- guard_charge_consistency allows raising a due; the expected old due makes a concurrent change a rejection.
+         UPDATE public."Charges" SET "Principal Due"=(entry->>'principalDue')::numeric::money WHERE "Row ID"=entry->>'chargeId' AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=p_today
+          AND "Principal Due"::numeric=(entry->>'principalDue')::numeric-(entry->>'amount')::numeric;
+         IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+        ELSE
+         IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=entry->>'chargeId') THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+         INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+          VALUES(entry->>'chargeId',entry->>'loanId',p_today,(entry->>'principalDue')::numeric::money,(entry->>'accruedInterest')::numeric::money);
+        END IF;
+        -- D9 interval reset: the first later scheduled charge is today plus the interval (a no-op on a schedule day).
+        UPDATE public."Loans" SET "Interest Schedule Anchor Date"=p_today WHERE "Row ID"=entry->>'loanId';
+       END LOOP;
+       FOR entry IN SELECT value FROM jsonb_array_elements(p_materialize) LOOP
+        BEGIN
+         booked:=public.generate_loan_charge(entry->>'loanId',(entry->>'chargeDate')::date);
+        EXCEPTION WHEN SQLSTATE 'P0001' THEN RAISE EXCEPTION USING ERRCODE='P4C05';
+        END;
+        IF booked IS DISTINCT FROM entry->>'chargeId' THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+        -- Current Daily Interest is recomputed only once the principal repayment posts, so for a loan repaying principal the
+        -- generator priced this charge at the old daily amount; its Interest Due becomes the plan's server-recomputed value
+        -- (new daily amount x days, never from the client), and the new daily amount is verified after posting.
+        IF entry->>'loanId'=ANY(principal_loans) THEN
+         UPDATE public."Charges" SET "Interest Due"=(entry->>'interestDue')::numeric::money WHERE "Row ID"=booked AND "Interest Due"::numeric<>(entry->>'interestDue')::numeric;
+        END IF;
+        IF NOT EXISTS(SELECT 1 FROM public."Charges" WHERE "Row ID"=booked AND "Ref Loans"=entry->>'loanId' AND "Charge Date"=(entry->>'chargeDate')::date
+          AND "Principal Due"::numeric=(entry->>'principalDue')::numeric AND "Interest Due"::numeric=(entry->>'interestDue')::numeric) THEN RAISE EXCEPTION USING ERRCODE='P4C05';END IF;
+       END LOOP;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,mw_app_prod_journal_owner=X/postgres}"
+    "comment": "mw-access:governance R111 pay-forward booking of a server-recomputed plan (v10 command and the Loan Close\
+      \ rebate offset); journal owner only, P4C05 on drift."
+    "extension": null
