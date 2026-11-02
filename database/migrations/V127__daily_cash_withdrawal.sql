@@ -14,8 +14,10 @@
 --    P5B04); the date and time must not be in the future and the date must be within the 15 Bangkok days the Recent
 --    statement views cover (else invalid_date P5B08); each line must not exceed the account's balance as of that date
 --    and time (the day's opening balance from "Cash Account Daily Summary Recent" plus that day's entries of
---    "Cash Account Statement Recent" with Sort Timestamp <= the time, ties included; an uninitialized account is
---    account_unavailable P5B07, an overdraw insufficient_funds P5B10). Rows: Movement Date = date, Created At = date
+--    "Cash Account Statement Recent" with Sort Timestamp <= the time, ties included) nor the lowest running balance
+--    ("Balance After") of any later entry of that account (Sort Timestamp after the time on that date, or a later date),
+--    so a back-dated withdrawal never turns a later balance negative; an uninitialized account is account_unavailable
+--    P5B07, an overdraw insufficient_funds P5B10. Rows: Movement Date = date, Created At = date
 --    and time (Bangkok), ids <targetId> for line 1 and wd115:<targetId>:<n> for line n, notes "Daily cash withdrawal".
 -- 4. pwa_submit_operation_v2 accepts the operation (a create: null expectedVersion, UUID target) and routes it to (2)
 --    and (3); the journal's replay and conflict rules are unchanged.
@@ -102,6 +104,9 @@ SELECT pg_temp.v127_replace('public.pwa_apply_management_financial_v2(text)'::re
     INTO available FROM public."Cash Account Daily Summary Recent" d WHERE d."Ref Cash Account"=wd_line->>'fromAccountId' AND d."Statement Date"=wd_day;
    IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
    IF available IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
+   -- Back-dated: no later balance of the account may go negative (the lowest running balance after the time).
+   available:=least(available,(SELECT min(s."Balance After") FROM public."Cash Account Statement Recent" s
+     WHERE s."Ref Cash Account"=wd_line->>'fromAccountId' AND (s."Statement Date">wd_day OR (s."Statement Date"=wd_day AND s."Sort Timestamp">wd_ts))));
    IF (wd_line->>'amount')::numeric>available THEN RAISE EXCEPTION USING ERRCODE='P5B10';END IF;
   END LOOP;
   BEGIN

@@ -3212,6 +3212,9 @@ BEGIN
     INTO available FROM public."Cash Account Daily Summary Recent" d WHERE d."Ref Cash Account"=wd_line->>'fromAccountId' AND d."Statement Date"=wd_day;
    IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P5B08';END IF;
    IF available IS NULL THEN RAISE EXCEPTION USING ERRCODE='P5B07';END IF;
+   -- Back-dated: no later balance of the account may go negative (the lowest running balance after the time).
+   available:=least(available,(SELECT min(s."Balance After") FROM public."Cash Account Statement Recent" s
+     WHERE s."Ref Cash Account"=wd_line->>'fromAccountId' AND (s."Statement Date">wd_day OR (s."Statement Date"=wd_day AND s."Sort Timestamp">wd_ts))));
    IF (wd_line->>'amount')::numeric>available THEN RAISE EXCEPTION USING ERRCODE='P5B10';END IF;
   END LOOP;
   BEGIN

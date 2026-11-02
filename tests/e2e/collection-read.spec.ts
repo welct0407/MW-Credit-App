@@ -26,6 +26,8 @@ test('R115 Collection loads one board of up to 100 borrowers; more than 100 show
  await page.goto(base);await page.getByRole('button',{name:'Continue with Google'}).click();await page.getByRole('button',{name:'Collection',exact:true}).click();
  // All 27 rows (more than the former 25-row page) in one board, a count line, no board pager.
  await expect(page.locator('.collection-compact-tile')).toHaveCount(27);await expect(page.locator('.collection-workspace .list-count')).toHaveText('27 borrowers');
+ // COLL-3: the count line lines up with the Left/Right line below it.
+ expect(Math.abs((await page.locator('.collection-workspace .list-count').boundingBox())!.x-(await page.locator('.collection-workspace .list-meaning-legend').boundingBox())!.x)).toBeLessThan(1);
  expect(board).toEqual(['?limit=100']);await expect(page.getByRole('button',{name:/Collection page$/})).toHaveCount(0);await expect(page.locator('.collection-workspace .list-more')).toHaveCount(0);
  // COLL-2 (phone): the page scrolls, not an inner list; the last row clears the bottom bar.
  if(info.project.name.startsWith('mobile')){const panel=page.locator('.collection-workspace .list-panel');expect(await panel.evaluate(e=>e.scrollHeight<=e.clientHeight+1)).toBe(true);await page.locator('.collection-compact-tile').last().scrollIntoViewIfNeeded();await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));const last=(await page.locator('.collection-compact-tile').last().boundingBox())!,bar=await page.locator('.live-bottom-nav').boundingBox();if(bar)expect(last.y+last.height).toBeLessThanOrEqual(bar.y)}
