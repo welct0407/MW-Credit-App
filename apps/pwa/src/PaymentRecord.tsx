@@ -1,4 +1,4 @@
-import {shortDate,whole} from './pay-forward-text';
+import {shortDate} from './pay-forward-text';
 import {paymentMethodLabel,REBATE_OFFSET_METHOD} from './payment-method-label';
 import {useAppUpdateBlock} from './app-update-safety';
 import {Icon} from './Icon';
@@ -43,8 +43,10 @@ export function PaymentRecord({access,id,thai,onBack,backLabel}:{access:CommandA
  // UX-CHK-04: while the payment is "Confirming…" the disabled actions say why; otherwise RecordAction's own title.
  const confirmingTitle=item?.localPending?t('Available once confirmed','ใช้ได้หลังยืนยันแล้ว'):undefined;
   // R111 RP-11: the referred loan this payment closed and what became of its rebate.
- const closeRebateLine=(r:any):string=>{if(!r||!whole(r.amount))return '';
-  if(r.offsetPaymentId&&whole(r.offsetAmount)){const payable=whole(r.payableAmount)&&BigInt(r.payableAmount)>0n?r.payableAmount:null;
+ // The API sends these amounts in its decimal money format ("300.00"), like the other money fields here (wholeBaht).
+ const money=(v:unknown)=>typeof v==='string'&&/^\d+(?:\.\d+)?$/.test(v);
+ const closeRebateLine=(r:any):string=>{if(!r||!money(r.amount))return '';
+  if(r.offsetPaymentId&&money(r.offsetAmount)){const payable=money(r.payableAmount)&&Number(r.payableAmount)>0?r.payableAmount:null;
    return t('Loan closed · rebate '+wholeBaht(r.offsetAmount)+' offset to '+(r.offsetLoanLabel??r.referrerLabel)+(r.paidThrough?', paid through '+shortDate(r.paidThrough,false):'')+(payable?' · '+wholeBaht(payable)+' stays payable':''),
     'ปิดสินเชื่อแล้ว · หักค่าแนะนำ '+wholeBaht(r.offsetAmount)+' กับสินเชื่อ '+(r.offsetLoanLabel??r.referrerLabel)+(r.paidThrough?' ชำระถึง '+shortDate(r.paidThrough,true):'')+(payable?' · ค้างจ่าย '+wholeBaht(payable):''));}
   return t('Loan closed · rebate '+wholeBaht(r.amount)+' to '+r.referrerLabel+', transfer from Lisa','ปิดสินเชื่อแล้ว · ค่าแนะนำ '+wholeBaht(r.amount)+' ให้ '+r.referrerLabel+' โอนจาก Lisa');};
