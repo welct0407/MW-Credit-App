@@ -8,6 +8,8 @@ Scope: Release 2 only, on top of R110 (`pwa_pay_forward_plan_v1` and payment com
 
 Owner authority (2 November 2026): "Merge PR 202 and promote to prod. After it's done, start release 2 development, and test it in dev". It authorizes building R111, the D2 schema change (new nullable column "Ref Offset Payment" on Business Expenses and payment method "Referral Rebate Offset"), opening the pull request and the DEV deployment and test. It does not authorize PROD, merging or Release 3.
 
+Owner extension (2 November 2026): the owner asked what happens when a loan closes without the Loan Close page, then approved "Go ahead with 1 and 2". This covers the two decisions below (V124, functions only); it adds no PROD, merge or Release 3 authority.
+
 Owner decisions (plan revision 6):
 | Id | Decision |
 | --- | --- |
@@ -30,6 +32,8 @@ Decisions recorded in the build:
 - Offset push wording: the offset payment's push reads as a rebate offset (`2cec8e99`); the "Loan closed" push carries "Rebate X to <referrer>, transfer from Lisa" for the payable part.
 - The notify owner receives SELECT on Payments "Payment Method" so `pwa_notify_content_v2` can read it.
 - V123 (`pay_forward_helper_governance`): Forge saw the DEV role reconcile grant EXECUTE on `pwa_apply_pay_forward_v1` to `mw_app_dev`. Archie found no privilege escalation (SECURITY INVOKER; the app role already has that DML) but a design breach. V123 adds a governance comment so the reconcile skips the helper, revokes EXECUTE from `mw_app_<env>` and PUBLIC, adds a journal-owner guard and a self-check, and makes the `create_referral_rebate` notes read "Rebate from loan <PWA loan key>". V122 stays unedited because it was already applied to DEV. An older client's close records path=expense, which is intended.
+- Extension decision 1 (V124): any close of a referred loan by another path (Receive payment, the Instagram agent, chat, a correction re-post) auto-offsets the rebate to the referrer's open loan when Close Date is today. A historical re-post stays expense-only. A referrer-schedule refusal falls back to the expense and never fails the borrower's payment. The Loan Close page keeps its choice. Design: Archie's V124 extension design (create_referral_rebate computes the forward plan, locks the referrer first, records a `system.rebate-offset` journal row, and the deferred rebate trigger fires inside the payment command).
+- Extension decision 2 (V124): the "transfer from Lisa" reminder moves to the closing payment's "Payment received" push (`payment.posted`). The "Loan closed" push is only emitted for closes without a closing payment (`public-functions.sql:3452`), so the old placement never reached Lisa. `pwa_notify_content_v2` is replaced in place with the same shape; no line when the rebate is fully offset. The PaymentRecord shows the same rebate line.
 - Archie's resolutions: the chosen path is the `rebatePath` input and `result_json.rebate`, and a re-close preview defaults to it; the offset is SQL-posted with no command v11; a correction of an offset-bearing closing payment is refused and deletion cascades; the referrer's due charges are paid first (plan rule); mutual referrers can deadlock to `command_busy`, which is accepted.
 
 Team (six-agent process, this session): Archie designed, Byte built the code, Chase verified on a disposable cluster (DEV test pending), Echo reviewed the built UI, Dewey kept records. Forge deploys DEV, including the notify worker, because V122 adds `pwa_notify_content_v2`; PROD is not authorized.
@@ -112,6 +116,7 @@ None for the owner at this point.
 ## Remaining work
 - Forge: apply V123 to DEV (migration only, no image change), then Chase re-tests the helper's ACL on DEV.
 - Open: the notification content could not be read on DEV; the "Paid in advance" tile (the R110 leftover) is to be rechecked from 3 November.
+- V124 (functions only): Byte builds it; then Chase verifies, Forge applies it to DEV. The other documents (database README, Data Model, Solution Design, Development Changes) are updated after the code lands.
 - Deferred: COL-2, the Collection "rebate offset" caption (needs read-role grants).
 - Open the pull request and deploy to DEV for testing (authorized); PROD promotion and merge need a separate scoped owner instruction.
 - Release 3 of the plan.
