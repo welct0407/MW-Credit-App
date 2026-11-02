@@ -52,6 +52,21 @@ async function readPayForwardPlan(client,borrowerId,amountReceived,purpose){
   if(!(await client.query(`SELECT to_regprocedure('public.pwa_pay_forward_plan_v1(text,numeric,date,jsonb)') IS NOT NULL AS present`)).rows[0].present)return null;
   return (await client.query(`SELECT public.pwa_pay_forward_plan_v1($1,$2::numeric,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date,$3::jsonb) AS plan`,[borrowerId,amountReceived,JSON.stringify(purpose)])).rows[0].plan;
 }
+/** R113: per loan a plan settles, the referral rebate its close creates (pwa_referral_rebate_projection_v1 over the same
+ * Loan Close quote): {amount, referrer, offset} where offset says the V124 default settles it on the referrer's open loan. */
+async function settleCloses(client,plan,businessDate){
+  const closes={};
+  for(const entry of (plan.principal??[]).filter(row=>row.kind==='settle')){
+    let rebate=null;
+    if((await client.query(`SELECT to_regprocedure('public.pwa_referral_rebate_projection_v1(text,jsonb)') IS NOT NULL AS present`)).rows[0].present){
+      const calculation=(await client.query('SELECT public.loan_close_calculation_v83($1,$2::date) AS value',[entry.loanId,businessDate])).rows[0].value;
+      const projection=(await client.query('SELECT public.pwa_referral_rebate_projection_v1($1,$2::jsonb) AS value',[entry.loanId,JSON.stringify(calculation)])).rows[0].value;
+      if(projection)rebate={amount:projection.amount,referrer:borrowerDisplayName(projection.referrerName,projection.referrerDescription),offset:projection.hasOpenLoan===true&&projection.selfReferral!==true};
+    }
+    closes[entry.loanId]={payoff:entry.payoff,gapInterest:entry.accruedInterest,charges:entry.charges,rebate};
+  }
+  return closes;
+}
 /** R110: the receiving label of each loan of the borrower ({loanId: label}), for plan rows that are not recorded charges. */
 async function loanLabels(client,borrowerId){
   const rows=(await client.query(`SELECT l."Row ID" AS id,l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate,b."Borrower Name" AS name,b."Description" AS description
@@ -84,7 +99,9 @@ async function commandPurpose(client,businessDate,allocations,materialize,princi
   const future=allocations.filter(line=>line.chargeDate>businessDate),named=new Map(materialize.map(row=>[row.chargeId,row.loanId]));
   const unknown=future.filter(line=>!named.has(line.chargeId)).map(line=>line.chargeId);
   const recorded=unknown.length?new Map((await client.query('SELECT "Row ID" AS id,"Ref Loans" AS loan FROM public."Charges" WHERE "Row ID"=ANY($1::text[])',[unknown])).rows.map(row=>[row.id,row.loan])):new Map();
-  const loans=new Set(future.map(line=>named.get(line.chargeId)??recorded.get(line.chargeId)??null));
+  // R113: a settled loan's later charges are its Loan Close quote's lines, not pay forward (as the command derives it).
+  const settled=new Set(principal.filter(row=>row.kind==='settle').map(row=>row.loanId));
+  const loans=new Set(future.map(line=>named.get(line.chargeId)??recorded.get(line.chargeId)??null).filter(loan=>!settled.has(loan)));
   if(loans.has(null))return null;
   return {forward:loans.size>0,principal:principal.map(row=>({loanId:row.loanId,amount:row.amount})),loans:loans.size?[...loans].sort((a,b)=>Buffer.compare(Buffer.from(a),Buffer.from(b))):null};
 }
@@ -92,7 +109,9 @@ async function commandPurpose(client,businessDate,allocations,materialize,princi
 const planLine=row=>({chargeId:row.chargeId,principal:row.principal,interest:row.interest,expectedPrincipalRemaining:row.expectedPrincipalRemaining,expectedInterestRemaining:row.expectedInterestRemaining,chargeDate:row.chargeDate});
 const planEntry=row=>({loanId:row.loanId,chargeId:row.chargeId,chargeDate:row.chargeDate,principalDue:row.principalDue,interestDue:row.interestDue});
 const planPrincipal=row=>({loanId:row.loanId,kind:row.kind,chargeId:row.chargeId,chargeDate:row.chargeDate,amount:row.amount,accruedInterest:row.accruedInterest,principalDue:row.principalDue});
-const samePlan=(plan,allocations,materialize,principal)=>!!plan&&plan.uncovered==='0'&&Array.isArray(plan.settles)&&plan.settles.length===0
+// R113: a loan the plan settles is a settle entry; a request that reaches a loan's principal without settling it is blocked
+// and has no entry, so the entries' comparison refuses it.
+const samePlan=(plan,allocations,materialize,principal)=>!!plan&&plan.uncovered==='0'&&Array.isArray(plan.settles)
   &&JSON.stringify(plan.allocations.map(planLine))===JSON.stringify(allocations.map(planLine))&&JSON.stringify(plan.materialize.map(planEntry))===JSON.stringify(materialize.map(planEntry))
   &&JSON.stringify(plan.principal.map(planPrincipal))===JSON.stringify(principal.map(planPrincipal));
 // R075: one recognizer call per uploaded slip for a form session; rules are never cached.
@@ -357,11 +376,27 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         if(!forward)return {ok:true,value:null};
         const options=[];
         for(const option of (forward.options??[]).slice(0,PRINCIPAL_PREVIEW_LIMIT)){
-          const amount=BigInt(forward.remainder)-BigInt(option.accruedInterest);if(amount<=0n)continue;
+          // R113: a loan only a settle can take (kind null) is offered with its payoff remainder; settles: the request reaches
+          // the outstanding principal (it settles at exactly the payoff remainder, else it is blocked).
+          const settleOnly=option.kind===null||option.kind===undefined;
+          const amount=settleOnly?BigInt(option.payoffRemainder??'0'):BigInt(forward.remainder)-BigInt(option.accruedInterest);if(amount<=0n)continue;
           const plan=await readPayForwardPlan(client,borrowerId,amountReceived,{forward:false,principal:[{loanId:option.loanId,amount:amount.toString()}],loans:null});
-          options.push({loanId:option.loanId,amount:amount.toString(),settles:plan.settles.includes(option.loanId),entry:plan.principal[0]??null});
+          options.push({loanId:option.loanId,amount:amount.toString(),settles:plan.settles.includes(option.loanId),entry:plan.principal[0]??null,
+            payoffRemainder:option.payoffRemainder??null,settlesWith:option.settlesWith??null,...(settleOnly?{settleOnly:true}:{})});
         }
-        return {ok:true,value:{amount:forward.remainder,loans:await loanLabels(client,borrowerId),forward:{rows:forward.forward,paidThrough:forward.paidThrough,uncovered:forward.uncovered,blocked:forward.blocked},principal:options}};
+        // R113 "Repay principal": the remainder over the loans in Row ID order: a loan whose payoff remainder fits settles, the
+        // rest flows to the next loan (partial principal when the loan takes it), what is left stays uncovered (Review waits).
+        let left=BigInt(forward.remainder);const requests=[];
+        for(const option of forward.options??[]){
+          if(left<=0n||requests.length>=20)break;
+          const payoff=typeof option.payoffRemainder==='string'?BigInt(option.payoffRemainder):null;
+          if(payoff!==null&&payoff>0n&&left>=payoff){requests.push({loanId:option.loanId,amount:payoff.toString()});left-=payoff;continue;}
+          if(option.kind==='raise'||option.kind==='book'){const part=left-BigInt(option.accruedInterest);if(part>0n&&part<BigInt(option.outstanding)){requests.push({loanId:option.loanId,amount:part.toString()});left=0n;}}
+        }
+        let repay=null;
+        if(requests.length){const purpose={forward:false,principal:requests,loans:null};const plan=await readPayForwardPlan(client,borrowerId,amountReceived,purpose);
+          repay={purpose,settles:plan.principal.filter(entry=>entry.kind==='settle').map(entry=>entry.loanId),uncovered:plan.uncovered};}
+        return {ok:true,value:{amount:forward.remainder,loans:await loanLabels(client,borrowerId),forward:{rows:forward.forward,paidThrough:forward.paidThrough,uncovered:forward.uncovered,blocked:forward.blocked},principal:options,repay}};
       },true);
       // run() spreads the operation's value into its result: unwrap it (an empty value is no preview, e.g. before V121).
       if(!result.ok)return undefined;const {ok:_ok,status:_status,...value}=result;return Object.keys(value).length?value:undefined;
@@ -376,7 +411,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         if(!(await client.query('SELECT 1 FROM public."Borrowers" WHERE "Row ID"=$1',[borrowerId])).rowCount)return failure(404,'not_found');
         const businessDate=(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day;
         let plan;try{plan=await readPayForwardPlan(client,borrowerId,input.amountReceived,purpose)}catch(error){if(error?.code==='22023')return failure(400,'invalid_request');throw error}
-        return {ok:true,value:{businessDate,purpose,plan,loans:plan?await loanLabels(client,borrowerId):{}}};
+        return {ok:true,value:{businessDate,purpose,plan,loans:plan?await loanLabels(client,borrowerId):{},closes:plan?await settleCloses(client,plan,businessDate):{}}};
       },true);
     },
     async review(principal,borrowerId,input){

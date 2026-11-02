@@ -60,11 +60,16 @@ class OptionsProposalTests(unittest.TestCase):
         self.assertEqual(proposal['action'],'Lump Sum');self.assertNotIn('options',proposal)
 
     def test_a_refused_option_is_left_out_with_the_reason(self):
-        # The remainder would settle the loan: no principal option, the text points to Loan Close.
+        # The remainder would settle the loan: no principal option; it settles in the app (R113), the loan key names it.
         with patch('mw_integration_agent.review_proposal.read_query',side_effect=planner(forward_plan(4),principal_plan(settles=['L1']))):
             proposal=plan(receipt(1500),B,facts(300),DAY,config=ON)
         text=json.dumps(proposal,ensure_ascii=False)
         self.assertNotIn('"kind": "raise"',text);self.assertIn('settles',text.lower())
+        # R113: a loan only a settle can take (kind null, payoffRemainder within the remainder) is blocked as settles too, never offered.
+        settle_only=forward_plan(4);settle_only['options']=[{'loanId':'L1','kind':None,'payoffRemainder':'1000','settlesWith':{'payoff':'1300','gapInterest':'0','charges':'300','planHash':'a'*64}}]
+        with patch('mw_integration_agent.review_proposal.read_query',side_effect=planner(settle_only,principal_plan())):
+            proposal=plan(receipt(1500),B,facts(300),DAY,config=ON)
+        self.assertEqual([b['reason'] for b in proposal['options']['blocked']],['settles']);self.assertEqual(proposal['options']['principal'],[])
         # Beyond the 93-day horizon the forward option states what is left and points to Loan Close.
         with patch('mw_integration_agent.review_proposal.read_query',side_effect=planner(forward_plan(93,uncovered='400'),principal_plan())):
             proposal=plan(receipt(1500),B,facts(300),DAY,config=ON)

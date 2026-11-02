@@ -335,15 +335,19 @@ test('R110: Repay principal on a non-schedule day books today with accrued inter
  assert.equal((await admin.query(`SELECT "Interest Due"::numeric::text AS i FROM "Charges" WHERE "Ref Loans"='R110-P1' AND "Charge Date"=$1::date`,[await day(7)])).rows[0].i,'63.00');
 });
 
-test('R110: a plan that settles the loan has no principal entry, and a hand-made one is plan_changed (use Close Loan)',async()=>{
+test('R113: a plan that settles the loan carries a settle entry; a hand-made raise entry is plan_changed; the settle command posts and closes the loan',async()=>{
  await r110Borrower('R110-BS',[['R110-S1',{principal:100,cdi:1}]],[['R110-S1-today','R110-S1',0,0,1]]);
  const plan=planOf(await store.plan(principal,'R110-BS',{amountReceived:'101',purpose:{forward:false,principal:[{loanId:'R110-S1',amount:'100'}],loans:null}}));
- assert.ok(plan.settles.includes('R110-S1'));assert.deepEqual(plan.principal,[]);
+ assert.ok(plan.settles.includes('R110-S1'));assert.equal(plan.principal.length,1);assert.equal(plan.principal[0].kind,'settle');assert.equal(plan.principal[0].payoff,'101');assert.equal(plan.principal[0].amount,'100');
  const line={chargeId:'R110-S1-today',principal:'100',interest:'1',expectedPrincipalRemaining:'100',expectedInterestRemaining:'1',chargeDate:today};
  const entry={loanId:'R110-S1',kind:'raise',chargeId:'R110-S1-today',chargeDate:today,amount:'100',accruedInterest:'0',principalDue:'100'};
  const review=await store.review(principal,'R110-BS',{amountReceived:'101',allocations:[line],materialize:[],principal:[entry]});
  assert.equal(review.status,409,JSON.stringify(review));assert.equal(review.code,'plan_changed');
  const refused=await store.submit(principal,{...toCommand('R110-BS',101,{allocations:[line],materialize:[],principal:[]}),principal:[entry]});
  assert.equal(refused.originalOutcome?.status,'rejected',JSON.stringify(refused));
- assert.equal((await admin.query('SELECT "Outstanding Principal"::numeric::text AS o FROM "Loans" WHERE "Row ID"=$1',['R110-S1'])).rows[0].o,'100.00');
+ assert.equal((await admin.query('SELECT "Outstanding Principal"::numeric::text AS o FROM "Loans" WHERE "Row ID"=$1',['R110-S1'])).rows[0].o,'100.00','the rejected raise changed nothing');
+ const settle={...entry,kind:'settle'};
+ const posted=await store.submit(principal,{...toCommand('R110-BS',101,{allocations:[line],materialize:[],principal:[]}),principal:[settle]});
+ assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));
+ const loan=(await admin.query('SELECT "Loan Status" AS s,"Outstanding Principal"::numeric::text AS o FROM "Loans" WHERE "Row ID"=$1',['R110-S1'])).rows[0];assert.deepEqual(loan,{s:'ปิดยอดแล้ว',o:'0.00'});
 });

@@ -46,7 +46,7 @@ function RemainderChoice({options,choice,choosing,thai,onChoose,onChange,changeR
  const [loanId,setLoanId]=useState(options.principal[0]?.loanId??''),[amount,setAmount]=useState('');
  const option=options.principal.find(row=>row.loanId===loanId)??options.principal[0];
  const forwardText=options.forward?(options.forward.rows.length?dateRange(options.forward.rows[0].chargeDate,options.forward.rows.at(-1)!.chargeDate,thai):'')+(options.forward.paidThrough?(thai?' ชำระถึง ':', paid through ')+shortDate(options.forward.paidThrough,thai):''):null;
- const principalText=(row:PurposeOptions['principal'][number]|undefined)=>row?(row.loanDisplayKey?row.loanDisplayKey+' · ':'')+money(row.amount)+(row.dailyAfter?t(' · new interest ',' · ดอกเบี้ยใหม่ ')+money(row.dailyAfter)+t('/day','/วัน'):''):'';
+ const principalText=(row:PurposeOptions['principal'][number]|undefined)=>row?.closes?.length?t('Closes ','ปิด ')+row.closes.map(close=>close.loanDisplayKey??close.loanId).join(', '):row?(row.loanDisplayKey?row.loanDisplayKey+' · ':'')+money(row.amount)+(row.dailyAfter?t(' · new interest ',' · ดอกเบี้ยใหม่ ')+money(row.dailyAfter)+t('/day','/วัน'):''):'';
  const chosen=choice?.kind==='forward'?t('Pay forward','ชำระล่วงหน้า')+(forwardText?' ('+forwardText+')':''):choice?.kind==='principal'?t('Repay principal','ชำระเงินต้น')+' · '+principalText(options.principal.find(row=>row.loanId===choice.loanId))
   :choice?.kind==='split'?t('Split','แบ่งชำระ')+' · '+t('principal ','เงินต้น ')+money(choice.amount)+t(', the rest pays forward',' ส่วนที่เหลือชำระล่วงหน้า'):'';
  const split=()=>/^[1-9][0-9]{0,16}$/.test(amount)&&option?onChoose({kind:'split',loanId:option.loanId,amount}):onChoose(null);
@@ -70,6 +70,9 @@ function ChosenRows({options,choice,thai}:{options:PurposeOptions;choice:Purpose
   <span className="chat-nowrap">{money(run.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest),0n).toString())}</span></li>)}</ul>;
  const option=choice.kind!=='forward'?options.principal.find(row=>row.loanId===choice.loanId):undefined;
  if(!option)return null;
+ // R113 (Echo CH-6): Repay principal that settles loans: one "Closes <key> · payoff ฿X" line per loan, as on the form.
+ if(choice.kind==='principal'&&option.closes?.length)return <ul className="chat-proposal-chosen">{option.closes.map(close=><li key={close.loanId}>
+  <span>{t('Closes ','ปิด ')+(close.loanDisplayKey??close.loanId)+(close.payoff?' · '+t('payoff ','ยอดปิด ')+money(close.payoff):'')}</span></li>)}</ul>;
  return <ul className="chat-proposal-chosen"><li><span>{t('Principal','เงินต้น')}{option.loanDisplayKey?' · '+option.loanDisplayKey:''}{option.outstandingBefore&&option.outstandingAfter&&choice.kind==='principal'?' · '+money(option.outstandingBefore)+' → '+money(option.outstandingAfter):''}</span>
   <span className="chat-nowrap">{money(choice.kind==='split'?choice.amount:option.amount)}</span></li>
   {choice.kind==='split'&&<li><span>{t('Pay forward','ชำระล่วงหน้า')}</span><span className="chat-nowrap">{money((BigInt(options.remainder)-BigInt(choice.amount)).toString())}</span></li>}</ul>;

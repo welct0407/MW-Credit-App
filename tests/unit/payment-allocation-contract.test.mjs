@@ -89,6 +89,22 @@ test('R110 v10 = v8 plus materialize (several per loan, may be empty) and princi
  assert.throws(()=>canonicalCommand({...v10,schemaVersion:9}),'v9 refuses principal');
  assert.throws(()=>canonicalCommand({...missing,schemaVersion:9,materialize:[e1,e2],allocations:[first,second],amountReceived:'100'}),'v9 keeps one entry per loan');
 });
+test('R113 v10 settle entries: the Loan Close quote of a loan (target charge, payoff remainder, gap interest, outstanding principal)',()=>{
+ // Ying (synthetic): two loans settle with one payment; the lines are each loan's Loan Close quote.
+ const l1={chargeId:'Y1-today',principal:'1000',interest:'20',expectedPrincipalRemaining:'1000',expectedInterestRemaining:'20',chargeDate:'2026-11-02'};
+ const l2={chargeId:'Y2-today',principal:'2000',interest:'200',expectedPrincipalRemaining:'2000',expectedInterestRemaining:'200',chargeDate:'2026-11-02'};
+ const s1={loanId:'Y1',kind:'settle',chargeId:'Y1-today',chargeDate:'2026-11-02',amount:'1000',accruedInterest:'0',principalDue:'1000'},s2={...s1,loanId:'Y2',chargeId:'Y2-today',amount:'2000',principalDue:'2000'};
+ const v10={...command,schemaVersion:10,allocations:[l1,l2],amountReceived:'3220',paymentDate:'2026-11-02',paymentMethod:'Bank Transfer',bankReference:null,transferTime:null,payerLines:null,materialize:[],principal:[s2,s1]};
+ const value=canonicalCommand(v10);
+ assert.deepEqual(value.principal.map(row=>[row.loanId,row.kind]),[['Y1','settle'],['Y2','settle']],'ordered by loan');
+ // A gap-interest close: the target is the quote's final charge lc7:, whose line carries principal and gap interest; the
+ // amount (payoff remainder) is not a single line's principal.
+ const lc7={chargeId:'lc7:2:G1:2026-11-02',principal:'1000',interest:'60',expectedPrincipalRemaining:'1000',expectedInterestRemaining:'60',chargeDate:'2026-11-02'};
+ const gap=canonicalCommand({...v10,allocations:[lc7],amountReceived:'1060',principal:[{loanId:'G1',kind:'settle',chargeId:lc7.chargeId,chargeDate:'2026-11-02',amount:'1060',accruedInterest:'60',principalDue:'1000'}]});
+ assert.equal(gap.principal[0].amount,'1060');
+ for(const bad of [{principal:[{...s1,kind:'close'}]},{principal:[{...s1,amount:'0'}]},{principal:[s1,s1]},{principal:[{...s1,extra:'1'}]}])
+  assert.throws(()=>canonicalCommand({...v10,...bad}),undefined,JSON.stringify(bad));
+});
 test('R110 v10 with entries is dated the business day only; other versions are not restricted by this rule',async()=>{
  const {payForwardDayAllowed}=await import('../../services/contracts/payment-command.mjs');
  const first={chargeId:'cg8:5:L-ไทย:2026-10-09',principal:'0',interest:'70',expectedPrincipalRemaining:'0',expectedInterestRemaining:'70',chargeDate:'2026-10-09'};

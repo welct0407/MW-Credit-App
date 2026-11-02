@@ -67,17 +67,21 @@ export function canonicalMaterializePlan(input,allocations,{several=false}={}){
  * loan, sorted by loanId byte order. kind "raise" raises the Principal Due of the loan's charge dated chargeDate to
  * principalDue (accruedInterest "0"); kind "book" books that day's charge pf121:<length in code points>:<loan>:<date> with
  * principalDue = amount and the accrued interest. Each is paid by an allocation line of that charge with at least the amount
- * as principal. The server recomputes the whole plan (pwa_pay_forward_plan_v1) and requires this to equal it.
+ * as principal. R113: kind "settle" closes the loan with its Loan Close quote (chargeId the quote's target charge, amount the
+ * payoff remainder, accruedInterest the gap interest, principalDue the outstanding principal). The server recomputes the
+ * whole plan (pwa_pay_forward_plan_v1) and requires this to equal it.
  */
 export function canonicalPrincipalPlan(input,allocations){
   if(!Array.isArray(input)||input.length>20||!Array.isArray(allocations))fail();
   const entries=Array.from(input,row=>{
     exact(row,['loanId','kind','chargeId','chargeDate','amount','accruedInterest','principalDue']);
     const loanId=id(row.loanId),chargeId=id(row.chargeId),chargeDate=date(row.chargeDate),amount=whole(row.amount),accruedInterest=whole(row.accruedInterest),principalDue=whole(row.principalDue);
-    if(/[,\s]/u.test(chargeId)||amount==='0'||!['raise','book'].includes(row.kind))fail();
+    if(/[,\s]/u.test(chargeId)||amount==='0'||!['raise','book','settle'].includes(row.kind))fail();
     if(row.kind==='book'&&(chargeId!=='pf121:'+Array.from(loanId).length+':'+loanId+':'+chargeDate||principalDue!==amount))fail();
     if(row.kind==='raise'&&(accruedInterest!=='0'||BigInt(principalDue)<BigInt(amount)))fail();
-    if(!allocations.some(line=>line.chargeId===chargeId&&line.chargeDate===chargeDate&&BigInt(line.principal)>=BigInt(amount)))fail();
+    // R113 settle: the loan's Loan Close quote (target charge, payoff remainder, gap interest, outstanding principal); its
+    // lines are the quote's, so no single line carries the amount.
+    if(row.kind!=='settle'&&!allocations.some(line=>line.chargeId===chargeId&&line.chargeDate===chargeDate&&BigInt(line.principal)>=BigInt(amount)))fail();
     return {loanId,kind:row.kind,chargeId,chargeDate,amount,accruedInterest,principalDue};
   });
   if(new Set(entries.map(row=>row.loanId)).size!==entries.length)fail();

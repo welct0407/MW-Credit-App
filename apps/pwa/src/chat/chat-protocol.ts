@@ -9,7 +9,9 @@ export type ProposalCard={version:number;operation:string;label:{en:string;th:st
  consequences:{code:string;amount?:string}[];split?:{chargeId:string;loanDisplayKey:string|null;chargeDate:string;principal:string;interest:string;projected:boolean}[];purposeOptions?:PurposeOptions};
 /** R112: a payment card's remainder choices (services/chat/payment-plan.mjs purposeOptions); nothing is preselected. */
 export type PurposeRow={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string;principal:string;interest:string;partial:boolean};
-export type PurposePrincipal={loanId:string;loanDisplayKey:string|null;amount:string;dailyBefore:string|null;dailyAfter:string|null;outstandingBefore:string|null;outstandingAfter:string|null};
+export type PurposePrincipal={loanId:string;loanDisplayKey:string|null;amount:string;dailyBefore:string|null;dailyAfter:string|null;outstandingBefore:string|null;outstandingAfter:string|null;
+ /** R113: Repay principal that settles loans: its per-loan requests and the loans it closes at their Loan Close payoff. */
+ principal?:{loanId:string;amount:string}[];closes?:{loanId:string;loanDisplayKey:string|null;payoff:string|null}[]};
 export type PurposeOptions={remainder:string;dueAmount:string|null;businessDate:string;forward:{from:string;paidThrough:string|null;rows:PurposeRow[]}|null;principal:PurposePrincipal[];split:boolean;settles?:boolean;uncovered?:string};
 export type PurposeChoice={kind:'forward'}|{kind:'principal';loanId:string}|{kind:'split';loanId:string;amount:string};
 /** The Confirm body's purpose for a choice the card offers, or null (no choice, a loan not offered, a split amount that is
@@ -18,7 +20,7 @@ export function choicePurpose(options:PurposeOptions|undefined,choice:PurposeCho
  if(!options||!choice)return null;
  if(choice.kind==='forward')return options.forward?{forward:true,principal:[]}:null;
  const option=options.principal.find(row=>row.loanId===choice.loanId);if(!option)return null;
- if(choice.kind==='principal')return {forward:false,principal:[{loanId:option.loanId,amount:option.amount}]};
+ if(choice.kind==='principal')return {forward:false,principal:option.principal?option.principal.map(row=>({loanId:row.loanId,amount:row.amount})):[{loanId:option.loanId,amount:option.amount}]};
  if(!options.split||!/^[1-9][0-9]{0,16}$/.test(choice.amount)||BigInt(choice.amount)>=BigInt(option.amount))return null;
  return {forward:true,principal:[{loanId:option.loanId,amount:choice.amount}]};
 }

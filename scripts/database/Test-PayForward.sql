@@ -230,7 +230,7 @@ BEGIN
  PERFORM pg_temp.pf_assert(allocated+(p->>'uncovered')::numeric=10070,'horizon: allocated plus uncovered equals the amount');
  -- 1i. Settlement guard: the principal part reaches the outstanding principal.
  p:=pg_temp.pf_plan('PF-BS',101,pg_temp.pf_purpose(false,'[{"loanId":"PF-S1","amount":"100"}]',NULL));
- PERFORM pg_temp.pf_assert(p->'settles' ? 'PF-S1','settlement: reported so the form can send the Partner to Loan Close');
+ PERFORM pg_temp.pf_assert(p->'settles' ? 'PF-S1','settlement: the plan lists the loan it settles (R113: the payment closes it)');
  -- 1j. Gates: no forward charge for unpaid principal on a charge, auto-charge off, a closed loan; installment has no principal option.
  p:=pg_temp.pf_plan('PF-BG',500,pg_temp.pf_purpose(true,NULL,NULL));
  PERFORM pg_temp.pf_assert(NOT EXISTS(SELECT 1 FROM jsonb_array_elements(p->'materialize') e WHERE e->>'loanId' IN ('PF-G-PRIN','PF-G-OFF','PF-G-CLOSED')),'gates: unpaid principal, auto charge off and closed loans offer no future charge');
@@ -262,12 +262,9 @@ BEGIN
  -- Tampered principal due: selection_unavailable (plan_changed in the API), nothing posted.
  r:=public.pwa_submit_selected_charges_v1(current_setting('pf.raise_tamper'));
  IF r->'originalOutcome'->>'status'<>'rejected' OR r->'originalOutcome'->>'code'<>'selection_unavailable' THEN RAISE EXCEPTION 'tampered raise: %',r; END IF;
- -- A plan that settles the loan has no principal entry to send (the plan reports it in settles), so the command is not valid.
- BEGIN
-  r:=public.pwa_submit_selected_charges_v1(current_setting('pf.settle'));
-  IF r->'originalOutcome'->>'status'<>'rejected' THEN RAISE EXCEPTION 'settling plan: %',r; END IF;
- EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
- END;
+ -- R113: a plan that settles the loan posts and closes it (it was refused before V126; Test-PayForwardSettle.sql has the full settle cases).
+ r:=public.pwa_submit_selected_charges_v1(current_setting('pf.settle'));
+ IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION 'settling plan must post: %',r; END IF;
  -- Legacy versions still post.
  r:=public.pwa_submit_selected_charges_v1(current_setting('pf.v9'));
  IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION 'v9 must still post: %',r; END IF;
@@ -335,8 +332,8 @@ BEGIN
  PERFORM pg_temp.pf_assert(public.generate_due_charges(day+3,ARRAY['PF-P3'])=1,'the generator books PF-P3 on day+3');
  PERFORM pg_temp.pf_assert((SELECT "Interest Due"::numeric=9 FROM public."Charges" WHERE "Ref Loans"='PF-P3' AND "Charge Date"=day+3),'split: the schedule continues at 9');
  -- Rejections left nothing behind.
- PERFORM pg_temp.pf_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower" IN ('PF-BS','PF-BD','PF-BY')),'rejected commands posted nothing');
- PERFORM pg_temp.pf_assert((SELECT "Principal Due"::numeric=0 FROM public."Charges" WHERE "Row ID"='PF-S1-today') AND (SELECT "Outstanding Principal"::numeric=100 FROM public."Loans" WHERE "Row ID"='PF-S1'),'a settling plan changed nothing');
+ PERFORM pg_temp.pf_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower" IN ('PF-BD','PF-BY')),'rejected commands posted nothing');
+ PERFORM pg_temp.pf_assert((SELECT "Loan Status"='ปิดยอดแล้ว' AND "Outstanding Principal"::numeric=0 FROM public."Loans" WHERE "Row ID"='PF-S1') AND (SELECT "Amount Remaining"::numeric=0 FROM public."Charges" WHERE "Row ID"='PF-S1-today'),'a settling plan posts and closes the loan (R113)');
  PERFORM pg_temp.pf_assert((SELECT count(*)=1 FROM public."Charges" WHERE "Ref Loans"='PF-X1' AND "Charge Date">day),'drift: only the charge booked meanwhile exists, unpaid');
  PERFORM pg_temp.pf_assert((SELECT count(*)=2 FROM public.pwa_payment_commands WHERE outcome='rejected' AND rejection_code='selection_unavailable' AND request_id::text LIKE 'c%'),'tampering and drift rejections journalled');
  PERFORM pg_temp.pf_assert(NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id::text LIKE 'c7777777-%' OR request_id::text LIKE 'c8888888-%'),'invalid commands left no journal row');

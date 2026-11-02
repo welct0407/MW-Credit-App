@@ -148,7 +148,19 @@ export function purposeOptions(assigned,due){
  const covered=r.forward?.uncovered==='0'&&rows.length>0;
  const paidThrough=plain(r.forward?.paidThrough)?Object.values(r.forward.paidThrough).filter(DAY).sort().at(-1)??null:null;
  const forward=covered?{from:rows[0].chargeDate,paidThrough,rows:rows.slice(0,200).map(row=>({loanId:row.loanId,chargeId:row.chargeId,chargeDate:row.chargeDate,principalDue:row.principalDue,interestDue:row.interestDue,principal:row.principal,interest:row.interest,partial:row.partial===true}))}:null;
- const principal=(Array.isArray(r.principal)?r.principal:[]).filter(o=>plain(o)&&ID(o.loanId)&&WHOLE(o.amount)&&o.amount!=='0'&&o.settles!==true&&plain(o.entry)).slice(0,20)
+ // R113: when Repay principal (the server's purpose over the loans in Row ID order) closes loans and covers the remainder,
+ // it is the one principal choice: it settles each loan at its Loan Close payoff (card: "Closes …", loan_close_payoff).
+ const repay=plain(r.repay)&&plain(r.repay.purpose)&&Array.isArray(r.repay.purpose.principal)&&r.repay.purpose.principal.length&&Array.isArray(r.repay.settles)&&r.repay.settles.length&&r.repay.uncovered==='0'?r.repay:null;
+ if(repay){
+  const byLoan=new Map((Array.isArray(r.principal)?r.principal:[]).filter(o=>plain(o)&&ID(o.loanId)).map(o=>[o.loanId,o]));
+  const lines=repay.purpose.principal.filter(x=>plain(x)&&ID(x.loanId)&&WHOLE(x.amount)).map(x=>({loanId:x.loanId,amount:x.amount}));
+  const closes=repay.settles.filter(ID).map(loanId=>({loanId,loanDisplayKey:typeof labels[loanId]==='string'?labels[loanId]:null,payoff:byLoan.get(loanId)?.settlesWith?.payoff??null}));
+  if(lines.length===repay.purpose.principal.length&&closes.length){
+   const option={loanId:lines[0].loanId,loanDisplayKey:closes.map(x=>x.loanDisplayKey??x.loanId).join(', '),amount:r.amount,dailyBefore:null,dailyAfter:null,outstandingBefore:null,outstandingAfter:null,principal:lines,closes};
+   return {remainder:r.amount,dueAmount:assigned.allocated??null,businessDate:due.businessDate,forward,principal:[option],split:false};
+  }
+ }
+ const principal=(Array.isArray(r.principal)?r.principal:[]).filter(o=>plain(o)&&ID(o.loanId)&&WHOLE(o.amount)&&o.amount!=='0'&&o.settles!==true&&o.settleOnly!==true&&plain(o.entry)).slice(0,20)
   .map(o=>({loanId:o.loanId,loanDisplayKey:typeof labels[o.loanId]==='string'?labels[o.loanId]:null,amount:o.amount,dailyBefore:WHOLE(o.entry.dailyBefore)?o.entry.dailyBefore:null,dailyAfter:WHOLE(o.entry.dailyAfter)?o.entry.dailyAfter:null,
    outstandingBefore:WHOLE(o.entry.outstandingBefore)?o.entry.outstandingBefore:null,outstandingAfter:WHOLE(o.entry.outstandingAfter)?o.entry.outstandingAfter:null}));
  const settles=(Array.isArray(r.principal)?r.principal:[]).some(o=>plain(o)&&o.settles===true);
@@ -161,12 +173,19 @@ export function purposeOptions(assigned,due){
  * [{loanId, amount between 1 and the offered amount less 1}]}. Returns the plan route's purpose (loans null). */
 export function chosenPurpose(options,input){
  const bad=()=>{throw new ToolError('PURPOSE_NOT_OFFERED');};
+ // R113: a Repay principal choice that settles loans carries its whole per-loan request list (option.principal).
+ const repay=options.principal.find(o=>Array.isArray(o.principal));
+ if(repay&&plain(input)&&input.forward===false&&Array.isArray(input.principal)&&input.principal.length>1){
+  if(Object.keys(input).sort().join(',')!=='forward,principal'||JSON.stringify(input.principal.map(x=>({loanId:x?.loanId,amount:x?.amount})))!==JSON.stringify(repay.principal))bad();
+  return {forward:false,principal:repay.principal.map(x=>({loanId:x.loanId,amount:x.amount})),loans:null};
+ }
  if(!plain(input)||Object.keys(input).sort().join(',')!=='forward,principal'||typeof input.forward!=='boolean'||!Array.isArray(input.principal)||input.principal.length>1)bad();
  const line=input.principal[0];
  if(line!==undefined&&(!plain(line)||Object.keys(line).sort().join(',')!=='amount,loanId'||!WHOLE(line.amount)||line.amount==='0'))bad();
  const option=line?options.principal.find(o=>o.loanId===line.loanId):null;
  if(!line){if(!input.forward||!options.forward)bad();}
  else if(!option)bad();
+ else if(Array.isArray(option.principal)){if(input.forward||JSON.stringify([{loanId:line.loanId,amount:line.amount}])!==JSON.stringify(option.principal))bad();return {forward:false,principal:option.principal.map(x=>({loanId:x.loanId,amount:x.amount})),loans:null};}
  else if(!input.forward){if(line.amount!==option.amount)bad();}
  else if(!options.split||BigInt(line.amount)>=BigInt(option.amount))bad();
  return {forward:input.forward,principal:line?[{loanId:line.loanId,amount:line.amount}]:[],loans:null};
@@ -176,7 +195,8 @@ async function payForward({call,base,requestId,borrowerId,amountReceived,payment
  const read=await call('POST',base+'/plan',{amountReceived,purpose});
  const plan=read?.plan;
  if(!plain(plan)||read.businessDate!==paymentDate)throw new ToolError('PLAN_CHANGED');
- if(Array.isArray(plan.settles)&&plan.settles.length)throw new ToolError('PAY_FORWARD_SETTLES');
+ // R113: a loan the plan settles is a settle entry (the command closes it); one a request reaches without settling refuses.
+ if(Array.isArray(plan.settles)&&plan.settles.some(id=>!(plan.principal??[]).some(e=>e?.loanId===id&&e.kind==='settle')))throw new ToolError('PAY_FORWARD_SETTLES');
  if(plan.uncovered!=='0')throw new ToolError('PAY_FORWARD_UNCOVERED');
  if(!Array.isArray(plan.principal)||plan.principal.length!==purpose.principal.length||!Array.isArray(plan.allocations)||!Array.isArray(plan.materialize))throw new ToolError('PLAN_CHANGED');
  const principal=plan.principal.map(e=>({loanId:e.loanId,kind:e.kind,chargeId:e.chargeId,chargeDate:e.chargeDate,amount:e.amount,accruedInterest:e.accruedInterest,principalDue:e.principalDue}));
