@@ -14,11 +14,9 @@ import {CompactPager} from './CompactPager';
 import {borrowerCount,moreBorrowers} from './borrower-count';
 import {PaymentHistory} from './PaymentHistory';
 import {SelectedCharges,type CommandAccess} from './SelectedCharges';
-import {OperationConfirm} from './OperationConfirm';
 import {LateChargeStepper,LATE_STEP,lateAtFloor,lateNote,useLateChargeShortcut} from './LateChargeStepper';
 import {useOnline} from './online-status';
 import {wholeText} from './whole-number-input';
-import {beginRequest} from './request-activity';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
 import { UpcomingCharges, type UpcomingSummary, type UpcomingDetail } from './UpcomingCharges';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -103,7 +101,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       else window.scrollTo({ top: savedDetailScroll.current });
     }
   }, [selectedCharge, upcomingDetail]);
-  // R118 (LC-COL-R2-1): the refresh after a late-charge Confirm briefly shortens the list (upcoming reloads), which clamps the
+  // R118 (LC-COL-R2-1): the refresh after a late-charge step briefly shortens the list (upcoming reloads), which clamps the
   // restored position; it is applied again on every commit of that refresh, before paint, until the refresh settles.
   const reapplyAfterReload=useRef(false);
   // biome-ignore lint/correctness/useExhaustiveDependencies: charges and upcoming are the commits of the refresh to follow; the position itself is read from refs
@@ -231,35 +229,26 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   useContextRefresh(!!selected&&!paymentOpen&&!receiptRecord&&!selectedCharge&&!loanOpen&&!borrowerOpen,upcomingDetail?t('First upcoming details page / refresh','หน้าแรกของรายละเอียดล่วงหน้า / รีเฟรช'):t('First charges page / refresh','หน้าแรกยอดเรียกเก็บ / รีเฟรช'),()=>{if(upcomingDetail)void openUpcoming(upcomingDetail.dueDate,undefined,1,true);else if(selected)void loadCharges(selected)});
   // R118: the shortcut shows where Receive does, online only (LC-COL-2, LC-COL-4).
   const lateShortcut=!!commandAccess&&!!selected&&(!!commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===selected.id)&&online&&!commandAccess.offlineOnly;
-  const lateLine=(charge:Charge)=>{const due=wholeText(charge.lateChargeDue??'0')??'0',paid=latePaidOf(charge),context=charge.loanDisplayKey+' '+date(charge.chargeDate),fetching=lateBusy===charge.id;
-    return <div className="charge-late-line" aria-busy={fetching||undefined}>{due==='0'?<button type="button" className="secondary-button" disabled={busy||!!lateBusy} aria-label={t('Increase late charge by '+LATE_STEP+' for ','เพิ่มค่าปรับล่าช้า '+LATE_STEP+' สำหรับ ')+context} onClick={()=>void stepLateCharge(charge,LATE_STEP)}>{t('+'+LATE_STEP+' Late charge','+'+LATE_STEP+' ค่าปรับล่าช้า')}</button>
-      :<LateChargeStepper value={due} floor={paid} thai={thai} context={context} disabled={busy||!!lateBusy} describedBy={lateAtFloor(due,paid)?'charge-late-note-'+charge.id:undefined} onChange={next=>void stepLateCharge(charge,BigInt(next)>BigInt(due)?LATE_STEP:-LATE_STEP)}/>}
-      {lateError===charge.id&&<small role="alert">{t('Charge could not be loaded. Try again.','โหลดรายการเรียกเก็บไม่ได้ ลองอีกครั้ง')}</small>}{lateNotice?.id===charge.id&&!!lateNotice.text&&<small role="status">{lateNotice.text}</small>}</div>;};
+  const lateLine=(charge:Charge)=>{const due=wholeText(charge.lateChargeDue??'0')??'0',paid=latePaidOf(charge),context=charge.loanDisplayKey+' '+date(charge.chargeDate),fetching=late.busy===charge.id||!!late.held[charge.id],locked=busy||!!late.busy||!!late.held[charge.id];
+    return <div className="charge-late-line" aria-busy={fetching||undefined}>{due==='0'?<button type="button" className="secondary-button" disabled={locked} aria-label={t('Increase late charge by '+LATE_STEP+' for ','เพิ่มค่าปรับล่าช้า '+LATE_STEP+' สำหรับ ')+context} onClick={()=>void stepLateCharge(charge,LATE_STEP)}>{t('+'+LATE_STEP+' Late charge','+'+LATE_STEP+' ค่าปรับล่าช้า')}</button>
+      :<LateChargeStepper value={due} floor={paid} thai={thai} context={context} disabled={locked} describedBy={lateAtFloor(due,paid)?'charge-late-note-'+charge.id:undefined} onChange={next=>void stepLateCharge(charge,BigInt(next)>BigInt(due)?LATE_STEP:-LATE_STEP)}/>}
+      {lateNotice?.id===charge.id&&!!lateNotice.text&&<small role="status">{lateNotice.text}</small>}</div>;};
   const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} access={commandAccess} borrowerId={selected?.id} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { cancel(); revision.current++; setBusy(false); setUpdateState('idle'); restoreDetailScroll.current = true; setUpcomingError(null); setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onPrevious={upcomingPage>1&&upcomingDetail?()=>void openUpcoming(upcomingDetail.dueDate,upcomingCursors.current[upcomingPage-2],upcomingPage-1,true):undefined} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
+  // R118 owner feedback: a tap applies at once (no Confirm page) and reports in a bottom toast; the row then refreshes in
+  // place, the list keeping its scroll position (LC-COL-R2-1) through the refresh that briefly shortens it.
   async function stepLateCharge(charge:Charge,step:number){
-    if(!commandAccess||lateBusy)return;const done=beginRequest(),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);setLateBusy(charge.id);setLateError(null);setLateNotice(null);
-    try{
-      if(commandAccess.offlineOnly||!navigator.onLine)throw Error('offline');
-      const response=await fetch(commandAccess.origin+'/api/charge-records/'+encodeURIComponent(charge.id),{headers:{Authorization:'Bearer '+await commandAccess.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
-      if(response.status===401||response.status===403)commandAccess.authFailure(response.status);
-      const item=response.ok?(await response.json())?.item:null;if(!item||item.id!==charge.id||typeof item.version!=='string')throw Error('unavailable');
-      const before=wholeText(item.lateChargeDue??'0')??'0',paid=wholeText(item.lateChargePaid??'0')??'0',next=stepLate(before,step,paid);
-      // R118 (Echo LC-COL-R2-3): the live record leaves nothing to change (what was paid is the floor): say so and refresh the row.
-      if(next===before){setLateNotice({id:charge.id,text:lateNote(before,paid,thai)||lateNote(paid,paid,thai)});void chargeChanged();return;}
-      // LC-COL-R2-1: the list's scroll position comes back after Confirm or Back, as from the row's details button.
-      savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;
-      setLateCommand({command:lateChargeCommand(item,next),item,charge});
-    }catch{setLateError(charge.id);}finally{clearTimeout(timer);done();setLateBusy(null);}
+    setLateNotice(null);
+    const outcome=await late.step(charge.id,step,selected?.displayName??'');
+    // R118 (Echo LC-COL-R2-3): the live record leaves nothing to change (what was paid is the floor): say so on the row.
+    if(outcome.result==='unchanged')setLateNotice({id:charge.id,text:lateNote(outcome.before,outcome.paid,thai)||lateNote(outcome.paid,outcome.paid,thai)});
+    if(['applied','unchanged','refused'].includes(outcome.result)){savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;reapplyAfterReload.current=true;void chargeChanged();}
   }
-  // R118 (LC-COL-R2-1): the late-charge Confirm shows over the list, which stays mounted (hidden), so its borrower header,
-  // history and note do not load again and move the rows when it returns.
-  const lateConfirm=lateCommand&&commandAccess?<OperationConfirm key={lateCommand.command.requestId} access={commandAccess} domain="charge" command={lateCommand.command} label={t('Late charge','ค่าปรับล่าช้า')} thai={thai} onBack={()=>{restoreDetailScroll.current=true;setLateCommand(null)}} onApplied={()=>{restoreDetailScroll.current=true;setLateCommand(null);reapplyAfterReload.current=true;void chargeChanged()}} rejectionText={code=>lateRejection(code,thai)}><LateChargeConfirm command={lateCommand.command} before={lateCommand.item.lateChargeDue} context={lateCommand.charge.loanDisplayKey} thai={thai}/></OperationConfirm>:null;
   if(loanOpen&&commandAccess)return <LoanRecord access={commandAccess} id={loanOpen} thai={thai} onBack={()=>setLoanOpen(null)}/>;
   if(borrowerOpen&&selected&&commandAccess)return <SharedBorrowerDetail access={commandAccess} id={selected.id} label={selected.displayName} thai={thai} onBack={()=>setBorrowerOpen(false)}/>;
   if(selectedCharge&&commandAccess)return <ChargeRecord key={selectedCharge.id} access={commandAccess} id={selectedCharge.id} thai={thai} backLabel={t('Back to charges','กลับรายการเรียกเก็บ')} onChanged={()=>void chargeChanged()} onBack={()=>{restoreDetailScroll.current=true;setSelectedCharge(null)}}/>;
   if(receiptRecord&&commandAccess)return <PaymentRecord access={commandAccess} id={receiptRecord} thai={thai} onBack={()=>setReceiptRecord(null)}/>;
   if(paymentOpen&&commandAccess)return <SelectedCharges access={commandAccess} borrowerId={selected?.id??commandAccess.fixtureBorrowerId} thai={thai} onBack={()=>{setPaymentOpen(false);if(selected)void loadCharges(selected);else void loadBoard()}}/>;
-  return <>{lateConfirm}<section className="collection-workspace" style={lateConfirm?{display:'none'}:undefined} aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
+  return <>{late.toastElement}<section className="collection-workspace" aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
 
 
     {commandAccess&&pendingPayment&&<button type="button" className="secondary-button" onClick={()=>setPaymentOpen(true)}>{t('Check pending payment status','ตรวจสอบคำขอรับชำระที่ค้างอยู่')}</button>}
