@@ -15,8 +15,7 @@ import {borrowerCount,moreBorrowers} from './borrower-count';
 import {PaymentHistory} from './PaymentHistory';
 import {SelectedCharges,type CommandAccess} from './SelectedCharges';
 import {OperationConfirm} from './OperationConfirm';
-import {lateChargeCommand,LateChargeConfirm} from './ChargeRecord';
-import {LateChargeStepper,LATE_STEP,stepLate,lateAtFloor,lateNote,lateRejection} from './LateChargeStepper';
+import {LateChargeStepper,LATE_STEP,lateAtFloor,lateNote,useLateChargeShortcut} from './LateChargeStepper';
 import {useOnline} from './online-status';
 import {wholeText} from './whole-number-input';
 import {beginRequest} from './request-activity';
@@ -83,7 +82,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   }, []);
   // R118 (Echo LC-COL-1..6): the late-charge shortcut reads the charge live (its version and fields) before Confirm.
   const online=useOnline();
-  const [lateCommand,setLateCommand]=useState<{command:any;item:any;charge:Charge}|null>(null),[lateBusy,setLateBusy]=useState<string|null>(null),[lateError,setLateError]=useState<string|null>(null),[lateNotice,setLateNotice]=useState<{id:string;text:string}|null>(null);
+  const late=useLateChargeShortcut(commandAccess,thai),[lateNotice,setLateNotice]=useState<{id:string;text:string}|null>(null);
   const revision = useRef(0);
   const listPanel = useRef<HTMLElement | null>(null);
   const detailPanel = useRef<HTMLElement | null>(null);
@@ -98,21 +97,21 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     if (window.innerWidth <= 1050) panel.scrollIntoView({ block: 'start' });
   }, [scrollTarget]);
   useLayoutEffect(() => {
-    if (restoreDetailScroll.current && !selectedCharge && !upcomingDetail && !lateCommand) {
+    if (restoreDetailScroll.current && !selectedCharge && !upcomingDetail) {
       restoreDetailScroll.current = false;
       if (window.innerWidth > 1050 && detailPanel.current) detailPanel.current.scrollTop = savedDetailScroll.current;
       else window.scrollTo({ top: savedDetailScroll.current });
     }
-  }, [selectedCharge, upcomingDetail, lateCommand]);
+  }, [selectedCharge, upcomingDetail]);
   // R118 (LC-COL-R2-1): the refresh after a late-charge Confirm briefly shortens the list (upcoming reloads), which clamps the
   // restored position; it is applied again on every commit of that refresh, before paint, until the refresh settles.
   const reapplyAfterReload=useRef(false);
   // biome-ignore lint/correctness/useExhaustiveDependencies: charges and upcoming are the commits of the refresh to follow; the position itself is read from refs
   useLayoutEffect(()=>{
-    if(!reapplyAfterReload.current||lateCommand||selectedCharge||upcomingDetail)return;
+    if(!reapplyAfterReload.current||selectedCharge||upcomingDetail)return;
     if(window.innerWidth>1050&&detailPanel.current)detailPanel.current.scrollTop=savedDetailScroll.current;else window.scrollTo({top:savedDetailScroll.current});
     if(!busy)reapplyAfterReload.current=false;
-  },[charges,upcoming,busy,lateCommand,selectedCharge,upcomingDetail]);
+  },[charges,upcoming,busy,selectedCharge,upcomingDetail]);
   function reset(keepBoard=false) { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); if(!keepBoard){setItems([]);setCursor(null);setBusinessDate('');setAsOf('');setPage(1)}setSelected(null);setCharges([]);setChargeCursor(null);setChargeAsOf('');setChargePage(1); }
   function fail(code: ReadFailure<CollectionReadError>) { reset(); setError(code); setUpdateState('error'); }
   async function loadBoard(next?: string, pageNumber = 1) {
