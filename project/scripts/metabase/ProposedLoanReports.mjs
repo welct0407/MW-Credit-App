@@ -4,10 +4,13 @@
 // rebuilds the named tabs and archives state-owned questions the spec dropped; --verify checks structure, parity and preservation.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {api,assertSource,root} from './ReportingApi.mjs';
+import {api,assertSource,privateDirFor,root} from './ReportingApi.mjs';
+import {writeOffIncomeRow} from './WriteOffSegregation.mjs';
 import {longLaneCards} from './AddLongOverdueLane.mjs';
 export const out=root+'/outputs/loan-reports-redesign-20261026';
-export const priv=process.env.MW_METABASE_PRIVATE_DIR||'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/loan-reports-redesign-20261026';
+// R116 PROD: MW_METABASE_PRIVATE_DIR, else ~/.mw-private/MW-Credit-App/metabase/loan-reports-redesign-20261026; never a path
+// inside the checkout (the old Windows default is relative on Linux).
+export const priv=privateDirFor('loan-reports-redesign-20261026');
 fs.mkdirSync(priv,{recursive:true});
 export const save=(n,x,dir=out)=>fs.writeFileSync(`${dir}/${n}.json`,JSON.stringify(x,null,2)+'\n');
 export const read=(n,dir=out)=>JSON.parse(fs.readFileSync(`${dir}/${n}.json`,'utf8'));
@@ -283,8 +286,8 @@ if(args.includes('--rebaseline-dashboard3=R102')){
 if(args.includes('--rebaseline-dashboard3=R116')){
  await assertSource();read('state');const writeoffs=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.writeoffs;
  assert(writeoffs,'run Refine-WriteOffSegregation.mjs --apply first');
- const d=await api('GET','dashboard/3'),placed=d.dashcards.filter(c=>c.dashboard_tab_id===16&&c.card_id===writeoffs);
- assert.deepEqual(placed.map(c=>[c.row,c.col,c.size_x,c.size_y]),[[3,12,6,3]],'the write-off question is not placed on dashboard 3 tab 16');
+ // The R116 five-card scalar row of tab 16 (WriteOffSegregation.mjs), wherever the live row sits; anything else refuses.
+ const d=await api('GET','dashboard/3');writeOffIncomeRow(d.dashcards,writeoffs,16);
  if(fs.existsSync(`${priv}/dashboard-3-before.json`))fs.copyFileSync(`${priv}/dashboard-3-before.json`,`${priv}/dashboard-3-before-pre-r116.json`);
  save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline-r116',{at:new Date().toISOString(),reason:'R116 write-off segregation (Refine-WriteOffSegregation.mjs)',question:writeoffs,dashcards:d.dashcards.length},priv);
  console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,question:writeoffs}));

@@ -2,10 +2,12 @@
 // Finalize-IncomeRefinement.mjs and Verify-IncomePage.mjs. Metabase reads loan_manager_prod, so this runs only at the R116
 // PROD promotion, under the owner's approval and after V128 is applied to PROD; never against DEV data, never as a replay of
 // Install-IncomePage.mjs. Models stay pass-through (their SQL is unchanged); no service, Dockerfile or start.sh change.
-//   --plan     print the intended change; no API call.
+//   --plan     print the intended change; no API call. --plan --live also reads live Metabase (GET only) and reports
+//              the detected tab 16 row, notes, waterfall, snippet and model state, and whether --prepare would accept them.
 //   --prepare  assert the PROD source and capture the private baseline (snippet 2, model 186, questions 168-171 and 204,
-//              dashboard 3, the collection permission graph) under MW_METABASE_PRIVATE_DIR/r116-writeoff-segregation;
-//              refuses to overwrite an existing baseline.
+//              dashboard 3, the collection permission graph) under MW_METABASE_PRIVATE_DIR/r116-writeoff-segregation
+//              (default ~/.mw-private/MW-Credit-App/metabase/r116-writeoff-segregation; never inside the repository);
+//              refuses to overwrite an existing baseline and refuses any tab 16 row but the live four-card one.
 //   --apply    refuses unless the source carries V128 and every touched object still equals the baseline (or this change);
 //              then, each step skipped when already done:
 //              1. snippet 2 "Income statement period" = live-income-period.sql (adds signed "Principal Write-offs"; Net
@@ -13,8 +15,10 @@
 //              2. model 186 Income Events: its result metadata gains "Principal Write-offs" (the model SQL is unchanged);
 //              3. a new question "Principal write-offs" (the scalar, beside question 169 in its collection);
 //              4. question 204, the waterfall: a "Write-offs" step after Expenses; its total stays Net profit;
-//              5. dashboard 3 tab 16: the scalar row becomes Income, Expenses, Principal write-offs, Net profit (four of
-//                 width 6), the formula note and the waterfall title name write-offs; nothing else on any tab changes.
+//              5. dashboard 3 tab 16: the live scalar row (168, 169, 170, 171 at width 6, since 28 October) becomes
+//                 Income, Expenses, Principal write-offs, Net profit, Average daily net profit at widths 5/5/5/5/4 on the
+//                 same grid row (WriteOffSegregation.mjs writeOffRow), the formula note and the waterfall title name
+//                 write-offs; the cards keep their ids, titles, filters and mappings; nothing else on any tab changes.
 //              The new question id is written to statement-cleanup-state.json (cards.writeoffs), so StatementCleanup.mjs
 //              lays the page out the same way; a sanitized record goes to statement-cleanup/writeoff-segregation.json.
 //   --verify   period parity against independent SQL on the governed views (gross, expenses, write-offs, net, average and
@@ -28,12 +32,13 @@
 // cards), archive the new question and remove cards.writeoffs from the state; V128 stays (its columns are additive).
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {api,assertSource,privateDir,root,read,write} from './ReportingApi.mjs';
+import {api,assertSource,privateDirFor,root,read,write} from './ReportingApi.mjs';
 import {BRIDGE_BEFORE_NAME,BRIDGE_BEFORE_SQL,NOTE_BEFORE,SNIPPET_PREFIX,WRITE_OFF_BRIDGE_NAME,WRITE_OFF_BRIDGE_SQL,WRITE_OFF_BRIDGE_TITLE,
- WRITE_OFF_NOTE,WRITE_OFF_SCALAR_NAME,WRITE_OFF_SCALAR_SQL,incomeQuery,incomeRow} from './WriteOffSegregation.mjs';
+ WRITE_OFF_NOTE,WRITE_OFF_SCALAR_NAME,WRITE_OFF_SCALAR_SQL,incomeQuery,LIVE_ROW_CARDS,writeOffRow,liveIncomeRow,writeOffIncomeRow} from './WriteOffSegregation.mjs';
 
 const args=process.argv.slice(2);
-const priv=(process.env.MW_METABASE_PRIVATE_DIR||privateDir)+'/r116-writeoff-segregation';
+// R116 PROD: never a path inside the checkout (MW_METABASE_PRIVATE_DIR/<name>, else ~/.mw-private/MW-Credit-App/metabase/<name>).
+const priv=privateDirFor('r116-writeoff-segregation',{under:true});
 const save=(name,value)=>{fs.mkdirSync(priv,{recursive:true});fs.writeFileSync(`${priv}/${name}.json`,JSON.stringify(value,null,2)+'\n');};
 const load=name=>JSON.parse(fs.readFileSync(`${priv}/${name}.json`,'utf8'));
 const STATE='statement-cleanup-state.json',TAB=16,SNIPPET=2,MODEL=186,BRIDGE=204,PARAMETER='review-income',COLUMN='Principal Write-offs';
@@ -42,7 +47,8 @@ const sql=c=>c?.dataset_query?.stages?.[0]?.native??c?.dataset_query?.native?.qu
 const shape=c=>({id:c.id,card_id:c.card_id,dashboard_tab_id:c.dashboard_tab_id,row:c.row,col:c.col,size_x:c.size_x,size_y:c.size_y,parameter_mappings:c.parameter_mappings,visualization_settings:c.visualization_settings});
 const byId=(a,b)=>a.id-b.id;
 const noteText=c=>c.visualization_settings?.virtual_card?.visualization_settings?.text;
-const rowCards=[168,169,170];
+// The live scalar row (since 28 October 2026): 168, 169, 170 and 171, which the write-off question joins as a fifth card.
+const rowCards=[...LIVE_ROW_CARDS];
 // The tab 16 dashcards this change edits: the scalar row, the formula note and the waterfall placement.
 const edited=(c,writeoffs)=>c.dashboard_tab_id===TAB&&([...rowCards,writeoffs].includes(c.card_id)||c.card_id===BRIDGE||(!c.card_id&&[NOTE_BEFORE,WRITE_OFF_NOTE].includes(noteText(c))));
 const native=(query,tags={})=>({database:2,type:'native',native:{query,'template-tags':tags}});
@@ -54,9 +60,29 @@ async function assertV128(){
 const plan={snippet:{id:SNIPPET,file:'live-income-period.sql',adds:COLUMN},model:{id:MODEL,adds_metadata:COLUMN,sql:'unchanged'},
  question:{name:WRITE_OFF_SCALAR_NAME,display:'scalar',query:SNIPPET_PREFIX+WRITE_OFF_SCALAR_SQL,mapping:PARAMETER},
  bridge:{id:BRIDGE,before:{name:BRIDGE_BEFORE_NAME,query:SNIPPET_PREFIX+BRIDGE_BEFORE_SQL},after:{name:WRITE_OFF_BRIDGE_NAME,query:SNIPPET_PREFIX+WRITE_OFF_BRIDGE_SQL}},
- dashboard:{id:3,tab:TAB,row:incomeRow('<new>').map(([card,title,col,width])=>({card,title,col,width})),note:WRITE_OFF_NOTE,bridge_title:WRITE_OFF_BRIDGE_TITLE}};
+ dashboard:{id:3,tab:TAB,live_row:LIVE_ROW_CARDS,row:writeOffRow('<new>').map(([card,title,col,width])=>({card,title,col,width})),note:WRITE_OFF_NOTE,bridge_title:WRITE_OFF_BRIDGE_TITLE},
+ private_dir:priv};
 
-if(args.includes('--plan'))console.log(JSON.stringify(plan,null,1));
+// --plan prints the change; --plan --live also reads live Metabase with GET requests only (no query runs, nothing written)
+// and reports whether --prepare would accept it. Positions, ids, names and states only; no amounts.
+if(args.includes('--plan')){
+ console.log(JSON.stringify(plan,null,1));
+ if(args.includes('--live')){
+  await assertSource();
+  const d=await api('GET','dashboard/3'),snippet=await api('GET','native-query-snippet/'+SNIPPET),bridge=await api('GET','card/'+BRIDGE),model=await api('GET','card/'+MODEL);
+  const tab=d.dashcards.filter(c=>c.dashboard_tab_id===TAB);
+  let row=null,rowError=null;try{row=liveIncomeRow(d.dashcards,TAB)}catch(e){rowError=e.message}
+  let applied=null;try{applied=writeOffIncomeRow(d.dashcards,read(STATE).cards?.writeoffs,TAB)}catch{}
+  console.log(JSON.stringify({live:{dashboard:3,tab:TAB,tab_dashcards:tab.length,
+   scalar_row:tab.filter(c=>rowCards.includes(c.card_id)).sort((a,b)=>a.col-b.col).map(c=>({card:c.card_id,col:c.col,row:c.row,width:c.size_x,height:c.size_y,title:c.visualization_settings?.['card.title']??null})),
+   live_row_accepted:!!row,live_row_error:rowError,already_applied:!!applied,
+   formula_notes:{before:tab.filter(c=>!c.card_id&&noteText(c)===NOTE_BEFORE).length,after:tab.filter(c=>!c.card_id&&noteText(c)===WRITE_OFF_NOTE).length},
+   waterfall:sql(bridge)===SNIPPET_PREFIX+BRIDGE_BEFORE_SQL?'before':sql(bridge)===SNIPPET_PREFIX+WRITE_OFF_BRIDGE_SQL?'after':'differs',
+   snippet_2:snippet.content===snippetFile?'equals live-income-period.sql':snippet.content.includes(COLUMN)?'has the write-off column, differs from the file':'before (no write-off column)',
+   model_186_has_column:model.result_metadata.some(c=>c.name===COLUMN),
+   baseline_exists:fs.existsSync(`${priv}/dashboard-3.json`)}},null,1));
+ }
+}
 
 if(args.includes('--prepare')){
  await assertSource();assert(!fs.existsSync(`${priv}/dashboard-3.json`),'The R116 baseline already exists; it is never overwritten');
@@ -64,8 +90,8 @@ if(args.includes('--prepare')){
  assert(!snippet.content.includes(COLUMN),'Snippet 2 already carries the write-off column');
  for(const id of [MODEL,168,169,170,171,BRIDGE])cards[id]=await api('GET','card/'+id);
  assert.equal(sql(cards[BRIDGE]),SNIPPET_PREFIX+BRIDGE_BEFORE_SQL,'Question 204 differs from the canonical two-step waterfall');
- const d=await api('GET','dashboard/3'),row=d.dashcards.filter(c=>c.dashboard_tab_id===TAB&&rowCards.includes(c.card_id)).sort((a,b)=>a.col-b.col);
- assert.deepEqual(row.map(c=>[c.card_id,c.col,c.row,c.size_x,c.size_y]),incomeRow(null).map(([id,,col,w])=>[id,col,3,w,3]),'Tab 16 scalar row differs from the canonical layout');
+ // Fail closed: only the live four-card row (168, 169, 170, 171 at width 6 on one grid row) is accepted.
+ const d=await api('GET','dashboard/3');liveIncomeRow(d.dashcards,TAB);
  assert.equal(d.dashcards.filter(c=>c.dashboard_tab_id===TAB&&!c.card_id&&noteText(c)===NOTE_BEFORE).length,1,'Tab 16 formula note not found');
  save('snippet-2',snippet);save('cards',cards);save('dashboard-3',d);save('permissions',await api('GET','collection/graph'));
  console.log(JSON.stringify({prepared:true,dashcards:d.dashcards.length,tab16:d.dashcards.filter(c=>c.dashboard_tab_id===TAB).length,cards:Object.keys(cards).length}));
@@ -112,9 +138,10 @@ if(args.includes('--apply')){
   await api('PUT','card/'+BRIDGE,{name:WRITE_OFF_BRIDGE_NAME,dataset_query:query});done.push('waterfall');
  }
  // 5. Dashboard 3 tab 16.
- const d=await api('GET','dashboard/3'),writeoffs=state.cards.writeoffs;
+ const d=await api('GET','dashboard/3'),writeoffs=state.cards.writeoffs,line=liveIncomeRow(baseline.dashboard.dashcards,TAB);
  if(!d.dashcards.some(c=>c.dashboard_tab_id===TAB&&c.card_id===writeoffs)){
-  const layout=new Map(incomeRow(writeoffs).map(([id,title,col,width])=>[id,{title,col,width}]));
+  liveIncomeRow(d.dashcards,TAB);
+  const layout=new Map(writeOffRow(writeoffs).map(([id,title,col,width])=>[id,{title,col,width}]));
   const cards=d.dashcards.map(c=>{
    if(c.dashboard_tab_id!==TAB)return c;
    if(rowCards.includes(c.card_id))return {...c,col:layout.get(c.card_id).col,size_x:layout.get(c.card_id).width};
@@ -123,13 +150,12 @@ if(args.includes('--apply')){
    return c;
   });
   const {col,width,title}=layout.get(writeoffs);
-  cards.push({id:-1,card_id:writeoffs,dashboard_tab_id:TAB,col,row:3,size_x:width,size_y:3,series:[],
+  cards.push({id:-1,card_id:writeoffs,dashboard_tab_id:TAB,col,row:line.row,size_x:width,size_y:line.height,series:[],
    parameter_mappings:[{parameter_id:PARAMETER,card_id:writeoffs,target:['dimension',['template-tag','statement_period']]}],visualization_settings:{'card.title':title}});
   await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards});done.push('dashboard');
  }
  const after=await api('GET','dashboard/3');assertPreserved(after,baseline.dashboard,writeoffs);
- assert.deepEqual(after.dashcards.filter(c=>c.dashboard_tab_id===TAB&&[...rowCards,writeoffs].includes(c.card_id)).sort((a,b)=>a.col-b.col).map(c=>[c.card_id,c.col,c.row,c.size_x,c.size_y]),
-  incomeRow(writeoffs).map(([id,,col,w])=>[id,col,3,w,3]),'Tab 16 scalar row readback');
+ writeOffIncomeRow(after.dashcards,writeoffs,TAB,line);
  write('statement-cleanup/writeoff-segregation.json',{date:new Date().toISOString().slice(0,10),release:'R116',migration:'V128',dashboard_id:3,tab_id:TAB,question_id:writeoffs,
   waterfall_question:BRIDGE,snippet_id:SNIPPET,model_id:MODEL,model_sql_unchanged:true,steps:done,other_placements_unchanged:true,filters_unchanged:true,
   rollback:'Private r116-writeoff-segregation baseline (snippet 2, cards 168-171/186/204, dashboard 3, permissions); archive the new question'});
@@ -144,7 +170,7 @@ if(args.includes('--verify')){
  assert(writeoffs,'Run --apply first');
  const d=await api('GET','dashboard/3');
  check('Other placements, tabs and filters of dashboard 3 unchanged',(assertPreserved(d,baseline.dashboard,writeoffs),true));
- check('Tab 16 row: Income, Expenses, Principal write-offs, Net profit',JSON.stringify(d.dashcards.filter(c=>c.dashboard_tab_id===TAB&&[...rowCards,writeoffs].includes(c.card_id)).sort((a,b)=>a.col-b.col).map(c=>[c.card_id,c.col,c.row,c.size_x,c.size_y]))===JSON.stringify(incomeRow(writeoffs).map(([id,,col,w])=>[id,col,3,w,3])));
+ check('Tab 16 row: Income, Expenses, Principal write-offs, Net profit, Average daily net profit on the live grid row',(writeOffIncomeRow(d.dashcards,writeoffs,TAB,liveIncomeRow(baseline.dashboard.dashcards,TAB)),true));
  check('Formula note and waterfall title name write-offs',d.dashcards.some(c=>c.dashboard_tab_id===TAB&&!c.card_id&&noteText(c)===WRITE_OFF_NOTE)&&d.dashcards.find(c=>c.dashboard_tab_id===TAB&&c.card_id===BRIDGE)?.visualization_settings?.['card.title']===WRITE_OFF_BRIDGE_TITLE);
  const placed=d.dashcards.find(c=>c.dashboard_tab_id===TAB&&c.card_id===writeoffs);
  check('Write-off question follows the Statement period filter',JSON.stringify(placed.parameter_mappings.map(m=>[m.parameter_id,m.target]))===JSON.stringify([[PARAMETER,['dimension',['template-tag','statement_period']]]]));

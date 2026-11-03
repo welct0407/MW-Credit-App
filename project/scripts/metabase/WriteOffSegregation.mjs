@@ -23,3 +23,36 @@ export const incomeQuery=select=>({database:2,type:'native',native:{query:SNIPPE
 export const incomeRow=writeoffs=>writeoffs
  ?[[168,'Income',0,6],[169,'Expenses',6,6],[writeoffs,'Principal write-offs',12,6],[170,'Net profit',18,6]]
  :[[168,'Income',0,8],[169,'Expenses',8,8],[170,'Net profit',16,8]];
+
+// R116 PROD (3 November 2026): live dashboard 3 tab 16 does not have the three-card row above. Since 28 October its scalar
+// row is four cards of width 6 on one grid row: 168 Operating income, 169 Operating expenses, 170 Net profit and 171 Average
+// daily net profit. The write-off question joins that row as a fifth card, so the equation reads left to right on one line
+// and no other placement moves: Income 5, Expenses 5, Principal write-offs 5, Net profit 5, Average daily net profit 4
+// (cols 0, 5, 10, 15, 20). The cards keep their ids, titles, filters and parameter mappings; only col and width change.
+export const LIVE_ROW_CARDS=Object.freeze([168,169,170,171]);
+const LIVE_ROW=[[168,0,6],[169,6,6],[170,12,6],[171,18,6]];
+export const writeOffRow=writeoffs=>[[168,'Income',0,5],[169,'Expenses',5,5],[writeoffs,'Principal write-offs',10,5],[170,'Net profit',15,5],[171,'Average daily net profit',20,4]];
+const rowOf=(dashcards,tab,ids)=>dashcards.filter(c=>c.dashboard_tab_id===tab&&ids.includes(c.card_id)).sort((a,b)=>a.col-b.col||a.card_id-b.card_id);
+const oneLine=(cards,dashcards,tab,ids)=>{
+ if(new Set(cards.map(c=>c.row)).size!==1||new Set(cards.map(c=>c.size_y)).size!==1)return null;
+ const {row,size_y:height}=cards[0];
+ // No other card of the tab may share those grid rows (the row is the whole width of the 24-column grid).
+ if(dashcards.some(c=>c.dashboard_tab_id===tab&&!ids.includes(c.card_id)&&c.row<row+height&&c.row+c.size_y>row))return null;
+ return {row,height};
+};
+/** The live pre-R116 scalar row of tab 16, {row, height}; anything but 168, 169, 170, 171 at width 6 on one line throws. */
+export function liveIncomeRow(dashcards,tab=16){
+ const cards=rowOf(dashcards,tab,LIVE_ROW_CARDS),line=cards.length===4&&JSON.stringify(cards.map(c=>[c.card_id,c.col,c.size_x]))===JSON.stringify(LIVE_ROW)?oneLine(cards,dashcards,tab,LIVE_ROW_CARDS):null;
+ if(!line)throw Error('Tab 16 scalar row differs from the live four-card layout (168, 169, 170, 171 at width 6 on one grid row)');
+ return line;
+}
+/** The R116 scalar row of tab 16, {row, height}; anything but writeOffRow(writeoffs) on one line (and, when given, on the
+ *  row and height of the live baseline) throws. */
+export function writeOffIncomeRow(dashcards,writeoffs,tab=16,expected=null){
+ const ids=[...LIVE_ROW_CARDS,writeoffs],cards=rowOf(dashcards,tab,ids);
+ const want=JSON.stringify(writeOffRow(writeoffs).map(([id,,col,width])=>[id,col,width]));
+ const line=cards.length===5&&JSON.stringify(cards.map(c=>[c.card_id,c.col,c.size_x]))===want?oneLine(cards,dashcards,tab,ids):null;
+ if(!line||(expected&&(line.row!==expected.row||line.height!==expected.height)))
+  throw Error('Tab 16 scalar row differs from the R116 five-card layout (Income, Expenses, Principal write-offs, Net profit, Average daily net profit)');
+ return line;
+}

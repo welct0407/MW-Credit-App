@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -7,7 +8,18 @@ export const output=path.join(root,'outputs/r016-20260922');
 export const privateDir='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922';
 export const read=name=>JSON.parse(fs.readFileSync(path.join(output,name),'utf8').replace(/^\uFEFF/,''));
 export const write=(name,value)=>fs.writeFileSync(path.join(output,name),JSON.stringify(value,null,2)+'\n');
-const diagnosticsDir=process.env.MW_METABASE_PRIVATE_DIR||privateDir;
+/** R116: the private directory of a Metabase script (baselines, diagnostics). MW_METABASE_PRIVATE_DIR when set (as given,
+ *  or with `name` appended when `under` is true), else ~/.mw-private/MW-Credit-App/metabase/<name>. It must be absolute and
+ *  outside the repository: the old Windows default (privateDir) is a relative path on Linux and landed inside the checkout. */
+export function privateDirFor(name,{under=false,env=process.env,home=os.homedir(),repo=path.resolve(root,'..')}={}){
+ const base=(env.MW_METABASE_PRIVATE_DIR||'').trim();
+ const dir=base?(under?path.join(base,name):base):path.join(home,'.mw-private','MW-Credit-App','metabase',name);
+ const inside=path.relative(path.resolve(repo),path.resolve(dir));
+ if(!path.isAbsolute(dir)||inside===''||!(inside.startsWith('..')||path.isAbsolute(inside)))
+  throw Error('The Metabase private directory must be an absolute path outside the repository (set MW_METABASE_PRIVATE_DIR)');
+ return dir;
+}
+let diagnosticsDir;const diagnostics=()=>diagnosticsDir??=privateDirFor('diagnostics');
 let cachedKey;
 // Administrator API key 3 ("Report development"), regenerated 26 October 2026. Canonical copy: Secret Manager
 // mw-metabase-admin-api-key. Resolution order: METABASE_ADMIN_API_KEY, Secret Manager via gcloud, legacy VM-01 file.
@@ -25,7 +37,7 @@ export async function api(method,route,body){
  const key=apiKey();
  const response=await fetch('https://reports.mw-credit.com/api/'+route,{method,headers:{'X-API-Key':key,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(90000)});
  const text=await response.text();
- if(!response.ok){fs.mkdirSync(diagnosticsDir,{recursive:true});fs.writeFileSync(path.join(diagnosticsDir,'last-api-error.txt'),text);throw Error(`${method} ${route}: HTTP ${response.status}; diagnostic saved privately`);}
+ if(!response.ok){const dir=diagnostics();fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'last-api-error.txt'),text);throw Error(`${method} ${route}: HTTP ${response.status}; diagnostic saved privately`);}
  return JSON.parse(text);
 }
 export async function assertSource(){const s=await api('GET','database/2');if(s.details.dbname!=='loan_manager_prod'||s.details.user!=='metabase_borrower_reader'||s.details.host!=='127.0.0.1')throw Error('Unexpected reporting source');}
