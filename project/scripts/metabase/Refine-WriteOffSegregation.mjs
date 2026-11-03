@@ -34,7 +34,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource,privateDirFor,root,read,write} from './ReportingApi.mjs';
 import {BRIDGE_BEFORE_NAME,BRIDGE_BEFORE_SQL,NOTE_BEFORE,SNIPPET_PREFIX,WRITE_OFF_BRIDGE_NAME,WRITE_OFF_BRIDGE_SQL,WRITE_OFF_BRIDGE_TITLE,
- WRITE_OFF_NOTE,WRITE_OFF_SCALAR_NAME,WRITE_OFF_SCALAR_SQL,incomeQuery,LIVE_ROW_CARDS,writeOffRow,liveIncomeRow,writeOffIncomeRow} from './WriteOffSegregation.mjs';
+ WRITE_OFF_NOTE,WRITE_OFF_SCALAR_NAME,WRITE_OFF_SCALAR_SQL,incomeQuery,LIVE_ROW_CARDS,writeOffRow,liveIncomeRow,writeOffIncomeRow,assertRowCardsKept} from './WriteOffSegregation.mjs';
 
 const args=process.argv.slice(2);
 // R116 PROD: never a path inside the checkout (MW_METABASE_PRIVATE_DIR/<name>, else ~/.mw-private/MW-Credit-App/metabase/<name>).
@@ -156,6 +156,8 @@ if(args.includes('--apply')){
  }
  const after=await api('GET','dashboard/3');assertPreserved(after,baseline.dashboard,writeoffs);
  writeOffIncomeRow(after.dashcards,writeoffs,TAB,line);
+ // Cards 168-171 keep their mappings, settings and placement; only col and size_x moved.
+ assertRowCardsKept(baseline.dashboard.dashcards,after.dashcards,TAB);
  write('statement-cleanup/writeoff-segregation.json',{date:new Date().toISOString().slice(0,10),release:'R116',migration:'V128',dashboard_id:3,tab_id:TAB,question_id:writeoffs,
   waterfall_question:BRIDGE,snippet_id:SNIPPET,model_id:MODEL,model_sql_unchanged:true,steps:done,other_placements_unchanged:true,filters_unchanged:true,
   rollback:'Private r116-writeoff-segregation baseline (snippet 2, cards 168-171/186/204, dashboard 3, permissions); archive the new question'});
@@ -172,6 +174,7 @@ if(args.includes('--verify')){
  check('Other placements, tabs and filters of dashboard 3 unchanged',(assertPreserved(d,baseline.dashboard,writeoffs),true));
  check('Tab 16 row: Income, Expenses, Principal write-offs, Net profit, Average daily net profit on the live grid row',(writeOffIncomeRow(d.dashcards,writeoffs,TAB,liveIncomeRow(baseline.dashboard.dashcards,TAB)),true));
  check('Formula note and waterfall title name write-offs',d.dashcards.some(c=>c.dashboard_tab_id===TAB&&!c.card_id&&noteText(c)===WRITE_OFF_NOTE)&&d.dashcards.find(c=>c.dashboard_tab_id===TAB&&c.card_id===BRIDGE)?.visualization_settings?.['card.title']===WRITE_OFF_BRIDGE_TITLE);
+ check('Cards 168-171 keep their mappings, settings and placement; only col and width moved',(assertRowCardsKept(baseline.dashboard.dashcards,d.dashcards,TAB),true));
  const placed=d.dashcards.find(c=>c.dashboard_tab_id===TAB&&c.card_id===writeoffs);
  check('Write-off question follows the Statement period filter',JSON.stringify(placed.parameter_mappings.map(m=>[m.parameter_id,m.target]))===JSON.stringify([[PARAMETER,['dimension',['template-tag','statement_period']]]]));
  check('Snippet 2 equals live-income-period.sql',(await api('GET','native-query-snippet/'+SNIPPET)).content===snippetFile);

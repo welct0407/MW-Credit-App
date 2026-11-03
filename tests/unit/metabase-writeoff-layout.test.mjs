@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import path from 'node:path';
-import {LIVE_ROW_CARDS,writeOffRow,liveIncomeRow,writeOffIncomeRow} from '../../project/scripts/metabase/WriteOffSegregation.mjs';
+import {LIVE_ROW_CARDS,writeOffRow,liveIncomeRow,writeOffIncomeRow,assertRowCardsKept} from '../../project/scripts/metabase/WriteOffSegregation.mjs';
 import {privateDirFor,root} from '../../project/scripts/metabase/ReportingApi.mjs';
 // R116 PROD: live dashboard 3 tab 16 has, since 28 October 2026, a scalar row of four width-6 cards (168, 169, 170, 171).
 // Refine-WriteOffSegregation.mjs accepts only that row, places the write-off question as a fifth card on the same grid row
@@ -55,4 +55,17 @@ test('the private directory: the env as given or with a name, else under ~/.mw-p
  for(const bad of ['C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922','relative/dir',repo,path.join(repo,'project/outputs/private')])
   assert.throws(()=>privateDirFor('x',{env:{MW_METABASE_PRIVATE_DIR:bad},home,repo}),/absolute path outside the repository/,bad);
  assert.throws(()=>privateDirFor('x',{env:{},home:repo,repo}),/outside the repository/,'a home inside the checkout');
+});
+test('cards 168-171 keep mappings, settings and placement; only col and size_x may change',()=>{
+ const mapping=id=>[{parameter_id:'review-income',card_id:id,target:['dimension',['template-tag','statement_period']]}];
+ const baseline=live().map(c=>LIVE_ROW_CARDS.includes(c.card_id)?{...c,parameter_mappings:mapping(c.card_id),visualization_settings:{'card.title':'T'+c.card_id}}:c);
+ const moved=baseline.map(c=>{const r=writeOffRow(301).find(([id])=>id===c.card_id);return r?{...c,col:r[2],size_x:r[3]}:c;});
+ assert.doesNotThrow(()=>assertRowCardsKept(baseline,moved),'col and size_x only');
+ const change=(id,patch)=>moved.map(c=>c.card_id===id?{...c,...patch}:c);
+ assert.throws(()=>assertRowCardsKept(baseline,change(170,{parameter_mappings:[]})),/card 170 changed parameter_mappings/,'a dropped mapping fails');
+ assert.throws(()=>assertRowCardsKept(baseline,change(168,{visualization_settings:{'card.title':'Other'}})),/card 168 changed visualization_settings/);
+ assert.throws(()=>assertRowCardsKept(baseline,change(171,{row:4})),/card 171 changed row/);
+ assert.throws(()=>assertRowCardsKept(baseline,change(169,{size_y:2})),/card 169 changed size_y/);
+ assert.throws(()=>assertRowCardsKept(baseline,change(169,{id:5555})),/card 169 changed id/,'a replaced dashcard fails');
+ assert.throws(()=>assertRowCardsKept(baseline,moved.filter(c=>c.card_id!==171)),/card 171 is not placed exactly once/);
 });

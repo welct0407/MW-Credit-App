@@ -24,6 +24,7 @@ export const incomeRow=writeoffs=>writeoffs
  ?[[168,'Income',0,6],[169,'Expenses',6,6],[writeoffs,'Principal write-offs',12,6],[170,'Net profit',18,6]]
  :[[168,'Income',0,8],[169,'Expenses',8,8],[170,'Net profit',16,8]];
 
+import {isDeepStrictEqual} from 'node:util';
 // R116 PROD (3 November 2026): live dashboard 3 tab 16 does not have the three-card row above. Since 28 October its scalar
 // row is four cards of width 6 on one grid row: 168 Operating income, 169 Operating expenses, 170 Net profit and 171 Average
 // daily net profit. The write-off question joins that row as a fifth card, so the equation reads left to right on one line
@@ -55,4 +56,15 @@ export function writeOffIncomeRow(dashcards,writeoffs,tab=16,expected=null){
  if(!line||(expected&&(line.row!==expected.row||line.height!==expected.height)))
   throw Error('Tab 16 scalar row differs from the R116 five-card layout (Income, Expenses, Principal write-offs, Net profit, Average daily net profit)');
  return line;
+}
+/** Cards 168, 169, 170 and 171 keep their placement (id, tab, row, height), parameter mappings and visualization settings
+ *  exactly as in the baseline; only col and size_x may change. Throws naming the first card and field that differ. */
+export function assertRowCardsKept(baselineDashcards,dashcards,tab=16){
+ for(const id of LIVE_ROW_CARDS){
+  const find=list=>list.filter(c=>c.dashboard_tab_id===tab&&c.card_id===id);
+  const [before,after]=[find(baselineDashcards),find(dashcards)];
+  if(before.length!==1||after.length!==1)throw Error(`Tab 16 card ${id} is not placed exactly once`);
+  for(const field of ['id','card_id','dashboard_tab_id','row','size_y','parameter_mappings','visualization_settings'])
+   if(!isDeepStrictEqual(before[0][field]??null,after[0][field]??null))throw Error(`Tab 16 card ${id} changed ${field}; only col and size_x may change`);
+ }
 }
