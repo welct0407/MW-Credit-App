@@ -105,15 +105,20 @@ test('Payment received push: the late part after the rebate line and before the 
 const pwaModule=async(file,replace={})=>{const ts=(await import('typescript')).default;let text=ts.transpileModule(read('apps/pwa/src/'+file),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;for(const [from,to] of Object.entries(replace))text=text.replace(from,JSON.stringify(to));return 'data:text/javascript;base64,'+Buffer.from(text).toString('base64');};
 test('PWA stepper: ±50 in whole baht, never below what was paid nor 0; the late part and the refusal text',async()=>{
  const whole=await pwaModule('whole-number-input.ts'),loan=await pwaModule('loan-form-values.ts',{"'./whole-number-input'":whole}),money=await pwaModule('display-money.ts');
- const {LATE_STEP,stepLate,lateAtFloor,latePart,lateRejection}=await import(await pwaModule('late-charge.ts',{"'./loan-form-values'":loan,"'./display-money'":money}));
+ const {LATE_STEP,stepLate,lateAtFloor,latePart,lateRejection,latePaidFloorText,lateNote}=await import(await pwaModule('late-charge.ts',{"'./loan-form-values'":loan,"'./display-money'":money}));
  assert.equal(LATE_STEP,50);
  assert.deepEqual([stepLate('0',50),stepLate('50',-50),stepLate('0',-50),stepLate('',50),stepLate('70',-50,'20'),stepLate('20',-50,'20'),stepLate('100.50',50)],['50','0','0','50','20','20','151']);
  assert.equal(stepLate('abc',50),'abc','an unreadable figure stays for validation to name');
  assert.deepEqual([lateAtFloor('0'),lateAtFloor('50'),lateAtFloor('20','20'),lateAtFloor('70','20')],[true,false,true,false]);
  assert.deepEqual([latePart('0',false),latePart('0.00',true),latePart('50.00',false),latePart('1500',true)],['','','Late charge ฿50','ค่าปรับล่าช้า ฿1,500']);
- assert.equal(lateRejection('record_requires_reconciliation','20',false),'Late charge cannot be less than the ฿20 already paid on it.');
- assert.equal(lateRejection('record_requires_reconciliation','20',true),'ค่าปรับล่าช้าต้องไม่น้อยกว่า ฿20 ที่ชำระแล้ว');
- assert.equal(lateRejection('source_conflict','20',false),null);
+ // A server refusal names no figure (the paid amount may have moved); the edit page's own check names the known one.
+ assert.equal(lateRejection('record_requires_reconciliation',false),'Late charge cannot be less than what was already paid on it. Refresh to see the current amount.');
+ assert.equal(lateRejection('record_requires_reconciliation',true),'ค่าปรับล่าช้าต้องไม่น้อยกว่ายอดที่ชำระแล้ว รีเฟรชเพื่อดูยอดปัจจุบัน');
+ assert.equal(lateRejection('source_conflict',false),null);
+ assert.equal(latePaidFloorText('20',false),'Late charge cannot be less than the ฿20 already paid on it.');
+ assert.equal(latePaidFloorText('20',true),'ค่าปรับล่าช้าต้องไม่น้อยกว่า ฿20 ที่ชำระแล้ว');
+ assert.equal(latePaidFloorText('0',false),lateRejection('record_requires_reconciliation',false),'no known paid amount: the refresh text');
+ assert.deepEqual([lateNote('50','0',false),lateNote('50','50',false),lateNote('50','20',true),lateNote('0','0',false)],['Late charge ฿50','Late charge ฿50 · ฿50 paid','ค่าปรับล่าช้า ฿50 · ชำระแล้ว ฿20','']);
 });
 test('PWA Receive payment builds the one v11 command with 8-key lines and asks Auto-assign for lineVersion 11',()=>{
  const form=read('apps/pwa/src/SelectedCharges.tsx'),sync=read('apps/pwa/src/offline-sync.ts');

@@ -1,7 +1,7 @@
 import {Icon} from './Icon';
 import {wholeBaht} from './display-money';
 import {LATE_STEP,stepLate,lateAtFloor} from './late-charge';
-export {LATE_STEP,stepLate,lateAtFloor,latePart,lateRejection} from './late-charge';
+export {LATE_STEP,stepLate,lateAtFloor,latePart,lateRejection,latePaidFloorText,lateNote} from './late-charge';
 /**
  * R118 (Echo LC-FORM-1, LC-REC-1, LC-COL-2/5): the −/+ buttons that move a late charge by 50, in the loan form's order and
  * markup (span.loan-step-buttons, increase then decrease). context names the charge in the buttons' accessible names

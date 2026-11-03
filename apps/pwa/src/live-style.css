@@ -727,3 +727,5 @@ main .borrower-record>.related-loans-heading>.loan-direct-actions{flex:1 1 100%;
 .borrower-record dd.late-charge-value .loan-step-buttons button{text-decoration:none}
 .borrower-record dd.late-charge-value>small{flex-basis:100%}
 .payment-allocation-row>label{display:flex;flex-direction:column;justify-content:flex-end}
+/* R118 (Echo LC-PAY-R2-1): from 601 px the third input sits under Principal, not under the loan name. */
+@media(min-width:601px){.payment-allocation-row>.late-charge-input{grid-column:2}}
