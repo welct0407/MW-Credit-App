@@ -5,7 +5,7 @@ import {RecordAction} from './RecordAction';
 import {HeaderBack} from './HeaderBack';
 import {displayValue} from './display-date';
 import {PaymentRecord} from './PaymentRecord';import {CompactPager} from './CompactPager';
-import {useEffect,useRef,useState} from 'react';import type {CommandAccess} from './SelectedCharges';import {beginRequest} from './request-activity';import {useContextRefresh} from './context-refresh';import {useViewedSnapshot} from './useViewedSnapshot';import {ChargeForm} from './ChargeForm';import {OperationConfirm} from './OperationConfirm';import {wholeText} from './whole-number-input';import {LateChargeStepper,LateChargeSaving,LATE_STEP,latePart,lateNote,useLateChargeShortcut} from './LateChargeStepper';import {useOnline} from './online-status';
+import {useEffect,useRef,useState} from 'react';import type {CommandAccess} from './SelectedCharges';import {beginRequest} from './request-activity';import {useContextRefresh} from './context-refresh';import {useViewedSnapshot} from './useViewedSnapshot';import {ChargeForm} from './ChargeForm';import {OperationConfirm} from './OperationConfirm';import {wholeText} from './whole-number-input';import {LateChargeStepper,LateChargeSaving,LATE_STEP,latePart,useLateChargeShortcut} from './LateChargeStepper';import {useOnline} from './online-status';
 export function ChargeRecord({access,id,thai,onBack,onChanged,backLabel}:{access:CommandAccess;id:string;thai:boolean;onBack:()=>void;onChanged?:()=>void;backLabel?:string}){
  const t=(en:string,th:string)=>thai?th:en,[item,setItem]=useState<any>(null),[error,setError]=useState(false),[loading,setLoading]=useState(false),[editing,setEditing]=useState(false),[command,setCommand]=useState<any>(null),[payment,setPayment]=useState<string|null>(null),[relatedPage,setRelatedPage]=useState({repayments:0,allocations:0}),generation=useRef(0);useViewedSnapshot(access,'charge',item);
  const preserveSource=useRef(false);preserveSource.current=!!(editing||!!command);
@@ -24,7 +24,7 @@ export function ChargeRecord({access,id,thai,onBack,onChanged,backLabel}:{access
  if(command)return <OperationConfirm access={access} domain="charge" command={command} label={t('Delete charge','ลบรายการเรียกเก็บ')} thai={thai} onBack={()=>setCommand(null)} onApplied={()=>{onChanged?.();onBack()}}><p>{displayValue(item.chargeDate)} · {t('Principal','เงินต้น')} {wholeBaht(item.principalDue)} · {t('Interest','ดอกเบี้ย')} {wholeBaht(item.interestDue)}{latePart(item.lateChargeDue,thai)&&<> · {latePart(item.lateChargeDue,thai)}</>}</p></OperationConfirm>;
  const lateDue=wholeText(item?.lateChargeDue)??'0',latePaid=wholeText(item?.lateChargePaid)??'0',lateShown=Number(lateDue)>0,paidNoteId='charge-late-paid-'+id;
  // R118 (Echo LC-REC-1..3): the shortcut beside Late Charge Due. A step reads the record live, so it needs a connection.
- async function stepLate(by:number){if(!item)return;await late.step(item.id,by,item.borrowerLabel??item.borrowerName??'',{due:lateDue,paid:latePaid,then:async outcome=>{
+ async function stepLate(by:number){if(!item)return;await late.step(item.id,by,item.borrowerLabel??item.borrowerName??'',{due:lateDue,paid:latePaid,refresh:async outcome=>{
   // The record reloads before the buttons come back; the Collection list behind refreshes too.
   if(['applied','unchanged','refused'].includes(outcome.result)){onChanged?.();await load();}}});}
  // R118 (Echo LC-BUSY): the pending figure while saving or held; a refused step shows the old figure until the reload lands.

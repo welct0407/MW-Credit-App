@@ -239,7 +239,7 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   // R118 owner feedback: a tap applies at once (no Confirm page) and reports in a bottom toast; the row then refreshes in
   // place, the list keeping its scroll position (LC-COL-R2-1) through the refresh that briefly shortens it.
   async function stepLateCharge(charge:Charge,step:number){
-    await late.step(charge.id,step,selected?.displayName??'',{due:wholeText(charge.lateChargeDue??'0')??'0',paid:latePaidOf(charge),then:async outcome=>{
+    await late.step(charge.id,step,selected?.displayName??'',{due:wholeText(charge.lateChargeDue??'0')??'0',paid:latePaidOf(charge),refresh:async outcome=>{
      // The row refreshes in place (the buttons stay disabled until it is back); the list keeps its scroll position.
      if(['applied','unchanged','refused'].includes(outcome.result)){savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;reapplyAfterReload.current=true;await chargeChanged();}
     }});

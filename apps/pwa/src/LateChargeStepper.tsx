@@ -5,7 +5,7 @@ import {beginRequest} from './request-activity';
 import {syncSavedRequest,savedRejectionMessage} from './offline-sync';
 import type {CommandAccess} from './SelectedCharges';
 import {useEffect,useRef,useState} from 'react';
-import {LATE_STEP,stepLate,lateAtFloor,lateRejection} from './late-charge';
+import {LATE_STEP,stepLate,lateAtFloor,lateRejection,lateNote} from './late-charge';
 export {LATE_STEP,stepLate,lateAtFloor,latePart,lateRejection,latePaidFloorText,lateNote} from './late-charge';
 /**
  * R118 (Echo LC-FORM-1, LC-REC-1, LC-COL-2/5): the −/+ buttons that move a late charge by 50, in the loan form's order and
@@ -38,7 +38,7 @@ export type LateStepOutcome={result:'applied'|'unchanged'|'refused'|'queued'|'fa
  * and dimmed, a spinner and the target figure "฿100 · saving" in place of the figure) and the toast says "Saving late
  * charge…"; everything stays disabled until the outcome and the caller's refresh (then) are done; a refusal reverts the figure.
  */
-export type LateStepScreen={due:string;paid:string;then?:(outcome:LateStepOutcome)=>Promise<unknown>|unknown};
+export type LateStepScreen={due:string;paid:string;refresh?:(outcome:LateStepOutcome)=>Promise<unknown>|unknown};
 /** A charge's step in progress: the figure it moves from and to, the tapped direction, and whether it is saving, was refused
  *  (figure back to the old one, buttons still held until the refresh lands) or is held queued. */
 export type LatePending={before:string;after:string;direction:'increase'|'decrease';state:'saving'|'reverted'|'held'};
@@ -52,7 +52,7 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
  const update=(chargeId:string,patch:Partial<LatePending>)=>setPending(old=>old[chargeId]?{...old,[chargeId]:{...old[chargeId],...patch}}:old);
  useEffect(()=>{
   // A queued request's later outcome releases its charge (and its pending figure).
-  const outcome=(event:Event)=>{const detail=(event as CustomEvent).detail;const chargeId=Object.entries(heldRef.current).find(([,request])=>request===detail?.requestId)?.[0];if(!chargeId||!['synced','blocked'].includes(detail.kind))return;setHeld(old=>{const next={...old};delete next[chargeId];return next});mark(chargeId,null);};
+  const outcome=(event:Event)=>{const detail=(event as CustomEvent).detail;const chargeId=Object.entries(heldRef.current).find(([,request])=>request===detail?.requestId)?.[0];if(!chargeId||!['synced','blocked'].includes(detail.kind))return;setHeld(old=>{const next={...old};delete next[chargeId];return next});setPending(old=>{const next={...old};delete next[chargeId];return next});};
   window.addEventListener('mw-offline-sync-outcome',outcome);return()=>{window.removeEventListener('mw-offline-sync-outcome',outcome);clearTimeout(timer.current)};
  },[]);
  const unavailable=()=>show(t('Charge could not be loaded. Try again.','โหลดรายการเรียกเก็บไม่ได้ ลองอีกครั้ง'),{refused:true});
@@ -82,11 +82,11 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
  }
  /** One step of the charge's late charge, after any step still running. In the tap's frame the charge is pending (the pair
   *  dimmed with the spinner on the tapped button, "฿50 → ฿100" from the screen) and the sticky "Saving late charge…" toast
-  *  shows; the pending look stays through the outcome and screen.then (the refresh), so the old figure never flashes back. */
+  *  shows; the pending look stays through the outcome and screen.refresh, so the old figure never flashes back. */
  function step(chargeId:string,by:number,label:string,screen:LateStepScreen):Promise<LateStepOutcome>{
   mark(chargeId,{before:screen.due,after:stepLate(screen.due,by,screen.paid),direction:by>0?'increase':'decrease',state:'saving'});
   show(t('Saving late charge…','กำลังบันทึกค่าปรับล่าช้า…'),{sticky:true});
-  const run=chain.current.then(async()=>{let outcome:LateStepOutcome={result:'failed'};try{outcome=await once(chargeId,by,label);try{await screen.then?.(outcome)}catch{}return outcome}finally{if(outcome.result!=='queued')mark(chargeId,null)}});
+  const run=chain.current.then(async()=>{let outcome:LateStepOutcome={result:'failed'};try{outcome=await once(chargeId,by,label);try{await screen.refresh?.(outcome)}catch{}return outcome}finally{if(outcome.result!=='queued')mark(chargeId,null)}});
   chain.current=run.catch(()=>undefined);return run;
  }
  const busy=Object.keys(pending)[0]??null;
