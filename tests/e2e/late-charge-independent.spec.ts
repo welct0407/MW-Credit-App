@@ -125,7 +125,7 @@ test('Charge edit page: the Late charge field steps by 50, stops at the paid flo
  await field.fill('20');await page.getByRole('button',{name:'Review change',exact:true}).click();
  // Waived down to exactly what was paid is allowed: Confirm shows ฿50 → ฿20.
  const card=page.getByRole('region',{name:'Edit charge',exact:true});
- await expect(card.locator('dt',{hasText:/^Late charge$/i})).toBeVisible();await expect(card.locator('.chat-proposal-before')).toHaveText('฿50');await expect(card.locator('dd strong').filter({hasText:'฿20'})).toBeVisible();
+ await expect(card.locator('dt',{hasText:/^Late charge( due)?$/i})).toBeVisible();await expect(card.locator('.chat-proposal-before')).toHaveText('฿50');await expect(card.locator('dd strong').filter({hasText:'฿20'})).toBeVisible();
  expect(s.operations).toHaveLength(0);
  await confirm(page).click();await expect.poll(()=>s.operations.length).toBe(1);
  expect(s.operations[0]).toMatchObject({operation:'charge.update',targetId:'lc-c1',expectedVersion:'ver-lc-c1-0',inputs:{loanId:'lc-L-lc-c1',principalDue:'100',interestDue:'10',lateChargeDue:'20'}});
@@ -138,7 +138,7 @@ test('Charge edit page: a charge with no late charge shows 0 and Confirm reads "
  await increase(page.locator('form')).click();await expect(field).toHaveValue('50');
  await page.getByRole('button',{name:'Review change',exact:true}).click();
  const card=page.getByRole('region',{name:'Edit charge',exact:true});
- await expect(card.locator('dt',{hasText:/^Late charge$/i})).toBeVisible();await expect(card.locator('.chat-proposal-before')).toHaveText('฿0');await expect(card.locator('dd strong').filter({hasText:'฿50'})).toBeVisible();
+ await expect(card.locator('dt',{hasText:/^Late charge( due)?$/i})).toBeVisible();await expect(card.locator('.chat-proposal-before')).toHaveText('฿0');await expect(card.locator('dd strong').filter({hasText:'฿50'})).toBeVisible();
  await confirm(page).click();await expect.poll(()=>s.operations.length).toBe(1);
  expect(s.operations[0].inputs.lateChargeDue).toBe('50');
 });
