@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
+import {privateDirFor} from './ReportingApi.mjs';
 import {randomUUID} from 'node:crypto';
 import {lanes,specs,shape,out as monitorOut} from './CollectionMonitor.mjs';
 
@@ -23,7 +24,9 @@ export const oldStatuses=['Not Paid','Partially Paid','Overdue','Fully Paid'];
 export const newStatuses=lanes.map(l=>l.status);
 assert.deepEqual(newStatuses,['Not Paid','Partially Paid','Overdue','Long Overdue','Fully Paid'],'CollectionMonitor lanes must list Long Overdue between Overdue and Fully Paid');
 const longLane=lanes.find(l=>l.key===LONG.key);
-const backup=process.env.MW_METABASE_PRIVATE_DIR?path.join(process.env.MW_METABASE_PRIVATE_DIR,'r102-long-overdue-lane'):'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r102-long-overdue-lane';
+// R116 PROD: MW_METABASE_PRIVATE_DIR/r102-long-overdue-lane, else ~/.mw-private/MW-Credit-App/metabase/r102-long-overdue-lane;
+// never inside the checkout (the old Windows default is relative on Linux). ProposedLoanReports.mjs reads its state.
+const backup=privateDirFor('r102-long-overdue-lane',{under:true});
 const output='outputs/r102-long-overdue-lane';
 const main=!!process.argv[1]&&fileURLToPath(import.meta.url)===path.resolve(process.argv[1]),flag=name=>main&&process.argv.includes(name);
 const write=(file,value)=>fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n');
