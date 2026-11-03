@@ -8,7 +8,8 @@
 --  * one slip, one request id: a replay is the recorded outcome, a different purpose under the same id conflicts;
 --  * v7 (a slip that is due, Lump Sum) is unchanged; only the AI Reviewer's Partner may post a reviewed slip;
 --  * the plan provenance resolves for the posted payment; the agent reporting role may read the plan (and nothing else new);
---  * a v9 slip that closes a referred loan offsets the rebate to the referrer's open loan exactly as V124 does.
+--  * a v9 slip that closes a referred loan offsets the rebate to the referrer's open loan exactly as V124 does; a v7 slip that closes
+--    two referred loans posts one offset per closed loan (R117 V131).
 -- The canonical text is the server's compact JSON (no spaces), byte for byte.
 \set ON_ERROR_STOP on
 BEGIN;
@@ -37,6 +38,16 @@ INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due",
   ('AA-L1-today','AA-L1',0,10),('AA-L2-today','AA-L2',0,70),('AA-L3-today','AA-L3',0,10),('AA-L4-today','AA-L4',0,10),('AA-L5-today','AA-L5',0,10),('AA-L6-today','AA-L6',0,10),('AA-L8-today','AA-L8',0,10),('AA-L9-today','AA-L9',0,10),
   ('AA-RFL-today','AA-RFL',0,10),('AA-L0B-today','AA-L0B',0,10)) v(id,loan,p,i);
 INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('AA-L7-today','AA-L7',(SELECT d FROM aa_day),1000::money,300::money);
+-- R117 V131: a v7 slip of 2500 that closes two referred loans of one borrower (1000+300 and 1000+200, rebates 30 and 20);
+-- the referrer has one open loan with 10 due today.
+INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES('AA-RM','SYNTHETIC AGENT REFERRER TWO');
+INSERT INTO public."Borrowers"("Row ID","Borrower Name","Ref Referrer") VALUES('AA-BM','SYNTHETIC AGENT CLOSES TWO','AA-RM');
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
+ SELECT 'CI-LISA',v.id,v.b,(SELECT d FROM aa_day)-3,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,v.cdi::money,1,false FROM (VALUES
+  ('AA-RML','AA-RM',10),('AA-LM1','AA-BM',100),('AA-LM2','AA-BM',100)) v(id,b,cdi);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+ SELECT v.id,v.loan,(SELECT d FROM aa_day),v.p::money,v.i::money FROM (VALUES
+  ('AA-RML-today','AA-RML',0,10),('AA-LM1-today','AA-LM1',1000,300),('AA-LM2-today','AA-LM2',1000,200)) v(id,loan,p,i);
 UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" LIKE 'AA-%';
 
 CREATE FUNCTION pg_temp.aa_rid(review text) RETURNS text LANGUAGE sql AS $f$
@@ -77,7 +88,9 @@ SELECT set_config('aa.fwd',pg_temp.aa_cmd('aa-review-fwd','AA-B1',60,9,'{"forwar
  -- the slip closes a referred loan (1300 due on AA-L7) and pays 10 forward on its other loan
  -- R113: a remainder that would settle a loan is a manual (app) action: the agent command refuses it
  set_config('aa.settle',pg_temp.aa_cmd('aa-review-settle','AA-B9',1010,9,'{"forward":false,"principal":[{"loanId":"AA-L9","amount":"1000"}],"loans":null}'),true),
- set_config('aa.closes',pg_temp.aa_cmd('aa-review-closes','AA-B7',1320,9,'{"forward":true,"principal":[],"loans":null}'),true);
+ set_config('aa.closes',pg_temp.aa_cmd('aa-review-closes','AA-B7',1320,9,'{"forward":true,"principal":[],"loans":null}'),true),
+ -- R117 V131: one v7 slip closes two referred loans of one borrower
+ set_config('aa.two',pg_temp.aa_cmd('aa-review-two','AA-BM',2500,7,NULL),true);
 
 GRANT USAGE ON SCHEMA public TO mw_app_dev; GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO mw_app_dev; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO mw_app_dev;
 REVOKE INSERT,UPDATE,DELETE ON "Cash Ledger",pwa_payment_commands,r005_cash_cutover_sources,r008_cash_account_cutover,pwa_row_changes FROM mw_app_dev;
@@ -102,7 +115,7 @@ SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam"
 DO $$
 DECLARE r jsonb;k text;
 BEGIN
- FOREACH k IN ARRAY ARRAY['aa.fwd','aa.prin','aa.split','aa.due','aa.closes'] LOOP
+ FOREACH k IN ARRAY ARRAY['aa.fwd','aa.prin','aa.split','aa.due','aa.closes','aa.two'] LOOP
   r:=public.pwa_submit_agent_receipt_v1(current_setting(k));
   IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION '% must post: %',k,r; END IF;
  END LOOP;
@@ -169,6 +182,18 @@ BEGIN
  PERFORM pg_temp.aa_assert(off LIKE 'ro122:pwa:%' AND (SELECT "Amount Received"::numeric=30 FROM public."Payments" WHERE "Row ID"=off) AND (SELECT "Ref Offset Payment"=off AND "Amount"::numeric=30 FROM public."Business Expenses" WHERE "Row ID"='rr1:AA-L7'),'the closing agent slip offsets the rebate (V124): ro122 payment of 30 linked to the expense');
  PERFORM pg_temp.aa_assert((SELECT coalesce(sum(CASE WHEN "Ref To Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)-coalesce(sum(CASE WHEN "Ref From Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)=0 FROM public."Cash Ledger" WHERE "Ref Payment"=off OR "Ref Business Expense"='rr1:AA-L7'),'the offset nets Lisa cash to zero');
  PERFORM pg_temp.aa_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=1320 FROM public."Payments" WHERE "Row ID"='pwa:'||pg_temp.aa_uuid(pg_temp.aa_rid('aa-review-closes'))) AND (SELECT count(*)=1 AND bool_and("Amount Remaining"::numeric=0) FROM public."Charges" WHERE "Ref Loans"='AA-L0B' AND "Charge Date">day),'the closing slip paid its due 1300, the due 10 of its other loan and 10 forward');
+END $$;
+-- R117 V131: the agent slip that closes two referred loans posts one default offset per closed loan (before V131: 23505).
+DO $$
+DECLARE day date:=(SELECT d FROM aa_day);pay text:='pwa:'||pg_temp.aa_uuid(pg_temp.aa_rid('aa-review-two'));loan text;amt numeric;off text;
+BEGIN
+ PERFORM pg_temp.aa_assert((SELECT count(*)=2 AND bool_and("Loan Status"='ปิดยอดแล้ว' AND "Close Date"=day AND "Ref Closing Payment"=pay) FROM public."Loans" WHERE "Row ID" IN ('AA-LM1','AA-LM2')),'V131: the agent slip closes both referred loans');
+ PERFORM pg_temp.aa_assert((SELECT count(*)=2 FROM public."Payments" WHERE "Ref Borrower"='AA-RM' AND "Payment Method"='Referral Rebate Offset'),'V131: two offset payments');
+ FOR loan,amt IN SELECT * FROM (VALUES ('AA-LM1',30),('AA-LM2',20)) v(l,a) LOOP
+  off:='ro122:'||pay||':'||loan;
+  PERFORM pg_temp.aa_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=amt FROM public."Payments" WHERE "Row ID"=off) AND (SELECT "Ref Offset Payment"=off AND "Amount"::numeric=amt FROM public."Business Expenses" WHERE "Row ID"='rr1:'||loan),'V131: '||loan||' has its own offset '||off||' linked to its expense');
+  PERFORM pg_temp.aa_assert((SELECT count(*)=1 FROM public.pwa_payment_commands j WHERE j.canonical_json::jsonb#>>'{command,operation}'='system.rebate-offset' AND j.canonical_json::jsonb#>>'{command,targetId}'=loan AND j.result_json->>'paymentId'=off),'V131: '||loan||' one system.rebate-offset journal row');
+ END LOOP;
 END $$;
 SELECT 'Agent receipt pay forward regressions passed' AS result;
 ROLLBACK;

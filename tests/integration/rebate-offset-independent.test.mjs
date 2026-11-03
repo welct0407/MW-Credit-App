@@ -205,6 +205,38 @@ test('extension: deleting the closing payment removes the automatic offset; a lo
  const off2=await offsetPayment(s.referrer);assert.equal(off2.length,1);assert.notEqual(off2[0].id,off.id);assert.equal(off2[0].amount,s.rebate+'.00');
 });
 
+// R117 V131: one Receive payment that closes two referred loans of one borrower posts one default offset per closed loan
+// (ro122:<closing payment>:<loan>); before V131 both took ro122:<closing payment> and the payment failed (23505, command_unavailable).
+test('V131: one payment closing two referred loans offsets each rebate separately; replay and delete keep them paired',async()=>{
+ const s=await autoScenario(),loan2=s.id+'-LOAN2';
+ await admin.query(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval") VALUES($1,$2,$3,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-3,1000::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,100::money,1)`,[loan2,s.borrower,fixture.lendingAccountId]);
+ await admin.query(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,$3::date,1000::money,200::money)`,[loan2+'-today',loan2,today]);
+ await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"=$1`,[loan2]);
+ const both={...s,amount:2500},requestId=randomUUID(),{command,posted}=await receive(both,requestId);
+ assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));assert.equal(command.allocations.length,2,'the auto-assign pays both loans');
+ const closing=posted.originalOutcome.paymentId;
+ assert.deepEqual((await admin.query(`SELECT "Row ID" AS id,"Loan Status" AS status,"Ref Closing Payment" AS closing FROM "Loans" WHERE "Row ID"=ANY($1) ORDER BY "Row ID" COLLATE "C"`,[[s.loan,loan2]])).rows,
+  [{id:s.loan,status:'ปิดยอดแล้ว',closing},{id:loan2,status:'ปิดยอดแล้ว',closing}],'one payment closes both loans');
+ const off=await offsetPayment(s.referrer),byId=Object.fromEntries(off.map(o=>[o.id,o]));
+ assert.equal(off.length,2,'two offset payments');
+ const expected=[[s.loan,'30.00'],[loan2,'20.00']];
+ for(const [loan,amount] of expected){
+  const id='ro122:'+closing+':'+loan;assert.ok(byId[id],'the offset of '+loan+' is '+id);
+  assert.deepEqual([byId[id].amount,byId[id].d,byId[id].holder,byId[id].status],[amount,today,'ch:lisa','Posted']);
+  assert.deepEqual(await rebateExpense(loan),{amount,off:id,holder:'ch:lisa'},'rr1:'+loan+' links its own offset');
+  assert.equal(await journalRow(loan,id),1,'one system.rebate-offset journal row for '+loan);
+  assert.equal(await lisaNet(id,'rr1:'+loan),0,'Lisa cash nets to zero for '+loan);
+ }
+ // Replaying the same request returns the recorded status and adds nothing.
+ const replay=await store.submit(principal,command);assert.equal(replay.originalOutcome?.status,'posted',JSON.stringify(replay));assert.equal(replay.originalOutcome.paymentId,closing);
+ assert.equal((await offsetPayment(s.referrer)).length,2,'still two offsets after the replay');
+ // Deleting the closing payment removes both offsets and both expenses and reopens both loans.
+ const deleted=await paymentDelete(closing);assert.equal(deleted.originalOutcome?.status,'applied',JSON.stringify(deleted));
+ assert.equal((await offsetPayment(s.referrer)).length,0,'both offsets went with the closing payment');
+ for(const [loan] of expected)assert.equal(await rebateExpense(loan),undefined);
+ assert.deepEqual((await admin.query(`SELECT DISTINCT "Loan Status" AS status FROM "Loans" WHERE "Row ID"=ANY($1)`,[[s.loan,loan2]])).rows,[{status:'ยังไม่ปิดยอด'}]);
+});
+
 test('extension: the agent receipt command closes a loan and offsets the rebate the same way',async()=>{
  const s=await autoScenario(),user='mw-credit-app-command-dev@clever-oasis-508610-n7.iam';
  if(!(await admin.query('SELECT 1 FROM pg_roles WHERE rolname=$1',[user])).rowCount)await admin.query(`CREATE ROLE "${user}" LOGIN NOSUPERUSER NOBYPASSRLS`);
@@ -212,8 +244,9 @@ test('extension: the agent receipt command closes a loan and offsets the rebate 
  await admin.query(`UPDATE "Partners" SET "AI Reviewer"=true,"IG Integration Enabled"=true WHERE "Row ID"=$1`,[fixture.actorId]);
  const caller=new pg.Pool({host:'127.0.0.1',port:Number(process.env.PAYMENT_REHEARSAL_PORT),database:'payment_rehearsal',user,password:'',max:1});
  try{
-  const reviewId='synthetic-review-r111',requestId=receiptRequestId('dev',reviewId),receiptId='a'.repeat(64),rawSha256='b'.repeat(64);
-  const command={schemaVersion:7,requestId,environment:'dev',reviewId,mode:'automatic',borrowerId:s.borrower,cashAccountId:fixture.receivingAccountId,amountReceived:String(s.amount),paymentDate:today,transferTime:'12:00',bankReference:'synthetic-bank-r111',proposalSha256:'c'.repeat(64),archiveEvidence:{receiptId,objectKey:`receipts/dev/2026/11/02/${receiptId}/${rawSha256}.png`,generation:'1',rawSha256,mimeType:'image/png',sizeBytes:100,capturedAt:String(Math.floor(Date.now()/1000))}};
+  // The object key's date is the capture day (UTC), so the key follows the clock instead of a fixed day.
+  const reviewId='synthetic-review-r111',requestId=receiptRequestId('dev',reviewId),receiptId='a'.repeat(64),rawSha256='b'.repeat(64),capturedAt=Math.floor(Date.now()/1000);
+  const command={schemaVersion:7,requestId,environment:'dev',reviewId,mode:'automatic',borrowerId:s.borrower,cashAccountId:fixture.receivingAccountId,amountReceived:String(s.amount),paymentDate:today,transferTime:'12:00',bankReference:'synthetic-bank-r111',proposalSha256:'c'.repeat(64),archiveEvidence:{receiptId,objectKey:`receipts/dev/${new Date(capturedAt*1000).toISOString().slice(0,10).replaceAll('-','/')}/${receiptId}/${rawSha256}.png`,generation:'1',rawSha256,mimeType:'image/png',sizeBytes:100,capturedAt:String(capturedAt)}};
   const identity=agentIdentity(command,{issuer:'https://accounts.google.com',subject:'737787224638',partnerId:fixture.actorId,loginEmail:OWNER_EMAIL.toLowerCase()});
   const result=(await caller.query('SELECT public.pwa_submit_agent_receipt_v1($1) result',[identity.canonicalJson])).rows[0].result;
   assert.equal(result.originalOutcome?.status,'posted',JSON.stringify(result));
