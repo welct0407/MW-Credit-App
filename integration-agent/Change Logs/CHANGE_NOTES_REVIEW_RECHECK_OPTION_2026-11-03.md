@@ -26,7 +26,6 @@ Before deployment: none needed. After deployment: `deploy-runtime.py rollback --
 None.
 
 ## Remaining work
-<<<<<<< HEAD
 None.
 
 ## Deploy record
@@ -39,8 +38,6 @@ Owner go in session: "Merge and deploy the agent after CI green". PR #220 merged
 | Install and activate | install 09:47:50Z, no files removed, no unit changes; activate 09:47:55Z to 09:47:59Z, probe `9bdc9efc-3672-428d-9311-b7425593cd21`; all six timers and path units resumed |
 | Readback | `/ready` true, `code_version` `5ebe13c7`, `failed` []; `check` status ok (`pay_forward_options` true); receipt cycles after activation `failures` [] and `notification_failures` [] |
 Deviation, as in R094: the deploy engine needed an `mw_agent` operator connection file that was absent on the VM. A temporary root-only file (`postgres` through the 5432 proxy; password on stdin from Secret Manager, never printed) was created and shredded after activation.
-=======
-- Merge, then deploy with `deploy-runtime.py` on the owner's go.
 
 ## Follow-up: 4 on a review made stale by the charge edit (same day)
 - **What happened:** Ton's ฿150 slip, 3 November 2026.
@@ -59,7 +56,6 @@ Deviation, as in R094: the deploy engine needed an `mw_agent` operator connectio
   - An expired stale review stays decided.
   - A cycle test reproduces the incident: stale, then `4`, then a new pending review in the same run.
 - **Checks:** related suites 139 tests OK; `ruff check --no-cache integration-agent` clean.
->>>>>>> origin/main
 - **Deploy (owner go in session: "Merge and deploy it"):** PR #221 merged as `9703a191`; agent CI `test` and `lab` passed on `aa85d939`.
   - `deploy-runtime.py` on `vm-mw-credit-agent`, 3 November 2026 (UTC). The dry run showed live `5ebe13c7` (ancestor) and schema through V11 with nothing missing.
   - Freeze at 10:00:28Z: `runtime-20261103T100028976686Z` (metadata sha256 `c2ce5fa1…43bf`).
