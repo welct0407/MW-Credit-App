@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-03",
+  "release": "R118",
+  "migration": "V132",
+  "dashboard_id": 3,
+  "tab_id": 16,
+  "question_id": 417,
+  "writeoffs_question": 415,
+  "snippet_id": 2,
+  "model_id": 186,
+  "model_sql_unchanged": true,
+  "steps": [
+    "snippet",
+    "model-metadata",
+    "question",
+    "dashboard"
+  ],
+  "other_placements_unchanged": true,
+  "filters_unchanged": true,
+  "rollback": "Private r118-late-charges baseline (snippet 2, cards 168-171/186/write-offs, dashboard 3, permissions); archive the new question"
+}

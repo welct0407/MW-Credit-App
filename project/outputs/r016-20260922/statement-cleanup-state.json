@@ -21,7 +21,8 @@
     "income-snapshot-status": 214,
     "flow-trend": 215,
     "flow-snapshot-status": 216,
-    "writeoffs": 415
+    "writeoffs": 415,
+    "latecharges": 417
   },
   "baseline_commit": "cf243e138cd85701cd8e156626e88a65174d604e"
 }
