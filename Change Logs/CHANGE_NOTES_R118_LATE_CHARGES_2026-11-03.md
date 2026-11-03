@@ -114,10 +114,11 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | PR #225 `Database migrations`, run 41649424639, on `f29679a` | Guards and the rebuild groups migrations, phase5, phase8 and receiving all pass. Dispatched by hand because every earlier push that carried V132 was `[skip ci]` |
 | PR #225 `Agent tests`, runs 41649243078 and 41649432921, on `f29679a` | Pass |
 | PR #225 `Development checks`, rerun on `c18e0c4` | Pending |
-| DEV: open the pull request and test in DEV (next, owner instruction); acceptance scenarios (plan list, Chase on DEV, then the owner on the phone) | Pending |
+| DEV deployment (PR #225 head `d8b839a`) | Done and verified by Forge; see the DEV promotion record below |
+| DEV acceptance scenarios (plan list) | Pending Chase, then the owner on the phone |
 
 ## Not run
-The rows marked Pending: the Development checks rerun on `c18e0c4` and DEV. A pending check is not a pass.
+The rows marked Pending: the Development checks rerun on `c18e0c4` and DEV acceptance (Chase, then the owner). A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
@@ -127,6 +128,25 @@ None.
 
 ## Remaining work
 - Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- Open the pull request and test in DEV (next, owner instruction), then owner acceptance on the phone.
+- Chase's DEV scenarios, then owner acceptance on the phone.
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
+
+## DEV promotion record (Forge, 3 November 2026, UTC)
+No secret value, token or borrower data appears here. DEV only; no PROD action. Image, revision, settings-generation and Hosting pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Item | Result |
+| --- | --- |
+| Scope | V132, the read, command, chat, notify and jobs images and DEV Hosting labelled R118, from PR #225 head `d8b839a` |
+| Backup at V131 | 14:21:10Z, dump sha256 `356207cd…`, restore passed, 38 table fingerprints matched, folder `dev-refresh-5bef28a75ec048bbacad394e193a8ed6` |
+| Owner window | Five-owner window opened 14:23:56Z, restored 14:32:19Z |
+| V132 | Applied 14:24:01Z to 14:31:13Z, head 132, 0 failed. The post-migrate reconcile ran inside the window with 0 violations, which fixes the R117 42501 |
+| Readback | The five columns and defaults are right; `pwa_notify_content_v3` and `pwa_notify_history_content_v2` have the right owner and grants; v2 and v1 are kept |
+| Reader grant | 3 statements, 4 columns, 65 readable columns, applied 14:32:50Z |
+| Images and Terraform | One Cloud Build image for all five services; Terraform plan 0 add, 5 change, 0 destroy (image only), applied 14:35:46Z to 14:36:22Z |
+| Hosting | DEV version labelled R118, embeds `d8b839a` |
+| Smoke | `/health` 200, unauthenticated 401, preflight 204, no ERROR logs; authenticated `/api/collection` 200 as the synthetic Partner |
+| Not deployed | The agent: there is no DEV agent target; `vm-mw-credit-agent` is PROD-only and unchanged |
+| Rollback | Settings generation back to the R117 inventory row (read, command and chat to R117; notify and jobs to R113); previous Hosting version; V132 is additive, else restore the V131 backup; undo the reader grant with 3 REVOKEs. Data caveat: zero any late charge before a service rollback |
+
+DEV acceptance: pending Chase's DEV scenarios, then the owner.
