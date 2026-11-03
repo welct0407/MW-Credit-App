@@ -104,6 +104,15 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       else window.scrollTo({ top: savedDetailScroll.current });
     }
   }, [selectedCharge, upcomingDetail, lateCommand]);
+  // R118 (LC-COL-R2-1): the refresh after a late-charge Confirm briefly shortens the list (upcoming reloads), which clamps the
+  // restored position; it is applied again on every commit of that refresh, before paint, until the refresh settles.
+  const reapplyAfterReload=useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: charges and upcoming are the commits of the refresh to follow; the position itself is read from refs
+  useLayoutEffect(()=>{
+    if(!reapplyAfterReload.current||lateCommand||selectedCharge||upcomingDetail)return;
+    if(window.innerWidth>1050&&detailPanel.current)detailPanel.current.scrollTop=savedDetailScroll.current;else window.scrollTo({top:savedDetailScroll.current});
+    if(!busy)reapplyAfterReload.current=false;
+  },[charges,upcoming,busy,lateCommand,selectedCharge,upcomingDetail]);
   function reset(keepBoard=false) { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); if(!keepBoard){setItems([]);setCursor(null);setBusinessDate('');setAsOf('');setPage(1)}setSelected(null);setCharges([]);setChargeCursor(null);setChargeAsOf('');setChargePage(1); }
   function fail(code: ReadFailure<CollectionReadError>) { reset(); setError(code); setUpdateState('error'); }
   async function loadBoard(next?: string, pageNumber = 1) {
@@ -243,13 +252,15 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       setLateCommand({command:lateChargeCommand(item,next),item,charge});
     }catch{setLateError(charge.id);}finally{clearTimeout(timer);done();setLateBusy(null);}
   }
-  if(lateCommand&&commandAccess)return <OperationConfirm key={lateCommand.command.requestId} access={commandAccess} domain="charge" command={lateCommand.command} label={t('Late charge','ค่าปรับล่าช้า')} thai={thai} onBack={()=>{restoreDetailScroll.current=true;setLateCommand(null)}} onApplied={()=>{restoreDetailScroll.current=true;setLateCommand(null);void chargeChanged()}} rejectionText={code=>lateRejection(code,thai)}><LateChargeConfirm command={lateCommand.command} before={lateCommand.item.lateChargeDue} context={lateCommand.charge.loanDisplayKey} thai={thai}/></OperationConfirm>;
+  // R118 (LC-COL-R2-1): the late-charge Confirm shows over the list, which stays mounted (hidden), so its borrower header,
+  // history and note do not load again and move the rows when it returns.
+  const lateConfirm=lateCommand&&commandAccess?<OperationConfirm key={lateCommand.command.requestId} access={commandAccess} domain="charge" command={lateCommand.command} label={t('Late charge','ค่าปรับล่าช้า')} thai={thai} onBack={()=>{restoreDetailScroll.current=true;setLateCommand(null)}} onApplied={()=>{restoreDetailScroll.current=true;setLateCommand(null);reapplyAfterReload.current=true;void chargeChanged()}} rejectionText={code=>lateRejection(code,thai)}><LateChargeConfirm command={lateCommand.command} before={lateCommand.item.lateChargeDue} context={lateCommand.charge.loanDisplayKey} thai={thai}/></OperationConfirm>:null;
   if(loanOpen&&commandAccess)return <LoanRecord access={commandAccess} id={loanOpen} thai={thai} onBack={()=>setLoanOpen(null)}/>;
   if(borrowerOpen&&selected&&commandAccess)return <SharedBorrowerDetail access={commandAccess} id={selected.id} label={selected.displayName} thai={thai} onBack={()=>setBorrowerOpen(false)}/>;
   if(selectedCharge&&commandAccess)return <ChargeRecord key={selectedCharge.id} access={commandAccess} id={selectedCharge.id} thai={thai} backLabel={t('Back to charges','กลับรายการเรียกเก็บ')} onChanged={()=>void chargeChanged()} onBack={()=>{restoreDetailScroll.current=true;setSelectedCharge(null)}}/>;
   if(receiptRecord&&commandAccess)return <PaymentRecord access={commandAccess} id={receiptRecord} thai={thai} onBack={()=>setReceiptRecord(null)}/>;
   if(paymentOpen&&commandAccess)return <SelectedCharges access={commandAccess} borrowerId={selected?.id??commandAccess.fixtureBorrowerId} thai={thai} onBack={()=>{setPaymentOpen(false);if(selected)void loadCharges(selected);else void loadBoard()}}/>;
-  return <section className="collection-workspace" aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
+  return <>{lateConfirm}<section className="collection-workspace" style={lateConfirm?{display:'none'}:undefined} aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
 
 
     {commandAccess&&pendingPayment&&<button type="button" className="secondary-button" onClick={()=>setPaymentOpen(true)}>{t('Check pending payment status','ตรวจสอบคำขอรับชำระที่ค้างอยู่')}</button>}
@@ -272,5 +283,5 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
         </> : <p>{t('Select a borrower to view today’s collection charges.', 'เลือกผู้กู้เพื่อดูยอดเรียกเก็บในงานติดตามวันนี้')}</p>}
       </section>
     </div>}
-  </section>;
+  </section></>;
 }
