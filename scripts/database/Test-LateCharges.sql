@@ -120,6 +120,20 @@ BEGIN
    AND has_column_privilege('mw_notify_owner_dev','public."Repayments"','Ref Payment','SELECT'),'notify owner reads Repayments "Ref Payment" and "Late Charge Paid"');
 END $$;
 
+-- Column-grant parity (the DEV finding of 3 November 2026: the jobs owner held column-level SELECT on "Repayments"."Interest Paid" but not on
+-- "Late Charge Paid", so refresh_daily_analytics_scoped and charge inserts failed with permission denied). A table-level grant covers a new column, a
+-- column-level grant does not: every role that can read a sibling column must be able to read its late-charge column. Roles and grants are those of the
+-- cluster under test, so the check is only as strong as the grants present; the same query is run read-only against DEV and PROD before promotion.
+DO $$
+DECLARE bad text;
+BEGIN
+ SELECT string_agg(r.rolname||' '||p.t||' '||p.sib||' -> '||p.new,'; ' ORDER BY r.rolname,p.t) INTO bad
+ FROM pg_roles r CROSS JOIN (VALUES ('Charges','Interest Due','Late Charge Due'),('Charges','Interest Paid','Late Charge Paid'),('Charges','Interest Remaining','Late Charge Remaining'),
+   ('Payment Allocations','Allocated Interest','Allocated Late Charge'),('Repayments','Interest Paid','Late Charge Paid')) p(t,sib,new)
+ WHERE r.rolname ~ '^(mw|codex|claude|metabase)' AND NOT r.rolsuper AND has_column_privilege(r.rolname,format('public.%I',p.t),p.sib,'SELECT')
+  AND NOT has_column_privilege(r.rolname,format('public.%I',p.t),p.new,'SELECT');
+ IF bad IS NOT NULL THEN RAISE EXCEPTION 'FAILED: a role reads the interest column but not its late-charge column: %',bad; END IF;
+END $$;
 CREATE TEMP TABLE lc_day ON COMMIT DROP AS SELECT (transaction_timestamp() AT TIME ZONE 'Asia/Bangkok')::date AS d;
 GRANT SELECT ON lc_day TO PUBLIC;
 INSERT INTO public."Statistics"("Row ID") SELECT 'LC-ST' WHERE NOT EXISTS (SELECT 1 FROM public."Statistics");
