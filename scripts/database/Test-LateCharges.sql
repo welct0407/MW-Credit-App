@@ -744,5 +744,40 @@ BEGIN
  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 END $$;
 RESET SESSION AUTHORIZATION;
+-- History content v2 (the API capability, the caller as recipient): v1 columns plus "lateChargeAmount" last.
+CREATE ROLE lc_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+GRANT mw_notify_api_dev TO lc_api WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+GRANT USAGE ON SCHEMA public TO lc_api;
+CREATE TEMP TABLE lc_event ON COMMIT DROP AS SELECT k.name,d.event_id FROM lc_notice k JOIN public.pwa_notification_deliveries d ON d.delivery_id=k.delivery;
+GRANT SELECT ON lc_event TO PUBLIC;
+DO $$
+BEGIN
+ PERFORM pg_temp.lc_assert(EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.pwa_notify_history_content_v2(jsonb,uuid[])'::regprocedure AND prosecdef AND pg_get_userbyid(proowner)='mw_notify_owner_dev' AND 'search_path=pg_catalog, public'=ANY(proconfig))
+   AND has_function_privilege('mw_notify_api_dev','public.pwa_notify_history_content_v2(jsonb,uuid[])','EXECUTE')
+   AND NOT has_function_privilege('mw_app_dev','public.pwa_notify_history_content_v2(jsonb,uuid[])','EXECUTE') AND NOT has_function_privilege('public','public.pwa_notify_history_content_v2(jsonb,uuid[])','EXECUTE')
+   AND NOT has_function_privilege('mw_notify_dispatch_dev','public.pwa_notify_history_content_v2(jsonb,uuid[])','EXECUTE'),'history v2: notify owner definer, pinned search_path, API capability executes, nobody else');
+ PERFORM pg_temp.lc_assert((SELECT array_agg(u.n ORDER BY u.o) FROM pg_proc p,unnest(p.proargnames,p.proargmodes) WITH ORDINALITY u(n,m,o) WHERE p.oid='public.pwa_notify_history_content_v2(jsonb,uuid[])'::regprocedure AND u.m='t')
+   =(SELECT array_agg(u.n ORDER BY u.o) FROM pg_proc p,unnest(p.proargnames,p.proargmodes) WITH ORDINALITY u(n,m,o) WHERE p.oid='public.pwa_notify_history_content_v1(jsonb,uuid[])'::regprocedure AND u.m='t')||ARRAY['lateChargeAmount']::text[],'history v2 returns the v1 columns and lateChargeAmount last');
+END $$;
+SET SESSION AUTHORIZATION lc_api;
+DO $$
+DECLARE actor jsonb:=jsonb_build_object('issuer','https://securetoken.google.com/clever-oasis-508610-n7','subject','lc-late','partnerId','LC-TH','loginEmail','lc-th@example.invalid');
+ ids uuid[];r1 record;r2 record;k record;n integer:=0;
+BEGIN
+ SELECT array_agg(event_id) INTO ids FROM lc_event;
+ FOR k IN SELECT * FROM lc_event ORDER BY name LOOP
+  SELECT * INTO r1 FROM public.pwa_notify_history_content_v1(actor,ARRAY[k.event_id]) r;
+  SELECT * INTO r2 FROM public.pwa_notify_history_content_v2(actor,ARRAY[k.event_id]) r;
+  IF r2."eventId" IS NULL THEN CONTINUE; END IF;
+  n:=n+1;
+  IF to_jsonb(r2)-'lateChargeAmount' IS DISTINCT FROM to_jsonb(r1) THEN RAISE EXCEPTION 'FAILED: history v2 differs from v1 apart from lateChargeAmount for %: % vs %',k.name,to_jsonb(r2),to_jsonb(r1); END IF;
+  IF k.name='late' AND (r2."lateChargeAmount" IS DISTINCT FROM 50 OR r2.amount IS DISTINCT FROM 60) THEN RAISE EXCEPTION 'FAILED: history v2 late payment: amount %, late %',r2.amount,r2."lateChargeAmount"; END IF;
+  IF k.name IN ('nolate','loan') AND coalesce(r2."lateChargeAmount",0)<>0 THEN RAISE EXCEPTION 'FAILED: history v2 % carries late %',k.name,r2."lateChargeAmount"; END IF;
+ END LOOP;
+ IF n<>3 THEN RAISE EXCEPTION 'FAILED: history v2 returned % of 3 events for the recipient',n; END IF;
+ BEGIN PERFORM public.pwa_notify_history_content_v2(actor,array_fill(gen_random_uuid(),ARRAY[27])); RAISE EXCEPTION 'FAILED: over-page request accepted';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'invalid_request' THEN RAISE; END IF; END;
+END $$;
+RESET SESSION AUTHORIZATION;
 SELECT 'Late charge regressions passed' AS result;
 ROLLBACK;
