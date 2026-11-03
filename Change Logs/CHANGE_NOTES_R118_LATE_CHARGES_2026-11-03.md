@@ -9,6 +9,7 @@ Outcome: a late charge is a third amount on an existing charge, set by hand in 5
 Owner decisions (3 November 2026, settled in the [plan](https://claude.ai/artifact/JXFYuoKyUZLz89KcBpXbAT)):
 - The late charge lives on the charge row in its own columns, never as a separate charge row.
 - Set by hand only: no formula and no automatic penalty. Controls: the charge edit page, the charge details page and the Collection charge row, each through Review → Confirm.
+- Shortcut confirmation (owner, 3 November 2026, after trying DEV, overriding plan decision 3 for the two shortcuts): "The plus/minus 50 buttons opened a confirmation page. I don't need it. The buttons should directly add/minus, with a pop-up at bottom of screen showing the amount was added/reduced". The Collection row and charge details steppers apply directly and show a bottom toast. The charge edit page keeps Review → Confirm through its normal Save.
 - Order inside a charge: interest, late charge, principal.
 - Separate reporting is the new income line only; the Dashboard, Cash and Management Analytics tiles do not change.
 - Referral rebate (owner, 3 November 2026, overriding Archie's point 4): "Count late charge also into referral rebate as that's considered as profit and referrer is responsible to chase for the payment". The rebate is now min(round(10% x (interest + late charge received)), 1,000); a late charge counts once it is received, like interest.
@@ -29,6 +30,8 @@ Batch 1 and 2 fixes and additions:
 - Batch 1 fix `bebf07d` (found by Chase): a late-only change now rebuilds the daily snapshots. `business_history_refresh` and `r051_parent_dirty` watch the late columns, and the under-3-day pending path in `refresh_daily_analytics_scoped` includes late.
 - `4419163`: `pwa_notify_history_content_v2` is part of V132, so payment history rows show the late part; the store falls back to v1.
 - The PWA always sends payment command v11. A P5B06 on a late-charge change shows "Late charge cannot be less than the ฿X already paid on it."
+
+DEV defect found by Chase (V133): the R118 jobs image's recent-analytics failed at 15:00Z with "permission denied for table Repayments". Cause: `mw_jobs_owner` has column-level SELECT on Repayments and lacked `"Late Charge Paid"`, which V132's function bodies read. Fix: `V133__late_charge_column_grants.sql` (Byte, in progress) plus a column-grant parity check in `Test-AccessMatrix`. PROD has the same gap, so V133 ships with V132 and the PROD promotion applies both. Fallback B: DEV daily-charges at 17:05Z may fail cleanly and is re-run after V133 within the Bangkok day.
 
 Echo's second pass (on `673d6ea`, at 390, 1280 and 320 px, English and Thai): 7 findings, all fixed in `4b8213b`. LC-COL-R2-1 scroll restore; LC-COL-R2-2 duplicate figure removed, the note reads "Late charge ฿50 · ฿50 paid"; LC-COL-R2-3 nothing to change shows the paid status and refreshes; LC-ERR-R2-1 server refusal wording; LC-PAY-R2-1 1280 px column; LC-REC-R2-1 Title Case and the paid note removed; LC-TH-R2-1 "Late Charge Due" and สินเชื่อ. The server refusal now reads "Late charge cannot be less than what was already paid on it. Refresh to see the current amount." / "ค่าปรับล่าช้าต้องไม่น้อยกว่ายอดที่ชำระแล้ว รีเฟรชเพื่อดูยอดปัจจุบัน"; the edit page's own typed-value check keeps "…the ฿X already paid on it."
 
@@ -115,6 +118,7 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | PR #225 `Agent tests`, runs 41649243078 and 41649432921, on `f29679a` | Pass |
 | PR #225 `Development checks`, rerun on `c18e0c4` | Pending |
 | DEV deployment (PR #225 head `d8b839a`) | Done and verified by Forge; see the DEV promotion record below |
+| V133 and its `Test-AccessMatrix` column-grant parity check | Pending (Byte, in progress) |
 | DEV acceptance scenarios (plan list) | Pending Chase, then the owner on the phone |
 
 ## Not run
@@ -128,7 +132,7 @@ None.
 
 ## Remaining work
 - Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- Chase's DEV scenarios, then owner acceptance on the phone.
+- V133 (Byte), its DEV apply and the jobs re-run; then Chase's DEV scenarios and owner acceptance on the phone (including the direct shortcuts with the bottom toast).
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
 
