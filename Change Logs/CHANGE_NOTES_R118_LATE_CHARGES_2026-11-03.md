@@ -33,7 +33,7 @@ Batch 1 and 2 fixes and additions:
 - `4419163`: `pwa_notify_history_content_v2` is part of V132, so payment history rows show the late part; the store falls back to v1.
 - The PWA always sends payment command v11. A P5B06 on a late-charge change shows "Late charge cannot be less than the ฿X already paid on it."
 
-DEV defect found by Chase (V133): the R118 jobs image's recent-analytics failed at 15:00Z with "permission denied for table Repayments". Cause: `mw_jobs_owner` has column-level SELECT on Repayments and lacked `"Late Charge Paid"`, which V132's function bodies read. Fix: `V133__late_charge_column_grants.sql` (Byte) plus parity checks: a catalog-wide self-check and a `Test-AccessMatrix` parity check (Byte), and a parity sweep in `Test-LateCharges` (Chase). V133 grants `Repayments."Late Charge Paid"` to `mw_jobs_owner_<env>` and, in PROD only, `olap_repayments_analytics."Late Charge Paid"` to `metabase_borrower_reader`, and only if the role exists and holds `"Interest Paid"`. Lab reproduction: permission denied at V132, ok at V133. Forge is applying V133 to DEV. PROD has the same gap, so V133 ships with V132 and the PROD promotion applies both. Fallback B (correction): a manual recent-analytics run on DEV was refused 409 `job_boundary_changed`. That is by design: a manual scheduler run never re-runs a missed boundary. So V132 and V133 must ship together in one PROD apply, and a missed boundary is not recovered by a manual run.
+DEV defect found by Chase (V133): the R118 jobs image's recent-analytics failed at 15:00Z with "permission denied for table Repayments". Cause: `mw_jobs_owner` has column-level SELECT on Repayments and lacked `"Late Charge Paid"`, which V132's function bodies read. Fix: `V133__late_charge_column_grants.sql` (Byte) plus parity checks: a catalog-wide self-check and a `Test-AccessMatrix` parity check (Byte), and a parity sweep in `Test-LateCharges` (Chase). V133 grants `Repayments."Late Charge Paid"` to `mw_jobs_owner_<env>` and, in PROD only, `olap_repayments_analytics."Late Charge Paid"` to `metabase_borrower_reader`, and only if the role exists and holds `"Interest Paid"`. Lab reproduction: permission denied at V132, ok at V133. V133 was applied to DEV at 15:26:14Z. PROD has the same gap, so V133 ships with V132 and the PROD promotion applies both. Fallback B (correction): a manual recent-analytics run on DEV was refused 409 `job_boundary_changed`. That is by design: a manual scheduler run never re-runs a missed boundary. So V132 and V133 must ship together in one PROD apply, and a missed boundary is not recovered by a manual run.
 
 Echo's second pass (on `673d6ea`, at 390, 1280 and 320 px, English and Thai): 7 findings, all fixed in `4b8213b`. LC-COL-R2-1 scroll restore; LC-COL-R2-2 duplicate figure removed, the note reads "Late charge ฿50 · ฿50 paid"; LC-COL-R2-3 nothing to change shows the paid status and refreshes; LC-ERR-R2-1 server refusal wording; LC-PAY-R2-1 1280 px column; LC-REC-R2-1 Title Case and the paid note removed; LC-TH-R2-1 "Late Charge Due" and สินเชื่อ. The server refusal now reads "Late charge cannot be less than what was already paid on it. Refresh to see the current amount." / "ค่าปรับล่าช้าต้องไม่น้อยกว่ายอดที่ชำระแล้ว รีเฟรชเพื่อดูยอดปัจจุบัน"; the edit page's own typed-value check keeps "…the ฿X already paid on it."
 
@@ -41,7 +41,7 @@ Chase's review (two low points): (a) the chat's next-charge path with a due char
 
 Owner feedback on DEV and the fix (3 November 2026): "After I clicked plus or minus, it takes several seconds to update and respond… at least temporarily disable the buttons until the db update is done".
 - Part A, busy state (Echo LC-BUSY-1..7): a saving class (opacity .45, spinner), a pending "฿50 → ฿100" figure, a sticky "Saving late charge…" toast, results shown for 3 s and refusals for 6 s. Accepted deviation: the buttons stay disabled until the refresh lands.
-- Part B (`240cdb0`): `syncSavedRequest {fresh:true}` skips the status GET for a never-dispatched request, with a unit test. Charge details uses the version already on screen. Collection patches the row in place. Round trips per tap: Collection first tap 6+ to 3, next tap to 2; charge details 4 to 2.
+- Part B (`240cdb0`): `syncSavedRequest {fresh:true}` skips the status GET for a never-dispatched request, with a unit test. Charge details uses the version already on screen. Collection patches the row in place. Round trips per tap: Collection first tap 5 to 3 (Chase's baseline: live read, status GET, POST, charges reload, board reread), next tap to 2; charge details 4 to 2.
 - Chase's DEV timing on the pre-cut build (`109e54e`): server time per tap about 0.5 s warm and 0.9 s cold. The cause was 5 sequential requests, not a cold start. Client times are inflated by the sandbox proxy. After the fix (Chase, DEV): the first tap makes 3 requests and later taps 2; later taps take about 0.6 s to the toast and 0.8 to 1.3 s to the full refresh, against 3.3 to 3.7 s and 5.9 to 6.8 s before.
 
 Chase's final rerun on `3679069`: `late-charge-independent.spec.ts` passed 11 of 12. The failure was the new strict scroll-restore test on desktop after Confirm, off by about 147 px. Fixed in `f28e8b4` (Byte, `apps/pwa/src/CollectionRecords.tsx` only): the late-charge Confirm now shows over the Collection list, which stays mounted but hidden, and a layout effect reapplies the saved scroll position until the refresh finishes. Two causes: the scroll clamped during the reload, and the header and history remount shifted the rows.
@@ -92,7 +92,7 @@ Forge's promotion corrections to the plan (the plan's Promotion section stands o
 
 Deferred to R119 (owner, 3 November 2026; R119 opens in the R118 closure pull request): every rebate line when one payment closes several referred loans (`closeRebate`, `pwa_notify_content_v2`, both `LIMIT 1`), and the receipt agent's recheck of a group slip ignored because the sender was not yet an enabled borrower (with possibly holds whose cause was fixed later in the app). See the [release tracker](../project/Documents/Release_Tracker.md#current-development-release).
 
-Records updated in this batch (Dewey): this note; the agent note `integration-agent/Change Logs/CHANGE_NOTES_R118_LATE_CHARGES_2026-11-03.md` (completed from Byte's agent changes); `project/Documents/Release_Tracker.md` and `project/Documents/Development_Changes.md` (R118 progress); `project/Documents/PWA_Data_Model_Overview.md`; `project/Documents/Solution_Design.md` (R118 paragraph); `project/Documents/Environment_Inventory.md` (agent-host commit only); Data Dictionary column entries in `relations/charges.yaml`, `repayments.yaml` and `payment-allocations.yaml`, marked R118, DEV-pending. The other dictionary entries (olap views, income views, upcoming and health views, routines, `pwa/application.yaml`, `agent-api.yaml`, `notifications-jobs.yaml`, `index.json`) are PROD captures and are refreshed from a targeted PROD capture after promotion (R116 and R117 precedent). Byte owns the `database/README.md` V132 entry and batch 2's `services/chat/assets/conversation-business-rules.md`; the agent part has its own note.
+Records updated in this batch (Dewey): this note; the agent note `integration-agent/Change Logs/CHANGE_NOTES_R118_LATE_CHARGES_2026-11-03.md`; `project/Documents/Release_Tracker.md` and `project/Documents/Development_Changes.md`; `project/Documents/PWA_Data_Model_Overview.md`; `project/Documents/Solution_Design.md` (R118 paragraph); `project/Documents/Environment_Inventory.md` (DEV and PROD rows for the database, services, Hosting, Metabase and the agent host); Data Dictionary column entries in `relations/charges.yaml`, `repayments.yaml` and `payment-allocations.yaml`, applied to DEV and PROD at V132 and pending PROD capture. The other dictionary entries (olap views, income views, upcoming and health views, routines, `pwa/application.yaml`, `agent-api.yaml`, `notifications-jobs.yaml`, `index.json`) are PROD captures and are refreshed from a full PROD capture in a later session (R116 and R117 precedent). Byte wrote the `database/README.md` V132 and V133 entries and batch 2's `services/chat/assets/conversation-business-rules.md`; the agent part has its own note.
 
 Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo (UX), Forge (promotion).
 
@@ -111,8 +111,8 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | `mw-db-ci -Group receiving` | All pass, on `673d6ea` (Byte) |
 | `Test-LateCharges` full chain | Pass, on `bebf07d` plus its test file (Chase) |
 | Real pre-target 131 upgrade route (section 0 ran) | Pass, on `bebf07d` plus its test file (Chase) |
-| `Test-CI.ps1 -Group migrations` full chain | Pass: 132 migrations, 9 concurrency suites, `public-functions.sql` matches the rebuilt schema, on `bebf07d` plus its test file (Chase) |
-| `mw-db-ci -Group phase8` | Pass, run earlier (Chase) |
+| `Test-MigrationsCloud.py` full chain | Pass: 132 migrations, 9 concurrency suites, `public-functions.sql` matches the rebuilt schema, on `bebf07d` plus its test file (Chase) |
+| `mw-db-ci -Group phase8` | Pass, at about `14e186f` (Chase) |
 | Nothing dated moved: `generate_due_charges` twin, `loan_close_calculation_v83` twin (`mutation` JSON identical), pay-forward twin, `pwa_next_*`, income and Cash Dashboard snapshots before and after V132 | Covered by `Test-LateCharges` above (Chase) |
 | Schema digest rebuilt at 132, `--check`; `node --test tests/unit/chat-schema-digest.test.mjs` | Covered by `npm test` above (Byte) |
 | `npm run check:docs` (Dewey, records) | 0 failures, 0 warnings |
@@ -143,7 +143,7 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | PR #225 `Agent tests`, run 41671674164, on `34d3aec` | Success |
 | Chase's "after" timing of a tap on DEV | Done: first tap 3 requests, later taps 2; later taps about 0.6 s to the toast and 0.8 to 1.3 s to full refresh, against 3.3 to 3.7 s and 5.9 to 6.8 s before (Chase) |
 | DEV redeploy for the direct stepper | Done and verified by Forge (see the redeploy record) |
-| DEV acceptance scenarios (plan list) | Implied by the owner's PROD instruction (R110 precedent); Chase's DEV scenarios are not a gate |
+| DEV acceptance scenarios (plan list, Chase) | Scenarios 1 to 6 and 8 passed. Scenario 7 (the jobs run) found the V133 defect, which is fixed and verified (DEV 16:00Z recent-analytics and 17:05Z daily-charges both OK). Owner acceptance is implied by "Move to prod" (R110 precedent) |
 | PROD CI receipts used by the promotion runner | `Development checks` (check, lint, e2e) run 41671673879 on `34d3aec`; terraform run 41203206026 on `cb875ea`; `Database migrations` run 41662032658 on `2356064`; run 41676067177 on `9a982f5`. All are ancestors of the merge `22712b0` with no stage-relevant change since (Forge) |
 | PROD read-only smoke (Forge) | `/health` 200 on read, command and chat; unauthenticated 401 on the session, collection, dashboard, cash-overview, management-analytics, command session and chat-models routes; preflight 204; no Cloud Run ERROR since the image apply and no Cloud SQL error since V132; notify 200 every minute |
 | PROD recent-analytics run at 18:00Z | Pending (placeholder; result to be added by the orchestrator) |
@@ -188,7 +188,7 @@ No secret value, token or borrower data appears here. DEV only; no PROD action. 
 | V133 | Installed 15:26:14Z, head 133, reconcile 0 violations |
 | Readback | The jobs owner holds `"Late Charge Paid"`; `metabase_borrower_reader` got no grant on DEV, which is correct; parity sweep 1 gap before, 0 after |
 | Manual recent-analytics run | Refused 409 `job_boundary_changed`, by design (see the correction to fallback B above) |
-| Natural runs | 16:00Z recent-analytics: completed, HTTP 200, no permission errors. 17:05Z daily-charges: pending |
+| Natural runs | 16:00Z recent-analytics: completed, HTTP 200, no permission errors. 17:05Z daily-charges: completed, HTTP 200 at 17:05:01Z on the R118 jobs revision |
 
 ### Direct-stepper redeploy (Forge, from `c4dbc3a`, CI run 41664290069)
 | Item | Result |
@@ -240,6 +240,9 @@ Authority: the owner's "Move to prod" instruction (about 16:25Z) recorded under 
 - The post-commit wake can take about 2 s when notify is cold.
 - On the charge details page the −/+ buttons are disabled offline.
 - The schema digest at 133 starts a new chat history epoch.
+- Not exercised live: the push's late-part text read on a device (delivery was `sent`; the text was only rendered locally); `payment.correct` (delete was exercised; correction only in the lab); the Loan Close `mutation` JSON over the API (fields and lines only).
+- The parity sweep only covers grants present in the cluster under test.
+- Move interest on an allocation with a late charge is refused with the generic "Change receipt amounts through Payments…" message.
 
 ### Tag record
 Tag `R118` on `22712b0` through the Release tag workflow run `<pending>` (started by the orchestrator after the 18:00Z check).
