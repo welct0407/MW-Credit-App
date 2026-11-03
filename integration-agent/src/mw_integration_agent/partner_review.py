@@ -167,6 +167,16 @@ def baht(value):
     return '฿'+format(Decimal(str(value)),',.0f')
 
 
+def due_parts(options,thai):
+    """R118: ' (Interest ฿100 + Late charge ฿50)' / ' (ดอกเบี้ย ฿100 + ค่าปรับล่าช้า ฿50)' when a late charge is due (principal
+    first when some is due); nothing otherwise, so a request without a late charge reads as before."""
+    from decimal import Decimal
+    if Decimal(str(options.get('dueLate') or 0))<=0:return ''
+    words=(('เงินต้น','ดอกเบี้ย','ค่าปรับล่าช้า') if thai else ('Principal','Interest','Late charge'))
+    parts=[(words[0],options.get('duePrincipal')),(words[1],options.get('dueInterest')),(words[2],options.get('dueLate'))]
+    return ' ('+' + '.join(f'{w} {baht(v)}' for w,v in parts if Decimal(str(v or 0))>0)+')'
+
+
 def options_lines(proposal,thai):
     """Echo AG-1/AG-4: the remainder and the numbered choices; a refused choice is left out with its reason."""
     o=proposal['options'];receipt=proposal['receipt'];borrower=proposal['borrower']
@@ -184,11 +194,12 @@ def options_lines(proposal,thai):
         choices.append(label+' ('+detail+')')
     if forward_offered(o) and len(o['principal'])==1:choices.append('3 + จำนวน เพื่อแบ่งชำระ' if thai else '3 + amount to split')
     choices.append('4 ตรวจใหม่หลังแก้ยอดในแอป' if thai else '4 recheck after editing charges in the app')
+    due=due_parts(o,thai)
     if thai:
-        head=f"สลิป {baht(receipt['amount'])} จาก {name}"+(f", {keys}" if keys else '')+f" ครบกำหนดวันนี้ {baht(o['dueTotal'])} ยอดคงเหลือ {baht(o['remainder'])} ตอบ: "
+        head=f"สลิป {baht(receipt['amount'])} จาก {name}"+(f", {keys}" if keys else '')+f" ครบกำหนดวันนี้ {baht(o['dueTotal'])}{due} ยอดคงเหลือ {baht(o['remainder'])} ตอบ: "
         tail=' · ปฏิเสธ เพื่อยกเลิก'
     else:
-        head=f"Slip {baht(receipt['amount'])} from {name}"+(f", {keys}" if keys else '')+f". Due today {baht(o['dueTotal'])}. Remainder {baht(o['remainder'])}, reply: "
+        head=f"Slip {baht(receipt['amount'])} from {name}"+(f", {keys}" if keys else '')+f". Due today {baht(o['dueTotal'])}{due}. Remainder {baht(o['remainder'])}, reply: "
         tail='. Reject to drop.'
     notes=[]
     settled=[b.get('loanKey') or b['loanId'] for b in o.get('blocked') or [] if b.get('reason')=='settles']

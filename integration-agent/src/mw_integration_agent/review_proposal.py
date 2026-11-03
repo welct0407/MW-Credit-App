@@ -157,7 +157,13 @@ def pay_forward_options(config,receipt,borrower_id,current,today):
     uncovered=str(forward.get('uncovered','0'))
     offered=uncovered=='0' and bool(rows) and not forward.get('settles')
     if not offered and not principal:return None
-    return {'planSha256':plan_digest(plans),'dueTotal':str(forward.get('dueTotal')),'remainder':str(int(remainder)),
+    # R118: the due part's late charge (step 1 pays every due charge in full when there is a remainder), named in the
+    # request as "Interest X + Late charge Y"; the key is present only when a late charge is due.
+    due_ids=set(forward.get('due') or []);due_lines=[l for l in forward.get('allocations') or [] if isinstance(l,dict) and l.get('chargeId') in due_ids]
+    due_late=sum((Decimal(str(l.get('lateCharge') or 0)) for l in due_lines),Decimal(0))
+    late_parts={'duePrincipal':str(int(sum((Decimal(str(l.get('principal') or 0)) for l in due_lines),Decimal(0)))),
+                'dueInterest':str(int(sum((Decimal(str(l.get('interest') or 0)) for l in due_lines),Decimal(0)))),'dueLate':str(int(due_late))} if due_late>0 else {}
+    return {'planSha256':plan_digest(plans),'dueTotal':str(forward.get('dueTotal')),**late_parts,'remainder':str(int(remainder)),
             'forward':{'first':rows[0].get('chargeDate') if rows else None,'last':rows[-1].get('chargeDate') if rows else None,
                        'through':through,'uncovered':uncovered} if rows or uncovered!='0' else None,
             'principal':principal,'blocked':blocked}
