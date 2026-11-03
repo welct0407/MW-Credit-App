@@ -32,7 +32,7 @@ Batch 1 and 2 fixes and additions:
 - `4419163`: `pwa_notify_history_content_v2` is part of V132, so payment history rows show the late part; the store falls back to v1.
 - The PWA always sends payment command v11. A P5B06 on a late-charge change shows "Late charge cannot be less than the ฿X already paid on it."
 
-DEV defect found by Chase (V133): the R118 jobs image's recent-analytics failed at 15:00Z with "permission denied for table Repayments". Cause: `mw_jobs_owner` has column-level SELECT on Repayments and lacked `"Late Charge Paid"`, which V132's function bodies read. Fix: `V133__late_charge_column_grants.sql` (Byte) plus parity checks: a catalog-wide self-check and a `Test-AccessMatrix` parity check (Byte), and a parity sweep in `Test-LateCharges` (Chase). V133 grants `Repayments."Late Charge Paid"` to `mw_jobs_owner_<env>` and, in PROD only, `olap_repayments_analytics."Late Charge Paid"` to `metabase_borrower_reader`, and only if the role exists and holds `"Interest Paid"`. Lab reproduction: permission denied at V132, ok at V133. Forge is applying V133 to DEV. PROD has the same gap, so V133 ships with V132 and the PROD promotion applies both. Fallback B: DEV daily-charges at 17:05Z may fail cleanly and is re-run after V133 within the Bangkok day.
+DEV defect found by Chase (V133): the R118 jobs image's recent-analytics failed at 15:00Z with "permission denied for table Repayments". Cause: `mw_jobs_owner` has column-level SELECT on Repayments and lacked `"Late Charge Paid"`, which V132's function bodies read. Fix: `V133__late_charge_column_grants.sql` (Byte) plus parity checks: a catalog-wide self-check and a `Test-AccessMatrix` parity check (Byte), and a parity sweep in `Test-LateCharges` (Chase). V133 grants `Repayments."Late Charge Paid"` to `mw_jobs_owner_<env>` and, in PROD only, `olap_repayments_analytics."Late Charge Paid"` to `metabase_borrower_reader`, and only if the role exists and holds `"Interest Paid"`. Lab reproduction: permission denied at V132, ok at V133. Forge is applying V133 to DEV. PROD has the same gap, so V133 ships with V132 and the PROD promotion applies both. Fallback B (correction): a manual recent-analytics run on DEV was refused 409 `job_boundary_changed`. That is by design: a manual scheduler run never re-runs a missed boundary. So V132 and V133 must ship together in one PROD apply, and a missed boundary is not recovered by a manual run.
 
 Echo's second pass (on `673d6ea`, at 390, 1280 and 320 px, English and Thai): 7 findings, all fixed in `4b8213b`. LC-COL-R2-1 scroll restore; LC-COL-R2-2 duplicate figure removed, the note reads "Late charge ฿50 · ฿50 paid"; LC-COL-R2-3 nothing to change shows the paid status and refreshes; LC-ERR-R2-1 server refusal wording; LC-PAY-R2-1 1280 px column; LC-REC-R2-1 Title Case and the paid note removed; LC-TH-R2-1 "Late Charge Due" and สินเชื่อ. The server refusal now reads "Late charge cannot be less than what was already paid on it. Refresh to see the current amount." / "ค่าปรับล่าช้าต้องไม่น้อยกว่ายอดที่ชำระแล้ว รีเฟรชเพื่อดูยอดปัจจุบัน"; the edit page's own typed-value check keeps "…the ฿X already paid on it."
 
@@ -117,23 +117,25 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | PR #225 `Development checks`, run 41649243131, on `f29679a` | changes, lint and check (unit, typecheck, builds, audit) pass; e2e shard 2 pass; shards 1 and 3 fail on one test, `tests/e2e/phase5-borrower-independent.spec.ts:187` "F12 charge unsent exact reload", which pinned `charge.create` inputs without `lateChargeDue`. Fixed in `c18e0c4` (Byte): the expected inputs gain `lateChargeDue` (draft value or "0"); the spec passed 82 of 82 locally on both projects, and no other exact charge input pins exist |
 | PR #225 `Database migrations`, run 41649424639, on `f29679a` | Guards and the rebuild groups migrations, phase5, phase8 and receiving all pass. Dispatched by hand because every earlier push that carried V132 was `[skip ci]` |
 | PR #225 `Agent tests`, runs 41649243078 and 41649432921, on `f29679a` | Pass |
-| PR #225 `Development checks`, rerun on `c18e0c4` | Pending |
+| PR #225 `Development checks`, rerun after the `c18e0c4` fix | Superseded by the green run 41664290069 on the later head `c4dbc3a` (below) |
 | DEV deployment (PR #225 head `d8b839a`) | Done and verified by Forge; see the DEV promotion record below |
 | V133 PR CI on `2356064`: `Database migrations` run 41662032658; `Development checks` run 41662040323 | Success; success |
 | `mw-db-ci` migrations group, `npm run lint`, `npm run typecheck`, `npm run check:docs`, on `bd09cbc` | Exit 0; pass; pass; pass (Byte) |
 | `npm test` on `bd09cbc` | 1129 pass (Byte) |
 | Lab reproduction of the jobs failure | Permission denied at V132, ok at V133 (Byte) |
 | Direct stepper (`d42322f`): lint, typecheck, check-docs, `npm test`; scratch spec | Pass, 1129 pass; 18/18 (Byte) |
-| V133 DEV apply and the jobs re-run | Pending (Forge) |
+| V133 DEV apply | Done and verified by Forge (see the V133 DEV apply record); the 16:00Z and 17:05Z natural runs pending |
 | `late-charge-independent.spec.ts`, rewritten for the direct flow (one tap with no Confirm; toast text with U+2212 for a decrease; buttons disabled while a change is in flight; two quick taps in sequence with fresh versions; refusal, load-failure and queued toasts; scroll kept; offline), on `18287a1` | 40/40 on both projects, `--repeat-each=2` (Chase) |
 | `Test-LateCharges` through the real runner, pre-target 131, on `18287a1` | Pass: V132 and V133 applied, second run 0, tamper rejected (Chase) |
 | `Test-LateCharges` full chain, on `18287a1` | Pass: 133 migrations, 9 concurrency suites, `public-functions.sql` matches (Chase) |
 | Parity sweep in `Test-LateCharges` | Passes with V133; fails as intended in the DEV-like negative case (Chase) |
-| PR `Development checks` on the `18287a1` push; DEV redeploy for the direct stepper | Pending |
+| PR #225 `Development checks`, run 41664290069, on `c4dbc3a` (the pushed head; `18287a1` was an earlier local head) | Success: changes, check, lint and all three e2e shards pass; terraform skipped |
+| PR #225 `Agent tests`, run 41664290089, on `c4dbc3a` | Success (changes, test, lab) |
+| DEV redeploy for the direct stepper | Done and verified by Forge (see the redeploy record) |
 | DEV acceptance scenarios (plan list) | Pending Chase, then the owner on the phone |
 
 ## Not run
-The rows marked Pending: the Development checks rerun on `c18e0c4` and DEV acceptance (Chase, then the owner). A pending check is not a pass.
+The rows marked Pending: the 16:00Z and 17:05Z DEV natural runs and DEV acceptance (Chase, then the owner). A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
@@ -143,7 +145,7 @@ None.
 
 ## Remaining work
 - Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- V133 DEV apply (Forge) and the jobs re-run; the PR Development checks and the DEV redeploy for the direct stepper; then Chase's DEV scenarios and owner acceptance on the phone (including the direct shortcuts with the bottom toast).
+- The 16:00Z and 17:05Z natural runs on DEV; then Chase's DEV scenarios and owner acceptance on the phone (including the direct shortcuts with the bottom toast).
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
 
@@ -164,4 +166,25 @@ No secret value, token or borrower data appears here. DEV only; no PROD action. 
 | Not deployed | The agent: there is no DEV agent target; `vm-mw-credit-agent` is PROD-only and unchanged |
 | Rollback | Settings generation back to the R117 inventory row (read, command and chat to R117; notify and jobs to R113); previous Hosting version; V132 is additive, else restore the V131 backup; undo the reader grant with 3 REVOKEs. Data caveat: zero any late charge before a service rollback |
 
-DEV acceptance: pending Chase's DEV scenarios, then the owner.
+### V133 DEV apply (Forge, 3 November 2026, UTC)
+| Item | Result |
+| --- | --- |
+| Backup at V132 | 15:22:24Z, dump sha256 `c235ea69…`, restore passed, 38 fingerprints, folder `dev-refresh-dd0df9b850f84e1198cc66d1940c45f1` |
+| Owner window | Opened 15:25:38Z, restored 15:34:16Z |
+| V133 | Installed 15:26:14Z, head 133, reconcile 0 violations |
+| Readback | The jobs owner holds `"Late Charge Paid"`; `metabase_borrower_reader` got no grant on DEV, which is correct; parity sweep 1 gap before, 0 after |
+| Manual recent-analytics run | Refused 409 `job_boundary_changed`, by design (see the correction to fallback B above) |
+| Pending | The 16:00Z and 17:05Z natural runs |
+
+### Direct-stepper redeploy (Forge, from `c4dbc3a`, CI run 41664290069)
+| Item | Result |
+| --- | --- |
+| Images and Terraform | One Cloud Build image; plan 0 add, 3 change, 0 destroy, read, command and chat images only; notify and jobs unchanged |
+| Hosting | DEV version labelled R118, embeds `c4dbc3a`, live 15:42:21Z |
+| Smoke | All checks pass |
+| Chat history | The schema digest at 133 starts a new chat history epoch |
+| Rollback | The previous settings generation and the previous Hosting version (see the inventory) |
+
+Pins for both are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+DEV acceptance of the direct stepper: pending Chase's DEV scenarios, then the owner.
