@@ -86,6 +86,7 @@ def download_original(url):
             if not allowed_url(url):
                 raise ConfigurationError('RECEIPT_URL_NOT_APPROVED')
             request=urllib.request.Request(url,headers={'User-Agent':'MW-Receipt/1.0'})
+            gone=False
             try:
                 with opener.open(request,timeout=25) as response:
                     data=response.read(12_000_001)
@@ -95,6 +96,15 @@ def download_original(url):
             except RedirectDenied as exc:
                 # Every hop is re-checked against the CDN allowlist before it is fetched.
                 url=exc.location
+            except urllib.error.HTTPError as exc:
+                if exc.code not in (404,410):
+                    raise
+                exc.close()
+                gone=True
+            if gone:
+                # The CDN says the original no longer exists (expired signed URL or deleted message).
+                # Raised outside the handler so neither __cause__ nor __context__ carries the signed URL.
+                raise ConfigurationError('RECEIPT_SOURCE_GONE') from None
         raise ConfigurationError('RECEIPT_REDIRECT_LIMIT')
     except ConfigurationError:
         raise
