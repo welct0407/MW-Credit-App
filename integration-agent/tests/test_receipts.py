@@ -163,8 +163,8 @@ class ReceiptRuleTests(unittest.TestCase):
             download_original(signed)
         return caught.exception
 
-    def test_download_404_and_410_are_source_gone(self):
-        for code in (404,410):
+    def test_download_403_404_and_410_are_source_gone(self):
+        for code in (403,404,410):
             with self.subTest(code=code):
                 exc=self.http_failure(code)
                 self.assertEqual(str(exc),'RECEIPT_SOURCE_GONE')
@@ -172,7 +172,7 @@ class ReceiptRuleTests(unittest.TestCase):
                 self.assertNotIn('SIGNED-SECRET',''.join(traceback.format_exception(exc)))
 
     def test_download_other_http_errors_stay_download_failed(self):
-        for code in (403,429,500):
+        for code in (429,500):
             with self.subTest(code=code):
                 self.assertEqual(str(self.http_failure(code)),'RECEIPT_DOWNLOAD_FAILED')
 

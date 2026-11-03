@@ -97,12 +97,13 @@ def download_original(url):
                 # Every hop is re-checked against the CDN allowlist before it is fetched.
                 url=exc.location
             except urllib.error.HTTPError as exc:
-                if exc.code not in (404,410):
+                if exc.code not in (403,404,410):
                     raise
                 exc.close()
                 gone=True
             if gone:
-                # The CDN says the original no longer exists (expired signed URL or deleted message).
+                # The CDN refuses or no longer has the original (expired signed URL or deleted message);
+                # the owner counts 403 as gone too. The archive closes only after two consecutive gone attempts.
                 # Raised outside the handler so neither __cause__ nor __context__ carries the signed URL.
                 raise ConfigurationError('RECEIPT_SOURCE_GONE') from None
         raise ConfigurationError('RECEIPT_REDIRECT_LIMIT')

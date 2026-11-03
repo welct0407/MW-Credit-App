@@ -143,7 +143,7 @@ class Archive:
                     self.db.execute("UPDATE receipt_assets SET archive_state='INTEGRITY_CONFLICT' WHERE receipt_id=?", (receipt_id,))
                 elif (code == 'RECEIPT_SOURCE_GONE' and not path.exists() and not asset['raw_sha256']
                       and asset['last_error_code'] == 'RECEIPT_SOURCE_GONE'):
-                    # Two consecutive due attempts saw 404/410 and nothing was ever captured: the source is gone.
+                    # Two consecutive due attempts saw 403/404/410 and nothing was ever captured: the source is gone.
                     # `asset` is the pre-attempt snapshot, so its last_error_code is the previous attempt's.
                     self.db.execute("UPDATE receipt_assets SET archive_state='SOURCE_UNAVAILABLE' WHERE receipt_id=?",(receipt_id,))
                 elif not path.exists() and asset['attempts']>=11:
