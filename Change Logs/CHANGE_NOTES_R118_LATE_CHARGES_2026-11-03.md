@@ -16,6 +16,15 @@ Owner decisions (3 November 2026, settled in the [plan](https://claude.ai/artifa
 
 Schema (V132, Byte; definitions in `database/README.md`): `Charges` gains `"Late Charge Due"` (money, NOT NULL, default 0), `"Late Charge Paid"` and `"Late Charge Remaining"` (numeric, maintained by the charge refresh like the interest pair; `"Total Paid"` and `"Amount Remaining"` include them); `Payment Allocations` gains `"Allocated Late Charge"` (money, NOT NULL, default 0); `Repayments` gains `"Late Charge Paid"` (money, NOT NULL, default 0). Payment command schemaVersion 11, agent schemaVersion 10. Line shape, byte-exact and key-sorted: `chargeId`, `principal`, `interest`, `lateCharge`, `expectedPrincipalRemaining`, `expectedInterestRemaining`, `expectedLateChargeRemaining`, `chargeDate`.
 
+V132 column positions (Byte, batch 1): Charges 18 `"Late Charge Due"`, 19 `"Late Charge Paid"`, 20 `"Late Charge Remaining"`; Payment Allocations 14 `"Allocated Late Charge"`; Repayments 11 `"Late Charge Paid"`; `olap_charges_analytics` 25 to 27; `olap_repayments_analytics` 21 `"Late Charge Paid"`; `oltp_upcoming_charge_events_v1` 14 `"Late Charge Remaining"`; income views: statement 20 `"Late Charges Received MTD"`, monthly 11, daily 15 and events 6 `"Late Charges Received"`. New function `pwa_notify_content_v3`, granted to the dispatcher only and revoked from `mw_integration_agent`; notify falls back from v3 to v2 to v1.
+
+Accepted deviations from the plan (Byte, batch 1):
+- Old clients keep working: `lateChargeDue` is optional on `charge.update`, so a 5-key request keeps the stored value. Auto-assign returns 8-key lines only when asked with `lineVersion` 11.
+- Services read late as 0 where V132 is absent, for old-schema test runs (`services/lib/late-charge-schema.mjs`).
+- The Loan Close payoff adds the unpaid late charge on every charge of the loan.
+- The below-paid refusal stays P5B06 (`record_requires_reconciliation`); the PWA shows the "฿X already paid" text from `lateChargePaid`. This answers Echo's LC-ERR-2.
+- A future charge whose only unpaid part is its late charge drops out of Upcoming but still shows in Collection.
+
 Archie's decisions (accepted):
 - Profit folding: explicit sums `"Interest Paid" + "Late Charge Paid"` in every profit relation. `olap_repayments_analytics."Interest Paid"` stays interest-only; its `"Amount Received"` and `"Partner A/B Profit"` include late, so the Cash Dashboard, portfolio summary and partner earnings follow without a new column. `reporting_partner_earnings_v1` allocation residual and `partner_net_profit` are updated to match.
 - Loan and borrower totals: late is folded into `"Total Interest Received"` (loan) and `"Total Interest Earned"` (borrower), and into `"Total Amount Received"`. No new loan or borrower column. These columns therefore mean "interest plus late charge" from R118; with late 0 everywhere today no value changes.
@@ -40,7 +49,7 @@ Echo findings (first pass; orchestrator rulings applied, the rest is the build s
 - Readouts: the chat proposal card totals must include late (blocker LC-READ-2); payment record and review lines show "· Late charge ฿X" only when not zero.
 - Push: "Late charge ฿50 · " is added only when the payment's late part is above 0 (accepted); amounts are never cut, names shorten first.
 - Labels: Late charge ค่าปรับล่าช้า; Late charge remaining ค่าปรับคงเหลือ; Late charges received ค่าปรับที่ได้รับ; Late Charge Due ค่าปรับล่าช้าเรียกเก็บ; Late Charge Paid ค่าปรับชำระแล้ว.
-- Refusal: "Late charge cannot be less than the ฿20 already paid on it." The server guard needs a dedicated code or a source-conflict mapping instead of the generic invalid message (LC-ERR-2; Byte decides).
+- Refusal: "Late charge cannot be less than the ฿20 already paid on it." The server keeps P5B06; the PWA shows the "already paid" text from `lateChargePaid` (LC-ERR-2, see the deviations above).
 
 Forge's promotion corrections to the plan (the plan's Promotion section stands otherwise):
 - All five images change: read, command, chat, notify and jobs (notify and jobs share `services/workers/server.mjs`). Rollback pins: read, command and chat to R117; notify and jobs to the R113 image they run now.
@@ -60,14 +69,16 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 ## Checks
 | Command | Result |
 | --- | --- |
-| `pwsh scripts/database/Test-CI.ps1 -Group migrations` | Pending (Byte, batch 1) |
+| `npm run lint` | Pass, on `ab3fed8`, clean tree (Byte) |
+| `npm run typecheck` | Pass, on `ab3fed8`, clean tree (Byte) |
+| `node --test tests/unit` | 1,122 tests, 0 failures, on `ab3fed8`, clean tree (Byte) |
+| `mw-db-ci -Group phase5` | Pass, on `ab3fed8`, clean tree (Byte) |
+| `pwsh scripts/database/Test-CI.ps1 -Group migrations` | Pending (Byte) |
 | `pwsh scripts/database/Test-LateCharges.sql` through `Test-MigrationsCloud --sql-only` | Pending (Chase) |
 | Extended database tests (Archie's list: `Test-MaterializedBalances`, `Test-CorePayment`, `Test-LumpSum`, `Test-SelectedCharges`, `Test-PayForward`, `Test-AtomicLoanClose`, `Test-WriteOffSegregation`, `Test-NotifyContent`, `Test-AccessMatrix`, `Test-TriggerOrder`, and the rest) | Pending (Byte, Chase) |
 | Nothing dated moved: `generate_due_charges` twin, `loan_close_calculation_v83` twin (`mutation` JSON identical), pay-forward twin, `pwa_next_*`, income and Cash Dashboard snapshots before and after V132 | Pending (Chase) |
-| Services unit tests (`payment-command-contract` bytes equal the SQL `line_text`, `notification-content` 80 graphemes, `offline-dataset-delta` v7, and the rest of the plan's list) | Pending (Byte) |
 | Schema digest rebuilt at 132, `--check`; `node --test tests/unit/chat-schema-digest.test.mjs` | Pending (Byte) |
 | `npm run check:docs` | Pending (Dewey) |
-| Typecheck | Pending (Byte) |
 | Browser: `late-charge-independent.spec.ts`, receiving specs at 320, 390 and 1280 px, English and Thai | Pending (Chase, Echo) |
 | Agent tests: `test_receipt_api_v9.py` (v10), `test_review_proposal_options.py`, `test_partner_review.py`, `test_review_cycle*.py` | Pending (Byte, Chase) |
 | Pull request `Development checks` | Pending |
@@ -80,10 +91,10 @@ To be filled when the checks run.
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
 
 ## Open questions
-Server error code for the late-charge floor refusal (LC-ERR-2): a dedicated code or a source-conflict mapping (Byte and Archie decide; no owner decision).
+None.
 
 ## Remaining work
-- Batch 1 (Byte): V132, contracts, services; Chase verification.
+- Batch 1 (Byte) is committed locally on `ab3fed8`; Chase's verification is pending; Byte writes the `database/README.md` V132 entry.
 - Batch 2 (Byte): PWA screens, chat, agent wording, Metabase Income page (`LateCharges.mjs`, `Refine-LateCharges.mjs`).
 - Echo second pass; owner acceptance on DEV.
 - Fill the Checks table and Not run section as evidence arrives.

@@ -229,9 +229,9 @@ CREATE FUNCTION pg_temp.lc_purpose(forward boolean,principal jsonb,loans jsonb) 
  SELECT jsonb_build_object('forward',forward,'principal',coalesce(principal,'[]'::jsonb),'loans',loans) $f$;
 CREATE FUNCTION pg_temp.lc_plan(borrower text,amount int,purpose jsonb) RETURNS jsonb LANGUAGE sql AS $f$
  SELECT public.pwa_pay_forward_plan_v1(borrower,amount::numeric,(SELECT d FROM lc_day),purpose) $f$;
-CREATE FUNCTION pg_temp.lc_plan_cmd(version int,request text,borrower text,amount int,purpose jsonb) RETURNS text LANGUAGE sql AS $f$
+CREATE FUNCTION pg_temp.lc_plan_cmd(version int,request text,borrower text,amount int,purpose jsonb,header int DEFAULT NULL) RETURNS text LANGUAGE sql AS $f$
  WITH plan AS (SELECT pg_temp.lc_plan(borrower,amount,purpose) p)
- SELECT pg_temp.lc_cmd(version,request,borrower,amount,
+ SELECT pg_temp.lc_cmd(version,request,borrower,coalesce(header,amount),
   coalesce((SELECT string_agg(CASE WHEN version>=11 THEN pg_temp.lc_line8(l->>'chargeId',(l->>'principal')::int,(l->>'interest')::int,(l->>'lateCharge')::int,(l->>'expectedPrincipalRemaining')::int,
         (l->>'expectedInterestRemaining')::int,(l->>'expectedLateChargeRemaining')::int,(l->>'chargeDate')::date)
       ELSE pg_temp.lc_line6(l->>'chargeId',(l->>'principal')::int,(l->>'interest')::int,(l->>'expectedPrincipalRemaining')::int,(l->>'expectedInterestRemaining')::int,(l->>'chargeDate')::date) END,
@@ -257,10 +257,10 @@ SELECT pg_temp.lc_assert((SELECT bool_and("Late Charge Due"::numeric=0 AND "Late
 -- Commands: everything built now, from the untouched fixture, and submitted below.
 SELECT set_config('lc.o2a',pg_temp.lc_cmd(11,'a1000000-0000-4000-8000-000000000001','LC-BO',120,
    pg_temp.lc_line8('LC-O2-c',0,100,20,200,100,50,(SELECT d FROM lc_day)-1)),true),
- -- v10 on a late charge: the client does not know the late part (principal 50 + interest 10 = 60); the server plan puts 50 into late.
- set_config('lc.c1_v10',pg_temp.lc_cmd(10,'a2000000-0000-4000-8000-000000000001','LC-BC',60,pg_temp.lc_line6('LC-C1-c',50,10,100,10,(SELECT d FROM lc_day)-1)),true),
+ -- v10 on a late charge: the client (v10 has no late key) sends the plan lines without the late part, interest 10 + five forward charges = 60; the server plan at 60 puts 50 into late.
+ set_config('lc.c1_v10',pg_temp.lc_plan_cmd(10,'a2000000-0000-4000-8000-000000000001','LC-BC',110,pg_temp.lc_purpose(true,NULL,NULL),60),true),
  set_config('lc.c1_v8',pg_temp.lc_cmd(8,'a2000000-0000-4000-8000-000000000002','LC-BC',60,pg_temp.lc_line6('LC-C1-c',50,10,100,10,(SELECT d FROM lc_day)-1)),true),
- set_config('lc.c2_v10',pg_temp.lc_cmd(10,'a2000000-0000-4000-8000-000000000003','LC-BCV',60,pg_temp.lc_line6('LC-C2-c',50,10,100,10,(SELECT d FROM lc_day)-1)),true),
+ set_config('lc.c2_v10',pg_temp.lc_plan_cmd(10,'a2000000-0000-4000-8000-000000000003','LC-BCV',60,pg_temp.lc_purpose(true,NULL,NULL)),true),
  set_config('lc.k1_v8',pg_temp.lc_cmd(8,'a3000000-0000-4000-8000-000000000001','LC-BK',50,pg_temp.lc_line6('LC-K1-c',40,10,40,10,(SELECT d FROM lc_day)-1)),true),
  set_config('lc.n1',pg_temp.lc_cmd(11,'a4000000-0000-4000-8000-000000000001','LC-BN',60,pg_temp.lc_line8('LC-N1-c',0,10,50,0,10,50,(SELECT d FROM lc_day)-1)),true),
  set_config('lc.pfa',pg_temp.lc_plan_cmd(11,'a5000000-0000-4000-8000-000000000001','LC-BPA',110,pg_temp.lc_purpose(true,NULL,NULL)),true),
@@ -394,7 +394,7 @@ BEGIN
   '6-key v8 on a late charge posts principal 50 + interest 10 and leaves the late charge 50 unpaid');
  PERFORM pg_temp.lc_assert(pg_temp.lc_effects('pwa:a2000000-0000-4000-8000-000000000002')=jsonb_build_object('alloc',jsonb_build_object('p',50,'i',10,'l',0,'a',60),'paid',jsonb_build_object('p',50,'i',10,'l',0)),'6-key v8: late allocation 0');
  PERFORM pg_temp.lc_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=60 FROM public."Payments" WHERE "Row ID"='pwa:a2000000-0000-4000-8000-000000000003')
-   AND pg_temp.lc_effects('pwa:a2000000-0000-4000-8000-000000000003')->'paid'=jsonb_build_object('p',50,'i',10,'l',0),'v10 without a late charge still posts');
+   AND pg_temp.lc_effects('pwa:a2000000-0000-4000-8000-000000000003')->'paid'=jsonb_build_object('p',0,'i',60,'l',0),'v10 (forward list) without a late charge still posts');
  PERFORM pg_temp.lc_assert(pg_temp.lc_effects('pwa:a4000000-0000-4000-8000-000000000001')->'paid'=jsonb_build_object('p',0,'i',10,'l',50)
    AND (SELECT "Late Charge Remaining"::numeric=0 AND "Amount Remaining"::numeric=0 FROM public."Charges" WHERE "Row ID"='LC-N1-c'),'v11 interest 10 + late 50 paid in full');
  PERFORM pg_temp.lc_assert((public.pwa_effective_payment_plan_v2('pwa:a4000000-0000-4000-8000-000000000001')#>'{plan,allocations}')=((current_setting('lc.n1')::jsonb)#>'{command,allocations}'),'v11 keeps the explicit plan provenance (8-key lines)');
