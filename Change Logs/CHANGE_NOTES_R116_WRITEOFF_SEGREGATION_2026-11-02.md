@@ -1,7 +1,7 @@
 # Change notes — R116 Principal write-off segregation, 2 November 2026
 
 ## Purpose
-The owner asked to segregate principal write-offs from actual profit on the Dashboard page, show them in the income statement, exclude them from Realized MTD profit, and give Metabase the same visibility. Net profit becomes gross profit minus expenses minus write-offs. Built and tested in DEV first; promotion only under a later owner instruction.
+The owner asked to segregate principal write-offs from actual profit on the Dashboard page, show them in the income statement, exclude them from Realized MTD profit, and give Metabase the same visibility. Net profit becomes gross profit minus expenses minus write-offs. Built and tested in DEV first, then promoted to DEV and PROD on 3 November 2026 under the owner's "Move to prod" (see the promotion record below).
 
 ## Changes
 Outcomes (owner request, 2 November 2026):
@@ -85,27 +85,22 @@ Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql
 
 ## Not run
 - The wide Playwright suite and the mobile project: left to the pull request's CI.
-- Live Metabase (refine, rebaseline and verify runs) and the PROD dictionary capture: they belong to the promotion step (Metabase reads PROD only).
+- Authenticated PROD reads (dashboard figures, Cash Ledger order and names): there is no PROD Partner token, so the owner's first views cover them.
 
 Chase info finding: an undated `df10:` pair counts in lifetime portfolio net but not in the dated views. This is unchanged from before V128, and no such rows are known.
 
 ## Recovery
-Git baseline: `main` 80fbf6b (branch `claude/r116-writeoff-segregation`). V128 is views only; a later migration restores the V127 bodies (the appended columns stay, unused). Metabase: restore the private baseline written by `Refine-WriteOffSegregation.mjs --prepare` and archive the new question.
+Git baseline: `main` 80fbf6b (branch `claude/r116-writeoff-segregation`). V128 is views only; a later migration restores the V127 bodies (the appended columns stay, unused). Metabase: restore the private baseline written by `Refine-WriteOffSegregation.mjs --prepare` and archive questions 415 and 416. PROD rollback is in the promotion record.
 
 ## Open questions
 None. The owner decided on 2 November 2026 (see Changes).
 
 ## Remaining work
-The PROD promotion, only on the owner's instruction, in this order:
-1. A verified restorable backup.
-2. V128 to V130 (views only).
-3. The read, command and chat images, and Hosting.
-4. Metabase: `Refine-WriteOffSegregation.mjs --prepare`, then `--apply`.
-5. `ProposedLoanReports.mjs --rebaseline-dashboard3=R116`, then `--refine --only=income.writeoffs,income.vs-previous,income.monthly,income`.
-6. Both `--verify` runs.
-7. The PROD dictionary capture (targeted).
-
-Follow-ups for a later release: the reconcile-skip comment in the predicate, and moving the `df10:`-only guards (`undo_loan_default`, `default_posting_guard`, `default_loan_transition`, the schedule exclusions) onto the predicate.
+Released to DEV and PROD on 3 November 2026. Open:
+- PROD acceptance by the owner: the first look at the Dashboard, Analytics, the Metabase Income page and Cash Ledger Recent. It is written into the next closure or product pull request, not its own.
+- Follow-ups for a later release: a governance comment on `is_principal_writeoff` explaining the DEV-only `mw_app_dev` ACL difference (the DEV post-migrate reconcile adds the grant; PROD has PUBLIC only); moving the `df10:`-only guards (`undo_loan_default`, `default_posting_guard`, `default_loan_transition`, the schedule exclusions) onto the predicate; and the older Metabase scripts that still use the Windows `privateDir` constant (Chase).
+- Dictionary: the targeted PROD capture is done (see Closure). The Metabase dictionary entries of dashboards 3 and 32 and questions 384 and 385 still show the pre-R116 cards.
+- The extra worktree `scratchpad/wt-metabase-fix` is session-local only and is not part of the repository.
 
 Pointer: the observation at the end of the first DEV record below (13,000 against 7,000) is resolved by V130 (see Changes) and the [second DEV deployment](#second-dev-deployment-v129-v130-pr-216).
 
@@ -152,3 +147,55 @@ Forge, 2 November 2026, UTC. Same owner instruction; DEV only, no PROD or Metaba
 Rollback: settings generation `1793645472408937` (the first R116 images) together with Hosting `bcf65331ac692da4`; V129 and V130 are views and a pure function only, and the V128 backup above is the restore point.
 
 PROD promotion note (read-only catalog check of `loan_manager_prod`): `metabase_borrower_reader` holds SELECT on `olap_repayments_analytics` and `olap_charges_analytics` (every column `Refine-WriteOffSegregation.mjs --verify` reads, including "Ref Payment", "Ref Charges", "Principal Due" and "Interest Due"), and on `"Cash Dashboard"`, `reporting_income_events` and `reporting_statement_calendar`. Verify also calls `public.is_principal_writeoff`, which exists only once V130 is on PROD (PUBLIC EXECUTE), so the Metabase refine and verify follow V128 to V130.
+
+## Promotion record (Forge, 3 November 2026, UTC)
+No secret value, token or borrower data appears here.
+
+**Scope and authority**
+- **Scope:** R116 to PROD: V128 to V130 (views and the pure function `is_principal_writeoff`, no data write), the R116 image on read, command and chat (images only, as the runner derives), Hosting, and the Metabase refine and verify. PR #216 (Cash Ledger order and borrower names) is included. No agent deploy. No PROD payment, close, forced notification or chat write.
+- **Authority:** the owner's instruction of 3 November 2026: "Move to prod". PR #215 was merged under it.
+- **Freeze:** package `3ef969fb9955d3c6f8060f4fb79bf41ffe8c2011` (PR #215 merge on `main`; its tree equals `e16940f`). Its diff from the DEV-tested `515c1bb` is four Markdown records only (this note, `database/README.md`, `Environment_Inventory.md`, `Release_Tracker.md`), so the code inputs are identical. Generic release kind (schemaVersion 36, `generic-v1`, no runner edit); baseline R115 `ccc68a7c`; migrations added since the baseline are exactly V128, V129 and V130; no change under `infrastructure/production`, `infrastructure/modules` or the image build inputs other than `services/`.
+
+| Item | Result |
+| --- | --- |
+| Baseline (PROD, before) | read `00039-rgw`, command `00044-2xt`, chat `00023-hqg` on `868c4d75…` (R115); notify `00025-8ks` and jobs `00025-g78` on `f73e5c36…` (R113); settings generation `1793639967196628`; Hosting `c12d32825221f045` (release `1793640093794000`); `loan_manager_prod` head 127 (127 rows, 0 failed) on `mw-credit-pg-20261017` (POSTGRES_18, RUNNABLE), project `clever-oasis-508610-n7`; only PROD consumer sessions (command, notify, Metabase reader). The six income views and the two analytics views are owned by `postgres`; no `postgres` default privileges on functions |
+| Backup at V127 | Observed 05:29:18Z (05:29:12Z to 05:31:47Z), `prod-promotion-5ec039d699f442e5bde216bfb4c3d1ba`, dump sha256 `e112d6668f704d5fe4e0ffcb8785e19d85458f2a4417273c86fbd4c37a0b0b36`; listing and restore passed; 38 table fingerprints match |
+| SQL package | `release-r116-v130-3ef969f.json`, written by `Invoke-CloudFlyway.py prepare` from DEV at 130 on the clean `3ef969f`; V128 to V130 hash to the package bytes. A first manifest from `New-Release.ps1` listed the same 130 migrations in a different order and the runner refused it before any connection (`Migration hashes differ`); it was set aside and the runner's own `prepare` used, as in R115. Connect preflight 127 to 130 sha256 `c1bd43b2…b28a` (18 retained consumers, 0 DEV sessions); `check` 0 writes, pending 128, 129, 130 |
+| Owner window | None (`ownerWindows: []`): every object V128 to V130 replace or create is owned by `postgres`, the runner, and PROD runs no role reconcile. Nothing opened or restored |
+| Flyway | `Invoke-CloudFlyway.py apply`, one grouped transaction (05:36:53Z to 05:38:24Z): V128, V129 and V130 installed 05:37:36Z (3.8 s, 2.7 s, 4.5 s; checksums 1813462493, -1649282923, -1157115539, the same as DEV), self-checks passed; head 130 (130 rows, 0 failed); `verify --target prod` clean (05:43:49Z) |
+| Readback | The eight view ACLs are byte-identical to before, `metabase_borrower_reader` included. `is_principal_writeoff` is owned by `postgres` with the default ACL (PUBLIC EXECUTE only, so the Metabase reader, `mw_app_prod`, `mw_chat_read_prod` and `mw_integration_agent` can execute it; no DEV-style `mw_app` grant). Net unchanged: net MTD 8,570.00, unsettled 8,570.00, lifetime net 440,687, monthly net 84,230 / 190,402 / 157,485 / 8,570 (Aug to Nov), pool, cash held and reconciliation difference unchanged. Gross rises by the write-offs: August 84,230 to 90,230 (write-offs 6,000), October 162,880 to 170,880 (8,000), November MTD 8,610 to 11,610 (3,000); lifetime gross 449,002 to 466,002. Lifetime "Principal Write-offs" 17,000 = "Total Principal Loss" 17,000; daily and events write-offs 17,000 on 6 event rows |
+| Image | Cloud Build `cbc144f1-e6cc-404a-a3f3-84d8f0b0b4d9` (`cloudbuild-business.yaml`, PROD builder `mw-credit-app-build-prod`, `git archive` of `3ef969f`), SUCCESS 05:40:09Z to 05:40:46Z, `mw-credit-app-prod/api@sha256:2bb801de3437698005907a5a04f8b221aa21afe07e2a6be097c3deb5f09917a4`, tag `keep-r116-runtime` |
+| Terraform | Settings generation `1793684711307615` (previous `1793639967196628`): `runtime_image_overrides` for read, command and chat. Plan 0 add, 3 change, 0 destroy (images only), plan sha256 `a8451783…7230`, JSON `737590f7…11d8`; runner `--check` passed; applied 05:45:14Z to 05:45:53Z; re-plan no changes |
+| Revisions | read `00040-tpw`, command `00045-c67`, chat `00024-d22` on `2bb801de…`; notify `00025-8ks` and jobs `00025-g78` unchanged on `f73e5c36…` (the worker import graph reaches no changed file); each Ready at 100% |
+| Runner | Generic kind `--check` passed before the Terraform apply, before the Hosting apply and after it. CI cited per job: check and e2e run 41522489884 (`515c1bb`), terraform run 41203206026 (`cb875ea`, as R115; no infrastructure change since), database guards and rebuilds run 41522478657 (`515c1bb`), each input-equivalent to `3ef969f`. `--apply` 05:47:04Z to 05:47:49Z; live readback passed |
+| Hosting | Version `3c77b551cd124393`, release `1793684862136000`, 16 files; `lm.mw-credit.com` build-version R116 (version `d1f2925305e7df67ccc9d811`), entry `/assets/index-Cu3ZE9NT.js`, bundle embeds `3ef969f`; public config input identical to R115's (sha256 `6eea01ac…7e92`); `sw.js` `no-store` |
+| Metabase | Applied and verified at 06:07:54Z to 06:15:22Z from PR #217 (`159600c`), after a first stop at 05:49:06Z; see [Metabase](#metabase-forge-3-november-2026-utc) below. Net profit on the Metabase Income page was overstated by the write-offs from 05:38:24Z (V128 to V130 committed) to 06:08:05Z (the refine applied), about 30 minutes: by 17,000 over all dates and by 3,000 this month. The PWA and API figures were correct throughout |
+| Smoke (read-only) | `/health` 200 on read, command and chat; without a token, `/api/session` (read and command), `/api/collection`, `/api/dashboard`, `/api/cash-overview`, `/api/management/analytics-overview`, `/api/management/cash-movements` and `/api/chat/models` return 401; preflight from `https://lm.mw-credit.com` 204; notify and jobs Ready; no ERROR logs on the PROD services from 05:45Z to 05:50:35Z. Not run: authenticated PROD reads (dashboard figures, Cash Ledger order and names), because the operator has no PROD Partner token (as in R115). The owner's first views cover them |
+| Private records | Package sha256 `e3b502f0…d312`; receipt `gs://mw-credit-operator-private-737787224638/promotion-receipts/R116-HOSTING-RECEIPT.json`; package, release manifest, preflight, plan and JSON, build record, service readback, before and after activation copies and the PROD value readbacks under `.../promotion-packages/r116/`, outside Git |
+| Credentials | Temporary admin credential file deleted; read tokens were minted per command; no secret value printed |
+| Rollback | PROD: restore `production.activation.before-r116-1793639967196628.tfvars` (read, command and chat to `868c4d75…`), plan 0/3/0, apply, publish, together with Hosting `c12d32825221f045` (release `1793640093794000`). Database: V128 to V130 are views and a pure function; they can stay under a service rollback (the R115 image reads the existing columns), or restore the V127 backup above |
+
+Applied and verified read-only for SQL, images, Hosting and Metabase. Not owner-accepted in PROD.
+
+### Metabase (Forge, 3 November 2026, UTC)
+- **First stop:** `Refine-WriteOffSegregation.mjs --prepare` (package `3ef969f`) refused at 05:49:06Z before any write: "Tab 16 scalar row differs from the canonical layout". Live dashboard 3 tab 16 carried four scalar cards at width 6 (168 Operating income, 169 Operating expenses, 170 Net profit, 171 Average daily net profit; last edited 28 October 2026 07:50Z by the Report development key), and the script expected three at width 8.
+- **Resolution:** PR #217, merged as `159600c8ccf780151a62c8dbf5e58bb92e8ff33b` (green CI; Chase accepted it, with the mapping-preservation check `6d80050`): the script accepts only the live four-card row and lays out five cards at widths 5/5/5/5/4, keeping the ids, titles, filters and mappings of 168 to 171. It also moves the Metabase private directories outside the repository. Run from a clean worktree of `159600c`, with `MW_METABASE_PRIVATE_DIR` under `~/.mw-private/MW-Credit-App/metabase/`, outside Git.
+- **Steps:**
+  1. `--plan --live` (GET only): live row 168, 169, 170, 171 accepted; nothing applied; no baseline.
+  2. `--prepare` 06:07:43Z: private baseline of snippet 2, cards 168 to 171, 186 and 204, dashboard 3 (274 dashcards, 15 on tab 16) and the permission graph.
+  3. `--apply` 06:07:54Z to 06:08:05Z: snippet 2 (adds the signed "Principal Write-offs"; Net Profit = income + expenses + write-offs), model 186 metadata, the new question 415 "Principal write-offs", the waterfall 204 "Write-offs" step, and the tab 16 row Income, Expenses, Principal write-offs, Net profit, Average daily net profit.
+  4. `ProposedLoanReports.mjs --rebaseline-dashboard3=R116` 06:08:11Z: guard baseline renewed at 275 dashcards (question 415).
+  5. `ProposedLoanReports.mjs --refine --only=income.writeoffs,income.vs-previous,income.monthly,income` 06:08:21Z to 06:08:39Z: dashboard 32 card `income.writeoffs` is question 416 ("− Write-offs"); 384 and 385 updated; nothing archived.
+  6. `ProposedLoanReports.mjs --verify` 06:12:34Z to 06:15:22Z: passed, no failures (including `income.writeoffs` equals minus the dashboard 3 write-offs, and the income band equals 168 to 171 plus write-offs). The first attempt at 06:08:45Z refused before any check because the R102 Long overdue lane state was not in the new private directory; the private R102 copy (`promotion-receipts/r102-metabase/r102-long-overdue-lane/`) was restored there and the verify rerun.
+  7. `Refine-WriteOffSegregation.mjs --verify` 06:11:28Z to 06:12:03Z: 73 write-off source, period, parity and preservation checks passed.
+- **Readback (read-only):** over all dates, card 168 466,002, 169 -8,315, 415 -17,000 and 170 Net profit 440,687, equal to the portfolio "Net Profit" (440,687) and lifetime write-offs (17,000). This month, with the Income date filter on this month: 11,610, -40, -3,000 and 8,570, equal to "Cash Dashboard" "Net Profit MTD" (8,570); average daily net profit 2,856.67.
+- **Records:** sanitized outputs updated by the scripts: `project/outputs/r016-20260922/statement-cleanup-state.json` (`cards.writeoffs` 415), `statement-cleanup/writeoff-segregation.json` (new, ids and booleans only), and `project/outputs/loan-reports-redesign-20261026/state.json` (`income.writeoffs` 416), `saved.json` and `verification.json`. The private baselines are in `gs://mw-credit-operator-private-737787224638/promotion-receipts/r116-metabase/`. No Dockerfile, `start.sh` or `.dockerignore` change, so no Railway deploy.
+- **Rollback:** restore the private `r116-writeoff-segregation` baseline and archive questions 415 and 416; V128 to V130 stay.
+- **Follow-up (Dewey):** the targeted PROD dictionary capture (the six V128 to V130 views, the new routine `is_principal_writeoff` and the Metabase model 186 entry), as the Metabase README asks after the promotion.
+
+## Tag record
+Tag `R116` is an annotated evidence tag on the PROD package commit `3ef969fb9955d3c6f8060f4fb79bf41ffe8c2011` (PR #215 merge on `main`), created by the Release tag workflow run 41591705620, started 3 November 2026 at 06:43:37Z. It exists on the remote and points to that commit. The Metabase refine (PR #217, `159600c`) came after the package and is not inside the tag; the tag marks the deployed application package. The tag is never moved.
+
+## Closure (Dewey, 3 November 2026)
+- **Dictionary:** targeted PROD capture as `codex-cloud-read` (read-only, metadata only) of the six views `"Cash Dashboard"`, `olap_portfolio_summary`, `reporting_income_statement`, `reporting_income_monthly`, `reporting_income_daily` and `reporting_income_events`, and the new routine `is_principal_writeoff`; evidence in `project/outputs/dictionary-r116-20261103/`. The Metabase model 186 and snippet 2 entries were updated from the scripts and Forge's readback, not from a Metabase export.
+- **Pruned (Git keeps history):** `Change Logs/CHANGE_NOTES_R113_SETTLE_CLOSE_2026-11-02.md` (outside the retention window of the open release and the three latest Released, R116, R115 and R114); its inbound links in the tracker, `Development_Changes.md` and the environment inventory now point to the commit permalink at `3ef969fb`. `integration-agent/Change Logs/CHANGE_NOTES_RECEIPT_GEMINI_FLASH_LITE_2026-10-19.md` and `CHANGE_NOTES_RECEIPT_RECOGNITION_TIMEOUTS_2026-10-19.md` (older than 14 days, no current document linked them). `Development_Changes.md` had no R116 section to delete. Evidence: `project/outputs/dictionary-r113-20261102/` (`coverage.json`, `plan.json`, `production-postgresql-observations.json`), which no current document cites any more (R113 is outside the window).

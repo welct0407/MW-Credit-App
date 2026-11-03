@@ -25,7 +25,8 @@
     "collection.lane-paid": 400,
     "partners.statement": 401,
     "today.principal-vs-pool": 402,
-    "collection.lane-long-overdue": 414
+    "collection.lane-long-overdue": 414,
+    "income.writeoffs": 416
   },
   "tabs": {
     "today": 375,

@@ -1,0 +1,158 @@
+{
+  "status": "in progress",
+  "targets": {
+    "postgresql-production": {
+      "identity": {
+        "instance": "mw-credit-pg-20261017",
+        "database": "loan_manager_prod",
+        "route": "cloud-sql-auth-proxy",
+        "host": "127.0.0.1",
+        "port": 15432
+      },
+      "version_or_hash": "7da30c221131179a6f750ae1b706944b47528e3e7e4bf07494ab07f0fabcb739",
+      "counts": {
+        "schemas": 4,
+        "relations": 99,
+        "columns": 1527,
+        "constraints": 451,
+        "indexes": 91,
+        "routines": 226,
+        "triggers": 430,
+        "sequences": 2,
+        "types": 0,
+        "policies": 0,
+        "extensions": 2,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 7,
+        "role_dependencies": 40,
+        "relevant_roles": 52,
+        "role_memberships": 51,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 130,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 1298,
+        "jobs": 0
+      },
+      "captured_utc": "2026-11-03T06:45:16.050109+00:00"
+    }
+  },
+  "objects": [
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "7da30c221131179a6f750ae1b706944b47528e3e7e4bf07494ab07f0fabcb739",
+      "object_kind": "relation",
+      "object_name": "public.Cash Dashboard",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-cash-dashboard-ed7d4ed4.yaml",
+      "status": "updated",
+      "expected_properties": 376,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "7da30c221131179a6f750ae1b706944b47528e3e7e4bf07494ab07f0fabcb739",
+      "object_kind": "relation",
+      "object_name": "public.olap_portfolio_summary",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-portfolio-summary-3be1193e.yaml",
+      "status": "updated",
+      "expected_properties": 1213,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "7da30c221131179a6f750ae1b706944b47528e3e7e4bf07494ab07f0fabcb739",
+      "object_kind": "relation",
+      "object_name": "public.reporting_income_daily",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-reporting-income-daily-306ee562.yaml",
+      "status": "updated",
+      "expected_properties": 439,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "7da30c221131179a6f750ae1b706944b47528e3e7e4bf07494ab07f0fabcb739",
+      "object_kind": "relation",
+      "object_name": "public.reporting_income_events",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/reporting/reporting_income_events.yaml",
+      "status": "updated",
+      "expected_properties": 241,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "7da30c221131179a6f750ae1b706944b47528e3e7e4bf07494ab07f0fabcb739",
+      "object_kind": "relation",
+      "object_name": "public.reporting_income_monthly",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-reporting-income-monthly-d7f7152c.yaml",
+      "status": "updated",
+      "expected_properties": 626,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "7da30c221131179a6f750ae1b706944b47528e3e7e4bf07494ab07f0fabcb739",
+      "object_kind": "relation",
+      "object_name": "public.reporting_income_statement",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/relations/public-reporting-income-statement-573b4d55.yaml",
+      "status": "updated",
+      "expected_properties": 774,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    },
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "7da30c221131179a6f750ae1b706944b47528e3e7e4bf07494ab07f0fabcb739",
+      "object_kind": "routine",
+      "object_name": "public.is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-is-principal-writeoff-p-row-id-text-p-ref-payment-text-p-principal-numeric-p-interest-numeric-c7b66efc.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    }
+  ]
+}

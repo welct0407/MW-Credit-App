@@ -110,6 +110,10 @@
         {
           "subject": "Expenses",
           "pointer": "/content/fields/Expenses"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/fields/Principal Write-offs"
         }
       ]
     },

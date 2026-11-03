@@ -7,10 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-r109-20261101/production-postgresql-observations.json"
+  "source": "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
   "coverage": "catalog metadata"
   "previous_record":
-    "commit": "c11627fa0e13b92105e5bc844b974387b3727728"
+    "commit": "f1fc596f9a805b2fb44040329d0ac8f680c17972"
     "path": "Documents/Data Dictionary/systems/postgresql/relations/public-olap-portfolio-summary-3be1193e.yaml"
     "identity":
       "system": "postgresql"
@@ -1568,7 +1568,6 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Principal Returned Days MTD"
-
   - "schema": "public"
     "relation": "olap_portfolio_summary"
     "referenced_schema": "public"
@@ -1594,8 +1593,3 @@
     "referenced_schema": "public"
     "referenced_relation": "olap_repayments_analytics"
     "referenced_column": "Row ID"
-"evidence":
-  "/content/definition/view_definition":
-    "reference": "database/migrations/V130__principal_writeoff_predicate.sql"
-    "reason": "R116: definition read from a disposable PostgreSQL chain at V130 (V128 write-off columns, V129 lifetime column; the write-off test is public.is_principal_writeoff); not a PROD capture. Refresh by targeted capture after V130 is applied to PROD."
-    "observedAt": "2026-11-02T18:30:00+00:00"
