@@ -110,11 +110,14 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | `npm run lint`, `npm run typecheck`, `npm test` | 0 errors, pass, 1129 pass, on `f28e8b4`, clean tree (Byte) |
 | Six changed e2e specs plus the new spec, both projects | 115 passed, 1 skipped, 2 load-flaky failures in the 4-worker run; rerun alone, `unified-receiving-independent` on mobile 21/21 (Chase) |
 | Echo second pass, 390, 1280 and 320 px, English and Thai | 7 findings, all fixed in `4b8213b` (Echo) |
-| Pull request `Development checks` | Pending |
+| PR #225 `Development checks`, run 41649243131, on `f29679a` | changes, lint and check (unit, typecheck, builds, audit) pass; e2e shard 2 pass; shards 1 and 3 fail on one test, `tests/e2e/phase5-borrower-independent.spec.ts:187` "F12 charge unsent exact reload", which pinned `charge.create` inputs without `lateChargeDue`. Fixed in `c18e0c4` (Byte): the expected inputs gain `lateChargeDue` (draft value or "0"); the spec passed 82 of 82 locally on both projects, and no other exact charge input pins exist |
+| PR #225 `Database migrations`, run 41649424639, on `f29679a` | Guards and the rebuild groups migrations, phase5, phase8 and receiving all pass. Dispatched by hand because every earlier push that carried V132 was `[skip ci]` |
+| PR #225 `Agent tests`, runs 41649243078 and 41649432921, on `f29679a` | Pass |
+| PR #225 `Development checks`, rerun on `c18e0c4` | Pending |
 | DEV: open the pull request and test in DEV (next, owner instruction); acceptance scenarios (plan list, Chase on DEV, then the owner on the phone) | Pending |
 
 ## Not run
-The rows marked Pending: the pull request's Development checks and DEV. A pending check is not a pass.
+The rows marked Pending: the Development checks rerun on `c18e0c4` and DEV. A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
