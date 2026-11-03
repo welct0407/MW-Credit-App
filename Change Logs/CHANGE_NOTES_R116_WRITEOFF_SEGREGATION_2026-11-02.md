@@ -1,7 +1,7 @@
 # Change notes — R116 Principal write-off segregation, 2 November 2026
 
 ## Purpose
-The owner asked to segregate principal write-offs from actual profit on the Dashboard page, show them in the income statement, exclude them from Realized MTD profit, and give Metabase the same visibility. Net profit becomes gross profit minus expenses minus write-offs. Built and tested in DEV first; promotion only under a later owner instruction.
+The owner asked to segregate principal write-offs from actual profit on the Dashboard page, show them in the income statement, exclude them from Realized MTD profit, and give Metabase the same visibility. Net profit becomes gross profit minus expenses minus write-offs. Built and tested in DEV first, then promoted to DEV and PROD on 3 November 2026 under the owner's "Move to prod" (see the promotion record below).
 
 ## Changes
 Outcomes (owner request, 2 November 2026):
@@ -85,27 +85,22 @@ Files and objects: `database/migrations/V128__principal_writeoff_segregation.sql
 
 ## Not run
 - The wide Playwright suite and the mobile project: left to the pull request's CI.
-- Live Metabase (refine, rebaseline and verify runs) and the PROD dictionary capture: they belong to the promotion step (Metabase reads PROD only).
+- Authenticated PROD reads (dashboard figures, Cash Ledger order and names): there is no PROD Partner token, so the owner's first views cover them.
 
 Chase info finding: an undated `df10:` pair counts in lifetime portfolio net but not in the dated views. This is unchanged from before V128, and no such rows are known.
 
 ## Recovery
-Git baseline: `main` 80fbf6b (branch `claude/r116-writeoff-segregation`). V128 is views only; a later migration restores the V127 bodies (the appended columns stay, unused). Metabase: restore the private baseline written by `Refine-WriteOffSegregation.mjs --prepare` and archive the new question.
+Git baseline: `main` 80fbf6b (branch `claude/r116-writeoff-segregation`). V128 is views only; a later migration restores the V127 bodies (the appended columns stay, unused). Metabase: restore the private baseline written by `Refine-WriteOffSegregation.mjs --prepare` and archive questions 415 and 416. PROD rollback is in the promotion record.
 
 ## Open questions
 None. The owner decided on 2 November 2026 (see Changes).
 
 ## Remaining work
-The PROD promotion, only on the owner's instruction, in this order:
-1. A verified restorable backup.
-2. V128 to V130 (views only).
-3. The read, command and chat images, and Hosting.
-4. Metabase: `Refine-WriteOffSegregation.mjs --prepare`, then `--apply`.
-5. `ProposedLoanReports.mjs --rebaseline-dashboard3=R116`, then `--refine --only=income.writeoffs,income.vs-previous,income.monthly,income`.
-6. Both `--verify` runs.
-7. The PROD dictionary capture (targeted).
-
-Follow-ups for a later release: the reconcile-skip comment in the predicate, and moving the `df10:`-only guards (`undo_loan_default`, `default_posting_guard`, `default_loan_transition`, the schedule exclusions) onto the predicate.
+Released to DEV and PROD on 3 November 2026. Open:
+- PROD acceptance by the owner: the first look at the Dashboard, Analytics, the Metabase Income page and Cash Ledger Recent. It is written into the next closure or product pull request, not its own.
+- Follow-ups for a later release: a governance comment on `is_principal_writeoff` explaining the DEV-only `mw_app_dev` ACL difference (the DEV post-migrate reconcile adds the grant; PROD has PUBLIC only); moving the `df10:`-only guards (`undo_loan_default`, `default_posting_guard`, `default_loan_transition`, the schedule exclusions) onto the predicate; and the older Metabase scripts that still use the Windows `privateDir` constant (Chase).
+- Dictionary: the targeted PROD capture is done (see Closure). The Metabase dictionary entries of dashboards 3 and 32 and questions 384 and 385 still show the pre-R116 cards.
+- The extra worktree `scratchpad/wt-metabase-fix` is session-local only and is not part of the repository.
 
 Pointer: the observation at the end of the first DEV record below (13,000 against 7,000) is resolved by V130 (see Changes) and the [second DEV deployment](#second-dev-deployment-v129-v130-pr-216).
 
@@ -197,3 +192,10 @@ Applied and verified read-only for SQL, images, Hosting and Metabase. Not owner-
 - **Records:** sanitized outputs updated by the scripts: `project/outputs/r016-20260922/statement-cleanup-state.json` (`cards.writeoffs` 415), `statement-cleanup/writeoff-segregation.json` (new, ids and booleans only), and `project/outputs/loan-reports-redesign-20261026/state.json` (`income.writeoffs` 416), `saved.json` and `verification.json`. The private baselines are in `gs://mw-credit-operator-private-737787224638/promotion-receipts/r116-metabase/`. No Dockerfile, `start.sh` or `.dockerignore` change, so no Railway deploy.
 - **Rollback:** restore the private `r116-writeoff-segregation` baseline and archive questions 415 and 416; V128 to V130 stay.
 - **Follow-up (Dewey):** the targeted PROD dictionary capture (the six V128 to V130 views, the new routine `is_principal_writeoff` and the Metabase model 186 entry), as the Metabase README asks after the promotion.
+
+## Tag record
+Tag `R116` is an annotated evidence tag on the PROD package commit `3ef969fb9955d3c6f8060f4fb79bf41ffe8c2011` (PR #215 merge on `main`), created by the Release tag workflow run 41591705620, started 3 November 2026 at 06:43:37Z. It exists on the remote and points to that commit. The Metabase refine (PR #217, `159600c`) came after the package and is not inside the tag; the tag marks the deployed application package. The tag is never moved.
+
+## Closure (Dewey, 3 November 2026)
+- **Dictionary:** targeted PROD capture as `codex-cloud-read` (read-only, metadata only) of the six views `"Cash Dashboard"`, `olap_portfolio_summary`, `reporting_income_statement`, `reporting_income_monthly`, `reporting_income_daily` and `reporting_income_events`, and the new routine `is_principal_writeoff`; evidence in `project/outputs/dictionary-r116-20261103/`. The Metabase model 186 and snippet 2 entries were updated from the scripts and Forge's readback, not from a Metabase export.
+- **Pruned (Git keeps history):** `Change Logs/CHANGE_NOTES_R113_SETTLE_CLOSE_2026-11-02.md` (outside the retention window of the open release and the three latest Released, R116, R115 and R114); its inbound links in the tracker, `Development_Changes.md` and the environment inventory now point to the commit permalink at `3ef969fb`. `integration-agent/Change Logs/CHANGE_NOTES_RECEIPT_GEMINI_FLASH_LITE_2026-10-19.md` and `CHANGE_NOTES_RECEIPT_RECOGNITION_TIMEOUTS_2026-10-19.md` (older than 14 days, no current document linked them). `Development_Changes.md` had no R116 section to delete. Evidence: `project/outputs/dictionary-r113-20261102/` (`coverage.json`, `plan.json`, `production-postgresql-observations.json`), which no current document cites any more (R113 is outside the window).

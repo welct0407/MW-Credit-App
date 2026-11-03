@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r016-20260922/statement-cleanup/README.md"
+  "source": "outputs/r016-20260922/statement-cleanup/writeoff-segregation.json"
 "content":
   "fields":
     "Model grain":
@@ -31,12 +31,16 @@
       "ID": 186
       "Type / source": "type/Decimal"
       "Semantic / relationship": null
-      "Definition": "Income. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense\
-        \ flows, no allocation or running history."
+      "Definition": "Income. Gross profit: the interest of repayments that are not principal write-offs (R116, V130 predicate public.is_principal_writeoff); a write-off event has Income 0."
     "Expenses":
       "ID": 186
       "Type / source": "type/Decimal"
       "Semantic / relationship": null
       "Definition": "Expenses. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense\
         \ flows, no allocation or running history."
+    "Principal Write-offs":
+      "ID": 186
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Principal Write-offs. R116: the principal of a write-off repayment (a df10: posting or a zero-cash loss pair, public.is_principal_writeoff); a positive amount, 0 on every other event. Added to the model's result metadata at the R116 PROD promotion."
   "query_source": "scripts/metabase/models/income-events.sql"

@@ -3,19 +3,32 @@
   "system": "postgresql"
   "component": "loan_manager_prod"
   "kind": "routine"
-  "name": "public.is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint)"
+  "name": "public.is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id\
+    \ text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint)"
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "database/migrations/V130__principal_writeoff_predicate.sql"
-  "coverage": "migration source and a disposable PostgreSQL chain at V130 (not a PROD capture)"
+  "source": "outputs/dictionary-r116-20261103/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "f1fc596f9a805b2fb44040329d0ac8f680c17972"
+    "path": "Documents/Data Dictionary/systems/postgresql/routines/public-is-principal-writeoff-p-row-id-text-p-ref-payment-text-p-principal-numeric-p-interest-numeric-c7b66efc.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "loan_manager_prod"
+      "kind": "routine"
+      "name": "public.is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id\
+        \ text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint)"
+      "scope": "production"
 "content":
   "definition":
     "schema": "public"
     "name": "is_principal_writeoff"
-    "arguments": "p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint"
+    "arguments": "p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal\
+      \ numeric, p_charge_interest numeric, p_charge_repayments bigint"
     "kind": "f"
-    "arguments_with_defaults": "p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint"
+    "arguments_with_defaults": "p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text,\
+      \ p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint"
     "result": "boolean"
     "definition": |
       CREATE OR REPLACE FUNCTION public.is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint)
@@ -38,5 +51,7 @@
     "rows": 0.0
     "settings": null
     "acl": null
-    "comment": "R116 (V130): true for a principal write-off repayment: a df10: posting, or a zero-cash loss pair (no Ref Payment, principal X > 0, interest -X, a non-lc7:/ls2: charge of X/-X with exactly one repayment). Pure; the caller supplies the charge."
+    "comment": "R116 (V130): true for a principal write-off repayment: a df10: posting, or a zero-cash loss pair (no Ref Payment,\
+      \ principal X > 0, interest -X, a non-lc7:/ls2: charge of X/-X with exactly one repayment). Pure; the caller supplies\
+      \ the charge."
     "extension": null
