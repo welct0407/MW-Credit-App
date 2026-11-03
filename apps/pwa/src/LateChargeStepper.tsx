@@ -31,28 +31,34 @@ export type LateStepOutcome={result:'applied'|'unchanged'|'refused'|'queued'|'fa
  * then synchronized once (the version check refuses a stale screen). Taps run one after another, so a second tap reads the
  * version the first produced; a request that stays queued holds that charge's buttons until its outcome arrives, so two
  * commands never go out against one version. The result shows in a bottom toast (role=status, .late-charge-toast) for 3 s.
+ * Owner feedback (a tap can take seconds): in the same frame as the tap the charge is marked pending (its buttons disabled
+ * and dimmed, a spinner and the target figure "฿100 · saving" in place of the figure) and the toast says "Saving late
+ * charge…"; everything stays disabled until the outcome and the caller's refresh (then) are done; a refusal reverts the figure.
  */
+export type LateStepScreen={due:string;paid:string;then?:(outcome:LateStepOutcome)=>Promise<unknown>|unknown};
 export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolean){
  const t=(en:string,th:string)=>thai?th:en;
- const [busy,setBusy]=useState<string|null>(null),[held,setHeld]=useState<Record<string,string>>({}),[toast,setToast]=useState<{text:string;refused:boolean}|null>(null);
+ const [pending,setPending]=useState<Record<string,string>>({}),[held,setHeld]=useState<Record<string,string>>({}),[toast,setToast]=useState<{text:string;refused:boolean}|null>(null);
  const chain=useRef<Promise<unknown>>(Promise.resolve()),timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),heldRef=useRef(held);heldRef.current=held;
- const show=(text:string,refused=false)=>{clearTimeout(timer.current);setToast({text,refused});timer.current=setTimeout(()=>setToast(null),3000);};
+ const show=(text:string,refused=false,sticky=false)=>{clearTimeout(timer.current);setToast({text,refused});if(!sticky)timer.current=setTimeout(()=>setToast(null),3000);};
  useEffect(()=>{
   // A queued request's later outcome releases its charge.
   const outcome=(event:Event)=>{const detail=(event as CustomEvent).detail;const chargeId=Object.entries(heldRef.current).find(([,request])=>request===detail?.requestId)?.[0];if(!chargeId||!['synced','blocked'].includes(detail.kind))return;setHeld(old=>{const next={...old};delete next[chargeId];return next});};
   window.addEventListener('mw-offline-sync-outcome',outcome);return()=>{window.removeEventListener('mw-offline-sync-outcome',outcome);clearTimeout(timer.current)};
  },[]);
+ const mark=(chargeId:string,figure:string|null)=>setPending(old=>{const next={...old};if(figure===null)delete next[chargeId];else next[chargeId]=figure;return next});
  const unavailable=()=>show(t('Charge could not be loaded. Try again.','โหลดรายการเรียกเก็บไม่ได้ ลองอีกครั้ง'),true);
  async function once(chargeId:string,step:number,label:string):Promise<LateStepOutcome>{
   if(heldRef.current[chargeId]){show(t('Saved on this device. Will sync when connected.','บันทึกบนอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ'));return {result:'held'};}
-  const done=beginRequest(),controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),15000);setBusy(chargeId);
+  const done=beginRequest(),controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),15000);
   try{
    const a=access;if(!a?.offline||a.offlineOnly||!navigator.onLine)throw Error('offline');const offline=a.offline;
    const response=await fetch(a.origin+'/api/charge-records/'+encodeURIComponent(chargeId),{headers:{Authorization:'Bearer '+await a.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
    if(response.status===401||response.status===403)a.authFailure(response.status);
    const item=response.ok?(await response.json())?.item:null;if(!item||item.id!==chargeId||typeof item.version!=='string')throw Error('unavailable');
    const before=wholeText(item.lateChargeDue??'0')??'0',paid=wholeText(item.lateChargePaid??'0')??'0',after=stepLate(before,step,paid);
-   if(after===before)return {result:'unchanged',before,paid};
+   if(after===before){setToast(null);return {result:'unchanged',before,paid};}
+   mark(chargeId,after);
    const command=lateChargeCommand(item,after);
    await offline.savePending(command.requestId,{domain:'charge',command,borrowerLabel:label,recoveryKind:'action'});
    const outcome=await syncSavedRequest(a,command.requestId);
@@ -60,13 +66,24 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
     const diff=BigInt(after)-BigInt(before),sign=diff<0n?'−':'+',amount=wholeBaht((diff<0n?-diff:diff).toString());
     show(t('Late charge '+sign+amount+' · now '+wholeBaht(after),'ค่าปรับล่าช้า '+sign+amount+' · ตอนนี้ '+wholeBaht(after)));return {result:'applied',before,paid,after};
    }
+   mark(chargeId,null);
    if(outcome.kind==='blocked'){const code=outcome.code??outcome.data?.originalOutcome?.code??outcome.data?.code??'request_rejected';show(lateRejection(code,thai)??savedRejectionMessage(outcome,thai),true);return {result:'refused',before,paid};}
    setHeld(old=>({...old,[chargeId]:command.requestId}));show(t('Saved on this device. Will sync when connected.','บันทึกบนอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ'));return {result:'queued',before,paid,after};
-  }catch{unavailable();return {result:'failed'};}
-  finally{clearTimeout(deadline);done();setBusy(null);}
+  }catch{mark(chargeId,null);unavailable();return {result:'failed'};}
+  finally{clearTimeout(deadline);done();}
  }
- /** One step of the charge's late charge, after any step still running. */
- function step(chargeId:string,by:number,label:string):Promise<LateStepOutcome>{const run=chain.current.then(()=>once(chargeId,by,label));chain.current=run.catch(()=>undefined);return run;}
+ /** One step of the charge's late charge, after any step still running. The charge is pending at once (buttons disabled,
+  *  the target figure from the screen marked saving, the "Saving late charge…" toast) until the outcome and screen.then. */
+ function step(chargeId:string,by:number,label:string,screen:LateStepScreen):Promise<LateStepOutcome>{
+  mark(chargeId,stepLate(screen.due,by,screen.paid));show(t('Saving late charge…','กำลังบันทึกค่าปรับ…'),false,true);
+  const run=chain.current.then(async()=>{try{const outcome=await once(chargeId,by,label);try{await screen.then?.(outcome)}catch{}return outcome}finally{mark(chargeId,null)}});
+  chain.current=run.catch(()=>undefined);return run;
+ }
+ const busy=Object.keys(pending).length?Object.keys(pending)[0]:null;
  const toastElement=<p role="status" aria-live="polite" className={'sync-toast late-charge-toast'+(toast?.refused?' refused':'')+(toast?'':' idle')}>{toast?.text??''}</p>;
- return {busy,held,step,toastElement,show};
+ return {busy,pending,held,step,toastElement,show};
+}
+/** The pending figure in place of the late charge while a step saves: a spinner and "฿100 · saving". */
+export function LateChargeSaving({figure,thai}:{figure:string;thai:boolean}){
+ return <span className="late-charge-saving"><span className="collection-spinner" aria-hidden="true"></span>{wholeBaht(figure)+(thai?' · กำลังบันทึก':' · saving')}</span>;
 }
