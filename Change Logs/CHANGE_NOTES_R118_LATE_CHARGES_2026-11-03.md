@@ -14,6 +14,7 @@ Owner decisions (3 November 2026, settled in the [plan](https://claude.ai/artifa
 - Order inside a charge: interest, late charge, principal.
 - Separate reporting is the new income line only; the Dashboard, Cash and Management Analytics tiles do not change.
 - Referral rebate (owner, 3 November 2026, overriding Archie's point 4): "Count late charge also into referral rebate as that's considered as profit and referrer is responsible to chase for the payment". The rebate is now min(round(10% x (interest + late charge received)), 1,000); a late charge counts once it is received, like interest.
+- Promotion authority (owner, 3 November 2026, about 16:25Z): "Move to prod". Scope: V132 and V133 in one grouped apply after a verified PROD backup; the five images; Hosting; Metabase (`Refine-LateCharges` and `ProposedLoanReports`); the integration-agent code deploy to `vm-mw-credit-agent` after the SQL; and the reader column grants. DEV acceptance (owner, on the phone) is implied by the PROD instruction, following the R110 precedent. The tracker status changes in the closure pull request.
 - Out of scope: rewriting past late fees typed into Interest Due, any automatic rule, moving a late-charge payment between charges ("Move interest" stays interest-only).
 
 Schema (V132, Byte; definitions in `database/README.md`): `Charges` gains `"Late Charge Due"` (money, NOT NULL, default 0), `"Late Charge Paid"` and `"Late Charge Remaining"` (numeric, maintained by the charge refresh like the interest pair; `"Total Paid"` and `"Amount Remaining"` include them); `Payment Allocations` gains `"Allocated Late Charge"` (money, NOT NULL, default 0); `Repayments` gains `"Late Charge Paid"` (money, NOT NULL, default 0). Payment command schemaVersion 11, agent schemaVersion 10. Line shape, byte-exact and key-sorted: `chargeId`, `principal`, `interest`, `lateCharge`, `expectedPrincipalRemaining`, `expectedInterestRemaining`, `expectedLateChargeRemaining`, `chargeDate`.
@@ -142,10 +143,10 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | PR #225 `Agent tests`, run 41671674164, on `34d3aec` | Success |
 | Chase's "after" timing of a tap on DEV | Pending |
 | DEV redeploy for the direct stepper | Done and verified by Forge (see the redeploy record) |
-| DEV acceptance scenarios (plan list) | Pending Chase, then the owner on the phone |
+| DEV acceptance scenarios (plan list) | Implied by the owner's PROD instruction (R110 precedent); Chase's DEV scenarios are not a gate |
 
 ## Not run
-The rows marked Pending: the 17:05Z DEV daily-charges run, Chase's "after" tap timing and DEV acceptance (Chase, then the owner). A pending check is not a pass.
+The rows marked Pending: the 17:05Z DEV daily-charges run, Chase's "after" tap timing, and the PROD promotion steps below. A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
@@ -155,7 +156,8 @@ None.
 
 ## Remaining work
 - Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- The 17:05Z daily-charges run on DEV; Chase's "after" tap timing; then Chase's DEV scenarios and owner acceptance on the phone (including the direct shortcuts with the bottom toast).
+- The 17:05Z daily-charges run on DEV and Chase's "after" tap timing (not gates for PROD).
+- PROD promotion by Forge per the PROD promotion record; owner acceptance goes into the next closure or product pull request.
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
 
@@ -200,4 +202,19 @@ Hosting only (no service or image change): DEV version labelled R118, live 16:22
 
 Pins for all are in the [environment inventory](../project/Documents/Environment_Inventory.md).
 
-DEV acceptance of the direct stepper: pending Chase's DEV scenarios, then the owner.
+DEV acceptance of the direct stepper: implied by the owner's PROD instruction (R110 precedent).
+
+## PROD promotion record (Forge)
+Stub; Forge fills it in as each step runs. Authority: the owner's "Move to prod" instruction recorded under Changes. No secret value, token or borrower data appears here. Pins go only in the [environment inventory](../project/Documents/Environment_Inventory.md).
+
+| Step | Result |
+| --- | --- |
+| Verified PROD backup at V131 | Pending |
+| Owner windows, V132 and V133 grouped apply, verify, readback | Pending |
+| Reader column grants (before the read image) | Pending |
+| Images (read, command, chat, notify, jobs), Terraform images-only apply | Pending |
+| Hosting | Pending |
+| Metabase (`Refine-LateCharges`, `ProposedLoanReports`) | Pending |
+| Agent code deploy to `vm-mw-credit-agent` (after the SQL) | Pending |
+| Read-only smoke | Pending |
+| Closure pull request, tag `R118` | Pending |
