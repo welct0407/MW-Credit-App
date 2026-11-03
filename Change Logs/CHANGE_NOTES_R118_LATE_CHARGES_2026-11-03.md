@@ -125,7 +125,11 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | Lab reproduction of the jobs failure | Permission denied at V132, ok at V133 (Byte) |
 | Direct stepper (`d42322f`): lint, typecheck, check-docs, `npm test`; scratch spec | Pass, 1129 pass; 18/18 (Byte) |
 | V133 DEV apply and the jobs re-run | Pending (Forge) |
-| Chase's spec update for the direct stepper, PR CI and DEV redeploy | Pending |
+| `late-charge-independent.spec.ts`, rewritten for the direct flow (one tap with no Confirm; toast text with U+2212 for a decrease; buttons disabled while a change is in flight; two quick taps in sequence with fresh versions; refusal, load-failure and queued toasts; scroll kept; offline), on `18287a1` | 40/40 on both projects, `--repeat-each=2` (Chase) |
+| `Test-LateCharges` through the real runner, pre-target 131, on `18287a1` | Pass: V132 and V133 applied, second run 0, tamper rejected (Chase) |
+| `Test-LateCharges` full chain, on `18287a1` | Pass: 133 migrations, 9 concurrency suites, `public-functions.sql` matches (Chase) |
+| Parity sweep in `Test-LateCharges` | Passes with V133; fails as intended in the DEV-like negative case (Chase) |
+| PR `Development checks` on the `18287a1` push; DEV redeploy for the direct stepper | Pending |
 | DEV acceptance scenarios (plan list) | Pending Chase, then the owner on the phone |
 
 ## Not run
@@ -139,7 +143,7 @@ None.
 
 ## Remaining work
 - Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- V133 DEV apply (Forge) and the jobs re-run; Chase's spec update, PR CI and the DEV redeploy for the direct stepper; then Chase's DEV scenarios and owner acceptance on the phone (including the direct shortcuts with the bottom toast).
+- V133 DEV apply (Forge) and the jobs re-run; the PR Development checks and the DEV redeploy for the direct stepper; then Chase's DEV scenarios and owner acceptance on the phone (including the direct shortcuts with the bottom toast).
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
 
