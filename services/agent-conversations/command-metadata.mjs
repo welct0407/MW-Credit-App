@@ -7,24 +7,25 @@ export async function readNativeCommandMetadata(client,resource,id,actor){
   if(!source?.borrowerId)return {quickPayment:null};
   const targetChargeId=resource==='Charges'?id:null;
   // Matches V23 quick-payment amount and V51 ordinary mode membership. In
-  // particular Single Full is not silently changed to schema6's due-only plan.
+  // particular Single Full is not silently changed to schema6's due-only plan. R118: the amount includes the late charge
+  // (the legacy engine requires the whole eligible balance).
   const row=(await client.query(`WITH clock AS (
    SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date AS day
   ), balances AS (
    SELECT c."Principal Due"::numeric-paid.principal AS principal,
-    c."Interest Due"::numeric-paid.interest AS interest,paid.invalid
+    c."Interest Due"::numeric-paid.interest AS interest,c."Late Charge Due"::numeric-paid.late AS late,paid.invalid
    FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
    CROSS JOIN clock
    CROSS JOIN LATERAL (
     SELECT coalesce(sum(r."Principal Paid"::numeric),0) AS principal,
-     coalesce(sum(r."Interest Paid"::numeric),0) AS interest,
+     coalesce(sum(r."Interest Paid"::numeric),0) AS interest,coalesce(sum(r."Late Charge Paid"::numeric),0) AS late,
      count(*) FILTER(WHERE r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL) AS invalid
     FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID"
    ) paid
    WHERE l."Ref Borrowers"=$1 AND CASE WHEN $2::text IS NULL THEN c."Charge Date"<=clock.day ELSE c."Row ID"=$2 END
   )
-  SELECT (SELECT day::text FROM clock) AS "paymentDate",sum(principal+interest)::text AS "amountReceived",
-   coalesce(bool_or(principal IS NULL OR interest IS NULL OR principal<0 OR interest<0 OR invalid>0),false) AS invalid,
+  SELECT (SELECT day::text FROM clock) AS "paymentDate",sum(principal+interest+late)::text AS "amountReceived",
+   coalesce(bool_or(principal IS NULL OR interest IS NULL OR principal<0 OR interest<0 OR late<0 OR invalid>0),false) AS invalid,
    EXISTS(SELECT 1 FROM public."Payments" p WHERE p."Ref Borrower"=$1 AND p."Status" IN('Processing','Error')) AS blocked
   FROM balances`,[source.borrowerId,targetChargeId])).rows[0];
   if(row?.invalid!==false||row.blocked!==false||typeof row.amountReceived!=='string'

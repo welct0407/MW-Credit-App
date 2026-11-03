@@ -30,16 +30,24 @@ const whole = value => {
   if (typeof value !== 'string' || !/^(0|[1-9][0-9]{0,16})$/.test(value) || BigInt(value)>92233720368547758n) fail();
   return value;
 };
-export function canonicalAllocationPlan(amountReceived, input) {
+/**
+ * The allocation lines of a v6+ command. R118 v11 ({late:true}): 8-key lines in the SQL order chargeId, principal,
+ * interest, lateCharge, expectedPrincipalRemaining, expectedInterestRemaining, expectedLateChargeRemaining, chargeDate
+ * (byte-identical to pwa_submit_selected_charges_v1's line text); each part is capped at its expected remaining and the
+ * three parts sum to the amount. Earlier versions keep the 6-key line (late 0).
+ */
+export function canonicalAllocationPlan(amountReceived, input, {late=false}={}) {
   whole(amountReceived); if (amountReceived==='0' || !Array.isArray(input) || input.length<1 || input.length>10000) fail();
   const allocations=Array.from(input,row=>{
-    exact(row,['chargeId','principal','interest','expectedPrincipalRemaining','expectedInterestRemaining','chargeDate']);
+    exact(row,late?['chargeId','principal','interest','lateCharge','expectedPrincipalRemaining','expectedInterestRemaining','expectedLateChargeRemaining','chargeDate']:['chargeId','principal','interest','expectedPrincipalRemaining','expectedInterestRemaining','chargeDate']);
     const chargeId=id(row.chargeId); if (/[,\s]/u.test(chargeId)) fail();
     const principal=whole(row.principal),interest=whole(row.interest),expectedPrincipalRemaining=whole(row.expectedPrincipalRemaining),expectedInterestRemaining=whole(row.expectedInterestRemaining);
-    if(BigInt(principal)+BigInt(interest)===0n || BigInt(principal)>BigInt(expectedPrincipalRemaining) || BigInt(interest)>BigInt(expectedInterestRemaining)) fail();
-    return {chargeId,principal,interest,expectedPrincipalRemaining,expectedInterestRemaining,chargeDate:date(row.chargeDate)};
+    const lateCharge=late?whole(row.lateCharge):'0',expectedLateChargeRemaining=late?whole(row.expectedLateChargeRemaining):'0';
+    if(BigInt(principal)+BigInt(interest)+BigInt(lateCharge)===0n || BigInt(principal)>BigInt(expectedPrincipalRemaining) || BigInt(interest)>BigInt(expectedInterestRemaining) || BigInt(lateCharge)>BigInt(expectedLateChargeRemaining)) fail();
+    return late?{chargeId,principal,interest,lateCharge,expectedPrincipalRemaining,expectedInterestRemaining,expectedLateChargeRemaining,chargeDate:date(row.chargeDate)}
+      :{chargeId,principal,interest,expectedPrincipalRemaining,expectedInterestRemaining,chargeDate:date(row.chargeDate)};
   });
-  if(new Set(allocations.map(row=>row.chargeId)).size!==allocations.length || allocations.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest),0n)!==BigInt(amountReceived))fail();
+  if(new Set(allocations.map(row=>row.chargeId)).size!==allocations.length || allocations.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest)+BigInt(row.lateCharge??'0'),0n)!==BigInt(amountReceived))fail();
   allocations.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId,'utf8'),Buffer.from(b.chargeId,'utf8')));
   return freeze(allocations);
 }
@@ -55,7 +63,8 @@ export function canonicalMaterializePlan(input,allocations,{several=false}={}){
     exact(row,['loanId','chargeId','chargeDate','principalDue','interestDue']);
     const loanId=id(row.loanId),chargeDate=date(row.chargeDate),principalDue=whole(row.principalDue),interestDue=whole(row.interestDue);
     if(row.chargeId!=='cg8:'+Array.from(loanId).length+':'+loanId+':'+chargeDate||BigInt(principalDue)+BigInt(interestDue)===0n)fail();
-    if(!allocations.some(line=>line.chargeId===row.chargeId&&line.chargeDate===chargeDate&&line.expectedPrincipalRemaining===principalDue&&line.expectedInterestRemaining===interestDue))fail();
+    // A booked charge starts at late 0 (an 8-key v11 line expects late 0).
+    if(!allocations.some(line=>line.chargeId===row.chargeId&&line.chargeDate===chargeDate&&line.expectedPrincipalRemaining===principalDue&&line.expectedInterestRemaining===interestDue&&(line.expectedLateChargeRemaining??'0')==='0'))fail();
     return {loanId,chargeId:row.chargeId,chargeDate,principalDue,interestDue};
   });
   if((!several&&new Set(entries.map(row=>row.loanId)).size!==entries.length)||new Set(entries.map(row=>row.chargeId)).size!==entries.length)fail();
@@ -89,14 +98,14 @@ export function canonicalPrincipalPlan(input,allocations){
   return freeze(entries);
 }
 /**
- * R110: a v10 command with a materialize or principal entry is dated the business day (the plan is today's); other
+ * R110: a v10 (R118: or v11) command with a materialize or principal entry is dated the business day (the plan is today's); other
  * commands are not restricted here. Pure: the caller supplies the business date.
  */
 export function payForwardDayAllowed(command,businessDate){
-  if(command?.schemaVersion!==10)return true;
+  if(![10,11].includes(command?.schemaVersion))return true;
   return (command.materialize.length===0&&command.principal.length===0)||command.paymentDate===businessDate;
 }
-/** R075 v7 slip fields (also v8 to v10): printed bank reference (spaces/dashes removed, upper case) or null. */
+/** R075 v7 slip fields (also v8 to v11): printed bank reference (spaces/dashes removed, upper case) or null. */
 function bankReference(value) {
   if (value === null) return null;
   if (typeof value !== 'string' || value.length > 400) fail();
@@ -111,13 +120,14 @@ function transferTime(value) {
   return value.slice(0, 5);
 }
 export function canonicalCommand(input) {
-  if([6,7,8,9,10].includes(input?.schemaVersion)){
+  if([6,7,8,9,10,11].includes(input?.schemaVersion)){
     // R095 v8 = v7 plus payerLines (null or the payer-lines change {before, after}, Bank Transfer only).
     // R101 v9 = v8 plus materialize (the next projected charges to book), set last.
     // R110 v10 = v8 plus materialize (several per loan, may be empty) and principal; at least one entry in the two.
-    const v7=input.schemaVersion>=7,v8=input.schemaVersion>=8,v9=input.schemaVersion===9,v10=input.schemaVersion===10;
+    // R118 v11 = the v10 keys with 8-key allocation lines (the late charge); materialize and principal may both be empty.
+    const v7=input.schemaVersion>=7,v8=input.schemaVersion>=8,v9=input.schemaVersion===9,v10=input.schemaVersion>=10,v11=input.schemaVersion===11;
     exact(input,['schemaVersion','requestId','borrowerId','allocations','cashAccountId','paymentDate','amountReceived','paymentMethod','notes','receiptId',...(v7?['bankReference','transferTime']:[]),...(v8?['payerLines']:[]),...(v9||v10?['materialize']:[]),...(v10?['principal']:[])]);
-    const allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);
+    const allocations=canonicalAllocationPlan(input.amountReceived,input.allocations,{late:v11});
     if(!['Bank Transfer','Cash','Net-off at Disbursement'].includes(input.paymentMethod) || !(input.notes===null || (typeof input.notes==='string'&&input.notes.isWellFormed()&&!input.notes.includes('\0')&&Buffer.byteLength(input.notes,'utf8')<=65536)))fail();
     const command={schemaVersion:input.schemaVersion,requestId:requestId(input.requestId),borrowerId:id(input.borrowerId),allocations,cashAccountId:id(input.cashAccountId),paymentDate:date(input.paymentDate),amountReceived:input.amountReceived,paymentMethod:input.paymentMethod,notes:input.notes===''?null:input.notes,receiptId:input.receiptId===null?null:requestId(input.receiptId)};
     if(v7){
@@ -132,7 +142,7 @@ export function canonicalCommand(input) {
         if(v10){
           command.materialize=canonicalMaterializePlan(input.materialize,allocations,{several:true});
           command.principal=canonicalPrincipalPlan(input.principal,allocations);
-          if(!command.materialize.length&&!command.principal.length)fail();
+          if(!v11&&!command.materialize.length&&!command.principal.length)fail();
         }
       }
     }

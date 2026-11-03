@@ -16,18 +16,20 @@ const id=value=>{if(typeof value!=='string'||!value||Buffer.byteLength(value)>25
 const ordered=(values,unique=true)=>{for(let i=1;i<values.length;i++)if(Buffer.compare(Buffer.from(values[i-1]),Buffer.from(values[i]))>=(unique?0:1))fail();};
 const list=(value,max)=>{if(!Array.isArray(value)||value.length>max)fail();return value;};
 /** R112 schemaVersion 9: the partner's purpose and the pay-forward plan's explicit lists (the manual v10 shapes), in
- * canonical key order; SQL recomputes the plan and requires the command to equal it. */
-function payForward(input){
+ * canonical key order; SQL recomputes the plan and requires the command to equal it. R118 schemaVersion 10: the same with
+ * 8-key lines (lateCharge after interest, expectedLateChargeRemaining after expectedInterestRemaining), as manual v11. */
+function payForward(input,late=false){
  const p=input.purpose;exact(p,['forward','principal','loans']);
  if(typeof p.forward!=='boolean'||p.loans!==null)fail();
  const purpose={forward:p.forward,principal:list(p.principal,20).map(e=>{exact(e,['loanId','amount']);if(!/^[1-9]/.test(whole(e.amount)))fail();return{loanId:text(e.loanId),amount:e.amount};}),loans:null};
  if(!purpose.forward&&!purpose.principal.length)fail();ordered(purpose.principal.map(e=>e.loanId));
  const lines=list(input.allocations,10000);if(!lines.length)fail();
- const allocations=lines.map(l=>{exact(l,['chargeId','principal','interest','expectedPrincipalRemaining','expectedInterestRemaining','chargeDate']);
-  const v={chargeId:id(l.chargeId),principal:whole(l.principal),interest:whole(l.interest),expectedPrincipalRemaining:whole(l.expectedPrincipalRemaining),expectedInterestRemaining:whole(l.expectedInterestRemaining),chargeDate:day(l.chargeDate)};
-  if(BigInt(v.principal)+BigInt(v.interest)<=0n||BigInt(v.principal)>BigInt(v.expectedPrincipalRemaining)||BigInt(v.interest)>BigInt(v.expectedInterestRemaining))fail();return v;});
+ const allocations=lines.map(l=>{exact(l,late?['chargeId','principal','interest','lateCharge','expectedPrincipalRemaining','expectedInterestRemaining','expectedLateChargeRemaining','chargeDate']:['chargeId','principal','interest','expectedPrincipalRemaining','expectedInterestRemaining','chargeDate']);
+  const v=late?{chargeId:id(l.chargeId),principal:whole(l.principal),interest:whole(l.interest),lateCharge:whole(l.lateCharge),expectedPrincipalRemaining:whole(l.expectedPrincipalRemaining),expectedInterestRemaining:whole(l.expectedInterestRemaining),expectedLateChargeRemaining:whole(l.expectedLateChargeRemaining),chargeDate:day(l.chargeDate)}
+   :{chargeId:id(l.chargeId),principal:whole(l.principal),interest:whole(l.interest),expectedPrincipalRemaining:whole(l.expectedPrincipalRemaining),expectedInterestRemaining:whole(l.expectedInterestRemaining),chargeDate:day(l.chargeDate)};
+  if(BigInt(v.principal)+BigInt(v.interest)+BigInt(v.lateCharge??'0')<=0n||BigInt(v.principal)>BigInt(v.expectedPrincipalRemaining)||BigInt(v.interest)>BigInt(v.expectedInterestRemaining)||BigInt(v.lateCharge??'0')>BigInt(v.expectedLateChargeRemaining??'0'))fail();return v;});
  ordered(allocations.map(l=>l.chargeId));
- if(allocations.reduce((t,l)=>t+BigInt(l.principal)+BigInt(l.interest),0n)!==BigInt(input.amountReceived))fail();
+ if(allocations.reduce((t,l)=>t+BigInt(l.principal)+BigInt(l.interest)+BigInt(l.lateCharge??'0'),0n)!==BigInt(input.amountReceived))fail();
  const materialize=list(input.materialize,200).map(m=>{exact(m,['loanId','chargeId','chargeDate','principalDue','interestDue']);
   const v={loanId:text(m.loanId),chargeId:id(m.chargeId),chargeDate:day(m.chargeDate),principalDue:whole(m.principalDue),interestDue:whole(m.interestDue)};
   if(v.chargeId!==`cg8:${v.loanId.length}:${v.loanId}:${v.chargeDate}`||BigInt(v.principalDue)+BigInt(v.interestDue)<=0n)fail();return v;});
@@ -42,9 +44,10 @@ export function canonicalAgentCommand(input){
  // R095 schemaVersion 8 = 7 plus payerLines (null or {before, after}: the payer-lines change, written only while the
  // borrower's column still equals `before`). 7 stays accepted until the agent sends 8 on both environments.
  // R112 schemaVersion 9 = 8 plus purpose, allocations, materialize and principal (reviewed mode only).
- const v9=input?.schemaVersion===9,v8=input?.schemaVersion===8||v9;
+ // R118 schemaVersion 10 = 9 with 8-key allocation lines (the late charge).
+ const v10=input?.schemaVersion===10,v9=input?.schemaVersion===9||v10,v8=input?.schemaVersion===8||v9;
  exact(input,['schemaVersion','requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference',...(v8?['payerLines']:[]),...(v9?['purpose','allocations','materialize','principal']:[]),'proposalSha256','archiveEvidence']);
- if(![7,8,9].includes(input.schemaVersion)||(v8&&!validPayerLines(input.payerLines))||input.requestId!==receiptRequestId(input.environment,input.reviewId)||!['automatic','reviewed'].includes(input.mode)||(v9&&input.mode!=='reviewed'))fail();
+ if(![7,8,9,10].includes(input.schemaVersion)||(v8&&!validPayerLines(input.payerLines))||input.requestId!==receiptRequestId(input.environment,input.reviewId)||!['automatic','reviewed'].includes(input.mode)||(v9&&input.mode!=='reviewed'))fail();
  const borrowerId=text(input.borrowerId),cashAccountId=text(input.cashAccountId);
  if(typeof input.amountReceived!=='string'||!/^[1-9][0-9]{0,16}$/.test(input.amountReceived)||BigInt(input.amountReceived)>92233720368547758n)fail();
  if(typeof input.paymentDate!=='string'||input.paymentDate<'0001-01-01'||!/^\d{4}-\d{2}-\d{2}$/.test(input.paymentDate)||!Number.isFinite(Date.parse(input.paymentDate+'T00:00:00Z'))||new Date(input.paymentDate+'T00:00:00Z').toISOString().slice(0,10)!==input.paymentDate||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(input.transferTime))fail();
@@ -53,7 +56,7 @@ export function canonicalAgentCommand(input){
  if(!/^[a-f0-9]{64}$/.test(a.receiptId)||!/^[a-f0-9]{64}$/.test(a.rawSha256)||typeof a.generation!=='string'||!/^[1-9][0-9]{0,24}$/.test(a.generation)||!Number.isSafeInteger(a.sizeBytes)||a.sizeBytes<1||a.sizeBytes>12000000)fail();
  if(typeof a.capturedAt!=='string'||!/^[1-9][0-9]{0,11}(?:\.[0-9]{0,8}[1-9])?$/.test(a.capturedAt)||!Number.isFinite(new Date(Number(a.capturedAt)*1000).getTime()))fail();
  const extension={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[a.mimeType];
- const plan=v9?payForward(input):{};
+ const plan=v9?payForward(input,v10):{};
  if(!extension||a.objectKey!==`receipts/${input.environment}/${new Date(Number(a.capturedAt)*1000).toISOString().slice(0,10).replaceAll('-','/')}/${a.receiptId}/${a.rawSha256}.${extension}`)fail();
  return {schemaVersion:input.schemaVersion,requestId:input.requestId,environment:input.environment,reviewId:input.reviewId,mode:input.mode,borrowerId,cashAccountId,amountReceived:input.amountReceived,paymentDate:input.paymentDate,transferTime:input.transferTime,bankReference:input.bankReference,...(v8?{payerLines:input.payerLines===null?null:{before:input.payerLines.before,after:input.payerLines.after}}:{}),...plan,proposalSha256:input.proposalSha256,archiveEvidence:{receiptId:a.receiptId,objectKey:a.objectKey,generation:a.generation,rawSha256:a.rawSha256,mimeType:a.mimeType,sizeBytes:a.sizeBytes,capturedAt:a.capturedAt}};
 }

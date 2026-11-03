@@ -25,7 +25,7 @@ export const upcomingSummarySql = `SELECT s."Row ID" AS id, s."Due Date"::text A
       AND e."Borrower Due Date Rank" BETWEEN 1 AND 5 AND e."Due Date" > $2::date AND e."Due Date" <= $3::date)
   ORDER BY s."Due Date" ASC LIMIT 6`;
 export const upcomingSnapshotSql = `WITH scoped_events AS MATERIALIZED (
-  SELECT e."Row ID", e."Ref Loan", e."Due Date", e."Principal Remaining", e."Interest Remaining", e."Amount Remaining", e."Basis" FROM public.oltp_upcoming_charge_events_v1 e
+  SELECT e."Row ID", e."Ref Loan", e."Due Date", e."Principal Remaining", e."Interest Remaining", e."Amount Remaining", e."Basis", e."Late Charge Remaining" FROM public.oltp_upcoming_charge_events_v1 e
   WHERE e."Ref Borrower" = $1 AND e."As Of Date" = $2::date AND e."Borrower Due Date Rank" BETWEEN 1 AND 5
     AND e."Due Date" > $2::date AND e."Due Date" <= $3::date
 ), allowed_dates AS MATERIALIZED (
@@ -39,7 +39,7 @@ export const upcomingSnapshotSql = `WITH scoped_events AS MATERIALIZED (
   WHERE ($4::date IS NULL OR e."Due Date" = $4::date)
 ), owned_events AS (
   SELECT e."Row ID" AS id, e."Ref Loan" AS "loanId", e."Due Date"::text AS "dueDate",
-    e."Principal Remaining"::text AS "principalRemaining", e."Interest Remaining"::text AS "interestRemaining", e."Amount Remaining"::text AS "amountRemaining", e."Basis" AS basis,
+    e."Principal Remaining"::text AS "principalRemaining", e."Interest Remaining"::text AS "interestRemaining", e."Amount Remaining"::text AS "amountRemaining", e."Late Charge Remaining"::text AS "lateChargeRemaining", e."Basis" AS basis,
     b."Borrower Name" AS name, b."Description" AS description, l."Principal Amount"::numeric::text AS principal,
     l."Loan Date"::text AS "loanDate", l."Original Daily Interest Rate"::text AS rate
   FROM selected_events e JOIN public."Loans" l ON e."Ref Loan" = l."Row ID" AND l."Ref Borrowers" = $1
@@ -57,7 +57,9 @@ export function projectUpcomingEvent(row) {
   const principal = row.principal === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(decimal(row.principal)));
   const date = row.loanDate === null ? '' : validUpcomingDate(row.loanDate) ? row.loanDate.slice(8, 10) + '/' + row.loanDate.slice(5, 7) : (() => { throw new Error('Invalid loan date'); })();
   const rate = row.rate === null ? 'Unavailable' : decimal(row.rate) + '%';
-  return { id: row.id, loanId: row.loanId, loanDisplayKey: `${borrowerDisplayName(row.name, row.description)}-${principal}-${date}-${rate}`, principalRemaining: decimal(row.principalRemaining), interestRemaining: decimal(row.interestRemaining), amountRemaining: decimal(row.amountRemaining), basis: row.basis };
+  return { id: row.id, loanId: row.loanId, loanDisplayKey: `${borrowerDisplayName(row.name, row.description)}-${principal}-${date}-${rate}`, principalRemaining: decimal(row.principalRemaining), interestRemaining: decimal(row.interestRemaining), amountRemaining: decimal(row.amountRemaining),
+    // R118 (V132): a recorded charge's late charge is part of its amount remaining (projected rows 0).
+    lateChargeRemaining: row.lateChargeRemaining === undefined ? '0' : decimal(row.lateChargeRemaining), basis: row.basis };
 }
 export async function readUpcoming(client, { borrowerId, businessDate: requestedDate, dueDate = null, limit = 25, after = null, scope = 'collection' }) {
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);

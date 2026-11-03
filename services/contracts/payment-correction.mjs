@@ -15,7 +15,10 @@ export function canonicalPaymentCorrection(input){
  const result=Object.fromEntries(fields.map(key=>[key,value[key]]));
  if(input.kind==='pwa-plan'){
   if(!['Selected Charges','First-day Auto','Loan Close'].includes(value.allocationMethod))throw Error('invalid_request');
-  result.allocations=canonicalAllocationPlan(value.amountReceived,value.allocations);
+  // R118: the lines are the stored 6-key shape or the 8-key shape with the late charge (pwa_payment_correction_text_v2
+  // keeps the shape sent); one shape per correction.
+  const late=Array.isArray(value.allocations)&&value.allocations.length>0&&value.allocations.every(row=>row&&typeof row==='object'&&Object.hasOwn(row,'lateCharge'));
+  result.allocations=canonicalAllocationPlan(value.amountReceived,value.allocations,{late});
  }else{
   if(value.selectedChargeIds===null)result.selectedChargeIds=null;
   else{

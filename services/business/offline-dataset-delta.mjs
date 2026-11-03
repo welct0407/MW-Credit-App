@@ -53,7 +53,8 @@ function domainVersion(fingerprints,actor,domain,businessDate){
  // changed version per domain after the upgrade and walk once.
  // v6 (R116): the Cash Ledger list changed order and gained borrower names; every installed bundle walks once,
  // also across a day change (the client's v5 version can no longer match), so no saved list keeps the old shape.
- return deltaValueHash(['business-offline-v6',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
+ // v7 (R118): charges, drafts, related records and upcoming rows carry the late charge; every installed bundle walks once.
+ return deltaValueHash(['business-offline-v7',actor.issuer,actor.subject,actor.partnerId,domain,businessDate,rows]);
 }
 export async function readOfflineSourceVersion(client,actor,domain,businessDate){
  if(!offlineSourceTables[domain])throw Error('invalid_request');

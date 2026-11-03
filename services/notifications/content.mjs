@@ -48,8 +48,14 @@ function offsetNotification(language,facts){
  if(graphemeLength(body)>BODY_BUDGET)body=cut(body,BODY_BUDGET-1);
  return{title:words.title,body};
 }
+/** R118 (Echo LC-PUSH-1): the late-charge part of a "Payment received" push, "Late charge ฿50"; none when 0 or unknown. */
+const LATE={en:'Late charge ',th:'ค่าปรับล่าช้า '};
+function latePart(language,facts){
+ const amount=baht(facts.lateChargeAmount);
+ return facts.eventType==='payment.posted'&&amount&&Number(facts.lateChargeAmount)>0?LATE[language]+amount:'';
+}
 /**
- * @param {{found?:boolean,eventType?:string,language?:string,borrowerName?:string|null,amount?:unknown,rebatePayee?:string|null,rebatePayable?:unknown,paymentMethod?:string|null,rebateLoan?:string|null}|null|undefined} facts
+ * @param {{found?:boolean,eventType?:string,language?:string,borrowerName?:string|null,amount?:unknown,rebatePayee?:string|null,rebatePayable?:unknown,paymentMethod?:string|null,rebateLoan?:string|null,lateChargeAmount?:unknown}|null|undefined} facts
  * @returns {{title:string,body:string}}
  */
 export function renderNotification(facts){
@@ -65,16 +71,23 @@ export function renderNotification(facts){
  const name=clean(facts.borrowerName);
  // R111: the rebate line comes first, then the borrower name; the referrer's name is shortened first, then the borrower's.
  const rebate=rebateLine(language,facts);
+ // R118 (Echo LC-PUSH-2): the order is rebate line, late part, name; amounts are never cut; the name is shortened first,
+ // then the referrer, and dropped when fewer than 2 graphemes remain.
+ const late=latePart(language,facts),sep=' · ';
  if(rebate){
-  const payee=clean(facts.rebatePayee),sep=' · ',fixed=graphemeLength(rebate(payee?'_':''))-(payee?1:0);
+  const payee=clean(facts.rebatePayee),fixed=graphemeLength(rebate(payee?'_':''))-(payee?1:0)+(late?graphemeLength(sep+late):0);
   // NT-1 (loan.closed) shortens the referrer first; NT-2 (payment.posted) the borrower first, the referrer only as far as
   // the line needs (at least 8 kept); the amount and "Lisa" are never cut.
   const room=BODY_BUDGET-fixed-(name?(facts.eventType==='payment.posted'?graphemeLength(sep)+2:graphemeLength(sep+name)):0);
-  let body=rebate(payee&&graphemeLength(payee)>room?cut(payee,Math.max(8,room-1)):payee);
+  let body=rebate(payee&&graphemeLength(payee)>room?cut(payee,Math.max(8,room-1)):payee)+(late?sep+late:'');
   if(graphemeLength(body)>BODY_BUDGET)body=cut(body,BODY_BUDGET-1);
   const rest=BODY_BUDGET-graphemeLength(body)-graphemeLength(sep);
   if(name&&rest>=2)body+=sep+(graphemeLength(name)>rest?cut(name,rest-1):name);
   return{title,body};
+ }
+ if(late){
+  const rest=BODY_BUDGET-graphemeLength(late)-graphemeLength(sep);
+  return{title,body:late+(name&&rest>=2?sep+(graphemeLength(name)>rest?cut(name,rest-1):name):'')};
  }
  return{title,body:graphemeLength(name)>BODY_BUDGET?cut(name,BODY_BUDGET-1):name};
 }
