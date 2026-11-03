@@ -196,6 +196,7 @@ BEGIN
  INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status")
   VALUES('CI-DAD',id,borrower,charge,amount::money,(SELECT d FROM lc_day),method,'Processing');
  IF (SELECT "Status" FROM public."Payments" WHERE "Row ID"=id) IS DISTINCT FROM 'Posted' THEN RAISE EXCEPTION 'FAILED: legacy payment % not posted',id; END IF;
+ SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 END $f$;
 -- What one payment wrote: allocation and repayment columns side by side.
 CREATE FUNCTION pg_temp.lc_effects(payment text) RETURNS jsonb LANGUAGE sql AS $f$
@@ -367,13 +368,13 @@ BEGIN
  END LOOP;
 END $$;
 RESET SESSION AUTHORIZATION;
-SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 -- Round 2: the remainder of O2 (late 30, principal 200).
 SELECT set_config('lc.o2b',pg_temp.lc_cmd(11,'a1000000-0000-4000-8000-000000000002','LC-BO',230,pg_temp.lc_line8('LC-O2-c',200,0,30,200,0,30,(SELECT d FROM lc_day)-1)),true);
 SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
 SELECT public.pwa_submit_selected_charges_v1(current_setting('lc.o2b'))->'originalOutcome'->>'status' AS o2b;
 RESET SESSION AUTHORIZATION;
-SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 
 DO $$
 DECLARE d date:=(SELECT d FROM lc_day);
@@ -435,14 +436,14 @@ SELECT pg_temp.lc_owner_call('pwa_apply_payment_v2',jsonb_build_object('contract
    'paymentMethod','Bank Transfer','cashAccountId','CI-LISA','notes','late charge correction','allocationMethod','Selected Charges','targetChargeId',NULL,'targetLoanId',NULL,
    'allocations',jsonb_build_array(jsonb_build_object('chargeId','LC-K1-c','principal','40','interest','10','lateCharge','0','expectedPrincipalRemaining','40','expectedInterestRemaining','10',
     'expectedLateChargeRemaining','0','chargeDate',((SELECT d FROM lc_day)-1)::text))))),'receipt',NULL)::text);
-SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 SELECT pg_temp.lc_assert((SELECT "Notes"='late charge correction' AND "Status"='Posted' FROM public."Payments" WHERE "Row ID"='pwa:a3000000-0000-4000-8000-000000000001')
   AND (SELECT array_agg("Row ID" ORDER BY "Row ID") FROM public."Repayments" WHERE "Ref Payment"='pwa:a3000000-0000-4000-8000-000000000001')=(SELECT repayments FROM lc_k1_before)
   AND (SELECT array_agg("Row ID" ORDER BY "Row ID") FROM public."Payment Allocations" WHERE "Ref Payment"='pwa:a3000000-0000-4000-8000-000000000001')=(SELECT allocations FROM lc_k1_before),
  'a correction with 8-key late-0 lines against 6-key provenance is not a repost: same repayment and allocation rows, note changed');
 -- Deleting a payment that paid late reopens the late charge (N1 and D1 payments).
 DELETE FROM public."Payments" WHERE "Row ID"='pwa:a4000000-0000-4000-8000-000000000001';
-SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 SELECT pg_temp.lc_assert((SELECT "Late Charge Paid"::numeric=0 AND "Late Charge Remaining"::numeric=50 AND "Amount Remaining"::numeric=60 AND "Payment Status"='รอชำระ' FROM public."Charges" WHERE "Row ID"='LC-N1-c')
   AND NOT EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Payment"='pwa:a4000000-0000-4000-8000-000000000001'),'deleting the payment reopens the late charge (remaining 50) and removes its repayments');
 SELECT pg_temp.lc_assert((SELECT "Total Interest Received"::numeric=60 FROM public."Loans" WHERE "Row ID"='LC-D1') AND (SELECT "Total Interest Received"::numeric=0 FROM public."Loans" WHERE "Row ID"='LC-N1'),
@@ -541,7 +542,7 @@ SELECT pg_temp.lc_create('LC-DG-today','LC-DG',(SELECT d FROM lc_day),0,0,50);
 SELECT pg_temp.lc_legacy('LC-DG-P1','LC-BDG','LC-DG-today',50,'Single Full');
 SELECT pg_temp.lc_reject('paid charge today','UPDATE public."Loans" SET "Defaulted"=true,"Close Date"=(SELECT d FROM lc_day),"Closed By"=''synthetic@example.invalid'' WHERE "Row ID"=''LC-DG''');
 UPDATE public."Loans" SET "Defaulted"=true,"Close Date"=(SELECT d FROM lc_day),"Closed By"='synthetic@example.invalid' WHERE "Row ID"='LC-DF';
-SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 DO $$
 DECLARE ev_paid jsonb;ev_open jsonb;
 BEGIN
@@ -569,7 +570,7 @@ UPDATE public."Charges" SET "Total Paid"=999,"Amount Remaining"=999,"Late Charge
 SELECT pg_temp.lc_assert((SELECT "Total Paid"::numeric=0 AND "Amount Remaining"::numeric=0 AND "Late Charge Paid"::numeric=0 AND "Late Charge Remaining"::numeric=0 FROM public."Charges" WHERE "Row ID"='LC-DF-open'),
  'derived-only update (late paid and remaining included) recomputes on a written-off charge');
 UPDATE public."Loans" SET "Defaulted"=false WHERE "Row ID"='LC-DF';
-SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 SELECT pg_temp.lc_assert((SELECT "Principal Due"::numeric=20 AND "Interest Due"::numeric=10 AND "Late Charge Due"::numeric=30 AND "Notes" IS NULL AND "Late Charge Remaining"::numeric=0 FROM public."Charges" WHERE "Row ID"='LC-DF-paid')
   AND (SELECT "Principal Due"::numeric=20 AND "Interest Due"::numeric=10 AND "Late Charge Due"::numeric=50 AND "Notes" IS NULL AND "Late Charge Remaining"::numeric=50 AND "Amount Remaining"::numeric=80 FROM public."Charges" WHERE "Row ID"='LC-DF-open')
   AND NOT EXISTS(SELECT 1 FROM public."Repayments" WHERE starts_with("Row ID",'df10:') AND "Ref Loans"='LC-DF'),'undo restores principal, interest and late of both charges and their notes; the df10 pair is gone');
@@ -645,7 +646,7 @@ CREATE TEMP TABLE lc_rebate_projection ON COMMIT DROP AS
 SELECT pg_temp.lc_legacy('LC-RA-P1','LC-BRA','LC-RA-c',1350,'Single Full');
 SELECT pg_temp.lc_legacy('LC-RB-P1','LC-BRB','LC-RB-c',1300,'Single Full');
 SELECT pg_temp.lc_legacy('LC-RC-P1','LC-BRC','LC-RC-c',11050,'Single Full');
-SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 SELECT pg_temp.lc_assert((SELECT bool_and("Loan Status"='ปิดยอดแล้ว') FROM public."Loans" WHERE "Row ID" IN ('LC-RA','LC-RB','LC-RC'))
   AND pg_temp.lc_effects('LC-RA-P1')->'paid'=jsonb_build_object('p',1000,'i',300,'l',50) AND pg_temp.lc_effects('LC-RB-P1')->'paid'=jsonb_build_object('p',1000,'i',300,'l',0),'rebate twin: all three referred loans closed, A paid late 50');
 SELECT pg_temp.lc_assert((SELECT count(*)=1 AND min("Amount"::numeric)=35 FROM public."Business Expenses" WHERE "Source Key"='REFERRAL_REBATE:LC-RA')
