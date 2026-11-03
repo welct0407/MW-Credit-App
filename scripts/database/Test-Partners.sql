@@ -6,7 +6,8 @@ CREATE FUNCTION partners_test.olap_reporting_date() RETURNS date LANGUAGE sql IM
 CREATE TABLE partners_test."Partners"("Row ID" text,"Partner Name" text,"Partner Role" text);
 CREATE TABLE partners_test."Cash Pool Contributions"("Row ID" text,"Ref Partner" text,"Contribution Date" date,"Transaction Type" text,"Amount" numeric);
 CREATE TABLE partners_test."Business Expenses"("Row ID" text,"Expense Date" date,"Amount" numeric,"Partner A Expense" numeric,"Partner B Expense" numeric);
-CREATE TABLE partners_test.olap_repayments_analytics("Row ID" text,"Payment Date" date,"Interest Paid" numeric,"Partner A Profit" numeric,"Partner B Profit" numeric);
+-- R118 (V132): "Late Charge Paid" is part of the profit the allocation residual reads (0 in these rows).
+CREATE TABLE partners_test.olap_repayments_analytics("Row ID" text,"Payment Date" date,"Interest Paid" numeric,"Partner A Profit" numeric,"Partner B Profit" numeric,"Late Charge Paid" numeric DEFAULT 0);
 CREATE TABLE partners_test."Settlements"("Row ID" text,"Ref Partner" text,"Transfer Date" date,"Amount" numeric,"Status" text);
 -- pg_get_viewdef emits qualified references because only pg_catalog is visible here.
 SET LOCAL search_path=pg_catalog;
@@ -23,7 +24,7 @@ INSERT INTO "Partners" VALUES('A1','Synthetic Alpha','A'),('B1','Synthetic Beta'
 INSERT INTO "Cash Pool Contributions" VALUES
  ('C1','A1','2026-08-01','Contribution',60000),('C2','B1','2026-08-01','Contribution',40000),
  ('C3','A1','2026-09-01','Withdrawal',10000),('C4','B1','2026-09-01','Contribution',10000);
-INSERT INTO olap_repayments_analytics VALUES('I1','2026-08-15',20000,12000,8000),('I2','2026-09-15',100,50,50);
+INSERT INTO olap_repayments_analytics("Row ID","Payment Date","Interest Paid","Partner A Profit","Partner B Profit") VALUES('I1','2026-08-15',20000,12000,8000),('I2','2026-09-15',100,50,50);
 INSERT INTO "Business Expenses" VALUES('E1','2026-08-20',3000,2000,1000),('E2','2026-09-20',-100,-50,-50);
 INSERT INTO "Settlements" VALUES('S1','A1','2026-09-10',4000,'Completed'),('S2','A1','2026-09-25',1500,'Pending');
 SELECT pg_temp.partner_assert((SELECT net_capital=50000 AND interest_earned=12050 AND expenses=1950 AND net_earned=10100 AND completed=4000 AND pending=1500 AND unpaid=6100 AND available=4600 AND ready FROM reporting_partner_position_v1 WHERE partner_id='A1'),'independent amounts and signed expenses');

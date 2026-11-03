@@ -125,14 +125,20 @@ BEGIN
  IF p_exclude_payment IS NULL THEN context:=context-'excludedPayment';END IF;
  RETURN context||jsonb_build_object('planHash',encode(sha256(convert_to(context::text,'UTF8')),'hex'));
 END $$;
--- V113 case 8: a loan with no charge dated after the day gets the V112 calculation byte for byte (plan hash included).
-SELECT pg_temp.close_assert((SELECT bool_and(public.loan_close_calculation_v83(id,current_date,x)::text=pg_temp.loan_close_calculation_v112(id,current_date,x)::text)
+-- R118 (V132): the close lines are 8-key (lateCharge and expectedLateChargeRemaining, 0 here) and the plan hash covers
+-- them, so the V112 comparison drops the two late keys and the hash; every other byte, the mutation included, is equal.
+CREATE FUNCTION pg_temp.close_without_late(j jsonb) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+ SELECT (j-'planHash')||jsonb_build_object('allocations',(SELECT coalesce(jsonb_agg(x-ARRAY['lateCharge','expectedLateChargeRemaining'] ORDER BY o),'[]'::jsonb)
+  FROM jsonb_array_elements(j->'allocations') WITH ORDINALITY q(x,o) WHERE coalesce(x->>'lateCharge','0')='0' AND coalesce(x->>'expectedLateChargeRemaining','0')='0'))
+$$;
+-- V113 case 8: a loan with no charge dated after the day gets the V112 calculation byte for byte (plan hash aside, R118).
+SELECT pg_temp.close_assert((SELECT bool_and(pg_temp.close_without_late(public.loan_close_calculation_v83(id,current_date,x))::text=pg_temp.close_without_late(pg_temp.loan_close_calculation_v112(id,current_date,x))::text)
   FROM unnest(ARRAY['AC7-NONE','AC7-OLD','AC7-PART','AC7-PAID','AC7-SAME','AC7-LEGACY','AC7-UNLINKED']) id CROSS JOIN unnest(ARRAY[NULL,'AC7-NO-SUCH-PAYMENT']) x),'loans without a future charge: plans and hashes byte-identical to V112');
-SELECT pg_temp.close_assert((SELECT bool_and(public.loan_close_calculation_v83(id,current_date)->>'planHash'=pg_temp.loan_close_calculation_v112(id,current_date,NULL)->>'planHash'
+SELECT pg_temp.close_assert((SELECT bool_and(public.loan_close_calculation_v83(id,current_date)->>'amount'=pg_temp.loan_close_calculation_v112(id,current_date,NULL)->>'amount'
   AND public.loan_close_calculation_v83(id,current_date)->'mutation'=pg_temp.loan_close_calculation_v112(id,current_date,NULL)->'mutation')
-  FROM unnest(ARRAY['AC7-NONE','AC7-OLD','AC7-PART','AC7-PAID','AC7-SAME','AC7-LEGACY']) id),'V112 plan hash and mutation unchanged for ordinary loans');
+  FROM unnest(ARRAY['AC7-NONE','AC7-OLD','AC7-PART','AC7-PAID','AC7-SAME','AC7-LEGACY']) id),'V112 amount and mutation unchanged for ordinary loans');
 -- The hand-booked AC7-FUTURE charge (due 20 for days 5 back to 2 ahead) is capped at its stored due: same as V112.
-SELECT pg_temp.close_assert((SELECT public.loan_close_calculation_v83('AC7-FUTURE',current_date)::text=pg_temp.loan_close_calculation_v112('AC7-FUTURE',current_date,NULL)::text),'a future charge below the elapsed days is never raised');
+SELECT pg_temp.close_assert((SELECT pg_temp.close_without_late(public.loan_close_calculation_v83('AC7-FUTURE',current_date))::text=pg_temp.close_without_late(pg_temp.loan_close_calculation_v112('AC7-FUTURE',current_date,NULL))::text),'a future charge below the elapsed days is never raised');
 SELECT pg_temp.close_assert((SELECT "Ref Payment" IS NULL FROM "Repayments" WHERE "Row ID"='AC7-LEGACY-R1'),'legacy repayment has no receipt link');
 SELECT pg_temp.close_assert((SELECT (c->>'amount')::numeric=98 AND c->'mutation'->>'kind'='insert' AND (c->'mutation'->>'principal')::numeric=80
   AND (c->'mutation'->>'interest')::numeric=8 AND jsonb_array_length(c->'allocations')=2

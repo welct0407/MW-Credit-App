@@ -195,16 +195,17 @@ SELECT pg_temp.wo_assert(public.is_principal_writeoff('df10:5:WO-LG:x','x',1,1,N
  AND NOT public.is_principal_writeoff('R-none',NULL,50,-50,NULL,NULL,NULL,NULL)
  AND NOT public.is_principal_writeoff(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
  'the predicate: df10 and the zero-cash loss pair only; payment-linked, ls2:/lc7:, two repayments, interest 0 or not -principal, a charge that differs or is missing are not');
--- Column positions: the existing columns in place, the write-off column appended last.
+-- Column positions: the existing columns in place, the write-off column appended (R116), then the late charge memo
+-- column appended last (R118, V132) on the statement, monthly, daily and events views.
 SELECT pg_temp.wo_assert((SELECT array_agg(attname::text ORDER BY attnum DESC) FROM (SELECT attname,attnum FROM pg_attribute
   WHERE attrelid=r.rel::regclass AND attnum>0 AND NOT attisdropped ORDER BY attnum DESC LIMIT 2) a)=ARRAY[r.appended,r.previous]
   AND (SELECT count(*) FROM pg_attribute WHERE attrelid=r.rel::regclass AND attnum>0 AND NOT attisdropped)=r.width
   AND (SELECT attnum FROM pg_attribute WHERE attrelid=r.rel::regclass AND attname=r.income)=r.income_position,r.rel||' column positions')
 FROM (VALUES ('public."Cash Dashboard"','Principal Write-offs MTD','Business Cash Held',10,'Operating Income MTD',2),
  ('public.olap_portfolio_summary','Principal Write-offs','Principal Write-offs MTD',46,'Operating Income MTD',42),
- ('public.reporting_income_statement','Principal Write-offs MTD','Cash Reconciliation Status',19,'Operating Income MTD',5),
- ('public.reporting_income_monthly','Principal Write-offs','In Last 12 Months',10,'Operating Income',2),
- ('public.reporting_income_daily','Principal Write-offs','Net Profit Through Date',14,'Operating Income',3),
- ('public.reporting_income_events','Principal Write-offs','Expenses',5,'Income',3)) r(rel,appended,previous,width,income,income_position);
+ ('public.reporting_income_statement','Late Charges Received MTD','Principal Write-offs MTD',20,'Operating Income MTD',5),
+ ('public.reporting_income_monthly','Late Charges Received','Principal Write-offs',11,'Operating Income',2),
+ ('public.reporting_income_daily','Late Charges Received','Principal Write-offs',15,'Operating Income',3),
+ ('public.reporting_income_events','Late Charges Received','Principal Write-offs',6,'Income',3)) r(rel,appended,previous,width,income,income_position);
 SELECT 'Write-off segregation regressions passed' AS result;
 ROLLBACK;
