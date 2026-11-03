@@ -12,7 +12,7 @@ from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
 from .statement_delivery import resolve_recipient
-from .partner_review import OPTIONS_REQUIRED,ReviewStore,request_text,review_id
+from .partner_review import OPTIONS_REQUIRED,RECHECKED,ReviewStore,request_text,review_id
 from .review_proposal import OPTIONS,chosen_plan,facts,options_enabled,plan,review_posts_overpayment,same_posting_outcome,unlabelled
 from .review_execution import readback
 from . import receipt_api
@@ -124,7 +124,7 @@ class Run:
                     key=reviews.reserve(job['id'],proposal)
                     for p in recipients:
                         subject,body=request_text(proposal,p['language'])
-                        if job['detail']=='OWNER_REQUESTED_RECONSIDERATION':
+                        if job['detail'] in ('OWNER_REQUESTED_RECONSIDERATION','REVIEWER_REQUESTED_RECHECK'):
                             body=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n')+body
                             if len(body)>1000:raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG')
                         self.notices.reserve('review:'+key,p,subject,body)
@@ -176,6 +176,18 @@ class Run:
                 try:identity=identity_reader(config,event['sender_id'])
                 except ConfigurationError:continue
                 outcome=self.reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
+                if outcome==RECHECKED:
+                    # Owner request, 3 November 2026: acknowledge "4"; the new plan follows as its own message
+                    # (or the automatic-payment result) once the receipt is planned again from the current charges.
+                    row=db.execute('SELECT proposal FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
+                    partner=next((p for p in live['partners'] if p['id']==notice['partner_id']),None)
+                    if row and partner:
+                        proposal=json.loads(row['proposal']);thai=partner['language']=='ไทย'
+                        name=proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id']
+                        subject='ตรวจสลิปใหม่' if thai else 'Rechecking slip'
+                        body=(f"{subject}\n{name} ฿{proposal['receipt']['amount']}\nกำลังคำนวณใหม่จากยอดปัจจุบันในแอป ข้อความถัดไปจะแจ้งผล ยังไม่ได้บันทึกรายการ" if thai
+                              else f"{subject}\n{name} ฿{proposal['receipt']['amount']}\nPlanning again from the current charges in the app; the result follows in the next message. Nothing has been posted yet.")
+                        notices.reserve('review-result:'+review_id(notice['event_key'])+':RECHECK',partner,subject,body)
                 if outcome==OPTIONS_REQUIRED:
                     # R112 (Echo AG-2): an unclear reply to the options gets the prompt and the options again, to the
                     # same Reviewer, as its own notice (one per unclear reply); nothing was decided.

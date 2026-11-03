@@ -140,6 +140,39 @@ class OptionsCycleTests(unittest.TestCase):
         self.reply('1');self.run_cycle();self.run_cycle()
         self.assertEqual(self.state(),'MANUAL_REQUIRED');self.assertEqual(self.submit.call_count,1)
 
+    def test_four_plans_the_slip_again_from_current_charges(self):
+        # Owner request, 3 November 2026: after a late fee is added in the app, 4 supersedes the options and the next
+        # planning reads the current charges. Here the new plan is a different options proposal: a replacement request goes out.
+        self.j.db.execute("UPDATE receipt_jobs SET result=?,created_at=? WHERE id='job'",(json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b}),time.time()));self.j.db.commit()
+        self.reply('4');self.current=dict(self.proposal,options=options('c'*64))
+        result=self.run_cycle();self.assertEqual(result['failures'],[])
+        # The legacy order plans before it reads replies, so the next run plans again; the production order (with the
+        # image phase) reads replies first and plans again in the same run.
+        self.assertEqual(self.run_cycle()['failures'],[])
+        old=self.j.db.execute('SELECT state,job_id FROM partner_reviews WHERE id=?',(self.key,)).fetchone()
+        self.assertEqual(tuple(old),('SUPERSEDED','job:superseded:'+self.key))
+        new=self.j.db.execute("SELECT id,state,proposal FROM partner_reviews WHERE job_id='job'").fetchone()
+        self.assertIsNotNone(new,'the receipt was planned again');self.assertEqual(new['state'],'PENDING')
+        self.assertEqual(json.loads(new['proposal'])['options']['planSha256'],'c'*64)
+        self.submit.assert_not_called();self.add_payment.assert_not_called()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:
+            ack=notices.db.execute("SELECT body FROM partner_notices WHERE event_key=?",('review-result:'+self.key+':RECHECK',)).fetchone()
+            self.assertIsNotNone(ack);self.assertIn('Nothing has been posted yet',ack[0])
+            request=notices.db.execute("SELECT body FROM partner_notices WHERE event_key=?",('review:'+new['id'],)).fetchone()
+            self.assertTrue(request[0].startswith('Corrected request'),'the new request says it replaces the earlier one')
+        finally:notices.close()
+        self.reply('1',message='reply2');self.run_cycle()
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews WHERE id=?',(self.key,)).fetchone()[0],'SUPERSEDED','a reply to the old message decides nothing')
+
+    def test_four_is_planned_again_in_the_same_run_with_the_image_phase(self):
+        self.j.db.execute("UPDATE receipt_jobs SET result=?,created_at=? WHERE id='job'",(json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b}),time.time()));self.j.db.commit()
+        self.reply('4');self.current=dict(self.proposal,options=options('d'*64))
+        result=cycle(self.config,self.j,lambda *_:{'id':'456','username':'partner'},images=lambda:None)
+        self.assertEqual(result['failures'],[])
+        self.assertEqual(self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='job'").fetchone()[0],'PENDING')
+        self.submit.assert_not_called()
+
     def test_switch_off_keeps_the_overpayment_hold_and_a_reply_number_means_nothing(self):
         # Off: today's hold. The proposal is the old action; any non-approval reply rejects, and no options are ever queued.
         self.config.pop('pay_forward_options_enabled')
