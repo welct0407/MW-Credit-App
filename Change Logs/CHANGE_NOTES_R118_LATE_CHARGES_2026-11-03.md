@@ -25,6 +25,20 @@ Accepted deviations from the plan (Byte, batch 1):
 - The below-paid refusal stays P5B06 (`record_requires_reconciliation`); the PWA shows the "฿X already paid" text from `lateChargePaid`. This answers Echo's LC-ERR-2.
 - A future charge whose only unpaid part is its late charge drops out of Upcoming but still shows in Collection.
 
+Batch 1 and 2 fixes and additions:
+- Batch 1 fix `bebf07d` (found by Chase): a late-only change now rebuilds the daily snapshots. `business_history_refresh` and `r051_parent_dirty` watch the late columns, and the under-3-day pending path in `refresh_daily_analytics_scoped` includes late.
+- `4419163`: `pwa_notify_history_content_v2` is part of V132, so payment history rows show the late part; the store falls back to v1.
+- The PWA always sends payment command v11. A P5B06 on a late-charge change shows "Late charge cannot be less than the ฿X already paid on it."
+
+Accepted deviations from batch 2 (Byte):
+- The standalone Upcoming detail has no separate late row, because Amount Remaining includes it.
+- The e2e fixtures `canonical-server.ts` and `synthetic-read-adapter.mjs` are unchanged.
+- The Metabase tab 16 formula note says income includes late charges.
+- Dashboard 32's late card sits under "Net profit per day".
+- Chat pay-forward always builds v11, with no v10 fallback.
+- `tests/unit/production-build-environment.test.mjs` now reads module-scope constants only.
+- Metabase promotion order is in the `project/scripts/metabase/README.md` R118 section; the R116 `Refine-WriteOffSegregation --verify` passes only after the R118 snippet step.
+
 Archie's decisions (accepted):
 - Profit folding: explicit sums `"Interest Paid" + "Late Charge Paid"` in every profit relation. `olap_repayments_analytics."Interest Paid"` stays interest-only; its `"Amount Received"` and `"Partner A/B Profit"` include late, so the Cash Dashboard, portfolio summary and partner earnings follow without a new column. `reporting_partner_earnings_v1` allocation residual and `partner_net_profit` are updated to match.
 - Loan and borrower totals: late is folded into `"Total Interest Received"` (loan) and `"Total Interest Earned"` (borrower), and into `"Total Amount Received"`. No new loan or borrower column. These columns therefore mean "interest plus late charge" from R118; with late 0 everywhere today no value changes.
@@ -62,30 +76,35 @@ Forge's promotion corrections to the plan (the plan's Promotion section stands o
 
 Deferred to R119 (owner, 3 November 2026; R119 opens in the R118 closure pull request): every rebate line when one payment closes several referred loans (`closeRebate`, `pwa_notify_content_v2`, both `LIMIT 1`), and the receipt agent's recheck of a group slip ignored because the sender was not yet an enabled borrower (with possibly holds whose cause was fixed later in the app). See the [release tracker](../project/Documents/Release_Tracker.md#current-development-release).
 
-Records updated in this batch (Dewey): this note; the agent note `integration-agent/Change Logs/CHANGE_NOTES_R118_LATE_CHARGES_2026-11-03.md` (stub until Byte's batch 2); `project/Documents/Release_Tracker.md` and `project/Documents/Development_Changes.md` (R118 progress); `project/Documents/PWA_Data_Model_Overview.md`; `project/Documents/Solution_Design.md` (R118 paragraph); `project/Documents/Environment_Inventory.md` (agent-host commit only); Data Dictionary column entries in `relations/charges.yaml`, `repayments.yaml` and `payment-allocations.yaml`, marked R118, DEV-pending. The other dictionary entries (olap views, income views, upcoming and health views, routines, `pwa/application.yaml`, `agent-api.yaml`, `notifications-jobs.yaml`, `index.json`) are PROD captures and are refreshed from a targeted PROD capture after promotion (R116 and R117 precedent). Byte owns the `database/README.md` V132 entry and batch 2's `services/chat/assets/conversation-business-rules.md`; the agent part has its own note.
+Records updated in this batch (Dewey): this note; the agent note `integration-agent/Change Logs/CHANGE_NOTES_R118_LATE_CHARGES_2026-11-03.md` (completed from Byte's agent changes); `project/Documents/Release_Tracker.md` and `project/Documents/Development_Changes.md` (R118 progress); `project/Documents/PWA_Data_Model_Overview.md`; `project/Documents/Solution_Design.md` (R118 paragraph); `project/Documents/Environment_Inventory.md` (agent-host commit only); Data Dictionary column entries in `relations/charges.yaml`, `repayments.yaml` and `payment-allocations.yaml`, marked R118, DEV-pending. The other dictionary entries (olap views, income views, upcoming and health views, routines, `pwa/application.yaml`, `agent-api.yaml`, `notifications-jobs.yaml`, `index.json`) are PROD captures and are refreshed from a targeted PROD capture after promotion (R116 and R117 precedent). Byte owns the `database/README.md` V132 entry and batch 2's `services/chat/assets/conversation-business-rules.md`; the agent part has its own note.
 
 Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo (UX), Forge (promotion).
 
 ## Checks
 | Command | Result |
 | --- | --- |
-| `npm run lint` | Pass, on `ab3fed8`, clean tree (Byte) |
-| `npm run typecheck` | Pass, on `ab3fed8`, clean tree (Byte) |
+| `npm run lint` | Pass, 0 errors; on `ab3fed8` (Byte), rerun on `673d6ea` |
+| `npm run typecheck` | Pass, on `ab3fed8` and `673d6ea` (Byte) |
 | `node --test tests/unit` | 1,122 tests, 0 failures, on `ab3fed8`, clean tree (Byte) |
 | `mw-db-ci -Group phase5` | Pass, on `ab3fed8`, clean tree (Byte) |
-| `pwsh scripts/database/Test-CI.ps1 -Group migrations` | Pending (Byte) |
-| `pwsh scripts/database/Test-LateCharges.sql` through `Test-MigrationsCloud --sql-only` | Pending (Chase) |
-| Extended database tests (Archie's list: `Test-MaterializedBalances`, `Test-CorePayment`, `Test-LumpSum`, `Test-SelectedCharges`, `Test-PayForward`, `Test-AtomicLoanClose`, `Test-WriteOffSegregation`, `Test-NotifyContent`, `Test-AccessMatrix`, `Test-TriggerOrder`, and the rest) | Pending (Byte, Chase) |
-| Nothing dated moved: `generate_due_charges` twin, `loan_close_calculation_v83` twin (`mutation` JSON identical), pay-forward twin, `pwa_next_*`, income and Cash Dashboard snapshots before and after V132 | Pending (Chase) |
-| Schema digest rebuilt at 132, `--check`; `node --test tests/unit/chat-schema-digest.test.mjs` | Pending (Byte) |
-| `npm run check:docs` | Pending (Dewey) |
-| Browser: `late-charge-independent.spec.ts`, receiving specs at 320, 390 and 1280 px, English and Thai | Pending (Chase, Echo) |
-| Agent tests: `test_receipt_api_v9.py` (v10), `test_review_proposal_options.py`, `test_partner_review.py`, `test_review_cycle*.py` | Pending (Byte, Chase) |
+| `npm test` | 1129 pass, on `673d6ea`, clean tree (Byte) |
+| `npm run check:docs` (Byte) | 0 failures, on `673d6ea` |
+| Agent `unittest` | 713 OK, 70 skipped, on `673d6ea` (Byte) |
+| `ruff check --no-cache integration-agent` | Pass, on `673d6ea` (Byte) |
+| `mw-db-ci -Group receiving` | All pass, on `673d6ea` (Byte) |
+| `Test-LateCharges` full chain | Pass, on `bebf07d` plus its test file (Chase) |
+| Real pre-target 131 upgrade route (section 0 ran) | Pass, on `bebf07d` plus its test file (Chase) |
+| `Test-CI.ps1 -Group migrations` full chain | Pass: 132 migrations, 9 concurrency suites, `public-functions.sql` matches the rebuilt schema, on `bebf07d` plus its test file (Chase) |
+| `mw-db-ci -Group phase8` | Pass, run earlier (Chase) |
+| Nothing dated moved: `generate_due_charges` twin, `loan_close_calculation_v83` twin (`mutation` JSON identical), pay-forward twin, `pwa_next_*`, income and Cash Dashboard snapshots before and after V132 | Covered by `Test-LateCharges` above (Chase) |
+| Schema digest rebuilt at 132, `--check`; `node --test tests/unit/chat-schema-digest.test.mjs` | Covered by `npm test` above (Byte) |
+| `npm run check:docs` (Dewey, records) | 0 failures, 0 warnings |
+| Browser: `late-charge-independent.spec.ts`, receiving specs at 320, 390 and 1280 px, English and Thai | Pending (Chase batch 2 e2e and review, Echo second pass) |
 | Pull request `Development checks` | Pending |
-| DEV acceptance scenarios (plan list, Chase on DEV, then the owner on the phone) | Pending |
+| DEV: open the pull request and test in DEV (next, owner instruction); acceptance scenarios (plan list, Chase on DEV, then the owner on the phone) | Pending |
 
 ## Not run
-To be filled when the checks run.
+The rows marked Pending: Chase's batch 2 e2e and review, Echo's second pass, the pull request's Development checks and DEV. A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
@@ -94,8 +113,8 @@ Git baseline: the R117 package and its merged records. Before promotion nothing 
 None.
 
 ## Remaining work
-- Batch 1 (Byte) is committed locally on `ab3fed8`; Chase's verification is pending; Byte writes the `database/README.md` V132 entry.
-- Batch 2 (Byte): PWA screens, chat, agent wording, Metabase Income page (`LateCharges.mjs`, `Refine-LateCharges.mjs`).
-- Echo second pass; owner acceptance on DEV.
+- Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
+- Chase's batch 2 e2e and review; Echo's second pass.
+- Open the pull request and test in DEV (next, owner instruction), then owner acceptance on the phone.
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
