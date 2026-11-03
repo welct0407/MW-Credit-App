@@ -38,6 +38,11 @@ Echo's second pass (on `673d6ea`, at 390, 1280 and 320 px, English and Thai): 7 
 
 Chase's review (two low points): (a) the chat's next-charge path with a due charge that carries a late charge built v9 and dropped the late charge; fixed in `3679069`: the chat refuses with `LATE_CHARGE_WITH_NEXT_CHARGE` before review, and the catalogue tells the model to pay that charge first. (b) The agent's facts query needs V132 first, which is consistent with the SQL-first promotion order (recorded in the agent note).
 
+Owner feedback on DEV and the fix (3 November 2026): "After I clicked plus or minus, it takes several seconds to update and respond… at least temporarily disable the buttons until the db update is done".
+- Part A, busy state (Echo LC-BUSY-1..7): a saving class (opacity .45, spinner), a pending "฿50 → ฿100" figure, a sticky "Saving late charge…" toast, results shown for 3 s and refusals for 6 s. Accepted deviation: the buttons stay disabled until the refresh lands.
+- Part B (`240cdb0`): `syncSavedRequest {fresh:true}` skips the status GET for a never-dispatched request, with a unit test. Charge details uses the version already on screen. Collection patches the row in place. Round trips per tap: Collection first tap 6+ to 3, next tap to 2; charge details 4 to 2.
+- Chase's DEV timing on the pre-cut build (`109e54e`): server time per tap about 0.5 s warm and 0.9 s cold. The cause was 5 sequential requests, not a cold start. Client times are inflated by the sandbox proxy. The "after" timing is pending.
+
 Chase's final rerun on `3679069`: `late-charge-independent.spec.ts` passed 11 of 12. The failure was the new strict scroll-restore test on desktop after Confirm, off by about 147 px. Fixed in `f28e8b4` (Byte, `apps/pwa/src/CollectionRecords.tsx` only): the late-charge Confirm now shows over the Collection list, which stays mounted but hidden, and a layout effect reapplies the saved scroll position until the refresh finishes. Two causes: the scroll clamped during the reload, and the header and history remount shifted the rows.
 
 Accepted deviations from batch 2 (Byte):
@@ -124,18 +129,23 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | `npm test` on `bd09cbc` | 1129 pass (Byte) |
 | Lab reproduction of the jobs failure | Permission denied at V132, ok at V133 (Byte) |
 | Direct stepper (`d42322f`): lint, typecheck, check-docs, `npm test`; scratch spec | Pass, 1129 pass; 18/18 (Byte) |
-| V133 DEV apply | Done and verified by Forge (see the V133 DEV apply record); the 16:00Z and 17:05Z natural runs pending |
+| V133 DEV apply | Done and verified by Forge (see the V133 DEV apply record); the 16:00Z recent-analytics run completed with HTTP 200 and no permission errors; the 17:05Z daily-charges run is pending |
 | `late-charge-independent.spec.ts`, rewritten for the direct flow (one tap with no Confirm; toast text with U+2212 for a decrease; buttons disabled while a change is in flight; two quick taps in sequence with fresh versions; refusal, load-failure and queued toasts; scroll kept; offline), on `18287a1` | 40/40 on both projects, `--repeat-each=2` (Chase) |
 | `Test-LateCharges` through the real runner, pre-target 131, on `18287a1` | Pass: V132 and V133 applied, second run 0, tamper rejected (Chase) |
 | `Test-LateCharges` full chain, on `18287a1` | Pass: 133 migrations, 9 concurrency suites, `public-functions.sql` matches (Chase) |
 | Parity sweep in `Test-LateCharges` | Passes with V133; fails as intended in the DEV-like negative case (Chase) |
 | PR #225 `Development checks`, run 41664290069, on `c4dbc3a` (the pushed head; `18287a1` was an earlier local head) | Success: changes, check, lint and all three e2e shards pass; terraform skipped |
 | PR #225 `Agent tests`, run 41664290089, on `c4dbc3a` | Success (changes, test, lab) |
+| `npm run lint`, `npm run typecheck`, `npm test` on `240cdb0` | Pass, pass, 1130 pass (Byte) |
+| `late-charge-independent.spec.ts` with the busy state and fewer round trips | 44/44 on both projects, `--repeat-each=2` (Chase) |
+| PR #225 `Development checks`, run 41671673879, on `34d3aec` | Success |
+| PR #225 `Agent tests`, run 41671674164, on `34d3aec` | Success |
+| Chase's "after" timing of a tap on DEV | Pending |
 | DEV redeploy for the direct stepper | Done and verified by Forge (see the redeploy record) |
 | DEV acceptance scenarios (plan list) | Pending Chase, then the owner on the phone |
 
 ## Not run
-The rows marked Pending: the 16:00Z and 17:05Z DEV natural runs and DEV acceptance (Chase, then the owner). A pending check is not a pass.
+The rows marked Pending: the 17:05Z DEV daily-charges run, Chase's "after" tap timing and DEV acceptance (Chase, then the owner). A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
@@ -145,7 +155,7 @@ None.
 
 ## Remaining work
 - Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- The 16:00Z and 17:05Z natural runs on DEV; then Chase's DEV scenarios and owner acceptance on the phone (including the direct shortcuts with the bottom toast).
+- The 17:05Z daily-charges run on DEV; Chase's "after" tap timing; then Chase's DEV scenarios and owner acceptance on the phone (including the direct shortcuts with the bottom toast).
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
 
@@ -174,7 +184,7 @@ No secret value, token or borrower data appears here. DEV only; no PROD action. 
 | V133 | Installed 15:26:14Z, head 133, reconcile 0 violations |
 | Readback | The jobs owner holds `"Late Charge Paid"`; `metabase_borrower_reader` got no grant on DEV, which is correct; parity sweep 1 gap before, 0 after |
 | Manual recent-analytics run | Refused 409 `job_boundary_changed`, by design (see the correction to fallback B above) |
-| Pending | The 16:00Z and 17:05Z natural runs |
+| Natural runs | 16:00Z recent-analytics: completed, HTTP 200, no permission errors. 17:05Z daily-charges: pending |
 
 ### Direct-stepper redeploy (Forge, from `c4dbc3a`, CI run 41664290069)
 | Item | Result |
@@ -185,6 +195,9 @@ No secret value, token or borrower data appears here. DEV only; no PROD action. 
 | Chat history | The schema digest at 133 starts a new chat history epoch |
 | Rollback | The previous settings generation and the previous Hosting version (see the inventory) |
 
-Pins for both are in the [environment inventory](../project/Documents/Environment_Inventory.md).
+### Busy-state redeploy (Forge)
+Hosting only (no service or image change): DEV version labelled R118, live 16:22:16Z, embeds `34d3aec`, smoke passed. Rollback: the previous Hosting version (see the inventory).
+
+Pins for all are in the [environment inventory](../project/Documents/Environment_Inventory.md).
 
 DEV acceptance of the direct stepper: pending Chase's DEV scenarios, then the owner.
