@@ -284,7 +284,7 @@ export function createProposalPlanner({client,actor,catalogue=loadCatalogue(),ne
    const card={version:1,operation,label:entry.label,confirmLabel:confirmLabel(entry,command.inputs),destructive:entry.destructive===true,
     target:{type:operation.split('.')[0],id:targetId,label:await title(entry,response,{...values,id:targetId})},
     values:shown,changes:entry.target==='new'?[]:changes,consequences:entry.consequences.map(code=>consequence(code,command.inputs))};
-   if(entry.builder==='correction')card.split=inputs.fields.allocations?.map(row=>({chargeId:row.chargeId,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,loanDisplayKey:null,projected:false}))??[];
+   if(entry.builder==='correction')card.split=inputs.fields.allocations?.map(row=>({chargeId:row.chargeId,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,lateCharge:row.lateCharge??'0',loanDisplayKey:null,projected:false}))??[];
    // D12: what the group rules need. The borrower a line touches (payments and closes must be alone for theirs).
    const input=/** @type {Record<string,unknown>} */(command.inputs);
    let borrowerId=dig(response,'item.borrowerId')??dig(response,'item.source.borrowerId')??dig(response,'plan.borrowerId')??(operation.startsWith('borrower.')&&entry.target!=='new'?targetId:null);
@@ -353,9 +353,13 @@ function correction(entry,item,values){
  const receiptMode=values.receiptMode===undefined?'preserve':fieldValue(field('receiptMode'),values.receiptMode);
  if(item.origin==='pwa-plan'){
   const balances=Array.isArray(item.balances)?item.balances:[];
-  fields.allocations=(item.effectivePlan?.allocations??[]).map(line=>{const current=balances.find(row=>row.chargeId===line.chargeId);
-   return {chargeId:line.chargeId,principal:whole(line.principal),interest:whole(line.interest),expectedPrincipalRemaining:whole(current?.principalRemaining??line.expectedPrincipalRemaining),
-    expectedInterestRemaining:whole(current?.interestRemaining??line.expectedInterestRemaining),chargeDate:current?.chargeDate??line.chargeDate};}).filter(line=>line.principal!=='0'||line.interest!=='0');
+  // R118: the plan keeps its shape: 8-key lines (late charge) when the stored plan has them, else the 6-key lines.
+  const plan=item.effectivePlan?.allocations??[],late=plan.some(line=>Object.hasOwn(line,'lateCharge'));
+  fields.allocations=plan.map(line=>{const current=balances.find(row=>row.chargeId===line.chargeId);
+   return late?{chargeId:line.chargeId,principal:whole(line.principal),interest:whole(line.interest),lateCharge:whole(line.lateCharge??'0'),expectedPrincipalRemaining:whole(current?.principalRemaining??line.expectedPrincipalRemaining),
+    expectedInterestRemaining:whole(current?.interestRemaining??line.expectedInterestRemaining),expectedLateChargeRemaining:whole(current?.lateChargeRemaining??line.expectedLateChargeRemaining??'0'),chargeDate:current?.chargeDate??line.chargeDate}
+    :{chargeId:line.chargeId,principal:whole(line.principal),interest:whole(line.interest),expectedPrincipalRemaining:whole(current?.principalRemaining??line.expectedPrincipalRemaining),
+    expectedInterestRemaining:whole(current?.interestRemaining??line.expectedInterestRemaining),chargeDate:current?.chargeDate??line.chargeDate};}).filter(line=>line.principal!=='0'||line.interest!=='0'||(line.lateCharge??'0')!=='0');
  }else fields.selectedChargeIds=typeof source.selectedChargeIdsText==='string'&&source.selectedChargeIdsText?source.selectedChargeIdsText.split(','):null;
  if(receiptMode==='preserve'&&['paymentDate','paymentMethod','cashAccountId','notes'].every(key=>same(fields[key],before[key]===''?null:before[key])))throw new ToolError('NO_CHANGE');
  return {inputs:{kind:item.origin,fields,receiptMode,...(item.origin==='pwa-plan'?{closePreparationHash:null}:{})},before:{...before,receiptMode:'preserve'}};

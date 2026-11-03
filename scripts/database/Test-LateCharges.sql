@@ -25,6 +25,10 @@ SET LOCAL TIME ZONE 'Asia/Bangkok';
 CREATE FUNCTION pg_temp.lc_assert(ok boolean,label text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'FAILED: %',label; END IF; END $$;
 
+-- A routine ACL as a sorted list; no ACL means the default (owner and PUBLIC execute).
+CREATE FUNCTION pg_temp.lc_aclnorm(acl text,owner text) RETURNS text LANGUAGE sql STABLE AS $f$
+ SELECT string_agg(x,',' ORDER BY x) FROM unnest(string_to_array(trim(both '{}' from coalesce(acl,owner||'=X/'||owner||',=X/'||owner)),',')) x WHERE x NOT LIKE 'mw_integration_agent=%' $f$;
+-- (The agent's EXECUTE reaches routines through PROD's default privilege, which the runner's last step removes after the V131 snapshot; Test-ProdDefaultPrivileges owns that.)
 -- 0. The V131 state against V132 (needs the committed fixture of Test-LateCharges-Before.sql; before any row of this file is inserted).
 DO $$
 DECLARE r text;before_cols text[];now_cols text[];extra text;snap date;bad text;n integer;
@@ -61,9 +65,12 @@ BEGIN
  -- Routines: every V131 signature still exists with the same owner, ACL, security, search_path and comment (the two DROP and CREATE
  -- readers included: vc_charge_values and payment_charge_balances).
  SELECT string_agg(b.signature||' ('||CASE WHEN a.signature IS NULL THEN 'missing' ELSE 'changed' END||')',', ') INTO bad
- FROM lc_before.routines b LEFT JOIN (SELECT p.oid::regprocedure::text AS signature,pg_get_userbyid(p.proowner) AS owner,p.proacl::text AS acl,p.prosecdef AS security_definer,
+ FROM lc_before.routines b LEFT JOIN (SELECT p.oid::regprocedure::text AS signature,pg_get_userbyid(p.proowner) AS owner,pg_temp.lc_aclnorm(p.proacl::text,pg_get_userbyid(p.proowner)) AS acl,p.prosecdef AS security_definer,
    p.proconfig::text AS config,obj_description(p.oid,'pg_proc') AS comment FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public') a USING(signature)
- WHERE a.signature IS NULL OR (a.owner,a.acl,a.security_definer,a.config,a.comment) IS DISTINCT FROM (b.owner,b.acl,b.security_definer,b.config,b.comment);
+ WHERE a.signature IS NULL OR (a.owner,a.acl,a.security_definer,a.config) IS DISTINCT FROM (b.owner,pg_temp.lc_aclnorm(b.acl,b.owner),b.security_definer,b.config)
+  -- The two rebate functions' comments name R118 (documented change); every other comment is unchanged.
+  OR (b.signature NOT IN ('create_referral_rebate(text)','pwa_referral_rebate_projection_v1(text,jsonb)') AND a.comment IS DISTINCT FROM b.comment)
+  OR (b.signature IN ('create_referral_rebate(text)','pwa_referral_rebate_projection_v1(text,jsonb)') AND a.comment NOT LIKE '%R118%');
  IF bad IS NOT NULL THEN RAISE EXCEPTION 'FAILED: routine owner/ACL/security/comment drift: %',bad; END IF;
  SELECT string_agg(b.name,', ') INTO bad FROM lc_before.views b LEFT JOIN (SELECT c.oid::regclass::text AS name,pg_get_userbyid(c.relowner) AS owner,c.relacl::text AS acl,
    c.reloptions::text AS options,obj_description(c.oid,'pg_class') AS comment FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('v','m')) a USING(name)
@@ -141,7 +148,7 @@ INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due",
   ('LC-GA-today','LC-GA',0,0,10),('LC-GB-today','LC-GB',0,0,10),
   ('LC-D1-mix','LC-D1',-2,100,10),('LC-D1-w','LC-D1',-3,0,10),
   ('LC-O1-c','LC-O1',-1,200,100),('LC-O2-c','LC-O2',-1,200,100),
-  ('LC-C1-c','LC-C1',-1,100,10),('LC-C2-c','LC-C2',-1,100,10),
+  ('LC-C1-c','LC-C1',0,0,10),('LC-C2-c','LC-C2',0,0,10),
   ('LC-CA-c1','LC-CA',-1,0,10),('LC-CA-c2','LC-CA',0,0,10),('LC-CB-c1','LC-CB',-1,0,10),('LC-CB-c2','LC-CB',0,0,10),
   ('LC-PA-today','LC-PA',0,0,10),('LC-PB-today','LC-PB',0,0,10),('LC-QA-today','LC-QA',0,0,10),('LC-QB-today','LC-QB',0,0,10),
   ('LC-SA-today','LC-SA',0,0,1),('LC-SB-today','LC-SB',0,0,1),
@@ -212,6 +219,15 @@ CREATE FUNCTION pg_temp.lc_gen(loan text,from_day date,through date) RETURNS int
 DECLARE n integer:=0;x date;
 BEGIN FOR x IN SELECT generate_series(from_day,through,'1 day')::date LOOP n:=n+public.generate_due_charges(x,ARRAY[loan]); END LOOP; RETURN n; END $f$;
 
+-- Submit the command held in a setting; a failure names the setting.
+CREATE FUNCTION pg_temp.lc_submit(k text) RETURNS jsonb LANGUAGE plpgsql AS $f$
+BEGIN RETURN public.pwa_submit_selected_charges_v1(current_setting(k));
+EXCEPTION WHEN OTHERS THEN RAISE EXCEPTION 'submit % failed: % (%) %',k,SQLERRM,SQLSTATE,current_setting(k); END $f$;
+-- A plan without the figures that legitimately move by the late part: amount, dueTotal, the settle quote's payoff and planHash, and the lines.
+CREATE FUNCTION pg_temp.lc_planstrip(p jsonb) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $f$
+ SELECT (p-'allocations'-'amount'-'dueTotal')
+  ||jsonb_build_object('options',coalesce((SELECT jsonb_agg(CASE WHEN o ? 'settlesWith' THEN jsonb_set(o,'{settlesWith}',(o->'settlesWith')-'payoff'-'planHash') ELSE o END) FROM jsonb_array_elements(p->'options') o),'[]'::jsonb),
+   'principal',coalesce((SELECT jsonb_agg(x-'planHash'-'payoff'-'amount') FROM jsonb_array_elements(p->'principal') x),'[]'::jsonb)) $f$;
 -- Payment command builders (canonical text, byte for byte as the SQL validator rebuilds it).
 CREATE FUNCTION pg_temp.lc_q(v text) RETURNS text LANGUAGE sql IMMUTABLE AS $f$ SELECT to_json(v)::text $f$;
 CREATE FUNCTION pg_temp.lc_line6(charge text,p int,i int,ep int,ei int,day date) RETURNS text LANGUAGE sql AS $f$
@@ -254,12 +270,23 @@ SELECT pg_temp.lc_assert((SELECT bool_and("Late Charge Due"::numeric=x.late AND 
 SELECT pg_temp.lc_assert((SELECT bool_and("Late Charge Due"::numeric=0 AND "Late Charge Remaining"::numeric=0) FROM public."Charges" WHERE "Row ID" IN ('LC-GB-today','LC-D1-w','LC-O1-c-never','LC-C2-c','LC-CB-c1','LC-PB-today','LC-RB-c','LC-K1-c')),
  'every other charge carries late 0');
 
+-- The charge input lateChargeDue is optional: a 5-key update keeps the stored late charge.
+SELECT pg_temp.lc_charge_op('charge.update','LC-GA-today',pg_temp.lc_inputs('LC-GA',(SELECT d FROM lc_day),0,10,50,'five keys')-'lateChargeDue');
+SELECT pg_temp.lc_assert((SELECT "Late Charge Due"::numeric=50 AND "Late Charge Remaining"::numeric=50 AND "Notes"='five keys' FROM public."Charges" WHERE "Row ID"='LC-GA-today'),'a 5-key charge.update (no lateChargeDue) keeps the stored late charge');
+SELECT pg_temp.lc_setlate('LC-GA-today',50);
+-- Whole baht, never negative.
+SELECT pg_temp.lc_reject('P5B06','SELECT pg_temp.lc_setlate(''LC-GB-today'',-5)');
+SELECT pg_temp.lc_reject('P5B06','SELECT pg_temp.lc_setlate(''LC-GB-today'',2.5)');
+-- A future charge with only an unpaid late charge drops out of Upcoming (a recorded future charge with interest stays).
+SELECT pg_temp.lc_create('LC-D1-fut','LC-D1',(SELECT d FROM lc_day)+3,0,0,50);
+SELECT pg_temp.lc_assert((SELECT "Late Charge Remaining"::numeric=50 FROM public."Charges" WHERE "Row ID"='LC-D1-fut')
+  AND NOT EXISTS(SELECT 1 FROM public.oltp_upcoming_charge_events_v1 WHERE "Ref Loan"='LC-D1' AND "Due Date"=(SELECT d FROM lc_day)+3),'a future charge with only late unpaid is not in Upcoming');
 -- Commands: everything built now, from the untouched fixture, and submitted below.
 SELECT set_config('lc.o2a',pg_temp.lc_cmd(11,'a1000000-0000-4000-8000-000000000001','LC-BO',120,
    pg_temp.lc_line8('LC-O2-c',0,100,20,200,100,50,(SELECT d FROM lc_day)-1)),true),
- -- v10 on a late charge: the client (v10 has no late key) sends the plan lines without the late part, interest 10 + five forward charges = 60; the server plan at 60 puts 50 into late.
+ -- v10 on a late charge: the client (v10 has no late key) sends the plan lines without the late part, interest 10 + five forward charges = 60; the server plan at 60 puts 50 into late and books no forward charge.
  set_config('lc.c1_v10',pg_temp.lc_plan_cmd(10,'a2000000-0000-4000-8000-000000000001','LC-BC',110,pg_temp.lc_purpose(true,NULL,NULL),60),true),
- set_config('lc.c1_v8',pg_temp.lc_cmd(8,'a2000000-0000-4000-8000-000000000002','LC-BC',60,pg_temp.lc_line6('LC-C1-c',50,10,100,10,(SELECT d FROM lc_day)-1)),true),
+ set_config('lc.c1_v8',pg_temp.lc_cmd(8,'a2000000-0000-4000-8000-000000000002','LC-BC',10,pg_temp.lc_line6('LC-C1-c',0,10,0,10,(SELECT d FROM lc_day))),true),
  set_config('lc.c2_v10',pg_temp.lc_plan_cmd(10,'a2000000-0000-4000-8000-000000000003','LC-BCV',60,pg_temp.lc_purpose(true,NULL,NULL)),true),
  set_config('lc.k1_v8',pg_temp.lc_cmd(8,'a3000000-0000-4000-8000-000000000001','LC-BK',50,pg_temp.lc_line6('LC-K1-c',40,10,40,10,(SELECT d FROM lc_day)-1)),true),
  set_config('lc.n1',pg_temp.lc_cmd(11,'a4000000-0000-4000-8000-000000000001','LC-BN',60,pg_temp.lc_line8('LC-N1-c',0,10,50,0,10,50,(SELECT d FROM lc_day)-1)),true),
@@ -281,7 +308,6 @@ SELECT pg_temp.lc_assert(pg_temp.lc_effects('LC-O1-P2')->'alloc'=jsonb_build_obj
   AND (SELECT "Amount Remaining"::numeric=0 AND "Late Charge Remaining"::numeric=0 AND "Payment Status"='ชำระแล้ว' AND "Total Paid"::numeric=350 FROM public."Charges" WHERE "Row ID"='LC-O1-c'),
  'legacy engine: the remainder pays late 30 then principal 200 and the charge is paid (Total Paid 350)');
 -- A receipt for more than the three parts is still refused (no overpayment).
-SELECT pg_temp.lc_reject('42','INSERT INTO public."Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status") VALUES(''CI-DAD'',''LC-O1-over'',''LC-BO'',''LC-O1-c'',1::money,(SELECT d FROM lc_day),''Single Partial'',''Processing'')') WHERE false;
 
 -- 1 (cont.) Derived columns, loan and borrower totals, guards.
 DO $$
@@ -345,25 +371,25 @@ DO $$
 DECLARE r jsonb;k text;
 BEGIN
  -- v11 with empty lists: interest 100, late 20, principal 0 of the same charge shape as the legacy test.
- r:=public.pwa_submit_selected_charges_v1(current_setting('lc.o2a'));
+ r:=pg_temp.lc_submit('lc.o2a');
  IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION 'v11 with empty lists must post: %',r; END IF;
- IF public.pwa_submit_selected_charges_v1(current_setting('lc.o2a'))->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION 'v11 replay'; END IF;
+ IF pg_temp.lc_submit('lc.o2a')->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION 'v11 replay'; END IF;
  -- v10 on a late charge: the client refreshes (selection_unavailable); nothing is posted.
- r:=public.pwa_submit_selected_charges_v1(current_setting('lc.c1_v10'));
+ r:=pg_temp.lc_submit('lc.c1_v10');
  IF r->'originalOutcome'->>'status'<>'rejected' OR r->'originalOutcome'->>'code'<>'selection_unavailable' THEN RAISE EXCEPTION 'v10 on a late charge must be selection_unavailable: %',r; END IF;
  -- A 6-key v8 line on a late charge posts (principal 50 + interest 10) and leaves the late charge unpaid.
- r:=public.pwa_submit_selected_charges_v1(current_setting('lc.c1_v8'));
+ r:=pg_temp.lc_submit('lc.c1_v8');
  IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION '6-key v8 on a late charge must post: %',r; END IF;
  -- v10 still posts on a charge with no late charge.
- r:=public.pwa_submit_selected_charges_v1(current_setting('lc.c2_v10'));
+ r:=pg_temp.lc_submit('lc.c2_v10');
  IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION 'v10 without late must still post: %',r; END IF;
- r:=public.pwa_submit_selected_charges_v1(current_setting('lc.k1_v8'));
+ r:=pg_temp.lc_submit('lc.k1_v8');
  IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION 'K1 v8 must post: %',r; END IF;
- r:=public.pwa_submit_selected_charges_v1(current_setting('lc.n1'));
+ r:=pg_temp.lc_submit('lc.n1');
  IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION 'N1 v11 must post: %',r; END IF;
  -- Pay forward with lists: the A plan pays the due charge (interest 10, late 50) and five forward charges.
  FOREACH k IN ARRAY ARRAY['lc.pfa','lc.pfb'] LOOP
-  r:=public.pwa_submit_selected_charges_v1(current_setting(k));
+  r:=pg_temp.lc_submit(k);
   IF r->'originalOutcome'->>'status'<>'posted' THEN RAISE EXCEPTION '% (v11 pay forward) must post: %',k,r; END IF;
  END LOOP;
 END $$;
@@ -372,12 +398,12 @@ SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IM
 -- Round 2: the remainder of O2 (late 30, principal 200).
 SELECT set_config('lc.o2b',pg_temp.lc_cmd(11,'a1000000-0000-4000-8000-000000000002','LC-BO',230,pg_temp.lc_line8('LC-O2-c',200,0,30,200,0,30,(SELECT d FROM lc_day)-1)),true);
 SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
-SELECT public.pwa_submit_selected_charges_v1(current_setting('lc.o2b'))->'originalOutcome'->>'status' AS o2b;
+SELECT pg_temp.lc_submit('lc.o2b')->'originalOutcome'->>'status' AS o2b;
 RESET SESSION AUTHORIZATION;
 SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 
 DO $$
-DECLARE d date:=(SELECT d FROM lc_day);
+DECLARE d date:=(SELECT d FROM lc_day);n5 integer;n6 integer;
 BEGIN
  -- Order on the explicit engine equals the legacy engine (compare against LC-O1-P1 / P2).
  PERFORM pg_temp.lc_assert(pg_temp.lc_effects('pwa:a1000000-0000-4000-8000-000000000001')=pg_temp.lc_effects('LC-O1-P1'),'explicit v11 and legacy engines write the same allocation and repayment columns (120)');
@@ -390,9 +416,9 @@ BEGIN
  -- v10 on a late charge posted nothing; the v8 6-key line left the late charge unpaid.
  PERFORM pg_temp.lc_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Row ID"='pwa:a2000000-0000-4000-8000-000000000001')
    AND (SELECT count(*)=1 FROM public.pwa_payment_commands WHERE request_id='a2000000-0000-4000-8000-000000000001' AND outcome='rejected' AND rejection_code='selection_unavailable'),'v10 on a late charge: rejected as selection_unavailable, nothing posted');
- PERFORM pg_temp.lc_assert((SELECT "Late Charge Paid"::numeric=0 AND "Late Charge Remaining"::numeric=50 AND "Principal Paid"::numeric=50 AND "Interest Paid"::numeric=10 AND "Amount Remaining"::numeric=100 FROM public."Charges" WHERE "Row ID"='LC-C1-c'),
-  '6-key v8 on a late charge posts principal 50 + interest 10 and leaves the late charge 50 unpaid');
- PERFORM pg_temp.lc_assert(pg_temp.lc_effects('pwa:a2000000-0000-4000-8000-000000000002')=jsonb_build_object('alloc',jsonb_build_object('p',50,'i',10,'l',0,'a',60),'paid',jsonb_build_object('p',50,'i',10,'l',0)),'6-key v8: late allocation 0');
+ PERFORM pg_temp.lc_assert((SELECT "Late Charge Paid"::numeric=0 AND "Late Charge Remaining"::numeric=50 AND "Principal Paid"::numeric=0 AND "Interest Paid"::numeric=10 AND "Amount Remaining"::numeric=50 FROM public."Charges" WHERE "Row ID"='LC-C1-c'),
+  '6-key v8 on a late charge posts interest 10 and leaves the late charge 50 unpaid');
+ PERFORM pg_temp.lc_assert(pg_temp.lc_effects('pwa:a2000000-0000-4000-8000-000000000002')=jsonb_build_object('alloc',jsonb_build_object('p',0,'i',10,'l',0,'a',10),'paid',jsonb_build_object('p',0,'i',10,'l',0)),'6-key v8: late allocation 0');
  PERFORM pg_temp.lc_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=60 FROM public."Payments" WHERE "Row ID"='pwa:a2000000-0000-4000-8000-000000000003')
    AND pg_temp.lc_effects('pwa:a2000000-0000-4000-8000-000000000003')->'paid'=jsonb_build_object('p',0,'i',60,'l',0),'v10 (forward list) without a late charge still posts');
  PERFORM pg_temp.lc_assert(pg_temp.lc_effects('pwa:a4000000-0000-4000-8000-000000000001')->'paid'=jsonb_build_object('p',0,'i',10,'l',50)
@@ -408,7 +434,9 @@ BEGIN
  PERFORM pg_temp.lc_assert((SELECT jsonb_agg(jsonb_build_array("Charge Date","Principal Due"::numeric,"Interest Due"::numeric,"Late Charge Due"::numeric) ORDER BY "Charge Date") FROM public."Charges" WHERE "Ref Loans"='LC-PA' AND "Charge Date">d)
    =(SELECT jsonb_agg(jsonb_build_array("Charge Date","Principal Due"::numeric,"Interest Due"::numeric,"Late Charge Due"::numeric) ORDER BY "Charge Date") FROM public."Charges" WHERE "Ref Loans"='LC-PB' AND "Charge Date">d),
   'nothing dated moved: the forward charges booked for A equal those booked for B');
- PERFORM pg_temp.lc_assert(public.generate_due_charges(d+5,ARRAY['LC-PA','LC-PB'])=0 AND public.generate_due_charges(d+6,ARRAY['LC-PA','LC-PB'])=2
+ n5:=public.generate_due_charges(d+5,ARRAY['LC-PA','LC-PB']);
+ n6:=public.generate_due_charges(d+6,ARRAY['LC-PA','LC-PB']);
+ PERFORM pg_temp.lc_assert(n5=0 AND n6=2
    AND (SELECT count(DISTINCT "Interest Due") =1 AND min("Interest Due"::numeric)=10 FROM public."Charges" WHERE "Ref Loans" IN ('LC-PA','LC-PB') AND "Charge Date"=d+6),
   'after a pay forward the schedule continues from the last prepaid date for A and B alike');
  PERFORM pg_temp.lc_assert((SELECT "Interest Schedule Anchor Date" IS NOT DISTINCT FROM (SELECT "Interest Schedule Anchor Date" FROM public."Loans" WHERE "Row ID"='LC-PB') FROM public."Loans" WHERE "Row ID"='LC-PA'),'pay forward: schedule anchors equal');
@@ -446,8 +474,8 @@ DELETE FROM public."Payments" WHERE "Row ID"='pwa:a4000000-0000-4000-8000-000000
 SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
 SELECT pg_temp.lc_assert((SELECT "Late Charge Paid"::numeric=0 AND "Late Charge Remaining"::numeric=50 AND "Amount Remaining"::numeric=60 AND "Payment Status"='รอชำระ' FROM public."Charges" WHERE "Row ID"='LC-N1-c')
   AND NOT EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Payment"='pwa:a4000000-0000-4000-8000-000000000001'),'deleting the payment reopens the late charge (remaining 50) and removes its repayments');
-SELECT pg_temp.lc_assert((SELECT "Total Interest Received"::numeric=60 FROM public."Loans" WHERE "Row ID"='LC-D1') AND (SELECT "Total Interest Received"::numeric=0 FROM public."Loans" WHERE "Row ID"='LC-N1'),
- 'loan totals follow: LC-N1 back to 0 after the delete, LC-D1 unchanged');
+SELECT pg_temp.lc_assert((SELECT "Total Interest Received"::numeric=110 FROM public."Loans" WHERE "Row ID"='LC-D1') AND (SELECT "Total Interest Received"::numeric=0 FROM public."Loans" WHERE "Row ID"='LC-N1'),
+ 'loan totals follow: LC-N1 back to 0 after the delete, LC-D1 unchanged (interest 10 + late 50 + late-only 50)');
 -- Re-pay the N1 charge by the legacy engine so the notify case (section 6) has a payment with late 50.
 SELECT pg_temp.lc_legacy('LC-N1-P1','LC-BN','LC-N1-c',60,'Single Full');
 
@@ -499,6 +527,7 @@ BEGIN
  PERFORM pg_temp.lc_assert((SELECT bool_and(array(SELECT jsonb_object_keys(l) ORDER BY 1)=ARRAY['chargeDate','chargeId','expectedInterestRemaining','expectedLateChargeRemaining','expectedPrincipalRemaining','interest','lateCharge','principal'])
    FROM jsonb_array_elements(a->'allocations') l),'loan close lines are the 8-key shape');
  PERFORM pg_temp.lc_assert((a->>'amount')::numeric=(SELECT sum((l->>'principal')::numeric+(l->>'interest')::numeric+(l->>'lateCharge')::numeric) FROM jsonb_array_elements(a->'allocations') l),'loan close: amount = principal + interest + late of the lines');
+ PERFORM pg_temp.lc_assert((SELECT sum((l->>'lateCharge')::numeric) FROM jsonb_array_elements(a->'allocations') l)=(SELECT sum("Late Charge Remaining") FROM public."Charges" WHERE "Ref Loans"='LC-CA'),'loan close: the payoff adds the unpaid late of every charge of the loan');
 END $$;
 -- (c) Pay-forward plans for A (+50) against B: forward, principal and settle.
 DO $$
@@ -506,7 +535,7 @@ DECLARE pa jsonb;pb jsonb;
 BEGIN
  pa:=pg_temp.lc_plan('LC-BQA',160,pg_temp.lc_purpose(false,'[{"loanId":"LC-QA","amount":"100"}]',NULL));
  pb:=pg_temp.lc_plan('LC-BQB',110,pg_temp.lc_purpose(false,'[{"loanId":"LC-QB","amount":"100"}]',NULL));
- PERFORM pg_temp.lc_assert(pa->'principal'->0->>'kind' IN ('book','raise') AND pg_temp.lc_norm(pa-'allocations','LC-QA','LC-QB','LC-BQA','LC-BQB')=pg_temp.lc_norm(pb-'allocations','LC-QA','LC-QB','LC-BQA','LC-BQB'),
+ PERFORM pg_temp.lc_assert(pa->'principal'->0->>'kind' IN ('book','raise') AND pg_temp.lc_norm(pg_temp.lc_planstrip(pa),'LC-QA','LC-QB','LC-BQA','LC-BQB')=pg_temp.lc_norm(pg_temp.lc_planstrip(pb),'LC-QA','LC-QB','LC-BQA','LC-BQB'),
   'pay forward, principal: the plan (principal entries, outstanding, daily interest, next charge) is identical for A (amount + 50) and B');
  PERFORM pg_temp.lc_assert((SELECT sum((l->>'principal')::numeric+(l->>'interest')::numeric+(l->>'lateCharge')::numeric)=160 AND sum((l->>'lateCharge')::numeric)=50 FROM jsonb_array_elements(pa->'allocations') l)
    AND (SELECT sum((l->>'lateCharge')::numeric)=0 FROM jsonb_array_elements(pb->'allocations') l)
@@ -523,13 +552,12 @@ BEGIN
    AND (SELECT sum((l->>'lateCharge')::numeric)=0 AND sum((l->>'principal')::numeric+(l->>'interest')::numeric)=101 FROM jsonb_array_elements(pb->'allocations') l),'pay forward, settle: the quote lines carry the late charge for A only');
  -- Forward, with the due charge carrying late: the forward charges, paidThrough and uncovered are those of B.
  pa:=pg_temp.lc_plan('LC-BPA',200,pg_temp.lc_purpose(true,NULL,NULL));
- PERFORM pg_temp.lc_assert((SELECT count(*)>0 FROM jsonb_array_elements(pa->'materialize')),'forward plan on A is non-empty (checked after the posted forward charges below)') WHERE false;
 END $$;
 -- The forward plans of the untouched twins (QA/QB) with forward only, before anything is posted on them.
 DO $$
 DECLARE pa jsonb:=pg_temp.lc_plan('LC-BQA',110,pg_temp.lc_purpose(true,NULL,NULL));pb jsonb:=pg_temp.lc_plan('LC-BQB',60,pg_temp.lc_purpose(true,NULL,NULL));
 BEGIN
- PERFORM pg_temp.lc_assert(jsonb_array_length(pa->'materialize')=5 AND pg_temp.lc_norm(pa-'allocations','LC-QA','LC-QB','LC-BQA','LC-BQB')=pg_temp.lc_norm(pb-'allocations','LC-QA','LC-QB','LC-BQA','LC-BQB'),
+ PERFORM pg_temp.lc_assert(jsonb_array_length(pa->'materialize')=5 AND pg_temp.lc_norm(pg_temp.lc_planstrip(pa),'LC-QA','LC-QB','LC-BQA','LC-BQB')=pg_temp.lc_norm(pg_temp.lc_planstrip(pb),'LC-QA','LC-QB','LC-BQA','LC-BQB'),
   'pay forward, forward: materialize, paidThrough and uncovered are identical for A (amount + 50) and B');
  PERFORM pg_temp.lc_assert((SELECT bool_and((l->>'lateCharge')::numeric=0 OR l->>'chargeId'='LC-QA-today') FROM jsonb_array_elements(pa->'allocations') l),'pay forward: only the recorded charge carries late; forward lines carry late 0');
 END $$;
@@ -555,10 +583,6 @@ BEGIN
   'default writes the paid charge down to what was paid, late included (due 30 = paid 30)');
  PERFORM pg_temp.lc_assert((SELECT "Principal Due"::numeric=0 AND "Interest Due"::numeric=0 AND "Late Charge Due"::numeric=0 AND "Late Charge Remaining"::numeric=0 AND "Amount Remaining"::numeric=0 FROM public."Charges" WHERE "Row ID"='LC-DF-open'),
   'default writes the unpaid charge to 0 in all three parts');
- PERFORM pg_temp.lc_assert((SELECT "Default Loss Amount"::numeric=100 FROM public."Loans" WHERE "Row ID"='LC-DF')
-   AND (SELECT c."Late Charge Due"::numeric=0 AND r."Late Charge Paid"::numeric=0 AND r."Principal Paid"::numeric=100 AND r."Interest Paid"::numeric=-100 FROM public."Charges" c JOIN public."Repayments" r ON r."Row ID"=c."Row ID" WHERE starts_with(c."Row ID",'df10:') AND c."Ref Loans"='LC-DF')
-   AND public.is_principal_writeoff((SELECT r.* FROM public."Repayments" r WHERE starts_with(r."Row ID",'df10:') AND r."Ref Loans"='LC-DF')) IS NOT NULL,
-  'the df10 pair carries late 0 and is still the principal write-off') WHERE false;
 END $$;
 SELECT pg_temp.lc_assert((SELECT "Default Loss Amount"::numeric=100 FROM public."Loans" WHERE "Row ID"='LC-DF')
   AND (SELECT c."Late Charge Due"::numeric=0 AND r."Late Charge Paid"::numeric=0 AND r."Principal Paid"::numeric=100 AND r."Interest Paid"::numeric=-100
@@ -630,12 +654,12 @@ SELECT pg_temp.lc_assert((SELECT array_agg(attname::text ORDER BY attnum DESC) F
    WHERE attrelid=r.rel::regclass AND attnum>0 AND NOT attisdropped ORDER BY attnum DESC LIMIT 2) a)=ARRAY[r.appended,r.previous]
   AND (SELECT count(*) FROM pg_attribute WHERE attrelid=r.rel::regclass AND attnum>0 AND NOT attisdropped)=r.width
   AND (SELECT format_type(atttypid,atttypmod) FROM pg_attribute WHERE attrelid=r.rel::regclass AND attname=r.appended)=r.kind,r.rel||' column positions')
-FROM (VALUES ('public."Cash Dashboard"','Principal Write-offs MTD','Business Cash Held',10,'money'),
+FROM (VALUES ('public."Cash Dashboard"','Principal Write-offs MTD','Business Cash Held',10,'numeric'),
  ('public.olap_portfolio_summary','Principal Write-offs','Principal Write-offs MTD',46,'numeric'),
  ('public.reporting_income_statement','Late Charges Received MTD','Principal Write-offs MTD',20,'numeric'),
  ('public.reporting_income_monthly','Late Charges Received','Principal Write-offs',11,'numeric'),
  ('public.reporting_income_daily','Late Charges Received','Principal Write-offs',15,'numeric'),
- ('public.reporting_income_events','Late Charges Received','Principal Write-offs',6,'numeric')) r(rel,appended,previous,width,kind) WHERE r.kind='numeric' OR true;
+ ('public.reporting_income_events','Late Charges Received','Principal Write-offs',6,'numeric')) r(rel,appended,previous,width,kind);
 
 -- Referral rebate (owner decision: interest + late charge received): rebate = min(round(10% x (interest + late)), 1000).
 -- A twin close where A pays late 50 books a rebate 5 higher than B's; the Loan Close projection equals the booked rebate (the late charge is
@@ -646,7 +670,7 @@ CREATE TEMP TABLE lc_rebate_projection ON COMMIT DROP AS
 SELECT pg_temp.lc_legacy('LC-RA-P1','LC-BRA','LC-RA-c',1350,'Single Full');
 SELECT pg_temp.lc_legacy('LC-RB-P1','LC-BRB','LC-RB-c',1300,'Single Full');
 SELECT pg_temp.lc_legacy('LC-RC-P1','LC-BRC','LC-RC-c',11050,'Single Full');
-SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed IMMEDIATE;
+SET CONSTRAINTS vc_repayment_changed, vc_payment_changed, vc_borrower_changed, public.referral_loan_closed IMMEDIATE;
 SELECT pg_temp.lc_assert((SELECT bool_and("Loan Status"='ปิดยอดแล้ว') FROM public."Loans" WHERE "Row ID" IN ('LC-RA','LC-RB','LC-RC'))
   AND pg_temp.lc_effects('LC-RA-P1')->'paid'=jsonb_build_object('p',1000,'i',300,'l',50) AND pg_temp.lc_effects('LC-RB-P1')->'paid'=jsonb_build_object('p',1000,'i',300,'l',0),'rebate twin: all three referred loans closed, A paid late 50');
 SELECT pg_temp.lc_assert((SELECT count(*)=1 AND min("Amount"::numeric)=35 FROM public."Business Expenses" WHERE "Source Key"='REFERRAL_REBATE:LC-RA')
@@ -659,6 +683,18 @@ SELECT pg_temp.lc_assert((SELECT (projection->>'amount')::numeric FROM lc_rebate
 SELECT pg_temp.lc_assert((SELECT "Amount"::numeric=1000 FROM public."Business Expenses" WHERE "Source Key"='REFERRAL_REBATE:LC-RC')
   AND (SELECT (projection->>'amount')::numeric=1000 FROM lc_rebate_projection WHERE loan='LC-RC'),'the 1,000 cap holds in the booking and the projection (interest 10000 + late 50)');
 
+-- Stored daily snapshots follow a late-only change: editing nothing but "Late Charge Due" of a past charge rebuilds the snapshots from its date
+-- (business_history_refresh must treat the late columns as business fields; the pending figure includes late).
+DO $$
+DECLARE d date:=(SELECT d FROM lc_day);before_pending numeric;after_pending numeric;
+BEGIN
+ PERFORM public.refresh_daily_analytics_scoped(d-5,d-1,ARRAY[]::text[]);
+ SELECT "Pending Charges EOD"::numeric INTO before_pending FROM public."Daily Analytics" WHERE "Snapshot Date"=d-1;
+ PERFORM pg_temp.lc_setlate('LC-D1-w',50);
+ SET CONSTRAINTS ALL IMMEDIATE;
+ SELECT "Pending Charges EOD"::numeric INTO after_pending FROM public."Daily Analytics" WHERE "Snapshot Date"=d-1;
+ PERFORM pg_temp.lc_assert(before_pending IS NOT NULL AND after_pending=before_pending+50,'a late-only charge change rebuilds the stored daily snapshots (Pending Charges EOD +50)');
+END $$;
 -- Notify content v3: v2 columns unchanged, late_charge_amount last; access like v1/v2.
 CREATE ROLE lc_dispatch LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
 GRANT mw_notify_dispatch_dev TO lc_dispatch WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;

@@ -14,7 +14,10 @@
  * R110 remainder choices: the proposal holds no command yet (command null) and the card lists the choices
  * (purposeOptions: pay forward, repay principal per loan, split); nothing is preselected. At Confirm the Partner's purpose
  * is checked against the choices offered now, the server plan is read (POST .../plan) and the v10 command is built from
- * it, re-posted to .../review and sent once under the proposal's request id; the command recomputes it again in SQL. */
+ * it, re-posted to .../review and sent once under the proposal's request id; the command recomputes it again in SQL.
+ * R118: every command is schemaVersion 11 (8-key lines: inside a charge interest, then late charge, then principal), except a
+ * plan that books a next projected charge (nextChargeOf), which stays schemaVersion 9 (6-key lines; such a v11 command would
+ * be recomputed as a pay-forward plan): its lines pay principal and interest only. */
 import {canonicalCommand} from '../contracts/payment-command.mjs';
 import {ToolError} from './errors.mjs';
 
@@ -43,7 +46,10 @@ function idList(value,name){
  if(!Array.isArray(value)||value.length<1||value.length>100||value.some(v=>!ID(v))||new Set(value).size!==value.length)throw new ToolError(`INVALID_FIELD:${name}`);
  return [...value];
 }
-const line=row=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate});
+// R118: a charge's full remaining as an 8-key line (the late charge too; a projected charge has none).
+const line=row=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,lateCharge:row.lateChargeRemaining??'0',expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:row.lateChargeRemaining??'0',chargeDate:row.chargeDate});
+const sixKey=({lateCharge:_l,expectedLateChargeRemaining:_e,...row})=>row;
+const late=row=>BigInt(row.lateCharge??'0');
 
 /**
  * @param {{client:{get:Function,post:Function},borrowerId:string,values:Record<string,any>,requestId:string,purpose?:any}} input
@@ -81,7 +87,7 @@ export async function planPayment({client,borrowerId,values,requestId,purpose=nu
  if(!accounts.some(a=>a.id===cashAccountId))throw new ToolError('INVALID_FIELD:cashAccountId');
  let allocations,materialize=[],labels=new Map(due.charges.map(row=>[row.id,row]));
  if(!chargeIds.length&&!nextChargeOf.length){
-  const assigned=await call('POST',base+'/auto-assign',{amountReceived});
+  const assigned=await call('POST',base+'/auto-assign',{amountReceived,lineVersion:11});
   if(typeof assigned.unallocated!=='string'||!Array.isArray(assigned.allocations))throw new ToolError('COMMAND_UNAVAILABLE');
   if(assigned.unallocated!=='0'){
    // R112: the remainder choices (Auto-assign's R110 previews) or, without them, the refusal as before.
@@ -89,7 +95,7 @@ export async function planPayment({client,borrowerId,values,requestId,purpose=nu
    if(!options)throw new ToolError('AMOUNT_EXCEEDS_DUE');
    if(paymentDate!==due.businessDate)throw new ToolError('PAY_FORWARD_TODAY_ONLY');
    for(const row of assigned.charges??[])labels.set(row.id,row);
-   const dueSplit=assigned.allocations.map(row=>({chargeId:row.chargeId,loanDisplayKey:labels.get(row.chargeId)?.loanDisplayKey??null,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,projected:false}))
+   const dueSplit=assigned.allocations.map(row=>({chargeId:row.chargeId,loanDisplayKey:labels.get(row.chargeId)?.loanDisplayKey??null,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,lateCharge:row.lateCharge??'0',projected:false}))
     .sort((a,b)=>b.chargeDate.localeCompare(a.chargeDate)||a.chargeId.localeCompare(b.chargeId));
    const facts={borrowerLabel:due.borrower?.displayName??null,businessDate:due.businessDate,accountLabel:accounts.find(a=>a.id===cashAccountId)?.label??null};
    if(purpose===null)return {command:null,draft:{borrowerId,amountReceived,paymentDate,paymentMethod:values.paymentMethod,cashAccountId,notes},plan:{...facts,settlesAllDue:false,split:dueSplit,purposeOptions:options}};
@@ -116,23 +122,25 @@ export async function planPayment({client,borrowerId,values,requestId,purpose=nu
     materialize.push({loanId,chargeId:row.id,chargeDate:row.chargeDate,principalDue:row.principalRemaining,interestDue:row.interestRemaining});
    }
   }
+  // A next projected charge keeps the v9 command, whose lines pay principal and interest only.
+  if(materialize.length)allocations=allocations.map(sixKey).filter(row=>BigInt(row.principal)+BigInt(row.interest)>0n);
   // Only a sum of the lines the command service gave: the amount must pay them exactly.
-  const total=allocations.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest),0n);
+  const total=allocations.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest)+late(row),0n);
   if(total!==BigInt(amountReceived))throw new ToolError(`AMOUNT_MISMATCH:${total}`);
  }
  let command;
  try{
-  command=canonicalCommand({schemaVersion:materialize.length?9:8,requestId,borrowerId,allocations,cashAccountId,paymentDate,amountReceived,paymentMethod:values.paymentMethod,notes,receiptId:null,
-   bankReference:null,transferTime:null,payerLines:null,...(materialize.length?{materialize}:{})});
+  command=canonicalCommand({schemaVersion:materialize.length?9:11,requestId,borrowerId,allocations,cashAccountId,paymentDate,amountReceived,paymentMethod:values.paymentMethod,notes,receiptId:null,
+   bankReference:null,transferTime:null,payerLines:null,...(materialize.length?{materialize}:{materialize:[],principal:[]})});
  }catch{throw new ToolError('INVALID_COMMAND');}
  // The plan the command will carry, checked by the screen's review route now (and again by the command at confirm).
- const {status,data}=await client.post(base+'/review',{amountReceived,allocations:command.allocations,...(materialize.length?{materialize:command.materialize}:{})});
+ const {status,data}=await client.post(base+'/review',{amountReceived,allocations:command.allocations,materialize:command.materialize,...(command.schemaVersion===11?{principal:command.principal}:{})});
  if(status===409&&data?.code==='plan_changed')throw new ToolError('PLAN_CHANGED');
  if(status!==200)throw draftError(status,data);
  const paid=new Map(command.allocations.map(row=>[row.chargeId,row]));
- const settlesAllDue=due.charges.length>0&&due.charges.every(row=>{const p=paid.get(row.id);return p&&p.principal===row.principalRemaining&&p.interest===row.interestRemaining;});
+ const settlesAllDue=due.charges.length>0&&due.charges.every(row=>{const p=paid.get(row.id);return p&&p.principal===row.principalRemaining&&p.interest===row.interestRemaining&&(p.lateCharge??'0')===(row.lateChargeRemaining??'0');});
  return {command,plan:{borrowerLabel:due.borrower?.displayName??null,businessDate:due.businessDate,accountLabel:accounts.find(a=>a.id===cashAccountId)?.label??null,settlesAllDue,
-  split:command.allocations.map(row=>({chargeId:row.chargeId,loanDisplayKey:labels.get(row.chargeId)?.loanDisplayKey??null,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,projected:labels.get(row.chargeId)?.projected===true}))
+  split:command.allocations.map(row=>({chargeId:row.chargeId,loanDisplayKey:labels.get(row.chargeId)?.loanDisplayKey??null,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,lateCharge:row.lateCharge??'0',projected:labels.get(row.chargeId)?.projected===true}))
    .sort((a,b)=>b.chargeDate.localeCompare(a.chargeDate)||a.chargeId.localeCompare(b.chargeId))}};
 }
 
@@ -190,7 +198,7 @@ export function chosenPurpose(options,input){
  else if(!options.split||BigInt(line.amount)>=BigInt(option.amount))bad();
  return {forward:input.forward,principal:line?[{loanId:line.loanId,amount:line.amount}]:[],loans:null};
 }
-/** R112: the server's plan for the chosen purpose -> the v10 command (checked by .../review), as Receive payment builds it. */
+/** R112: the server's plan for the chosen purpose -> the v11 (R118; v10 before) command (checked by .../review), as Receive payment builds it. */
 async function payForward({call,base,requestId,borrowerId,amountReceived,paymentDate,paymentMethod,cashAccountId,notes,purpose,labels,facts}){
  const read=await call('POST',base+'/plan',{amountReceived,purpose});
  const plan=read?.plan;
@@ -202,12 +210,12 @@ async function payForward({call,base,requestId,borrowerId,amountReceived,payment
  const principal=plan.principal.map(e=>({loanId:e.loanId,kind:e.kind,chargeId:e.chargeId,chargeDate:e.chargeDate,amount:e.amount,accruedInterest:e.accruedInterest,principalDue:e.principalDue}));
  let command;
  try{
-  command=canonicalCommand({schemaVersion:10,requestId,borrowerId,allocations:plan.allocations,cashAccountId,paymentDate,amountReceived,paymentMethod,notes,receiptId:null,
+  command=canonicalCommand({schemaVersion:11,requestId,borrowerId,allocations:plan.allocations,cashAccountId,paymentDate,amountReceived,paymentMethod,notes,receiptId:null,
    bankReference:null,transferTime:null,payerLines:null,materialize:plan.materialize,principal});
  }catch{throw new ToolError('PLAN_CHANGED');}
  // .../review recomputes the whole plan for the purpose the command derives (409 plan_changed -> PLAN_CHANGED).
  await call('POST',base+'/review',{amountReceived,allocations:command.allocations,materialize:command.materialize,principal:command.principal});
  const projected=new Set(command.materialize.map(row=>row.chargeId));
- return {command,plan:{...facts,settlesAllDue:false,split:command.allocations.map(row=>({chargeId:row.chargeId,loanDisplayKey:labels.get(row.chargeId)?.loanDisplayKey??null,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,projected:projected.has(row.chargeId)||row.chargeDate>paymentDate}))
+ return {command,plan:{...facts,settlesAllDue:false,split:command.allocations.map(row=>({chargeId:row.chargeId,loanDisplayKey:labels.get(row.chargeId)?.loanDisplayKey??null,chargeDate:row.chargeDate,principal:row.principal,interest:row.interest,lateCharge:row.lateCharge??'0',projected:projected.has(row.chargeId)||row.chargeDate>paymentDate}))
   .sort((a,b)=>b.chargeDate.localeCompare(a.chargeDate)||a.chargeId.localeCompare(b.chargeId))}};
 }
