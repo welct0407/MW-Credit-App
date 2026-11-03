@@ -15,18 +15,30 @@ R118 adds a late charge as a third amount on a charge, paid after interest and b
 | --- | --- |
 | Agent `unittest` (Byte, `673d6ea`, clean tree) | 713 OK, 70 skipped |
 | `ruff check --no-cache integration-agent` (Byte, `673d6ea`) | Pass |
-| Pull request agent CI (`test`, `lab`) | Pending |
+| Pull request `Agent tests` (`changes`, `test`, `lab`), runs 41649243078 and 41649432921 on `f29679a`, 41664290089 on `c4dbc3a`, 41671674164 on `34d3aec` | Success |
 
 ## Not run
-To be filled when the checks run.
+Nothing further: no live Instagram slip was run through the new wording in PROD, so the "Interest X + Late charge Y" request text is covered by unit tests only.
 
 ## Recovery
-Before deployment: none needed. After deployment: `deploy-runtime.py rollback --commit <deployed>` restores the previous runtime. The SQL accepts agent versions 7 to 10, so the agent can roll back independently, except that R117 code cannot receive a charge with a late charge above 0.
+`deploy-runtime.py rollback` to the freeze below restores `9703a191`. The SQL accepts agent versions 7 to 10, so the agent can roll back independently, except that R117 code cannot receive a charge with a late charge above 0 (zero every late charge first).
 
 ## Open questions
 None.
 
 ## Remaining work
-- Deploy order: the agent's facts query reads `"Late Charge Remaining"`, so V132 must be applied before the agent commit is deployed (Chase's review; consistent with the SQL-first promotion order).
-- Open the pull request and test in DEV (next); the agent code is not deployed until the owner's promotion instruction.
-- Deploy to `vm-mw-credit-agent` on the owner's promotion instruction (`deploy-runtime.py` dry-run, freeze, install, activate), after V132 and the images; record the deploy here in the product note and the environment inventory.
+None for the agent. PROD acceptance (a real slip against a charge with a late charge) is recorded in the next closure or product pull request.
+
+## Deploy record
+Owner go: "Move to prod" (3 November 2026, about 16:25Z), after V132 and V133 (the agent's facts query reads `"Late Charge Remaining"`). VM `vm-mw-credit-agent`, 3 November 2026 (UTC), by `deploy-runtime.py`. The catalogue is unchanged (wording only, no revision bump). Pins are in the [environment inventory](../../project/Documents/Environment_Inventory.md).
+
+| Step | Evidence |
+| --- | --- |
+| Checkout | `update-from-github.sh` to `22712b0` |
+| Dry run | Schema through V11, no drift, 3 modules changed |
+| Freeze | 17:27:16Z, rollback directory `runtime-20261103T172716283524Z` (metadata sha256 `55c3c53e…b83b`) |
+| Install | No removed files, no unit changes |
+| Activate | 17:27:21Z to 17:27:25Z, probe `fdcc4529-…`; six timers resumed |
+| Readback | `/ready` true, `code_version` `22712b0`; `check` passes; no failed units; receipt cycles after activation with no failures |
+| Deviation | The deploy engine needed an `mw_agent` operator connection file that was absent on the VM (as in R113). A temporary root-only file was used and shredded afterwards |
+| Rollback | `deploy-runtime.py rollback` to the freeze above, which restores `9703a191` |

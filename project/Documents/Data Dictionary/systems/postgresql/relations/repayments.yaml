@@ -235,7 +235,7 @@
       "default_expression": null
       "collation": null
       "acl": null
-      "comment": "R118 (V132), DEV-pending: not yet captured from PROD; ordinal confirmed from V132 (Byte), ACL and default expression are refreshed from a PROD capture after promotion. Late-charge part of one repayment (interest, then late charge, then principal); default 0. Income on its payment date like Interest Paid, except in write-off pairs."
+      "comment": "R118 (V132), applied to DEV and PROD on 3 November 2026; pending PROD capture: ordinal confirmed from V132, ACL and default expression are refreshed from the next PROD capture. Late-charge part of one repayment (interest, then late charge, then principal); default 0. Income on its payment date like Interest Paid, except in write-off pairs."
   "constraints":
     "Repayments_Row ID_not_null":
       "schema": "public"
