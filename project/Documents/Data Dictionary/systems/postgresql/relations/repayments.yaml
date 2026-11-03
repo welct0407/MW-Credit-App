@@ -218,6 +218,24 @@
       "collation": "\"default\""
       "acl": null
       "comment": null
+    "Late Charge Paid":
+      "schema": "public"
+      "relation": "Repayments"
+      "name": "Late Charge Paid"
+      "ordinal": 11
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R118 (V132), DEV-pending: not yet captured from PROD; ordinal, ACL and default expression are refreshed from a PROD capture after promotion. Late-charge part of one repayment (interest, then late charge, then principal); default 0. Income on its payment date like Interest Paid, except in write-off pairs."
   "constraints":
     "Repayments_Row ID_not_null":
       "schema": "public"
