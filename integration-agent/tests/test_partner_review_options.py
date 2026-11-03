@@ -90,6 +90,29 @@ class OptionsReplyTests(unittest.TestCase):
         self.assertEqual(self.decide('4',sender_id='other'),'NOT_CORRELATED');self.assertEqual(self.row()['state'],'PENDING')
         self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'REVIEW_REQUESTED')
 
+    def test_four_rechecks_a_review_stale_only_because_the_charges_changed(self):
+        # 3 November 2026: the late fee made the open review STALE (a "Review" resend checked it first), then 4 arrived.
+        for reason in ('PROPOSAL_FACTS_CHANGED','PAY_FORWARD_PLAN_CHANGED'):
+            with self.subTest(reason=reason):
+                self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail=?",(reason,))
+                self.assertEqual(self.decide('4'),'RECHECK_QUEUED')
+                self.assertEqual(self.row()['state'],'SUPERSEDED')
+                self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'VALIDATED')
+
+    def test_other_stale_reasons_and_other_replies_stay_decided(self):
+        for reason in ('PAY_FORWARD_DAY_PASSED','RECEIVING_ACCOUNT_CHANGED','RECEIPT_DATE_TOO_OLD'):
+            with self.subTest(reason=reason):
+                self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail=?",(reason,))
+                self.assertEqual(self.decide('4'),'ALREADY_DECIDED');self.assertEqual(self.row()['state'],'STALE')
+                self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'REVIEW_REQUESTED')
+        self.setUp();self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PROPOSAL_FACTS_CHANGED'")
+        self.assertEqual(self.decide('1'),'ALREADY_DECIDED');self.assertEqual(self.row()['state'],'STALE')
+
+    def test_four_on_an_expired_stale_review_changes_nothing(self):
+        self.db.execute("UPDATE partner_reviews SET state='STALE',detail='PROPOSAL_FACTS_CHANGED'")
+        self.assertEqual(self.store.decide(dict(self.event,text='4'),self.notice,[self.p],self.identity,100000,reviewer_ids=['p']),'ALREADY_DECIDED')
+        self.assertEqual(self.row()['state'],'STALE')
+
     def test_the_request_offers_the_recheck(self):
         self.assertIn('4 recheck after editing charges in the app',request_text(PROPOSAL,'English')[1])
         self.assertIn('4 ตรวจใหม่หลังแก้ยอดในแอป',request_text(PROPOSAL,'ไทย')[1])
