@@ -29,7 +29,8 @@
 --  5. Views, reporting and push content: late charges count in gross profit, partner shares and every total the owner
 --     reads; "Late charges received" is appended last to the income statement, monthly, daily and events views as a memo
 --     line; the upcoming events view appends "Late Charge Remaining"; health counts a charge fully paid only when its late
---     charge is paid; refresh_daily_analytics_scoped and partner_net_profit include it; pwa_notify_content_v3 = v2 plus
+--     charge is paid; refresh_daily_analytics_scoped and partner_net_profit include it, and business_history_refresh and
+--     r051_parent_dirty watch the late columns; pwa_notify_content_v3 = v2 plus
 --     late_charge_amount (v1 and v2 stay for older dispatchers); pwa_notify_history_content_v2 = v1 plus "lateChargeAmount".
 -- Referral rebates stay interest only (create_referral_rebate, pwa_referral_rebate_projection_v1 untouched). No trigger is
 -- added, renamed or disabled. Grants: SELECT ("Ref Payment", "Late Charge Paid") ON "Repayments" to the notify owner; the
@@ -80,7 +81,8 @@ CREATE TEMP TABLE v132_routines ON COMMIT DROP AS
   'public.pwa_submit_selected_charges_v1(text)','public.pwa_submit_agent_receipt_v1(text)','public.pwa_agent_receipt_status_v1(uuid,text,text)',
   'public.pwa_effective_payment_plan_v2(text)','public.pwa_payment_correction_text_v2(jsonb)','public.loan_close_calculation_v83(text,date,text)',
   'public.pwa_apply_loan_close_v2(text)','public.pwa_pay_forward_plan_v1(text,numeric,date,jsonb)',
-  'public.refresh_daily_analytics_scoped(date,date,text[])','public.partner_net_profit(text)'
+  'public.refresh_daily_analytics_scoped(date,date,text[])','public.partner_net_profit(text)',
+  'public.business_history_refresh()','public.r051_parent_dirty()'
  ]) r(name) JOIN pg_proc p ON p.oid=r.name::regprocedure;
 
 -- Snapshot of every view this migration replaces: owner, ACL, options, comments and its column list before.
@@ -1357,7 +1359,10 @@ SELECT pg_temp.v132_patch('public.refresh_daily_analytics_scoped(date,date,text[
  $o$coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0) due,$o$,
  $n$coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0)+c."Late Charge Due"::numeric due,$n$,
  $o$SELECT c."Row ID",cp.d,coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0),cp.paid$o$,
- $n$SELECT c."Row ID",cp.d,coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0)+c."Late Charge Due"::numeric,cp.paid$n$]);
+ $n$SELECT c."Row ID",cp.d,coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0)+c."Late Charge Due"::numeric,cp.paid$n$,
+ -- The short-range branch (fewer than 3 days, the business-history flush) reads the charges directly.
+ $o$SELECT coalesce(sum(greatest(coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0)-coalesce(cp.paid,0),0)),0)$o$,
+ $n$SELECT coalesce(sum(greatest(coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0)+c."Late Charge Due"::numeric-coalesce(cp.paid,0),0)),0)$n$]);
 
 SELECT pg_temp.v132_patch('public.partner_net_profit(text)',ARRAY[
  $o$SELECT coalesce(sum(round(r."Interest Paid"::numeric*CASE$o$,
@@ -1480,6 +1485,19 @@ BEGIN
   RAISE EXCEPTION 'V132: pwa_notify_history_content_v2 must be the notify owner''s pinned definer executable only by %',api; END IF;
 END $history$;
 
+-- 5q. Change detection (Chase): a late-charge-only change must rebuild the daily snapshots ("Pending Charges EOD") and
+-- queue the parent refreshes like an interest change. business_history_refresh watches "Late Charge Due" (Charges) and
+-- "Late Charge Paid" (Repayments); r051_parent_dirty watches "Late Charge Paid" (Repayments). Its Payment Allocations list
+-- already watches "Allocated Amount", which includes the late charge.
+SELECT pg_temp.v132_patch('public.business_history_refresh()',ARRAY[
+ $o$  WHEN 'Charges' THEN ARRAY['Charge Date','Principal Due','Interest Due','Ref Loans']$o$,
+ $n$  WHEN 'Charges' THEN ARRAY['Charge Date','Principal Due','Interest Due','Ref Loans','Late Charge Due'] -- R118$n$,
+ $o$  WHEN 'Repayments' THEN ARRAY['Payment Date','Principal Paid','Interest Paid','Ref Loans','Ref Charges']$o$,
+ $n$  WHEN 'Repayments' THEN ARRAY['Payment Date','Principal Paid','Interest Paid','Ref Loans','Ref Charges','Late Charge Paid']$n$]);
+SELECT pg_temp.v132_patch('public.r051_parent_dirty()',ARRAY[
+ $o$ WHEN 'Repayments' THEN ARRAY['Ref Loans','Ref Charges','Ref Payment','Principal Paid','Interest Paid','Payment Date']$o$,
+ $n$ WHEN 'Repayments' THEN ARRAY['Ref Loans','Ref Charges','Ref Payment','Principal Paid','Interest Paid','Payment Date','Late Charge Paid'] -- R118$n$]);
+
 -- The two dropped and created readers get their previous ACL and comment back (a postgres-created function also carries
 -- PROD's default-privilege EXECUTE for mw_integration_agent, which is revoked unless it was there before).
 DO $acl$
@@ -1517,7 +1535,8 @@ BEGIN
    'public.pwa_apply_payment_v2(text)','public.create_referral_rebate(text)','public.pwa_referral_rebate_projection_v1(text,jsonb)',
    'public.pwa_submit_selected_charges_v1(text)','public.pwa_submit_agent_receipt_v1(text)','public.pwa_agent_receipt_status_v1(uuid,text,text)',
    'public.pwa_payment_correction_text_v2(jsonb)','public.loan_close_calculation_v83(text,date,text)','public.pwa_apply_loan_close_v2(text)',
-   'public.pwa_pay_forward_plan_v1(text,numeric,date,jsonb)','public.refresh_daily_analytics_scoped(date,date,text[])','public.partner_net_profit(text)']) r
+   'public.pwa_pay_forward_plan_v1(text,numeric,date,jsonb)','public.refresh_daily_analytics_scoped(date,date,text[])','public.partner_net_profit(text)',
+   'public.business_history_refresh()','public.r051_parent_dirty()']) r
   WHERE position('R118' IN pg_get_functiondef(r::regprocedure))=0;
  IF bad IS NOT NULL THEN RAISE EXCEPTION 'V132: not patched: %',bad; END IF;
  IF position($s$'11'::jsonb$s$ IN pg_get_functiondef('public.pwa_submit_selected_charges_v1(text)'::regprocedure))=0

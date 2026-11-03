@@ -221,12 +221,12 @@ DECLARE o jsonb:=CASE WHEN TG_OP='INSERT' THEN '{}'::jsonb ELSE to_jsonb(OLD) EN
 BEGIN
  fields:=CASE TG_TABLE_NAME
   WHEN 'Loans' THEN ARRAY['Loan Date','Principal Amount','Loan Status','Close Date','Defaulted','Ref Borrowers']
-  WHEN 'Charges' THEN ARRAY['Charge Date','Principal Due','Interest Due','Ref Loans']
+  WHEN 'Charges' THEN ARRAY['Charge Date','Principal Due','Interest Due','Ref Loans','Late Charge Due'] -- R118
   WHEN 'Business Expenses' THEN ARRAY['Expense Date','Amount','Partner A Expense','Partner B Expense']
   WHEN 'Cash Ledger' THEN ARRAY['Movement Date','Amount','Movement Type','Ref From Cash Holder','Ref To Cash Holder','Ref From Cash Account','Ref To Cash Account']
   WHEN 'Cash Pool Contributions' THEN ARRAY['Contribution Date','Amount','Transaction Type','Ref Partner']
   WHEN 'Settlements' THEN ARRAY['Transfer Date','Amount','Status','Ref Partner']
-  WHEN 'Repayments' THEN ARRAY['Payment Date','Principal Paid','Interest Paid','Ref Loans','Ref Charges']
+  WHEN 'Repayments' THEN ARRAY['Payment Date','Principal Paid','Interest Paid','Ref Loans','Ref Charges','Late Charge Paid']
   WHEN 'Partners' THEN ARRAY['Partner Role'] END;
  IF TG_OP='UPDATE' AND NOT EXISTS(SELECT 1 FROM unnest(fields) k WHERE o->k IS DISTINCT FROM n->k) THEN RETURN NULL; END IF;
  d:=least((o->>date_column)::date,(n->>date_column)::date);
@@ -6920,7 +6920,7 @@ DECLARE o jsonb:=CASE WHEN TG_OP='INSERT' THEN '{}'::jsonb ELSE to_jsonb(OLD) EN
 BEGIN
  fields:=CASE TG_TABLE_NAME
  WHEN 'Loans' THEN ARRAY['Ref Borrowers','Principal Amount','Loan Status','Auto Charge Enabled','Loan Type','Loan Date','Due Date','Current Daily Interest','Daily Payment Amount']
- WHEN 'Repayments' THEN ARRAY['Ref Loans','Ref Charges','Ref Payment','Principal Paid','Interest Paid','Payment Date']
+ WHEN 'Repayments' THEN ARRAY['Ref Loans','Ref Charges','Ref Payment','Principal Paid','Interest Paid','Payment Date','Late Charge Paid'] -- R118
  ELSE ARRAY['Ref Payment','Allocated Amount'] END;
  IF TG_OP='UPDATE' AND NOT EXISTS(SELECT 1 FROM unnest(fields) k WHERE o->k IS DISTINCT FROM n->k) THEN RETURN NULL; END IF;
  IF TG_TABLE_NAME='Repayments' THEN
@@ -7394,7 +7394,7 @@ BEGIN
    CROSS JOIN LATERAL (
     SELECT coalesce(sum(delta),0) pending FROM pending_days WHERE d<=dates.d HAVING p_to-p_from>=3
     UNION ALL
-    SELECT coalesce(sum(greatest(coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0)-coalesce(cp.paid,0),0)),0)
+    SELECT coalesce(sum(greatest(coalesce(c."Principal Due"::numeric,0)+coalesce(c."Interest Due"::numeric,0)+c."Late Charge Due"::numeric-coalesce(cp.paid,0),0)),0)
     FROM public."Charges" c LEFT JOIN (SELECT charge,sum(paid) paid FROM charge_payments WHERE d<=dates.d GROUP BY charge) cp
      ON cp.charge=c."Row ID" WHERE c."Charge Date"<=dates.d HAVING p_to-p_from<3
    ) c
