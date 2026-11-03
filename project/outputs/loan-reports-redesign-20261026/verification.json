@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-30T10:21:32.887Z",
+  "at": "2026-11-03T06:15:22.683Z",
   "passed": true,
   "checks": [
     {
@@ -8,11 +8,11 @@
       "detail": {
         "want": {
           "tabs": 12,
-          "placements": 227,
+          "placements": 228,
           "parameters": 22
         },
         "tabs": 12,
-        "placements": 227,
+        "placements": 228,
         "parameters": 22,
         "parameterIdsMatch": true,
         "unmatched": 0,
@@ -39,7 +39,7 @@
       "name": "execution",
       "passed": true,
       "detail": {
-        "dashcards": 182,
+        "dashcards": 183,
         "errors": 0,
         "failed": []
       }
@@ -96,21 +96,28 @@
       }
     },
     {
+      "name": "income.writeoffs",
+      "passed": true,
+      "detail": {
+        "equalsMinusDashboard3WriteOffs": true
+      }
+    },
+    {
       "name": "income.vs-previous",
       "passed": true,
       "detail": {
-        "thisEquals168to171": true,
+        "thisEquals168to171AndWriteOffs": true,
         "previousEqualsPrecedingRange": true,
-        "days": 30
+        "days": 3
       }
     },
     {
       "name": "income.monthly",
       "passed": true,
       "detail": {
-        "months": 3,
+        "months": 4,
         "equalsModel186MonthSums": true,
-        "question213Rows": 29
+        "question213Rows": 2
       }
     },
     {
@@ -120,7 +127,7 @@
         "cases": [
           {
             "period": "thismonth",
-            "rows": 6,
+            "rows": 4,
             "equal": true,
             "sortedByMovement": true
           },
@@ -132,7 +139,7 @@
           },
           {
             "period": "previous range",
-            "rows": 7,
+            "rows": 6,
             "equal": true,
             "sortedByMovement": true
           }
@@ -266,35 +273,35 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 1,
+            "rows": 10,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-partial",
-            "rows": 1,
+            "rows": 0,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-overdue",
-            "rows": 4,
+            "rows": 6,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-long-overdue",
-            "rows": 12,
+            "rows": 10,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
           },
           {
             "key": "collection.lane-paid",
-            "rows": 7,
+            "rows": 1,
             "sameRowsAsOrigin": true,
             "sortedBy": "Receipts Today",
             "sorted": true
@@ -323,7 +330,7 @@
       "name": "dashboard 3 preserved",
       "passed": true,
       "detail": {
-        "dashcards": 274,
+        "dashcards": 275,
         "tabs": 12,
         "parameters": 28
       }
