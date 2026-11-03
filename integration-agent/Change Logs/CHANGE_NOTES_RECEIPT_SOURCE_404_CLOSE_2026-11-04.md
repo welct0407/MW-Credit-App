@@ -21,14 +21,23 @@ Clear the Grafana `receipts` Degraded alert, which had been firing since 14:21 B
 | Guarded update | 1 row, now `SOURCE_UNAVAILABLE` |
 | Post-check, Cloud Monitoring at 17:37:40 UTC | `status=1`, `stalled_jobs=0` |
 | Post-check, host read | Job ended with `detail=RECEIPT_ARCHIVE_UNAVAILABLE` and its URL cleared (now `REJECTED`); the `receipt-held` notice was accepted on Instagram |
-| Byte fast checks | pending |
-| Chase review | pending |
+| Byte: `python -m unittest tests.test_receipts tests.test_receipt_archive tests.test_review_cycle tests.test_hold_reply` (from `integration-agent/`, `PYTHONPATH=src`) | 134 OK, on 2cb3d36 plus the uncommitted diff later committed as 168fa81 |
+| Byte: `python -m unittest discover -s tests` | 719 OK, 70 skipped (existing PostgreSQL-lab and renderer skips) |
+| Byte: `ruff check integration-agent` | Clean |
+| Byte: the new tests against the old source | 3 fail before the change, all pass after |
+| Chase: adversarial review of 168fa81 against Archie's test plan, plus a scratch test (redirect hop that ends in 404; 410 carrying a body) | Pass, no blocking defects |
 
 ## Not run
 The manual close needed no tests. Code checks are in the Checks table.
 
 ## Recovery
 Manual close: none needed. The job reached the state the code would have reached on its own. If the borrower resends the image, the new message creates a new job.
+
+Code change: revert the commits on this branch, or remove the `RECEIPT_SOURCE_GONE` clause in `Archive.capture`. Gone images then return to the 12-attempt limit. No schema or data change to undo.
+
+Chase's review notes, both accepted as is:
+- After an earlier GONE, a due `receipt_prepare` run on an operator-supplied URL that also answers 404 closes the asset after that single attempt. The 12-attempt path behaves the same way.
+- The spool and hash guards in the new clause are defensive. They cannot be reached, because a hashed asset without a spool raises `RECEIPT_SPOOL_MISSING` before any download.
 
 ## Open questions
 Should HTTP 403 also count as gone? It stays retryable for now.
