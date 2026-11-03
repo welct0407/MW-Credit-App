@@ -14,7 +14,7 @@ import {CompactPager} from './CompactPager';
 import {borrowerCount,moreBorrowers} from './borrower-count';
 import {PaymentHistory} from './PaymentHistory';
 import {SelectedCharges,type CommandAccess} from './SelectedCharges';
-import {LateChargeStepper,LATE_STEP,lateAtFloor,lateNote,useLateChargeShortcut} from './LateChargeStepper';
+import {LateChargeStepper,LateChargeSaving,LATE_STEP,lateAtFloor,lateNote,useLateChargeShortcut} from './LateChargeStepper';
 import {useOnline} from './online-status';
 import {wholeText} from './whole-number-input';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
@@ -229,8 +229,8 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   useContextRefresh(!!selected&&!paymentOpen&&!receiptRecord&&!selectedCharge&&!loanOpen&&!borrowerOpen,upcomingDetail?t('First upcoming details page / refresh','หน้าแรกของรายละเอียดล่วงหน้า / รีเฟรช'):t('First charges page / refresh','หน้าแรกยอดเรียกเก็บ / รีเฟรช'),()=>{if(upcomingDetail)void openUpcoming(upcomingDetail.dueDate,undefined,1,true);else if(selected)void loadCharges(selected)});
   // R118: the shortcut shows where Receive does, online only (LC-COL-2, LC-COL-4).
   const lateShortcut=!!commandAccess&&!!selected&&(!!commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===selected.id)&&online&&!commandAccess.offlineOnly;
-  const lateLine=(charge:Charge)=>{const due=wholeText(charge.lateChargeDue??'0')??'0',paid=latePaidOf(charge),context=charge.loanDisplayKey+' '+date(charge.chargeDate),fetching=late.busy===charge.id||!!late.held[charge.id],locked=busy||!!late.busy||!!late.held[charge.id];
-    return <div className="charge-late-line" aria-busy={fetching||undefined}>{due==='0'?<button type="button" className="secondary-button" disabled={locked} aria-label={t('Increase late charge by '+LATE_STEP+' for ','เพิ่มค่าปรับล่าช้า '+LATE_STEP+' สำหรับ ')+context} onClick={()=>void stepLateCharge(charge,LATE_STEP)}>{t('+'+LATE_STEP+' Late charge','+'+LATE_STEP+' ค่าปรับล่าช้า')}</button>
+  const lateLine=(charge:Charge)=>{const due=wholeText(charge.lateChargeDue??'0')??'0',paid=latePaidOf(charge),context=charge.loanDisplayKey+' '+date(charge.chargeDate),saving=late.pending[charge.id],fetching=saving!==undefined||!!late.held[charge.id],locked=busy||!!late.busy||!!late.held[charge.id];
+    return <div className={'charge-late-line'+(fetching?' late-charge-busy':'')} aria-busy={fetching||undefined}>{saving!==undefined&&<LateChargeSaving figure={saving} thai={thai}/>}{due==='0'?<button type="button" className="secondary-button" disabled={locked} aria-label={t('Increase late charge by '+LATE_STEP+' for ','เพิ่มค่าปรับล่าช้า '+LATE_STEP+' สำหรับ ')+context} onClick={()=>void stepLateCharge(charge,LATE_STEP)}>{t('+'+LATE_STEP+' Late charge','+'+LATE_STEP+' ค่าปรับล่าช้า')}</button>
       :<LateChargeStepper value={due} floor={paid} thai={thai} context={context} disabled={locked} describedBy={lateAtFloor(due,paid)?'charge-late-note-'+charge.id:undefined} onChange={next=>void stepLateCharge(charge,BigInt(next)>BigInt(due)?LATE_STEP:-LATE_STEP)}/>}
       {lateNotice?.id===charge.id&&!!lateNotice.text&&<small role="status">{lateNotice.text}</small>}</div>;};
   const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} access={commandAccess} borrowerId={selected?.id} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { cancel(); revision.current++; setBusy(false); setUpdateState('idle'); restoreDetailScroll.current = true; setUpcomingError(null); setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onPrevious={upcomingPage>1&&upcomingDetail?()=>void openUpcoming(upcomingDetail.dueDate,upcomingCursors.current[upcomingPage-2],upcomingPage-1,true):undefined} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
@@ -238,10 +238,12 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   // place, the list keeping its scroll position (LC-COL-R2-1) through the refresh that briefly shortens it.
   async function stepLateCharge(charge:Charge,step:number){
     setLateNotice(null);
-    const outcome=await late.step(charge.id,step,selected?.displayName??'');
-    // R118 (Echo LC-COL-R2-3): the live record leaves nothing to change (what was paid is the floor): say so on the row.
-    if(outcome.result==='unchanged')setLateNotice({id:charge.id,text:lateNote(outcome.before,outcome.paid,thai)||lateNote(outcome.paid,outcome.paid,thai)});
-    if(['applied','unchanged','refused'].includes(outcome.result)){savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;reapplyAfterReload.current=true;void chargeChanged();}
+    await late.step(charge.id,step,selected?.displayName??'',{due:wholeText(charge.lateChargeDue??'0')??'0',paid:latePaidOf(charge),then:async outcome=>{
+     // R118 (Echo LC-COL-R2-3): the live record leaves nothing to change (what was paid is the floor): say so on the row.
+     if(outcome.result==='unchanged')setLateNotice({id:charge.id,text:lateNote(outcome.before,outcome.paid,thai)||lateNote(outcome.paid,outcome.paid,thai)});
+     // The row refreshes in place (the buttons stay disabled until it is back); the list keeps its scroll position.
+     if(['applied','unchanged','refused'].includes(outcome.result)){savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;reapplyAfterReload.current=true;await chargeChanged();}
+    }});
   }
   if(loanOpen&&commandAccess)return <LoanRecord access={commandAccess} id={loanOpen} thai={thai} onBack={()=>setLoanOpen(null)}/>;
   if(borrowerOpen&&selected&&commandAccess)return <SharedBorrowerDetail access={commandAccess} id={selected.id} label={selected.displayName} thai={thai} onBack={()=>setBorrowerOpen(false)}/>;
