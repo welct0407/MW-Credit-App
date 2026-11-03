@@ -196,7 +196,7 @@ test('R113: Repay principal that settles loans is one choice with its per-loan r
 test('R118: a late charge: Auto-assign pays interest, then the late charge, then principal; named charges pay the late part too; a next projected charge stays v9',async()=>{
  const lateDue=[charge('C2','2026-10-29','0','100'),charge('C1','2026-10-28','500','100','Somchai-฿10,000-01/10-1%','50')];
  const calls=[];
- const client={get:async path=>(calls.push(['GET',path]),{status:200,data:{...draft,charges:lateDue,scope:'all',upcoming}}),post:async(path,body)=>{
+ const client={get:async path=>{calls.push(['GET',path]);return {status:200,data:{...draft,charges:lateDue,scope:'all',upcoming}};},post:async(path,body)=>{
   calls.push(['POST',path,body]);
   if(path.endsWith('/select-all'))return {status:200,data:{...draft,charges:lateDue,total:'750'}};
   if(path.endsWith('/auto-assign'))return {status:200,data:{...autoAssign(body.amountReceived,body.lineVersion===11,lateDue),charges:lateDue}};

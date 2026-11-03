@@ -1,5 +1,5 @@
 /** R110/R111 pay-forward copy shared by Receive payment and Loan Close (Echo RP-6, LC-1). Presentation only. */
-export type ForwardRow={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string;principal:string;interest:string;partial:boolean};
+export type ForwardRow={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string;principal:string;interest:string;lateCharge?:string;partial:boolean};
 export const thaiMonthsShort=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],monthsShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 /** R110 copy dates: "3 Nov" / "3 พ.ย."; a run "2–3 Nov", or "30 Oct – 2 Nov" across months. */
 export const shortDate=(day:string|undefined,thai:boolean)=>typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)?Number(day.slice(8,10))+' '+(thai?thaiMonthsShort:monthsShort)[Number(day.slice(5,7))-1]:'—';

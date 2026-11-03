@@ -125,7 +125,7 @@ export async function planPayment({client,borrowerId,values,requestId,purpose=nu
   // A next projected charge keeps the v9 command, whose lines pay principal and interest only.
   if(materialize.length)allocations=allocations.map(sixKey).filter(row=>BigInt(row.principal)+BigInt(row.interest)>0n);
   // Only a sum of the lines the command service gave: the amount must pay them exactly.
-  const total=allocations.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest)+late(row),0n);
+  let total=0n;for(const row of allocations)total+=BigInt(row.principal)+BigInt(row.interest)+late(row);
   if(total!==BigInt(amountReceived))throw new ToolError(`AMOUNT_MISMATCH:${total}`);
  }
  let command;

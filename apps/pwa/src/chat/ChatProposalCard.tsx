@@ -67,7 +67,7 @@ function ChosenRows({options,choice,thai}:{options:PurposeOptions;choice:Purpose
  const t=(en:string,th:string)=>thai?th:en;
  if(choice.kind==='forward'&&options.forward)return <ul className="chat-proposal-chosen">{forwardRuns(options.forward.rows).map(run=><li key={run[0].chargeId}>
   <span>{t('Pay forward','ชำระล่วงหน้า')} · <span className="chat-nowrap">{dateRange(run[0].chargeDate,run.at(-1)!.chargeDate,thai)}</span>{run.length>1?' · '+run.length+' × '+money(runAmount(run[0])):''}{run[0].partial&&<small className="chat-proposal-badge">{t('Partial','ชำระบางส่วน')}</small>}</span>
-  <span className="chat-nowrap">{money(run.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest),0n).toString())}</span></li>)}</ul>;
+  <span className="chat-nowrap">{money(run.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest)+BigInt(row.lateCharge??'0'),0n).toString())}</span></li>)}</ul>;
  const option=choice.kind!=='forward'?options.principal.find(row=>row.loanId===choice.loanId):undefined;
  if(!option)return null;
  // R113 (Echo CH-6): Repay principal that settles loans: one "Closes <key> · payoff ฿X" line per loan, as on the form.
@@ -82,7 +82,8 @@ function LineBody({line,thai}:{line:ChatProposal;thai:boolean}){
  const changed=new Set(card.changes.map(field=>field.field));
  const unchanged=card.changes.length?card.values.filter(field=>!changed.has(field.field)):[];
  const fields=card.changes.length?card.changes:card.values;
- const total=card.split?.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest),0n);
+ // R118 (Echo LC-READ-2): the total counts the late charge too.
+ const total=card.split?.reduce((sum,row)=>sum+BigInt(row.principal)+BigInt(row.interest)+BigInt(row.lateCharge??'0'),0n);
  return <>
   {fields.length>0&&<dl className="chat-proposal-fields">{fields.map(field=><div key={field.field} className={card.changes.length?'chat-proposal-change':undefined}>
    <dt>{pair([field.label.en,field.label.th],thai)}</dt>
@@ -92,7 +93,7 @@ function LineBody({line,thai}:{line:ChatProposal;thai:boolean}){
   {unchanged.length>0&&<details className="chat-proposal-unchanged"><summary>{unchangedText(unchanged.length,thai)}</summary><p>{unchanged.map(field=>pair([field.label.en,field.label.th],thai)).join(', ')}</p></details>}
   {card.split&&card.split.length>0&&<div className="chat-proposal-split"><h4>{t('Allocation','การจัดสรร')}{total!==undefined?' · '+money(String(total)):''}</h4><ul>{card.split.map(row=><li key={row.chargeId}>
    <span>{row.loanDisplayKey??t('Loan','สินเชื่อ')} · <span className="chat-nowrap">{displayDateWithYear(row.chargeDate,thai)}</span>{row.projected?' · '+t('next charge','รายการถัดไป'):''}</span>
-   <span>{t('Principal','เงินต้น')} <span className="chat-nowrap">{money(row.principal)}</span> · {t('Interest','ดอกเบี้ย')} <span className="chat-nowrap">{money(row.interest)}</span></span>
+   <span>{t('Principal','เงินต้น')} <span className="chat-nowrap">{money(row.principal)}</span> · {t('Interest','ดอกเบี้ย')} <span className="chat-nowrap">{money(row.interest)}</span>{(row.lateCharge??'0')!=='0'&&<> · {t('Late charge','ค่าปรับล่าช้า')} <span className="chat-nowrap">{money(row.lateCharge as string)}</span></>}</span>
   </li>)}</ul></div>}
   {card.consequences.filter(item=>item.code!=='destructive').map(item=><p key={item.code} className="chat-proposal-consequence">{consequenceText(item,thai,item.amount?money(item.amount):undefined)}</p>)}
  </>;
