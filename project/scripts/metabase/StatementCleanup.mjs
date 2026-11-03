@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource,privateDir,root,read,write} from './ReportingApi.mjs';
-import {WRITE_OFF_BRIDGE_NAME,WRITE_OFF_BRIDGE_SQL,WRITE_OFF_BRIDGE_TITLE,WRITE_OFF_SCALAR_NAME,WRITE_OFF_SCALAR_SQL,WRITE_OFF_NOTE,incomeRow} from './WriteOffSegregation.mjs';
+import {WRITE_OFF_BRIDGE_NAME,WRITE_OFF_BRIDGE_SQL,WRITE_OFF_BRIDGE_TITLE,WRITE_OFF_SCALAR_NAME,WRITE_OFF_SCALAR_SQL,WRITE_OFF_NOTE,incomeRow,writeOffRow} from './WriteOffSegregation.mjs';
 export const backup=privateDir+'/statement-cleanup-before';
 export const prior=n=>JSON.parse(fs.readFileSync(`${backup}/${n}.json`));
 const fmt=names=>({column_settings:Object.fromEntries(names.map(n=>[JSON.stringify(['name',n]),{number_style:'decimal',decimals:0,number_separators:'.,',compact:false}]))});
@@ -54,10 +54,11 @@ export function layout(d,state){
  const out=[];let next=-1;
  const note=(tab,row,text,h=2)=>out.push({id:next--,card_id:null,dashboard_tab_id:tab,col:0,row,size_x:24,size_y:h,series:[],parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:h===1?'heading':'text',visualization_settings:{text}}}});
  const place=(tab,id,col,row,w,h,title)=>out.push({id:d.dashcards.find(c=>c.dashboard_tab_id===tab&&c.card_id===id)?.id??next--,card_id:id,dashboard_tab_id:tab,col,row,size_x:w,size_y:h,series:[],parameter_mappings:[{parameter_id:tab===16?'review-income':'review-flow',card_id:id,target:['dimension',['template-tag',tab===16?'statement_period':'cashflow_period']]},...(tab===15?[{parameter_id:'review-account',card_id:id,target:['variable',['template-tag','cash_account']]}]:[])],visualization_settings:{'card.title':title}});
- // R116: with the write-off question (state.cards.writeoffs) the row is Income, Expenses, Principal write-offs, Net profit.
+ // R116: with the write-off question (state.cards.writeoffs) the row is the one Refine-WriteOffSegregation.mjs places on the
+ // live layout: Income, Expenses, Principal write-offs, Net profit, Average daily net profit (5/5/5/5/4, row 3).
  note(16,0,'Income statement · live on refresh',1);note(16,1,state.cards.writeoffs?WRITE_OFF_NOTE:'Net profit = interest − expenses. Amounts in baht.');
- incomeRow(state.cards.writeoffs).forEach(([id,t,col,w])=>place(16,id,col,3,w,3,t));
- place(16,184,0,6,16,6,'Period & freshness');place(16,171,16,6,8,3,'Average daily net profit');
+ (state.cards.writeoffs?writeOffRow(state.cards.writeoffs):incomeRow(null)).forEach(([id,t,col,w])=>place(16,id,col,3,w,3,t));
+ place(16,184,0,6,16,6,'Period & freshness');if(!state.cards.writeoffs)place(16,171,16,6,8,3,'Average daily net profit');
  note(16,12,'Average uses calendar days. Live figures include later corrections.');
  place(16,204,0,14,24,6,state.cards.writeoffs?WRITE_OFF_BRIDGE_TITLE:'Income − expenses = net profit');place(16,178,0,20,24,6,'Expenses by category');
  place(16,state.cards['expense-detail'],0,26,24,7,'Expense detail · live');
