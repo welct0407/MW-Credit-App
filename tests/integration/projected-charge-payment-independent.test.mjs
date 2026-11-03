@@ -106,7 +106,8 @@ test('V113: after a deleted early payment Loan Close bills only the days up to t
  const preview=await store.loanClosePreview(principal,'R101-D4');assert.equal(preview.status,200,JSON.stringify(preview));
  assert.equal(preview.amount,'1030','principal plus the three days up to today, not the booked charge in full');
  assert.deepEqual([preview.principalAmount,preview.interestAmount],['1000.00','30.00']);
- assert.deepEqual(preview.plan.allocations.find(line=>line.chargeId===f1),{chargeId:f1,principal:'0',interest:'30',expectedPrincipalRemaining:'0',expectedInterestRemaining:'30',chargeDate:next});
+ // R118 (V132): Loan Close lines are 8-key (the late charge and its expected remaining, 0 here).
+ assert.deepEqual(preview.plan.allocations.find(line=>line.chargeId===f1),{chargeId:f1,principal:'0',interest:'30',lateCharge:'0',expectedPrincipalRemaining:'0',expectedInterestRemaining:'30',expectedLateChargeRemaining:'0',chargeDate:next});
  const client=await app.connect();try{
   await client.query('BEGIN');
   const value=(await client.query('SELECT public.loan_close_calculation_v83($1,$2) AS value',['R101-D4',today])).rows[0].value;

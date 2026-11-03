@@ -1,25 +1,27 @@
 import {projectCollectionCharge} from '../api/collection-read-contract.mjs';
+import {lateChargeSchema,lateSql} from '../lib/late-charge-schema.mjs';
 import {borrowerDisplayName} from '../api/loan-read-contract.mjs';
 export async function readPaymentDraft(client,fixture) {
+ const L=await lateChargeSchema(client);
  const clock=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day, CURRENT_TIMESTAMP AS instant")).rows[0];
  const borrower=(await client.query('SELECT "Borrower Name" AS name,"Description" AS description,"Ref Preferred Receiving Cash Account" AS preferred_account FROM public."Borrowers" WHERE "Row ID"=$1',[fixture.borrowerId])).rows[0];
  if(!borrower)throw Error('Draft unavailable');
  const rows=(await client.query(`SELECT c."Row ID" AS id,l."Row ID" AS loan_id,c."Charge Date"::text AS charge_date,
  c."Payment Status" AS payment_status,c."Payment Date"::text AS payment_date,c."Amount Remaining"::text AS amount_remaining,
  c."Total Paid"::text AS total_paid,NULL::text AS received_today,
- (c."Principal Due"::numeric-paid.p)::text AS principal_remaining,(c."Interest Due"::numeric-paid.i)::text AS interest_remaining,paid.invalid AS invalid_components,b."Borrower Name" AS borrower_name,b."Description" AS borrower_description,
+ (c."Principal Due"::numeric-paid.p)::text AS principal_remaining,(c."Interest Due"::numeric-paid.i)::text AS interest_remaining,(${lateSql(L,'c."Late Charge Due"::numeric-paid.l')})::text AS late_charge_remaining,paid.invalid AS invalid_components,b."Borrower Name" AS borrower_name,b."Description" AS borrower_description,
  l."Principal Amount"::numeric::text AS principal_amount,l."Loan Date"::text AS loan_date,l."Original Daily Interest Rate"::text AS original_rate
  FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers"
- CROSS JOIN LATERAL (SELECT coalesce(sum("Principal Paid"::numeric),0) p,coalesce(sum("Interest Paid"::numeric),0) i,count(*) FILTER(WHERE "Principal Paid" IS NULL OR "Interest Paid" IS NULL) invalid FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") paid
+ CROSS JOIN LATERAL (SELECT coalesce(sum("Principal Paid"::numeric),0) p,coalesce(sum("Interest Paid"::numeric),0) i,${lateSql(L,'coalesce(sum("Late Charge Paid"::numeric),0)','0')} l,count(*) FILTER(WHERE "Principal Paid" IS NULL OR "Interest Paid" IS NULL) invalid FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") paid
  WHERE b."Row ID"=$1 AND c."Row ID"=ANY($2::text[]) ORDER BY c."Charge Date" DESC,c."Row ID" COLLATE "C" DESC`,[fixture.borrowerId,fixture.chargeIds])).rows;
  if(rows.length!==fixture.chargeIds.length)throw Error('Draft unavailable');
  const charges=[];
  for(const row of rows){
   const projected=projectCollectionCharge(row);
-  if(Number(row.invalid_components)>0||![row.principal_remaining,row.interest_remaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');
+  if(Number(row.invalid_components)>0||![row.principal_remaining,row.interest_remaining,row.late_charge_remaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');
   if(!/^-?\d+(?:\.0+)?$/.test(row.amount_remaining??''))throw Error('Draft unavailable');
   const amount=BigInt(row.amount_remaining.split('.')[0]);
-  if(projected.chargeDate<=clock.day && projected.paymentStatus!=='ชำระแล้ว' && amount>0n)charges.push({id:row.id,chargeDate:projected.chargeDate,loanDisplayKey:projected.loanDisplayKey,amountRemaining:amount.toString(),principalRemaining:BigInt(row.principal_remaining.split('.')[0]).toString(),interestRemaining:BigInt(row.interest_remaining.split('.')[0]).toString()});
+  if(projected.chargeDate<=clock.day && projected.paymentStatus!=='ชำระแล้ว' && amount>0n)charges.push({id:row.id,chargeDate:projected.chargeDate,loanDisplayKey:projected.loanDisplayKey,amountRemaining:amount.toString(),principalRemaining:BigInt(row.principal_remaining.split('.')[0]).toString(),interestRemaining:BigInt(row.interest_remaining.split('.')[0]).toString(),lateChargeRemaining:BigInt(row.late_charge_remaining.split('.')[0]).toString()});
  }
  const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a
  JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Row ID"=ANY($1::text[]) AND a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`,[fixture.cashAccountIds])).rows;
@@ -35,6 +37,7 @@ export function decodeDraftCursor(value,borrowerId,scope='due'){
  }catch{throw Error('invalid_request')}
 }
 export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=null,selectedChargeIds=null,scope='due',all=false,mode='dev-owner-testing'}={}){
+ const L=await lateChargeSchema(client);
  const after=decodeDraftCursor(cursor,borrowerId,scope);
  if(!['due','future','all'].includes(scope)||all&&scope!=='due')throw Error('invalid_request');
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
@@ -48,10 +51,10 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  WHERE l."Ref Borrowers"=$1 AND (c."Charge Date" IS NULL OR NOT isfinite(c."Charge Date") OR (c."Amount Remaining" IS NULL OR c."Amount Remaining"<0 OR c."Amount Remaining"::text IN ('NaN','Infinity','-Infinity') OR c."Amount Remaining"<>trunc(c."Amount Remaining")))) AS invalid`,[borrowerId])).rows[0].invalid;
  if(invalid)throw Error('Draft unavailable');
  const rows=(await client.query(`SELECT c."Row ID" AS id,c."Charge Date"::text AS "chargeDate",c."Amount Remaining"::text AS amount,
- (c."Principal Due"::numeric-paid.principal)::text AS "principalRemaining",(c."Interest Due"::numeric-paid.interest)::text AS "interestRemaining",paid.invalid AS "invalidComponents",
+ (c."Principal Due"::numeric-paid.principal)::text AS "principalRemaining",(c."Interest Due"::numeric-paid.interest)::text AS "interestRemaining",(${lateSql(L,'c."Late Charge Due"::numeric-paid.late')})::text AS "lateChargeRemaining",paid.invalid AS "invalidComponents",
  l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate
  FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
- CROSS JOIN LATERAL (SELECT coalesce(sum(r."Principal Paid"::numeric),0) AS principal,coalesce(sum(r."Interest Paid"::numeric),0) AS interest,
+ CROSS JOIN LATERAL (SELECT coalesce(sum(r."Principal Paid"::numeric),0) AS principal,coalesce(sum(r."Interest Paid"::numeric),0) AS interest,${lateSql(L,'coalesce(sum(r."Late Charge Paid"::numeric),0)','0')} AS late,
  count(*) FILTER (WHERE r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL) AS invalid FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID") paid
  WHERE l."Ref Borrowers"=$1 AND (CASE WHEN $7::text='future' THEN c."Charge Date">$2::date WHEN $7::text='all' THEN TRUE ELSE c."Charge Date"<=$2::date END) AND c."Amount Remaining">0
  AND ($3::date IS NULL OR c."Charge Date"<$3::date OR (c."Charge Date"=$3::date AND c."Row ID" COLLATE "C"<$4::text COLLATE "C"))
@@ -59,8 +62,8 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  ORDER BY c."Charge Date" DESC,c."Row ID" COLLATE "C" DESC LIMIT $6`,[borrowerId,clock.day,after?.chargeDate??null,after?.id??null,selectedChargeIds,selectedChargeIds||all?10001:limit+1,scope])).rows;
  if((all||selectedChargeIds)&&rows.length>10000)return {draftError:'selection_limit_exceeded',status:422};
  const name=borrowerDisplayName(borrower.name,borrower.description),more=!selectedChargeIds&&!all&&rows.length>limit,page=more?rows.slice(0,limit):rows;
- const charges=page.map(row=>{if(Number(row.invalidComponents)>0||![row.principalRemaining,row.interestRemaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');if(!validDay(row.chargeDate)||!/^[0-9]+(?:\.0+)?$/.test(row.amount))throw Error('Draft unavailable');
- return {id:row.id,chargeDate:row.chargeDate,loanDisplayKey:paymentLoanDisplayKey({...row,name}),amountRemaining:BigInt(row.amount.split('.')[0]).toString(),principalRemaining:BigInt(row.principalRemaining.split('.')[0]).toString(),interestRemaining:BigInt(row.interestRemaining.split('.')[0]).toString()};});
+ const charges=page.map(row=>{if(Number(row.invalidComponents)>0||![row.principalRemaining,row.interestRemaining,row.lateChargeRemaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');if(!validDay(row.chargeDate)||!/^[0-9]+(?:\.0+)?$/.test(row.amount))throw Error('Draft unavailable');
+ return {id:row.id,chargeDate:row.chargeDate,loanDisplayKey:paymentLoanDisplayKey({...row,name}),amountRemaining:BigInt(row.amount.split('.')[0]).toString(),principalRemaining:BigInt(row.principalRemaining.split('.')[0]).toString(),interestRemaining:BigInt(row.interestRemaining.split('.')[0]).toString(),lateChargeRemaining:BigInt(row.lateChargeRemaining.split('.')[0]).toString()};});
  const accounts=(await client.query(`SELECT a."Row ID" AS id,a."Account Label" AS label FROM public."Cash Accounts" a JOIN public."Cash Holders" h ON h."Row ID"=a."Ref Cash Holder" WHERE a."Active" IS TRUE AND h."Active" IS TRUE ORDER BY a."Sort Order",a."Row ID" COLLATE "C"`)).rows;
  if(accounts.some(row=>typeof row.label!=='string'||!row.label))throw Error('Draft unavailable');
  const last=page.at(-1),nextCursor=more?Buffer.from(JSON.stringify({v:3,borrowerId,scope,businessDate:clock.day,chargeDate:last.chargeDate,id:last.id})).toString('base64url'):null;
@@ -77,6 +80,7 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  * The id is the generator key the payment will book; the amounts are the whole charge. Sorted by date, then loan.
  * R104: bookVersion is the loan's pwa_loan_version_v2, the expectedVersion of loan.book-projected-charge (Upcoming Charges).
  * R104 V117: source pwa_next_bookable_charge_v1 gives the same row shape for the next recordable charge (no one-ahead gate).
+ * R118: a projected charge has no late charge (lateChargeRemaining '0'); recorded charges carry theirs.
  */
 async function readUpcomingCharges(client,borrowerId,day,name,source='pwa_next_projected_charge_v1'){
  if(!['pwa_next_projected_charge_v1','pwa_next_bookable_charge_v1'].includes(source))throw Error('Draft unavailable');
@@ -88,7 +92,7 @@ async function readUpcomingCharges(client,borrowerId,day,name,source='pwa_next_p
  return rows.map(row=>{
   if(!validDay(row.chargeDate)||row.chargeDate<=day||typeof row.bookVersion!=='string'||!/^[a-f0-9]{64}$/.test(row.bookVersion)||![row.principalRemaining,row.interestRemaining].every(value=>typeof value==='string'&&/^[0-9]+(?:\.0+)?$/.test(value)))throw Error('Draft unavailable');
   const principalRemaining=BigInt(row.principalRemaining.split('.')[0]),interestRemaining=BigInt(row.interestRemaining.split('.')[0]);
-  return {id:row.id,loanId:row.loanId,chargeDate:row.chargeDate,loanDisplayKey:paymentLoanDisplayKey({...row,name}),amountRemaining:(principalRemaining+interestRemaining).toString(),principalRemaining:principalRemaining.toString(),interestRemaining:interestRemaining.toString(),bookVersion:row.bookVersion};
+  return {id:row.id,loanId:row.loanId,chargeDate:row.chargeDate,loanDisplayKey:paymentLoanDisplayKey({...row,name}),amountRemaining:(principalRemaining+interestRemaining).toString(),principalRemaining:principalRemaining.toString(),interestRemaining:interestRemaining.toString(),lateChargeRemaining:'0',bookVersion:row.bookVersion};
  });
 }
 

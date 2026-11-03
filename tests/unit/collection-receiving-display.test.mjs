@@ -26,7 +26,7 @@ test('R104 V117 draft bookable rows come from the bookable read, separate from u
  const {result,sql}=await draft({bookable:[row('2026-10-21',version)]});
  assert.deepEqual(sql,['public.pwa_next_projected_charge_v1(text,date)','public.pwa_next_bookable_charge_v1(text,date)']);
  assert.deepEqual(result.upcoming,[]);
- assert.deepEqual(result.bookable,[{id:'cg8:2:L1:2026-10-21',loanId:'L1',chargeDate:'2026-10-21',loanDisplayKey:'Thai - English-฿1,000-07/10-1%',amountRemaining:'70',principalRemaining:'0',interestRemaining:'70',bookVersion:version}]);
+ assert.deepEqual(result.bookable,[{id:'cg8:2:L1:2026-10-21',loanId:'L1',chargeDate:'2026-10-21',loanDisplayKey:'Thai - English-฿1,000-07/10-1%',amountRemaining:'70',principalRemaining:'0',interestRemaining:'70',lateChargeRemaining:'0',bookVersion:version}]);
  for(const bad of [row('2026-10-21',null),row('2026-10-21','A'.repeat(64)),row('2026-10-10',version),{...row('2026-10-21',version),interestRemaining:'70.5'}])await assert.rejects(draft({bookable:[bad]}),/Draft unavailable/);
  assert.equal((await draft({bookable:[row('2026-10-21',version)]},{scope:'due'})).result.bookable,undefined,'only the first scope=all page carries it');
 });

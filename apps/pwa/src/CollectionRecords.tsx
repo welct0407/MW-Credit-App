@@ -14,6 +14,9 @@ import {CompactPager} from './CompactPager';
 import {borrowerCount,moreBorrowers} from './borrower-count';
 import {PaymentHistory} from './PaymentHistory';
 import {SelectedCharges,type CommandAccess} from './SelectedCharges';
+import {LateChargeStepper,LateChargeSaving,LATE_STEP,lateAtFloor,lateNote,useLateChargeShortcut,type LatePending} from './LateChargeStepper';
+import {useOnline} from './online-status';
+import {wholeText} from './whole-number-input';
 import { ErrorReference, type ReadFailure } from './ReadFailure';
 import { UpcomingCharges, type UpcomingSummary, type UpcomingDetail } from './UpcomingCharges';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -25,7 +28,9 @@ const addDecimal=(a:string|null,b:string|null)=>{if(typeof a!=='string'||typeof 
 // R097: the board row's right amount adds what was paid earlier toward today's charges; group totals stay cash today.
 // A row without prepaidToday (older or partial payloads) keeps amountCollected as it is.
 const rowPaid=(row:Summary)=>row.prepaidToday===undefined?row.amountCollected:addDecimal(row.amountCollected,row.prepaidToday);
-type Charge = { id: string; loanId: string; loanDisplayKey: string; chargeDate: string; paymentStatus: string; paymentDate: string | null; amountRemaining: string | null; totalPaid: string | null; receivedToday: string | null };
+type Charge = { id: string; loanId: string; loanDisplayKey: string; chargeDate: string; paymentStatus: string; paymentDate: string | null; amountRemaining: string | null; totalPaid: string | null; receivedToday: string | null; lateChargeDue?: string; lateChargeRemaining?: string };
+// R118: what was paid on a row's late charge (due less remaining), the stepper's floor; '0' when unreadable.
+const latePaidOf=(charge:Charge)=>{const due=wholeText(charge.lateChargeDue??'0')??'0',left=wholeText(charge.lateChargeRemaining??'0')??'0';return /^\d+$/.test(due)&&/^\d+$/.test(left)&&BigInt(due)>=BigInt(left)?(BigInt(due)-BigInt(left)).toString():'0'};
 type Envelope = { ok: true; source: 'dev'; businessDate: string; asOf: string; nextCursor: string | null };
 type BoardResult = Envelope & { items: Summary[] };
 type DetailResult = Envelope & { borrower: Summary; items: Charge[] };
@@ -73,6 +78,9 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
+  // R118 (Echo LC-COL-1..6): the late-charge shortcut reads the charge live (its version and fields) before Confirm.
+  const online=useOnline();
+  const late=useLateChargeShortcut(commandAccess,thai);
   const revision = useRef(0);
   const listPanel = useRef<HTMLElement | null>(null);
   const detailPanel = useRef<HTMLElement | null>(null);
@@ -93,6 +101,15 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       else window.scrollTo({ top: savedDetailScroll.current });
     }
   }, [selectedCharge, upcomingDetail]);
+  // R118 (LC-COL-R2-1): the refresh after a late-charge step briefly shortens the list (upcoming reloads), which clamps the
+  // restored position; it is applied again on every commit of that refresh, before paint, until the refresh settles.
+  const reapplyAfterReload=useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: charges and upcoming are the commits of the refresh to follow; the position itself is read from refs
+  useLayoutEffect(()=>{
+    if(!reapplyAfterReload.current||selectedCharge||upcomingDetail)return;
+    if(window.innerWidth>1050&&detailPanel.current)detailPanel.current.scrollTop=savedDetailScroll.current;else window.scrollTo({top:savedDetailScroll.current});
+    if(!busy)reapplyAfterReload.current=false;
+  },[charges,upcoming,busy,selectedCharge,upcomingDetail]);
   function reset(keepBoard=false) { setPaymentOpen(false); previews.current = null; setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setUpcomingPage(1); setSelectedCharge(null); setChildError(null); if(!keepBoard){setItems([]);setCursor(null);setBusinessDate('');setAsOf('');setPage(1)}setSelected(null);setCharges([]);setChargeCursor(null);setChargeAsOf('');setChargePage(1); }
   function fail(code: ReadFailure<CollectionReadError>) { reset(); setError(code); setUpdateState('error'); }
   async function loadBoard(next?: string, pageNumber = 1) {
@@ -210,13 +227,46 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   const amounts = (row: Summary) => <dl className="collection-amounts"><div><dt>{t('Amount due', 'ยอดที่ต้องชำระ')}</dt><dd className={row.amountDue!==null&&Number(row.amountDue)===0?'zero-currency':''}>{money(row.amountDue)}</dd></div><div><dt>{t('Collected today', 'รับชำระวันนี้')}</dt><dd className={row.amountCollected!==null&&Number(row.amountCollected)===0?'zero-currency':''}>{money(row.amountCollected)}</dd></div><div><dt>{t('Remaining to collect', 'ยอดคงเหลือที่ต้องรับชำระ')}</dt><dd className={row.amountRemaining!==null&&Number(row.amountRemaining)===0?'zero-currency':''}>{money(row.amountRemaining)}</dd></div></dl>;
 
   useContextRefresh(!!selected&&!paymentOpen&&!receiptRecord&&!selectedCharge&&!loanOpen&&!borrowerOpen,upcomingDetail?t('First upcoming details page / refresh','หน้าแรกของรายละเอียดล่วงหน้า / รีเฟรช'):t('First charges page / refresh','หน้าแรกยอดเรียกเก็บ / รีเฟรช'),()=>{if(upcomingDetail)void openUpcoming(upcomingDetail.dueDate,undefined,1,true);else if(selected)void loadCharges(selected)});
+  // R118: the shortcut shows where Receive does, online only (LC-COL-2, LC-COL-4).
+  const lateShortcut=!!commandAccess&&!!selected&&(!!commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===selected.id)&&online&&!commandAccess.offlineOnly;
+  // R118 (Echo LC-BUSY-1/2/7): a saving step dims the pair with the spinner on the tapped button (the +50 button of a row
+  // without one reads "Saving…"); a held one is dimmed without it; a refused one is plain disabled until the refresh lands.
+  const savingOf=(pending:LatePending|undefined)=>!pending||pending.state==='reverted'?null:pending.state==='held'?'held' as const:pending.direction;
+  const lateLine=(charge:Charge)=>{const due=wholeText(charge.lateChargeDue??'0')??'0',paid=latePaidOf(charge),context=charge.loanDisplayKey+' '+date(charge.chargeDate),pending=late.pending[charge.id],saving=savingOf(pending),locked=busy||!!late.busy||!!late.held[charge.id];
+    return <div className="charge-late-line" aria-busy={saving?true:undefined}>{due==='0'?<button type="button" className={'secondary-button'+(saving?' saving':'')} disabled={locked||!!saving} aria-label={t('Increase late charge by '+LATE_STEP+' for ','เพิ่มค่าปรับล่าช้า '+LATE_STEP+' สำหรับ ')+context} onClick={()=>void stepLateCharge(charge,LATE_STEP)}>{saving&&saving!=='held'?<><span className="collection-spinner" aria-hidden="true"></span>{t('Saving…','กำลังบันทึก…')}</>:t('+'+LATE_STEP+' Late charge','+'+LATE_STEP+' ค่าปรับล่าช้า')}</button>
+      :<LateChargeStepper value={due} floor={paid} thai={thai} context={context} disabled={locked} saving={saving} describedBy={lateAtFloor(due,paid)?'charge-late-note-'+charge.id:undefined} onChange={next=>void stepLateCharge(charge,BigInt(next)>BigInt(due)?LATE_STEP:-LATE_STEP)}/>}</div>;};
   const upcomingView = (detail: UpcomingDetail | null) => <UpcomingCharges thai={thai} access={commandAccess} borrowerId={selected?.id} summary={upcoming} detail={detail} page={upcomingPage} busy={busy} error={upcomingError} onDate={value => void openUpcoming(value)} onBack={() => { cancel(); revision.current++; setBusy(false); setUpdateState('idle'); restoreDetailScroll.current = true; setUpcomingError(null); setUpcomingDetail(null); }} onRefresh={() => void refreshUpcoming()} onDetailRefresh={() => upcomingDetail && void openUpcoming(upcomingDetail.dueDate, undefined, 1, true)} onPrevious={upcomingPage>1&&upcomingDetail?()=>void openUpcoming(upcomingDetail.dueDate,upcomingCursors.current[upcomingPage-2],upcomingPage-1,true):undefined} onNext={() => upcomingDetail?.nextCursor && void openUpcoming(upcomingDetail.dueDate, upcomingDetail.nextCursor, upcomingPage + 1)} />;
+  // R118 owner feedback: a tap applies at once (no Confirm page) and reports in a bottom toast; the row then refreshes in
+  // place, the list keeping its scroll position (LC-COL-R2-1) through the refresh that briefly shortens it.
+  async function stepLateCharge(charge:Charge,step:number){
+    await late.step(charge.id,step,selected?.displayName??'',{due:wholeText(charge.lateChargeDue??'0')??'0',paid:latePaidOf(charge),reread:true,refresh:async outcome=>{
+     // R118 part B: an applied step patches its row from the charge read back after the POST (no list reload) and refreshes
+     // the board totals in the background, without holding the buttons.
+     const item=outcome.item;
+     if(outcome.result==='applied'&&item){
+      const remaining=(()=>{const due=wholeText(item.lateChargeDue??'0'),paid=wholeText(item.lateChargePaid??'0');return /^\d+$/.test(due??'')&&/^\d+$/.test(paid??'')?(BigInt(due!)-BigInt(paid!)).toString():item.lateChargeRemaining??null})();
+      setCharges(old=>old.map(row=>row.id===charge.id?{...row,lateChargeDue:item.lateChargeDue??row.lateChargeDue,lateChargeRemaining:remaining??row.lateChargeRemaining,amountRemaining:item.amountRemaining??row.amountRemaining,totalPaid:item.totalPaid??row.totalPaid}:row));
+      void refreshBoardTotals();return;
+     }
+     // Anything else (refused, nothing to change, or an applied step whose read-back failed) reloads the list in place,
+     // keeping its scroll position.
+     if(['applied','unchanged','refused'].includes(outcome.result)){savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;reapplyAfterReload.current=true;await chargeChanged();}
+    }});
+  }
+  /** R118 part B: the board's status groups and totals, and the selected borrower's amounts, read again in the background. */
+  async function refreshBoardTotals(){
+    const current=revision.current,boardPage=page,boardCursor=boardCursors.current[page-1];
+    const result=await request<BoardResult>('/api/collection?limit=100'+(query?'&q='+encodeURIComponent(query):'')+(boardCursor?'&cursor='+encodeURIComponent(boardCursor):''),()=>{});
+    if(!result||current!==revision.current)return;
+    setItems(result.items);setCursor(result.nextCursor);setPage(boardPage);setAsOf(result.asOf);
+    setSelected(prior=>{const row=prior&&result.items.find(item=>item.id===prior.id);return row?{...prior,...row}:prior});
+  }
   if(loanOpen&&commandAccess)return <LoanRecord access={commandAccess} id={loanOpen} thai={thai} onBack={()=>setLoanOpen(null)}/>;
   if(borrowerOpen&&selected&&commandAccess)return <SharedBorrowerDetail access={commandAccess} id={selected.id} label={selected.displayName} thai={thai} onBack={()=>setBorrowerOpen(false)}/>;
   if(selectedCharge&&commandAccess)return <ChargeRecord key={selectedCharge.id} access={commandAccess} id={selectedCharge.id} thai={thai} backLabel={t('Back to charges','กลับรายการเรียกเก็บ')} onChanged={()=>void chargeChanged()} onBack={()=>{restoreDetailScroll.current=true;setSelectedCharge(null)}}/>;
   if(receiptRecord&&commandAccess)return <PaymentRecord access={commandAccess} id={receiptRecord} thai={thai} onBack={()=>setReceiptRecord(null)}/>;
   if(paymentOpen&&commandAccess)return <SelectedCharges access={commandAccess} borrowerId={selected?.id??commandAccess.fixtureBorrowerId} thai={thai} onBack={()=>{setPaymentOpen(false);if(selected)void loadCharges(selected);else void loadBoard()}}/>;
-  return <section className="collection-workspace" aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
+  return <>{late.toastElement}<section className="collection-workspace" aria-label={t('Collection workspace', 'พื้นที่งานติดตาม')}>
 
 
     {commandAccess&&pendingPayment&&<button type="button" className="secondary-button" onClick={()=>setPaymentOpen(true)}>{t('Check pending payment status','ตรวจสอบคำขอรับชำระที่ค้างอยู่')}</button>}
@@ -232,12 +282,12 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
       {/* biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard-scrollable detail panel; tabIndex lets keyboard users scroll it */}<section className={'detail-panel ' + (!selected ? 'unselected' : '')} aria-busy={busy && !!selected} ref={detailPanel} tabIndex={0} aria-label={t('Collection charge details', 'รายละเอียดยอดเรียกเก็บงานติดตาม')}>
         {selected ? selectedCharge ? <article className="collection-charge-detail" aria-label={t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}><HeaderBack navigationKey="collection-charge-detail" className="icon-action" aria-label={t('Back to charges', 'กลับรายการเรียกเก็บ')} onClick={() => { restoreDetailScroll.current = true; setSelectedCharge(null); }}><Icon name="back"/></HeaderBack><h2>{t('Charge detail', 'รายละเอียดยอดเรียกเก็บ')}</h2><h3>{selectedCharge.loanDisplayKey}</h3><dl><div><dt>{t('Charge date', 'วันที่เรียกเก็บ')}</dt><dd>{date(selectedCharge.chargeDate)}</dd></div><div><dt>{t('Payment status', 'สถานะชำระเงิน')}</dt><dd>{paymentLabel(selectedCharge.paymentStatus)}</dd></div>{selectedCharge.paymentDate !== null && <div><dt>{t('Payment date', 'วันที่ชำระเงิน')}</dt><dd>{date(selectedCharge.paymentDate)}</dd></div>}<div><dt>{t('Amount remaining', 'ยอดคงเหลือ')}</dt><dd>{money(selectedCharge.amountRemaining)}</dd></div><div><dt>{t('Total paid', 'ยอดชำระรวม')}</dt><dd>{money(selectedCharge.totalPaid)}</dd></div><div><dt>{t('Received today', 'รับชำระวันนี้')}</dt><dd>{money(selectedCharge.receivedToday)}</dd></div></dl></article> : upcomingDetail ? upcomingView(upcomingDetail) : <><div className="payment-context collection-context"><HeaderBack navigationKey="collection-summary" className="secondary-button icon-action" aria-label={t('Back to Collection','กลับงานติดตาม')} title={t('Back to Collection','กลับงานติดตาม')} onClick={() => { cancel(); revision.current++; previews.current = null; setChildError(null); setSelected(null); setSelectedCharge(null); setUpcoming(null); setUpcomingDetail(null); setUpcomingError(null); setCharges([]); setChargeCursor(null); setChargeAsOf(''); setBusy(false); setUpdateState('idle'); }}><Icon name="back"/></HeaderBack>{commandAccess?<button type="button" className={'collection-name-link collection-status-'+selected.status} onClick={()=>setBorrowerOpen(true)}>{selected.displayName}</button>:<strong className={'collection-status-'+selected.status}>{selected.displayName}</strong>}{commandAccess&&<PaymentHistory compact access={commandAccess} borrowerId={selected.id} thai={thai}/>}</div>{amounts(selected)}{commandAccess?.ownerTesting&&<CollectionNote key={selected.id} access={commandAccess} id={selected.id} thai={thai}/>}<div className="related-loans-heading collection-charges-heading"><h3>{t('Today’s charges', 'ยอดเรียกเก็บวันนี้')}</h3>{commandAccess&&(commandAccess.ownerTesting||commandAccess.fixtureBorrowerId===selected.id)&&<RecordAction icon="receive" className="secondary-button icon-action" aria-label={t('Receive selected charges','รับชำระรายการที่เลือก')} title={t('Receive selected charges','รับชำระรายการที่เลือก')} onClick={()=>{cancel();revision.current++;previews.current=null;setBusy(false);setUpdateState('idle');setPaymentOpen(true)}}></RecordAction>}</div>
           {childError?.code === 'unavailable' && <div role="status"><ErrorReference failure={childError} thai={thai} />{selected&&<button type="button" className="secondary-button" disabled={busy} onClick={()=>void loadCharges(selected)}>{t('Retry charges','ลองโหลดยอดเรียกเก็บอีกครั้ง')}</button>}<p>{t('Unable to load charges. Refresh the charges page to try again.', 'ไม่สามารถโหลดรายการเรียกเก็บได้ กรุณารีเฟรชหน้ายอดเรียกเก็บเพื่อลองอีกครั้ง')}</p></div>}
-          {charges.map(charge=><article className="collection-charge collection-charge-row" key={charge.id}><span className="charge-row-left"><strong>{date(charge.chargeDate)}</strong>{commandAccess?<button type="button" className="record-field-link charge-loan-link" disabled={busy} onClick={()=>setLoanOpen(charge.loanId)}>{charge.loanDisplayKey}</button>:<span>{charge.loanDisplayKey}</span>}{charge.paymentStatus==='ชำระแล้ว'&&charge.paymentDate!==null&&businessDate!==''&&charge.paymentDate<businessDate&&<small className="charge-prepaid-note">{t('Paid in advance','ชำระล่วงหน้า')} · {date(charge.paymentDate)}</small>}</span><span className="charge-row-right"><strong className={'charge-remaining '+(charge.amountRemaining!==null&&Number(charge.amountRemaining)===0?'zero-currency':'')}>{money(charge.amountRemaining)}</strong><strong className={'charge-received '+(charge.totalPaid!==null&&Number(charge.totalPaid)===0?'zero-currency':'')}>{money(charge.totalPaid)}</strong></span><button type="button" className="charge-tile-action" disabled={busy} aria-label={t('Charge details for ','รายละเอียดรายการเรียกเก็บ ')+charge.loanDisplayKey+' '+date(charge.chargeDate)} onClick={()=>{savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;setSelectedCharge(charge);setScrollTarget(value=>({kind:'detail',sequence:value.sequence+1}))}}></button></article>)}
+          {charges.map(charge=><article className="collection-charge collection-charge-row" key={charge.id}><span className="charge-row-left"><strong>{date(charge.chargeDate)}</strong>{commandAccess?<button type="button" className="record-field-link charge-loan-link" disabled={busy} onClick={()=>setLoanOpen(charge.loanId)}>{charge.loanDisplayKey}</button>:<span>{charge.loanDisplayKey}</span>}{charge.paymentStatus==='ชำระแล้ว'&&charge.paymentDate!==null&&businessDate!==''&&charge.paymentDate<businessDate&&<small className="charge-prepaid-note">{t('Paid in advance','ชำระล่วงหน้า')} · {date(charge.paymentDate)}</small>}{late.pending[charge.id]&&late.pending[charge.id].state!=='reverted'?<small className="charge-prepaid-note charge-late-note" id={'charge-late-note-'+charge.id}>{t('Late charge ','ค่าปรับล่าช้า ')}<LateChargeSaving pending={late.pending[charge.id]} thai={thai}/></small>:lateNote(wholeText(charge.lateChargeDue??'0'),latePaidOf(charge),thai)&&<small className="charge-prepaid-note charge-late-note" id={'charge-late-note-'+charge.id}>{lateNote(wholeText(charge.lateChargeDue??'0'),latePaidOf(charge),thai)}</small>}</span><span className="charge-row-right"><strong className={'charge-remaining '+(charge.amountRemaining!==null&&Number(charge.amountRemaining)===0?'zero-currency':'')}>{money(charge.amountRemaining)}</strong><strong className={'charge-received '+(charge.totalPaid!==null&&Number(charge.totalPaid)===0?'zero-currency':'')}>{money(charge.totalPaid)}</strong></span>{lateShortcut&&lateLine(charge)}<button type="button" className="charge-tile-action" disabled={busy} aria-label={t('Charge details for ','รายละเอียดรายการเรียกเก็บ ')+charge.loanDisplayKey+' '+date(charge.chargeDate)} onClick={()=>{savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;setSelectedCharge(charge);setScrollTarget(value=>({kind:'detail',sequence:value.sequence+1}))}}></button></article>)}
           <CompactPager busy={busy} previous={chargePage>1?()=>void loadCharges(selected,chargeCursors.current[chargePage-2],chargePage-1):undefined} next={chargeCursor?()=>void loadCharges(selected,chargeCursor,chargePage+1):undefined} previousLabel={t('Previous charges page','หน้ายอดเรียกเก็บก่อนหน้า')} nextLabel={t('Next charges page','หน้าถัดไปของยอดเรียกเก็บ')}/>
 {commandAccess?.ownerTesting&&charges.length>0&&<CollectionReceipts access={commandAccess} borrowerId={selected.id} businessDate={businessDate} chargeIds={charges.map(row=>row.id)} thai={thai} onOpen={setReceiptRecord}/>}
 {upcomingView(null)}
         </> : <p>{t('Select a borrower to view today’s collection charges.', 'เลือกผู้กู้เพื่อดูยอดเรียกเก็บในงานติดตามวันนี้')}</p>}
       </section>
     </div>}
-  </section>;
+  </section></>;
 }

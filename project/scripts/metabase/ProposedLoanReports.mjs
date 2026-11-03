@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource,privateDirFor,root} from './ReportingApi.mjs';
 import {writeOffIncomeRow} from './WriteOffSegregation.mjs';
+import {lateIncomeRow} from './LateCharges.mjs';
 import {longLaneCards} from './AddLongOverdueLane.mjs';
 export const out=root+'/outputs/loan-reports-redesign-20261026';
 // R116 PROD: MW_METABASE_PRIVATE_DIR, else ~/.mw-private/MW-Credit-App/metabase/loan-reports-redesign-20261026; never a path
@@ -292,6 +293,18 @@ if(args.includes('--rebaseline-dashboard3=R116')){
  save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline-r116',{at:new Date().toISOString(),reason:'R116 write-off segregation (Refine-WriteOffSegregation.mjs)',question:writeoffs,dashcards:d.dashcards.length},priv);
  console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,question:writeoffs}));
 }
+// R118: Refine-LateCharges.mjs --apply changes dashboard 3 tab 16 on purpose (the late-charge question as a sixth card of the
+// scalar row, every card at width 4, and the formula note), so the guard's baseline is renewed once more from live dashboard 3,
+// only after that question is placed; the earlier baselines are kept beside it.
+if(args.includes('--rebaseline-dashboard3=R118')){
+ await assertSource();read('state');const cards=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards;
+ assert(cards.writeoffs&&cards.latecharges,'run Refine-LateCharges.mjs --apply first');
+ // The R118 six-card scalar row of tab 16 (LateCharges.mjs), wherever the live row sits; anything else refuses.
+ const d=await api('GET','dashboard/3');lateIncomeRow(d.dashcards,cards.writeoffs,cards.latecharges,16);
+ if(fs.existsSync(`${priv}/dashboard-3-before.json`))fs.copyFileSync(`${priv}/dashboard-3-before.json`,`${priv}/dashboard-3-before-pre-r118.json`);
+ save('dashboard-3-before',d,priv);save('dashboard-3-rebaseline-r118',{at:new Date().toISOString(),reason:'R118 late charges (Refine-LateCharges.mjs)',question:cards.latecharges,dashcards:d.dashcards.length},priv);
+ console.log(JSON.stringify({rebaselined:true,dashcards:d.dashcards.length,question:cards.latecharges}));
+}
 if(args.includes('--refine')){
  await assertSource();assert(only.length,'--refine needs --only=<keys>');const state=read('state'),{baseline}=await guardDashboard3(),specs=questions(await liveSources(),state,baseline);
  const qs=only.filter(k=>layout.new_questions[k]),tabs=only.filter(k=>state.tabs[k]);assert.equal(qs.length+tabs.length,only.length,'unknown key in --only');
@@ -395,6 +408,9 @@ if(args.includes('--verify')){
  const writeOffQuestion=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.writeoffs,iWo=await one(writeOffQuestion,sp('thismonth'));
  const incOk=inc.length===5&&near(inc[0][1],i168)&&near(inc[1][1],-i169)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170)&&near(inc[4][1],i171)&&(inc[0][2]===null||near(inc[0][2],p168))&&(inc[3][2]===null||near(inc[3][2],p170));
  (near(resultRows('income.writeoffs')[0][0],-iWo)?pass:fail)('income.writeoffs',{equalsMinusDashboard3WriteOffs:near(resultRows('income.writeoffs')[0][0],-iWo)});
+ // R118: the late-charge memo card equals the dashboard 3 late-charge question (Refine-LateCharges.mjs) and stays within Income.
+ const lateQuestion=JSON.parse(fs.readFileSync(root+'/outputs/r016-20260922/statement-cleanup-state.json','utf8')).cards.latecharges,iLate=await one(lateQuestion,sp('thismonth')),late=resultRows('income.latecharges')[0][0];
+ (near(late,iLate)&&Number(late)<=Number(i168)+1e-7?pass:fail)('income.latecharges',{equalsDashboard3LateCharges:near(late,iLate),withinIncome:Number(late)<=Number(i168)+1e-7});
  (incOk?pass:fail)('income.vs-previous',{thisEquals168to171AndWriteOffs:near(inc[0][1],i168)&&near(inc[2][1],-iWo)&&near(inc[3][1],i170),previousEqualsPrecedingRange:inc[0][2]===null?'before calendar':near(inc[0][2],p168),days:stmt[2]});
  const monthly=resultRows('income.monthly'),q213=await ref(213,{'review-income':'thismonth'});
  let monthlyOk=monthly.length>0;const q186=(await api('POST','dataset',native(`SELECT date_trunc('month',"Date")::date::text m,sum("Income"),sum("Expenses"),sum("Principal Write-offs") FROM {{#186}} WHERE "Date">=date_trunc('month',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date)-interval '5 months' GROUP BY 1 ORDER BY 1`,[model(186)]))).data.rows;

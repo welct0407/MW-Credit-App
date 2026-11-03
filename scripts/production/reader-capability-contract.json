@@ -27,14 +27,17 @@
       "Payment Status",
       "Payment Date",
       "Amount Remaining",
-      "Total Paid"
+      "Total Paid",
+      "Late Charge Due",
+      "Late Charge Remaining"
     ],
     "Repayments": [
       "Ref Charges",
       "Payment Date",
       "Principal Paid",
       "Interest Paid",
-      "Ref Payment"
+      "Ref Payment",
+      "Late Charge Paid"
     ],
     "Payments": [
       "Row ID",
@@ -75,7 +78,8 @@
       "Amount Remaining",
       "Basis",
       "As Of Date",
-      "Borrower Due Date Rank"
+      "Borrower Due Date Rank",
+      "Late Charge Remaining"
     ],
     "oltp_upcoming_charge_coverage_v1": [
       "Ref Borrower",

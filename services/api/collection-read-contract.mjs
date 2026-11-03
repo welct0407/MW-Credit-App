@@ -1,4 +1,5 @@
 import { BUSINESS_TZ } from '../lib/business-date.mjs';
+import { lateChargeSchema } from '../lib/late-charge-schema.mjs';
 import { searchQueryHash } from './search-query.mjs';
 /** Collection reads mirror the OLTP slice; directory Hidden Flag is not its membership rule. */
 import { borrowerDisplayName, validLoanId } from './loan-read-contract.mjs';
@@ -13,10 +14,12 @@ export const collectionQualitySql = `SELECT EXISTS (
   WHERE ($1::text IS NULL OR b."Row ID" = $1)
     AND (c."Payment Status" IS NULL OR c."Payment Status" NOT IN ('รอชำระ', 'ชำระบางส่วน', 'ชำระแล้ว') OR c."Charge Date" IS NULL OR NOT isfinite(c."Charge Date") OR c."Charge Date" < DATE '0001-01-01' OR c."Charge Date" > DATE '9999-12-31')
 ) AS invalid`;
-export const collectionCte = `WITH today_repayments AS (
+/** R118 (V132): collectionCteFor(true) adds the late charge to received today and the charge rows' late columns; the
+ * plain collectionCte is the shape before V132 (an older schema, and the membership and receipt reads that need neither). */
+export const collectionCteFor = late => `WITH today_repayments AS (
   SELECT r."Ref Charges" AS charge_id,
     CASE WHEN count(*) FILTER (WHERE r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL) > 0 THEN NULL
-      ELSE sum(r."Principal Paid"::numeric + r."Interest Paid"::numeric) END AS received_today
+      ELSE sum(r."Principal Paid"::numeric + r."Interest Paid"::numeric${late ? ' + r."Late Charge Paid"::numeric' : ''}) END AS received_today
   FROM public."Repayments" r WHERE r."Payment Date" = $1::date GROUP BY r."Ref Charges"
 ), eligible AS (
   SELECT c."Row ID" AS id, l."Row ID" AS loan_id, b."Row ID" AS borrower_id,
@@ -25,6 +28,7 @@ export const collectionCte = `WITH today_repayments AS (
     l."Original Daily Interest Rate"::text AS original_rate,
     c."Charge Date" AS charge_date, c."Payment Status" AS payment_status, c."Payment Date" AS payment_date,
     c."Amount Remaining" AS amount_remaining, c."Total Paid" AS total_paid,
+    ${late ? 'c."Late Charge Due"::numeric AS late_charge_due, c."Late Charge Remaining" AS late_charge_remaining' : '0::numeric AS late_charge_due, 0::numeric AS late_charge_remaining'},
     CASE WHEN tr.charge_id IS NULL THEN 0::numeric ELSE tr.received_today END AS received_today
   FROM public."Charges" c JOIN public."Loans" l ON c."Ref Loans" = l."Row ID"
   JOIN public."Borrowers" b ON l."Ref Borrowers" = b."Row ID"
@@ -62,6 +66,7 @@ export const collectionCte = `WITH today_repayments AS (
     collected::text AS amount_collected, remaining::text AS amount_remaining,
     prepaid::text AS prepaid_today, prepaid_only, prepaid_payment_date FROM grouped
 )`;
+export const collectionCte = collectionCteFor(false);
 /** R114 COL-2: whether the reader may join a prepaid charge's repayments to their payment (column grants added by the
  * reader capability contract); without them the source stays unknown and the caption keeps the date. */
 export const prepaidSourceAllowedSql = `SELECT has_column_privilege('public."Payments"','Row ID','SELECT')
@@ -97,7 +102,9 @@ export function projectCollectionCharge(row) {
   const date = row.loan_date === null ? '' : validDate(row.loan_date) ? row.loan_date.slice(8, 10) + '/' + row.loan_date.slice(5, 7) : (() => { throw new Error('Invalid loan date'); })();
   const rate = row.original_rate === null ? 'Unavailable' : decimal(row.original_rate) + '%';
   if (row.payment_date !== null && !validDate(row.payment_date)) throw new Error('Invalid payment date');
-  return { id: row.id, loanId: row.loan_id, loanDisplayKey: `${borrowerDisplayName(row.borrower_name, row.borrower_description)}-${principal}-${date}-${rate}`, chargeDate: row.charge_date, paymentStatus: row.payment_status, paymentDate: row.payment_date, amountRemaining: decimal(row.amount_remaining), totalPaid: decimal(row.total_paid), receivedToday: decimal(row.received_today) };
+  return { id: row.id, loanId: row.loan_id, loanDisplayKey: `${borrowerDisplayName(row.borrower_name, row.borrower_description)}-${principal}-${date}-${rate}`, chargeDate: row.charge_date, paymentStatus: row.payment_status, paymentDate: row.payment_date, amountRemaining: decimal(row.amount_remaining), totalPaid: decimal(row.total_paid), receivedToday: decimal(row.received_today),
+    // R118: the charge's late charge (0 when none; a row read without the columns, the synthetic draft, reads 0).
+    lateChargeDue: row.late_charge_due === undefined ? '0' : decimal(row.late_charge_due), lateChargeRemaining: row.late_charge_remaining === undefined ? '0' : decimal(row.late_charge_remaining) };
 }
 export function encodeCollectionCursor(value, query = '') {
   const { kind, businessDate, id } = value;
@@ -119,6 +126,7 @@ export function decodeCollectionCursor(cursor, kind, parentId, query = '') {
   return parsed;
 }
 export async function readCollection(client, { limit, after, borrowerId = null, query = '' }) {
+  const collectionCte = collectionCteFor(await lateChargeSchema(client));
   const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
   const { businessDate, asOf } = clock.rows[0];
   const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: BUSINESS_TZ };
@@ -133,7 +141,7 @@ export async function readCollection(client, { limit, after, borrowerId = null, 
   }
   const summary = await client.query(`${collectionCte} SELECT * FROM summaries`, [businessDate, borrowerId]);
   if (summary.rows.length !== 1) return { collectionError: 'not_found', collectionStatus: 404 };
-  const charges = await client.query(`${collectionCte} SELECT id, loan_id, payment_status, borrower_name, borrower_description, principal_amount, loan_date, original_rate, charge_date::text AS charge_date, payment_date::text AS payment_date, amount_remaining::text AS amount_remaining, total_paid::text AS total_paid, received_today::text AS received_today FROM eligible
+  const charges = await client.query(`${collectionCte} SELECT id, loan_id, payment_status, borrower_name, borrower_description, principal_amount, loan_date, original_rate, charge_date::text AS charge_date, payment_date::text AS payment_date, amount_remaining::text AS amount_remaining, total_paid::text AS total_paid, received_today::text AS received_today, late_charge_due::text AS late_charge_due, late_charge_remaining::text AS late_charge_remaining FROM eligible
     WHERE ($3::date IS NULL OR charge_date < $3::date OR (charge_date = $3::date AND id COLLATE "C" > $4::text COLLATE "C"))
     ORDER BY charge_date DESC, id COLLATE "C" LIMIT $5`, [businessDate, borrowerId, after?.chargeDate ?? null, after?.id ?? null, limit + 1]);
   const items = charges.rows.slice(0, limit).map(projectCollectionCharge);

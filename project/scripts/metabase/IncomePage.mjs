@@ -17,7 +17,10 @@ export const descriptions={
  'Holder Cash Component':'Business cash held for this account only if every account for its holder has an initialized opening; sum by immutable Cash Holder ID for complete holder totals.',
  'Net Margin':'Net operating profit divided by operating income; null when income is zero.',
  'Partner Draws MTD':'Positive magnitude of current-month FIFO-allocated Tommy and Lisa withdrawals; not an operating cost.',
- 'Unsettled Profit MTD':'Current-month net profit less completed FIFO-allocated partner withdrawals; does not assert all-period cash held.'
+ 'Unsettled Profit MTD':'Current-month net profit less completed FIFO-allocated partner withdrawals; does not assert all-period cash held.',
+ // R118 (V132): a late charge is income (interest received plus late charges received, cash basis); the memo columns give its part.
+ 'Late Charges Received MTD':'Late charges received this month (month start to the reporting date). Already inside operating income and net profit; a memo line, not added again.',
+ 'Late Charges Received':'Late charges received in the row\'s period. Already inside Income and Net Profit; a memo figure, not added again.'
 };
 export const modelDescriptions={
  'cash-daily':{

@@ -107,12 +107,18 @@ async function commandPurpose(client,businessDate,allocations,materialize,princi
 }
 // jsonb answers come back with their own key order; compare in the canonical command order.
 const planLine=row=>({chargeId:row.chargeId,principal:row.principal,interest:row.interest,expectedPrincipalRemaining:row.expectedPrincipalRemaining,expectedInterestRemaining:row.expectedInterestRemaining,chargeDate:row.chargeDate});
+// R118 v11: the 8-key line in the canonical command order (the late charge and its expected remaining).
+const planLine8=row=>({chargeId:row.chargeId,principal:row.principal,interest:row.interest,lateCharge:row.lateCharge??'0',expectedPrincipalRemaining:row.expectedPrincipalRemaining,expectedInterestRemaining:row.expectedInterestRemaining,expectedLateChargeRemaining:row.expectedLateChargeRemaining??'0',chargeDate:row.chargeDate});
+const lateLines=lines=>Array.isArray(lines)&&lines.some(row=>row&&typeof row==='object'&&Object.hasOwn(row,'lateCharge'));
 const planEntry=row=>({loanId:row.loanId,chargeId:row.chargeId,chargeDate:row.chargeDate,principalDue:row.principalDue,interestDue:row.interestDue});
 const planPrincipal=row=>({loanId:row.loanId,kind:row.kind,chargeId:row.chargeId,chargeDate:row.chargeDate,amount:row.amount,accruedInterest:row.accruedInterest,principalDue:row.principalDue});
 // R113: a loan the plan settles is a settle entry; a request that reaches a loan's principal without settling it is blocked
 // and has no entry, so the entries' comparison refuses it.
+// R118: 8-key client lines (v11) compare whole; 6-key lines (v10) compare without the late keys and only while the plan
+// pays no late charge (the SQL command refuses that v10 as selection_unavailable).
 const samePlan=(plan,allocations,materialize,principal)=>!!plan&&plan.uncovered==='0'&&Array.isArray(plan.settles)
-  &&JSON.stringify(plan.allocations.map(planLine))===JSON.stringify(allocations.map(planLine))&&JSON.stringify(plan.materialize.map(planEntry))===JSON.stringify(materialize.map(planEntry))
+  &&(lateLines(allocations)?JSON.stringify(plan.allocations.map(planLine8))===JSON.stringify(allocations.map(planLine8))
+   :plan.allocations.every(row=>(row.lateCharge??'0')==='0')&&JSON.stringify(plan.allocations.map(planLine))===JSON.stringify(allocations.map(planLine)))&&JSON.stringify(plan.materialize.map(planEntry))===JSON.stringify(materialize.map(planEntry))
   &&JSON.stringify(plan.principal.map(planPrincipal))===JSON.stringify(principal.map(planPrincipal));
 // R075: one recognizer call per uploaded slip for a form session; rules are never cached.
 const RECOGNITION_TTL_MS = 15 * 60 * 1000, RECOGNITION_CACHE_LIMIT = 64;
@@ -317,7 +323,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
           if (candidate.canonicalJson !== existing.canonical_json) return failure(409, 'command_conflict');
         } else {
           // R101/R110: the synthetic fixture route never books a projected charge (v9) or a pay-forward plan (v10).
-          if (fixture && (command.schemaVersion===9 || command.schemaVersion===10 || command.borrowerId!==fixture.borrowerId || !fixture.cashAccountIds.includes(command.cashAccountId)
+          if (fixture && (command.schemaVersion===9 || command.schemaVersion===10 || (command.schemaVersion===11&&(command.materialize.length>0||command.principal.length>0)) || command.borrowerId!==fixture.borrowerId || !fixture.cashAccountIds.includes(command.cashAccountId)
             || (command.schemaVersion>=6?command.allocations.map(row=>row.chargeId):command.selectedChargeIds).some(id=>!fixture.chargeIds.includes(id)))) return failure(403,'access_denied');
         }
         if (!existing && command.receiptId !== null) {
@@ -334,7 +340,7 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         }
         let identity;try{identity=commandIdentity(command,actor,receipt)}catch{return failure(400,'invalid_request')}
         // R110: a v10 plan books and pays on the business day only (the SQL command refuses other days as 22023 too).
-        if(!existing&&command.schemaVersion===10&&!payForwardDayAllowed(command,(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day))return failure(400,'invalid_request');
+        if(!existing&&[10,11].includes(command.schemaVersion)&&!payForwardDayAllowed(command,(await client.query(BUSINESS_TODAY_QUERY)).rows[0].day))return failure(400,'invalid_request');
         markAttempted();
         const value = (await client.query('SELECT public.pwa_submit_selected_charges_v1($1) AS result', [identity.canonicalJson])).rows[0].result;
         return { ok: true, value };
@@ -356,13 +362,18 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
       return {...result,total:result.charges.reduce((sum,row)=>sum+BigInt(row.amountRemaining),0n).toString()};
     },
     async autoAssign(principal,borrowerId,input){
-      if(!input||Object.keys(input).join(',')!=='amountReceived'||typeof input.amountReceived!=='string'||!/^[1-9][0-9]{0,16}$/.test(input.amountReceived)||BigInt(input.amountReceived)>92233720368547758n)return failure(400,'invalid_request');
+      // R118: {lineVersion: 11} asks for 8-key lines (interest, then late charge, then principal, for a v11 command); without
+      // it the lines keep the 6-key shape of earlier clients and leave any late charge unpaid, as their command would.
+      const keys=input&&typeof input==='object'&&!Array.isArray(input)?Object.keys(input).sort().join(','):'';
+      if(!input||!['amountReceived','amountReceived,lineVersion'].includes(keys)||(keys.endsWith('lineVersion')&&input.lineVersion!==11)||typeof input.amountReceived!=='string'||!/^[1-9][0-9]{0,16}$/.test(input.amountReceived)||BigInt(input.amountReceived)>92233720368547758n)return failure(400,'invalid_request');
       const result=await this.draft(principal,borrowerId,{limit:100,all:true});if(!result.ok)return result;
       if(result.nextCursor||result.charges.length>10000)return failure(422,'selection_limit_exceeded');
       let remaining=BigInt(input.amountReceived);const allocations=[];
       for(const row of [...result.charges].sort((a,b)=>b.chargeDate.localeCompare(a.chargeDate)||Buffer.compare(Buffer.from(b.id),Buffer.from(a.id)))){
-        const p=BigInt(row.principalRemaining),i=BigInt(row.interestRemaining),interest=remaining<i?remaining:i;remaining-=interest;const principal=remaining<p?remaining:p;remaining-=principal;
-        if(principal+interest>0n)allocations.push({chargeId:row.id,principal:principal.toString(),interest:interest.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate});
+        const late=input.lineVersion===11,p=BigInt(row.principalRemaining),i=BigInt(row.interestRemaining),l=late?BigInt(row.lateChargeRemaining??'0'):0n;
+        const interest=remaining<i?remaining:i;remaining-=interest;const lateCharge=remaining<l?remaining:l;remaining-=lateCharge;const principal=remaining<p?remaining:p;remaining-=principal;
+        if(principal+interest+lateCharge>0n)allocations.push(late?{chargeId:row.id,principal:principal.toString(),interest:interest.toString(),lateCharge:lateCharge.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:row.lateChargeRemaining??'0',chargeDate:row.chargeDate}
+          :{chargeId:row.id,principal:principal.toString(),interest:interest.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate});
       }
       allocations.sort((a,b)=>Buffer.compare(Buffer.from(a.chargeId),Buffer.from(b.chargeId)));
       // R110: money beyond what is due gets previews of the remainder choices (nothing is chosen): pay forward, and repay
@@ -416,10 +427,12 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
     },
     async review(principal,borrowerId,input){
       const planKeys=input&&!Array.isArray(input)&&typeof input==='object'?Object.keys(input).sort().join(','):'';
-      if(planKeys==='allocations,amountReceived,materialize,principal'){
+      // R118 v11: 8-key lines; with both lists empty the command is a plain selected-charges payment (no plan recompute).
+      const late=lateLines(input?.allocations),plainV11=late&&planKeys==='allocations,amountReceived,materialize,principal'&&Array.isArray(input.materialize)&&!input.materialize.length&&Array.isArray(input.principal)&&!input.principal.length;
+      if(planKeys==='allocations,amountReceived,materialize,principal'&&!plainV11){
         // R110 v10: the whole plan is recomputed with the purpose the command will derive and must be equal (else plan_changed).
         if(!ownerTesting)return failure(403,'access_denied');
-        let allocations,materialize,lines;try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);materialize=canonicalMaterializePlan(input.materialize,allocations,{several:true});lines=canonicalPrincipalPlan(input.principal,allocations);if(!materialize.length&&!lines.length)throw Error()}catch{return failure(400,'invalid_request')}
+        let allocations,materialize,lines;try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations,{late});materialize=canonicalMaterializePlan(input.materialize,allocations,{several:true});lines=canonicalPrincipalPlan(input.principal,allocations);if(!materialize.length&&!lines.length)throw Error()}catch{return failure(400,'invalid_request')}
         const result=await this.draft(principal,borrowerId,{selectedChargeIds:allocations.map(row=>row.chargeId),limit:100,scope:'all'});if(!result.ok)return result;
         const fresh=await run(principal,async client=>{
           const purpose=await commandPurpose(client,result.businessDate,allocations,materialize,lines);
@@ -430,16 +443,16 @@ function buildStore({ pool, guardConnection, resolveReceipt, fixture, receiptAda
         if(fresh.businessDate!==result.businessDate||!samePlan(fresh.plan,allocations,materialize,lines))return {...failure(409,'plan_changed'),charges:result.charges,upcoming:result.upcoming??[],businessDate:result.businessDate,purpose:fresh.purpose,plan:fresh.plan};
         return {...result,allocations,materialize,principal:lines,plan:fresh.plan,total:input.amountReceived,nextCursor:null};
       }
-      if(planKeys==='allocations,amountReceived'||planKeys==='allocations,amountReceived,materialize'){
+      if(planKeys==='allocations,amountReceived'||planKeys==='allocations,amountReceived,materialize'||plainV11){
         // R101: materialize names the lines that pay a loan's next projected charge; those compare against `upcoming`.
-        let allocations,materialize=[];try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations);if(planKeys.endsWith('materialize'))materialize=canonicalMaterializePlan(input.materialize,allocations)}catch{return failure(400,'invalid_request')}
+        let allocations,materialize=[];try{allocations=canonicalAllocationPlan(input.amountReceived,input.allocations,{late});if(planKeys.endsWith('materialize'))materialize=canonicalMaterializePlan(input.materialize,allocations)}catch{return failure(400,'invalid_request')}
         const result=await this.draft(principal,borrowerId,{selectedChargeIds:allocations.map(row=>row.chargeId),limit:100,scope:'all'});if(!result.ok)return result;
         const projected=new Set(materialize.map(row=>row.chargeId)),recorded=allocations.filter(line=>!projected.has(line.chargeId)),upcoming=result.upcoming??[];
         // A projected id that is now a recorded charge (booked meanwhile) is in charges, so the counts differ: plan_changed.
-        const changed=result.charges.length!==recorded.length||recorded.some(line=>{const row=result.charges.find(row=>row.id===line.chargeId);return !row||row.chargeDate!==line.chargeDate||row.principalRemaining!==line.expectedPrincipalRemaining||row.interestRemaining!==line.expectedInterestRemaining})
+        const changed=result.charges.length!==recorded.length||recorded.some(line=>{const row=result.charges.find(row=>row.id===line.chargeId);return !row||row.chargeDate!==line.chargeDate||row.principalRemaining!==line.expectedPrincipalRemaining||row.interestRemaining!==line.expectedInterestRemaining||(line.expectedLateChargeRemaining!==undefined&&(row.lateChargeRemaining??'0')!==line.expectedLateChargeRemaining)})
           ||materialize.some(entry=>{const row=upcoming.find(row=>row.id===entry.chargeId);return !row||row.loanId!==entry.loanId||row.chargeDate!==entry.chargeDate||row.principalRemaining!==entry.principalDue||row.interestRemaining!==entry.interestDue});
         if(changed)return {...failure(409,'plan_changed'),charges:result.charges,upcoming,businessDate:result.businessDate};
-        return {...result,allocations,...(materialize.length?{materialize}:{}),total:input.amountReceived,nextCursor:null};
+        return {...result,allocations,...(materialize.length||plainV11?{materialize}:{}),...(plainV11?{principal:[]}:{}),total:input.amountReceived,nextCursor:null};
       }
 
       if(!input||!['selectedChargeIds','allocationMethod,selectedChargeIds'].includes(Object.keys(input).sort().join(','))||!Array.isArray(input.selectedChargeIds)||!input.selectedChargeIds.length||input.selectedChargeIds.length>10000||new Set(input.selectedChargeIds).size!==input.selectedChargeIds.length||input.selectedChargeIds.some(id=>typeof id!=='string'||!id||/[\s,]/u.test(id)||Buffer.byteLength(id)>256))return failure(400,'invalid_request');

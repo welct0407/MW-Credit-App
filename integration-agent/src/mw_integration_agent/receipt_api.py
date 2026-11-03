@@ -45,7 +45,9 @@ def request_id(environment, review_id):
 
 
 PRINCIPAL_KEYS = ('loanId', 'kind', 'chargeId', 'chargeDate', 'amount', 'accruedInterest', 'principalDue')
-LINE_KEYS = ('chargeId', 'principal', 'interest', 'expectedPrincipalRemaining', 'expectedInterestRemaining', 'chargeDate')
+# R118 agent schemaVersion 10: the 8-key line (manual command v11) with the late charge and its expected remaining.
+LINE_KEYS = ('chargeId', 'principal', 'interest', 'lateCharge', 'expectedPrincipalRemaining', 'expectedInterestRemaining',
+             'expectedLateChargeRemaining', 'chargeDate')
 MATERIALIZE_KEYS = ('loanId', 'chargeId', 'chargeDate', 'principalDue', 'interestDue')
 
 
@@ -76,13 +78,14 @@ def payload(config, review, proposal, asset, automatic, plan=None):
     if proposal.get('action') == 'Pay forward options':
         # R112 schemaVersion 9 = 8 plus the Reviewer's purpose and the server plan's explicit lines for it, in the
         # manual v10 shapes; the request id stays the slip's (one slip, one key: a later other purpose conflicts).
+        # R118 schemaVersion 10 = 9 with 8-key lines (the server plan's lines carry the late charge).
         if automatic or not isinstance(plan, dict) or not isinstance(plan.get('purpose'), dict):
             raise ConfigurationError('PAY_FORWARD_PLAN_REQUIRED')
         purpose = plan['purpose']
-        command = {**{k: v for k, v in command.items() if k not in ('proposalSha256', 'archiveEvidence')}, 'schemaVersion': 9,
+        command = {**{k: v for k, v in command.items() if k not in ('proposalSha256', 'archiveEvidence')}, 'schemaVersion': 10,
                    'payerLines': lines,
                    'purpose': {'forward': purpose['forward'], 'principal': [{'loanId': p['loanId'], 'amount': p['amount']} for p in purpose['principal']], 'loans': None},
-                   'allocations': [{k: line[k] for k in LINE_KEYS} for line in plan['allocations']],
+                   'allocations': [{k: line.get(k, '0') if k in ('lateCharge', 'expectedLateChargeRemaining') else line[k] for k in LINE_KEYS} for line in plan['allocations']],
                    'materialize': [{k: entry[k] for k in MATERIALIZE_KEYS} for entry in plan['materialize']],
                    'principal': [{k: entry[k] for k in PRINCIPAL_KEYS} for entry in plan['principal']],
                    'proposalSha256': command['proposalSha256'], 'archiveEvidence': command['archiveEvidence']}

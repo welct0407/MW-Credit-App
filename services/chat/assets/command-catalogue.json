@@ -1059,6 +1059,16 @@
      "required": true
     },
     {
+     "name": "lateChargeDue",
+     "type": "whole",
+     "label": {
+      "en": "Late charge",
+      "th": "ค่าปรับล่าช้า"
+     },
+     "required": true,
+     "default": "0"
+    },
+    {
      "name": "notes",
      "type": "text",
      "label": {
@@ -1078,6 +1088,7 @@
      "chargeDate": "2026-10-02",
      "principalDue": "0",
      "interestDue": "100",
+     "lateChargeDue": "0",
      "notes": null
     },
     "receiptId": null
@@ -1142,6 +1153,15 @@
      "required": true
     },
     {
+     "name": "lateChargeDue",
+     "type": "whole",
+     "label": {
+      "en": "Late charge",
+      "th": "ค่าปรับล่าช้า"
+     },
+     "required": true
+    },
+    {
      "name": "notes",
      "type": "text",
      "label": {
@@ -1161,6 +1181,7 @@
      "chargeDate": "2026-10-02",
      "principalDue": "0",
      "interestDue": "100",
+     "lateChargeDue": "0",
      "notes": null
     },
     "receiptId": null
@@ -1299,8 +1320,10 @@
         "chargeId": "c:syn",
         "principal": "0",
         "interest": "100",
+        "lateCharge": "0",
         "expectedPrincipalRemaining": "0",
         "expectedInterestRemaining": "100",
+        "expectedLateChargeRemaining": "0",
         "chargeDate": "2026-10-02"
        }
       ]
@@ -3260,7 +3283,7 @@
     "en": "Record payment",
     "th": "บันทึกรับชำระ"
    },
-   "description": "Record a payment received from a borrower (target_id = borrower). Give the amount; the system splits it like the Payments screen's Auto-assign (due charges, newest first, interest before principal), or pays named charges in full (chargeIds), or a loan's next projected charge in full (nextChargeOf). Never give a split.",
+   "description": "Record a payment received from a borrower (target_id = borrower). Give the amount; the system splits it like the Payments screen's Auto-assign (due charges, newest first; inside a charge interest, then late charge, then principal), or pays named charges in full (chargeIds), or a loan's next projected charge in full (nextChargeOf; it cannot be combined with a due charge that carries a late charge: LATE_CHARGE_WITH_NEXT_CHARGE, so pay that charge in its own payment first). Never give a split.",
    "target": "payment",
    "fields": [
     {
@@ -3328,7 +3351,7 @@
     }
    ],
    "sample": {
-    "schemaVersion": 8,
+    "schemaVersion": 11,
     "requestId": "a1b2c3d4-0000-4000-8000-000000000001",
     "borrowerId": "b:syn",
     "allocations": [
@@ -3336,8 +3359,10 @@
       "chargeId": "c:syn",
       "principal": "0",
       "interest": "100",
+      "lateCharge": "0",
       "expectedPrincipalRemaining": "0",
       "expectedInterestRemaining": "100",
+      "expectedLateChargeRemaining": "0",
       "chargeDate": "2026-10-02"
      }
     ],
@@ -3349,7 +3374,9 @@
     "receiptId": null,
     "bankReference": null,
     "transferTime": null,
-    "payerLines": null
+    "payerLines": null,
+    "materialize": [],
+    "principal": []
    },
    "confirm": {
     "en": "Record {amount}",

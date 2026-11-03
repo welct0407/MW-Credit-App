@@ -531,7 +531,7 @@ function groupService({behaviour={},onPost=()=>{}}={}){
  const fetch=async(url,init)=>{
   const path=url.slice(COMMAND_URL.length);calls.push({path,method:init.method});
   const charge=/^\/api\/charge-records\/(C\d)$/.exec(path);
-  if(charge)return reply(200,{item:{id:charge[1],loanId:'L'+charge[1].slice(1),chargeDate:'2026-10-29',principalDue:'0.00',interestDue:'100.00',notes:'Carry-forward note',borrowerId:'B-OUM',borrowerName:'Oum',borrowerDescription:null,version:VER}});
+  if(charge)return reply(200,{item:{id:charge[1],loanId:'L'+charge[1].slice(1),chargeDate:'2026-10-29',principalDue:'0.00',interestDue:'100.00',lateChargeDue:'0.00',notes:'Carry-forward note',borrowerId:'B-OUM',borrowerName:'Oum',borrowerDescription:null,version:VER}});
   if(path==='/api/borrower-options')return reply(200,{referrers:[],accounts:[]});
   const status=/^\/api\/operations\/([0-9a-f-]{36})$/.exec(path);
   if(status)return reply(200,journal.get(status[1])??{kind:'unresolved'});

@@ -28,8 +28,10 @@ class V9PayloadTests(unittest.TestCase):
     def test_v9_carries_the_purpose_and_the_explicit_plan(self):
         purpose={'forward':True,'principal':[],'loans':None}
         body=receipt_api.payload(CONFIG,{'id':'r1','deciding_partner':'p','detail':''},proposal(),ASSET,False,plan=self.plan(purpose))['command']
-        self.assertEqual(body['schemaVersion'],9);self.assertEqual(body['purpose'],purpose)
-        self.assertEqual(body['allocations'],PLAN_FORWARD['allocations']);self.assertEqual(body['materialize'],PLAN_FORWARD['materialize']);self.assertEqual(body['principal'],[])
+        # R118: the reply now sends schemaVersion 10, whose lines are 8-key (a plan line without the late keys reads 0).
+        self.assertEqual(body['schemaVersion'],10);self.assertEqual(body['purpose'],purpose)
+        self.assertEqual(body['allocations'],[{'chargeId':'c1','principal':'0','interest':'300','lateCharge':'0','expectedPrincipalRemaining':'0','expectedInterestRemaining':'300','expectedLateChargeRemaining':'0','chargeDate':'2026-11-03'}])
+        self.assertEqual(list(body['allocations'][0]),list(receipt_api.LINE_KEYS));self.assertEqual(body['materialize'],PLAN_FORWARD['materialize']);self.assertEqual(body['principal'],[])
         for key in ('requestId','environment','reviewId','mode','borrowerId','cashAccountId','amountReceived','paymentDate','transferTime','bankReference','payerLines','proposalSha256','archiveEvidence'):self.assertIn(key,body)
         self.assertEqual(body['mode'],'reviewed')
         self.assertEqual(list(body)[-2:],['proposalSha256','archiveEvidence'],'the canonical order ends with the hash and the evidence')
@@ -81,3 +83,13 @@ class V9PayloadTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+
+class V10LateChargeTests(unittest.TestCase):
+    def test_v10_lines_carry_the_plan_late_charge_in_the_command_order(self):
+        line={'chargeDate':'2026-11-03','expectedLateChargeRemaining':'50','lateCharge':'50','expectedInterestRemaining':'300','expectedPrincipalRemaining':'0','interest':'300','principal':'0','chargeId':'c1'}
+        plan={'allocations':[line],'materialize':[],'principal':[],'purpose':{'forward':True,'principal':[],'loans':None}}
+        body=receipt_api.payload(CONFIG,{'id':'r2','deciding_partner':'p','detail':''},proposal(),ASSET,False,plan=plan)['command']
+        self.assertEqual(body['schemaVersion'],10)
+        self.assertEqual(json.dumps(body['allocations'][0]),'{"chargeId": "c1", "principal": "0", "interest": "300", "lateCharge": "50", "expectedPrincipalRemaining": "0", "expectedInterestRemaining": "300", "expectedLateChargeRemaining": "50", "chargeDate": "2026-11-03"}')
+

@@ -58,8 +58,9 @@ test('production candidate uses separate marker, canonical worker and storage bi
   assert.equal(/https:\/\/mw-credit-app-(?:read|command|chat)-dev-[^"'\s]+/.test(javascript),false);
   const objects=[],functions=new Map(),constants=new Map();let configurationFunction;
   function visit(node){
-   // Constant strings the configuration closes over (for example the shared Firebase project id).
-   if(ts.isVariableDeclaration(node)&&ts.isIdentifier(node.name)&&node.initializer&&(ts.isStringLiteral(node.initializer)||ts.isNoSubstitutionTemplateLiteral(node.initializer)||ts.isBinaryExpression(node.initializer)))constants.set(node.name.text,node.getText());
+   // Constant strings the configuration closes over (for example the shared Firebase project id). Module scope only: a
+   // minified name is reused inside functions (R118: a local `r=sa(...)??"0"` once shadowed a module constant).
+   if(ts.isVariableDeclaration(node)&&ts.isIdentifier(node.name)&&ts.isSourceFile(node.parent?.parent?.parent)&&node.initializer&&(ts.isStringLiteral(node.initializer)||ts.isNoSubstitutionTemplateLiteral(node.initializer)||ts.isBinaryExpression(node.initializer)))constants.set(node.name.text,node.getText());
    if(ts.isFunctionDeclaration(node)&&node.name){functions.set(node.name.text,node);if(node.getText().includes('VITE_FIREBASE_API_KEY'))configurationFunction=node.name.text;}
    if(ts.isObjectLiteralExpression(node)){
     const value={};for(const p of node.properties){if(!ts.isPropertyAssignment(p))continue;const name=p.name.getText().replace(/^['"]|['"]$/g,'');if(ts.isStringLiteral(p.initializer))value[name]=p.initializer.text;}

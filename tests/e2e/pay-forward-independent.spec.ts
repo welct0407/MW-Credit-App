@@ -76,7 +76,7 @@ test('the Remainder block appears only above the due amount, preselects nothing 
  expect(s.reviews).toHaveLength(0);expect(s.posts).toHaveLength(0);expect(s.plans).toHaveLength(0);
 });
 
-test('Pay forward: one collapsed row with a count, Paid through, Change; v10 materialize is reviewed and posted',async({page})=>{
+test('Pay forward: one collapsed row with a count, Paid through, Change; v11 (R118; v10 before) materialize is reviewed and posted',async({page})=>{
  const s=await setup(page);await amount(page).fill('60');await auto(page).click();
  await choice(page,/^Pay forward/).check();
  await expect.poll(()=>s.plans.length).toBe(1);expect(s.plans[0]).toEqual({amountReceived:'60',purpose:{forward:true,principal:[],loans:null}});
@@ -89,7 +89,7 @@ test('Pay forward: one collapsed row with a count, Paid through, Change; v10 mat
  const sent=s.reviews.at(-1);expect(sent.materialize.map((e:any)=>e.chargeDate)).toEqual([1,2,3,4,5].map(n=>addDays('2026-10-08',n)));expect(sent.principal).toEqual([]);
  await expect(page.locator('.remainder-summary')).toHaveText(/Paid through 13 Oct/);
  await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect.poll(()=>s.posts.length).toBe(1);
- const posted=s.posts[0];expect(posted.schemaVersion).toBe(10);expect(posted.amountReceived).toBe('60');expect(posted.materialize).toHaveLength(5);expect(posted.allocations).toHaveLength(6);expect(posted.principal).toEqual([]);
+ const posted=s.posts[0];expect(posted.schemaVersion).toBe(11);expect(posted.amountReceived).toBe('60');expect(posted.materialize).toHaveLength(5);expect(posted.allocations).toHaveLength(6);expect(posted.principal).toEqual([]);
 });
 
 test('Change reopens the choice; a partial last charge is badged',async({page})=>{
@@ -103,7 +103,7 @@ test('Change reopens the choice; a partial last charge is badged',async({page})=
  await choice(page,/^Repay principal/).check();await expect.poll(()=>s.plans.length).toBe(2);expect(s.plans[1].purpose.principal).toEqual([{loanId:'pf-LA',amount:'45'}]);expect(s.plans[1].purpose.forward).toBe(false);
 });
 
-test('Repay principal previews the new outstanding and daily interest and posts a v10 principal entry',async({page})=>{
+test('Repay principal previews the new outstanding and daily interest and posts a v11 (R118; v10 before) principal entry',async({page})=>{
  const s=await setup(page);await amount(page).fill('110');await auto(page).click();
  await expect(option(page,/^Repay principal/)).toContainText('1,000 → 900, new interest 9/day');
  await choice(page,/^Repay principal/).check();await expect.poll(()=>s.plans.length).toBe(1);
@@ -112,7 +112,7 @@ test('Repay principal previews the new outstanding and daily interest and posts 
  await expect(review(page)).toBeEnabled();await review(page).click();
  expect(s.reviews.at(-1).principal).toEqual([expect.objectContaining({loanId:'pf-LA',kind:'raise',amount:'100',principalDue:'100'})]);expect(s.reviews.at(-1).materialize).toEqual([]);
  await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect.poll(()=>s.posts.length).toBe(1);
- expect(s.posts[0].schemaVersion).toBe(10);expect(s.posts[0].principal).toHaveLength(1);expect(s.posts[0].principal[0]).toMatchObject({loanId:'pf-LA',kind:'raise',chargeId:'pf-due',amount:'100'});
+ expect(s.posts[0].schemaVersion).toBe(11);expect(s.posts[0].principal).toHaveLength(1);expect(s.posts[0].principal[0]).toMatchObject({loanId:'pf-LA',kind:'raise',chargeId:'pf-due',amount:'100'});
 });
 
 test('the settlement guard blocks Review, and a remainder beyond 93 days shows what cannot be allocated',async({page})=>{
@@ -170,7 +170,7 @@ async function yingSetup(page:Page){
  });
  expect(s.posts).toHaveLength(0);return {s,posts,plans,reviews};
 }
-test('Ying: Repay principal on a 3,220 slip closes both loans, shows the Closes lines and the rebate, keeps Review enabled and posts one v10 command with two settle entries',async({page})=>{
+test('Ying: Repay principal on a 3,220 slip closes both loans, shows the Closes lines and the rebate, keeps Review enabled and posts one v11 (R118; v10 before) command with two settle entries',async({page})=>{
  const {posts,plans,reviews}=await yingSetup(page);
  await amount(page).fill('3220');await auto(page).click();
  await expect(block(page)).toBeVisible();await expect(option(page,/^Repay principal/)).toContainText('Closes Ying-A, Ying-B');await expect(review(page)).toBeDisabled();
@@ -186,7 +186,7 @@ test('Ying: Repay principal on a 3,220 slip closes both loans, shows the Closes 
  await expect(review(page)).toBeEnabled();await review(page).click();
  expect(reviews.at(-1).principal.map((e:any)=>[e.loanId,e.kind,e.amount])).toEqual([['y-LA','settle','1000'],['y-LB','settle','2000']]);
  await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect.poll(()=>posts.length).toBe(1);
- const posted=posts[0];expect(posted.schemaVersion).toBe(10);expect(posted.amountReceived).toBe('3220');expect(posted.materialize).toEqual([]);
+ const posted=posts[0];expect(posted.schemaVersion).toBe(11);expect(posted.amountReceived).toBe('3220');expect(posted.materialize).toEqual([]);
  expect(posted.principal).toEqual([{loanId:'y-LA',kind:'settle',chargeId:'y-dueA',chargeDate:'2026-10-08',amount:'1000',accruedInterest:'0',principalDue:'1000'},
   {loanId:'y-LB',kind:'settle',chargeId:'y-dueB',chargeDate:'2026-10-08',amount:'2000',accruedInterest:'0',principalDue:'2000'}]);
  expect(Object.keys(posted.principal[0])).toHaveLength(7);

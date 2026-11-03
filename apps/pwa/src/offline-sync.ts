@@ -58,20 +58,23 @@ function allowedOrigin(access:CommandAccess){
 }
 
 /** Every saved request is reconciled first. A transport error never authorizes another payload. */
-export function syncSavedRequest(access:CommandAccess,requestId:string):Promise<SavedSyncResult>{
+/** R118: fresh=true is the caller's word that it saved this request just now and has not sent it any other way; then a row
+ * never marked dispatched (attempted false) skips the status read, which cannot know a request that was never POSTed (dispatch
+ * is marked durably before the POST). A dispatched but unsettled request (a crash after dispatch) always reads status first. */
+export function syncSavedRequest(access:CommandAccess,requestId:string,{fresh=false}:{fresh?:boolean}={}):Promise<SavedSyncResult>{
  const key=(access.offline?.scopeName??'missing')+':'+access.origin+':'+requestId;
  const current=inFlight.get(key);if(current)return current;
  // A browser lock disappears with its tab. Its next holder can recover that tab's
  // durable claim immediately; browsers without locks retain the timed IDB lease.
  const task=(async():Promise<SavedSyncResult>=>{
-  if(typeof navigator.locks!=='undefined'&&access.offline)return await navigator.locks.request('mw-credit-request:'+access.offline.scopeName+':'+requestId,{ifAvailable:true},async lock=>lock?await syncOne(access,requestId,true):{kind:'queued'} as SavedSyncResult);
-  return syncOne(access,requestId);
+  if(typeof navigator.locks!=='undefined'&&access.offline)return await navigator.locks.request('mw-credit-request:'+access.offline.scopeName+':'+requestId,{ifAvailable:true},async lock=>lock?await syncOne(access,requestId,true,fresh):{kind:'queued'} as SavedSyncResult);
+  return syncOne(access,requestId,false,fresh);
  })().catch(()=>({kind:'queued'} as SavedSyncResult));
  inFlight.set(key,task);
  void task.then(result=>{const clear=()=>{if(inFlight.get(key)===task)inFlight.delete(key)};if(result.kind==='queued')clear();else setTimeout(clear,1000)});
  return task;
 }
-async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Promise<SavedSyncResult>{
+async function syncOne(access:CommandAccess,requestId:string,exclusive=false,fresh=false):Promise<SavedSyncResult>{
  const repository=access.offline;
  if(!repository||!navigator.onLine||!allowedOrigin(access)||!await repository.syncAuthorized())return {kind:'queued'};
  const owner=crypto.randomUUID(),row=await repository.claimPending(requestId,owner,exclusive);
@@ -89,7 +92,7 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
   const command=row.value?.command??row.value;
   // R078 follow-up: the receipt sent with it is stored for the payment (verified locally, or downloaded once).
   const image=row.value?.receipt,ownReceipt:OwnReceipt|undefined=image&&typeof image.id==='string'&&image.image instanceof Blob?{receiptId:image.id,file:image.image,descriptor:uploaded.get(requestId)??null}:undefined;uploaded.delete(requestId);
-  if(result.kind==='synced'&&Number.isInteger(command?.schemaVersion)&&[3,4,5,6,7,8,9,10].includes(command.schemaVersion)&&result.data?.originalOutcome?.status==='posted')void confirmOwnPayment(access,requestId,ownReceipt);
+  if(result.kind==='synced'&&Number.isInteger(command?.schemaVersion)&&[3,4,5,6,7,8,9,10,11].includes(command.schemaVersion)&&result.data?.originalOutcome?.status==='posted')void confirmOwnPayment(access,requestId,ownReceipt);
   else if(result.kind==='synced'&&ownReceipt&&['payment.correct','loan.close'].includes(command?.operation)&&result.data?.originalOutcome?.status==='applied')void seedOperationReceipt(access,requestId,result.data.originalOutcome.result?.paymentId,ownReceipt);
   return result;
  };
@@ -119,13 +122,15 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false):Pr
  try{
   const value=row.value;let command=value?.command??value;
   if(!uuid.test(requestId)||command?.requestId!==requestId)return settle({kind:'blocked'},'unsupported_saved_request');
-  const payment=Number.isInteger(command.schemaVersion)&&[3,4,5,6,7,8,9,10].includes(command.schemaVersion)&&typeof command.borrowerId==='string';
+  const payment=Number.isInteger(command.schemaVersion)&&[3,4,5,6,7,8,9,10,11].includes(command.schemaVersion)&&typeof command.borrowerId==='string';
   const operation=typeof command.operation==='string'&&typeof command.targetId==='string'&&command.inputs&&typeof command.inputs==='object';
   if(!payment&&!operation)return settle({kind:'blocked'},'unsupported_saved_request');
   const path=payment?'/api/payment-commands':'/api/operations';
-  const status=await request(path+'/'+requestId);
-  const known=await classify(status.response,status.data);if(known)return known;
-  if(!status.response.ok||status.data?.kind!=='unresolved')return settle({kind:'queued'},'status_unavailable');
+  if(!(fresh&&row.sync?.attempted===false&&!value.notePredecessor&&value.receipt===undefined)){
+   const status=await request(path+'/'+requestId);
+   const known=await classify(status.response,status.data);if(known)return known;
+   if(!status.response.ok||status.data?.kind!=='unresolved')return settle({kind:'queued'},'status_unavailable');
+  }
   if(value.notePredecessor){
    const predecessor=value.notePredecessor;
    const fields=['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note'];

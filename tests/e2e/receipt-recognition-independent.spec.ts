@@ -65,12 +65,12 @@ test('R075 recognized slip fills empty fields, runs Auto-assign and posts schema
  const note=page.locator('p.field-help.recognition-note[role=status]').filter({hasText:'From slip'});
  await expect(note.first()).toContainText('Gemini');await expect(note.first()).toContainText('amount, account, reference, date. Check before review.');
  await expect(page.getByText(/business date/).first()).toContainText('07-Oct (slip) · business date 08-Oct');
- expect(state.recognitionCalls).toBe(1);await expect.poll(()=>state.autoAssignBodies.length).toBe(1);expect(state.autoAssignBodies[0]).toEqual({amountReceived:'110'});
+ expect(state.recognitionCalls).toBe(1);await expect.poll(()=>state.autoAssignBodies.length).toBe(1);expect(state.autoAssignBodies[0]).toEqual({amountReceived:'110',lineVersion:11});
  await expect(page.locator('output')).toContainText('Allocated฿110');
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.locator('.selected-payment')).toContainText('SYNREF123456');await expect(page.locator('.selected-payment')).not.toContainText('14:35');await expect(page.locator('.selected-payment')).not.toContainText('Transfer time');
  await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
  expect(state.posted).toHaveLength(1);
- expect(state.posted[0]).toMatchObject({schemaVersion:7,paymentDate:'2026-10-07',bankReference:'SYNREF123456',transferTime:'14:35',amountReceived:'110',paymentMethod:'Bank Transfer',cashAccountId:'synthetic-account'});
+ expect(state.posted[0]).toMatchObject({schemaVersion:11,paymentDate:'2026-10-07',bankReference:'SYNREF123456',transferTime:'14:35',amountReceived:'110',paymentMethod:'Bank Transfer',cashAccountId:'synthetic-account'});
  expect(state.recognitionCalls).toBe(1);
 });
 
@@ -105,7 +105,7 @@ test('R075 unavailable recognition leaves the form manual and a manual payment s
  expect(state.autoAssignBodies).toHaveLength(0);
  await accountBox(page).selectOption('synthetic-account');await amountBox(page).fill('110');await page.locator('.payment-allocation-row input[type=checkbox]').first().check();
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
- expect(state.posted[0]).toMatchObject({schemaVersion:7,paymentDate:'2026-10-08',amountReceived:'110',bankReference:null,transferTime:null});
+ expect(state.posted[0]).toMatchObject({schemaVersion:11,paymentDate:'2026-10-08',amountReceived:'110',bankReference:null,transferTime:null});
 });
 
 test('R095 a new payer for a borrower with payer lines is information only and posts schema 8 with payerLines',async({page})=>{
@@ -120,7 +120,7 @@ test('R095 a new payer for a borrower with payer lines is information only and p
  await page.getByRole('button',{name:'Review payment',exact:true}).click();
  await expect(page.locator('.selected-payment p.field-summary').filter({hasText:'Payer added'})).toHaveText('Payer added: MR. SOMCHAI J***');
  await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
- expect(state.posted[0]).toMatchObject({schemaVersion:8,payerLines:{before:'Somsak Jaidee',after},bankReference:'SYNREF123456',paymentMethod:'Bank Transfer'});
+ expect(state.posted[0]).toMatchObject({schemaVersion:11,payerLines:{before:'Somsak Jaidee',after},bankReference:'SYNREF123456',paymentMethod:'Bank Transfer'});
 });
 
 test('R095 a first payer name says it will be saved (EN and Thai) and posts schema 8',async({page})=>{
@@ -135,7 +135,7 @@ test('R095 a first payer name says it will be saved (EN and Thai) and posts sche
  await expect(page.locator('p.field-help[role=status]').filter({hasText:'จะบันทึกเป็นชื่อผู้โอน'})).toHaveText('จะบันทึกเป็นชื่อผู้โอนของผู้กู้รายนี้');
  await chooseLanguagePreservingForm(page,'EN');
  await page.getByRole('button',{name:'Review payment',exact:true}).click();await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
- expect(state.posted[0]).toMatchObject({schemaVersion:8,payerLines:{before:null,after:'นาย สมชาย ใจดี'}});
+ expect(state.posted[0]).toMatchObject({schemaVersion:11,payerLines:{before:null,after:'นาย สมชาย ใจดี'}});
 });
 
 test('R095 an already listed payer or no payer read adds nothing and keeps schema 7',async({page})=>{
@@ -148,6 +148,6 @@ test('R095 an already listed payer or no payer read adds nothing and keeps schem
   await expect(page.getByText(/Will be (added|saved)/)).toHaveCount(0);
   await page.getByRole('button',{name:'Review payment',exact:true}).click();await expect(page.getByText(/Payer added/)).toHaveCount(0);
   await page.getByRole('button',{name:'Confirm payment'}).click();await expect(page.locator('.payment-success')).toContainText('Payment received');
-  expect(state.posted[0].schemaVersion).toBe(7);expect('payerLines' in state.posted[0]).toBe(false);
+  expect(state.posted[0].schemaVersion).toBe(11);expect(state.posted[0].payerLines).toBeNull();
  }
 });

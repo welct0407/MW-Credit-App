@@ -1,4 +1,5 @@
 import { BUSINESS_TZ } from '../lib/business-date.mjs';
+import { LATE_CHARGE_SCHEMA_SQL } from '../lib/late-charge-schema.mjs';
 import { collectionCte, collectionQualitySql } from './collection-read-contract.mjs';
 import { borrowerDisplayName, validLoanId } from './loan-read-contract.mjs';
 export const validUpcomingDate = value => typeof value === 'string' && value >= '0001-01-01' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value + 'T00:00:00Z')) && new Date(value + 'T00:00:00Z').toISOString().slice(0, 10) === value;
@@ -24,8 +25,9 @@ export const upcomingSummarySql = `SELECT s."Row ID" AS id, s."Due Date"::text A
       WHERE e."Ref Borrower" = $1 AND e."As Of Date" = $2::date AND e."Due Date" = s."Due Date"
       AND e."Borrower Due Date Rank" BETWEEN 1 AND 5 AND e."Due Date" > $2::date AND e."Due Date" <= $3::date)
   ORDER BY s."Due Date" ASC LIMIT 6`;
-export const upcomingSnapshotSql = `WITH scoped_events AS MATERIALIZED (
-  SELECT e."Row ID", e."Ref Loan", e."Due Date", e."Principal Remaining", e."Interest Remaining", e."Amount Remaining", e."Basis" FROM public.oltp_upcoming_charge_events_v1 e
+/** R118 (V132): upcomingSnapshotSqlFor(true) reads the events view's late remaining; before V132 it reads 0. */
+export const upcomingSnapshotSqlFor = late => `WITH scoped_events AS MATERIALIZED (
+  SELECT e."Row ID", e."Ref Loan", e."Due Date", e."Principal Remaining", e."Interest Remaining", e."Amount Remaining", e."Basis", ${late ? 'e."Late Charge Remaining"' : '0::numeric AS "Late Charge Remaining"'} FROM public.oltp_upcoming_charge_events_v1 e
   WHERE e."Ref Borrower" = $1 AND e."As Of Date" = $2::date AND e."Borrower Due Date Rank" BETWEEN 1 AND 5
     AND e."Due Date" > $2::date AND e."Due Date" <= $3::date
 ), allowed_dates AS MATERIALIZED (
@@ -39,7 +41,7 @@ export const upcomingSnapshotSql = `WITH scoped_events AS MATERIALIZED (
   WHERE ($4::date IS NULL OR e."Due Date" = $4::date)
 ), owned_events AS (
   SELECT e."Row ID" AS id, e."Ref Loan" AS "loanId", e."Due Date"::text AS "dueDate",
-    e."Principal Remaining"::text AS "principalRemaining", e."Interest Remaining"::text AS "interestRemaining", e."Amount Remaining"::text AS "amountRemaining", e."Basis" AS basis,
+    e."Principal Remaining"::text AS "principalRemaining", e."Interest Remaining"::text AS "interestRemaining", e."Amount Remaining"::text AS "amountRemaining", e."Late Charge Remaining"::text AS "lateChargeRemaining", e."Basis" AS basis,
     b."Borrower Name" AS name, b."Description" AS description, l."Principal Amount"::numeric::text AS principal,
     l."Loan Date"::text AS "loanDate", l."Original Daily Interest Rate"::text AS rate
   FROM selected_events e JOIN public."Loans" l ON e."Ref Loan" = l."Row ID" AND l."Ref Borrowers" = $1
@@ -52,16 +54,20 @@ SELECT COALESCE((SELECT jsonb_agg(to_jsonb(d) ORDER BY d."dueDate") FROM allowed
   COALESCE((SELECT jsonb_agg(to_jsonb(r) ORDER BY r."dueDate", r."loanId" COLLATE "C", r.id COLLATE "C") FROM ranked_events r WHERE r.ordinal <= $5::integer + 1), '[]'::jsonb) AS events,
   EXISTS (SELECT 1 FROM selected_events e WHERE e."Basis" IS NULL OR e."Basis" NOT IN ('Recorded', 'Recorded settlement', 'Recorded - review status', 'Projected')
     OR NOT EXISTS (SELECT 1 FROM public."Loans" l WHERE l."Row ID" = e."Ref Loan" AND l."Ref Borrowers" = $1)) AS invalid`;
+export const upcomingSnapshotSql = upcomingSnapshotSqlFor(true);
 export function projectUpcomingEvent(row) {
   if (!validLoanId(row.id) || !validLoanId(row.loanId) || !bases.includes(row.basis)) throw new Error('Invalid upcoming detail');
   const principal = row.principal === null ? '' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(decimal(row.principal)));
   const date = row.loanDate === null ? '' : validUpcomingDate(row.loanDate) ? row.loanDate.slice(8, 10) + '/' + row.loanDate.slice(5, 7) : (() => { throw new Error('Invalid loan date'); })();
   const rate = row.rate === null ? 'Unavailable' : decimal(row.rate) + '%';
-  return { id: row.id, loanId: row.loanId, loanDisplayKey: `${borrowerDisplayName(row.name, row.description)}-${principal}-${date}-${rate}`, principalRemaining: decimal(row.principalRemaining), interestRemaining: decimal(row.interestRemaining), amountRemaining: decimal(row.amountRemaining), basis: row.basis };
+  return { id: row.id, loanId: row.loanId, loanDisplayKey: `${borrowerDisplayName(row.name, row.description)}-${principal}-${date}-${rate}`, principalRemaining: decimal(row.principalRemaining), interestRemaining: decimal(row.interestRemaining), amountRemaining: decimal(row.amountRemaining),
+    // R118 (V132): a recorded charge's late charge is part of its amount remaining (projected rows 0).
+    lateChargeRemaining: row.lateChargeRemaining === undefined ? '0' : decimal(row.lateChargeRemaining), basis: row.basis };
 }
 export async function readUpcoming(client, { borrowerId, businessDate: requestedDate, dueDate = null, limit = 25, after = null, scope = 'collection' }) {
-  const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate"`);
-  const { businessDate, asOf } = clock.rows[0];
+  // R118: the clock read also answers whether V132's late columns exist (no extra round trip).
+  const clock = await client.query(`SELECT CURRENT_TIMESTAMP AS "asOf", (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS "businessDate", (${LATE_CHARGE_SCHEMA_SQL}) AS "lateCharges"`);
+  const { businessDate, asOf, lateCharges } = clock.rows[0];
   if (requestedDate !== businessDate) return failure('business_date_changed', 409);
   const metadata = { businessDate, asOf: new Date(asOf).toISOString(), timezone: BUSINESS_TZ };
   const quality = await client.query(collectionQualitySql, [borrowerId]);
@@ -76,7 +82,7 @@ export async function readUpcoming(client, { borrowerId, businessDate: requested
   if (!validUpcomingDate(source.businessDate)) return failure('source_unavailable');
   if (source.businessDate !== businessDate) return failure('business_date_changed', 409);
   if (!validUpcomingDate(source.horizonEnd) || source.horizonEnd !== source.expectedHorizonEnd || !Number.isInteger(source.reviewLoans) || source.reviewLoans < 0) return failure('source_unavailable');
-  const snapshot = await client.query(upcomingSnapshotSql, [borrowerId, businessDate, source.horizonEnd, dueDate, dueDate ? limit : 25, after?.loanId ?? null, after?.id ?? null]);
+  const snapshot = await client.query(upcomingSnapshotSqlFor(lateCharges === true), [borrowerId, businessDate, source.horizonEnd, dueDate, dueDate ? limit : 25, after?.loanId ?? null, after?.id ?? null]);
   if (snapshot.rows.length !== 1 || snapshot.rows[0].invalid !== false) return failure('source_unavailable');
   const { dates, events } = snapshot.rows[0];
   if (!Array.isArray(dates) || !Array.isArray(events)) return failure('source_unavailable');

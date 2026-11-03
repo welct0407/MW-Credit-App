@@ -15,11 +15,16 @@ import {RECOGNITION_DEADLINE_MS} from './recognition-timing';
 import type {OwnerOfflineRepository} from './owner-offline';
 import {useEffect,useRef,useState} from 'react';
 import {shortDate,dateRange,whole,forwardRuns,runAmount,type ForwardRow} from './pay-forward-text';
-type ChargeRow={id:string;chargeDate:string;loanDisplayKey:string;amountRemaining:string;principalRemaining:string;interestRemaining:string};
+type ChargeRow={id:string;chargeDate:string;loanDisplayKey:string;amountRemaining:string;principalRemaining:string;interestRemaining:string;lateChargeRemaining?:string};
 /** R101: a loan's next projected charge, not yet booked: the charge row shape plus its loan (the payment books it). */
 type UpcomingRow=ChargeRow&{loanId:string};
 type Draft={preferredReceivingAccountId?:string|null;nextCursor?:string|null;asOf?:string;businessDate:string;borrower:{id:string;displayName:string};charges:ChargeRow[];upcoming?:UpcomingRow[];accounts:{id:string;label:string}[]};
-type Allocation={chargeId:string;principal:string;interest:string;expectedPrincipalRemaining:string;expectedInterestRemaining:string;chargeDate:string};
+/** R118: a line pays inside its charge interest, then the late charge, then principal; the late keys are optional on lines
+ * from older drafts and plans (read as 0) and always sent (8-key lines of the v11 command). */
+type Allocation={chargeId:string;principal:string;interest:string;lateCharge?:string;expectedPrincipalRemaining:string;expectedInterestRemaining:string;expectedLateChargeRemaining?:string;chargeDate:string};
+/** The 8-key line of the v11 command, in the SQL key order. */
+const line8=(row:Allocation)=>({chargeId:row.chargeId,principal:row.principal,interest:row.interest,lateCharge:row.lateCharge??'0',expectedPrincipalRemaining:row.expectedPrincipalRemaining,expectedInterestRemaining:row.expectedInterestRemaining,expectedLateChargeRemaining:row.expectedLateChargeRemaining??'0',chargeDate:row.chargeDate});
+const lateOf=(row:{lateChargeRemaining?:string})=>row.lateChargeRemaining??'0';
 type Materialize={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string};
 /** R110 Pay Forward: a v10 principal entry (the plan read adds its effect fields), the server plan and Auto-assign's remainder previews. */
 type PrincipalEntry={loanId:string;kind:'raise'|'book'|'settle';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string;outstandingBefore?:string;outstandingAfter?:string;dailyAfter?:string;nextChargeDate?:string;nextChargeAmount?:string;payoff?:string;charges?:string};
@@ -31,7 +36,7 @@ type PrincipalOption={loanId:string;amount:string;settles:boolean;entry:Principa
 type Remainder={amount:string;forward:{rows:ForwardRow[];paidThrough:Record<string,string>;uncovered:string}|null;principal:PrincipalOption[];loans:Record<string,string>;repay:{purpose:PlanPurpose;settles:string[];uncovered:string}|null};
 type Purpose='forward'|'principal'|'split';
 type CommandPrincipal={loanId:string;kind:'raise'|'book'|'settle';chargeId:string;chargeDate:string;amount:string;accruedInterest:string;principalDue:string};
-type Command={schemaVersion:3|4|5|6|7|8|9|10;requestId:string;borrowerId:string;selectedChargeIds?:string[];allocations?:Allocation[];cashAccountId:string;paymentDate:string;amountReceived:string;paymentMethod:'Bank Transfer'|'Cash'|'Net-off at Disbursement';allocationMethod?:'Selected Charges'|'Single Full'|'Receive All';notes:string|null;receiptId:string|null;bankReference?:string|null;transferTime?:string|null;payerLines?:{before:string|null;after:string}|null;materialize?:Materialize[];principal?:CommandPrincipal[]};
+type Command={schemaVersion:3|4|5|6|7|8|9|10|11;requestId:string;borrowerId:string;selectedChargeIds?:string[];allocations?:Allocation[];cashAccountId:string;paymentDate:string;amountReceived:string;paymentMethod:'Bank Transfer'|'Cash'|'Net-off at Disbursement';allocationMethod?:'Selected Charges'|'Single Full'|'Receive All';notes:string|null;receiptId:string|null;bankReference?:string|null;transferTime?:string|null;payerLines?:{before:string|null;after:string}|null;materialize?:Materialize[];principal?:CommandPrincipal[]};
 /** R075 slip recognition for the uploaded receipt; cleared with the receipt. Nothing here writes. */
 type SlipField='amount'|'account'|'reference'|'date';
 type Recognition={receiptId:string;phase:'reading'|'failed'|'unconfirmed'|'done';provider?:string|null;filled?:SlipField[];autoSkipped?:boolean;slipAmount?:string|null;slipAccountId?:string|null;slipReference?:string|null;referenceExists?:boolean;dateNotUsed?:string|null;autoOutcome?:'empty'|'failed';accountNote?:'unmatched'|'ambiguous'|null;slipPayer?:string|null;payerBefore?:string|null;payerAfter?:string|null;payerFirst?:boolean};
@@ -87,7 +92,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const _allocationMethod=allMode?'Receive All':selected.length===1?'Single Full':'Selected Charges';
  const _selectedRows=selectionRows;
  const integer=(value:string)=>/^(0|[1-9][0-9]{0,16})$/.test(value);
- const allocated=allocations.reduce((sum,row)=>sum+(integer(row.principal)?BigInt(row.principal):0n)+(integer(row.interest)?BigInt(row.interest):0n),0n);
+ const part=(value:string|undefined)=>integer(value??'0')?BigInt(value??'0'):0n;
+ const allocated=allocations.reduce((sum,row)=>sum+part(row.principal)+part(row.interest)+part(row.lateCharge),0n);
  const total=integer(received)?received:'0';
  // R101: next-charge rows not already shown as recorded charges; an allocated next-charge line that is no longer offered
  // (selectionRows remembers it with its loanId) stays visible as unavailable until it is removed.
@@ -99,7 +105,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  // R110: the plan's lines dated after the business date (its booked and recorded future charges), in date order.
  const forwardLines:ForwardRow[]=plan?plan.allocations.filter(line=>line.chargeDate>businessDate).sort((a,b)=>a.chargeDate.localeCompare(b.chargeDate)||a.chargeId.localeCompare(b.chargeId)).map(line=>{
   const loanId=plan.materialize.find(row=>row.chargeId===line.chargeId)?.loanId??plan.forward.find(row=>row.chargeId===line.chargeId)?.loanId??'';
-  const partial=BigInt(line.principal)+BigInt(line.interest)<BigInt(line.expectedPrincipalRemaining)+BigInt(line.expectedInterestRemaining);
+  const partial=BigInt(line.principal)+BigInt(line.interest)+BigInt(line.lateCharge??'0')<BigInt(line.expectedPrincipalRemaining)+BigInt(line.expectedInterestRemaining)+BigInt(line.expectedLateChargeRemaining??'0');
   return {loanId,chargeId:line.chargeId,chargeDate:line.chargeDate,principalDue:line.expectedPrincipalRemaining,interestDue:line.expectedInterestRemaining,principal:line.principal,interest:line.interest,partial};}):[];
  const projectedIds=new Set([...forwardLines.map(row=>row.chargeId),...staleProjected]);
  const blockedLines=[...unavailableLines,...staleProjected];
@@ -113,11 +119,11 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const remainderBlocked=(!!remainder&&(!plan||planBusy||plan.uncovered!=='0'||unsettled.length>0))||(!!plan&&(!online||!!access.offlineOnly));
  // R110 RP-4: offline, a payment above what is due may still be received as the due amount (Auto-assign's due lines, or the
  // full due charges of a complete first page).
- const dueRows=draft&&!draft.nextCursor?draft.charges.filter(row=>row.chargeDate<=draft.businessDate&&whole(row.principalRemaining)&&whole(row.interestRemaining)):null;
- const dueFallback=dueRows?.length?{total:dueRows.reduce((sum,row)=>sum+BigInt(row.principalRemaining)+BigInt(row.interestRemaining),0n).toString(),allocations:dueRows.map(row=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate}))}:null;
+ const dueRows=draft&&!draft.nextCursor?draft.charges.filter(row=>row.chargeDate<=draft.businessDate&&whole(row.principalRemaining)&&whole(row.interestRemaining)&&whole(lateOf(row))):null;
+ const dueFallback=dueRows?.length?{total:dueRows.reduce((sum,row)=>sum+BigInt(row.principalRemaining)+BigInt(row.interestRemaining)+BigInt(lateOf(row)),0n).toString(),allocations:dueRows.map(row=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,lateCharge:lateOf(row),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:lateOf(row),chargeDate:row.chargeDate}))}:null;
  const offlineDue=(!online||!!access.offlineOnly)?dueInfo??dueFallback:null;
  const dueOnlyOffered=!!offlineDue&&integer(received)&&BigInt(received)>BigInt(offlineDue.total);
- const validPlan=['Bank Transfer','Cash'].includes(paymentMethod)&&integer(received)&&BigInt(total)>0n&&BigInt(total)<=92233720368547758n&&allocated===BigInt(total)&&allocations.length>0&&allocations.length<=10000&&!remainderBlocked&&allocations.every(row=>!blockedLines.includes(row.chargeId)&&integer(row.principal)&&integer(row.interest)&&BigInt(row.principal)+BigInt(row.interest)>0n&&BigInt(row.principal)<=BigInt(row.expectedPrincipalRemaining)&&BigInt(row.interest)<=BigInt(row.expectedInterestRemaining));
+ const validPlan=['Bank Transfer','Cash'].includes(paymentMethod)&&integer(received)&&BigInt(total)>0n&&BigInt(total)<=92233720368547758n&&allocated===BigInt(total)&&allocations.length>0&&allocations.length<=10000&&!remainderBlocked&&allocations.every(row=>!blockedLines.includes(row.chargeId)&&integer(row.principal)&&integer(row.interest)&&integer(row.lateCharge??'0')&&integer(row.expectedLateChargeRemaining??'0')&&BigInt(row.principal)+BigInt(row.interest)+BigInt(row.lateCharge??'0')>0n&&BigInt(row.principal)<=BigInt(row.expectedPrincipalRemaining)&&BigInt(row.interest)<=BigInt(row.expectedInterestRemaining)&&BigInt(row.lateCharge??'0')<=BigInt(row.expectedLateChargeRemaining??'0'));
  const referenceText=normalizedReference(bankReference),bankTransfer=paymentMethod==='Bank Transfer';
  const slipFieldsValid=!bankTransfer||((referenceText===''||/^[A-Z0-9]{6,100}$/.test(referenceText))&&(transferTime===''||/^([01]\d|2[0-3]):[0-5]\d$/.test(transferTime)));
  // The slip date is the payment date only within {business date, the day before}; otherwise the business date.
@@ -174,9 +180,9 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
       const ids=saved.value.selectionRows.map((row:any)=>row.id),method=ids.length===1?'Single Full':'Selected Charges';
       const refreshed=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selectedChargeIds:ids,allocationMethod:method})});
       if(current!==generation.current)return;
-      if(refreshed.response.ok&&refreshed.data.charges.every((row:any)=>integer(row.principalRemaining)&&integer(row.interestRemaining))){
-       const lines=refreshed.data.charges.map((row:any)=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate}));
-       setAllocations(lines);setSelectionRows(refreshed.data.charges);setReceived(lines.reduce((sum:bigint,row:Allocation)=>sum+BigInt(row.principal)+BigInt(row.interest),0n).toString());legacyDraft.current=false;
+      if(refreshed.response.ok&&refreshed.data.charges.every((row:any)=>integer(row.principalRemaining)&&integer(row.interestRemaining)&&integer(lateOf(row)))){
+       const lines=refreshed.data.charges.map((row:any)=>({chargeId:row.id,principal:row.principalRemaining,interest:row.interestRemaining,lateCharge:lateOf(row),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:lateOf(row),chargeDate:row.chargeDate}));
+       setAllocations(lines);setSelectionRows(refreshed.data.charges);setReceived(lines.reduce((sum:bigint,row:Allocation)=>sum+BigInt(row.principal)+BigInt(row.interest)+BigInt(row.lateCharge??'0'),0n).toString());legacyDraft.current=false;
       }
      }
     }
@@ -212,7 +218,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   if(access.offlineOnly||!navigator.onLine){if(queueEnabled&&draft&&!legacyDraft.current&&validPlan&&draft.accounts.some(row=>row.id===account)&&!uploading&&!uploadFailed&&!changedBalances)return true;setState('edit');setError(t('A valid saved allocation plan is required before offline review.','ต้องมีแผนจัดสรรที่บันทึกและใช้ได้ก่อนตรวจสอบออฟไลน์'));return false;}
   if(localImage&&!receipt&&!queueEnabled){setError(t('Upload the saved receipt or explicitly remove it before review.','อัปโหลดหลักฐานที่บันทึกไว้หรือนำออกก่อนตรวจสอบ'));return false;}
   const current=generation.current;
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,allocations,...(plan?{materialize,principal:principalEntries}:{})})});
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,allocations:allocations.map(line8),materialize,principal:principalEntries})});
    if(current!==generation.current||operation!==reviewOperation.current)return false;
    if(!response.ok||data.businessDate!==draft?.businessDate||!data.accounts?.some((row:any)=>row.id===account)){
     if(data.code==='plan_changed'&&Array.isArray(data.charges))setChangedBalances({operation,generation:current,charges:data.charges,upcoming:Array.isArray(data.upcoming)?data.upcoming:[],businessDate:data.businessDate});
@@ -228,7 +234,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   const unavailable:string[]=[];
   // R101: a next charge booked meanwhile is a recorded charge now; it leaves `upcoming` and shows once, without the badge.
   const nextUpcoming=current.upcoming.filter(row=>!current.charges.some(item=>item.id===row.id));
-  const next=allocations.map(line=>{const row=current.charges.find(row=>row.id===line.chargeId)??nextUpcoming.find(row=>row.id===line.chargeId);if(!row||!integer(row.principalRemaining)||!integer(row.interestRemaining)){unavailable.push(line.chargeId);return line;}return {...line,expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate};});
+  const next=allocations.map(line=>{const row=current.charges.find(row=>row.id===line.chargeId)??nextUpcoming.find(row=>row.id===line.chargeId);if(!row||!integer(row.principalRemaining)||!integer(row.interestRemaining)||!integer(lateOf(row))){unavailable.push(line.chargeId);return line;}return {...line,lateCharge:line.lateCharge??'0',expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:lateOf(row),chargeDate:row.chargeDate};});
   const booked=current.charges.filter(row=>selectionRows.some(item=>item.id===row.id&&'loanId' in item));
   setAllocations(next);setUnavailableLines(unavailable);setChangedBalances(null);setState('edit');
   setSelectionRows(old=>old.map(row=>current.charges.find(item=>item.id===row.id)??nextUpcoming.find(item=>item.id===row.id)??row));
@@ -236,10 +242,10 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   setError(t('Current balances adopted. Paid amounts are unchanged; resolve unavailable or over-limit lines, then review again.','ใช้ยอดปัจจุบันแล้ว ยอดจัดสรรไม่เปลี่ยน กรุณาแก้ไขรายการที่ใช้ไม่ได้หรือเกินยอด แล้วตรวจสอบอีกครั้ง'));
  }
  async function autoAssign(slipAmount?:string):Promise<'assigned'|'empty'|'failed'|'skipped'>{
-  if(slipAmount===undefined&&allocations.some(row=>(integer(row.principal)&&BigInt(row.principal)>0n)||(integer(row.interest)&&BigInt(row.interest)>0n))&&!window.confirm(projectedAllocated?t('Replace the current allocation plan with Auto-assign? Next charges you ticked will be cleared.','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่ งวดถัดไปที่เลือกไว้จะถูกล้าง'):t('Replace the current allocation plan with Auto-assign?','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่')))return 'skipped';
+  if(slipAmount===undefined&&allocations.some(row=>part(row.principal)>0n||part(row.interest)>0n||part(row.lateCharge)>0n)&&!window.confirm(projectedAllocated?t('Replace the current allocation plan with Auto-assign? Next charges you ticked will be cleared.','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่ งวดถัดไปที่เลือกไว้จะถูกล้าง'):t('Replace the current allocation plan with Auto-assign?','แทนที่แผนจัดสรรปัจจุบันด้วยการจัดสรรอัตโนมัติหรือไม่')))return 'skipped';
   const amount=slipAmount??received;
   if(!integer(amount)||BigInt(amount)<=0n)return 'skipped';const current=generation.current,operation=++reviewOperation.current;setAutoEmpty(false);
-  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/auto-assign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:amount})});if(current!==generation.current||operation!==reviewOperation.current)return 'skipped';if(!response.ok||!Array.isArray(data?.allocations))throw Error();legacyDraft.current=false;setUnavailableLines([]);setChangedBalances(null);setAllocations(data.allocations);
+  try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/auto-assign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:amount,lineVersion:11})});if(current!==generation.current||operation!==reviewOperation.current)return 'skipped';if(!response.ok||!Array.isArray(data?.allocations))throw Error();legacyDraft.current=false;setUnavailableLines([]);setChangedBalances(null);setAllocations(data.allocations);
    // R110: money beyond what is due opens the Remainder block (nothing chosen); its previews come with the answer.
    planOperation.current++;setPlan(null);setPurpose(null);setPlanBusy(false);setChoosing(true);setSplitAmount('');lastPurpose.current=null;
    if(typeof data.allocated==='string')setDueInfo({total:data.allocated,allocations:data.allocations});
@@ -259,7 +265,7 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  /** R110: the allocation rows of a plan line, labelled from the recorded charge or the loan. */
  function planRows(next:Plan,loans:Record<string,string>):ChargeRow[]{
   return next.allocations.map(line=>{const recorded=draft?.charges.find(row=>row.id===line.chargeId);const loanId=next.materialize.find(row=>row.chargeId===line.chargeId)?.loanId??next.forward.find(row=>row.chargeId===line.chargeId)?.loanId??next.principal.find(row=>row.chargeId===line.chargeId)?.loanId;
-   return {id:line.chargeId,chargeDate:line.chargeDate,loanDisplayKey:recorded?.loanDisplayKey??(loanId?loans[loanId]:undefined)??'',amountRemaining:(BigInt(line.expectedPrincipalRemaining)+BigInt(line.expectedInterestRemaining)).toString(),principalRemaining:line.expectedPrincipalRemaining,interestRemaining:line.expectedInterestRemaining};});
+   return {id:line.chargeId,chargeDate:line.chargeDate,loanDisplayKey:recorded?.loanDisplayKey??(loanId?loans[loanId]:undefined)??'',amountRemaining:(BigInt(line.expectedPrincipalRemaining)+BigInt(line.expectedInterestRemaining)+BigInt(line.expectedLateChargeRemaining??'0')).toString(),principalRemaining:line.expectedPrincipalRemaining,interestRemaining:line.expectedInterestRemaining,lateChargeRemaining:line.expectedLateChargeRemaining??'0'};});
  }
  /** R110: the server's plan for the chosen use of the remainder (POST /plan); a usable plan collapses the choice. */
  async function loadPlan(body:PlanPurpose){
@@ -267,8 +273,8 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   try{const {response,data}=await call('/api/payment-drafts/'+encodeURIComponent(borrowerId)+'/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amountReceived:received,purpose:body})});
    if(operation!==planOperation.current||current!==generation.current)return;
    const value=data?.plan;
-   if(!response.ok||!value||!Array.isArray(value.allocations)||!value.allocations.every((line:any)=>typeof line?.chargeId==='string'&&[line.principal,line.interest,line.expectedPrincipalRemaining,line.expectedInterestRemaining].every(whole)&&typeof line.chargeDate==='string'))throw Error();
-   const next:Plan={allocations:value.allocations.map((line:any)=>({chargeId:line.chargeId,principal:line.principal,interest:line.interest,expectedPrincipalRemaining:line.expectedPrincipalRemaining,expectedInterestRemaining:line.expectedInterestRemaining,chargeDate:line.chargeDate})),
+   if(!response.ok||!value||!Array.isArray(value.allocations)||!value.allocations.every((line:any)=>typeof line?.chargeId==='string'&&[line.principal,line.interest,line.lateCharge??'0',line.expectedPrincipalRemaining,line.expectedInterestRemaining,line.expectedLateChargeRemaining??'0'].every(whole)&&typeof line.chargeDate==='string'))throw Error();
+   const next:Plan={allocations:value.allocations.map((line:any)=>({chargeId:line.chargeId,principal:line.principal,interest:line.interest,lateCharge:line.lateCharge??'0',expectedPrincipalRemaining:line.expectedPrincipalRemaining,expectedInterestRemaining:line.expectedInterestRemaining,expectedLateChargeRemaining:line.expectedLateChargeRemaining??'0',chargeDate:line.chargeDate})),
     materialize:Array.isArray(value.materialize)?value.materialize:[],principal:Array.isArray(value.principal)?value.principal:[],forward:Array.isArray(value.forward)?value.forward:[],
     paidThrough:value.paidThrough&&typeof value.paidThrough==='object'?value.paidThrough:{},settles:Array.isArray(value.settles)?value.settles:[],uncovered:whole(value.uncovered)?value.uncovered:'0',
     blocked:Array.isArray(value.blocked)?value.blocked:[],closes:data.closes&&typeof data.closes==='object'?data.closes:{}};
@@ -308,19 +314,20 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
   reviewOperation.current++;legacyDraft.current=false;planOperation.current++;setRemainder(null);setPurpose(null);setPlan(null);setChoosing(true);lastPurpose.current=null;
   setReceived(due.total);setAllocations(due.allocations);setSelectionRows(draft?.charges.filter(row=>due.allocations.some(line=>line.chargeId===row.id))??[]);setError('');
  }
- function editLine(row:Draft['charges'][number],field:'principal'|'interest',value:string){
-  if(!integer(row.principalRemaining)||!integer(row.interestRemaining)){setError(t('Refresh current balances online before editing this saved charge.','รีเฟรชยอดปัจจุบันขณะออนไลน์ก่อนแก้ไขรายการที่บันทึกไว้'));return;}
+ function editLine(row:Draft['charges'][number],field:'principal'|'interest'|'lateCharge',value:string){
+  if(!integer(row.principalRemaining)||!integer(row.interestRemaining)||!integer(lateOf(row))){setError(t('Refresh current balances online before editing this saved charge.','รีเฟรชยอดปัจจุบันขณะออนไลน์ก่อนแก้ไขรายการที่บันทึกไว้'));return;}
   legacyDraft.current=false;reviewOperation.current++;setError('');setAutoEmpty(false);
-  setAllocations(old=>{const existing=old.find(line=>line.chargeId===row.id)??{chargeId:row.id,principal:'0',interest:'0',expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate};const next={...existing,[field]:value};return [...old.filter(line=>line.chargeId!==row.id),...(next.principal==='0'&&next.interest==='0'?[]:[next])];});
+  setAllocations(old=>{const existing=old.find(line=>line.chargeId===row.id)??{chargeId:row.id,principal:'0',interest:'0',lateCharge:'0',expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:lateOf(row),chargeDate:row.chargeDate};const next={...existing,[field]:value};return [...old.filter(line=>line.chargeId!==row.id),...(next.principal==='0'&&next.interest==='0'&&(next.lateCharge??'0')==='0'?[]:[next])];});
   setSelectionRows(old=>old.some(item=>item.id===row.id)?old:[...old,row]);
  }
  function toggleLine(row:Draft['charges'][number],checked:boolean){
   legacyDraft.current=false;reviewOperation.current++;setAutoEmpty(false);
   if(!checked){setAllocations(old=>old.filter(line=>line.chargeId!==row.id));return;}
-  if(!integer(row.principalRemaining)||!integer(row.interestRemaining))return;
+  if(!integer(row.principalRemaining)||!integer(row.interestRemaining)||!integer(lateOf(row)))return;
   const available=BigInt(total)-allocated;if(available<=0n)return;
-  const interest=available<BigInt(row.interestRemaining)?available:BigInt(row.interestRemaining),rest=available-interest,principal=rest<BigInt(row.principalRemaining)?rest:BigInt(row.principalRemaining);
-  setAllocations(old=>[...old.filter(line=>line.chargeId!==row.id),{chargeId:row.id,principal:principal.toString(),interest:interest.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate}]);setSelectionRows(old=>old.some(item=>item.id===row.id)?old:[...old,row]);
+  // R118: interest, then the late charge, then principal.
+  const interest=available<BigInt(row.interestRemaining)?available:BigInt(row.interestRemaining),afterInterest=available-interest,lateCharge=afterInterest<BigInt(lateOf(row))?afterInterest:BigInt(lateOf(row)),rest=afterInterest-lateCharge,principal=rest<BigInt(row.principalRemaining)?rest:BigInt(row.principalRemaining);
+  setAllocations(old=>[...old.filter(line=>line.chargeId!==row.id),{chargeId:row.id,principal:principal.toString(),interest:interest.toString(),lateCharge:lateCharge.toString(),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:lateOf(row),chargeDate:row.chargeDate}]);setSelectionRows(old=>old.some(item=>item.id===row.id)?old:[...old,row]);
  }
  async function chargePage(index:number){
   if(paging)return;
@@ -406,9 +413,10 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  async function confirmOnce(){
   if((access.offlineOnly||!navigator.onLine)&&!queueEnabled)return;
   if(!command.current && !(await refreshSelection()))return;
-  if(!command.current){if(!draft||!validPlan||uploading||preparingReceipt||uploadFailed)return;if(!slipFieldsValid)return;command.current={schemaVersion:7,requestId:requestId.current,borrowerId,allocations:allocations.map(row=>({...row})),cashAccountId:account,paymentDate,amountReceived:received,paymentMethod,notes:notes===''?null:notes,receiptId:receipt??(queueEnabled&&localImage?crypto.randomUUID():null),bankReference:bankTransfer&&referenceText?referenceText:null,transferTime:bankTransfer&&transferTime?transferTime:null,...(payerLearns?{schemaVersion:8,payerLines:{before:recognized!.payerBefore??null,after:recognized!.payerAfter!}}:{}),
-   // R110 v10 = v8 plus materialize and principal, only with a remainder plan (payerLines then null unless learning).
-   ...(plan?{schemaVersion:10,payerLines:payerLearns?{before:recognized!.payerBefore??null,after:recognized!.payerAfter!}:null,materialize:materialize.map(row=>({...row})),principal:principalEntries.map(row=>({...row}))}:{})};}
+  if(!command.current){if(!draft||!validPlan||uploading||preparingReceipt||uploadFailed)return;if(!slipFieldsValid)return;// R118: one version, v11 = the v10 keys with 8-key lines; materialize and principal are empty without a remainder plan
+   // (the server then posts the lines as given); payerLines null unless the slip payer is learned.
+   command.current={schemaVersion:11,requestId:requestId.current,borrowerId,allocations:allocations.map(line8),cashAccountId:account,paymentDate,amountReceived:received,paymentMethod,notes:notes===''?null:notes,receiptId:receipt??(queueEnabled&&localImage?crypto.randomUUID():null),bankReference:bankTransfer&&referenceText?referenceText:null,transferTime:bankTransfer&&transferTime?transferTime:null,
+    payerLines:payerLearns?{before:recognized!.payerBefore??null,after:recognized!.payerAfter!}:null,materialize:materialize.map(row=>({...row})),principal:principalEntries.map(row=>({...row}))};}
   if(queueEnabled){
    clearTimeout(autosaveTimer.current);autosaveSuspended.current=true;await autosaveChain.current;
    try{
@@ -503,12 +511,13 @@ export function SelectedCharges({access,borrowerId,thai,onBack,onPosted}:{access
  const remainderHelp=remainderShown&&remainderBlocked&&!!remainderHint;
  // One allocation row; a next charge carries the badge after the loan key and the not-yet-due suffix on its labels. A remainder
  // plan's lines are the server's: they are shown, not edited (Change reopens the choice).
- const allocationRow=(row:ChargeRow,projected:boolean,partial=false)=>{const line=allocations.find(line=>line.chargeId===row.id),suffix=projected?nextChargeLabel:'',locked=!!plan;return <article className="payment-allocation-row" key={row.id}><div><label><input type="checkbox" disabled={locked} aria-label={t('Allocate to ','จัดสรรให้ ')+row.loanDisplayKey+' '+row.chargeDate+suffix} aria-describedby={projected?'next-charge-help':undefined} checked={!!line} onChange={event=>toggleLine(row,event.target.checked)}/><span>{displayValue(row.chargeDate)}</span></label><strong>{row.loanDisplayKey}</strong>{projected&&<small className="next-charge-badge">{nextChargeBadge}</small>}{partial&&<small className="next-charge-badge">{partialBadge}</small>}{blockedLines.includes(row.id)&&<span role="status">{t('Unavailable — remove this allocation before review','รายการใช้ไม่ได้ กรุณานำยอดจัดสรรนี้ออกก่อนตรวจสอบ')}</span>}</div><label><span>{t('Principal','เงินต้น')} ({t('Max','สูงสุด')} {money(row.principalRemaining)})</span><input disabled={locked} aria-label={t('Principal for ','เงินต้นสำหรับ ')+row.loanDisplayKey+' '+row.chargeDate+suffix} inputMode="numeric" value={line?.principal??'0'} onChange={event=>editLine(row,'principal',event.target.value)}/></label><label><span>{t('Interest','ดอกเบี้ย')} ({t('Max','สูงสุด')} {money(row.interestRemaining)})</span><input disabled={locked} aria-label={t('Interest for ','ดอกเบี้ยสำหรับ ')+row.loanDisplayKey+' '+row.chargeDate+suffix} inputMode="numeric" value={line?.interest??'0'} onChange={event=>editLine(row,'interest',event.target.value)}/></label></article>};
+ // R118 (Echo LC-PAY-1/4): a third Late charge input only on a charge that carries one; other rows keep today's markup.
+ const allocationRow=(row:ChargeRow,projected:boolean,partial=false)=>{const line=allocations.find(line=>line.chargeId===row.id),suffix=projected?nextChargeLabel:'',locked=!!plan,lateShown=lateOf(row)!=='0'||(line?.lateCharge??'0')!=='0';return <article className="payment-allocation-row" key={row.id}><div><label><input type="checkbox" disabled={locked} aria-label={t('Allocate to ','จัดสรรให้ ')+row.loanDisplayKey+' '+row.chargeDate+suffix} aria-describedby={projected?'next-charge-help':undefined} checked={!!line} onChange={event=>toggleLine(row,event.target.checked)}/><span>{displayValue(row.chargeDate)}</span></label><strong>{row.loanDisplayKey}</strong>{projected&&<small className="next-charge-badge">{nextChargeBadge}</small>}{partial&&<small className="next-charge-badge">{partialBadge}</small>}{blockedLines.includes(row.id)&&<span role="status">{t('Unavailable — remove this allocation before review','รายการใช้ไม่ได้ กรุณานำยอดจัดสรรนี้ออกก่อนตรวจสอบ')}</span>}</div><label><span>{t('Principal','เงินต้น')} ({t('Max','สูงสุด')} {money(row.principalRemaining)})</span><input disabled={locked} aria-label={t('Principal for ','เงินต้นสำหรับ ')+row.loanDisplayKey+' '+row.chargeDate+suffix} inputMode="numeric" value={line?.principal??'0'} onChange={event=>editLine(row,'principal',event.target.value)}/></label><label><span>{t('Interest','ดอกเบี้ย')} ({t('Max','สูงสุด')} {money(row.interestRemaining)})</span><input disabled={locked} aria-label={t('Interest for ','ดอกเบี้ยสำหรับ ')+row.loanDisplayKey+' '+row.chargeDate+suffix} inputMode="numeric" value={line?.interest??'0'} onChange={event=>editLine(row,'interest',event.target.value)}/></label>{lateShown&&<label className="late-charge-input"><span>{t('Late charge','ค่าปรับล่าช้า')} ({t('Max','สูงสุด')} {money(lateOf(row))})</span><input disabled={locked} aria-label={t('Late charge for ','ค่าปรับล่าช้าสำหรับ ')+row.loanDisplayKey+' '+row.chargeDate+suffix} inputMode="numeric" value={line?.lateCharge??'0'} onChange={event=>editLine(row,'lateCharge',event.target.value)}/></label>}</article>};
  const planRow=(id:string)=>selectionRows.find(row=>row.id===id)??{id,chargeDate:'',loanDisplayKey:'',amountRemaining:'0',principalRemaining:'0',interestRemaining:'0'};
  const forwardRow=(row:ForwardRow)=>allocationRow(planRow(row.chargeId),true,row.partial);
  const presentRows=plan?selectionRows.filter(row=>row.chargeDate<=businessDate).sort((a,b)=>b.chargeDate.localeCompare(a.chargeDate)||(b.id<a.id?-1:b.id>a.id?1:0)):[];
  // RP-7: the review lists the same lines, a run collapsed, with the summary line.
- const reviewLine=(row:Allocation)=><li key={row.chargeId}>{selectionRows.find(charge=>charge.id===row.chargeId)?.loanDisplayKey||t('Loan unavailable','ไม่มีข้อมูลสินเชื่อ')} · {displayValue(row.chargeDate)} · {t('Principal','เงินต้น')} {money(row.principal)} · {t('Interest','ดอกเบี้ย')} {money(row.interest)}{projectedIds.has(row.chargeId)&&<small className="next-charge-badge next-charge-badge-line">{nextChargeBadge}</small>}{forwardLines.some(line=>line.chargeId===row.chargeId&&line.partial)&&<small className="next-charge-badge next-charge-badge-line">{partialBadge}</small>}</li>;
+ const reviewLine=(row:Allocation)=><li key={row.chargeId}>{selectionRows.find(charge=>charge.id===row.chargeId)?.loanDisplayKey||t('Loan unavailable','ไม่มีข้อมูลสินเชื่อ')} · {displayValue(row.chargeDate)} · {t('Principal','เงินต้น')} {money(row.principal)} · {t('Interest','ดอกเบี้ย')} {money(row.interest)}{(row.lateCharge??'0')!=='0'&&<> · <span className="nowrap">{t('Late charge','ค่าปรับล่าช้า')} {money(row.lateCharge as string)}</span></>}{projectedIds.has(row.chargeId)&&<small className="next-charge-badge next-charge-badge-line">{nextChargeBadge}</small>}{forwardLines.some(line=>line.chargeId===row.chargeId&&line.partial)&&<small className="next-charge-badge next-charge-badge-line">{partialBadge}</small>}</li>;
  const copyReference=<button type="button" className="secondary-button" onClick={()=>void navigator.clipboard?.writeText(requestId.current)}>{t('Copy','คัดลอก')}</button>;
  return <section onChangeCapture={()=>{autosaveSuspended.current=false}} className="selected-payment" aria-label={t('Selected charges payment','รับชำระรายการที่เลือก')}>
 

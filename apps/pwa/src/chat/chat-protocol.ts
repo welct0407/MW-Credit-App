@@ -6,7 +6,7 @@ export type ChatTool={callId:string;name:string;state:'running'|'ok'|'error';sum
 export type ProposalState='pending'|'executing'|'done'|'failed'|'expired'|'cancelled'|'unknown';
 export type CardField={field:string;label:{en:string;th:string};type:string;value?:unknown;display?:string;before?:unknown;after?:unknown;beforeDisplay?:string;afterDisplay?:string};
 export type ProposalCard={version:number;operation:string;label:{en:string;th:string};confirmLabel?:{en:string;th:string}|null;destructive:boolean;group?:{id:string;index:number;count:number;ids?:string[]};target:{type:string;id:string;label:string|null};values:CardField[];changes:CardField[];
- consequences:{code:string;amount?:string}[];split?:{chargeId:string;loanDisplayKey:string|null;chargeDate:string;principal:string;interest:string;projected:boolean}[];purposeOptions?:PurposeOptions};
+ consequences:{code:string;amount?:string}[];split?:{chargeId:string;loanDisplayKey:string|null;chargeDate:string;principal:string;interest:string;lateCharge?:string;projected:boolean}[];purposeOptions?:PurposeOptions};
 /** R112: a payment card's remainder choices (services/chat/payment-plan.mjs purposeOptions); nothing is preselected. */
 export type PurposeRow={loanId:string;chargeId:string;chargeDate:string;principalDue:string;interestDue:string;principal:string;interest:string;partial:boolean};
 export type PurposePrincipal={loanId:string;loanDisplayKey:string|null;amount:string;dailyBefore:string|null;dailyAfter:string|null;outstandingBefore:string|null;outstandingAfter:string|null;

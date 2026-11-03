@@ -272,6 +272,24 @@
       "collation": null
       "acl": null
       "comment": null
+    "Allocated Late Charge":
+      "schema": "public"
+      "relation": "Payment Allocations"
+      "name": "Allocated Late Charge"
+      "ordinal": 14
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "R118 (V132), DEV-pending: not yet captured from PROD; ordinal confirmed from V132 (Byte), ACL and default expression are refreshed from a PROD capture after promotion. Late-charge part of one allocation; default 0; Allocated Amount = principal + interest + late charge."
   "constraints":
     "Payment Allocations_Row ID_not_null":
       "schema": "public"

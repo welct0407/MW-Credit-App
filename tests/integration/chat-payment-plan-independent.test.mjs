@@ -16,7 +16,7 @@ import {OWNER_EMAIL} from '../../services/lib/identity.mjs';
 import {migrationHead} from '../migration-head.mjs';
 // R112 V125, the chat card's shape risk: the chat service's own planner and command builder (planPayment, paymentCommandFor) against the
 // real command service over HTTP (the real application-role store and SQL) on the migration head. The chat store, model and handler are not
-// involved (their cases are unit tests and chat.spec.ts); what is real here is every number of card.purposeOptions and the v10 command
+// involved (their cases are unit tests and chat.spec.ts); what is real here is every number of card.purposeOptions and the v11 command (R118; v10 before)
 // built at the claim, posted through the real command API. Synthetic data only.
 let admin,app,store,fixture,server,client,today;const user='mw_app_dev_r112c_fixture';
 const principal={ok:true,email:OWNER_EMAIL,subject:'r112c-owner'};
@@ -72,10 +72,10 @@ test('(1) a slip above what is due gives purposeOptions with the numbers of the 
  assert.equal((await admin.query('SELECT count(*)::int AS n FROM "Payments" WHERE "Ref Borrower"=$1',[s.borrower])).rows[0].n,0,'proposing books nothing');
 });
 
-test('(2) a Pay forward purpose gives the v10 command under the proposal request id; it posts, books the charges, and a second send reads back',async()=>{
+test('(2) a Pay forward purpose gives the v11 command (R118; v10 before) under the proposal request id; it posts, books the charges, and a second send reads back',async()=>{
  const s=await scenario(),p=await propose(s);
  const command=await paymentCommandFor({client,stored:stored(p),purpose:{forward:true,principal:[]}});
- assert.equal(command.schemaVersion,10);assert.equal(command.requestId,p.requestId);assert.equal(command.amountReceived,'100');
+ assert.equal(command.schemaVersion,11);assert.equal(command.requestId,p.requestId);assert.equal(command.amountReceived,'100');
  assert.equal(command.materialize.length,9);assert.equal(command.allocations.length,10);assert.deepEqual(command.principal??[],[]);
  const sent=await client.submit('payment',JSON.stringify(command));assert.equal(sent.result,'recorded',JSON.stringify(sent));assert.equal(sent.data.originalOutcome.status,'posted',JSON.stringify(sent));
  const paymentId=sent.data.originalOutcome.paymentId;
@@ -93,7 +93,7 @@ test('(2) a Pay forward purpose gives the v10 command under the proposal request
 test('(3) Repay principal on a daily-interest loan posts with the anchor moved to today and the daily interest of the card',async()=>{
  const s=await scenario(),p=await propose(s);const pr=p.plan.purposeOptions.principal[0];
  const command=await paymentCommandFor({client,stored:stored(p),purpose:{forward:false,principal:[{loanId:s.loan,amount:pr.amount}]}});
- assert.equal(command.schemaVersion,10);assert.deepEqual(command.materialize??[],[]);assert.equal(command.principal.length,1);assert.equal(command.principal[0].amount,'90');
+ assert.equal(command.schemaVersion,11);assert.deepEqual(command.materialize??[],[]);assert.equal(command.principal.length,1);assert.equal(command.principal[0].amount,'90');
  const sent=await client.submit('payment',JSON.stringify(command));assert.equal(sent.result,'recorded',JSON.stringify(sent));assert.equal(sent.data.originalOutcome.status,'posted',JSON.stringify(sent));
  const loan=(await admin.query(`SELECT "Interest Schedule Anchor Date"::text AS anchor,"Outstanding Principal"::numeric::text AS o,"Current Daily Interest"::numeric::text AS d FROM "Loans" WHERE "Row ID"=$1`,[s.loan])).rows[0];
  assert.deepEqual(loan,{anchor:today,o:pr.outstandingAfter+'.00',d:pr.dailyAfter+'.00'});
@@ -139,7 +139,7 @@ test('R113 (5) a 3220 slip with Repay principal offers both loans as settling, p
  assert.equal(o.split,false);
  const purpose={forward:false,principal:[{loanId:y.a,amount:'1000'},{loanId:y.b,amount:'2000'}]};
  const command=await paymentCommandFor({client,stored:stored(p),purpose});
- assert.equal(command.schemaVersion,10);assert.equal(command.amountReceived,'3220');assert.deepEqual(command.principal.map(e=>e.kind),['settle','settle']);
+ assert.equal(command.schemaVersion,11);assert.equal(command.amountReceived,'3220');assert.deepEqual(command.principal.map(e=>e.kind),['settle','settle']);
  const sent=await client.submit('payment',JSON.stringify(command));assert.equal(sent.result,'recorded',JSON.stringify(sent));assert.equal(sent.data.originalOutcome.status,'posted',JSON.stringify(sent));
  const paymentId=sent.data.originalOutcome.paymentId;
  const loans=(await admin.query(`SELECT "Row ID" AS id,"Loan Status" AS s,"Close Date"::text AS closed,"Outstanding Principal"::numeric::text AS o FROM "Loans" WHERE "Ref Borrowers"=$1 ORDER BY 1`,[y.borrower])).rows;

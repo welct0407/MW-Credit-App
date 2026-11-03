@@ -45,7 +45,7 @@ def facts(config,borrower_id):
        WHERE l."Ref Borrowers"='''+key+''' ORDER BY l."Row ID") t),
       'charges',(SELECT coalesce(json_agg(t),'[]'::json) FROM (
        SELECT c."Row ID" id,c."Ref Loans" loan,c."Charge Date"::text date,
-        c."Principal Remaining"::text principal,c."Interest Remaining"::text interest
+        c."Principal Remaining"::text principal,c."Interest Remaining"::text interest,c."Late Charge Remaining"::text late
        FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
        WHERE l."Ref Borrowers"='''+key+''' ORDER BY c."Row ID") t));''')
     for loan in result['loans']:
@@ -55,17 +55,22 @@ def facts(config,borrower_id):
     return result
 
 
+def owed(c):
+    """R118: what a charge still asks for: principal, interest and late charge (late 0 in facts before V132)."""
+    return Decimal(c['principal'])+Decimal(c['interest'])+Decimal(c.get('late') or 0)
+
+
 def due_charges(current,day):
     """Charges owed on `day`: charge date not after it and something left to pay."""
-    return [c for c in current['charges'] if c['date']<=day and Decimal(c['principal'])+Decimal(c['interest'])>0]
+    return [c for c in current['charges'] if c['date']<=day and owed(c)>0]
 
 
 def fits(receipt,borrower,current):
     """The receipt amount exactly equals one due charge's total or interest, all due charges, or this borrower's
     Loan Close payoff (R095 weak-context narrowing)."""
     amount=Decimal(receipt['amount']);due=due_charges(current,receipt['date'])
-    if any(Decimal(c['principal'])+Decimal(c['interest'])==amount or Decimal(c['interest'])==amount for c in due):return True
-    if due and sum((Decimal(c['principal'])+Decimal(c['interest']) for c in due),Decimal(0))==amount:return True
+    if any(owed(c)==amount or Decimal(c['interest'])==amount for c in due):return True
+    if due and sum((owed(c) for c in due),Decimal(0))==amount:return True
     try:return plan(receipt,borrower,current)['action']=='Loan Close'
     except (ReceiptInvalid,KeyError,InvalidOperation,ValueError):return False
 
@@ -152,7 +157,13 @@ def pay_forward_options(config,receipt,borrower_id,current,today):
     uncovered=str(forward.get('uncovered','0'))
     offered=uncovered=='0' and bool(rows) and not forward.get('settles')
     if not offered and not principal:return None
-    return {'planSha256':plan_digest(plans),'dueTotal':str(forward.get('dueTotal')),'remainder':str(int(remainder)),
+    # R118: the due part's late charge (step 1 pays every due charge in full when there is a remainder), named in the
+    # request as "Interest X + Late charge Y"; the key is present only when a late charge is due.
+    due_ids=set(forward.get('due') or []);due_lines=[l for l in forward.get('allocations') or [] if isinstance(l,dict) and l.get('chargeId') in due_ids]
+    due_late=sum((Decimal(str(l.get('lateCharge') or 0)) for l in due_lines),Decimal(0))
+    late_parts={'duePrincipal':str(int(sum((Decimal(str(l.get('principal') or 0)) for l in due_lines),Decimal(0)))),
+                'dueInterest':str(int(sum((Decimal(str(l.get('interest') or 0)) for l in due_lines),Decimal(0)))),'dueLate':str(int(due_late))} if due_late>0 else {}
+    return {'planSha256':plan_digest(plans),'dueTotal':str(forward.get('dueTotal')),**late_parts,'remainder':str(int(remainder)),
             'forward':{'first':rows[0].get('chargeDate') if rows else None,'last':rows[-1].get('chargeDate') if rows else None,
                        'through':through,'uncovered':uncovered} if rows or uncovered!='0' else None,
             'principal':principal,'blocked':blocked}
@@ -196,12 +207,12 @@ def plan(receipt,borrower,current,today=None,config=None):
     today=today or datetime.now(BANGKOK).date().isoformat()
     amount=Decimal(receipt['amount'])
     if amount!=amount.to_integral_value():raise ReceiptInvalid('WHOLE_BAHT_REQUIRED')
-    if any(Decimal(c['principal'])<0 or Decimal(c['interest'])<0 for c in current['charges']):
+    if any(Decimal(c['principal'])<0 or Decimal(c['interest'])<0 or Decimal(c.get('late') or 0)<0 for c in current['charges']):
         raise ReceiptInvalid('BALANCES_REQUIRE_RECONCILIATION')
-    due=sum((Decimal(c['principal'])+Decimal(c['interest']) for c in current['charges'] if c['date']<=receipt['date']),Decimal(0))
-    dated=[c for c in current['charges'] if c['date']<=receipt['date'] and Decimal(c['principal'])+Decimal(c['interest'])>0]
+    due=sum((owed(c) for c in current['charges'] if c['date']<=receipt['date']),Decimal(0))
+    dated=[c for c in current['charges'] if c['date']<=receipt['date'] and owed(c)>0]
     latest_day=max((c['date'] for c in dated),default=None)
-    current_amount=sum((Decimal(c['principal'])+Decimal(c['interest']) for c in dated if c['date']==latest_day),Decimal(0))
+    current_amount=sum((owed(c) for c in dated if c['date']==latest_day),Decimal(0))
     # A payment covered by current charges is ordinary, even if it happens to
     # equal a smaller loan's payoff. Principal alone is not a closure signal.
     if amount<=current_amount and amount<=due:action='Lump Sum';loan_id=None
@@ -217,7 +228,8 @@ def plan(receipt,borrower,current,today=None,config=None):
             if not existing_today:
                 last=max([c['date'] for c in charges]+[loan['date']])
                 missing_interest=Decimal(loan['daily'])*max(0,(date.fromisoformat(today)-date.fromisoformat(last)).days)
-            total=Decimal(loan['principal'])+sum((Decimal(c['interest']) for c in charges),Decimal(0))+missing_interest
+            # R118: the Loan Close payoff includes every unpaid late charge of the loan.
+            total=Decimal(loan['principal'])+sum((Decimal(c['interest'])+Decimal(c.get('late') or 0) for c in charges),Decimal(0))+missing_interest
             if total==amount and receipt['date']==today and Decimal(loan['principal'])>0:closures.append(loan['id'])
         if len(closures)>1:raise ReceiptInvalid('LOAN_CLOSE_AMBIGUOUS')
         if closures:action='Loan Close';loan_id=closures[0]

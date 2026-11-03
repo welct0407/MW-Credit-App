@@ -11,8 +11,11 @@ async function withContent(c,a,items){
  if(!items.length)return items;
  let facts=new Map();
  await c.query('SAVEPOINT history_content');
- try{facts=new Map((await c.query('SELECT * FROM public.pwa_notify_history_content_v1($1::jsonb,$2::uuid[])',[a,items.map(row=>row.eventId)])).rows.map(row=>[row.eventId,row]));await c.query('RELEASE SAVEPOINT history_content');}
- catch{await c.query('ROLLBACK TO SAVEPOINT history_content');} // A failed rollback (cancelled read, lost connection) propagates.
+ // R118 (V132): v2 adds the payment's late-charge part; before V132 the v1 read answers (no late part).
+ try{facts=new Map((await c.query('SELECT * FROM public.pwa_notify_history_content_v2($1::jsonb,$2::uuid[])',[a,items.map(row=>row.eventId)])).rows.map(row=>[row.eventId,row]));await c.query('RELEASE SAVEPOINT history_content');}
+ catch{await c.query('ROLLBACK TO SAVEPOINT history_content'); // A failed rollback (cancelled read, lost connection) propagates.
+  try{facts=new Map((await c.query('SELECT * FROM public.pwa_notify_history_content_v1($1::jsonb,$2::uuid[])',[a,items.map(row=>row.eventId)])).rows.map(row=>[row.eventId,row]));await c.query('RELEASE SAVEPOINT history_content');}
+  catch{await c.query('ROLLBACK TO SAVEPOINT history_content');}}
  return items.map(row=>({...row,...(facts.has(row.eventId)?renderNotification(facts.get(row.eventId)):genericNotification('en'))}));
 }
 /** Only fixed RPCs touch protected notification state. Identity is resolved afresh. */

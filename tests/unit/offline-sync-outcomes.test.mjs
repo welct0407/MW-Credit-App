@@ -12,7 +12,7 @@ function fixture({invalid=false,reject=false,unknown=false,blocked=false,unrecor
  const repository={environment:'synthetic',scopeName:'owner',syncAuthorized:async()=>true,claimPending:async()=>row?.sync.state==='blocked'?null:row,pending:async()=>row,markPendingDispatched:async()=>true,settlePending:async(_id,_owner,sync)=>{row=sync?{...row,sync}:null}};
  const window=new EventTarget();window.addEventListener('mw-offline-sync-outcome',event=>events.push(event.detail));
  runInNewContext(source,{exports,require:()=>({commandOriginAllowed:()=>true}),navigator:{onLine:true},location:{origin:'https://synthetic.invalid'},window,crypto,URL,Response,Blob,AbortController,CustomEvent,setTimeout,clearTimeout,fetch:async(url,init)=>{calls.push({url,method:init.method??'GET',body:init.body});if(init.method==='POST'&&url.includes('/receipts/'))return new Response(JSON.stringify(receiptUpload.body),{status:receiptUpload.status});if(init.method==='POST'){if(unknown)throw Error('lost response');if(busy>0){busy--;return new Response(JSON.stringify({ok:false,code:'command_busy'}),{status:409})}if(unavailable)return new Response(JSON.stringify({ok:false,code:'command_unavailable'}),{status:503});if(unrecorded)return new Response(JSON.stringify({code:'record_requires_reconciliation'}),{status:422});return new Response(JSON.stringify({kind:'recorded',originalOutcome:{status:reject?'rejected':'applied',code:reject?'dependency_conflict':undefined}}),{status:reject?422:200})}return new Response(JSON.stringify({kind:'unresolved'}))}});
- return {sync:()=>exports.syncSavedRequest({origin:'https://synthetic.invalid',offline:repository,token:async()=>'synthetic',authFailure:()=>{}},id),message:exports.savedRejectionMessage,isBusy:exports.isBusyOutcome,busyMessage:exports.busyMessage,events,calls,row:()=>row};
+ return {sync:options=>exports.syncSavedRequest({origin:'https://synthetic.invalid',offline:repository,token:async()=>'synthetic',authFailure:()=>{}},id,options),dispatched:()=>{row={...row,sync:{...row.sync,attempted:true}}},message:exports.savedRejectionMessage,isBusy:exports.isBusyOutcome,busyMessage:exports.busyMessage,events,calls,row:()=>row};
 }
 // DB-LOCK-01 / W4-UX-01: 409 command_busy applied nothing. The row stays queued under the same request id
 // (not blocked, not "outcome unknown"); the next attempt re-reads status and re-POSTs the identical command.
@@ -65,4 +65,18 @@ test('receipt upload 503 body_timeout keeps the saved payment queued for retry',
 test('receipt upload 400 blocks the saved payment',async()=>{
  const f=fixture({receiptUpload:{status:400,body:{ok:false,code:'invalid_request'}}}),result=await f.sync();
  assert.equal(result.kind,'blocked');assert.equal(result.code,'invalid_request');assert.equal(f.row().sync.state,'blocked');
+});
+
+// R118: a request its caller saved just now (fresh) and never marked dispatched cannot exist on the server, so it is POSTed
+// without the status read; a dispatched but unsettled one (the crash-after-dispatch case) still reads status first, and a
+// recorded outcome there is the answer without a second POST (the idempotency guard).
+test('fresh never-dispatched request skips the status read; dispatched-but-unsettled still checks status first',async()=>{
+ const fresh=fixture();const result=await fresh.sync({fresh:true});
+ assert.equal(result.kind,'synced');assert.deepEqual(fresh.calls.map(call=>call.method),['POST']);
+ const plain=fixture();await plain.sync();assert.deepEqual(plain.calls.map(call=>call.method),['GET','POST'],'without fresh the status read stays');
+ const crashed=fixture();crashed.dispatched();await crashed.sync({fresh:true});
+ assert.equal(crashed.calls[0].method,'GET','a dispatched request reads status before anything is sent again');
+ // A lost POST response leaves the row dispatched (attempted) and queued: even with fresh, the retry reads status first.
+ const lost=fixture({unknown:true});const first=await lost.sync({fresh:true});assert.equal(first.kind,'queued');assert.equal(lost.row().sync.attempted,true);
+ await lost.sync({fresh:true});assert.deepEqual(lost.calls.map(call=>call.method),['POST','GET','POST']);
 });

@@ -18,6 +18,8 @@ export function addDecimal(left:unknown,right:unknown,sign:1|-1=1):string|null{
  const total=value(a)+BigInt(sign)*value(b),negative=total<0n,digits=(negative?-total:total).toString().padStart(scale+1,'0');
  return (negative?'-':'')+(scale?digits.slice(0,-scale)+'.'+digits.slice(-scale):digits);
 }
+/** R118: a row that carries a late charge moves its remaining (and paid, when shown) by the allocation's late part. */
+const lateMoves=(row:any,allocation:any)=>{const part=allocation?.lateCharge??'0';if(row.lateChargeRemaining!==undefined){const left=addDecimal(row.lateChargeRemaining,part,-1);if(left!==null)row.lateChargeRemaining=left}if(row.lateChargePaid!==undefined){const paid=addDecimal(row.lateChargePaid,part);if(paid!==null)row.lateChargePaid=paid}};
 const positive=(value:string|null)=>value!==null&&!value.startsWith('-')&&/[1-9]/.test(value);
 
 /** A server command result (GET /api/payment-commands/{id}/result) that may be applied locally. */
@@ -47,13 +49,13 @@ export function patchRecords(bundle:any,result:any,requestId:string,at=Date.now(
   const loans=new Set<string>();
   for(const allocation of result.allocations){
    const charge=chargeOf(allocation.chargeId);
-   if(charge){const remaining=addDecimal(charge.amountRemaining,allocation.amount,-1),paid=addDecimal(charge.totalPaid,allocation.amount);if(remaining!==null&&paid!==null)Object.assign(charge,{amountRemaining:remaining,totalPaid:paid,localPending});if(charge.loanId)loans.add(charge.loanId)}
+   if(charge){const remaining=addDecimal(charge.amountRemaining,allocation.amount,-1),paid=addDecimal(charge.totalPaid,allocation.amount);if(remaining!==null&&paid!==null)Object.assign(charge,{amountRemaining:remaining,totalPaid:paid,localPending});lateMoves(charge,allocation);if(charge.loanId)loans.add(charge.loanId)}
    for(const [loanId,related] of Object.entries(data.loanRelated??{}) as [string,any][]){const row=(related?.charges??[]).find((item:any)=>item.id===allocation.chargeId);if(!row)continue;loans.add(loanId);const remaining=addDecimal(row.remaining,allocation.amount,-1);if(remaining!==null)Object.assign(row,{remaining,localPending})}
    for(const drafts of Object.values(data.paymentDrafts?.[payment.borrowerId]??{}) as any[]){
     if(!Array.isArray(drafts?.charges))continue;
-    drafts.charges=drafts.charges.flatMap((row:any)=>{if(row.id!==allocation.chargeId)return [row];const amount=addDecimal(row.amountRemaining,allocation.amount,-1),principal=addDecimal(row.principalRemaining,allocation.principal,-1),interest=addDecimal(row.interestRemaining,allocation.interest,-1);if(amount===null||principal===null||interest===null)return [row];
-     // A charge paid in full leaves the payment draft, as the server's draft does.
-     return positive(amount)?[{...row,amountRemaining:amount,principalRemaining:principal,interestRemaining:interest,localPending}]:[]});
+    drafts.charges=drafts.charges.flatMap((row:any)=>{if(row.id!==allocation.chargeId)return [row];const amount=addDecimal(row.amountRemaining,allocation.amount,-1),principal=addDecimal(row.principalRemaining,allocation.principal,-1),interest=addDecimal(row.interestRemaining,allocation.interest,-1),late=row.lateChargeRemaining===undefined?undefined:addDecimal(row.lateChargeRemaining,allocation.lateCharge??'0',-1);if(amount===null||principal===null||interest===null||late===null)return [row];
+     // A charge paid in full leaves the payment draft, as the server's draft does. R118: its late charge moves too.
+     return positive(amount)?[{...row,amountRemaining:amount,principalRemaining:principal,interestRemaining:interest,...(late===undefined?{}:{lateChargeRemaining:late}),localPending}]:[]});
    }
   }
   for(const loanId of loans){const related=data.loanRelated?.[loanId];if(!related)continue;related.payments=[{id:payment.id,date:payment.paymentDate,amount:payment.amountReceived,method:payment.paymentMethod,status:payment.status,notes:payment.notes??null,localPending},...(related.payments??[]).filter((row:any)=>row.id!==payment.id)].sort((a:any,b:any)=>(a.date==null?1:0)-(b.date==null?1:0)||(a.date<b.date?1:a.date>b.date?-1:0)||(a.id<b.id?-1:a.id>b.id?1:0))}
@@ -69,7 +71,7 @@ export function patchCollection(bundle:any,result:any,requestId:string,at=Date.n
  // A payment on no charge the collection shows has nothing to patch there.
  if(!existing&&!charges.length)return null;
  if(!existing){
-  for(const allocation of result.allocations){const row=charges.find((charge:any)=>charge.id===allocation.chargeId);if(!row)continue;const remaining=addDecimal(row.amountRemaining,allocation.amount,-1),paid=addDecimal(row.totalPaid,allocation.amount),today=payment.paymentDate===bundle.businessDate?addDecimal(row.receivedToday??'0',allocation.amount):row.receivedToday;if(remaining===null||paid===null)continue;Object.assign(row,{amountRemaining:remaining,totalPaid:paid,receivedToday:today,localPending})}
+  for(const allocation of result.allocations){const row=charges.find((charge:any)=>charge.id===allocation.chargeId);if(!row)continue;const remaining=addDecimal(row.amountRemaining,allocation.amount,-1),paid=addDecimal(row.totalPaid,allocation.amount),today=payment.paymentDate===bundle.businessDate?addDecimal(row.receivedToday??'0',allocation.amount):row.receivedToday;if(remaining===null||paid===null)continue;lateMoves(row,allocation);Object.assign(row,{amountRemaining:remaining,totalPaid:paid,receivedToday:today,localPending})}
  }
  const receipt={id:payment.id,borrowerId:payment.borrowerId,paymentDate:payment.paymentDate,amount:payment.amountReceived,manualReceiptPresent:typeof payment.receiptReference==='string'&&!!payment.receiptReference.trim(),agentReceiptPresent:false,receiptAt:payment.receiptAt??null,chargeIds:charges.map((row:any)=>row.id).sort(),localPending};
  data.receipts=[...(data.receipts??[]).filter((row:any)=>row.id!==payment.id),receipt];

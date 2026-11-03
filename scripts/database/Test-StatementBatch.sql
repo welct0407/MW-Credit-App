@@ -190,6 +190,8 @@ END $$;
 \ir Test-WriteOffSegregation.sql
 -- V128 (R116, Chase): write-off edge cases (earlier months, a legacy undated pair, monthly/daily/events/portfolio lifetime agreement), rolled back.
 \ir Test-WriteOffSegregationEdges.sql
+-- V132 (R118, Chase): late charges (columns, both engines, v11 and agent v10, Loan Close, pay forward, default, income, push content), rolled back.
+\ir Test-LateCharges.sql
 -- V114 (R102): the Long Overdue collection status in the OLAP borrower view and its portfolio count (rolled back).
 \ir Test-LongOverdue.sql
 -- R095: the DEV test Partner script (it reconnects, so it runs after the session-scoped suites).

@@ -618,6 +618,30 @@
    },
    "reconcile": "Equals −(the dashboard 3 write-off question of Refine-WriteOffSegregation.mjs) for the same Statement period."
   },
+  "income.latecharges": {
+   "name": "Late charges received · statement period",
+   "display": "scalar",
+   "kind": "native",
+   "basis": "snippet 2 Income statement period",
+   "origin": 168,
+   "params": [
+    "statement-period"
+   ],
+   "definition": "Question 168's template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet's \"Late Charges Received\" (R118 V132): the late part of the period's income, a memo that is not added again.",
+   "sql": "WITH statement AS ({{snippet: Income statement period}}) SELECT \"Late Charges Received\" AS \"Late charges\" FROM statement",
+   "settings": {
+    "scalar.field": "Late charges",
+    "column_settings": {
+     "[\"name\", \"Late charges\"]": {
+      "number_style": "decimal",
+      "decimals": 0,
+      "number_separators": ".,",
+      "compact": false
+     }
+    }
+   },
+   "reconcile": "Equals the dashboard 3 late-charge question of Refine-LateCharges.mjs for the same Statement period."
+  },
   "income.vs-previous": {
    "name": "This period and the previous period",
    "display": "table",
@@ -2120,9 +2144,20 @@
      "row": 5,
      "col": 16,
      "size_x": 8,
-     "size_y": 6,
+     "size_y": 3,
      "reuse_card_id": 171,
      "title": "Net profit per day · calendar days",
+     "params": [
+      "statement-period"
+     ]
+    },
+    {
+     "row": 8,
+     "col": 16,
+     "size_x": 8,
+     "size_y": 3,
+     "new_question": "income.latecharges",
+     "title": "Late charges · inside income",
      "params": [
       "statement-period"
      ]
@@ -5052,7 +5087,7 @@
  ],
  "summary": {
   "tabs": 12,
-  "placements": 228,
+  "placements": 229,
   "reused_questions": [
    49,
    50,
@@ -5221,6 +5256,7 @@
    "collection.lane-partial",
    "collection.people",
    "income.expenses",
+   "income.latecharges",
    "income.monthly",
    "income.vs-previous",
    "income.writeoffs",

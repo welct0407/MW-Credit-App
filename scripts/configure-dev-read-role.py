@@ -15,14 +15,14 @@ ROLE = 'mw-credit-app-read-dev@clever-oasis-508610-n7.iam'
 COLUMNS = {
     'Borrowers': ['Row ID', 'Borrower Name', 'Creation Date', 'Hidden Flag', 'Total Outstanding Principal', 'Has Active Loan', 'Borrower Note', 'Description', 'Total Interest Earned'],
     'Partners': ['Row ID', 'Login Email', 'Partner Role'],
-    'Charges': ['Row ID', 'Ref Loans', 'Charge Date', 'Payment Status', 'Payment Date', 'Amount Remaining', 'Total Paid'],
-    'Repayments': ['Ref Charges', 'Payment Date', 'Principal Paid', 'Interest Paid', 'Ref Payment'],
+    'Charges': ['Row ID', 'Ref Loans', 'Charge Date', 'Payment Status', 'Payment Date', 'Amount Remaining', 'Total Paid', 'Late Charge Due', 'Late Charge Remaining'],
+    'Repayments': ['Ref Charges', 'Payment Date', 'Principal Paid', 'Interest Paid', 'Ref Payment', 'Late Charge Paid'],
     'Payments': ['Row ID', 'Payment Method'],
     'Loans': ['Row ID', 'Ref Borrowers', 'Loan Date', 'Due Date', 'Close Date', 'Loan Type', 'Loan Status', 'Principal Amount', 'Outstanding Principal', 'Total Principal Received', 'Total Interest Received', 'Total Amount Received', 'Defaulted', 'Auto Charge Enabled', 'Original Daily Interest Rate', 'Default Loss Amount'],
 }
 VIEW_COLUMNS = {
     'oltp_upcoming_charge_summary_v2': ['Row ID', 'Ref Borrower', 'Due Date', 'Total Charge', 'As Of Date'],
-    'oltp_upcoming_charge_events_v1': ['Row ID', 'Ref Borrower', 'Ref Loan', 'Due Date', 'Principal Remaining', 'Interest Remaining', 'Amount Remaining', 'Basis', 'As Of Date', 'Borrower Due Date Rank'],
+    'oltp_upcoming_charge_events_v1': ['Row ID', 'Ref Borrower', 'Ref Loan', 'Due Date', 'Principal Remaining', 'Interest Remaining', 'Amount Remaining', 'Basis', 'As Of Date', 'Borrower Due Date Rank', 'Late Charge Remaining'],
     'oltp_upcoming_charge_coverage_v1': ['Ref Borrower', 'As Of Date', 'Horizon End', 'Review Loans'],
 }
 COLUMNS.update(VIEW_COLUMNS)

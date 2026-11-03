@@ -225,7 +225,7 @@ import {confirmLabel} from '../../services/chat/proposals.mjs';
 const confirmLabelOf=(operation,values)=>confirmLabel(loadCatalogue().entries.get(operation),values);
 
 // D12: groups ("One card, Confirm all"). Oum's six loans each have one charge to edit (synthetic ids).
-const oumCharges=Object.fromEntries([1,2,3,4,5,6].map(n=>[`GET /api/charge-records/C${n}`,ok({item:{id:`C${n}`,loanId:`L${n}`,chargeDate:'2026-10-29',principalDue:'0.00',interestDue:'100.00',
+const oumCharges=Object.fromEntries([1,2,3,4,5,6].map(n=>[`GET /api/charge-records/C${n}`,ok({item:{id:`C${n}`,loanId:`L${n}`,chargeDate:'2026-10-29',principalDue:'0.00',interestDue:'100.00',lateChargeDue:'0.00',
  notes:'Carry-forward note '.repeat(20).trim(),borrowerId:'B-OUM',borrowerName:'Oum',borrowerDescription:null,version:V}})]));
 const sixEdits=()=>[1,2,3,4,5,6].map(n=>({operation:'charge.update',target:`C${n}`,values:{interestDue:'150'}}));
 test('D12: six charge edits become one group of six lines with card.group indexes; only changed fields are changes',async()=>{
@@ -250,7 +250,7 @@ test('CW3-01: destructive lines come first in the group; the rest keep their ord
 });
 test('D12: refusals: 21 lines, the same target twice, a line using a record another line creates, a payment or close with edits for its borrower',async()=>{
  const drafts={'POST /api/payment-drafts/B-OUM/select-all':ok({businessDate:'2026-10-30',borrower:{id:'B-OUM',displayName:'Oum'},charges:[{id:'C1',chargeDate:'2026-10-29',loanDisplayKey:'k',principalRemaining:'0',interestRemaining:'100',amountRemaining:'100'}],accounts:[{id:'CA1',label:'Cash box'}],preferredReceivingAccountId:'CA1'}),
-  'POST /api/payment-drafts/B-OUM/auto-assign':ok({charges:[],allocations:[{chargeId:'C1',principal:'0',interest:'100',expectedPrincipalRemaining:'0',expectedInterestRemaining:'100',chargeDate:'2026-10-29'}],unallocated:'0'}),
+  'POST /api/payment-drafts/B-OUM/auto-assign':ok({charges:[],allocations:[{chargeId:'C1',principal:'0',interest:'100',lateCharge:'0',expectedPrincipalRemaining:'0',expectedInterestRemaining:'100',expectedLateChargeRemaining:'0',chargeDate:'2026-10-29'}],unallocated:'0'}),
   'POST /api/payment-drafts/B-OUM/review':ok({}),
   'GET /api/loan-records/L1/close-preview':ok({sourceVersion:W,businessDate:'2026-10-30',amount:'10300',planHash:'c'.repeat(64),plan:{borrowerId:'B-OUM'}})};
  const planner=()=>createProposalPlanner({client:service({...base,...oumCharges,...drafts}).client,actor:{partnerId:'P1'},newId:ids()});
@@ -280,18 +280,18 @@ test('D12: refusals: 21 lines, the same target twice, a line using a record anot
  assert.equal((await planner().proposeGroup([sixEdits()[0],{operation:'loan.update',target:'L1',values:{currentDailyInterest:'120'}}])).length,2);
 });
 
-test('R112: Confirm of a remainder draft builds its v10 command for the chosen purpose under the same id, sends it once; a refusal settles failed',async()=>{
+test('R112: Confirm of a remainder draft builds its v11 (R118; v10 before) command for the chosen purpose under the same id, sends it once; a refusal settles failed',async()=>{
  const {executeProposal}=await import('../../services/chat/proposals.mjs');
  const RID='00000000-0000-4000-8000-0000000000bb';
  const draft={borrowerId:'B1',amountReceived:'1000',paymentDate:'2026-10-30',paymentMethod:'Cash',cashAccountId:'CA1',notes:null};
  const due=[{id:'C1',chargeDate:'2026-10-30',loanDisplayKey:'k',amountRemaining:'700',principalRemaining:'0',interestRemaining:'700'}];
- const dueLine={chargeId:'C1',principal:'0',interest:'700',expectedPrincipalRemaining:'0',expectedInterestRemaining:'700',chargeDate:'2026-10-30'};
+ const dueLine={chargeId:'C1',principal:'0',interest:'700',lateCharge:'0',expectedPrincipalRemaining:'0',expectedInterestRemaining:'700',expectedLateChargeRemaining:'0',chargeDate:'2026-10-30'};
  const rows=[{loanId:'L1',chargeId:'cg8:2:L1:2026-10-31',chargeDate:'2026-10-31',principalDue:'0',interestDue:'300',principal:'0',interest:'300',partial:false}];
  const routes=(forwardOffered=true)=>({...base,
   'POST /api/payment-drafts/B1/select-all':ok({businessDate:'2026-10-30',borrower:{displayName:'สมชาย'},charges:due,accounts:accounts.accounts}),
   'POST /api/payment-drafts/B1/auto-assign':ok({charges:due,allocations:[dueLine],allocated:'700',unallocated:'300',
    remainder:{amount:'300',loans:{},forward:forwardOffered?{rows,paidThrough:{L1:'2026-10-31'},uncovered:'0',blocked:[]}:{rows:[],paidThrough:{},uncovered:'300',blocked:[]},principal:[{loanId:'L1',amount:'300',settles:false,entry:{dailyAfter:'90'}}]}}),
-  'POST /api/payment-drafts/B1/plan':ok({businessDate:'2026-10-30',plan:{allocations:[dueLine,{chargeId:rows[0].chargeId,principal:'0',interest:'300',expectedPrincipalRemaining:'0',expectedInterestRemaining:'300',chargeDate:'2026-10-31'}],
+  'POST /api/payment-drafts/B1/plan':ok({businessDate:'2026-10-30',plan:{allocations:[dueLine,{chargeId:rows[0].chargeId,principal:'0',interest:'300',lateCharge:'0',expectedPrincipalRemaining:'0',expectedInterestRemaining:'300',expectedLateChargeRemaining:'0',chargeDate:'2026-10-31'}],
    materialize:[{loanId:'L1',chargeId:rows[0].chargeId,chargeDate:'2026-10-31',principalDue:'0',interestDue:'300'}],principal:[],uncovered:'0',settles:[]}}),
   'POST /api/payment-drafts/B1/review':ok({})});
  const run=async({forwardOffered=true,purpose={forward:true,principal:[]},attempts=1,statusKind='unresolved'}={})=>{
@@ -304,7 +304,7 @@ test('R112: Confirm of a remainder draft builds its v10 command for the chosen p
  };
  const posted=await run();
  assert.equal(posted.sent.length,1);const [kind,command]=posted.sent[0];
- assert.equal(kind,'payment');assert.equal(command.schemaVersion,10);assert.equal(command.requestId,RID);assert.deepEqual(command,canonicalCommand(command));
+ assert.equal(kind,'payment');assert.equal(command.schemaVersion,11);assert.equal(command.requestId,RID);assert.deepEqual(command,canonicalCommand(command));
  assert.equal(command.materialize.length,1);assert.equal(posted.settled.state,'done');assert.deepEqual(posted.settled.record,{type:'payment',id:'pwa:'+RID,paymentId:'pwa:'+RID});
  // The choice is no longer offered when Confirm runs: nothing is sent, the line fails.
  const gone=await run({forwardOffered:false});
