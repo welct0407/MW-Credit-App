@@ -30,7 +30,7 @@
 --     reads; "Late charges received" is appended last to the income statement, monthly, daily and events views as a memo
 --     line; the upcoming events view appends "Late Charge Remaining"; health counts a charge fully paid only when its late
 --     charge is paid; refresh_daily_analytics_scoped and partner_net_profit include it; pwa_notify_content_v3 = v2 plus
---     late_charge_amount (v1 and v2 stay for older dispatchers).
+--     late_charge_amount (v1 and v2 stay for older dispatchers); pwa_notify_history_content_v2 = v1 plus "lateChargeAmount".
 -- Referral rebates stay interest only (create_referral_rebate, pwa_referral_rebate_projection_v1 untouched). No trigger is
 -- added, renamed or disabled. Grants: SELECT ("Ref Payment", "Late Charge Paid") ON "Repayments" to the notify owner; the
 -- reader IAM column grants are an operator step (scripts/configure-dev-read-role.py, reader contract). Self-check: every
@@ -47,7 +47,7 @@ BEGIN
  IF EXISTS(SELECT 1 FROM pg_attribute WHERE NOT attisdropped AND (attrelid,attname) IN (('public."Charges"'::regclass,'Late Charge Due'),('public."Charges"'::regclass,'Late Charge Paid'),
    ('public."Charges"'::regclass,'Late Charge Remaining'),('public."Payment Allocations"'::regclass,'Allocated Late Charge'),('public."Repayments"'::regclass,'Late Charge Paid'))) THEN
   problems:=problems||'V132: a late charge column already exists'::text; END IF;
- IF to_regprocedure('public.pwa_notify_content_v3(uuid,bigint)') IS NOT NULL THEN problems:=problems||'V132: pwa_notify_content_v3 already exists'::text; END IF;
+ IF to_regprocedure('public.pwa_notify_content_v3(uuid,bigint)') IS NOT NULL OR to_regprocedure('public.pwa_notify_history_content_v2(jsonb,uuid[])') IS NOT NULL THEN problems:=problems||'V132: a v3/v2 notify content function already exists'::text; END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname=notify_owner) OR NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname=dispatcher) THEN problems:=problems||'V132 needs the notify owner and dispatcher roles'::text; END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mw_app_'||suffix||'_journal_owner') THEN problems:=problems||'V132 needs the journal owner'::text; END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname=current_user AND rolsuper) THEN
@@ -1430,6 +1430,55 @@ BEGIN
   OR NOT has_function_privilege(dispatcher,'public.pwa_notify_content_v3(uuid,bigint)','EXECUTE') THEN
   RAISE EXCEPTION 'V132: pwa_notify_content_v3 must be the notify owner''s pinned definer executable only by %',dispatcher; END IF;
 END $notify$;
+
+-- 5p. Notification history text v2: v1 plus "lateChargeAmount", the late part of a posted payment, so a history row
+-- reads like its push (Echo LC-PUSH-1). Same boundary as v1 (V103): the notify owner's pinned definer, EXECUTE only for
+-- the notify API role; v1 stays for an API image before R118.
+CREATE FUNCTION public.pwa_notify_history_content_v2(actor jsonb, events uuid[]) RETURNS TABLE("eventId" uuid, found boolean, "eventType" text, language text, "borrowerName" text, amount numeric, "lateChargeAmount" numeric)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE partner text:=public.pwa_notify_actor_v1(actor);
+BEGIN
+ IF events IS NULL OR cardinality(events)>26 THEN RAISE EXCEPTION 'invalid_request'; END IF;
+ RETURN QUERY SELECT e.event_id,src.source_found,
+  CASE WHEN e.event_type='chat.reply' THEN 'chat.reply:'||split_part(e.source_version,':',1) ELSE e.event_type END,
+  CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
+  CASE WHEN e.source_kind='chat' THEN src.source_title WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  src.source_amount,
+  -- R118: the late-charge part of the payment.
+  CASE WHEN e.source_kind='payment' THEN (SELECT coalesce(sum(y."Late Charge Paid"::numeric),0) FROM public."Repayments" y WHERE y."Ref Payment"=e.source_id) END
+ FROM public.pwa_notification_events e
+ LEFT JOIN public."Partners" recipient ON recipient."Row ID"=partner
+ LEFT JOIN LATERAL (
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,NULL::text,NULL::numeric,t.title FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=partner
+ ) source_row ON true
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title) src
+ LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
+ WHERE e.event_id=ANY(events) AND EXISTS(SELECT 1 FROM public.pwa_notification_deliveries d WHERE d.event_id=e.event_id AND d.recipient_partner_id=partner);
+END $$;
+
+DO $history$
+DECLARE suffix text:=CASE current_database() WHEN 'loan_manager_prod' THEN 'prod' ELSE 'dev' END; notify_owner text; api text; grantee text;
+BEGIN
+ notify_owner:='mw_notify_owner_'||suffix; api:='mw_notify_api_'||suffix;
+ REVOKE ALL ON FUNCTION public.pwa_notify_history_content_v2(jsonb,uuid[]) FROM PUBLIC;
+ FOR grantee IN SELECT DISTINCT pg_get_userbyid(a.grantee) FROM pg_proc p CROSS JOIN LATERAL aclexplode(p.proacl) a
+   WHERE p.oid='public.pwa_notify_history_content_v2(jsonb,uuid[])'::regprocedure AND a.grantee<>0 AND a.grantee<>p.proowner LOOP
+  EXECUTE format('REVOKE ALL ON FUNCTION public.pwa_notify_history_content_v2(jsonb,uuid[]) FROM %I',grantee);
+ END LOOP;
+ COMMENT ON FUNCTION public.pwa_notify_history_content_v2(jsonb,uuid[]) IS 'mw-access:governance fixed notification boundary; explicit capability only';
+ IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname=api) THEN EXECUTE format('GRANT EXECUTE ON FUNCTION public.pwa_notify_history_content_v2(jsonb,uuid[]) TO %I',api); END IF;
+ EXECUTE format('ALTER FUNCTION public.pwa_notify_history_content_v2(jsonb,uuid[]) OWNER TO %I',notify_owner);
+ IF NOT (SELECT prosecdef AND pg_get_userbyid(proowner)=notify_owner AND 'search_path=pg_catalog, public'=ANY(proconfig) FROM pg_proc WHERE oid='public.pwa_notify_history_content_v2(jsonb,uuid[])'::regprocedure)
+  OR EXISTS(SELECT 1 FROM pg_proc p CROSS JOIN LATERAL aclexplode(p.proacl) a WHERE p.oid='public.pwa_notify_history_content_v2(jsonb,uuid[])'::regprocedure AND a.privilege_type='EXECUTE'
+   AND a.grantee<>p.proowner AND pg_get_userbyid(a.grantee)<>api) THEN
+  RAISE EXCEPTION 'V132: pwa_notify_history_content_v2 must be the notify owner''s pinned definer executable only by %',api; END IF;
+END $history$;
 
 -- The two dropped and created readers get their previous ACL and comment back (a postgres-created function also carries
 -- PROD's default-privilege EXECUTE for mw_integration_agent, which is revoked unless it was there before).

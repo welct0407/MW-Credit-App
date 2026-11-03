@@ -5217,6 +5217,46 @@ COMMENT ON FUNCTION public.pwa_notify_history_content_v1(actor jsonb, events uui
 
 
 --
+-- Name: pwa_notify_history_content_v2(jsonb, uuid[]); Type: FUNCTION
+--
+
+CREATE FUNCTION public.pwa_notify_history_content_v2(actor jsonb, events uuid[]) RETURNS TABLE("eventId" uuid, found boolean, "eventType" text, language text, "borrowerName" text, amount numeric, "lateChargeAmount" numeric)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE partner text:=public.pwa_notify_actor_v1(actor);
+BEGIN
+ IF events IS NULL OR cardinality(events)>26 THEN RAISE EXCEPTION 'invalid_request'; END IF;
+ RETURN QUERY SELECT e.event_id,src.source_found,
+  CASE WHEN e.event_type='chat.reply' THEN 'chat.reply:'||split_part(e.source_version,':',1) ELSE e.event_type END,
+  CASE WHEN recipient."Language Preference"='ไทย' THEN 'th' ELSE 'en' END::text,
+  CASE WHEN e.source_kind='chat' THEN src.source_title WHEN recipient."Language Preference"='ไทย' THEN b."Borrower Name" ELSE nullif(btrim(b."Description",E' \t\r\n\f\v'),'') END,
+  src.source_amount,
+  -- R118: the late-charge part of the payment.
+  CASE WHEN e.source_kind='payment' THEN (SELECT coalesce(sum(y."Late Charge Paid"::numeric),0) FROM public."Repayments" y WHERE y."Ref Payment"=e.source_id) END
+ FROM public.pwa_notification_events e
+ LEFT JOIN public."Partners" recipient ON recipient."Row ID"=partner
+ LEFT JOIN LATERAL (
+  SELECT true AS source_found,p."Ref Borrower" AS borrower_id,p."Amount Received"::numeric AS source_amount,NULL::text AS source_title FROM public."Payments" p WHERE e.source_kind='payment' AND p."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,l."Ref Borrowers",l."Principal Amount"::numeric,NULL::text FROM public."Loans" l WHERE e.source_kind='loan' AND l."Row ID"=e.source_id
+  UNION ALL
+  SELECT true,NULL::text,NULL::numeric,t.title FROM public.pwa_chat_threads t WHERE e.source_kind='chat' AND t.id::text=e.source_id AND t.partner_id=partner
+ ) source_row ON true
+ CROSS JOIN LATERAL (SELECT coalesce(source_row.source_found,false) AS source_found,source_row.borrower_id,source_row.source_amount,source_row.source_title) src
+ LEFT JOIN public."Borrowers" b ON b."Row ID"=src.borrower_id
+ WHERE e.event_id=ANY(events) AND EXISTS(SELECT 1 FROM public.pwa_notification_deliveries d WHERE d.event_id=e.event_id AND d.recipient_partner_id=partner);
+END $$;
+
+
+--
+-- Name: FUNCTION pwa_notify_history_content_v2(actor jsonb, events uuid[]); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.pwa_notify_history_content_v2(actor jsonb, events uuid[]) IS 'mw-access:governance fixed notification boundary; explicit capability only';
+
+
+--
 -- Name: pwa_notify_history_v1(jsonb, timestamp with time zone, uuid); Type: FUNCTION
 --
 
