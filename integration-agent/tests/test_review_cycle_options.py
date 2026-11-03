@@ -173,6 +173,18 @@ class OptionsCycleTests(unittest.TestCase):
         self.assertEqual(self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='job'").fetchone()[0],'PENDING')
         self.submit.assert_not_called()
 
+    def test_four_after_the_charge_edit_made_the_review_stale(self):
+        # The incident of 3 November 2026: a "Review" resend checked the open review against the edited charges and
+        # marked it STALE (PROPOSAL_FACTS_CHANGED); the 4 that followed must still plan the slip again.
+        self.j.db.execute("UPDATE receipt_jobs SET result=?,created_at=? WHERE id='job'",(json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b}),time.time()))
+        self.j.db.execute("UPDATE partner_reviews SET state='STALE',detail='PROPOSAL_FACTS_CHANGED'");self.j.db.commit()
+        self.reply('4');self.current=dict(self.proposal,options=options('e'*64))
+        result=cycle(self.config,self.j,lambda *_:{'id':'456','username':'partner'},images=lambda:None)
+        self.assertEqual(result['failures'],[])
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews WHERE id=?',(self.key,)).fetchone()[0],'SUPERSEDED')
+        self.assertEqual(self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='job'").fetchone()[0],'PENDING')
+        self.submit.assert_not_called()
+
     def test_switch_off_keeps_the_overpayment_hold_and_a_reply_number_means_nothing(self):
         # Off: today's hold. The proposal is the old action; any non-approval reply rejects, and no options are ever queued.
         self.config.pop('pay_forward_options_enabled')

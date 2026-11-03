@@ -15,6 +15,10 @@ REJECT={'reject','rejected','ปฏิเสธ'}
 # what is due it is then an ordinary payment (posted under the automatic-payment policy); otherwise a new options request.
 RECHECK={'4','recheck','ตรวจใหม่'}
 RECHECKED='RECHECK_QUEUED'
+# 3 November 2026: editing the charges can make the open review STALE before the 4 arrives (a pending notice for it is
+# checked against the current charges before it is sent, for example after a "Review" resend). A 4 on a review that is
+# stale only because the charges changed still rechecks; other stale reasons (day passed, account changed) do not.
+RECHECK_STALE=('PROPOSAL_FACTS_CHANGED','PAY_FORWARD_PLAN_CHANGED')
 OPTIONS_REQUIRED='OPTIONS_REQUIRED'
 CHOICE=re.compile(r'(1)|(2)(?:\s+([1-9]))?|(3)\s+([1-9][0-9]{0,16})')
 
@@ -93,7 +97,11 @@ class ReviewStore:
             row=self.db.execute('SELECT * FROM partner_reviews WHERE id=?',(key,)).fetchone()
             if not row:return 'NOT_CORRELATED'
             if event['event_timestamp']<row['created_at'] or event['event_timestamp']>now:return 'INVALID_TIME'
-            if row['state']!='PENDING':outcome='ALREADY_DECIDED'
+            rechecking=(json.loads(row['proposal']).get('action')=='Pay forward options'
+                        and (event.get('text') or '').strip().casefold() in RECHECK and now<=row['expires_at']
+                        and (row['state']=='PENDING' or (row['state']=='STALE' and row['detail'] in RECHECK_STALE)))
+            if rechecking:outcome=self._recheck(row,p,event,now)
+            elif row['state']!='PENDING':outcome='ALREADY_DECIDED'
             elif now>row['expires_at']:
                 outcome='EXPIRED'
                 self.db.execute("UPDATE partner_reviews SET state='EXPIRED' WHERE id=? AND state='PENDING'",(key,))
@@ -103,9 +111,7 @@ class ReviewStore:
                 text=event.get('text') or ''
                 choice=options_choice(text)
                 purpose=chosen_purpose(json.loads(row['proposal'])['options'],choice) if choice else None
-                if text.strip().casefold() in RECHECK:
-                    outcome,detail=self._recheck(row,p,event,now),None
-                elif text.strip().casefold() in REJECT:outcome,detail='REJECTED',''
+                if text.strip().casefold() in REJECT:outcome,detail='REJECTED',''
                 elif purpose:outcome,detail='APPROVED',json.dumps({'purpose':purpose},sort_keys=True,separators=(',',':'))
                 else:outcome,detail=OPTIONS_REQUIRED,None
                 if detail is not None:
@@ -127,8 +133,8 @@ class ReviewStore:
         job=self.db.execute("SELECT status,detail,result FROM receipt_jobs WHERE id=?",(row['job_id'],)).fetchone()
         if not job or job['status']!='REVIEW_REQUESTED':return 'ALREADY_DECIDED'
         changed=self.db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id=job_id||':superseded:'||id,"
-            "deciding_partner=?,decision_message=?,detail='REVIEWER_REQUESTED_RECHECK' WHERE id=? AND state='PENDING'",
-            (partner['id'],event['message_id'],row['id'])).rowcount
+            "deciding_partner=?,decision_message=?,detail='REVIEWER_REQUESTED_RECHECK' WHERE id=? AND state=? AND detail=?",
+            (partner['id'],event['message_id'],row['id'],row['state'],row['detail'])).rowcount
         if not changed:return 'ALREADY_DECIDED'
         from .state import is_postgres
         if not is_postgres(self.db):   # PostgreSQL has it from agent migration V2 (as receipt_reconsider does)

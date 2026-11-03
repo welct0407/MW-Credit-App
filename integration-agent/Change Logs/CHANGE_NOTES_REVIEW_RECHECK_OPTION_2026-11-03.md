@@ -28,3 +28,21 @@ None.
 
 ## Remaining work
 - Merge, then deploy with `deploy-runtime.py` on the owner's go.
+
+## Follow-up: 4 on a review made stale by the charge edit (same day)
+- **What happened:** Ton's ฿150 slip, 3 November 2026.
+  - The owner added the late fee in the app.
+  - At 16:52:14 the owner sent `Review` (resend), which queued a resend of the open options.
+  - Before sending, the delivery check compared the review with the edited charges and marked it `STALE` (`PROPOSAL_FACTS_CHANGED`). The "Facts changed" result went out.
+  - The owner's `4` at 16:52:47 was then `ALREADY_DECIDED`.
+- **Recovery:** the owner's `4` asked for a recheck, so the slip was re-queued with `receipt-reconsider` (prior review superseded). It was planned again from the current charges and posted as an ordinary Lump Sum under the automatic-payment policy: payment `pwa:26f4a3ad-06b3-4d06-94d2-cc6ac0ee34ba`.
+- **Fix in `partner_review.py`:** a `4` also rechecks an options review that is `STALE` only because the charges changed (`PROPOSAL_FACTS_CHANGED`, `PAY_FORWARD_PLAN_CHANGED`) and has not expired.
+  - The supersede update is guarded on the exact state and detail it read.
+  - Other stale reasons, an expired review, and any reply other than `4` stay `ALREADY_DECIDED`.
+- **Tests:**
+  - Both stale reasons recheck.
+  - Day passed, account changed and date too old stay decided.
+  - `1` on a stale review stays decided.
+  - An expired stale review stays decided.
+  - A cycle test reproduces the incident: stale, then `4`, then a new pending review in the same run.
+- **Checks:** related suites 139 tests OK; `ruff check --no-cache integration-agent` clean.
