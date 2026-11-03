@@ -361,7 +361,7 @@
       "default_expression": null
       "collation": null
       "acl": null
-      "comment": "R118 (V132), DEV-pending: not yet captured from PROD; ordinal confirmed from V132 (Byte), ACL and default expression are refreshed from a PROD capture after promotion. Late charge owed on this charge, set by hand only; default 0, whole baht, never below Late Charge Paid. Third amount beside Principal Due and Interest Due."
+      "comment": "R118 (V132), applied to DEV and PROD on 3 November 2026; pending PROD capture: ordinal confirmed from V132, ACL and default expression are refreshed from the next PROD capture. Late charge owed on this charge, set by hand only; default 0, whole baht, never below Late Charge Paid. Third amount beside Principal Due and Interest Due."
     "Late Charge Paid":
       "schema": "public"
       "relation": "Charges"
@@ -379,7 +379,7 @@
       "default_expression": null
       "collation": null
       "acl": null
-      "comment": "R118 (V132), DEV-pending: not yet captured from PROD; ordinal confirmed from V132 (Byte), ACL and default expression are refreshed from a PROD capture after promotion. Late charge paid on this charge; maintained by the charge refresh like Interest Paid. Total Paid includes it."
+      "comment": "R118 (V132), applied to DEV and PROD on 3 November 2026; pending PROD capture: ordinal confirmed from V132, ACL and default expression are refreshed from the next PROD capture. Late charge paid on this charge; maintained by the charge refresh like Interest Paid. Total Paid includes it."
     "Late Charge Remaining":
       "schema": "public"
       "relation": "Charges"
@@ -397,7 +397,7 @@
       "default_expression": null
       "collation": null
       "acl": null
-      "comment": "R118 (V132), DEV-pending: not yet captured from PROD; ordinal confirmed from V132 (Byte), ACL and default expression are refreshed from a PROD capture after promotion. Late Charge Due minus Late Charge Paid; maintained like Interest Remaining. Amount Remaining includes it."
+      "comment": "R118 (V132), applied to DEV and PROD on 3 November 2026; pending PROD capture: ordinal confirmed from V132, ACL and default expression are refreshed from the next PROD capture. Late Charge Due minus Late Charge Paid; maintained like Interest Remaining. Amount Remaining includes it."
   "constraints":
     "Charges_Payment Request Cash Account_fkey":
       "schema": "public"

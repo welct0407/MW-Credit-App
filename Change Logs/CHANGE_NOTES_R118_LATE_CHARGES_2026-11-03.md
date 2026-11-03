@@ -1,7 +1,7 @@
 # Change notes — R118 late charges, 3 November 2026
 
 ## Purpose
-The owner asked (3 November 2026) for late charges kept in their own columns, with a −50 / +50 control and a separate income line, while the partner's daily interest work stays as it is. R118 is late charges only; the two smaller items planned for R118 moved to R119. Status: in development on branch `r118-late-charges`; nothing is deployed.
+The owner asked (3 November 2026) for late charges kept in their own columns, with a −50 / +50 control and a separate income line, while the partner's daily interest work stays as it is. R118 is late charges only; the two smaller items planned for R118 moved to R119. Status: Released to DEV and PROD on 3 November 2026 under the owner's "Move to prod" (package `22712b0`, PR #225); PROD acceptance is pending the owner's first real late charge.
 
 ## Changes
 Outcome: a late charge is a third amount on an existing charge, set by hand in 50-baht steps or typed in whole baht. A payment pays interest, then late charge, then principal, charges newest first. A paid late charge is profit on its payment date, exactly like interest, and every total the owner reads today keeps its value (late is 0 on every existing row). The only new reading is one "Late charges received" memo line on the income statement views and the Metabase Income page.
@@ -33,7 +33,7 @@ Batch 1 and 2 fixes and additions:
 - `4419163`: `pwa_notify_history_content_v2` is part of V132, so payment history rows show the late part; the store falls back to v1.
 - The PWA always sends payment command v11. A P5B06 on a late-charge change shows "Late charge cannot be less than the ฿X already paid on it."
 
-DEV defect found by Chase (V133): the R118 jobs image's recent-analytics failed at 15:00Z with "permission denied for table Repayments". Cause: `mw_jobs_owner` has column-level SELECT on Repayments and lacked `"Late Charge Paid"`, which V132's function bodies read. Fix: `V133__late_charge_column_grants.sql` (Byte) plus parity checks: a catalog-wide self-check and a `Test-AccessMatrix` parity check (Byte), and a parity sweep in `Test-LateCharges` (Chase). V133 grants `Repayments."Late Charge Paid"` to `mw_jobs_owner_<env>` and, in PROD only, `olap_repayments_analytics."Late Charge Paid"` to `metabase_borrower_reader`, and only if the role exists and holds `"Interest Paid"`. Lab reproduction: permission denied at V132, ok at V133. Forge is applying V133 to DEV. PROD has the same gap, so V133 ships with V132 and the PROD promotion applies both. Fallback B (correction): a manual recent-analytics run on DEV was refused 409 `job_boundary_changed`. That is by design: a manual scheduler run never re-runs a missed boundary. So V132 and V133 must ship together in one PROD apply, and a missed boundary is not recovered by a manual run.
+DEV defect found by Chase (V133): the R118 jobs image's recent-analytics failed at 15:00Z with "permission denied for table Repayments". Cause: `mw_jobs_owner` has column-level SELECT on Repayments and lacked `"Late Charge Paid"`, which V132's function bodies read. Fix: `V133__late_charge_column_grants.sql` (Byte) plus parity checks: a catalog-wide self-check and a `Test-AccessMatrix` parity check (Byte), and a parity sweep in `Test-LateCharges` (Chase). V133 grants `Repayments."Late Charge Paid"` to `mw_jobs_owner_<env>` and, in PROD only, `olap_repayments_analytics."Late Charge Paid"` to `metabase_borrower_reader`, and only if the role exists and holds `"Interest Paid"`. Lab reproduction: permission denied at V132, ok at V133. V133 was applied to DEV at 15:26:14Z. PROD has the same gap, so V133 ships with V132 and the PROD promotion applies both. Fallback B (correction): a manual recent-analytics run on DEV was refused 409 `job_boundary_changed`. That is by design: a manual scheduler run never re-runs a missed boundary. So V132 and V133 must ship together in one PROD apply, and a missed boundary is not recovered by a manual run.
 
 Echo's second pass (on `673d6ea`, at 390, 1280 and 320 px, English and Thai): 7 findings, all fixed in `4b8213b`. LC-COL-R2-1 scroll restore; LC-COL-R2-2 duplicate figure removed, the note reads "Late charge ฿50 · ฿50 paid"; LC-COL-R2-3 nothing to change shows the paid status and refreshes; LC-ERR-R2-1 server refusal wording; LC-PAY-R2-1 1280 px column; LC-REC-R2-1 Title Case and the paid note removed; LC-TH-R2-1 "Late Charge Due" and สินเชื่อ. The server refusal now reads "Late charge cannot be less than what was already paid on it. Refresh to see the current amount." / "ค่าปรับล่าช้าต้องไม่น้อยกว่ายอดที่ชำระแล้ว รีเฟรชเพื่อดูยอดปัจจุบัน"; the edit page's own typed-value check keeps "…the ฿X already paid on it."
 
@@ -41,8 +41,8 @@ Chase's review (two low points): (a) the chat's next-charge path with a due char
 
 Owner feedback on DEV and the fix (3 November 2026): "After I clicked plus or minus, it takes several seconds to update and respond… at least temporarily disable the buttons until the db update is done".
 - Part A, busy state (Echo LC-BUSY-1..7): a saving class (opacity .45, spinner), a pending "฿50 → ฿100" figure, a sticky "Saving late charge…" toast, results shown for 3 s and refusals for 6 s. Accepted deviation: the buttons stay disabled until the refresh lands.
-- Part B (`240cdb0`): `syncSavedRequest {fresh:true}` skips the status GET for a never-dispatched request, with a unit test. Charge details uses the version already on screen. Collection patches the row in place. Round trips per tap: Collection first tap 6+ to 3, next tap to 2; charge details 4 to 2.
-- Chase's DEV timing on the pre-cut build (`109e54e`): server time per tap about 0.5 s warm and 0.9 s cold. The cause was 5 sequential requests, not a cold start. Client times are inflated by the sandbox proxy. The "after" timing is pending.
+- Part B (`240cdb0`): `syncSavedRequest {fresh:true}` skips the status GET for a never-dispatched request, with a unit test. Charge details uses the version already on screen. Collection patches the row in place. Round trips per tap: Collection first tap 5 to 3 (Chase's baseline: live read, status GET, POST, charges reload, board reread), next tap to 2; charge details 4 to 2.
+- Chase's DEV timing on the pre-cut build (`109e54e`): server time per tap about 0.5 s warm and 0.9 s cold. The cause was 5 sequential requests, not a cold start. Client times are inflated by the sandbox proxy. After the fix (Chase, DEV): the first tap makes 3 requests and later taps 2; later taps take about 0.6 s to the toast and 0.8 to 1.3 s to the full refresh, against 3.3 to 3.7 s and 5.9 to 6.8 s before.
 
 Chase's final rerun on `3679069`: `late-charge-independent.spec.ts` passed 11 of 12. The failure was the new strict scroll-restore test on desktop after Confirm, off by about 147 px. Fixed in `f28e8b4` (Byte, `apps/pwa/src/CollectionRecords.tsx` only): the late-charge Confirm now shows over the Collection list, which stays mounted but hidden, and a layout effect reapplies the saved scroll position until the refresh finishes. Two causes: the scroll clamped during the reload, and the header and history remount shifted the rows.
 
@@ -92,7 +92,7 @@ Forge's promotion corrections to the plan (the plan's Promotion section stands o
 
 Deferred to R119 (owner, 3 November 2026; R119 opens in the R118 closure pull request): every rebate line when one payment closes several referred loans (`closeRebate`, `pwa_notify_content_v2`, both `LIMIT 1`), and the receipt agent's recheck of a group slip ignored because the sender was not yet an enabled borrower (with possibly holds whose cause was fixed later in the app). See the [release tracker](../project/Documents/Release_Tracker.md#current-development-release).
 
-Records updated in this batch (Dewey): this note; the agent note `integration-agent/Change Logs/CHANGE_NOTES_R118_LATE_CHARGES_2026-11-03.md` (completed from Byte's agent changes); `project/Documents/Release_Tracker.md` and `project/Documents/Development_Changes.md` (R118 progress); `project/Documents/PWA_Data_Model_Overview.md`; `project/Documents/Solution_Design.md` (R118 paragraph); `project/Documents/Environment_Inventory.md` (agent-host commit only); Data Dictionary column entries in `relations/charges.yaml`, `repayments.yaml` and `payment-allocations.yaml`, marked R118, DEV-pending. The other dictionary entries (olap views, income views, upcoming and health views, routines, `pwa/application.yaml`, `agent-api.yaml`, `notifications-jobs.yaml`, `index.json`) are PROD captures and are refreshed from a targeted PROD capture after promotion (R116 and R117 precedent). Byte owns the `database/README.md` V132 entry and batch 2's `services/chat/assets/conversation-business-rules.md`; the agent part has its own note.
+Records updated in this batch (Dewey): this note; the agent note `integration-agent/Change Logs/CHANGE_NOTES_R118_LATE_CHARGES_2026-11-03.md`; `project/Documents/Release_Tracker.md` and `project/Documents/Development_Changes.md`; `project/Documents/PWA_Data_Model_Overview.md`; `project/Documents/Solution_Design.md` (R118 paragraph); `project/Documents/Environment_Inventory.md` (DEV and PROD rows for the database, services, Hosting, Metabase and the agent host); Data Dictionary column entries in `relations/charges.yaml`, `repayments.yaml` and `payment-allocations.yaml`, applied to DEV and PROD at V132 and pending PROD capture. The other dictionary entries (olap views, income views, upcoming and health views, routines, `pwa/application.yaml`, `agent-api.yaml`, `notifications-jobs.yaml`, `index.json`) are PROD captures and are refreshed from a full PROD capture in a later session (R116 and R117 precedent). Byte wrote the `database/README.md` V132 and V133 entries and batch 2's `services/chat/assets/conversation-business-rules.md`; the agent part has its own note.
 
 Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo (UX), Forge (promotion).
 
@@ -111,8 +111,8 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | `mw-db-ci -Group receiving` | All pass, on `673d6ea` (Byte) |
 | `Test-LateCharges` full chain | Pass, on `bebf07d` plus its test file (Chase) |
 | Real pre-target 131 upgrade route (section 0 ran) | Pass, on `bebf07d` plus its test file (Chase) |
-| `Test-CI.ps1 -Group migrations` full chain | Pass: 132 migrations, 9 concurrency suites, `public-functions.sql` matches the rebuilt schema, on `bebf07d` plus its test file (Chase) |
-| `mw-db-ci -Group phase8` | Pass, run earlier (Chase) |
+| `Test-MigrationsCloud.py` full chain | Pass: 132 migrations, 9 concurrency suites, `public-functions.sql` matches the rebuilt schema, on `bebf07d` plus its test file (Chase) |
+| `mw-db-ci -Group phase8` | Pass, at about `14e186f` (Chase) |
 | Nothing dated moved: `generate_due_charges` twin, `loan_close_calculation_v83` twin (`mutation` JSON identical), pay-forward twin, `pwa_next_*`, income and Cash Dashboard snapshots before and after V132 | Covered by `Test-LateCharges` above (Chase) |
 | Schema digest rebuilt at 132, `--check`; `node --test tests/unit/chat-schema-digest.test.mjs` | Covered by `npm test` above (Byte) |
 | `npm run check:docs` (Dewey, records) | 0 failures, 0 warnings |
@@ -130,7 +130,7 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | `npm test` on `bd09cbc` | 1129 pass (Byte) |
 | Lab reproduction of the jobs failure | Permission denied at V132, ok at V133 (Byte) |
 | Direct stepper (`d42322f`): lint, typecheck, check-docs, `npm test`; scratch spec | Pass, 1129 pass; 18/18 (Byte) |
-| V133 DEV apply | Done and verified by Forge (see the V133 DEV apply record); the 16:00Z recent-analytics run completed with HTTP 200 and no permission errors; the 17:05Z daily-charges run is pending |
+| V133 DEV apply | Done and verified by Forge (see the V133 DEV apply record); the 16:00Z recent-analytics run completed with HTTP 200 and no permission errors; the 17:05:02Z daily-charges run completed on R118 and V133 (Forge) |
 | `late-charge-independent.spec.ts`, rewritten for the direct flow (one tap with no Confirm; toast text with U+2212 for a decrease; buttons disabled while a change is in flight; two quick taps in sequence with fresh versions; refusal, load-failure and queued toasts; scroll kept; offline), on `18287a1` | 40/40 on both projects, `--repeat-each=2` (Chase) |
 | `Test-LateCharges` through the real runner, pre-target 131, on `18287a1` | Pass: V132 and V133 applied, second run 0, tamper rejected (Chase) |
 | `Test-LateCharges` full chain, on `18287a1` | Pass: 133 migrations, 9 concurrency suites, `public-functions.sql` matches (Chase) |
@@ -141,25 +141,26 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | `late-charge-independent.spec.ts` with the busy state and fewer round trips | 44/44 on both projects, `--repeat-each=2` (Chase) |
 | PR #225 `Development checks`, run 41671673879, on `34d3aec` | Success |
 | PR #225 `Agent tests`, run 41671674164, on `34d3aec` | Success |
-| Chase's "after" timing of a tap on DEV | Pending |
+| Chase's "after" timing of a tap on DEV | Done: first tap 3 requests, later taps 2; later taps about 0.6 s to the toast and 0.8 to 1.3 s to full refresh, against 3.3 to 3.7 s and 5.9 to 6.8 s before (Chase) |
 | DEV redeploy for the direct stepper | Done and verified by Forge (see the redeploy record) |
-| DEV acceptance scenarios (plan list) | Implied by the owner's PROD instruction (R110 precedent); Chase's DEV scenarios are not a gate |
+| DEV acceptance scenarios (plan list, Chase) | Scenarios 1 to 6 and 8 passed. Scenario 7 (the jobs run) found the V133 defect, which is fixed and verified (DEV 16:00Z recent-analytics and 17:05Z daily-charges both OK). Owner acceptance is implied by "Move to prod" (R110 precedent) |
+| PROD CI receipts used by the promotion runner | `Development checks` (check, lint, e2e) run 41671673879 on `34d3aec`; terraform run 41203206026 on `cb875ea`; `Database migrations` run 41662032658 on `2356064`; run 41676067177 on `9a982f5`. All are ancestors of the merge `22712b0` with no stage-relevant change since (Forge) |
+| PROD read-only smoke (Forge) | `/health` 200 on read, command and chat; unauthenticated 401 on the session, collection, dashboard, cash-overview, management-analytics, command session and chat-models routes; preflight 204; no Cloud Run ERROR since the image apply and no Cloud SQL error since V132; notify 200 every minute |
+| PROD recent-analytics run at 18:00Z | Success: called 18:00:04Z, HTTP 200, `event: completed` at 18:00:08Z on the jobs revision running the R118 image. No Cloud SQL error from 17:59Z, so the jobs owner reads `Repayments."Late Charge Paid"`; no Cloud Run ERROR from 17:22Z to about 18:02:30Z. This closes the smoke check. |
 
 ## Not run
-The rows marked Pending: the 17:05Z DEV daily-charges run, Chase's "after" tap timing, and the PROD promotion steps below. A pending check is not a pass.
+Not run: PROD acceptance (the owner's first real late charge). No authenticated PROD read and no PROD payment, forced notification or chat write was made, so the chat card, the agent wording and a real late charge are not exercised live in PROD. A pending check is not a pass.
 
 ## Recovery
-Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
+Git baseline: the R117 package `2b5da48` and its merged records. PROD services: restore the private `production.activation.before-r118-*.tfvars` (plan 0 add, 5 change, 0 destroy) so read, command and chat return to the R117 image and notify and jobs to the R113 image; Hosting returns to the R117 version together with the services (pins in the [environment inventory](../project/Documents/Environment_Inventory.md)). Agent: `deploy-runtime.py rollback` to the frozen runtime of `9703a191`. Database: V132 and V133 stay (additive, default 0); a later forward migration restores the V131 bodies, or restore the V131 backup. Zero every late charge before any service rollback, because R117 code cannot receive a charge whose late charge is above 0. Reader grants: undo with the 3 REVOKEs. Metabase: the private baselines `r118-late-charges` and `dashboard-3-before-pre-r118`.
 
 ## Open questions
 None.
 
 ## Remaining work
-- Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- The 17:05Z daily-charges run on DEV and Chase's "after" tap timing (not gates for PROD).
-- PROD promotion by Forge per the PROD promotion record; owner acceptance goes into the next closure or product pull request.
-- Fill the Checks table and Not run section as evidence arrives.
-- Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
+- PROD acceptance: the owner's first real late charge (written into the next closure or product pull request, never its own).
+- R119 opens with the two deferred items (every rebate line; agent recheck of ignored group slips, with the optional holds item).
+- Data Dictionary: the five column entries and the other changed relations and routines are refreshed from a full PROD capture in a later session (see the closure record).
 
 ## DEV promotion record (Forge, 3 November 2026, UTC)
 No secret value, token or borrower data appears here. DEV only; no PROD action. Image, revision, settings-generation and Hosting pins are in the [environment inventory](../project/Documents/Environment_Inventory.md).
@@ -186,7 +187,7 @@ No secret value, token or borrower data appears here. DEV only; no PROD action. 
 | V133 | Installed 15:26:14Z, head 133, reconcile 0 violations |
 | Readback | The jobs owner holds `"Late Charge Paid"`; `metabase_borrower_reader` got no grant on DEV, which is correct; parity sweep 1 gap before, 0 after |
 | Manual recent-analytics run | Refused 409 `job_boundary_changed`, by design (see the correction to fallback B above) |
-| Natural runs | 16:00Z recent-analytics: completed, HTTP 200, no permission errors. 17:05Z daily-charges: pending |
+| Natural runs | 16:00Z recent-analytics: completed, HTTP 200, no permission errors. 17:05Z daily-charges: completed, HTTP 200 at 17:05:01Z on the R118 jobs revision |
 
 ### Direct-stepper redeploy (Forge, from `c4dbc3a`, CI run 41664290069)
 | Item | Result |
@@ -204,17 +205,49 @@ Pins for all are in the [environment inventory](../project/Documents/Environment
 
 DEV acceptance of the direct stepper: implied by the owner's PROD instruction (R110 precedent).
 
-## PROD promotion record (Forge)
-Stub; Forge fills it in as each step runs. Authority: the owner's "Move to prod" instruction recorded under Changes. No secret value, token or borrower data appears here. Pins go only in the [environment inventory](../project/Documents/Environment_Inventory.md).
+## PROD promotion record (Forge, 3 November 2026, UTC)
+Authority: the owner's "Move to prod" instruction (about 16:25Z) recorded under Changes. No PROD payment, forced notification or chat write. No secret value, token or borrower data appears here. Pins are in the [environment inventory](../project/Documents/Environment_Inventory.md); private records are in the operator bucket under `promotion-packages/r118/` (72 objects).
 
 | Step | Result |
 | --- | --- |
-| Verified PROD backup at V131 | Pending |
-| Owner windows, V132 and V133 grouped apply, verify, readback | Pending |
-| Reader column grants (before the read image) | Pending |
-| Images (read, command, chat, notify, jobs), Terraform images-only apply | Pending |
-| Hosting | Pending |
-| Metabase (`Refine-LateCharges`, `ProposedLoanReports`) | Pending |
-| Agent code deploy to `vm-mw-credit-agent` (after the SQL) | Pending |
-| Read-only smoke | Pending |
-| Closure pull request, tag `R118` | Pending |
+| Freeze | `main` at `22712b0` (merge of PR #225 head `9a982f5`, identical tree), detached worktree. Runner derivation from R117 `2b5da48`: all five services, migrations V132 and V133 only, no infrastructure change |
+| Baseline (16:36Z) | `loan_manager_prod` head 131 on the shared instance; R117 images on read, command and chat; R113 images on notify and jobs; agent `9703a191` |
+| Backup at V131 | `prod-promotion-3afaef440e4e41a78a60847b9ec9cf60`, 16:43:15Z, dump sha256 `93469e5d…2ea2e84`, listing and restore passed, 38 table fingerprints match |
+| Timing gate | PROD daily-charges for 4 November completed at 17:05:03Z on V131 and R117 (29 charges, HTTP 200, no SQL error) before the apply |
+| SQL package | Connect preflight pinned (18 retained consumers, 0 DEV sessions); check: 0 writes, pending exactly V132 and V133 |
+| Owner window | `mw_app_prod_journal_owner` and `mw_notify_owner_prod`, 8 statements, opened 17:15:19Z, restored 17:18:14Z; the first restore attempt was refused for missing production arguments (no change) and re-run with them; readback inherit, set and CREATE all false |
+| V132 and V133 | `Invoke-CloudFlyway.py apply`, one grouped transaction 17:15:25Z to 17:17:13Z; V132 24.9 s, V133 3.2 s; head 133, 133 rows, 0 failed; `verify --target prod` clean |
+| SQL readback | The five columns, types and defaults are right; 1,883 charges with late 0; `pwa_notify_content_v3` and `pwa_notify_history_content_v2` have the right owner and executors, and v2 and history v1 are kept; `metabase_borrower_reader` holds `olap_repayments_analytics."Late Charge Paid"` (V133 branch). Income unchanged (late 0): November gross 20,400, net 17,090 |
+| Parity sweep | After V133 one expected gap (reader IAM); after the reader grant 0 gaps |
+| Reader grants | Guarded script, one transaction as `postgres`, 17:19:23Z to 17:20:18Z: Charges (`"Late Charge Due"`, `"Late Charge Remaining"`), Repayments (`"Late Charge Paid"`), `oltp_upcoming_charge_events_v1` (`"Late Charge Remaining"`) to the read login; 65 contract columns readable, 0 write; prior ACLs recorded privately |
+| Image | One Cloud Build image from a `git archive` of `22712b0` (16:47:39Z to 16:48:15Z) |
+| Terraform | Read, command and chat overrides plus the workers image (notify, jobs); plan 0 add, 5 change, 0 destroy, image only; applied 17:22:21Z to 17:22:58Z; re-plan no changes |
+| Revisions | All five services Ready at 100% on the new image |
+| Hosting | `--check` passed (prepared, applied, after); `--apply` 17:24:05Z to 17:24:48Z, 16 files, `no-store`; build-version R118, the bundle embeds `22712b0`; both origins; private receipt `R118-HOSTING-RECEIPT.json` |
+| Agent | `vm-mw-credit-agent`: `update-from-github.sh` to `22712b0`; dry run schema through V11, no drift, 3 modules changed; freeze 17:27:16Z; install with no removed files and no unit changes; activate 17:27:21Z to 17:27:25Z; six timers resumed; `/ready` true with `code_version` `22712b0`; check passes; no failed units; receipt cycles with no failures. The temporary root-only `mw_agent` connection file was shredded (the R113 deviation repeated) |
+| Metabase | `Refine-LateCharges.mjs`: `--plan --live`, `--prepare` (275 dashcards), `--apply` (snippet 2, model 186 metadata, question 417, tab 16 six-card row), `--verify` (31 checks pass). `ProposedLoanReports.mjs`: `--rebaseline-dashboard3=R118`, `--refine --only=income.latecharges,income` (question 418), `--verify` passed (needed the R102 lane state restored locally from the private receipts; no live change) |
+| Smoke (read-only) | See the Checks table |
+| DEV jobs | DEV daily-charges at 17:05:02Z completed on R118 and V133 |
+| PROD recent-analytics at 18:00Z | Success: called 18:00:04Z, HTTP 200, completed at 18:00:08Z on the R118 jobs revision; no Cloud SQL error from 17:59Z and no Cloud Run ERROR from 17:22Z to about 18:02:30Z. PROD promotion verified |
+
+### Limitations
+- PROD acceptance is pending: the owner's first real late charge.
+- The chat card and the agent wording are not exercised live in PROD.
+- The chat refuses a due charge that carries a late charge when it would book the next charge (`LATE_CHARGE_WITH_NEXT_CHARGE`); the model is told to pay that charge first.
+- Upcoming drops a future charge whose only unpaid part is a late charge; Collection still shows it.
+- A first-tap live read remains (3 requests on the first tap, 2 after).
+- The post-commit wake can take about 2 s when notify is cold.
+- On the charge details page the −/+ buttons are disabled offline.
+- The schema digest at 133 starts a new chat history epoch.
+- Not exercised live: the push's late-part text read on a device (delivery was `sent`; the text was only rendered locally); `payment.correct` (delete was exercised; correction only in the lab); the Loan Close `mutation` JSON over the API (fields and lines only).
+- The parity sweep only covers grants present in the cluster under test.
+- Move interest on an allocation with a late charge is refused with the generic "Change receipt amounts through Payments…" message.
+
+### Tag record
+Tag `R118` on `22712b0b41e2cd87668a7181e947726d3858cfd8` through Release tag workflow run 41690088839, dispatched 18:03:15Z after the 18:00Z check; the same run publishes the GitHub Release.
+
+### Closure and prune record
+Closure pull request on branch `r118-closure`, records only: tracker (R118 Released, R119 opened, next unused number R120), Development Changes (R118 follow-up row, R119 row), Environment Inventory (PROD rows), the Data Dictionary entries for the five columns, and this note.
+- Data Dictionary: a full PROD capture refresh was not possible in this session (no capture run). The five column entries are marked as applied to DEV and PROD at V132, with ordinals confirmed; their ACLs and default expressions, the olap and income view columns and every changed routine entry stay pending the next PROD capture.
+- Deleted: `Change Logs/CHANGE_NOTES_R115_DAILY_CASH_WITHDRAWAL_2026-11-02.md` (R115 left the three-release retention window). Its inbound links in the tracker, Development Changes and the Environment Inventory were first repointed to the permalink at `22712b0`.
+- Kept: `project/outputs/dictionary-r115-20261102/` (four Data Dictionary routine entries still cite it as their source) and the R116 and R117 notes (inside the window).

@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-03T06:15:22.683Z",
+  "at": "2026-11-03T17:36:07.524Z",
   "passed": true,
   "checks": [
     {
@@ -8,11 +8,11 @@
       "detail": {
         "want": {
           "tabs": 12,
-          "placements": 228,
+          "placements": 229,
           "parameters": 22
         },
         "tabs": 12,
-        "placements": 228,
+        "placements": 229,
         "parameters": 22,
         "parameterIdsMatch": true,
         "unmatched": 0,
@@ -39,7 +39,7 @@
       "name": "execution",
       "passed": true,
       "detail": {
-        "dashcards": 183,
+        "dashcards": 184,
         "errors": 0,
         "failed": []
       }
@@ -103,12 +103,20 @@
       }
     },
     {
+      "name": "income.latecharges",
+      "passed": true,
+      "detail": {
+        "equalsDashboard3LateCharges": true,
+        "withinIncome": true
+      }
+    },
+    {
       "name": "income.vs-previous",
       "passed": true,
       "detail": {
         "thisEquals168to171AndWriteOffs": true,
         "previousEqualsPrecedingRange": true,
-        "days": 3
+        "days": 4
       }
     },
     {
@@ -117,7 +125,7 @@
       "detail": {
         "months": 4,
         "equalsModel186MonthSums": true,
-        "question213Rows": 2
+        "question213Rows": 3
       }
     },
     {
@@ -273,21 +281,21 @@
         "lanes": [
           {
             "key": "collection.lane-not-paid",
-            "rows": 10,
+            "rows": 11,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-partial",
-            "rows": 0,
+            "rows": 1,
             "sameRowsAsOrigin": true,
             "sortedBy": "Amount Remaining",
             "sorted": true
           },
           {
             "key": "collection.lane-overdue",
-            "rows": 6,
+            "rows": 5,
             "sameRowsAsOrigin": true,
             "sortedBy": "Overdue Amount",
             "sorted": true
@@ -330,7 +338,7 @@
       "name": "dashboard 3 preserved",
       "passed": true,
       "detail": {
-        "dashcards": 275,
+        "dashcards": 276,
         "tabs": 12,
         "parameters": 28
       }

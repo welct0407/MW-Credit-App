@@ -1,0 +1,143 @@
+{
+  "verified_at": "2026-11-03T17:32:42.035Z",
+  "release": "R118",
+  "checks": [
+    {
+      "check": "Other placements, tabs and filters of dashboard 3 unchanged",
+      "passed": true
+    },
+    {
+      "check": "Tab 16 row: the R116 five cards and Late charges received at width 4 on the R116 grid row",
+      "passed": true
+    },
+    {
+      "check": "Formula note names late charges",
+      "passed": true
+    },
+    {
+      "check": "The R116 row cards keep their mappings, settings and placement; only col and width moved",
+      "passed": true
+    },
+    {
+      "check": "Late-charge question follows the Statement period filter",
+      "passed": true
+    },
+    {
+      "check": "Snippet 2 equals live-income-period.sql",
+      "passed": true
+    },
+    {
+      "check": "Model 186 SQL unchanged; metadata gains only the late-charge column",
+      "passed": true
+    },
+    {
+      "check": "Late-charge question reads the shared snippet",
+      "passed": true
+    },
+    {
+      "check": "Question 168 unchanged",
+      "passed": true
+    },
+    {
+      "check": "Question 169 unchanged",
+      "passed": true
+    },
+    {
+      "check": "Question 170 unchanged",
+      "passed": true
+    },
+    {
+      "check": "Question 171 unchanged",
+      "passed": true
+    },
+    {
+      "check": "Question 415 unchanged",
+      "passed": true
+    },
+    {
+      "check": "Partner-only collection permissions unchanged",
+      "passed": true
+    },
+    {
+      "check": "this month late charges received",
+      "passed": true
+    },
+    {
+      "check": "this month gross profit counts interest and late charges",
+      "passed": true
+    },
+    {
+      "check": "previous month late charges received",
+      "passed": true
+    },
+    {
+      "check": "previous month gross profit counts interest and late charges",
+      "passed": true
+    },
+    {
+      "check": "past 30 days late charges received",
+      "passed": true
+    },
+    {
+      "check": "past 30 days gross profit counts interest and late charges",
+      "passed": true
+    },
+    {
+      "check": "past 90 days late charges received",
+      "passed": true
+    },
+    {
+      "check": "past 90 days gross profit counts interest and late charges",
+      "passed": true
+    },
+    {
+      "check": "this year late charges received",
+      "passed": true
+    },
+    {
+      "check": "this year gross profit counts interest and late charges",
+      "passed": true
+    },
+    {
+      "check": "single day late charges received",
+      "passed": true
+    },
+    {
+      "check": "single day gross profit counts interest and late charges",
+      "passed": true
+    },
+    {
+      "check": "empty past late charges received",
+      "passed": true
+    },
+    {
+      "check": "empty past gross profit counts interest and late charges",
+      "passed": true
+    },
+    {
+      "check": "all dates late charges received",
+      "passed": true
+    },
+    {
+      "check": "all dates gross profit counts interest and late charges",
+      "passed": true
+    },
+    {
+      "check": "Current month matches reporting_income_statement late charges received",
+      "passed": true
+    }
+  ],
+  "check_count": 31,
+  "periods": [
+    "this month",
+    "previous month",
+    "past 30 days",
+    "past 90 days",
+    "this year",
+    "single day",
+    "empty past",
+    "all dates"
+  ],
+  "statement_source": "Independent SQL on olap_repayments_analytics; current-month parity with reporting_income_statement",
+  "financial_values_published": false
+}

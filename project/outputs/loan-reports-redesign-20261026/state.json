@@ -26,7 +26,8 @@
     "partners.statement": 401,
     "today.principal-vs-pool": 402,
     "collection.lane-long-overdue": 414,
-    "income.writeoffs": 416
+    "income.writeoffs": 416,
+    "income.latecharges": 418
   },
   "tabs": {
     "today": 375,

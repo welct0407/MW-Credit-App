@@ -2980,6 +2980,74 @@
           }
         }
       }
+    },
+    {
+      "key": "income.latecharges",
+      "id": 418,
+      "name": "Late charges received · statement period",
+      "display": "scalar",
+      "description": "Loan Reports · proposed (income.latecharges). Question 168's template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet's \"Late Charges Received\" (R118 V132): the late part of the period's income, a memo that is not added again. Basis: snippet 2 Income statement period.",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "alias": "d.\"Date\"",
+                "widget-type": "date/all-options",
+                "id": "r016-statement_period",
+                "name": "statement_period",
+                "display-name": "Statement period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "bc043139-c62d-4f46-ad21-5f509b08bde9",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ]
+              },
+              {
+                "display-name": "Model 186",
+                "type": "card",
+                "id": "r016-model-186",
+                "name": "#186",
+                "card-id": 186
+              },
+              {
+                "type": "snippet",
+                "snippet-id": 2,
+                "id": "r016-snippet-2",
+                "name": "snippet: Income statement period",
+                "display-name": "Income statement period",
+                "snippet-name": "Income statement period"
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT \"Late Charges Received\" AS \"Late charges\" FROM statement"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "scalar.field": "Late charges",
+        "column_settings": {
+          "[\"name\",\"Operating Income\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Late charges\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
     }
   ],
   "layout": [
@@ -10572,7 +10640,7 @@
       }
     },
     {
-      "id": 9226,
+      "id": 9239,
       "card_id": null,
       "dashboard_tab_id": 377,
       "row": 0,
@@ -10595,7 +10663,7 @@
       }
     },
     {
-      "id": 9227,
+      "id": 9240,
       "card_id": 168,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -10638,7 +10706,7 @@
       }
     },
     {
-      "id": 9228,
+      "id": 9241,
       "card_id": 392,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -10664,7 +10732,7 @@
       }
     },
     {
-      "id": 9229,
+      "id": 9242,
       "card_id": 416,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -10690,7 +10758,7 @@
       }
     },
     {
-      "id": 9230,
+      "id": 9243,
       "card_id": 170,
       "dashboard_tab_id": 377,
       "row": 2,
@@ -10733,7 +10801,7 @@
       }
     },
     {
-      "id": 9231,
+      "id": 9244,
       "card_id": 384,
       "dashboard_tab_id": 377,
       "row": 5,
@@ -10759,13 +10827,13 @@
       }
     },
     {
-      "id": 9232,
+      "id": 9245,
       "card_id": 171,
       "dashboard_tab_id": 377,
       "row": 5,
       "col": 16,
       "size_x": 8,
-      "size_y": 6,
+      "size_y": 3,
       "series": [],
       "parameter_mappings": [
         {
@@ -10802,7 +10870,33 @@
       }
     },
     {
-      "id": 9233,
+      "id": 9246,
+      "card_id": 418,
+      "dashboard_tab_id": 377,
+      "row": 8,
+      "col": 16,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "statement-period",
+          "card_id": 418,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "statement_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Late charges · inside income"
+      }
+    },
+    {
+      "id": 9247,
       "card_id": 385,
       "dashboard_tab_id": 377,
       "row": 11,
@@ -10816,7 +10910,7 @@
       }
     },
     {
-      "id": 9234,
+      "id": 9248,
       "card_id": 178,
       "dashboard_tab_id": 377,
       "row": 11,
@@ -10859,7 +10953,7 @@
       }
     },
     {
-      "id": 9235,
+      "id": 9249,
       "card_id": 213,
       "dashboard_tab_id": 377,
       "row": 19,
@@ -10955,7 +11049,7 @@
       }
     },
     {
-      "id": 9236,
+      "id": 9250,
       "card_id": 212,
       "dashboard_tab_id": 377,
       "row": 26,
@@ -10981,7 +11075,7 @@
       }
     },
     {
-      "id": 9237,
+      "id": 9251,
       "card_id": null,
       "dashboard_tab_id": 377,
       "row": 33,
