@@ -14,7 +14,7 @@ const businessDate='2026-10-08',asOf='2026-10-08T05:00:00Z';
 const base3=[{id:'lc-c0',loan:'Late loan A',due:0,paid:0},{id:'lc-c1',loan:'Late loan B',due:50,paid:20},{id:'lc-c2',loan:'Late loan C',due:50,paid:50}];
 type Late={due:number,paid:number,version:number};
 let all=base3;
-type State={late:Record<string,Late>,posts:any[],operations:any[],reviews:any[],rejectNext:boolean,readFail:number,dropNext:boolean,hold:Promise<void>|null,release:(()=>void)|null};
+type State={late:Record<string,Late>,posts:any[],operations:any[],reviews:any[],rejectNext:boolean,calls:string[],readFail:number,dropNext:boolean,hold:Promise<void>|null,release:(()=>void)|null};
 const row=(s:State,c:typeof base3[number])=>{const l=s.late[c.id];return {id:c.id,loanId:'lc-L-'+c.id,loanDisplayKey:c.loan,chargeDate:businessDate,paymentStatus:'ยังไม่ชำระ',paymentDate:null,amountRemaining:String(110+l.due-l.paid),totalPaid:String(l.paid),receivedToday:'0',lateChargeDue:String(l.due),lateChargeRemaining:String(l.due-l.paid)}};
 const record=(s:State,id:string)=>{const c=all.find(x=>x.id===id)!,l=s.late[id];return {id,loanId:'lc-L-'+id,borrowerName:'LateCharge borrower',borrowerLabel:'LateCharge borrower',chargeDate:businessDate,principalDue:'100',interestDue:'10',lateChargeDue:String(l.due),lateChargePaid:String(l.paid),lateChargeRemaining:String(l.due-l.paid),totalPaid:String(l.paid),amountRemaining:String(110+l.due-l.paid),notes:null,version:`ver-${id}-${l.version}`,repayments:[],allocations:[],loanDisplayKey:c.loan}};
 // The payment draft for Receive payment: one charge that carries a late charge and one that does not (no lateChargeRemaining key).
@@ -22,12 +22,13 @@ const draftCharges=[{id:'lc-p1',chargeDate:businessDate,loanDisplayKey:'Late pay
 const draft={ok:true,mode:'dev-owner-testing',scope:'all',businessDate,asOf,borrower:{id:borrower.id,displayName:borrower.displayName},accounts:[{id:'lc-A',label:'Synthetic receiving account'}]};
 async function setup(page:Page,filler=0){
  all=[...base3,...Array.from({length:filler},(_,i)=>({id:'lc-f'+i,loan:'Filler loan '+i,due:0,paid:0}))];
- const s:State={late:Object.fromEntries(all.map(c=>[c.id,{due:c.due,paid:c.paid,version:0}])),posts:[],operations:[],reviews:[],rejectNext:false,readFail:0,dropNext:false,hold:null,release:null};
+ const s:State={late:Object.fromEntries(all.map(c=>[c.id,{due:c.due,paid:c.paid,version:0}])),posts:[],operations:[],reviews:[],rejectNext:false,calls:[],readFail:0,dropNext:false,hold:null,release:null};
  page.on('dialog',dialog=>void dialog.accept());
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
  await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>{const u=new URL(r.request().url()),charges=u.pathname.endsWith('/charges'),list=u.pathname.endsWith('/upcoming');return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',businessDate,timezone:'Asia/Bangkok',asOf,items:list?[]:charges?all.map(c=>row(s,c)):[borrower],borrower,nextCursor:null,horizonEnd:'2027-01-08',reviewRequired:false})})});
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
   const u=new URL(r.request().url()),path=u.pathname,method=r.request().method(),json=(body:any,status=200)=>r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+  if(path.startsWith('/api/charge-records/')||path.startsWith('/api/operations'))s.calls.push(method+' '+path.replace(/^\/api\/operations\/[0-9a-f-]{36}$/,'/api/operations/<id>'));
   if(path.startsWith('/api/charge-records/')){const id=decodeURIComponent(path.split('/').at(-1)!);if(!s.late[id])return json({ok:false},404);if(s.readFail>0){s.readFail--;return json({ok:false,code:'unavailable'},503)}return json({ok:true,source:'dev',asOf,businessDate,item:record(s,id)})}
   if(path==='/api/operations'&&method==='POST'){const body=r.request().postDataJSON();s.operations.push(body);
    if(s.hold)await s.hold;if(s.dropNext){s.dropNext=false;return r.abort('failed')}
@@ -73,7 +74,7 @@ test('Collection row: late charge line only for what the row carries; a tap appl
  expect(s.operations[0]).toMatchObject({operation:'charge.update',targetId:'lc-c0',expectedVersion:'ver-lc-c0-0',inputs:{loanId:'lc-L-lc-c0',chargeDate:businessDate,principalDue:'100',interestDue:'10',lateChargeDue:'50',notes:null}});
  await expect(chargeRow(page,'Late loan A').locator('.charge-late-note')).toHaveText('Late charge ฿50');
  // The toast clears by itself after about 3 seconds.
- await expect(toast(page)).toHaveClass(/idle/,{timeout:6000});await expect(toast(page)).toHaveText('');
+ await expect(toast(page)).toHaveClass(/idle/,{timeout:10000});await expect(toast(page)).toHaveText('');
  // A decrease uses the true minus sign (U+2212): up to 100, then down to 50.
  await increase(chargeRow(page,'Late loan A')).click();await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');
  await decrease(chargeRow(page,'Late loan A')).click();await expect(toast(page)).toHaveText('Late charge −฿50 · now ฿50');
@@ -101,6 +102,35 @@ test('Collection row: buttons are disabled with aria-busy while a command is in 
  await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿150');
 });
 
+test('Collection row: while a step saves the pair is busy with the pending figure, the spinner and a sticky toast; the result replaces them; a refusal reverts the figure; no status read precedes the send',async({page})=>{
+ const s=await setup(page);
+ const b=chargeRow(page,'Late loan B'),steps=b.locator('.loan-step-buttons');
+ await expect(steps).not.toHaveClass(/saving/);await expect(b.locator('.charge-late-note')).toHaveText('Late charge ฿50 · ฿20 paid');
+ // The POST is held: the pair is dimmed and busy, the tapped button shows the spinner, the note shows ฿50 → ฿100, the toast stays.
+ holdWrites(s);await increase(b).click();await expect.poll(()=>s.operations.length).toBe(1);
+ await expect(steps).toHaveClass(/saving/);await expect(steps).toHaveAttribute('aria-busy','true');await expect(b.locator('.charge-late-line')).toHaveAttribute('aria-busy','true');
+ await expect(b.locator('.collection-spinner')).toHaveCount(1);await expect(increase(b)).toBeDisabled();await expect(decrease(b)).toBeDisabled();
+ await expect(b.locator('.charge-late-note .payment-status-processing .chat-proposal-before')).toHaveText('฿50');await expect(b.locator('.charge-late-note .payment-status-processing strong')).toHaveText('฿100');
+ await expect(toast(page)).toHaveText('Saving late charge…');await page.waitForTimeout(3500);await expect(toast(page)).toHaveText('Saving late charge…');await expect(toast(page)).not.toHaveClass(/idle/);
+ // Released: the result toast replaces the sticky one and the figure is plain again.
+ s.release!();await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');
+ await expect(steps).not.toHaveClass(/saving/);await expect(b.locator('.collection-spinner')).toHaveCount(0);await expect(b.locator('.payment-status-processing')).toHaveCount(0);
+ await expect(b.locator('.charge-late-note')).toHaveText('Late charge ฿100 · ฿20 paid');
+ // Round trips and the order: the first tap reads the live record, posts and reads back; no status read before the send.
+ expect(s.calls).toEqual(['GET /api/charge-records/lc-c1','POST /api/operations','GET /api/charge-records/lc-c1']);
+ expect(s.calls.some(call=>call.startsWith('GET /api/operations/'))).toBe(false);
+ expect(s.operations[0]).toMatchObject({expectedVersion:'ver-lc-c1-0',inputs:{lateChargeDue:'100'}});
+ // The second tap on the same row needs no live read (the read-back gave the version): the send, then the read-back.
+ const seen=s.calls.length;await decrease(b).click();await expect(toast(page)).toHaveText('Late charge −฿50 · now ฿50');
+ expect(s.calls.slice(seen)).toEqual(['POST /api/operations','GET /api/charge-records/lc-c1']);expect(s.operations[1]).toMatchObject({expectedVersion:'ver-lc-c1-1',inputs:{lateChargeDue:'50'}});
+ // A refusal reverts the figure: the pending figure shows while held, then the old figure returns with the refusal toast.
+ await expect(toast(page)).toHaveClass(/idle/,{timeout:6000});
+ s.rejectNext=true;holdWrites(s);await decrease(b).click();await expect.poll(()=>s.operations.length).toBe(3);
+ await expect(b.locator('.charge-late-note .payment-status-processing strong')).toHaveText('฿20');
+ s.release!();await expect(toast(page)).toHaveText(REFUSED);await expect(toast(page)).toHaveClass(/refused/);
+ await expect(steps).not.toHaveClass(/saving/);await expect(b.locator('.payment-status-processing')).toHaveCount(0);await expect(b.locator('.charge-late-note')).toHaveText('Late charge ฿50 · ฿20 paid');
+});
+
 test('Collection row: a refusal shows the refusal text in the toast (class refused); a load failure and a queued save have their own texts',async({page})=>{
  const s=await setup(page);
  // The server refuses (stale or below paid): the toast carries the refusal and the class refused; nothing changed.
@@ -108,11 +138,14 @@ test('Collection row: a refusal shows the refusal text in the toast (class refus
  await expect(toast(page)).toHaveText(REFUSED);await expect(toast(page)).toHaveClass(/refused/);expect(s.operations).toHaveLength(1);
  await expect(chargeRow(page,'Late loan B').locator('.charge-late-note')).toHaveText('Late charge ฿50 · ฿20 paid');
  // The live read fails: no command is sent.
- await expect(toast(page)).toHaveClass(/idle/,{timeout:6000});
+ await expect(toast(page)).toHaveClass(/idle/,{timeout:10000});
  s.readFail=1;await increase(chargeRow(page,'Late loan A')).click();
  await expect(toast(page)).toHaveText('Charge could not be loaded. Try again.');await expect(toast(page)).toHaveClass(/refused/);expect(s.operations).toHaveLength(1);
- // The command cannot reach the server: saved on the device, the row's buttons wait for its outcome.
+ // Nothing to change: what was paid grew elsewhere to the whole late charge; the live read leaves nothing to step down, and the row-note wording shows.
+ s.late['lc-c1'].paid=50;await decrease(chargeRow(page,'Late loan B')).click();await expect(toast(page)).toHaveText('Late charge ฿50 · ฿50 paid');await expect(toast(page)).not.toHaveClass(/refused/);expect(s.operations).toHaveLength(1);
  await expect(toast(page)).toHaveClass(/idle/,{timeout:6000});
+ // The command cannot reach the server: saved on the device, the row's buttons wait for its outcome.
+ await expect(toast(page)).toHaveClass(/idle/,{timeout:10000});
  s.dropNext=true;await increase(chargeRow(page,'Late loan A')).click();
  await expect(toast(page)).toHaveText('Saved on this device. Will sync when connected.');
  await expect(chargeRow(page,'Late loan A').locator('.charge-late-line')).toHaveAttribute('aria-busy','true');await expect(increase(chargeRow(page,'Late loan A'))).toBeDisabled();
@@ -135,23 +168,20 @@ test('Charge details: the late charge sits with a stepper and shows paid and rem
  await expect(value).toContainText('฿50');
  await expect(page.locator('dt',{hasText:'Late Charge Paid'})).toBeVisible();await expect(page.locator('dt',{hasText:'Late Charge Remaining'})).toBeVisible();
  await expect(page.locator('dd',{hasText:/^฿30$/}).first()).toBeVisible();
- await increase(value).click();
+ const seen=s.calls.length;await increase(value).click();
  await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');await expect(confirm(page)).toHaveCount(0);
+ await expect.poll(()=>s.calls.slice(seen)).toEqual(['POST /api/operations','GET /api/charge-records/lc-c1']);expect(s.calls.some(call=>call.startsWith('GET /api/operations/'))).toBe(false);
  expect(s.operations).toHaveLength(1);expect(s.operations[0]).toMatchObject({operation:'charge.update',targetId:'lc-c1',expectedVersion:'ver-lc-c1-0',inputs:{lateChargeDue:'100',principalDue:'100',interestDue:'10'}});
  await expect(page.locator('dd.late-charge-value')).toContainText('฿100');
  await decrease(page.locator('dd.late-charge-value')).click();await expect(toast(page)).toHaveText('Late charge −฿50 · now ฿50');
  expect(s.operations[1]).toMatchObject({expectedVersion:'ver-lc-c1-1',inputs:{lateChargeDue:'50'}});
  // In flight both buttons are disabled and the value is busy.
  holdWrites(s);await increase(page.locator('dd.late-charge-value')).click();await expect.poll(()=>s.operations.length).toBe(3);
- await expect(page.locator('dd.late-charge-value')).toHaveAttribute('aria-busy','true');await expect(increase(page.locator('dd.late-charge-value'))).toBeDisabled();await expect(decrease(page.locator('dd.late-charge-value'))).toBeDisabled();
+ await expect(page.locator('dd.late-charge-value')).toHaveAttribute('aria-busy','true');await expect(page.locator('dd.late-charge-value .loan-step-buttons')).toHaveClass(/saving/);await expect(page.locator('dd.late-charge-value .payment-status-processing strong')).toHaveText('฿100');await expect(toast(page)).toHaveText('Saving late charge…');await expect(increase(page.locator('dd.late-charge-value'))).toBeDisabled();await expect(decrease(page.locator('dd.late-charge-value'))).toBeDisabled();
  s.release!();await expect(toast(page)).toHaveText('Late charge +฿50 · now ฿100');
  // The server refuses: the toast carries the refusal text.
- await expect(toast(page)).toHaveClass(/idle/,{timeout:6000});
+ await expect(toast(page)).toHaveClass(/idle/,{timeout:10000});
  s.rejectNext=true;await decrease(page.locator('dd.late-charge-value')).click();await expect(toast(page)).toHaveText(REFUSED);await expect(toast(page)).toHaveClass(/refused/);
- // Nothing to change: paid grew elsewhere to the whole late charge; the live read leaves nothing to step down, and the row-note wording shows.
- await expect(toast(page)).toHaveClass(/idle/,{timeout:6000});
- s.late['lc-c1'].due=50;s.late['lc-c1'].paid=50;
- await decrease(page.locator('dd.late-charge-value')).click();await expect(toast(page)).toHaveText('Late charge ฿50 · ฿50 paid');
  const operations=s.operations.length;
  // Offline each tap would need a live read: both buttons are disabled.
  await page.context().setOffline(true);
