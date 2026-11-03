@@ -514,7 +514,9 @@ BEGIN
  -- R111 V124: a referred loan closed today by an ordinary payment (the manual command or the agent receipt command, run by
  -- the journal owner) settles the rebate on the referrer's open loans by default: the pay-forward plan (forward only) under
  -- the referrer's borrower -> loans -> charges locks (after the closing borrower's), its charges booked by the shared
- -- writer, and the offset payment ro122:<closing payment> posted with an explicit plan journalled as system.rebate-offset.
+ -- writer, and the offset payment ro122:<closing payment>:<closed loan> posted with an explicit plan journalled as
+ -- system.rebate-offset (R117 V131: one offset per closed loan, so one payment that closes several referred loans posts
+ -- one offset, one journal row and one request id for each; the Loan Close branch above keeps ro122:<closing payment>).
  -- A refused schedule (P0001, P4C05) leaves the rebate payable as before and never fails the closing payment; other
  -- errors (a deadlock, a lock timeout) propagate. A historical re-post (close date not today) stays expense only.
  ELSIF (current_user=CASE current_database() WHEN 'loan_manager_prod' THEN 'mw_app_prod_journal_owner' ELSE 'mw_app_dev_journal_owner' END
@@ -524,10 +526,14 @@ BEGIN
    PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=referrer FOR UPDATE;
    PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers"=referrer ORDER BY "Row ID" COLLATE "C" FOR UPDATE;
    PERFORM 1 FROM public."Charges" ch JOIN public."Loans" x ON x."Row ID"=ch."Ref Loans" WHERE x."Ref Borrowers"=referrer ORDER BY ch."Row ID" COLLATE "C" FOR UPDATE OF ch;
+   -- R117 V131: an earlier offset in this transaction (another loan closed by the same payment) paid charges whose
+   -- materialized balances refresh only at commit (deferred vc_repayment_changed); the plan selects on "Amount Remaining",
+   -- so run that trigger's own work now (the pending charge and loan refreshes of this transaction).
+   PERFORM public.r051_flush_parents('charge'); PERFORM public.r051_flush_parents('loan');
    plan:=public.pwa_pay_forward_plan_v1(referrer,rebate,l."Close Date",'{"forward":true,"principal":[],"loans":null}'::jsonb);
    covered:=rebate-(plan->>'uncovered')::numeric;
    IF covered>0 THEN
-    offset_id:='ro122:'||l."Ref Closing Payment";
+    offset_id:='ro122:'||l."Ref Closing Payment"||':'||p_loan; -- R117 V131: one offset per closed loan
     creator:=coalesce(nullif(btrim((SELECT "Created By" FROM public."Payments" WHERE "Row ID"=l."Ref Closing Payment")),''),'SQL:loan-close');
     offset_plan:=jsonb_build_object('borrowerId',referrer,'amountReceived',trunc(covered)::text,'allocations',plan->'allocations','allocationMethod','Selected Charges',
      'targetChargeId',NULL,'targetLoanId',NULL,'cashAccountId',public.default_cash_account('ch:lisa'),'paymentDate',l."Close Date"::text,'paymentMethod','Referral Rebate Offset');

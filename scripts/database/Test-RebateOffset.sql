@@ -13,7 +13,7 @@
 --  * pwa_notify_content_v2: executable like v1 (notify dispatch only), carries rebate amount, payee and payable.
 -- R111 extension (V124): a loan closed by any other path (here the real Receive payment command v7: a daily-interest loan, the
 -- last installment of an installment loan and a Fixed Due Date loan paid on its due date) offsets the rebate automatically
--- when its Close Date is today: one ro122:<closing payment> payment through the pay-forward plan, a journal row with the operation
+-- when its Close Date is today: one ro122:<closing payment>:<loan> payment (R117 V131: one per closed loan) through the pay-forward plan, a journal row with the operation
 -- system.rebate-offset that resolves the explicit plan, cash net zero, the same corrections; a historical close, a referrer without
 -- an open loan and a referrer whose schedule cannot take it stay expense only and never fail the borrower's own payment.
 -- The close command text must equal the server's canonical JSON byte for byte, as Test-ProjectedChargePayment.sql builds v9.
@@ -89,6 +89,17 @@ INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due",
   ('RO-LXH-old','RO-LXH',-1,1000,300)
  ) v(id,loan,day,p,i);
 UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" IN ('RO-RXA-L','RO-RXI-L','RO-RXF-L','RO-RXH-L');
+-- R117 V131: one payment closes two referred loans of one borrower (1000+300 and 1000+200, rebates 30 and 20); the referrer has
+-- one open daily loan with 10 due today. Before V131 both default offsets took the id ro122:<closing payment> and the payment failed (23505).
+INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES('RO-RXM','SYNTHETIC REFERRER AUTO TWO CLOSED');
+INSERT INTO public."Borrowers"("Row ID","Borrower Name","Ref Referrer") VALUES('RO-BXM','SYNTHETIC REFERRED AUTO TWO LOANS','RO-RXM');
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
+ SELECT 'CI-LISA',v.id,v.b,(SELECT d FROM ro_day)-3,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,v.cdi::money,1,false FROM (VALUES
+  ('RO-RXM-L','RO-RXM',10),('RO-LXM1','RO-BXM',100),('RO-LXM2','RO-BXM',100)) v(id,b,cdi);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+ SELECT v.id,v.loan,(SELECT d FROM ro_day),v.p::money,v.i::money FROM (VALUES
+  ('RO-RXM-today','RO-RXM-L',0,10),('RO-LXM1-today','RO-LXM1',1000,300),('RO-LXM2-today','RO-LXM2',1000,200)) v(id,loan,p,i);
+UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='RO-RXM-L';
 -- The real Receive payment command v7 (a due-only payment of the charge in full), as the canonical text.
 CREATE FUNCTION pg_temp.ro_pay(request text,borrower text,charge text,p int,i int,off int) RETURNS text LANGUAGE sql AS $f$
  SELECT '{"contractVersion":1,"command":{"schemaVersion":7,"requestId":'||to_json(request)::text||',"borrowerId":'||to_json(borrower)::text||',"allocations":[{"chargeId":'||to_json(charge)::text
@@ -102,6 +113,12 @@ SELECT set_config('ro.x_a',pg_temp.ro_pay('e1111111-1111-4111-8111-111111111111'
  set_config('ro.x_h',pg_temp.ro_pay('e4444444-4444-4444-8444-444444444441','RO-BXH','RO-LXH-old',1000,300,-1),true),
  set_config('ro.x_d',pg_temp.ro_pay('e5555555-5555-4555-8555-555555555551','RO-BXD','RO-LXD-today',1000,300,0),true),
  set_config('ro.x_g',pg_temp.ro_pay('e6666666-6666-4666-8666-666666666661','RO-BXG','RO-LXG-today',1000,300,0),true);
+-- R117 V131: the same v7 command with two lines (both charges in full, the lines in charge id order).
+SELECT set_config('ro.x_m','{"contractVersion":1,"command":{"schemaVersion":7,"requestId":"e7777777-7777-4777-8777-777777777771","borrowerId":"RO-BXM","allocations":['
+ ||'{"chargeId":"RO-LXM1-today","principal":"1000","interest":"300","expectedPrincipalRemaining":"1000","expectedInterestRemaining":"300","chargeDate":"'||to_char((SELECT d FROM ro_day),'YYYY-MM-DD')||'"},'
+ ||'{"chargeId":"RO-LXM2-today","principal":"1000","interest":"200","expectedPrincipalRemaining":"1000","expectedInterestRemaining":"200","chargeDate":"'||to_char((SELECT d FROM ro_day),'YYYY-MM-DD')||'"}],'
+ ||'"cashAccountId":"CI-DAD","paymentDate":"'||to_char((SELECT d FROM ro_day),'YYYY-MM-DD')||'","amountReceived":"2500","paymentMethod":"Bank Transfer","notes":null,"receiptId":null,"bankReference":null,"transferTime":null},'
+ ||'"actor":{"issuer":"https://ro.invalid","subject":"ro-owner","partnerId":"RO-ACT","loginEmail":"ro-actor@example.invalid"},"receipt":null}',true);
 
 -- loan.close as the canonical operation text. path NULL builds the pre-R111 command (no rebatePath key); otherwise rebatePath is
 -- the last input key. Amount and plan hash come from the same calculation the preview and the command check.
@@ -332,8 +349,115 @@ SET CONSTRAINTS ALL IMMEDIATE;
 DO $$
 DECLARE day date:=(SELECT d FROM ro_day);off text:=(SELECT "Row ID" FROM public."Payments" WHERE "Ref Borrower"='RO-RXA' AND "Payment Method"='Referral Rebate Offset');
 BEGIN
- PERFORM pg_temp.ro_assert(off='ro122:pwa:e1111111-1111-4111-8111-111111111112' AND (SELECT count(*)=1 FROM public."Payments" WHERE "Ref Borrower"='RO-RXA' AND "Payment Method"='Referral Rebate Offset'),'auto re-close: one offset payment under the new closing payment key');
+ PERFORM pg_temp.ro_assert(off='ro122:pwa:e1111111-1111-4111-8111-111111111112:RO-LXA' AND (SELECT count(*)=1 FROM public."Payments" WHERE "Ref Borrower"='RO-RXA' AND "Payment Method"='Referral Rebate Offset'),'auto re-close: one offset payment under the new closing payment key');
  PERFORM pg_temp.ro_assert((SELECT "Ref Offset Payment"=off AND "Amount"::numeric=30 FROM public."Business Expenses" WHERE "Row ID"='rr1:RO-LXA') AND (SELECT count(*)=2 FROM public."Charges" WHERE "Ref Loans"='RO-RXA-L' AND "Charge Date">day),'auto re-close: the expense is back and the booked charges are reused');
+END $$;
+
+-- 3c. R117 V131: one Receive payment closes two referred loans of one borrower: one default offset per closed loan
+-- (ro122:<closing payment>:<loan>), each with its own journal row and expense link; a replay adds none; deleting the payment removes both.
+-- The earlier SET CONSTRAINTS ALL IMMEDIATE would refresh charge balances at once; a real command transaction defers them,
+-- so the second offset must plan on balances the first one just paid (V131 refreshes them).
+SET CONSTRAINTS ALL DEFERRED;
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb;
+BEGIN
+ r:=public.pwa_submit_selected_charges_v1(current_setting('ro.x_m'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'posted' THEN RAISE EXCEPTION 'FAILED: two-loan close must post: %',r; END IF;
+ r:=public.pwa_submit_selected_charges_v1(current_setting('ro.x_m'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'posted' THEN RAISE EXCEPTION 'FAILED: two-loan close replay returns the recorded status: %',r; END IF;
+END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+DO $$
+DECLARE day date:=(SELECT d FROM ro_day);closing text:='pwa:e7777777-7777-4777-8777-777777777771';loan text;amt numeric;off text;
+BEGIN
+ PERFORM pg_temp.ro_assert((SELECT count(*)=2 AND bool_and("Loan Status"='ปิดยอดแล้ว' AND "Close Date"=day AND "Ref Closing Payment"=closing) FROM public."Loans" WHERE "Row ID" IN ('RO-LXM1','RO-LXM2')),'two-loan close: the one payment closes both loans today');
+ PERFORM pg_temp.ro_assert((SELECT count(*)=2 AND count(DISTINCT "Row ID")=2 FROM public."Payments" WHERE "Ref Borrower"='RO-RXM' AND "Payment Method"='Referral Rebate Offset'),'two-loan close: two distinct offset payments (the replay added none)');
+ FOR loan,amt IN SELECT * FROM (VALUES ('RO-LXM1',30),('RO-LXM2',20)) v(l,a) LOOP
+  off:='ro122:'||closing||':'||loan;
+  PERFORM pg_temp.ro_assert((SELECT "Status"='Posted' AND "Amount Received"::numeric=amt AND "Payment Date"=day AND "Ref Received By Cash Holder"='ch:lisa' FROM public."Payments" WHERE "Row ID"=off),'two-loan close: '||loan||' has its own offset '||off||' of '||amt);
+  PERFORM pg_temp.ro_assert((SELECT "Amount"::numeric=amt AND "Ref Offset Payment"=off FROM public."Business Expenses" WHERE "Row ID"='rr1:'||loan),'two-loan close: rr1:'||loan||' links its own offset');
+  PERFORM pg_temp.ro_assert((SELECT sum("Allocated Amount"::numeric)=amt FROM public."Payment Allocations" WHERE "Ref Payment"=off),'two-loan close: '||loan||' offset allocations reconcile');
+  PERFORM pg_temp.ro_assert((SELECT coalesce(sum(CASE WHEN "Ref To Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)-coalesce(sum(CASE WHEN "Ref From Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)=0 AND count(*)=2
+    FROM public."Cash Ledger" WHERE "Ref Payment"=off OR "Ref Business Expense"='rr1:'||loan),'two-loan close: '||loan||' Lisa cash nets to zero');
+  PERFORM pg_temp.ro_assert((SELECT count(*)=1 FROM public.pwa_payment_commands j WHERE j.contract_version=2 AND j.outcome='applied' AND j.canonical_json::jsonb#>>'{command,operation}'='system.rebate-offset'
+    AND j.canonical_json::jsonb#>>'{command,targetId}'=loan AND j.result_json->>'paymentId'=off),'two-loan close: '||loan||' one system.rebate-offset journal row');
+  PERFORM pg_temp.ro_assert((SELECT coalesce(sum((l->>'principal')::numeric+(l->>'interest')::numeric),0)=amt FROM jsonb_array_elements(public.pwa_effective_payment_plan_v2(off)#>'{plan,allocations}') l),'two-loan close: '||loan||' the effective plan resolves');
+ END LOOP;
+ PERFORM pg_temp.ro_assert((SELECT count(DISTINCT j.request_id)=2 FROM public.pwa_payment_commands j WHERE j.canonical_json::jsonb#>>'{command,operation}'='system.rebate-offset' AND j.canonical_json::jsonb#>>'{command,targetId}' IN ('RO-LXM1','RO-LXM2')),'two-loan close: two distinct journal request ids');
+ PERFORM pg_temp.ro_assert((SELECT count(*)=5 AND bool_and("Amount Remaining"::numeric=0) FROM public."Charges" WHERE "Ref Loans"='RO-RXM-L'),'two-loan close: 50 pays the referrer due 10 and four booked charges');
+END $$;
+DELETE FROM public."Payments" WHERE "Row ID"='pwa:e7777777-7777-4777-8777-777777777771';
+SET CONSTRAINTS ALL IMMEDIATE;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"='RO-RXM' AND "Payment Method"='Referral Rebate Offset') AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Row ID" IN ('rr1:RO-LXM1','rr1:RO-LXM2')),'two-loan delete: both offsets and both expenses go with the closing payment');
+ PERFORM pg_temp.ro_assert((SELECT count(*)=5 AND bool_and("Amount Remaining"::numeric=10) FROM public."Charges" WHERE "Ref Loans"='RO-RXM-L'),'two-loan delete: the referrer charges reopen and stay booked (D4)');
+ PERFORM pg_temp.ro_assert((SELECT count(*)=2 AND bool_and("Loan Status"='ยังไม่ปิดยอด') FROM public."Loans" WHERE "Row ID" IN ('RO-LXM1','RO-LXM2')),'two-loan delete: both referred loans reopen');
+END $$;
+
+-- 3d. R117 V131 edges (one payment closing two referred loans; which loan's trigger runs first is not fixed, so the checks
+-- are order-free): A partial cover (rebates 300+300, referrer 5 a day: the schedule takes 470 in all, the rest stays payable),
+-- B the second uncovered (rebates 1000+300: 470 in all), C both offsets on the same referrer due charge (100 due, 30+20).
+INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES('RO-RQA','SYNTHETIC REFERRER V131 PARTIAL'),('RO-RQB','SYNTHETIC REFERRER V131 UNCOVERED'),('RO-RQC','SYNTHETIC REFERRER V131 SAME CHARGE');
+INSERT INTO public."Borrowers"("Row ID","Borrower Name","Ref Referrer") VALUES('RO-BQA','SYNTHETIC REFERRED V131 PARTIAL','RO-RQA'),('RO-BQB','SYNTHETIC REFERRED V131 UNCOVERED','RO-RQB'),('RO-BQC','SYNTHETIC REFERRED V131 SAME CHARGE','RO-RQC');
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
+ SELECT 'CI-LISA',v.id,v.b,(SELECT d FROM ro_day)-3,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,v.cdi::money,1,false FROM (VALUES
+  ('RO-RQA-L','RO-RQA',5),('RO-RQB-L','RO-RQB',5),('RO-RQC-L','RO-RQC',10),
+  ('RO-LQA1','RO-BQA',100),('RO-LQA2','RO-BQA',100),('RO-LQB1','RO-BQB',100),('RO-LQB2','RO-BQB',100),('RO-LQC1','RO-BQC',100),('RO-LQC2','RO-BQC',100)) v(id,b,cdi);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+ SELECT v.id,v.loan,(SELECT d FROM ro_day),v.p::money,v.i::money FROM (VALUES
+  ('RO-RQA-today','RO-RQA-L',0,5),('RO-RQB-today','RO-RQB-L',0,5),('RO-RQC-today','RO-RQC-L',0,100),
+  ('RO-LQA1-today','RO-LQA1',1000,3000),('RO-LQA2-today','RO-LQA2',1000,3000),('RO-LQB1-today','RO-LQB1',1000,10000),('RO-LQB2-today','RO-LQB2',1000,3000),
+  ('RO-LQC1-today','RO-LQC1',1000,300),('RO-LQC2-today','RO-LQC2',1000,200)) v(id,loan,p,i);
+UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" IN ('RO-RQA-L','RO-RQB-L','RO-RQC-L');
+CREATE FUNCTION pg_temp.ro_pay2(request text,borrower text,c1 text,i1 int,c2 text,i2 int) RETURNS text LANGUAGE sql AS $f$
+ SELECT '{"contractVersion":1,"command":{"schemaVersion":7,"requestId":'||to_json(request)::text||',"borrowerId":'||to_json(borrower)::text||',"allocations":['
+  ||(SELECT string_agg('{"chargeId":'||to_json(c)::text||',"principal":"1000","interest":"'||i||'","expectedPrincipalRemaining":"1000","expectedInterestRemaining":"'||i||'","chargeDate":"'||to_char((SELECT d FROM ro_day),'YYYY-MM-DD')||'"}',',' ORDER BY c COLLATE "C") FROM (VALUES (c1,i1),(c2,i2)) v(c,i))
+  ||'],"cashAccountId":"CI-DAD","paymentDate":"'||to_char((SELECT d FROM ro_day),'YYYY-MM-DD')||'","amountReceived":"'||(2000+i1+i2)||'","paymentMethod":"Bank Transfer","notes":null,"receiptId":null,"bankReference":null,"transferTime":null},'
+  ||'"actor":{"issuer":"https://ro.invalid","subject":"ro-owner","partnerId":"RO-ACT","loginEmail":"ro-actor@example.invalid"},"receipt":null}' $f$;
+SELECT set_config('ro.q_a',pg_temp.ro_pay2('e8888888-8888-4888-8888-888888888881','RO-BQA','RO-LQA1-today',3000,'RO-LQA2-today',3000),true),
+ set_config('ro.q_b',pg_temp.ro_pay2('e8888888-8888-4888-8888-888888888882','RO-BQB','RO-LQB1-today',10000,'RO-LQB2-today',3000),true),
+ set_config('ro.q_c',pg_temp.ro_pay2('e8888888-8888-4888-8888-888888888883','RO-BQC','RO-LQC1-today',300,'RO-LQC2-today',200),true);
+-- Each payment in its own deferred window, as each command is its own transaction.
+SET CONSTRAINTS ALL DEFERRED;
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN IF public.pwa_submit_selected_charges_v1(current_setting('ro.q_a'))->'originalOutcome'->>'status' IS DISTINCT FROM 'posted' THEN RAISE EXCEPTION 'FAILED: V131 A must post'; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS ALL DEFERRED;
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN IF public.pwa_submit_selected_charges_v1(current_setting('ro.q_b'))->'originalOutcome'->>'status' IS DISTINCT FROM 'posted' THEN RAISE EXCEPTION 'FAILED: V131 B must post'; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+SET CONSTRAINTS ALL DEFERRED;
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$ BEGIN IF public.pwa_submit_selected_charges_v1(current_setting('ro.q_c'))->'originalOutcome'->>'status' IS DISTINCT FROM 'posted' THEN RAISE EXCEPTION 'FAILED: V131 C must post'; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+DO $$
+DECLARE day date:=(SELECT d FROM ro_day);sc text;
+BEGIN
+ FOREACH sc IN ARRAY ARRAY['A','B','C'] LOOP
+  PERFORM pg_temp.ro_assert((SELECT count(*)=2 AND bool_and("Loan Status"='ปิดยอดแล้ว' AND "Close Date"=day) FROM public."Loans" WHERE "Row ID" IN ('RO-LQ'||sc||'1','RO-LQ'||sc||'2')),'V131 '||sc||': the payment closes both loans');
+  -- Every offset payment of the referrer is one expense's own ro122:<closing payment>:<loan> link, posted and reconciled.
+  PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public."Payments" p WHERE p."Ref Borrower"='RO-RQ'||sc AND p."Payment Method"='Referral Rebate Offset'
+    AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" x JOIN public."Loans" l ON l."Row ID"=x."Ref Related Loan" WHERE x."Ref Offset Payment"=p."Row ID" AND p."Row ID"='ro122:'||l."Ref Closing Payment"||':'||l."Row ID")),'V131 '||sc||': each offset is its own loan''s ro122:<payment>:<loan>');
+  PERFORM pg_temp.ro_assert((SELECT bool_and(p."Status"='Posted' AND p."Amount Received"::numeric=(SELECT sum("Allocated Amount"::numeric) FROM public."Payment Allocations" a WHERE a."Ref Payment"=p."Row ID") AND p."Amount Received"::numeric<=x."Amount"::numeric)
+    FROM public."Business Expenses" x JOIN public."Payments" p ON p."Row ID"=x."Ref Offset Payment" WHERE x."Ref Related Loan" IN ('RO-LQ'||sc||'1','RO-LQ'||sc||'2')),'V131 '||sc||': offsets posted, reconciled and within their rebate');
+ END LOOP;
+ -- A: 300 + 300 against a 470 schedule: one offset in full, the other partial (170); Lisa pays the 130 rest.
+ PERFORM pg_temp.ro_assert((SELECT array_agg(p."Amount Received"::numeric ORDER BY p."Amount Received") FROM public."Payments" p WHERE p."Ref Borrower"='RO-RQA' AND p."Payment Method"='Referral Rebate Offset')=ARRAY[170,300]::numeric[],'V131 A: offsets of 300 and 170 (partial cover)');
+ PERFORM pg_temp.ro_assert((SELECT bool_and("Amount Remaining"::numeric=0) AND max("Charge Date")<=day+93 FROM public."Charges" WHERE "Ref Loans"='RO-RQA-L'),'V131 A: the referrer schedule is paid up to the horizon, nothing beyond');
+ PERFORM pg_temp.ro_assert((SELECT coalesce(sum(CASE WHEN "Ref To Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)-coalesce(sum(CASE WHEN "Ref From Cash Holder"='ch:lisa' THEN "Amount"::numeric ELSE 0 END),0)=-130
+   FROM public."Cash Ledger" WHERE "Ref Business Expense" IN ('rr1:RO-LQA1','rr1:RO-LQA2') OR "Ref Payment" IN (SELECT "Row ID" FROM public."Payments" WHERE "Ref Borrower"='RO-RQA' AND "Payment Method"='Referral Rebate Offset')),'V131 A: Lisa cash nets to minus the 130 payable');
+ -- B: 1000 + 300 against 470: 470 offset in all; the rest stays payable, the payment posted.
+ PERFORM pg_temp.ro_assert((SELECT sum(p."Amount Received"::numeric)=470 FROM public."Payments" p WHERE p."Ref Borrower"='RO-RQB' AND p."Payment Method"='Referral Rebate Offset') AND (SELECT sum("Amount"::numeric)=1300 FROM public."Business Expenses" WHERE "Row ID" IN ('rr1:RO-LQB1','rr1:RO-LQB2')),'V131 B: 470 offset, 830 payable (second uncovered when the first takes the schedule)');
+ PERFORM pg_temp.ro_assert((SELECT bool_and("Amount Remaining"::numeric=0) FROM public."Charges" WHERE "Ref Loans"='RO-RQB-L'),'V131 B: the referrer schedule is paid up to the horizon');
+ -- C: both offsets pay the same due charge (100): 30 + 20, 50 left, nothing booked forward.
+ PERFORM pg_temp.ro_assert((SELECT array_agg(p."Amount Received"::numeric ORDER BY p."Amount Received") FROM public."Payments" p WHERE p."Ref Borrower"='RO-RQC' AND p."Payment Method"='Referral Rebate Offset')=ARRAY[20,30]::numeric[],'V131 C: offsets of 30 and 20');
+ PERFORM pg_temp.ro_assert((SELECT count(*)=1 AND bool_and("Row ID"='RO-RQC-today' AND "Amount Remaining"::numeric=50) FROM public."Charges" WHERE "Ref Loans"='RO-RQC-L'),'V131 C: both pay the one due charge (50 left), nothing booked');
+ PERFORM pg_temp.ro_assert((SELECT count(*)=2 FROM public."Repayments" r JOIN public."Payments" p ON p."Row ID"=r."Ref Payment" WHERE r."Ref Charges"='RO-RQC-today' AND p."Payment Method"='Referral Rebate Offset'),'V131 C: two repayments on the same charge, one per offset');
 END $$;
 
 -- 4. pwa_notify_content_v2: access like v1, and the rebate facts of a closed loan.
