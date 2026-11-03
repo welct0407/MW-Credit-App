@@ -296,6 +296,16 @@ NEW_QUESTIONS = {
         'settings': {'scalar.field': 'Write-offs', 'column_settings': cols(['Write-offs'])},
         'reconcile': 'Equals −(the dashboard 3 write-off question of Refine-WriteOffSegregation.mjs) for the same Statement period.',
     },
+    # R118 (V132): late charges are income (inside 168's Income and 170's Net profit); this memo card gives their part.
+    'income.latecharges': {
+        'name': 'Late charges received · statement period', 'display': 'scalar', 'kind': 'native',
+        'basis': 'snippet 2 Income statement period', 'origin': 168, 'params': ['statement-period'],
+        'definition': 'Question 168\'s template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet\'s '
+                      '"Late Charges Received" (R118 V132): the late part of the period\'s income, a memo that is not added again.',
+        'sql': 'WITH statement AS ({{snippet: Income statement period}}) SELECT "Late Charges Received" AS "Late charges" FROM statement',
+        'settings': {'scalar.field': 'Late charges', 'column_settings': cols(['Late charges'])},
+        'reconcile': 'Equals the dashboard 3 late-charge question of Refine-LateCharges.mjs for the same Statement period.',
+    },
     'income.vs-previous': {
         'name': 'This period and the previous period', 'display': 'table', 'kind': 'native',
         'basis': 'snippet 2 Income statement period (model 186 Income Events)', 'origin': 168, 'params': ['statement-period'],
@@ -523,7 +533,8 @@ TABS = [
             [(168, 6, 3, {'title': 'Income · gross interest'}), ('income.expenses', 6, 3, {'title': '− Expenses'}),
              ('income.writeoffs', 6, 3, {'title': '− Write-offs'}), (170, 6, 3, {'title': '= Net profit'})],
             [('income.vs-previous', 16, 6, {'title': 'This period and the previous period', 'note': 'height fits the five measure rows'}),
-             (171, 8, 6, {'title': 'Net profit per day · calendar days'})],
+             stack(8, (171, 3, {'title': 'Net profit per day · calendar days'}),
+                   ('income.latecharges', 3, {'title': 'Late charges · inside income'}))],
             [('income.monthly', 16, 8, {'title': 'Monthly income, expenses, write-offs and net profit'}),
              (178, 8, 8, {'title': 'Expenses by category · this period'})],
             [(213, 24, 7, {'title': 'Daily income and expenses · snapshots'})],

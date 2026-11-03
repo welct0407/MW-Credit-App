@@ -165,6 +165,26 @@ PROD promotion order:
 
 After promotion, refresh the Metabase dictionary entry of model 186 and the PostgreSQL view definitions by a targeted PROD capture.
 
+## R118 Late charges
+
+V132 adds a late charge to a charge and counts it as income: the Income Statement views' "Income" and net profit include late charges received, and each view appends a memo column ("Late Charges Received", "Late Charges Received MTD") with their part. The models stay pass-through (their SQL is unchanged). `Refine-LateCharges.mjs` (`--plan [--live]`, `--prepare`, `--apply`, `--verify`, constants in `LateCharges.mjs`) changes the Income Statement page (dashboard 3, tab 16) and reads PROD only, so it runs at the PROD promotion, after V132 is applied, after R116 is applied and under the owner's approval:
+
+- snippet 2 "Income statement period" (`live-income-period.sql`) returns "Late Charges Received" last, a memo figure; Net Profit is unchanged by it;
+- model 186 Income Events gains "Late Charges Received" in its result metadata;
+- a new scalar question "Late charges received" joins the R116 scalar row as a sixth card, every card at width 4 (Income, Expenses, Principal write-offs, Net profit, Average daily net profit, Late charges received), and the formula note says income includes late charges. Dashboard 32 has a counterpart card `income.latecharges` ("Late charges · inside income") under Net profit per day in its Income tab.
+
+`--prepare` refuses without `cards.writeoffs` in `statement-cleanup-state.json` and refuses any tab 16 row but the R116 five-card one (168, 169, the write-off question, 170, 171 at 5/5/5/5/4 on one grid row); it captures the private baseline (`r118-late-charges`) and never overwrites one. `--apply` refuses unless the source carries V132 and every touched object equals the baseline, and skips steps already done; it writes `cards.latecharges`, so `StatementCleanup.mjs` lays out the same row and note. `--verify` checks period parity of the late-charge card and of gross income (interest plus late charges, write-offs excluded) against independent SQL on `olap_repayments_analytics`, current-month parity with `reporting_income_statement`, and preservation of every other placement. Rollback: restore the private baseline and archive the new question; V132 stays. Once `live-income-period.sql` carries the late column, the R116 `Refine-WriteOffSegregation.mjs --verify` passes only after this snippet step.
+
+PROD promotion order:
+
+1. V132 (guarded migration runner).
+2. `Refine-LateCharges.mjs --prepare`, then `--apply`.
+3. `ProposedLoanReports.mjs --rebaseline-dashboard3=R118`.
+4. `ProposedLoanReports.mjs --refine --only=income.latecharges,income` (dashboard 32: the new card and the Income tab layout of `layout.json`).
+5. Both `--verify` runs: `ProposedLoanReports.mjs --verify` and `Refine-LateCharges.mjs --verify`.
+
+After promotion, refresh the Metabase dictionary entry of model 186 by a targeted PROD capture.
+
 ## R102 Long overdue lane
 
 `AddLongOverdueLane.mjs --prepare`, `--apply`, `--verify` adds the Collection Monitor lane "Long overdue" (status 'Long Overdue', colour `#37474f`) between Overdue and Paid on dashboard 3 tab 19, with its two cards and the matching status selector and color rule, and updates the lane model `models/collection-summary.sql`. It snapshots the current objects privately and refuses to replay. It reads PROD only, so run it right after the PROD promotion that installs V114 (until then the `unclassified` card shows a positive count), then `--verify` and `Verify-CollectionMonitor.mjs`, which now expects five lanes. The Loan Reports proposed dashboard lanes follow the same order. Overdue now means 1 to 7 days.

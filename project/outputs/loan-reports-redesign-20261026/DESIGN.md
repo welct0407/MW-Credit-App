@@ -34,7 +34,7 @@ The BCG matrix on Borrower Health is live dashcard 1501 (an iframe with a bearer
 The tables below are generated from `build_design.py`. Positions are grid row/column on Metabase's 24-column grid; sizes are width × height in grid units. "reuse qNNN" is an existing saved question; "new `key`" is defined in the New questions table.
 
 <!-- GENERATED:START -->
-12 tabs, 228 placements, 22 filters, 152 reused saved questions, 26 new questions.
+12 tabs, 229 placements, 22 filters, 152 reused saved questions, 27 new questions.
 
 Metabase renders one column below about 760 px: every card full width, in grid order (row, then column), with a fixed height per display type (numbers and text about 4 units, tables, charts and iframes 6). There is no per-device layout, no side-by-side pair and no phone column set; the design therefore reduces card counts on the daily pages (Today, Collection) and keeps the desktop order as the phone order.
 
@@ -81,6 +81,7 @@ Metabase renders one column below about 760 px: every card full width, in grid o
 | `cash.principal-selected` | Principal outstanding · selected date | scalar | q207 | snippet 4 Cash position source routing (models 205, 73) | position-date | Native, same routing as question 207, selecting Outstanding Principal. | Today equals question 48; a past date equals model 205 (built, verified). |
 | `income.expenses` | Expenses · statement period (positive) | scalar | q169 | snippet 2 Income statement period | statement-period | Question 169's query with the sign flipped, so the equation band reads "Income − Expenses = Net profit" with the minus in the title and a positive magnitude in the card. Copies 169's template tags (statement_period, #186, snippet 2) and mapping. | Equals −(question 169) for the same Statement period. |
 | `income.writeoffs` | Principal write-offs · statement period (positive) | scalar | q169 | snippet 2 Income statement period | statement-period | Question 169's template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet's "Principal Write-offs" (the df10: principal write-offs of the period, R116 V128) with the sign flipped, so the band reads "Income − Expenses − Write-offs = Net profit" with the minus in the title. | Equals −(the dashboard 3 write-off question of Refine-WriteOffSegregation.mjs) for the same Statement period. |
+| `income.latecharges` | Late charges received · statement period | scalar | q168 | snippet 2 Income statement period | statement-period | Question 168's template tags (statement_period, #186, snippet 2) and mapping, selecting the snippet's "Late Charges Received" (R118 V132): the late part of the period's income, a memo that is not added again. | Equals the dashboard 3 late-charge question of Refine-LateCharges.mjs for the same Statement period. |
 | `income.vs-previous` | This period and the previous period | table | q168 | snippet 2 Income statement period (model 186 Income Events) | statement-period | Native: for the selected statement period and the immediately preceding period of equal length, one row per measure (Income, Expenses, Write-offs, Net profit, Net profit per day; R116) with This period, Previous period, Change and Change %. Previous period blank before the reporting calendar. Whole baht, one-decimal percent. | This period equals 168–171; previous equals them with the preceding range (built, verified). |
 | `income.monthly` | Monthly income, expenses, write-offs and net profit | bar | q213 | model 186 Income Events | none | MBQL on model 186: sum Income, sum Expenses, sum Principal Write-offs and sum (Income − Expenses − Principal Write-offs) by Date month (R116), the previous five complete months plus the current month (partial). One shared y-axis so expenses read at true scale. | Each month equals the model 186 month sums (built, verified). |
 | `cashflow.by-type-row` | Cash movement by transaction type · chart | row | q203 | snippet 3 Cashflow statement period (same query as question 203) | statement-period, account | Question 203's query wrapped: TOTAL row and rows with no movement removed, ordered by Money In + Money Out descending. Horizontal bars of Money In (green) and Money Out (red), stacked (stackable.stack_type = stacked): on this version Metabase folds unstacked row-chart categories into "Other (n)" regardless of graph.max_categories_enabled; each type moves money one way, so stacking changes nothing visually. | Row set equals question 203 without TOTAL and zero rows, for three period/account cases. |
@@ -153,7 +154,7 @@ Phone: Four numbers, gauge, holder chart, account table, trend, in that order; n
 
 ### 3 · Income (`income`)
 
-Replaces: 3 · Income Statement (tab 16). Filters: `statement-period`. Height 35 grid rows, 12 placements (10 visuals).
+Replaces: 3 · Income Statement (tab 16). Filters: `statement-period`. Height 35 grid rows, 13 placements (11 visuals).
 
 Income − expenses = net profit for the statement period, compared with the previous period and the previous months, with expense categories and detail.
 
@@ -165,7 +166,8 @@ Income − expenses = net profit for the statement period, compared with the pre
 | 2/12 | 6×3 | new `income.writeoffs` | − Write-offs |  |  |
 | 2/18 | 6×3 | reuse q170 | = Net profit |  |  |
 | 5/0 | 16×6 | new `income.vs-previous` | This period and the previous period |  | height fits the five measure rows |
-| 5/16 | 8×6 | reuse q171 | Net profit per day · calendar days |  |  |
+| 5/16 | 8×3 | reuse q171 | Net profit per day · calendar days |  |  |
+| 8/16 | 8×3 | new `income.latecharges` | Late charges · inside income |  |  |
 | 11/0 | 16×8 | new `income.monthly` | Monthly income, expenses, write-offs and net profit |  |  |
 | 11/16 | 8×8 | reuse q178 | Expenses by category · this period |  |  |
 | 19/0 | 24×7 | reuse q213 | Daily income and expenses · snapshots |  |  |
