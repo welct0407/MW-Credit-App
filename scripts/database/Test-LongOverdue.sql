@@ -43,15 +43,16 @@ SELECT pg_temp.check_long((SELECT s."Borrowers Not Paid Today"+s."Borrowers Part
  =(SELECT count(*) FROM public.olap_borrowers_analytics WHERE "Daily Collection Status" IS NOT NULL) FROM public.olap_portfolio_summary s),
  'the five status counts partition the Collection borrowers');
 -- Column contract: the borrower view keeps 71 columns in place; V114 appended the long overdue count at the end of the
--- summary, and V120 (R109) appended "Total Principal Loss" after it.
+-- summary (position 43), V120 (R109) appended "Total Principal Loss" after it (44) and V128 (R116) "Principal Write-offs MTD"
+-- after that (Test-WriteOffSegregation.sql checks the last column).
 SELECT pg_temp.check_long((SELECT count(*)=71 AND max(attnum)=71 FROM pg_attribute WHERE attrelid='public.olap_borrowers_analytics'::regclass AND attnum>0 AND NOT attisdropped),
  'olap_borrowers_analytics column count unchanged');
 SELECT pg_temp.check_long((SELECT attname='Borrowers with Long Overdue Payment' AND format_type(atttypid,atttypmod)='bigint'
- FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum=(SELECT max(attnum)-1 FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum>0)),
+ FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum=43),
  'olap_portfolio_summary keeps the long overdue count after the V114 columns');
 SELECT pg_temp.check_long((SELECT attname='Total Principal Loss' AND format_type(atttypid,atttypmod)='numeric'
- FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum=(SELECT max(attnum) FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum>0)),
- 'olap_portfolio_summary appends the principal loss last (V120)');
+ FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attnum=44),
+ 'olap_portfolio_summary keeps the principal loss after the long overdue count (V120)');
 SELECT pg_temp.check_long((SELECT attnum=29 FROM pg_attribute WHERE attrelid='public.olap_portfolio_summary'::regclass AND attname='Borrowers with Overdue Payment'),
  'existing summary columns keep their position');
 SELECT pg_temp.check_long((SELECT "Ref Preferred Receiving Cash Account" IS NULL AND "Payment Request Token" IS NULL FROM public.olap_borrowers_analytics WHERE "Row ID"='LO-8'),

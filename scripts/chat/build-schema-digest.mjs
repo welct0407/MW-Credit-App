@@ -115,6 +115,8 @@ export const EXCLUDED_NAMES=Object.freeze({
  // R090: routines of the migration chain that the PROD-captured dictionary does not list (same rule: writers away).
  "reallocate_payment_interest*":"reallocates payment interest (operator path)",
  "payment_reallocation_permitted":"guard predicate of the reallocation triggers",
+ // R116 (V130): the write-off test the income views apply to each repayment row; the views carry its result.
+ "is_principal_writeoff":"row predicate of the write-off views",
 });
 
 const quote=x=>/^[a-z_][a-z0-9_]*$/.test(x)?x:'"'+x.replaceAll('"','""')+'"';

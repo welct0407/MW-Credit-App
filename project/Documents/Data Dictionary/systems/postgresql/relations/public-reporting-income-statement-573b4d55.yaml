@@ -214,7 +214,8 @@
                   WHEN "Business Cash Held" IS NULL THEN 'Account opening balance missing'::text
                   WHEN abs("Business Cash Held" - "Cash Pool Remaining" - "Unsettled Profit MTD") < 0.005 THEN 'Reconciled'::text
                   ELSE 'Review difference'::text
-              END AS "Cash Reconciliation Status"
+              END AS "Cash Reconciliation Status",
+          "Principal Write-offs MTD"
          FROM "Cash Dashboard" s;
     "partition_key": null
     "partition_bound": null
@@ -545,6 +546,24 @@
       "collation": "\"default\""
       "acl": null
       "comment": null
+    "Principal Write-offs MTD":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Principal Write-offs MTD"
+      "ordinal": 19
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
   "indexes": {}
   "triggers": {}
@@ -640,6 +659,11 @@
     "referenced_schema": "public"
     "referenced_relation": "Cash Dashboard"
     "referenced_column": "Operating Income MTD"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Principal Write-offs MTD"
   - "schema": "public"
     "relation": "reporting_income_statement"
     "referenced_schema": "public"
@@ -980,3 +1004,7 @@
     "reference": "outputs/r052/dictionary-production-closure.json"
     "reason": "Actual final PROD87 application/reader privileges; unrelated definitions preserved."
     "observedAt": "2026-10-11T14:01:43.131793+00:00"
+  "/content/definition/view_definition":
+    "reference": "database/migrations/V128__principal_writeoff_segregation.sql"
+    "reason": "R116: definition and the appended column Principal Write-offs MTD read from a disposable PostgreSQL chain at V128 (not a PROD capture); refresh by targeted capture after V128 is applied to PROD."
+    "observedAt": "2026-11-02T18:30:00+00:00"

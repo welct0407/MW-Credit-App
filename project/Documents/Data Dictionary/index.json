@@ -4306,6 +4306,10 @@
         {
           "subject": "Business Cash Held",
           "pointer": "/content/columns/Business Cash Held"
+        },
+        {
+          "subject": "Principal Write-offs MTD",
+          "pointer": "/content/columns/Principal Write-offs MTD"
         }
       ]
     },
@@ -5366,6 +5370,14 @@
         {
           "subject": "Total Principal Loss",
           "pointer": "/content/columns/Total Principal Loss"
+        },
+        {
+          "subject": "Principal Write-offs MTD",
+          "pointer": "/content/columns/Principal Write-offs MTD"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/columns/Principal Write-offs"
         }
       ]
     },
@@ -7649,6 +7661,10 @@
         {
           "subject": "Net Profit Through Date",
           "pointer": "/content/columns/Net Profit Through Date"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/columns/Principal Write-offs"
         }
       ]
     },
@@ -7696,6 +7712,10 @@
         {
           "subject": "In Last 12 Months",
           "pointer": "/content/columns/In Last 12 Months"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/columns/Principal Write-offs"
         }
       ]
     },
@@ -7779,6 +7799,10 @@
         {
           "subject": "Cash Reconciliation Status",
           "pointer": "/content/columns/Cash Reconciliation Status"
+        },
+        {
+          "subject": "Principal Write-offs MTD",
+          "pointer": "/content/columns/Principal Write-offs MTD"
         }
       ]
     },
@@ -10235,6 +10259,10 @@
         {
           "subject": "Expenses",
           "pointer": "/content/columns/Expenses"
+        },
+        {
+          "subject": "Principal Write-offs",
+          "pointer": "/content/columns/Principal Write-offs"
         }
       ]
     },
@@ -10819,6 +10847,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.initialize_cash_accounts(p_holder text, p_openings jsonb, p_actor text, p_notes text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-is-principal-writeoff-p-row-id-text-p-ref-payment-text-p-principal-numeric-p-interest-numeric-c7b66efc.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint)",
       "scope": "production",
       "status": "documented",
       "lookup": []

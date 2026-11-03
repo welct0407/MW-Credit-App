@@ -268,7 +268,7 @@ test('T8 views: every loan with a loss is a default; the portfolio summary appen
  const columns=async view=>(await admin.query(`SELECT array_agg(column_name::text ORDER BY ordinal_position) AS c FROM information_schema.columns WHERE table_schema='public' AND table_name=$1`,[view])).rows[0].c;
  const before={borrower:await borrower(),portfolio:await portfolio(),columns:await columns('olap_borrowers_analytics'),health:await columns('reporting_borrower_payment_health_v1')};
  assert.deepEqual([before.borrower.count,Number(before.borrower.loss)],[0,0]);
- assert.equal((await columns('olap_portfolio_summary')).at(-1),'Total Principal Loss');
+ assert.equal((await columns('olap_portfolio_summary'))[43],'Total Principal Loss','V120 column 44 (V128 appends the write-offs after it)');
  await applied('loan.default','R109-V1',lossInputs('4000',true));
  const partial=await portfolio();
  assert.equal(Number(partial.outstanding)-Number(before.portfolio.outstanding),-4000,'portfolio principal drops by the loss');

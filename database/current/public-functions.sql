@@ -1764,6 +1764,26 @@ END $$;
 
 
 --
+-- Name: is_principal_writeoff(text, text, numeric, numeric, text, numeric, numeric, bigint); Type: FUNCTION
+--
+
+CREATE FUNCTION public.is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint) RETURNS boolean
+    LANGUAGE sql IMMUTABLE PARALLEL SAFE
+    AS $$
+ SELECT coalesce(starts_with(p_row_id,'df10:') OR (p_ref_payment IS NULL AND p_principal>0 AND p_interest=-p_principal
+  AND NOT starts_with(p_charge_id,'lc7:') AND NOT starts_with(p_charge_id,'ls2:')
+  AND p_charge_principal=p_principal AND p_charge_interest=-p_principal AND p_charge_repayments=1),false)
+$$;
+
+
+--
+-- Name: FUNCTION is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.is_principal_writeoff(p_row_id text, p_ref_payment text, p_principal numeric, p_interest numeric, p_charge_id text, p_charge_principal numeric, p_charge_interest numeric, p_charge_repayments bigint) IS 'R116 (V130): true for a principal write-off repayment: a df10: posting, or a zero-cash loss pair (no Ref Payment, principal X > 0, interest -X, a non-lc7:/ls2: charge of X/-X with exactly one repayment). Pure; the caller supplies the charge.';
+
+
+--
 -- Name: loan_cashpool_lock(); Type: FUNCTION
 --
 

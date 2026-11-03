@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource,privateDir,root,read,write} from './ReportingApi.mjs';
+import {WRITE_OFF_BRIDGE_NAME,WRITE_OFF_BRIDGE_SQL,WRITE_OFF_BRIDGE_TITLE,WRITE_OFF_SCALAR_NAME,WRITE_OFF_SCALAR_SQL,WRITE_OFF_NOTE,incomeRow} from './WriteOffSegregation.mjs';
 export const backup=privateDir+'/statement-cleanup-before';
 export const prior=n=>JSON.parse(fs.readFileSync(`${backup}/${n}.json`));
 const fmt=names=>({column_settings:Object.fromEntries(names.map(n=>[JSON.stringify(['name',n]),{number_style:'decimal',decimals:0,number_separators:'.,',compact:false}]))});
@@ -21,7 +22,10 @@ const status=(selection,extra='')=>`SELECT v.detail AS "Detail",v.value AS "Valu
 export const specs=[
  ...[[168,'Operating income','Operating Income'],[169,'Operating expenses','Operating Expenses'],[170,'Net profit','Net Profit'],[171,'Average daily net profit','Average Daily Net Profit']].map(([id,name,field])=>({id,key:'q'+id,name,display:'scalar',dataset_query:inc(`SELECT "${field}" FROM statement`),visualization_settings:{'scalar.field':field,...fmt([field])}})),
  {id:184,key:'income-status',name:'Income period & freshness',display:'table',dataset_query:inc(status('Selection Status')),visualization_settings:{'table.pivot':false}},
- {id:204,key:'profit-bridge',name:'Income less expenses · Total = Net profit',display:'waterfall',dataset_query:inc(`SELECT v.movement AS "Movement",v.amount AS "Amount" FROM statement s CROSS JOIN LATERAL (VALUES (1,'Income',s."Operating Income"),(2,'Expenses',s."Operating Expenses")) v(step,movement,amount) ORDER BY v.step`),visualization_settings:prior('card-204').visualization_settings},
+ // R116 (V128): the waterfall subtracts principal write-offs after expenses; its total stays Net profit.
+ {id:204,key:'profit-bridge',name:WRITE_OFF_BRIDGE_NAME,display:'waterfall',dataset_query:inc(WRITE_OFF_BRIDGE_SQL),visualization_settings:prior('card-204').visualization_settings},
+ // R116 (V128): the period's principal write-offs (signed like Operating expenses), from the same snippet.
+ {key:'writeoffs',name:WRITE_OFF_SCALAR_NAME,display:'scalar',dataset_query:inc(WRITE_OFF_SCALAR_SQL),visualization_settings:{'scalar.field':'Principal Write-offs',...fmt(['Principal Write-offs'])}},
  {id:178,key:'expense-category',name:'Expenses by category · live period',display:'row',dataset_query:{...inc('SELECT e."Expense Category",sum(e."Expense Amount") AS "Expenses" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" GROUP BY 1 ORDER BY 2 DESC,1'),native:{...inc('').native,query:'WITH statement AS ({{snippet: Income statement period}}) SELECT e."Expense Category",sum(e."Expense Amount") AS "Expenses" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" GROUP BY 1 ORDER BY 2 DESC,1','template-tags':{...itags,'#163':cardTag(163)}}},visualization_settings:{'graph.dimensions':['Expense Category'],'graph.metrics':['Expenses'],'graph.colors':['#D1495B'],'graph.show_values':true,...fmt(['Expenses'])}},
  {key:'expense-detail',name:'Expense detail · live period',display:'table',dataset_query:native('WITH statement AS ({{snippet: Income statement period}}) SELECT e."Expense Date",e."Expense Category",b."Payee Name" AS "Payee",h."Cash Holder" AS "Paid By",e."Expense Amount" AS "Expenses",b."Notes",e."Expense ID" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" LEFT JOIN public."Business Expenses" b ON b."Row ID"=e."Expense ID" LEFT JOIN (SELECT DISTINCT "Cash Holder ID","Cash Holder" FROM public.reporting_cash_accounts) h ON h."Cash Holder ID"=b."Ref Paid By Cash Holder" WHERE s."Continuous Period" ORDER BY e."Expense Date",e."Expense ID"',{...itags,'#163':cardTag(163)}),visualization_settings:{'table.pivot':false,...fmt(['Expenses'])}},
  ...[[195,'Opening cash','Opening Balance'],[192,'Money in','Money In'],[193,'Money out','Money Out'],[197,'Closing cash','Closing Balance'],[194,'Net cash movement','Net Movement']].map(([id,name,field])=>({id,key:'q'+id,name,display:'scalar',dataset_query:flow(`SELECT "${field}" FROM statement`),visualization_settings:{'scalar.field':field,...fmt([field])}})),
@@ -50,11 +54,12 @@ export function layout(d,state){
  const out=[];let next=-1;
  const note=(tab,row,text,h=2)=>out.push({id:next--,card_id:null,dashboard_tab_id:tab,col:0,row,size_x:24,size_y:h,series:[],parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:h===1?'heading':'text',visualization_settings:{text}}}});
  const place=(tab,id,col,row,w,h,title)=>out.push({id:d.dashcards.find(c=>c.dashboard_tab_id===tab&&c.card_id===id)?.id??next--,card_id:id,dashboard_tab_id:tab,col,row,size_x:w,size_y:h,series:[],parameter_mappings:[{parameter_id:tab===16?'review-income':'review-flow',card_id:id,target:['dimension',['template-tag',tab===16?'statement_period':'cashflow_period']]},...(tab===15?[{parameter_id:'review-account',card_id:id,target:['variable',['template-tag','cash_account']]}]:[])],visualization_settings:{'card.title':title}});
- note(16,0,'Income statement · live on refresh',1);note(16,1,'Net profit = interest − expenses. Amounts in baht.');
- [[168,'Income'],[169,'Expenses'],[170,'Net profit']].forEach(([id,t],j)=>place(16,id,j*8,3,8,3,t));
+ // R116: with the write-off question (state.cards.writeoffs) the row is Income, Expenses, Principal write-offs, Net profit.
+ note(16,0,'Income statement · live on refresh',1);note(16,1,state.cards.writeoffs?WRITE_OFF_NOTE:'Net profit = interest − expenses. Amounts in baht.');
+ incomeRow(state.cards.writeoffs).forEach(([id,t,col,w])=>place(16,id,col,3,w,3,t));
  place(16,184,0,6,16,6,'Period & freshness');place(16,171,16,6,8,3,'Average daily net profit');
  note(16,12,'Average uses calendar days. Live figures include later corrections.');
- place(16,204,0,14,24,6,'Income − expenses = net profit');place(16,178,0,20,24,6,'Expenses by category');
+ place(16,204,0,14,24,6,state.cards.writeoffs?WRITE_OFF_BRIDGE_TITLE:'Income − expenses = net profit');place(16,178,0,20,24,6,'Expenses by category');
  place(16,state.cards['expense-detail'],0,26,24,7,'Expense detail · live');
  note(16,33,'Historical daily trend · hourly snapshots',1);note(16,34,'Completed days only. Gaps stay blank; corrections need a refresh.');
  place(16,state.cards['income-trend'],0,36,24,7,'Daily income & expenses');place(16,state.cards['income-snapshot-status'],0,43,24,6,'Snapshot coverage & actual refresh times');
