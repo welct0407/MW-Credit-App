@@ -20,6 +20,9 @@ class OptionsReplyTests(unittest.TestCase):
     def setUp(self):
         self.db=sqlite3.connect(':memory:');self.db.row_factory=sqlite3.Row;self.addCleanup(self.db.close)
         self.store=ReviewStore(self.db);self.key=self.store.reserve('job',PROPOSAL,100)
+        self.db.executescript('''CREATE TABLE receipt_jobs(id TEXT PRIMARY KEY,status TEXT,detail TEXT,result TEXT,attempts INTEGER,retry_after REAL);
+          CREATE TABLE receipt_reconsiderations(id INTEGER PRIMARY KEY,job_id TEXT NOT NULL,created_at REAL NOT NULL,previous TEXT NOT NULL);
+          INSERT INTO receipt_jobs VALUES ('job','REVIEW_REQUESTED','RECEIPT_PROCESSING_STARTED','{}',1,0);''')
         self.p={'id':'p','username':'partner','enabled':True,'language':'English','email':'test@example.invalid'}
         self.notice={'ig_status':'ACCEPTED','event_key':'review:'+self.key,'message_id':'out','recipient_id':'123','partner_id':'p','partner':json.dumps(self.p)}
         self.event={'reply_to':'out','sender_id':'123','message_id':'in','event_timestamp':110,'text':'1'}
@@ -47,7 +50,7 @@ class OptionsReplyTests(unittest.TestCase):
         self.assertTrue(p['forward']);self.assertEqual(p['principal'][0]['amount'],'800')
 
     def test_unclear_replies_ask_again_and_decide_nothing(self):
-        for index,text in enumerate(('maybe','Yes','approve','อนุมัติ','3','3 0','3 -5','3 abc','3 1200','3 1300','4','0','1 2','')):
+        for index,text in enumerate(('maybe','Yes','approve','อนุมัติ','3','3 0','3 -5','3 abc','3 1200','3 1300','5','0','1 2','')):
             with self.subTest(text=text):
                 self.assertEqual(self.decide(text,message_id=f'm{index}'),'OPTIONS_REQUIRED')
                 self.assertEqual(self.row()['state'],'PENDING')
@@ -58,6 +61,38 @@ class OptionsReplyTests(unittest.TestCase):
 
     def test_reject_still_drops_the_slip(self):
         self.assertEqual(self.decide('Reject'),'REJECTED');self.assertEqual(self.row()['state'],'REJECTED')
+
+    def test_four_rechecks_the_slip_from_current_charges(self):
+        # Owner request, 3 November 2026: edit the charges in the app (a late fee), then reply 4 to plan the slip again.
+        for text in ('4','Recheck','ตรวจใหม่'):
+            with self.subTest(text=text):
+                self.setUp()   # a fresh pending review per word
+                self.assertEqual(self.decide(text),'RECHECK_QUEUED')
+                row=self.row();self.assertEqual(row['state'],'SUPERSEDED');self.assertEqual(row['detail'],'REVIEWER_REQUESTED_RECHECK')
+                self.assertEqual(row['job_id'],'job:superseded:'+self.key,'the job can be planned again under its own id')
+                self.assertEqual(row['payment_id'],None)
+                job=self.db.execute("SELECT status,detail,attempts FROM receipt_jobs WHERE id='job'").fetchone()
+                self.assertEqual(tuple(job),('VALIDATED','REVIEWER_REQUESTED_RECHECK',0))
+                prior=json.loads(self.db.execute('SELECT previous FROM receipt_reconsiderations').fetchone()[0])
+                self.assertEqual(prior['status'],'REVIEW_REQUESTED')
+
+    def test_four_is_final_and_a_later_reply_decides_nothing(self):
+        self.assertEqual(self.decide('4'),'RECHECK_QUEUED')
+        self.assertEqual(self.decide('1',message_id='in2'),'ALREADY_DECIDED');self.assertEqual(self.row()['state'],'SUPERSEDED')
+        self.assertEqual(self.db.execute('SELECT count(*) FROM receipt_reconsiderations').fetchone()[0],1)
+
+    def test_four_after_a_decision_changes_nothing(self):
+        self.assertEqual(self.decide('1'),'APPROVED')
+        self.assertEqual(self.decide('4',message_id='in2'),'ALREADY_DECIDED');self.assertEqual(self.row()['state'],'APPROVED')
+        self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'REVIEW_REQUESTED')
+
+    def test_four_from_an_unauthorized_sender_changes_nothing(self):
+        self.assertEqual(self.decide('4',sender_id='other'),'NOT_CORRELATED');self.assertEqual(self.row()['state'],'PENDING')
+        self.assertEqual(self.db.execute("SELECT status FROM receipt_jobs").fetchone()[0],'REVIEW_REQUESTED')
+
+    def test_the_request_offers_the_recheck(self):
+        self.assertIn('4 recheck after editing charges in the app',request_text(PROPOSAL,'English')[1])
+        self.assertIn('4 ตรวจใหม่หลังแก้ยอดในแอป',request_text(PROPOSAL,'ไทย')[1])
 
     def test_a_decision_is_final(self):
         self.assertEqual(self.decide('1'),'APPROVED')
@@ -85,7 +120,7 @@ class OptionsReplyTests(unittest.TestCase):
             self.assertIn('Reject' if language=='English' else 'ปฏิเสธ',body)
 
     def test_an_unclear_reply_gets_the_prompt_and_the_options_again(self):
-        for language,prompt in (('English','Reply 1, 2, or 3 and an amount.'),('ไทย','ตอบ 1, 2 หรือ 3 ตามด้วยจำนวน')):
+        for language,prompt in (('English','Reply 1, 2, 3 and an amount, or 4.'),('ไทย','ตอบ 1, 2, 3 ตามด้วยจำนวน หรือ 4')):
             body=request_text(PROPOSAL,language,unclear=True)[1]
             self.assertTrue(body.startswith(prompt));self.assertIn('1,500' if language=='English' else '1,500',body);self.assertLessEqual(len(body),1000)
 

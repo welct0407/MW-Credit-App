@@ -10,6 +10,11 @@ APPROVE={'yes','approve','approved','อนุมัติ'}
 # R112: the options reply. 1 pay forward; 2 (or "2 <n>" with several loans) repay principal; "3 <amount>" split.
 # Reject words drop the slip; anything else asks again (OPTIONS_REQUIRED) and decides nothing (D7: no default).
 REJECT={'reject','rejected','ปฏิเสธ'}
+# Owner request, 3 November 2026: "4" rechecks the slip. The Reviewer edits the charges in the app first (for example a
+# late fee), then replies 4; this review is superseded and the receipt is planned again from the current charges. Within
+# what is due it is then an ordinary payment (posted under the automatic-payment policy); otherwise a new options request.
+RECHECK={'4','recheck','ตรวจใหม่'}
+RECHECKED='RECHECK_QUEUED'
 OPTIONS_REQUIRED='OPTIONS_REQUIRED'
 CHOICE=re.compile(r'(1)|(2)(?:\s+([1-9]))?|(3)\s+([1-9][0-9]{0,16})')
 
@@ -98,7 +103,9 @@ class ReviewStore:
                 text=event.get('text') or ''
                 choice=options_choice(text)
                 purpose=chosen_purpose(json.loads(row['proposal'])['options'],choice) if choice else None
-                if text.strip().casefold() in REJECT:outcome,detail='REJECTED',''
+                if text.strip().casefold() in RECHECK:
+                    outcome,detail=self._recheck(row,p,event,now),None
+                elif text.strip().casefold() in REJECT:outcome,detail='REJECTED',''
                 elif purpose:outcome,detail='APPROVED',json.dumps({'purpose':purpose},sort_keys=True,separators=(',',':'))
                 else:outcome,detail=OPTIONS_REQUIRED,None
                 if detail is not None:
@@ -112,6 +119,26 @@ class ReviewStore:
                 if not changed:outcome='ALREADY_DECIDED'
             self.db.execute('INSERT INTO partner_review_replies VALUES (?,?,?)',(event['message_id'],key,outcome))
             return outcome
+
+    def _recheck(self,row,partner,event,now):
+        """Supersede the pending options review and queue its receipt for planning again (same transaction as decide).
+        Like receipt-reconsider: the prior job state is kept in receipt_reconsiderations and the old review keeps its
+        decision under a renamed job_id, so a reply to the old message can no longer decide anything."""
+        job=self.db.execute("SELECT status,detail,result FROM receipt_jobs WHERE id=?",(row['job_id'],)).fetchone()
+        if not job or job['status']!='REVIEW_REQUESTED':return 'ALREADY_DECIDED'
+        changed=self.db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id=job_id||':superseded:'||id,"
+            "deciding_partner=?,decision_message=?,detail='REVIEWER_REQUESTED_RECHECK' WHERE id=? AND state='PENDING'",
+            (partner['id'],event['message_id'],row['id'])).rowcount
+        if not changed:return 'ALREADY_DECIDED'
+        from .state import is_postgres
+        if not is_postgres(self.db):   # PostgreSQL has it from agent migration V2 (as receipt_reconsider does)
+            self.db.execute('''CREATE TABLE IF NOT EXISTS receipt_reconsiderations
+               (id INTEGER PRIMARY KEY,job_id TEXT NOT NULL,created_at REAL NOT NULL,previous TEXT NOT NULL)''')
+        self.db.execute('INSERT INTO receipt_reconsiderations(job_id,created_at,previous) VALUES (?,?,?)',
+                        (row['job_id'],now,json.dumps({k:job[k] for k in ('status','detail','result')})))
+        self.db.execute("UPDATE receipt_jobs SET status='VALIDATED',attempts=0,retry_after=0,detail='REVIEWER_REQUESTED_RECHECK' "
+                        "WHERE id=? AND status='REVIEW_REQUESTED'",(row['job_id'],))
+        return RECHECKED
 
 
 MONTHS=('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
@@ -150,6 +177,7 @@ def options_lines(proposal,thai):
         detail=((p.get('loanKey')+' ') if several and p.get('loanKey') else '')+('ดอกเบี้ยใหม่ ' if thai else 'new interest ')+baht(p['dailyAfter'])+('/วัน' if thai else '/day')
         choices.append(label+' ('+detail+')')
     if forward_offered(o) and len(o['principal'])==1:choices.append('3 + จำนวน เพื่อแบ่งชำระ' if thai else '3 + amount to split')
+    choices.append('4 ตรวจใหม่หลังแก้ยอดในแอป' if thai else '4 recheck after editing charges in the app')
     if thai:
         head=f"สลิป {baht(receipt['amount'])} จาก {name}"+(f", {keys}" if keys else '')+f" ครบกำหนดวันนี้ {baht(o['dueTotal'])} ยอดคงเหลือ {baht(o['remainder'])} ตอบ: "
         tail=' · ปฏิเสธ เพื่อยกเลิก'
@@ -175,7 +203,7 @@ def request_text(proposal,language,unclear=False):
         # R112 (Echo AG-1, AG-2): reply with a number; an unclear reply gets the prompt, then the options again.
         receipt=proposal['receipt']
         subject='สลิปรอเลือกวิธี' if thai else 'Slip needs a choice'
-        body=(('ตอบ 1, 2 หรือ 3 ตามด้วยจำนวน\n' if thai else 'Reply 1, 2, or 3 and an amount.\n') if unclear else '')+options_lines(proposal,thai)
+        body=(('ตอบ 1, 2, 3 ตามด้วยจำนวน หรือ 4\n' if thai else 'Reply 1, 2, 3 and an amount, or 4.\n') if unclear else '')+options_lines(proposal,thai)
         body+=(f"\nเวลาโอน: {receipt['date']} {receipt['time'][:5]} · บัญชีรับ: {receipt['account_label']}\nใช้ Reply ตอบข้อความนี้ ยังไม่ได้บันทึกรายการ" if thai else
                f"\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok) · Account: {receipt['account_label']}\nUse Reply on THIS message. Nothing has been posted.")
         if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
