@@ -3,7 +3,9 @@ import io
 import json
 import sqlite3
 import tempfile
+import traceback
 import unittest
+import urllib.error
 from datetime import datetime,timedelta
 from pathlib import Path
 from unittest.mock import patch
@@ -13,7 +15,7 @@ from PIL import Image
 from mw_integration_agent.config import ConfigurationError,load_json,validate_config
 from mw_integration_agent.graph_email import EmailRejected,EmailUnknown
 from mw_integration_agent.journal import IngressJournal
-from mw_integration_agent.receipt_image import allowed_url,canonical_image,extract
+from mw_integration_agent.receipt_image import allowed_url,canonical_image,download_original,extract
 from mw_integration_agent.receipt_journal import ReceiptJournal
 from mw_integration_agent.receipt_rules import (BANGKOK,ReceiptInvalid,borrower_for,match_account,
     recipients,summary,validate_receipt)
@@ -150,6 +152,29 @@ class ReceiptRuleTests(unittest.TestCase):
         image.save(a,format='PNG');image.save(b,format='PNG',compress_level=1)
         self.assertEqual(canonical_image(a.getvalue())[1],canonical_image(b.getvalue())[1])
         with self.assertRaises(ConfigurationError): canonical_image(b'not an image')
+
+    def http_failure(self,code):
+        signed='https://scontent.fbcdn.net/v/receipt.jpg?oh=SIGNED-SECRET&oe=1'
+        class Opener:
+            def open(self,request,timeout):
+                raise urllib.error.HTTPError(request.full_url,code,'status',{},None)
+        with patch('mw_integration_agent.receipt_image.http_opener',return_value=Opener()), \
+             self.assertRaises(ConfigurationError) as caught:
+            download_original(signed)
+        return caught.exception
+
+    def test_download_403_404_and_410_are_source_gone(self):
+        for code in (403,404,410):
+            with self.subTest(code=code):
+                exc=self.http_failure(code)
+                self.assertEqual(str(exc),'RECEIPT_SOURCE_GONE')
+                self.assertIsNone(exc.__cause__);self.assertIsNone(exc.__context__)
+                self.assertNotIn('SIGNED-SECRET',''.join(traceback.format_exception(exc)))
+
+    def test_download_other_http_errors_stay_download_failed(self):
+        for code in (429,500):
+            with self.subTest(code=code):
+                self.assertEqual(str(self.http_failure(code)),'RECEIPT_DOWNLOAD_FAILED')
 
     def test_old_config_compatible_new_flag_requires_cutoff(self):
         c=load_json(Path(__file__).resolve().parents[1]/'config.example.json')

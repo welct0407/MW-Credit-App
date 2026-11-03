@@ -141,6 +141,51 @@ class ReceiptArchiveTests(unittest.TestCase):
         self.assertAlmostEqual(row['retry_after']-before,300,delta=2)
         asset=self.archive.get(self.key)
         self.assertEqual((asset['archive_state'],asset['last_error_code']),('SOURCE_PENDING','RECEIPT_DOWNLOAD_FAILED'))
+    def source_gone(self):
+        def gone(_):raise ConfigurationError('RECEIPT_SOURCE_GONE')
+        with self.assertRaisesRegex(ConfigurationError,'RECEIPT_SOURCE_GONE'):self.archive.capture(self.job,gone)
+    def due(self):
+        with self.journal.db:self.journal.db.execute('UPDATE receipt_assets SET next_attempt_at=0')
+    def test_first_source_gone_only_schedules_a_retry(self):
+        before=time.time()
+        self.source_gone()
+        asset=self.archive.get(self.key)
+        self.assertEqual((asset['archive_state'],asset['attempts'],asset['last_error_code']),
+                         ('SOURCE_PENDING',1,'RECEIPT_SOURCE_GONE'))
+        self.assertAlmostEqual(asset['next_attempt_at']-before,300,delta=2)
+        self.assertEqual(list(self.archive.root.iterdir()),[])
+    def test_second_source_gone_is_terminal_and_job_exits_review(self):
+        self.source_gone();self.due()
+        def gone(_):raise ConfigurationError('RECEIPT_SOURCE_GONE')
+        real=Archive.capture
+        with patch.object(Archive,'capture',lambda archive,job:real(archive,job,gone)):row=self.run_process()
+        asset=self.archive.get(self.key)
+        self.assertEqual((asset['archive_state'],asset['attempts'],asset['last_error_code']),
+                         ('SOURCE_UNAVAILABLE',2,'RECEIPT_SOURCE_GONE'))
+        self.assertEqual((row['status'],row['detail'],row['attempts'],row['url']),('REVIEW','RECEIPT_ARCHIVE_UNAVAILABLE',0,''))
+    def test_download_failed_after_source_gone_does_not_close(self):
+        self.source_gone();self.due()
+        self.failed_download();self.due()
+        self.source_gone()
+        asset=self.archive.get(self.key)
+        self.assertEqual((asset['archive_state'],asset['attempts'],asset['last_error_code']),
+                         ('SOURCE_PENDING',3,'RECEIPT_SOURCE_GONE'))
+    def test_source_gone_never_closes_a_spooled_or_hashed_asset(self):
+        with self.subTest('spool present'):
+            self.source_gone();self.due()
+            receipt_id=self.archive.get(self.key)['receipt_id']
+            (self.archive.root/(receipt_id+'.raw')).write_bytes(self.raw)
+            self.archive.capture(self.job,lambda _:self.fail('a spooled asset must not re-download'))
+            self.assertEqual(self.archive.get(self.key)['archive_state'],'ARCHIVED')
+        with self.subTest('raw hash set, spool removed'):
+            with self.journal.db:
+                self.journal.db.execute("UPDATE receipt_assets SET archive_state='LOCAL_READY',last_error_code='RECEIPT_SOURCE_GONE',next_attempt_at=0")
+            self.assertTrue(self.archive.get(self.key)['raw_sha256'])
+            self.assertFalse((self.archive.root/(receipt_id+'.raw')).exists())
+            with self.assertRaisesRegex(ConfigurationError,'RECEIPT_SPOOL_MISSING'):
+                self.archive.capture(self.job,lambda _:self.fail('captured bytes must never be replaced'))
+            asset=self.archive.get(self.key)
+            self.assertEqual((asset['archive_state'],asset['last_error_code']),('LOCAL_READY','RECEIPT_SPOOL_MISSING'))
     def test_source_identity_conflict_and_quota(self):
         changed=dict(self.job,source=source('poll','different',0,'456',1,2))
         with self.assertRaisesRegex(ConfigurationError,'SOURCE_CONFLICT'):self.archive.capture(changed)
