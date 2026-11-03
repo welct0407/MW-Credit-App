@@ -46,5 +46,8 @@ Chase's review notes, both accepted as is:
 ## Open questions
 None.
 
+## Deployment
+Owner-approved. PR #227 checks passed (agent `test` and `lab`, `Development checks result`) and it was merged as `5c61fc4f`. That commit was deployed to `vm-mw-credit-agent` with `deploy-runtime.py` (dry-run, freeze, install, activate) at 18:45:40Z to 18:45:58Z UTC on 3 November 2026. `/ready` is true on the new commit with no failed units, and `receipts` was Up from the 18:48:08Z sample. Details and the rollback command are in the [environment inventory](../../project/Documents/Environment_Inventory.md).
+
 ## Remaining work
-Deploy to the PROD agent VM after the pull request's checks pass (owner-approved 4 November 2026).
+None.
