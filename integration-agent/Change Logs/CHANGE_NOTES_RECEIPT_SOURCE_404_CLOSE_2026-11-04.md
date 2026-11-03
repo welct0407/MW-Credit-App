@@ -27,6 +27,9 @@ Clear the Grafana `receipts` Degraded alert, which had been firing since 14:21 B
 | Byte: `ruff check integration-agent` | Clean |
 | Byte: the new tests against the old source | 3 fail before the change, all pass after |
 | Chase: adversarial review of 168fa81 against Archie's test plan, plus a scratch test (redirect hop that ends in 404; 410 carrying a body) | Pass, no blocking defects |
+| Byte, after 403 was added (dff9ab0): focused set, `discover -s tests`, ruff | 134 OK. Full suite: 719 OK, 70 skipped on two reruns; one unreproduced error on a first run that overlapped a commit. Ruff clean. |
+| Orchestrator: review of the 403 delta (f2654c4..dff9ab0) | Only the gone status tuple, comments and tests changed. Chase's review of the logic still applies. |
+| Pull request `Development checks` | The one broad run; see the pull request |
 
 ## Not run
 The manual close needed no tests. Code checks are in the Checks table.
