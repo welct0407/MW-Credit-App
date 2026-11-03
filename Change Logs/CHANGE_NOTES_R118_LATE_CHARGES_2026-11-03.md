@@ -34,6 +34,8 @@ Echo's second pass (on `673d6ea`, at 390, 1280 and 320 px, English and Thai): 7 
 
 Chase's review (two low points): (a) the chat's next-charge path with a due charge that carries a late charge built v9 and dropped the late charge; fixed in `3679069`: the chat refuses with `LATE_CHARGE_WITH_NEXT_CHARGE` before review, and the catalogue tells the model to pay that charge first. (b) The agent's facts query needs V132 first, which is consistent with the SQL-first promotion order (recorded in the agent note).
 
+Chase's final rerun on `3679069`: `late-charge-independent.spec.ts` passed 11 of 12. The failure was the new strict scroll-restore test on desktop after Confirm, off by about 147 px. Fixed in `f28e8b4` (Byte, `apps/pwa/src/CollectionRecords.tsx` only): the late-charge Confirm now shows over the Collection list, which stays mounted but hidden, and a layout effect reapplies the saved scroll position until the refresh finishes. Two causes: the scroll clamped during the reload, and the header and history remount shifted the rows.
+
 Accepted deviations from batch 2 (Byte):
 - The standalone Upcoming detail has no separate late row, because Amount Remaining includes it.
 - The e2e fixtures `canonical-server.ts` and `synthetic-read-adapter.mjs` are unchanged.
@@ -104,14 +106,15 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | Nothing dated moved: `generate_due_charges` twin, `loan_close_calculation_v83` twin (`mutation` JSON identical), pay-forward twin, `pwa_next_*`, income and Cash Dashboard snapshots before and after V132 | Covered by `Test-LateCharges` above (Chase) |
 | Schema digest rebuilt at 132, `--check`; `node --test tests/unit/chat-schema-digest.test.mjs` | Covered by `npm test` above (Byte) |
 | `npm run check:docs` (Dewey, records) | 0 failures, 0 warnings |
-| `late-charge-independent.spec.ts` | 10/10 on both projects, on `4b8213b` (Chase); final rerun after Byte's fixes pending |
+| `late-charge-independent.spec.ts` | 10/10 on both projects, on `4b8213b` (Chase); 11 of 12 on `3679069` (scroll-restore failure, fixed in `f28e8b4`); `--repeat-each=4`, desktop and mobile: 48 passed, 0 failed, on `f28e8b4`, clean tree (Byte) |
+| `npm run lint`, `npm run typecheck`, `npm test` | 0 errors, pass, 1129 pass, on `f28e8b4`, clean tree (Byte) |
 | Six changed e2e specs plus the new spec, both projects | 115 passed, 1 skipped, 2 load-flaky failures in the 4-worker run; rerun alone, `unified-receiving-independent` on mobile 21/21 (Chase) |
 | Echo second pass, 390, 1280 and 320 px, English and Thai | 7 findings, all fixed in `4b8213b` (Echo) |
 | Pull request `Development checks` | Pending |
 | DEV: open the pull request and test in DEV (next, owner instruction); acceptance scenarios (plan list, Chase on DEV, then the owner on the phone) | Pending |
 
 ## Not run
-The rows marked Pending: Chase's final e2e rerun after Byte's fixes, the pull request's Development checks and DEV. A pending check is not a pass.
+The rows marked Pending: the pull request's Development checks and DEV. A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
@@ -121,7 +124,6 @@ None.
 
 ## Remaining work
 - Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- Chase's final e2e rerun after Byte's fixes.
 - Open the pull request and test in DEV (next, owner instruction), then owner acceptance on the phone.
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.
