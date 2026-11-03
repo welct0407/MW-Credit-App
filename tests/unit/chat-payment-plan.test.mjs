@@ -214,4 +214,11 @@ test('R118: a late charge: Auto-assign pays interest, then the late charge, then
  await assert.rejects(planPayment({client,borrowerId:'B1',values:{amountReceived:'600',paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C1']},requestId:RID}),/AMOUNT_MISMATCH:650/);
  const next=await planPayment({client,borrowerId:'B1',values:{amountReceived:'800',paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C2'],nextChargeOf:['L1']},requestId:RID});
  assert.equal(next.command.schemaVersion,9);assert.equal(next.command.allocations.every(r=>!('lateCharge' in r)),true);
+ // A due charge with a late charge never rides a v9 next-charge payment: the full amount (late included) and principal plus
+ // interest only both refuse, naming the charge and its late charge; nothing is reviewed or posted.
+ for(const amountReceived of ['1350','1300']){
+  const before=calls.length;
+  await assert.rejects(planPayment({client,borrowerId:'B1',values:{amountReceived,paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C1'],nextChargeOf:['L1']},requestId:RID}),/^ToolError: LATE_CHARGE_WITH_NEXT_CHARGE:C1:50$/,amountReceived);
+  assert.equal(calls.slice(before).some(([,path,body])=>path.endsWith('/review')&&body?.allocations),false,'no plan is reviewed');
+ }
 });

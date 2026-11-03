@@ -3283,7 +3283,7 @@
     "en": "Record payment",
     "th": "บันทึกรับชำระ"
    },
-   "description": "Record a payment received from a borrower (target_id = borrower). Give the amount; the system splits it like the Payments screen's Auto-assign (due charges, newest first; inside a charge interest, then late charge, then principal), or pays named charges in full (chargeIds), or a loan's next projected charge in full (nextChargeOf). Never give a split.",
+   "description": "Record a payment received from a borrower (target_id = borrower). Give the amount; the system splits it like the Payments screen's Auto-assign (due charges, newest first; inside a charge interest, then late charge, then principal), or pays named charges in full (chargeIds), or a loan's next projected charge in full (nextChargeOf; it cannot be combined with a due charge that carries a late charge: LATE_CHARGE_WITH_NEXT_CHARGE, so pay that charge in its own payment first). Never give a split.",
    "target": "payment",
    "fields": [
     {
