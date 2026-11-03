@@ -567,8 +567,11 @@ main[data-workspace=management] pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .data-check-badge .app-icon { width: 15px; height: 15px; stroke-width: 2; }
 .data-check-dot { position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; background: #8b1a1a; border: 2px solid #fff; pointer-events: none; }
 .waiting-sync-button.all-synced.data-check { opacity: 1; }
-.late-charge-saving{display:inline-flex;align-items:center;gap:6px;color:#25303d;font-weight:600}
-.late-charge-busy .loan-step-buttons button,.late-charge-busy>.secondary-button{opacity:.4;cursor:progress}
+/* R118 (Echo LC-BUSY-1/2/7): a saving late-charge step, distinct from the at-floor disabled look. */
+.loan-step-buttons.saving button,.charge-late-line .secondary-button:disabled{opacity:.45;cursor:progress}
+.loan-step-buttons.saving.held button{cursor:default}
+.loan-step-buttons.saving .collection-spinner,.charge-late-line .secondary-button .collection-spinner{vertical-align:middle}
+.charge-late-line .secondary-button .collection-spinner{margin-right:6px}
 .sync-toast.late-charge-toast { bottom: calc(16px + env(safe-area-inset-bottom)); }
 .sync-toast.late-charge-toast.refused { background: #fdecea; color: #8b1a1a; }
 .sync-toast.data-check-toast { bottom: 64px; background: #fdecea; color: #8b1a1a; }
