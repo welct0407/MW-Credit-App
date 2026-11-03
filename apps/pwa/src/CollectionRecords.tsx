@@ -239,10 +239,27 @@ export function CollectionRecords({ thai, request, cancel, onStatus, refreshToke
   // R118 owner feedback: a tap applies at once (no Confirm page) and reports in a bottom toast; the row then refreshes in
   // place, the list keeping its scroll position (LC-COL-R2-1) through the refresh that briefly shortens it.
   async function stepLateCharge(charge:Charge,step:number){
-    await late.step(charge.id,step,selected?.displayName??'',{due:wholeText(charge.lateChargeDue??'0')??'0',paid:latePaidOf(charge),refresh:async outcome=>{
-     // The row refreshes in place (the buttons stay disabled until it is back); the list keeps its scroll position.
+    await late.step(charge.id,step,selected?.displayName??'',{due:wholeText(charge.lateChargeDue??'0')??'0',paid:latePaidOf(charge),reread:true,refresh:async outcome=>{
+     // R118 part B: an applied step patches its row from the charge read back after the POST (no list reload) and refreshes
+     // the board totals in the background, without holding the buttons.
+     const item=outcome.item;
+     if(outcome.result==='applied'&&item){
+      const remaining=(()=>{const due=wholeText(item.lateChargeDue??'0'),paid=wholeText(item.lateChargePaid??'0');return /^\d+$/.test(due??'')&&/^\d+$/.test(paid??'')?(BigInt(due!)-BigInt(paid!)).toString():item.lateChargeRemaining??null})();
+      setCharges(old=>old.map(row=>row.id===charge.id?{...row,lateChargeDue:item.lateChargeDue??row.lateChargeDue,lateChargeRemaining:remaining??row.lateChargeRemaining,amountRemaining:item.amountRemaining??row.amountRemaining,totalPaid:item.totalPaid??row.totalPaid}:row));
+      void refreshBoardTotals();return;
+     }
+     // Anything else (refused, nothing to change, or an applied step whose read-back failed) reloads the list in place,
+     // keeping its scroll position.
      if(['applied','unchanged','refused'].includes(outcome.result)){savedDetailScroll.current=window.innerWidth>1050?detailPanel.current?.scrollTop??0:window.scrollY;reapplyAfterReload.current=true;await chargeChanged();}
     }});
+  }
+  /** R118 part B: the board's status groups and totals, and the selected borrower's amounts, read again in the background. */
+  async function refreshBoardTotals(){
+    const current=revision.current,boardPage=page,boardCursor=boardCursors.current[page-1];
+    const result=await request<BoardResult>('/api/collection?limit=100'+(query?'&q='+encodeURIComponent(query):'')+(boardCursor?'&cursor='+encodeURIComponent(boardCursor):''),()=>{});
+    if(!result||current!==revision.current)return;
+    setItems(result.items);setCursor(result.nextCursor);setPage(boardPage);setAsOf(result.asOf);
+    setSelected(prior=>{const row=prior&&result.items.find(item=>item.id===prior.id);return row?{...prior,...row}:prior});
   }
   if(loanOpen&&commandAccess)return <LoanRecord access={commandAccess} id={loanOpen} thai={thai} onBack={()=>setLoanOpen(null)}/>;
   if(borrowerOpen&&selected&&commandAccess)return <SharedBorrowerDetail access={commandAccess} id={selected.id} label={selected.displayName} thai={thai} onBack={()=>setBorrowerOpen(false)}/>;

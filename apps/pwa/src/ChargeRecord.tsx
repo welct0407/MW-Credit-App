@@ -11,7 +11,7 @@ export function ChargeRecord({access,id,thai,onBack,onChanged,backLabel}:{access
  const preserveSource=useRef(false);preserveSource.current=!!(editing||!!command);
  // R118 owner feedback: −/+ apply at once (no Confirm page) and report in a bottom toast; online, like the live read they need.
  const late=useLateChargeShortcut(access,thai),online=useOnline();
- const flight=useRef<AbortController|null>(null);
+ const flight=useRef<AbortController|null>(null),itemRef=useRef<any>(null);itemRef.current=item;
  const validItem=(value:any)=>value&&value.id===id&&typeof value.loanId==='string'&&Array.isArray(value.repayments)&&Array.isArray(value.allocations);
  // biome-ignore lint/correctness/useExhaustiveDependencies: live charge record subscription; access is rebuilt every render, so access.offline (the signed-in offline repository) is the identity that resubscribes, and validItem is a per-render guard bound to id
  useEffect(()=>{const apply=(data:any)=>{if(preserveSource.current)return;if(data.deleted){setItem(null);setError(true)}else if(validItem(data.item)){setItem(data.item);setError(false)}};return subscribeOfflineDataset<any>(access,'/api/charge-records/'+encodeURIComponent(id),apply,()=>apply({deleted:true}));},[access.offline,id]);
@@ -24,7 +24,9 @@ export function ChargeRecord({access,id,thai,onBack,onChanged,backLabel}:{access
  if(command)return <OperationConfirm access={access} domain="charge" command={command} label={t('Delete charge','ลบรายการเรียกเก็บ')} thai={thai} onBack={()=>setCommand(null)} onApplied={()=>{onChanged?.();onBack()}}><p>{displayValue(item.chargeDate)} · {t('Principal','เงินต้น')} {wholeBaht(item.principalDue)} · {t('Interest','ดอกเบี้ย')} {wholeBaht(item.interestDue)}{latePart(item.lateChargeDue,thai)&&<> · {latePart(item.lateChargeDue,thai)}</>}</p></OperationConfirm>;
  const lateDue=wholeText(item?.lateChargeDue)??'0',latePaid=wholeText(item?.lateChargePaid)??'0',lateShown=Number(lateDue)>0,paidNoteId='charge-late-paid-'+id;
  // R118 (Echo LC-REC-1..3): the shortcut beside Late Charge Due. A step reads the record live, so it needs a connection.
- async function stepLate(by:number){if(!item)return;await late.step(item.id,by,item.borrowerLabel??item.borrowerName??'',{due:lateDue,paid:latePaid,refresh:async outcome=>{
+ // R118 part B: the step uses the version of the record on screen (its latest load, refreshed after each step), so no live
+ // read; a stale one is refused by the version check and the record reloads.
+ async function stepLate(by:number){if(!item)return;await late.step(item.id,by,item.borrowerLabel??item.borrowerName??'',{due:lateDue,paid:latePaid,known:()=>itemRef.current,refresh:async outcome=>{
   // The record reloads before the buttons come back; the Collection list behind refreshes too.
   if(['applied','unchanged','refused'].includes(outcome.result)){onChanged?.();await load();}}});}
  // R118 (Echo LC-BUSY): the pending figure while saving or held; a refused step shows the old figure until the reload lands.

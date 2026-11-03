@@ -26,7 +26,7 @@ export function ChangedAmount({before,after,thai}:{before:string|null|undefined;
 }
 /** R118: the charge.update command of a late-charge step: the record's current fields with the new late charge, at its version. */
 export function lateChargeCommand(item:any,lateChargeDue:string){return {requestId:crypto.randomUUID(),operation:'charge.update',targetId:item.id,expectedVersion:item.version,predecessorRequestId:null,receiptId:null,inputs:{loanId:item.loanId,chargeDate:item.chargeDate,principalDue:wholeText(item.principalDue)??'0',interestDue:wholeText(item.interestDue)??'0',lateChargeDue,notes:item.notes??null}};}
-export type LateStepOutcome={result:'applied'|'unchanged'|'refused'|'queued'|'failed'|'held';before?:string;paid?:string;after?:string};
+export type LateStepOutcome={result:'applied'|'unchanged'|'refused'|'queued'|'failed'|'held';before?:string;paid?:string;after?:string;item?:any};
 /**
  * R118 owner feedback (3 November 2026): the −/+ of the Collection row and the charge details page apply at once, without a
  * Confirm page. Each tap reads the charge live (its version and current late charge), steps it by 50 (never below what was
@@ -38,13 +38,17 @@ export type LateStepOutcome={result:'applied'|'unchanged'|'refused'|'queued'|'fa
  * and dimmed, a spinner and the target figure "฿100 · saving" in place of the figure) and the toast says "Saving late
  * charge…"; everything stays disabled until the outcome and the caller's refresh (then) are done; a refusal reverts the figure.
  */
-export type LateStepScreen={due:string;paid:string;refresh?:(outcome:LateStepOutcome)=>Promise<unknown>|unknown};
+/** known: the record the screen holds, read when the step runs (details: its latest load), so the live read is skipped; reread:
+ *  after an applied step the charge is read once more and returned as outcome.item (Collection patches its row from it). */
+export type LateStepScreen={due:string;paid:string;known?:()=>any;reread?:boolean;refresh?:(outcome:LateStepOutcome)=>Promise<unknown>|unknown};
 /** A charge's step in progress: the figure it moves from and to, the tapped direction, and whether it is saving, was refused
  *  (figure back to the old one, buttons still held until the refresh lands) or is held queued. */
 export type LatePending={before:string;after:string;direction:'increase'|'decrease';state:'saving'|'reverted'|'held'};
 export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolean){
  const t=(en:string,th:string)=>thai?th:en;
  const [pending,setPending]=useState<Record<string,LatePending>>({}),[held,setHeld]=useState<Record<string,string>>({}),[toast,setToast]=useState<{text:string;refused:boolean}|null>(null);
+ // R118 part B: the record each applied step read back (its new version), so the next tap on that charge needs no live read.
+ const latest=useRef<Record<string,any>>({});
  const chain=useRef<Promise<unknown>>(Promise.resolve()),timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),heldRef=useRef(held);heldRef.current=held;
  // LC-BUSY-3: one toast at a time; "Saving…" is sticky until replaced, results 3 s, refusals and failures 6 s.
  const show=(text:string,{refused=false,sticky=false}:{refused?:boolean;sticky?:boolean}={})=>{clearTimeout(timer.current);setToast({text,refused});if(!sticky)timer.current=setTimeout(()=>setToast(null),refused?6000:3000);};
@@ -56,28 +60,38 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
   window.addEventListener('mw-offline-sync-outcome',outcome);return()=>{window.removeEventListener('mw-offline-sync-outcome',outcome);clearTimeout(timer.current)};
  },[]);
  const unavailable=()=>show(t('Charge could not be loaded. Try again.','โหลดรายการเรียกเก็บไม่ได้ ลองอีกครั้ง'),{refused:true});
- async function once(chargeId:string,step:number,label:string):Promise<LateStepOutcome>{
+ async function read(a:CommandAccess,chargeId:string,signal:AbortSignal){
+  const response=await fetch(a.origin+'/api/charge-records/'+encodeURIComponent(chargeId),{headers:{Authorization:'Bearer '+await a.token()},signal,cache:'no-store',credentials:'omit',redirect:'error'});
+  if(response.status===401||response.status===403)a.authFailure(response.status);
+  const item=response.ok?(await response.json())?.item:null;if(!item||item.id!==chargeId||typeof item.version!=='string')throw Error('unavailable');return item;
+ }
+ async function once(chargeId:string,step:number,label:string,screen:LateStepScreen):Promise<LateStepOutcome>{
   if(heldRef.current[chargeId]){show(t('Saved on this device. Will sync when connected.','บันทึกบนอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ'));return {result:'held'};}
   const done=beginRequest(),controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),15000);
   try{
    const a=access;if(!a?.offline||a.offlineOnly||!navigator.onLine)throw Error('offline');const offline=a.offline;
-   const response=await fetch(a.origin+'/api/charge-records/'+encodeURIComponent(chargeId),{headers:{Authorization:'Bearer '+await a.token()},signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
-   if(response.status===401||response.status===403)a.authFailure(response.status);
-   const item=response.ok?(await response.json())?.item:null;if(!item||item.id!==chargeId||typeof item.version!=='string')throw Error('unavailable');
+   // The version comes from a read, never a guess: the screen's own latest record, else the previous step's read-back, else a
+   // live read. A stale one is refused by the version check (source_conflict) and the caller refreshes.
+   const held=screen.known?.(),known=held&&held.id===chargeId&&typeof held.version==='string'?held:latest.current[chargeId];
+   const item=known??await read(a,chargeId,controller.signal);
    const before=wholeText(item.lateChargeDue??'0')??'0',paid=wholeText(item.lateChargePaid??'0')??'0',after=stepLate(before,step,paid);
    // LC-BUSY-5: nothing to change is an ordinary status, not a refusal.
    if(after===before){update(chargeId,{state:'reverted'});show(lateNote(before,paid,thai)||lateNote(paid,paid,thai));return {result:'unchanged',before,paid};}
    update(chargeId,{before,after});
    const command=lateChargeCommand(item,after);
    await offline.savePending(command.requestId,{domain:'charge',command,borrowerLabel:label,recoveryKind:'action'});
-   const outcome=await syncSavedRequest(a,command.requestId);
+   // fresh: saved just now and sent nowhere else, so the status read is skipped (offline-sync.ts).
+   const outcome=await syncSavedRequest(a,command.requestId,{fresh:true});
    if(outcome.kind==='synced'){
     const diff=BigInt(after)-BigInt(before),sign=diff<0n?'−':'+',amount=wholeBaht((diff<0n?-diff:diff).toString());
-    show(t('Late charge '+sign+amount+' · now '+wholeBaht(after),'ค่าปรับล่าช้า '+sign+amount+' · ตอนนี้ '+wholeBaht(after)));return {result:'applied',before,paid,after};
+    show(t('Late charge '+sign+amount+' · now '+wholeBaht(after),'ค่าปรับล่าช้า '+sign+amount+' · ตอนนี้ '+wholeBaht(after)));
+    delete latest.current[chargeId];let fresh:any;if(screen.reread){try{fresh=await read(a,chargeId,controller.signal);latest.current[chargeId]=fresh}catch{}}
+    return {result:'applied',before,paid,after,item:fresh};
    }
+   delete latest.current[chargeId];
    if(outcome.kind==='blocked'){update(chargeId,{state:'reverted'});const code=outcome.code??outcome.data?.originalOutcome?.code??outcome.data?.code??'request_rejected';show(lateRejection(code,thai)??savedRejectionMessage(outcome,thai),{refused:true});return {result:'refused',before,paid};}
    setHeld(old=>({...old,[chargeId]:command.requestId}));update(chargeId,{state:'held'});show(t('Saved on this device. Will sync when connected.','บันทึกบนอุปกรณ์แล้ว จะซิงค์เมื่อเชื่อมต่อ'));return {result:'queued',before,paid,after};
-  }catch{update(chargeId,{state:'reverted'});unavailable();return {result:'failed'};}
+  }catch{delete latest.current[chargeId];update(chargeId,{state:'reverted'});unavailable();return {result:'failed'};}
   finally{clearTimeout(deadline);done();}
  }
  /** One step of the charge's late charge, after any step still running. In the tap's frame the charge is pending (the pair
@@ -86,7 +100,7 @@ export function useLateChargeShortcut(access:CommandAccess|undefined,thai:boolea
  function step(chargeId:string,by:number,label:string,screen:LateStepScreen):Promise<LateStepOutcome>{
   mark(chargeId,{before:screen.due,after:stepLate(screen.due,by,screen.paid),direction:by>0?'increase':'decrease',state:'saving'});
   show(t('Saving late charge…','กำลังบันทึกค่าปรับล่าช้า…'),{sticky:true});
-  const run=chain.current.then(async()=>{let outcome:LateStepOutcome={result:'failed'};try{outcome=await once(chargeId,by,label);try{await screen.refresh?.(outcome)}catch{}return outcome}finally{if(outcome.result!=='queued')mark(chargeId,null)}});
+  const run=chain.current.then(async()=>{let outcome:LateStepOutcome={result:'failed'};try{outcome=await once(chargeId,by,label,screen);try{await screen.refresh?.(outcome)}catch{}return outcome}finally{if(outcome.result!=='queued')mark(chargeId,null)}});
   chain.current=run.catch(()=>undefined);return run;
  }
  const busy=Object.keys(pending)[0]??null;
