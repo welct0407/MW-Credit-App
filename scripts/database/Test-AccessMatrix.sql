@@ -406,5 +406,36 @@ EXCEPTION WHEN insufficient_privilege THEN NULL;
 END $$;
 RESET ROLE;
 ROLLBACK TO SAVEPOINT v123_probe;
+-- V133 (R118): column-grant parity. A role that reads an interest column column by column also reads its late-charge
+-- sibling (V132 added the late columns; a column-level grant does not cover a new column, which broke the DEV jobs owner).
+-- Every grantee but the relation owner and superusers, reader IAM logins included.
+DO $$
+DECLARE missing text;
+BEGIN
+ SELECT string_agg(format('%s %s.%s',r.rolname,v.r,v.l),', ' ORDER BY r.rolname,v.r,v.l) INTO missing
+ FROM (VALUES
+  ('public."Charges"','Interest Due','Late Charge Due'),('public."Charges"','Interest Paid','Late Charge Paid'),('public."Charges"','Interest Remaining','Late Charge Remaining'),
+  ('public."Payment Allocations"','Allocated Interest','Allocated Late Charge'),('public."Repayments"','Interest Paid','Late Charge Paid'),
+  ('public.olap_charges_analytics','Interest Due','Late Charge Due'),('public.olap_charges_analytics','Interest Paid','Late Charge Paid'),('public.olap_charges_analytics','Interest Remaining','Late Charge Remaining'),
+  ('public.olap_repayments_analytics','Interest Paid','Late Charge Paid'),('public.oltp_upcoming_charge_events_v1','Interest Remaining','Late Charge Remaining'),
+  ('public.reporting_income_statement','Principal Write-offs MTD','Late Charges Received MTD'),('public.reporting_income_monthly','Principal Write-offs','Late Charges Received'),
+  ('public.reporting_income_daily','Principal Write-offs','Late Charges Received'),('public.reporting_income_events','Principal Write-offs','Late Charges Received')) v(r,s,l)
+ JOIN pg_attribute a ON a.attrelid=v.r::regclass AND a.attname=v.s
+ JOIN pg_class c ON c.oid=a.attrelid
+ CROSS JOIN LATERAL aclexplode(a.attacl) x
+ JOIN pg_roles r ON r.oid=x.grantee
+ WHERE x.privilege_type='SELECT' AND x.grantee<>c.relowner AND NOT r.rolsuper
+   AND NOT has_column_privilege(r.oid,v.r::regclass,v.l,'SELECT');
+ IF missing IS NOT NULL THEN RAISE EXCEPTION 'V133: a role reads an interest column without its late-charge sibling: %',missing; END IF;
+ IF NOT has_column_privilege('mw_jobs_owner_dev','public."Repayments"','Late Charge Paid','SELECT') THEN RAISE EXCEPTION 'V133: the jobs owner reads "Repayments"."Late Charge Paid"'; END IF;
+END $$;
+-- The DEV defect itself: with the reviewed R053 Repayments columns, the jobs owner's sum("Interest Paid"+"Late Charge Paid")
+-- reads; without V133's grant this was "permission denied for table Repayments".
+SAVEPOINT v133_probe;
+GRANT SELECT ("Ref Loans","Ref Charges","Principal Paid","Interest Paid","Payment Date") ON public."Repayments" TO mw_jobs_owner_dev;
+SET LOCAL ROLE mw_jobs_owner_dev;
+DO $$ BEGIN PERFORM sum("Interest Paid"::numeric+"Late Charge Paid"::numeric) FROM public."Repayments"; END $$;
+RESET ROLE;
+ROLLBACK TO SAVEPOINT v133_probe;
 SELECT 'Access matrix regression passed' AS result;
 ROLLBACK;
