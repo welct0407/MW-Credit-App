@@ -7,16 +7,18 @@ import {planPayment} from '../../services/chat/payment-plan.mjs';
 import {createProposalPlanner} from '../../services/chat/proposals.mjs';
 
 const RID='00000000-0000-4000-8000-0000000000aa';
-const charge=(id,date,p,i,key='Somchai-฿10,000-01/10-1%')=>({id,chargeDate:date,loanDisplayKey:key,amountRemaining:String(BigInt(p)+BigInt(i)),principalRemaining:p,interestRemaining:i});
+const charge=(id,date,p,i,key='Somchai-฿10,000-01/10-1%',l='0')=>({id,chargeDate:date,loanDisplayKey:key,amountRemaining:String(BigInt(p)+BigInt(i)+BigInt(l)),principalRemaining:p,interestRemaining:i,lateChargeRemaining:l});
 const due=[charge('C2','2026-10-29','0','100'),charge('C1','2026-10-28','500','100')];
 const accounts=[{id:'CA1',label:'Cash box'},{id:'CA2',label:'KBank'}];
 const draft={businessDate:'2026-10-30',borrower:{id:'B1',displayName:'สมชาย'},charges:due,accounts,preferredReceivingAccountId:'CA2'};
-/** Auto-assign exactly as the command service computes it (store.mjs autoAssign), so the fake is faithful. */
-function autoAssign(amount){
+/** Auto-assign exactly as the command service computes it (store.mjs autoAssign), so the fake is faithful. R118: with
+ * {lineVersion: 11} the lines are 8-key (interest, then late charge, then principal); without it 6-key. */
+function autoAssign(amount,v11=true,rows=due){
  let remaining=BigInt(amount);const allocations=[];
- for(const row of [...due].sort((a,b)=>b.chargeDate.localeCompare(a.chargeDate))){
-  const p=BigInt(row.principalRemaining),i=BigInt(row.interestRemaining),interest=remaining<i?remaining:i;remaining-=interest;const principal=remaining<p?remaining:p;remaining-=principal;
-  if(principal+interest>0n)allocations.push({chargeId:row.id,principal:String(principal),interest:String(interest),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate});
+ for(const row of [...rows].sort((a,b)=>b.chargeDate.localeCompare(a.chargeDate))){
+  const p=BigInt(row.principalRemaining),i=BigInt(row.interestRemaining),l=v11?BigInt(row.lateChargeRemaining??'0'):0n,interest=remaining<i?remaining:i;remaining-=interest;const lateCharge=remaining<l?remaining:l;remaining-=lateCharge;const principal=remaining<p?remaining:p;remaining-=principal;
+  if(principal+interest+lateCharge>0n)allocations.push(v11?{chargeId:row.id,principal:String(principal),interest:String(interest),lateCharge:String(lateCharge),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,expectedLateChargeRemaining:row.lateChargeRemaining??'0',chargeDate:row.chargeDate}
+   :{chargeId:row.id,principal:String(principal),interest:String(interest),expectedPrincipalRemaining:row.principalRemaining,expectedInterestRemaining:row.interestRemaining,chargeDate:row.chargeDate});
  }
  return {...draft,allocations,amountReceived:amount,allocated:String(BigInt(amount)-remaining),unallocated:String(remaining)};
 }
@@ -29,7 +31,7 @@ const remainder={amount:'300',loans:{L1:'Somchai-฿10,000-01/10-1%'},forward:{r
  paidThrough:{L1:'2026-11-02'},uncovered:'0',blocked:[]},
  principal:[{loanId:'L1',amount:'300',settles:false,entry:{loanId:'L1',dailyBefore:'100',dailyAfter:'97',outstandingBefore:'10000',outstandingAfter:'9700'}}]};
 const dueLines=autoAssign('700').allocations;
-const forwardPlan={allocations:[...dueLines,...remainder.forward.rows.map(r=>({chargeId:r.chargeId,principal:r.principal,interest:r.interest,expectedPrincipalRemaining:r.principalDue,expectedInterestRemaining:r.interestDue,chargeDate:r.chargeDate}))].toSorted((a,b)=>a.chargeId.localeCompare(b.chargeId)),
+const forwardPlan={allocations:[...dueLines,...remainder.forward.rows.map(r=>({chargeId:r.chargeId,principal:r.principal,interest:r.interest,lateCharge:'0',expectedPrincipalRemaining:r.principalDue,expectedInterestRemaining:r.interestDue,expectedLateChargeRemaining:'0',chargeDate:r.chargeDate}))].toSorted((a,b)=>a.chargeId.localeCompare(b.chargeId)),
  materialize:remainder.forward.rows.map(r=>({loanId:'L1',chargeId:r.chargeId,chargeDate:r.chargeDate,principalDue:r.principalDue,interestDue:r.interestDue})),principal:[],uncovered:'0',settles:[],paidThrough:{L1:'2026-11-02'}};
 const principalPlan={allocations:dueLines.map(l=>l.chargeId==='C2'?{...l,principal:'300',expectedPrincipalRemaining:'300'}:l).toSorted((a,b)=>a.chargeId.localeCompare(b.chargeId)),materialize:[],
  principal:[{loanId:'L1',kind:'raise',chargeId:'C2',chargeDate:'2026-10-29',amount:'300',accruedInterest:'0',principalDue:'300',outstandingBefore:'10000',outstandingAfter:'9700',dailyBefore:'100',dailyAfter:'97'}],uncovered:'0',settles:[],paidThrough:{}};
@@ -37,10 +39,10 @@ function fake({planChanged=false,reviewCharges=null,offer=remainder,planFor=null
  const calls=[];
  const handle=(method,path,body)=>{
   calls.push([method,path,body]);
-  if(method==='POST'&&path==='/api/payment-drafts/B1/auto-assign'&&body.amountReceived==='1000'&&offer)return {status:200,data:{...autoAssign('1000'),remainder:offer}};
+  if(method==='POST'&&path==='/api/payment-drafts/B1/auto-assign'&&body.amountReceived==='1000'&&offer)return {status:200,data:{...autoAssign('1000',body.lineVersion===11),remainder:offer}};
   if(method==='POST'&&path==='/api/payment-drafts/B1/plan'){const plan=planFor?planFor(body.purpose):body.purpose.forward?forwardPlan:principalPlan;return {status:200,data:{businessDate:'2026-10-30',purpose:body.purpose,plan,loans:remainder.loans}};}
   if(method==='POST'&&path==='/api/payment-drafts/B1/select-all')return {status:200,data:{...draft,total:'700'}};
-  if(method==='POST'&&path==='/api/payment-drafts/B1/auto-assign')return {status:200,data:autoAssign(body.amountReceived)};
+  if(method==='POST'&&path==='/api/payment-drafts/B1/auto-assign')return {status:200,data:autoAssign(body.amountReceived,body.lineVersion===11)};
   if(method==='GET'&&path==='/api/payment-drafts/B1?scope=all')return {status:200,data:{...draft,scope:'all',upcoming}};
   if(method==='POST'&&path==='/api/payment-drafts/B1/review'){
    if(body.selectedChargeIds){const charges=(reviewCharges??due).filter(row=>body.selectedChargeIds.includes(row.id));return charges.length===body.selectedChargeIds.length?{status:200,data:{...draft,charges}}:{status:409,data:{ok:false,code:'selection_changed'}};}
@@ -52,14 +54,15 @@ function fake({planChanged=false,reviewCharges=null,offer=remainder,planFor=null
  return {calls,client:{get:async path=>handle('GET',path),post:async(path,body)=>handle('POST',path,body)}};
 }
 
-test('amount only: the screen Auto-assign split verbatim, v8, re-posted to review; settles every due charge',async()=>{
+test('amount only: the screen Auto-assign split verbatim (lineVersion 11), v11, re-posted to review; settles every due charge',async()=>{
  const {client,calls}=fake();
  const {command,plan}=await planPayment({client,borrowerId:'B1',values:{amountReceived:'700',paymentMethod:'Cash',cashAccountId:'CA1'},requestId:RID});
- assert.deepEqual(command,canonicalCommand(command));assert.equal(command.schemaVersion,8);assert.equal(command.requestId,RID);
+ assert.deepEqual(command,canonicalCommand(command));assert.equal(command.schemaVersion,11);assert.equal(command.requestId,RID);
  assert.deepEqual(command.allocations,autoAssign('700').allocations.toSorted((a,b)=>a.chargeId.localeCompare(b.chargeId)));
  assert.deepEqual([command.paymentDate,command.receiptId,command.bankReference,command.payerLines],['2026-10-30',null,null,null]);
  assert.deepEqual(calls.map(([m,p])=>m+' '+p),['POST /api/payment-drafts/B1/select-all','POST /api/payment-drafts/B1/auto-assign','POST /api/payment-drafts/B1/review']);
- assert.deepEqual(calls[2][2],{amountReceived:'700',allocations:command.allocations});
+ assert.deepEqual(calls[1][2],{amountReceived:'700',lineVersion:11});
+ assert.deepEqual(calls[2][2],{amountReceived:'700',allocations:command.allocations,materialize:[],principal:[]});
  assert.equal(plan.settlesAllDue,true);assert.equal(plan.borrowerLabel,'สมชาย');assert.equal(plan.accountLabel,'Cash box');
  assert.deepEqual(plan.split.map(r=>[r.chargeId,r.principal,r.interest,r.projected]),[['C2','0','100',false],['C1','500','100',false]]);
 });
@@ -88,8 +91,8 @@ test('refusals: amount above everything due, a model split, bad amounts, unknown
 test('named charges: the full remaining of each through review; the amount must equal the total',async()=>{
  const {client,calls}=fake();
  const {command,plan}=await planPayment({client,borrowerId:'B1',values:{amountReceived:'600',paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C1']},requestId:RID});
- assert.deepEqual(command.allocations,[{chargeId:'C1',principal:'500',interest:'100',expectedPrincipalRemaining:'500',expectedInterestRemaining:'100',chargeDate:'2026-10-28'}]);
- assert.equal(command.schemaVersion,8);assert.equal(plan.settlesAllDue,false);
+ assert.deepEqual(command.allocations,[{chargeId:'C1',principal:'500',interest:'100',lateCharge:'0',expectedPrincipalRemaining:'500',expectedInterestRemaining:'100',expectedLateChargeRemaining:'0',chargeDate:'2026-10-28'}]);
+ assert.equal(command.schemaVersion,11);assert.equal(plan.settlesAllDue,false);
  assert.deepEqual(calls[1],['POST','/api/payment-drafts/B1/review',{selectedChargeIds:['C1']}]);
  await assert.rejects(planPayment({client,borrowerId:'B1',values:{amountReceived:'500',paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C1']},requestId:RID}),/AMOUNT_MISMATCH:600/);
  await assert.rejects(planPayment({client,borrowerId:'B1',values:{amountReceived:'600',paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C7']},requestId:RID}),/SELECTION_CHANGED/);
@@ -139,11 +142,11 @@ test('R112: an amount above what is due waits for the Partner\'s choice: no comm
  await assert.rejects(planPayment({client:fake({offer:{...remainder,forward:{...remainder.forward,uncovered:'50'},principal:[{...remainder.principal[0],settles:true}]}}).client,borrowerId:'B1',values:{amountReceived:'1000',paymentMethod:'Cash',cashAccountId:'CA1'},requestId:RID}),/AMOUNT_EXCEEDS_DUE/);
 });
 
-test('R112: the chosen purpose builds the v10 command from the server plan, re-posted to review; only offered choices',async()=>{
+test('R112: the chosen purpose builds the v11 (R118; v10 before) command from the server plan, re-posted to review; only offered choices',async()=>{
  const values={amountReceived:'1000',paymentMethod:'Bank Transfer',cashAccountId:'CA1'};
  let {client,calls}=fake();
  const forward=await planPayment({client,borrowerId:'B1',values,requestId:RID,purpose:{forward:true,principal:[]}});
- assert.equal(forward.command.schemaVersion,10);assert.deepEqual(forward.command,canonicalCommand(forward.command));assert.equal(forward.command.requestId,RID);
+ assert.equal(forward.command.schemaVersion,11);assert.deepEqual(forward.command,canonicalCommand(forward.command));assert.equal(forward.command.requestId,RID);
  assert.deepEqual(forward.command.materialize,forwardPlan.materialize);assert.deepEqual(forward.command.principal,[]);
  assert.deepEqual(calls.find(([,path])=>path.endsWith('/plan'))[2],{amountReceived:'1000',purpose:{forward:true,principal:[],loans:null}});
  assert.deepEqual(calls.at(-1),['POST','/api/payment-drafts/B1/review',{amountReceived:'1000',allocations:forward.command.allocations,materialize:forward.command.materialize,principal:[]}]);
@@ -172,7 +175,7 @@ test('R112: through the planner the remainder card stores the draft (purposeRequ
  await assert.rejects(many.proposeGroup([{operation:'payment.record',target:'B1',values:{amountReceived:'1000',paymentMethod:'Cash',cashAccountId:'CA1'}},{operation:'payment.record',target:'B1',values:{amountReceived:'100',paymentMethod:'Cash',cashAccountId:'CA1'}}]),/PURPOSE_LINE_ALONE:1/);
 });
 
-test('R113: Repay principal that settles loans is one choice with its per-loan requests; Confirm builds a v10 settle command',async()=>{
+test('R113: Repay principal that settles loans is one choice with its per-loan requests; Confirm builds a v11 (R118; v10 before) settle command',async()=>{
  const settle={...remainder,principal:[{loanId:'L1',amount:'300',settles:true,entry:null,payoffRemainder:'300',settlesWith:{payoff:'1000',gapInterest:'0',charges:'0',planHash:'a'.repeat(64)}}],
   repay:{purpose:{forward:false,principal:[{loanId:'L1',amount:'300'}],loans:null},settles:['L1'],uncovered:'0'}};
  const settlePlan={allocations:dueLines.map(l=>l.chargeId==='C2'?{...l,principal:'300',expectedPrincipalRemaining:'300'}:l).toSorted((a,b)=>a.chargeId.localeCompare(b.chargeId)),materialize:[],
@@ -183,9 +186,32 @@ test('R113: Repay principal that settles loans is one choice with its per-loan r
  assert.deepEqual(plan.purposeOptions.principal.map(o=>[o.loanId,o.principal,o.closes.map(c=>[c.loanId,c.payoff])]),[['L1',[{loanId:'L1',amount:'300'}],[['L1','1000']]]]);
  assert.equal(plan.purposeOptions.split,false);
  const built=await planPayment({client,borrowerId:'B1',values,requestId:RID,purpose:{forward:false,principal:[{loanId:'L1',amount:'300'}]}});
- assert.equal(built.command.schemaVersion,10);assert.deepEqual(built.command.principal,[{loanId:'L1',kind:'settle',chargeId:'C2',chargeDate:'2026-10-29',amount:'300',accruedInterest:'0',principalDue:'300'}]);
+ assert.equal(built.command.schemaVersion,11);assert.deepEqual(built.command.principal,[{loanId:'L1',kind:'settle',chargeId:'C2',chargeDate:'2026-10-29',amount:'300',accruedInterest:'0',principalDue:'300'}]);
  assert.deepEqual(built.command,canonicalCommand(built.command));
  // A request that reaches a loan's principal without settling it (settles without a settle entry) still refuses.
  ({client}=fake({offer:settle,planFor:()=>({...settlePlan,principal:[]})}));
  await assert.rejects(planPayment({client,borrowerId:'B1',values,requestId:RID,purpose:{forward:false,principal:[{loanId:'L1',amount:'300'}]}}),/PAY_FORWARD_SETTLES/);
+});
+
+test('R118: a late charge: Auto-assign pays interest, then the late charge, then principal; named charges pay the late part too; a next projected charge stays v9',async()=>{
+ const lateDue=[charge('C2','2026-10-29','0','100'),charge('C1','2026-10-28','500','100','Somchai-฿10,000-01/10-1%','50')];
+ const calls=[];
+ const client={get:async path=>(calls.push(['GET',path]),{status:200,data:{...draft,charges:lateDue,scope:'all',upcoming}}),post:async(path,body)=>{
+  calls.push(['POST',path,body]);
+  if(path.endsWith('/select-all'))return {status:200,data:{...draft,charges:lateDue,total:'750'}};
+  if(path.endsWith('/auto-assign'))return {status:200,data:{...autoAssign(body.amountReceived,body.lineVersion===11,lateDue),charges:lateDue}};
+  if(path.endsWith('/review'))return body.selectedChargeIds?{status:200,data:{...draft,charges:lateDue.filter(r=>body.selectedChargeIds.includes(r.id))}}:{status:200,data:{...draft,allocations:body.allocations}};
+  return {status:404,data:{ok:false,code:'not_found'}};
+ }};
+ const partial=await planPayment({client,borrowerId:'B1',values:{amountReceived:'260',paymentMethod:'Cash',cashAccountId:'CA1'},requestId:RID});
+ assert.equal(partial.command.schemaVersion,11);
+ assert.deepEqual(partial.command.allocations.map(r=>[r.chargeId,r.interest,r.lateCharge,r.principal,r.expectedLateChargeRemaining]),[['C1','100','50','10','50'],['C2','100','0','0','0']]);
+ assert.deepEqual(partial.plan.split.map(r=>[r.chargeId,r.lateCharge]),[['C2','0'],['C1','50']]);assert.equal(partial.plan.settlesAllDue,false);
+ const all=await planPayment({client,borrowerId:'B1',values:{amountReceived:'750',paymentMethod:'Cash',cashAccountId:'CA1'},requestId:RID});
+ assert.equal(all.plan.settlesAllDue,true);
+ const named=await planPayment({client,borrowerId:'B1',values:{amountReceived:'650',paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C1']},requestId:RID});
+ assert.deepEqual(named.command.allocations,[{chargeId:'C1',principal:'500',interest:'100',lateCharge:'50',expectedPrincipalRemaining:'500',expectedInterestRemaining:'100',expectedLateChargeRemaining:'50',chargeDate:'2026-10-28'}]);
+ await assert.rejects(planPayment({client,borrowerId:'B1',values:{amountReceived:'600',paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C1']},requestId:RID}),/AMOUNT_MISMATCH:650/);
+ const next=await planPayment({client,borrowerId:'B1',values:{amountReceived:'800',paymentMethod:'Cash',cashAccountId:'CA1',chargeIds:['C2'],nextChargeOf:['L1']},requestId:RID});
+ assert.equal(next.command.schemaVersion,9);assert.equal(next.command.allocations.every(r=>!('lateCharge' in r)),true);
 });
