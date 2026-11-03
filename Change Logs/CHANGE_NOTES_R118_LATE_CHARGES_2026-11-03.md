@@ -30,6 +30,10 @@ Batch 1 and 2 fixes and additions:
 - `4419163`: `pwa_notify_history_content_v2` is part of V132, so payment history rows show the late part; the store falls back to v1.
 - The PWA always sends payment command v11. A P5B06 on a late-charge change shows "Late charge cannot be less than the ฿X already paid on it."
 
+Echo's second pass (on `673d6ea`, at 390, 1280 and 320 px, English and Thai): 7 findings, all fixed in `4b8213b`. LC-COL-R2-1 scroll restore; LC-COL-R2-2 duplicate figure removed, the note reads "Late charge ฿50 · ฿50 paid"; LC-COL-R2-3 nothing to change shows the paid status and refreshes; LC-ERR-R2-1 server refusal wording; LC-PAY-R2-1 1280 px column; LC-REC-R2-1 Title Case and the paid note removed; LC-TH-R2-1 "Late Charge Due" and สินเชื่อ. The server refusal now reads "Late charge cannot be less than what was already paid on it. Refresh to see the current amount." / "ค่าปรับล่าช้าต้องไม่น้อยกว่ายอดที่ชำระแล้ว รีเฟรชเพื่อดูยอดปัจจุบัน"; the edit page's own typed-value check keeps "…the ฿X already paid on it."
+
+Chase's review (two low points): (a) the chat's next-charge path with a due charge that carries a late charge built v9 and dropped the late charge; fixed in `3679069`: the chat refuses with `LATE_CHARGE_WITH_NEXT_CHARGE` before review, and the catalogue tells the model to pay that charge first. (b) The agent's facts query needs V132 first, which is consistent with the SQL-first promotion order (recorded in the agent note).
+
 Accepted deviations from batch 2 (Byte):
 - The standalone Upcoming detail has no separate late row, because Amount Remaining includes it.
 - The e2e fixtures `canonical-server.ts` and `synthetic-read-adapter.mjs` are unchanged.
@@ -87,7 +91,8 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | `npm run typecheck` | Pass, on `ab3fed8` and `673d6ea` (Byte) |
 | `node --test tests/unit` | 1,122 tests, 0 failures, on `ab3fed8`, clean tree (Byte) |
 | `mw-db-ci -Group phase5` | Pass, on `ab3fed8`, clean tree (Byte) |
-| `npm test` | 1129 pass, on `673d6ea`, clean tree (Byte) |
+| `npm test` | 1129 pass, on `673d6ea` and again on `3679069`, clean tree (Byte) |
+| `npm run lint`, `npm run typecheck`, `npm run check:docs` | 0 errors, pass, 0 failures, on `3679069`, clean tree (Byte) |
 | `npm run check:docs` (Byte) | 0 failures, on `673d6ea` |
 | Agent `unittest` | 713 OK, 70 skipped, on `673d6ea` (Byte) |
 | `ruff check --no-cache integration-agent` | Pass, on `673d6ea` (Byte) |
@@ -99,12 +104,14 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | Nothing dated moved: `generate_due_charges` twin, `loan_close_calculation_v83` twin (`mutation` JSON identical), pay-forward twin, `pwa_next_*`, income and Cash Dashboard snapshots before and after V132 | Covered by `Test-LateCharges` above (Chase) |
 | Schema digest rebuilt at 132, `--check`; `node --test tests/unit/chat-schema-digest.test.mjs` | Covered by `npm test` above (Byte) |
 | `npm run check:docs` (Dewey, records) | 0 failures, 0 warnings |
-| Browser: `late-charge-independent.spec.ts`, receiving specs at 320, 390 and 1280 px, English and Thai | Pending (Chase batch 2 e2e and review, Echo second pass) |
+| `late-charge-independent.spec.ts` | 10/10 on both projects, on `4b8213b` (Chase); final rerun after Byte's fixes pending |
+| Six changed e2e specs plus the new spec, both projects | 115 passed, 1 skipped, 2 load-flaky failures in the 4-worker run; rerun alone, `unified-receiving-independent` on mobile 21/21 (Chase) |
+| Echo second pass, 390, 1280 and 320 px, English and Thai | 7 findings, all fixed in `4b8213b` (Echo) |
 | Pull request `Development checks` | Pending |
 | DEV: open the pull request and test in DEV (next, owner instruction); acceptance scenarios (plan list, Chase on DEV, then the owner on the phone) | Pending |
 
 ## Not run
-The rows marked Pending: Chase's batch 2 e2e and review, Echo's second pass, the pull request's Development checks and DEV. A pending check is not a pass.
+The rows marked Pending: Chase's final e2e rerun after Byte's fixes, the pull request's Development checks and DEV. A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package and its merged records. Before promotion nothing is deployed, so the branch can be dropped. After promotion: R117 images for read, command and chat, the R113 images for notify and jobs, the previous Hosting build and the previous agent commit. The V132 columns stay (additive, default 0); a later forward migration restores the V131 function bodies if needed, because shared migrations are never edited or removed. Data caveat: R117 code cannot receive a charge whose late charge is above 0 (Receive All compares `"Amount Remaining"`), so zero every late charge before a service rollback or keep the SQL forward. A PROD apply needs a verified restorable backup at V131, recorded in the promotion record.
@@ -114,7 +121,7 @@ None.
 
 ## Remaining work
 - Batches 1 and 2 are committed locally (Byte; batch 2 ends at `673d6ea`); the `database/README.md` V132 entry is written.
-- Chase's batch 2 e2e and review; Echo's second pass.
+- Chase's final e2e rerun after Byte's fixes.
 - Open the pull request and test in DEV (next, owner instruction), then owner acceptance on the phone.
 - Fill the Checks table and Not run section as evidence arrives.
 - Promotion on the owner's instruction only; closure pull request opens R119 with the two deferred items; PROD Data Dictionary capture refresh.

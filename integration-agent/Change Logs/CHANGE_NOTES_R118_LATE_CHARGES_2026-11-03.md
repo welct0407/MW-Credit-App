@@ -27,5 +27,6 @@ Before deployment: none needed. After deployment: `deploy-runtime.py rollback --
 None.
 
 ## Remaining work
+- Deploy order: the agent's facts query reads `"Late Charge Remaining"`, so V132 must be applied before the agent commit is deployed (Chase's review; consistent with the SQL-first promotion order).
 - Open the pull request and test in DEV (next); the agent code is not deployed until the owner's promotion instruction.
 - Deploy to `vm-mw-credit-agent` on the owner's promotion instruction (`deploy-runtime.py` dry-run, freeze, install, activate), after V132 and the images; record the deploy here in the product note and the environment inventory.

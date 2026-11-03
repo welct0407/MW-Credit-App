@@ -13,17 +13,19 @@ const businessDate='2026-10-08',asOf='2026-10-08T05:00:00Z';
 // Three recorded charges of 100 principal and 10 interest: no late charge; late 50 with 20 paid; late 50 fully paid.
 const base3=[{id:'lc-c0',loan:'Late loan A',due:0,paid:0},{id:'lc-c1',loan:'Late loan B',due:50,paid:20},{id:'lc-c2',loan:'Late loan C',due:50,paid:50}];
 type Late={due:number,paid:number,version:number};
+let all=base3;
 type State={late:Record<string,Late>,posts:any[],operations:any[],reviews:any[],rejectNext:boolean};
 const row=(s:State,c:typeof base3[number])=>{const l=s.late[c.id];return {id:c.id,loanId:'lc-L-'+c.id,loanDisplayKey:c.loan,chargeDate:businessDate,paymentStatus:'ยังไม่ชำระ',paymentDate:null,amountRemaining:String(110+l.due-l.paid),totalPaid:String(l.paid),receivedToday:'0',lateChargeDue:String(l.due),lateChargeRemaining:String(l.due-l.paid)}};
-const record=(s:State,id:string)=>{const c=base3.find(x=>x.id===id)!,l=s.late[id];return {id,loanId:'lc-L-'+id,borrowerName:'LateCharge borrower',borrowerLabel:'LateCharge borrower',chargeDate:businessDate,principalDue:'100',interestDue:'10',lateChargeDue:String(l.due),lateChargePaid:String(l.paid),lateChargeRemaining:String(l.due-l.paid),totalPaid:String(l.paid),amountRemaining:String(110+l.due-l.paid),notes:null,version:`ver-${id}-${l.version}`,repayments:[],allocations:[],loanDisplayKey:c.loan}};
+const record=(s:State,id:string)=>{const c=all.find(x=>x.id===id)!,l=s.late[id];return {id,loanId:'lc-L-'+id,borrowerName:'LateCharge borrower',borrowerLabel:'LateCharge borrower',chargeDate:businessDate,principalDue:'100',interestDue:'10',lateChargeDue:String(l.due),lateChargePaid:String(l.paid),lateChargeRemaining:String(l.due-l.paid),totalPaid:String(l.paid),amountRemaining:String(110+l.due-l.paid),notes:null,version:`ver-${id}-${l.version}`,repayments:[],allocations:[],loanDisplayKey:c.loan}};
 // The payment draft for Receive payment: one charge that carries a late charge and one that does not (no lateChargeRemaining key).
 const draftCharges=[{id:'lc-p1',chargeDate:businessDate,loanDisplayKey:'Late payable',principalRemaining:'100',interestRemaining:'10',lateChargeRemaining:'50',amountRemaining:'160'},{id:'lc-p2',chargeDate:'2026-10-07',loanDisplayKey:'Plain payable',principalRemaining:'40',interestRemaining:'10',amountRemaining:'50'}];
 const draft={ok:true,mode:'dev-owner-testing',scope:'all',businessDate,asOf,borrower:{id:borrower.id,displayName:borrower.displayName},accounts:[{id:'lc-A',label:'Synthetic receiving account'}]};
-async function setup(page:Page){
- const s:State={late:{'lc-c0':{due:0,paid:0,version:0},'lc-c1':{due:50,paid:20,version:0},'lc-c2':{due:50,paid:50,version:0}},posts:[],operations:[],reviews:[],rejectNext:false};
+async function setup(page:Page,filler=0){
+ all=[...base3,...Array.from({length:filler},(_,i)=>({id:'lc-f'+i,loan:'Filler loan '+i,due:0,paid:0}))];
+ const s:State={late:Object.fromEntries(all.map(c=>[c.id,{due:c.due,paid:c.paid,version:0}])),posts:[],operations:[],reviews:[],rejectNext:false};
  page.on('dialog',dialog=>void dialog.accept());
  await page.route('**/deps/firebase_app.js*',r=>r.fulfill({contentType:'text/javascript',body:'export function initializeApp(){return {}}'}));await page.route('**/deps/firebase_auth.js*',r=>r.fulfill({contentType:'text/javascript',body:auth}));
- await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>{const u=new URL(r.request().url()),charges=u.pathname.endsWith('/charges'),list=u.pathname.endsWith('/upcoming');return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',businessDate,timezone:'Asia/Bangkok',asOf,items:list?[]:charges?base3.map(c=>row(s,c)):[borrower],borrower,nextCursor:null,horizonEnd:'2027-01-08',reviewRequired:false})})});
+ await page.route('https://mw-credit-app-read-dev-test.run.app/**',r=>{const u=new URL(r.request().url()),charges=u.pathname.endsWith('/charges'),list=u.pathname.endsWith('/upcoming');return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,source:'dev',businessDate,timezone:'Asia/Bangkok',asOf,items:list?[]:charges?all.map(c=>row(s,c)):[borrower],borrower,nextCursor:null,horizonEnd:'2027-01-08',reviewRequired:false})})});
  await page.route('https://mw-credit-app-command-dev-test.run.app/**',async r=>{
   const u=new URL(r.request().url()),path=u.pathname,method=r.request().method(),json=(body:any,status=200)=>r.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   if(path.startsWith('/api/charge-records/')){const id=decodeURIComponent(path.split('/').at(-1)!);if(!s.late[id])return json({ok:false},404);return json({ok:true,source:'dev',asOf,businessDate,item:record(s,id)})}
@@ -42,7 +44,7 @@ async function setup(page:Page){
  });
  await routeSyntheticPreferences(page);await page.route('https://mw-credit-app-command-dev-test.run.app/api/dashboard',r=>r.fulfill({contentType:'application/json',body:JSON.stringify({collection:{notPaid:0,partiallyPaid:0,overdue:0,longOverdue:0,fullyPaid:0},forecast:{},portfolio:{},incomeMtd:{},businessCashHeld:[]})}));
  await page.goto(base);await page.getByRole('button',{name:/Google/}).click();await chooseLanguagePreservingForm(page,'EN');await page.getByRole('button',{name:'Collection',exact:true}).click();await page.locator('.collection-tile-main').first().click();
- await expect(page.locator('.collection-charge-row')).toHaveCount(3);
+ await expect(page.locator('.collection-charge-row')).toHaveCount(all.length);
  return s;
 }
 const chargeRow=(page:Page,loan:string)=>page.locator('.collection-charge-row').filter({hasText:loan});
@@ -169,4 +171,19 @@ test('Receive payment: the third Late charge input appears only on a charge that
  await expect(page.getByText(/Late charge ฿20/).first()).toBeVisible();
  await page.getByRole('button',{name:'Confirm payment',exact:true}).click();await expect.poll(()=>s.posts.length).toBe(1);
  expect(s.posts[0].schemaVersion).toBe(11);expect(s.posts[0].amountReceived).toBe('30');expect(s.posts[0].allocations[0]).toMatchObject({lateCharge:'20',expectedLateChargeRemaining:'50'});
+});
+
+test('Collection shortcut: after Back and after Confirm the list is where it was (scroll restored)',async({page})=>{
+ const s=await setup(page,30);
+ const last=chargeRow(page,'Filler loan 29');await last.scrollIntoViewIfNeeded();
+ const before=(await last.boundingBox())!.y;
+ // The row is far down: the page (phone) or the detail panel (desktop) has scrolled.
+ expect(await page.evaluate(()=>window.scrollY>0||[...document.querySelectorAll('*')].some(e=>e.scrollTop>0))).toBe(true);
+ await increase(last).click();await expect(page.getByRole('region',{name:'Late charge',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Back to details',exact:true}).click();
+ await expect(chargeRow(page,'Filler loan 29')).toBeVisible();
+ expect(Math.abs((await chargeRow(page,'Filler loan 29').boundingBox())!.y-before)).toBeLessThan(40);
+ await increase(chargeRow(page,'Filler loan 29')).click();await confirm(page).click();await expect.poll(()=>s.operations.length).toBe(1);
+ await expect(chargeRow(page,'Filler loan 29').locator('.charge-late-note')).toHaveText('Late charge ฿50');
+ expect(Math.abs((await chargeRow(page,'Filler loan 29').boundingBox())!.y-before)).toBeLessThan(40);
 });
