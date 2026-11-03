@@ -85,7 +85,8 @@ function syntheticRecordsClient({fingerprint='stable',onQuery}={}){
   if(sql.includes('"Borrower Note" note FROM public."Borrowers"'))return {rows:idPage('Borrowers',params[0],129).map(({id})=>({id,name:'B '+id,borrowerDisplayName:'B '+id+' - ',hasActiveLoan:true}))};
   if(sql.includes('FROM public."Loans" l JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers" WHERE b."Hidden Flag"'))return {rows:[]};
   if(sql.startsWith('WITH records AS'))return {rows:[]};
-  if(sql.startsWith('SELECT 1 FROM public."Loans"'))return {rows:[{}],rowCount:1};
+  // R118: the loan-related parent read also answers whether the late columns exist (a fixture before V132 says no).
+  if(sql.startsWith('SELECT 1 FROM public."Loans"')||sql.startsWith('SELECT 1 AS present,'))return {rows:[{}],rowCount:1};
   const related=/FROM public\."(Charges|Payments)" \w WHERE \w\."Ref Loans?"=\$1/.exec(sql)??(/^SELECT p\."Row ID" id,p\."Payment Date"::text AS date/.test(sql)?[null,'Payments']:null);if(related){const [loanId,paged]=params,per=related[1]==='Charges'?25:5,index=ids.Loans.indexOf(loanId);return {rows:paged?[]:Array.from({length:per},(_,i)=>({id:related[1].slice(0,1)+loanId+'-'+i,date:'2026-10-0'+(1+index%9),principal:'10',interest:'1',remaining:'0',amount:'11',notes:null}))}}
   if(sql.includes('"Ref Preferred Receiving Cash Account"'))return {rows:[{name:'B',description:'d',preferred_account:null}]};
   if(sql.includes('AS blocked'))return {rows:[{blocked:false}]};

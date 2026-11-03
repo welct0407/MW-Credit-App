@@ -1,24 +1,27 @@
 /** Fixed read-only preparation for an exact-key observation, never bulk previews. */
+import {LATE_CHARGE_SCHEMA_SQL} from '../lib/late-charge-schema.mjs';
 export async function readNativeCommandMetadata(client,resource,id,actor){
  if(resource==='Borrowers'||resource==='Charges'){
   const source=(await client.query(resource==='Borrowers'
-   ?'SELECT "Row ID" AS "borrowerId" FROM public."Borrowers" WHERE "Row ID"=$1'
-   :'SELECT l."Ref Borrowers" AS "borrowerId" FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" WHERE c."Row ID"=$1',[id])).rows[0];
+   ?`SELECT "Row ID" AS "borrowerId",(${LATE_CHARGE_SCHEMA_SQL}) AS late FROM public."Borrowers" WHERE "Row ID"=$1`
+   :`SELECT l."Ref Borrowers" AS "borrowerId",(${LATE_CHARGE_SCHEMA_SQL}) AS late FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" WHERE c."Row ID"=$1`,[id])).rows[0];
   if(!source?.borrowerId)return {quickPayment:null};
   const targetChargeId=resource==='Charges'?id:null;
   // Matches V23 quick-payment amount and V51 ordinary mode membership. In
   // particular Single Full is not silently changed to schema6's due-only plan. R118: the amount includes the late charge
   // (the legacy engine requires the whole eligible balance).
+  // R118: the source read answered whether V132's late columns exist.
+  const late=source.late===true;
   const row=(await client.query(`WITH clock AS (
    SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date AS day
   ), balances AS (
    SELECT c."Principal Due"::numeric-paid.principal AS principal,
-    c."Interest Due"::numeric-paid.interest AS interest,c."Late Charge Due"::numeric-paid.late AS late,paid.invalid
+    c."Interest Due"::numeric-paid.interest AS interest,${late?'c."Late Charge Due"::numeric-paid.late':'0::numeric'} AS late,paid.invalid
    FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
    CROSS JOIN clock
    CROSS JOIN LATERAL (
     SELECT coalesce(sum(r."Principal Paid"::numeric),0) AS principal,
-     coalesce(sum(r."Interest Paid"::numeric),0) AS interest,coalesce(sum(r."Late Charge Paid"::numeric),0) AS late,
+     coalesce(sum(r."Interest Paid"::numeric),0) AS interest,${late?'coalesce(sum(r."Late Charge Paid"::numeric),0)':'0'} AS late,
      count(*) FILTER(WHERE r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL) AS invalid
     FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID"
    ) paid

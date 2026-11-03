@@ -1,16 +1,18 @@
 import {projectCollectionCharge} from '../api/collection-read-contract.mjs';
+import {lateChargeSchema,lateSql} from '../lib/late-charge-schema.mjs';
 import {borrowerDisplayName} from '../api/loan-read-contract.mjs';
 export async function readPaymentDraft(client,fixture) {
+ const L=await lateChargeSchema(client);
  const clock=(await client.query("SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date::text AS day, CURRENT_TIMESTAMP AS instant")).rows[0];
  const borrower=(await client.query('SELECT "Borrower Name" AS name,"Description" AS description,"Ref Preferred Receiving Cash Account" AS preferred_account FROM public."Borrowers" WHERE "Row ID"=$1',[fixture.borrowerId])).rows[0];
  if(!borrower)throw Error('Draft unavailable');
  const rows=(await client.query(`SELECT c."Row ID" AS id,l."Row ID" AS loan_id,c."Charge Date"::text AS charge_date,
  c."Payment Status" AS payment_status,c."Payment Date"::text AS payment_date,c."Amount Remaining"::text AS amount_remaining,
  c."Total Paid"::text AS total_paid,NULL::text AS received_today,
- (c."Principal Due"::numeric-paid.p)::text AS principal_remaining,(c."Interest Due"::numeric-paid.i)::text AS interest_remaining,(c."Late Charge Due"::numeric-paid.l)::text AS late_charge_remaining,paid.invalid AS invalid_components,b."Borrower Name" AS borrower_name,b."Description" AS borrower_description,
+ (c."Principal Due"::numeric-paid.p)::text AS principal_remaining,(c."Interest Due"::numeric-paid.i)::text AS interest_remaining,(${lateSql(L,'c."Late Charge Due"::numeric-paid.l')})::text AS late_charge_remaining,paid.invalid AS invalid_components,b."Borrower Name" AS borrower_name,b."Description" AS borrower_description,
  l."Principal Amount"::numeric::text AS principal_amount,l."Loan Date"::text AS loan_date,l."Original Daily Interest Rate"::text AS original_rate
  FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" JOIN public."Borrowers" b ON b."Row ID"=l."Ref Borrowers"
- CROSS JOIN LATERAL (SELECT coalesce(sum("Principal Paid"::numeric),0) p,coalesce(sum("Interest Paid"::numeric),0) i,coalesce(sum("Late Charge Paid"::numeric),0) l,count(*) FILTER(WHERE "Principal Paid" IS NULL OR "Interest Paid" IS NULL) invalid FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") paid
+ CROSS JOIN LATERAL (SELECT coalesce(sum("Principal Paid"::numeric),0) p,coalesce(sum("Interest Paid"::numeric),0) i,${lateSql(L,'coalesce(sum("Late Charge Paid"::numeric),0)','0')} l,count(*) FILTER(WHERE "Principal Paid" IS NULL OR "Interest Paid" IS NULL) invalid FROM public."Repayments" WHERE "Ref Charges"=c."Row ID") paid
  WHERE b."Row ID"=$1 AND c."Row ID"=ANY($2::text[]) ORDER BY c."Charge Date" DESC,c."Row ID" COLLATE "C" DESC`,[fixture.borrowerId,fixture.chargeIds])).rows;
  if(rows.length!==fixture.chargeIds.length)throw Error('Draft unavailable');
  const charges=[];
@@ -35,6 +37,7 @@ export function decodeDraftCursor(value,borrowerId,scope='due'){
  }catch{throw Error('invalid_request')}
 }
 export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=null,selectedChargeIds=null,scope='due',all=false,mode='dev-owner-testing'}={}){
+ const L=await lateChargeSchema(client);
  const after=decodeDraftCursor(cursor,borrowerId,scope);
  if(!['due','future','all'].includes(scope)||all&&scope!=='due')throw Error('invalid_request');
  if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('invalid_request');
@@ -48,10 +51,10 @@ export async function readOwnerPaymentDraft(client,borrowerId,{limit=25,cursor=n
  WHERE l."Ref Borrowers"=$1 AND (c."Charge Date" IS NULL OR NOT isfinite(c."Charge Date") OR (c."Amount Remaining" IS NULL OR c."Amount Remaining"<0 OR c."Amount Remaining"::text IN ('NaN','Infinity','-Infinity') OR c."Amount Remaining"<>trunc(c."Amount Remaining")))) AS invalid`,[borrowerId])).rows[0].invalid;
  if(invalid)throw Error('Draft unavailable');
  const rows=(await client.query(`SELECT c."Row ID" AS id,c."Charge Date"::text AS "chargeDate",c."Amount Remaining"::text AS amount,
- (c."Principal Due"::numeric-paid.principal)::text AS "principalRemaining",(c."Interest Due"::numeric-paid.interest)::text AS "interestRemaining",(c."Late Charge Due"::numeric-paid.late)::text AS "lateChargeRemaining",paid.invalid AS "invalidComponents",
+ (c."Principal Due"::numeric-paid.principal)::text AS "principalRemaining",(c."Interest Due"::numeric-paid.interest)::text AS "interestRemaining",(${lateSql(L,'c."Late Charge Due"::numeric-paid.late')})::text AS "lateChargeRemaining",paid.invalid AS "invalidComponents",
  l."Principal Amount"::numeric::text AS principal,l."Loan Date"::text AS "loanDate",l."Original Daily Interest Rate"::text AS rate
  FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
- CROSS JOIN LATERAL (SELECT coalesce(sum(r."Principal Paid"::numeric),0) AS principal,coalesce(sum(r."Interest Paid"::numeric),0) AS interest,coalesce(sum(r."Late Charge Paid"::numeric),0) AS late,
+ CROSS JOIN LATERAL (SELECT coalesce(sum(r."Principal Paid"::numeric),0) AS principal,coalesce(sum(r."Interest Paid"::numeric),0) AS interest,${lateSql(L,'coalesce(sum(r."Late Charge Paid"::numeric),0)','0')} AS late,
  count(*) FILTER (WHERE r."Principal Paid" IS NULL OR r."Interest Paid" IS NULL) AS invalid FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID") paid
  WHERE l."Ref Borrowers"=$1 AND (CASE WHEN $7::text='future' THEN c."Charge Date">$2::date WHEN $7::text='all' THEN TRUE ELSE c."Charge Date"<=$2::date END) AND c."Amount Remaining">0
  AND ($3::date IS NULL OR c."Charge Date"<$3::date OR (c."Charge Date"=$3::date AND c."Row ID" COLLATE "C"<$4::text COLLATE "C"))
