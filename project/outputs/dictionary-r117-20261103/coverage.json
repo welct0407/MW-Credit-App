@@ -1,0 +1,62 @@
+{
+  "status": "in progress",
+  "targets": {
+    "postgresql-production": {
+      "identity": {
+        "instance": "mw-credit-pg-20261017",
+        "database": "loan_manager_prod",
+        "route": "cloud-sql-auth-proxy",
+        "host": "127.0.0.1",
+        "port": 15432
+      },
+      "version_or_hash": "b98576188be546138fd844a544a355aacf27706b7e81ea2bcf4497542b40ee3a",
+      "counts": {
+        "schemas": 4,
+        "relations": 99,
+        "columns": 1527,
+        "constraints": 451,
+        "indexes": 91,
+        "routines": 226,
+        "triggers": 430,
+        "sequences": 2,
+        "types": 0,
+        "policies": 0,
+        "extensions": 2,
+        "default_privileges": 1,
+        "database": 1,
+        "database_role_settings": 7,
+        "role_dependencies": 40,
+        "relevant_roles": 52,
+        "role_memberships": 51,
+        "publications": 0,
+        "subscriptions": 0,
+        "event_triggers": 0,
+        "rules": 0,
+        "flyway": 131,
+        "foreign_tables": 0,
+        "aggregates": 0,
+        "view_dependencies": 1298,
+        "jobs": 0
+      },
+      "captured_utc": "2026-11-03T10:07:46.936660+00:00"
+    }
+  },
+  "objects": [
+    {
+      "target": "postgresql-production",
+      "source_identity": "postgresql-production",
+      "source_version_or_capture": "b98576188be546138fd844a544a355aacf27706b7e81ea2bcf4497542b40ee3a",
+      "object_kind": "routine",
+      "object_name": "public.create_referral_rebate(p_loan text)",
+      "dictionary_path": "Documents/Data Dictionary/systems/postgresql/routines/public-create-referral-rebate-p-loan-text-dc831aa4.yaml",
+      "status": "updated",
+      "expected_properties": 20,
+      "verified_properties": 0,
+      "unknown_properties": [],
+      "evidence": [
+        "outputs/dictionary-r117-20261103/production-postgresql-observations.json"
+      ],
+      "last_checked_utc": null
+    }
+  ]
+}
