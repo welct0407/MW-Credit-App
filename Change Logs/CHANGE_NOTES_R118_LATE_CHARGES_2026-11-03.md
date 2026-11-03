@@ -146,10 +146,10 @@ Team: Archie (design), Byte (build), Chase (verification), Dewey (records), Echo
 | DEV acceptance scenarios (plan list, Chase) | Scenarios 1 to 6 and 8 passed. Scenario 7 (the jobs run) found the V133 defect, which is fixed and verified (DEV 16:00Z recent-analytics and 17:05Z daily-charges both OK). Owner acceptance is implied by "Move to prod" (R110 precedent) |
 | PROD CI receipts used by the promotion runner | `Development checks` (check, lint, e2e) run 41671673879 on `34d3aec`; terraform run 41203206026 on `cb875ea`; `Database migrations` run 41662032658 on `2356064`; run 41676067177 on `9a982f5`. All are ancestors of the merge `22712b0` with no stage-relevant change since (Forge) |
 | PROD read-only smoke (Forge) | `/health` 200 on read, command and chat; unauthenticated 401 on the session, collection, dashboard, cash-overview, management-analytics, command session and chat-models routes; preflight 204; no Cloud Run ERROR since the image apply and no Cloud SQL error since V132; notify 200 every minute |
-| PROD recent-analytics run at 18:00Z | Pending (placeholder; result to be added by the orchestrator) |
+| PROD recent-analytics run at 18:00Z | Success: called 18:00:04Z, HTTP 200, `event: completed` at 18:00:08Z on the jobs revision running the R118 image. No Cloud SQL error from 17:59Z, so the jobs owner reads `Repayments."Late Charge Paid"`; no Cloud Run ERROR from 17:22Z to about 18:02:30Z. This closes the smoke check. |
 
 ## Not run
-The rows marked Pending: the PROD 18:00Z recent-analytics run and PROD acceptance. No authenticated PROD read and no PROD payment, forced notification or chat write was made, so the chat card, the agent wording and a real late charge are not exercised live in PROD. A pending check is not a pass.
+Not run: PROD acceptance (the owner's first real late charge). No authenticated PROD read and no PROD payment, forced notification or chat write was made, so the chat card, the agent wording and a real late charge are not exercised live in PROD. A pending check is not a pass.
 
 ## Recovery
 Git baseline: the R117 package `2b5da48` and its merged records. PROD services: restore the private `production.activation.before-r118-*.tfvars` (plan 0 add, 5 change, 0 destroy) so read, command and chat return to the R117 image and notify and jobs to the R113 image; Hosting returns to the R117 version together with the services (pins in the [environment inventory](../project/Documents/Environment_Inventory.md)). Agent: `deploy-runtime.py rollback` to the frozen runtime of `9703a191`. Database: V132 and V133 stay (additive, default 0); a later forward migration restores the V131 bodies, or restore the V131 backup. Zero every late charge before any service rollback, because R117 code cannot receive a charge whose late charge is above 0. Reader grants: undo with the 3 REVOKEs. Metabase: the private baselines `r118-late-charges` and `dashboard-3-before-pre-r118`.
@@ -159,7 +159,6 @@ None.
 
 ## Remaining work
 - PROD acceptance: the owner's first real late charge (written into the next closure or product pull request, never its own).
-- The PROD 18:00Z recent-analytics result and the Release tag workflow run id (orchestrator).
 - R119 opens with the two deferred items (every rebate line; agent recheck of ignored group slips, with the optional holds item).
 - Data Dictionary: the five column entries and the other changed relations and routines are refreshed from a full PROD capture in a later session (see the closure record).
 
@@ -229,7 +228,7 @@ Authority: the owner's "Move to prod" instruction (about 16:25Z) recorded under 
 | Metabase | `Refine-LateCharges.mjs`: `--plan --live`, `--prepare` (275 dashcards), `--apply` (snippet 2, model 186 metadata, question 417, tab 16 six-card row), `--verify` (31 checks pass). `ProposedLoanReports.mjs`: `--rebaseline-dashboard3=R118`, `--refine --only=income.latecharges,income` (question 418), `--verify` passed (needed the R102 lane state restored locally from the private receipts; no live change) |
 | Smoke (read-only) | See the Checks table |
 | DEV jobs | DEV daily-charges at 17:05:02Z completed on R118 and V133 |
-| PROD recent-analytics at 18:00Z | Pending (placeholder) |
+| PROD recent-analytics at 18:00Z | Success: called 18:00:04Z, HTTP 200, completed at 18:00:08Z on the R118 jobs revision; no Cloud SQL error from 17:59Z and no Cloud Run ERROR from 17:22Z to about 18:02:30Z. PROD promotion verified |
 
 ### Limitations
 - PROD acceptance is pending: the owner's first real late charge.
@@ -245,7 +244,7 @@ Authority: the owner's "Move to prod" instruction (about 16:25Z) recorded under 
 - Move interest on an allocation with a late charge is refused with the generic "Change receipt amounts through Payments…" message.
 
 ### Tag record
-Tag `R118` on `22712b0` through the Release tag workflow run `<pending>` (started by the orchestrator after the 18:00Z check).
+Tag `R118` on `22712b0b41e2cd87668a7181e947726d3858cfd8` through Release tag workflow run 41690088839, dispatched 18:03:15Z after the 18:00Z check; the same run publishes the GitHub Release.
 
 ### Closure and prune record
 Closure pull request on branch `r118-closure`, records only: tracker (R118 Released, R119 opened, next unused number R120), Development Changes (R118 follow-up row, R119 row), Environment Inventory (PROD rows), the Data Dictionary entries for the five columns, and this note.
