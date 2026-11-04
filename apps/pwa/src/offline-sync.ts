@@ -134,7 +134,8 @@ async function syncOne(access:CommandAccess,requestId:string,exclusive=false,fre
   if(value.notePredecessor){
    const predecessor=value.notePredecessor;
    const fields=['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note'];
-   if(Object.hasOwn(predecessor.inputs??{},'aiCollectionEnabled')||Object.hasOwn(command.inputs,'aiCollectionEnabled'))fields.push('aiCollectionEnabled');
+   // Optional inputs (aiCollectionEnabled; R120 the referral rebate terms) join the chain when either request carries them.
+   for(const key of ['aiCollectionEnabled','referralRebateRate','referralRebateCap'])if(Object.hasOwn(predecessor.inputs??{},key)||Object.hasOwn(command.inputs,key))fields.push(key);
    if(command.operation!=='borrower.update'||attempted||!uuid.test(predecessor.requestId)||!predecessor.inputs||fields.some(key=>!Object.hasOwn(predecessor.inputs,key)||!Object.hasOwn(command.inputs,key))||fields.some(key=>key!=='note'&&command.inputs[key]!==predecessor.inputs[key]))return settle({kind:'blocked'},'saved_note_invalid');
    const previous=await request('/api/operations/'+predecessor.requestId);
    if(previous.data?.kind!=='recorded')return settle({kind:'queued'},'previous_note_pending');

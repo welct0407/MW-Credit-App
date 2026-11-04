@@ -475,6 +475,7 @@ DECLARE l public."Loans"%ROWTYPE; referrer text; payee text; principal numeric; 
  r jsonb; offset_id text; ids text; actual public."Payments"%ROWTYPE; loan_key text;
  -- R111 V124: the automatic offset outside the Loan Close command.
  plan jsonb; offset_plan jsonb; covered numeric; creator text; h text; request uuid; canonical text;
+ terms jsonb; -- R120: the referrer's rate and cap
 BEGIN
  IF pg_trigger_depth()<1 THEN RAISE EXCEPTION 'Referral creation is only supported by loan-close trigger'; END IF;
  SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan FOR UPDATE;
@@ -489,7 +490,9 @@ BEGIN
  SELECT "Ref Referrer" INTO referrer FROM public."Borrowers" WHERE "Row ID"=l."Ref Borrowers";
  IF referrer IS NULL THEN RETURN; END IF;
  SELECT "Borrower Name" INTO payee FROM public."Borrowers" WHERE "Row ID"=referrer;
- rebate:=least(round(profit*0.10),1000);
+ -- R120: the referrer's own rate and cap (referral_rebate_terms, defaults 10% and 1,000), as the projection reads them.
+ terms:=public.referral_rebate_terms(referrer);
+ rebate:=least(round(profit*(terms->>'rate')::numeric/100),(terms->>'cap')::numeric);
  IF rebate<=0 THEN RETURN; END IF;
  -- R111 V123: the notes name the closed loan by the key the app shows (paymentLoanDisplayKey: borrower - English name,
  -- principal, loan day/month, original rate), not its Row ID.
@@ -559,9 +562,9 @@ BEGIN
   END;
  END IF;
  INSERT INTO public."Business Expenses"("Row ID","Expense Date","Expense Category","Amount","Payee Name",
-  "Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Ref Offset Payment")
+  "Ref Payee Borrower","Ref Related Borrower","Ref Related Loan","Source Type","Source Key","Gross Profit Basis","Rule Version","Created By","Ref Offset Payment","Rebate Rate","Rebate Cap")
  VALUES('rr1:'||p_loan,l."Close Date",'Referral Rebate / เงินคืนค่าแนะนำลูกค้า',rebate::money,payee,referrer,l."Ref Borrowers",p_loan,
-  'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V1','SQL:loan-close',offset_id)
+  'Referral Rebate','REFERRAL_REBATE:'||p_loan,profit::money,'REFERRAL_REBATE_V2','SQL:loan-close',offset_id,(terms->>'rate')::numeric,(terms->>'cap')::numeric)
  ON CONFLICT ("Source Key") WHERE nullif(btrim("Source Key"),'') IS NOT NULL DO NOTHING;
 END $$;
 
@@ -570,7 +573,7 @@ END $$;
 -- Name: FUNCTION create_referral_rebate(p_loan text); Type: COMMENT
 --
 
-COMMENT ON FUNCTION public.create_referral_rebate(p_loan text) IS 'R111/R118: the referral rebate of a closed referred loan, 10% of the interest and late charges received (at most 1,000), as an expense or offset to the referrer''s open loan.';
+COMMENT ON FUNCTION public.create_referral_rebate(p_loan text) IS 'R111/R118/R120: the referral rebate of a closed referred loan, the referrer''s rate (default 10%) of the interest and late charges received, at most the referrer''s cap (default 1,000), as an expense or offset to the referrer''s open loan; the applied terms are stored on the expense.';
 
 
 --
@@ -3569,7 +3572,8 @@ CREATE FUNCTION public.pwa_borrower_version_v2(id text) RETURNS text
     LANGUAGE sql STABLE
     SET search_path TO 'pg_catalog', 'public'
     AS $_$
- SELECT encode(sha256(convert_to(jsonb_build_object('id',b."Row ID",'createdDate',b."Creation Date",'aiCollectionEnabled',b."AI Collection Enabled",'name',b."Borrower Name",'description',b."Description",'communicationName',b."Communication Name",'instagramUsername',b."Instagram Username",'city',b."City",'workingLocation',b."Working Location",'address',b."Address",'hidden',b."Hidden Flag",'referrerId',b."Ref Referrer",'preferredReceivingAccountId',b."Ref Preferred Receiving Cash Account",'note',b."Borrower Note" )::text,'UTF8')),'hex') FROM public."Borrowers" b WHERE b."Row ID"=$1;
+ -- R120: the referral rebate terms are part of the version.
+ SELECT encode(sha256(convert_to(jsonb_build_object('id',b."Row ID",'createdDate',b."Creation Date",'aiCollectionEnabled',b."AI Collection Enabled",'name',b."Borrower Name",'description',b."Description",'communicationName',b."Communication Name",'instagramUsername',b."Instagram Username",'city',b."City",'workingLocation',b."Working Location",'address',b."Address",'hidden',b."Hidden Flag",'referrerId',b."Ref Referrer",'preferredReceivingAccountId',b."Ref Preferred Receiving Cash Account",'note',b."Borrower Note",'referralRebateRate',b."Referral Rebate Rate",'referralRebateCap',b."Referral Rebate Cap" )::text,'UTF8')),'hex') FROM public."Borrowers" b WHERE b."Row ID"=$1;
 $_$;
 
 
@@ -5957,22 +5961,25 @@ CREATE FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculat
     LANGUAGE plpgsql STABLE
     SET search_path TO 'pg_catalog', 'public'
     AS $$
-DECLARE l public."Loans"%ROWTYPE; referrer public."Borrowers"%ROWTYPE; principal numeric; profit numeric; rebate numeric;
+DECLARE l public."Loans"%ROWTYPE; referrer public."Borrowers"%ROWTYPE; principal numeric; profit numeric; rebate numeric; terms jsonb; -- R120
 BEGIN
  SELECT * INTO l FROM public."Loans" WHERE "Row ID"=p_loan;
  IF NOT FOUND OR coalesce(l."Defaulted",false) OR jsonb_typeof(p_calculation->'allocations') IS DISTINCT FROM 'array' THEN RETURN NULL; END IF;
  IF EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Source Key"='REFERRAL_REBATE:'||p_loan) THEN RETURN NULL; END IF;
  SELECT b.* INTO referrer FROM public."Borrowers" own JOIN public."Borrowers" b ON b."Row ID"=own."Ref Referrer" WHERE own."Row ID"=l."Ref Borrowers";
  IF NOT FOUND THEN RETURN NULL; END IF;
- -- create_referral_rebate's rule on the state after the close posts: principal fully repaid, 10% of interest, at most 1,000.
+ -- create_referral_rebate's rule on the state after the close posts: principal fully repaid, the referrer's rate of the profit, at most the referrer's cap.
  -- R118: profit is interest plus late charge (posted and in the close's lines).
  SELECT coalesce(sum("Principal Paid"::numeric),0),coalesce(sum("Interest Paid"::numeric+"Late Charge Paid"::numeric),0) INTO principal,profit FROM public."Repayments" WHERE "Ref Loans"=p_loan;
  SELECT principal+coalesce(sum((x->>'principal')::numeric),0),profit+coalesce(sum((x->>'interest')::numeric+coalesce(x->>'lateCharge','0')::numeric),0) INTO principal,profit FROM jsonb_array_elements(p_calculation->'allocations') x;
  IF principal<l."Principal Amount"::numeric OR profit<=0 THEN RETURN NULL; END IF;
- rebate:=least(round(profit*0.10),1000);
+ -- R120: the referrer's terms, shared with create_referral_rebate.
+ terms:=public.referral_rebate_terms(referrer."Row ID");
+ rebate:=least(round(profit*(terms->>'rate')::numeric/100),(terms->>'cap')::numeric);
  IF rebate<=0 THEN RETURN NULL; END IF;
  RETURN jsonb_build_object('amount',trunc(rebate)::text,'referrerId',referrer."Row ID",'referrerName',referrer."Borrower Name",'referrerDescription',referrer."Description",
   'selfReferral',referrer."Row ID"=l."Ref Borrowers",
+  'profit',round(profit)::text,'rate',terms->'rate','cap',terms->'cap','custom',terms->'custom',
   'hasOpenLoan',EXISTS(SELECT 1 FROM public."Loans" x WHERE x."Ref Borrowers"=referrer."Row ID" AND x."Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce(x."Defaulted",false)));
 END $$;
 
@@ -5981,7 +5988,7 @@ END $$;
 -- Name: FUNCTION pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb); Type: COMMENT
 --
 
-COMMENT ON FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb) IS 'R111/R118: the referral rebate a Loan Close with this calculation creates (create_referral_rebate rule: 10% of interest and late charges), its referrer and whether the referrer has an open loan; null when none. Read only.';
+COMMENT ON FUNCTION public.pwa_referral_rebate_projection_v1(p_loan text, p_calculation jsonb) IS 'R111/R118/R120: the referral rebate a Loan Close with this calculation creates (create_referral_rebate rule: the referrer''s rate of interest and late charges, at most the referrer''s cap), its referrer, whether the referrer has an open loan, the profit base and the terms (rate, cap, custom); null when none. Read only.';
 
 
 --
@@ -6361,12 +6368,14 @@ BEGIN
  input_text:='{"chargeDate":'||to_json(i->>'chargeDate')::text||',"principalDue":'||to_json(i->>'principalDue')::text||',"interestDue":'||to_json(i->>'interestDue')::text||'}';
  ELSIF op IN('borrower.delete','loan.delete','loan.undo-default','charge.delete','payment.delete','expense.delete') THEN IF i<>'{}'::jsonb THEN RAISE EXCEPTION 'delete';END IF;input_text:='{}';
  ELSE
- IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i-'aiCollectionEnabled') key) IS DISTINCT FROM ARRAY['address','city','communicationName','description','hidden','instagramUsername','name','note','preferredReceivingAccountId','referrerId','workingLocation'] THEN RAISE EXCEPTION 'inputs';END IF;
- input_text:='{';FOREACH k IN ARRAY ARRAY['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note']||CASE WHEN i?'aiCollectionEnabled' THEN ARRAY['aiCollectionEnabled'] ELSE ARRAY[]::text[] END LOOP
+ IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(i-'aiCollectionEnabled'-'referralRebateRate'-'referralRebateCap') key) IS DISTINCT FROM ARRAY['address','city','communicationName','description','hidden','instagramUsername','name','note','preferredReceivingAccountId','referrerId','workingLocation'] THEN RAISE EXCEPTION 'inputs';END IF;
+ input_text:='{';FOREACH k IN ARRAY ARRAY['name','description','communicationName','instagramUsername','city','workingLocation','address','hidden','referrerId','preferredReceivingAccountId','note']||CASE WHEN i?'aiCollectionEnabled' THEN ARRAY['aiCollectionEnabled'] ELSE ARRAY[]::text[] END||CASE WHEN i?'referralRebateRate' THEN ARRAY['referralRebateRate'] ELSE ARRAY[]::text[] END||CASE WHEN i?'referralRebateCap' THEN ARRAY['referralRebateCap'] ELSE ARRAY[]::text[] END LOOP
   IF k IN('hidden','aiCollectionEnabled') THEN IF jsonb_typeof(i->k) NOT IN('boolean','null') THEN RAISE EXCEPTION 'boolean';END IF;
+  -- R120: referral rebate rate (0 to 100) and cap (1 or more), whole numbers as JSON numbers, or null (the default).
+  ELSIF k IN('referralRebateRate','referralRebateCap') THEN IF i->k<>'null'::jsonb AND (jsonb_typeof(i->k) IS DISTINCT FROM 'number' OR i->>k!~'^(0|[1-9][0-9]{0,11})$' OR (k='referralRebateRate' AND (i->>k)::numeric>100) OR (k='referralRebateCap' AND (i->>k)::numeric<1)) THEN RAISE EXCEPTION 'number';END IF;
   ELSE IF jsonb_typeof(i->k) NOT IN('string','null') OR octet_length(i->>k)>65536 THEN RAISE EXCEPTION 'text';END IF;
   IF k IN('referrerId','preferredReceivingAccountId') AND i->k<>'null'::jsonb AND (octet_length(i->>k) NOT BETWEEN 1 AND 256 OR i->>k~'[[:cntrl:]]') THEN RAISE EXCEPTION 'ref';END IF;END IF;
-  input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||CASE WHEN i->k='null'::jsonb THEN 'null' WHEN k IN('hidden','aiCollectionEnabled') THEN (i->k)::text ELSE to_json(i->>k)::text END;
+  input_text:=input_text||CASE WHEN input_text='{' THEN '' ELSE ',' END||to_json(k)::text||':'||CASE WHEN i->k='null'::jsonb THEN 'null' WHEN k IN('hidden','aiCollectionEnabled','referralRebateRate','referralRebateCap') THEN (i->k)::text ELSE to_json(i->>k)::text END;
  END LOOP;input_text:=input_text||'}';END IF;
  command_text:='{"schemaVersion":1,"operation":'||to_json(op)::text||',"targetType":'||to_json(split_part(op,'.',1))::text||',"targetId":'||to_json(target)::text||',"expectedVersion":'||coalesce(to_json(expected)::text,'null')||',"predecessorRequestId":'||coalesce(to_json(c->>'predecessorRequestId')::text,'null')||',"inputs":'||input_text||'}';
  canonical:='{"contractVersion":2,"requestId":'||to_json(request::text)::text||',"actor":'||actor_text||',"command":'||command_text||',"receipt":'||receipt_text||'}';
@@ -6399,8 +6408,8 @@ BEGIN
  -- Only this explicit source-write block translates known source constraints.
  BEGIN
  IF op='borrower.create' THEN
- INSERT INTO public."Borrowers"("Row ID","Borrower Name","Description","Communication Name","Instagram Username","City","Working Location","Address","Hidden Flag","Ref Referrer","Ref Preferred Receiving Cash Account","Borrower Note","Creation Date","AI Collection Enabled") VALUES(target,i->>'name',i->>'description',i->>'communicationName',i->>'instagramUsername',i->>'city',i->>'workingLocation',i->>'address',(i->>'hidden')::boolean,i->>'referrerId',i->>'preferredReceivingAccountId',i->>'note',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date,CASE WHEN i?'aiCollectionEnabled' THEN (i->>'aiCollectionEnabled')::boolean ELSE true END);
- ELSIF op='borrower.update' THEN UPDATE public."Borrowers" SET "Borrower Name"=i->>'name',"Description"=i->>'description',"Communication Name"=i->>'communicationName',"Instagram Username"=i->>'instagramUsername',"City"=i->>'city',"Working Location"=i->>'workingLocation',"Address"=i->>'address',"Hidden Flag"=(i->>'hidden')::boolean,"Ref Referrer"=i->>'referrerId',"Ref Preferred Receiving Cash Account"=i->>'preferredReceivingAccountId',"Borrower Note"=i->>'note',"AI Collection Enabled"=CASE WHEN i?'aiCollectionEnabled' THEN (i->>'aiCollectionEnabled')::boolean ELSE "AI Collection Enabled" END WHERE "Row ID"=target;
+ INSERT INTO public."Borrowers"("Row ID","Borrower Name","Description","Communication Name","Instagram Username","City","Working Location","Address","Hidden Flag","Ref Referrer","Ref Preferred Receiving Cash Account","Borrower Note","Creation Date","AI Collection Enabled","Referral Rebate Rate","Referral Rebate Cap") VALUES(target,i->>'name',i->>'description',i->>'communicationName',i->>'instagramUsername',i->>'city',i->>'workingLocation',i->>'address',(i->>'hidden')::boolean,i->>'referrerId',i->>'preferredReceivingAccountId',i->>'note',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date,CASE WHEN i?'aiCollectionEnabled' THEN (i->>'aiCollectionEnabled')::boolean ELSE true END,(i->>'referralRebateRate')::numeric,(i->>'referralRebateCap')::numeric);
+ ELSIF op='borrower.update' THEN UPDATE public."Borrowers" SET "Borrower Name"=i->>'name',"Description"=i->>'description',"Communication Name"=i->>'communicationName',"Instagram Username"=i->>'instagramUsername',"City"=i->>'city',"Working Location"=i->>'workingLocation',"Address"=i->>'address',"Hidden Flag"=(i->>'hidden')::boolean,"Ref Referrer"=i->>'referrerId',"Ref Preferred Receiving Cash Account"=i->>'preferredReceivingAccountId',"Borrower Note"=i->>'note',"AI Collection Enabled"=CASE WHEN i?'aiCollectionEnabled' THEN (i->>'aiCollectionEnabled')::boolean ELSE "AI Collection Enabled" END,"Referral Rebate Rate"=CASE WHEN i?'referralRebateRate' THEN (i->>'referralRebateRate')::numeric ELSE "Referral Rebate Rate" END,"Referral Rebate Cap"=CASE WHEN i?'referralRebateCap' THEN (i->>'referralRebateCap')::numeric ELSE "Referral Rebate Cap" END WHERE "Row ID"=target;
  ELSE DELETE FROM public."Borrowers" WHERE "Row ID"=target;END IF;
  EXCEPTION WHEN foreign_key_violation THEN RAISE EXCEPTION USING ERRCODE='P5B05';WHEN check_violation OR not_null_violation THEN RAISE EXCEPTION USING ERRCODE='P5B06';END;
  result_value:=jsonb_build_object('operation',op,'targetType','borrower','targetId',target,'paymentId',NULL,'plan',NULL,'predecessorRequestId',NULL);
@@ -7281,6 +7290,27 @@ BEGIN
  END IF;
  RETURN NULL;
 END $$;
+
+
+--
+-- Name: referral_rebate_terms(text); Type: FUNCTION
+--
+
+CREATE FUNCTION public.referral_rebate_terms(p_referrer text) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+ SELECT jsonb_build_object('rate',coalesce(b."Referral Rebate Rate",10),'cap',coalesce(b."Referral Rebate Cap",1000),
+  'custom',(b."Referral Rebate Rate" IS NOT NULL OR b."Referral Rebate Cap" IS NOT NULL))
+ FROM (SELECT p_referrer AS id) k LEFT JOIN public."Borrowers" b ON b."Row ID"=k.id;
+$$;
+
+
+--
+-- Name: FUNCTION referral_rebate_terms(p_referrer text); Type: COMMENT
+--
+
+COMMENT ON FUNCTION public.referral_rebate_terms(p_referrer text) IS 'R120: the referral rebate terms of a referrer: {"rate": percent, "cap": baht, "custom": either set on the Borrower}, defaults 10% and 1,000 when null. Shared by create_referral_rebate and pwa_referral_rebate_projection_v1. Read only.';
 
 
 --

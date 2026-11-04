@@ -1,19 +1,36 @@
 import {UUID_V4} from '../lib/ids.mjs';
 export const borrowerFields=Object.freeze({name:'Borrower Name',description:'Description',communicationName:'Communication Name',instagramUsername:'Instagram Username',city:'City',workingLocation:'Working Location',address:'Address',hidden:'Hidden Flag',referrerId:'Ref Referrer',preferredReceivingAccountId:'Ref Preferred Receiving Cash Account',note:'Borrower Note'});
-const optionalFields={aiCollectionEnabled:'AI Collection Enabled'};
+// Optional inputs, in the canonical order after the fields (pwa_submit_operation_v2 appends each only when present).
+// R120 (V135): the referral rebate terms of this borrower as a referrer, whole numbers or null (the default 10% and 1,000).
+const optionalFields={aiCollectionEnabled:'AI Collection Enabled',referralRebateRate:'Referral Rebate Rate',referralRebateCap:'Referral Rebate Cap'};
+// The SQL rule (V135): a JSON number of at most 12 digits, rate 0 to 100, cap 1 or more.
+const termRange={referralRebateRate:[0,100],referralRebateCap:[1,999999999999]};
 const keys=Object.keys(borrowerFields), uuid=UUID_V4;
 export const validBorrowerId=value=>typeof value==='string'&&Buffer.byteLength(value)>0&&Buffer.byteLength(value)<=256&&!/[\u0000-\u001f\u007f]/u.test(value);
 export function canonicalBorrowerFields(input){
  if(!input||Array.isArray(input)||Object.keys(input).filter(key=>!Object.hasOwn(optionalFields,key)).sort().join(',')!==[...keys].sort().join(','))throw Error('invalid_request');
- const result={};for(const key of [...keys,...Object.keys(optionalFields).filter(key=>Object.hasOwn(input,key))]){const value=input[key];if(key==='hidden'||key==='aiCollectionEnabled'){if(value!==null&&typeof value!=='boolean')throw Error('invalid_request');}else if(value!==null&&(typeof value!=='string'||!value.isWellFormed()||value.includes('\0')||Buffer.byteLength(value)>65536))throw Error('invalid_request');
+ const result={};for(const key of [...keys,...Object.keys(optionalFields).filter(key=>Object.hasOwn(input,key))]){const value=input[key];if(key==='hidden'||key==='aiCollectionEnabled'){if(value!==null&&typeof value!=='boolean')throw Error('invalid_request');}else if(Object.hasOwn(termRange,key)){if(value!==null&&(!Number.isInteger(value)||value<termRange[key][0]||value>termRange[key][1]))throw Error('invalid_request');}else if(value!==null&&(typeof value!=='string'||!value.isWellFormed()||value.includes('\0')||Buffer.byteLength(value)>65536))throw Error('invalid_request');
  if(['referrerId','preferredReceivingAccountId'].includes(key)&&value!==null&&!validBorrowerId(value))throw Error('invalid_request');result[key]=value;}return result;
 }
-const versionSql="encode(sha256(convert_to(jsonb_build_object('id',b.\"Row ID\",'createdDate',b.\"Creation Date\",'aiCollectionEnabled',b.\"AI Collection Enabled\","+Object.entries(borrowerFields).map(([key,column])=>`'${key}',b."${column}"`).join(',')+")::text,'UTF8')),'hex')";
+// The Node mirror of pwa_borrower_version_v2: the same jsonb text, so the same hash. R120 (V135) adds the two terms after
+// "note"; they are read through to_jsonb(b) and joined only when the columns exist, so the mirror equals the SQL function
+// on a database before V135 too (jsonb text orders keys itself, so the concatenation is the same text as one object).
+const versionSql="encode(sha256(convert_to((jsonb_build_object('id',b.\"Row ID\",'createdDate',b.\"Creation Date\",'aiCollectionEnabled',b.\"AI Collection Enabled\","+Object.entries(borrowerFields).map(([key,column])=>`'${key}',b."${column}"`).join(',')+")||CASE WHEN to_jsonb(b)?'Referral Rebate Rate' THEN jsonb_build_object('referralRebateRate',to_jsonb(b)->'Referral Rebate Rate','referralRebateCap',to_jsonb(b)->'Referral Rebate Cap') ELSE '{}'::jsonb END)::text,'UTF8')),'hex')";
+// R120: whether referral_rebate_terms (V135) exists; a true answer is kept per client (a migration only adds it).
+const termsReady=new WeakMap();
+async function hasTermsFunction(client){
+ if(termsReady.get(client))return true;
+ const ready=(await client.query(`SELECT to_regprocedure('public.referral_rebate_terms(text)') IS NOT NULL AS ready`)).rows[0]?.ready===true;
+ if(ready&&client&&typeof client==='object')termsReady.set(client,true);return ready;
+}
 const columns=Object.entries(borrowerFields).map(([key,column])=>`b."${column}" AS "${key}"`).join(',');
 const failure=(status,code,item)=>({ok:false,status,code,...(item?{item}:{})});
 export async function readBorrowerRecord(client,id,lock=false){
- const row=(await client.query(`SELECT b."Row ID" AS id,${columns},b."Creation Date"::text AS "createdDate",b."AI Collection Enabled" AS "aiCollectionEnabled",${versionSql} AS version FROM public."Borrowers" b WHERE b."Row ID"=$1${lock?' FOR UPDATE':''}`,[id])).rows[0];
+ const row=(await client.query(`SELECT b."Row ID" AS id,${columns},b."Creation Date"::text AS "createdDate",b."AI Collection Enabled" AS "aiCollectionEnabled",to_jsonb(b)?'Referral Rebate Rate' AS "termsPresent",(to_jsonb(b)->>'Referral Rebate Rate')::float8 AS "referralRebateRate",(to_jsonb(b)->>'Referral Rebate Cap')::float8 AS "referralRebateCap",${versionSql} AS version FROM public."Borrowers" b WHERE b."Row ID"=$1${lock?' FOR UPDATE':''}`,[id])).rows[0];
  if(!row)return null;
+ // R120: before V135 the record has no terms (absent, not null), so a client never sends a term it could not show.
+ const {termsPresent,...record}=row;if(!termsPresent){delete record.referralRebateRate;delete record.referralRebateCap;}
+ const terms=termsPresent&&await hasTermsFunction(client);
 
  const details=(await client.query(`SELECT b."Total Amount Loaned"::text AS "totalAmountLoaned",b."Total Interest Earned"::text AS "totalInterestEarned",b."Total Number of Loans" AS "totalNumberOfLoans",b."Total Outstanding Principal"::text AS "outstandingPrincipal",b."Active Loan Interest Earned"::text AS "activeInterest",b."Has Active Loan" AS "hasActiveLoan",b."Has Closed Loan" AS "hasClosedLoan",
  CASE WHEN b."Total Outstanding Principal" IS NULL OR b."Active Loan Interest Earned" IS NULL THEN NULL WHEN b."Total Outstanding Principal">0 THEN b."Active Loan Interest Earned"/b."Total Outstanding Principal" ELSE 0 END::text AS "activeReturn",
@@ -21,9 +38,12 @@ export async function readBorrowerRecord(client,id,lock=false){
  (b."Total Amount Loaned"-b."Total Outstanding Principal")::text AS "closedPrincipal",(b."Total Interest Earned"-b."Active Loan Interest Earned")::text AS "closedInterest",
  CASE WHEN b."Has Closed Loan" IS NULL OR b."Total Amount Loaned" IS NULL OR b."Total Outstanding Principal" IS NULL OR b."Total Interest Earned" IS NULL OR b."Active Loan Interest Earned" IS NULL THEN NULL WHEN b."Has Closed Loan" AND b."Total Amount Loaned"-b."Total Outstanding Principal">0 THEN (b."Total Interest Earned"-b."Active Loan Interest Earned")/(b."Total Amount Loaned"-b."Total Outstanding Principal") ELSE 0 END::text AS "closedReturn",
  CASE WHEN b."Total Outstanding Principal"<=0 THEN NULL WHEN b."Active Loan Interest Earned">=b."Total Outstanding Principal" THEN (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date WHEN b."Active Daily Interest">0 THEN (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date+ceil((b."Total Outstanding Principal"-b."Active Loan Interest Earned")/b."Active Daily Interest")::integer ELSE NULL END::text AS "coverageDate",
- r."Borrower Name" AS "referrerName",a."Account Label" AS "preferredReceivingAccountLabel"
- FROM public."Borrowers" b LEFT JOIN public."Borrowers" r ON r."Row ID"=b."Ref Referrer" LEFT JOIN public."Cash Accounts" a ON a."Row ID"=b."Ref Preferred Receiving Cash Account" WHERE b."Row ID"=$1`,[id])).rows[0];
- return {...row,details};
+ r."Borrower Name" AS "referrerName",a."Account Label" AS "preferredReceivingAccountLabel",
+ ${terms?`(t.terms->>'rate')::float8 AS "referralRebateRateEffective",(t.terms->>'cap')::float8 AS "referralRebateCapEffective"`:'NULL::float8 AS "referralRebateRateEffective",NULL::float8 AS "referralRebateCapEffective"'}
+ FROM public."Borrowers" b LEFT JOIN public."Borrowers" r ON r."Row ID"=b."Ref Referrer" LEFT JOIN public."Cash Accounts" a ON a."Row ID"=b."Ref Preferred Receiving Cash Account"${terms?' CROSS JOIN LATERAL (SELECT public.referral_rebate_terms(b."Row ID") AS terms) t':''} WHERE b."Row ID"=$1`,[id])).rows[0];
+ // The effective terms (the referrer's own or the default) come from referral_rebate_terms, so the PWA holds no default.
+ if(!terms){delete details.referralRebateRateEffective;delete details.referralRebateCapEffective;}
+ return {...record,details};
 }
 /** Owner rule (W5): every borrower has a name (create/update input, checked before any write) and a loan is created
  * only for a borrower whose stored name is not blank (checked after the governed operation applied, while it still holds

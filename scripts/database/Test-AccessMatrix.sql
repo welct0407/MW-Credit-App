@@ -90,6 +90,7 @@ INSERT INTO am_expected_routines VALUES
   ('mw_app_dev','pwa_next_bookable_charge_v1(text,date)'),
   ('mw_app_dev','pwa_pay_forward_plan_v1(text,numeric,date,jsonb)'),
   ('mw_app_dev','pwa_referral_rebate_projection_v1(text,jsonb)'),
+  ('mw_app_dev','referral_rebate_terms(text)'),
   ('mw_app_dev','pwa_payment_version_v2(text)'),
   ('mw_app_dev','pwa_preference_version_v2(text)'),
   ('mw_app_dev','sync_cash_ledger(text,text)'),

@@ -563,5 +563,162 @@ DO $$ BEGIN
 END $$;
 DROP OWNED BY ro_content_dispatch;
 DROP ROLE ro_content_dispatch;
+
+-- 5. R120 V135: referral rebate terms per referrer (RO-T*). Each referred loan has profit 2,400 (one charge today, 1,000
+-- principal and 2,400 interest), closed by the Loan Close command as the command user. Terms: D default, R rate 15 (set by the
+-- borrower command), C cap 150, B rate 50 and cap 1,500, Z rate 0, O rate 15 with an open referrer loan (offset path), X the
+-- drift guard (the terms change between the quote and the trigger).
+INSERT INTO public."Borrowers"("Row ID","Borrower Name") VALUES
+ ('RO-RTD','SYNTHETIC REFERRER TERMS DEFAULT'),('RO-RTR','SYNTHETIC REFERRER TERMS RATE'),('RO-RTC','SYNTHETIC REFERRER TERMS CAP'),
+ ('RO-RTB','SYNTHETIC REFERRER TERMS BOTH'),('RO-RTZ','SYNTHETIC REFERRER TERMS ZERO'),('RO-RTO','SYNTHETIC REFERRER TERMS OFFSET'),('RO-RTX','SYNTHETIC REFERRER TERMS DRIFT');
+INSERT INTO public."Borrowers"("Row ID","Borrower Name","Ref Referrer") VALUES
+ ('RO-BTD','SYNTHETIC REFERRED TERMS DEFAULT','RO-RTD'),('RO-BTR','SYNTHETIC REFERRED TERMS RATE','RO-RTR'),('RO-BTC','SYNTHETIC REFERRED TERMS CAP','RO-RTC'),
+ ('RO-BTB','SYNTHETIC REFERRED TERMS BOTH','RO-RTB'),('RO-BTZ','SYNTHETIC REFERRED TERMS ZERO','RO-RTZ'),('RO-BTO','SYNTHETIC REFERRED TERMS OFFSET','RO-RTO'),('RO-BTX','SYNTHETIC REFERRED TERMS DRIFT','RO-RTX');
+INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Defaulted")
+ SELECT 'CI-LISA',v.id,v.b,(SELECT d FROM ro_day)-3,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,v.cdi::money,1,false FROM (VALUES
+  ('RO-RTO-L','RO-RTO',10),('RO-RTX-L','RO-RTX',10),
+  ('RO-LTD','RO-BTD',100),('RO-LTR','RO-BTR',100),('RO-LTC','RO-BTC',100),('RO-LTB','RO-BTB',100),('RO-LTZ','RO-BTZ',100),('RO-LTO','RO-BTO',100),('RO-LTX','RO-BTX',100)) v(id,b,cdi);
+INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+ SELECT v.id,v.loan,(SELECT d FROM ro_day),0::money,v.i::money FROM (VALUES
+  ('RO-RTO-today','RO-RTO-L',10),('RO-RTX-today','RO-RTX-L',10),
+  ('RO-LTD-today','RO-LTD',2400),('RO-LTR-today','RO-LTR',2400),('RO-LTC-today','RO-LTC',2400),('RO-LTB-today','RO-LTB',2400),('RO-LTZ-today','RO-LTZ',2400),('RO-LTO-today','RO-LTO',2400),('RO-LTX-today','RO-LTX',2400)) v(id,loan,i);
+UPDATE public."Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" LIKE 'RO-%T%' AND "Row ID" ~ '^RO-(RT.-L|LT.)$';
+-- The borrower update as the canonical operation text (the stored fields, then the optional terms in `extra`).
+CREATE FUNCTION pg_temp.ro_borrower(request text,id text,extra text) RETURNS text LANGUAGE sql AS $f$
+ SELECT '{"contractVersion":2,"requestId":'||to_json(request)::text||',"actor":{"issuer":"https://ro.invalid","subject":"ro-owner","partnerId":"RO-ACT","loginEmail":"ro-actor@example.invalid"},"command":{"schemaVersion":1,"operation":"borrower.update","targetType":"borrower","targetId":'
+  ||to_json(id)::text||',"expectedVersion":'||to_json(public.pwa_borrower_version_v2(id))::text||',"predecessorRequestId":null,"inputs":{"name":'||coalesce(to_json(b."Borrower Name")::text,'null')
+  ||',"description":'||coalesce(to_json(b."Description")::text,'null')||',"communicationName":'||coalesce(to_json(b."Communication Name")::text,'null')
+  ||',"instagramUsername":'||coalesce(to_json(b."Instagram Username")::text,'null')||',"city":'||coalesce(to_json(b."City")::text,'null')||',"workingLocation":'||coalesce(to_json(b."Working Location")::text,'null')
+  ||',"address":'||coalesce(to_json(b."Address")::text,'null')||',"hidden":'||coalesce(to_json(b."Hidden Flag")::text,'null')||',"referrerId":'||coalesce(to_json(b."Ref Referrer")::text,'null')
+  ||',"preferredReceivingAccountId":'||coalesce(to_json(b."Ref Preferred Receiving Cash Account")::text,'null')||',"note":'||coalesce(to_json(b."Borrower Note")::text,'null')||extra||'}},"receipt":null}'
+ FROM public."Borrowers" b WHERE b."Row ID"=id $f$;
+-- Built before any submit: the rate through the command; a stale edit with the version before it; invalid term inputs.
+SELECT set_config('ro.t_rate',pg_temp.ro_borrower('f1111111-1111-4111-8111-111111111111','RO-RTR',',"referralRebateRate":15,"referralRebateCap":null'),true),
+ set_config('ro.t_stale',pg_temp.ro_borrower('f1111111-1111-4111-8111-111111111112','RO-RTR',''),true),
+ set_config('ro.t_plain',pg_temp.ro_borrower('f1111111-1111-4111-8111-111111111113','RO-RTD',''),true),
+ set_config('ro.t_bad',(SELECT string_agg(pg_temp.ro_borrower('f2222222-2222-4222-8222-22222222222'||n,'RO-RTD',x),E'\x1f' ORDER BY n) FROM (VALUES
+   (1,',"referralRebateRate":"15"'),(2,',"referralRebateRate":12.5'),(3,',"referralRebateRate":101'),(4,',"referralRebateRate":-1'),(5,',"referralRebateCap":0'),
+   (6,',"referralRebateRate":15.0'),(7,',"referralRebateRate":1e1'),(8,',"referralRebateCap":true'),(9,',"referralRebateCap":1500,"referralRebateRate":15')) v(n,x)),true);
+SELECT set_config('ro.t_v0',public.pwa_borrower_version_v2('RO-RTR'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb;c text;
+BEGIN
+ r:=public.pwa_submit_operation_v2(current_setting('ro.t_rate'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: terms through borrower.update must apply: %',r; END IF;
+ r:=public.pwa_submit_operation_v2(current_setting('ro.t_stale'));
+ IF r->'originalOutcome'->>'code' IS DISTINCT FROM 'source_conflict' THEN RAISE EXCEPTION 'FAILED: an edit on the version before the terms change is a source_conflict: %',r; END IF;
+ r:=public.pwa_submit_operation_v2(current_setting('ro.t_plain'));
+ IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: a borrower.update without the terms keeps working: %',r; END IF;
+ FOREACH c IN ARRAY string_to_array(current_setting('ro.t_bad'),E'\x1f') LOOP
+  BEGIN PERFORM public.pwa_submit_operation_v2(c); RAISE EXCEPTION 'FAILED: invalid terms accepted: %',c;
+  EXCEPTION WHEN SQLSTATE '22023' THEN NULL; END;
+ END LOOP;
+END $$;
+RESET SESSION AUTHORIZATION;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "Referral Rebate Rate"=15 AND "Referral Rebate Cap" IS NULL FROM public."Borrowers" WHERE "Row ID"='RO-RTR'),'T: borrower.update writes the rate (15) and the null cap');
+ PERFORM pg_temp.ro_assert((SELECT canonical_json LIKE '%"note":null,"referralRebateRate":15,"referralRebateCap":null}%' FROM public.pwa_payment_commands WHERE request_id='f1111111-1111-4111-8111-111111111111'),'T: the canonical text keeps the JSON numbers after note');
+ PERFORM pg_temp.ro_assert(public.pwa_borrower_version_v2('RO-RTR') IS DISTINCT FROM current_setting('ro.t_v0'),'T: the terms are part of the borrower version');
+ PERFORM pg_temp.ro_assert((SELECT "Referral Rebate Rate" IS NULL AND "Referral Rebate Cap" IS NULL FROM public."Borrowers" WHERE "Row ID"='RO-RTD'),'T: an update without the keys leaves the terms as they are');
+ PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public.pwa_payment_commands WHERE request_id::text LIKE 'f2222222-%'),'T: invalid term inputs record nothing');
+ -- The column checks refuse a rate above 100, a fraction and a cap of 0.
+ BEGIN UPDATE public."Borrowers" SET "Referral Rebate Rate"=101 WHERE "Row ID"='RO-RTD'; RAISE EXCEPTION 'FAILED: rate 101 stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN UPDATE public."Borrowers" SET "Referral Rebate Rate"=12.5 WHERE "Row ID"='RO-RTD'; RAISE EXCEPTION 'FAILED: rate 12.5 stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN UPDATE public."Borrowers" SET "Referral Rebate Cap"=0 WHERE "Row ID"='RO-RTD'; RAISE EXCEPTION 'FAILED: cap 0 stored'; EXCEPTION WHEN check_violation THEN NULL; END;
+ PERFORM pg_temp.ro_assert(public.referral_rebate_terms('RO-RTD')='{"rate":10,"cap":1000,"custom":false}'::jsonb AND public.referral_rebate_terms('RO-NO-SUCH')='{"rate":10,"cap":1000,"custom":false}'::jsonb
+   AND public.referral_rebate_terms('RO-RTR')='{"rate":15,"cap":1000,"custom":true}'::jsonb,'T: the terms with their defaults (unknown id: the defaults)');
+END $$;
+UPDATE public."Borrowers" SET "Referral Rebate Cap"=150 WHERE "Row ID"='RO-RTC';
+UPDATE public."Borrowers" SET "Referral Rebate Rate"=50,"Referral Rebate Cap"=1500 WHERE "Row ID"='RO-RTB';
+UPDATE public."Borrowers" SET "Referral Rebate Rate"=0 WHERE "Row ID"='RO-RTZ';
+UPDATE public."Borrowers" SET "Referral Rebate Rate"=15 WHERE "Row ID"='RO-RTO';
+-- The projection (the Loan Close preview) before each close equals what the trigger books.
+CREATE TEMP TABLE ro_terms(loan text PRIMARY KEY,amount numeric,rate numeric,cap numeric,custom boolean) ON COMMIT DROP;
+INSERT INTO ro_terms VALUES('RO-LTD',240,10,1000,false),('RO-LTR',360,15,1000,true),('RO-LTC',150,10,150,true),('RO-LTB',1200,50,1500,true),('RO-LTO',360,15,1000,true);
+DO $$
+DECLARE t record;p jsonb;
+BEGIN
+ FOR t IN SELECT * FROM ro_terms LOOP
+  p:=public.pwa_referral_rebate_projection_v1(t.loan,public.loan_close_calculation_v83(t.loan,(SELECT d FROM ro_day)));
+  PERFORM pg_temp.ro_assert(p->>'amount'=t.amount::text AND p->>'profit'='2400' AND p->'rate'=to_jsonb(t.rate) AND p->'cap'=to_jsonb(t.cap) AND p->'custom'=to_jsonb(t.custom)
+    AND p ?& ARRAY['referrerId','referrerName','referrerDescription','selfReferral','hasOpenLoan'],'T projection '||t.loan||': '||p::text);
+ END LOOP;
+ PERFORM pg_temp.ro_assert(public.pwa_referral_rebate_projection_v1('RO-LTZ',public.loan_close_calculation_v83('RO-LTZ',(SELECT d FROM ro_day))) IS NULL,'T projection: rate 0 shows no rebate');
+END $$;
+SELECT set_config('ro.t_d',pg_temp.ro_close('f3333333-3333-4333-8333-333333333331','RO-LTD','expense'),true),
+ set_config('ro.t_r',pg_temp.ro_close('f3333333-3333-4333-8333-333333333332','RO-LTR','expense'),true),
+ set_config('ro.t_c',pg_temp.ro_close('f3333333-3333-4333-8333-333333333333','RO-LTC','expense'),true),
+ set_config('ro.t_b',pg_temp.ro_close('f3333333-3333-4333-8333-333333333334','RO-LTB','expense'),true),
+ set_config('ro.t_z',pg_temp.ro_close('f3333333-3333-4333-8333-333333333335','RO-LTZ','offset'),true),
+ set_config('ro.t_o',pg_temp.ro_close('f3333333-3333-4333-8333-333333333336','RO-LTO','offset'),true),
+ set_config('ro.t_x',pg_temp.ro_close('f3333333-3333-4333-8333-333333333337','RO-LTX','offset'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb;k text;
+BEGIN
+ FOREACH k IN ARRAY ARRAY['ro.t_d','ro.t_r','ro.t_c','ro.t_b','ro.t_z','ro.t_o'] LOOP
+  r:=public.pwa_submit_operation_v2(current_setting(k));
+  IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: % must apply: %',k,r; END IF;
+ END LOOP;
+END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+DO $$
+DECLARE t record;off text;
+BEGIN
+ FOR t IN SELECT * FROM ro_terms LOOP
+  PERFORM pg_temp.ro_assert((SELECT "Amount"::numeric=t.amount AND "Rebate Rate"=t.rate AND "Rebate Cap"=t.cap AND "Rule Version"='REFERRAL_REBATE_V2' AND "Gross Profit Basis"::numeric=2400
+    FROM public."Business Expenses" WHERE "Row ID"='rr1:'||t.loan),'T '||t.loan||': expense '||t.amount||' with rate '||t.rate||', cap '||t.cap||', REFERRAL_REBATE_V2');
+  PERFORM pg_temp.ro_assert((SELECT (result_json#>>'{rebate,amount}')::numeric=t.amount FROM public.pwa_payment_commands WHERE canonical_json::jsonb#>>'{command,targetId}'=t.loan AND canonical_json::jsonb#>>'{command,operation}'='loan.close'),'T '||t.loan||': the stored quote equals the booked rebate');
+ END LOOP;
+ PERFORM pg_temp.ro_assert((SELECT "Loan Status"='ปิดยอดแล้ว' FROM public."Loans" WHERE "Row ID"='RO-LTZ') AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Ref Related Loan"='RO-LTZ')
+   AND NOT EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Borrower"='RO-RTZ'),'T rate 0: the loan closes, no expense and no offset');
+ PERFORM pg_temp.ro_assert((SELECT result_json->'rebate' IS NULL FROM public.pwa_payment_commands WHERE request_id='f3333333-3333-4333-8333-333333333335'),'T rate 0: the close stores no rebate');
+ -- Offset path: the custom rebate (360) is settled on the referrer's open loan (10 due, then the next 35 charges of 10).
+ SELECT "Row ID" INTO off FROM public."Payments" WHERE "Ref Borrower"='RO-RTO' AND "Payment Method"='Referral Rebate Offset';
+ PERFORM pg_temp.ro_assert(off IS NOT NULL AND (SELECT "Amount Received"::numeric=360 AND "Status"='Posted' FROM public."Payments" WHERE "Row ID"=off)
+   AND (SELECT "Ref Offset Payment"=off FROM public."Business Expenses" WHERE "Row ID"='rr1:RO-LTO'),'T offset: one offset payment of the custom 360, linked from the expense');
+ PERFORM pg_temp.ro_assert((SELECT sum("Allocated Amount"::numeric)=360 FROM public."Payment Allocations" WHERE "Ref Payment"=off),'T offset: allocations reconcile to the custom rebate');
+END $$;
+-- A later change of the referrer's terms never restates a booked rebate.
+UPDATE public."Borrowers" SET "Referral Rebate Rate"=20 WHERE "Row ID"='RO-RTR';
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "Amount"::numeric=360 AND "Rebate Rate"=15 FROM public."Business Expenses" WHERE "Row ID"='rr1:RO-LTR'),'T: the booked rebate keeps its terms after the referrer changes them');
+END $$;
+-- Re-close after deleting the closing payment uses the terms current then (cap 150 -> 200: min(240, 200)).
+DELETE FROM public."Payments" WHERE "Row ID"=(SELECT "Ref Closing Payment" FROM public."Loans" WHERE "Row ID"='RO-LTC');
+SET CONSTRAINTS ALL IMMEDIATE;
+UPDATE public."Borrowers" SET "Referral Rebate Cap"=200 WHERE "Row ID"='RO-RTC';
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert(NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Row ID"='rr1:RO-LTC') AND (SELECT "Loan Status"='ยังไม่ปิดยอด' FROM public."Loans" WHERE "Row ID"='RO-LTC'),'T re-close: the old expense went with the closing payment');
+END $$;
+SELECT set_config('ro.t_c2',pg_temp.ro_close('f3333333-3333-4333-8333-333333333338','RO-LTC','expense'),true);
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb:=public.pwa_submit_operation_v2(current_setting('ro.t_c2'));
+BEGIN IF r->'originalOutcome'->>'status' IS DISTINCT FROM 'applied' THEN RAISE EXCEPTION 'FAILED: terms re-close must apply: %',r; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+SET CONSTRAINTS ALL IMMEDIATE;
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "Amount"::numeric=200 AND "Rebate Rate"=10 AND "Rebate Cap"=200 FROM public."Business Expenses" WHERE "Row ID"='rr1:RO-LTC'),'T re-close: the new expense uses the new cap (200)');
+END $$;
+-- Drift guard: the referrer's terms change after the command quoted the rebate and before the trigger books it (here inside
+-- the command, by a test-only trigger on the applied journal insert): the offset check refuses (P4C05, which the Loan Close
+-- maps to plan_changed), the close and the terms change roll back and the command is recorded as rejected.
+CREATE FUNCTION public.ro_terms_drift() RETURNS trigger LANGUAGE plpgsql AS $f$
+BEGIN IF NEW.outcome='applied' AND NEW.canonical_json::jsonb#>>'{command,targetId}'='RO-LTX' THEN UPDATE public."Borrowers" SET "Referral Rebate Rate"=20 WHERE "Row ID"='RO-RTX'; END IF; RETURN NEW; END $f$;
+CREATE TRIGGER ro_terms_drift AFTER INSERT ON public.pwa_payment_commands FOR EACH ROW EXECUTE FUNCTION public.ro_terms_drift();
+SET SESSION AUTHORIZATION "mw-credit-app-command-dev@clever-oasis-508610-n7.iam";
+DO $$
+DECLARE r jsonb:=public.pwa_submit_operation_v2(current_setting('ro.t_x'));
+BEGIN IF r->'originalOutcome'->>'code' IS DISTINCT FROM 'plan_changed' THEN RAISE EXCEPTION 'FAILED: a close whose rebate terms changed after the quote must be plan_changed: %',r; END IF; END $$;
+RESET SESSION AUTHORIZATION;
+DROP TRIGGER ro_terms_drift ON public.pwa_payment_commands;
+DROP FUNCTION public.ro_terms_drift();
+DO $$ BEGIN
+ PERFORM pg_temp.ro_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' FROM public."Loans" WHERE "Row ID"='RO-LTX') AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Ref Related Loan"='RO-LTX')
+   AND (SELECT outcome='rejected' FROM public.pwa_payment_commands WHERE request_id='f3333333-3333-4333-8333-333333333337') AND (SELECT "Referral Rebate Rate" IS NULL FROM public."Borrowers" WHERE "Row ID"='RO-RTX'),'T drift: the close and the terms change rolled back together');
+END $$;
 SELECT 'Rebate offset regressions passed' AS result;
 ROLLBACK;
