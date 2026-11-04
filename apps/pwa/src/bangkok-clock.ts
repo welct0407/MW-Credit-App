@@ -1,0 +1,2 @@
+/** R123 one Bangkok clock reading (UTC+7, no daylight saving): the date, the hour and the minute rounded down to 10. */
+export function bangkokClock(now=new Date()):{date:string;hour:string;minute:string}{const b=new Date(now.getTime()+7*36e5),pad=(n:number)=>String(n).padStart(2,'0');return {date:b.toISOString().slice(0,10),hour:pad(b.getUTCHours()),minute:pad(Math.floor(b.getUTCMinutes()/10)*10)}}
