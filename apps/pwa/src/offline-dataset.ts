@@ -7,11 +7,12 @@ type Access={origin:string;offline?:OwnerOfflineRepository;offlineOnly?:boolean;
 const domains=['records','collection','cash','management','notifications'] as const;
 /** foreground: a screen is waiting on this sync (SYNC-UX-02 shows progress only then or before the first complete download). */
 /** failedDomains: the data domains whose last check failed, sorted and comma-joined (receipts are never listed). */
-export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';completed:number;total:number;progress:number;chunks:number;syncActive:boolean;domainsPending:boolean;updating:boolean;updateFailed:boolean;failedDomains:string;lastChecked:number|null;foreground:boolean;fullSync:boolean;
+/** dataReady: every data domain has a complete bundle (UX-HOLD-07: the header progress follows the data domains, not receipts). */
+export type OfflinePreparation={state:'idle'|'preparing'|'ready'|'incomplete';dataReady:boolean;completed:number;total:number;progress:number;chunks:number;syncActive:boolean;domainsPending:boolean;updating:boolean;updateFailed:boolean;failedDomains:string;lastChecked:number|null;foreground:boolean;fullSync:boolean;
  /** UX-RECON-01..07: domains with a persistent reconciliation mismatch (comma list, reconcile order), the latest
   * check time, and a new occurrence to announce once ('checkedAt|domain', '' when none). */
  dataCheckDomains:string;dataCheckAt:number|null;dataCheckNotice:string};
-const idle:OfflinePreparation={state:'idle',completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,domainsPending:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false,fullSync:false,dataCheckDomains:'',dataCheckAt:null,dataCheckNotice:''};
+const idle:OfflinePreparation={state:'idle',dataReady:false,completed:0,total:domains.length,progress:0,chunks:0,syncActive:false,domainsPending:false,updating:false,updateFailed:false,failedDomains:'',lastChecked:null,foreground:false,fullSync:false,dataCheckDomains:'',dataCheckAt:null,dataCheckNotice:''};
 const states=new Map<string,OfflinePreparation>(),listeners=new Set<()=>void>();
 export const getOfflinePreparation=(scopeName?:string)=>scopeName?states.get(scopeName)??idle:idle;
 export const subscribeOfflinePreparation=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener)}};
@@ -102,6 +103,9 @@ const NEED_BATCH=2048;
  * user sees on the payment) is within the last 30 days; a receipt time stands in
  * when a row has no payment date. Older receipts load online on demand only. */
 export const RECEIPT_OFFLINE_DAYS=30;
+/** A receipt refusal marker counts for this long after it was written; then the receipt is asked for again (at most
+ * once a day): a refusal can come from configuration (a catalog or bucket mapping) that is later fixed. */
+export const RECEIPT_REFUSAL_MAX_AGE_MS=24*60*60*1000;
 const bangkokDay=(at:number)=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));
 export const receiptWindowStart=(now=Date.now())=>bangkokDay(now-RECEIPT_OFFLINE_DAYS*24*60*60*1000);
 export function receiptRetainedOffline(row:any,now=Date.now()){
@@ -145,18 +149,36 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const beginCycle=(targets:readonly string[]=domains)=>{if(targets.length===domains.length)armPoll();progressFloor=0;cycleDomains.clear();cycleDone.clear();fractions.clear();chunkCounts.clear();for(const domain of targets)cycleDomains.add(domain)};
  const valueIndexes=new Map<string,{base:string|null,values:Record<string,any>}>();
  const completed=new Set<string>(),failed=new Set<string>(),backoff=new Map<string,{attempts:number;next:number}>(),fractions=new Map<string,number>(),chunkCounts=new Map<string,number>(),changedRetries=new Map<string,number>(),mediaVersion=new Map<string,number>();
- const mediaKeys=(records:any)=>(records?.data?.payments??[]).filter((row:any)=>receiptRetainedOffline(row)).flatMap((row:any)=>[...(row.receiptReference?['manual']:[]),...(row.agentReceiptPresent?['agent']:[])].map(source=>{const path='/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source;mediaVersion.set(path,Date.parse(source==='manual'?row.receiptAt:row.agentReceiptAt));return path}));
+ // A receipt's version is its receipt time; one that does not parse is 0, so any stored blob counts and a recheck
+ // does not see a change (NaN!==NaN).
+ const mediaKeys=(records:any)=>(records?.data?.payments??[]).filter((row:any)=>receiptRetainedOffline(row)).flatMap((row:any)=>[...(row.receiptReference?['manual']:[]),...(row.agentReceiptPresent?['agent']:[])].map(source=>{const path='/api/payment-records/'+encodeURIComponent(row.id)+'/receipt?source='+source;const at=Date.parse(source==='manual'?row.receiptAt:row.agentReceiptAt);mediaVersion.set(path,Number.isFinite(at)?at:0);return path}));
+ const mediaKey=(path:string)=>'blob:'+new URL(path,access.origin).href;
+ // Receipts the server refused definitively (422 receipt_reference_unsupported) at the receipt time they were asked
+ // for, kept owner-scoped in IndexedDB (owner-offline.ts). Background preparation does not ask for them again on
+ // open, poll or focus; a changed receipt (another receipt time) downloads normally and a Full sync asks once more.
+ // Only background prefetch reads this: a screen still asks the network for the receipt (read-cache.ts). A marker
+ // expires RECEIPT_REFUSAL_MAX_AGE_MS after it was written (a time ahead of now counts as expired).
+ const refused=new Map<string,{version:number;at:number}>();let refusalsLoaded=false;
+ const refusalFresh=(at:number)=>{const age=Date.now()-at;return age>=0&&age<RECEIPT_REFUSAL_MAX_AGE_MS};
+ const refusedNow=(path:string)=>{const marker=refused.get(path);return !!marker&&marker.version===mediaVersion.get(path)&&refusalFresh(marker.at)};
  // Stored receipts outside the current window (aged out, deleted payments, legacy
- // `preferred` alias copies) are removed; only one blob per receipt is kept.
- const pruneMedia=async()=>{const keep=new Set(media.map(path=>'blob:'+new URL(path,access.origin).href));for(const key of await repo.listDatasetMediaKeys())if(!keep.has(key))await repo.removeDatasetMedia(key)};
- // Cache availability and this sweep's completed work are independent.
+ // `preferred` alias copies) are removed; only one blob per receipt is kept. A refusal marker is kept only for a
+ // receipt still in the window at the receipt time refused, for a day; the first sweep that reads the markers loads them.
+ const pruneMedia=async()=>{
+  const keep=new Set(media.map(mediaKey));for(const key of await repo.listDatasetMediaKeys())if(!keep.has(key))await repo.removeDatasetMedia(key);
+  for(const path of [...refused.keys()])if(!refusedNow(path))refused.delete(path);
+  // A marker that cannot be read or removed never stops the data sync: the receipt is then simply asked for, and a
+  // failed first read is tried again at the next sweep.
+  const stored=await repo.readDatasetMediaRefusals().catch(()=>null);if(!stored)return;
+  const paths=new Map(media.map(path=>[mediaKey(path),path])),load=!refusalsLoaded;refusalsLoaded=true;
+  for(const {key,version,savedAt} of stored){const path=paths.get(key);if(path!==undefined&&version===mediaVersion.get(path)&&refusalFresh(savedAt)){if(load)refused.set(path,{version,at:savedAt})}else await repo.removeDatasetMediaRefusal(key).catch(()=>{})}
+ };
+ // Cache availability and this sweep's completed work are independent. UX-HOLD-07: the shown progress follows the
+ // data domains of the current cycle only; receipts download afterwards without the header progress.
  const progress=()=>{
-  const discovered=!cycleDomains.has('records')||cycleDone.has('records');
-  const images=discovered?(media.length?media.filter(path=>completed.has(path)).length/media.length:1):0;
   const core=cycleDomains.size?[...cycleDomains].reduce((sum,domain)=>sum+(cycleDone.has(domain)?1:fractions.get(domain)??0),0)/cycleDomains.size:1;
-  const value=cycleDomains.has('records')||media.some(path=>!completed.has(path))?80*core+20*images:100*core;
-  const complete=[...cycleDomains].every(domain=>cycleDone.has(domain))&&discovered&&media.every(path=>completed.has(path));
-  progressFloor=Math.max(progressFloor,Math.max(0,Math.min(complete?100:99,value)));
+  const complete=[...cycleDomains].every(domain=>cycleDone.has(domain));
+  progressFloor=Math.max(progressFloor,Math.max(0,Math.min(complete?100:99,100*core)));
   return complete?100:progressFloor;
  };
  // UX-HOLD-07: the banner, "Updated HH:MM" and readiness follow the data domains only. A receipt that
@@ -170,7 +192,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  // refresh triggers: a poll or focus landing in that gap joins the cycle like one landing during a request.
  const walking=()=>domainRunning()||queue.some(task=>!isMediaTask(task)&&partials.has(task));
  const syncActive=()=>navigator.onLine&&!access.offlineOnly&&!paused&&document.visibilityState!=='hidden'&&(active.size>0||queue.length>0&&(activitySnapshot()===0||!!requestedDomain));
- const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path))?'ready':paused?'incomplete':queue.length||active.size?'preparing':'incomplete',completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,fullSync:forceWalk.size>0,dataCheckDomains:DATASET_RECONCILE_DOMAINS.filter(domain=>dataCheck.some(flag=>flag.domain===domain)).join(','),dataCheckAt:dataCheck.length?Math.max(...dataCheck.map(flag=>flag.checkedAt)):null,dataCheckNotice,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
+ const status=()=>publish(repo.scopeName,{state:domains.every(domain=>completed.has(domain))&&media.every(path=>completed.has(path)||quietMedia.has(path)||refusedNow(path))?'ready':paused?'incomplete':queue.length||active.size?'preparing':'incomplete',dataReady:domains.every(domain=>completed.has(domain)),completed:completed.size,total:domains.length+media.length,progress:progress(),syncActive:!!syncActive(),domainsPending:!paused&&(domainRunning()||queue.some(task=>!isMediaTask(task))),updating:domains.every(domain=>completed.has(domain))&&!!syncActive(),updateFailed:domains.every(domain=>completed.has(domain))&&failedDomains().length>0,failedDomains:failedDomains().join(','),lastChecked,foreground:requestedDomain!==null,fullSync:forceWalk.size>0,dataCheckDomains:DATASET_RECONCILE_DOMAINS.filter(domain=>dataCheck.some(flag=>flag.domain===domain)).join(','),dataCheckAt:dataCheck.length?Math.max(...dataCheck.map(flag=>flag.checkedAt)):null,dataCheckNotice,chunks:[...chunkCounts.values()].reduce((sum,count)=>sum+count,0)});
  const ready=(domain:string,changed:boolean)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-ready',{detail:{scopeName:repo.scopeName,domain,changed}}));
  const failedEvent=(domain:string)=>window.dispatchEvent(new CustomEvent('mw-offline-dataset-failed',{detail:{scopeName:repo.scopeName,domain}}));
  const stale=(domain:string)=>Date.now()-(domainChecked.get(domain)??0)>=DATASET_RECHECK_MIN_MS;
@@ -184,7 +206,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
  const enqueue=(task:string,first=false)=>{if(queue.includes(task))return;first?queue.unshift(task):queue.push(task)};
  // New work starts after a short settle delay; the next segment of a walk in progress starts at once (R078).
  const schedule=()=>{if(stopped||timer)return;timer=setTimeout(()=>{timer=undefined;void pump()},200)};
- const addMedia=()=>{if(domains.every(domain=>completed.has(domain)))for(const path of media)if(!completed.has(path)&&!failed.has(path))enqueue(path)};
+ const addMedia=()=>{if(domains.every(domain=>completed.has(domain)))for(const path of media)if(!completed.has(path)&&!failed.has(path)&&!refusedNow(path))enqueue(path)};
  const forget=async(task:string)=>{partials.delete(task);await repo.discardDatasetProgress(task)};
  // The receipt window moves with time: recompute it whenever the records check completes.
  const refreshMedia=async(records:any)=>{const oldVersions=new Map(mediaVersion);mediaVersion.clear();media=mediaKeys(records);for(const path of media)if(oldVersions.get(path)!==mediaVersion.get(path)){completed.delete(path);succeeded(path)}await pruneMedia()};
@@ -221,7 +243,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    if(partial?.progress?.total>0)fractions.set(domain,Math.min(.99,partial.progress.completed/partial.progress.total));
    if(navigator.onLine&&!access.offlineOnly){enqueue(domain)}
   }
-  for(const path of media){const saved=await repo.readDatasetMedia('blob:'+new URL(path,access.origin).href);if(stopped)return;if(saved&&saved.savedAt>=(mediaVersion.get(path)??Infinity))completed.add(path)}
+  for(const path of media){const saved=await repo.readDatasetMedia(mediaKey(path));if(stopped)return;if(saved&&saved.savedAt>=(mediaVersion.get(path)??Infinity))completed.add(path)}
   initialized=true;paused=!navigator.onLine||!!access.offlineOnly;addMedia();status();schedule();
  }catch{paused=true;status()}finally{initializing=false}}
  // Picks the next task that may start now, or nothing. Data domains come first (two at a time); a
@@ -250,7 +272,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   status();
  }
  async function run(task:string){
-  const isMedia=isMediaTask(task),flight=new AbortController();active.set(task,flight);
+  const isMedia=isMediaTask(task),flight=new AbortController(),mediaAt=isMedia?mediaVersion.get(task):undefined;active.set(task,flight);
   // A starting records check also asks for the other domains' versions (applyVersions).
   const forced=forceWalk.has(task);
   let ownsVersions=false;if(task==='records'&&!forced&&!versionsPending&&queue.some(queued=>versionPeer(queued)&&!active.has(queued))){versionsPending=true;ownsVersions=true}
@@ -276,7 +298,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    // A full sync restarts a walk that began before it (that walk may have started as a delta or a check).
    if(forced&&partial&&!partial.forced){await forget(task);enqueue(task,true);continued=true;return}
    const path=isMedia?task:task==='notifications'?'/api/notifications/offline-dataset':'/api/offline-dataset?domain='+task,url=new URL(path,access.origin);if(!isMedia){url.searchParams.set('protocol',delta?'3':'2');if(!delta&&partial?.nextCursor)url.searchParams.set('cursor',partial.nextCursor);}
-   if(isMedia){const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);succeeded(task);return}}
+   if(isMedia){if(refusedNow(task)){succeeded(task);return}const saved=await repo.readDatasetMedia('blob:'+url.href);if(saved&&saved.savedAt>=(mediaVersion.get(task)??Infinity)){completed.add(task);succeeded(task);return}}
    // Levels: 4 dates and day-change cursors (R078), 3 since (records v4), 2 versions, 1 acceptChanged.
    // Level 5: row deltas for collection and cash (replaceWhere, scope).
    // Level 6: a delta's values inline (one request, no need round trip).
@@ -292,6 +314,14 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
    const changedOnServer=async()=>{await forget(task);fractions.delete(task);chunkCounts.delete(task);const retries=changedRetries.get(task)??0;if(retries<1){changedRetries.set(task,retries+1);enqueue(task);return}softGiveUp=true;cycleDone.add(task);if(bundle?.complete)ready(task,false);else giveUp(task)};
    let response=await fetchSegment();
    if(response.status===401||response.status===403){access.authFailure(response.status);paused=true;throw Error()}
+   // Only a definitive refusal is remembered: 422 with the code receipt_reference_unsupported, for the receipt time
+   // asked for. Any other answer (503, another 4xx, a timeout, a lost connection) retries on the usual back-off.
+   if(isMedia&&response.status===422&&(await response.json().catch(()=>null))?.code==='receipt_reference_unsupported'){
+    // A receipt that changed while it was asked for is not marked: it is queued again at its new receipt time.
+    if(mediaAt===undefined||mediaVersion.get(task)!==mediaAt)return;
+    if(!await repo.saveDatasetMediaRefusal('blob:'+url.href,mediaAt))throw Error('Receipt refusal not saved');
+    if(stopped)return;refused.set(task,{version:mediaAt,at:Date.now()});succeeded(task);return;
+   }
    if(response.status===400&&delta&&level>0){const error=await response.json().catch(()=>({}));if(error?.code==='invalid_request'){pathLevels.set(url.pathname,inlineValues?5:rowDeltas?4:level>=4?3:since?2:askVersions?1:0);enqueue(task,true);continued=true;return}throw Error()}
    if(response.status===409&&!isMedia){const error=await response.json().catch(()=>({}));if(error?.code==='dataset_changed'){await changedOnServer();return}throw Error()}
    if(!response.ok)throw Error();let value=isMedia?await response.blob():await response.json();
@@ -424,8 +454,9 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   if(!background&&retryTimer){clearTimeout(retryTimer);retryTimer=undefined;}
   if(detail?.foreground)requestedDomain=priority;
   // UX-FULL: every domain walks from the start (detail.full, with detail.all for the header progress); stored
-  // receipts are re-checked against their receipt time and only missing or outdated ones are downloaded.
-  if(event?.type==='mw-offline-prepare'&&detail?.full&&!priority){fullSyncCheck=dataCheck.length>0;for(const domain of domains)forceWalk.add(domain);for(const path of media)completed.delete(path);failed.clear()}
+  // receipts are re-checked against their receipt time and only missing or outdated ones are downloaded; receipts the
+  // server refused are asked for once more (their refusal markers are cleared).
+  if(event?.type==='mw-offline-prepare'&&detail?.full&&!priority){fullSyncCheck=dataCheck.length>0;for(const domain of domains)forceWalk.add(domain);for(const path of media)completed.delete(path);refused.clear();void repo.clearDatasetMediaRefusals().catch(()=>{});failed.clear()}
   // R078 item 6: an own write is confirmed by checking the domains it touches (DATASET_CONFIRM_DOMAINS), not a
   // full cycle; management follows on the regular poll. A domain already walking is confirmed after its walk.
   if(event?.type==='mw-read-invalidated'){
@@ -508,7 +539,7 @@ export function startOfflinePreparation(access:Access,_options:{readOrigin?:stri
   return 'mismatch';
  }
  async function checkReceipts(){
-  for(const path of media){const saved=await repo.readDatasetMedia('blob:'+new URL(path,access.origin).href).catch(()=>null);const version=mediaVersion.get(path)??Number.POSITIVE_INFINITY;
+  for(const path of media){if(refusedNow(path))continue;const saved=await repo.readDatasetMedia(mediaKey(path)).catch(()=>null);const version=mediaVersion.get(path)??Number.POSITIVE_INFINITY;
    if(!(saved?.data instanceof Blob)||saved.data.size<=0||!(saved.savedAt>=version)){completed.delete(path);succeeded(path)}}
   addMedia();status();schedule();
  }
