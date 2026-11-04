@@ -282,3 +282,26 @@ test('extension: a correction re-post of an older closing payment (Close Date no
  assert.equal((await offsetPayment(s.referrer)).length,0,'a historical re-post never offsets');
  assert.deepEqual(await rebateExpense(s.loan),{amount:s.rebate+'.00',off:null,holder:'ch:lisa'},'the rebate is recreated as an expense');
 });
+
+// R119 (Chase): the two loans of the V131 case share a display key, so that test cannot tell the order. Here the second loan
+// differs (another principal) and the command lists its charge FIRST: closeRebates must follow the Payment Allocations order,
+// not the loan id order (LOAN < LOAN2), and closeRebate must be the first of them.
+test('R119: closeRebates follow the Payment Allocations order, not the loan id order; the keys differ',async()=>{
+ const s=await autoScenario(),loan2=s.id+'-LOAN2';
+ await admin.query(`INSERT INTO "Loans"("Row ID","Ref Borrowers","Ref Disbursed From Cash Account","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval") VALUES($1,$2,$3,(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date-3,500::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,100::money,1)`,[loan2,s.borrower,fixture.lendingAccountId]);
+ await admin.query(`INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES($1,$2,$3::date,500::money,200::money)`,[loan2+'-today',loan2,today]);
+ await admin.query(`UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"=$1`,[loan2]);
+ const total=1300+700,assigned=await store.autoAssign(principal,s.borrower,{amountReceived:String(total)});assert.equal(assigned.status,200,JSON.stringify(assigned));
+ const chargeLoan=new Map((await admin.query(`SELECT "Row ID" AS id,"Ref Loans" AS loan FROM "Charges" WHERE "Ref Loans"=ANY($1)`,[[s.loan,loan2]])).rows.map(r=>[r.id,r.loan]));
+ const reversed=[...assigned.allocations].sort((a,b)=>chargeLoan.get(a.chargeId)<chargeLoan.get(b.chargeId)?1:-1);
+ assert.equal(chargeLoan.get(reversed[0].chargeId),loan2,'the command lists the second loan first');
+ const command={schemaVersion:7,requestId:randomUUID(),borrowerId:s.borrower,allocations:reversed,cashAccountId:fixture.receivingAccountId,paymentDate:today,amountReceived:String(total),paymentMethod:'Bank Transfer',notes:null,receiptId:null,bankReference:null,transferTime:null};
+ const posted=await store.submit(principal,command);assert.equal(posted.originalOutcome?.status,'posted',JSON.stringify(posted));
+ const record=await store.paymentRecord(principal,posted.originalOutcome.paymentId);assert.equal(record.status,200,JSON.stringify(record).slice(0,300));
+ const lines=record.item.closeRebates,allocationLoans=record.item.allocations.map(a=>chargeLoan.get(a.chargeId));
+ assert.equal(lines.length,2);assert.deepEqual(allocationLoans,[loan2,s.loan],'the allocations are in the command order');
+ assert.deepEqual(lines.map(l=>l.loanId),[loan2,s.loan],'the lines follow the allocations, not "Row ID" order');
+ assert.notEqual(lines[0].loanDisplayKey,lines[1].loanDisplayKey,'the two loans have different keys');
+ assert.deepEqual(lines.map(l=>l.loanDisplayKey),record.item.allocations.map(a=>a.loanDisplayKey));
+ assert.deepEqual(record.item.closeRebate,lines[0],'closeRebate is the first line');
+});

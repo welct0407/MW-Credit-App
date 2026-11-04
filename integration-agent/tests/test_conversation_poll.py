@@ -423,7 +423,7 @@ class RecheckRunTests(unittest.TestCase):
     def run_poll(self,scan_result=None,held=None,day=None):
         from mw_integration_agent.conversation_poll import run
         scanned=Mock(return_value=dict(scan_result or {'image_jobs':0}))
-        recheck=Mock(return_value=held or {'held_requeued':0,'held_skipped':0})
+        recheck=Mock(return_value=held or {'held_requeued':0,'held_skipped':0,'held_skipped_no_archive':0})
         with patch('mw_integration_agent.conversation_poll.controls',return_value=self.config), \
              patch('mw_integration_agent.conversation_poll.load_json',return_value={'services':{'conversation_poll':{'enabled':True}}}), \
              patch('mw_integration_agent.conversation_poll.masters',return_value=self.master),patch('mw_integration_agent.conversation_poll.Instagram'), \
@@ -465,10 +465,10 @@ class RecheckRunTests(unittest.TestCase):
         write_snapshot(self.root,master_fingerprint(self.master),now=100.0)
         self.master['borrowers'].append({'id':'b2','username':'@New','enabled':True})
         self.master['accounts'].append({'id':'b','number':'2222222222','active':True})
-        result,scanned,recheck=self.run_poll({'image_jobs':0,'recheck_jobs':1,'recheck_errors':0},{'held_requeued':2,'held_skipped':0})
+        result,scanned,recheck=self.run_poll({'image_jobs':0,'recheck_jobs':1,'recheck_errors':0},{'held_requeued':2,'held_skipped':0,'held_skipped_no_archive':1})
         self.assertEqual(scanned.call_args.kwargs['recheck'],{'usernames':{'new'}})
         self.assertEqual(recheck.call_args.args[2:],(True,True,100.0))
-        self.assertEqual((result['recheck'],result['held_requeued']),('rechecked',2))
+        self.assertEqual((result['recheck'],result['held_requeued'],result['held_skipped_no_archive']),('rechecked',2,1))
         self.assertEqual(self.snapshot()['enabled'],['borrower','new']);self.assertGreater(self.snapshot()['written_at'],100.0)
         self.assertTrue((self.root/'receipt-wake').exists())
 

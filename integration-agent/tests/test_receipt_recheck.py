@@ -40,7 +40,7 @@ class RecheckHeldTests(unittest.TestCase):
     def test_each_hold_code_requeues_on_its_own_change_keeping_the_extraction(self):
         self.job('payer', 'PAYER_UNRESOLVED'); self.job('recipient', 'RECIPIENT_UNKNOWN_OR_AMBIGUOUS')
         review = ReviewStore(self.db).reserve('payer', {'action': 'Lump Sum'})
-        self.assertEqual(self.recheck(grew=True), {'held_requeued': 1, 'held_skipped': 0})
+        self.assertEqual(self.recheck(grew=True), {'held_requeued': 1, 'held_skipped': 0, 'held_skipped_no_archive': 0})
         payer = self.row('payer')
         self.assertEqual((payer['status'], payer['detail'], payer['attempts'], payer['retry_after']), ('PENDING', DETAIL, 0, 0))
         self.assertEqual(json.loads(payer['result'])['extraction'], EXTRACTION)  # no new OCR
@@ -49,28 +49,37 @@ class RecheckHeldTests(unittest.TestCase):
                          ('SUPERSEDED', 'payer:superseded:' + review))
         previous = json.loads(self.db.execute("SELECT previous FROM receipt_reconsiderations WHERE job_id='payer'").fetchone()[0])
         self.assertEqual((previous['status'], previous['detail']), ('REVIEW', 'PAYER_UNRESOLVED'))
-        self.assertEqual(self.recheck(changed=True), {'held_requeued': 1, 'held_skipped': 0})
+        self.assertEqual(self.recheck(changed=True), {'held_requeued': 1, 'held_skipped': 0, 'held_skipped_no_archive': 0})
         self.assertEqual(self.row('recipient')['status'], 'PENDING')
 
     def test_wrong_trigger_decided_review_old_or_unarchived_jobs_are_left(self):
         self.job('payer', 'PAYER_UNRESOLVED'); self.job('other', 'PAYER_NAME_UNREADABLE')
-        self.assertEqual(self.recheck(changed=True), {'held_requeued': 0, 'held_skipped': 0})
-        self.assertEqual(self.recheck(), {'held_requeued': 0, 'held_skipped': 0})
+        self.assertEqual(self.recheck(changed=True), {'held_requeued': 0, 'held_skipped': 0, 'held_skipped_no_archive': 0})
+        self.assertEqual(self.recheck(), {'held_requeued': 0, 'held_skipped': 0, 'held_skipped_no_archive': 0})
         review = ReviewStore(self.db).reserve('payer', {'action': 'Lump Sum'})
         self.db.execute("UPDATE partner_reviews SET state='APPROVED' WHERE id=?", (review,)); self.db.commit()
         self.job('old', 'PAYER_UNRESOLVED', created=self.now - 3 * 86400)
-        self.job('lost', 'PAYER_UNRESOLVED', archived=False)
-        self.assertEqual(self.recheck(grew=True), {'held_requeued': 0, 'held_skipped': 2})
-        for key in ('payer', 'other', 'old', 'lost'):
+        self.assertEqual(self.recheck(grew=True), {'held_requeued': 0, 'held_skipped': 1, 'held_skipped_no_archive': 0})
+        for key in ('payer', 'other', 'old'):
             self.assertEqual(self.row(key)['status'], 'REVIEW', key)
         self.assertEqual(self.db.execute('SELECT count(*) FROM receipt_reconsiderations').fetchone()[0], 0)
+
+    def test_a_job_without_an_archived_original_is_counted_and_retried_on_a_later_change(self):
+        self.job('lost', 'PAYER_UNRESOLVED', archived=False)
+        self.assertEqual(self.recheck(grew=True), {'held_requeued': 0, 'held_skipped': 0, 'held_skipped_no_archive': 1})
+        self.assertEqual(self.row('lost')['status'], 'REVIEW')
+        self.assertEqual(self.db.execute('SELECT count(*) FROM receipt_reconsiderations').fetchone()[0], 0)  # guard unused
+        # The original is archived by the next master change, which still considers the job and requeues it.
+        self.db.execute("INSERT INTO receipt_assets VALUES ('lost','ARCHIVED')"); self.db.commit()
+        self.assertEqual(self.recheck(grew=True, written_at=time.time() + 1), {'held_requeued': 1, 'held_skipped': 0, 'held_skipped_no_archive': 0})
+        self.assertEqual(self.row('lost')['status'], 'PENDING')
 
     def test_a_rerun_against_the_same_snapshot_rechecks_nothing_again(self):
         self.job('payer', 'PAYER_UNRESOLVED')
         self.assertEqual(self.recheck(grew=True)['held_requeued'], 1)
         # The worker held it again with the same code; the same master change does not requeue it twice.
         self.db.execute("UPDATE receipt_jobs SET status='REVIEW',detail='PAYER_UNRESOLVED'"); self.db.commit()
-        self.assertEqual(self.recheck(grew=True), {'held_requeued': 0, 'held_skipped': 1})
+        self.assertEqual(self.recheck(grew=True), {'held_requeued': 0, 'held_skipped': 1, 'held_skipped_no_archive': 0})
         # A later change (a snapshot written after that requeue) rechecks it once more.
         self.assertEqual(self.recheck(grew=True, written_at=time.time() + 1)['held_requeued'], 1)
 

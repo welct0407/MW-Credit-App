@@ -4,9 +4,10 @@ The conversation poll calls recheck_held under receipt-worker.lock (taken withou
 changed: today's and yesterday's REVIEW jobs held PAYER_UNRESOLVED when the enabled-borrower set grew, and
 RECIPIENT_UNKNOWN_OR_AMBIGUOUS when the active cash-account fingerprint changed. Each goes through
 receipt_reconsider.requeue with detail AUTO_RECHECK_MASTER_CHANGED and keeps its saved extraction (no new OCR); the
-worker then applies the payer, duplicate, archive and idempotency guards as for any job. Skipped: a job whose partner
-review was decided (as receipt-reconsider), a job whose image the worker could not read again (no archived original),
-and a job already requeued from the same hold after the snapshot was written (the loop guard: one recheck per change).
+worker then applies the payer, duplicate, archive and idempotency guards as for any job. Skipped (held_skipped): a job
+whose partner review was decided (as receipt-reconsider) and a job already requeued from the same hold after the
+snapshot was written (the loop guard: one recheck per change). A job without an ARCHIVED original, whose image the worker
+could not read again, is counted as held_skipped_no_archive and left without a record, so a later change considers it.
 """
 import json
 
@@ -39,7 +40,7 @@ def recheck_held(config,journal,enabled_grew,accounts_changed,written_at,now=Non
     import time
     now=time.time() if now is None else now
     codes=[code for code,on in ((PAYER,enabled_grew),(RECIPIENT,accounts_changed)) if on]
-    counts={'held_requeued':0,'held_skipped':0}
+    counts={'held_requeued':0,'held_skipped':0,'held_skipped_no_archive':0}
     if not codes:return counts
     db=journal.db
     ReviewStore(db)
@@ -51,9 +52,11 @@ def recheck_held(config,journal,enabled_grew,accounts_changed,written_at,now=Non
                     (recheck_since(now),*codes)).fetchall()
     for job in jobs:
         review=db.execute('SELECT * FROM partner_reviews WHERE job_id=?',(job['id'],)).fetchone()
-        if (review and review['state'] not in ('PENDING','STALE','EXPIRED')) or already_rechecked(db,job,written_at) \
-                or not image_available(config,journal,job):
+        if (review and review['state'] not in ('PENDING','STALE','EXPIRED')) or already_rechecked(db,job,written_at):
             counts['held_skipped']+=1;continue
+        if not image_available(config,journal,job):
+            # Counted on its own and nothing written: the once-per-change guard is not used, so a later change retries it.
+            counts['held_skipped_no_archive']+=1;continue
         requeue(db,job,DETAIL,review,fresh_extraction=False)
         counts['held_requeued']+=1
     return counts
