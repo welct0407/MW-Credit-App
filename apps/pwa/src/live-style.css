@@ -269,6 +269,8 @@
 .borrower-record form>label{font-size:14px;color:#666}
 .borrower-record .borrower-field-value:not(dd),.borrower-record form input:not([type=checkbox]):not([type=radio]),.borrower-record form select,.borrower-record form textarea{font-size:16px;color:#202124}
 .borrower-record form>label>.field-title{font-size:inherit;color:inherit}
+/* R122: New borrower English name with "Translate from Thai" on its label line; the input keeps the full width. */
+.borrower-english-name{margin:12px 0}.english-name-line{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px}.english-name-line>label{font-size:14px;color:#666;margin:0;min-width:0;overflow-wrap:anywhere}.borrower-record .transliterate-button{flex:0 0 auto;min-height:44px;min-width:44px;padding:8px 12px;white-space:normal}
 .management-reference>button:first-child,.management-reference-option,.management-expense-reference>button:first-child,.management-expense-reference>.borrower-card{font-size:16px}
 .selected-payment input:not([type=checkbox]):not([type=radio]),.selected-payment select,.selected-payment textarea,.payment-result textarea{font-size:16px}
 .payment-result .payment-notes-title{display:block;font-size:14px;color:#565656}
