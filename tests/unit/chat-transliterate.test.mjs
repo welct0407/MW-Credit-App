@@ -54,11 +54,12 @@ test('reply: only {"romanized"} with a plain Latin name (a json fence is tolerat
   `{"romanized":"${'A'.repeat(121)}"}`,'{"romanized":"Som<chai>"}',undefined])assert.equal(romanizedName(bad),null,String(bad));
 });
 
-test('the relay request is tool-less: Sonnet 5.5, system, one user text block, max_tokens, effort low, stream',()=>{
+test('the relay request is tool-less: Sonnet 5.5 without thinking (between_tools), effort medium, one user text block, max_tokens, stream',()=>{
  const body=transliterationBody('สมชาย');assert.equal(TRANSLITERATE_MODEL,SONNET);
- assert.deepEqual(Object.keys(body).sort(),['max_tokens','messages','model','output_config','stream','system']);
+ assert.deepEqual(Object.keys(body).sort(),['max_tokens','messages','model','output_config','stream','system','thinking']);
+ assert.deepEqual(body.thinking,{type:'between_tools'});
  assert.deepEqual(body.messages,[{role:'user',content:[{type:'text',text:'สมชาย'}]}]);
- assert.deepEqual(body.output_config,{effort:'low'});assert.equal(body.stream,true);assert.equal(body.model,SONNET);
+ assert.deepEqual(body.output_config,{effort:'medium'});assert.equal(body.stream,true);assert.equal(body.model,SONNET);
  assert.equal(body.max_tokens,512);
  assert.equal(body.system[0].text,TRANSLITERATE_SYSTEM);assert.match(TRANSLITERATE_SYSTEM,/RTGS/);assert.match(TRANSLITERATE_SYSTEM,/Somchai/);
 });
@@ -69,8 +70,9 @@ test('a Thai name answers {english} through the relay on Claude Sonnet 5.5 (not 
  assert.equal(r.status,200);assert.equal(r.headers.get('access-control-allow-origin'),ORIGIN);
  assert.deepEqual(await r.json(),{english:'Somchai'});
  assert.equal(s.bodies.length,1);const [body]=s.bodies;
- assert.equal(body.model,SONNET);assert.notEqual(body.model,claudeConfig.chat.default);assert.deepEqual(body.output_config,{effort:'low'});
- for(const key of ['tools','tool_choice','temperature','thinking'])assert.equal(key in body,false,key);
+ assert.equal(body.model,SONNET);assert.notEqual(body.model,claudeConfig.chat.default);assert.deepEqual(body.output_config,{effort:'medium'});
+ assert.deepEqual(body.thinking,{type:'between_tools'});
+ for(const key of ['tools','tool_choice','temperature','top_p','top_k'])assert.equal(key in body,false,key);
  assert.deepEqual(body.messages,[{role:'user',content:[{type:'text',text:'สมชาย'}]}]);
  assert.deepEqual(s.readers,['a@example.invalid']);
  assert.equal(JSON.stringify(s.logs).includes('สมชาย'),false);assert.equal(JSON.stringify(s.logs).includes('Somchai'),false);

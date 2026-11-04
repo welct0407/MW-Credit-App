@@ -24,15 +24,20 @@ DEV deploy scope: the VM-01 chat relay (installed by the integration-agent deplo
 ## Checks
 | Command | Result |
 | --- | --- |
-| typecheck | Pass (Byte; HEAD 65b2fc3 plus the uncommitted R122 tree) |
-| lint | Pass (Byte; same tree) |
-| focused `node --test` | Pass: 243 pass, 1 skip (Byte; same tree) |
-| Integration-agent relay tests | pending (Byte) |
-| `npm run check:docs` | Pass (Dewey, documentation batch) |
+| `npm run typecheck` | Pass (Byte; 1b9931d + transliterate edit) |
+| `npm run lint` | 0 errors (Byte; 1b9931d + transliterate edit) |
+| focused `node --test` | 209 tests, 208 pass, 1 skip (`MW_CHAT_DIGEST_PORT`) (Byte; 1b9931d + transliterate edit) |
+| integration-agent `PYTHONPATH=src python3 -m unittest discover -s tests` | 742 OK, 70 skipped (Byte; 1b9931d + transliterate edit) |
+| `ruff check` on `chat_relay_api.py` and `test_chat_relay.py` | Pass (Byte; 1b9931d + transliterate edit) |
+| Playwright desktop-chromium `loan-read.spec.ts` | 2 passed (Chase; 1b9931d + transliterate edit) |
+| Playwright desktop-chromium `phase5-final-ui-independent.spec.ts -g R122` | 3 passed (Chase; 1b9931d + transliterate edit) |
+| Playwright desktop-chromium `chat.spec.ts -g "R122: (Translate|the New)"` | 3 passed, including 320 and 390 px in English and Thai and targets of 44 px or more (Chase; 1b9931d + transliterate edit) |
+| Diff review | No defects; relay `thinking` validation is exact-match and rejects `disabled`, `budget_tokens` and extra keys (Chase) |
+| `npm run check:docs` | Pass (Dewey) |
 | Development checks (CI) | pending, after the push |
 
 ## Not run
-No PROD action and no SQL test (no SQL change). Live romanization against the relay is not run until the DEV deploy. A skipped check is not a pass.
+No PROD action. `services/business/cash.mjs` SQL was not run on a disposable PostgreSQL. iPhone/WebKit and the wide browser suite are left to the pull request CI. Live romanization against the relay is not run until the DEV deploy. A skipped check is not a pass.
 
 ## Recovery
 Git baseline is R121 `f6622c5` (tag `R121`). Revert the R122 commit and redeploy the prior DEV images, Hosting and the prior relay package on VM-01; no schema change to undo.
