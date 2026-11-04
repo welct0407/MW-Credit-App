@@ -48,7 +48,7 @@ DEV deploy scope: the VM-01 chat relay (installed by the integration-agent deplo
 No PROD action. `services/business/cash.mjs` SQL was not run on a disposable PostgreSQL. iPhone/WebKit and the wide browser suite are left to the pull request CI. Live romanization against the relay is not run until the DEV deploy. A skipped check is not a pass.
 
 ## Recovery
-Git baseline is R121 `f6622c5` (tag `R121`). Revert the R122 commit and redeploy the prior DEV images, Hosting and the prior relay package on VM-01; no schema change to undo.
+Git baseline is R121 `3f885fa` (tag `R121`; closure merge `f6622c5`). Revert the R122 commit and redeploy the prior DEV images, Hosting and the prior relay package on VM-01; no schema change to undo.
 
 ## Open questions
 None for the owner at present.
@@ -70,3 +70,10 @@ Forge, 4 November 2026 (UTC), from PR #234 head `74a5705` (unmerged; Development
 | Hosting redeploy (`399a35c`, CSS fix `37da2fa`, R122-NEW-07; Development checks run 41863289902 green) | Hosting only: `git diff --stat 74a5705 399a35c -- services integration-agent` shows records only, so images, Terraform and the relay are unchanged. `build:live-dev` from a detached worktree of `399a35c` (release R122, build-version `2e72ba31ac5160a23dc9ba67`, entry `/assets/index-Dtf8iet3.js`), `--check` then deploy: version `89deb290b5c1d5a4`, release `1793809886101000`. Readback: public `build-version.json` matches; `/sw.js` 200 `no-store`; the bundle carries `399a35c`; the live CSS has `.field-help.translate-error{color:#b3261e}`. Previous Hosting `5ab8b076a340d42e` (`74a5705`). The red error was not checked in a browser |
 
 Rollback: activation generation `1793785264889957` (images `3556d8ec…ddde8`) and Hosting `f321bf286e369835` (R121); the relay as in the agent note.
+
+## Closure prune (Dewey, 4 November 2026)
+R122 is Released, so the retention window is R122, R121 and R120. Inbound links to the R119 records were repointed to commit `b83bf3a` first (Release_Tracker, Development_Changes, Solution_Design, Environment_Inventory, the integration-agent catalogue, CONVERSATION_POLL, OPERATIONS and PARTNER_REVIEW). Deleted:
+- `Change Logs/CHANGE_NOTES_R119_REBATE_LINES_AGENT_RECHECK_2026-11-04.md`
+- `integration-agent/Change Logs/CHANGE_NOTES_R119_AGENT_RECHECK_2026-11-04.md`
+- `project/outputs/dictionary-r119-20261104/` (`coverage.json`, `plan.json`, `production-postgresql-observations.json`; nothing current cites them)
+Development Changes keeps no R122 section; its R122 row is the follow-up line.

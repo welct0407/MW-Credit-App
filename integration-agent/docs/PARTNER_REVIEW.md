@@ -67,7 +67,7 @@ Owner decision, 20 October 2026, replacing the 21 September rule that changed lo
 
 ## Held receipts rechecked after a master change — revision 35 (R119, implemented, off)
 
-With `conversation_poll_recheck_enabled` on, the conversation poll requeues a `REVIEW` job held `PAYER_UNRESOLVED` (a borrower became enabled) or `RECIPIENT_UNKNOWN_OR_AMBIGUOUS` (a cash account number was added or changed) once, with detail `AUTO_RECHECK_MASTER_CHANGED`, the saved extraction kept, through the same logic as `receipt-reconsider`: the prior state goes to `receipt_reconsiderations` and a pending review is `SUPERSEDED` under a renamed job id. A job whose review was decided is never reopened, and the worker applies every guard again. See the [change note](../Change%20Logs/CHANGE_NOTES_R119_AGENT_RECHECK_2026-11-04.md).
+With `conversation_poll_recheck_enabled` on, the conversation poll requeues a `REVIEW` job held `PAYER_UNRESOLVED` (a borrower became enabled) or `RECIPIENT_UNKNOWN_OR_AMBIGUOUS` (a cash account number was added or changed) once, with detail `AUTO_RECHECK_MASTER_CHANGED`, the saved extraction kept, through the same logic as `receipt-reconsider`: the prior state goes to `receipt_reconsiderations` and a pending review is `SUPERSEDED` under a renamed job id. A job whose review was decided is never reopened, and the worker applies every guard again. See the [change note](https://github.com/welct0407/MW-Credit-App/blob/b83bf3a/integration-agent/Change%20Logs/CHANGE_NOTES_R119_AGENT_RECHECK_2026-11-04.md).
 
 `receipt-reconsider` also accepts a `PREPARED` job created by `receipt-prepare` (source kind `operator-selected`), the supported route for posting a slip the owner selected by hand instead of editing the database. A decided review is still refused.
 
